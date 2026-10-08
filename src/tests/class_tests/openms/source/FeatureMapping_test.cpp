@@ -152,6 +152,66 @@ START_SECTION([EXTRA] (multiple features in window: closest m/z wins))
 }
 END_SECTION
 
+START_SECTION([EXTRA] (identifications of the assigned features))
+{
+  using ID = IdentificationData;
+  FeatureMap fmap;
+  auto& run = fmap.getIdentificationData().addRun("ams", ID::MoleculeKind::COMPOUND);
+  ID::ScoreDefinition ppm;
+  ppm.name = "MassErrorAbsPPMScore";
+  ppm.higher_better = false;
+  run.setPrimaryScore(run.addScore(ppm));
+  const auto source = run.addSource({});
+  const auto first = run.addIdentification(source, ID::Observation {});
+  const auto second = run.addIdentification(source, ID::Observation {});
+  ID::MatchData compound;
+  compound.encoding = ID::Encoding::DATABASE_ID;
+  compound.charge = 1;
+  std::vector<ID::MatchId> matches;
+  for (const auto& [query, name] : {std::pair {first, "HMDB:1"}, std::pair {first, "HMDB:2"}, std::pair {second, "HMDB:3"}})
+  {
+    compound.representation = name;
+    compound.setMetaValue("description", StringList {name});
+    matches.push_back(run.addMatch(query, compound, {1.0}));
+  }
+  { Feature f; f.setRT(100.0); f.setMZ(500.0); fmap.push_back(f); } // H0: both identifications, the second linked first
+  { Feature f; f.setRT(200.0); f.setMZ(600.0); fmap.push_back(f); } // H1: none
+  fmap[0].addIDMatch({run.getUuid(), matches[2]});
+  fmap[0].addIDQuery({run.getUuid(), first});
+  fmap[0].addIDMatch({run.getUuid(), matches[1]});
+  fmap[0].addIDMatch({run.getUuid(), matches[0]});
+
+  FeatureMapping::FeatureMappingInfo info;
+  info.feature_maps.push_back(fmap);
+  info.kd_tree.addMaps(info.feature_maps);
+  const BaseFeature* H0 = &info.feature_maps[0][0];
+  const BaseFeature* H1 = &info.feature_maps[0][1];
+
+  MSExperiment exp;
+  exp.addSpectrum(mkMS2(100.0, 500.0));
+  exp.addSpectrum(mkMS2(200.0, 600.0));
+  const auto r = FeatureMapping::assignMS2IndexToFeature(exp, info, 0.5, 5.0, false);
+  TEST_EQUAL(r.identification_data.size(), 2)
+  TEST_EQUAL(r.identification_data.at(H0), &info.feature_maps[0].getIdentificationData())
+  // The matches of the first identification (by identification order), in their order.
+  const auto linked = r.getFirstLinkedMatches(H0);
+  ABORT_IF(linked.size() != 2)
+  TEST_EQUAL(linked[0]->representation, "HMDB:1")
+  TEST_EQUAL(linked[1]->representation, "HMDB:2")
+  TEST_EQUAL(linked[0]->getMetaValue("description").toStringList()[0], "HMDB:1")
+  TEST_EQUAL(r.getFirstLinkedMatches(H1).empty(), true)
+  TEST_EQUAL(FeatureMapping::FeatureToMs2Indices().getFirstLinkedMatches(H0).empty(), true)
+
+  // Peptide identifications must be identification data first.
+  FeatureMapping::FeatureMappingInfo legacy;
+  legacy.feature_maps.emplace_back();
+  legacy.feature_maps[0].push_back(Feature());
+  legacy.feature_maps[0][0].getPeptideIdentifications().resize(1);
+  legacy.kd_tree.addMaps(legacy.feature_maps);
+  TEST_EXCEPTION(Exception::InvalidParameter, FeatureMapping::assignMS2IndexToFeature(exp, legacy, 0.5, 5.0, false))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

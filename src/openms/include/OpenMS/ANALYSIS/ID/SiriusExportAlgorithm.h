@@ -65,7 +65,8 @@ namespace OpenMS
         @c getFilterByNumMassTraces() mass traces are then dropped, the survivors are
         wrapped in a @ref KDTreeFeatureMaps, and MS2 spectra are matched to features
         via @ref FeatureMapping::assignMS2IndexToFeature using the configured
-        precursor tolerances.
+        precursor tolerances. The identifications of the loaded features (e.g. from AccurateMassSearch) become
+        identification data (IdentificationDataConverter::moveToIdentificationData()).
 
         @param[in]  featureinfo           Path to featureXML; if empty, the function is a no-op.
         @param[in]  spectra               Spectra container (MS1 + MS2); only MS2 are mapped.

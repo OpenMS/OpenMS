@@ -61,7 +61,8 @@ namespace OpenMS
       @ref FeatureMappingInfo passed to @ref assignMS2IndexToFeature; the values are spectrum
       indices into the @c spectra input. @c unassignedMS2 holds the indices of MS2 spectra that
       had at least one precursor but no feature inside the tolerance window (MS2 spectra without
-      a precursor are silently dropped and appear in neither container).
+      a precursor are silently dropped and appear in neither container). @c identification_data
+      holds, for each assigned feature, the identification data of its map (non-owning as well).
     */
     class FeatureToMs2Indices
     {
@@ -70,6 +71,16 @@ namespace OpenMS
        std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
        /// Indices of MS2 spectra that had a precursor but no feature inside the tolerance window
        std::vector<size_t> unassignedMS2;
+       /// The identification data of the map of each assigned feature: it holds the identifications the feature links
+       std::map<const BaseFeature*, const IdentificationData*> identification_data;
+
+       /**
+         @brief The matches of the first identification that @p feature links, in their order
+
+         The counterpart of the hits of the feature's first peptide identification. Empty if the feature links no
+         identification, or if its identification data is not known (see @c identification_data).
+       */
+       std::vector<const IdentificationData::Match*> getFirstLinkedMatches(const BaseFeature* feature) const;
     };
 
     /**
@@ -92,7 +103,8 @@ namespace OpenMS
           spectra are matched against @c precursors()[0] only).
 
       The result groups spectrum indices by their winning feature; each spectrum index appears
-      at most once in either the assigned or the unassigned collection.
+      at most once in either the assigned or the unassigned collection. It also records the
+      identification data of each assigned feature's map.
 
       @param[in] spectra                  Run-level spectrum container (MS1 and MS2 mixed; MS2 spectra are processed).
       @param[in] fm_info                  Feature maps + kd-tree bundle (the kd-tree must reference @c fm_info.feature_maps).
@@ -100,6 +112,8 @@ namespace OpenMS
       @param[in] precursor_rt_tolerance   Half-width of the RT tolerance window in seconds (absolute).
       @param[in] ppm                      If true, interpret @p precursor_mz_tolerance as ppm; otherwise as Th.
       @return Mapping result containing one entry per matched feature plus the list of unassigned MS2 spectra.
+      @throw Exception::InvalidParameter if a map of @p fm_info has peptide identifications: their
+      identifications must be identification data (see IdentificationDataConverter::moveToIdentificationData()).
     */
     static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
                                                        const FeatureMappingInfo& fm_info,

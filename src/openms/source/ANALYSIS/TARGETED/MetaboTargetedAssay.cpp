@@ -150,21 +150,21 @@ namespace OpenMS
         feature_charge = min_distance_feature->getCharge();
 
         // extract metadata from featureXML
-        auto metaboliteIdentifications = min_distance_feature->getPeptideIdentifications();
-        if (!(metaboliteIdentifications.empty()) && !(metaboliteIdentifications[0].getHits().empty()))
+        const auto matches = feature_ms2_index.getFirstLinkedMatches(min_distance_feature);
+        if (!matches.empty())
         {
-          // accurate mass search may provide multiple possible Hits
+          // accurate mass search may provide multiple possible matches
           // for heuristics use the identification with the smallest mz error (ppm)
           double min_id_mz_error = std::numeric_limits<double>::max();
-          for (const auto& mhit : min_distance_feature->getPeptideIdentifications()[0].getHits())
+          for (const auto* mhit : matches)
           {
-            double current_id_mz_error = (double)mhit.getMetaValue("mz_error_ppm");
+            double current_id_mz_error = (double)mhit->getMetaValue("mz_error_ppm");
             // compare the absolute error absolute error
             if (abs(current_id_mz_error) < min_id_mz_error)
             {
-              description = StringUtils::toStr(mhit.getMetaValue("description"));
-              sumformula = StringUtils::toStr(mhit.getMetaValue("chemical_formula"));
-              adduct = StringUtils::toStr(mhit.getMetaValue("modifications"));
+              description = StringUtils::toStr(mhit->getMetaValue("description"));
+              sumformula = StringUtils::toStr(mhit->getMetaValue("chemical_formula"));
+              adduct = StringUtils::toStr(mhit->getMetaValue("modifications"));
 
               // change format of description [name] to name
               description.erase(remove_if(begin(description), end(description), [](char c) { return c == '[' || c == ']'; }), end(description));
@@ -751,6 +751,8 @@ namespace OpenMS
 
     std::unordered_map< UInt64 , vector<MetaboTargetedAssay> > ambiguity_groups;
     vector <FeatureMap> feature_maps;
+    // the indices of the target and decoy assay (-1: none) of each feature, by map index and unique ID
+    std::map<std::pair<Size, UInt64>, std::pair<int, int>> assay_indices;
 
     size_t loop_size;
     if ( in_files_size > 1)
@@ -778,8 +780,6 @@ namespace OpenMS
       Feature f;
       f.setUniqueId();
       f.ensureUniqueId();
-      PeptideIdentification pep;
-      PeptideIdentificationList v_pep;
 
       // check - no target and decoy available
       if (it.second.target_mz == 0.0 && it.second.decoy_mz == 0.0)
@@ -814,19 +814,8 @@ namespace OpenMS
       DPosition<2> pt(it.second.target_rt, it.second.target_mz);
       f.setPosition(pt);
 
-      if (it.second.target_index != -1)
-      {
-        pep.setMetaValue("v_mta_target_index", DataValue(it.second.target_index));
-      }
-
-      if (it.second.decoy_index != -1)
-      {
-        pep.setMetaValue("v_mta_decoy_index", DataValue(it.second.decoy_index));
-      }
-      v_pep.push_back(pep);
-      f.setPeptideIdentifications(v_pep);
-
       size_t cfile = it.second.target_file_number;
+      assay_indices[{cfile, f.getUniqueId()}] = {it.second.target_index, it.second.decoy_index};
       feature_maps[cfile].push_back(f);
     }
 
@@ -848,20 +837,18 @@ namespace OpenMS
     // build ambiguity groups based on consensus entries
     for (const auto& c_it : c_map)
     {
-      vector <PeptideIdentification> v_pep;
-      v_pep = c_it.getPeptideIdentifications().getData();
       vector <MetaboTargetedAssay> ambi_group;
-      for (const auto& p_it : v_pep)
+      for (const auto& handle : c_it.getFeatures())
       {
-        if (p_it.metaValueExists("v_mta_target_index"))
+        const auto indices = assay_indices.find({handle.getMapIndex(), handle.getUniqueId()});
+        if (indices == assay_indices.end()) continue;
+        if (indices->second.first != -1)
         {
-          int index = (int)p_it.getMetaValue("v_mta_target_index");
-          ambi_group.push_back(v_mta[index]);
+          ambi_group.push_back(v_mta[indices->second.first]);
         }
-        if (p_it.metaValueExists("v_mta_decoy_index"))
+        if (indices->second.second != -1)
         {
-          int index = (int)p_it.getMetaValue("v_mta_decoy_index");
-          ambi_group.push_back(v_mta[index]);
+          ambi_group.push_back(v_mta[indices->second.second]);
         }
       }
 

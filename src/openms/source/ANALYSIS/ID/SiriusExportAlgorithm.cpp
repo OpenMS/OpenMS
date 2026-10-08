@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 namespace OpenMS
 {
@@ -57,6 +58,7 @@ namespace OpenMS
         // read featureXML          
         FeatureMap feature_map;
         FileHandler().loadFeatures(featureXML_path, feature_map);
+        IdentificationDataConverter::moveToIdentificationData(feature_map);
 
         if (preprocessing_filter_by_num_masstraces != 1 && !isFeatureOnly())
         {

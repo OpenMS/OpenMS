@@ -310,12 +310,12 @@ protected:
         for (auto it = feature_ms2_spectra_map.begin(); it != feature_ms2_spectra_map.end(); ++it)
         {
           const BaseFeature *feature = it->first;
-          if (!(feature->getPeptideIdentifications().empty()) &&
-              !(feature->getPeptideIdentifications()[0].getHits().empty()))
+          const auto matches = feature_mapping.getFirstLinkedMatches(feature);
+          if (!matches.empty())
               {
                 std::string description;
-                // one hit is enough for prefiltering
-                description = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description").toString();
+                // one match is enough for prefiltering
+                description = matches.front()->getMetaValue("description").toString();
                 // change format of description [name] to name
                 description.erase(remove_if(begin(description),
                                             end(description),

@@ -542,28 +542,29 @@ namespace OpenMS
         }
 
         // prefer adducts from AccurateMassSearch if MetaboliteAdductDecharger and AccurateMassSearch were performed
-        // if multiple PeptideHits / identifications occur - use all for SIRIUS
+        // if the first identification of the feature has several matches - use all for SIRIUS
         v_description.clear();
         v_sumformula.clear();
         // descriptions is "[null]" if AccurateMassSearch was run with "keep unidentified masses"
-        if (!feature->getPeptideIdentifications().empty() && !feature->getPeptideIdentifications()[0].getHits().empty())
+        const auto matches = feature_mapping.getFirstLinkedMatches(feature);
+        if (!matches.empty())
         {
           adducts.clear();
 
-          for (unsigned int j = 0; j != feature->getPeptideIdentifications()[0].getHits().size(); ++j)
+          for (const auto* match : matches)
           {
            std::string adduct;
-           description = StringUtils::toStr(feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("description"));
+           description = StringUtils::toStr(match->getMetaValue("description"));
            if (description == "[null]")
            {
              description = "[UNKNOWN]";
            }
-           sumformula = StringUtils::toStr(feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("chemical_formula"));
+           sumformula = StringUtils::toStr(match->getMetaValue("chemical_formula"));
            if (sumformula.empty())
            {
              sumformula = "UNKNOWN";
            }
-           adduct = StringUtils::toStr(feature->getPeptideIdentifications()[0].getHits()[j].getMetaValue("modifications"));
+           adduct = StringUtils::toStr(match->getMetaValue("modifications"));
            if (adduct != "null")
            {
              // change format of adduct information M+H;1+ -> [M+H]1+

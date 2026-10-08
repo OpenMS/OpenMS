@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace std;
 
@@ -20,7 +21,12 @@ namespace OpenMS
                                                                               const double& precursor_rt_tolerance,
                                                                               bool ppm)
   {
+    for (const auto& map : fm_info.feature_maps)
+      if (IdentificationDataConverter::hasPeptideIdentifications(map))
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Feature maps with peptide identifications: move them into identification data first");
     std::map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
+    std::map<const BaseFeature*, const IdentificationData*> identification_data;
     vector<size_t> unassigned_ms2;
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)
@@ -65,11 +71,24 @@ namespace OpenMS
         }
         const BaseFeature* min_distance_feature = fm_info.kd_tree.feature(min_distance_feature_index);
         assigned_ms2[min_distance_feature].push_back(index);
+        const Size map_index = fm_info.kd_tree.mapIndex(min_distance_feature_index);
+        if (map_index < fm_info.feature_maps.size())
+          identification_data[min_distance_feature] = &fm_info.feature_maps[map_index].getIdentificationData();
       }
     }
     FeatureMapping::FeatureToMs2Indices feature_mapping;
     feature_mapping.assignedMS2 = assigned_ms2;
     feature_mapping.unassignedMS2 = unassigned_ms2;
+    feature_mapping.identification_data = std::move(identification_data);
     return feature_mapping;
+  }
+
+  std::vector<const IdentificationData::Match*> FeatureMapping::FeatureToMs2Indices::getFirstLinkedMatches(const BaseFeature* feature) const
+  {
+    const auto data = identification_data.find(feature);
+    if (data == identification_data.end()) return {};
+    auto linked = feature->getLinkedIdentifications(*data->second);
+    if (linked.empty()) return {};
+    return std::move(linked.front().matches);
   }
 } // namespace OpenMS
