@@ -161,6 +161,9 @@ TOPP tools:
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
         HyperScores with a warning.
+      - PARAM: New -out writes the per-file identifications as idXML or as an idparquet bundle
+        (format by extension), like CometAdapter and SageAdapter. -out_idxml (idXML only) is
+        deprecated; it still works but cannot be combined with -out. -out_merged accepts idparquet.
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.

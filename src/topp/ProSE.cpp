@@ -125,15 +125,18 @@ class ProSE :
       registerInputFile_("database", "<file>", "", "Input protein sequence database in FASTA format.");
       setValidFormats_("database", ListUtils::create<std::string>("fasta"));
 
-      registerOutputFileList_("out_idxml", "<files>", StringList(), "Output idXML identification file(s). Must have the same number of entries as -in.", false);
+      registerOutputFileList_("out", "<files>", StringList(), "Output identification file(s), one per -in: idXML or an idparquet directory bundle (format by extension). Must have the same number of entries as -in.", false);
+      setValidFormats_("out", ListUtils::create<std::string>("idXML,idparquet"));
+
+      registerOutputFileList_("out_idxml", "<files>", StringList(), "Deprecated, use -out. Output idXML identification file(s). Must have the same number of entries as -in. Cannot be combined with -out.", false, true);
       setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML"));
 
       registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet. The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
 
       registerOutputDir_("out_parquet", "<dir>", "", "Output directory for OpenMS internal format Parquet files. Writes per-input <basename>.psm/proteins/pg/search_params.parquet, plus merged openms.* files.", false, true);
 
-      registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
-      setValidFormats_("out_merged", ListUtils::create<std::string>("idXML"));
+      registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
+      setValidFormats_("out_merged", ListUtils::create<std::string>("idXML,idparquet"));
 
       registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. Written independently of -rescore (i.e. you can produce .pin files without rescoring). With -rescore, the .pin is written from the rescored PSMs.", false, true);
       setValidFormats_("out_pin", ListUtils::create<std::string>("tsv"));
@@ -275,7 +278,19 @@ class ProSE :
     {
       const StringList in_list = getStringList_("in");
       const std::string database = getStringOption_("database");
-      const StringList out_idxml_list = getStringList_("out_idxml");
+      // -out_idxml is the deprecated, idXML-only predecessor of -out.
+      const StringList out_new_list = getStringList_("out");
+      const StringList out_idxml_old_list = getStringList_("out_idxml");
+      if (!out_new_list.empty() && !out_idxml_old_list.empty())
+      {
+        OPENMS_LOG_ERROR << "-out_idxml is a deprecated alias of -out; give only one of them." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      if (!out_idxml_old_list.empty())
+      {
+        OPENMS_LOG_WARN << "-out_idxml is deprecated; use -out (accepts idXML and idparquet)." << endl;
+      }
+      const StringList& out_id_list = out_new_list.empty() ? out_idxml_old_list : out_new_list;
       const StringList out_pin_list = getStringList_("out_pin");
       const std::string out_merged = getStringOption_("out_merged");
       const std::string out_qpx_dir = getOutputDirOption("out_qpx");
@@ -290,16 +305,16 @@ class ProSE :
       }
 
       // At least one output must be specified
-      if (out_idxml_list.empty() && out_pin_list.empty() && out_qpx_dir.empty() && out_parquet_dir.empty() && out_merged.empty())
+      if (out_id_list.empty() && out_pin_list.empty() && out_qpx_dir.empty() && out_parquet_dir.empty() && out_merged.empty())
       {
-        OPENMS_LOG_ERROR << "No output specified. Provide at least one of -out_idxml, -out_pin, -out_qpx, -out_parquet, or -out_merged." << endl;
+        OPENMS_LOG_ERROR << "No output specified. Provide at least one of -out, -out_pin, -out_qpx, -out_parquet, or -out_merged." << endl;
         return ILLEGAL_PARAMETERS;
       }
 
-      // -out_idxml count must match -in count
-      if (!out_idxml_list.empty() && in_list.size() != out_idxml_list.size())
+      // -out count must match -in count
+      if (!out_id_list.empty() && in_list.size() != out_id_list.size())
       {
-        OPENMS_LOG_ERROR << "Number of output files (-out_idxml, " << out_idxml_list.size()
+        OPENMS_LOG_ERROR << "Number of output files (-out, " << out_id_list.size()
                          << ") must match number of input files (-in, " << in_list.size() << ")." << endl;
         return ILLEGAL_PARAMETERS;
       }
@@ -546,7 +561,7 @@ class ProSE :
                           << "Protein-level FDR is NOT applied: filtering each run separately "
                           << "would not control the FDR of the pooled protein list, and no "
                           << "single output here represents a complete experiment. Per-file "
-                          << "outputs (-out_idxml/-out_qpx/-out_parquet) retain target+decoy "
+                          << "outputs (-out/-out_qpx/-out_parquet) retain target+decoy "
                           << "evidence as intermediates. Use -out_merged to obtain protein FDR "
                           << "over the aggregated set, or pool the per-file outputs and apply "
                           << "FDR downstream (e.g. IDMerger -> ProteinInference -> FalseDiscoveryRate)." << endl;
@@ -576,7 +591,7 @@ class ProSE :
 
       Size failed_count = 0;
       // Paths actually written, for an accurate output manifest in the report.
-      std::vector<std::string> written_idxml, written_pin;
+      std::vector<std::string> written_idxml, written_idparquet, written_pin;
       for (Size i = 0; i < in_list.size(); ++i)
       {
         const std::string& in_file = in_list[i];
@@ -603,18 +618,26 @@ class ProSE :
         // failure to input_failed; the input counts as failed if any mode failed.
         bool input_failed = false;
 
-        // -- idXML output --
-        if (!out_idxml_list.empty())
+        // -- identification output (idXML or idparquet) --
+        if (!out_id_list.empty())
         {
           try
           {
-            FileHandler().storeIdentifications(out_idxml_list[i], result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
-            written_idxml.push_back(out_idxml_list[i]);
+            FileHandler().storeIdentifications(out_id_list[i], result.protein_ids, result.peptide_ids,
+                                               {FileTypes::IDXML, FileTypes::IDPARQUET});
+            if (FileHandler::getTypeByFileName(out_id_list[i]) == FileTypes::IDPARQUET)
+            {
+              written_idparquet.push_back(out_id_list[i]);
+            }
+            else
+            {
+              written_idxml.push_back(out_id_list[i]);
+            }
           }
           catch (const Exception::BaseException& e)
           {
-            OPENMS_LOG_ERROR << "Failed to write idXML output for " << in_file
-                             << " -> " << out_idxml_list[i] << ": " << e.what() << endl;
+            OPENMS_LOG_ERROR << "Failed to write identification output for " << in_file
+                             << " -> " << out_id_list[i] << ": " << e.what() << endl;
             input_failed = true;
           }
         }
@@ -874,7 +897,7 @@ class ProSE :
       // Write merged idXML (pool all per-file PSMs, possibly Percolator-rescored,
       // and run cross-file protein inference + optional protein FDR). Wrapped in
       // try/catch so any failure here does NOT discard per-file outputs that
-      // already completed above. Per-file outputs (-out_idxml / -out_qpx /
+      // already completed above. Per-file outputs (-out / -out_qpx /
       // -out_parquet) are not modified by this block — they retain run-level
       // information.
       if (!out_merged.empty() && in_list.size() > 1)
@@ -995,11 +1018,12 @@ class ProSE :
             merged_protein_ids[0].setPrimaryMSRunPath(basenames);
           }
 
-          FileHandler().storeIdentifications(out_merged, merged_protein_ids, merged_peptides, {FileTypes::IDXML});
+          FileHandler().storeIdentifications(out_merged, merged_protein_ids, merged_peptides,
+                                             {FileTypes::IDXML, FileTypes::IDPARQUET});
         }
         catch (const Exception::BaseException& e)
         {
-          OPENMS_LOG_ERROR << "Failed to write merged idXML output -> " << out_merged
+          OPENMS_LOG_ERROR << "Failed to write merged identification output -> " << out_merged
                            << ": " << e.what()
                            << ". Per-file outputs were written (check above for any per-file errors)." << endl;
           // Do NOT propagate; per-file outputs are already on disk.
@@ -1028,8 +1052,12 @@ class ProSE :
           if (!nonempty.empty()) { manifest.emplace_back(label, std::move(nonempty)); }
         };
         add_manifest("idXML", written_idxml);
+        add_manifest("idparquet", written_idparquet);
         add_manifest("pin", written_pin);
-        if (!out_merged.empty() && in_list.size() > 1) { add_manifest("merged idXML", {out_merged}); }
+        if (!out_merged.empty() && in_list.size() > 1)
+        {
+          add_manifest(FileHandler::getTypeByFileName(out_merged) == FileTypes::IDPARQUET ? "merged idparquet" : "merged idXML", {out_merged});
+        }
         if (!out_qpx_dir.empty()) { add_manifest("QPX parquet", {out_qpx_dir}); }
         if (!out_parquet_dir.empty()) { add_manifest("OpenMS parquet", {out_parquet_dir}); }
         if (!out_mod_analysis_dir.empty() && open_search_mode) { add_manifest("mod-analysis tables", {out_mod_analysis_dir}); }

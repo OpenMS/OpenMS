@@ -4621,7 +4621,7 @@ set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
 
 add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test
 -ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
-${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("TOPP_ProSE_2_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/ProSE_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
@@ -4631,7 +4631,7 @@ set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
 add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
+  -out ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("TOPP_ProSE_3_multi_idXML_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
@@ -4698,7 +4698,7 @@ set_tests_properties("TOPP_ProSE_3_qpx_merged_identity" PROPERTIES DEPENDS "TOPP
 add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_4.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
+  -out ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("TOPP_ProSE_4_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
@@ -4713,7 +4713,7 @@ set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
 # must match test 1 exactly (chunking must not change identification results).
 add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
-  ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
+  ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
   -Search:database:chunk_size 5)
 add_test("TOPP_ProSE_5_chunked_out" ${DIFF}
@@ -4733,7 +4733,7 @@ add_test("TOPP_ProSE_6_fdr" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML)
+  -out ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML)
 # Exact idXML diff is NOT portable for this FDR-thresholded realistic search: HyperScore uses libm
 # lgamma/log1p, whose last ULP differs across macOS/Windows/Linux, flipping ~1 target/decoy near-tie
 # and cascading every scan_index (issue #9640). So verify the END-TO-END result via FileInfo counts
@@ -4766,7 +4766,7 @@ add_test("TOPP_ProSE_6_fdr_chunked" ${TOPP_BIN_PATH}/ProSE -test
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
   -Search:database:chunk_size 20
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_6_fdr_chunked_out.tmp.idXML)
+  -out ${TESTS_TEMP_DIR}/ProSE_6_fdr_chunked_out.tmp.idXML)
 add_test("TOPP_ProSE_6_fdr_chunked_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_6_fdr_chunked_out.tmp.idXML
   -in2 ${TESTS_TEMP_DIR}/ProSE_6_fdr_out.tmp.idXML
@@ -4784,7 +4784,7 @@ add_test("TOPP_ProSE_7_merged" ${TOPP_BIN_PATH}/ProSE -test
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
       ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_7_merged_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_7_merged_b.tmp.idXML
+  -out ${TESTS_TEMP_DIR}/ProSE_7_merged_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_7_merged_b.tmp.idXML
   -out_merged ${TESTS_TEMP_DIR}/ProSE_7_merged.tmp.idXML)
 add_test("TOPP_ProSE_7_merged_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_7_merged.tmp.idXML
@@ -4805,7 +4805,7 @@ add_test("TOPP_ProSE_8_auto" ${TOPP_BIN_PATH}/ProSE -test
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
   -Search:decoys auto
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_8_auto_out.tmp.idXML)
+  -out ${TESTS_TEMP_DIR}/ProSE_8_auto_out.tmp.idXML)
 add_test("TOPP_ProSE_8_auto_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_8_auto_out.tmp.idXML
   -out_tsv ${TESTS_TEMP_DIR}/ProSE_8_auto_info.tmp.tsv)
@@ -4824,7 +4824,7 @@ add_test("TOPP_ProSE_9_summary" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_9_out.tmp.idXML
+  -out ${TESTS_TEMP_DIR}/ProSE_9_out.tmp.idXML
   -no_summary
   -summary_out ${TESTS_TEMP_DIR}/ProSE_9_summary.tmp.yaml)
 add_test(NAME "TOPP_ProSE_9_summary_exists" COMMAND ${CMAKE_COMMAND} -E sha256sum
@@ -4838,7 +4838,7 @@ add_test("TOPP_ProSE_10" ${TOPP_BIN_PATH}/ProSE -test
   -database ${DATA_DIR_TOPP}/ProSE_10.fasta
   -Search:fragment:mass_tolerance 10
   -Search:fragment:mass_tolerance_unit ppm
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_10_out.tmp.idXML)
+  -out ${TESTS_TEMP_DIR}/ProSE_10_out.tmp.idXML)
 add_test("TOPP_ProSE_10_out" ${DIFF}
   -in1 ${TESTS_TEMP_DIR}/ProSE_10_out.tmp.idXML
   -in2 ${DATA_DIR_TOPP}/ProSE_10_out.idXML
@@ -4854,7 +4854,7 @@ add_test("TOPP_ProSE_11_rescore" ${TOPP_BIN_PATH}/ProSE -test
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
   -rescore
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
+  -out ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
 add_test("TOPP_ProSE_11_rescore_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore"
@@ -4866,7 +4866,7 @@ add_test("TOPP_ProSE_11_rescore_multi" ${TOPP_BIN_PATH}/ProSE -test
       ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
   -rescore
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_b.tmp.idXML
+  -out ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_b.tmp.idXML
   -out_merged ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi.tmp.idXML)
 foreach(_part a b)
   add_test("TOPP_ProSE_11_rescore_multi_info_${_part}" ${TOPP_BIN_PATH}/FileInfo -test
@@ -4880,11 +4880,66 @@ add_test("TOPP_ProSE_11_rescore_skip" ${TOPP_BIN_PATH}/ProSE -test
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
   -rescore
-  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
+  -out ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
 add_test("TOPP_ProSE_11_rescore_skip_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_skip"
   PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
+
+# Test 12: idparquet output. -out writes the .idparquet directory bundle (format by extension).
+# The bundle stores PSMs differently from idXML (e.g. no fragment_annotation), so instead of a line
+# diff, the FileInfo summary of the bundle (converted to idXML) must match that of Test 1's idXML.
+add_test("TOPP_ProSE_12_idparquet" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -out ${TESTS_TEMP_DIR}/ProSE_12_out.tmp.idparquet)
+add_test("TOPP_ProSE_12_idparquet_convert" ${TOPP_BIN_PATH}/IDFileConverter -test
+  -in ${TESTS_TEMP_DIR}/ProSE_12_out.tmp.idparquet
+  -out ${TESTS_TEMP_DIR}/ProSE_12_out.tmp.idXML)
+set_tests_properties("TOPP_ProSE_12_idparquet_convert" PROPERTIES DEPENDS "TOPP_ProSE_12_idparquet")
+add_test("TOPP_ProSE_12_idparquet_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_12_out.tmp.idXML
+  -out_tsv ${TESTS_TEMP_DIR}/ProSE_12_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_12_idparquet_info" PROPERTIES DEPENDS "TOPP_ProSE_12_idparquet_convert")
+add_test("TOPP_ProSE_12_idxml_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
+  -out_tsv ${TESTS_TEMP_DIR}/ProSE_12_idxml_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_12_idxml_info" PROPERTIES DEPENDS "TOPP_ProSE_1")
+add_test("TOPP_ProSE_12_idparquet_info_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_12_info.tmp.tsv
+  -in2 ${TESTS_TEMP_DIR}/ProSE_12_idxml_info.tmp.tsv
+  -whitelist "file name")
+set_tests_properties("TOPP_ProSE_12_idparquet_info_out" PROPERTIES DEPENDS "TOPP_ProSE_12_idparquet_info;TOPP_ProSE_12_idxml_info")
+# The merged output can be idparquet as well; same content as the idXML of Test 7.
+add_test("TOPP_ProSE_12_merged_idparquet" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+      ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out ${TESTS_TEMP_DIR}/ProSE_12_merged_a.tmp.idparquet ${TESTS_TEMP_DIR}/ProSE_12_merged_b.tmp.idparquet
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_12_merged.tmp.idparquet)
+add_test("TOPP_ProSE_12_merged_idparquet_convert" ${TOPP_BIN_PATH}/IDFileConverter -test
+  -in ${TESTS_TEMP_DIR}/ProSE_12_merged.tmp.idparquet
+  -out ${TESTS_TEMP_DIR}/ProSE_12_merged.tmp.idXML)
+set_tests_properties("TOPP_ProSE_12_merged_idparquet_convert" PROPERTIES DEPENDS "TOPP_ProSE_12_merged_idparquet")
+add_test("TOPP_ProSE_12_merged_idparquet_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_12_merged.tmp.idXML
+  -out_tsv ${TESTS_TEMP_DIR}/ProSE_12_merged_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_12_merged_idparquet_info" PROPERTIES DEPENDS "TOPP_ProSE_12_merged_idparquet_convert")
+add_test("TOPP_ProSE_12_merged_idparquet_info_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_12_merged_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_7_merged_info.tsv
+  -whitelist "file name" "database" "search engine")
+set_tests_properties("TOPP_ProSE_12_merged_idparquet_info_out" PROPERTIES DEPENDS "TOPP_ProSE_12_merged_idparquet_info")
+# -out_idxml is a deprecated alias of -out; giving both is an error.
+add_test("TOPP_ProSE_12_out_and_out_idxml" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+  -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+  -out ${TESTS_TEMP_DIR}/ProSE_12_both_a.tmp.idXML
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_12_both_b.tmp.idXML)
+set_tests_properties("TOPP_ProSE_12_out_and_out_idxml" PROPERTIES WILL_FAIL 1)
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
@@ -4931,7 +4986,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -4960,7 +5015,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   add_test("TOPP_ProSE_DDA_calibrated" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
@@ -4998,7 +5053,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   add_test("TOPP_ProSE_DDA_chunked_calibrated" ${TOPP_BIN_PATH}/ProSE -test
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
-    -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
+    -out ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
     -Search:precursor:mass_tolerance_lower 20
     -Search:precursor:mass_tolerance_upper 20
     -Search:precursor:mass_tolerance_unit ppm
