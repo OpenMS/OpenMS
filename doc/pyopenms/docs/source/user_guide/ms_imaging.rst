@@ -9,7 +9,9 @@ Loading an imzML file
 *********************
 
 :py:class:`~.ImzMLFile` loads a data set into an :py:class:`~.MSImagingExperiment`, which holds one spectrum per
-pixel and the geometry of the image. :py:class:`~.FileHandler` does not read imzML.
+pixel and the geometry of the image. :py:meth:`.FileHandler.loadImagingExperiment` does the same for any imaging
+format that OpenMS can detect (imzML, and Bruker timsTOF MALDI imaging ``.d`` folders if OpenMS was built with
+OpenTIMS support), while :py:meth:`.FileHandler.loadExperiment` rejects imaging files.
 
 The geometry is two-dimensional and covers the first plane (``z = 1``) of a data set. Spectra of other planes are
 loaded too, and ``getMSExperiment()`` returns them, but pixel access, regions and ion images leave them out.
@@ -25,7 +27,7 @@ loaded too, and ``getMSExperiment()`` returns them, but pixel access, regions an
         urlretrieve(url + "ImzMLFile_1_Example_Continuous" + ext, "example" + ext)
 
     img = oms.MSImagingExperiment()
-    oms.ImzMLFile().load("example.imzML", img)
+    oms.ImzMLFile().load("example.imzML", img)  # or: oms.FileHandler().loadImagingExperiment("example.imzML", img)
     geometry = img.getGeometry()
     print(geometry.getWidth(), geometry.getHeight(), img.getNumberOfSpectra())
 
