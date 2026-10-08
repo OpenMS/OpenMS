@@ -13,6 +13,9 @@
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <functional>
 #include <optional>
+#include <set>
+#include <string>
+#include <vector>
 namespace OpenMS
 {
 class FeatureMap;
@@ -71,6 +74,29 @@ public:
   */
   static void editAsIdentificationData(FeatureMap& map, const std::function<void(FeatureMap&)>& edit);
   static void editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit);
+  /**
+    @brief Give the identification runs of @p map that are in @p taken new UUIDs, so that its identifications stay apart
+    from those of the maps that took them when they are combined (e.g. when grouping features)
+
+    The links of the features (and subordinates) and the inputs of inference results follow the new UUIDs. The UUIDs of
+    the runs of @p map are added to @p taken.
+
+    @return Whether a run got a new UUID
+  */
+  static bool makeRunsDistinct(FeatureMap& map, std::set<std::string>& taken);
+  static bool makeRunsDistinct(ConsensusMap& map, std::set<std::string>& taken);
+  /**
+    @brief The maps with their identifications as identification data, each identification run in one map only (to
+    combine their identifications, e.g. when grouping features)
+
+    Maps with peptide identifications are converted (see withIdentificationData()); a run that is also in an earlier
+    map gets a new UUID (see makeRunsDistinct()). Maps are copied only if one needs to change.
+
+    @return @p maps, or @p converted holding all maps
+    @throw Exception::InvalidParameter if a map has peptide identifications and identification data
+  */
+  static const std::vector<FeatureMap>& withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted);
+  static const std::vector<ConsensusMap>& withIdentificationData(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted);
   ///@}
 };
 }

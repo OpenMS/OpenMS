@@ -18,11 +18,34 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  using ID = IdentificationData;
+
+  /// Link an identification with a match of @p sequence (score 0) to @p feature, in the search run of @p map
+  void linkPeptide(FeatureMap& map, BaseFeature& feature, const std::string& sequence)
+  {
+    auto& data = map.getIdentificationData();
+    if (data.getRuns().empty())
+    {
+      auto& run = data.addRun("search");
+      ID::ScoreDefinition score;
+      score.name = "score";
+      score.higher_better = true;
+      run.setPrimaryScore(run.addScore(score));
+      run.addSource({});
+    }
+    auto& run = data.getRun("search");
+    const auto query = run.addIdentification(run.getSources()[0].id, ID::Observation {});
+    ID::MatchData match;
+    match.representation = sequence;
+    feature.addIDMatch({run.getUuid(), run.addMatch(query, match, {0.0})});
+  }
+} // namespace
 
 START_TEST(QTClusterFinder, "$Id$")
 
@@ -54,13 +77,8 @@ START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap
   feat1.setUniqueId(0);
   feat2.setPosition(pos2);
   feat2.setUniqueId(1);
-  PeptideHit hit;
-  hit.setSequence(AASequence::fromString("AAA"));
-  feat1.getPeptideIdentifications().resize(1);
-  feat1.getPeptideIdentifications()[0].insertHit(hit);
-  hit.setSequence(AASequence::fromString("CCC"));
-  feat2.getPeptideIdentifications().resize(1);
-  feat2.getPeptideIdentifications()[0].insertHit(hit);
+  linkPeptide(input[0], feat1, "AAA");
+  linkPeptide(input[0], feat2, "CCC");
   input[0].push_back(feat1);
   input[0].push_back(feat2);
 
@@ -76,12 +94,8 @@ START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap
   feat4.setUniqueId(1);
   feat5.setPosition(pos5);
   feat5.setUniqueId(2);
-  hit.setSequence(AASequence::fromString("DDD"));
-  feat3.getPeptideIdentifications().resize(1);
-  feat3.getPeptideIdentifications()[0].insertHit(hit);
-  hit.setSequence(AASequence::fromString("AAA"));
-  feat4.getPeptideIdentifications().resize(1);
-  feat4.getPeptideIdentifications()[0].insertHit(hit);
+  linkPeptide(input[1], feat3, "DDD");
+  linkPeptide(input[1], feat4, "AAA");
   // no peptide ID for "feat5"
   input[1].push_back(feat3);
   input[1].push_back(feat4);
@@ -184,12 +198,8 @@ START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap
   feat6.setUniqueId(0);
   feat7.setPosition(pos7);
   feat7.setUniqueId(1);
-  hit.setSequence(AASequence::fromString("EEE"));
-  feat6.getPeptideIdentifications().resize(1);
-  feat6.getPeptideIdentifications()[0].insertHit(hit);
-  hit.setSequence(AASequence::fromString("CCC"));
-  feat7.getPeptideIdentifications().resize(1);
-  feat7.getPeptideIdentifications()[0].insertHit(hit);
+  linkPeptide(input[2], feat6, "EEE");
+  linkPeptide(input[2], feat7, "CCC");
   input[2].push_back(feat6);
   input[2].push_back(feat7);
 
@@ -215,6 +225,23 @@ START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap
 	// "ind6" is closer, but its annotation doesn't match
 	STATUS(ind7);
   TEST_EQUAL(*(it) == ind7, true);
+
+  // the result has the identifications of the input maps, marked with the map index:
+  const auto& data = result.getIdentificationData();
+  TEST_EQUAL(data.getRuns().size(), 3)
+  for (Size i = 0; i < data.getRuns().size(); ++i)
+  {
+    for (const auto& query : data.getRuns()[i].getSources()[0].identifications)
+    {
+      TEST_EQUAL(Size(query.getMetaValue("map_index")), i)
+    }
+  }
+  Size linked = 0;
+  for (const auto& feature : result)
+  {
+    linked += feature.getLinkedIdentifications(data).size();
+  }
+  TEST_EQUAL(linked, 6)
 }
 END_SECTION
 

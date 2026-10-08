@@ -23,9 +23,12 @@ PeptideIdentification makeId(const std::string& reference, std::optional<double>
   id.setSpectrumReference(reference);
   id.setMZ(500.0);
   id.setRT(100.0);
+  id.setScoreType("q-value");
+  id.setHigherScoreBetter(false);
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTIDEK"));
   hit.setCharge(2);
+  hit.setScore(0.01);
   id.insertHit(hit);
   if (cv) { id.setMetaValue(Constants::UserParam::FAIMS_CV, *cv); }
   return id;

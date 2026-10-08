@@ -267,4 +267,98 @@ START_SECTION((static void editAsIdentificationData(ConsensusMap& map, const std
 }
 END_SECTION
 
+START_SECTION((static bool makeRunsDistinct(FeatureMap& map, std::set<std::string>& taken)))
+{
+  FeatureMap map;
+  map.getIdentificationData() = fixture();
+  auto& run = map.getIdentificationData().getRun("search");
+  const auto old_uuid = run.getUuid();
+  const auto query = run.getSources()[0].identifications[0].getId();
+  const auto match = run.getSources()[0].identifications[0].getMatches()[0].getId();
+  Feature feature, subordinate;
+  feature.addIDMatch({old_uuid, match});
+  subordinate.addIDQuery({old_uuid, query});
+  feature.getSubordinates().push_back(subordinate);
+  map.push_back(feature);
+  ID::InferenceResult inference;
+  inference.identifier = "inference";
+  inference.inputs.push_back({"search", old_uuid, std::nullopt, ""});
+  map.getIdentificationData().addInferenceResult(inference);
+  const auto original = map.getIdentificationData();
+
+  // runs that are not taken keep their UUIDs (and are taken then):
+  std::set<std::string> taken;
+  TEST_EQUAL(IdentificationDataConverter::makeRunsDistinct(map, taken), false)
+  TEST_EQUAL(taken.size(), 1)
+  TEST_EQUAL(taken.contains(old_uuid), true)
+  TEST_EQUAL(map.getIdentificationData() == original, true)
+
+  // a taken run gets a new UUID; links and inference inputs follow:
+  TEST_EQUAL(IdentificationDataConverter::makeRunsDistinct(map, taken), true)
+  const auto& renewed = map.getIdentificationData().getRun("search");
+  TEST_NOT_EQUAL(renewed.getUuid(), old_uuid)
+  TEST_EQUAL(taken.size(), 2)
+  TEST_EQUAL(taken.contains(renewed.getUuid()), true)
+  TEST_EQUAL(renewed.getIdentification(query).getMatches().size(), 1)
+  TEST_EQUAL(*map[0].getIDMatches().begin() == (ID::MatchReference {renewed.getUuid(), match}), true)
+  TEST_EQUAL(*map[0].getSubordinates()[0].getIDQueries().begin() == (ID::QueryReference {renewed.getUuid(), query}), true)
+  TEST_EQUAL(map.getIdentificationData().getInferenceResults()[0].inputs[0].run_uuid, renewed.getUuid())
+  TEST_EQUAL(map[0].getLinkedIdentifications(map.getIdentificationData()).size(), 1)
+}
+END_SECTION
+
+START_SECTION((static bool makeRunsDistinct(ConsensusMap& map, std::set<std::string>& taken)))
+{
+  ConsensusMap map;
+  map.getIdentificationData() = fixture();
+  const auto& run = map.getIdentificationData().getRun("search");
+  const auto old_uuid = run.getUuid();
+  const auto query = run.getSources()[0].identifications[0].getId();
+  ConsensusFeature feature;
+  feature.addIDQuery({old_uuid, query});
+  map.push_back(feature);
+  std::set<std::string> taken {old_uuid};
+  TEST_EQUAL(IdentificationDataConverter::makeRunsDistinct(map, taken), true)
+  const auto& uuid = map.getIdentificationData().getRun("search").getUuid();
+  TEST_NOT_EQUAL(uuid, old_uuid)
+  TEST_EQUAL(*map[0].getIDQueries().begin() == (ID::QueryReference {uuid, query}), true)
+}
+END_SECTION
+
+START_SECTION((static const std::vector<FeatureMap>& withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted)))
+{
+  // maps with distinct runs are used as they are:
+  std::vector<FeatureMap> maps(2);
+  maps[0].getIdentificationData() = fixture();
+  maps[1].getIdentificationData() = fixture();
+  std::vector<FeatureMap> converted;
+  TEST_EQUAL(&IdentificationDataConverter::withIdentificationData(maps, converted) == &maps, true)
+  TEST_EQUAL(converted.empty(), true)
+  // a run that is also in an earlier map gets a new UUID in a copy:
+  maps[1] = maps[0];
+  const auto& distinct = IdentificationDataConverter::withIdentificationData(maps, converted);
+  TEST_EQUAL(&distinct == &converted, true)
+  ABORT_IF(converted.size() != 2)
+  TEST_EQUAL(converted[0] == maps[0], true)
+  TEST_NOT_EQUAL(converted[1].getIdentificationData().getRuns()[0].getUuid(), maps[0].getIdentificationData().getRuns()[0].getUuid())
+  TEST_EQUAL(maps[1].getIdentificationData() == maps[0].getIdentificationData(), true)
+}
+END_SECTION
+
+START_SECTION((static const std::vector<ConsensusMap>& withIdentificationData(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted)))
+{
+  // peptide identifications are converted:
+  std::vector<ConsensusMap> maps(2);
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), maps[0]);
+  std::vector<ConsensusMap> converted;
+  const auto& prepared = IdentificationDataConverter::withIdentificationData(maps, converted);
+  TEST_EQUAL(&prepared == &converted, true)
+  ABORT_IF(converted.size() != 2)
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(converted[0]), false)
+  TEST_EQUAL(converted[0].getIdentificationData().empty(), false)
+  TEST_EQUAL(converted[1] == maps[1], true)
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(maps[0]), true)
+}
+END_SECTION
+
 END_TEST

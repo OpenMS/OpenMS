@@ -34,6 +34,8 @@ namespace OpenMS
             sortByQuality()/sortByMaps()/sortBySize()). The incremental path
             (b) returns the raw pairfinder result via getResultMap() without any of this
             post-processing; callers must perform it themselves if needed (see TOPP FeatureLinkerUnlabeled).
+            For maps with identification data, groupIdentifications() gives the result the identifications
+            of the maps like group() does (from getMapIdentifications() of each map).
 
       @htmlinclude OpenMS_FeatureGroupingAlgorithmUnlabeled.parameters
 
@@ -88,6 +90,11 @@ public:
         responsibility to provide a valid map_id. Note that all calls to
         addToGroup _must_ use different map_ids and they all need to be
         different from the one used to call setReference!
+
+        Identification runs of the map that the group already has get new UUIDs (in a copy of the map); to
+        give the result the identifications of the map later, make its runs distinct before
+        (IdentificationDataConverter::makeRunsDistinct()). All maps must have their identifications either as
+        identification data or as peptide identifications.
 
         @exception IllegalArgument is thrown if the map_id has been used before
     */

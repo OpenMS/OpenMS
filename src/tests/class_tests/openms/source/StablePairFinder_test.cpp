@@ -241,6 +241,80 @@ START_SECTION(([EXTRA] void run(const std::vector<ConsensusMap>& input_maps, Con
 }
 END_SECTION
 
+START_SECTION(([EXTRA] run() with use_identifications on identification data))
+{
+  using ID = IdentificationData;
+  std::vector<ConsensusMap> input(2);
+  const auto annotate = [](ConsensusMap& map, ConsensusFeature& feature, const std::string& sequence) {
+    auto& data = map.getIdentificationData();
+    if (data.getRuns().empty())
+    {
+      auto& run = data.addRun("search");
+      ID::ScoreDefinition score;
+      score.name = "score";
+      score.higher_better = true;
+      run.setPrimaryScore(run.addScore(score));
+      run.addSource({});
+    }
+    auto& run = data.getRun("search");
+    ID::MatchData match;
+    match.representation = sequence;
+    const auto query = run.addIdentification(run.getSources()[0].id, ID::Observation {});
+    feature.addIDMatch({run.getUuid(), run.addMatch(query, match, {1.0})});
+  };
+  Feature a, b, c;
+  a.setPosition(PositionType(0, 0));
+  b.setPosition(PositionType(4, 0.04));
+  c.setPosition(PositionType(1, 0.01)); // nearer, but with another peptide
+  for (Feature* feature : {&a, &b, &c})
+  {
+    feature->setIntensity(100.0f);
+  }
+  a.setUniqueId(0);
+  b.setUniqueId(0);
+  c.setUniqueId(1);
+  ConsensusFeature cons_a(0, a), cons_b(1, b), cons_c(1, c);
+  annotate(input[0], cons_a, "PEPA");
+  annotate(input[1], cons_b, "PEPA");
+  annotate(input[1], cons_c, "PEPB");
+  input[0].push_back(cons_a);
+  input[1].push_back(cons_b);
+  input[1].push_back(cons_c);
+  input[0].updateRanges();
+  input[1].updateRanges();
+
+  // the partner of feature "a" in the second map:
+  const auto partner = [](const ConsensusMap& result) -> Int {
+    for (const auto& feature : result)
+    {
+      if (feature.size() == 2) return Int(feature.rbegin()->getUniqueId());
+    }
+    return -1;
+  };
+  StablePairFinder spf;
+  Param param = spf.getDefaults();
+  spf.setParameters(param);
+  ConsensusMap result;
+  spf.run(input, result);
+  TEST_EQUAL(result.size(), 2)
+  TEST_EQUAL(partner(result), 1)
+
+  param.setValue("use_identifications", "true");
+  spf.setParameters(param);
+  spf.run(input, result);
+  TEST_EQUAL(result.size(), 2)
+  TEST_EQUAL(partner(result), 0)
+
+  // the result has the identifications of both maps:
+  const auto& data = result.getIdentificationData();
+  TEST_EQUAL(data.getRuns().size(), 2)
+  for (const auto& feature : result)
+  {
+    TEST_EQUAL(feature.getLinkedIdentifications(data).size(), feature.size())
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

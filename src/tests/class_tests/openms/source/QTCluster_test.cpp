@@ -13,7 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 ///////////////////////////
 
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -34,13 +34,22 @@ BaseFeature bf;
 bf.setRT(1.1);
 bf.setMZ(2.2);
 bf.setCharge(3);
-bf.getPeptideIdentifications().resize(2);
-PeptideHit hit;
-hit.setSequence(AASequence::fromString("AAA"));
-bf.getPeptideIdentifications()[0].insertHit(hit);
-hit.setSequence(AASequence::fromString("CCC"));
-bf.getPeptideIdentifications()[1].insertHit(hit);
-GridFeature gf(bf, 123, 456);
+IdentificationData id_data;
+{
+  auto& run = id_data.addRun("search");
+  IdentificationData::ScoreDefinition score;
+  score.name = "score";
+  score.higher_better = true;
+  run.setPrimaryScore(run.addScore(score));
+  const auto source = run.addSource({});
+  IdentificationData::MatchData match;
+  for (const auto* sequence : {"AAA", "CCC"})
+  {
+    match.representation = sequence;
+    bf.addIDMatch({run.getUuid(), run.addMatch(run.addIdentification(source, IdentificationData::Observation {}), match, {0.0})});
+  }
+}
+GridFeature gf(bf, 123, 456, id_data);
 
 START_SECTION((QTCluster::BulkData(const OpenMS::GridFeature* const center_point, Size num_maps, double max_distance, Int x_coord, Int y_coord, Size id)))
 {
@@ -107,7 +116,7 @@ START_SECTION((Size size() const))
 }
 END_SECTION
 
-GridFeature gf2(bf, 789, 1011);
+GridFeature gf2(bf, 789, 1011, id_data);
 
 START_SECTION((void add(const GridFeature* const element, double distance)))
 {
@@ -146,8 +155,8 @@ END_SECTION
 
 START_SECTION((QTCluster::Elements getAllNeighbors() const))
 {
-  GridFeature gf3(bf, 789, 1012);
-  GridFeature gf4(bf, 222, 1011);
+  GridFeature gf3(bf, 789, 1012, id_data);
+  GridFeature gf4(bf, 222, 1011, id_data);
 
   QTCluster::BulkData data(&gf, 2, 11.1, 0, 0, 2);
   QTCluster cluster2(&data, false);

@@ -9,8 +9,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 #include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
@@ -51,13 +49,13 @@ namespace OpenMS
   void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,
                                          ConsensusMap& out)
   {
-    group_(maps, out);
+    groupWithIdentificationData_(maps, out, [&](const std::vector<FeatureMap>& inputs) { group_(inputs, out); });
   }
 
   void FeatureGroupingAlgorithmQT::group(const std::vector<ConsensusMap>& maps,
                                          ConsensusMap& out)
   {
-    group_(maps, out);
+    groupWithIdentificationData_(maps, out, [&](const std::vector<ConsensusMap>& inputs) { group_(inputs, out); });
   }
 
 } // namespace OpenMS

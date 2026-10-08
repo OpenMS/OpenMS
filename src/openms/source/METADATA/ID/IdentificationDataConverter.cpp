@@ -9,6 +9,7 @@
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -696,6 +697,102 @@ void IdentificationDataConverter::editAsIdentificationData(FeatureMap& map, cons
 { editMap(map, edit); }
 void IdentificationDataConverter::editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit)
 { editMap(map, edit); }
+
+namespace
+{
+  template<class Map>
+  bool distinctRuns(Map& map, std::set<std::string>& taken)
+  {
+    auto& data = map.getIdentificationData();
+    std::set<std::string> own;
+    for (const auto& run : data.getRuns())
+      own.insert(run.getUuid());
+    std::map<std::string, std::string> renewed;
+    for (const auto& uuid : own)
+    {
+      if (! taken.contains(uuid)) continue;
+      auto fresh = UniqueIdGenerator::getUUID();
+      while (taken.contains(fresh) || own.contains(fresh))
+        fresh = UniqueIdGenerator::getUUID();
+      renewed.emplace(uuid, fresh);
+      own.insert(fresh);
+    }
+    if (renewed.empty())
+    {
+      taken.insert(own.begin(), own.end());
+      return false;
+    }
+    const auto uuid = [&](const std::string& current) -> const std::string& {
+      const auto found = renewed.find(current);
+      return found == renewed.end() ? current : found->second;
+    };
+    ID result;
+    for (const auto& run : data.getRuns())
+    {
+      auto copy = run;
+      if (renewed.contains(run.getUuid())) copy.restoreIdentity(uuid(run.getUuid()), copy.getNextQueryId(), copy.getNextMatchId());
+      taken.insert(copy.getUuid());
+      result.addRun(std::move(copy));
+    }
+    for (auto inference : data.getInferenceResults())
+    {
+      for (auto& input : inference.inputs)
+        input.run_uuid = uuid(input.run_uuid);
+      result.addInferenceResult(std::move(inference));
+    }
+    data = std::move(result);
+    const auto relink = [&](const auto& self, auto& feature) -> void {
+      std::set<ID::QueryReference> queries;
+      for (const auto& query : feature.getIDQueries())
+        queries.insert({uuid(query.run_uuid), query.query});
+      feature.getIDQueries() = std::move(queries);
+      std::set<ID::MatchReference> matches;
+      for (const auto& match : feature.getIDMatches())
+        matches.insert({uuid(match.run_uuid), match.match});
+      feature.getIDMatches() = std::move(matches);
+      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+        for (auto& subordinate : feature.getSubordinates())
+          self(self, subordinate);
+    };
+    for (auto& feature : map)
+      relink(relink, feature);
+    return true;
+  }
+  template<class Map>
+  const std::vector<Map>& distinctMaps(const std::vector<Map>& maps, std::vector<Map>& converted)
+  {
+    // Decide first, so that maps are only copied if one changes.
+    std::set<std::string> taken;
+    bool change = false;
+    for (const auto& map : maps)
+    {
+      if (checkedLegacyIDs(map)) change = true;
+      for (const auto& run : map.getIdentificationData().getRuns())
+        if (! taken.insert(run.getUuid()).second) change = true;
+    }
+    if (! change) return maps;
+    converted.clear();
+    converted.reserve(maps.size());
+    taken.clear();
+    for (const auto& map : maps)
+    {
+      converted.push_back(map);
+      auto& copy = converted.back();
+      if (hasLegacyIDs(copy)) importMap(copy, true);
+      distinctRuns(copy, taken);
+    }
+    return converted;
+  }
+} // namespace
+
+bool IdentificationDataConverter::makeRunsDistinct(FeatureMap& map, std::set<std::string>& taken)
+{ return distinctRuns(map, taken); }
+bool IdentificationDataConverter::makeRunsDistinct(ConsensusMap& map, std::set<std::string>& taken)
+{ return distinctRuns(map, taken); }
+const std::vector<FeatureMap>& IdentificationDataConverter::withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted)
+{ return distinctMaps(maps, converted); }
+const std::vector<ConsensusMap>& IdentificationDataConverter::withIdentificationData(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted)
+{ return distinctMaps(maps, converted); }
 
 bool IdentificationDataConverter::moveToIdentificationData(FeatureMap& map)
 {

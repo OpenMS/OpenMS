@@ -14,7 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 START_TEST(GridFeature, "$Id$")
@@ -78,21 +78,49 @@ START_SECTION((Int getID() const))
 }
 END_SECTION
 
+START_SECTION((GridFeature(const BaseFeature& feature, Size map_index, Size feature_index, const IdentificationData& data)))
+{
+  BaseFeature bf;
+  IdentificationData data;
+  GridFeature gf(bf, 1, 2, data);
+  TEST_EQUAL(gf.getMapIndex(), 1);
+  TEST_EQUAL(gf.getFeatureIndex(), 2);
+  TEST_EQUAL(gf.getAnnotations().empty(), true);
+}
+END_SECTION
+
 START_SECTION((const std::set<AASequence>& getAnnotations() const))
 {
+  using ID = IdentificationData;
   BaseFeature bf;
   GridFeature gf(bf, 0, 0);
   TEST_EQUAL(gf.getAnnotations().size(), 0);
-  bf.getPeptideIdentifications().resize(2);
-  PeptideHit hit;
-  hit.setSequence(AASequence::fromString("AAA"));
-  bf.getPeptideIdentifications()[0].insertHit(hit);
-  hit.setSequence(AASequence::fromString("CCC"));
-  bf.getPeptideIdentifications()[1].insertHit(hit);
-  GridFeature gf2(bf, 0, 0);
+  ID data;
+  auto& run = data.addRun("search");
+  ID::ScoreDefinition score;
+  score.name = "score";
+  score.higher_better = true;
+  run.setPrimaryScore(run.addScore(score));
+  const auto source = run.addSource({});
+  ID::MatchData match;
+  // the top match of each identification counts:
+  for (const auto& [top, other] : {std::pair {"AAA", "DDD"}, std::pair {"CCC", "EEE"}})
+  {
+    const auto query = run.addIdentification(source, ID::Observation {});
+    match.representation = other;
+    bf.addIDMatch({run.getUuid(), run.addMatch(query, match, {1.0})});
+    match.representation = top;
+    bf.addIDMatch({run.getUuid(), run.addMatch(query, match, {2.0})});
+  }
+  // an identification without matches has no annotation:
+  bf.addIDQuery({run.getUuid(), run.addIdentification(source, ID::Observation {})});
+  GridFeature gf2(bf, 0, 0, data);
   TEST_EQUAL(gf2.getAnnotations().size(), 2);
   TEST_EQUAL(*(gf2.getAnnotations().begin()), AASequence::fromString("AAA"));
   TEST_EQUAL(*(gf2.getAnnotations().rbegin()), AASequence::fromString("CCC"));
+  // without identification data, there are none:
+  GridFeature gf3(bf, 0, 0);
+  TEST_EQUAL(gf3.getAnnotations().empty(), true);
 }
 END_SECTION
 

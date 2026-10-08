@@ -27,7 +27,9 @@ namespace OpenMS
 
     Depending on parameter @p use_identifications, peptide identifications annotated to the
     features may have to be compatible (i.e. no annotation or the same annotation) for a pairing
-    to occur.
+    to occur: a feature without identifications is always compatible; otherwise, two features are
+    compatible if the top matches (by primary score) of the identifications they link have the same
+    sequences.
 
     Stability criterion: The distance to the nearest neighbor must be smaller than the distance
     to the second-nearest neighbor by a certain factor, see parameter @p second_nearest_gap.
@@ -99,6 +101,10 @@ public:
     /**
       @brief Run the algorithm
 
+      If the input maps have identification data, the result has both (IdentificationData::merge()); their
+      identification runs must be distinct or equal. Otherwise the result features have the peptide identifications
+      of the paired features.
+
       @note Exactly two @em input maps must be provided.
 
       @exception Exception::IllegalArgument is thrown if the input data is not valid.
@@ -120,28 +126,12 @@ protected:
     //docu in base class
     void updateMembers_() override;
 
-    /**
-      @brief Checks if the peptide IDs of two features are compatible.
-
-      A feature without identification is always compatible. Otherwise,
-      two features are compatible if the best peptide hits of their
-      identifications have the same sequences.
-    */
-    bool compatibleIDs_(const ConsensusFeature& feat1,
-                        const ConsensusFeature& feat2) const;
-
     /// The distance to the second nearest neighbors must be by this factor larger than the distance to the matched element itself.
     double second_nearest_gap_;
 
     /// Only match if peptide IDs are compatible?
     bool use_IDs_;
 
-    /**
-      @brief Returns the highest scoring peptide hit in the given peptide identification.
-
-      @param[in] peptideIdentification The peptideIdentification to scan.
-    */
-    const AASequence& getBestHitSequence_(const PeptideIdentification& peptideIdentification) const;
   };
 
 } // namespace OpenMS

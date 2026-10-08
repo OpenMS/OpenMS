@@ -26,6 +26,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <algorithm>
 #include <memory>
 #include <unordered_set>
 
@@ -849,6 +850,11 @@ protected:
         vector<FeatureMap> maps(prot_ids.size());
         map<std::string, std::string> runid_to_se;
         map<std::string, Size> id_mapping; // mapping: run ID -> index (of feature map)
+        // Each feature links an identification (without matches) that stands for its peptide ID: the runs of different
+        // search engines cannot be combined in identification data (they have different scores), so grouping only
+        // links the positions and the peptide IDs are taken from the input afterwards.
+        std::map<std::string, Size> run_maps; // run UUID -> index of feature map
+        std::vector<std::map<UInt64, Size>> peptide_indices(prot_ids.size()); // per map: identification ID -> peptide ID index
         for (Size i = 0; i < prot_ids.size(); ++i)
         {
           id_mapping[prot_ids[i].getIdentifier()] = i;
@@ -856,10 +862,14 @@ protected:
           {
             runid_to_se[prot_ids[i].getIdentifier()] = prot_ids[i].getOriginalSearchEngineName();
           }
+          auto& run = maps[i].getIdentificationData().addRun("run");
+          run.addSource({});
+          run_maps[run.getUuid()] = i;
         }
 
-        for (PeptideIdentification& pep : pep_ids)
+        for (Size index = 0; index < pep_ids.size(); ++index)
         {
+          const PeptideIdentification& pep = pep_ids[index];
           std::string run_id = pep.getIdentifier();
           if (!pep.hasRT() || !pep.hasMZ())
           {
@@ -867,11 +877,18 @@ protected:
             return INCOMPATIBLE_INPUT_DATA;
           }
 
+          const Size map_index = id_mapping[run_id];
+          auto& run = maps[map_index].getIdentificationData().getRun("run");
+          IdentificationData::Observation observation;
+          observation.rt = pep.getRT();
+          observation.mz = pep.getMZ();
+          const auto query = run.addIdentification(run.getSources()[0].id, observation);
+          peptide_indices[map_index][query.value] = index;
           Feature feature;
           feature.setRT(pep.getRT());
           feature.setMZ(pep.getMZ());
-          feature.getPeptideIdentifications().push_back(pep);
-          maps[id_mapping[run_id]].push_back(feature);
+          feature.addIDQuery({run.getUuid(), query});
+          maps[map_index].push_back(feature);
         }
         // precondition for "FeatureGroupingAlgorithmQT::group":
         for (FeatureMap& map : maps)
@@ -896,10 +913,24 @@ protected:
         setProteinIdentifications_(prot_ids);
 
         // compute consensus
-        pep_ids.clear();
+        PeptideIdentificationList input_ids;
+        input_ids.swap(pep_ids);
         for (auto& cfeature : grouping)
         {
-          auto& ids = cfeature.getPeptideIdentifications();
+          // the peptide IDs of the grouped features, by map index (with it, as grouping annotates it):
+          std::vector<std::pair<Size, Size>> grouped; // map index, peptide ID index
+          for (const auto& query : cfeature.getIDQueries())
+          {
+            const Size map_index = run_maps.at(query.run_uuid);
+            grouped.emplace_back(map_index, peptide_indices[map_index].at(query.query.value));
+          }
+          std::sort(grouped.begin(), grouped.end());
+          PeptideIdentificationList ids;
+          for (const auto& [map_index, index] : grouped)
+          {
+            ids.push_back(input_ids[index]);
+            ids.back().setMetaValue("map_index", map_index);
+          }
           consensus->apply(ids, runid_to_se, old_size);
 
           if (!ids.empty())

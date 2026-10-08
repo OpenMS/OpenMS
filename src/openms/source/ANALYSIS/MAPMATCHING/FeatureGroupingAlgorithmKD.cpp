@@ -13,8 +13,6 @@
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace std;
 
@@ -273,13 +271,13 @@ namespace OpenMS
   void FeatureGroupingAlgorithmKD::group(const std::vector<FeatureMap>& maps,
                                          ConsensusMap& out)
   {
-    group_(maps, out);
+    groupWithIdentificationData_(maps, out, [&](const std::vector<FeatureMap>& inputs) { group_(inputs, out); });
   }
 
   void FeatureGroupingAlgorithmKD::group(const std::vector<ConsensusMap>& maps,
                                          ConsensusMap& out)
   {
-    group_(maps, out);
+    groupWithIdentificationData_(maps, out, [&](const std::vector<ConsensusMap>& inputs) { group_(inputs, out); });
   }
 
   void FeatureGroupingAlgorithmKD::runClustering_(const KDTreeFeatureMaps& kd_data, ConsensusMap& out)

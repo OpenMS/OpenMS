@@ -67,11 +67,6 @@
 				<element map="1" id="757269036628510515" rt="640.822000000000003" mz="537.243000000000052" it="3.46578e08" charge="2"/>
 				<element map="2" id="1966557505224183820" rt="656.404999999999973" mz="537.243000000000052" it="1.32679e08" charge="3"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="score_type" higher_score_better="false" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
-				<PeptideHit score="35" sequence="ACC" charge="3" protein_refs="PH_4">
-				</PeptideHit>
-				<UserParam type="int" name="map_index" value="2"/>
-			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
 				<PeptideHit score="35" sequence="AAA" charge="3" protein_refs="PH_0">
 				</PeptideHit>
@@ -81,6 +76,11 @@
 				<PeptideHit score="35" sequence="ADD" charge="3" protein_refs="PH_2">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="score_type" higher_score_better="false" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="ACC" charge="3" protein_refs="PH_4">
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_6408859317243173796" quality="0.986587" charge="2">

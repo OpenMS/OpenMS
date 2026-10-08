@@ -8,14 +8,17 @@
 
 #include <boost/heap/fibonacci_heap.hpp>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/ML/CLUSTERING/HashGrid.h>
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/MATH/MathFunctions.h>
+
+#include <algorithm>
 
 //#define DEBUG_QTCLUSTERFINDER_IDS
 
@@ -95,11 +98,34 @@ struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
   }
 
   template <typename MapType>
-  void QTClusterFinder::run_(const vector<MapType>& input_maps,
+  void QTClusterFinder::run_(const vector<MapType>& maps,
                              ConsensusMap& result_map)
+  {
+    const bool legacy = std::any_of(maps.begin(), maps.end(), [](const MapType& map) {
+      return IdentificationDataConverter::hasPeptideIdentifications(map);
+    });
+    vector<MapType> converted;
+    const vector<MapType>& input_maps = IdentificationDataConverter::withIdentificationData(maps, converted);
+    cluster_(input_maps, result_map);
+    FeatureGroupingAlgorithm::groupIdentifications(input_maps, result_map);
+    if (legacy)
+    {
+      IdentificationDataConverter::exportConsensusIDs(result_map);
+    }
+  }
+
+  template <typename MapType>
+  void QTClusterFinder::cluster_(const vector<MapType>& input_maps,
+                                 ConsensusMap& result_map)
   {
     // update parameters (dummy)
     setParameters_(1, 1);
+
+    vector<const IdentificationData*> identifications;
+    for (const auto& map : input_maps)
+    {
+      identifications.push_back(&map.getIdentificationData());
+    }
 
     if (use_IDs_)
     {
@@ -109,36 +135,34 @@ struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
       double minRT = std::numeric_limits<double>::max();
       for (auto& map : input_maps)
       {
-        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE Note: needs copy to sort
+        for (const auto& feat : map)
         {
           if (feat.getRT() < minRT) minRT = feat.getRT();
-          auto& pepIDs = feat.getPeptideIdentifications();
-          if (!pepIDs.empty())
+          // the top match of the feature (the first hit of its first peptide identification after sorting):
+          const auto best = feat.getBestLinkedMatch(map.getIdentificationData());
+          if (best && best->matches[0]->encoding == IdentificationData::Encoding::AA_SEQUENCE)
           {
-            //TODO I think we sort in run_internal again. Could be avoided.
-            feat.sortPeptideIdentifications();
-            auto& hits = pepIDs[0].getHits();
-            if (!hits.empty())
+            const auto& run = *best->run;
+            const double score = *run.getScore(best->matches[0]->getId(), *run.getPrimaryScore());
+            const bool higher_better = run.getScoreDefinition(*run.getPrimaryScore()).higher_better;
+            if ((score > min_score_ && higher_better) ||
+                (score < min_score_ && !higher_better))
             {
-              if ((hits[0].getScore() > min_score_ && pepIDs[0].isHigherScoreBetter()) ||
-                  (hits[0].getScore() < min_score_ && !pepIDs[0].isHigherScoreBetter()))
+              //TODO we could loosen the score filtering by requiring only ONE IDed feature of a peptide to pass the threshold.
+              // Would require a second pass though
+              const std::string key = best->matches[0]->representation + "/" + feat.getCharge();
+              const auto [it, inserted] = ided_feat_rts.emplace(key, std::vector<double>{feat.getRT()});
+              if (!inserted) // already present
               {
-                //TODO we could loosen the score filtering by requiring only ONE IDed feature of a peptide to pass the threshold.
-                // Would require a second pass though
-                const std::string key = pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge();
-                const auto [it, inserted] = ided_feat_rts.emplace(key, std::vector<double>{feat.getRT()});
-                if (!inserted) // already present
-                {
-                  it->second.push_back(feat.getRT());
-                }
-                //TODO we could score the whole feature instead of just the RT to calculate tolerances based on
-                // a combined score (RT/mz; using the scoring function of this class) instead of just RT
-                /*const auto it_inserted_feat = ided_feats.emplace(key, std::vector<const typename MapType::FeatureType*>{&feat});
-                if (!it_inserted_feat.second)
-                {
-                  it_inserted_feat.first->second.push_back(&feat);
-                }*/
+                it->second.push_back(feat.getRT());
               }
+              //TODO we could score the whole feature instead of just the RT to calculate tolerances based on
+              // a combined score (RT/mz; using the scoring function of this class) instead of just RT
+              /*const auto it_inserted_feat = ided_feats.emplace(key, std::vector<const typename MapType::FeatureType*>{&feat});
+              if (!it_inserted_feat.second)
+              {
+                it_inserted_feat.first->second.push_back(&feat);
+              }*/
             }
           }
         }
@@ -291,7 +315,7 @@ struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
     if (nr_partitions_ == 1)
     {
       // Only one partition
-      run_internal_(input_maps, result_map, true);
+      run_internal_(input_maps, identifications, result_map, true);
     }
     else
     {
@@ -353,8 +377,8 @@ struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
           tmp_input_maps[k].updateRanges();
         }
 
-        // run algo on current partition
-        run_internal_(tmp_input_maps, result_map, false);
+        // run algo on current partition (its features link the identifications of the input maps)
+        run_internal_(tmp_input_maps, identifications, result_map, false);
         logger.setProgress(progress++);
       }
 
@@ -364,6 +388,7 @@ struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
 
   template <typename MapType>
   void QTClusterFinder::run_internal_(const vector<MapType>& input_maps,
+                             const vector<const IdentificationData*>& identifications,
                              ConsensusMap& result_map, bool do_progress)
   {
     // clear temporary data structures
@@ -406,14 +431,8 @@ struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
       {
         grid_features.push_back(
           GridFeature(input_maps[map_index][feature_index], map_index, 
-                      feature_index));
+                      feature_index, *identifications[map_index]));
         GridFeature& gfeat = grid_features.back();
-        // sort peptide hits once now, instead of multiple times later:
-        auto& bfeat = const_cast<BaseFeature&>(gfeat.getFeature());
-        for (auto& pep : bfeat.getPeptideIdentifications())
-        {
-          pep.sort();
-        }
         grid.insert(make_pair(Grid::ClusterCenter(gfeat.getRT(), gfeat.getMZ()),
                               &gfeat));
       }

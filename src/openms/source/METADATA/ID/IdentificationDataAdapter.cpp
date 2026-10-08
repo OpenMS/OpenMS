@@ -21,6 +21,7 @@
 #include <set>
 #include <tuple>
 #include <type_traits>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -1114,6 +1115,15 @@ namespace
     std::map<std::string, Size> run_positions;
     for (const auto& run : data.getRuns())
       run_positions.emplace(run.getUuid(), run_positions.size());
+    // Runs that share identification IDs (combined data, e.g. linked maps) order like the unassigned ones (see queryOrder()).
+    bool shared_ids = false;
+    {
+      std::unordered_set<UInt64> ids;
+      for (const auto& run : data.getRuns())
+        for (const auto& source : run.getSources())
+          for (const auto& query : source.identifications)
+            shared_ids = ! ids.insert(query.getId().value).second || shared_ids;
+    }
     const auto collect = [&](const auto& self, const auto& feature, std::vector<Size> path) -> void {
       std::map<ID::QueryReference, std::set<ID::MatchId>> linked;
       for (const auto& query : feature.getIDQueries())
@@ -1124,13 +1134,17 @@ namespace
         if (owner == owners.end()) invalid("Feature association refers to a missing match");
         linked[owner->second].insert(match.match);
       }
-      // The identifications of a feature in the order of their IDs, then of their runs: the legacy order of an import.
+      // The identifications of a feature in the order of their IDs, then of their runs: the legacy order of an import;
+      // by run, then ID, if runs share IDs.
       std::vector<std::pair<ID::QueryReference, std::set<ID::MatchId>>> ordered(linked.begin(), linked.end());
-      const auto key = [&](const auto& item) {
+      const auto position = [&](const auto& item) {
         const auto run = run_positions.find(item.first.run_uuid);
-        return std::make_pair(item.first.query, run == run_positions.end() ? run_positions.size() : run->second);
+        return run == run_positions.end() ? run_positions.size() : run->second;
       };
-      std::stable_sort(ordered.begin(), ordered.end(), [&](const auto& a, const auto& b) { return key(a) < key(b); });
+      std::stable_sort(ordered.begin(), ordered.end(), [&](const auto& a, const auto& b) {
+        if (shared_ids) return std::make_pair(position(a), a.first.query) < std::make_pair(position(b), b.first.query);
+        return std::make_pair(a.first.query, position(a)) < std::make_pair(b.first.query, position(b));
+      });
       for (const auto& [query, matches] : ordered)
       {
         const auto* run = data.findRunByUuid(query.run_uuid);

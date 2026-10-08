@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -187,6 +188,8 @@ protected:
 
         }
 
+        // the identifications as identification data (peptide identifications are converted):
+        IdentificationDataConverter::moveToIdentificationData(tmp);
         maps[i] = tmp;
         maps[i].updateRanges();
 
@@ -218,6 +221,8 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
+        // the identifications as identification data (peptide identifications are converted):
+        IdentificationDataConverter::moveToIdentificationData(maps[i]);
         maps[i].updateRanges();
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -225,20 +230,32 @@ protected:
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
         if (keep_subelements)
         {
-          auto saveOldMapIndex =
-            [](PeptideIdentification &p)
+          // grouping gives the identifications the index of their input map; save the one they have in it:
+          Size missing = 0;
+          auto& data = maps[i].getIdentificationData();
+          for (const auto& current : data.getRuns())
+          {
+            auto& run = data.getRun(current.getIdentifier());
+            for (const auto& source : run.getSources())
             {
-              if (p.metaValueExists("map_index"))
+              for (const auto& query : source.identifications)
               {
-                p.setMetaValue("old_map_index", p.getMetaValue("map_index"));
+                if (!query.metaValueExists("map_index"))
+                {
+                  ++missing;
+                  continue;
+                }
+                IdentificationData::Observation observation = query;
+                observation.setMetaValue("old_map_index", query.getMetaValue("map_index"));
+                run.replaceObservation(query.getId(), observation);
               }
-              else
-              {
-                OPENMS_LOG_WARN << "Warning: map_index not found in PeptideID. The tool will not be able to assign a"
-                                   "consistent one. Check the settings of previous tools." << std::endl;
-              }
-            };
-          maps[i].applyFunctionOnPeptideIDs(saveOldMapIndex, true);
+            }
+          }
+          if (missing > 0)
+          {
+            OPENMS_LOG_WARN << "Warning: map_index not found in " << missing << " identification(s) of " << ins[i]
+                            << ". The tool will not be able to assign a consistent one. Check the settings of previous tools." << std::endl;
+          }
         }
       }
       // group
@@ -271,8 +288,7 @@ protected:
                        getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
 
 
-    // sort list of peptide identifications in each consensus feature by map index
-    out_map.sortPeptideIdentificationsByMapIndex();
+    // (the identifications of a consensus feature are written in the order of the input maps)
 
     // write output
     FileHandler().storeConsensusFeatures(out, out_map, {consensusOutTypeFor(file_type)});

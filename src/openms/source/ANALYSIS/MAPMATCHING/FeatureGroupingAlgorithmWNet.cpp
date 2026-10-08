@@ -399,13 +399,13 @@ namespace OpenMS
   void FeatureGroupingAlgorithmWNet::group(const vector<FeatureMap>& maps,
                                            ConsensusMap& out)
   {
-    group_(maps, out);
+    groupWithIdentificationData_(maps, out, [&](const std::vector<FeatureMap>& inputs) { group_(inputs, out); });
   }
 
   void FeatureGroupingAlgorithmWNet::group(const vector<ConsensusMap>& maps,
                                            ConsensusMap& out)
   {
-    group_(maps, out);
+    groupWithIdentificationData_(maps, out, [&](const std::vector<ConsensusMap>& inputs) { group_(inputs, out); });
   }
 
 } // namespace OpenMS

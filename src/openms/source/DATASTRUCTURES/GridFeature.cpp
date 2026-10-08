@@ -8,7 +8,8 @@
 
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 using namespace std;
 
@@ -22,16 +23,25 @@ namespace OpenMS
     feature_index_(feature_index),
     annotations_()
   {
-    const PeptideIdentificationList& peptides =
-      feature.getPeptideIdentifications();
-    for (PeptideIdentificationList::const_iterator pep_it =
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+  }
+
+  GridFeature::GridFeature(const BaseFeature& feature, Size map_index,
+                           Size feature_index, const IdentificationData& data) :
+    GridFeature(feature, map_index, feature_index)
+  {
+    for (const auto& linked : feature.getLinkedIdentifications(data))
     {
-      if (pep_it->getHits().empty())
+      // the top match (the first, if none has a score), like the first hit of a sorted peptide identification:
+      const auto* best = linked.getBestMatch();
+      if (!best && !linked.matches.empty())
       {
-        continue; // shouldn't be the case
+        best = linked.matches.front();
       }
-      annotations_.insert(pep_it->getHits()[0].getSequence());
+      if (!best || best->encoding != IdentificationData::Encoding::AA_SEQUENCE)
+      {
+        continue; // no peptide match
+      }
+      annotations_.insert(AASequence::fromString(best->representation));
     }
   }
 

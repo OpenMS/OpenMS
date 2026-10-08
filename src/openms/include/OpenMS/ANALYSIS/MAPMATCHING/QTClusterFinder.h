@@ -226,9 +226,15 @@ namespace OpenMS
     template <typename MapType>
     void run_(const std::vector<MapType>& input_maps, ConsensusMap& result_map);
 
-    /// Runs the algorithm on feature maps or consensus maps (internal)
+    /// Clusters the features of maps with their identifications as identification data
+    template <typename MapType>
+    void cluster_(const std::vector<MapType>& input_maps, ConsensusMap& result_map);
+
+    /// Runs the algorithm on feature maps or consensus maps (internal); @p identifications are those of the maps
+    /// (that the features of @p input_maps link)
     template <typename MapType>
     void run_internal_(const std::vector<MapType>& input_maps,
+                       const std::vector<const IdentificationData*>& identifications,
                        ConsensusMap& result_map, bool do_progress);
 
     /**
@@ -263,6 +269,9 @@ public:
     /**
        @brief Runs the algorithm on consensus maps
 
+       The result has the identifications of the input maps (see FeatureGroupingAlgorithm::groupIdentifications()); if an
+       input map has peptide identifications, they are converted and so does the result.
+
        @pre The data ranges of the input maps have to be up-to-date (use ConsensusMap::updateRanges).
 
        @exception Exception::IllegalArgument is thrown if the input data is not valid.
@@ -272,6 +281,8 @@ public:
 
     /**
        @brief Runs the algorithm on feature maps
+
+       The result has the identifications of the input maps, like for consensus maps.
 
        @pre The data ranges of the input maps have to be up-to-date (use FeatureMap::updateRanges).
 

@@ -12,6 +12,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+#include <functional>
+#include <set>
+
 namespace OpenMS
 {
 
@@ -19,6 +22,9 @@ namespace OpenMS
       @brief Base class for all feature grouping algorithms
 
       These algorithms group corresponding features in one map or across maps.
+
+      The result has the identifications of the maps (see groupIdentifications()). Maps with peptide identifications
+      are grouped on identification data converted from them, and the result gets peptide identifications back.
   */
   class OPENMS_DLLAPI FeatureGroupingAlgorithm :
     public DefaultParamHandler
@@ -38,53 +44,64 @@ public:
     /// as the base implementation will forward the data to the FeatureMap version of group()
     virtual void group(const std::vector<ConsensusMap> & maps, ConsensusMap & out);
 
-    /// Transfers subelements (grouped features) from input consensus maps to the result consensus map
+    /**
+        @brief Transfers subelements (grouped features) from input consensus maps to the result consensus map
+
+        The map indices of the identifications follow: an identification that had a map index in its input map (saved
+        as meta value "old_map_index" before grouping) gets the index of that map in the result, the map index of
+        others is removed.
+    */
     void transferSubelements(const std::vector<ConsensusMap> & maps, ConsensusMap & out) const;
 
+    /// The identifications of a map whose features are grouped, with the links of its features and their subordinates
+    /// (see groupIdentifications())
+    struct OPENMS_DLLAPI MapIdentifications
+    {
+      IdentificationData data;
+      std::set<IdentificationData::QueryReference> queries;
+      std::set<IdentificationData::MatchReference> matches;
+    };
+
+    /// The identifications of @p map, to give them to the map that groups its features (see groupIdentifications())
+    static MapIdentifications getMapIdentifications(const FeatureMap& map);
+    static MapIdentifications getMapIdentifications(const ConsensusMap& map);
+
+    /**
+        @brief Give @p grouped the identifications of the maps whose features it groups, the counterpart of the peptide
+        identifications that grouping copies from the grouped features and adds as unassigned ones
+
+        The identifications of the i-th map are marked with its index (meta value "map_index"), the map index of its
+        features in @p grouped. Identifications and matches that features of the map link, but no feature of @p grouped
+        (e.g. those of subordinates or of features left out), are dropped; unassigned ones are kept.
+
+        The runs of the maps must be distinct (see IdentificationDataConverter::withIdentificationData()).
+    */
+    static void groupIdentifications(std::vector<MapIdentifications> maps, ConsensusMap& grouped);
+    static void groupIdentifications(const std::vector<FeatureMap>& maps, ConsensusMap& grouped);
+    static void groupIdentifications(const std::vector<ConsensusMap>& maps, ConsensusMap& grouped);
 
 protected:
 
-    /// after grouping by the subclasses, postprocess unassigned IDs, protein IDs and sort results in a
-    /// consistent way
-    template<class MapType>
-    void postprocess_(const std::vector<MapType>& maps, ConsensusMap& out)
-    {
-      // add protein IDs and unassigned peptide IDs to the result map here,
-      // to keep the same order as the input maps (useful for output later):
-      auto& newIDs = out.getUnassignedPeptideIdentifications();
-      Size map_idx = 0;
+    /**
+        @brief After grouping by the subclasses, give the result the identifications of the maps and sort it in a
+        consistent way
 
-      for (typename std::vector<MapType>::const_iterator map_it = maps.begin();
-           map_it != maps.end(); ++map_it)
-      {
-        // add protein identifications to result map:
-        out.getProteinIdentifications().insert(
-            out.getProteinIdentifications().end(),
-            map_it->getProteinIdentifications().begin(),
-            map_it->getProteinIdentifications().end());
+        Maps with identification data give theirs (see groupIdentifications()); otherwise the protein identifications
+        and the unassigned peptide identifications (with the map index) of the maps are added to the result.
+    */
+    void postprocess_(const std::vector<FeatureMap>& maps, ConsensusMap& out) const;
+    void postprocess_(const std::vector<ConsensusMap>& maps, ConsensusMap& out) const;
 
-        // assign the map_index to unassigned PepIDs as well.
-        // for the assigned ones, this has to be done in the subclass.
-        for (const PeptideIdentification& pepID : map_it->getUnassignedPeptideIdentifications())
-        {
-          auto newPepID = pepID;
-          // Note: during linking of _consensus_Maps we have the problem that old identifications
-          // should already have a map_index associated. Since we group the consensusFeatures only anyway
-          // (without keeping the subfeatures) the method for now is to "re"-index based on the input file/map index.
-          // Subfeatures have to be transferred in postprocessing if required
-          // (see FeatureGroupingAlgorithm::transferSubelements as used in the TOPP tools, i.e. FeatureLinkerBase),
-          // which also takes care of a re-re-indexing if the old map_index of the IDs was saved.
-          newPepID.setMetaValue("map_index", map_idx);
-          newIDs.push_back(newPepID);
-        }
-        map_idx++;
-      }
+    /**
+        @brief Group the @p maps with their identifications as identification data
 
-      // canonical ordering for checking the results:
-      out.sortByQuality();
-      out.sortByMaps();
-      out.sortBySize();
-    }
+        Calls @p group with the maps prepared by IdentificationDataConverter::withIdentificationData(). If a map has
+        peptide identifications, so does @p out afterwards (IdentificationDataConverter::exportConsensusIDs()).
+    */
+    static void groupWithIdentificationData_(const std::vector<FeatureMap>& maps, ConsensusMap& out,
+                                             const std::function<void(const std::vector<FeatureMap>&)>& group);
+    static void groupWithIdentificationData_(const std::vector<ConsensusMap>& maps, ConsensusMap& out,
+                                             const std::function<void(const std::vector<ConsensusMap>&)>& group);
 private:
     ///Copy constructor is not implemented -> private
     FeatureGroupingAlgorithm(const FeatureGroupingAlgorithm &);

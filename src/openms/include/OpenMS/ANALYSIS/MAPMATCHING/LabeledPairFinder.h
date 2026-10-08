@@ -43,6 +43,11 @@ public:
     /**
       @brief Run the algorithm
 
+      The pairs link the identifications of their features, which get the map index of the light or heavy feature
+      ("map_index"); those of unpaired features are dropped, unassigned ones are kept (see
+      FeatureGroupingAlgorithm::groupIdentifications()). An input map with peptide identifications is converted to
+      identification data for this, and so is the result back.
+
       @note Exactly one @em input map has to be provided.
       @note The @em output map has to have two file descriptions, containing
       the same file name. The file descriptions have to be labeled 'heavy'

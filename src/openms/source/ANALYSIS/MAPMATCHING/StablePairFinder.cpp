@@ -9,7 +9,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+
+#include <optional>
+#include <set>
 
 #ifdef Debug_StablePairFinder
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
@@ -48,6 +51,48 @@ namespace OpenMS
     use_IDs_ = param_.getValue("use_identifications").toBool();
   }
 
+  namespace
+  {
+    /// The sequences of the top matches of the identifications that a feature links; nothing for a feature without identifications
+    using Annotations = std::optional<std::set<std::string>>;
+
+    std::vector<Annotations> getAnnotations(const ConsensusMap& map)
+    {
+      std::vector<Annotations> result;
+      result.reserve(map.size());
+      for (const ConsensusFeature& feature : map)
+      {
+        if (feature.getIDQueries().empty() && feature.getIDMatches().empty())
+        {
+          result.emplace_back();
+          continue;
+        }
+        std::set<std::string> best;
+        for (const auto& linked : feature.getLinkedIdentifications(map.getIdentificationData()))
+        {
+          // the top match (the first, if none has a score), like the best hit of a peptide identification:
+          const auto* match = linked.getBestMatch();
+          if (!match && !linked.matches.empty())
+          {
+            match = linked.matches.front();
+          }
+          if (match)
+          {
+            best.insert(match->representation);
+          }
+        }
+        result.emplace_back(std::move(best));
+      }
+      return result;
+    }
+
+    /// A feature without identifications always matches; otherwise the top matches must have the same sequences
+    bool compatibleIDs(const Annotations& annotations1, const Annotations& annotations2)
+    {
+      return !annotations1 || !annotations2 || *annotations1 == *annotations2;
+    }
+  } // namespace
+
   void StablePairFinder::run(const std::vector<ConsensusMap>& input_maps,
                              ConsensusMap& result_map)
   {
@@ -62,6 +107,16 @@ namespace OpenMS
     }
 
     checkIds_(input_maps);
+
+    // the identifications of the features, for pairing only compatible ones:
+    std::vector<Annotations> annotations[2];
+    if (use_IDs_)
+    {
+      std::vector<ConsensusMap> converted; // legacy peptide identifications are read as identification data
+      const std::vector<ConsensusMap>& maps = IdentificationDataConverter::withIdentificationData(input_maps, converted);
+      annotations[0] = getAnnotations(maps[0]);
+      annotations[1] = getAnnotations(maps[1]);
+    }
 
     // set up the distance functor:
     double max_intensity = std::numeric_limits<double>::lowest();;
@@ -115,7 +170,7 @@ namespace OpenMS
       {
         const ConsensusFeature& feat1 = input_maps[1][fi1];
 
-        if (use_IDs_ && !compatibleIDs_(feat0, feat1)) // check peptide IDs
+        if (use_IDs_ && !compatibleIDs(annotations[0][fi0], annotations[1][fi1])) // check peptide IDs
         {
           continue; // mismatch
         }
@@ -228,53 +283,13 @@ namespace OpenMS
     // canonical ordering for checking the results, and the ids have no real meaning anyway
     result_map.sortByMZ();
 
-    // protein IDs and unassigned peptide IDs are added to the result by the
-    // FeatureGroupingAlgorithm!
-  }
-
-  bool StablePairFinder::compatibleIDs_(const ConsensusFeature& feat1, const ConsensusFeature& feat2) const
-  {
-    // a feature without identifications always matches:
-    if (feat1.getPeptideIdentifications().empty() || feat2.getPeptideIdentifications().empty())
-      return true;
-
-    const PeptideIdentificationList& pep1 = feat1.getPeptideIdentifications();
-    const PeptideIdentificationList& pep2 = feat2.getPeptideIdentifications();
-
-    set<std::string> best1, best2;
-    for (PeptideIdentificationList::const_iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
+    // the result features link the identifications of both maps (protein IDs and unassigned peptide IDs of maps
+    // without identification data are added to the result by the FeatureGroupingAlgorithm!):
+    if (!input_maps[0].getIdentificationData().empty() || !input_maps[1].getIdentificationData().empty())
     {
-      if (pep_it->getHits().empty())
-        continue; // shouldn't be the case
-
-      best1.insert(getBestHitSequence_(*pep_it).toString());
-    }
-    for (PeptideIdentificationList::const_iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
-    {
-      if (pep_it->getHits().empty())
-        continue; // shouldn't be the case
-
-      best2.insert(getBestHitSequence_(*pep_it).toString());
-    }
-    return best1 == best2;
-  }
-
-  const AASequence& StablePairFinder::getBestHitSequence_(const PeptideIdentification& peptideIdentification) const
-  {
-
-    if (peptideIdentification.isHigherScoreBetter())
-    {
-      return std::min_element(peptideIdentification.getHits().begin(),
-                              peptideIdentification.getHits().end(),
-                              PeptideHit::ScoreMore()
-                              )->getSequence();
-    }
-    else
-    {
-      return std::min_element(peptideIdentification.getHits().begin(),
-                              peptideIdentification.getHits().end(),
-                              PeptideHit::ScoreLess()
-                              )->getSequence();
+      IdentificationData data = input_maps[0].getIdentificationData();
+      data.merge(input_maps[1].getIdentificationData());
+      result_map.getIdentificationData() = std::move(data);
     }
   }
 

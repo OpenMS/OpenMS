@@ -153,19 +153,22 @@ protected:
       // Load reference map and input it to the algorithm
       UInt64 ref_id;
       Size ref_size;
-      PeptideIdentificationList ref_pepids;
-      std::vector<ProteinIdentification> ref_protids;
+      // the identifications of the maps, in input order, for the result (see FeatureGroupingAlgorithm::groupIdentifications()):
+      std::vector<FeatureGroupingAlgorithm::MapIdentifications> identifications(ins.size());
+      // identification runs that a map has already (runs get new UUIDs in later maps, to keep their identifications apart):
+      std::set<std::string> taken_runs;
       {
         FeatureMap map_ref;
         FileHandler f_fxml_tmp;
         f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
         f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
         f_fxml_tmp.loadFeatures(ins[reference_index], map_ref, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
+        IdentificationDataConverter::moveToIdentificationData(map_ref);
+        IdentificationDataConverter::makeRunsDistinct(map_ref, taken_runs);
         algorithm->setReference(reference_index, map_ref);
         ref_id = map_ref.getUniqueId();
         ref_size = map_ref.size();
-        ref_pepids = map_ref.getUnassignedPeptideIdentifications();
-        ref_protids = map_ref.getProteinIdentifications();
+        identifications[reference_index] = FeatureGroupingAlgorithm::getMapIdentifications(map_ref);
       }
 
       ConsensusMap dummy;
@@ -186,6 +189,8 @@ protected:
 
         if (i != reference_index)
         {
+          IdentificationDataConverter::moveToIdentificationData(tmp_map);
+          IdentificationDataConverter::makeRunsDistinct(tmp_map, taken_runs);
           algorithm->addToGroup(i, tmp_map);
 
           // store some meta-data about the maps in the "dummy" object -> try to
@@ -196,23 +201,7 @@ protected:
           dummy.getColumnHeaders()[i].size = tmp_map.size();
           dummy.getColumnHeaders()[i].unique_id = tmp_map.getUniqueId();
 
-          // add protein identifications to result map
-          dummy.getProteinIdentifications().insert(
-            dummy.getProteinIdentifications().end(),
-            tmp_map.getProteinIdentifications().begin(),
-            tmp_map.getProteinIdentifications().end());
-
-          // add unassigned peptide identifications to result map
-          auto& newIDs = dummy.getUnassignedPeptideIdentifications();
-          for (const PeptideIdentification& pepID : tmp_map.getUnassignedPeptideIdentifications())
-          {
-            auto newPepID = pepID;
-            //TODO during linking of consensusMaps we have the problem that old identifications
-            // already have a map_index associated. Since we link the consensusFeatures only anyway
-            // (without keeping the subfeatures) it should be ok for now to "re"-index
-            newPepID.setMetaValue("map_index", i);
-            newIDs.push_back(newPepID);
-          }
+          identifications[i] = FeatureGroupingAlgorithm::getMapIdentifications(tmp_map);
         }
         else
         {
@@ -220,24 +209,6 @@ protected:
           dummy.getColumnHeaders()[i].filename = ins[i];
           dummy.getColumnHeaders()[i].size = ref_size;
           dummy.getColumnHeaders()[i].unique_id = ref_id;
-
-          // add protein identifications to result map
-          dummy.getProteinIdentifications().insert(
-            dummy.getProteinIdentifications().end(),
-            ref_protids.begin(),
-            ref_protids.end());
-
-          // add unassigned peptide identifications to result map
-          auto& newIDs = dummy.getUnassignedPeptideIdentifications();
-          for (const PeptideIdentification& pepID : ref_pepids)
-          {
-            auto newPepID = pepID;
-            //TODO during linking of consensusMaps we have the problem that old identifications
-            // already have a map_index associated. Since we link the consensusFeatures only anyway
-            // (without keeping the subfeatures) it should be ok for now to "re"-index
-            newPepID.setMetaValue("map_index", i);
-            newIDs.push_back(newPepID);
-          }
         }
       }
 
@@ -245,20 +216,11 @@ protected:
       out_map = algorithm->getResultMap();
 
       //
-      // Copy back meta-data (Protein / Peptide ids / File descriptions)
+      // Copy back meta-data (identifications / file descriptions)
       //
 
-      // add protein identifications to result map
-      out_map.getProteinIdentifications().insert(
-        out_map.getProteinIdentifications().end(),
-        dummy.getProteinIdentifications().begin(),
-        dummy.getProteinIdentifications().end());
-
-      // add unassigned peptide identifications to result map
-      out_map.getUnassignedPeptideIdentifications().insert(
-        out_map.getUnassignedPeptideIdentifications().end(),
-        dummy.getUnassignedPeptideIdentifications().begin(),
-        dummy.getUnassignedPeptideIdentifications().end());
+      // the identifications of the maps, in input order (as after FeatureGroupingAlgorithmUnlabeled::group()):
+      FeatureGroupingAlgorithm::groupIdentifications(std::move(identifications), out_map);
 
       out_map.setColumnHeaders(dummy.getColumnHeaders());
 
@@ -275,6 +237,8 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
+        // the identifications as identification data (peptide identifications are converted):
+        IdentificationDataConverter::moveToIdentificationData(maps[i]);
         StringList ms_runs;
         maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());

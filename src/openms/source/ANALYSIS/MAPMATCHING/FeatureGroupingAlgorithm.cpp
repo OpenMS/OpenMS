@@ -15,6 +15,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+
+#include <algorithm>
 
 using namespace std;
 
@@ -132,6 +136,235 @@ namespace OpenMS
         id.removeMetaValue("map_index");
       }
     }
+    // the same for the identifications in identification data:
+    auto& data = out.getIdentificationData();
+    for (const auto& current : data.getRuns())
+    {
+      auto& run = data.getRun(current.getIdentifier());
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          if (!query.metaValueExists("old_map_index") && !query.metaValueExists("map_index")) continue;
+          IdentificationData::Observation observation = query;
+          if (observation.metaValueExists("old_map_index"))
+          {
+            Size old_map_index = (Size)observation.getMetaValue("old_map_index");
+            Size file_index = (Size)observation.getMetaValue("map_index");
+            observation.setMetaValue("map_index", mapid_table[make_pair(file_index, old_map_index)]);
+            observation.removeMetaValue("old_map_index");
+          }
+          else
+          {
+            observation.removeMetaValue("map_index");
+          }
+          run.replaceObservation(query.getId(), observation);
+        }
+      }
+    }
+  }
+
+  namespace
+  {
+    template <class MapType>
+    FeatureGroupingAlgorithm::MapIdentifications mapIdentifications(const MapType& map)
+    {
+      FeatureGroupingAlgorithm::MapIdentifications result {map.getIdentificationData(), {}, {}};
+      const auto collect = [&](const auto& self, const auto& feature) -> void {
+        result.queries.insert(feature.getIDQueries().begin(), feature.getIDQueries().end());
+        result.matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+        {
+          for (const auto& subordinate : feature.getSubordinates())
+          {
+            self(self, subordinate);
+          }
+        }
+      };
+      for (const auto& feature : map)
+      {
+        collect(collect, feature);
+      }
+      return result;
+    }
+
+    template <class MapType>
+    void groupMaps(const std::vector<MapType>& maps, ConsensusMap& grouped)
+    {
+      std::vector<FeatureGroupingAlgorithm::MapIdentifications> identifications;
+      identifications.reserve(maps.size());
+      for (const auto& map : maps)
+      {
+        identifications.push_back(FeatureGroupingAlgorithm::getMapIdentifications(map));
+      }
+      FeatureGroupingAlgorithm::groupIdentifications(std::move(identifications), grouped);
+    }
+
+    template <class MapType>
+    void postprocessLegacy(const std::vector<MapType>& maps, ConsensusMap& out)
+    {
+      // add protein IDs and unassigned peptide IDs to the result map here,
+      // to keep the same order as the input maps (useful for output later):
+      auto& newIDs = out.getUnassignedPeptideIdentifications();
+      for (Size map_idx = 0; map_idx < maps.size(); ++map_idx)
+      {
+        // add protein identifications to result map:
+        out.getProteinIdentifications().insert(out.getProteinIdentifications().end(),
+                                               maps[map_idx].getProteinIdentifications().begin(),
+                                               maps[map_idx].getProteinIdentifications().end());
+
+        // assign the map_index to unassigned PepIDs as well.
+        // for the assigned ones, this has to be done in the subclass.
+        for (const PeptideIdentification& pepID : maps[map_idx].getUnassignedPeptideIdentifications())
+        {
+          auto newPepID = pepID;
+          // Note: during linking of _consensus_Maps we have the problem that old identifications
+          // should already have a map_index associated. Since we group the consensusFeatures only anyway
+          // (without keeping the subfeatures) the method for now is to "re"-index based on the input file/map index.
+          // Subfeatures have to be transferred in postprocessing if required
+          // (see FeatureGroupingAlgorithm::transferSubelements as used in the TOPP tools, i.e. FeatureLinkerBase),
+          // which also takes care of a re-re-indexing if the old map_index of the IDs was saved.
+          newPepID.setMetaValue("map_index", map_idx);
+          newIDs.push_back(newPepID);
+        }
+      }
+    }
+
+    template <class MapType>
+    void postprocessMaps(const std::vector<MapType>& maps, ConsensusMap& out)
+    {
+      if (std::any_of(maps.begin(), maps.end(), [](const MapType& map) { return IdentificationDataConverter::hasPeptideIdentifications(map); }))
+      {
+        postprocessLegacy(maps, out);
+      }
+      else
+      {
+        FeatureGroupingAlgorithm::groupIdentifications(maps, out);
+      }
+
+      // canonical ordering for checking the results:
+      out.sortByQuality();
+      out.sortByMaps();
+      out.sortBySize();
+    }
+
+    template <class MapType>
+    void groupWithData(const std::vector<MapType>& maps, ConsensusMap& out, const std::function<void(const std::vector<MapType>&)>& group)
+    {
+      const bool legacy = std::any_of(maps.begin(), maps.end(), [](const MapType& map) { return IdentificationDataConverter::hasPeptideIdentifications(map); });
+      std::vector<MapType> converted;
+      group(IdentificationDataConverter::withIdentificationData(maps, converted));
+      if (legacy)
+      {
+        IdentificationDataConverter::exportConsensusIDs(out);
+      }
+    }
+  } // namespace
+
+  FeatureGroupingAlgorithm::MapIdentifications FeatureGroupingAlgorithm::getMapIdentifications(const FeatureMap& map)
+  {
+    return mapIdentifications(map);
+  }
+
+  FeatureGroupingAlgorithm::MapIdentifications FeatureGroupingAlgorithm::getMapIdentifications(const ConsensusMap& map)
+  {
+    return mapIdentifications(map);
+  }
+
+  void FeatureGroupingAlgorithm::groupIdentifications(std::vector<MapIdentifications> maps, ConsensusMap& grouped)
+  {
+    using ID = IdentificationData;
+    std::set<ID::QueryReference> grouped_queries;
+    std::set<ID::MatchReference> grouped_matches;
+    for (const ConsensusFeature& feature : grouped)
+    {
+      grouped_queries.insert(feature.getIDQueries().begin(), feature.getIDQueries().end());
+      grouped_matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+    }
+    ID result;
+    for (Size map_index = 0; map_index < maps.size(); ++map_index)
+    {
+      ID& data = maps[map_index].data;
+      const auto& queries = maps[map_index].queries;
+      const auto& matches = maps[map_index].matches;
+      // Like the peptide identifications of features that grouping leaves out: what only such features link goes.
+      const auto dropped = [&](const ID::MatchReference& match) {
+        return matches.contains(match) && !grouped_matches.contains(match);
+      };
+      std::set<ID::QueryReference> drop;
+      for (const auto& run : data.getRuns())
+      {
+        for (const auto& source : run.getSources())
+        {
+          for (const auto& query : source.identifications)
+          {
+            const ID::QueryReference reference {run.getUuid(), query.getId()};
+            bool linked = queries.contains(reference), kept = grouped_queries.contains(reference), left = false;
+            for (const auto& match : query.getMatches())
+            {
+              const ID::MatchReference match_reference {run.getUuid(), match.getId()};
+              linked = linked || matches.contains(match_reference);
+              kept = kept || grouped_matches.contains(match_reference);
+              left = left || !dropped(match_reference);
+            }
+            if (linked && !kept && !left) drop.insert(reference);
+          }
+        }
+      }
+      data.eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
+        return dropped({run.getUuid(), match.getId()});
+      });
+      data.eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) {
+        return drop.contains({run.getUuid(), query.getId()});
+      });
+      for (const auto& current : data.getRuns())
+      {
+        auto& run = data.getRun(current.getIdentifier());
+        for (const auto& source : run.getSources())
+        {
+          for (const auto& query : source.identifications)
+          {
+            ID::Observation observation = query;
+            observation.setMetaValue("map_index", map_index);
+            run.replaceObservation(query.getId(), observation);
+          }
+        }
+      }
+      result.merge(data);
+    }
+    grouped.getIdentificationData() = std::move(result);
+  }
+
+  void FeatureGroupingAlgorithm::groupIdentifications(const std::vector<FeatureMap>& maps, ConsensusMap& grouped)
+  {
+    groupMaps(maps, grouped);
+  }
+
+  void FeatureGroupingAlgorithm::groupIdentifications(const std::vector<ConsensusMap>& maps, ConsensusMap& grouped)
+  {
+    groupMaps(maps, grouped);
+  }
+
+  void FeatureGroupingAlgorithm::postprocess_(const std::vector<FeatureMap>& maps, ConsensusMap& out) const
+  {
+    postprocessMaps(maps, out);
+  }
+
+  void FeatureGroupingAlgorithm::postprocess_(const std::vector<ConsensusMap>& maps, ConsensusMap& out) const
+  {
+    postprocessMaps(maps, out);
+  }
+
+  void FeatureGroupingAlgorithm::groupWithIdentificationData_(const std::vector<FeatureMap>& maps, ConsensusMap& out,
+                                                              const std::function<void(const std::vector<FeatureMap>&)>& group)
+  {
+    groupWithData(maps, out, group);
+  }
+
+  void FeatureGroupingAlgorithm::groupWithIdentificationData_(const std::vector<ConsensusMap>& maps, ConsensusMap& out,
+                                                              const std::function<void(const std::vector<ConsensusMap>&)>& group)
+  {
+    groupWithData(maps, out, group);
   }
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm() = default;

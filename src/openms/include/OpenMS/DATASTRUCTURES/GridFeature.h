@@ -17,6 +17,7 @@ namespace OpenMS
 {
   class BaseFeature;
   class AASequence;
+  class IdentificationData;
 
   /**
    * @brief Representation of a feature in a hash grid.
@@ -40,12 +41,25 @@ private:
 
 public:
     /**
-     * @brief Detailed constructor
+     * @brief Detailed constructor, for a feature without identifications (no annotations)
      * @param[in] feature Reference to the contained feature
      * @param[in] map_index Index of the feature map or consensus map
      * @param[in] feature_index Index of the feature in the map
      */
     GridFeature(const BaseFeature& feature, Size map_index, Size feature_index);
+
+    /**
+     * @brief Detailed constructor
+     *
+     * The annotations are the peptide sequences of the top matches (by primary score) of the identifications that the
+     * feature links (see BaseFeature::getLinkedIdentifications()).
+     *
+     * @param[in] feature Reference to the contained feature
+     * @param[in] map_index Index of the feature map or consensus map
+     * @param[in] feature_index Index of the feature in the map
+     * @param[in] data The identification data of the map
+     */
+    GridFeature(const BaseFeature& feature, Size map_index, Size feature_index, const IdentificationData& data);
 
     /// Returns the feature
     const BaseFeature& getFeature() const;

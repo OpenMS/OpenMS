@@ -14,8 +14,8 @@
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace std;
 
@@ -48,14 +48,18 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void LabeledPairFinder::run(const vector<ConsensusMap>& input_maps, ConsensusMap& result_map)
+  void LabeledPairFinder::run(const vector<ConsensusMap>& maps, ConsensusMap& result_map)
   {
-    if (input_maps.size() != 1)
+    if (maps.size() != 1)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "exactly one input map required");
     if (result_map.getColumnHeaders().size() != 2)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "two file descriptions required");
     if (result_map.getColumnHeaders().begin()->second.filename != result_map.getColumnHeaders().rbegin()->second.filename)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the two file descriptions have to contain the same file name");
+    // the identifications as identification data (peptide identifications are converted, and so is the result back):
+    const bool legacy = IdentificationDataConverter::hasPeptideIdentifications(maps[0]);
+    vector<ConsensusMap> converted;
+    const vector<ConsensusMap>& input_maps = IdentificationDataConverter::withIdentificationData(maps, converted);
     checkIds_(input_maps);
 
     //look up the light and heavy index
@@ -290,20 +294,58 @@ namespace OpenMS
       }
     }
 
-    //Add protein identifications to result map
-    for (Size i = 0; i < input_maps.size(); ++i)
+    // The pairs link the identifications of their features; those of unpaired features are dropped (see
+    // FeatureGroupingAlgorithm::groupIdentifications()). An identification gets the map index of the light or heavy
+    // feature that links it; unassigned ones have none.
+    std::map<UInt64, const ConsensusFeature*> features; // by unique ID
+    for (const ConsensusFeature& feature : input_maps[0])
     {
-      result_map.getProteinIdentifications().insert(result_map.getProteinIdentifications().end(), input_maps[i].getProteinIdentifications().begin(), input_maps[i].getProteinIdentifications().end());
+      features.emplace(feature.getUniqueId(), &feature);
     }
-
-    //Add unassigned peptide identifications to result map
-    for (Size i = 0; i < input_maps.size(); ++i)
+    std::map<IdentificationData::QueryReference, Size> map_indices;
+    for (const ConsensusFeature& pair : result_map)
     {
-      result_map.getUnassignedPeptideIdentifications().insert(result_map.getUnassignedPeptideIdentifications().end(), input_maps[i].getUnassignedPeptideIdentifications().begin(), input_maps[i].getUnassignedPeptideIdentifications().end());
+      for (const FeatureHandle& handle : pair.getFeatures())
+      {
+        const auto found = features.find(handle.getUniqueId());
+        if (found == features.end()) continue;
+        for (const auto& query : found->second->getLinkedIDQueries(input_maps[0].getIdentificationData()))
+        {
+          map_indices.emplace(query, handle.getMapIndex());
+        }
+      }
+    }
+    FeatureGroupingAlgorithm::groupIdentifications(input_maps, result_map);
+    auto& data = result_map.getIdentificationData();
+    for (const auto& current : data.getRuns())
+    {
+      auto& run = data.getRun(current.getIdentifier());
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          IdentificationData::Observation observation = query;
+          const auto found = map_indices.find({run.getUuid(), query.getId()});
+          if (found == map_indices.end())
+          {
+            observation.removeMetaValue("map_index");
+          }
+          else
+          {
+            observation.setMetaValue("map_index", found->second);
+          }
+          run.replaceObservation(query.getId(), observation);
+        }
+      }
     }
 
     // Very useful for checking the results, and the ids have no real meaning anyway
     result_map.sortByMZ();
+
+    if (legacy)
+    {
+      IdentificationDataConverter::exportConsensusIDs(result_map);
+    }
   }
 
 }
