@@ -170,7 +170,7 @@ protected:
     setValidFormats_("lfq_out", vector<std::string>(1, "tsv"));
 
     registerOutputFile_("bedrmod_out", "<file>", "", "Output file: bedRMod v2 RNA modification track", false);
-    setValidFormats_("bedrmod_out", {"bedrmod"});
+    setValidFormats_("bedrmod_out", {"bed"});
 
     registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for bedRMod export ('mod'/'name' and 'chebi_id'/'chebi id' columns)", false, true);
     setValidFormats_("bedrmod_chebi_mapping", {"csv"});
@@ -219,7 +219,7 @@ protected:
     registerIntOption_("preprocessing:window_mower:peakcount", "<num>", 50, "Number of peaks that should be kept per window", false, true);
     setMinInt_("preprocessing:window_mower:peakcount", 1);
     registerStringOption_("preprocessing:window_mower:movetype", "<type>", "slide", "Window movement for noise filtering; use jump to reproduce historical NASE preprocessing", false, true);
-    setValidStrings_("preprocessing:window_mower:movetype", ListUtils::create<String>("slide,jump"));
+    setValidStrings_("preprocessing:window_mower:movetype", ListUtils::create<std::string>("slide,jump"));
     registerFlag_("preprocessing:filter_nlargest", "Apply NLargest filter to keep only the top N most intense peaks", true);
     registerTOPPSubsection_("preprocessing:nlargest", "NLargest filter parameters");
     registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
@@ -228,13 +228,13 @@ protected:
     registerDoubleOption_("preprocessing:precursor_mass_tolerance", "<tolerance>", 1.5, "Tolerance for precursor peak removal (applied to both sides of the peak)", false, true);
     setMinFloat_("preprocessing:precursor_mass_tolerance", 0.0);
     registerStringOption_("preprocessing:precursor_mass_tolerance_unit", "<unit>", "Da", "Unit for precursor peak removal tolerance", false, true);
-    setValidStrings_("preprocessing:precursor_mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+    setValidStrings_("preprocessing:precursor_mass_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
     registerIntOption_("preprocessing:precursor_peak_isotopes", "<num>", 2, "Number of isotopic peaks to remove around the precursor (0 = monoisotopic only)", false, true);
     setMinInt_("preprocessing:precursor_peak_isotopes", 0);
 
     registerTOPPSubsection_("scoring", "Scoring Options");
     registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
-    setValidStrings_("scoring:method", ListUtils::create<String>("hyperscore,mvh"));
+    setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh"));
     registerIntOption_("scoring:num_intensity_classes", "<num>", 3, "Number of intensity classes for peak stratification in MVH scoring (only used if scoring:method is 'mvh')", false, true);
     setMinInt_("scoring:num_intensity_classes", 1);
     setMaxInt_("scoring:num_intensity_classes", 7);
@@ -408,7 +408,7 @@ protected:
   }
 
   Size countCleavageSensitiveMods_(const NASequence& sequence,
-                                   const set<String>& sensitive_codes) const
+                                   const set<std::string>& sensitive_codes) const
   {
     if (sensitive_codes.empty()) return 0;
 
@@ -423,7 +423,7 @@ protected:
     return count;
   }
 
-  UInt64 stableHash64_(const String& input) const
+  UInt64 stableHash64_(const std::string& input) const
   {
     const UInt64 fnv_offset = 1469598103934665603ULL;
     const UInt64 fnv_prime = 1099511628211ULL;
@@ -586,10 +586,10 @@ protected:
       IdentificationData::ParentMatch match(pos.first, end_pos - 1);
       match.left_neighbor = ((pos.first > 0) ?
                              digestion_parent[pos.first - 1]->getCode() :
-                             IdentificationData::ParentMatch::LEFT_TERMINUS);
+                             std::string(1, IdentificationData::ParentMatch::LEFT_TERMINUS));
       match.right_neighbor = ((end_pos < digestion_parent.size()) ?
                               digestion_parent[end_pos]->getCode() :
-                              IdentificationData::ParentMatch::RIGHT_TERMINUS);
+                              std::string(1, IdentificationData::ParentMatch::RIGHT_TERMINUS));
       
       // Mark reshuffled decoys - coordinates point to original location, not reshuffled sequence
       if (was_reshuffled)
@@ -801,7 +801,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const String& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -1090,10 +1090,10 @@ protected:
       auto hit_key = [](const AnnotatedHit& hit)
       {
         const auto& precursor = *hit.precursor_ref;
-        const String adduct = precursor.adduct ? (*precursor.adduct)->getName() : String();
+        const std::string adduct = precursor.adduct ? (*precursor.adduct)->getName() : std::string();
         return make_tuple(hit.sequence.toString(), hit.oligo_ref->sequence.toString(),
                           precursor.charge, precursor.isotope, adduct,
-                          precursor.adduct ? (*precursor.adduct)->getEmpiricalFormula().toString() : String(),
+                          precursor.adduct ? (*precursor.adduct)->getEmpiricalFormula().toString() : std::string(),
                           precursor.adduct ? (*precursor.adduct)->getCharge() : 0,
                           precursor.adduct ? (*precursor.adduct)->getMolMultiplier() : UInt(0),
                           hit.precursor_error_ppm);
@@ -1163,7 +1163,7 @@ protected:
 
     for (const auto& annotation : annotations)
     {
-      String ann = annotation.annotation;
+      std::string ann = annotation.annotation;
       if (ann.empty())
       {
         OPENMS_LOG_WARN << "Empty fragment annotation found in coverage check" << endl;
@@ -1171,16 +1171,16 @@ protected:
       }
 
       // Check for a-B ions (e.g., "a1-B", "a2-B")
-      if (ann.hasSubstring("-B"))
+      if (ann.find("-B") != std::string::npos)
       {
         // Extract position from "a1-B" -> "1"
-        String prefix = ann.prefix('-');
-        if (prefix.hasPrefix("a"))
+        std::string prefix = ann.substr(0, ann.find('-'));
+        if (prefix.starts_with("a"))
         {
-          String pos_str = prefix.substr(1); // Remove 'a'
+          std::string pos_str = prefix.substr(1); // Remove 'a'
           try
           {
-            Size pos = pos_str.toInt();
+            Size pos = static_cast<Size>(StringUtils::toInt64(pos_str));
             if (pos >= 1 && pos < length)
             {
               covered_positions.insert(pos);
@@ -1199,21 +1199,21 @@ protected:
         // Regular ions: extract ion type and position
         // Format: "a1", "b2", "w9", "y3", etc.
         char ion_type = ann[0];
-        String ion_type_str(1, ion_type);
+        std::string ion_type_str(1, ion_type);
         
         // Check if this is a valid fragment ion type (using class member)
         if (std::find(fragment_ion_codes_.begin(), fragment_ion_codes_.end(), 
                       ion_type_str) != fragment_ion_codes_.end())
         {
           // Extract numeric position
-          String pos_str = ann.substr(1);
+          std::string pos_str = ann.substr(1);
           // Handle annotations like "y3+" by removing non-digits
-          pos_str.substitute("+", "");
-          pos_str.substitute("-", "");
+          pos_str.erase(std::remove(pos_str.begin(), pos_str.end(), '+'), pos_str.end());
+          pos_str.erase(std::remove(pos_str.begin(), pos_str.end(), '-'), pos_str.end());
           
           try
           {
-            Size pos = pos_str.toInt();
+            Size pos = static_cast<Size>(StringUtils::toInt64(pos_str));
             
             // w/x/y/z ions count from 3' end, need to convert to 5' end position
             // For a 10-mer: w9 = position 1, w8 = position 2, ..., w1 = position 9
@@ -1249,8 +1249,8 @@ protected:
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
     // Find the score type that was registered (either "hyperscore" or "MVH score")
-    String scoring_method = getStringOption_("scoring:method");
-    String score_name = (scoring_method == "mvh") ? "MVH score" : "hyperscore";
+    std::string scoring_method = getStringOption_("scoring:method");
+    std::string score_name = (scoring_method == "mvh") ? "MVH score" : "hyperscore";
     IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType(score_name);
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
@@ -1423,7 +1423,7 @@ protected:
       getModifications_(search_param.variable_mods);
     RNaseDigestion::CleavageSensitiveModGroups cleavage_sensitive_groups;
     set<ConstRibonucleotidePtr> cleavage_sensitive_modifications;
-    set<String> cleavage_sensitive_mod_codes;
+    set<std::string> cleavage_sensitive_mod_codes;
     set<ConstRibonucleotidePtr> post_digest_variable_modifications =
       variable_modifications;
 
@@ -1434,7 +1434,7 @@ protected:
       getIntOption_("modifications:variable_max_per_oligo");
     Size report_top_hits = getIntOption_("report:top_hits");
 
-    String enzyme_name = getStringOption_("oligo:enzyme");
+    std::string enzyme_name = getStringOption_("oligo:enzyme");
     const DigestionEnzyme* configured_enzyme =
       RNaseDB::getInstance()->getEnzyme(enzyme_name);
     RNaseDigestion cleavage_sensitive_digestor;
@@ -1504,8 +1504,8 @@ protected:
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(input);
     // processing software meta data:
-    String scoring_method = getStringOption_("scoring:method");
-    String score_name = (scoring_method == "mvh") ? "MVH score" : "hyperscore";
+    std::string scoring_method = getStringOption_("scoring:method");
+    std::string score_name = (scoring_method == "mvh") ? "MVH score" : "hyperscore";
     IdentificationData::ScoreType score(score_name, true);
     IdentificationData::ScoreTypeRef score_ref =
       id_data.registerScoreType(score);
@@ -1722,12 +1722,12 @@ protected:
     bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
     double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
     int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
-    String window_movetype = getStringOption_("preprocessing:window_mower:movetype");
+    std::string window_movetype = getStringOption_("preprocessing:window_mower:movetype");
     bool use_nlargest = getFlag_("preprocessing:filter_nlargest");
     int nlargest_n = getIntOption_("preprocessing:nlargest:n");
     bool remove_precursor = getFlag_("preprocessing:remove_precursor_peak");
     double precursor_mass_tolerance = getDoubleOption_("preprocessing:precursor_mass_tolerance");
-    String precursor_tolerance_unit = getStringOption_("preprocessing:precursor_mass_tolerance_unit");
+    std::string precursor_tolerance_unit = getStringOption_("preprocessing:precursor_mass_tolerance_unit");
     bool precursor_tolerance_ppm = (precursor_tolerance_unit == "ppm");
     int precursor_peak_isotopes = getIntOption_("preprocessing:precursor_peak_isotopes");
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
