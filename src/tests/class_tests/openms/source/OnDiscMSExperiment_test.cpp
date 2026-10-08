@@ -597,9 +597,10 @@ START_SECTION(([EXTRA] Range filters keep spectrum metadata and filter data arra
   od.getOptions().setIntensityRange(DRange<1>(25.0, 65.0));   // keeps intensity 30..60 -> indices 2..5
   check(od.getSpectrum(0), {2, 3, 4, 5});
 
-  // both filters at once
-  od.getOptions().setMZRange(DRange<1>(125.0, 145.0));   // mz 130, 140 -> indices 3, 4; intensity 40, 50 pass
-  check(od.getSpectrum(0), {3, 4});
+  // both filters at once; only their intersection survives (mz alone keeps 3, 4; intensity alone keeps 4, 5)
+  od.getOptions().setIntensityRange(DRange<1>(45.0, 65.0));   // intensity 50, 60 -> indices 4, 5
+  od.getOptions().setMZRange(DRange<1>(125.0, 145.0));   // mz 130, 140 -> indices 3, 4
+  check(od.getSpectrum(0), {4});
 
   // chromatogram: RT range and intensity range keep name, native ID and data arrays in step with the peaks
   od.getOptions() = PeakFileOptions();
