@@ -56,6 +56,7 @@
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -1903,6 +1904,21 @@ protected:
       }
       f.setSubordinates({});
       f.setConvexHulls({});
+    }
+
+    // FFId reports one feature per targeted peptidoform. Positional isomers (e.g. phosphosites
+    // localized differently in the HCD and ETD spectra of one precursor) share m/z and RT, so the
+    // same signal comes back once per isomer at the same position (up to floating-point noise).
+    // Keep it once, with all identifications attached, and let the conflict resolution below pick
+    // the best one. Otherwise the signal is quantified several times, and copies whose IDs fail FDR
+    // filtering later become identical unidentified features (refused e.g. by the QPX feature view
+    // as duplicate rows).
+    const Size n_coincident = FeatureOverlapFilter::mergeCoincidentFeatures(fm);
+    if (n_coincident > 0)
+    {
+      OPENMS_LOG_INFO << "Merged " << n_coincident
+                      << " feature(s) reporting the same signal (same charge, RT and m/z) as another feature, "
+                         "e.g. for positional isomers. Their identifications were kept on the merged feature.\n";
     }
 
     IDConflictResolverAlgorithm::resolve(fm, getStringOption_("keep_feature_top_psm_only") == "false");
