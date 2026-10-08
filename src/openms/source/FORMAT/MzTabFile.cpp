@@ -2914,9 +2914,6 @@ namespace OpenMS
     prot_ids_ptr.reserve(protein_identifications.size());
     for (const ProteinIdentification& pi : protein_identifications) { prot_ids_ptr.push_back(&pi); }
 
-    ofstream tab_file;
-    tab_file.open(filename, ios::out | ios::trunc);
-
     MzTab::IDMzTabStream s(
       prot_ids_ptr,
       pep_ids_ptr,
@@ -2924,7 +2921,11 @@ namespace OpenMS
       first_run_inference_only,
       export_empty_pep_ids,
       export_all_psms,
-      title);      
+      title);
+
+    // open the file only after the stream checked the identifications, so a failed check leaves no truncated file
+    ofstream tab_file;
+    tab_file.open(filename, ios::out | ios::trunc);
 
     // generate full meta data section and write to file
     MzTabMetaData meta_data = s.getMetaData();
@@ -3009,9 +3010,6 @@ namespace OpenMS
       + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
     }
 
-    ofstream tab_file;
-    tab_file.open(filename, ios::out | ios::trunc);
-
     MzTab::CMMzTabStream s(
       cmap,
       filename,
@@ -3021,7 +3019,11 @@ namespace OpenMS
       export_subfeatures,
       export_empty_pep_ids,
       export_all_psms,
-      "ConsensusMap export from OpenMS");      
+      "ConsensusMap export from OpenMS");
+
+    // open the file only after the stream checked the identifications, so a failed check leaves no truncated file
+    ofstream tab_file;
+    tab_file.open(filename, ios::out | ios::trunc);
 
     // generate full meta data section and write to file
     MzTabMetaData meta_data = s.getMetaData();

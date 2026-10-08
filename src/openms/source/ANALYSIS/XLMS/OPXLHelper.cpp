@@ -1150,6 +1150,7 @@ namespace OpenMS
         }
         else
         {
+          new_id.setIdentifier(id.getIdentifier()); // the protein identification run (search run) of the spectrum
           new_id.setRT(id.getRT());
           new_id.setMZ(id.getMZ());
           new_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);

@@ -12,6 +12,9 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <iterator>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -597,6 +600,68 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
   {
     TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTK(TestFXML:Fresh)IDE")
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] store/load - every peptide identification needs its protein identification run)
+{
+  const std::string message = "Peptide identification has no matching protein run: 'other'. Every peptide identification "
+                              "needs the protein identification run (search run) with its identifier, which may have no protein hits.";
+  FeatureMap map;
+  ProteinIdentification run; // no protein hits, e.g. a de novo or peptidomics search
+  run.setIdentifier("search");
+  run.setDateTime(DateTime::now());
+  map.setProteinIdentifications({run});
+  Feature feature;
+  feature.setRT(100.0);
+  feature.setMZ(500.0);
+  PeptideIdentification peptide;
+  peptide.setIdentifier("search");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  peptide.insertHit(hit);
+  feature.getPeptideIdentifications().push_back(peptide);
+  map.push_back(feature);
+  map.getUnassignedPeptideIdentifications().push_back(peptide);
+  map.ensureUniqueId();
+  map[0].setUniqueId(1);
+
+  // not omitted: storing fails before the file is opened
+  for (int assigned = 0; assigned < 2; ++assigned)
+  {
+    FeatureMap bad = map;
+    (assigned ? bad[0].getPeptideIdentifications() : bad.getUnassignedPeptideIdentifications())[0].setIdentifier("other");
+    std::string bad_file;
+    NEW_TMP_FILE_EXT(bad_file, ".featureXML")
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, FeatureXMLFile().store(bad_file, bad), message)
+    TEST_FALSE(File::exists(bad_file))
+  }
+
+  // a file whose peptide identification references an unknown identification run cannot be loaded
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".featureXML")
+  FeatureXMLFile().store(file, map);
+  FeatureMap in;
+  FeatureXMLFile().load(file, in);
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getIdentifier(), in.getProteinIdentifications()[0].getIdentifier())
+  std::string content;
+  {
+    std::ifstream is(file);
+    content.assign(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>());
+  }
+  const std::string ref = "identification_run_ref=\"PI_0\"";
+  const Size pos = content.rfind(ref); // the unassigned peptide identification
+  TEST_NOT_EQUAL(pos, std::string::npos)
+  content.replace(pos, ref.size(), "identification_run_ref=\"PI_7\"");
+  // (not a NEW_TMP_FILE: it does not validate against the schema, which is the point)
+  const std::string dangling = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + ".featureXML";
+  {
+    std::ofstream os(dangling);
+    os << content;
+  }
+  TEST_EXCEPTION(Exception::ParseError, FeatureXMLFile().load(dangling, in))
+  File::remove(dangling);
 }
 END_SECTION
 

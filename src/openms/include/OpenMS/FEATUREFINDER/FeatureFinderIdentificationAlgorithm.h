@@ -378,6 +378,8 @@ protected:
 
   /// Helper function to check if a peptide hit is a seed pseudo-ID
   static bool isSeedPseudoHit_(const PeptideHit& hit);
+  /// Is @p pid a pseudo ID (of a seed or offset peptide) without hits (or empty)?
+  static bool isEmptyPseudoID_(const PeptideIdentification& pid);
 
   /// Calculate RT bounds with optional tolerance expansion
   std::pair<double, double> calculateRTBounds_(double rt_min, double rt_max) const;

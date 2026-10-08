@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <boost/lexical_cast.hpp>
 
@@ -1229,7 +1230,7 @@ namespace OpenMS::Internal
 //              std::string identi = search_engine+"_"+si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getDate()+"T"
 //                      +si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getTime();
 //              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setIdentifier(identi);
-              auto& pro = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]);
+              auto& pro = runOfList_(si_it->second.spectrum_identification_list_ref);
               pro.setSearchEngine(search_engine);
               pro.setSearchEngineVersion(search_engine_version);
               sp.db = pro.getSearchParameters().db; // was previously set, but main parts of sp are set here
@@ -1316,6 +1317,18 @@ namespace OpenMS::Internal
       }
     }
 
+    ProteinIdentification& MzIdentMLDOMHandler::runOfList_(const std::string& spectrum_identification_list_ref)
+    {
+      const auto run = si_pro_map_.find(spectrum_identification_list_ref);
+      if (run == si_pro_map_.end())
+      {
+        // no SpectrumIdentification (search run) references this list
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          ProteinRunReferences::missingRunMessage(spectrum_identification_list_ref) + " (SpectrumIdentificationList)");
+      }
+      return pro_id_->at(run->second);
+    }
+
     void MzIdentMLDOMHandler::parseSpectrumIdentificationListElements_(DOMNodeList* spectrumIdentificationListElements)
     {
       const  XMLSize_t node_count = spectrumIdentificationListElements->getLength();
@@ -1379,7 +1392,7 @@ namespace OpenMS::Internal
                 {
                   parseSpectrumIdentificationItemSetXLMS(set_it, xl_val_map, element_res, spectrumID);
                 }
-                pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
+                pep_id_->back().setIdentifier(runOfList_(id).getIdentifier());
               }
               else // general case
               {
@@ -1403,7 +1416,7 @@ namespace OpenMS::Internal
 
               } // end of "not-XLMS-results"
 
-              pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
+              pep_id_->back().setIdentifier(runOfList_(id).getIdentifier());
 
               pep_id_->back().sort();
 
@@ -1824,7 +1837,7 @@ namespace OpenMS::Internal
           }
           reg_sii = reg_sii->getNextElementSibling();
         }
-        current_pep_id.setIdentifier(pro_id_->at(si_pro_map_[sil]).getIdentifier());
+        current_pep_id.setIdentifier(runOfList_(sil).getIdentifier());
         current_pep_id.sort();
         pep_id_->push_back(current_pep_id);
         return;
@@ -2069,19 +2082,19 @@ namespace OpenMS::Internal
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
 
-            if (pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).findHit(db.accession)
-                == pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().end())
+            if (runOfList_(spectrumIdentificationList_ref).findHit(db.accession)
+                == runOfList_(spectrumIdentificationList_ref).getHits().end())
             { // butt ugly! TODO @ mths for ProteinInference
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).insertHit(ProteinHit());
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setSequence(db.sequence);
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setAccession(db.accession);
+              runOfList_(spectrumIdentificationList_ref).insertHit(ProteinHit());
+              runOfList_(spectrumIdentificationList_ref).getHits().back().setSequence(db.sequence);
+              runOfList_(spectrumIdentificationList_ref).getHits().back().setAccession(db.accession);
               if (idec)
               {
-                pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setMetaValue("isDecoy", "true");
+                runOfList_(spectrumIdentificationList_ref).getHits().back().setMetaValue("isDecoy", "true");
               }
               else
               {
-                pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setMetaValue("isDecoy", "false");
+                runOfList_(spectrumIdentificationList_ref).getHits().back().setMetaValue("isDecoy", "false");
               }
             }
           }
@@ -2089,6 +2102,8 @@ namespace OpenMS::Internal
         }
       }
       current_pep_id.setHits(phs);
+      // each cross-link spectrum match is a peptide identification of its own and needs the run
+      current_pep_id.setIdentifier(runOfList_(spectrumIdentificationList_ref).getIdentifier());
       pep_id_->push_back(current_pep_id);
       pep_id_->back().sort();
     }
@@ -2298,19 +2313,19 @@ namespace OpenMS::Internal
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
 
-            if (pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).findHit(db.accession)
-                == pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().end())
+            if (runOfList_(spectrumIdentificationList_ref).findHit(db.accession)
+                == runOfList_(spectrumIdentificationList_ref).getHits().end())
             { // butt ugly! TODO @ mths for ProteinInference
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).insertHit(ProteinHit());
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setSequence(db.sequence);
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setAccession(db.accession);
+              runOfList_(spectrumIdentificationList_ref).insertHit(ProteinHit());
+              runOfList_(spectrumIdentificationList_ref).getHits().back().setSequence(db.sequence);
+              runOfList_(spectrumIdentificationList_ref).getHits().back().setAccession(db.accession);
               if (idec)
               {
-                pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setMetaValue("isDecoy", "true");
+                runOfList_(spectrumIdentificationList_ref).getHits().back().setMetaValue("isDecoy", "true");
               }
               else
               {
-                pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setMetaValue("isDecoy", "false");
+                runOfList_(spectrumIdentificationList_ref).getHits().back().setMetaValue("isDecoy", "false");
               }
             }
           }

@@ -20,6 +20,7 @@
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
@@ -99,6 +100,9 @@ namespace OpenMS
           filename,
           "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::IDXML) + "'");
     }
+
+    // every peptide identification needs its protein identification run: fail before the file is opened
+    ProteinRunReferences::check(protein_ids, peptide_ids);
 
     //set filename for the handler. Just in case (e.g. when fatalError function is used).
     file_ = filename;
@@ -235,15 +239,10 @@ namespace OpenMS
     }
     std::vector<std::vector<Size>> run_peptide_ids(protein_ids.size()); // the ones with hits, written
     std::vector<Size> run_empty_count(protein_ids.size(), 0); // the ones without hits, omitted
-    std::vector<Size> without_run; // the ones whose identifier names no run, omitted
     for (Size l = 0; l < peptide_ids.size(); ++l)
     {
-      const auto run = run_of_identifier.find(peptide_ids[l].getIdentifier());
-      if (run == run_of_identifier.end())
-      {
-        without_run.push_back(l);
-      }
-      else if (peptide_ids[l].getHits().empty())
+      const auto run = run_of_identifier.find(peptide_ids[l].getIdentifier()); // exists, checked above
+      if (peptide_ids[l].getHits().empty())
       {
         ++run_empty_count[run->second];
       }
@@ -570,10 +569,6 @@ namespace OpenMS
       os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>\n";
     }
 
-    for (const Size l : without_run)
-    {
-      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[l].getIdentifier() + "' while writing '" + filename + "'!");
-    }
     // write footer
     os << "</IdXML>\n";
 

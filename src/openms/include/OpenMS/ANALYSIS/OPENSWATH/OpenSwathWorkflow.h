@@ -373,6 +373,12 @@ protected:
                                     bool store_features,
                                     Interfaces::IMSDataConsumer * chromConsumer);
 
+    /** @brief Add the protein identification runs of @p featureFile that @p out_featureFile does not have yet
+
+     The features of every batch reference the same run (by its identifier), which is added only once.
+    */
+    static void addProteinIdentificationRuns_(const FeatureMap& featureFile, FeatureMap& out_featureFile);
+
     /** @brief Perform scoring on a set of chromatograms
      *
      *  This will generate a new object of type MRMTransitionGroup for each

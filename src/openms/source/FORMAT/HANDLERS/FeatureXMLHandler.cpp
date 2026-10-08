@@ -16,6 +16,7 @@
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <fstream>
 #include <map>
@@ -553,11 +554,12 @@ namespace OpenMS::Internal
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
       std::string id = attributeAsString_(attributes, "identification_run_ref");
-      if (!id_identifier_.contains(id))
+      const auto run = id_identifier_.find(id);
+      if (run == id_identifier_.end())
       {
-        warning(LOAD,std::string("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
+        fatalError(LOAD, ProteinRunReferences::missingRunMessage(id) + " (identification_run_ref)");
       }
-      pep_id_.setIdentifier(id_identifier_[id]);
+      pep_id_.setIdentifier(run->second);
 
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
@@ -961,8 +963,7 @@ namespace OpenMS::Internal
 
     if (!identifier_id_.contains(id.getIdentifier()))
     {
-      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
-      return;
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(id.getIdentifier()) + " (while writing '" + filename + "')");
     }
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";

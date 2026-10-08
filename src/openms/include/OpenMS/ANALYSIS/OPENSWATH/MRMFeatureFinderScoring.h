@@ -132,6 +132,17 @@ public:
                         const std::vector<OpenSwath::SwathMap>& swath_maps,
                         TransitionGroupMapType& transition_group_map);
 
+    /** @brief Adds the protein identification run (search run) that the peptide identifications of the features reference
+
+     The run has the proteins of @p transition_exp. pickExperiment() adds it; call this when scoring with scorePeakgroups()
+     directly, since every peptide identification needs its protein identification run. Nothing is added if @p output
+     already has the run.
+
+     @param[in] transition_exp The transition list describing the experiment
+     @param[in,out] output The output features
+    */
+    void addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output) const;
+
     /** @brief Prepares the internal mappings of peptides and proteins.
      *
      * Calling this method _is_ required before calling scorePeakgroups.

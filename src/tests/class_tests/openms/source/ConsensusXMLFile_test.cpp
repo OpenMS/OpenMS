@@ -13,6 +13,9 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <iterator>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -684,6 +687,70 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
   {
     TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTK(TestCXML:Fresh)IDE")
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] store/load - every peptide identification needs its protein identification run)
+{
+  const std::string message = "Peptide identification has no matching protein run: 'other'. Every peptide identification "
+                              "needs the protein identification run (search run) with its identifier, which may have no protein hits.";
+  ConsensusMap map;
+  ProteinIdentification run; // no protein hits, e.g. a de novo or peptidomics search
+  run.setIdentifier("search");
+  run.setDateTime(DateTime::now());
+  map.setProteinIdentifications({run});
+  ConsensusFeature feature;
+  feature.setRT(100.0);
+  feature.setMZ(500.0);
+  feature.insert(FeatureHandle(0, Peak2D({100.0, 500.0}, 1000.0f), 1));
+  map.getColumnHeaders()[0].filename = "file.mzML";
+  PeptideIdentification peptide;
+  peptide.setIdentifier("search");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  peptide.insertHit(hit);
+  feature.getPeptideIdentifications().push_back(peptide);
+  map.push_back(feature);
+  map.getUnassignedPeptideIdentifications().push_back(peptide);
+  map.ensureUniqueId();
+  map[0].setUniqueId(1);
+
+  // not omitted: storing fails before the file is opened
+  for (int assigned = 0; assigned < 2; ++assigned)
+  {
+    ConsensusMap bad = map;
+    (assigned ? bad[0].getPeptideIdentifications() : bad.getUnassignedPeptideIdentifications())[0].setIdentifier("other");
+    std::string bad_file;
+    NEW_TMP_FILE_EXT(bad_file, ".consensusXML")
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ConsensusXMLFile().store(bad_file, bad), message)
+    TEST_FALSE(File::exists(bad_file))
+  }
+
+  // a file whose peptide identification references an unknown identification run cannot be loaded
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".consensusXML")
+  ConsensusXMLFile().store(file, map);
+  ConsensusMap in;
+  ConsensusXMLFile().load(file, in);
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getIdentifier(), in.getProteinIdentifications()[0].getIdentifier())
+  std::string content;
+  {
+    std::ifstream is(file);
+    content.assign(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>());
+  }
+  const std::string ref = "identification_run_ref=\"PI_0\"";
+  const Size pos = content.rfind(ref); // the unassigned peptide identification
+  TEST_NOT_EQUAL(pos, std::string::npos)
+  content.replace(pos, ref.size(), "identification_run_ref=\"PI_7\"");
+  // (not a NEW_TMP_FILE: it does not validate against the schema, which is the point)
+  const std::string dangling = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + ".consensusXML";
+  {
+    std::ofstream os(dangling);
+    os << content;
+  }
+  TEST_EXCEPTION(Exception::ParseError, ConsensusXMLFile().load(dangling, in))
+  File::remove(dangling);
 }
 END_SECTION
 

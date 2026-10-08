@@ -1541,7 +1541,8 @@ namespace OpenMS
 
       case FileTypes::OMSSAXML:
       {
-        additional_proteins.push_back(ProteinIdentification());
+        // like the other loaders, replace the content: the loaded peptide identifications reference this one run
+        additional_proteins.assign(1, ProteinIdentification());
         OMSSAXMLFile().load(filename, additional_proteins[0],
                             additional_peptides, true, true);
       }

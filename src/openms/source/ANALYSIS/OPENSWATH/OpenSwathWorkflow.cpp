@@ -853,11 +853,7 @@ namespace OpenMS
                 {
                   context.feature_file.push_back(*feature_it);
                 }
-                for (std::vector<ProteinIdentification>::const_iterator protid_it = featureFile.getProteinIdentifications().begin();
-                     protid_it != featureFile.getProteinIdentifications().end(); ++protid_it)
-                {
-                  context.feature_file.getProteinIdentifications().push_back(*protid_it);
-                }
+                addProteinIdentificationRuns_(featureFile, context.feature_file);
               }
 
               --context.remaining_score_jobs;
@@ -1159,6 +1155,19 @@ namespace OpenMS
 #endif
   }
 
+  void OpenSwathWorkflow::addProteinIdentificationRuns_(const FeatureMap& featureFile, FeatureMap& out_featureFile)
+  {
+    for (const ProteinIdentification& run : featureFile.getProteinIdentifications())
+    {
+      auto& out_runs = out_featureFile.getProteinIdentifications();
+      if (std::none_of(out_runs.begin(), out_runs.end(),
+                       [&run](const ProteinIdentification& out_run) { return out_run.getIdentifier() == run.getIdentifier(); }))
+      {
+        out_runs.push_back(run);
+      }
+    }
+  }
+
   void OpenSwathWorkflow::writeOutFeaturesAndChroms_(
     std::vector< OpenMS::MSChromatogram > & chromatograms,
     std::vector< MSChromatogram >& ms1_chromatograms,
@@ -1193,13 +1202,7 @@ namespace OpenMS
       {
         out_featureFile.push_back(*feature_it);
       }
-      for (std::vector<ProteinIdentification>::const_iterator protid_it =
-             featureFile.getProteinIdentifications().begin();
-           protid_it != featureFile.getProteinIdentifications().end();
-           ++protid_it)
-      {
-        out_featureFile.getProteinIdentifications().push_back(*protid_it);
-      }
+      addProteinIdentificationRuns_(featureFile, out_featureFile);
     }
   }
 
@@ -1537,6 +1540,12 @@ namespace OpenMS
                                    output,
                                    id);
       }
+    }
+
+    // the peptide identifications of the features reference the protein identification run (search run)
+    if (!output.empty())
+    {
+      featureFinder.addProteinIdentificationRun(transition_exp, output);
     }
 
     // Only write at the very end since this is a step that needs a barrier.

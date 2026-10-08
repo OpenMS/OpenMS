@@ -121,6 +121,7 @@ set(metadata_executables_list
   ProteinHit_test
   ProteinIdentification_test
   ProteinModificationSummary_test
+  ProteinRunReferences_test
   IdentifierMSRunMapper_test
   Sample_test
   ScanWindow_test

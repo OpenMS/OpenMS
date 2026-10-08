@@ -230,19 +230,7 @@ namespace OpenMS
     prepareProteinPeptideMaps_(transition_exp);
 
     // Store the proteins from the input in the output feature map
-    std::vector<ProteinHit> protein_hits;
-    for (const ProteinType& prot : transition_exp.getProteins())
-    {
-      ProteinHit prot_hit = ProteinHit();
-      prot_hit.setSequence(prot.sequence);
-      prot_hit.setAccession(prot.id);
-      protein_hits.push_back(prot_hit);
-    }
-
-    ProteinIdentification prot_id = ProteinIdentification();
-    prot_id.setHits(protein_hits);
-    prot_id.setIdentifier(run_identifier);
-    output.getProteinIdentifications().push_back(prot_id);
+    addProteinIdentificationRun(transition_exp, output);
 
     //
     // Step 2
@@ -288,6 +276,27 @@ namespace OpenMS
 
     //output.sortByPosition(); // if the exact same order is needed
     return;
+  }
+
+  void MRMFeatureFinderScoring::addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output) const
+  {
+    for (const ProteinIdentification& run : output.getProteinIdentifications())
+    {
+      if (run.getIdentifier() == run_identifier) return; // already there
+    }
+    std::vector<ProteinHit> protein_hits;
+    for (const ProteinType& prot : transition_exp.getProteins())
+    {
+      ProteinHit prot_hit = ProteinHit();
+      prot_hit.setSequence(prot.sequence);
+      prot_hit.setAccession(prot.id);
+      protein_hits.push_back(prot_hit);
+    }
+
+    ProteinIdentification prot_id = ProteinIdentification();
+    prot_id.setHits(protein_hits);
+    prot_id.setIdentifier(run_identifier);
+    output.getProteinIdentifications().push_back(prot_id);
   }
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)

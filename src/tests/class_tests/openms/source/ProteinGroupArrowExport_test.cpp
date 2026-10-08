@@ -586,6 +586,7 @@ START_SECTION(([EXTRA] features with divergent peptide annotations are excluded 
   auto make_pid = [](const std::string& seq)
   {
     PeptideIdentification pid;
+    pid.setIdentifier("run");
     pid.setScoreType("q-value");
     pid.setHigherScoreBetter(false);
     PeptideHit hit;
