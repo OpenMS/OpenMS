@@ -444,6 +444,22 @@ START_SECTION([EXTRA] the sources of a run are the files of its legacy run)
   first.setMetaValue("id_merge_index", 0);
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::fromLegacy({legacy_run}, {first}))
 
+  // Identifications without hits and score type get a run of their own, which import splits off the legacy run
+  // and which shares its files: export lists them once (e.g. in QualityControl and ProteomicsLFQ consensus maps).
+  auto one_file = protein();
+  one_file.setPrimaryMSRunPath({"a.mzML"});
+  PeptideIdentification unscored;
+  unscored.setIdentifier("search");
+  unscored.setRT(43);
+  const auto split = Adapter::fromLegacy({one_file}, {peptide(), unscored});
+  TEST_EQUAL(split.getRuns().size(), 2)
+  const auto rejoined = Adapter::toLegacy(split);
+  TEST_TRUE(rejoined.losses.empty())
+  ABORT_IF(rejoined.proteins.size() != 1 || rejoined.peptides.size() != 2)
+  TEST_TRUE(rejoined.proteins[0] == one_file)
+  TEST_TRUE(rejoined.peptides[0] == peptide())
+  TEST_TRUE(rejoined.peptides[1] == unscored)
+
   // The files of a run are its sources, so its settings cannot list them as well.
   ID::Run files_in_metadata("search");
   auto settings = Adapter::settingsFromLegacy(protein());

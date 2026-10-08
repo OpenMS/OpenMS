@@ -286,6 +286,13 @@ namespace
     return definition;
   }
 
+  /// The identifier of the legacy protein run that @p run was imported from (runs split off by import name it).
+  std::string legacyRunName(const ID::Run& run)
+  {
+    const auto& settings = run.getSettings();
+    return settings.metaValueExists(LEGACY_RUN) ? settings.getMetaValue(LEGACY_RUN).toString() : run.getIdentifier();
+  }
+
   /// The legacy protein run of an inference result. In the legacy model, inference over several runs
   /// works on one merged protein run (as IDMerger or ProteinInference create it), whose PSMs locate
   /// their file through id_merge_index.
@@ -301,6 +308,7 @@ namespace
     LegacyInference merged {inference.proteins, {}};
     if (merged.proteins.getIdentifier().empty()) merged.proteins.setIdentifier(inference.identifier);
     StringList files;
+    Size file_groups = 0; ///< Joined runs with files of their own in the merged list
     std::vector<const ID::Run*> joined;
     const ID::InferenceInput* first_input = nullptr;
     for (const auto& input : inference.inputs)
@@ -335,12 +343,22 @@ namespace
         first_input = &input;
         if (input.score) writeScoreDefinition(merged.proteins, "input_score", *input.score);
       }
-      merged.file_offsets[run->getUuid()] = files.size();
+      // Runs that import split off one legacy run (identifications of another score type) have its files: they
+      // share them instead of repeating them.
       const auto run_files = Adapter::legacyFiles(*run);
-      files.insert(files.end(), run_files.begin(), run_files.end());
+      const auto split = std::find_if(joined.begin(), joined.end(), [&](const ID::Run* other) {
+        return legacyRunName(*other) == legacyRunName(*run) && Adapter::legacyFiles(*other) == run_files;
+      });
+      if (split != joined.end()) merged.file_offsets[run->getUuid()] = merged.file_offsets.at((*split)->getUuid());
+      else
+      {
+        merged.file_offsets[run->getUuid()] = files.size();
+        files.insert(files.end(), run_files.begin(), run_files.end());
+        ++file_groups;
+      }
       joined.push_back(run);
     }
-    if (joined.size() > 1)
+    if (file_groups > 1)
     {
       for (const auto* run : joined)
         if (Adapter::legacyFiles(*run).empty())
