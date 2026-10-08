@@ -142,6 +142,17 @@ Build System:
     configuration fail instead of falling back. The package and the SDK install omp.h with
     the headers, and find_package(OpenMS) points FindOpenMP at the bundled runtime, so that
     a program built against them does not load a second libomp (#10326).
+  - Third-party licenses: the packages now ship the license texts of every library they
+    bundle.
+    - macOS: share/OpenMS/LICENSES/homebrew lacked glib, harfbuzz and pcre2, and in some
+      nightlies libpng, whose libraries the package bundles with Qt. 'brew deps --installed'
+      left out the dependencies that 'brew install qtbase' had upgraded in the same run; the
+      formulae that Qt and libomp declare as dependencies are now collected as well.
+    - DEB: libgfortran, which vcpkg's LAPACK needs, comes from the build machine's
+      libgfortran5 and had no license. Libraries the package takes from the build machine's
+      distribution now come with the copyright file of their Debian package and the
+      /usr/share/common-licenses texts it refers to, in share/OpenMS/LICENSES/system, with an
+      INDEX.txt that names the package, version and source package of each.
 
 TOPP tools:
     IDFileConverter:
