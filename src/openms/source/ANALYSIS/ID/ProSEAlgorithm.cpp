@@ -810,11 +810,21 @@ namespace OpenMS
     rescoring.setLogType(getLogType());
     rescoring.annotate(spectra, protein_ids, peptide_ids);
     endProgress();
+    // 'peptdeep:enable' is an explicit request: an input that ends up without a single
+    // predicted PSM must not silently continue with search-engine features only.
+    if (rescoring.getNumPredictedPSMs() == 0)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "[ProSE] 'peptdeep:enable' is set, but PeptDeep prediction added features to 0 / "
+        + std::to_string(rescoring.getNumPSMs()) + " PSMs. Check that the search produced PSMs and "
+        "that 'annotate:PSM' includes fragment annotations ('ALL' or 'fragment_annotation').");
+    }
 #else
     (void)spectra; (void)protein_ids; (void)peptide_ids;
-    OPENMS_LOG_WARN << "[ProSE] 'peptdeep:enable' is set, but this OpenMS was built without "
-                       "ONNX support (WITH_ONNX=OFF); the prediction-based rescoring features "
-                       "are not added." << '\n';
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "[ProSE] 'peptdeep:enable' is set, but this OpenMS was built without ONNX support "
+      "(WITH_ONNX=OFF), so the PeptDeep prediction-based rescoring features cannot be computed. "
+      "Use an OpenMS build with -DWITH_ONNX=ON or set 'peptdeep:enable' to 'false'.");
 #endif
   }
 

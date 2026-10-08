@@ -55,6 +55,11 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    ProSE:
+      - Search:peptdeep:enable fails (instead of warning and continuing) when OpenMS was
+        built without ONNX, a model is missing or cannot be loaded, or no PSM received
+        predicted features. On success it logs '[PeptDeepRescoring] Predicted features
+        added: N / M PSMs (<features>), NCE=<nce>'.
     UniPEFF:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
