@@ -160,6 +160,10 @@ TOPP tools:
     IDFileConverter:
       - FIX: idXML input with -mz_file records the mzML in the runs' 'spectra_data' unless
         -no_spectra_data_override is set, as documented; it was left unchanged.
+    IsobaricWorkflow:
+      - FIX: The precursor purity uses -extraction:precursor_isotope_deviation (default 10 ppm)
+        for the isotope match and the fuzzy border of the isolation window. The value was passed
+        through a bool parameter, so any setting other than 0 became 1 ppm.
     MaRaClusterAdapter:
       - FIX: With several -id_in files, the PSMs of each idXML get their cluster_id and file_origin
         from the mzML at the same position; all of them were looked up in the first mzML. More
