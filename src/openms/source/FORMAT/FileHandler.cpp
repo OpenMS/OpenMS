@@ -729,7 +729,7 @@ namespace OpenMS
     }
 
     // bedRMod file format
-    if (first_line.hasSubstring("fileformat=bedRMod"))
+    if (first_line.find("fileformat=bedRMod") != std::string::npos)
     {
       return FileTypes::BEDRMOD;
     }
