@@ -78,6 +78,17 @@ namespace OpenMS
       static std::string getScanIdentifier(const PeptideIdentification& pid, size_t index);
 
       /**
+       * @brief The spectrum file of a PSM: its 'file_origin' (empty if not set), followed by '|' and its
+       * 'id_merge_index' if that is set.
+       *
+       * The SpecId of a PSM in the .pin file starts with it. When the PSMs of a .pin file come from more than
+       * one spectrum file, @ref store also writes it to a 'FileName' column. Percolator numbers the spectrum
+       * files from that column and identifies a spectrum by file, ScanNr and ExpMass (e.g. for target-decoy
+       * competition), so spectra of different files with the same scan number stay apart.
+       */
+      static std::string getFileIdentifier(const PeptideIdentification& pid);
+
+      /**
        * @brief Returns the standard Percolator feature columns every .pin file should declare.
        *
        * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
@@ -100,6 +111,12 @@ namespace OpenMS
        *   SpecId, ScanNr, Label, CalcMass, ExpMass, deltamass, retentiontime,
        *   mass, score, peplen, charge1..chargeN, enzN, enzC, enzInt, dm,
        *   absdm, Peptide, Proteins.
+       *
+       * ExpMass and mass are the observed precursor m/z, the same for all hits of
+       * a spectrum (Percolator identifies a spectrum by ScanNr and ExpMass). A
+       * precursor isotope error ('isotope_error', observed minus theoretical in
+       * 13C spacings; or the legacy MS-GF+ 'IsotopeError') is removed from the
+       * mass difference only: dm, absdm and deltamass.
        *
        * Useful for in-process Percolator training (see OpenMS::Percolator):
        * callers can then train on the exact same feature vectors the
