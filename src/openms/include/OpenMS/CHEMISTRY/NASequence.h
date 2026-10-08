@@ -13,7 +13,6 @@
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <functional>
 #include <iosfwd>
