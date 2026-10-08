@@ -374,6 +374,41 @@ namespace OpenMS
     return result;
   }
 
+  bool FragmentIndex::nonemptyZeroSigmaSubsetExists_() const
+  {
+    // The shifts of all variable modifications, any protein-terminal context
+    std::vector<double> deltas;
+    for (const auto& e : variable_nterm_mods_) deltas.push_back(e.delta_mass);
+    for (const auto& e : variable_cterm_mods_) deltas.push_back(e.delta_mass);
+    for (const auto& per_aa : variable_mod_table_)
+    {
+      for (const auto& e : per_aa) deltas.push_back(e.delta_mass);
+    }
+    std::sort(deltas.begin(), deltas.end());
+    deltas.erase(std::unique(deltas.begin(), deltas.end(), [](double a, double b) { return std::abs(a - b) < 1e-6; }), deltas.end());
+    if (deltas.empty()) return false;
+    // As computeSnesSigmaDeltaSet_(): the sums of 1..max_variable_mods_per_peptide_ shifts, level by level. A sum
+    // within the Σ matching tolerance of querySpectrumSNES_() (1e-4 Da) of zero is a cancelling subset.
+    std::vector<double> level{0.0};
+    for (size_t m = 1; m <= max_variable_mods_per_peptide_; ++m)
+    {
+      std::vector<double> next;
+      next.reserve(level.size() * deltas.size());
+      for (double prev : level)
+      {
+        for (double d : deltas)
+        {
+          if (std::abs(prev + d) < 1e-4) return true;
+          next.push_back(prev + d);
+        }
+      }
+      std::sort(next.begin(), next.end());
+      next.erase(std::unique(next.begin(), next.end(), [](double a, double b) { return std::abs(a - b) < 1e-6; }), next.end());
+      level = std::move(next);
+    }
+    return false;
+  }
+
   size_t FragmentIndex::buildModSlots_(const char* sequence, size_t seq_len, ModSlot* out_slots,
                                        bool is_protein_nterm, bool is_protein_cterm) const
   {
@@ -389,10 +424,17 @@ namespace OpenMS
       out_slots[n_slots++] = {ModSlot::NTERM_SLOT, entry.delta_mass, entry.mod_ptr};
     }
 
-    // 2. Per-residue variable mods, left-to-right
+    // 2. Per-residue variable mods, left-to-right. As in ModifiedPeptideGenerator, a residue that carries a fixed
+    //    modification takes no variable one: reconstructModifiedSequence() would replace the fixed modification
+    //    while the index holds the sum of both masses. A residue-specific terminal modification (e.g.
+    //    Gln->pyro-Glu (N-term Q)) is a terminal slot: AASequence holds it as the terminal modification, next to a
+    //    residue modification and one per terminus, so it is not applied where a fixed terminal modification sits.
+    //    Its mass is the same wherever it is added: an N-terminal mass shifts the same fragments as one on the
+    //    first residue, and a C-terminal one the same as one on the last.
     for (size_t i = 0; i < seq_len; ++i)
     {
       unsigned char aa = static_cast<unsigned char>(sequence[i]);
+      if (fixed_mod_ptrs_[aa] != nullptr) continue;
       const auto& var_mods = variable_mod_table_[aa];
       for (const auto& entry : var_mods)
       {
@@ -402,30 +444,19 @@ namespace OpenMS
         // PROTEIN_N_TERM: only position 0 AND peptide is at protein start
         // C_TERM: peptide C-term (last position)
         // PROTEIN_C_TERM: only last position AND peptide is at protein end
-        bool applies = false;
         if (entry.term_spec == ResidueModification::ANYWHERE)
         {
-          applies = true;
-        }
-        else if (entry.term_spec == ResidueModification::N_TERM && i == 0)
-        {
-          applies = true;
-        }
-        else if (entry.term_spec == ResidueModification::PROTEIN_N_TERM && i == 0 && is_protein_nterm)
-        {
-          applies = true;
-        }
-        else if (entry.term_spec == ResidueModification::C_TERM && i == seq_len - 1)
-        {
-          applies = true;
-        }
-        else if (entry.term_spec == ResidueModification::PROTEIN_C_TERM && i == seq_len - 1 && is_protein_cterm)
-        {
-          applies = true;
-        }
-        if (applies)
-        {
           out_slots[n_slots++] = {static_cast<uint16_t>(i), entry.delta_mass, entry.mod_ptr};
+        }
+        else if ((entry.term_spec == ResidueModification::N_TERM && i == 0)
+                 || (entry.term_spec == ResidueModification::PROTEIN_N_TERM && i == 0 && is_protein_nterm))
+        {
+          if (fixed_nterm_mod_ptr_ == nullptr) out_slots[n_slots++] = {ModSlot::NTERM_SLOT, entry.delta_mass, entry.mod_ptr};
+        }
+        else if ((entry.term_spec == ResidueModification::C_TERM && i == seq_len - 1)
+                 || (entry.term_spec == ResidueModification::PROTEIN_C_TERM && i == seq_len - 1 && is_protein_cterm))
+        {
+          if (fixed_cterm_mod_ptr_ == nullptr) out_slots[n_slots++] = {ModSlot::CTERM_SLOT, entry.delta_mass, entry.mod_ptr};
         }
       }
     }
@@ -3562,9 +3593,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       {
         if (sm_raw.sigma_delta_ == 0.0f)
         {
-          // No variable mods: pass through unchanged, bitmask already 0.
+          // The unmodified realization (bitmask 0). A nonempty subset of the variable modifications can also sum
+          // to Σ = 0 when their shifts cancel (e.g. Deamidated (N) with Amidated (C-term)): then these subsets are
+          // enumerated below as well.
           expanded.push_back(sm_raw);
-          continue;
+          if (!snes_zero_sigma_subsets_) continue;
         }
 
         const Peptide& mother = fi_peptides_[sm_raw.peptide_idx_];
@@ -4026,6 +4059,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     snes_sigma_delta_set_ = computeSnesSigmaDeltaSet_(false, false);
     snes_sigma_delta_set_with_prot_nterm_ = computeSnesSigmaDeltaSet_(true, false);
     snes_sigma_delta_set_with_prot_cterm_ = computeSnesSigmaDeltaSet_(false, true);
+    snes_zero_sigma_subsets_ = nonemptyZeroSigmaSubsetExists_();
 
     const size_t largest_set = std::max({snes_sigma_delta_set_.size(),
                                           snes_sigma_delta_set_with_prot_nterm_.size(),

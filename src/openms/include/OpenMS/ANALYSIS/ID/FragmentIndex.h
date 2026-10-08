@@ -659,8 +659,8 @@ protected:
       double delta_mass;                    ///< mass delta
       const ResidueModification* mod_ptr;   ///< for AASequence reconstruction
 
-      static constexpr uint16_t NTERM_SLOT = UINT16_MAX - 1; ///< sentinel for pure N-terminal mod slot
-      static constexpr uint16_t CTERM_SLOT = UINT16_MAX;      ///< sentinel for pure C-terminal mod slot
+      static constexpr uint16_t NTERM_SLOT = UINT16_MAX - 1; ///< sentinel for an N-terminal mod slot (pure or residue-specific)
+      static constexpr uint16_t CTERM_SLOT = UINT16_MAX;      ///< sentinel for a C-terminal mod slot (pure or residue-specific)
     };
 
     static constexpr size_t MAX_MOD_SLOTS = 32; ///< max variable mod slots per peptide (uint32_t bitmask)
@@ -672,7 +672,10 @@ protected:
     /// Scan a peptide sequence to find all variable modification slots.
     /// Returns the number of slots written to out_slots (at most MAX_MOD_SLOTS).
     /// Deterministic ordering: N-term pure-terminal mods, then left-to-right residue mods
-    /// (ANYWHERE + position-specific terminal), then C-term pure-terminal mods.
+    /// (ANYWHERE as residue slots; residue-specific terminal ones, e.g. Gln->pyro-Glu (N-term Q), as
+    /// NTERM_SLOT/CTERM_SLOT, which AASequence holds as terminal modifications), then C-term pure-terminal
+    /// mods. As in ModifiedPeptideGenerator, residues with a fixed modification get no variable slot, and a
+    /// terminus with a fixed terminal modification no terminal one.
     /// @param sequence raw amino acid character array
     /// @param seq_len length of the sequence
     /// @param out_slots output array for modification slots (must have space for MAX_MOD_SLOTS entries)
@@ -691,6 +694,9 @@ protected:
     /// @return sorted ascending distinct Σ values; always includes 0.0
     std::vector<double> computeSnesSigmaDeltaSet_(bool include_prot_nterm_mods,
                                                    bool include_prot_cterm_mods) const;
+
+    /// Whether a nonempty subset of at most max_variable_mods_per_peptide_ variable modifications has Σ = 0 (snes_zero_sigma_subsets_)
+    bool nonemptyZeroSigmaSubsetExists_() const;
 
     /// Per-AA fixed modification delta mass (0.0 if no fixed mod applies)
     std::array<double, 128> fixed_mod_deltas_{};
@@ -733,6 +739,9 @@ protected:
     /// SNES v1.1: Σ values including PROTEIN_C_TERM-only variable mods.
     /// Used only for Single-C mothers anchored at the protein C-terminus.
     std::vector<double> snes_sigma_delta_set_with_prot_cterm_;
+    /// A nonempty subset of at most max_variable_mods_per_peptide_ variable modifications sums to Σ = 0 (within
+    /// the Σ tolerance of the subset enumeration), so Σ = 0 hits are expanded into subsets too
+    bool snes_zero_sigma_subsets_{false};
 
     /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).
     /// Indexed by single-letter amino acid code (e.g., 'A'=65). Entries for non-AA chars are 0.

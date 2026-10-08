@@ -58,6 +58,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <fstream>
 #include <functional>
 #include <future>
@@ -509,8 +510,16 @@ namespace OpenMS
     scoring_max_charge_ = static_cast<int>(param_.getValue("fragment:max_charge"));
 
     // Mass-accuracy weighting needs fragment errors of a few ppm; 'auto' uses it for high-resolution ppm tolerances only.
+    // HyperScore::computeMassAccuracy() requires a finite, positive tolerance; checked here, before the parallel
+    // scoring loops, where an exception would otherwise terminate the process.
     const std::string scoring_method = param_.getValue("scoring:method").toString();
-    const bool high_resolution_ppm = fragment_mass_tolerance_unit_ == "ppm" && deisotope_supported;
+    const bool usable_fragment_tolerance = std::isfinite(fragment_mass_tolerance_) && fragment_mass_tolerance_ > 0.0;
+    if (scoring_method == "mass_accuracy" && ! usable_fragment_tolerance)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "scoring:method=mass_accuracy requires a finite, positive fragment:mass_tolerance.");
+    }
+    const bool high_resolution_ppm = fragment_mass_tolerance_unit_ == "ppm" && deisotope_supported && usable_fragment_tolerance;
     mass_accuracy_score_ = scoring_method == "mass_accuracy" || (scoring_method == "auto" && high_resolution_ppm);
     mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
     if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
@@ -2329,9 +2338,16 @@ namespace OpenMS
     const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
     const bool deduplicate_chunks = param_.getValue("peptide:deduplicate").toBool() && database_chunk_size_ > 0 && ! fi.isSnesMode();
 
-#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks)
+    // An exception on a worker thread (a modification AASequence rejects, a scorer's parameter check, ...) must not
+    // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
+    std::exception_ptr scoring_error;
+    std::atomic<bool> scoring_failed{false};
+#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks, scoring_error, scoring_failed)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
+      if (scoring_failed.load(std::memory_order_relaxed)) continue;
+      try
+      {
       #pragma omp atomic
       ++count_spectra;
 
@@ -2484,7 +2500,18 @@ namespace OpenMS
         hits.resize(keep);
         hits.shrink_to_fit();
       }
+      }
+      catch (...)
+      {
+#pragma omp critical (ProSEAlgorithm_scoring_error)
+        {
+          if (!scoring_error) scoring_error = std::current_exception();
+        }
+        scoring_failed.store(true, std::memory_order_relaxed);
+      }
     }
+    if (scoring_error) std::rethrow_exception(scoring_error);
+
     endProgress();
   }
 
@@ -5810,9 +5837,16 @@ namespace OpenMS
     // search, roughly doubling wall time for no extra useful work. Downstream is
     // order-independent — cal_hits is sorted by score and the error vectors are sorted
     // before quantiles — so parallel insertion order does not change the result.
+    // An exception on a worker thread (a modification AASequence rejects, a scorer's parameter check, ...) must not
+    // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
+    std::exception_ptr calibration_error;
+    std::atomic<bool> calibration_failed{false};
 #pragma omp parallel for schedule(dynamic)
     for (SignedSize si = 0; si < (SignedSize)subset_size; ++si)
     {
+      if (calibration_failed.load(std::memory_order_relaxed)) continue;
+      try
+      {
       const Size scan_idx = tic_index[si].second;
       const MSSpectrum& spec = spectra[scan_idx];
       const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
@@ -5885,7 +5919,18 @@ namespace OpenMS
 
 #pragma omp critical (prose_calibration_hits)
       cal_hits.push_back({best_score, prec_err, static_cast<double>(best_mean_error)});
+      }
+      catch (...)
+      {
+#pragma omp critical (ProSEAlgorithm_calibration_error)
+        {
+          if (!calibration_error) calibration_error = std::current_exception();
+        }
+        calibration_failed.store(true, std::memory_order_relaxed);
+      }
     }
+    if (calibration_error) std::rethrow_exception(calibration_error);
+
 
     // Filter to high-confidence PSMs: keep only top 50% by score (robust against
     // random matches inflating the error distribution tails). Only crop if the

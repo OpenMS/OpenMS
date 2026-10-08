@@ -5092,4 +5092,33 @@ START_SECTION(([EXTRA] resolveDecoyStrategy_ detects the decoy marker of large d
 }
 END_SECTION
 
+START_SECTION(([EXTRA] scoring:method=mass_accuracy requires a finite, positive fragment tolerance; 'auto' falls back to HyperScore without one))
+{
+  // HyperScore::computeMassAccuracy() rejects such a tolerance; it is checked when the parameters are set, not
+  // on a worker thread of the parallel scoring loop (where it terminated the process).
+  for (const double tolerance : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  {
+    ProSEAlgorithm_test prose;
+    Param p = prose.getParameters();
+    p.setValue("scoring:method", "mass_accuracy");
+    p.setValue("fragment:mass_tolerance", tolerance);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("annotate:local_fragment_evidence", "false");
+    p.setValue("fragment:deisotope", "false");
+    p.setValue("calibration:enabled", "false");
+    TEST_EXCEPTION(Exception::InvalidParameter, prose.setParameters(p))
+    p.setValue("scoring:method", "auto");
+    prose.setParameters(p);
+    TEST_EQUAL(prose.mass_accuracy_score_, false)
+  }
+  ProSEAlgorithm_test prose;
+  Param p = prose.getParameters();
+  p.setValue("scoring:method", "auto");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  prose.setParameters(p);
+  TEST_EQUAL(prose.mass_accuracy_score_, true)
+}
+END_SECTION
+
 END_TEST

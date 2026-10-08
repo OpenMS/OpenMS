@@ -4067,4 +4067,185 @@ START_SECTION((void build(const std::vector<FASTAFile::FASTAEntry>& fasta_entrie
 }
 END_SECTION
 
+START_SECTION(([EXTRA] the indexed precursor mass of every entry is the mass of its reconstructed sequence))
+{
+  // The index adds the mass of every active slot; reconstructModifiedSequence() sets the modifications. Both must
+  // agree, also where a variable modification meets a fixed one on the same residue (it is not applied there, as in
+  // ModifiedPeptideGenerator) and for residue-specific terminal modifications (terminal slots, set as terminal
+  // modifications: a residue slot made AASequence::setModification() fail on a modification with N-term specificity).
+  const vector<FASTAFile::FASTAEntry> db{
+    {"P1", "", "MQPEPTIDERACPEPTIDERKQCMSTQMPEPK"},
+    {"P2", "", "ACPEPTIDERQQMMCRPEPTIDEKMACDEFGHIK"},
+    {"P3", "", "QPEPTIDERGGQMSTMKCMQEDK"}};
+  struct Config { vector<string> fixed, variable; };
+  const vector<Config> configs = {
+    {{"Carbamidomethyl (C)"}, {"Carbamidomethyl (C)", "Oxidation (M)"}},                    // fixed and variable on one residue
+    {{"Carbamidomethyl (C)"}, {"Oxidation (M)", "Gln->pyro-Glu (N-term Q)"}},               // residue-specific N-terminal
+    {{"Carbamidomethyl (C)"}, {"Pyro-carbamidomethyl (N-term C)", "Oxidation (M)"}},        // terminal on a residue with a fixed one
+    {{"Carbamidomethyl (C)", "Acetyl (N-term)"}, {"Gln->pyro-Glu (N-term Q)", "Oxidation (M)"}}, // fixed terminal shadows it
+    {{}, {"Gln->pyro-Glu (N-term Q)", "Acetyl (N-term)", "Amidated (C-term)", "Oxidation (M)"}}}; // two N-terminal candidates
+  Size checked = 0, terminal = 0;
+  for (const Config& config : configs)
+  {
+    for (const string specificity : {"full", "none"})
+    {
+      FragmentIndex fi;
+      Param p = fi.getParameters();
+      p.setValue("decoys", "false");
+      p.setValue("peptide:min_size", 5);
+      p.setValue("peptide:max_size", 12);
+      p.setValue("peptide:missed_cleavages", 1);
+      p.setValue("peptide:enzyme_specificity", specificity);
+      p.setValue("modifications:fixed", config.fixed);
+      p.setValue("modifications:variable", config.variable);
+      p.setValue("modifications:variable_max_per_peptide", 2);
+      fi.setParameters(p);
+      fi.build(db);
+      set<string> rendered;
+      for (const auto& peptide : fi.getPeptides())
+      {
+        const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+        const double expected_mh = seq.getMonoWeight() + Constants::PROTON_MASS_U;
+        TOLERANCE_ABSOLUTE(2e-3)
+        TEST_REAL_SIMILAR(static_cast<double>(peptide.precursor_mz_), expected_mh)
+        // a variable modification never sits on a residue next to the fixed one it would replace
+        for (Size i = 0; i < seq.size(); ++i)
+        {
+          if (seq[i].isModified())
+          {
+            TEST_EQUAL(seq[i].getModification()->getTermSpecificity() == ResidueModification::ANYWHERE, true)
+          }
+        }
+        if (seq.hasNTerminalModification() && seq.getNTerminalModification()->getOrigin() != 'X') ++terminal;
+        // and the same peptidoform is indexed once per occurrence (no twin of a fixed modification)
+        rendered.insert(seq.toString() + "@" + std::to_string(peptide.protein_idx) + ":" + std::to_string(peptide.sequence_.first));
+        ++checked;
+      }
+      TEST_EQUAL(rendered.size(), fi.getPeptides().size())
+    }
+  }
+  TEST_TRUE(checked > 100)
+  TEST_TRUE(terminal > 0) // Gln->pyro-Glu / Pyro-carbamidomethyl were applied as N-terminal modifications
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a residue-specific terminal variable modification is found and reconstructed as a terminal modification))
+{
+  // The spectrum of .(Gln->pyro-Glu)QPEPTIDER against QPEPTIDER with the variable modification: the candidate is
+  // reconstructed with the N-terminal modification (a residue modification with N-term specificity aborted
+  // ResidueDB::getModifiedResidue's precondition).
+  const vector<FASTAFile::FASTAEntry> db{{"P1", "", "QPEPTIDER"}, {"P2", "", "KPEPTIDEK"}};
+  const AASequence target = AASequence::fromString(".(Gln->pyro-Glu)QPEPTIDER");
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum spectrum;
+  tsg.getSpectrum(spectrum, target, 1, 1);
+  Precursor precursor;
+  precursor.setMZ(target.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  spectrum.setMSLevel(2);
+
+  FragmentIndex fi;
+  Param p = fi.getParameters();
+  p.setValue("decoys", "false");
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 5);
+  p.setValue("peptide:max_size", 12);
+  p.setValue("precursor:mass_tolerance_lower", 10.0);
+  p.setValue("precursor:mass_tolerance_upper", 10.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("precursor:isotope_error_min", 0);
+  p.setValue("precursor:isotope_error_max", 0);
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("modifications:fixed", vector<string>{});
+  p.setValue("modifications:variable", vector<string>{"Gln->pyro-Glu (N-term Q)"});
+  fi.setParameters(p);
+  fi.build(db);
+  FragmentIndex::SpectrumMatchesTopN sms;
+  fi.querySpectrum(spectrum, db, sms);
+  bool found = false;
+  for (const auto& hit : sms.hits_)
+  {
+    const AASequence seq = fi.reconstructModifiedSequence(fi.getPeptides()[hit.peptide_idx_], db);
+    if (seq == target)
+    {
+      found = true;
+      TEST_EQUAL(seq.hasNTerminalModification(), true)
+      TEST_EQUAL(seq[0].isModified(), false)
+    }
+  }
+  TEST_EQUAL(found, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] SNES enumerates nonempty modification subsets whose mass shifts cancel))
+{
+  // AN(Deamidated)PEPTIDER.(Amidated): +0.984016 and -0.984016 Da sum to zero. A Σ = 0 hit used to pass through
+  // as the unmodified realization only, so the modified candidate was never produced (conventional indexing
+  // finds it).
+  const vector<FASTAFile::FASTAEntry> db{{"P1", "", "AKANPEPTIDERHILNPQSTV"}};
+  const AASequence target = AASequence::fromString("AN(Deamidated)PEPTIDER.(Amidated)");
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum spectrum;
+  tsg.getSpectrum(spectrum, target, 1, 1);
+  Precursor precursor;
+  precursor.setMZ(target.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  spectrum.setMSLevel(2);
+  const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
+
+  for (const string snes : {"false", "true"})
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("decoys", "false");
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("precursor:isotope_error_min", 0);
+    p.setValue("precursor:isotope_error_max", 0);
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    // SNES retrieves the mother by its unshifted fragments only: here b1 (before the deamidation) and y9 (with both
+    // shifts, which cancel), so the gate must admit a single matched ion
+    p.setValue("fragment:min_matched_ions", 1);
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{"Deamidated (N)", "Amidated (C-term)"});
+    p.setValue("modifications:variable_max_per_peptide", 2);
+    p.setValue("snes_enabled", snes);
+    fi.setParameters(p);
+    fi.build(db);
+    TEST_EQUAL(fi.isSnesMode(), snes == "true")
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, db, sms);
+    bool found = false;
+    for (const auto& hit : sms.hits_)
+    {
+      const FragmentIndex::Peptide& entry = fi.getPeptides()[hit.peptide_idx_];
+      AASequence seq;
+      if (fi.isSnesMode())
+      {
+        const int realized = fi.realizeSNESLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
+        if (realized < 0) continue;
+        seq = fi.reconstructRealizedSubSequence(entry, db, static_cast<size_t>(realized), hit.subset_bitmask_);
+      }
+      else
+      {
+        seq = fi.reconstructModifiedSequence(entry, db);
+      }
+      found |= (seq == target);
+    }
+    TEST_EQUAL(found, true)
+  }
+}
+END_SECTION
+
 END_TEST
