@@ -425,16 +425,18 @@ namespace OpenMS
     }
 
     // 2. Per-residue variable mods, left-to-right. As in ModifiedPeptideGenerator, a residue that carries a fixed
-    //    modification takes no variable one: reconstructModifiedSequence() would replace the fixed modification
-    //    while the index holds the sum of both masses. A residue-specific terminal modification (e.g.
+    //    modification takes no variable residue modification: reconstructModifiedSequence() would replace the fixed
+    //    modification while the index holds the sum of both masses. A residue-specific terminal modification (e.g.
     //    Gln->pyro-Glu (N-term Q)) is a terminal slot: AASequence holds it as the terminal modification, next to a
-    //    residue modification and one per terminus, so it is not applied where a fixed terminal modification sits.
+    //    residue modification and one per terminus, so it is not applied where a fixed terminal modification sits,
+    //    but it is applied next to a fixed modification of the residue (e.g. Ammonia-loss (N-term C) with
+    //    Carbamidomethyl (C) fixed, as in ModifiedPeptideGenerator).
     //    Its mass is the same wherever it is added: an N-terminal mass shifts the same fragments as one on the
     //    first residue, and a C-terminal one the same as one on the last.
     for (size_t i = 0; i < seq_len; ++i)
     {
       unsigned char aa = static_cast<unsigned char>(sequence[i]);
-      if (fixed_mod_ptrs_[aa] != nullptr) continue;
+      const bool fixed_residue = fixed_mod_ptrs_[aa] != nullptr;
       const auto& var_mods = variable_mod_table_[aa];
       for (const auto& entry : var_mods)
       {
@@ -446,7 +448,7 @@ namespace OpenMS
         // PROTEIN_C_TERM: only last position AND peptide is at protein end
         if (entry.term_spec == ResidueModification::ANYWHERE)
         {
-          out_slots[n_slots++] = {static_cast<uint16_t>(i), entry.delta_mass, entry.mod_ptr};
+          if (!fixed_residue) out_slots[n_slots++] = {static_cast<uint16_t>(i), entry.delta_mass, entry.mod_ptr};
         }
         else if ((entry.term_spec == ResidueModification::N_TERM && i == 0)
                  || (entry.term_spec == ResidueModification::PROTEIN_N_TERM && i == 0 && is_protein_nterm))

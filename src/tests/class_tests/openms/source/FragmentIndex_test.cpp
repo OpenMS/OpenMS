@@ -4489,4 +4489,105 @@ START_SECTION(([EXTRA] fragments on bucket boundaries are matched by query() and
 }
 END_SECTION
 
+START_SECTION(([EXTRA] a residue-specific terminal variable modification applies to a residue with a fixed modification))
+{
+  // Carbamidomethyl (C) fixed with Ammonia-loss (N-term C) variable searches N-terminal pyro-carbamidomethyl cysteine.
+  // The fixed modification sits on the residue and the variable one on the N-terminus, so ModifiedPeptideGenerator
+  // gives both forms. The index skipped the whole residue, so .(Ammonia-loss)C(Carbamidomethyl)PEPTIDEK was missing.
+  const StringList fixed{"Carbamidomethyl (C)"};
+  const StringList variable{"Ammonia-loss (N-term C)"};
+  const vector<FASTAFile::FASTAEntry> db{{"P1", "", "CPEPTIDEKCCTESLVNR"}};
+  set<string> expected;
+  for (const string residues : {"CPEPTIDEK", "CCTESLVNR"})
+  {
+    AASequence peptide = AASequence::fromString(residues);
+    ModifiedPeptideGenerator::applyFixedModifications(ModifiedPeptideGenerator::getModifications(fixed), peptide);
+    vector<AASequence> forms;
+    ModifiedPeptideGenerator::applyVariableModifications(ModifiedPeptideGenerator::getModifications(variable), peptide, 2, forms, true);
+    for (const AASequence& form : forms) expected.insert(form.toString());
+  }
+  TEST_EQUAL(expected.size(), 4)
+  TEST_EQUAL(expected.count(".(Ammonia-loss)C(Carbamidomethyl)PEPTIDEK"), 1)
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("decoys", "false");
+    p.setValue("peptide:min_size", 5);
+    p.setValue("peptide:missed_cleavages", 0);
+    p.setValue("modifications:fixed", fixed);
+    p.setValue("modifications:variable", variable);
+    fi.setParameters(p);
+    fi.build(db);
+    set<string> indexed;
+    for (const auto& peptide : fi.getPeptides())
+    {
+      const AASequence seq = fi.reconstructModifiedSequence(peptide, db);
+      indexed.insert(seq.toString());
+      TOLERANCE_ABSOLUTE(2e-3)
+      TEST_REAL_SIMILAR(static_cast<double>(peptide.precursor_mz_), seq.getMonoWeight() + Constants::PROTON_MASS_U)
+    }
+    TEST_EQUAL(ListUtils::concatenate(vector<string>(indexed.begin(), indexed.end()), " "),
+               ListUtils::concatenate(vector<string>(expected.begin(), expected.end()), " "))
+  }
+
+  // its spectrum is found, conventionally and with SNES
+  const vector<FASTAFile::FASTAEntry> search_db{{"P1", "", "CPEPTIDEK"}, {"P2", "", "KPEPTIDEK"}};
+  const AASequence target = AASequence::fromString(".(Ammonia-loss)C(Carbamidomethyl)PEPTIDEK");
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum spectrum;
+  tsg.getSpectrum(spectrum, target, 1, 1);
+  Precursor precursor;
+  precursor.setMZ(target.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  spectrum.setMSLevel(2);
+  const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
+  for (const string snes : {"false", "true"})
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("decoys", "false");
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 5);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("precursor:isotope_error_min", 0);
+    p.setValue("precursor:isotope_error_max", 0);
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:min_matched_ions", 3);
+    p.setValue("modifications:fixed", fixed);
+    p.setValue("modifications:variable", variable);
+    p.setValue("snes_enabled", snes);
+    fi.setParameters(p);
+    fi.build(search_db);
+    TEST_EQUAL(fi.isSnesMode(), snes == "true")
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, search_db, sms);
+    bool found = false;
+    for (const auto& hit : sms.hits_)
+    {
+      const FragmentIndex::Peptide& entry = fi.getPeptides()[hit.peptide_idx_];
+      AASequence seq;
+      if (fi.isSnesMode())
+      {
+        const int realized = fi.realizeSNESLength(entry, search_db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
+        if (realized < 0) continue;
+        seq = fi.reconstructRealizedSubSequence(entry, search_db, static_cast<size_t>(realized), hit.subset_bitmask_);
+      }
+      else
+      {
+        seq = fi.reconstructModifiedSequence(entry, search_db);
+      }
+      found |= (seq == target);
+    }
+    TEST_EQUAL(found, true)
+  }
+}
+END_SECTION
+
 END_TEST

@@ -674,8 +674,9 @@ protected:
     /// Deterministic ordering: N-term pure-terminal mods, then left-to-right residue mods
     /// (ANYWHERE as residue slots; residue-specific terminal ones, e.g. Gln->pyro-Glu (N-term Q), as
     /// NTERM_SLOT/CTERM_SLOT, which AASequence holds as terminal modifications), then C-term pure-terminal
-    /// mods. As in ModifiedPeptideGenerator, residues with a fixed modification get no variable slot, and a
-    /// terminus with a fixed terminal modification no terminal one.
+    /// mods. As in ModifiedPeptideGenerator, residues with a fixed modification get no variable residue slot
+    /// (a residue-specific terminal modification still gets its terminal slot), and a terminus with a fixed
+    /// terminal modification no terminal one.
     /// @param sequence raw amino acid character array
     /// @param seq_len length of the sequence
     /// @param out_slots output array for modification slots (must have space for MAX_MOD_SLOTS entries)
