@@ -648,6 +648,55 @@ const ConsensusMap& IdentificationDataConverter::withIdentificationData(const Co
   importMap(*converted, true);
   return *converted;
 }
+namespace
+{
+  template<class Map>
+  void editMap(Map& map, const std::function<void(Map&)>& edit)
+  {
+    if (! checkedLegacyIDs(map))
+    {
+      edit(map);
+      return;
+    }
+    // The original protein runs (their storage) come back with the exported values.
+    std::vector<ProteinIdentification> runs;
+    runs.swap(map.getProteinIdentifications());
+    map.getProteinIdentifications() = runs;
+    try
+    {
+      importMap(map, true);
+    }
+    catch (...)
+    {
+      map.getProteinIdentifications().swap(runs);
+      throw;
+    }
+    const auto restore = [&] {
+      exportMap(map, true);
+      auto& exported = map.getProteinIdentifications();
+      if (exported.size() != runs.size()) return;
+      for (Size i = 0; i < runs.size(); ++i)
+        runs[i] = std::move(exported[i]);
+      exported.swap(runs);
+    };
+    try
+    {
+      edit(map);
+    }
+    catch (...)
+    {
+      restore();
+      throw;
+    }
+    restore();
+  }
+} // namespace
+
+void IdentificationDataConverter::editAsIdentificationData(FeatureMap& map, const std::function<void(FeatureMap&)>& edit)
+{ editMap(map, edit); }
+void IdentificationDataConverter::editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit)
+{ editMap(map, edit); }
+
 bool IdentificationDataConverter::moveToIdentificationData(FeatureMap& map)
 {
   if (! checkedLegacyIDs(map)) return false;

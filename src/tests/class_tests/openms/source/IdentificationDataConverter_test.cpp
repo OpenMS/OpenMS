@@ -238,4 +238,33 @@ START_SECTION(([EXTRA] maps: linked and unassigned identifications follow their 
 }
 END_SECTION
 
+START_SECTION((static void editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit)))
+{
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
+  const auto original = consensus;
+  // Callers keep references to protein runs (e.g. that of an inference result) across edits.
+  const auto* run = &consensus.getProteinIdentifications()[0];
+  bool native = false;
+  IdentificationDataConverter::editAsIdentificationData(consensus, [&](ConsensusMap& map) {
+    native = map.getUnassignedPeptideIdentifications().empty() && ! map.getIdentificationData().empty();
+  });
+  TEST_TRUE(native)
+  TEST_EQUAL(&consensus.getProteinIdentifications()[0] == run, true)
+  TEST_TRUE(consensus == original)
+  // An edit that throws leaves the map with peptide identifications.
+  TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataConverter::editAsIdentificationData(consensus, [](ConsensusMap&) {
+                   throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "failed", "");
+                 }))
+  TEST_EQUAL(&consensus.getProteinIdentifications()[0] == run, true)
+  TEST_TRUE(consensus == original)
+  // A map with identification data is edited as it is.
+  auto native_map = original;
+  IdentificationDataConverter::importConsensusIDs(native_map);
+  const auto* data = &native_map.getIdentificationData();
+  IdentificationDataConverter::editAsIdentificationData(native_map, [&](ConsensusMap& map) { TEST_EQUAL(&map.getIdentificationData() == data, true) });
+  TEST_EQUAL(native_map.getUnassignedPeptideIdentifications().empty(), true)
+}
+END_SECTION
+
 END_TEST

@@ -7,6 +7,8 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+
+#include <functional>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
@@ -112,6 +114,30 @@ public:
     and the result takes them as its score type and direction.
   */
   static ProteinIdentification settingsToLegacy(const IdentificationData::Run& run);
+  /**
+    @brief Keep the score type of the legacy protein run of @p run when its primary score changes
+
+    Without an inference result, export gives the legacy protein run the score type of the primary score (as search
+    engines write it), unless import recorded another one. Code that changes the primary score of a run (e.g. to
+    q-values) calls this before, so the legacy protein run keeps its score type, as legacy rescoring keeps it.
+  */
+  static void keepLegacyProteinScoreType(IdentificationData::Run& run);
+  /// The identifier of the legacy protein run of @p run, which export gives its peptide identifications
+  static std::string legacyIdentifier(const IdentificationData::Run& run);
+  /**
+    @brief Give every match of every run of @p data a new primary score, as legacy rescoring does
+
+    Every match gets the value of @p value (from its run, the match and its current primary score) in the score
+    @p definition, which becomes the primary score. As legacy rescoring keeps the previous score as metadata of the
+    hits, it becomes the meta value "<name><previous_suffix>" (or @p previous_meta, if given) of every match and is
+    removed as a score (unless it is @p definition). With @p keep_different, an existing meta value of that name with a
+    different value stays and the previous score becomes "<that name>~" (as IDScoreSwitcherAlgorithm::switchScores()).
+    The legacy protein runs keep their score type (keepLegacyProteinScoreType()). Nothing changes for data without a
+    primary score.
+  */
+  static void replacePrimaryScore(IdentificationData& data, const IdentificationData::ScoreDefinition& definition,
+                                  const std::function<double(const IdentificationData::Run&, const IdentificationData::Match&, double)>& value,
+                                  const std::string& previous_suffix, bool keep_different = false, const std::string& previous_meta = "");
   /**
     @brief The protein hits of an inference result, completed from the database sequences of its input runs
 

@@ -19,6 +19,39 @@
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /// Replace the links of @p feature to erased matches by links to their identifications (see eraseMatches())
+    void relinkErased(BaseFeature& feature, const IdentificationData& data,
+                      const std::map<IdentificationData::MatchReference, IdentificationData::QueryReference>& erased)
+    {
+      std::set<IdentificationData::QueryReference> orphaned;
+      auto& matches = feature.getIDMatches();
+      for (auto it = matches.begin(); it != matches.end();)
+      {
+        const auto found = erased.find(*it);
+        if (found == erased.end())
+        {
+          ++it;
+          continue;
+        }
+        orphaned.insert(found->second);
+        it = matches.erase(it);
+      }
+      for (const auto& reference : matches)
+        orphaned.erase({reference.run_uuid, data.findRunByUuid(reference.run_uuid)->getIdentificationForMatch(reference.match).getId()});
+      feature.getIDQueries().insert(orphaned.begin(), orphaned.end());
+    }
+
+    /// Remove the links of @p feature to erased identifications and matches (see eraseIdentifications())
+    void unlinkErased(BaseFeature& feature, const std::pair<std::set<IdentificationData::QueryReference>, std::set<IdentificationData::MatchReference>>& erased)
+    {
+      std::erase_if(feature.getIDQueries(), [&](const auto& reference) { return erased.first.contains(reference); });
+      std::erase_if(feature.getIDMatches(), [&](const auto& reference) { return erased.second.contains(reference); });
+    }
+  } // namespace
+
   std::ostream& operator<<(std::ostream& os, const AnnotationStatistics& ann)
   {
     os << "Feature annotation with identifications:" << "\n";
@@ -482,6 +515,35 @@ namespace OpenMS
       collect(collect, feature);
     std::set_difference(all.begin(), all.end(), assigned.begin(), assigned.end(), std::inserter(result, result.end()));
     return result;
+  }
+
+  Size FeatureMap::eraseMatches(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&,
+                                                        const IdentificationData::Match&)>& remove)
+  {
+    const auto erased = id_data_.eraseMatches(remove);
+    if (erased.empty()) return 0;
+    const auto relink = [&](const auto& self, Feature& feature) -> void {
+      relinkErased(feature, id_data_, erased);
+      for (auto& subordinate : feature.getSubordinates())
+        self(self, subordinate);
+    };
+    for (auto& feature : *this)
+      relink(relink, feature);
+    return erased.size();
+  }
+
+  Size FeatureMap::eraseIdentifications(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&)>& remove)
+  {
+    const auto erased = id_data_.eraseIdentifications(remove);
+    if (erased.first.empty()) return 0;
+    const auto unlink = [&](const auto& self, Feature& feature) -> void {
+      unlinkErased(feature, erased);
+      for (auto& subordinate : feature.getSubordinates())
+        self(self, subordinate);
+    };
+    for (auto& feature : *this)
+      unlink(unlink, feature);
+    return erased.first.size();
   }
 
   std::vector<IdentificationData::QueryMatches> FeatureMap::getUnassignedIdentifications() const

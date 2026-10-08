@@ -428,6 +428,15 @@ public:
     ScoreId findScore(const ScoreDefinition& definition) const;
     const ScoreDefinition& getScoreDefinition(ScoreId score) const;
     ScoreView bindScore(ScoreId score) const;
+    /**
+      @brief Remove a score column with the values of all matches
+
+      Handles of the removed score and of the scores after it become invalid; views bound before reject the matches.
+      Within a dataset, remove a score from every run (IdentificationData::removeScore()) to keep its score schema.
+
+      @throw Exception::InvalidValue for the primary score or a foreign handle
+    */
+    void removeScore(ScoreId score);
     std::optional<ScoreId> getPrimaryScore() const
     { return primary_; }
     void setPrimaryScore(std::optional<ScoreId> score);
@@ -612,6 +621,18 @@ public:
   std::vector<QueryMatches> getUnlinked(const std::set<QueryReference>& queries, const std::set<MatchReference>& matches) const;
   bool operator==(const IdentificationData& other) const;
   Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);
+  /**
+    @brief Erase the matches for which @p remove returns true from every run; their identifications stay, also without matches
+
+    @return The identification of each erased match, to update links to them (see FeatureMap::eraseMatches())
+  */
+  std::map<MatchReference, QueryReference> eraseMatches(const std::function<bool(const Run&, const Identification&, const Match&)>& remove);
+  /**
+    @brief Erase the identifications for which @p remove returns true, with their matches, from every run
+
+    @return The erased identifications and matches, to remove links to them (see FeatureMap::eraseIdentifications())
+  */
+  std::pair<std::set<QueryReference>, std::set<MatchReference>> eraseIdentifications(const std::function<bool(const Run&, const Identification&)>& remove);
   /** Dataset-wide ordered PSM score contract.
       Configured runs have identical complete ScoreDefinitions in identical column
       order and select the same primary column. Primary values are required;
@@ -627,6 +648,8 @@ public:
   /// Select an existing score in every participating run, checking coverage first.
   /// Failure leaves all primary selections unchanged. Empty unconfigured runs are ignored.
   void setPrimaryScore(const ScoreDefinition& definition);
+  /// Remove a score from every run that has it (see Run::removeScore()); throws, changing nothing, if it is primary in a run.
+  void removeScore(const ScoreDefinition& definition);
   void validate() const;
   void swap(IdentificationData& other);
 

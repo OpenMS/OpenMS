@@ -512,6 +512,75 @@ START_SECTION((void Run::shrinkToFit()))
 }
 END_SECTION
 
+START_SECTION((void Run::removeScore(ScoreId score)))
+{
+  ID::Run run("columns");
+  const auto raw = run.addScore(score("raw"));
+  const auto pep = run.addScore(score("pep", false));
+  const auto q = run.addScore(score("q", false));
+  run.setPrimaryScore(q);
+  const auto match = run.addMatch(run.addIdentification(run.addSource({}), {}), peptide("PEPTIDE"), {1.0, 0.1, 0.01});
+  const auto view = run.bindScore(q);
+  TEST_EXCEPTION(Exception::InvalidValue, run.removeScore(q)) // the primary score
+  run.removeScore(raw);
+  TEST_EQUAL(run.getScoreDefinitions().size(), 2)
+  TEST_EQUAL(run.getScoreDefinitions()[0].name, "pep")
+  // The primary score keeps its value; handles of moved and removed scores and views bound before are rejected.
+  TEST_EQUAL(run.getScoreDefinition(*run.getPrimaryScore()).name, "q")
+  TEST_REAL_SIMILAR(*run.getScore(match, *run.getPrimaryScore()), 0.01)
+  TEST_EXCEPTION(Exception::InvalidValue, run.getScore(match, raw))
+  TEST_EXCEPTION(Exception::InvalidValue, run.getScore(match, pep))
+  TEST_EXCEPTION(Exception::InvalidValue, view(run.getMatch(match)))
+  TEST_EQUAL(run.getScores(match).size(), 2)
+  TEST_REAL_SIMILAR(*run.getScores(match)[0], 0.1)
+  run.validate();
+
+  // In a dataset, a score is removed from every run, or (if primary somewhere) from none.
+  ID data;
+  for (const auto* name : {"A", "B"})
+  {
+    auto& other = data.addRun(name);
+    other.setPrimaryScore(other.addScore(score("raw")));
+    other.addScore(score("pep", false));
+    other.addMatch(other.addIdentification(other.addSource({}), {}), peptide("PEPTIDE"), {1.0, 0.1});
+  }
+  TEST_EXCEPTION(Exception::InvalidValue, data.removeScore(score("raw")))
+  TEST_EQUAL(data.getScoreDefinitions().size(), 2)
+  data.removeScore(score("pep", false));
+  TEST_EQUAL(data.getScoreDefinitions().size(), 1)
+  data.validate();
+}
+END_SECTION
+
+START_SECTION((std::map<MatchReference, QueryReference> eraseMatches(...) and eraseIdentifications(...)))
+{
+  ID data;
+  auto& run = data.addRun("A");
+  run.setPrimaryScore(run.addScore(score("raw")));
+  const auto source = run.addSource({});
+  const auto first = run.addIdentification(source, {});
+  const auto second = run.addIdentification(source, {});
+  const auto kept = run.addMatch(first, peptide("PEPTIDE"), {1.0});
+  const auto erased = run.addMatch(first, peptide("PEPTIDER"), {2.0});
+  const auto alone = run.addMatch(second, peptide("PEPTIDEK"), {3.0});
+  const auto removed = data.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) {
+    return match.getId() == erased || match.getId() == alone;
+  });
+  TEST_EQUAL(removed.size(), 2)
+  TEST_TRUE(removed.at({run.getUuid(), alone}) == (ID::QueryReference {run.getUuid(), second}))
+  // Identifications stay, also without matches.
+  TEST_EQUAL(run.getNumberOfIdentifications(), 2)
+  TEST_EQUAL(run.getNumberOfMatches(), 1)
+  TEST_TRUE(run.findMatch(kept) != nullptr)
+  const auto gone = data.eraseIdentifications([&](const ID::Run&, const ID::Identification& query) { return query.getId() == first; });
+  TEST_TRUE(gone.first == (std::set<ID::QueryReference> {{run.getUuid(), first}}))
+  TEST_TRUE(gone.second == (std::set<ID::MatchReference> {{run.getUuid(), kept}}))
+  TEST_EQUAL(run.getNumberOfIdentifications(), 1)
+  TEST_EQUAL(run.getNumberOfMatches(), 0)
+  data.validate();
+}
+END_SECTION
+
 START_SECTION((std::set<std::string> MatchData::extractProteinAccessionsSet() const))
 {
   ID::MatchData match;

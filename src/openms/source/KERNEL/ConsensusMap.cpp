@@ -23,6 +23,39 @@
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /// Replace the links of @p feature to erased matches by links to their identifications (see eraseMatches())
+    void relinkErased(BaseFeature& feature, const IdentificationData& data,
+                      const std::map<IdentificationData::MatchReference, IdentificationData::QueryReference>& erased)
+    {
+      std::set<IdentificationData::QueryReference> orphaned;
+      auto& matches = feature.getIDMatches();
+      for (auto it = matches.begin(); it != matches.end();)
+      {
+        const auto found = erased.find(*it);
+        if (found == erased.end())
+        {
+          ++it;
+          continue;
+        }
+        orphaned.insert(found->second);
+        it = matches.erase(it);
+      }
+      for (const auto& reference : matches)
+        orphaned.erase({reference.run_uuid, data.findRunByUuid(reference.run_uuid)->getIdentificationForMatch(reference.match).getId()});
+      feature.getIDQueries().insert(orphaned.begin(), orphaned.end());
+    }
+
+    /// Remove the links of @p feature to erased identifications and matches (see eraseIdentifications())
+    void unlinkErased(BaseFeature& feature, const std::pair<std::set<IdentificationData::QueryReference>, std::set<IdentificationData::MatchReference>>& erased)
+    {
+      std::erase_if(feature.getIDQueries(), [&](const auto& reference) { return erased.first.contains(reference); });
+      std::erase_if(feature.getIDMatches(), [&](const auto& reference) { return erased.second.contains(reference); });
+    }
+  } // namespace
+
   ConsensusMap::ConsensusMap() = default;
 
   ConsensusMap::ConsensusMap(const ConsensusMap& source):
@@ -866,6 +899,24 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       assigned.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
     std::set_difference(all.begin(), all.end(), assigned.begin(), assigned.end(), std::inserter(result, result.end()));
     return result;
+  }
+
+  Size ConsensusMap::eraseMatches(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&,
+                                                          const IdentificationData::Match&)>& remove)
+  {
+    const auto erased = id_data_.eraseMatches(remove);
+    for (auto& feature : *this)
+      if (! erased.empty()) relinkErased(feature, id_data_, erased);
+    return erased.size();
+  }
+
+  Size ConsensusMap::eraseIdentifications(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&)>& remove)
+  {
+    const auto erased = id_data_.eraseIdentifications(remove);
+    if (erased.first.empty()) return 0;
+    for (auto& feature : *this)
+      unlinkErased(feature, erased);
+    return erased.first.size();
   }
 
   std::vector<IdentificationData::QueryMatches> ConsensusMap::getUnassignedIdentifications() const

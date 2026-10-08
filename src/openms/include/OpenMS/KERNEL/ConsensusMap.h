@@ -367,6 +367,24 @@ public:
     */
     std::vector<IdentificationData::QueryMatches> getUnassignedIdentifications() const;
 
+    /*!
+      @brief Erase matches from the identification data, keeping the links of the features consistent
+
+      Identifications stay, also without matches. A feature that linked an erased match, and no other match
+      of its identification, links the identification instead: a peptide identification without hits stays assigned.
+
+      @return The number of erased matches
+    */
+    Size eraseMatches(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&,
+                                               const IdentificationData::Match&)>& remove);
+
+    /*!
+      @brief Erase identifications (with their matches) from the identification data, and the links of the features to them
+
+      @return The number of erased identifications
+    */
+    Size eraseIdentifications(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&)>& remove);
+
     /// Immutable access to the contained identification data
     const IdentificationData& getIdentificationData() const;
 

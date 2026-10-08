@@ -717,6 +717,69 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   return result;
 }
 
+void IdentificationDataAdapter::replacePrimaryScore(ID& data, const ID::ScoreDefinition& definition,
+                                                    const std::function<double(const ID::Run&, const ID::Match&, double)>& value,
+                                                    const std::string& previous_suffix, bool keep_different, const std::string& previous_meta)
+{
+  const auto previous = data.getPrimaryScoreDefinition();
+  if (! previous) return;
+  const std::string previous_name = previous_meta.empty() ? previous->name + previous_suffix : previous_meta;
+  std::vector<std::string> names;
+  for (const auto& run : data.getRuns())
+    if (! run.getScoreDefinitions().empty() || run.getNumberOfMatches()) names.push_back(run.getIdentifier());
+  for (const auto& name : names)
+  {
+    auto& run = data.getRun(name);
+    keepLegacyProteinScoreType(run);
+    // Values first: adding a score invalidates bound views.
+    std::vector<std::tuple<ID::MatchId, double, double>> values;
+    values.reserve(run.getNumberOfMatches());
+    const auto current = run.bindScore(*run.getPrimaryScore());
+    for (const auto& source : run.getSources())
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches())
+        {
+          const double old = *current(match);
+          values.emplace_back(match.getId(), old, value(run, match, old));
+        }
+    const auto score = run.addScore(definition);
+    for (const auto& [id, old, replacement] : values)
+      run.setScore(id, score, replacement);
+    for (const auto& [id, old, replacement] : values)
+    {
+      ID::MatchData match = run.getMatch(id);
+      const DataValue& existing = match.getMetaValue(previous_name);
+      if (keep_different && ! existing.isEmpty())
+      {
+        // The relative tolerance of IDScoreSwitcherAlgorithm
+        if (std::fabs((double(existing) - old) * 2.0 / (double(existing) + old)) > 1e-6) match.setMetaValue(previous_name + "~", old);
+      }
+      else
+      {
+        match.setMetaValue(previous_name, old);
+      }
+      run.replaceMatch(id, match);
+    }
+  }
+  data.setPrimaryScore(definition);
+  if (! (*previous == definition)) data.removeScore(*previous);
+}
+
+std::string IdentificationDataAdapter::legacyIdentifier(const ID::Run& run)
+{
+  return run.getSettings().metaValueExists(LEGACY_RUN) ? run.getSettings().getMetaValue(LEGACY_RUN).toString() : run.getIdentifier();
+}
+
+void IdentificationDataAdapter::keepLegacyProteinScoreType(ID::Run& run)
+{
+  if (! run.getPrimaryScore() || run.getSettings().metaValueExists(LEGACY_PROTEIN_SCORE_TYPE)) return;
+  const auto& definition = run.getScoreDefinition(*run.getPrimaryScore());
+  auto settings = run.getSettings();
+  settings.setMetaValue(LEGACY_PROTEIN_SCORE_TYPE, definition.name);
+  settings.setMetaValue(LEGACY_PROTEIN_HIGHER_BETTER, definition.higher_better ? "true" : "false");
+  run.setSettings(settings);
+}
+
 ID::RunSettings IdentificationDataAdapter::settingsFromLegacy(const ProteinIdentification& proteins)
 {
   ID::RunSettings settings;
@@ -937,9 +1000,11 @@ IdentificationDataAdapter::LegacyResult IdentificationDataAdapter::toLegacy(cons
     if (primary)
     {
       const auto& definition = run.getScoreDefinition(*primary);
+      // A score without a recorded producer (e.g. one of legacy rescoring) takes the legacy default, the search engine.
       if (! definition.accession.empty() || definition.scope != ID::ScoreScope::MATCH || ! definition.calibration.empty()
           || ! definition.aggregation.empty() || ! definition.parameters.isMetaEmpty()
-          || std::make_pair(definition.software, definition.software_version) != proteins.getScoreSoftware(definition.name))
+          || (! definition.software.empty()
+              && std::make_pair(definition.software, definition.software_version) != proteins.getScoreSoftware(definition.name)))
         loss(result, options, "Legacy export cannot retain the complete primary score definition: " + run.getIdentifier());
     }
     registerDefinitions(run.getSettings().search);

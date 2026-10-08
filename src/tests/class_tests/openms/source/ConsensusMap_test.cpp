@@ -947,6 +947,45 @@ START_SECTION([EXTRA] split() throws Exception::ElementNotFound for a map index 
 }
 END_SECTION
 
+START_SECTION((Size eraseMatches(...) and Size eraseIdentifications(...)))
+{
+  ConsensusMap map;
+
+  using ID = IdentificationData;
+  auto& run = map.getIdentificationData().addRun("search");
+  ID::ScoreDefinition raw;
+  raw.name = "raw";
+  run.setPrimaryScore(run.addScore(raw));
+  const auto source = run.addSource({});
+  const auto query = run.addIdentification(source, {});
+  const auto other = run.addIdentification(source, {});
+  ID::MatchData data;
+  data.representation = "PEPTIDE";
+  const auto first = run.addMatch(query, data, {1.0});
+  data.representation = "PEPTIDER";
+  const auto second = run.addMatch(query, data, {2.0});
+  data.representation = "PEPTIDEK";
+  const auto third = run.addMatch(other, data, {3.0});
+  map.push_back(ConsensusFeature());
+  map.push_back(ConsensusFeature());
+  map[0].addIDMatch({run.getUuid(), first});
+  map[0].addIDMatch({run.getUuid(), second});
+  map[1].addIDMatch({run.getUuid(), third});
+  // A feature keeps the identification of erased matches linked, unless it links another of its matches.
+  TEST_EQUAL(map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) { return match.getId() != first; }), 2)
+  TEST_TRUE(map[0].getIDMatches() == (std::set<ID::MatchReference> {{run.getUuid(), first}}))
+  TEST_TRUE(map[0].getIDQueries().empty())
+  TEST_TRUE(map[1].getIDMatches().empty())
+  TEST_TRUE(map[1].getIDQueries() == (std::set<ID::QueryReference> {{run.getUuid(), other}}))
+  TEST_EQUAL(map[1].getLinkedIdentifications(map.getIdentificationData()).size(), 1)
+  // Erased identifications are unlinked.
+  TEST_EQUAL(map.eraseIdentifications([](const ID::Run&, const ID::Identification&) { return true; }), 2)
+  TEST_TRUE(map[0].getIDMatches().empty() && map[0].getIDQueries().empty())
+  TEST_TRUE(map[1].getIDMatches().empty() && map[1].getIDQueries().empty())
+  map.getIdentificationData().validate();
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

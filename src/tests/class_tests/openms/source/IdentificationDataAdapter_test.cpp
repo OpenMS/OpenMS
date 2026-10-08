@@ -406,6 +406,75 @@ START_SECTION([EXTRA] a protein run that export rebuilds from its run is not kep
 }
 END_SECTION
 
+START_SECTION((static void keepLegacyProteinScoreType(IdentificationData::Run& run) and static std::string legacyIdentifier(const IdentificationData::Run& run)))
+{
+  // As a search engine writes it: the protein run takes the PSM score type.
+  ProteinIdentification search;
+  search.setIdentifier("search");
+  search.setSearchEngine("test-search");
+  search.setScoreType("PEP");
+  search.setHigherScoreBetter(false);
+  const PeptideIdentificationList peptides {peptide()};
+  auto data = Adapter::fromLegacy({search}, peptides);
+  auto& run = data.getRun("search");
+  TEST_EQUAL(Adapter::legacyIdentifier(run), "search")
+  // A new primary score would become the score type of the legacy protein run, unless it is kept.
+  const auto previous = run.getScoreDefinition(*run.getPrimaryScore());
+  ID::ScoreDefinition q_value;
+  q_value.name = "q-value";
+  q_value.higher_better = false;
+  const auto score = run.addScore(q_value);
+  for (const auto& source : run.getSources())
+    for (const auto& query : source.identifications)
+      for (const auto& match : query.getMatches())
+        run.setScore(match.getId(), score, 0.01);
+  Adapter::keepLegacyProteinScoreType(run);
+  run.setPrimaryScore(score);
+  data.removeScore(previous);
+  const auto exported = Adapter::toLegacy(data);
+  ABORT_IF(exported.proteins.size() != 1)
+  TEST_EQUAL(exported.proteins[0].getScoreType(), "PEP")
+  TEST_EQUAL(exported.proteins[0].isHigherScoreBetter(), false)
+  TEST_EQUAL(exported.peptides[0].getScoreType(), "q-value")
+  // A second call keeps what the first recorded.
+  Adapter::keepLegacyProteinScoreType(run);
+  TEST_EQUAL(Adapter::toLegacy(data).proteins[0].getScoreType(), "PEP")
+}
+END_SECTION
+
+START_SECTION((static void replacePrimaryScore(IdentificationData& data, const IdentificationData::ScoreDefinition& definition, ...)))
+{
+  ProteinIdentification search;
+  search.setIdentifier("search");
+  search.setSearchEngine("test-search");
+  search.setScoreType("PEP");
+  search.setHigherScoreBetter(false);
+  const PeptideIdentificationList peptides {peptide("PEP", 0.1)};
+  auto data = Adapter::fromLegacy({search}, peptides);
+  ID::ScoreDefinition q_value;
+  q_value.name = "q-value";
+  q_value.higher_better = false;
+  // As legacy rescoring: the new score is the main score, the previous one the meta value "<name>_score".
+  Adapter::replacePrimaryScore(data, q_value, [](const ID::Run&, const ID::Match&, double previous) { return previous / 10; }, "_score");
+  TEST_EQUAL(data.getScoreDefinitions().size(), 1)
+  auto exported = Adapter::toLegacy(data);
+  TEST_EQUAL(exported.proteins[0].getScoreType(), "PEP")
+  ABORT_IF(exported.peptides.size() != 1)
+  TEST_EQUAL(exported.peptides[0].getScoreType(), "q-value")
+  TEST_REAL_SIMILAR(exported.peptides[0].getHits()[0].getScore(), 0.01)
+  TEST_REAL_SIMILAR(exported.peptides[0].getHits()[0].getMetaValue("PEP_score"), 0.1)
+  // An existing meta value of the previous score's name with another value stays (keep_different).
+  ID::ScoreDefinition pep;
+  pep.name = "PEP";
+  pep.higher_better = false;
+  Adapter::replacePrimaryScore(data, pep, [](const ID::Run&, const ID::Match&, double) { return 0.5; }, "", true, "PEP_score");
+  exported = Adapter::toLegacy(data);
+  TEST_EQUAL(exported.peptides[0].getScoreType(), "PEP")
+  TEST_REAL_SIMILAR(exported.peptides[0].getHits()[0].getMetaValue("PEP_score"), 0.1)
+  TEST_REAL_SIMILAR(exported.peptides[0].getHits()[0].getMetaValue("PEP_score~"), 0.01)
+}
+END_SECTION
+
 START_SECTION([EXTRA] a protein list with empty or repeated accessions has no database sequences)
 {
   // Legacy runs allow such lists (e.g. compound identifications); database sequences need distinct accessions.

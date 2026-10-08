@@ -740,6 +740,43 @@ START_SECTION([EXTRA] ExposedVector Ctor)
   TEST_EQUAL(fm2[6].getPosition()[0], 5.25)
 END_SECTION
 
+START_SECTION((Size eraseMatches(...) and Size eraseIdentifications(...)))
+{
+  FeatureMap map;
+
+  using ID = IdentificationData;
+  auto& run = map.getIdentificationData().addRun("search");
+  ID::ScoreDefinition raw;
+  raw.name = "raw";
+  run.setPrimaryScore(run.addScore(raw));
+  const auto source = run.addSource({});
+  const auto query = run.addIdentification(source, {});
+  const auto other = run.addIdentification(source, {});
+  ID::MatchData data;
+  data.representation = "PEPTIDE";
+  const auto first = run.addMatch(query, data, {1.0});
+  data.representation = "PEPTIDER";
+  const auto second = run.addMatch(query, data, {2.0});
+  data.representation = "PEPTIDEK";
+  const auto third = run.addMatch(other, data, {3.0});
+  Feature feature;
+  feature.addIDMatch({run.getUuid(), first});
+  Feature subordinate;
+  subordinate.addIDMatch({run.getUuid(), third});
+  feature.getSubordinates().push_back(subordinate);
+  map.push_back(feature);
+  // Links of features and subordinates to erased matches become links to their identifications.
+  TEST_EQUAL(map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) { return match.getId() != second; }), 2)
+  TEST_TRUE(map[0].getIDMatches().empty())
+  TEST_TRUE(map[0].getIDQueries() == (std::set<ID::QueryReference> {{run.getUuid(), query}}))
+  TEST_TRUE(map[0].getSubordinates()[0].getIDQueries() == (std::set<ID::QueryReference> {{run.getUuid(), other}}))
+  TEST_EQUAL(map.eraseIdentifications([&](const ID::Run&, const ID::Identification& identification) { return identification.getId() == other; }), 1)
+  TEST_TRUE(map[0].getSubordinates()[0].getIDQueries().empty())
+  TEST_EQUAL(map[0].getIDQueries().size(), 1)
+  map.getIdentificationData().validate();
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -378,6 +378,26 @@ ID::ScoreId ID::Run::addScore(const ScoreDefinition& definition)
   ++revision_;
   return getScoreId(static_cast<UInt32>(scores_.size() - 1));
 }
+void ID::Run::removeScore(ScoreId score)
+{
+  checkMutation_();
+  checkScore_(score);
+  if (primary_ == score) invalid("Cannot remove the primary score");
+  const auto index = score.value;
+  scores_.erase(scores_.begin() + index);
+  score_owners_.erase(score_owners_.begin() + index);
+  score_table_->columns.erase(score_table_->columns.begin() + index);
+  // The primary score keeps its handle owner; its column may move up.
+  if (primary_ && primary_->value > index) primary_ = ScoreId {primary_->value - 1, primary_->owner};
+  // A new schema is a new state of the columns: views bound before reject the matches.
+  const UInt32 state = newTag();
+  for (auto& source : sources_)
+    for (auto& query : source.identifications)
+      for (auto& match : query.matches_)
+        match.tag_ = state;
+  score_table_->tag = state;
+  ++revision_;
+}
 ID::ScoreId ID::Run::getScoreId(UInt32 index) const
 {
   if (index >= scores_.size()) invalid("Invalid score index");
@@ -1312,6 +1332,54 @@ void ID::setPrimaryScore(const ScoreDefinition& definition)
     run->primary_ = score;
     ++run->revision_;
   }
+}
+std::map<ID::MatchReference, ID::QueryReference> ID::eraseMatches(const std::function<bool(const Run&, const Identification&, const Match&)>& remove)
+{
+  checkMutation_();
+  std::map<MatchReference, QueryReference> erased;
+  for (const auto& run : runs_)
+    for (const auto& source : run.getSources())
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches())
+          if (remove(run, query, match)) erased.emplace(MatchReference {run.getUuid(), match.getId()}, QueryReference {run.getUuid(), query.getId()});
+  if (erased.empty()) return erased;
+  for (auto& run : runs_)
+    run.eraseMatches([&](const Match& match) { return erased.contains({run.getUuid(), match.getId()}); }, true);
+  return erased;
+}
+std::pair<std::set<ID::QueryReference>, std::set<ID::MatchReference>> ID::eraseIdentifications(const std::function<bool(const Run&, const Identification&)>& remove)
+{
+  checkMutation_();
+  std::pair<std::set<QueryReference>, std::set<MatchReference>> erased;
+  for (const auto& run : runs_)
+    for (const auto& source : run.getSources())
+      for (const auto& query : source.identifications)
+        if (remove(run, query))
+        {
+          erased.first.insert({run.getUuid(), query.getId()});
+          for (const auto& match : query.getMatches())
+            erased.second.insert({run.getUuid(), match.getId()});
+        }
+  if (erased.first.empty()) return erased;
+  for (auto& run : runs_)
+    run.eraseIdentifications([&](const Identification& query) { return erased.first.contains({run.getUuid(), query.getId()}); });
+  return erased;
+}
+void ID::removeScore(const ScoreDefinition& definition)
+{
+  checkMutation_();
+  std::vector<std::pair<Run*, ScoreId>> removals;
+  for (auto& run : runs_)
+  {
+    const auto& scores = run.getScoreDefinitions();
+    const auto found = std::find(scores.begin(), scores.end(), definition);
+    if (found == scores.end()) continue;
+    const auto score = run.getScoreId(static_cast<UInt32>(found - scores.begin()));
+    if (run.primary_ == score) invalid("Cannot remove the primary score of run '" + run.identifier_ + "'");
+    removals.emplace_back(&run, score);
+  }
+  for (auto& [run, score] : removals)
+    run->removeScore(score);
 }
 void ID::validate() const
 {

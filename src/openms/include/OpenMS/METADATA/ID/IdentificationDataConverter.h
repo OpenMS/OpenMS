@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <functional>
 #include <optional>
 namespace OpenMS
 {
@@ -58,6 +59,18 @@ public:
   */
   static bool moveToIdentificationData(FeatureMap& map);
   static bool moveToIdentificationData(ConsensusMap& map);
+  /**
+    @brief Edit the identifications of a map as identification data
+
+    Runs @p edit on @p map. A map with peptide identifications has them moved into its identification data for the
+    edit (moveToIdentificationData()) and back afterwards (exportFeatureIDs()/exportConsensusIDs()), also if @p edit
+    throws. Its protein identification runs keep their objects if their number does not change, so references to
+    them (e.g. to the protein run of an inference result) stay valid.
+
+    @throw Exception::InvalidParameter if @p map has peptide identifications and identification data
+  */
+  static void editAsIdentificationData(FeatureMap& map, const std::function<void(FeatureMap&)>& edit);
+  static void editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit);
   ///@}
 };
 }
