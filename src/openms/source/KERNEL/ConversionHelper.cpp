@@ -10,6 +10,51 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// The native counterpart of the legacy conversion: the identifications of the converted features are kept and
+    /// marked with the map index, those of the other features and of subordinates are dropped, unassigned ones are kept.
+    void convertIdentifications(UInt64 map_index, const FeatureMap& input, Size n, ConsensusMap& output)
+    {
+      using ID = IdentificationData;
+      auto data = input.getIdentificationData();
+      if (data.empty()) return;
+      std::set<ID::QueryReference> linked, kept;
+      const auto collect = [&](const auto& self, const Feature& feature) -> void {
+        const auto queries = feature.getLinkedIDQueries(data);
+        linked.insert(queries.begin(), queries.end());
+        for (const auto& subordinate : feature.getSubordinates())
+          self(self, subordinate);
+      };
+      for (Size i = 0; i < input.size(); ++i)
+      {
+        collect(collect, input[i]);
+        if (i < n)
+        {
+          const auto queries = input[i].getLinkedIDQueries(data);
+          kept.insert(queries.begin(), queries.end());
+        }
+      }
+      for (const auto& current : data.getRuns())
+      {
+        auto& run = data.getRun(current.getIdentifier());
+        run.eraseIdentifications([&](const ID::Identification& query) {
+          const ID::QueryReference reference {run.getUuid(), query.getId()};
+          return linked.contains(reference) && ! kept.contains(reference);
+        });
+        for (const auto& source : run.getSources())
+          for (const auto& query : source.identifications)
+          {
+            if (! kept.contains({run.getUuid(), query.getId()})) continue;
+            ID::Observation observation = query;
+            observation.setMetaValue("map_index", map_index);
+            run.replaceObservation(query.getId(), observation);
+          }
+      }
+      output.getIdentificationData() = std::move(data);
+    }
+  } // namespace
+
   void MapConversion::convert(UInt64 const input_map_index,
                               PeakMap& input_map,
                               ConsensusMap& output_map,
@@ -81,6 +126,7 @@ namespace OpenMS
     }
     output_map.setProteinIdentifications(input_map.getProteinIdentifications());
     output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
+    output_map.getIdentificationData() = input_map.getIdentificationData();
 
     for (Size i = 0; i < input_map.size(); ++i)
     {
@@ -119,6 +165,7 @@ namespace OpenMS
     output_map.getColumnHeaders()[input_map_index].size = static_cast<Size>(input_map.size());
     output_map.setProteinIdentifications(input_map.getProteinIdentifications());
     output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
+    convertIdentifications(input_map_index, input_map, n, output_map);
     output_map.updateRanges();
   }
 

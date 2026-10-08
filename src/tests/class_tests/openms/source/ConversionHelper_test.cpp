@@ -9,6 +9,9 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////
 #include <OpenMS/KERNEL/ConversionHelper.h>
@@ -306,6 +309,57 @@ START_SECTION([EXTRA] convert(PeakMap) orders equal intensities by RT and m/z)
   TEST_REAL_SIMILAR(out[2].getMZ(), 720.0)
   TEST_REAL_SIMILAR(out[3].getRT(), 10.0)
   TEST_REAL_SIMILAR(out[3].getMZ(), 730.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] conversions treat the identification data like peptide identifications))
+{
+  FeatureMap features;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), features);
+  const auto with_subordinates = std::find_if(features.begin(), features.end(), [](const Feature& f) { return ! f.getSubordinates().empty(); });
+  const auto with_ids = std::find_if(features.begin(), features.end(), [](const Feature& f) { return ! f.getPeptideIdentifications().empty(); });
+  ABORT_IF(with_subordinates == features.end() || with_ids == features.end() || features.getUnassignedPeptideIdentifications().empty())
+  // the conversion to consensus features drops the identifications of subordinates
+  with_subordinates->getSubordinates()[0].setPeptideIdentifications(with_ids->getPeptideIdentifications());
+  FeatureMap native = features;
+  IdentificationDataConverter::importFeatureIDs(native);
+  for (Size n : {Size(-1), Size(1), Size(0)})
+  {
+    // identifications linked by converted features get the map index; unlinked ones stay, others are removed
+    ConsensusMap out;
+    MapConversion::convert(7, native, out, n);
+    Size marked = 0, unmarked = 0;
+    for (const auto& run : out.getIdentificationData().getRuns())
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+        {
+          if (! query.metaValueExists("map_index")) ++unmarked;
+          else if (query.getMetaValue("map_index") == DataValue(7)) ++marked;
+        }
+    Size assigned = 0;
+    for (Size i = 0; i < std::min(n, features.size()); ++i)
+      assigned += features[i].getPeptideIdentifications().size();
+    TEST_EQUAL(marked, assigned)
+    TEST_EQUAL(unmarked, features.getUnassignedPeptideIdentifications().size())
+    // the links of the converted features resolve
+    for (const auto& feature : out)
+    {
+      TEST_EQUAL(feature.getLinkedIdentifications(out.getIdentificationData()).size(), feature.getIDQueries().size())
+    }
+  }
+
+  // consensus features to features: identification data and links are copied
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
+  IdentificationDataConverter::importConsensusIDs(consensus);
+  FeatureMap result;
+  MapConversion::convert(consensus, true, result);
+  TEST_TRUE(result.getIdentificationData() == consensus.getIdentificationData())
+  ABORT_IF(result.size() != consensus.size())
+  for (Size i = 0; i < result.size(); ++i)
+  {
+    TEST_TRUE(result[i].getIDQueries() == consensus[i].getIDQueries() && result[i].getIDMatches() == consensus[i].getIDMatches())
+  }
 }
 END_SECTION
 

@@ -89,14 +89,14 @@ namespace OpenMS
       SPECXML,            ///< xQuest XML file format for matched spectra for spectra visualization in the xQuest results manager (.spec.xml)
       JSON,               ///< JavaScript Object Notation file (.json)
       RAW,                ///< Thermo Raw File (.raw)
-      OMS,                ///< OpenMS database file
+      OMS,                ///< OpenMS SQLite file (.oms); no longer supported, recognized only to point to OpenMS 3.6 for conversion
       EXE,                ///< Executable (.exe)
       XML,                ///< any XML format
       BZ2,                ///< any BZ2 compressed file
       GZ,                 ///< any Gzipped file
       ZIP,                ///< any ZIP compressed file
       PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
-      IDPARQUET,          ///< OpenMS internal identification parquet bundle (directory: psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
+      IDPARQUET,          ///< OpenMS identification Parquet directory: native manifest or established four-table bundle
       FEATUREPARQUET,     ///< OpenMS internal feature map parquet bundle (directory: features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
       CONSENSUSPARQUET,   ///< OpenMS internal consensus map parquet bundle (directory: consensus_features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
       BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)

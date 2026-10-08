@@ -23,7 +23,9 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <algorithm>
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -37,6 +39,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/config.h>
 #include <arrow/api.h>
+#include <arrow/io/file.h>
+#include <parquet/arrow/reader.h>
+#include <parquet/arrow/writer.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -1867,6 +1872,178 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
       TEST_TRUE(v.find("TestFMap:Unassigned") != std::string::npos)
     }
   }
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportToParquet / importFromParquet - owning identification data and feature links)
+{
+  using ID = IdentificationData;
+  FeatureMap fm;
+  auto& run = fm.getIdentificationData().addRun("ams", ID::MoleculeKind::COMPOUND);
+  ID::ScoreDefinition ppm;
+  ppm.name = "MZ_ERROR_PPM";
+  ppm.higher_better = false;
+  ppm.software = "AccurateMassSearch";
+  run.setPrimaryScore(run.addScore(ppm));
+  const auto source = run.addSource({});
+  ID::Observation observation;
+  observation.data_id = "feature=1";
+  const auto query = run.addIdentification(source, observation);
+  const auto empty_query = run.addIdentification(source, ID::Observation {}); // no candidates
+  ID::MatchData compound;
+  compound.encoding = ID::Encoding::SMILES;
+  compound.representation = "C(=O)O";
+  compound.name = "formic acid";
+  compound.charge = 1;
+  compound.setMetaValue("inchi_key", "InChI=1S/CH2O2/c2-1-3/h1H,(H,2,3)");
+  const auto match = run.addMatch(query, compound, {0.25});
+  compound.representation = "CO";
+  const auto other = run.addMatch(query, compound, {1.5});
+
+  Feature top;
+  top.setRT(10.0);
+  top.setMZ(47.0);
+  top.setUniqueId(11);
+  top.setPrimaryID({ID::Encoding::SMILES, "C(=O)O"});
+  top.addIDQuery({run.getUuid(), query});
+  top.addIDMatch({run.getUuid(), match});
+  Feature subordinate;
+  const UInt64 high_id = 0xF000000000000012ULL; // half of all random unique IDs have the top bit set
+  subordinate.setUniqueId(high_id);
+  subordinate.addIDMatch({run.getUuid(), other});
+  top.getSubordinates().push_back(subordinate);
+  Feature unannotated;
+  unannotated.setUniqueId(13);
+  unannotated.addIDQuery({run.getUuid(), empty_query});
+  fm.push_back(top);
+  fm.push_back(unannotated);
+  fm.getProteinIdentifications().resize(1);
+  fm.getProteinIdentifications()[0].setIdentifier("run");
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".featureparquet";
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
+  TEST_TRUE(File::exists(dir + "/identifications/manifest.json"))
+  TEST_TRUE(File::exists(dir + "/identification_links.parquet"))
+  FeatureMap loaded;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, loaded))
+  TEST_EQUAL(loaded.getIdentificationData() == fm.getIdentificationData(), true)
+  TEST_EQUAL(loaded.size(), 2)
+  const auto& loaded_top = loaded[0].getUniqueId() == 11 ? loaded[0] : loaded[1];
+  const auto& loaded_other = loaded[0].getUniqueId() == 11 ? loaded[1] : loaded[0];
+  TEST_EQUAL(loaded_top.hasPrimaryID(), true)
+  TEST_EQUAL(loaded_top.getPrimaryID().representation, "C(=O)O")
+  TEST_EQUAL(loaded_top.getIDQueries() == top.getIDQueries(), true)
+  TEST_EQUAL(loaded_top.getIDMatches() == top.getIDMatches(), true)
+  TEST_EQUAL(loaded_top.getSubordinates().size(), 1)
+  TEST_EQUAL(loaded_top.getSubordinates()[0].getIDMatches() == subordinate.getIDMatches(), true)
+  TEST_EQUAL(loaded_other.hasPrimaryID(), false)
+  TEST_EQUAL(loaded_other.getIDQueries() == unannotated.getIDQueries(), true)
+  const auto& reloaded_match = loaded.getIdentificationData().findRunByUuid(run.getUuid())->getMatch(match);
+  TEST_EQUAL(reloaded_match.getMetaValue("inchi_key"), "InChI=1S/CH2O2/c2-1-3/h1H,(H,2,3)")
+  TEST_EQUAL(loaded_top.getSubordinates()[0].getUniqueId(), high_id)
+
+  // Links join the feature table without a cast: both store the bits of the unique ID as int64.
+  {
+    const auto ids = [](const std::string& file, const std::string& column) {
+      auto input = arrow::io::ReadableFile::Open(file).ValueOrDie();
+      const auto table = parquet::arrow::OpenFile(input, arrow::default_memory_pool()).ValueOrDie()->ReadTable().ValueOrDie();
+      std::set<int64_t> values;
+      for (const auto& chunk : table->GetColumnByName(column)->chunks())
+        for (int64_t row = 0; row < chunk->length(); ++row)
+          values.insert(static_cast<const arrow::Int64Array&>(*chunk).Value(row));
+      return values;
+    };
+    const auto features = ids(dir + "/features.parquet", "unique_id");
+    const auto linked = ids(dir + "/identification_links.parquet", "feature_unique_id");
+    TEST_EQUAL(linked.size(), 3)
+    TEST_EQUAL(std::includes(features.begin(), features.end(), linked.begin(), linked.end()), true)
+    TEST_EQUAL(linked.contains(static_cast<int64_t>(high_id)), true)
+  }
+
+  // Run UUIDs are dictionary-encoded strings; links written by other tools as plain strings load as well.
+  {
+    const std::string links = dir + "/identification_links.parquet";
+    std::shared_ptr<arrow::Table> table;
+    {
+      auto input = arrow::io::ReadableFile::Open(links).ValueOrDie();
+      auto reader = parquet::arrow::OpenFile(input, arrow::default_memory_pool()).ValueOrDie();
+      table = reader->ReadTable().ValueOrDie();
+    }
+    const auto uuid_type = table->schema()->GetFieldByName("run_uuid")->type();
+    TEST_EQUAL(uuid_type->id() == arrow::Type::DICTIONARY, true)
+    TEST_EQUAL(static_cast<const arrow::DictionaryType&>(*uuid_type).index_type()->id() == arrow::Type::INT32, true)
+    arrow::StringBuilder plain_uuids;
+    for (const auto& chunk : table->GetColumnByName("run_uuid")->chunks())
+    {
+      const auto& dictionary = static_cast<const arrow::DictionaryArray&>(*chunk);
+      const auto& values = static_cast<const arrow::StringArray&>(*dictionary.dictionary());
+      for (int64_t row = 0; row < dictionary.length(); ++row)
+      {
+        if (dictionary.IsNull(row)) TEST_EQUAL(plain_uuids.AppendNull().ok(), true)
+        else
+          TEST_EQUAL(plain_uuids.Append(values.GetString(dictionary.GetValueIndex(row))).ok(), true)
+      }
+    }
+    std::shared_ptr<arrow::Array> plain_column;
+    TEST_EQUAL(plain_uuids.Finish(&plain_column).ok(), true)
+    const auto index = table->schema()->GetFieldIndex("run_uuid");
+    table = table->SetColumn(index, arrow::field("run_uuid", arrow::utf8(), true), std::make_shared<arrow::ChunkedArray>(plain_column)).ValueOrDie();
+    {
+      auto sink = arrow::io::FileOutputStream::Open(links).ValueOrDie();
+      TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), sink, table->num_rows()).ok(), true)
+      TEST_EQUAL(sink->Close().ok(), true)
+    }
+    FeatureMap from_plain;
+    TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, from_plain))
+    const auto& plain_top = from_plain[0].getUniqueId() == 11 ? from_plain[0] : from_plain[1];
+    TEST_EQUAL(plain_top.getIDMatches() == top.getIDMatches(), true)
+    TEST_EQUAL(plain_top.getSubordinates()[0].getIDMatches() == subordinate.getIDMatches(), true)
+  }
+
+  // An existing bundle is replaced; the result is identical.
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(loaded, dir))
+  FeatureMap reloaded;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, reloaded))
+  TEST_EQUAL(reloaded.getIdentificationData() == fm.getIdentificationData(), true)
+
+  // Unresolved links are rejected before anything is written.
+  FeatureMap dangling = fm;
+  dangling[1].addIDMatch({run.getUuid(), ID::MatchId {999}});
+  std::string rejected;
+  NEW_TMP_FILE(rejected) rejected += ".featureparquet";
+  TEST_EXCEPTION(Exception::InvalidValue, FeatureMapArrowIO::exportToParquet(dangling, rejected))
+  TEST_FALSE(File::exists(rejected))
+  // Linked features need distinct unique IDs (links are keyed by them).
+  FeatureMap duplicate = fm;
+  duplicate[1].setUniqueId(11);
+  TEST_EXCEPTION(Exception::InvalidValue, FeatureMapArrowIO::exportToParquet(duplicate, rejected))
+  TEST_FALSE(File::exists(rejected))
+
+  // A directory that is not a feature bundle is never replaced.
+  std::string foreign;
+  NEW_TMP_FILE(foreign) foreign += "_dir";
+  TEST_TRUE(File::makeDir(foreign))
+  {
+    std::ofstream keep(foreign + "/keep.txt");
+    keep << "user data";
+  }
+  TEST_FALSE(FeatureMapArrowIO::exportToParquet(fm, foreign))
+  TEST_TRUE(File::exists(foreign + "/keep.txt"))
+  File::removeDirRecursively(foreign);
+
+  // Maps without owning identification data write no native parts (3.6 bundle layout).
+  FeatureMap plain;
+  Feature only;
+  only.setUniqueId(21);
+  plain.push_back(only);
+  std::string plain_dir;
+  NEW_TMP_FILE(plain_dir) plain_dir += ".featureparquet";
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(plain, plain_dir))
+  TEST_FALSE(File::exists(plain_dir + "/identifications"))
+  TEST_FALSE(File::exists(plain_dir + "/identification_links.parquet"))
+  File::removeDirRecursively(plain_dir);
   File::removeDirRecursively(dir);
 }
 END_SECTION

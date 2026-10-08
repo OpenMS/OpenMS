@@ -1,718 +1,537 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
-//
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
-
 #pragma once
 
-#include <OpenMS/METADATA/ID/ProcessingStep.h>
-#include <OpenMS/METADATA/ID/Observation.h>
-#include <OpenMS/METADATA/ID/DBSearchParam.h>
-#include <OpenMS/METADATA/ID/IdentifiedCompound.h>
-#include <OpenMS/METADATA/ID/IdentifiedSequence.h>
-#include <OpenMS/METADATA/ID/InputFile.h>
-#include <OpenMS/METADATA/ID/MetaData.h>
-#include <OpenMS/METADATA/ID/ParentMatch.h>
-#include <OpenMS/METADATA/ID/ObservationMatch.h>
-#include <OpenMS/METADATA/ID/ParentSequence.h>
-#include <OpenMS/METADATA/ID/ParentGroup.h>
-#include <OpenMS/METADATA/ID/ObservationMatchGroup.h>
-#include <OpenMS/METADATA/ID/ScoreType.h>
-
-#include <unordered_set>
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SearchParameters.h>
+#include <array>
+#include <atomic>
+#include <compare>
+#include <deque>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace OpenMS
 {
-  /*!
-    @brief Representation of spectrum identification results and associated data
+class IdentificationDataFile;
 
-    This class provides capabilities for storing spectrum identification results from different
-    types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
+/**
+  @brief Owning identification values with one ordered score schema per dataset.
 
-    The class design has the following goals:
-    - Provide one structure for storing all relevant data for spectrum identification results.
-    - Store data non-redundantly.
-    - Ensure consistency (e.g. no conflicting information; no "dangling references").
-    - Allow convenient and efficient querying.
-    - Support different types of experiments, as mentioned above, in one common framework.
-
-    The following important subordinate classes are provided to represent different types of data:
-    <table>
-    <tr><th>Class <th>Represents <th>Key <th>Proteomics example <th>Corresponding legacy class
-    <tr><td>ProcessingStep <td>Information about a data processing step that was applied (e.g. input files, software used, parameters) <td>Combined information <td>Mascot search <td>ProteinIdentification
-    <tr><td>Observation <td>A search query (with identifier, RT, m/z) from an input file, i.e. an MS2 spectrum or feature (for accurate mass search) <td>File/Identifier <td>MS2 spectrum <td>PeptideIdentification
-    <tr><td>ParentSequence <td>An entry in a FASTA file with associated information (sequence, coverage, etc.) <td>Accession <td>Protein <td>ProteinHit
-    <tr><td>IdentifiedPeptide/-Oligo/-Compound <td>An identified molecule of the respective type <td>Sequence (or identifier for a compound) <td>Peptide <td>PeptideHit
-    <tr><td>ObservationMatch <td>A match between a query (Observation), identified molecule (Identified...), and optionally adduct <td>Combination of query/molecule/adduct references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
-    </table>
-
-    To populate an IdentificationData instance with data, "register..." functions are used.
-    These functions return "references" (implemented as iterators) that can be used to refer to stored data items and thus form connections.
-    For example, a protein can be stored using registerParentSequence, which returns a corresponding reference.
-    This reference can be used to build an IdentifiedPeptide object that references the protein.
-    An identified peptide referencing a protein can only be registered if that protein has been registered already, to ensure data consistency.
-    Given the identified peptide, information about the associated protein can be retrieved efficiently by simply dereferencing the reference.
-
-    To ensure non-redundancy, many data types have a "key" (see table above) to which a uniqueness constraint applies.
-    This means only one item of such a type with a given key can be stored in an IdentificationData object.
-    If items with an existing key are registered subsequently, attempts are made to merge new information (e.g. additional scores) into the existing entry.
-    The details of this merging are handled in the @p merge function in each data class.
-
-    @warning This class is not thread-safe while being modified.
-
-    @ingroup Metadata
-  */
-
-  /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate (manual loop required for non-standard containers that don't support std::erase_if)
-  template <typename ContainerType, typename PredicateType>
-  static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
+  A run owns sources, observations and candidate matches. Editing or filtering a run
+  does not traverse inference provenance. IDs survive copies, filtering and native
+  persistence; a new independent run receives a new UUID, and only the run inside the
+  dataset allocates new IDs: runs are edited in place through getRun(), and a copied run
+  cannot be written back. Views are invalidated by structural edits; match references may
+  also be invalidated by match replacement or transformation. Retain IDs across edits. Instances are not safe for concurrent
+  mutation. Concurrent const lookups are safe; the first lookup builds a lazy index,
+  which Run::prepareLookupIndexes() can build up front.
+  @ingroup Metadata
+*/
+class OPENMS_DLLAPI IdentificationData
+{
+public:
+  enum class MoleculeKind
   {
-    for (auto it = container.begin(); it != container.end(); )
-    {
-      if (predicate(it))
-      {
-        it = container.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-  }
-
-  class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
+    PEPTIDE,
+    OLIGONUCLEOTIDE,
+    COMPOUND
+  };
+  enum class Encoding
   {
-  public:
-
-    // to be able to add overloads and still find the inherited ones
-    using MetaInfoInterface::setMetaValue;
-
-    // type definitions:
-    using MoleculeType = IdentificationDataInternal::MoleculeType;
-    using MassType = IdentificationDataInternal::MassType;
-
-    using InputFile = IdentificationDataInternal::InputFile;
-    using InputFiles = IdentificationDataInternal::InputFiles;
-    using InputFileRef = IdentificationDataInternal::InputFileRef;
-
-    using ProcessingSoftware =
-      IdentificationDataInternal::ProcessingSoftware;
-    using ProcessingSoftwares =
-      IdentificationDataInternal::ProcessingSoftwares;
-    using ProcessingSoftwareRef =
-      IdentificationDataInternal::ProcessingSoftwareRef;
-
-    using ProcessingStep = IdentificationDataInternal::ProcessingStep;
-    using ProcessingSteps = IdentificationDataInternal::ProcessingSteps;
-    using ProcessingStepRef = IdentificationDataInternal::ProcessingStepRef;
-
-    using DBSearchParam = IdentificationDataInternal::DBSearchParam;
-    using DBSearchParams = IdentificationDataInternal::DBSearchParams;
-    using SearchParamRef = IdentificationDataInternal::SearchParamRef;
-    using DBSearchSteps = IdentificationDataInternal::DBSearchSteps;
-
-    using ScoreType = IdentificationDataInternal::ScoreType;
-    using ScoreTypes = IdentificationDataInternal::ScoreTypes;
-    using ScoreTypeRef = IdentificationDataInternal::ScoreTypeRef;
-
-    using ScoredProcessingResult =
-      IdentificationDataInternal::ScoredProcessingResult;
-
-    using AppliedProcessingStep =
-      IdentificationDataInternal::AppliedProcessingStep;
-    using AppliedProcessingSteps =
-      IdentificationDataInternal::AppliedProcessingSteps;
-
-    using Observation = IdentificationDataInternal::Observation;
-    using Observations = IdentificationDataInternal::Observations;
-    using ObservationRef = IdentificationDataInternal::ObservationRef;
-
-    using ParentSequence = IdentificationDataInternal::ParentSequence;
-    using ParentSequences = IdentificationDataInternal::ParentSequences;
-    using ParentSequenceRef = IdentificationDataInternal::ParentSequenceRef;
-
-    using ParentMatch = IdentificationDataInternal::ParentMatch;
-    using ParentMatches = IdentificationDataInternal::ParentMatches;
-
-    using IdentifiedPeptide = IdentificationDataInternal::IdentifiedPeptide;
-    using IdentifiedPeptides = IdentificationDataInternal::IdentifiedPeptides;
-    using IdentifiedPeptideRef =
-      IdentificationDataInternal::IdentifiedPeptideRef;
-
-    using IdentifiedCompound = IdentificationDataInternal::IdentifiedCompound;
-    using IdentifiedCompounds = IdentificationDataInternal::IdentifiedCompounds;
-    using IdentifiedCompoundRef =
-      IdentificationDataInternal::IdentifiedCompoundRef;
-
-    using IdentifiedOligo = IdentificationDataInternal::IdentifiedOligo;
-    using IdentifiedOligos = IdentificationDataInternal::IdentifiedOligos;
-    using IdentifiedOligoRef = IdentificationDataInternal::IdentifiedOligoRef;
-
-    using IdentifiedMolecule = IdentificationDataInternal::IdentifiedMolecule;
-
-    using PeakAnnotations = IdentificationDataInternal::PeakAnnotations;
-
-    using Adducts = IdentificationDataInternal::Adducts;
-    using AdductRef = IdentificationDataInternal::AdductRef;
-    using AdductOpt = IdentificationDataInternal::AdductOpt;
-
-    using ObservationMatch = IdentificationDataInternal::ObservationMatch;
-    using ObservationMatches = IdentificationDataInternal::ObservationMatches;
-    using ObservationMatchRef = IdentificationDataInternal::ObservationMatchRef;
-
-    // @todo: allow multiple sets of groups, like with parent sequences
-    // ("ParentGroupSets")?
-    using ObservationMatchGroup = IdentificationDataInternal::ObservationMatchGroup;
-    using ObservationMatchGroups = IdentificationDataInternal::ObservationMatchGroups;
-    using MatchGroupRef = IdentificationDataInternal::MatchGroupRef;
-
-    using ParentGroup = IdentificationDataInternal::ParentGroup;
-    using ParentGroups =
-      IdentificationDataInternal::ParentGroups;
-    using ParentGroupRef = IdentificationDataInternal::ParentGroupRef;
-    using ParentGroupSet =
-      IdentificationDataInternal::ParentGroupSet;
-    using ParentGroupSets =
-      IdentificationDataInternal::ParentGroupSets;
-
-    using AddressLookup = std::unordered_set<uintptr_t>;
-
-    /// structure that maps references of corresponding objects after copying
-    struct RefTranslator {
-      std::map<InputFileRef, InputFileRef> input_file_refs;
-      std::map<ScoreTypeRef, ScoreTypeRef> score_type_refs;
-      std::map<ProcessingSoftwareRef, ProcessingSoftwareRef> processing_software_refs;
-      std::map<SearchParamRef, SearchParamRef> search_param_refs;
-      std::map<ProcessingStepRef, ProcessingStepRef> processing_step_refs;
-      std::map<ObservationRef, ObservationRef> observation_refs;
-      std::map<ParentSequenceRef, ParentSequenceRef> parent_sequence_refs;
-      std::map<IdentifiedPeptideRef, IdentifiedPeptideRef> identified_peptide_refs;
-      std::map<IdentifiedOligoRef, IdentifiedOligoRef> identified_oligo_refs;
-      std::map<IdentifiedCompoundRef, IdentifiedCompoundRef> identified_compound_refs;
-      std::map<AdductRef, AdductRef> adduct_refs;
-      std::map<ObservationMatchRef, ObservationMatchRef> observation_match_refs;
-
-      bool allow_missing = false;
-
-      IdentifiedMolecule translate(IdentifiedMolecule old) const;
-
-      ObservationMatchRef translate(ObservationMatchRef old) const;
-
-    };
-
-    /// Default constructor
-    IdentificationData():
-      current_step_ref_(processing_steps_.end()), no_checks_(false)
-    {
-    }
-
-    /*!
-      @brief Copy constructor
-
-      Copy-constructing is expensive due to the necessary "rewiring" of references.
-      Use the move constructor where possible.
-    */
-    IdentificationData(const IdentificationData& other);
-
-    /*!
-      @brief Copy assignment operator
-    */
-    IdentificationData& operator=(const IdentificationData& other);
-
-    /*!
-      @brief Move constructor
-    */
-    IdentificationData(IdentificationData&& other) noexcept;
-
-    /*!
-      @brief Move assignment operator
-    */
-    IdentificationData& operator=(IdentificationData&& other) noexcept;
-
-    /*!
-      @brief Register an input file
-
-      @return Reference to the registered file
-    */
-    InputFileRef registerInputFile(const InputFile& file);
-
-    /*!
-      @brief Register data processing software
-
-      @return Reference to the registered software
-    */
-    ProcessingSoftwareRef registerProcessingSoftware(
-      const ProcessingSoftware& software);
-
-    /*!
-      @brief Register database search parameters
-
-      @return Reference to the registered search parameters
-    */
-    SearchParamRef registerDBSearchParam(const DBSearchParam& param);
-
-    /*!
-      @brief Register a data processing step
-
-      @return Reference to the registered processing step
-    */
-    ProcessingStepRef registerProcessingStep(const ProcessingStep&
-                                                 step);
-
-    /*!
-      @brief Register a database search step with associated parameters
-
-      @return Reference to the registered processing step
-    */
-    ProcessingStepRef registerProcessingStep(
-      const ProcessingStep& step, SearchParamRef search_ref);
-
-    /*!
-      @brief Register a score type
-
-      @return Reference to the registered score type
-    */
-    ScoreTypeRef registerScoreType(const ScoreType& score);
-
-    /*!
-      @brief Register an observation (e.g. MS2 spectrum or feature)
-
-      @return Reference to the registered observation
-    */
-    ObservationRef registerObservation(const Observation& obs);
-
-    /*!
-      @brief Register a parent sequence (e.g. protein or intact RNA)
-
-      @return Reference to the registered parent sequence
-    */
-    ParentSequenceRef registerParentSequence(const ParentSequence& parent);
-
-    /// Register a grouping of parent sequences (e.g. protein inference result)
-    void registerParentGroupSet(const ParentGroupSet& groups);
-
-    /*!
-      @brief Register an identified peptide
-
-      @return Reference to the registered peptide
-    */
-    IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide&
-                                                   peptide);
-
-    /*!
-      @brief Register an identified compound (small molecule)
-
-      @return Reference to the registered compound
-    */
-    IdentifiedCompoundRef registerIdentifiedCompound(const IdentifiedCompound&
-                                                     compound);
-
-    /*!
-      @brief Register an identified RNA oligonucleotide
-
-      @return Reference to the registered oligonucleotide
-    */
-    IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo& oligo);
-
-    /*!
-      @brief Register an adduct
-
-      @return Reference to the registered adduct
-    */
-    AdductRef registerAdduct(const AdductInfo& adduct);
-
-    /*!
-      @brief Register an observation match (e.g. peptide-spectrum match)
-
-      @return Reference to the registered observation match
-    */
-    ObservationMatchRef registerObservationMatch(const ObservationMatch& match);
-
-    /*!
-      @brief Register a group of observation matches that belong together
-
-      @return Reference to the registered group of observation matches
-    */
-    MatchGroupRef registerObservationMatchGroup(const ObservationMatchGroup& group);
-
-    /// Return the registered input files (immutable)
-    const InputFiles& getInputFiles() const
-    {
-      return input_files_;
-    }
-
-    /// Return the registered data processing software (immutable)
-    const ProcessingSoftwares& getProcessingSoftwares() const
-    {
-      return processing_softwares_;
-    }
-
-    /// Return the registered data processing steps (immutable)
-    const ProcessingSteps& getProcessingSteps() const
-    {
-      return processing_steps_;
-    }
-
-    /// Return the registered database search parameters (immutable)
-    const DBSearchParams& getDBSearchParams() const
-    {
-      return db_search_params_;
-    }
-
-    /// Return the registered database search steps (immutable)
-    const DBSearchSteps& getDBSearchSteps() const
-    {
-      return db_search_steps_;
-    }
-
-    /// Return the registered score types (immutable)
-    const ScoreTypes& getScoreTypes() const
-    {
-      return score_types_;
-    }
-
-    /// Return the registered observations (immutable)
-    const Observations& getObservations() const
-    {
-      return observations_;
-    }
-
-    /// Return the registered parent sequences (immutable)
-    const ParentSequences& getParentSequences() const
-    {
-      return parents_;
-    }
-
-    /// Return the registered parent sequence groupings (immutable)
-    const ParentGroupSets& getParentGroupSets() const
-    {
-      return parent_groups_;
-    }
-
-    /// Return the registered identified peptides (immutable)
-    const IdentifiedPeptides& getIdentifiedPeptides() const
-    {
-      return identified_peptides_;
-    }
-
-    /// Return the registered compounds (immutable)
-    const IdentifiedCompounds& getIdentifiedCompounds() const
-    {
-      return identified_compounds_;
-    }
-
-    /// Return the registered identified oligonucleotides (immutable)
-    const IdentifiedOligos& getIdentifiedOligos() const
-    {
-      return identified_oligos_;
-    }
-
-    /// Return the registered adducts (immutable)
-    const Adducts& getAdducts() const
-    {
-      return adducts_;
-    }
-
-    /// Return the registered observation matches (immutable)
-    const ObservationMatches& getObservationMatches() const
-    {
-      return observation_matches_;
-    }
-
-    /// Return the registered groups of observation matches (immutable)
-    const ObservationMatchGroups& getObservationMatchGroups() const
-    {
-      return observation_match_groups_;
-    }
-
-    /// Add a score to an input match (e.g. PSM)
-    void addScore(ObservationMatchRef match_ref, ScoreTypeRef score_ref,
-                  double value);
-
-    /*!
-      @brief Set a data processing step that will apply to all subsequent "register..." calls.
-
-      This step will be appended to the list of processing steps for all relevant elements that are registered subsequently (unless it is already the last entry in the list).
-      If a score type without a software reference is registered, the software reference of this processing step will be applied.
-      Effective until @ref clearCurrentProcessingStep() is called.
-    */
-    void setCurrentProcessingStep(ProcessingStepRef step_ref);
-
-    /*!
-      @brief Return the current processing step (set via @ref setCurrentProcessingStep()).
-
-      If no current processing step has been set, @p processing_steps.end() is returned.
-    */
-    ProcessingStepRef getCurrentProcessingStep();
-
-    /// Cancel the effect of @ref setCurrentProcessingStep().
-    void clearCurrentProcessingStep();
-
-    /*!
-      @brief Return the best match for each observation, according to a given score type
-
-      @param[in] score_ref Score type to use
-      @param[in] require_score Exclude matches without score of this type, even if they are the only matches for their observations?
-    */
-    std::vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref,
-                                                                bool require_score = false) const;
-    // @todo: this currently doesn't take molecule type into account - should it?
-
-    /// Get range of matches (cf. @p equal_range) for a given observation
-    std::pair<ObservationMatchRef, ObservationMatchRef> getMatchesForObservation(ObservationRef obs_ref) const;
-
-    /*!
-      @brief Helper function for filtering observation matches (e.g. PSMs) in IdentificationData
-
-      If other parts are invalidated by filtering, the data structure is automatically cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
-
-      @param[in] func Functor that returns true for container elements to be removed
-    */
-    template <typename PredicateType>
-    void removeObservationMatchesIf(PredicateType&& func)
-    {
-      auto count = observation_matches_.size();
-      removeFromSetIf_(observation_matches_, func);
-      if (count != observation_matches_.size()) cleanup();
-    }
-
-    /*!
-      @brief Helper function for filtering parent sequences (e.g. protein sequences) in IdentificationData
-
-      If other parts are invalidated by filtering, the data structure is automatically cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
-
-      @param[in] func Functor that returns true for container elements to be removed
-    */
-    template <typename PredicateType>
-    void removeParentSequencesIf(PredicateType&& func)
-    {
-      auto count = parents_.size();
-      removeFromSetIf_(parents_, func);
-      if (count != parents_.size()) cleanup();
-    }
-
-    template <typename PredicateType>
-    void applyToObservations(PredicateType&& func)
-    {
-      for (auto it = observations_.begin(); it != observations_.end(); ++it)
-        observations_.modify(it, func);
-    }
-
-    /*!
-      @brief Look up a score type by name.
-
-      @return Reference to the score type, if found; otherwise @p getScoreTypes().end()
-    */
-    ScoreTypeRef findScoreType(const std::string& score_name) const;
-
-    /// Calculate sequence coverages of parent sequences
-    void calculateCoverages(bool check_molecule_length = false);
-
-    /*!
-      @brief Clean up the data structure after filtering parts of it.
-
-      Make sure there are no invalid references or "orphan" data entries.
-
-      @param[in] require_observation_match Remove identified molecules, observations and adducts that aren't part of observation matches?
-      @param[in] require_identified_sequence Remove parent sequences (proteins/RNAs) that aren't referenced by identified peptides/oligonucleotides?
-      @param[in] require_parent_match Remove identified peptides/oligonucleotides that don't reference a parent sequence (protein/RNA)?
-      @param[in] require_parent_group Remove parent sequences that aren't part of parent sequence groups?
-      @param[in] require_match_group Remove input matches that aren't part of match groups?
-    */
-    void cleanup(bool require_observation_match = true,
-                 bool require_identified_sequence = true,
-                 bool require_parent_match = true,
-                 bool require_parent_group = false,
-                 bool require_match_group = false);
-
-    /// Return whether the data structure is empty (no data)
-    bool empty() const;
-
-    /*!
-      @brief Merge in data from another instance.
-
-      Can be used to make a deep copy by calling merge() on an empty object.
-      The returned translation table allows updating of references that are held externally.
-
-      @param[in] other Instance to merge in.
-
-      @return Translation table for references (old -> new)
-    */
-    RefTranslator merge(const IdentificationData& other);
-
-    /// Swap contents with a second instance
-    void swap(IdentificationData& other);
-
-    /// Clear all contents
-    void clear();
-
-    /*!
-      Pick a score type for operations (e.g. filtering) on a container of scored processing results (e.g. input matches, identified peptides, ...).
-
-      If @p all_elements is false, only the first element with a score will be considered (which is sufficient if all elements were processed in the same way).
-      If @p all_elements is true, the score type supported by the highest number of elements will be chosen.
-
-      If @p any_score is false, only the primary score from the most recent processing step (that assigned a score) is taken into account.
-      If @p any_score is true, all score types assigned across all elements are considered (this implies @p all_elements = true).
-
-      @param[in] container Container with elements derived from @p ScoredProcessingResult
-      @param[in] all_elements Consider all elements?
-      @param[in] any_score Consider any score (or just primary/most recent ones)?
-
-      @return Reference to the chosen score type (or @p getScoreTypes().end() if there were no scores)
-    */
-    template <class ScoredProcessingResults>
-    ScoreTypeRef pickScoreType(const ScoredProcessingResults& container,
-                               bool all_elements = false, bool any_score = false) const
-    {
-      std::map<ScoreTypeRef, Size> score_counts;
-
-      if (any_score)
-      {
-        for (const auto& element : container)
-        {
-          for (const auto& step : element.steps_and_scores)
-          {
-            for (const auto& pair : step.scores)
-            {
-              score_counts[pair.first]++;
-            }
-          }
-        }
-      }
-      else
-      {
-        for (const auto& element : container)
-        {
-          auto score_info = element.getMostRecentScore();
-          if (std::get<2>(score_info)) // check success indicator
-          {
-            ScoreTypeRef score_ref = *std::get<1>(score_info); // unpack the option
-            if (!all_elements) return score_ref;
-            score_counts[score_ref]++; // elements are zero-initialized
-          }
-        }
-      }
-      if (score_counts.empty()) return score_types_.end();
-      auto pos = max_element(score_counts.begin(), score_counts.end());
-      // @TODO: break ties according to some criterion
-      return pos->first;
-    }
-
-    /// Set a meta value on a stored observation match (e.g. PSM)
-    void setMetaValue(const ObservationMatchRef ref, const std::string& key, const DataValue& value);
-
-    /// Set a meta value on a stored observation
-    void setMetaValue(const ObservationRef ref, const std::string& key, const DataValue& value);
-
-    /// Set a meta value on a stored identified molecule (variant)
-    void setMetaValue(const IdentifiedMolecule& var, const std::string& key, const DataValue& value);
-
-    // @TODO: add overloads for other data types derived from MetaInfoInterface
-
-    /// Remove a meta value (if it exists) from a stored observation match (e.g. PSM)
-    /// @todo: return whether value existed? (requires changes in MetaInfo[Interface])
-    void removeMetaValue(const ObservationMatchRef ref, const std::string& key);
-
-  protected:
-
-    // containers:
-    InputFiles input_files_;
-    ProcessingSoftwares processing_softwares_;
-    ProcessingSteps processing_steps_;
-    DBSearchParams db_search_params_;
-    // @TODO: store SearchParamRef inside ProcessingStep? (may not be required
-    // for many processing steps)
-    DBSearchSteps db_search_steps_;
-    ScoreTypes score_types_;
-    Observations observations_;
-    ParentSequences parents_;
-    ParentGroupSets parent_groups_;
-    IdentifiedPeptides identified_peptides_;
-    IdentifiedCompounds identified_compounds_;
-    IdentifiedOligos identified_oligos_;
-    Adducts adducts_;
-    ObservationMatches observation_matches_;
-    ObservationMatchGroups observation_match_groups_;
-
-    /// Reference to the current data processing step (see @ref setCurrentProcessingStep())
-    ProcessingStepRef current_step_ref_;
-
-    /*!
-      @brief Suppress validity checks in @p register... calls?
-
-      This is useful in situations where validity is already guaranteed (e.g. copying).
-    */
-    bool no_checks_;
-
-    // look-up tables for fast checking of reference validity:
-    AddressLookup observation_lookup_;
-    AddressLookup parent_lookup_;
-    // @TODO: just use one "identified_molecule_lookup_" for all molecule types?
-    AddressLookup identified_peptide_lookup_;
-    AddressLookup identified_compound_lookup_;
-    AddressLookup identified_oligo_lookup_;
-    AddressLookup observation_match_lookup_;
-
-    /// Helper function to check if all score types are valid
-    void checkScoreTypes_(const std::map<ScoreTypeRef, double>& scores) const;
-
-    /// Helper function to check if all applied processing steps are valid
-    void checkAppliedProcessingSteps_(const AppliedProcessingSteps&
-                                      steps_and_scores) const;
-
-    /// Helper function to check if all parent matches are valid
-    void checkParentMatches_(const ParentMatches& matches,
-                             MoleculeType expected_type) const;
-
-    /*!
-      @brief Helper function to merge scored processing results while updating references (to processing steps and score types)
-
-      @param[in,out] result Instance that gets updated
-      @param[in] other Instance to merge into @p result
-      @param[in] trans Mapping of corresponding references between @p other and @p result
-    */
-    void mergeScoredProcessingResults_(ScoredProcessingResult& result,
-                                       const ScoredProcessingResult& other,
-                                       const RefTranslator& trans);
-
-    /*!
-      @brief Helper functor for adding processing steps to elements in a @p boost::multi_index_container structure
-
-      The validity of the processing step reference cannot be checked here!
-    */
-    template <typename ElementType>
-    struct ModifyMultiIndexAddProcessingStep;
-
-    /**
-      @brief Helper functor for adding scores to elements in a @em boost::multi_index_container structure
-
-      The validity of the score type reference cannot be checked here!
-    */
-    template <typename ElementType>
-    struct ModifyMultiIndexAddScore;
-
-    /**
-      @brief Helper functor for removing invalid parent matches from elements in a @em boost::multi_index_container structure
-
-      Used during filtering, to update parent matches after parents have been removed.
-    */
-    template <typename ElementType>
-    struct ModifyMultiIndexRemoveParentMatches;
-
-    /// Helper function for adding entries (derived from ScoredProcessingResult) to a @em boost::multi_index_container structure
-    template <typename ContainerType, typename ElementType>
-    typename ContainerType::iterator insertIntoMultiIndex_(ContainerType& container, const ElementType& element);
-
-    /// Variant of insertIntoMultiIndex_() that also updates a look-up table of valid references (addresses)
-    template <typename ContainerType, typename ElementType>
-    typename ContainerType::iterator insertIntoMultiIndex_(
-      ContainerType& container, const ElementType& element,
-      AddressLookup& lookup);
-
+    AA_SEQUENCE,
+    NA_SEQUENCE,
+    SMILES,
+    INCHI,
+    DATABASE_ID
+  };
+  enum class TargetDecoy
+  {
+    UNKNOWN,
+    TARGET,
+    DECOY,
+    BOTH
+  };
+  enum class ScoreScope
+  {
+    MATCH,
+    PEPTIDE,
+    PROTEIN,
+    PROTEIN_GROUP,
+    OTHER
+  };
+  enum class InferencePolicy
+  {
+    PRESERVE,
+    DISCARD
   };
 
-}
+  struct OPENMS_DLLAPI QueryId
+  {
+    UInt64 value = 0;
+    auto operator<=>(const QueryId&) const = default;
+  };
+  struct OPENMS_DLLAPI MatchId
+  {
+    UInt64 value = 0;
+    auto operator<=>(const MatchId&) const = default;
+  };
+  struct OPENMS_DLLAPI QueryReference
+  {
+    std::string run_uuid;
+    QueryId query;
+    auto operator<=>(const QueryReference&) const = default;
+  };
+  /// Value identity for a molecule annotation; no reference into a dataset.
+  struct OPENMS_DLLAPI MoleculeIdentity
+  {
+    Encoding encoding = Encoding::AA_SEQUENCE;
+    std::string representation;
+    auto operator<=>(const MoleculeIdentity&) const = default;
+  };
+  /// Stable association to an owned match; copying a map preserves this value.
+  struct OPENMS_DLLAPI MatchReference
+  {
+    std::string run_uuid;
+    MatchId match;
+    auto operator<=>(const MatchReference&) const = default;
+  };
+  struct OPENMS_DLLAPI ScoreId
+  {
+    UInt32 value = 0;
+    UInt64 owner = 0; ///< Runtime schema guard; not persistent identity.
+    auto operator<=>(const ScoreId&) const = default;
+  };
+  struct OPENMS_DLLAPI SourceId
+  {
+    UInt32 value = 0;
+    UInt64 owner = 0;
+    auto operator<=>(const SourceId&) const = default;
+  };
+  /// Index of a database in the databases of its run (Run::getDatabases()).
+  struct OPENMS_DLLAPI DatabaseId
+  {
+    UInt32 value = 0;
+    auto operator<=>(const DatabaseId&) const = default;
+  };
+  /// An accession together with the name or path of its database; comparable across runs and datasets.
+  struct OPENMS_DLLAPI QualifiedAccession
+  {
+    std::string database;
+    std::string accession;
+    auto operator<=>(const QualifiedAccession&) const = default;
+  };
+  struct OPENMS_DLLAPI ScoreDefinition
+  {
+    std::string name;
+    std::string accession;
+    bool higher_better = true;
+    ScoreScope scope = ScoreScope::MATCH;
+    std::string software;
+    std::string software_version;
+    MetaInfoInterface parameters;
+    std::string calibration;
+    std::string aggregation;
+    bool operator==(const ScoreDefinition&) const = default;
+  };
+  /**
+    @brief How a run was produced: the software, its search settings and further processing metadata
+
+    The files of a run are its sources and its databases are its own records, so the settings name neither:
+    the metadata must not list 'spectra_data', and the database fields of @p search (db, db_version,
+    taxonomy) stay empty. The raw files behind the sources ('spectra_data_raw') and processing history
+    (e.g. 'alignment:*') are metadata.
+  */
+  struct OPENMS_DLLAPI RunSettings : MetaInfoInterface
+  {
+    std::string software;         ///< Search engine or tool that produced the run
+    std::string software_version;
+    DateTime date;
+    SearchParameters search;
+    bool operator==(const RunSettings&) const = default;
+  };
+  /// One file that identifications come from (e.g. an mzML file, or the FASTA of a digest catalog).
+  /// An empty @p path stands for a file that is not known.
+  struct OPENMS_DLLAPI SourceFile : MetaInfoInterface
+  {
+    std::string identifier;
+    std::string path;
+    bool operator==(const SourceFile&) const = default;
+  };
+  /// A sequence database that a run's matches refer to, e.g. a FASTA file (cf. mzIdentML SearchDatabase).
+  struct OPENMS_DLLAPI Database : MetaInfoInterface
+  {
+    std::string path; ///< Path or name of the database, as the search engine reports it
+    std::string version;
+    std::string taxonomy;
+    bool operator==(const Database&) const = default;
+  };
+  /// An entry of a database: a protein in peptide runs, a nucleic acid in oligonucleotide runs (cf. mzIdentML DBSequence).
+  struct OPENMS_DLLAPI DatabaseSequence : MetaInfoInterface
+  {
+    DatabaseSequence() = default;
+    /// An entry of @p database, e.g. <tt>{db, "P02769|ALBU_BOVIN", TargetDecoy::TARGET}</tt>
+    DatabaseSequence(DatabaseId database, std::string accession, TargetDecoy target_decoy = TargetDecoy::UNKNOWN) :
+        database(database), accession(std::move(accession)), target_decoy(target_decoy)
+    {}
+
+    DatabaseId database;
+    std::string accession;
+    TargetDecoy target_decoy = TargetDecoy::UNKNOWN;
+    std::string sequence;
+    std::string description;
+    bool operator==(const DatabaseSequence&) const = default;
+  };
+  /// Where a match occurs in a database sequence of its run (cf. mzIdentML PeptideEvidence).
+  struct OPENMS_DLLAPI SequenceEvidence
+  {
+    DatabaseId database;
+    std::string accession;
+    std::optional<UInt64> start;
+    std::optional<UInt64> end;
+    std::string before;
+    std::string after;
+    bool operator==(const SequenceEvidence&) const = default;
+  };
+  struct OPENMS_DLLAPI Observation : MetaInfoInterface
+  {
+    std::string data_id;
+    std::optional<double> rt;
+    std::optional<double> mz;
+    bool operator==(const Observation&) const = default;
+  };
+  struct OPENMS_DLLAPI MatchData : MetaInfoInterface
+  {
+    std::string representation;
+    Encoding encoding = Encoding::AA_SEQUENCE;
+    Int charge = 0;
+    std::optional<double> calculated_mz;
+    TargetDecoy target_decoy = TargetDecoy::UNKNOWN;
+    std::string name;
+    std::optional<std::string> formula;
+    std::vector<QualifiedAccession> identifiers;
+    std::optional<AdductInfo> adduct;
+    std::vector<SequenceEvidence> sequence_evidence;
+    std::vector<PeptideHit::PeakAnnotation> peak_annotations;
+    bool operator==(const MatchData&) const = default;
+  };
+
+  class Run;
+  class ScoreView;
+  class OPENMS_DLLAPI Match : public MatchData
+  {
+  public:
+    MatchId getId() const
+    { return id_; }
+    const MatchData& getData() const
+    { return *this; }
+    std::vector<std::optional<double>> getScores() const;
+    /// Dense storage; NaN means a missing score, never a numeric score value.
+    const std::vector<double>& getScoreValues() const
+    { return scores_; }
+
+  private:
+    friend class Run;
+    friend class ScoreView;
+    MatchId id_;
+    UInt64 schema_token_ = 0;
+    std::vector<double> scores_;
+  };
+  class OPENMS_DLLAPI Identification : public Observation
+  {
+  public:
+    QueryId getId() const
+    { return id_; }
+    const Observation& getObservation() const
+    { return *this; }
+    const std::vector<Match>& getMatches() const
+    { return matches_; }
+    std::optional<MatchId> getSelectedMatch() const
+    { return selected_; }
+
+  private:
+    friend class Run;
+    QueryId id_;
+    std::vector<Match> matches_;
+    std::optional<MatchId> selected_;
+  };
+  /// One file of a run and the identifications made from it. The sources of a run, in order, are
+  /// its file list: a file may appear more than once, and a file without identifications keeps its source.
+  struct OPENMS_DLLAPI Source
+  {
+    SourceId id;
+    SourceFile file;
+    std::vector<Identification> identifications;
+  };
+  /// Bound score access avoids repeated definition lookup. Rejects foreign schemas.
+  class OPENMS_DLLAPI ScoreView
+  {
+  public:
+    std::optional<double> operator()(const Match& match) const;
+    const ScoreDefinition& getDefinition() const
+    { return definition_; }
+
+  private:
+    friend class Run;
+    ScoreId id_;
+    UInt64 schema_token_ = 0;
+    ScoreDefinition definition_;
+  };
+
+  class OPENMS_DLLAPI Run
+  {
+  public:
+    explicit Run(std::string identifier = {}, MoleculeKind kind = MoleculeKind::PEPTIDE);
+    Run(const Run&);
+    Run(Run&&);
+    /// Not assignable: a run inside a dataset is edited in place (getRun), so a stale copy can never
+    /// replace it and reuse IDs that the live run has allocated meanwhile.
+    Run& operator=(const Run&) = delete;
+    Run& operator=(Run&&) = delete;
+    ~Run() = default;
+    const std::string& getIdentifier() const
+    { return identifier_; }
+    const std::string& getUuid() const
+    { return uuid_; }
+    MoleculeKind getMoleculeKind() const
+    { return kind_; }
+    const RunSettings& getSettings() const
+    { return *settings_; }
+    /// @throw Exception::InvalidValue if the metadata of @p settings lists 'spectra_data' (the files of a run are its sources)
+    void setSettings(const RunSettings& settings);
+    /// The databases that the database sequences and the sequence evidence of the run refer to.
+    const std::vector<Database>& getDatabases() const
+    { return databases_; }
+    /// Add a database, or return the ID of an equal one. Databases are never removed.
+    DatabaseId addDatabase(const Database& database);
+    DatabaseId getDatabaseId(UInt32 index) const;
+    const Database& getDatabase(DatabaseId database) const;
+    /// The identity of an entry of a database of the run, comparable across runs (database by path).
+    QualifiedAccession qualify(DatabaseId database, const std::string& accession) const;
+    /// The database entries that the run's matches refer to, if the run has a catalogue of them.
+    const std::optional<std::vector<DatabaseSequence>>& getDatabaseSequences() const
+    { return sequences_; }
+    /// @throw Exception::InvalidValue for an unknown database, an empty accession or a duplicate (database, accession)
+    void setDatabaseSequences(std::optional<std::vector<DatabaseSequence>> sequences);
+    const std::vector<Source>& getSources() const
+    { return sources_; }
+    const std::vector<ScoreDefinition>& getScoreDefinitions() const
+    { return scores_; }
+    /// Append a file to the run's file list. Sources are never removed, so their order stays stable.
+    SourceId addSource(const SourceFile& source);
+    SourceId getSourceId(UInt32 index) const;
+    ScoreId addScore(const ScoreDefinition& definition);
+    ScoreId getScoreId(UInt32 index) const;
+    ScoreId findScore(const ScoreDefinition& definition) const;
+    const ScoreDefinition& getScoreDefinition(ScoreId score) const;
+    ScoreView bindScore(ScoreId score) const;
+    std::optional<ScoreId> getPrimaryScore() const
+    { return primary_; }
+    void setPrimaryScore(std::optional<ScoreId> score);
+    QueryId addIdentification(SourceId source, const Observation& observation);
+    MatchId addMatch(QueryId query, const MatchData& data, const std::vector<std::optional<double>>& scores = {});
+    const Identification* findIdentification(QueryId id) const;
+    const Match* findMatch(MatchId id) const;
+    const Identification& getIdentification(QueryId id) const;
+    const Match& getMatch(MatchId id) const;
+    /// Resolve the owning observation without a full dataset scan.
+    const Identification& getIdentificationForMatch(MatchId id) const;
+    std::optional<double> getScore(MatchId match, ScoreId score) const;
+    void setScore(MatchId match, ScoreId score, std::optional<double> value);
+    void setSelectedMatch(QueryId query, std::optional<MatchId> selected);
+    void replaceObservation(QueryId query, const Observation& observation);
+    /// Payload-only edits preserve scores and may not change molecular/ion identity.
+    void replaceMatch(MatchId match, const MatchData& data);
+    /// Replace the hypothesis and explicitly supply all scores for its new identity.
+    void replaceMatch(MatchId match, const MatchData& data, const std::vector<std::optional<double>>& scores);
+    /// Evaluate all predicates before committing; throwing callbacks leave values unchanged.
+    Size filterMatches(const std::function<bool(const Match&)>& keep, bool keep_empty_queries = false);
+    Size eraseMatches(const std::function<bool(const Match&)>& remove, bool keep_empty_queries = false);
+    /// Remove identifications (with their matches), also ones without matches; returns the number removed.
+    /// Evaluates all predicates before committing, like filterMatches().
+    Size eraseIdentifications(const std::function<bool(const Identification&)>& remove);
+    Size retainBest(ScoreId score, bool keep_ties = true, bool keep_empty_queries = false);
+    void transformMatches(const std::function<void(MatchData&)>& transform);
+    Size getNumberOfIdentifications() const;
+    Size getNumberOfMatches() const;
+    UInt64 getNextQueryId() const
+    { return next_query_id_; }
+    UInt64 getNextMatchId() const
+    { return next_match_id_; }
+    /// Build the lazy ID lookup indexes up front (const lookups otherwise build them on first use); mutations require exclusive access.
+    void prepareLookupIndexes();
+    /// Release the spare capacity of the run's containers (sources, queries, candidates), e.g. after importing records one
+    /// by one. Like any structural edit, this invalidates record views; IDs and lookup indexes stay valid.
+    void shrinkToFit();
+    /// Import explicit IDs during construction. After restoration/filtering, historical IDs cannot be reused.
+    /// Payloads are owned by value so importers can transfer decoded records without copying.
+    QueryId importIdentification(SourceId source, QueryId id, Observation observation);
+    MatchId importMatch(QueryId query, MatchId id, MatchData data, const std::vector<std::optional<double>>& scores = {});
+    /// Restore persisted UUID and counters; counters must exceed every live ID.
+    void restoreIdentity(const std::string& uuid, UInt64 next_query, UInt64 next_match);
+    /// Reserve IDs appearing only in retained inference provenance.
+    void reserveMatchId(MatchId id);
+    void validate() const;
+    bool operator==(const Run& other) const;
+
+  private:
+    friend class IdentificationData;
+    std::string identifier_;
+    std::string uuid_;
+    MoleculeKind kind_;
+    // Standard-library trees inside the settings can allocate when moved on MSVC.
+    // Indirection keeps the run's transactional commit nonthrowing.
+    std::unique_ptr<RunSettings> settings_ = std::make_unique<RunSettings>();
+    std::vector<Database> databases_;
+    std::optional<std::vector<DatabaseSequence>> sequences_;
+    std::vector<Source> sources_;
+    std::vector<ScoreDefinition> scores_;
+    std::vector<UInt64> score_owners_;
+    std::optional<ScoreId> primary_;
+    UInt64 schema_token_;
+    UInt64 next_query_id_ = 1;
+    UInt64 next_match_id_ = 1;
+    mutable bool callback_active_ = false;
+    bool import_finalized_ = false;
+    Size query_count_ = 0;
+    Size match_count_ = 0;
+    // Lazy lookup indexes may be built from concurrent const lookups: the flags are published
+    // with release/acquire and the build is serialized; mutations still require exclusive access.
+    mutable std::atomic<bool> query_index_built_ {false};
+    mutable std::atomic<bool> match_index_built_ {false};
+    mutable std::mutex index_mutex_;
+    mutable std::unordered_map<UInt64, std::array<Size, 2>> query_index_;
+    mutable std::unordered_map<UInt64, std::array<Size, 3>> match_index_;
+    std::optional<std::array<Size, 2>> last_query_;
+    std::optional<std::array<Size, 3>> last_match_;
+    void invalidateIndexes_();
+    void ensureQueryIndex_() const;
+    void ensureMatchIndex_() const;
+    void checkMutation_() const;
+    void checkScore_(ScoreId score) const;
+    void validateMatch_(const MatchData& data, const std::vector<std::optional<double>>& scores) const;
+    void validateMatchData_(const MatchData& data) const;
+    Identification& query_(QueryId id);
+    Match& match_(MatchId id);
+    void swapData_(Run& other) noexcept;
+  };
+
+  /// An identification of a run with some of its matches, e.g. those that a feature links. Points into the
+  /// dataset, so it is invalidated like a record view by structural edits.
+  struct OPENMS_DLLAPI QueryMatches
+  {
+    const Run* run = nullptr;
+    const Identification* query = nullptr;
+    /// In the order of the identification's matches
+    std::vector<const Match*> matches;
+    /// The match with the best primary score (the first of equal ones; matches without a value are skipped), or nullptr
+    const Match* getBestMatch() const;
+  };
+
+  /// Run-level provenance for an inference calculation; no per-match input list is retained.
+  struct OPENMS_DLLAPI InferenceInput
+  {
+    std::string run_identifier;
+    std::string run_uuid;
+    std::optional<ScoreDefinition> score;
+    /// Description of the selection used at calculation time, not an executable filter.
+    std::string selection;
+    bool operator==(const InferenceInput&) const = default;
+  };
+  struct OPENMS_DLLAPI InferenceResult
+  {
+    std::string identifier;
+    ProteinIdentification proteins;
+    std::optional<ScoreDefinition> protein_score;
+    std::optional<ScoreDefinition> group_score;
+    std::map<std::string, QualifiedAccession> qualified_accessions;
+    std::vector<InferenceInput> inputs;
+    bool operator==(const InferenceResult&) const = default;
+  };
+
+  IdentificationData() = default;
+  IdentificationData(const IdentificationData&);
+  IdentificationData(IdentificationData&&);
+  IdentificationData& operator=(const IdentificationData&);
+  IdentificationData& operator=(IdentificationData&&);
+  ~IdentificationData() = default;
+  /// Adding runs preserves existing run references. Record views are invalidated by structural edits.
+  Run& addRun(const std::string& identifier, MoleculeKind kind = MoleculeKind::PEPTIDE);
+  /// Add an owning copy, rejecting duplicate UUIDs or display identifiers.
+  Run& addRun(Run run);
+  Run& getRun(const std::string& identifier);
+  const Run& getRun(const std::string& identifier) const;
+  Run* findRunByUuid(const std::string& uuid);
+  const Run* findRunByUuid(const std::string& uuid) const;
+  const std::deque<Run>& getRuns() const
+  { return runs_; }
+  const std::vector<InferenceResult>& getInferenceResults() const
+  { return inference_; }
+  void addInferenceResult(InferenceResult result);
+  void clearInferenceResults();
+  bool empty() const
+  { return runs_.empty() && inference_.empty(); }
+  void clear();
+  /// Append independent runs atomically; identical shared UUIDs are retained once.
+  /// Conflicting values for an existing UUID are rejected; repeated display names receive a numeric suffix.
+  /// Existing runs are neither copied nor moved, so references to them stay valid; a rejected merge changes nothing.
+  void merge(const IdentificationData& other);
+  /**
+    @brief Resolve links to identifications and matches (e.g. of a feature)
+
+    Every linked identification appears once, with its linked matches (an identification linked only by itself has none),
+    ordered by identification ID, then run: the order of peptide identifications exported from imported ones.
+
+    @throw Exception::MissingInformation if a link refers to an identification or match that does not exist
+  */
+  std::vector<QueryMatches> resolveLinks(const std::set<QueryReference>& queries, const std::set<MatchReference>& matches) const;
+  /**
+    @brief The identifications and matches that none of the given links refers to (e.g. those not assigned to features)
+
+    An identification appears with its matches that are not linked, if it has any; an identification without matches
+    appears if it is not linked itself. The order is the order of identification IDs (by run, then ID, if runs share IDs),
+    the order of exported unassigned peptide identifications.
+  */
+  std::vector<QueryMatches> getUnlinked(const std::set<QueryReference>& queries, const std::set<MatchReference>& matches) const;
+  bool operator==(const IdentificationData& other) const;
+  Size filterMatches(const std::function<bool(const Match&)>& keep, InferencePolicy policy, bool keep_empty_queries = false);
+  /** Dataset-wide ordered PSM score contract.
+      Configured runs have identical complete ScoreDefinitions in identical column
+      order and select the same primary column. Primary values are required;
+      supplementary values may be missing. Empty runs with no score definitions
+      are construction placeholders and are ignored. Run-local ScoreId handles
+      remain distinct even though their column indices agree.
+      Throws on disagreement. Mutable run edits must be followed by validate();
+      import, merge, export and inference boundaries enforce this contract.
+  */
+  const std::vector<ScoreDefinition>& getScoreDefinitions() const;
+  /// Return the common primary definition after checking the complete score contract.
+  std::optional<ScoreDefinition> getPrimaryScoreDefinition() const;
+  /// Select an existing score in every participating run, checking coverage first.
+  /// Failure leaves all primary selections unchanged. Empty unconfigured runs are ignored.
+  void setPrimaryScore(const ScoreDefinition& definition);
+  void validate() const;
+  void swap(IdentificationData& other);
+
+private:
+  std::deque<Run> runs_;
+  std::vector<InferenceResult> inference_;
+  bool callback_active_ = false;
+  void checkMutation_() const;
+};
+} // namespace OpenMS

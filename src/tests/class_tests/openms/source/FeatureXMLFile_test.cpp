@@ -26,6 +26,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <fstream>
 #include <sstream>
 
@@ -604,5 +605,56 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
 VALIDATE_TMP_FILES
+
+START_SECTION([EXTRA] native identifications of a map without legacy ones are written as legacy identifications)
+{
+  using ID = IdentificationData;
+  FeatureMap map;
+  auto& run = map.getIdentificationData().addRun("search");
+  ID::ScoreDefinition pep;
+  pep.name = "Posterior Error Probability";
+  pep.higher_better = false;
+  run.setPrimaryScore(run.addScore(pep));
+  ID::Observation observation;
+  observation.data_id = "scan=7";
+  observation.rt = 12.5;
+  observation.mz = 400.25;
+  const auto query = run.addIdentification(run.addSource({}), observation);
+  ID::MatchData match;
+  match.representation = "PEPTIDE";
+  match.charge = 2;
+  const auto id = run.addMatch(query, match, {0.01});
+  Feature feature;
+  feature.setRT(12.5);
+  feature.setMZ(400.25);
+  feature.setUniqueId(5);
+  feature.addIDQuery({run.getUuid(), query});
+  feature.addIDMatch({run.getUuid(), id});
+  map.push_back(feature);
+  map.setUniqueId(3);
+  std::string file;
+  NEW_TMP_FILE(file)
+  FeatureXMLFile().store(file, map);
+  FeatureMap loaded;
+  FeatureXMLFile().load(file, loaded);
+  TEST_EQUAL(loaded.getProteinIdentifications().size(), 1)
+  ABORT_IF(loaded.size() != 1 || loaded[0].getPeptideIdentifications().size() != 1)
+  const auto& legacy = loaded[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(legacy.getScoreType(), "Posterior Error Probability")
+  TEST_EQUAL(legacy.getSpectrumReference(), "scan=7")
+  ABORT_IF(legacy.getHits().size() != 1)
+  TEST_EQUAL(legacy.getHits()[0].getSequence().toString(), "PEPTIDE")
+  TEST_REAL_SIMILAR(legacy.getHits()[0].getScore(), 0.01)
+  // The map to store is not changed, and a map with legacy identifications is written as it is.
+  TEST_EQUAL(map[0].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(map.getIdentificationData().getRuns().size(), 1)
+  loaded[0].getPeptideIdentifications()[0].getHits()[0].setScore(0.5);
+  loaded.getIdentificationData() = map.getIdentificationData();
+  FeatureXMLFile().store(file, loaded);
+  FeatureMap again;
+  FeatureXMLFile().load(file, again);
+  TEST_REAL_SIMILAR(again[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.5)
+}
+END_SECTION
 
 END_TEST

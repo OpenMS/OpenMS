@@ -197,45 +197,49 @@ namespace OpenMS
   }
 
 
-  void RNaseDigestion::digest(IdentificationData& id_data, Size min_length,
-                              Size max_length) const
+  std::vector<RNaseDigestion::DigestedOligo> RNaseDigestion::digest(const IdentificationData::Run& run, Size min_length, Size max_length) const
   {
-    for (IdentificationData::ParentSequenceRef parent_ref = id_data.getParentSequences().begin();
-         parent_ref != id_data.getParentSequences().end(); ++parent_ref)
-    {
-      if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
+    using ID = IdentificationData;
+    if (run.getMoleculeKind() != ID::MoleculeKind::OLIGONUCLEOTIDE)
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA digestion requires an oligonucleotide run");
+    std::map<NASequence, DigestedOligo> candidates;
+    if (run.getDatabaseSequences())
+      for (const auto& entry : *run.getDatabaseSequences())
       {
-        continue;
-      }
-
-      NASequence rna = NASequence::fromString(parent_ref->sequence);
-      vector<pair<Size, Size>> positions =
-          getFragmentPositions_(rna, min_length, max_length);
-
-      for (const auto& pos : positions)
-      {
-        NASequence fragment = rna.getSubsequence(pos.first, pos.second);
-        if (pos.first > 0)
+        NASequence rna = NASequence::fromString(entry.sequence);
+        for (const auto& pos : getFragmentPositions_(rna, min_length, max_length))
         {
-          fragment.setFivePrimeMod(five_prime_gain_);
+          NASequence fragment = rna.getSubsequence(pos.first, pos.second);
+          if (pos.first > 0) fragment.setFivePrimeMod(five_prime_gain_);
+          const Size end = pos.first + pos.second;
+          if (end < rna.size()) fragment.setThreePrimeMod(three_prime_gain_);
+          auto [it, inserted] = candidates.try_emplace(fragment);
+          auto& candidate = it->second;
+          if (inserted)
+          {
+            candidate.sequence = fragment;
+            candidate.target_decoy = entry.target_decoy;
+          }
+          else if (candidate.target_decoy == ID::TargetDecoy::UNKNOWN || entry.target_decoy == ID::TargetDecoy::UNKNOWN)
+            candidate.target_decoy = ID::TargetDecoy::UNKNOWN;
+          else if (candidate.target_decoy != entry.target_decoy)
+            candidate.target_decoy = ID::TargetDecoy::BOTH;
+          ID::SequenceEvidence evidence;
+          evidence.database = entry.database;
+          evidence.accession = entry.accession;
+          evidence.start = pos.first;
+          evidence.end = end - 1;
+          evidence.before = std::string(1, pos.first ? rna[pos.first - 1]->getCode()[0] : '[');
+          evidence.after = std::string(1, end < rna.size() ? rna[end]->getCode()[0] : ']');
+          if (std::find(candidate.sequence_evidence.begin(), candidate.sequence_evidence.end(), evidence) == candidate.sequence_evidence.end())
+            candidate.sequence_evidence.push_back(std::move(evidence));
         }
-        if (pos.first + pos.second < rna.size())
-        {
-          fragment.setThreePrimeMod(three_prime_gain_);
-        }
-        IdentificationData::IdentifiedOligo oligo(fragment);
-        Size end_pos = pos.first + pos.second; // past-the-end position!
-        IdentificationData::ParentMatch match(pos.first, end_pos - 1);
-        match.left_neighbor = std::string(1, (pos.first > 0) ?
-                               rna[pos.first - 1]->getCode()[0] :
-                               IdentificationData::ParentMatch::LEFT_TERMINUS);
-        match.right_neighbor = std::string(1, (end_pos < rna.size()) ?
-                                rna[end_pos]->getCode()[0] :
-                                IdentificationData::ParentMatch::RIGHT_TERMINUS);
-        oligo.parent_matches[parent_ref].insert(match);
-        id_data.registerIdentifiedOligo(oligo);
       }
-    }
+    std::vector<DigestedOligo> result;
+    result.reserve(candidates.size());
+    for (auto& [sequence, candidate] : candidates)
+      result.push_back(std::move(candidate));
+    return result;
   }
 
 } // namespace OpenMS

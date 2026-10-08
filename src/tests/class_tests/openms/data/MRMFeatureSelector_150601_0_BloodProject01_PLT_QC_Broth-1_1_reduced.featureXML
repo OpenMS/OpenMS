@@ -302,7 +302,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.8006587743638" sequence="" charge="1" protein_refs="PH_106">
+				<PeptideHit score="3.8006587743638" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="23dpg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[23dpg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -388,7 +393,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.85134760040503" sequence="" charge="1" protein_refs="PH_106">
+				<PeptideHit score="-1.85134760040503" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="23dpg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[23dpg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -474,7 +484,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.01241672466773" sequence="" charge="1" protein_refs="PH_106">
+				<PeptideHit score="-2.01241672466773" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="23dpg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[23dpg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -560,7 +575,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.49859752358078" sequence="" charge="1" protein_refs="PH_106">
+				<PeptideHit score="-4.49859752358078" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="23dpg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[23dpg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="23dpg.23dpg_1.Light"/>
@@ -646,7 +666,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.78697476278938" sequence="" charge="1" protein_refs="PH_106">
+				<PeptideHit score="-4.78697476278938" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="23dpg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[23dpg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="23dpg.23dpg_1.Heavy"/>
@@ -732,7 +757,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-5.98281473239034" sequence="" charge="1" protein_refs="PH_106">
+				<PeptideHit score="-5.98281473239034" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="23dpg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[23dpg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="23dpg.23dpg_1.Light"/>
@@ -818,7 +848,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.33159349459893" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-2.33159349459893" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_2.Light"/>
@@ -904,7 +939,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.77652163538543" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-3.77652163538543" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_2.Light"/>
@@ -990,7 +1030,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.79484271652927" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-3.79484271652927" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_1.Heavy"/>
@@ -1076,7 +1121,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.82588906239508" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-3.82588906239508" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_2.Light"/>
@@ -1162,7 +1212,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.88288051355278" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-3.88288051355278" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_2.Light"/>
@@ -1248,7 +1303,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.9786644812113" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-3.9786644812113" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_2.Light"/>
@@ -1334,7 +1394,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.25062726210536" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-4.25062726210536" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_1.Heavy"/>
@@ -1420,7 +1485,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.37889028366159" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-4.37889028366159" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_1.Heavy"/>
@@ -1506,7 +1576,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.49628288255343" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-4.49628288255343" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_1.Heavy"/>
@@ -1592,7 +1667,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.52415063399908" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-4.52415063399908" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_1.Heavy"/>
@@ -1678,7 +1758,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.52486870841953" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-4.52486870841953" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_1.Heavy"/>
@@ -1764,7 +1849,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.56602982987071" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-4.56602982987071" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_2.Light"/>
@@ -1850,7 +1940,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.64371682241181" sequence="" charge="1" protein_refs="PH_87">
+				<PeptideHit score="-4.64371682241181" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2mcit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2mcit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2mcit.2mcit_2.Light"/>
@@ -1936,7 +2031,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.35511861023996" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-2.35511861023996" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2022,7 +2122,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.3749608488154" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-2.3749608488154" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2108,7 +2213,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.56682754336739" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-2.56682754336739" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2194,7 +2304,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.64742781376089" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-2.64742781376089" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2280,7 +2395,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.73953098527065" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-2.73953098527065" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2366,7 +2486,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.87616014796985" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-2.87616014796985" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2452,7 +2577,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.00889976925365" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-3.00889976925365" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2538,7 +2668,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.07411607756637" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-3.07411607756637" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2624,7 +2759,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.08648278318146" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-3.08648278318146" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2710,7 +2850,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.08748620364633" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-3.08748620364633" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2796,7 +2941,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.10392327248279" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-3.10392327248279" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2882,7 +3032,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.15688844696611" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-3.15688844696611" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -2968,7 +3123,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.33404903096289" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-3.33404903096289" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -3054,7 +3214,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.3891167760641" sequence="" charge="1" protein_refs="PH_48">
+				<PeptideHit score="-3.3891167760641" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="2obut"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[2obut]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="2obut.2obut_2.Light"/>
@@ -3140,7 +3305,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.487555321771006" sequence="" charge="1" protein_refs="PH_55">
+				<PeptideHit score="-0.487555321771006" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="35cgmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[35cgmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="35cgmp.35cgmp_2.Light"/>
@@ -3226,7 +3396,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.43038530029682" sequence="" charge="1" protein_refs="PH_55">
+				<PeptideHit score="-1.43038530029682" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="35cgmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[35cgmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="35cgmp.35cgmp_2.Light"/>
@@ -3312,7 +3487,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.44029501884475" sequence="" charge="1" protein_refs="PH_55">
+				<PeptideHit score="-1.44029501884475" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="35cgmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[35cgmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="35cgmp.35cgmp_2.Light"/>
@@ -3398,7 +3578,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.51137572134448" sequence="" charge="1" protein_refs="PH_55">
+				<PeptideHit score="-1.51137572134448" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="35cgmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[35cgmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="35cgmp.35cgmp_2.Light"/>
@@ -3484,7 +3669,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.6993780540425" sequence="" charge="1" protein_refs="PH_55">
+				<PeptideHit score="-1.6993780540425" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="35cgmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[35cgmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="35cgmp.35cgmp_2.Light"/>
@@ -3570,7 +3760,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.72011736300688" sequence="" charge="1" protein_refs="PH_55">
+				<PeptideHit score="-1.72011736300688" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="35cgmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[35cgmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="35cgmp.35cgmp_2.Light"/>
@@ -3656,7 +3851,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.3647078842534" sequence="" charge="1" protein_refs="PH_33">
+				<PeptideHit score="7.3647078842534" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="5oxpro"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[5oxpro]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -3742,7 +3942,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.88987470815604" sequence="" charge="1" protein_refs="PH_33">
+				<PeptideHit score="6.88987470815604" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="5oxpro"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[5oxpro]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5oxpro.5oxpro_2.Light"/>
@@ -3828,7 +4033,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.93216766277855" sequence="" charge="1" protein_refs="PH_33">
+				<PeptideHit score="1.93216766277855" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="5oxpro"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[5oxpro]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -3914,7 +4124,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.970382978910219" sequence="" charge="1" protein_refs="PH_33">
+				<PeptideHit score="0.970382978910219" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="5oxpro"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[5oxpro]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5oxpro.5oxpro_1.Light"/>
@@ -4000,7 +4215,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.766611264047762" sequence="" charge="1" protein_refs="PH_33">
+				<PeptideHit score="0.766611264047762" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="5oxpro"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[5oxpro]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5oxpro.5oxpro_1.Heavy"/>
@@ -4086,7 +4306,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.728646699510882" sequence="" charge="1" protein_refs="PH_33">
+				<PeptideHit score="0.728646699510882" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="5oxpro"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[5oxpro]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5oxpro.5oxpro_2.Light"/>
@@ -4172,7 +4397,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.966978915020407" sequence="" charge="1" protein_refs="PH_33">
+				<PeptideHit score="-0.966978915020407" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="5oxpro"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[5oxpro]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5oxpro.5oxpro_2.Light"/>
@@ -4258,7 +4488,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.991052775323305" sequence="" charge="1" protein_refs="PH_33">
+				<PeptideHit score="-0.991052775323305" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="5oxpro"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[5oxpro]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5oxpro.5oxpro_2.Light"/>
@@ -4328,7 +4563,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.44573764537791" sequence="" charge="1" protein_refs="PH_83">
+				<PeptideHit score="1.44573764537791" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="6pgc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[6pgc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -4398,7 +4638,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.08551302250348" sequence="" charge="1" protein_refs="PH_83">
+				<PeptideHit score="-1.08551302250348" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="6pgc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[6pgc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -4468,7 +4713,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.11402534105651" sequence="" charge="1" protein_refs="PH_83">
+				<PeptideHit score="-1.11402534105651" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="6pgc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[6pgc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -4538,7 +4788,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.28585371453263" sequence="" charge="1" protein_refs="PH_83">
+				<PeptideHit score="-1.28585371453263" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="6pgc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[6pgc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="6pgc.6pgc_1.Heavy"/>
@@ -4608,7 +4863,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.33144869801189" sequence="" charge="1" protein_refs="PH_83">
+				<PeptideHit score="-1.33144869801189" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="6pgc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[6pgc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="6pgc.6pgc_1.Heavy"/>
@@ -4678,7 +4938,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.63631302722062" sequence="" charge="1" protein_refs="PH_83">
+				<PeptideHit score="-1.63631302722062" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="6pgc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[6pgc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="6pgc.6pgc_1.Heavy"/>
@@ -4748,7 +5013,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.64069679856057" sequence="" charge="1" protein_refs="PH_13">
+				<PeptideHit score="6.64069679856057" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="AICAr"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[AICAr]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="AICAr.AICAr_1.Heavy"/>
@@ -4818,7 +5088,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="5.77224902146541" sequence="" charge="1" protein_refs="PH_13">
+				<PeptideHit score="5.77224902146541" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="AICAr"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[AICAr]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="AICAr.AICAr_1.Heavy"/>
@@ -4904,7 +5179,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.94047929142818" sequence="" charge="1" protein_refs="PH_6">
+				<PeptideHit score="7.94047929142818" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Hexose_Pool_fru_glc-D"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Hexose_Pool_fru_glc-D]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -4990,7 +5270,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.114524414731655" sequence="" charge="1" protein_refs="PH_6">
+				<PeptideHit score="0.114524414731655" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Hexose_Pool_fru_glc-D"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Hexose_Pool_fru_glc-D]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="Hexose_Pool_fru_glc-D.Hexose_Pool_fru_glc-D_1.Heavy"/>
@@ -5060,7 +5345,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.85106445840587" sequence="" charge="1" protein_refs="PH_7">
+				<PeptideHit score="7.85106445840587" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Lcystin"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Lcystin]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5130,7 +5420,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.13607530765785" sequence="" charge="1" protein_refs="PH_7">
+				<PeptideHit score="4.13607530765785" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Lcystin"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Lcystin]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="Lcystin.Lcystin_1.Heavy"/>
@@ -5216,7 +5511,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.25351142809773" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="3.25351142809773" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5302,7 +5602,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.04724057576316" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="1.04724057576316" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5388,7 +5693,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.795070395734513" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="0.795070395734513" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5474,7 +5784,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.705519923035416" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="-0.705519923035416" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5560,7 +5875,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.17185169993848" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="-1.17185169993848" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5646,7 +5966,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.42425004090855" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="-1.42425004090855" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="Pool_2pg_3pg.Pool_2pg_3pg_1.Heavy"/>
@@ -5732,7 +6057,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.4264282004219" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="-1.4264282004219" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5818,7 +6148,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.6519778029344" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="-1.6519778029344" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5904,7 +6239,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-41.2505517947012" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="-41.2505517947012" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -5990,7 +6330,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-46.6936555396905" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="-46.6936555396905" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="Pool_2pg_3pg.Pool_2pg_3pg_2.Light"/>
@@ -6076,7 +6421,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-48.4275129048362" sequence="" charge="1" protein_refs="PH_84">
+				<PeptideHit score="-48.4275129048362" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="Pool_2pg_3pg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[Pool_2pg_3pg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -6146,7 +6496,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.90908710609947" sequence="" charge="1" protein_refs="PH_115">
+				<PeptideHit score="1.90908710609947" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="accoa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[accoa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -6216,7 +6571,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.00754785042341877" sequence="" charge="1" protein_refs="PH_115">
+				<PeptideHit score="0.00754785042341877" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="accoa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[accoa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="accoa.accoa_1.Heavy"/>
@@ -6286,7 +6646,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.948460007532693" sequence="" charge="1" protein_refs="PH_115">
+				<PeptideHit score="-0.948460007532693" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="accoa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[accoa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -6356,7 +6721,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.53025184151558" sequence="" charge="1" protein_refs="PH_115">
+				<PeptideHit score="-1.53025184151558" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="accoa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[accoa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="accoa.accoa_1.Heavy"/>
@@ -6426,7 +6796,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.31049855432247" sequence="" charge="1" protein_refs="PH_115">
+				<PeptideHit score="-2.31049855432247" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="accoa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[accoa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="accoa.accoa_1.Heavy"/>
@@ -6496,7 +6871,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-14.1579932820798" sequence="" charge="1" protein_refs="PH_115">
+				<PeptideHit score="-14.1579932820798" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="accoa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[accoa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -6582,7 +6962,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.68934174950236" sequence="" charge="1" protein_refs="PH_89">
+				<PeptideHit score="3.68934174950236" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="acon-C"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[acon-C]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -6668,7 +7053,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.69640730135637" sequence="" charge="1" protein_refs="PH_89">
+				<PeptideHit score="-2.69640730135637" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="acon-C"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[acon-C]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -6754,7 +7144,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.05045877071803" sequence="" charge="1" protein_refs="PH_89">
+				<PeptideHit score="-3.05045877071803" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="acon-C"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[acon-C]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="acon-C.acon-C_1.Heavy"/>
@@ -6840,7 +7235,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.60270354054673" sequence="" charge="1" protein_refs="PH_89">
+				<PeptideHit score="-3.60270354054673" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="acon-C"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[acon-C]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="acon-C.acon-C_2.Light"/>
@@ -6926,7 +7326,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.87882344103753" sequence="" charge="1" protein_refs="PH_89">
+				<PeptideHit score="-3.87882344103753" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="acon-C"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[acon-C]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="acon-C.acon-C_1.Light"/>
@@ -7012,7 +7417,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.26944293217005" sequence="" charge="1" protein_refs="PH_73">
+				<PeptideHit score="1.26944293217005" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="actp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[actp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -7098,7 +7508,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.953308714406867" sequence="" charge="1" protein_refs="PH_73">
+				<PeptideHit score="-0.953308714406867" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="actp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[actp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -7184,7 +7599,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.22536620627969" sequence="" charge="1" protein_refs="PH_73">
+				<PeptideHit score="-1.22536620627969" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="actp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[actp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="actp.actp_1.Heavy"/>
@@ -7270,7 +7690,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.44563958630178" sequence="" charge="1" protein_refs="PH_73">
+				<PeptideHit score="-1.44563958630178" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="actp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[actp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="actp.actp_1.Light"/>
@@ -7356,7 +7781,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.29825245671591" sequence="" charge="1" protein_refs="PH_73">
+				<PeptideHit score="-2.29825245671591" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="actp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[actp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="actp.actp_1.Light"/>
@@ -7442,7 +7872,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="8.6563446870992" sequence="" charge="1" protein_refs="PH_23">
+				<PeptideHit score="8.6563446870992" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ade"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ade]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -7528,7 +7963,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="5.45164109869866" sequence="" charge="1" protein_refs="PH_23">
+				<PeptideHit score="5.45164109869866" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ade"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ade]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -7614,7 +8054,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="2.77938819983666" sequence="" charge="1" protein_refs="PH_23">
+				<PeptideHit score="2.77938819983666" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ade"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ade]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -7700,7 +8145,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.0634704948993909" sequence="" charge="1" protein_refs="PH_23">
+				<PeptideHit score="-0.0634704948993909" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ade"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ade]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="ade.ade_1.Light"/>
@@ -7770,7 +8220,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.9258822113365" sequence="" charge="1" protein_refs="PH_25">
+				<PeptideHit score="7.9258822113365" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adn.adn_1.Heavy"/>
@@ -7840,7 +8295,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.46586667072323" sequence="" charge="1" protein_refs="PH_25">
+				<PeptideHit score="4.46586667072323" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -7910,7 +8370,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.3031936920911" sequence="" charge="1" protein_refs="PH_25">
+				<PeptideHit score="4.3031936920911" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adn.adn_1.Heavy"/>
@@ -7980,7 +8445,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.11761807670383" sequence="" charge="1" protein_refs="PH_25">
+				<PeptideHit score="4.11761807670383" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -8050,7 +8520,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.63419829355234" sequence="" charge="1" protein_refs="PH_25">
+				<PeptideHit score="3.63419829355234" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -8136,7 +8611,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="2.43306771476051" sequence="" charge="1" protein_refs="PH_86">
+				<PeptideHit score="2.43306771476051" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -8222,7 +8702,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.11179169990565" sequence="" charge="1" protein_refs="PH_86">
+				<PeptideHit score="-2.11179169990565" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adp.adp_1.Heavy"/>
@@ -8308,7 +8793,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.17527817076869" sequence="" charge="1" protein_refs="PH_86">
+				<PeptideHit score="-3.17527817076869" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -8394,7 +8884,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.30689908162518" sequence="" charge="1" protein_refs="PH_86">
+				<PeptideHit score="-3.30689908162518" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adp.adp_1.Heavy"/>
@@ -8480,7 +8975,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.45961874196104" sequence="" charge="1" protein_refs="PH_86">
+				<PeptideHit score="-3.45961874196104" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adp.adp_1.Heavy"/>
@@ -8566,7 +9066,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.91623756755782" sequence="" charge="1" protein_refs="PH_86">
+				<PeptideHit score="-3.91623756755782" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adp.adp_1.Heavy"/>
@@ -8652,7 +9157,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.98893232215866" sequence="" charge="1" protein_refs="PH_86">
+				<PeptideHit score="-3.98893232215866" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -8738,7 +9248,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.2901937589831" sequence="" charge="1" protein_refs="PH_86">
+				<PeptideHit score="-4.2901937589831" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adp.adp_1.Heavy"/>
@@ -8824,7 +9339,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.890971394775243" sequence="" charge="1" protein_refs="PH_78">
+				<PeptideHit score="-0.890971394775243" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adpglc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adpglc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adpglc.adpglc_2.Light"/>
@@ -8910,7 +9430,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.52881727794281" sequence="" charge="1" protein_refs="PH_78">
+				<PeptideHit score="-1.52881727794281" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adpglc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adpglc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adpglc.adpglc_2.Light"/>
@@ -8996,7 +9521,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.78104737333638" sequence="" charge="1" protein_refs="PH_78">
+				<PeptideHit score="-2.78104737333638" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adpglc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adpglc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adpglc.adpglc_2.Light"/>
@@ -9082,7 +9612,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.93866506207907" sequence="" charge="1" protein_refs="PH_78">
+				<PeptideHit score="-2.93866506207907" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adpglc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adpglc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adpglc.adpglc_2.Light"/>
@@ -9168,7 +9703,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.17754337240339" sequence="" charge="1" protein_refs="PH_78">
+				<PeptideHit score="-3.17754337240339" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="adpglc"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[adpglc]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="adpglc.adpglc_1.Heavy"/>
@@ -9238,7 +9778,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.30999351470045" sequence="" charge="1" protein_refs="PH_74">
+				<PeptideHit score="3.30999351470045" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="akg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[akg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -9308,7 +9853,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.481748385634874" sequence="" charge="1" protein_refs="PH_74">
+				<PeptideHit score="-0.481748385634874" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="akg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[akg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -9378,7 +9928,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.79862376062065" sequence="" charge="1" protein_refs="PH_74">
+				<PeptideHit score="-0.79862376062065" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="akg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[akg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="akg.akg_1.Light"/>
@@ -9448,7 +10003,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.02802734812768" sequence="" charge="1" protein_refs="PH_74">
+				<PeptideHit score="-1.02802734812768" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="akg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[akg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="akg.akg_1.Heavy"/>
@@ -9518,7 +10078,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.42072901592727" sequence="" charge="1" protein_refs="PH_74">
+				<PeptideHit score="-2.42072901592727" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="akg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[akg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -9588,7 +10153,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.36925506061486" sequence="" charge="1" protein_refs="PH_74">
+				<PeptideHit score="-4.36925506061486" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="akg"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[akg]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -9674,7 +10244,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="2.24465085383996" sequence="" charge="1" protein_refs="PH_9">
+				<PeptideHit score="2.24465085383996" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ala-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ala-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="ala-L.ala-L_2.Light"/>
@@ -9760,7 +10335,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.36193101762438" sequence="" charge="1" protein_refs="PH_59">
+				<PeptideHit score="4.36193101762438" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="amp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[amp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -9846,7 +10426,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.29719397349784" sequence="" charge="1" protein_refs="PH_59">
+				<PeptideHit score="1.29719397349784" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="amp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[amp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -9932,7 +10517,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.526082457781566" sequence="" charge="1" protein_refs="PH_59">
+				<PeptideHit score="0.526082457781566" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="amp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[amp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10018,7 +10608,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.70428510565245" sequence="" charge="1" protein_refs="PH_59">
+				<PeptideHit score="-2.70428510565245" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="amp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[amp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10104,7 +10699,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.94931504763621" sequence="" charge="1" protein_refs="PH_59">
+				<PeptideHit score="-2.94931504763621" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="amp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[amp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="amp.amp_1.Heavy"/>
@@ -10174,7 +10774,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.4366752577996" sequence="" charge="1" protein_refs="PH_0">
+				<PeptideHit score="6.4366752577996" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="arg-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[arg-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10244,7 +10849,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.42808184169547" sequence="" charge="1" protein_refs="PH_0">
+				<PeptideHit score="4.42808184169547" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="arg-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[arg-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10314,7 +10924,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.457860278518414" sequence="" charge="1" protein_refs="PH_0">
+				<PeptideHit score="0.457860278518414" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="arg-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[arg-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10400,7 +11015,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="8.42130528775359" sequence="" charge="1" protein_refs="PH_2">
+				<PeptideHit score="8.42130528775359" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asn-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asn-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10486,7 +11106,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.10657874381427" sequence="" charge="1" protein_refs="PH_2">
+				<PeptideHit score="1.10657874381427" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asn-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asn-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10572,7 +11197,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="8.09315169957494" sequence="" charge="1" protein_refs="PH_27">
+				<PeptideHit score="8.09315169957494" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asp-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asp-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10658,7 +11288,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.0858992310352466" sequence="" charge="1" protein_refs="PH_27">
+				<PeptideHit score="-0.0858992310352466" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asp-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asp-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="asp-L.asp-L_1.Light"/>
@@ -10744,7 +11379,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.491908496427195" sequence="" charge="1" protein_refs="PH_27">
+				<PeptideHit score="-0.491908496427195" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asp-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asp-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="asp-L.asp-L_1.Light"/>
@@ -10830,7 +11470,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.991132597501982" sequence="" charge="1" protein_refs="PH_27">
+				<PeptideHit score="-0.991132597501982" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asp-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asp-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -10916,7 +11561,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.54305716392961" sequence="" charge="1" protein_refs="PH_27">
+				<PeptideHit score="-1.54305716392961" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asp-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asp-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="asp-L.asp-L_1.Light"/>
@@ -11002,7 +11652,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.94423290024465" sequence="" charge="1" protein_refs="PH_27">
+				<PeptideHit score="-1.94423290024465" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asp-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asp-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="asp-L.asp-L_1.Light"/>
@@ -11088,7 +11743,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.13691315760318" sequence="" charge="1" protein_refs="PH_27">
+				<PeptideHit score="-2.13691315760318" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="asp-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[asp-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="asp-L.asp-L_1.Light"/>
@@ -11174,7 +11834,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.01832166642432" sequence="" charge="1" protein_refs="PH_107">
+				<PeptideHit score="3.01832166642432" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="atp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[atp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -11260,7 +11925,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.37487808197589" sequence="" charge="1" protein_refs="PH_107">
+				<PeptideHit score="-1.37487808197589" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="atp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[atp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -11346,7 +12016,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.20562880348561" sequence="" charge="1" protein_refs="PH_107">
+				<PeptideHit score="-2.20562880348561" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="atp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[atp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -11432,7 +12107,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-6.15429632365707" sequence="" charge="1" protein_refs="PH_107">
+				<PeptideHit score="-6.15429632365707" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="atp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[atp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="atp.atp_1.Heavy"/>
@@ -11518,7 +12198,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.462878939675199" sequence="" charge="1" protein_refs="PH_64">
+				<PeptideHit score="-0.462878939675199" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="btn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[btn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="btn.btn_2.Light"/>
@@ -11604,7 +12289,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.574204523629421" sequence="" charge="1" protein_refs="PH_64">
+				<PeptideHit score="-0.574204523629421" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="btn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[btn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="btn.btn_2.Light"/>
@@ -11690,7 +12380,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.25452813358592" sequence="" charge="1" protein_refs="PH_64">
+				<PeptideHit score="-1.25452813358592" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="btn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[btn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="btn.btn_2.Light"/>
@@ -11776,7 +12471,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.6155024087832" sequence="" charge="1" protein_refs="PH_64">
+				<PeptideHit score="-1.6155024087832" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="btn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[btn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="btn.btn_2.Light"/>
@@ -11862,7 +12562,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.99202644108646" sequence="" charge="1" protein_refs="PH_64">
+				<PeptideHit score="-1.99202644108646" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="btn"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[btn]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="btn.btn_2.Light"/>
@@ -11948,7 +12653,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.12583388227403" sequence="" charge="1" protein_refs="PH_62">
+				<PeptideHit score="4.12583388227403" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="camp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[camp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="camp.camp_2.Light"/>
@@ -12034,7 +12744,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.34088061369262" sequence="" charge="1" protein_refs="PH_62">
+				<PeptideHit score="3.34088061369262" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="camp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[camp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -12120,7 +12835,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.65046720969931" sequence="" charge="1" protein_refs="PH_62">
+				<PeptideHit score="-1.65046720969931" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="camp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[camp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -12206,7 +12926,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.24631218893795" sequence="" charge="1" protein_refs="PH_62">
+				<PeptideHit score="-2.24631218893795" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="camp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[camp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -12292,7 +13017,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.64119529522286" sequence="" charge="1" protein_refs="PH_62">
+				<PeptideHit score="-2.64119529522286" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="camp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[camp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -12378,7 +13108,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.20808158827989" sequence="" charge="1" protein_refs="PH_62">
+				<PeptideHit score="-4.20808158827989" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="camp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[camp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="camp.camp_2.Light"/>
@@ -12448,7 +13183,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.632088858358529" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="0.632088858358529" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="chor.chor_1.Heavy"/>
@@ -12518,7 +13258,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.356240207163117" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="0.356240207163117" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="chor.chor_1.Heavy"/>
@@ -12588,7 +13333,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.0810670585273275" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="0.0810670585273275" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="chor.chor_1.Heavy"/>
@@ -12658,7 +13408,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.493767652219065" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="-0.493767652219065" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="chor.chor_1.Heavy"/>
@@ -12728,7 +13483,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.592593832633803" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="-0.592593832633803" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -12798,7 +13558,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.669418122871108" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="-0.669418122871108" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="chor.chor_1.Heavy"/>
@@ -12868,7 +13633,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.771951439408416" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="-0.771951439408416" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -12938,7 +13708,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.18942372979288" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="-1.18942372979288" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -13008,7 +13783,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.78738398661687" sequence="" charge="1" protein_refs="PH_79">
+				<PeptideHit score="-1.78738398661687" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="chor"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[chor]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="chor.chor_1.Heavy"/>
@@ -13094,7 +13874,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.349616475809211" sequence="" charge="1" protein_refs="PH_93">
+				<PeptideHit score="0.349616475809211" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cit.cit_1.Heavy"/>
@@ -13180,7 +13965,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.40626224086256" sequence="" charge="1" protein_refs="PH_93">
+				<PeptideHit score="-3.40626224086256" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cit.cit_1.Heavy"/>
@@ -13266,7 +14056,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.59724067189786" sequence="" charge="1" protein_refs="PH_93">
+				<PeptideHit score="-3.59724067189786" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cit.cit_1.Heavy"/>
@@ -13352,7 +14147,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.84253395482094" sequence="" charge="1" protein_refs="PH_93">
+				<PeptideHit score="-3.84253395482094" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -13438,7 +14238,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.21194292942268" sequence="" charge="1" protein_refs="PH_93">
+				<PeptideHit score="-4.21194292942268" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cit.cit_1.Light"/>
@@ -13524,7 +14329,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.89377914460885" sequence="" charge="1" protein_refs="PH_93">
+				<PeptideHit score="-4.89377914460885" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cit.cit_1.Light"/>
@@ -13610,7 +14420,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-5.31111838086706" sequence="" charge="1" protein_refs="PH_93">
+				<PeptideHit score="-5.31111838086706" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cit"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cit]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cit.cit_1.Heavy"/>
@@ -13680,7 +14495,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.01580936040389" sequence="" charge="1" protein_refs="PH_4">
+				<PeptideHit score="7.01580936040389" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="citr-L"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[citr-L]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="citr-L.citr-L_1.Heavy"/>
@@ -13766,7 +14586,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.37723006555643" sequence="" charge="1" protein_refs="PH_47">
+				<PeptideHit score="4.37723006555643" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cmp.cmp_2.Light"/>
@@ -13852,7 +14677,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.56781985772723" sequence="" charge="1" protein_refs="PH_47">
+				<PeptideHit score="-1.56781985772723" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cmp.cmp_2.Light"/>
@@ -13938,7 +14768,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.60065425877988" sequence="" charge="1" protein_refs="PH_47">
+				<PeptideHit score="-1.60065425877988" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cmp.cmp_2.Light"/>
@@ -14024,7 +14859,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.74852239838229" sequence="" charge="1" protein_refs="PH_47">
+				<PeptideHit score="-1.74852239838229" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cmp.cmp_2.Light"/>
@@ -14110,7 +14950,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.2967573442376" sequence="" charge="1" protein_refs="PH_47">
+				<PeptideHit score="-2.2967573442376" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cmp.cmp_2.Light"/>
@@ -14196,7 +15041,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.71719074439302" sequence="" charge="1" protein_refs="PH_47">
+				<PeptideHit score="-2.71719074439302" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cmp.cmp_2.Light"/>
@@ -14282,7 +15132,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.0342946113037" sequence="" charge="1" protein_refs="PH_47">
+				<PeptideHit score="-3.0342946113037" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cmp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cmp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cmp.cmp_2.Light"/>
@@ -14352,7 +15207,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.06492291256403" sequence="" charge="1" protein_refs="PH_114">
+				<PeptideHit score="3.06492291256403" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="coa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[coa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -14422,7 +15282,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.837429399380761" sequence="" charge="1" protein_refs="PH_114">
+				<PeptideHit score="-0.837429399380761" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="coa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[coa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="coa.coa_1.Heavy"/>
@@ -14492,7 +15357,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.89397050366156" sequence="" charge="1" protein_refs="PH_114">
+				<PeptideHit score="-1.89397050366156" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="coa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[coa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="coa.coa_1.Heavy"/>
@@ -14562,7 +15432,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.97955916975262" sequence="" charge="1" protein_refs="PH_114">
+				<PeptideHit score="-1.97955916975262" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="coa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[coa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="coa.coa_1.Heavy"/>
@@ -14632,7 +15507,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-7.90423029557198" sequence="" charge="1" protein_refs="PH_114">
+				<PeptideHit score="-7.90423029557198" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="coa"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[coa]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -14718,7 +15598,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.830602911361401" sequence="" charge="1" protein_refs="PH_100">
+				<PeptideHit score="0.830602911361401" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ctp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ctp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="ctp.ctp_1.Heavy"/>
@@ -14804,7 +15689,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.269736394769116" sequence="" charge="1" protein_refs="PH_100">
+				<PeptideHit score="-0.269736394769116" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ctp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ctp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -14890,7 +15780,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.61441902488531" sequence="" charge="1" protein_refs="PH_100">
+				<PeptideHit score="-1.61441902488531" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ctp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ctp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="ctp.ctp_1.Heavy"/>
@@ -14976,7 +15871,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.62182260257648" sequence="" charge="1" protein_refs="PH_100">
+				<PeptideHit score="-1.62182260257648" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ctp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ctp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -15062,7 +15962,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.1428788279819" sequence="" charge="1" protein_refs="PH_100">
+				<PeptideHit score="-2.1428788279819" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ctp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ctp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -15148,7 +16053,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.57768972281846" sequence="" charge="1" protein_refs="PH_100">
+				<PeptideHit score="-2.57768972281846" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ctp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ctp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -15234,7 +16144,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.90380581173383" sequence="" charge="1" protein_refs="PH_100">
+				<PeptideHit score="-3.90380581173383" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="ctp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[ctp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="ctp.ctp_1.Heavy"/>
@@ -15304,7 +16219,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="7.41865214104828" sequence="" charge="1" protein_refs="PH_11">
+				<PeptideHit score="7.41865214104828" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cytd"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cytd]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cytd.cytd_1.Heavy"/>
@@ -15374,7 +16294,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="5.11003305605817" sequence="" charge="1" protein_refs="PH_11">
+				<PeptideHit score="5.11003305605817" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cytd"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cytd]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cytd.cytd_1.Heavy"/>
@@ -15444,7 +16369,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="3.62755691996154" sequence="" charge="1" protein_refs="PH_11">
+				<PeptideHit score="3.62755691996154" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="cytd"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[cytd]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="cytd.cytd_1.Heavy"/>
@@ -15530,7 +16460,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.1734220521049" sequence="" charge="1" protein_refs="PH_92">
+				<PeptideHit score="1.1734220521049" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dadp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dadp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dadp.dadp_1.Heavy"/>
@@ -15616,7 +16551,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0.175959588876708" sequence="" charge="1" protein_refs="PH_92">
+				<PeptideHit score="0.175959588876708" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dadp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dadp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dadp.dadp_1.Heavy"/>
@@ -15702,7 +16642,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-0.374991034494166" sequence="" charge="1" protein_refs="PH_92">
+				<PeptideHit score="-0.374991034494166" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dadp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dadp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dadp.dadp_1.Heavy"/>
@@ -15788,7 +16733,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.04783749882524" sequence="" charge="1" protein_refs="PH_92">
+				<PeptideHit score="-4.04783749882524" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dadp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dadp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dadp.dadp_2.Light"/>
@@ -15874,7 +16824,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.18356611406185" sequence="" charge="1" protein_refs="PH_92">
+				<PeptideHit score="-4.18356611406185" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dadp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dadp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dadp.dadp_1.Light"/>
@@ -15960,7 +16915,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.54396446786607" sequence="" charge="1" protein_refs="PH_92">
+				<PeptideHit score="-4.54396446786607" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dadp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dadp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -16046,7 +17006,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.41542495306423" sequence="" charge="1" protein_refs="PH_71">
+				<PeptideHit score="-1.41542495306423" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="damp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[damp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="damp.damp_2.Light"/>
@@ -16132,7 +17097,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.04743484781644" sequence="" charge="1" protein_refs="PH_71">
+				<PeptideHit score="-2.04743484781644" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="damp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[damp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="damp.damp_2.Light"/>
@@ -16218,7 +17188,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.35171482987619" sequence="" charge="1" protein_refs="PH_71">
+				<PeptideHit score="-2.35171482987619" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="damp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[damp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="damp.damp_2.Light"/>
@@ -16304,7 +17279,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.28822714449299" sequence="" charge="1" protein_refs="PH_108">
+				<PeptideHit score="1.28822714449299" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="datp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[datp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="datp.datp_1.Heavy"/>
@@ -16390,7 +17370,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-1.53473852283538" sequence="" charge="1" protein_refs="PH_108">
+				<PeptideHit score="-1.53473852283538" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="datp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[datp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="datp.datp_1.Heavy"/>
@@ -16476,7 +17461,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.01233891592067" sequence="" charge="1" protein_refs="PH_108">
+				<PeptideHit score="-3.01233891592067" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="datp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[datp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -16562,7 +17552,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.36751393557417" sequence="" charge="1" protein_refs="PH_108">
+				<PeptideHit score="-3.36751393557417" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="datp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[datp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -16648,7 +17643,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.84512548790182" sequence="" charge="1" protein_refs="PH_108">
+				<PeptideHit score="-3.84512548790182" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="datp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[datp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -16734,7 +17734,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.09045993971506" sequence="" charge="1" protein_refs="PH_108">
+				<PeptideHit score="-4.09045993971506" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="datp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[datp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -16820,7 +17825,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-4.39928940122718" sequence="" charge="1" protein_refs="PH_108">
+				<PeptideHit score="-4.39928940122718" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="datp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[datp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
@@ -16906,7 +17916,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.22957480999239" sequence="" charge="1" protein_refs="PH_85">
+				<PeptideHit score="-2.22957480999239" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dcdp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dcdp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dcdp.dcdp_2.Light"/>
@@ -16992,7 +18007,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.29340575160876" sequence="" charge="1" protein_refs="PH_85">
+				<PeptideHit score="-2.29340575160876" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dcdp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dcdp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dcdp.dcdp_2.Light"/>
@@ -17078,7 +18098,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.81594029968306" sequence="" charge="1" protein_refs="PH_85">
+				<PeptideHit score="-2.81594029968306" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dcdp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dcdp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dcdp.dcdp_2.Light"/>
@@ -17164,7 +18189,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.86396514796449" sequence="" charge="1" protein_refs="PH_85">
+				<PeptideHit score="-2.86396514796449" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dcdp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dcdp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dcdp.dcdp_2.Light"/>
@@ -17250,7 +18280,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.95005059035105" sequence="" charge="1" protein_refs="PH_85">
+				<PeptideHit score="-2.95005059035105" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dcdp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dcdp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dcdp.dcdp_2.Light"/>
@@ -17336,7 +18371,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-2.9722191570337" sequence="" charge="1" protein_refs="PH_85">
+				<PeptideHit score="-2.9722191570337" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dcdp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dcdp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dcdp.dcdp_2.Light"/>
@@ -17422,7 +18462,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.55764168240962" sequence="" charge="1" protein_refs="PH_85">
+				<PeptideHit score="-3.55764168240962" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dcdp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dcdp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dcdp.dcdp_2.Light"/>
@@ -17508,7 +18553,12 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-3.5756242044656" sequence="" charge="1" protein_refs="PH_85">
+				<PeptideHit score="-3.5756242044656" sequence="" charge="1">
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="string" name="label" value="dcdp"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[assay library]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[dcdp]"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="dcdp.dcdp_2.Light"/>

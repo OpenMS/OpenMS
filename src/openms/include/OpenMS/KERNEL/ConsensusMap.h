@@ -8,26 +8,23 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
-#include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
-
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/OpenMSConfig.h>
-
+#include <iosfwd>
 #include <map>
 #include <vector>
-#include <iosfwd>
 
 namespace OpenMS
 {
@@ -150,7 +147,12 @@ public:
     /**
       @brief Add consensus map entries as new columns.
 
-      The number of columns (maximum map index) is the sum of both maps.
+      The number of columns (maximum map index) is the sum of both maps. The map indices of the
+      identifications of @p rhs (meta value @c map_index of peptide identifications and of
+      identifications in the identification data) are shifted like its columns.
+
+      @exception Exception::InvalidValue if both maps contain the same identification run and its
+      identifications have map indices
 
       @param[in] rhs The consensus map to be merged.
     */
@@ -354,11 +356,16 @@ public:
     /*!
       @brief Return observation matches (e.g. PSMs) from the identification data that are not assigned to any feature in the map
 
-      Only top-level features are considered, i.e. no subordinates.
-
       @see BaseFeature::getIDMatches()
     */
-    std::set<IdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
+    std::set<IdentificationData::MatchReference> getUnassignedIDMatches() const;
+
+    /*!
+      @brief The identifications and matches that no feature links (the counterpart of getUnassignedPeptideIdentifications())
+
+      @see IdentificationData::getUnlinked()
+    */
+    std::vector<IdentificationData::QueryMatches> getUnassignedIdentifications() const;
 
     /// Immutable access to the contained identification data
     const IdentificationData& getIdentificationData() const;

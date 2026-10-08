@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -16,11 +15,11 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ID/IdentificationData.h>
-
-#include <cmath> // for "abs"
+#include <cmath>  // for "abs"
 #include <limits> // for "max"
 #include <map>
 
@@ -393,7 +392,7 @@ protected:
 
       @return Reference to the score type denoted by algorithm parameter "score_type"
      */
-    IdentificationData::ScoreTypeRef handleIdDataScoreType_(const IdentificationData& id_data);
+    IdentificationData::ScoreDefinition handleIdDataScoreType_(const IdentificationData& id_data);
 
     /**
       @brief Get the best-scoring PeptideHit from a list of hits

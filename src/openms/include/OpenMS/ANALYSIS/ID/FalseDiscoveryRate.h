@@ -9,16 +9,14 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-
 #include <unordered_map>
-
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 namespace OpenMS
 {
@@ -181,12 +179,12 @@ public:
     /**
        @brief Calculate FDR on the level of observation matches (e.g. peptide-spectrum matches) for "general" identification data
 
-       @param[in,out] id_data Identification data
-       @param[in] score_ref Key of the score to use for FDR calculation
+       @param[in,out] data Identification data; every run with scores gains a column for the FDR score
+       @param[in] score Definition of the score to use for FDR calculation
 
-       @return Key of the FDR score
+       @return Definition of the added FDR score (q-value, or FDR with "no_qvalues")
     */
-    IdentificationData::ScoreTypeRef applyToObservationMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
+    IdentificationData::ScoreDefinition applyToObservationMatches(IdentificationData& data, const IdentificationData::ScoreDefinition& score) const;
 
     /**
      * @brief Finds decoy strings in ProteinIdentification runs
@@ -222,15 +220,6 @@ private:
 
     /// calculates the FDR, given two vectors of scores
     void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
-
-    /// Helper function for applyToObservationMatches()
-    void handleObservationMatch_(
-        IdentificationData::ObservationMatchRef match_ref,
-        IdentificationData::ScoreTypeRef score_ref,
-        std::vector<double>& target_scores,
-        std::vector<double>& decoy_scores,
-        std::map<IdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
-        std::map<IdentificationData::ObservationMatchRef, double>& match_to_score) const;
 
     /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
     /// in scores_to_FDR

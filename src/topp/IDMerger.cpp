@@ -12,7 +12,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/IdentificationDataFile.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
@@ -169,7 +170,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    vector<std::string> formats = {"idXML", "oms", "idparquet"};
+    vector<std::string> formats = {"idXML", "idparquet"};
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same type)");
     setValidFormats_("in", formats);
     registerOutputFile_("out", "<file>", "", "Output file (must have the same type as the input files)");
@@ -177,7 +178,7 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", formats);
     registerInputFile_("add_to", "<file>", "", "Optional input file. IDs from 'in' are added to this file, but only if the (modified) peptide sequences are not present yet (considering only best hits per spectrum).", false);
-    setValidFormats_("add_to", {"idXML"}); // .oms input currently not supported
+    setValidFormats_("add_to", {"idXML"}); // native identification bundles are not supported here
     registerStringOption_("annotate_file_origin", "<annotate>", "true", "Store the original filename in each protein/peptide identification (meta value: 'file_origin') - idXML input/output only", false);
     setValidStrings_("annotate_file_origin", {"true","false"});
     registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
@@ -266,29 +267,27 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    if (type == FileTypes::OMS)
+    // Native identification bundles are merged in the owning model: run identities and links are
+    // kept, and the inputs must share one PSM score schema. Other bundles use the legacy merge below.
+    if (type == FileTypes::IDPARQUET
+        && std::all_of(file_names.begin(), file_names.end(), [](const std::string& name) { return IdentificationDataFile::isNativeFile(name); }))
     {
       if (!add_to.empty() || pepxml_protxml || merge_proteins_add_PSMs)
       {
         // 'annotate_file_origin' is on by default - just ignore it
-        writeLogError_("Options are currently not supported when merging .oms files. Aborting!");
+        writeLogError_("Options are currently not supported when merging native identification bundles. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
-
-      OMSFile oms_file;
-      // load first file (others will be merged in):
       IdentificationData data;
-      oms_file.load(file_names[0], data);
-      // merge in other files:
+      FileHandler().loadIdentifications(file_names[0], data, {FileTypes::IDPARQUET}, log_type_);
       for (Size index = 1; index < file_names.size(); ++index)
       {
         IdentificationData more_data;
-        oms_file.load(file_names[index], more_data);
+        FileHandler().loadIdentifications(file_names[index], more_data, {FileTypes::IDPARQUET}, log_type_);
         data.merge(more_data);
       }
-
-      oms_file.store(out, data);
+      FileHandler().storeIdentifications(out, data, {FileTypes::IDPARQUET}, log_type_);
       return EXECUTION_OK;
     }
 

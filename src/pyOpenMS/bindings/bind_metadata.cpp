@@ -2,6 +2,7 @@
 // Domain: metadata
 
 #include "all_casters.h"
+#include "bind_identification_data.h"
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
@@ -869,4 +870,5 @@ Inherits lookup-by-RT, lookup-by-native-ID, and lookup-by-index from SpectrumLoo
         return OpenMS::SpectrumNativeIDParser::isNativeID(id);
     }, "id"_a, "Check if string is a native ID");
 
+    pyopenms_identification::bind(m);
 }

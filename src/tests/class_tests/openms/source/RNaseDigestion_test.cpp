@@ -168,40 +168,40 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
 }
 END_SECTION
 
-START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
-                Size max_length = 0) const))
+START_SECTION((owning digestion retains repeated evidence and target / decoy membership))
 {
-  IdentificationData id_data;
-  IdentificationData::ParentSequence rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
-  id_data.registerParentSequence(rna);
-
+  IdentificationData data;
+  auto& run = data.addRun("RNA", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+  IdentificationData::Database database;
+  database.path = "db";
+  IdentificationData::DatabaseSequence parent;
+  parent.database = run.addDatabase(database);
+  parent.accession = "test";
+  parent.sequence = "pAUGUCGCAG";
+  parent.target_decoy = IdentificationData::TargetDecoy::TARGET;
+  run.setDatabaseSequences(std::vector {parent});
   RNaseDigestion rd;
-  rd.setEnzyme("RNase_T1"); // cuts after G and leaves a 3'-phosphate
-  rd.digest(id_data);
-
-  TEST_EQUAL(id_data.getIdentifiedOligos().size(), 3);
-
-  /// multiple occurrences of the same oligo:
-  IdentificationData id_data2;
-  rna.sequence = "ACUGACUGG";
-  id_data2.registerParentSequence(rna);
-
-  rd.digest(id_data2, 2);
-
-  TEST_EQUAL(id_data2.getIdentifiedOligos().size(), 1);
-  ABORT_IF(id_data2.getIdentifiedOligos().empty());
-  IdentificationData::IdentifiedOligoRef ref = id_data2.getIdentifiedOligos().begin();
-  TEST_EQUAL(ref->parent_matches.size(), 1);
-  ABORT_IF(ref->parent_matches.empty());
-  // oligo sequence matches in two locations:
-  const set<IdentificationData::ParentMatch>& matches =
-    ref->parent_matches.begin()->second;
-  TEST_EQUAL(matches.size(), 2);
-  ABORT_IF(matches.size() < 2);
-  auto match_it = matches.begin();
-  TEST_EQUAL(match_it->start_pos, 0);
-  ++match_it;
-  TEST_EQUAL(match_it->start_pos, 4);
+  rd.setEnzyme("RNase_T1");
+  auto output = rd.digest(run);
+  TEST_EQUAL(output.size(), 3);
+  parent.sequence = "ACUGACUGG";
+  run.setDatabaseSequences(std::vector {parent});
+  output = rd.digest(run, 2);
+  TEST_EQUAL(output.size(), 1);
+  ABORT_IF(output.empty());
+  TEST_EQUAL(output[0].sequence.toString(), "ACUGp");
+  TEST_EQUAL(output[0].sequence_evidence.size(), 2);
+  TEST_EQUAL(output[0].sequence_evidence[0].start.value(), 0);
+  TEST_EQUAL(output[0].sequence_evidence[1].start.value(), 4);
+  TEST_EQUAL(output[0].sequence_evidence[0].accession, "test");
+  TEST_EQUAL(output[0].target_decoy == IdentificationData::TargetDecoy::TARGET, true);
+  auto decoy = parent;
+  decoy.accession = "decoy";
+  decoy.target_decoy = IdentificationData::TargetDecoy::DECOY;
+  run.setDatabaseSequences(std::vector {parent, decoy});
+  output = rd.digest(run, 2);
+  TEST_EQUAL(output[0].sequence_evidence.size(), 4);
+  TEST_EQUAL(output[0].target_decoy == IdentificationData::TargetDecoy::BOTH, true);
 }
 END_SECTION
 

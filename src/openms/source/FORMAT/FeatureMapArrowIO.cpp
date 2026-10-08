@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include "MapIdentificationParquet.h"
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -37,6 +38,7 @@
 
 namespace OpenMS
 {
+namespace MapIdentificationParquet = Internal::MapIdentificationParquet;
 
 namespace // anonymous
 {
@@ -888,6 +890,17 @@ namespace // anonymous
     }
   }
 
+  /// Top-level features and their subordinates, which can all carry native identification links.
+  std::vector<const BaseFeature*> linkedFeatures_(const FeatureMap& feature_map)
+  {
+    std::vector<const BaseFeature*> rows;
+    std::function<void(const Feature&)> collect = [&](const Feature& feature) {
+      rows.push_back(&feature);
+      for (const auto& subordinate : feature.getSubordinates()) collect(subordinate);
+    };
+    for (const auto& feature : feature_map) collect(feature);
+    return rows;
+  }
 } // anonymous namespace
 
 
@@ -1238,17 +1251,23 @@ bool FeatureMapArrowIO::exportToParquet(
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .featureparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(feature_map.getProteinIdentifications());
+  // Native identification links must resolve before anything is written (throws InvalidValue).
+  const auto rows = linkedFeatures_(feature_map);
+  MapIdentificationParquet::validateLinks(feature_map.getIdentificationData(), rows);
 
-  // 1. Create output directory
+  // 1. Write into a private sibling directory; publish only after every table is complete,
+  //    so a failed export never leaves a partial bundle behind.
+  std::unique_ptr<MapIdentificationParquet::StagedBundle> staged;
   try
   {
-    std::filesystem::create_directories(std::string(directory));
+    staged = std::make_unique<MapIdentificationParquet::StagedBundle>(directory, "features.parquet");
   }
-  catch (const std::filesystem::filesystem_error& e)
+  catch (const Exception::UnableToCreateFile& e)
   {
-    OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create directory: " << e.what() << std::endl;
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: " << e.what() << std::endl;
     return false;
   }
+  const std::string output = staged->path().string();
 
   // 2. Export features table (with FeatureMap-level metadata)
   auto features_table = exportFeaturesToArrow(feature_map);
@@ -1273,7 +1292,7 @@ bool FeatureMapArrowIO::exportToParquet(
   // the consensus column header of the run the map came from.
   feature_map_metadata["map_unique_id"] = std::to_string(feature_map.getUniqueId());
 
-  if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config, feature_map_metadata))
+  if (!writeArrowTableToParquet_(features_table, output + "/features.parquet", "features", config, feature_map_metadata))
   {
     return false;
   }
@@ -1285,7 +1304,7 @@ bool FeatureMapArrowIO::exportToParquet(
     OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create PSMs Arrow table" << std::endl;
     return false;
   }
-  if (!writeArrowTableToParquet_(psms_table, directory + "/psms.parquet", "psms", config))
+  if (!writeArrowTableToParquet_(psms_table, output + "/psms.parquet", "psms", config))
   {
     return false;
   }
@@ -1293,22 +1312,33 @@ bool FeatureMapArrowIO::exportToParquet(
   // 4. Delegate protein data to ProteinIdentificationArrowIO
   const auto& prot_ids = feature_map.getProteinIdentifications();
   if (!ProteinIdentificationArrowIO::exportProteinsToParquet(
-          prot_ids, directory + "/proteins.parquet", config))
+          prot_ids, output + "/proteins.parquet", config))
   {
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportProteinGroupsToParquet(
-          prot_ids, directory + "/protein_groups.parquet", config))
+          prot_ids, output + "/protein_groups.parquet", config))
   {
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-          prot_ids, directory + "/search_params.parquet", config,
+          prot_ids, output + "/search_params.parquet", config,
           ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(feature_map))))
   {
     return false;
   }
 
+  // 5. Owning identification data and per-feature links (absent for maps without them)
+  try
+  {
+    MapIdentificationParquet::store(staged->path(), feature_map.getIdentificationData(), rows);
+    staged->publish();
+  }
+  catch (const Exception::UnableToCreateFile& e)
+  {
+    OPENMS_LOG_ERROR << "FeatureMapArrowIO: " << e.what() << std::endl;
+    return false;
+  }
   return true;
 }
 
@@ -1881,6 +1911,16 @@ bool FeatureMapArrowIO::importFromParquet(
   // 3. Import PSMs (links to features already in the map)
   auto psms_table = readParquetTable_(directory + "/psms.parquet");
   if (!psms_table) { return false; }
+  // Owning identification data and per-feature links, if the bundle has them (throws on malformed data)
+  {
+    std::vector<BaseFeature*> rows;
+    std::function<void(Feature&)> collect = [&](Feature& feature) {
+      rows.push_back(&feature);
+      for (auto& subordinate : feature.getSubordinates()) collect(subordinate);
+    };
+    for (auto& feature : feature_map) collect(feature);
+    MapIdentificationParquet::load(directory, feature_map.getIdentificationData(), rows);
+  }
   if (!importPSMsFromArrow(psms_table, feature_map))
   {
     return false;

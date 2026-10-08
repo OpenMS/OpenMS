@@ -636,6 +636,9 @@ DefaultParamHandler
         .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const std::vector<OpenMS::ProteinIdentification>& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a = 1.0, "fpCutoff"_a = 50, "diffWeight"_a = 0.2)
         .def("applyEvaluateProteinIDs", [](const OpenMS::FalseDiscoveryRate& self, const OpenMS::ProteinIdentification& ids, double pepCutoff, unsigned int fpCutoff, double diffWeight) { return self.applyEvaluateProteinIDs(ids, pepCutoff, fpCutoff, diffWeight); }, "ids"_a, "pepCutoff"_a = 1.0, "fpCutoff"_a = 50, "diffWeight"_a = 0.2)
         .def("applyPickedProteinFDR", [](OpenMS::FalseDiscoveryRate& self, OpenMS::ProteinIdentification& id, std::string decoy_string, bool prefix, bool groups_too) { return self.applyPickedProteinFDR(id, decoy_string, prefix, groups_too); }, "id"_a, "decoy_string"_a = "", "prefix"_a = true, "groups_too"_a = true)
+        .def("applyToObservationMatches", &OpenMS::FalseDiscoveryRate::applyToObservationMatches, "data"_a, "score"_a,
+            "FDR on the candidates of an IdentificationData: every run with scores gains a q-value column (FDR with 'no_qvalues'); "
+            "the input score is kept. Returns the definition of the added score.")
         .def("applyBasic", [](OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& ids, bool higher_score_better, int charge, std::string identifier, bool only_best_per_pep) { self.applyBasic(ids, higher_score_better, charge, identifier, only_best_per_pep); }, "ids"_a, "higher_score_better"_a, "charge"_a = 0, "identifier"_a = "", "only_best_per_pep"_a = false, "Applies basic FDR calculation")
         .def("applyBasic", [](OpenMS::FalseDiscoveryRate& self, const std::vector<OpenMS::ProteinIdentification>& run_info, OpenMS::PeptideIdentificationList& ids) { self.applyBasic(run_info, ids); }, "run_info"_a, "ids"_a, "Applies basic FDR calculation using run info")
         .def("applyBasic", [](OpenMS::FalseDiscoveryRate& self, OpenMS::ConsensusMap& cmap, bool use_unassigned_peptides) { self.applyBasic(cmap, use_unassigned_peptides); }, "cmap"_a, "use_unassigned_peptides"_a = true, "Applies basic FDR calculation on ConsensusMap")
@@ -3092,6 +3095,7 @@ ProgressLogger
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::FeatureMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (FeatureMap)")
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::ConsensusMap& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (ConsensusMap)")
         .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::PeptideIdentificationList& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (peptide identifications)")
+        .def("setReference", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::IdentificationData& ref) { self.setReference(ref); }, "ref"_a, "Sets the reference for alignment (IdentificationData)")
         .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const OpenMS::FeatureMap& map) {
             std::vector<OpenMS::FeatureMap> maps = {map};
             std::vector<OpenMS::TransformationDescription> trafos;
@@ -3122,6 +3126,11 @@ ProgressLogger
             self.align(maps, trafos, reference_index);
             return trafos;
         }, "maps"_a, "reference_index"_a = -1, "Aligns several runs of peptide identifications and returns one transformation per run; see the FeatureMap overload")
+        .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const std::vector<OpenMS::IdentificationData>& maps, int reference_index) {
+            std::vector<OpenMS::TransformationDescription> trafos;
+            self.align(maps, trafos, reference_index);
+            return trafos;
+        }, "maps"_a, "reference_index"_a = -1, "Aligns several IdentificationData datasets and returns one transformation per dataset; see the FeatureMap overload")
         // The pyOpenMS 3.5 form, which fills the list passed as 'transformations'
         .def("align", [](OpenMS::MapAlignmentAlgorithmIdentification& self, const std::vector<OpenMS::FeatureMap>& maps, nb::list transformations, int reference_index) {
             std::vector<OpenMS::TransformationDescription> trafos;

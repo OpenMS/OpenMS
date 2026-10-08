@@ -728,51 +728,60 @@ namespace OpenMS
     peptides.resize(n);
   }
 
-  void IDFilter::keepBestMatchPerObservation(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref)
+  void IDFilter::keepBestMatchPerObservation(IdentificationData& data, const IdentificationData::ScoreDefinition& score)
   {
-    if (id_data.getObservationMatches().size() <= 1)
-      return; // nothing to do
+    data.validate();
+    IdentificationData replacement(data);
+    for (const auto& current : replacement.getRuns())
+    {
+      auto& run = replacement.getRun(current.getIdentifier());
+      if (! run.getScoreDefinitions().empty()) run.retainBest(run.findScore(score), false);
+    }
+    data.swap(replacement);
+  }
 
-    vector<IdentificationData::ObservationMatchRef> best_matches = id_data.getBestMatchPerObservation(score_ref);
+  void IDFilter::filterObservationMatchesByScore(IdentificationData& data, const IdentificationData::ScoreDefinition& score, double cutoff)
+  {
+    data.validate();
+    IdentificationData replacement(data);
+    for (const auto& current : replacement.getRuns())
+    {
+      auto& run = replacement.getRun(current.getIdentifier());
+      if (run.getScoreDefinitions().empty()) continue;
+      auto view = run.bindScore(run.findScore(score));
+      run.filterMatches([&](const IdentificationData::Match& match) {
+        auto value = view(match);
+        return value && (score.higher_better ? *value >= cutoff : *value <= cutoff);
+      });
+    }
+    data.swap(replacement);
+  }
 
-    auto best_match_it = best_matches.begin();
-
-    // predicate to compare the best match(es) to all (ordered) observation matches
-    // returns false if the current om is a best match (-> not to be removed)
-    // returns true if an inferior om was found (-> will be removed)
-    auto has_worse_score = [&best_match_it](IdentificationData::ObservationMatchRef it) -> bool {
-      if (it == *best_match_it)
+  void IDFilter::removeDecoys(IdentificationData& data)
+  {
+    using ID = IdentificationData;
+    data.validate();
+    ID replacement(data);
+    for (const auto& current : replacement.getRuns())
+    {
+      auto& run = replacement.getRun(current.getIdentifier());
+      std::set<std::pair<UInt32, std::string>> decoys;
+      if (run.getDatabaseSequences())
       {
-        ++best_match_it;
-        return false;
+        auto sequences = *run.getDatabaseSequences();
+        for (const auto& sequence : sequences)
+          if (sequence.target_decoy == ID::TargetDecoy::DECOY) decoys.emplace(sequence.database.value, sequence.accession);
+        std::erase_if(sequences, [](const auto& sequence) { return sequence.target_decoy == ID::TargetDecoy::DECOY; });
+        run.setDatabaseSequences(std::move(sequences));
       }
-      return true;
-    };
-
-    id_data.removeObservationMatchesIf(has_worse_score);
-  }
-
-  void IDFilter::filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff)
-  {
-    // predicate to compare the score of observation matches to a cutoff
-    // returns true if the current score is worse than the cutoff
-    // returns false otherwise
-    auto is_worse_than_cutoff = [&](IdentificationData::ObservationMatchRef it) -> bool {
-      pair<double, bool> score = it->getScore(score_ref);
-      return !score.second || score_ref->isBetterScore(cutoff, score.first);
-    };
-
-    id_data.removeObservationMatchesIf(is_worse_than_cutoff);
-  }
-
-  void IDFilter::removeDecoys(IdentificationData& id_data)
-  {
-    // predicate to compare the target/decoy status of a parent sequence
-    // returns true if decoy
-    // returns false if target
-    auto is_decoy = [&](IdentificationData::ParentSequenceRef it) -> bool { return it->is_decoy; };
-
-    id_data.removeParentSequencesIf(is_decoy);
+      run.eraseMatches([](const auto& match) { return match.target_decoy == ID::TargetDecoy::DECOY; });
+      run.transformMatches([&](ID::MatchData& match) {
+        const auto removed = std::erase_if(match.sequence_evidence,
+                                           [&](const auto& evidence) { return decoys.contains({evidence.database.value, evidence.accession}); });
+        if (removed && match.target_decoy == ID::TargetDecoy::BOTH) match.target_decoy = ID::TargetDecoy::TARGET;
+      });
+    }
+    data.swap(replacement);
   }
 
 } // namespace OpenMS

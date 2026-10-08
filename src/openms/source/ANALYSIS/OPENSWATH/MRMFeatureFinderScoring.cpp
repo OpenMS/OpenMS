@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 // data access
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -1235,13 +1236,42 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence::fromString(pep.sequence));
       mrmfeature.setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);
     }
-
-    // set protein accession numbers
-    for (Size k = 0; k < pep.protein_refs.size(); k++)
+    else if (!pep.isPeptide())
     {
-      PeptideEvidence pe;
-      pe.setProteinAccession(pep.protein_refs[k]);
-      pep_hit_.addPeptideEvidence(pe);
+      // A compound, as IdentificationDataConverter writes and reads them: represented by its SMILES if the assay has
+      // one, else by the assay's compound identifier.
+      const bool smiles = !pep.smiles.empty();
+      pep_hit_.setMetaValue("molecule_type", "compound");
+      pep_hit_.setMetaValue("label", smiles ? pep.smiles : pep.id);
+      pep_hit_.setMetaValue("identification:encoding",
+                            static_cast<int>(smiles ? IdentificationData::Encoding::SMILES : IdentificationData::Encoding::DATABASE_ID));
+      pep_hit_.setMetaValue("identification:name", pep.compound_name);
+      if (!pep.sum_formula.empty()) pep_hit_.setMetaValue("identification:formula", pep.sum_formula);
+    }
+
+    // set protein accession numbers; those of a compound are its identifiers in the assay library (e.g. BiGG IDs), not
+    // sequence evidence
+    if (pep.isPeptide())
+    {
+      for (Size k = 0; k < pep.protein_refs.size(); k++)
+      {
+        PeptideEvidence pe;
+        pe.setProteinAccession(pep.protein_refs[k]);
+        pep_hit_.addPeptideEvidence(pe);
+      }
+    }
+    else
+    {
+      StringList accessions;
+      for (const auto& reference : pep.protein_refs)
+      {
+        if (!reference.empty()) accessions.push_back(reference); // an empty reference names nothing
+      }
+      if (!accessions.empty())
+      {
+        pep_hit_.setMetaValue("identification:identifier_databases", StringList(accessions.size(), "assay library"));
+        pep_hit_.setMetaValue("identification:identifier_accessions", accessions);
+      }
     }
     pep_id_.insertHit(pep_hit_);
     pep_id_.setIdentifier(run_identifier);

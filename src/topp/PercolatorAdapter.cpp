@@ -279,6 +279,8 @@ protected:
       // can see that scores were post-processed.
       prot_id_run.setSearchEngine("Percolator");
       prot_id_run.setSearchEngineVersion(version_string);
+      // Percolator now produces the PSM scores; drop producers recorded by earlier rescoring tools.
+      prot_id_run.clearScoreSoftware();
 
       if (protein_level_fdrs && protein_map)
       {

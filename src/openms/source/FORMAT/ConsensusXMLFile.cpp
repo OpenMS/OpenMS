@@ -13,8 +13,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
+#include <optional>
 
 using namespace std;
 
@@ -37,8 +39,18 @@ namespace OpenMS
     return options_;
   }
 
-  void ConsensusXMLFile::store(const std::string& filename, const ConsensusMap& consensus_map)
+  void ConsensusXMLFile::store(const std::string& filename, const ConsensusMap& map)
   {
+    // consensusXML holds legacy identifications. A map with native identification data and no legacy identifications
+    // (which the file would hold otherwise) is written with its native identifications converted, so they are kept.
+    std::optional<ConsensusMap> converted;
+    if (! map.getIdentificationData().empty() && map.getProteinIdentifications().empty() && map.getUnassignedPeptideIdentifications().empty()
+        && std::none_of(map.begin(), map.end(), [](const ConsensusFeature& feature) { return ! feature.getPeptideIdentifications().empty(); }))
+    {
+      converted.emplace(map);
+      IdentificationDataConverter::exportConsensusIDs(*converted, true);
+    }
+    const ConsensusMap& consensus_map = converted ? *converted : map;
     if (!FileHandler::hasValidExtension(filename, FileTypes::CONSENSUSXML))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");

@@ -1244,17 +1244,43 @@ MapAlignmentEvaluationAlgorithm
     // -----------------------------------------------------------------------
     // MapAlignmentTransformer
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::MapAlignmentTransformer>(m, "MapAlignmentTransformer", "This class collects functions for applying retention time transformations to data structures")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::MapAlignmentTransformer &>())
-        .def("__copy__", [](const OpenMS::MapAlignmentTransformer& self) { return OpenMS::MapAlignmentTransformer(self); })
-        .def("__deepcopy__", [](const OpenMS::MapAlignmentTransformer& self, nb::dict) { return OpenMS::MapAlignmentTransformer(self); }, "memo"_a)
-        .def_static("transformRetentionTimes", [](OpenMS::MSExperiment& msexp, const OpenMS::TransformationDescription& trafo, bool store_original_rt) { return OpenMS::MapAlignmentTransformer::transformRetentionTimes(msexp, trafo, store_original_rt); }, "msexp"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
-        .def_static("transformRetentionTimes", [](OpenMS::FeatureMap& fmap, const OpenMS::TransformationDescription& trafo, bool store_original_rt) { return OpenMS::MapAlignmentTransformer::transformRetentionTimes(fmap, trafo, store_original_rt); }, "fmap"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
-        .def_static("transformRetentionTimes", [](OpenMS::ConsensusMap& cmap, const OpenMS::TransformationDescription& trafo, bool store_original_rt) { return OpenMS::MapAlignmentTransformer::transformRetentionTimes(cmap, trafo, store_original_rt); }, "cmap"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
-        .def_static("transformRetentionTimes", [](OpenMS::PeptideIdentificationList& pep_ids, const OpenMS::TransformationDescription& trafo, bool store_original_rt) { return OpenMS::MapAlignmentTransformer::transformRetentionTimes(pep_ids, trafo, store_original_rt); }, "pep_ids"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
-        .def_static("transformRetentionTimes", [](OpenMS::IdentificationData& id_data, const OpenMS::TransformationDescription& trafo, bool store_original_rt) { return OpenMS::MapAlignmentTransformer::transformRetentionTimes(id_data, trafo, store_original_rt); }, "id_data"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
-        ;
+    nb::class_<OpenMS::MapAlignmentTransformer>(m, "MapAlignmentTransformer",
+                                                "This class collects functions for applying retention time transformations to data structures")
+      .def(nb::init<>())
+      .def(nb::init<const OpenMS::MapAlignmentTransformer&>())
+      .def("__copy__", [](const OpenMS::MapAlignmentTransformer& self) { return OpenMS::MapAlignmentTransformer(self); })
+      .def(
+        "__deepcopy__", [](const OpenMS::MapAlignmentTransformer& self, nb::dict) { return OpenMS::MapAlignmentTransformer(self); }, "memo"_a)
+      .def_static(
+        "transformRetentionTimes",
+        [](OpenMS::MSExperiment& msexp, const OpenMS::TransformationDescription& trafo, bool store_original_rt) {
+          return OpenMS::MapAlignmentTransformer::transformRetentionTimes(msexp, trafo, store_original_rt);
+        },
+        "msexp"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
+      .def_static(
+        "transformRetentionTimes",
+        [](OpenMS::FeatureMap& fmap, const OpenMS::TransformationDescription& trafo, bool store_original_rt) {
+          return OpenMS::MapAlignmentTransformer::transformRetentionTimes(fmap, trafo, store_original_rt);
+        },
+        "fmap"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
+      .def_static(
+        "transformRetentionTimes",
+        [](OpenMS::ConsensusMap& cmap, const OpenMS::TransformationDescription& trafo, bool store_original_rt) {
+          return OpenMS::MapAlignmentTransformer::transformRetentionTimes(cmap, trafo, store_original_rt);
+        },
+        "cmap"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
+      .def_static(
+        "transformRetentionTimes",
+        [](OpenMS::PeptideIdentificationList& pep_ids, const OpenMS::TransformationDescription& trafo, bool store_original_rt) {
+          return OpenMS::MapAlignmentTransformer::transformRetentionTimes(pep_ids, trafo, store_original_rt);
+        },
+        "pep_ids"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map")
+      .def_static(
+        "transformRetentionTimes",
+        [](OpenMS::IdentificationData& id_data, const OpenMS::TransformationDescription& trafo, bool store_original_rt) {
+          return OpenMS::MapAlignmentTransformer::transformRetentionTimes(id_data, trafo, store_original_rt);
+        },
+        "id_data"_a, "trafo"_a, "store_original_rt"_a, "Applies the given transformation to a peak map");
 
     // -----------------------------------------------------------------------
     // MassFeature_FDHS

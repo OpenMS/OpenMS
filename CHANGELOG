@@ -17,6 +17,73 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - Add an owning IdentificationData model with a checked dataset-wide ordered score schema,
+    nullable supplementary scores, generic molecular representations and explicit inference values.
+    Replace the reference graph in feature/consensus maps, filtering/FDR, alignment,
+    accurate-mass search, NASE and converters. Data that does not fit one score schema is
+    rejected with the conflicting definitions named; normalize scores first (e.g. per-engine
+    PercolatorAdapter or IDPosteriorErrorProbability). Merging keeps references to existing runs valid.
+    Runs are edited in place and are not assignable, so a stale copy cannot reuse IDs.
+    Legacy export writes inference over several runs as one merged protein run (as IDMerger
+    creates it) when their search settings are mergeable, and keeps inference score definitions.
+    The sources of a run (Run::getSources(), each a Source with a SourceFile and its
+    identifications) are its files, one file each and in order (an empty path is an unknown file). Legacy import turns 'spectra_data' into the sources and
+    places each identification in the source its 'id_merge_index' names, so neither is kept;
+    export derives both from the sources. A run's settings (Run::getSettings(), a RunSettings with
+    the software, its version, the date, the SearchParameters and metadata) replace the
+    ProteinIdentification that held its configuration; they reject 'spectra_data'.
+    ProteinIdentification::SearchParameters is now the standalone class SearchParameters
+    (the nested name remains an alias). A run lists its databases (Run::addDatabase, a Database
+    with path, version and taxonomy); its DatabaseSequence catalogue (formerly ParentRecord; constructible
+    as {database, accession, target_decoy}) and the
+    SequenceEvidence of matches (formerly ParentEvidence, MatchData::parent_evidence) refer to them
+    by DatabaseId, so the search settings name no database. QualifiedAccession (database path and
+    accession, Run::qualify) remains the identity across runs. InferenceResult::parent_score is
+    protein_score. Legacy import no longer stores the spectrum reference, 'target_decoy' and protein
+    descriptions as metadata next to the fields that hold them (export writes them back), keeps a
+    legacy protein run as inference result "legacy:<run>" only if export cannot rebuild it from the
+    run's settings and database sequences (search engine output: no inference result), and loading or importing
+    ends with Run::shrinkToFit(): a 268,000-PSM idXML (Tide, 16 meta values per PSM) takes 297 MiB
+    loaded from .idparquet instead of 538 MiB (established classes: 384 MiB).
+    API: the reference graph is removed (IDDataContainer.h, IdentifiedMolecule.h, IdentifiedSequence.h,
+    IdentifiedCompound.h, ObservationMatch.h, ObservationMatchGroup.h, Observation.h, ScoreType.h,
+    ScoredProcessingResult.h, AppliedProcessingStep.h, ProcessingStep.h, ProcessingSoftware.h,
+    DBSearchParam.h, InputFile.h, ParentSequence.h, ParentMatch.h, ParentGroup.h, MetaData.h).
+    BaseFeature links use IdentificationData::MatchReference/QueryReference instead of
+    ObservationMatchRef; BaseFeature::updateIDReferences is gone, as copies keep stable IDs.
+  - Add native manifest/Parquet persistence (.idparquet directories with a manifest) with projected
+    streaming scans, subset export, stable record identities, typed protein/group results with
+    run-level inference provenance, strict legacy/feature adapters, and configurable parallel column
+    encoding/decoding. The Parquet tables can be queried directly: rows carry their run UUID, and score
+    columns are named after their definitions (e.g. score_q_value). IdentificationDataFile::Options::replace_existing replaces an existing native
+    bundle; FileHandler sets it so a tool rerun overwrites its output. The established four-table
+    .idparquet bundle remains readable and is still written by the legacy FileHandler overloads.
+  - FeatureXMLFile/ConsensusXMLFile::store write the native identification data of a map that has no
+    legacy identifications as legacy identifications instead of dropping it.
+  - Identification data of feature and consensus maps is no longer lost by map operations:
+    MapConversion keeps it (features to consensus features: identifications of converted features
+    get their map index, those of subordinates and of features not converted are removed, as for
+    peptide identifications), ConsensusFeature::insert keeps the links, ConsensusMap::appendColumns
+    shifts the map indices, and MapAlignmentTransformer transforms its retention times.
+  - Reading map identifications from identification data: BaseFeature::getLinkedIdentifications()
+    and getBestLinkedMatch(), FeatureMap/ConsensusMap::getUnassignedIdentifications() (the
+    counterparts of getPeptideIdentifications(), the best hit and the unassigned peptide
+    identifications), IdentificationData::resolveLinks()/getUnlinked(), Run::eraseIdentifications();
+    IdentificationDataConverter::withIdentificationData()/moveToIdentificationData() give code that
+    works on identification data a map in that form.
+  - .featureparquet and .consensusparquet bundles store a map's owning identification data
+    (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
+    keyed by feature unique ID, stored as int64 like the feature tables so they join without a
+    cast). Bundles are written to a temporary sibling directory and published
+    when complete; an existing bundle or empty directory is replaced, anything else is left alone.
+  - ProteinIdentification::setScoreSoftware()/getScoreSoftware() record the tool that produced a
+    derived PSM score (stored as ScoreSoftware:<score type> search parameters). Score definitions
+    imported from idXML use that producer instead of the search engine, so posterior error
+    probabilities or q-values computed for different engines share one definition.
+  - REMOVED: the OpenMS SQLite format (.oms, OMSFile). Convert existing .oms files with OpenMS 3.6:
+    IDFileConverter for identifications (e.g. to idXML) and FileConverter for feature maps
+    (to featureXML). Loading a .oms file now reports this. Native identification data is stored as
+    .idparquet; maps with native identification data as .featureparquet/.consensusparquet.
   - OpenSWATH (MRMFeatureFinderScoring) and AccurateMassSearchEngine record the score type of the
     peptide identifications they write: xx_lda_prelim_score (or xx_swath_prelim_score,
     OverallQuality; higher is better) and MassErrorAbsPPMScore (lower is better). AccurateMassSearch
@@ -114,7 +181,25 @@ Dependencies:
     which were not installed before (#10248).
 
 TOPP tools:
+  Removed:
+    JSONExporter: exported .oms files, which are no longer supported.
   Changes:
+    AccurateMassSearch:
+      - -out_annotation accepts .featureparquet (instead of .oms) for results in the owning
+        identification model (ID format). Unmatched masses are kept as identifications without
+        candidates, and negative-mode candidates carry their signed adduct charge.
+      - mzTab-M evidence rows report the ion charge and theoretical m/z of the adduct (previously 0
+        and the neutral mass); unmatched masses no longer produce empty evidence rows.
+    IDMerger, MapAlignerIdentification:
+      - Native identification bundles (.idparquet with a manifest) are merged/aligned in the owning
+        model, as .oms files were. Other .idparquet bundles and idXML use the existing paths.
+    NucleicAcidSearchEngine:
+      - -db_out, -digest and -digest_out use native identification bundles (.idparquet) instead of .oms.
+        Reported parents are again restricted to those with hits after FDR filtering.
+    IDPosteriorErrorProbability, FalseDiscoveryRate:
+      - Record themselves as producers of the scores they write (ScoreSoftware:<score type> search
+        parameters in idXML). PercolatorAdapter and ConsensusID, which record themselves as search
+        engine, clear such records.
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
@@ -122,6 +207,26 @@ TOPP tools:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
         and stays 'unknown' if the input file name has none. -dbversion now defaults to empty.
+
+PyOpenMS:
+  - Bindings for the owning IdentificationData model, IdentificationDataFile (native Parquet),
+    IdentificationDataAdapter and FileHandler.loadIdentificationData/storeIdentificationData.
+    Getters return copies; runs are edited through IdentificationData.run_view() (also returned by
+    addRun), and FeatureMap/ConsensusMap identification data through identification_data_view().
+    Value types take their field names as constructor keywords, e.g.
+    IdentificationData.QualifiedAccession(database="uniprot.fasta", accession="P02769"), records
+    with metadata also metadata={name: value}. All value types compare by value and have a
+    field-by-field repr. ID handles (QueryId, MatchId, ScoreId, SourceId), references
+    (QueryReference, MatchReference), MoleculeIdentity and QualifiedAccession hash by value, so they
+    work as dict keys and set members; mutable records are unhashable.
+  - AMSE_AdductInfo is also available as AdductInfo, compares with == and !=, hashes by value and
+    has a readable repr.
+  - Native algorithm entry points for IdentificationData: FalseDiscoveryRate.applyToObservationMatches,
+    IDFilter.keepBestMatchPerObservation/filterObservationMatchesByScore/removeDecoys,
+    MapAlignmentAlgorithmIdentification.align/setReference and IdentificationDataConverter.exportMzTab,
+    importFeatureIDs/exportFeatureIDs and importConsensusIDs/exportConsensusIDs.
+    Predicate callbacks accept any Python truth value. Native identification I/O releases the GIL.
+  - ProteinIdentification.setScoreSoftware/getScoreSoftware/clearScoreSoftware.
 
 Build System:
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
