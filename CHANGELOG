@@ -17,6 +17,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
+    staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
+    the resolved path is opened now, while the source file keeps the given name (#10451).
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
