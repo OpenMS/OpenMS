@@ -2636,7 +2636,7 @@ namespace OpenMS
   std::string MzTabFile::generateMzTabSectionRow_(
       const MzTabNucleicAcidSectionRow& row,
       const vector<std::string>& optional_columns,
-      const MzTabMetaData& /*meta*/, size_t& n_columns) const
+      const MzTabMetaData& meta, size_t& n_columns) const
   {
     StringList s;
     s.push_back("NUC");
@@ -2835,7 +2835,7 @@ namespace OpenMS
   std::string MzTabFile::generateMzTabSectionRow_(
       const MzTabOSMSectionRow& row,
       const vector<std::string>& optional_columns,
-      const MzTabMetaData& /*meta*/, size_t& n_columns) const
+      const MzTabMetaData& meta, size_t& n_columns) const
   {
     StringList s;
     s.push_back("OSM");
