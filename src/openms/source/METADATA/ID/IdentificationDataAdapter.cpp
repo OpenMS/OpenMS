@@ -471,6 +471,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   auto definitions = ModificationDefinitionIO::collect(proteins, peptides);
   std::map<std::string, ProteinIdentification> originals;
   std::map<std::string, Size> file_counts;
+  std::map<std::string, bool> catalogues;
   struct InferenceScores
   {
     std::optional<ID::ScoreDefinition> protein, group, input;
@@ -486,6 +487,12 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     ModificationDefinitionIO::attach(params, definitions[protein.getIdentifier()]);
     protein.setSearchParameters(params);
     file_counts[protein.getIdentifier()] = protein.nrPrimaryMSRunPaths();
+    // Database sequences need distinct accessions. A protein list with empty or repeated accessions (which legacy
+    // runs allow) has no catalogue; its inference result keeps the protein hits.
+    std::set<std::string> accessions;
+    catalogues[protein.getIdentifier()] = std::all_of(protein.getHits().begin(), protein.getHits().end(), [&](const ProteinHit& hit) {
+      return ! hit.getAccession().empty() && accessions.insert(hit.getAccession()).second;
+    });
     originals.emplace(protein.getIdentifier(), std::move(protein));
   }
   using Contract = std::tuple<std::string, std::string, bool>;
@@ -523,7 +530,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     // The database of the legacy run's search becomes the database of the run.
     addLegacyDatabase(run, configuration.getSearchParameters());
     std::vector<ID::DatabaseSequence> sequences;
-    for (const auto& hit : original->second.getHits())
+    for (const auto& hit : catalogues.at(original_id) ? original->second.getHits() : std::vector<ProteinHit> {})
     {
       ID::DatabaseSequence sequence;
       static_cast<MetaInfoInterface&>(sequence) = hit;
@@ -537,7 +544,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
       dropRestoredMetaValue(sequence, "target_decoy", targetDecoyText(sequence.target_decoy));
       sequences.push_back(std::move(sequence));
     }
-    run.setDatabaseSequences(std::move(sequences));
+    if (catalogues.at(original_id)) run.setDatabaseSequences(std::move(sequences));
     ID::ScoreDefinition definition;
     definition.name = std::get<1>(contract);
     definition.higher_better = std::get<2>(contract);
@@ -619,7 +626,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
     inference.protein_score = inference_scores[name].protein;
     inference.group_score = inference_scores[name].group;
     for (const auto& hit : original.getHits())
-      inference.qualified_accessions[hit.getAccession()] = {original.getSearchParameters().db, hit.getAccession()};
+      if (! hit.getAccession().empty()) inference.qualified_accessions[hit.getAccession()] = {original.getSearchParameters().db, hit.getAccession()};
     for (const auto& run_name : input_runs[name])
     {
       const auto& run = result.data.getRun(run_name);

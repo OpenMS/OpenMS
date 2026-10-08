@@ -299,6 +299,36 @@ START_SECTION([EXTRA] a protein run that export rebuilds from its run is not kep
 }
 END_SECTION
 
+START_SECTION([EXTRA] a protein list with empty or repeated accessions has no database sequences)
+{
+  // Legacy runs allow such lists (e.g. compound identifications); database sequences need distinct accessions.
+  for (const auto& accessions : {std::vector<std::string> {"P1", "P1"}, std::vector<std::string> {"P1", ""}})
+  {
+    ProteinIdentification search;
+    search.setIdentifier("search");
+    search.setSearchEngine("test-search");
+    search.setScoreType("PEP");
+    search.setHigherScoreBetter(false);
+    for (const auto& accession : accessions)
+    {
+      ProteinHit hit;
+      hit.setAccession(accession);
+      search.insertHit(hit);
+    }
+    const PeptideIdentificationList peptides {peptide()};
+    const auto data = Adapter::fromLegacy({search}, peptides);
+    TEST_FALSE(data.getRuns().front().getDatabaseSequences().has_value())
+    // The inference result keeps the protein hits.
+    TEST_EQUAL(data.getInferenceResults().size(), 1)
+    const auto exported = Adapter::toLegacy(data);
+    ABORT_IF(exported.proteins.size() != 1)
+    TEST_TRUE(exported.proteins[0].getHits() == search.getHits())
+    ABORT_IF(exported.peptides.size() != 1)
+    TEST_TRUE(exported.peptides[0] == peptides[0])
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] derived scores belong to their recorded producer and not to the search engine)
 {
   // Two engines whose PSMs were rescored with posterior error probabilities.
