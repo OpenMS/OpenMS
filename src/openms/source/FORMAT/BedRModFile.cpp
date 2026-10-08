@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -29,7 +30,7 @@ namespace OpenMS
   {
     struct BedRow
     {
-      String chrom;
+      std::string chrom;
       Int chrom_start{0};
       Int chrom_end{0};
       const Ribonucleotide* ribonucleotide{nullptr};
@@ -37,14 +38,14 @@ namespace OpenMS
       double score{0.0};
       Int coverage{1};
       Int target_mapping_count{0};
-      String frag_start;
-      String frag_end;
+      std::string frag_start;
+      std::string frag_end;
 
       bool operator<(const BedRow& rhs) const
       {
         // Compare using ribonucleotide code for consistency
-        String mod_code = ribonucleotide ? ribonucleotide->getCode() : String("");
-        String rhs_mod_code = rhs.ribonucleotide ? rhs.ribonucleotide->getCode() : String("");
+        std::string mod_code = ribonucleotide ? ribonucleotide->getCode() : std::string("");
+        std::string rhs_mod_code = rhs.ribonucleotide ? rhs.ribonucleotide->getCode() : std::string("");
         return std::tie(chrom, chrom_start, chrom_end, mod_code, score, coverage,
                         target_mapping_count, frag_start, frag_end) <
                std::tie(rhs.chrom, rhs.chrom_start, rhs.chrom_end, rhs_mod_code,
@@ -53,20 +54,18 @@ namespace OpenMS
       }
     };
 
-    String normalizeHeader_(String value)
+    std::string normalizeHeader_(std::string value)
     {
-      value = value.trim().toLower();
-      value.substitute(" ", "_");
+      value = StringUtils::toLowered(StringUtils::trimmed(value));
+      std::replace(value.begin(), value.end(), ' ', '_');
       return value;
     }
 
-    bool toInt_(const String& value, Int& result)
+    bool toInt_(const std::string& value, Int& result)
     {
       try
       {
-        String tmp = value;
-        tmp.trim();
-        result = tmp.toInt();
+        result = StringUtils::toInt32(StringUtils::trimmed(value));
       }
       catch (Exception::ConversionError&)
       {
@@ -75,24 +74,24 @@ namespace OpenMS
       return true;
     }
 
-    std::map<String, Int> readChebiMapping_(const String& chebi_mapping_file)
+    std::map<std::string, Int> readChebiMapping_(const std::string& chebi_mapping_file)
     {
-      std::map<String, Int> mapping;
+      std::map<std::string, Int> mapping;
       if (chebi_mapping_file.empty())
       {
         return mapping;
       }
 
-      String full_path = File::find(chebi_mapping_file);
+      std::string full_path = File::find(chebi_mapping_file);
       TextFile input(full_path, true, -1, true, "");
-      StringList lines(input.begin(), input.end());
+      std::vector<std::string> lines(input.begin(), input.end());
       if (lines.empty())
       {
         return mapping;
       }
 
-      StringList header;
-      if (!lines[0].split(',', header, true))
+      std::vector<std::string> header;
+      if (!StringUtils::split(lines[0], ',', header, true))
       {
         return mapping;
       }
@@ -101,7 +100,7 @@ namespace OpenMS
       Size chebi_col = Size(-1);
       for (Size i = 0; i < header.size(); ++i)
       {
-        String key = normalizeHeader_(header[i]);
+        std::string key = normalizeHeader_(header[i]);
         if ((key == "mod") || (key == "name"))
         {
           mod_col = i;
@@ -122,18 +121,18 @@ namespace OpenMS
 
       for (Size row = 1; row < lines.size(); ++row)
       {
-        if (lines[row].trim().empty())
+        if (StringUtils::trimmed(lines[row]).empty())
         {
           continue;
         }
-        StringList values;
-        lines[row].split(',', values, true);
+        std::vector<std::string> values;
+        StringUtils::split(lines[row], ',', values, true);
         if ((mod_col >= values.size()) || (chebi_col >= values.size()))
         {
           continue;
         }
 
-        String mod = values[mod_col].trim();
+        std::string mod = StringUtils::trimmed(values[mod_col]);
         if (mod.empty())
         {
           continue;
@@ -223,10 +222,10 @@ namespace OpenMS
     }
 
     template <typename ParentMatchRange>
-    String joinFragmentPositions_(const ParentMatchRange& matches,
+    std::string joinFragmentPositions_(const ParentMatchRange& matches,
                                   const bool use_start)
     {
-      String result;
+      std::string result;
       bool first = true;
       for (const auto& match : matches)
       {
@@ -240,25 +239,25 @@ namespace OpenMS
         {
           result += ",";
         }
-        result += String(pos + 1);
+        result += std::to_string(pos + 1);
         first = false;
       }
       return result;
     }
   }
 
-  void BedRModFile::store(const String& out_file,
+  void BedRModFile::store(const std::string& out_file,
                           const IdentificationData& id_data,
-                          const String& chebi_mapping_file) const
+                          const std::string& chebi_mapping_file) const
   {
     const auto chebi_mapping = readChebiMapping_(chebi_mapping_file);
     const auto& score_types = id_data.getScoreTypes();
     const auto qvalue_ref = id_data.findScoreType("PSM-level q-value");
 
     std::vector<BedRow> rows;
-    std::set<String> missing_mods;
-    std::map<std::pair<String, Int>, std::set<Size>> obs_per_position;
-    std::map<std::tuple<String, Int, String>, std::set<Size>> obs_per_mod_at_position;
+    std::set<std::string> missing_mods;
+    std::map<std::pair<std::string, Int>, std::set<Size>> obs_per_position;
+    std::map<std::tuple<std::string, Int, std::string>, std::set<Size>> obs_per_mod_at_position;
     Size obs_id = 0;
 
     for (const IdentificationData::ObservationMatch& match : id_data.getObservationMatches())
@@ -299,9 +298,9 @@ namespace OpenMS
 
       for (const auto& parent_pair : oligo.parent_matches)
       {
-        const String& chrom = parent_pair.first->accession;
-        const String all_frag_starts = joinFragmentPositions_(parent_pair.second, true);
-        const String all_frag_ends = joinFragmentPositions_(parent_pair.second, false);
+        const std::string& chrom = parent_pair.first->accession;
+        const std::string all_frag_starts = joinFragmentPositions_(parent_pair.second, true);
+        const std::string all_frag_ends = joinFragmentPositions_(parent_pair.second, false);
 
         for (const auto& parent_match : parent_pair.second)
         {
@@ -338,10 +337,10 @@ namespace OpenMS
             row.score = score;
             row.coverage = coverage;
             row.target_mapping_count = target_mapping_count;
-            row.frag_start = unique_mapping ? all_frag_starts : String(parent_match.start_pos + 1);
-            row.frag_end = unique_mapping ? all_frag_ends : String(parent_match.end_pos + 1);
+            row.frag_start = unique_mapping ? all_frag_starts : std::to_string(parent_match.start_pos + 1);
+            row.frag_end = unique_mapping ? all_frag_ends : std::to_string(parent_match.end_pos + 1);
 
-            const String mod_code = ribo->getCode();
+            const std::string mod_code = ribo->getCode();
             obs_per_mod_at_position[{row.chrom, row.chrom_start, mod_code}].insert(current_obs_id);
 
             auto pos = chebi_mapping.find(mod_code);
@@ -379,8 +378,8 @@ namespace OpenMS
 
     std::sort(rows.begin(), rows.end());
 
-    std::vector<String> modification_names;
-    std::set<String> seen_mod_names;
+    std::vector<std::string> modification_names;
+    std::set<std::string> seen_mod_names;
     for (const auto& row : rows)
     {
       if (!row.ribonucleotide)
@@ -388,15 +387,15 @@ namespace OpenMS
         continue;  // Skip rows with null ribonucleotide
       }
       // Use actual origin from ribonucleotide instead of inferring from mod code
-      const String base_origin = String(row.ribonucleotide->getOrigin());
-      String mod_name = String(row.chebi_id) + ":" + row.ribonucleotide->getCode() + ":" + base_origin;
+      const std::string base_origin(1, row.ribonucleotide->getOrigin());
+      std::string mod_name = std::to_string(row.chebi_id) + ":" + row.ribonucleotide->getCode() + ":" + base_origin;
       if (seen_mod_names.insert(mod_name).second)
       {
         modification_names.push_back(mod_name);
       }
     }
 
-    std::ofstream out(std::string(out_file).c_str());
+    std::ofstream out(out_file.c_str());
     if (!out.is_open())
     {
       throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_file);
