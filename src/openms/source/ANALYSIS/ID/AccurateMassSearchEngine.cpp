@@ -812,9 +812,14 @@ namespace OpenMS
   {
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
     f.getPeptideIdentifications().back().setIdentifier(search_engine_identifier);
+    // A hit's score is its m/z error in ppm.
+    f.getPeptideIdentifications().back().setScoreType("MassErrorPPMScore");
+    f.getPeptideIdentifications().back().setHigherScoreBetter(false);
     for (const AccurateMassSearchResult& result : amr)
     {
       PeptideHit hit;
+      // An unmatched mass (kept with keep_unidentified_masses, identifier "null") has no m/z error; its score stays 0.
+      if (result.getMatchingIndex() != static_cast<Size>(-1)) hit.setScore(result.getMZErrorPPM());
       hit.setMetaValue("identifier", result.getMatchingHMDBids());
       StringList names;
       for (Size i = 0; i < result.getMatchingHMDBids().size(); ++i)
