@@ -225,6 +225,10 @@ and centroid-based distance thresholds.
             OpenMS::FeatureOverlapFilter::mergeFAIMSFeatures(feature_map, max_rt_diff, max_mz_diff);
         }, "feature_map"_a, "max_rt_diff"_a = 5.0, "max_mz_diff"_a = 0.05,
             "Merge FAIMS features that represent the same analyte at different CV values")
+        .def_static("mergeCoincidentFeatures", [](OpenMS::FeatureMap& feature_map) {
+            return OpenMS::FeatureOverlapFilter::mergeCoincidentFeatures(feature_map);
+        }, "feature_map"_a,
+            "Merge features with the same charge, RT and m/z (within 0.01 ppm; e.g. one signal reported for several positional isomers), keeping all their peptide identifications on the most intense one. Returns the number of features removed.")
         ;
 
     // Free function aliases for FeatureOverlapFilter

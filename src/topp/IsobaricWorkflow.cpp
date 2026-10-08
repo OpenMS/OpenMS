@@ -29,7 +29,10 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
+#ifdef WITH_OPENTIMS
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
@@ -80,6 +83,14 @@ using namespace std;
 </CENTER>
 
   The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
+
+  Besides mzML, @p in accepts vendor files directly if OpenMS was built with the respective reader:
+  Thermo .raw (WITH_THERMO_RAW) and Bruker timsTOF .d directories (WITH_OPENTIMS). Spectra are matched to
+  the identifications via their native IDs, so the identifications must have been produced from the same
+  file (or an mzML converted from it with the same native ID scheme). For .d input, the DDA-PASEF MS2 spectra
+  are centroided by the reader, and the MS1 spectra (used for precursor purity) are centroided along m/z and
+  ion mobility in the same way as in @ref TOPP_ProteomicsLFQ. In an experimental design (@p exp_design), the
+  spectra file name must be given exactly as passed to @p in (e.g. "run1.raw" or "run1.d").
 
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, 18-plex, 32-plex, and 35-plex labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
@@ -196,8 +207,15 @@ protected:
     }
     setValidStrings_("type", valid_types);
 
-    registerInputFileList_("in", "<file>", {}, "input centroided spectrum files");
-    setValidFormats_("in", {"mzML"});
+    registerInputFileList_("in", "<file>", {}, "input centroided spectrum files (mzML, or vendor files if supported by this build)");
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_OPENTIMS
+      "d",
+#endif
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerInputFileList_("in_id", "<file>", {},
       "corresponding input PSMs.\n"
       "One identification per spectrum is expected: this tool quantifies one consensus feature\n"
@@ -494,6 +512,27 @@ protected:
     return s + std::string(buffer.data());
   }
 
+  /// Load a spectrum file. mzML and Thermo .raw go through FileHandler; Bruker .d additionally
+  /// centroids MS1 along m/z and ion mobility (as in ProteomicsLFQ), since the MS1 spectra are only
+  /// used for precursor purity and would otherwise contain one peak per ion mobility scan.
+  void loadSpectra_(const std::string& mz_file, PeakMap& exp) const
+  {
+#ifdef WITH_OPENTIMS
+    if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF)
+    {
+      BrukerTimsFile tdf;
+      tdf.setLogType(log_type_);
+      BrukerTimsFile::Config config;
+      config.ms1_centroid_mz_ppm = 5.0f;
+      config.ms1_centroid_im_pct = 3.0f;
+      tdf.load(mz_file, exp, config);
+      exp.updateRanges();
+      return;
+    }
+#endif
+    FileHandler().loadExperiment(mz_file, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+  }
+
   ExitCodes main_(int, const char**) override
   {
     ID_RUN_NAME_ = addTimeStamp_(ID_RUN_NAME_);
@@ -567,7 +606,6 @@ protected:
     //const std::string& exp_design = getStringOption_("exp_design");
     IDMergerAlgorithm merger(ID_RUN_NAME_, false);
     ConsensusMap cmap;
-    MzMLFile mzml_file;
 
     //-------------------------------------------------------------
     // calculations
@@ -575,7 +613,7 @@ protected:
     // iterate over pair of mzML and idXML
     const auto in_mz = getStringList_("in");
     const auto in_id = getStringList_("in_id");
-    OPENMS_PRECONDITION(in_mz.size() == in_id.size(), "Number of mzML and idXML files must be equal.");
+    OPENMS_PRECONDITION(in_mz.size() == in_id.size(), "Number of spectrum and identification files must be equal.");
 
     /* I tried this but it is the same speed as focussing on the parallelization of the inner loop.
     int max_parallel_files  = std::max((int)getIntOption_("max_parallel_files"), (int)in_mz.size());
@@ -591,12 +629,18 @@ protected:
     {
       //ConsensusMap& cur_cmap = all_cmaps[i];
       ConsensusMap cur_cmap;
-      const std::string& mz_file = in_mz[i];
+      // A Bruker .d directory may be given with a trailing separator ("run.d/"), which would
+      // leave an empty basename for experimental design matching and column headers.
+      std::string mz_file = in_mz[i];
+      while (mz_file.size() > 1 && (mz_file.back() == '/' || mz_file.back() == '\\'))
+      {
+        mz_file.pop_back();
+      }
       const std::string& id_file = in_id[i];
 
-      // load mzML
+      // load spectra (mzML or vendor format)
       PeakMap exp;
-      mzml_file.load(mz_file, exp);
+      loadSpectra_(mz_file, exp);
       std::unordered_map<std::string, Size> ms2scan_to_index;
 
       bool has_ms3 = false;
@@ -774,7 +818,7 @@ protected:
             // Leaves a default-initialized ConsensusFeature (zero FeatureHandles) in cur_cmap; it is
             // pruned before the merge below. Should not normally happen: an identified spectrum is
             // expected to exist in the mzML.
-            OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in mzML file. Skipping." << std::endl;
+            OPENMS_LOG_WARN << "Identified spectrum " << spec_ref << " not found in spectrum file " << mz_file << ". Skipping." << std::endl;
           }
         }
       }

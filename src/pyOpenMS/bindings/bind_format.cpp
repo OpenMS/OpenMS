@@ -1849,6 +1849,8 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def(nb::init<const OpenMS::PercolatorInfile &>())
         .def("__copy__", [](const OpenMS::PercolatorInfile& self) { return OpenMS::PercolatorInfile(self); })
         .def("__deepcopy__", [](const OpenMS::PercolatorInfile& self, nb::dict) { return OpenMS::PercolatorInfile(self); }, "memo"_a)
+        .def_static("getStandardFeatureSet", &OpenMS::PercolatorInfile::getStandardFeatureSet, "min_charge"_a, "max_charge"_a,
+                    "Standard PIN columns: SpecId, Label, ScanNr, ExpMass, CalcMass, mass, peplen, charge{min..max}, enzN, enzC, enzInt, dm, absdm")
         .def_static("store", [](const std::string& pin_file, const OpenMS::PeptideIdentificationList& peptide_ids, const std::vector<std::string>& feature_set, const std::string& enz, int min_charge, int max_charge) { return OpenMS::PercolatorInfile::store(pin_file, peptide_ids, feature_set, enz, min_charge, max_charge); }, "pin_file"_a, "peptide_ids"_a, "feature_set"_a, "enz"_a, "min_charge"_a, "max_charge"_a)
         ;
 

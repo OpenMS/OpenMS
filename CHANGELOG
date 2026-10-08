@@ -21,12 +21,27 @@ OpenMS Library:
     all data arrays (float, string, integer, e.g. ion mobility) when an m/z, RT or intensity range is set.
     The range filter copied only the SpectrumSettings / ChromatogramSettings, and the data arrays are now
     filtered together with the peaks.
+  - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
+    staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
+    the resolved path is opened now, while the source file keeps the given name (#10451).
+  - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
+    instead of after every thread/chunk merge. Matching results are unchanged.
+  - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
+    (.pin) feature set: it stamps the PIN features, trains, transfers q-value/PEP/SVM score into
+    the main score and the PSI-MS meta values, and removes the stamped features again. It is the
+    in-process backend of PercolatorAdapter, moved out of the tool so other tools (ProSE) can use it.
+    Hits it cannot rescore (no peptide evidence, no target/decoy annotation or a missing feature)
+    now get q-value = PEP = 1 and SVM score = -100, as on PercolatorAdapter's executable path,
+    instead of keeping their search engine score under the Percolator score type.
   - OpenSWATH (MRMFeatureFinderScoring) and AccurateMassSearchEngine record the score type of the
     peptide identifications they write: xx_lda_prelim_score (or xx_swath_prelim_score,
     OverallQuality; higher is better) and MassErrorAbsPPMScore (lower is better). AccurateMassSearch
     hits of feature and consensus maps now score their absolute m/z error in ppm instead of 0; the
     signed error stays in the meta value mz_error_ppm (and is what MassErrorPPMScore names in the
     mzTab and mzTab-M output).
+  - FeatureOverlapFilter::mergeCoincidentFeatures merges features with the same charge, RT and m/z
+    (within 0.01 ppm) into the most intense one, which keeps the peptide identifications of all of
+    them (also in pyOpenMS).
   - FIX: IDConflictResolverAlgorithm::resolve keeps a feature's best identification with hits when
     lower scores are better. It picked an identification without hits instead (moving the feature's
     hits to the unassigned list), and with keep_matching read that identification's missing first hit
@@ -119,6 +134,19 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    IsobaricWorkflow:
+      - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
+        WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
+        experimental design names the runs with their extension (e.g. run1.raw).
+      - FIX: no longer crashes while printing reporter statistics when a channel has no
+        reporter signal at all.
+    ProSE:
+      - PARAM: Percolator rescoring runs in-process (OpenMS' built-in Percolator, the default
+        backend of PercolatorAdapter) and is switched on with the new flag -rescore. The parameter
+        -percolator_executable is removed: ProSE no longer starts PercolatorAdapter (and with it the
+        percolator executable) for every input file. Each input file is still rescored on its own;
+        a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
+        HyperScores with a warning.
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
@@ -126,6 +154,13 @@ TOPP tools:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
         and stays 'unknown' if the input file name has none. -dbversion now defaults to empty.
+    ProteomicsLFQ:
+      - FIX: Features that FeatureFinderIdentification reports at the same charge, RT and m/z (one
+        signal targeted once per positional isomer, e.g. when the HCD and ETD scans of a precursor
+        localize a phosphosite differently) are merged before ID conflict resolution. The signal was
+        quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
+        identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
+        feature rows.
 
 Build System:
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
@@ -218,6 +253,12 @@ TOPP tools:
       - FIX: With multiple-charge fragment scoring and an unknown precursor charge (0), the peak
         annotations covered only singly charged fragments. They now use the charge each hit reports
         and was scored (#10398).
+    SimpleSearchEngine:
+      - FIX: MS2 deisotoping (high-resolution fragments) requires isotope intensities to fall from the
+        monoisotopic peak, as in ProSE (#10391). A small peak one isotope spacing below a fragment ion
+        was taken as the envelope's monoisotopic peak, and the ion was removed as its isotope. On a
+        TMTpro Orbitrap Eclipse run (PXD061985) this removed 9.5% of the matched b/y ions of
+        identified spectra; PSMs at 1% FDR rose by 8% with the fix, and by 3% on a label-free run.
     OpenDIA:
       - New workflow:library_mode=predicted (also chosen by 'auto' when -tr is a FASTA database):
         digests the FASTA (PeptideQueryParameters:LibraryPrediction:*: enzyme, missed cleavages,
