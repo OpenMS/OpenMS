@@ -711,10 +711,10 @@ namespace OpenMS
       total_intensity += inten;
     }
 
-    // Sort by intensity (descending)
+    // Sort by intensity (descending), with m/z index breaking equal-intensity ties.
     sort(intensity_index_pairs.begin(), intensity_index_pairs.end(),
          [](const pair<double, Size>& a, const pair<double, Size>& b) {
-           return a.first > b.first;
+           return a.first > b.first || (a.first == b.first && a.second < b.second);
          });
 
     // Find peaks that account for tic_fraction of total intensity
@@ -728,9 +728,6 @@ namespace OpenMS
       cumulative_intensity += pair.first;
       if (cumulative_intensity >= target_intensity) break;
     }
-
-    // Sort retained indices by m/z for efficient matching
-    sort(retained_peak_indices.begin(), retained_peak_indices.end());
 
     // Step 2: Classify retained peaks into intensity classes
     // Classes have sizes in ratio 1:2:4:8... (geometric progression with ratio 2)
@@ -753,20 +750,16 @@ namespace OpenMS
       return 0;
     }
 
-    // Calculate class sizes (smallest class first)
+    // Divide all retained peaks among classes in the ratio 1:2:4:...
+    // Keep any rounding remainder in the largest (lowest-intensity) class.
     vector<Size> class_sizes(num_intensity_classes);
     Size peaks_allocated = 0;
     for (Size i = 0; i < num_intensity_classes; ++i)
     {
-      class_sizes[i] = 1 << i; // Powers of 2: 1, 2, 4, 8...
+      class_sizes[i] = total_peaks * (Size(1) << i) / min_peaks_for_classes;
       peaks_allocated += class_sizes[i];
     }
-
-    // Distribute remaining peaks to largest class
-    if (total_peaks > peaks_allocated)
-    {
-      class_sizes[num_intensity_classes - 1] += (total_peaks - peaks_allocated);
-    }
+    class_sizes.back() += total_peaks - peaks_allocated;
 
     // Step 3: Assign peaks to classes based on intensity ranking
     // Class 0 = highest intensity (A), Class 1 = medium (B), etc.

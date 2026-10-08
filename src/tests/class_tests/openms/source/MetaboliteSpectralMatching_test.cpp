@@ -349,6 +349,43 @@ START_SECTION((static double computeHyperScore(double, bool, const MSSpectrum&, 
 }
 END_SECTION
 
+START_SECTION((static double computeMVHScore(double, bool, const MSSpectrum&, const MSSpectrum&, Size, double, double, bool)))
+{
+  // Intensity classes must follow intensity, not the spectrum's m/z order.
+  MSSpectrum exp_spec;
+  for (Size i = 0; i < 7; ++i)
+  {
+    exp_spec.push_back(Peak1D(100.0 + i, i == 5 ? 1000.0 : 10.0 + i));
+  }
+  MSSpectrum strong_match;
+  strong_match.push_back(Peak1D(105.0, 1.0));
+  MSSpectrum weak_match;
+  weak_match.push_back(Peak1D(100.0, 1.0));
+  const double strong_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, strong_match, 3, 1.0, 0.0, false);
+  const double weak_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, weak_match, 3, 1.0, 0.0, false);
+  TEST_TRUE(strong_score > weak_score)
+
+  // All retained peaks must be divided in the 1:2:4 ratio. With 70 peaks,
+  // ranks 5 and 15 belong to different classes (10/20/40), not one remainder.
+  MSSpectrum dense_spec;
+  for (Size i = 0; i < 70; ++i)
+  {
+    dense_spec.push_back(Peak1D(100.0 + i, 70.0 - i));
+  }
+  MSSpectrum top_class_match;
+  top_class_match.push_back(Peak1D(104.0, 1.0));
+  MSSpectrum second_class_match;
+  second_class_match.push_back(Peak1D(114.0, 1.0));
+  const double top_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, dense_spec, top_class_match, 3, 1.0, 0.0, false);
+  const double second_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, dense_spec, second_class_match, 3, 1.0, 0.0, false);
+  TEST_TRUE(top_score > second_score)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
