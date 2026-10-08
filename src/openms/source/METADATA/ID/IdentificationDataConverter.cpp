@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <algorithm>
+#include <set>
 #include <cmath>
 #include <limits>
 #include <tuple>
@@ -101,7 +102,13 @@ namespace
         const auto database = Adapter::databaseFromLegacy(metadata.getSearchParameters());
         if (database != ID::Database {}) run.addDatabase(database);
         std::vector<ID::DatabaseSequence> sequences;
-        for (const auto& hit : metadata.getHits())
+        // Database sequences need distinct accessions. A protein list with empty or repeated accessions (which legacy
+        // runs allow) has none, as in IdentificationDataAdapter; its inference result keeps the protein hits.
+        std::set<std::string> accessions;
+        const bool catalogue = std::all_of(metadata.getHits().begin(), metadata.getHits().end(), [&](const ProteinHit& hit) {
+          return ! hit.getAccession().empty() && accessions.insert(hit.getAccession()).second;
+        });
+        for (const auto& hit : catalogue ? metadata.getHits() : std::vector<ProteinHit> {})
         {
           ID::DatabaseSequence sequence;
           static_cast<MetaInfoInterface&>(sequence) = hit;
