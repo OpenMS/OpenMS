@@ -633,8 +633,8 @@ namespace OpenMS
       const auto& adduct = match.adduct_opt;
       return std::make_tuple(molecule.getMoleculeType(), molecule.toString(), match.charge,
                              bool(adduct),
-                             adduct ? (*adduct)->getName() : String(),
-                             adduct ? (*adduct)->getEmpiricalFormula().toString() : String(),
+                             adduct ? (*adduct)->getName() : std::string(),
+                             adduct ? (*adduct)->getEmpiricalFormula().toString() : std::string(),
                              adduct ? (*adduct)->getCharge() : 0,
                              adduct ? (*adduct)->getMolMultiplier() : UInt(0));
     };
