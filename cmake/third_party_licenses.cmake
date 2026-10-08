@@ -371,6 +371,7 @@ function(openms_install_system_library_licenses)
     list(GET _entry 1 _real)
     ## With a merged /usr, dpkg may know the file under /lib instead of /usr/lib.
     set(_package)
+    set(_architecture)
     foreach(_candidate "${_real}" "")
       if(NOT _candidate)
         string(REGEX REPLACE "^/usr/" "/" _candidate "${_real}")
@@ -382,6 +383,7 @@ function(openms_install_system_library_licenses)
       ## "libgfortran5:amd64: /usr/lib/x86_64-linux-gnu/libgfortran.so.5.0.0"
       if(_result EQUAL 0 AND _owner MATCHES "^([^:, \n]+)(:[^: \n]+)?: ")
         set(_package "${CMAKE_MATCH_1}")
+        set(_architecture "${CMAKE_MATCH_2}")
         break()
       endif()
     endforeach()
@@ -389,11 +391,20 @@ function(openms_install_system_library_licenses)
       message(FATAL_ERROR "The package bundles ${_name} (${_real}), which no Debian package "
                           "owns, so its license cannot be found.")
     endif()
+    ## With the architecture qualifier, as -W lists every installed architecture of a
+    ## multiarch package otherwise.
     execute_process(COMMAND "${_dpkg_query}" -W
-                            "-f=\${Version}|\${source:Package}|\${source:Version}" "${_package}"
+                            "-f=\${Version}|\${source:Package}|\${source:Version}"
+                            "${_package}${_architecture}"
                     OUTPUT_VARIABLE _versions
+                    RESULT_VARIABLE _result
                     OUTPUT_STRIP_TRAILING_WHITESPACE
                     ERROR_QUIET)
+    if(NOT _result EQUAL 0 OR NOT _versions MATCHES "^[^|\n]+\\|[^|\n]+\\|[^|\n]+$")
+      message(FATAL_ERROR "'dpkg-query -W ${_package}${_architecture}' failed or returned "
+                          "'${_versions}', so the version of ${_name}'s package cannot be "
+                          "recorded.")
+    endif()
     string(REPLACE "|" ";" _versions "${_versions}")
     list(GET _versions 0 _version)
     list(GET _versions 1 _source)
