@@ -106,6 +106,14 @@ public:
   static ConsensusMap exportWithMatchReferences(const ConsensusMap& map);
   /// The match that a peptide hit of exportWithMatchReferences() stands for, if it names one
   static std::optional<IdentificationData::MatchReference> matchReference(const PeptideHit& hit);
+  /**
+    @brief Take what an algorithm changed in the peptide hits of exportWithMatchReferences() back to their matches in
+    @p data
+
+    The sequence evidence of a match keeps the proteins that its hits still refer to. With @p scores, the primary
+    score of a match becomes the score of its (first) hit. Matches without hits in @p peptides stay as they are.
+  */
+  static void updateReferencedMatches(IdentificationData& data, const PeptideIdentificationList& peptides, bool scores);
   ///@}
 };
 }

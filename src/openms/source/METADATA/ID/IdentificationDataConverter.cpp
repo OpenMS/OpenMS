@@ -832,6 +832,52 @@ std::optional<ID::MatchReference> IdentificationDataConverter::matchReference(co
   return ID::MatchReference {reference.substr(0, separator), ID::MatchId {std::stoull(reference.substr(separator + 1))}};
 }
 
+void IdentificationDataConverter::updateReferencedMatches(ID& data, const PeptideIdentificationList& peptides, bool scores)
+{
+  struct Update
+  {
+    std::set<std::string> accessions; // of all hits of the match
+    double score = 0.0;               // of its first hit
+  };
+  std::map<ID::MatchReference, Update> updates;
+  for (const auto& peptide : peptides)
+  {
+    for (const auto& hit : peptide.getHits())
+    {
+      const auto reference = matchReference(hit);
+      if (! reference) continue;
+      const auto [update, added] = updates.try_emplace(*reference);
+      if (added) update->second.score = hit.getScore();
+      const auto referenced = hit.extractProteinAccessionsSet();
+      update->second.accessions.insert(referenced.begin(), referenced.end());
+    }
+  }
+  if (updates.empty()) return;
+  for (const auto& current : data.getRuns())
+  {
+    std::vector<std::pair<ID::MatchId, ID::MatchData>> edits;
+    std::vector<std::pair<ID::MatchId, double>> scored;
+    for (const auto& source : current.getSources())
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches())
+        {
+          const auto found = updates.find({current.getUuid(), match.getId()});
+          if (found == updates.end()) continue;
+          if (scores) scored.emplace_back(match.getId(), found->second.score);
+          ID::MatchData edited = match.getData();
+          std::erase_if(edited.sequence_evidence, [&](const ID::SequenceEvidence& evidence) { return ! found->second.accessions.contains(evidence.accession); });
+          if (edited.sequence_evidence.size() != match.sequence_evidence.size()) edits.emplace_back(match.getId(), std::move(edited));
+        }
+    if (edits.empty() && scored.empty()) continue;
+    auto& run = data.getRun(current.getIdentifier());
+    for (const auto& [id, edited] : edits) run.replaceMatch(id, edited);
+    if (scored.empty()) continue;
+    if (! run.getPrimaryScore()) invalid("Run '" + run.getIdentifier() + "' has no primary score for the scores of its matches");
+    const auto primary = *run.getPrimaryScore();
+    for (const auto& [id, score] : scored) run.setScore(id, primary, score);
+  }
+}
+
 bool IdentificationDataConverter::moveToIdentificationData(FeatureMap& map)
 {
   if (! checkedLegacyIDs(map)) return false;

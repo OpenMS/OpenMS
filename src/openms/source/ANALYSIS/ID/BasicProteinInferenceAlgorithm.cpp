@@ -96,117 +96,6 @@ namespace OpenMS
     IDScoreSwitcherAlgorithm::switchBackScoreType(pep_ids, isr);
   }
 
-  namespace
-  {
-    using ID = IdentificationData;
-
-    /**
-      The inference result that pools the peptide runs of @p data (their legacy protein run), or nullptr if they are
-      one run without one (@p single_run, else nullptr: no peptide runs)
-    */
-    const ID::InferenceResult* poolingResult(const ID& data, const ID::Run*& single_run)
-    {
-      const ID::InferenceResult* pooling = nullptr;
-      Size uncovered = 0;
-      single_run = nullptr;
-      for (const auto& run : data.getRuns())
-      {
-        if (run.getMoleculeKind() != ID::MoleculeKind::PEPTIDE) continue;
-        const ID::InferenceResult* covering = nullptr;
-        for (const auto& result : data.getInferenceResults())
-        {
-          for (const auto& input : result.inputs)
-          {
-            if (input.run_uuid == run.getUuid() && covering != &result)
-            {
-              if (covering != nullptr)
-              {
-                throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                  "Several inference results cover run '" + run.getIdentifier() + "'");
-              }
-              covering = &result;
-            }
-          }
-        }
-        if (covering == nullptr)
-        {
-          ++uncovered;
-          single_run = &run;
-        }
-        else if (pooling != nullptr && pooling != covering)
-        {
-          uncovered = 2; // several protein runs
-        }
-        else
-        {
-          pooling = covering;
-        }
-      }
-      if ((pooling != nullptr && uncovered > 0) || uncovered > 1)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Protein inference over a consensus map needs its identifications in one protein run. "
-                                          "Merge the runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns()).");
-      }
-      return pooling;
-    }
-
-    /// Store @p result, replacing the inference results that cover any of its input runs
-    void storeResult(ID& data, const ID::InferenceResult& result)
-    {
-      std::set<std::string> covered;
-      for (const auto& input : result.inputs) covered.insert(input.run_uuid);
-      std::vector<ID::InferenceResult> kept;
-      for (const auto& existing : data.getInferenceResults())
-      {
-        if (std::none_of(existing.inputs.begin(), existing.inputs.end(), [&](const auto& input) { return covered.contains(input.run_uuid); }))
-        {
-          kept.push_back(existing);
-        }
-      }
-      data.clearInferenceResults();
-      for (auto& existing : kept) data.addInferenceResult(std::move(existing));
-      data.addInferenceResult(result);
-    }
-
-    /// Remove the sequence evidence of the matches that their peptide hits in @p peptides (of
-    /// IdentificationDataConverter::exportWithMatchReferences()) no longer refer to
-    void keepEvidence(ID& data, const PeptideIdentificationList& peptides)
-    {
-      std::map<ID::MatchReference, std::set<std::string>> accessions; // of all peptide hits of a match
-      for (const auto& peptide : peptides)
-      {
-        for (const auto& hit : peptide.getHits())
-        {
-          const auto reference = IdentificationDataConverter::matchReference(hit);
-          if (!reference) continue;
-          const auto referenced = hit.extractProteinAccessionsSet();
-          accessions[*reference].insert(referenced.begin(), referenced.end());
-        }
-      }
-      for (const auto& current : data.getRuns())
-      {
-        std::vector<std::pair<ID::MatchId, ID::MatchData>> edits;
-        for (const auto& source : current.getSources())
-        {
-          for (const auto& query : source.identifications)
-          {
-            for (const auto& match : query.getMatches())
-            {
-              const auto found = accessions.find({current.getUuid(), match.getId()});
-              if (found == accessions.end()) continue;
-              ID::MatchData edited = match.getData();
-              std::erase_if(edited.sequence_evidence, [&](const ID::SequenceEvidence& evidence) { return !found->second.contains(evidence.accession); });
-              if (edited.sequence_evidence.size() != match.sequence_evidence.size()) edits.emplace_back(match.getId(), std::move(edited));
-            }
-          }
-        }
-        auto& run = data.getRun(current.getIdentifier());
-        for (const auto& [id, edited] : edits) run.replaceMatch(id, edited);
-      }
-    }
-  } // namespace
-
   void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, ProteinIdentification& prot_run, bool include_unassigned) const
   {
     if (IdentificationDataConverter::hasPeptideIdentifications(cmap))
@@ -222,11 +111,9 @@ namespace OpenMS
       return;
     }
     runNative_(cmap, include_unassigned);
-    const ID::Run* single_run = nullptr;
-    if (const auto* result = poolingResult(cmap.getIdentificationData(), single_run))
+    if (const auto result = IdentificationDataAdapter::pooledInferenceResult(cmap.getIdentificationData()))
     {
       prot_run = result->proteins;
-      prot_run.setHits(IdentificationDataAdapter::proteinHits(cmap.getIdentificationData(), *result));
     }
   }
 
@@ -250,24 +137,12 @@ namespace OpenMS
     // The proteins of the protein run of the identifications (as export writes it) are scored: those of the inference
     // result that pools the runs, else of the run's database sequences. The result replaces that inference result.
     auto& data = cmap.getIdentificationData();
-    const ID::Run* single_run = nullptr;
-    const ID::InferenceResult* pooling = poolingResult(data, single_run);
-    if (pooling == nullptr && single_run == nullptr)
+    auto pooled = IdentificationDataAdapter::pooledInferenceResult(data);
+    if (!pooled)
     {
       return; // no peptide identifications
     }
-    ID::InferenceResult result;
-    if (pooling != nullptr)
-    {
-      result = *pooling;
-      result.proteins.setHits(IdentificationDataAdapter::proteinHits(data, *pooling));
-    }
-    else
-    {
-      result.proteins = IdentificationDataAdapter::proteinRun(*single_run);
-      result.identifier = result.proteins.getIdentifier();
-      result.inputs.push_back({single_run->getIdentifier(), single_run->getUuid(), std::nullopt, ""});
-    }
+    IdentificationData::InferenceResult result = std::move(*pooled);
     ProteinIdentification& prot_run = result.proteins;
 
     prot_run.setInferenceEngine("TOPPProteinInference");
@@ -281,7 +156,7 @@ namespace OpenMS
     auto& prot_hits = prot_run.getHits();
 
     IDFilter::keepNBestPeptideHits(cmap, 1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
-    storeResult(data, result);
+    IdentificationDataAdapter::storeInferenceResult(data, result);
 
     // determine requested score type. This can be a search engine score name or a broader score category (e.g. PEP)
     std::string requested_score_type_as_string = param_.getValue("score_type").toString();
@@ -347,7 +222,7 @@ namespace OpenMS
     {
       IDFilter::removeMatchingItems<std::vector<ProteinHit>>(prot_run.getHits(),
           IDFilter::HasMaxMetaValue<ProteinHit>("nr_found_peptides", static_cast<int>(min_peptides_per_protein) - 1));
-      storeResult(data, result);
+      IdentificationDataAdapter::storeInferenceResult(data, result);
       IDFilter::removeDanglingProteinReferences(cmap, prot_run, true);
     }
 
@@ -375,10 +250,10 @@ namespace OpenMS
       if (resolve)
       {
         // resolution removed protein references of the peptide hits
-        keepEvidence(data, graph_peptides);
-        storeResult(data, result);
+        IdentificationDataConverter::updateReferencedMatches(data, graph_peptides, false);
+        IdentificationDataAdapter::storeInferenceResult(data, result);
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
-        result = *poolingResult(data, single_run);
+        result = *IdentificationDataAdapter::pooledInferenceResult(data);
         IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         if (group) prot_run.fillIndistinguishableGroupsWithSingletons();
       }
@@ -390,7 +265,7 @@ namespace OpenMS
     }
 
     prot_run.sort();
-    storeResult(data, result);
+    IdentificationDataAdapter::storeInferenceResult(data, result);
   }
 
   void BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(ProteinIdentification& proteins,

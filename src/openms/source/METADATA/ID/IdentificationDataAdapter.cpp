@@ -701,6 +701,57 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   return result;
 }
 
+namespace
+{
+  /// replacePrimaryScore(), keeping the previous score as the meta value @p previous_name (unless null) of the matches
+  void replacePrimary(ID& data, const ID::ScoreDefinition& definition, const std::function<double(const ID::Run&, const ID::Match&, double)>& value,
+                      const std::string* previous_name, bool keep_different)
+  {
+    const auto previous = data.getPrimaryScoreDefinition();
+    if (! previous) return;
+    std::vector<std::string> names;
+    for (const auto& run : data.getRuns())
+      if (! run.getScoreDefinitions().empty() || run.getNumberOfMatches()) names.push_back(run.getIdentifier());
+    for (const auto& name : names)
+    {
+      auto& run = data.getRun(name);
+      IdentificationDataAdapter::keepLegacyProteinScoreType(run);
+      // Values first: adding a score invalidates bound views.
+      std::vector<std::tuple<ID::MatchId, double, double>> values;
+      values.reserve(run.getNumberOfMatches());
+      const auto current = run.bindScore(*run.getPrimaryScore());
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+          {
+            const double old = *current(match);
+            values.emplace_back(match.getId(), old, value(run, match, old));
+          }
+      const auto score = run.addScore(definition);
+      for (const auto& [id, old, replacement] : values)
+        run.setScore(id, score, replacement);
+      if (previous_name == nullptr) continue;
+      for (const auto& [id, old, replacement] : values)
+      {
+        ID::MatchData match = run.getMatch(id);
+        const DataValue& existing = match.getMetaValue(*previous_name);
+        if (keep_different && ! existing.isEmpty())
+        {
+          // The relative tolerance of IDScoreSwitcherAlgorithm
+          if (std::fabs((double(existing) - old) * 2.0 / (double(existing) + old)) > 1e-6) match.setMetaValue(*previous_name + "~", old);
+        }
+        else
+        {
+          match.setMetaValue(*previous_name, old);
+        }
+        run.replaceMatch(id, match);
+      }
+    }
+    data.setPrimaryScore(definition);
+    if (! (*previous == definition)) data.removeScore(*previous);
+  }
+} // namespace
+
 void IdentificationDataAdapter::replacePrimaryScore(ID& data, const ID::ScoreDefinition& definition,
                                                     const std::function<double(const ID::Run&, const ID::Match&, double)>& value,
                                                     const std::string& previous_suffix, bool keep_different, const std::string& previous_meta)
@@ -708,45 +759,13 @@ void IdentificationDataAdapter::replacePrimaryScore(ID& data, const ID::ScoreDef
   const auto previous = data.getPrimaryScoreDefinition();
   if (! previous) return;
   const std::string previous_name = previous_meta.empty() ? previous->name + previous_suffix : previous_meta;
-  std::vector<std::string> names;
-  for (const auto& run : data.getRuns())
-    if (! run.getScoreDefinitions().empty() || run.getNumberOfMatches()) names.push_back(run.getIdentifier());
-  for (const auto& name : names)
-  {
-    auto& run = data.getRun(name);
-    keepLegacyProteinScoreType(run);
-    // Values first: adding a score invalidates bound views.
-    std::vector<std::tuple<ID::MatchId, double, double>> values;
-    values.reserve(run.getNumberOfMatches());
-    const auto current = run.bindScore(*run.getPrimaryScore());
-    for (const auto& source : run.getSources())
-      for (const auto& query : source.identifications)
-        for (const auto& match : query.getMatches())
-        {
-          const double old = *current(match);
-          values.emplace_back(match.getId(), old, value(run, match, old));
-        }
-    const auto score = run.addScore(definition);
-    for (const auto& [id, old, replacement] : values)
-      run.setScore(id, score, replacement);
-    for (const auto& [id, old, replacement] : values)
-    {
-      ID::MatchData match = run.getMatch(id);
-      const DataValue& existing = match.getMetaValue(previous_name);
-      if (keep_different && ! existing.isEmpty())
-      {
-        // The relative tolerance of IDScoreSwitcherAlgorithm
-        if (std::fabs((double(existing) - old) * 2.0 / (double(existing) + old)) > 1e-6) match.setMetaValue(previous_name + "~", old);
-      }
-      else
-      {
-        match.setMetaValue(previous_name, old);
-      }
-      run.replaceMatch(id, match);
-    }
-  }
-  data.setPrimaryScore(definition);
-  if (! (*previous == definition)) data.removeScore(*previous);
+  replacePrimary(data, definition, value, &previous_name, keep_different);
+}
+
+void IdentificationDataAdapter::replacePrimaryScore(ID& data, const ID::ScoreDefinition& definition,
+                                                    const std::function<double(const ID::Run&, const ID::Match&, double)>& value)
+{
+  replacePrimary(data, definition, value, nullptr, false);
 }
 
 std::string IdentificationDataAdapter::legacyIdentifier(const ID::Run& run)
@@ -856,6 +875,85 @@ ProteinIdentification IdentificationDataAdapter::proteinRun(const ID::Run& run)
   ExportOptions options;
   options.loss_policy = LossPolicy::ALLOW;
   return legacyProteins(run, scratch, options);
+}
+
+std::optional<ID::InferenceResult> IdentificationDataAdapter::pooledInferenceResult(const ID& data)
+{
+  const ID::InferenceResult* pooling = nullptr;
+  const ID::Run* single_run = nullptr;
+  Size uncovered = 0;
+  for (const auto& run : data.getRuns())
+  {
+    if (run.getMoleculeKind() != ID::MoleculeKind::PEPTIDE) continue;
+    const ID::InferenceResult* covering = nullptr;
+    for (const auto& result : data.getInferenceResults())
+    {
+      for (const auto& input : result.inputs)
+      {
+        if (input.run_uuid != run.getUuid() || covering == &result) continue;
+        if (covering != nullptr)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Several inference results cover run '" + run.getIdentifier() + "'");
+        }
+        covering = &result;
+      }
+    }
+    if (covering == nullptr)
+    {
+      ++uncovered;
+      single_run = &run;
+    }
+    else if (pooling != nullptr && pooling != covering)
+    {
+      uncovered = 2; // several protein runs
+    }
+    else
+    {
+      pooling = covering;
+    }
+  }
+  if ((pooling != nullptr && uncovered > 0) || uncovered > 1)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Protein inference over a consensus map needs its identifications in one protein run. "
+                                      "Merge the runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns()).");
+  }
+  ID::InferenceResult result;
+  if (pooling != nullptr)
+  {
+    result = *pooling;
+    result.proteins.setHits(proteinHits(data, *pooling));
+    // as export names the protein run of an inference result
+    if (result.proteins.getIdentifier().empty()) result.proteins.setIdentifier(result.identifier);
+  }
+  else if (single_run != nullptr)
+  {
+    result.proteins = proteinRun(*single_run);
+    result.identifier = result.proteins.getIdentifier();
+    result.inputs.push_back({single_run->getIdentifier(), single_run->getUuid(), std::nullopt, ""});
+  }
+  else
+  {
+    return std::nullopt;
+  }
+  return result;
+}
+
+void IdentificationDataAdapter::storeInferenceResult(ID& data, const ID::InferenceResult& result)
+{
+  std::set<std::string> covered;
+  for (const auto& input : result.inputs) covered.insert(input.run_uuid);
+  std::vector<ID::InferenceResult> kept;
+  for (const auto& existing : data.getInferenceResults())
+  {
+    if (std::none_of(existing.inputs.begin(), existing.inputs.end(), [&](const auto& input) { return covered.contains(input.run_uuid); }))
+    {
+      kept.push_back(existing);
+    }
+  }
+  data.clearInferenceResults();
+  for (auto& existing : kept) data.addInferenceResult(std::move(existing));
+  data.addInferenceResult(result);
 }
 
 std::vector<ProteinHit> IdentificationDataAdapter::proteinHits(const ID::Run& run)

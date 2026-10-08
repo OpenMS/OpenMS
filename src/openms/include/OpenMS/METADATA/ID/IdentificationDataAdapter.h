@@ -138,6 +138,9 @@ public:
   static void replacePrimaryScore(IdentificationData& data, const IdentificationData::ScoreDefinition& definition,
                                   const std::function<double(const IdentificationData::Run&, const IdentificationData::Match&, double)>& value,
                                   const std::string& previous_suffix, bool keep_different = false, const std::string& previous_meta = "");
+  /// As above, but the previous score is not kept (e.g. when it is converted, as posterior error probabilities to posterior probabilities)
+  static void replacePrimaryScore(IdentificationData& data, const IdentificationData::ScoreDefinition& definition,
+                                  const std::function<double(const IdentificationData::Run&, const IdentificationData::Match&, double)>& value);
   /**
     @brief The protein hits of an inference result, completed from the database sequences of its input runs
 
@@ -151,6 +154,21 @@ public:
   static std::vector<ProteinHit> proteinHits(const IdentificationData::Run& run);
   /// The legacy protein run of @p run, as export writes it without an inference result (losses are not reported)
   static ProteinIdentification proteinRun(const IdentificationData::Run& run);
+  /**
+    @brief The inference result for protein inference over all peptide identifications of @p data, which export
+    writes in one protein run
+
+    This is the inference result that covers the peptide runs (e.g. of ConsensusMapMergerAlgorithm::mergeAllIDRuns()),
+    with its protein hits completed (proteinHits()), or for a single peptide run without one, a new inference result
+    with the legacy protein run of the run (proteinRun()) and the run as input. Its protein run has the identifier that
+    export gives it. Inference stores its result with storeInferenceResult().
+
+    @return Nothing if @p data has no peptide runs
+    @throw Exception::InvalidParameter if the peptide identifications are not in one protein run
+  */
+  static std::optional<IdentificationData::InferenceResult> pooledInferenceResult(const IdentificationData& data);
+  /// Add @p result to @p data, replacing the inference results that cover any of its input runs
+  static void storeInferenceResult(IdentificationData& data, const IdentificationData::InferenceResult& result);
 
   /**
     @name Legacy file lists

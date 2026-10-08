@@ -100,12 +100,21 @@ namespace OpenMS
      *  Optionally adds indistinguishable protein groups with separate scores, too.
      *  Output scores are always posterior probabilities. Input can be posterior or error probabilities.
      *  See Param object defaults_ within the BayesianProteinInferenceAlgorithm for more settings.
-     *  Requires a single merged ProteinIdentification run in the @p cmap (i.e. @p cmap.getProteinIdentifications().size() == 1)
-     *  with peptide IDs referring to that run. For study-wide inference across multiple runs/files, merge runs first
-     *  (ConsensusMapMergerAlgorithm::mergeAllIDRuns).
-     * @param[in,out] cmap Features with input/output peptides and proteins (from getProteinIdentifications)
+     *  Requires the identifications of @p cmap in one protein run: a single merged ProteinIdentification run (i.e.
+     *  @p cmap.getProteinIdentifications().size() == 1) with peptide IDs referring to that run, or as identification
+     *  data, one run or the runs that an inference result pools. For study-wide inference across multiple runs/files,
+     *  merge runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns).
+     *
+     *  Works on identification data; a map with peptide identifications is converted for this and back
+     *  (IdentificationDataConverter::editAsIdentificationData()). The proteins of the protein run (of the inference
+     *  result that pools the runs, else the database sequences of the run) are inferred, and the result (an inference
+     *  result whose inputs are the runs) replaces that inference result. PSM scores become posterior probabilities of
+     *  the matches, filtered by the cutoff, and updated by inference (parameter update_PSM_probabilities); group
+     *  resolution removes proteins from the sequence evidence of the matches.
+     * @param[in,out] cmap Features with input/output identifications
      * @param[in] greedy_group_resolution Do greedy group resolution? Remove all but best association for "razor" peptides.
      * @param[in] exp_des Experimental design can be used to create an extended graph with replicate information. (experimental)
+     * @throw Exception::MissingInformation if the identifications are not in one protein run, or have no (error) probabilities
      */
     void inferPosteriorProbabilities(
         ConsensusMap& cmap,
@@ -113,6 +122,12 @@ namespace OpenMS
         std::optional<const ExperimentalDesign> exp_des = std::optional<const ExperimentalDesign>());
 
   private:
+
+    /// inferPosteriorProbabilities() of a map with its identifications as identification data
+    void inferPosteriorProbabilitiesNative_(
+        ConsensusMap& cmap,
+        bool greedy_group_resolution,
+        const std::optional<const ExperimentalDesign>& exp_des);
 
     /// after a graph was built, use this method to perform inference and write results to the structures
     /// with which the graph was built

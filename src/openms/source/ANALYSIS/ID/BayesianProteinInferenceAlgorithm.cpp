@@ -13,6 +13,9 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -737,6 +740,59 @@ namespace OpenMS
     proteinIDs.setHigherScoreBetter(true);
   }
 
+  namespace
+  {
+    using ID = IdentificationData;
+
+    const std::string MERGE_FIRST = "ConsensusMap-based inference requires a single merged ProteinIdentification run. "
+                                    "Merge runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns).";
+
+    /**
+      Turn the posterior error probabilities of the matches of @p cmap (their primary score) into posterior
+      probabilities and erase the matches below @p cutoff, as checkConvertAndFilterPepHits_ does for peptide hits
+    */
+    void toPosteriorProbabilities(ConsensusMap& cmap, double cutoff)
+    {
+      auto& data = cmap.getIdentificationData();
+      const auto primary = data.getPrimaryScoreDefinition();
+      if (!primary) return;
+      const std::string name = StringUtils::toLowered(primary->name);
+      if (name == "pep" || name == "posterior error probability" || name == "ms:1001493")
+      {
+        ID::ScoreDefinition probability;
+        probability.name = "Posterior Probability";
+        probability.higher_better = true;
+        IdentificationDataAdapter::replacePrimaryScore(data, probability, [](const ID::Run&, const ID::Match&, double pep) { return 1. - pep; });
+      }
+      else if (name != "posterior probability")
+      {
+        throw OpenMS::Exception::InvalidParameter(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Epifany needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
+            " or run IDPosteriorErrorProbability first.");
+      }
+      std::set<ID::MatchReference> below;
+      for (const auto& run : data.getRuns())
+      {
+        if (!run.getPrimaryScore()) continue;
+        const auto score = run.bindScore(*run.getPrimaryScore());
+        for (const auto& source : run.getSources())
+          for (const auto& query : source.identifications)
+            for (const auto& match : query.getMatches())
+            {
+              const auto value = score(match);
+              if (value && *value < cutoff) below.insert({run.getUuid(), match.getId()});
+            }
+      }
+      if (below.empty()) return;
+      cmap.eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
+        return below.contains({run.getUuid(), match.getId()});
+      });
+    }
+  } // namespace
+
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(
       ConsensusMap& cmap,
       bool greedy_group_resolution, // TODO probably better to add it as a Param
@@ -744,23 +800,52 @@ namespace OpenMS
   {
     // For study-wide inference on ConsensusMap data, require a single merged protein run.
     // (Multiple runs should be merged using ConsensusMapMergerAlgorithm::mergeAllIDRuns() beforehand.)
-    vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
-    if (proteinIDs.empty())
+    if (IdentificationDataConverter::hasPeptideIdentifications(cmap))
+    {
+      const vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
+      if (proteinIDs.empty())
+      {
+        throw OpenMS::Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "No protein identification runs provided for inference.");
+      }
+      if (proteinIDs.size() != 1)
+      {
+        throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, MERGE_FIRST);
+      }
+    }
+    IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) {
+      inferPosteriorProbabilitiesNative_(map, greedy_group_resolution, exp_des);
+    });
+  }
+
+  void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilitiesNative_(
+      ConsensusMap& cmap,
+      bool greedy_group_resolution,
+      const std::optional<const ExperimentalDesign>& exp_des)
+  {
+    // The proteins of the protein run of the identifications (as export writes it) are inferred: those of the
+    // inference result that pools the runs, else of the run's database sequences, and the result replaces it.
+    auto& data = cmap.getIdentificationData();
+    const auto pooled = [&data]() {
+      try
+      {
+        return IdentificationDataAdapter::pooledInferenceResult(data);
+      }
+      catch (const Exception::InvalidParameter&)
+      {
+        throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, MERGE_FIRST);
+      }
+    };
+    if (!pooled())
     {
       throw OpenMS::Exception::MissingInformation(
           __FILE__,
           __LINE__,
           OPENMS_PRETTY_FUNCTION,
           "No protein identification runs provided for inference.");
-    }
-    if (proteinIDs.size() != 1)
-    {
-      throw OpenMS::Exception::MissingInformation(
-          __FILE__,
-          __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "ConsensusMap-based inference requires a single merged ProteinIdentification run. "
-          "Merge runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns).");
     }
 
     IDScoreSwitcherAlgorithm switcher;
@@ -780,7 +865,7 @@ namespace OpenMS
     }
 
     //TODO filtering needs to account for run info if we allow running on a subset.
-    cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
+    toPosteriorProbabilities(cmap, param_.getValue("psm_probability_cutoff"));
     //TODO BIG filter empty PeptideIDs afterwards
 
     bool keep_all_psms = param_.getValue("keep_best_PSM_only").toString() == "false";
@@ -828,33 +913,49 @@ namespace OpenMS
       unassigned = IDFilter::extractUnassignedProteins(cmap);
     }
 
-    // Single-run inference (ConsensusMap is expected to be merged upfront).
+    ID::InferenceResult result = *pooled();
+    ProteinIdentification& proteins = result.proteins;
+    resetProteinScores_(proteins, user_defined_priors);
+
+    // TODO try to calc AUC partial only (e.g. up to 5% FDR)
+    if (!keep_all_psms)
+      OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << '\n';
+
+    // The graph is built on the identifications as peptide identifications whose hits name their matches. The
+    // posteriors of the PSMs and the evidence that group resolution keeps go back to the matches.
+    ConsensusMap legacy = IdentificationDataConverter::exportWithMatchReferences(cmap);
+    setScoreTypeAndSettings_(proteins);
     {
-      resetProteinScores_(proteinIDs[0], user_defined_priors);
-
-      // TODO try to calc AUC partial only (e.g. up to 5% FDR)
-      if (!keep_all_psms)
-        OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << '\n';
-
-      setScoreTypeAndSettings_(proteinIDs[0]);
-      IDBoostGraph ibg(proteinIDs[0], cmap, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms, exp_des);
+      IDBoostGraph ibg(proteins, legacy, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms, exp_des);
       inferPosteriorProbabilities_(ibg);
       if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
+    }
+    PeptideIdentificationList peptides;
+    for (auto& feature : legacy)
+    {
+      for (auto& peptide : feature.getPeptideIdentifications()) peptides.push_back(std::move(peptide));
+    }
+    for (auto& peptide : legacy.getUnassignedPeptideIdentifications()) peptides.push_back(std::move(peptide));
+    IdentificationDataConverter::updateReferencedMatches(data, peptides, param_.getValue("update_PSM_probabilities").toBool());
 
-      if (!keep_all_psms)
-        OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << '\n';
+    if (!keep_all_psms)
+      OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << '\n';
 
-      if (!use_unannotated_ids)
+    if (!use_unannotated_ids)
+    {
+      const auto found = unassigned.find(proteins.getIdentifier());
+      if (found != unassigned.end())
       {
-        auto& unassigned_for_run = unassigned.at(proteinIDs[0].getIdentifier());
+        auto& unassigned_for_run = found->second;
         for (auto& h : unassigned_for_run) h.setScore(0.);
-        proteinIDs[0].getHits().reserve(proteinIDs[0].getHits().size() + unassigned_for_run.size());
-        std::move(std::begin(unassigned_for_run), std::end(unassigned_for_run), std::back_inserter(proteinIDs[0].getHits()));
+        proteins.getHits().reserve(proteins.getHits().size() + unassigned_for_run.size());
+        std::move(std::begin(unassigned_for_run), std::end(unassigned_for_run), std::back_inserter(proteins.getHits()));
         unassigned_for_run.clear();
       }
-
-      proteinIDs[0].fillIndistinguishableGroupsWithSingletons();
     }
+
+    proteins.fillIndistinguishableGroupsWithSingletons();
+    IdentificationDataAdapter::storeInferenceResult(data, result);
   }
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities_(
