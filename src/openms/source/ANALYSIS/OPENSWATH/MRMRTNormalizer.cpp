@@ -30,14 +30,14 @@ namespace OpenMS
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
-          String(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
+          StringUtils::toStr(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
     }
 
     if (pairs.size() < 30)
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
-          String(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
+          StringUtils::toStr(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
     Math::RANSAC<Math::RansacModelLinear> r;
@@ -48,8 +48,8 @@ namespace OpenMS
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
-          String(bestrsq) + " is below limit of " +
-          String(rsq_limit) +
+          StringUtils::toStr(bestrsq) + " is below limit of " +
+          StringUtils::toStr(rsq_limit) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
@@ -57,8 +57,8 @@ namespace OpenMS
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: number of data points: " +
-          String(new_pairs.size()) +
-          " is below limit of " + String(d) +
+          StringUtils::toStr(new_pairs.size()) +
+          " is below limit of " + StringUtils::toStr(d) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
@@ -168,7 +168,7 @@ namespace OpenMS
         else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Method ") + method + " is not a valid method for removeOutliersIterative");
+            std::string("Method ") + method + " is not a valid method for removeOutliersIterative");
         }
 
         // remove if residual is an outlier according to Chauvenet's criterion
@@ -195,8 +195,8 @@ namespace OpenMS
       // If the rsq is below the limit, this is an indication that something went wrong!
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
-          String(rsq) + " is below limit of " +
-          String(rsq_limit) +
+          StringUtils::toStr(rsq) + " is below limit of " +
+          StringUtils::toStr(rsq_limit) +
           ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 

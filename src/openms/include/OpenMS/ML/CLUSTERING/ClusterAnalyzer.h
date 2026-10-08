@@ -15,7 +15,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief Bundles analyzing tools for a clustering (given as sequence of BinaryTreeNode's)
@@ -114,7 +113,7 @@ public:
         @see BinaryTreeNode
 
     */
-    String newickTree(const std::vector<BinaryTreeNode> & tree, const bool include_distance = false);
+    std::string newickTree(const std::vector<BinaryTreeNode> & tree, const bool include_distance = false);
 
 private:
     /// assignment operator

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -162,7 +163,7 @@ START_SECTION(( [EXTRA] testCaching))
 }
 END_SECTION
 
-START_SECTION(( void writeMemdump(MapType& exp, String out )))
+START_SECTION(( void writeMemdump(MapType& exp, std::string out )))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -181,7 +182,7 @@ START_SECTION(( void writeMemdump(MapType& exp, String out )))
 }
 END_SECTION
 
-START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue=false) ))
+START_SECTION(( void writeMetadata(MapType exp, std::string out_meta, bool addCacheMetaValue=false) ))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -218,7 +219,7 @@ PeakMap exp;
 CachedMzMLHandler cache_;
 cacheFile(cache_, tmp_filename, exp);
 
-START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
+START_SECTION(( void readMemdump(MapType& exp_reading, std::string filename) const ))
 {
 
   std::string tmp_filename;
@@ -239,7 +240,7 @@ START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
 }
 END_SECTION
 
-START_SECTION(( void createMemdumpIndex(String filename) ))
+START_SECTION(( void createMemdumpIndex(std::string filename) ))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -390,6 +391,9 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST
 
 #ifdef __clang__

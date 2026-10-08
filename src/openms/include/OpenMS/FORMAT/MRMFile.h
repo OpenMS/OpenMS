@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <memory>
 
@@ -28,8 +28,8 @@ namespace OpenMS
       @param[out] exp_meta Experimental settings extracted from the file.
       @return Swath maps (single-entry for SRM).
     */
-    static std::vector<::OpenSwath::SwathMap> loadMzML(const String& file,
-                                                    const String& tmp,
+    static std::vector<::OpenSwath::SwathMap> loadMzML(const std::string& file,
+                                                    const std::string& tmp,
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta);
   };
 

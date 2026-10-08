@@ -13,7 +13,57 @@
 using namespace OpenMS;
 using namespace std;
 
+// One identification of one spectrum. Hits are deliberately not sorted by the helper:
+// reduceToOnePerSpectrum() reads hits.front() as stored, exactly like the exporters do.
+static PeptideIdentification makePepID_(const std::string& reference,
+                                        const std::string& sequence,
+                                        int charge,
+                                        double score,
+                                        bool higher_better = false)
+{
+  PeptideIdentification id;
+  if (!reference.empty()) { id.setSpectrumReference(reference); }
+  id.setScoreType("Posterior Error Probability");
+  id.setHigherScoreBetter(higher_better);
+  if (!sequence.empty())
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(charge);
+    hit.setScore(score);
+    id.insertHit(hit);
+  }
+  return id;
+}
+
 START_TEST(IDConflictResolverAlgorithm, "$Id$")
+
+START_SECTION((static void resolve(FeatureMap& features, bool keep_matching = false)))
+{
+  // The best identification of a feature is never one without hits, whichever direction is better: with lower
+  // scores better, an identification without hits used to win (and keep_matching then read its first hit).
+  for (const bool higher_better : {false, true})
+  {
+    for (const bool keep_matching : {false, true})
+    {
+      FeatureMap map;
+      Feature feature;
+      feature.setUniqueId(7);
+      PeptideIdentificationList ids;
+      ids.push_back(makePepID_("scan=1", "", 2, 0.0, higher_better)); // no hits
+      ids.push_back(makePepID_("scan=2", "PEPTIDEK", 2, 0.25, higher_better));
+      ids.push_back(makePepID_("scan=3", "PEPTIDER", 2, 0.75, higher_better));
+      ids.push_back(makePepID_("scan=4", "", 2, 0.0, higher_better)); // no hits
+      feature.setPeptideIdentifications(ids);
+      map.push_back(feature);
+      IDConflictResolverAlgorithm::resolve(map, keep_matching);
+      const auto& kept = map[0].getPeptideIdentifications();
+      ABORT_IF(kept.empty() || kept[0].getHits().empty())
+      TEST_EQUAL(kept[0].getHits()[0].getSequence().toString(), higher_better ? "PEPTIDER" : "PEPTIDEK")
+    }
+  }
+}
+END_SECTION
 
 START_SECTION(resolveBetweenFeatures())
 {
@@ -182,6 +232,126 @@ START_SECTION(resolveAllHitRankAggregation())
 
   // The other 2 IDs should have been moved to unassigned
   TEST_EQUAL(cmap.getUnassignedPeptideIdentifications().size(), 2)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// reduceToOnePerSpectrum
+/////////////////////////////////////////////////////////////
+
+START_SECTION((static UnresolvedIdentifications reduceToOnePerSpectrum(PeptideIdentificationList& ids)))
+{
+  const std::string ref = "controllerType=0 controllerNumber=1 scan=2075";
+
+  // (1) Two identifications of one spectrum agreeing on peptidoform and charge: the
+  // better-scoring one survives. Lower is better here.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.9));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 1)
+    TEST_EQUAL(ids.size(), 1)
+    TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.1)
+    TEST_EQUAL(report.multiply_identified_spectra, 0)
+    TEST_FALSE(report.example.empty())
+  }
+
+  // (2) Same, but higher-is-better. Getting the direction backwards is the easiest way to
+  // discard the good identification, and PercolatorAdapter emits both directions.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1, true));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.9, true));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 1)
+    TEST_EQUAL(ids.size(), 1)
+    TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.9)
+  }
+
+  // (3) Chimeric spectrum: one spectrum, two different peptidoforms. Both are quantifiable,
+  // so both must survive. This is the section that pins the design decision.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    ids.push_back(makePepID_(ref, "ANOTHERPEPTIDER", 2, 0.2));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+    TEST_EQUAL(report.multiply_identified_spectra, 1)
+    TEST_TRUE(report.example.empty())
+  }
+
+  // Same peptidoform but a different charge is likewise two measurements.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 3, 0.2));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+  }
+
+  // (4) No spectrum reference: nothing tells them apart, so leave them alone and say so.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_("", "PEPTIDEK", 2, 0.1));
+    ids.push_back(makePepID_("", "PEPTIDEK", 2, 0.9));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+    TEST_EQUAL(report.without_spectrum_reference, 2)
+  }
+
+  // (5) An identification without hits is untouched and moves no counter.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "", 0, 0.0));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+    TEST_EQUAL(report.without_spectrum_reference, 0)
+    TEST_EQUAL(report.multiply_identified_spectra, 0)
+  }
+
+  // (6) A group that disagrees on the score direction has no defined "best", so it is left
+  // alone rather than reduced by a coin flip.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1, false));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.9, true));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+    TEST_EQUAL(report.inconsistent_score_direction, 1)
+    // ...and it must NOT also be reported as a chimeric spectrum: the group is one peptidoform
+    // that could not be reduced, not two peptidoforms.
+    TEST_EQUAL(report.multiply_identified_spectra, 0)
+  }
+
+  // (7) Different spectra are never merged, and survivors keep their input order.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_("controllerType=0 controllerNumber=1 scan=1", "AAAK", 2, 0.5));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.9));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    ids.push_back(makePepID_("controllerType=0 controllerNumber=1 scan=9", "CCCK", 2, 0.5));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 1)
+    TEST_EQUAL(ids.size(), 3)
+    TEST_EQUAL(ids[0].getHits()[0].getSequence().toString(), "AAAK")
+    TEST_REAL_SIMILAR(ids[1].getHits()[0].getScore(), 0.1)
+    TEST_EQUAL(ids[2].getHits()[0].getSequence().toString(), "CCCK")
+  }
+
+  // (8) An empty list is not a special case.
+  {
+    PeptideIdentificationList ids;
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_TRUE(ids.empty())
+  }
 }
 END_SECTION
 

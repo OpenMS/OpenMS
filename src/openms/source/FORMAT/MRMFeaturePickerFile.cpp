@@ -13,7 +13,7 @@
 namespace OpenMS
 {
   void MRMFeaturePickerFile::load(
-    const String& filename,
+    const std::string& filename,
     std::vector<MRMFeaturePicker::ComponentParams>& cp_list,
     std::vector<MRMFeaturePicker::ComponentGroupParams>& cgp_list
   )
@@ -22,7 +22,7 @@ namespace OpenMS
     cgp_list.clear();
     CsvFile::load(filename, ',', false);
     StringList sl;
-    std::map<String, Size> headers;
+    std::map<std::string, Size> headers;
     if (rowCount() >= 2) // no need to read headers if that's the only line inside the file
     {
       getRow(0, sl);
@@ -63,7 +63,7 @@ namespace OpenMS
 
   bool MRMFeaturePickerFile::extractParamsFromLine_(
     const StringList& line,
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     MRMFeaturePicker::ComponentParams& cp,
     MRMFeaturePicker::ComponentGroupParams& cgp
   ) const
@@ -75,46 +75,46 @@ namespace OpenMS
       return false;
     }
     cgp.component_group_name = cp.component_group_name; // save the component_group_name also into cgp
-    for (const std::pair<const String, Size>& h : headers) // parse the parameters
+    for (const std::pair<const std::string, Size>& h : headers) // parse the parameters
     {
-      const String& header = h.first;
+      const std::string& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:(?!PeakPickerChromatogram:)(.+)")))
       {
-        setCastValue_(String(m[1]), line[i], cgp.params);
+        setCastValue_(std::string(m[1]), line[i], cgp.params);
       }
       else if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:PeakPickerChromatogram:(.+)")))
       {
-        setCastValue_(String(m[1]), line[i], cp.params);
+        setCastValue_(std::string(m[1]), line[i], cp.params);
       }
     }
     return true;
   }
 
-  void MRMFeaturePickerFile::setCastValue_(const String& key, const String& value, Param& params) const
+  void MRMFeaturePickerFile::setCastValue_(const std::string& key, const std::string& value, Param& params) const
   {
     if (value.empty()) // if the value is empty, don't set it
     {
       return;
     }
-    const std::vector<String> double_headers = {
+    const std::vector<std::string> double_headers = {
       "gauss_width", "peak_width", "signal_to_noise", "sn_win_len", "stop_after_intensity_ratio",
       "min_peak_width", "recalculate_peaks_max_z", "minimal_quality", "resample_boundary"
     };
-    const std::vector<String> bool_headers = {
+    const std::vector<std::string> bool_headers = {
       "use_gauss", "write_sn_log_messages", "remove_overlapping_peaks", "recalculate_peaks",
       "use_precursors", "compute_peak_quality", "compute_peak_shape_metrics"
     };
-    const std::vector<String> uint_headers = {
+    const std::vector<std::string> uint_headers = {
       "sgolay_frame_length", "sgolay_polynomial_order", "sn_bin_count"
     };
-    const std::vector<String> int_headers = {
+    const std::vector<std::string> int_headers = {
       "stop_after_feature"
     };
     if (std::find(double_headers.begin(), double_headers.end(), key) != double_headers.end())
     {
-      params.setValue(key, value.toDouble());
+      params.setValue(key, StringUtils::toDouble(value));
     }
     else if (std::find(bool_headers.begin(), bool_headers.end(), key) != bool_headers.end())
     {
@@ -122,11 +122,11 @@ namespace OpenMS
     }
     else if (std::find(uint_headers.begin(), uint_headers.end(), key) != uint_headers.end())
     {
-      params.setValue(key, static_cast<UInt>(value.toDouble()));
+      params.setValue(key, static_cast<UInt>(StringUtils::toDouble(value)));
     }
     else if (std::find(int_headers.begin(), int_headers.end(), key) != int_headers.end())
     {
-      params.setValue(key, value.toInt());
+      params.setValue(key, StringUtils::toInt32(value));
     }
     else // no conversion for class' parameters of type String
     {

@@ -40,23 +40,23 @@ START_SECTION((template<typename T_In, T_Out> static T_Out findCommonMetaKeys(co
   
   // common keys for ALL entries (i.e. 100% min_frequency)
   {
-    std::vector<String> common = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::vector<String> >(hits.begin(), hits.end(), 100.0);
+    std::vector<std::string> common = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::vector<std::string> >(hits.begin(), hits.end(), 100.0);
     TEST_EQUAL(common.size(), 2);
     ABORT_IF(common.size() != 2);
     TEST_EQUAL(common[0], "commonMeta1");
     TEST_EQUAL(common[1], "commonMeta2");
     
     // exceeds 100% --> should be corrected to 100% internally
-    std::vector<String> common2 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::vector<String> >(hits.begin(), hits.end(), 1110.0);
+    std::vector<std::string> common2 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::vector<std::string> >(hits.begin(), hits.end(), 1110.0);
     TEST_TRUE(common == common2);
   }
   
   // occurrence of at least 50 (i.e. 50% min_frequency)
   {
-    std::set<String> set50 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::set<String> >(hits.begin(), hits.end(), 50.0);
+    std::set<std::string> set50 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::set<std::string> >(hits.begin(), hits.end(), 50.0);
     TEST_EQUAL(set50.size(), 3);
     ABORT_IF(set50.size() != 3);
-    std::set<String> set50_expected;
+    std::set<std::string> set50_expected;
     set50_expected.insert("commonMeta1");
     set50_expected.insert("commonMeta2");
     set50_expected.insert("meta50pc");
@@ -65,10 +65,10 @@ START_SECTION((template<typename T_In, T_Out> static T_Out findCommonMetaKeys(co
 
   // ALL keys (i.e. 0% min_frequency)
   {
-    std::set<String> set0 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::set<String> >(hits.begin(), hits.end(), 0.0);
+    std::set<std::string> set0 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::set<std::string> >(hits.begin(), hits.end(), 0.0);
     TEST_EQUAL(set0.size(), 4);
     ABORT_IF(set0.size() != 4);
-    std::set<String> set0_expected;
+    std::set<std::string> set0_expected;
     set0_expected.insert("commonMeta1");
     set0_expected.insert("commonMeta2");
     set0_expected.insert("meta50pc");
@@ -76,7 +76,7 @@ START_SECTION((template<typename T_In, T_Out> static T_Out findCommonMetaKeys(co
     TEST_TRUE(set0 == set0_expected);
 
     // exceeds 0% --> should be corrected to 0% internally
-    std::set<String> set0_2 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::set<String> >(hits.begin(), hits.end(), -10.0);
+    std::set<std::string> set0_2 = MetaInfoInterfaceUtils::findCommonMetaKeys<std::vector<PeptideHit>, std::set<std::string> >(hits.begin(), hits.end(), -10.0);
     TEST_TRUE(set0 == set0_2);
   }
   

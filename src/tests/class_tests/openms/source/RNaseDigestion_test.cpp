@@ -38,7 +38,7 @@ START_SECTION([EXTRA] ~RNaseDigestion())
 }
 END_SECTION
 
-START_SECTION((void setEnzyme(const String& enzyme_name)))
+START_SECTION((void setEnzyme(const std::string& enzyme_name)))
 {
   RNaseDigestion rd;
   rd.setEnzyme("RNase_T1");
@@ -166,6 +166,14 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[7].toString(), "Gp");
   TEST_STRING_EQUAL(out[8].toString(), "GU");
   TEST_STRING_EQUAL(out[9].toString(), "U");
+
+  // sequence shorter than the minimum length: nothing to report (used to wrap around and run past the sequence)
+  rd.digest(NASequence::fromString("ACGU"), out, 5);
+  TEST_EQUAL(out.size(), 0);
+
+  // min_length above max_length: nothing to report (used to wrap around and throw from reserve())
+  rd.digest(NASequence::fromString("ACGUACGUACGUACGUACGU"), out, 10, 5);
+  TEST_EQUAL(out.size(), 0);
 }
 END_SECTION
 

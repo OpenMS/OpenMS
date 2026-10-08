@@ -38,8 +38,6 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getMethodName() const override;
-
     const IsobaricChannelList& getChannelInformation() const override;
 
     Size getNumberOfChannels() const override;
@@ -53,9 +51,6 @@ public:
   private:
     /// the actual information on the different tmt 6plex channels.
     IsobaricChannelList channels_;
-
-    /// The name of the quantitation method.
-    static const String name_;
 
     /// The reference channel for this experiment.
     Size reference_channel_;

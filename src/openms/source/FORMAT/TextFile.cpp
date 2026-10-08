@@ -21,12 +21,12 @@ namespace OpenMS
 
   TextFile::~TextFile() = default;
 
-  TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines, const String& comment_symbol)
+  TextFile::TextFile(const std::string& filename, bool trim_lines, Int first_n, bool skip_empty_lines, const std::string& comment_symbol)
   {
     load(filename, trim_lines, first_n, skip_empty_lines, comment_symbol);
   }
 
-  void TextFile::load(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines, const String& comment_symbol)
+  void TextFile::load(const std::string& filename, bool trim_lines, Int first_n, bool skip_empty_lines, const std::string& comment_symbol)
   {
     // stream in binary mode prevents interpretation and merging of \r on Windows & MacOS
     // .. so we can deal with it ourselves in a consistent way
@@ -49,13 +49,13 @@ namespace OpenMS
 
     buffer_.clear();
 
-    String str;
+    std::string str;
     bool had_enough = false;
     while (getLine(is, str) && !had_enough)
     {
       if (trim_lines)
       {
-        str.trim();
+        StringUtils::trim(str);
       }
       // skip? (only after trimming!)
       if (skip_empty_lines && str.empty())
@@ -63,7 +63,7 @@ namespace OpenMS
         continue;
       }
       // skip due to comment line
-      if ( (!comment_symbol.empty()) && str.hasPrefix(comment_symbol))
+      if ( (!comment_symbol.empty()) && StringUtils::hasPrefix(str, comment_symbol))
       {
         continue;
       }
@@ -76,7 +76,7 @@ namespace OpenMS
     } // while
   }
 
-  void TextFile::store(const String& filename)
+  void TextFile::store(const std::string& filename)
   {
     ofstream os;
     // stream not opened in binary mode, thus "\n" will be evaluated platform dependent (e.g. resolve to \r\n on Windows)
@@ -87,13 +87,13 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    for (const String& it : buffer_)
+    for (const std::string& it : buffer_)
     {
-      if (it.hasSuffix("\n"))
+      if (StringUtils::hasSuffix(it, "\n"))
       {
-        if (it.hasSuffix("\r\n"))
+        if (StringUtils::hasSuffix(it, "\r\n"))
         {
-          os << it.chop(2) << "\n";
+          os << StringUtils::chop(it, 2) << "\n";
         }
         else
         {

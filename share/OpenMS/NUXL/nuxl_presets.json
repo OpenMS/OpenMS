@@ -53,8 +53,8 @@
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
     ]
   },
   "RNA-UV (UCGA)": {
@@ -111,8 +111,8 @@
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
     ]
   },
   "RNA-UV Extended (U)": {
@@ -188,8 +188,8 @@
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
     ]
   },
   "RNA-UV Extended (UCGA)": {
@@ -265,8 +265,8 @@
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
     ]
   },
   "RNA-UV (4SU)": {
@@ -321,8 +321,8 @@
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
     ]
   },
   "RNA-UV Extended (4SU)": {
@@ -385,8 +385,8 @@
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
     ]
   },
   "RNA-UV (6SG)": {
@@ -441,8 +441,8 @@
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
     ]
   },
   "RNA-UV Extended (6SG)": {
@@ -502,8 +502,8 @@
       "A:C10H9N4O6P;A-NH3-H2O",
       "A:C10H13N5O4;A-HPO3",
       "A:C10H11N5O3;A-H3PO4",
-      "A:C10H10N5O4;A-NH3-HPO3",
-      "A:C10H8N5O3;A-NH3-H3PO4"
+      "A:C10H10N4O4;A-NH3-HPO3",
+      "A:C10H8N4O3;A-NH3-H3PO4"
     ]
   },
   "DNA-UV": {
@@ -559,8 +559,8 @@
       "A:C10H9N4O5P;A-NH3-H2O",
       "A:C10H13N5O3;A-HPO3",
       "A:C10H11N5O2;A-H3PO4",
-      "A:C10H10N5O3;A-NH3-HPO3",
-      "A:C10H8N5O2;A-NH3-H3PO4",
+      "A:C10H10N4O3;A-NH3-HPO3",
+      "A:C10H8N4O2;A-NH3-H3PO4",
       "A:C5H5N5;A'",
       "A:C5H2N4;A'-NH3",
       "d:C5H9O6P;C5H9O6P", 
@@ -642,8 +642,8 @@
       "A:C10H9N4O5P;A-NH3-H2O",
       "A:C10H13N5O3;A-HPO3",
       "A:C10H11N5O2;A-H3PO4",
-      "A:C10H10N5O3;A-NH3-HPO3",
-      "A:C10H8N5O2;A-NH3-H3PO4",
+      "A:C10H10N4O3;A-NH3-HPO3",
+      "A:C10H8N4O2;A-NH3-H3PO4",
       "A:C5H5N5;A'",
       "A:C5H2N4;A'-NH3",
       "d:C5H9O6P;C5H9O6P", 
@@ -713,8 +713,8 @@
       "A:C10H9N4O5P;A-NH3-H2O",
       "A:C10H13N5O3;A-HPO3",
       "A:C10H11N5O2;A-H3PO4",
-      "A:C10H10N5O3;A-NH3-HPO3",
-      "A:C10H8N5O2;A-NH3-H3PO4",
+      "A:C10H10N4O3;A-NH3-HPO3",
+      "A:C10H8N4O2;A-NH3-H3PO4",
       "A:C5H5N5;A'",
       "A:C5H2N4;A'-NH3",
       "d:C5H9O6P;C5H9O6P", 
@@ -746,7 +746,7 @@
       "G:C4H6O2;DEB",
       "G:C4H4O;DEB-H2O",
       "G:C9H11N5O3;DEB+G'",
-      "G:C8H9N5O3;DEB+G'-H2O",
+      "G:C9H9N5O2;DEB+G'-H2O",
       "G:C9H8N4O3;DEB+G'-NH3",
       "G:C14H20N5O10P1;DEB+G",
       "G:C14H18N5O9P1;DEB+G-H2O",
@@ -772,7 +772,7 @@
       "A:C4H6O2;DEB",
       "A:C4H4O;DEB-H2O",
       "A:C9H11N5O2;DEB+A'",
-      "A:C9H17N4O;DEB+A'-NH3",
+      "A:C9H8N4O2;DEB+A'-NH3",
       "A:C14H20N5O9P1;DEB+A",
       "A:C14H18N5O8P1;DEB+A-H2O",
       "A:C14H17N4O9P1;DEB+A-NH3",
@@ -802,7 +802,7 @@
       "G:+C4H6O2-H3PO4-H2O",
       "G:+C4H6O2-NH3",
       "G:+C4H6O2-NH3-H2O",
-      "G:+C4H602-NH3-HPO3",
+      "G:+C4H6O2-NH3-HPO3",
       "G:+C4H6O2-NH3-H3PO4",
       "C:+C4H6O2",
       "C:+C4H6O2-H2O",
@@ -812,7 +812,7 @@
       "C:+C4H6O2-H3PO4-H2O",
       "C:+C4H6O2-NH3",
       "C:+C4H6O2-NH3-H2O",
-      "C:+C4H602-NH3-HPO3",
+      "C:+C4H6O2-NH3-HPO3",
       "C:+C4H6O2-NH3-H3PO4",
       "A:+C4H6O2",
       "A:+C4H6O2-H2O",
@@ -836,7 +836,7 @@
       "G:C4H6O2;DEB",
       "G:C4H4O;DEB-H2O",
       "G:C9H11N5O3;DEB+G'",
-      "G:C8H9N5O3;DEB+G'-H2O",
+      "G:C9H9N5O2;DEB+G'-H2O",
       "G:C9H8N4O3;DEB+G'-NH3",
       "G:C14H20N5O10P1;DEB+G",
       "G:C14H18N5O9P1;DEB+G-H2O",
@@ -862,7 +862,7 @@
       "A:C4H6O2;DEB",
       "A:C4H4O;DEB-H2O",
       "A:C9H11N5O2;DEB+A'",
-      "A:C9H17N4O;DEB+A'-NH3",
+      "A:C9H8N4O2;DEB+A'-NH3",
       "A:C14H20N5O9P1;DEB+A",
       "A:C14H18N5O8P1;DEB+A-H2O",
       "A:C14H17N4O9P1;DEB+A-NH3",
@@ -1230,7 +1230,7 @@
       "G:C15H17N5O4;NM+G-NH3-H3PO4",
       "G:C10H14N6O1;NM+G'",
       "G:C10H12N6;NM+G'-H2O",
-      "G:C10H14N6O1;NM+G'-NH3",
+      "G:C10H11N5O1;NM+G'-NH3",
       "G:C15H18N5O7P1;NM+G-NH3-H2O",
       "A:C5H9N1;NM",        
       "A:C15H23N6O7P1;NM+A",
@@ -1316,7 +1316,7 @@
       "G:C15H17N5O4;NM+G-NH3-H3PO4",
       "G:C10H14N6O1;NM+G'",
       "G:C10H12N6;NM+G'-H2O",
-      "G:C10H14N6O1;NM+G'-NH3",
+      "G:C10H11N5O1;NM+G'-NH3",
       "G:C15H18N5O7P1;NM+G-NH3-H2O",
       "A:C5H9N1;NM",        
       "A:C15H23N6O7P1;NM+A",
@@ -1406,7 +1406,7 @@
       "G:C10H14N6O1;NM+G'",
       "G:C10H12N6;NM+G'-H2O",
       "G:C10H16N6O2;NM+G'+H2O",
-      "G:C10H14N6O1;NM+G'-NH3",
+      "G:C10H11N5O1;NM+G'-NH3",
       "G:C15H18N5O7P1;NM+G-NH3-H2O",
       "A:C5H9N1;NM",        
       "A:C15H23N6O7P1;NM+A",
@@ -1596,8 +1596,8 @@
       "T:C5H4N2O1;T'-H2O",
       "T:C10H15N2O8P1;T",
       "T:C10H13N2O7P1;T-H2O",
-      "T:C10H12N2O4;T-HPO3",
-      "T:C10H10N2O3;T-H3PO4",
+      "T:C10H14N2O5;T-HPO3",
+      "T:C10H12N2O4;T-H3PO4",
       "G:C;FA",
       "G:C5H5N5O;G'",
       "G:C10H14N5O7P;G",
@@ -1682,8 +1682,8 @@
       "T:C5H4N2O1;T'-H2O",
       "T:C10H15N2O8P1;T",
       "T:C10H13N2O7P1;T-H2O",
-      "T:C10H12N2O4;T-HPO3",
-      "T:C10H10N2O3;T-H3PO4",
+      "T:C10H14N2O5;T-HPO3",
+      "T:C10H12N2O4;T-H3PO4",
       "G:C;FA",
       "G:C5H5N5O;G'",
       "G:C10H14N5O7P;G",

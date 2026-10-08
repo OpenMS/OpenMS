@@ -80,7 +80,7 @@ public:
         double mz_extraction_window,
         bool ppm,
         double im_extraction_window,
-        const String& filter);
+        const std::string& filter);
 
     /**
      * @brief Extract the next mz value and add the integrated intensity to integrated_intensity.
@@ -157,7 +157,7 @@ public:
 
 private:
 
-    int getFilterNr_(const String& filter);
+    int getFilterNr_(const std::string& filter);
 
   };
 

@@ -17,7 +17,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief A log window (QTextEdit) with convenience functions
@@ -46,7 +45,7 @@ namespace OpenMS
     void appendText(const QString& text);
 
     /// appends a new block with @p heading and a @p body
-    void appendNewHeader(const LogState state, const String& heading, const String& body);
+    void appendNewHeader(const LogState state, const std::string& heading, const std::string& body);
     
     /// appends a line break (same as append(""))
     void addNewline();

@@ -39,7 +39,7 @@ START_SECTION(virtual ~CVMappingFile())
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, CVMappings &cv_mappings, bool strip_namespaces=false)))
+START_SECTION((void load(const std::string &filename, CVMappings &cv_mappings, bool strip_namespaces=false)))
 {
   CVMappings mappings;
 	CVMappingFile().load(OPENMS_GET_TEST_DATA_PATH("cv_mapping_test_file.xml"), mappings);

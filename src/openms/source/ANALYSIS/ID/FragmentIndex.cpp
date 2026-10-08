@@ -22,9 +22,9 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -34,13 +34,16 @@
 #ifdef _OPENMP
   #include <omp.h>
 #endif
+#include <algorithm>
 #include <bit>
 #include <cmath>
 #include <functional>
 #include <mutex>
+#include <set>
+#include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <boost/sort/sort.hpp>
-
 
 using namespace std;
 
@@ -53,6 +56,29 @@ namespace OpenMS
   std::array<double, 128> FragmentIndex::residue_mass_table_{};
   std::once_flag FragmentIndex::mass_table_once_flag_;
   FragmentIndex::IonOffsets FragmentIndex::ion_offsets_{};
+
+  namespace
+  {
+    // Characters a peptide in the index may contain: one-letter codes of residues with a known
+    // elemental formula. Excludes the ambiguous codes B, X and Z, stop codons ('*') and any other
+    // symbol. AASequence parses '*' as a weightless X, so a peptide containing one could be
+    // indexed but never scored.
+    const std::array<bool, 256>& indexableResidues()
+    {
+      static const std::array<bool, 256> table = []
+      {
+        std::array<bool, 256> indexable{};
+        const ResidueDB* rdb = ResidueDB::getInstance();
+        for (char c = 'A'; c <= 'Z'; ++c)
+        {
+          const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
+          indexable[static_cast<unsigned char>(c)] = (r != nullptr && !r->getFormula().isEmpty());
+        }
+        return indexable;
+      }();
+      return table;
+    }
+  }
 
   void FragmentIndex::initResidueMassTable_()
   {
@@ -75,6 +101,7 @@ namespace OpenMS
       ion_offsets_.c_offset = Residue::getInternalToCIon().getMonoWeight();
       ion_offsets_.x_offset = Residue::getInternalToXIon().getMonoWeight();
       ion_offsets_.z_offset = Residue::getInternalToZIon().getMonoWeight();
+      ion_offsets_.zp1_offset = Residue::getInternalToZp1Ion().getMonoWeight();
     });
   }
 
@@ -325,6 +352,7 @@ namespace OpenMS
 
   void FragmentIndex::generateFragmentsLightweight_(
     std::vector<Fragment>& fragments,
+    std::vector<Fragment>& electron_fragments,
     const char* sequence,
     size_t seq_len,
     UInt32 peptide_idx,
@@ -336,7 +364,16 @@ namespace OpenMS
     generateFragmentsForSeries_(fragments, sequence, seq_len, peptide_idx,
                                 n_term_mod_mass, c_term_mod_mass, residue_mod_masses,
                                 add_b_ions_, add_a_ions_, add_c_ions_,
-                                add_y_ions_, add_x_ions_, add_z_ions_);
+                                add_y_ions_, add_x_ions_, add_z_ions_, add_zp1_ions_);
+    // ions:electron_ions: the c and z+1 ions that the series above lack, in a set of their own
+    if (electron_ions_ && !(add_c_ions_ && add_zp1_ions_))
+    {
+      generateFragmentsForSeries_(electron_fragments, sequence, seq_len, peptide_idx,
+                                  n_term_mod_mass, c_term_mod_mass, residue_mod_masses,
+                                  /*add_b=*/false, /*add_a=*/false, /*add_c=*/!add_c_ions_,
+                                  /*add_y=*/false, /*add_x=*/false, /*add_z=*/false,
+                                  /*add_zp1=*/!add_zp1_ions_);
+    }
   }
 
   void FragmentIndex::generateFragmentsForSeries_(
@@ -352,7 +389,8 @@ namespace OpenMS
     bool add_c,
     bool add_y,
     bool add_x,
-    bool add_z) const
+    bool add_z,
+    bool add_zp1) const
   {
     const double proton = Constants::PROTON_MASS_U;
     const auto& table = residue_mass_table_;
@@ -397,9 +435,9 @@ namespace OpenMS
       }
     }
 
-    // Generate suffix ions (y, x, z) - right to left cumulative sum
+    // Generate suffix ions (y, x, z, z+1) - right to left cumulative sum
     // Suffix ion index: first iteration produces y1, second y2, etc.
-    if (add_y || add_x || add_z)
+    if (add_y || add_x || add_z || add_zp1)
     {
       {
         constexpr int z = 1;
@@ -431,6 +469,12 @@ namespace OpenMS
           if (add_z)
           {
             float mz = static_cast<float>((cumulative + ion_offsets_.z_offset) / z);
+            if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
+              fragments.emplace_back(peptide_idx, mz);
+          }
+          if (add_zp1)
+          {
+            float mz = static_cast<float>((cumulative + ion_offsets_.zp1_offset) / z);
             if (mz >= fragment_min_mz_ && mz <= fragment_max_mz_)
               fragments.emplace_back(peptide_idx, mz);
           }
@@ -467,11 +511,18 @@ namespace OpenMS
     // on human-proteome builds). The swap idiom is the only portable way to force
     // deallocation across libstdc++/libc++/MSVC.
     std::vector<Fragment>().swap(fi_fragments_);
+    std::vector<Fragment>().swap(electron_fragments_);
     std::vector<Peptide>().swap(fi_peptides_);
     std::vector<float>().swap(bucket_min_mz_);
+    std::vector<float>().swap(electron_bucket_min_mz_);
     std::vector<uint32_t>().swap(protein_lengths_);
     is_build_ = false;
     mod_tables_initialized_ = false;
+  }
+
+  bool FragmentIndex::isProteinNTerminal_(const std::string& protein, Size start) const
+  {
+    return start == 0 || (clip_nterm_methionine_ && start == 1 && ! protein.empty() && protein[0] == 'M');
   }
 
   AASequence FragmentIndex::reconstructModifiedSequence(
@@ -479,7 +530,7 @@ namespace OpenMS
     const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const
   {
     const string& protein_seq = fasta_entries[peptide.protein_idx].sequence;
-    AASequence seq = AASequence::fromString(protein_seq.substr(peptide.sequence_.first, peptide.sequence_.second));
+    AASequence seq = AASequence::fromString(StringUtils::substr(protein_seq, peptide.sequence_.first, peptide.sequence_.second));
 
     const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
     if (!has_modifications) return seq;
@@ -514,7 +565,7 @@ namespace OpenMS
     {
       const char* seq_ptr = protein_seq.c_str() + peptide.sequence_.first;
       size_t seq_len = peptide.sequence_.second;
-      bool is_prot_nterm = (peptide.sequence_.first == 0);
+      bool is_prot_nterm = isProteinNTerminal_(protein_seq, peptide.sequence_.first);
       bool is_prot_cterm = (peptide.sequence_.first + seq_len == protein_seq.size());
       ModSlot slots[MAX_MOD_SLOTS];
       size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
@@ -618,7 +669,7 @@ namespace OpenMS
       ? mother_start + mother_length - realized_length
       : mother_start;
 
-    AASequence seq = AASequence::fromString(protein_seq.substr(realized_start, realized_length));
+    AASequence seq = AASequence::fromString(StringUtils::substr(protein_seq, realized_start, realized_length));
 
     const bool has_mods = !(modifications_fixed_.empty() && modifications_variable_.empty());
     if (!has_mods && subset_bitmask == 0) return seq;
@@ -639,7 +690,7 @@ namespace OpenMS
     if (subset_bitmask != 0)
     {
       const char* seq_ptr = protein_seq.c_str() + realized_start;
-      const bool is_prot_nterm = (realized_start == 0);
+      const bool is_prot_nterm = isProteinNTerminal_(protein_seq, realized_start);
       const bool is_prot_cterm = (realized_start + realized_length == protein_seq.size());
       ModSlot slots[MAX_MOD_SLOTS];
       size_t n_slots = buildModSlots_(seq_ptr, realized_length, slots, is_prot_nterm, is_prot_cterm);
@@ -733,6 +784,7 @@ namespace OpenMS
     static const double water = Residue::getInternalToFull().getMonoWeight();
     const double base_sum_constants = water + Constants::PROTON_MASS_U
                                       + fixed_nterm_delta_ + fixed_cterm_delta_;
+    const std::array<bool, 256>& indexable = indexableResidues();
 
     #pragma omp parallel for
     for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
@@ -747,41 +799,30 @@ namespace OpenMS
       const size_t L = seq.size();
       if (L < peptide_min_length_) continue;
 
-      // Fast path: for the overwhelmingly common case of a protein with no
-      // ambiguous residues, a single linear scan tells us we can skip the per-
-      // mother X/B/Z check entirely. For the rare protein with X/B/Z, we fall
-      // back to checking only the next-bad-position via std::string::find_first_of
-      // starting from the mother's start index — still O(length) in the worst
-      // case, but only if the mother actually overlaps a bad region.
-      //
-      // Follow-up: a protein-wide skip here is overly conservative. A max-length
-      // mother spanning an `X` is discarded, but shorter realizations with the
-      // same anchor *not* covering the `X` could be valid. CodeRabbit #1.
-      // Correct fix: split the protein into contiguous unambiguous spans and
-      // generate mothers per-span. Deferred to v1.1.
-      const bool protein_has_ambiguous = seq.find_first_of("XBZ") != std::string::npos;
+      // Position of the first residue at or after `from` that cannot be indexed
+      // (X/B/Z, a stop codon or any other symbol), or npos.
+      auto findUnindexable = [&seq, &indexable](size_t from)
+      {
+        for (size_t i = from; i < seq.size(); ++i)
+        {
+          if (!indexable[static_cast<unsigned char>(seq[i])]) return i;
+        }
+        return std::string::npos;
+      };
 
       // Honor peptide:max_size=0 as "no maximum" (the documented semantics of
       // the non-SNES path). Using raw peptide_max_length_ in std::min would give
       // length 0 and an empty SNES index.
       const size_t effective_max_length = (peptide_max_length_ == 0) ? L : peptide_max_length_;
 
+      // Mass-compute + filter + emit. No residue check here: the dispatch below
+      // either calls sweepSpan(0, L) on a protein that can be indexed as a whole
+      // or splits at X/B/Z, stop codons and other symbols, so span boundaries
+      // structurally prevent any such residue from reaching this lambda.
       auto emitMother = [&](size_t start, size_t length, bool is_single_c)
       {
         if (length < peptide_min_length_) return;
         const char* seq_ptr = seq.c_str() + start;
-
-        // Reject mothers containing ambiguous codes — any realized sub-peptide
-        // spanning an X/B/Z would fail AASequence::fromString downstream.
-        if (protein_has_ambiguous)
-        {
-          const size_t bad = seq.find_first_of("XBZ", start);
-          if (bad != std::string::npos && bad < start + length)
-          {
-            skipped_peptides.fetch_add(1);
-            return;
-          }
-        }
 
         double mass = base_sum_constants;
         for (size_t k = 0; k < length; ++k)
@@ -805,27 +846,55 @@ namespace OpenMS
             mz);
       };
 
-      // Single-N mothers: anchored at position i, span the longest possible peptide
-      // starting there (capped at effective_max_length). i sweeps [0, L - min_length].
-      for (size_t i = 0; i + peptide_min_length_ <= L; ++i)
-      {
-        const size_t length = std::min<size_t>(effective_max_length, L - i);
-        emitMother(i, length, /*is_single_c=*/false);
-      }
-
-      // Single-C mothers: anchored at position j (last residue), span the longest
-      // possible peptide ending there. j sweeps [min_length - 1, L - 1].
-      // When j + 1 <= effective_max_length the mother happens to coincide with a
-      // Single-N mother at position 0 — that's harmless redundancy: both emit a
-      // different ion series into the index, so there's no duplicate fragment.
-      // Guard against min_length=0: j would wrap to SIZE_MAX. Clamp to 1 locally;
-      // this is the only code path sensitive to the min_length=0 edge case.
+      // Single-N mothers anchored at every position in [s, e - min_length], length
+      // capped at effective_max_length and at the span end. Single-C mothers
+      // anchored at every position j in [s + snes_min_length - 1, e - 1] with the
+      // same length cap. snes_min_length guards the peptide_min_length_=0 corner
+      // case (j would wrap to SIZE_MAX otherwise).
       const size_t snes_min_length = std::max<size_t>(1, peptide_min_length_);
-      for (size_t j = snes_min_length - 1; j < L; ++j)
+      auto sweepSpan = [&](size_t s, size_t e)
       {
-        const size_t length = std::min<size_t>(effective_max_length, j + 1);
-        const size_t start = j + 1 - length;
-        emitMother(start, length, /*is_single_c=*/true);
+        if (e <= s || e - s < peptide_min_length_)
+        {
+          if (e > s) skipped_peptides.fetch_add(1);
+          return;
+        }
+        for (size_t i = s; i + peptide_min_length_ <= e; ++i)
+        {
+          const size_t length = std::min<size_t>(effective_max_length, e - i);
+          emitMother(i, length, /*is_single_c=*/false);
+        }
+        for (size_t j = s + snes_min_length - 1; j < e; ++j)
+        {
+          const size_t length = std::min<size_t>(effective_max_length, j + 1 - s);
+          const size_t start = j + 1 - length;
+          emitMother(start, length, /*is_single_c=*/true);
+        }
+      };
+
+      // No X/B/Z (or stop codon, or other symbol) anywhere: sweep the whole
+      // protein as a single span. Otherwise: split into contiguous unambiguous
+      // spans and sweep each.
+      // Issue #9192 item 2: previously the whole mother was dropped on any
+      // X/B/Z overlap; truncating to the unambiguous prefix/suffix at the same
+      // anchor preserves valid shorter realizations.
+      const size_t first_bad = findUnindexable(0);
+      if (first_bad == std::string::npos)
+      {
+        sweepSpan(0, L);
+      }
+      else
+      {
+        size_t p = 0;
+        size_t bad = first_bad;
+        while (true)
+        {
+          sweepSpan(p, bad);
+          p = bad + 1;
+          if (p >= L) break;  // protein ended with X/B/Z — no tail span
+          bad = findUnindexable(p);
+          if (bad == std::string::npos) { sweepSpan(p, L); break; }  // last span — no more X/B/Z
+        }
       }
     }
 
@@ -846,7 +915,7 @@ namespace OpenMS
     });
 
     OPENMS_LOG_INFO << "Generated " << fi_peptides_.size() << " SNES mothers ("
-                    << skipped_peptides.load() << " skipped due to ambiguous residues or mass filter)." << std::endl;
+                    << skipped_peptides.load() << " spans skipped — shorter than peptide:min_size)." << std::endl;
   }
 
   void FragmentIndex::generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
@@ -891,6 +960,9 @@ namespace OpenMS
       for (int t = 0; t < num_threads; ++t)
         thread_peptides[t].reserve(est_per_thread);
 
+      const std::array<bool, 256>& indexable = indexableResidues();
+      const auto is_unindexable = [&indexable](char c) { return !indexable[static_cast<unsigned char>(c)]; };
+
       vector<pair<size_t, size_t>> digested_peptides;
       #pragma omp parallel for private(digested_peptides)
       for (SignedSize protein_idx = 0; protein_idx < (SignedSize)fasta_entries.size(); ++protein_idx)
@@ -902,14 +974,33 @@ namespace OpenMS
 #endif
         digested_peptides.clear();
         const FASTAFile::FASTAEntry& protein = fasta_entries[protein_idx];
-        digestor.digestUnmodified(StringView(protein.sequence), digested_peptides, peptide_min_length_, peptide_max_length_);
+        digestor.digestUnmodified(protein.sequence, digested_peptides, peptide_min_length_, peptide_max_length_);
+        if (clip_nterm_methionine_ && protein.sequence.size() > 1 && protein.sequence[0] == 'M'
+            && enzyme_specificity_ != EnzymaticDigestion::SPEC_NONE)
+        {
+          // Digest the mature sequence separately so length and missed-cleavage limits
+          // apply AFTER loss of the initial Met. Keep only its N-terminal spans:
+          // internal peptides already exist in the ordinary digest.
+          vector<pair<size_t, size_t>> clipped_peptides;
+          digestor.digestUnmodified(protein.sequence.substr(1), clipped_peptides, peptide_min_length_, peptide_max_length_);
+          std::set<size_t> existing_lengths;
+          for (const auto& span : digested_peptides)
+          {
+            if (span.first == 1) { existing_lengths.insert(span.second); }
+          }
+          for (const auto& span : clipped_peptides)
+          {
+            if (span.first == 0 && existing_lengths.insert(span.second).second) { digested_peptides.emplace_back(1, span.second); }
+          }
+        }
 
         for (const pair<size_t, size_t>& digested_peptide : digested_peptides)
         {
-          // skip peptides containing unknown or ambiguous AA codes (X, B, Z)
+          // skip peptides containing unknown or ambiguous AA codes (X, B, Z), stop codons ('*')
+          // or other symbols
           {
-            const auto sub = protein.sequence.substr(digested_peptide.first, digested_peptide.second);
-            if (sub.find_first_of("XBZ") != string::npos)
+            const std::string_view sub(protein.sequence.data() + digested_peptide.first, digested_peptide.second);
+            if (std::any_of(sub.begin(), sub.end(), is_unindexable))
             {
               #pragma omp atomic
               skipped_peptides++;
@@ -932,7 +1023,7 @@ namespace OpenMS
           if (has_variable_mods)
           {
             // Bitmask-based variable modification enumeration
-            bool is_prot_nterm = (digested_peptide.first == 0);
+            bool is_prot_nterm = isProteinNTerminal_(protein.sequence, digested_peptide.first);
             bool is_prot_cterm = (digested_peptide.first + seq_len == protein.sequence.size());
             ModSlot slots[MAX_MOD_SLOTS];
             size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
@@ -1032,10 +1123,15 @@ namespace OpenMS
       }
       if (skipped_peptides > 0)
       {
-        OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z)\n";
+        OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unknown or ambiguous AA (X/B/Z), stop codons or other symbols\n";
       }
 
-      // Merge per-thread peptide vectors
+      // Merge per-thread peptide vectors.
+      // Deliberately left as reserve + sequential insert, unlike the fragment merge in build():
+      // fi_peptides_ is ~66 MB even for a human proteome, so the transient 2x costs little,
+      // and the sort below keys only on (precursor_mz_, protein_idx) — which does NOT cover
+      // mod_bitmask_ / sequence_ — so equal-key peptides are distinguishable and their
+      // relative order (hence every downstream peptide index) depends on this concatenation.
       size_t total_peptides = 0;
       for (int t = 0; t < num_threads; ++t) total_peptides += thread_peptides[t].size();
       fi_peptides_.reserve(total_peptides);
@@ -1055,15 +1151,79 @@ namespace OpenMS
 
   void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& fasta_entries)
   {
-      protein_lengths_.clear();
+      // A rebuild replaces the previous database. generatePeptides() and the fragment
+      // merge below append, so stale peptides/fragments would otherwise be kept and their
+      // coordinates interpreted against the new FASTA. Also leaves isBuild() false if
+      // this build throws.
+      clear();
       protein_lengths_.reserve(fasta_entries.size());
       for (const auto& e : fasta_entries)
       {
+        // Peptide coordinates (start offset, length) are stored as 16-bit values in
+        // Peptide::sequence_, so a FASTA entry must not exceed 65535 residues. Beyond that,
+        // the start-offset cast to uint16_t in generatePeptides()/generateSNESMothers_ would
+        // wrap modulo 65536 and silently index fragments from the wrong subsequence. Fail loud
+        // instead: long metaproteomic contigs / six-frame-translated frames must be split first.
+        if (e.sequence.size() > std::numeric_limits<uint16_t>::max())
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "FragmentIndex: FASTA entry '" + e.identifier + "' has " + std::to_string(e.sequence.size())
+            + " residues, exceeding the supported maximum of 65535 (peptide offsets are stored as 16-bit). "
+            "Split long contigs / six-frame-translated frames into windows of at most 65535 residues "
+            "(with overlap >= peptide:max_size so no peptide is lost across a split) before building the index.");
+        }
         protein_lengths_.push_back(static_cast<uint32_t>(e.sequence.size()));
       }
 
       /// generate all Peptides (also initializes residue mass table and mod tables)
       generatePeptides(fasta_entries);
+
+      // Protein occurrences are not distinct peptide hypotheses. Collapse exact
+      // peptidoforms before fragment emission and the per-spectrum candidate cap.
+      // Keep one source coordinate for reconstruction; ProSE maps retained hits
+      // against the complete FASTA later, including shared target/decoy sequences.
+      // SNES entries are mother peptides with different anchors, not scored forms.
+      if (param_.getValue("peptide:deduplicate").toBool() && ! is_snes_mode_)
+      {
+        // Keep compact fingerprints rather than one allocated string per database
+        // peptide. Hashes only identify groups to check: equality is always checked
+        // on the full peptidoform, so collisions cannot merge different candidates.
+        std::vector<std::pair<size_t, Size>> fingerprints(fi_peptides_.size());
+#pragma omp parallel for default(none) shared(fingerprints, fasta_entries)
+        for (SignedSize i = 0; i < static_cast<SignedSize>(fi_peptides_.size()); ++i)
+        {
+          fingerprints[i] = {std::hash<std::string> {}(reconstructModifiedSequence(fi_peptides_[i], fasta_entries).toString()), static_cast<Size>(i)};
+        }
+        // Original index breaks hash ties so the first representative is stable.
+        std::sort(fingerprints.begin(), fingerprints.end());
+        std::vector<uint8_t> duplicate(fi_peptides_.size(), 0);
+        for (Size begin = 0; begin < fingerprints.size();)
+        {
+          Size end = begin + 1;
+          while (end < fingerprints.size() && fingerprints[end].first == fingerprints[begin].first)
+          {
+            ++end;
+          }
+          if (end - begin > 1)
+          {
+            std::unordered_set<std::string> seen;
+            for (Size i = begin; i < end; ++i)
+            {
+              const Size index = fingerprints[i].second;
+              duplicate[index] = ! seen.insert(reconstructModifiedSequence(fi_peptides_[index], fasta_entries).toString()).second;
+            }
+          }
+          begin = end;
+        }
+        Size retained = 0;
+        for (Size i = 0; i < fi_peptides_.size(); ++i)
+        {
+          if (! duplicate[i]) { fi_peptides_[retained++] = fi_peptides_[i]; }
+        }
+        const Size removed = fi_peptides_.size() - retained;
+        fi_peptides_.erase(fi_peptides_.begin() + retained, fi_peptides_.end());
+        OPENMS_LOG_INFO << "Collapsed " << removed << " repeated peptidoform occurrences." << std::endl;
+      }
 
       const bool has_modifications = !(modifications_fixed_.empty() && modifications_variable_.empty());
 
@@ -1077,9 +1237,11 @@ namespace OpenMS
 #endif
       const size_t est_per_thread = (fi_peptides_.size() * 2 * peptide_min_length_) / num_threads + 1;
       vector<vector<Fragment>> thread_fragments(num_threads);
+      vector<vector<Fragment>> thread_electron_fragments(num_threads); // ions:electron_ions
       for (int t = 0; t < num_threads; ++t)
       {
         thread_fragments[t].reserve(est_per_thread);
+        if (electron_ions_) thread_electron_fragments[t].reserve(est_per_thread);
       }
 
       // Unified fragment generation path for all cases.
@@ -1124,7 +1286,7 @@ namespace OpenMS
 
           // SNES candidate lookup in querySpectrumSNES_ only targets b-ions (for
           // Single-N mothers) and y-ions (for Single-C mothers) — the other ion
-          // series (a/c/x/z) are not targeted and indexing them would be wasted
+          // series (a/c/x/z/z+1) are not targeted and indexing them would be wasted
           // storage at best and source of silent data loss at worst if a user
           // disabled the primary series via ion toggles. Force b-only/y-only
           // regardless of the class add_*_ions_ flags. CodeRabbit #6.
@@ -1137,7 +1299,8 @@ namespace OpenMS
             /*add_c=*/false,
             /*add_y=*/ is_single_c,
             /*add_x=*/false,
-            /*add_z=*/false);
+            /*add_z=*/false,
+            /*add_zp1=*/false);
         }
         else if (!has_modifications || pep.mod_bitmask_ == 0)
         {
@@ -1145,8 +1308,8 @@ namespace OpenMS
           if (!has_modifications)
           {
             generateFragmentsLightweight_(
-              thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
-              0.0, 0.0, nullptr);
+              thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
+              static_cast<UInt32>(peptide_idx), 0.0, 0.0, nullptr);
           }
           else
           {
@@ -1163,8 +1326,8 @@ namespace OpenMS
               }
             }
             generateFragmentsLightweight_(
-              thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
-              fixed_nterm_delta_, fixed_cterm_delta_,
+              thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
+              static_cast<UInt32>(peptide_idx), fixed_nterm_delta_, fixed_cterm_delta_,
               has_residue_mods ? mod_masses.data() : nullptr);
           }
         }
@@ -1197,7 +1360,7 @@ namespace OpenMS
           // 31, so masking is zero-cost.
           const uint32_t slot_bits = pep.mod_bitmask_ & SNES_SLOT_MASK;
           const string& prot_seq = fasta_entries[pep.protein_idx].sequence;
-          bool is_prot_nterm = (pep.sequence_.first == 0);
+          bool is_prot_nterm = isProteinNTerminal_(prot_seq, pep.sequence_.first);
           bool is_prot_cterm = (pep.sequence_.first + seq_len == prot_seq.size());
           ModSlot slots[MAX_MOD_SLOTS];
           size_t n_slots = buildModSlots_(seq_ptr, seq_len, slots, is_prot_nterm, is_prot_cterm);
@@ -1221,35 +1384,34 @@ namespace OpenMS
           }
 
           generateFragmentsLightweight_(
-            thread_fragments[tid], seq_ptr, seq_len, static_cast<UInt32>(peptide_idx),
-            n_term_mod, c_term_mod,
+            thread_fragments[tid], thread_electron_fragments[tid], seq_ptr, seq_len,
+            static_cast<UInt32>(peptide_idx), n_term_mod, c_term_mod,
             has_residue_mods ? mod_masses.data() : nullptr);
         }
       }
 
-      // Merge per-thread vectors into global fragment array
-      size_t total_fragments = 0;
-      for (int t = 0; t < num_threads; ++t) total_fragments += thread_fragments[t].size();
-      fi_fragments_.reserve(total_fragments);
-      for (int t = 0; t < num_threads; ++t)
+      // Merge per-thread vectors into the global fragment arrays
+      auto merge_thread_fragments = [num_threads](vector<vector<Fragment>>& per_thread, vector<Fragment>& merged)
       {
-        fi_fragments_.insert(fi_fragments_.end(), thread_fragments[t].begin(), thread_fragments[t].end());
-        vector<Fragment>().swap(thread_fragments[t]);
-      }
+        size_t total_fragments = 0;
+        for (int t = 0; t < num_threads; ++t) total_fragments += per_thread[t].size();
+        merged.reserve(total_fragments);
+        for (int t = 0; t < num_threads; ++t)
+        {
+          merged.insert(merged.end(), per_thread[t].begin(), per_thread[t].end());
+          vector<Fragment>().swap(per_thread[t]);
+        }
+      };
+      merge_thread_fragments(thread_fragments, fi_fragments_);
+      merge_thread_fragments(thread_electron_fragments, electron_fragments_);
 
       OPENMS_LOG_INFO << "Sorting fragments..." << std::endl;
-
-      /// 1.) First all Fragments are sorted by their own mass (parallel via Boost.Sort)
-      boost::sort::block_indirect_sort(fi_fragments_.begin(), fi_fragments_.end(), [](const Fragment& a, const Fragment& b)
-      {
-        return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
-      });
 
       // Empty database (no peptide passed length / mass / motif filters): nothing to bucket.
       // Mark as built and return — guards against the OMP loop below dividing by zero
       // when bucketsize_ becomes 0. This is a real risk for immunopeptidomics FASTAs that
       // contain entries shorter than peptide:min_size.
-      if (fi_fragments_.empty())
+      if (fi_fragments_.empty() && electron_fragments_.empty())
       {
         bucketsize_ = 1; // keep non-zero to preserve bucket-walking loop invariants
         OPENMS_LOG_INFO << "[FragmentIndex] No fragments generated — index is empty." << std::endl;
@@ -1257,31 +1419,97 @@ namespace OpenMS
         return;
       }
 
-      /// Calculate the bucket size
-      bucketsize_ = sqrt(fi_fragments_.size()); //Todo: MSFragger uses a different approach, which might be better
+      /// Bucket size chosen to approximate MSFragger's fixed ~0.02 Da fragment-bin density:
+      /// in the dense 500-1500 Da region a typical tryptic/immunopeptidomics index holds
+      /// ~4-8k fragments per 0.02 Da window, so a bucket covers roughly one query tolerance
+      /// window instead of the much wider sqrt(N) span.
+      bucketsize_ = 4096;
       OPENMS_LOG_INFO << "Creating DB with bucket_size " << bucketsize_ << endl;
 
-      /// 2.) next sort after precursor mass and save the min_mz of each bucket
-      #pragma omp parallel for
-      for (SignedSize i = 0; i < (SignedSize)fi_fragments_.size(); i += bucketsize_)
-      {
+      sortAndBucketFragments_(fi_fragments_, bucket_min_mz_, num_threads);
+      // ions:electron_ions: the c and z+1 ions get buckets of their own, walked only on request
+      sortAndBucketFragments_(electron_fragments_, electron_bucket_min_mz_, num_threads);
 
-        #pragma omp critical
-        bucket_min_mz_.emplace_back(fi_fragments_[i].fragment_mz_);
-
-        auto bucket_start = fi_fragments_.begin() + i;
-        auto bucket_end = (i + bucketsize_) > fi_fragments_.size() ? fi_fragments_.end() : bucket_start + bucketsize_;
-
-//TODO: is this thread safe????
-        sort(bucket_start, bucket_end, [](const Fragment& a, const Fragment& b) {
-          return a.peptide_idx_ < b.peptide_idx_; // we don´t need a tie, because the idx are unique
-        });
-      }
-      OPENMS_LOG_INFO << "Sorting by bucket min m/z:" << bucketsize_ << endl;
-      //Resort in case the parallelization block above messed something up TODO: check if this can happen
-      std::sort( bucket_min_mz_.begin(), bucket_min_mz_.end());
       is_build_ = true;
       OPENMS_LOG_INFO << "Fragment index built!" << endl;
+  }
+
+  void FragmentIndex::sortAndBucketFragments_(std::vector<Fragment>& fragments,
+                                              std::vector<float>& bucket_min_mz,
+                                              int num_threads)
+  {
+      if (fragments.empty()) return;
+
+      /// 1.) First all Fragments are sorted by their own mass (parallel via Boost.Sort).
+      /// Boost defaults to std::thread::hardware_concurrency() threads, which ignores both
+      /// the tool's -threads option and the process CPU affinity: on a 384-core node a
+      /// single-threaded run spawned 384 sort threads. Use the same budget as the OpenMP
+      /// regions around it.
+      boost::sort::block_indirect_sort(fragments.begin(), fragments.end(), [](const Fragment& a, const Fragment& b)
+      {
+        return std::tie(a.fragment_mz_, a.peptide_idx_) < std::tie(b.fragment_mz_, b.peptide_idx_);
+      }, static_cast<uint32_t>(num_threads));
+
+      /// 2.) Within each fragment-m/z bucket, re-sort the fragments by their originating peptide
+      /// index so that query() can binary-search a candidate peptide range inside a bucket.
+      ///
+      /// bucket_min_mz[k] is the smallest fragment m/z in bucket k. Because fragments is
+      /// already globally sorted by fragment_mz_, these per-bucket minima are monotonically
+      /// non-decreasing, so we write them directly by bucket index — no omp critical and no
+      /// trailing re-sort of bucket_min_mz is required.
+      const size_t num_buckets = (fragments.size() + bucketsize_ - 1) / bucketsize_;
+      bucket_min_mz.resize(num_buckets);
+
+      // Per-thread scratch buffers reused as the LSD-radix ping-pong destination across buckets.
+      vector<vector<Fragment>> radix_scratch(num_threads);
+      for (auto& s : radix_scratch) s.reserve(bucketsize_);
+
+      #pragma omp parallel for
+      for (SignedSize b = 0; b < (SignedSize)num_buckets; ++b)
+      {
+#ifdef _OPENMP
+        const int tid = omp_get_thread_num();
+#else
+        const int tid = 0;
+#endif
+        const size_t i = static_cast<size_t>(b) * bucketsize_;
+        bucket_min_mz[b] = fragments[i].fragment_mz_;
+
+        Fragment* base = fragments.data() + i;
+        const size_t n = std::min<size_t>(bucketsize_, fragments.size() - i);
+
+        // LSD radix sort of the bucket by peptide_idx_ (uint32). peptide_idx_ spans the full
+        // peptide range, so a value-range counting sort is not applicable; instead we do a few
+        // 8-bit passes — only as many bytes as the largest index in the bucket needs (3 for a
+        // ~2M-peptide database). Stable, branch-free, and ~3-4x faster than std::sort on these
+        // dense 4096-element buckets. (Replaces the per-bucket std::sort.)
+        vector<Fragment>& scratch = radix_scratch[tid];
+        scratch.resize(n);
+
+        uint32_t max_idx = 0;
+        for (size_t k = 0; k < n; ++k) max_idx = std::max(max_idx, base[k].peptide_idx_);
+        int num_passes = 1;
+        for (uint32_t m = max_idx; m >>= 8; ) ++num_passes;
+
+        Fragment* src = base;
+        Fragment* dst = scratch.data();
+        for (int p = 0; p < num_passes; ++p)
+        {
+          const int shift = p * 8;
+          uint32_t count[256] = {0};
+          for (size_t k = 0; k < n; ++k) ++count[(src[k].peptide_idx_ >> shift) & 0xFFu];
+          uint32_t sum = 0;
+          for (int c = 0; c < 256; ++c) { uint32_t t = count[c]; count[c] = sum; sum += t; }
+          for (size_t k = 0; k < n; ++k)
+          {
+            const uint32_t radix = (src[k].peptide_idx_ >> shift) & 0xFFu;
+            dst[count[radix]++] = src[k];
+          }
+          std::swap(src, dst);
+        }
+        // After an odd number of passes the sorted data lives in scratch — copy it back in place.
+        if (src != base) std::copy(src, src + n, base);
+      }
   }
 
   std::pair<size_t, size_t> FragmentIndex::getPeptidesInMassWindow(float precursor_mass,
@@ -1335,8 +1563,12 @@ namespace OpenMS
 
       auto in_range_buckets = make_pair(std::distance(bucket_min_mz_.begin(), left_it), std::distance(bucket_min_mz_.begin(), right_it));
 
+      // Public API entry point; the internal search path (queryPeaks) counts matches
+      // inline instead of materializing one Hit vector per (peak, fragment charge).
+      // Sizing the reservation from the candidate range is not viable: the range is
+      // O(index) in open search (millions of peptides) while the number of fragments
+      // inside one tolerance window is at most a few thousand.
       vector<FragmentIndex::Hit> hits;
-      hits.reserve(peptide_idx_range.second - peptide_idx_range.first);
 
 
       for (UInt32 j = in_range_buckets.first; j < in_range_buckets.second; j++)
@@ -1370,76 +1602,193 @@ namespace OpenMS
   void FragmentIndex::queryPeaks(SpectrumMatchesTopN& candidates, const MSSpectrum& spectrum,
                                 const std::pair<size_t, size_t>& candidates_range,
                                 const int16_t isotope_error,
-                                const uint16_t precursor_charge)
+                                const uint16_t precursor_charge,
+                                const bool with_electron_ions)
   {
+      // One call == one (precursor charge, isotope error) block: count matched fragments per
+      // candidate peptide and APPEND only the candidates that clear the emit threshold below.
+      // Materializing the dense [first, second) range instead would cost one 24-byte zero
+      // entry per peptide in the precursor window (millions of them per spectrum in open
+      // search) that trimHits drops again right afterwards.
+      if (candidates_range.first >= candidates_range.second) return;
 
+      const size_t window = candidates_range.second - candidates_range.first;
+
+      // Persistent thread-local buffers indexed WINDOW-RELATIVE (rel = peptide_idx - first,
+      // the same arithmetic the dense array used). Their capacity is the high-water candidate
+      // window seen on this thread and only ever grows, so a closed search costs a few kB per
+      // thread no matter how large the index is. Nothing here is derived from
+      // fi_peptides_.size(), so a rebuilt, cleared or chunked index cannot invalidate them.
+      //
+      // Invariant: every nonzero cell is listed in touched_ids. The block-start reset below
+      // therefore restores the all-zero state in O(touched) rather than an O(window) memset,
+      // and it does so for ANY subsequent window size.
+      thread_local std::vector<uint32_t> match_counts;   // matched-peak count per candidate
+      thread_local std::vector<UInt32> touched_ids;      // relative ids written since the last reset
+      thread_local std::vector<UInt32> emit_ids;         // subset of touched_ids that is emitted
+
+      // Relative ids left over from a wider previous window still index within the table and
+      // are still nonzero, so they must be cleared here regardless of the current window.
+      for (UInt32 rel : touched_ids) match_counts[rel] = 0;
+      touched_ids.clear();
+
+      // Release the high-water table once this thread enters genuinely-small-window
+      // territory (a closed search following an open search): the open-search table is
+      // O(index) per thread and would otherwise stay resident for the thread's lifetime.
+      // Gated on closed-search mode AND the current window being small: high-mass
+      // precursors in the thin tail of the index can produce sub-threshold windows
+      // MID-open-search, and releasing there would make the next ordinary spectrum
+      // re-allocate the table. A fresh vector is all-zero, preserving the reset invariant.
+      constexpr size_t small_window = 32768;       // closed-search windows are ~1e3-1e4
+      constexpr size_t release_bytes = 1u << 20;   // keep tables below ~1 MB regardless
+      if (!isOpenSearchMode_() && window < small_window
+          && match_counts.size() * sizeof(uint32_t) > release_bytes)
+      {
+        std::vector<uint32_t>(window).swap(match_counts);
+        touched_ids.shrink_to_fit();
+        emit_ids.clear();
+        emit_ids.shrink_to_fit();
+      }
+      // Grow-only otherwise: resize value-initializes just the new tail, and the reset
+      // above already restored every older cell to zero.
+      else if (window > match_counts.size()) match_counts.resize(window);
+
+      // Loop-invariant: same cap as the previous per-peak std::min(). A precursor charge of
+      // 0 yields an empty fragment-charge loop, hence no candidates — as before.
+      const uint16_t actual_max = std::min(precursor_charge, max_fragment_charge_);
+
+      // Bucket walk, tolerance window and half-open peptide-range test are identical to
+      // FragmentIndex::query() — same buckets visited, same comparisons, in the same
+      // order. Only the per-hit action differs: increment instead of emplace_back.
+      auto count_matches = [&](const std::vector<Fragment>& fragments, const std::vector<float>& bucket_min_mz,
+                               float adjusted_mass, float frag_tol)
+      {
+          auto left_it = std::lower_bound(bucket_min_mz.begin(), bucket_min_mz.end(), adjusted_mass - frag_tol);
+          auto right_it = std::upper_bound(bucket_min_mz.begin(), bucket_min_mz.end(), adjusted_mass + frag_tol);
+
+          if (left_it != bucket_min_mz.begin()) --left_it;
+
+          const size_t bucket_begin = std::distance(bucket_min_mz.begin(), left_it);
+          const size_t bucket_end = std::distance(bucket_min_mz.begin(), right_it);
+
+          for (size_t j = bucket_begin; j < bucket_end; j++)
+          {
+            auto slice_begin = fragments.begin() + (j*bucketsize_);
+            auto slice_end = ((j+1) * bucketsize_) >= fragments.size() ? fragments.end() : (fragments.begin() + ((j+1) * bucketsize_)) ;
+
+            auto left_iter = std::lower_bound(slice_begin, slice_end, candidates_range.first, [](Fragment a, UInt32 b) { return a.peptide_idx_ < b;} );
+
+            while (left_iter != slice_end) // sequential scan
+            {
+              // candidates_range is half-open [first, second) — stop BEFORE index second.
+              if (left_iter->peptide_idx_ >= candidates_range.second) break;
+
+              if ((adjusted_mass >= left_iter->fragment_mz_ - frag_tol ) && adjusted_mass <= (left_iter->fragment_mz_+ frag_tol))
+              {
+                // Buckets are radix-sorted by peptide_idx_, so the scan is monotone: every
+                // fragment reached here has peptide_idx_ in [first, second) and rel < window.
+                const UInt32 rel = static_cast<UInt32>(left_iter->peptide_idx_ - candidates_range.first);
+                uint32_t& cell = match_counts[rel];
+                if (cell == 0) touched_ids.push_back(rel);
+                ++cell;   // uint32_t, same type as SpectrumMatch::num_matched_ — no saturation
+              }
+              ++left_iter;
+            }
+          }
+      };
 
       for (const Peak1D& peak : spectrum)
       {
-        vector<Hit> query_hits;
-        uint16_t actual_max = std::min(precursor_charge, max_fragment_charge_);
         for (uint16_t fragment_charge = 1; fragment_charge <= actual_max; fragment_charge++)
         {
-          query_hits = query(peak, candidates_range, fragment_charge);
+          float adjusted_mass = peak.getMZ() * (float)fragment_charge -((fragment_charge-1) * Constants::PROTON_MASS_U);
 
-          for (const auto& hit : query_hits)
-          {
-            {
-              size_t idx = hit.peptide_idx - candidates_range.first;
+          float frag_tol = fragment_mz_tolerance_unit_ppm_ ? Math::ppmToMass(fragment_mz_tolerance_, adjusted_mass) : fragment_mz_tolerance_;
 
-              auto& source = candidates.hits_[idx];
-              if (source.num_matched_ == 0)
-              {
-                source.precursor_charge_ = precursor_charge;
-                source.peptide_idx_ = hit.peptide_idx;
-                source.isotope_error_ = isotope_error;
-              }
-              ++source.num_matched_;
-            }
-          }
+          count_matches(fi_fragments_, bucket_min_mz_, adjusted_mass, frag_tol);
+          // ions:electron_ions: the c and z+1 ions count only when the caller asks for them
+          if (with_electron_ions) count_matches(electron_fragments_, electron_bucket_min_mz_, adjusted_mass, frag_tol);
         }
+      }
+
+      // trimHits sorts by num_matched_ descending first and then drops everything below
+      // min_matched_peaks_, so a below-threshold candidate can neither displace an
+      // above-threshold one from the top-N nor survive the trim: thresholding here leaves
+      // the surviving set unchanged. The threshold is clamped to 1 because a candidate that
+      // matched no peak at all carries no information — with min_matched_peaks_ == 0 the
+      // unclamped filter would emit the entire precursor window.
+      const uint32_t emit_min = std::max<uint32_t>(min_matched_peaks_, 1u);
+
+      // Threshold BEFORE ordering: touched_ids holds every candidate with at least one matched
+      // fragment (up to millions in open search) while the survivors are orders of magnitude
+      // fewer, and touched_ids itself must stay complete for the next block's reset.
+      emit_ids.clear();
+      for (UInt32 rel : touched_ids)
+      {
+        if (match_counts[rel] >= emit_min) emit_ids.push_back(rel);
+      }
+
+      // Ascending peptide index is the order the dense per-block array had. Emitting in that
+      // order keeps the fi_peptides_ / fasta_entries accesses of the downstream scoring pass
+      // sequential; correctness no longer rides on it, because trimHits' comparator now ends
+      // in peptide_idx_ and therefore admits no equal-key candidates at all on this path — the
+      // top-N cut is the same whatever order the blocks appended in. Relative and global ids
+      // differ by the constant candidates_range.first, so sorting the relative ids yields the
+      // same ascending global order.
+      std::sort(emit_ids.begin(), emit_ids.end());
+
+      for (UInt32 rel : emit_ids)
+      {
+        SpectrumMatch& sm = candidates.hits_.emplace_back();
+        sm.num_matched_ = match_counts[rel];
+        sm.precursor_charge_ = precursor_charge;
+        sm.isotope_error_ = isotope_error;
+        sm.peptide_idx_ = candidates_range.first + rel;
       }
   }
 
   void FragmentIndex::trimHits(OpenMS::FragmentIndex::SpectrumMatchesTopN& init_hits) const
   {
+      // Single ranking predicate for both branches below (they used to carry two copies of it,
+      // which is exactly how they would drift apart). Keys, most significant first:
+      //   1. num_matched_      descending — more matched fragments wins
+      //   2. |isotope_error_|  ascending  — prefer the assignment closest to monoisotopic
+      //   3. isotope_error_    ascending  — resolve -k vs +k by sign instead of by luck
+      //   4. precursor_charge_ ascending
+      //   5. peptide_idx_      ascending  — final key, added so that neither std::sort nor
+      //      std::partial_sort (both unstable) can let the arrangement of the input decide
+      //      which of several equally scored candidates survives the top-N cut. On the
+      //      non-SNES path this makes the comparator a strict total order: two hits sharing
+      //      all five keys would have to be the same peptide at the same isotope error and
+      //      charge, i.e. the same (charge, iso) block, and queryPeaks emits each peptide at
+      //      most once per block. querySpectrumSNES_ can still emit one mother twice within a
+      //      block at two different Σ (sigma_delta_) values; those remain tied here, but their
+      //      emission order is itself fixed, so the outcome is reproducible either way.
+      auto by_rank = [](const SpectrumMatch& a, const SpectrumMatch& b)
+      {
+        if (a.num_matched_ != b.num_matched_)
+        {
+          return a.num_matched_ > b.num_matched_;
+        }
+        // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
+        const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
+        const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
+        if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
+        if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
+        if (a.precursor_charge_ != b.precursor_charge_) return a.precursor_charge_ < b.precursor_charge_;
+        return a.peptide_idx_ < b.peptide_idx_;
+      };
+
       if (init_hits.hits_.size() > max_processed_hits_)
       {
-        std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_, init_hits.hits_.end(), [](const SpectrumMatch& a,const SpectrumMatch& b){
-          if (a.num_matched_ != b.num_matched_)
-          {
-            return a.num_matched_ > b.num_matched_;
-          }
-          else
-          {
-            // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
-            const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
-            const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
-            if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
-            if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
-            return a.precursor_charge_ < b.precursor_charge_;
-          }
-        });
+        std::partial_sort(init_hits.hits_.begin(), init_hits.hits_.begin() + max_processed_hits_,
+                          init_hits.hits_.end(), by_rank);
 
         init_hits.hits_.resize(max_processed_hits_);
       }
       else
       {
-        std::sort(init_hits.hits_.begin(), init_hits.hits_.end(), [](const SpectrumMatch& a, const SpectrumMatch& b) {
-          if (a.num_matched_ != b.num_matched_)
-          {
-            return a.num_matched_ > b.num_matched_;
-          }
-          else
-          {
-            // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
-            const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
-            const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
-            if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
-            if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
-            return a.precursor_charge_ < b.precursor_charge_;
-          }
-        });
+        std::sort(init_hits.hits_.begin(), init_hits.hits_.end(), by_rank);
       }
       if (init_hits.hits_.size() > 0  )
       {
@@ -1472,7 +1821,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
   void FragmentIndex::searchDifferentPrecursorRanges(const MSSpectrum& spectrum,
                                                      float precursor_mass,
                                                      SpectrumMatchesTopN& sms,
-                                                     uint16_t charge)
+                                                     uint16_t charge,
+                                                     bool with_electron_ions)
   {
     // Open mode absorbs isotope shifts into the wide window — no per-isotope iteration.
     const bool open_mode = isOpenSearchMode_();
@@ -1488,16 +1838,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
       const auto window = computeMassWindow_(shifted_mass);
 
-      SpectrumMatchesTopN candidates_iso_error;
+      // candidates_range is half-open [first, second) — the scan in queryPeaks stops
+      // strictly before peptide_idx == second. queryPeaks appends its (already compacted
+      // and threshold-filtered) matches for this block directly to the caller's
+      // accumulator: an intermediate per-isotope container would be one full copy of the
+      // block per isotope error, for no gain — operator+= is a plain tail insert.
       auto candidates_range = getPeptidesInMassWindow(shifted_mass, window);
-      // candidates_range is half-open [first, second) — size the hits vector exactly for
-      // (second - first) entries. queryPeaks indexes via (peptide_idx - first), and the
-      // loop in FragmentIndex::query() stops strictly before peptide_idx == second.
-      candidates_iso_error.hits_.resize(candidates_range.second - candidates_range.first);
 
-      queryPeaks(candidates_iso_error, spectrum, candidates_range, isotope_error, charge);
-
-      sms += candidates_iso_error;
+      queryPeaks(sms, spectrum, candidates_range, isotope_error, charge, with_electron_ions);
     }
   }
 
@@ -1531,8 +1879,58 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // zeroed via .assign. Avoids per-spectrum allocation and keeps the table hot
     // in cache for large indices. Saturates at UINT16_MAX (far above any realistic
     // matched-peak count) to protect against pathological inputs without branch-on-overflow.
-    thread_local std::vector<uint16_t> score_table;
-    score_table.assign(fi_peptides_.size(), 0);
+    const size_t n_mothers = fi_peptides_.size();
+    const size_t n_words = (n_mothers + 63) / 64;
+
+    // Persistent thread-local buffers, sized once. Between spectra they are
+    // restored to all-zero by O(touched) resets (touched_ids / emitted_touched),
+    // avoiding a full-index memset per spectrum (the score_table.assign + the
+    // per-(charge,iso,sigma) std::fill(emitted) were the dominant non-scan cost
+    // at proteome scale).
+    thread_local std::vector<uint16_t> score_table;     // matched-peak count per viable mother
+    thread_local std::vector<uint64_t> viable_words;    // precursor-viability bitset, 1 bit / mother
+    thread_local std::vector<uint8_t> emitted;          // Phase-2 per-(charge,iso,sigma) dedup guard
+    thread_local std::vector<UInt32> touched_ids;       // mothers marked viable (== only ids ever written)
+    thread_local std::vector<UInt32> emitted_touched;   // ids set in emitted since its last reset
+
+    // Restore the buffers to all-zero for this spectrum. They persist across queries
+    // AND across different / rebuilt FragmentIndex instances on the same thread, so the
+    // index size can change between calls (e.g. a later, smaller chunk in a chunked
+    // search). On a size change we must NOT walk the stale touched lists — their ids
+    // index the previous (possibly larger) size, so they would read/write out of bounds.
+    if (score_table.size() != n_mothers || viable_words.size() != n_words || emitted.size() != n_mothers)
+    {
+      score_table.assign(n_mothers, 0);   // full zero-fill makes the touched lists redundant
+      viable_words.assign(n_words, 0);
+      emitted.assign(n_mothers, 0);
+      touched_ids.clear();
+      emitted_touched.clear();
+    }
+    else
+    {
+      // Same index as the previous query: restore only the touched entries (O(touched)
+      // instead of a full-index memset — the whole point of the optimization).
+      for (UInt32 id : touched_ids) { score_table[id] = 0; viable_words[id >> 6] &= ~(uint64_t{1} << (id & 63)); }
+      touched_ids.clear();
+      for (UInt32 id : emitted_touched) emitted[id] = 0;
+      emitted_touched.clear();
+    }
+
+    auto viable_test = [&](UInt32 id) -> bool { return (viable_words[id >> 6] >> (id & 63)) & uint64_t{1}; };
+    auto viable_set  = [&](UInt32 id) { uint64_t& w = viable_words[id >> 6]; const uint64_t b = uint64_t{1} << (id & 63);
+                                        if (!(w & b)) { w |= b; touched_ids.push_back(id); } };
+    auto emit_mark   = [&](UInt32 id) { emitted[id] = 1; emitted_touched.push_back(id); };
+    auto reset_emitted_touched = [&]() { for (UInt32 id : emitted_touched) emitted[id] = 0; emitted_touched.clear(); };
+
+    // Single source of truth for the SNES precursor-derived bin-walk targets, shared by
+    // the viability pre-pass AND Phase-2 so the two cannot drift (the superset guarantee
+    // depends on byte-identical target m/z). SNES build() emits Single-N b-ions with
+    // c_term_mod=0 and Single-C y-ions with n_term_mod=0, so for a realized (M+H)+:
+    //   b_k (Single-N) = (M+H)+ - water - fixed_cterm - Sigma ; y_k (Single-C) = (M+H)+ - fixed_nterm - Sigma
+    const float snes_water = static_cast<float>(Residue::getInternalToFull().getMonoWeight());
+    auto target_single_n = [&](float shifted_mh, float s) { return shifted_mh - snes_water - static_cast<float>(fixed_cterm_delta_) - s; };
+    auto target_single_c = [&](float shifted_mh, float s) { return shifted_mh - static_cast<float>(fixed_nterm_delta_) - s; };
+    auto target_full     = [&](float shifted_mh, float s) { return shifted_mh - s; };
 
     // Fragment-charge upper bound for the byte scan. Use the max charge in the
     // `charges` list (the spectrum's known charge, or max_precursor_charge_ when
@@ -1543,6 +1941,74 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     uint16_t byte_scan_max_frag_charge = 0;
     for (uint16_t c : charges) byte_scan_max_frag_charge = std::max(byte_scan_max_frag_charge, c);
     byte_scan_max_frag_charge = std::min(byte_scan_max_frag_charge, max_fragment_charge_);
+
+    // ===================== Pre-pass: mark precursor-viable mothers =====================
+    // The Phase-1 byte scan below only writes a count for a mother that this pre-pass
+    // marked viable. The marked set is a strict SUPERSET of the mothers Phase-2 can
+    // emit: we walk the SAME precursor-derived fragment targets (Single-N b_k,
+    // Single-C y_k) and the SAME full-length precursor_mz_ ranges, but drop the
+    // single_c / protein-anchor / score-threshold filters (over-approximation). So no
+    // mother that Phase-2 emits is ever missing its count, while the non-viable mothers
+    // no longer take a (cache-missing) random write per matched fragment. The bin-walk
+    // targets come from the shared target_single_n / target_single_c / target_full
+    // helpers used by Phase-2 too, so the two paths cannot drift out of sync.
+    {
+      const bool open_mode_pp = isOpenSearchMode_();
+      const int16_t iso_lo_pp = open_mode_pp ? 0 : min_isotope_error_;
+      const int16_t iso_hi_pp = open_mode_pp ? 0 : max_isotope_error_;
+
+      std::vector<double> sigma_union = snes_sigma_delta_set_;
+      sigma_union.insert(sigma_union.end(), snes_sigma_delta_set_with_prot_nterm_.begin(), snes_sigma_delta_set_with_prot_nterm_.end());
+      sigma_union.insert(sigma_union.end(), snes_sigma_delta_set_with_prot_cterm_.begin(), snes_sigma_delta_set_with_prot_cterm_.end());
+
+      auto mark_bucket_range = [&](float target, float tol_lo, float tol_hi) {
+        auto lb = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), target + tol_lo);
+        auto rb = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), target + tol_hi);
+        if (lb != bucket_min_mz_.begin()) --lb;
+        const size_t jb = std::distance(bucket_min_mz_.begin(), lb);
+        const size_t je = std::distance(bucket_min_mz_.begin(), rb);
+        for (size_t j = jb; j < je; ++j)
+        {
+          const auto sb = fi_fragments_.begin() + (j * bucketsize_);
+          const auto se = ((j + 1) * bucketsize_) >= fi_fragments_.size()
+            ? fi_fragments_.end() : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
+          for (auto it = sb; it != se; ++it)
+          {
+            const float d = it->fragment_mz_ - target;
+            if (d >= tol_lo && d <= tol_hi) viable_set(it->peptide_idx_);
+          }
+        }
+      };
+      auto mark_precursor_range = [&](float target, float tol_lo, float tol_hi) {
+        auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), target + tol_lo,
+                                   [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+        auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), target + tol_hi,
+                                   [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+        for (auto it = lb; it != ub; ++it)
+          viable_set(static_cast<UInt32>(std::distance(fi_peptides_.begin(), it)));
+      };
+
+      for (uint16_t charge : charges)
+      {
+        const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
+          - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
+        for (int16_t iso_err = iso_lo_pp; iso_err <= iso_hi_pp; ++iso_err)
+        {
+          const float shifted_mh = mh_plus
+            + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+          const auto prec_window = computeMassWindow_(shifted_mh);
+          const float tlo = prec_window.first;   // <= 0
+          const float thi = prec_window.second;  // >= 0
+          for (double sigma : sigma_union)
+          {
+            const float s = static_cast<float>(sigma);
+            mark_bucket_range(target_single_n(shifted_mh, s), tlo, thi); // Single-N b_k
+            mark_bucket_range(target_single_c(shifted_mh, s), tlo, thi); // Single-C y_k
+            mark_precursor_range(target_full(shifted_mh, s), tlo, thi);  // full-length
+          }
+        }
+      }
+    }
 
     for (const Peak1D& peak : spectrum)
     {
@@ -1581,7 +2047,9 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             if (adjusted_mass >= it->fragment_mz_ - frag_tol
                 && adjusted_mass <= it->fragment_mz_ + frag_tol)
             {
-              auto& cell = score_table[it->peptide_idx_];
+              const UInt32 id = it->peptide_idx_;
+              if (!viable_test(id)) continue;   // precursor-prefilter: skip the non-viable mothers
+              auto& cell = score_table[id];
               if (cell < std::numeric_limits<uint16_t>::max()) ++cell;
             }
           }
@@ -1598,15 +2066,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     //
     // We walk the fragment buckets at each target once per (charge, iso_err) and
     // emit the dedup'd set of matching mother ids whose phase-1 byte score meets
-    // the minimum-matched-peaks threshold.
-    static const double water = Residue::getInternalToFull().getMonoWeight();
+    // the minimum-matched-peaks threshold. The target m/z are computed via the
+    // shared target_single_n / target_single_c / target_full helpers (setup block).
 
-    // Dedup guard (thread_local, sized once per query). The actual per-
-    // (charge, iso_err, sigma) reset happens inside the Σ loops below via
-    // std::fill — this assign() is only for size-safe initialization of
-    // the thread-local buffer when fi_peptides_.size() changes between calls.
-    thread_local std::vector<uint8_t> emitted;
-    emitted.assign(fi_peptides_.size(), 0);
+    // Dedup guard `emitted` is declared and reset (O(touched), via emitted_touched)
+    // in the setup block above. The per-(charge, iso_err, sigma) reset below is also
+    // O(touched) rather than a full-index std::fill.
 
     // Helper: compute the iso-shifted observed (M+H)+ for a given (charge, iso_err).
     // Used by the subset-enumeration post-pass to reconstruct the realization target.
@@ -1653,7 +2118,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           if (isSingleCMother(mother.mod_bitmask_) != expect_single_c) continue;
 
           // SNES v1.1: anchor-specific filter for PROTEIN_N/C_TERM mod walks.
-          if (require_anchor == SnesAnchor::PROT_NTERM && mother.sequence_.first != 0) continue;
+          if (require_anchor == SnesAnchor::PROT_NTERM && !isProteinNTerminal_(fasta_entries[mother.protein_idx].sequence, mother.sequence_.first))
+          {
+            continue;
+          }
           if (require_anchor == SnesAnchor::PROT_CTERM)
           {
             const uint32_t prot_len = protein_lengths_[mother.protein_idx];
@@ -1662,7 +2130,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
           if (score_table[id] < min_matched_peaks_) continue;
 
-          emitted[id] = 1;
+          emit_mark(id);
           SpectrumMatch sm;
           sm.peptide_idx_ = id;
           sm.num_matched_ = score_table[id];
@@ -1736,7 +2204,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         {
           // Reset dedup per (charge, iso_err, sigma) combo so the same mother
           // can re-emit at distinct sigma values (each is a distinct match).
-          std::fill(emitted.begin(), emitted.end(), 0);
+          reset_emitted_touched();
 
           const float s = static_cast<float>(sigma);
 
@@ -1751,11 +2219,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           // Missing the fixed-term offsets would shift the lookup target by the
           // corresponding delta and silently miss all candidates when a user
           // configures Acetyl (N-term) / Amidated (C-term) / similar.
-          collect_candidates(shifted_mh - static_cast<float>(water)
-                                        - static_cast<float>(fixed_cterm_delta_) - s,
+          collect_candidates(target_single_n(shifted_mh, s),
                              prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge,
                              SnesAnchor::NONE, s);
-          collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
+          collect_candidates(target_single_c(shifted_mh, s),
                              prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
                              SnesAnchor::NONE, s);
 
@@ -1769,7 +2236,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           // (b) proteins shorter than max_length, where every mother is at full
           // protein length.
           {
-            const float target = shifted_mh - s;
+            const float target = target_full(shifted_mh, s);
             auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
                                         target + prec_tol_lo,
                                         [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
@@ -1781,7 +2248,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
               if (emitted[id]) continue;
               if (score_table[id] < min_matched_peaks_) continue;
-              emitted[id] = 1;
+              emit_mark(id);
               SpectrumMatch sm;
               sm.peptide_idx_ = id;
               sm.num_matched_ = score_table[id];
@@ -1794,19 +2261,18 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         }
 
         // Extra walks for PROTEIN_N_TERM-only Σ values (Single-N mothers at
-        // protein position 0 only). Empty when no PROTEIN_N_TERM variable mods
+        // protein position 0, or 1 after enabled Met clipping). Empty when no PROTEIN_N_TERM variable mods
         // are configured.
         for (double sigma : prot_nterm_extra)
         {
-          std::fill(emitted.begin(), emitted.end(), 0);
+          reset_emitted_touched();
           const float s = static_cast<float>(sigma);
-          collect_candidates(shifted_mh - static_cast<float>(water)
-                                        - static_cast<float>(fixed_cterm_delta_) - s,
+          collect_candidates(target_single_n(shifted_mh, s),
                              prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge,
                              SnesAnchor::PROT_NTERM, s);
           // Supplementary full-length at this Σ, PROT_NTERM-gated.
           {
-            const float target = shifted_mh - s;
+            const float target = target_full(shifted_mh, s);
             auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
                                         target + prec_tol_lo,
                                         [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
@@ -1817,10 +2283,13 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             {
               const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
               if (emitted[id]) continue;
-              if (fi_peptides_[id].sequence_.first != 0) continue; // PROT_NTERM anchor
+              if (!isProteinNTerminal_(fasta_entries[fi_peptides_[id].protein_idx].sequence, fi_peptides_[id].sequence_.first))
+              {
+                continue; // PROT_NTERM anchor
+              }
               if (isSingleCMother(fi_peptides_[id].mod_bitmask_)) continue; // Single-N only
               if (score_table[id] < min_matched_peaks_) continue;
-              emitted[id] = 1;
+              emit_mark(id);
               SpectrumMatch sm;
               sm.peptide_idx_ = id;
               sm.num_matched_ = score_table[id];
@@ -1835,14 +2304,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         // Extra walks for PROTEIN_C_TERM-only Σ values.
         for (double sigma : prot_cterm_extra)
         {
-          std::fill(emitted.begin(), emitted.end(), 0);
+          reset_emitted_touched();
           const float s = static_cast<float>(sigma);
-          collect_candidates(shifted_mh - static_cast<float>(fixed_nterm_delta_) - s,
+          collect_candidates(target_single_c(shifted_mh, s),
                              prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
                              SnesAnchor::PROT_CTERM, s);
           // Supplementary full-length at this Σ, PROT_CTERM-gated.
           {
-            const float target = shifted_mh - s;
+            const float target = target_full(shifted_mh, s);
             auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
                                         target + prec_tol_lo,
                                         [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
@@ -1858,7 +2327,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               if (static_cast<uint32_t>(fi_peptides_[id].sequence_.first)
                   + fi_peptides_[id].sequence_.second != prot_len) continue;
               if (score_table[id] < min_matched_peaks_) continue;
-              emitted[id] = 1;
+              emit_mark(id);
               SpectrumMatch sm;
               sm.peptide_idx_ = id;
               sm.num_matched_ = score_table[id];
@@ -1910,7 +2379,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
             : mother.sequence_.first;
         const size_t sub_len = static_cast<size_t>(realized_len);
         const char* seq_ptr = protein_seq.c_str() + sub_start;
-        const bool is_prot_nterm = (sub_start == 0);
+        const bool is_prot_nterm = isProteinNTerminal_(protein_seq, sub_start);
         const bool is_prot_cterm = (sub_start + sub_len == protein_seq.size());
 
         ModSlot slots[MAX_MOD_SLOTS];
@@ -2022,6 +2491,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                     const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                     OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
   {
+    querySpectrum(spectrum, fasta_entries, sms, false);
+  }
+
+  void FragmentIndex::querySpectrum(const OpenMS::MSSpectrum& spectrum,
+                                    const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                    OpenMS::FragmentIndex::SpectrumMatchesTopN& sms,
+                                    bool with_electron_ions)
+  {
       if (!isBuild())
       {
         OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
@@ -2061,14 +2538,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         }
       }
 
+      // Charge outer, isotope error inner (inside searchDifferentPrecursorRanges); each
+      // block appends to sms in ascending peptide index. A per-charge staging container
+      // would only add a second full copy of every candidate before the same tail insert.
       for (uint16_t charge : charges)
       {
-        SpectrumMatchesTopN candidates_charge;
         float mz;
         mz = (float)precursor[0].getMZ() * charge - ((charge-1) * Constants::PROTON_MASS_U);
-        searchDifferentPrecursorRanges(spectrum, mz, candidates_charge, charge);
-
-        sms += candidates_charge;
+        searchDifferentPrecursorRanges(spectrum, mz, sms, charge, with_electron_ions);
       }
       trimHits(sms);
   }
@@ -2093,8 +2570,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("ions:add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
     defaults_.setValidStrings("ions:add_x_ions", {"true","false"});
     
-    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions (y - NH3) to the spectrum. For ETD, EThcD or ETciD spectra, use ions:add_zp1_ions instead.");
     defaults_.setValidStrings("ions:add_z_ions", {"true","false"});
+
+    defaults_.setValue("ions:add_zp1_ions", "false", "Add peaks of z+1 ions (z-dot, y - NH2) to the spectrum, the main C-terminal fragments of ETD, EThcD and ETciD spectra.");
+    defaults_.setValidStrings("ions:add_zp1_ions", {"true","false"});
+
+    defaults_.setValue("ions:electron_ions", "false", "Also index c and z+1 ions, the main fragments of ETD, ECD, EThcD and ETciD spectra, apart from the ion series above: querySpectrum() matches a spectrum against them only when asked to, e.g. for an electron-activated spectrum. Series enabled above are not indexed twice. Ignored in SNES mode.");
+    defaults_.setValidStrings("ions:electron_ions", {"true","false"});
     defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
 
@@ -2124,7 +2607,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("fragment:min_ion_index", 2, "Ions with index less than or equal to this value are not added to the fragment index (use 0 to include all ions; 2 skips b1/b2/y1/y2). Low-index ions are often noisy and unreliable.");
     defaults_.setMinInt("fragment:min_ion_index", 0);
 
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
     defaults_.setValidStrings("modifications:fixed", ListUtils::create<std::string>(all_mods));
@@ -2132,13 +2615,23 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValidStrings("modifications:variable", ListUtils::create<std::string>(all_mods));
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
 
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     defaults_.setValue("enzyme", "Trypsin", "Enzyme for digestion");
     defaults_.setValidStrings("enzyme", ListUtils::create<std::string>(all_enzymes));
 
 
     defaults_.setValue("peptide:missed_cleavages", 1, "Missed cleavages for digestion");
+    defaults_.setValue(
+      "peptide:clip_nterm_methionine", "false",
+      "Also consider loss of the initial M of a protein. Length and missed-cleavage limits apply to the clipped peptide, "
+      "which remains eligible for protein N-terminal variable modifications. Non-specific searches already include these sequences.");
+    defaults_.setValidStrings("peptide:clip_nterm_methionine", {"true", "false"});
+    defaults_.setValue("peptide:deduplicate", "false",
+                       "Index each exact modified peptide once, retaining one representative protein coordinate. "
+                       "Callers must recover complete protein mappings separately. Does not apply to SNES mother indices.",
+                       {"advanced"});
+    defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
     defaults_.setValue("peptide:enzyme_specificity", "full",
       "Enzyme cleavage specificity required for both peptide termini.\n"
       "  'full' : both termini must be enzyme-specific (canonical, e.g. tryptic).\n"
@@ -2188,13 +2681,26 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
     defaults_.setValidStrings("decoys", {"true","false"} );
     defaults_.setValue("annotate:PSM",  std::vector<std::string>{"ALL"}, "Annotations added to each PSM.");
+    // Kept in sync with ProSEAlgorithm's own "annotate:PSM" valid-strings list
+    // (ProSEAlgorithm.cpp) — both declare this parameter since the merged Search:
+    // subtree is passed down to FragmentIndex as well.
     defaults_.setValidStrings("annotate:PSM",
                               std::vector<std::string>{
                                 "ALL",
                                 Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM,
                                 Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                                 Constants::UserParam::MATCHED_PREFIX_IONS_FRACTION,
-                                Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION}
+                                Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION,
+                                Constants::UserParam::NUM_MATCHED_PEAKS,
+                                Constants::UserParam::MATCHED_PREFIX_IONS,
+                                Constants::UserParam::MATCHED_SUFFIX_IONS,
+                                Constants::UserParam::LONGEST_PEPTIDE_ION_SEQUENCE,
+                                Constants::UserParam::MATCHED_ION_CURRENT,
+                                Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM,
+                                Constants::UserParam::HYPERSCORE_ZSCORE,
+                                Constants::UserParam::LN_NUM_CANDIDATES,
+                                Constants::UserParam::MATCHED_ION_CURRENT_FRACTION,
+                                Constants::UserParam::COMPLEMENTARY_IONS_FRACTION}
     );
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
@@ -2215,7 +2721,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     add_c_ions_ = param_.getValue("ions:add_c_ions").toBool();
     add_x_ions_ = param_.getValue("ions:add_x_ions").toBool();
     add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
+    add_zp1_ions_ = param_.getValue("ions:add_zp1_ions").toBool();
+    electron_ions_ = param_.getValue("ions:electron_ions").toBool();
     digestion_enzyme_ = param_.getValue("enzyme").toString();
+    clip_nterm_methionine_ = param_.getValue("peptide:clip_nterm_methionine").toBool();
     enzyme_specificity_ = EnzymaticDigestion::getSpecificityByName(
       param_.getValue("peptide:enzyme_specificity").toString());
     missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
@@ -2279,7 +2788,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "SNES mode (snes_enabled=true with enzyme_specificity=none) requires both "
         "ions:add_b_ions=true and ions:add_y_ions=true in v1. Additional ion "
-        "series (a/c/x/z) may be enabled freely for downstream scoring.");
+        "series (a/c/x/z/z+1) may be enabled freely for downstream scoring.");
     }
 
     if (isOpenSearchMode_())

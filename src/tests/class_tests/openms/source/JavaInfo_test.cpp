@@ -11,7 +11,7 @@
 
 /////////////////////////////////////////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
 using namespace OpenMS;
@@ -23,7 +23,7 @@ START_TEST(TextFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-START_SECTION((static bool canRun(const String &file)))
+START_SECTION((static bool canRun(const std::string &file)))
   // test for missing java executable
   TEST_EQUAL(JavaInfo::canRun(""), false)
 END_SECTION

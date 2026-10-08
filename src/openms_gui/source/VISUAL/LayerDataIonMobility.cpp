@@ -68,19 +68,19 @@ namespace OpenMS
   {
     if (peak.spectrum != 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Currently only one mobilogram is supported!", String(peak.spectrum));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Currently only one mobilogram is supported!",StringUtils::toStr(peak.spectrum));
     }
     return mapper.map(single_mobilogram_, peak.peak);
   }
 
-  String LayerDataIonMobility::getDataArrayDescription(const PeakIndex& peak_index)
+  std::string LayerDataIonMobility::getDataArrayDescription(const PeakIndex& peak_index)
   {
     if (peak_index.spectrum != 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Currently only one mobilogram is supported!", String(peak_index.spectrum));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Currently only one mobilogram is supported!",StringUtils::toStr(peak_index.spectrum));
     }
     // no array data exists for mobilograms (yet)
-    String status;
+    std::string status;
     return status;
   }
 

@@ -21,21 +21,36 @@ namespace OpenMS
     output_map.setUniqueId();
 
     input_map.updateRanges();
-    if (n > input_map.getSize())
-    {
-      n = input_map.getSize();
-    }
-    output_map.reserve(n);
     std::vector<Peak2D> tmp;
-    tmp.reserve(input_map.getSize());
+    tmp.reserve(input_map.getSize()); // an upper bound only, see below
 
     // TODO Avoid tripling the memory consumption by this call
     input_map.get2DData(tmp);
 
+    // Clamp n only now, against the number of peaks actually collected.
+    // input_map.getSize() is the wrong bound: it counts the peaks of every
+    // spectrum at every MS level plus all chromatogram points, whereas
+    // get2DData() collects MS1 peaks only. With n > tmp.size() the middle
+    // iterator of the partial_sort and the copy loop below would run past
+    // the end of tmp (out-of-bounds reads and writes, consensus features
+    // built from garbage).
+    if (n > tmp.size())
+    {
+      n = tmp.size();
+    }
+    output_map.reserve(n);
+
+    // most intense first; equal intensities are ordered by RT, then m/z, so that the selected peaks and their
+    // order do not depend on the standard library's partial_sort implementation
     std::partial_sort(tmp.begin(),
                       tmp.begin() + n,
                       tmp.end(),
-                      [](auto &left, auto &right) {Peak2D::IntensityLess cmp; return cmp(right, left);});
+                      [](const Peak2D& left, const Peak2D& right)
+                      {
+                        if (left.getIntensity() != right.getIntensity()) return left.getIntensity() > right.getIntensity();
+                        if (left.getRT() != right.getRT()) return left.getRT() < right.getRT();
+                        return left.getMZ() < right.getMZ();
+                      });
 
     for (Size element_index = 0; element_index < n; ++element_index)
     {

@@ -108,7 +108,7 @@ namespace OpenMS
     void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, const Residue::ResidueType res_type, int charge) const;
 
     /// helper to add full neutral loss ladders (for single peaks), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-    void addLossesFaster_(PeakSpectrum& spectrum, double mz, const std::set<EmpiricalFormula>& f_losses, int ion_ordinal, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const std::map<EmpiricalFormula, String>& formula_str_cache, double intensity, const String& annotation_prefix_string, bool add_metainfo, int charge) const;
+    void addLossesFaster_(PeakSpectrum& spectrum, double mz, const std::set<EmpiricalFormula>& f_losses, int ion_ordinal, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const std::map<EmpiricalFormula, std::string>& formula_str_cache, double intensity, const std::string& annotation_prefix_string, bool add_metainfo, int charge) const;
 
     /// helper for getPrefixAndSuffixIonsMZ. For given Ion-Type and charge calculates a peaks
     static void addPrefixAndSuffixIons_(std::vector<float>& spectrum, const AASequence& peptide, Residue::ResidueType res_type, int charge);
@@ -133,7 +133,7 @@ namespace OpenMS
     bool add_metainfo_;
     bool add_isotopes_;
     bool add_internal_fragments_;
-    int isotope_model_;
+    int isotope_model_ = 0;
     bool add_precursor_peaks_;
     bool add_all_precursor_charges_ ;
     bool add_abundant_immonium_ions_;

@@ -37,7 +37,7 @@ namespace OpenMS
 
       @throw Exception::FailedAPICall Throw this exception
     */
-    void raiseDBError_(const String& error, int line, const char* function, const String& context, const String& query = "");
+    void raiseDBError_(const std::string& error, int line, const char* function, const std::string& context, const std::string& query = "");
 
     /*!
       @brief Execute and reset an SQL query
@@ -72,7 +72,7 @@ namespace OpenMS
 
         @throw Exception::FailedAPICall Database cannot be opened
       */
-      OMSFileStore(const String& filename, LogType log_type);
+      OMSFileStore(const std::string& filename, LogType log_type);
 
       /*!
         @brief Destructor
@@ -98,7 +98,7 @@ namespace OpenMS
         @param[in] definition Table definition in SQL
         @param[in] may_exist If true, the table may already exist (otherwise this is an error)
       */
-      void createTable_(const String& name, const String& definition, bool may_exist = false);
+      void createTable_(const std::string& name, const std::string& definition, bool may_exist = false);
 
       /// Create a database table for the data types used in DataValue
       void createTableDataValue_DataType_();
@@ -107,8 +107,8 @@ namespace OpenMS
       void createTableCVTerm_();
 
       /// Create a database table (and prepare a query) for storing meta values
-      void createTableMetaInfo_(const String& parent_table,
-                                const String& key_column = "id");
+      void createTableMetaInfo_(const std::string& parent_table,
+                                const std::string& key_column = "id");
 
       /// Store version information and current date/time in the database
       void storeVersionAndDate_();
@@ -117,13 +117,13 @@ namespace OpenMS
       Key storeCVTerm_(const CVTerm& cv_term);
 
       /// Store meta values (associated with one object) in the database
-      void storeMetaInfo_(const MetaInfoInterface& info, const String& parent_table,
+      void storeMetaInfo_(const MetaInfoInterface& info, const std::string& parent_table,
                           Key parent_id);
 
       /// Store meta values (for all objects in a container) in the database
       template<class MetaInfoInterfaceContainer, class DBKeyTable>
       void storeMetaInfos_(const MetaInfoInterfaceContainer& container,
-                           const String& parent_table, const DBKeyTable& db_keys)
+                           const std::string& parent_table, const DBKeyTable& db_keys)
       {
         bool table_created = false;
         for (const auto& element : container)
@@ -182,12 +182,12 @@ namespace OpenMS
       void createTableMoleculeType_();
 
       /// Create a database table for storing processing metadata
-      void createTableAppliedProcessingStep_(const String& parent_table);
+      void createTableAppliedProcessingStep_(const std::string& parent_table);
 
       /// Store processing metadata for a particular class (stored in @p parent_table) in the database
       void storeAppliedProcessingStep_(
         const IdentificationData::AppliedProcessingStep& step, Size step_order,
-        const String& parent_table, Key parent_id);
+        const std::string& parent_table, Key parent_id);
 
       /// Create a database table for storing identified molecules (peptides, compounds, oligonucleotides)
       void createTableIdentifiedMolecule_();
@@ -205,7 +205,7 @@ namespace OpenMS
       /// Store metadata on scores/processing steps (for all objects in a container) in the database
       template<class ScoredProcessingResultContainer, class DBKeyTable>
       void storeScoredProcessingResults_(const ScoredProcessingResultContainer& container,
-                                         const String& parent_table, const DBKeyTable& db_keys)
+                                         const std::string& parent_table, const DBKeyTable& db_keys)
       {
         bool table_created = false;
         for (const auto& element : container)
@@ -258,7 +258,7 @@ namespace OpenMS
 
       /// Store feature/consensus map meta data in the database
       template <class MapType>
-      void storeMapMetaData_(const MapType& features, const String& experiment_type = "");
+      void storeMapMetaData_(const MapType& features, const std::string& experiment_type = "");
 
       /// Store information on data processing from a feature/consensus map in the database
       void storeDataProcessing_(const std::vector<DataProcessing>& data_processing);

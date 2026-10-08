@@ -52,7 +52,7 @@ namespace OpenMS
         if (!hit.metaValueExists("DeltaMass"))
           continue;
           
-        double delta_mass = hit.getMetaValue("DeltaMass");
+        double delta_mass = (double)hit.getMetaValue("DeltaMass");
         int charge = hit.getCharge();
 
         // Ignore delta masses close to zero
@@ -102,43 +102,55 @@ namespace OpenMS
                                                                PeptideIdentificationList& peptide_ids,
                                                                double precursor_mass_tolerance,
                                                                bool precursor_mass_tolerance_unit_ppm,
-                                                               const String& output_file) const
+                                                               const std::string& output_file) const
   {
-    std::map<double, String, FuzzyDoubleComparator> mass_to_modification(FuzzyDoubleComparator(1e-9));
-    std::map<String, ModificationPattern> modifications;
-    std::map<double, String> histogram_found;
+    std::map<double, std::string, FuzzyDoubleComparator> mass_to_modification(FuzzyDoubleComparator(1e-9));
+    std::map<std::string, ModificationPattern> modifications;
+    std::map<double, std::string> histogram_found;
 
     // Load modifications from the database
-    std::vector<String> modification_names;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    std::vector<std::string> modification_names;
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     mod_db->getAllSearchModifications(modification_names);
     
-    for (const String& mod_name : modification_names)
+    for (const std::string& mod_name : modification_names)
     {
       const ResidueModification* residue = mod_db->getModification(mod_name);
-      String full_name = residue->getFullName();
+      std::string full_name = residue->getFullName();
       double diff_mono_mass = residue->getDiffMonoMass();
       
-      if (full_name.find("substitution") == std::string::npos)
+      if (!full_name.contains("substitution"))
       {
         mass_to_modification[diff_mono_mass] = full_name;
       }
     }
 
-    // Generate combinations of modifications
-    std::map<double, String, FuzzyDoubleComparator> combo_modifications(FuzzyDoubleComparator(1e-9));
-    for (auto it1 = mass_to_modification.begin(); it1 != mass_to_modification.end(); ++it1)
+    // Names of the single modifications, in the order in which they are combined below
+    std::vector<std::string> single_mod_names;
+    single_mod_names.reserve(mass_to_modification.size());
+    for (const auto& mod_entry : mass_to_modification)
     {
-      for (auto it2 = it1; it2 != mass_to_modification.end(); ++it2)
+      single_mod_names.push_back(mod_entry.second);
+    }
+
+    // Generate combinations of modifications. Only the pair of indices into
+    // single_mod_names is stored; the combined name is assembled on demand for an actual
+    // match, since almost none of the ~n^2/2 combinations is ever looked up.
+    std::map<double, std::pair<UInt32, UInt32>, FuzzyDoubleComparator> combo_modifications(FuzzyDoubleComparator(1e-9));
+    UInt32 index1 = 0;
+    for (auto it1 = mass_to_modification.begin(); it1 != mass_to_modification.end(); ++it1, ++index1)
+    {
+      UInt32 index2 = index1;
+      for (auto it2 = it1; it2 != mass_to_modification.end(); ++it2, ++index2)
       {
-        combo_modifications[it1->first + it2->first] = it1->second + "++" + it2->second;
+        combo_modifications[it1->first + it2->first] = {index1, index2};
       }
     }
 
     // Helper function to add or update modifications
-    auto addOrUpdateModification = [&](const String& mod_name, double mass, double count, int num_charges)
+    auto addOrUpdateModification = [&](const std::string& mod_name, double mass, double count, int num_charges)
     {
-      if (modifications.find(mod_name) == modifications.end())
+      if (!modifications.contains(mod_name))
       {
         ModificationPattern pattern;
         pattern.masses.push_back(mass);
@@ -173,7 +185,7 @@ namespace OpenMS
 
       // Search for modifications within bounds
       bool mapping_found = false;
-      String mod_name;
+      std::string mod_name;
       double mod_mass = 0.0;
 
       // Search in single modifications
@@ -217,23 +229,38 @@ namespace OpenMS
       }
       else
       {
-        // Check if modification can be explained by known modifications
-        for (const auto& hit : histogram_found)
+        // Check if modification can be explained by known modifications. Only entries in
+        // two windows of half-width effective_tol qualify: one around cluster_mass (direct
+        // match) and one around cluster_mass - 1.0 (+1 isotope variant). effective_tol is
+        // capped at MAX_MOD_MAPPING_TOL_, so the windows are disjoint and the isotope
+        // window holds the lower masses; it is therefore examined first.
+        for (auto hit = histogram_found.lower_bound(cluster_mass - 1.0 - effective_tol - epsilon);
+             hit != histogram_found.end() && hit->first <= cluster_mass - 1.0 + effective_tol + epsilon;
+             ++hit)
         {
-          if (std::abs(hit.first - cluster_mass) < effective_tol)
+          // Check if modification can be explained by a +1 isotope variant
+          if (std::abs((hit->first + 1.0) - cluster_mass) < effective_tol)
           {
-            addOrUpdateModification(hit.second, hit.first, count, charge_histogram.at(cluster_mass));
+            std::string temp_mod_name = hit->second + "+1Da";
+            addOrUpdateModification(temp_mod_name, hit->first + 1.0, count, charge_histogram.at(cluster_mass));
+            histogram_found[hit->first + 1.0] = temp_mod_name;
             mapping_found = true;
             break;
           }
-          // Check if modification can be explained by a +1 isotope variant
-          else if (std::abs((hit.first + 1.0) - cluster_mass) < effective_tol)
+        }
+
+        if (!mapping_found)
+        {
+          for (auto hit = histogram_found.lower_bound(cluster_mass - effective_tol - epsilon);
+               hit != histogram_found.end() && hit->first <= cluster_mass + effective_tol + epsilon;
+               ++hit)
           {
-            String temp_mod_name = hit.second + "+1Da";
-            addOrUpdateModification(temp_mod_name, hit.first + 1.0, count, charge_histogram.at(cluster_mass));
-            histogram_found[hit.first + 1.0] = temp_mod_name;
-            mapping_found = true;
-            break;
+            if (std::abs(hit->first - cluster_mass) < effective_tol)
+            {
+              addOrUpdateModification(hit->second, hit->first, count, charge_histogram.at(cluster_mass));
+              mapping_found = true;
+              break;
+            }
           }
         }
 
@@ -241,10 +268,10 @@ namespace OpenMS
         if (!mapping_found)
         {
           auto it = combo_modifications.lower_bound(cluster_mass - epsilon);
-          if (it != combo_modifications.end() && 
+          if (it != combo_modifications.end() &&
               std::abs(it->first - cluster_mass) <= effective_tol)
           {
-            mod_name = it->second;
+            mod_name = single_mod_names[it->second.first] + "++" + single_mod_names[it->second.second];
             mod_mass = it->first;
             mapping_found = true;
           }
@@ -261,7 +288,7 @@ namespace OpenMS
       else
       {
         // Unknown modification (cluster_mass is already filtered for near-zero in analyzeDeltaMassPatterns)
-        String unknown_mod_name = "Unknown" + String(std::round(cluster_mass));
+        std::string unknown_mod_name = "Unknown" + StringUtils::toStr(std::round(cluster_mass));
         addOrUpdateModification(unknown_mod_name, cluster_mass, count, charge_histogram.at(cluster_mass));
       }
     }
@@ -296,8 +323,8 @@ namespace OpenMS
         if (!hit.metaValueExists("DeltaMass"))
           continue;
           
-        double delta_mass = hit.getMetaValue("DeltaMass");
-        String ptm = "";
+        double delta_mass = (double)hit.getMetaValue("DeltaMass");
+        std::string ptm;
 
         // Check if too close to zero
         if (std::abs(delta_mass) < DELTA_MASS_ZERO_THRESHOLD_)
@@ -307,12 +334,15 @@ namespace OpenMS
         }
 
         bool found = false;
-        // Check with error tolerance if already present in histogram
-        for (const auto& entry : histogram_found)
+        // Check with error tolerance if already present in histogram. Only entries within
+        // effective_tol of delta_mass can match, so the search starts at the window border.
+        for (auto entry = histogram_found.lower_bound(delta_mass - effective_tol - epsilon);
+             entry != histogram_found.end() && entry->first <= delta_mass + effective_tol + epsilon;
+             ++entry)
         {
-          if (std::abs(delta_mass - entry.first) < effective_tol)
+          if (std::abs(delta_mass - entry->first) < effective_tol)
           {
-            ptm = entry.second;
+            ptm = entry->second;
             found = true;
             break;
           }
@@ -321,7 +351,7 @@ namespace OpenMS
         // Otherwise assign unknown
         if (!found)
         {
-          ptm = "Unknown" + String(delta_mass);
+          ptm = "Unknown" + StringUtils::toStr(delta_mass);
         }
         
         hit.setMetaValue("PTM", ptm);
@@ -342,7 +372,7 @@ namespace OpenMS
                                                       double precursor_mass_tolerance,
                                                       bool precursor_mass_tolerance_unit_ppm,
                                                       bool use_smoothing,
-                                                      const String& output_file) const
+                                                      const std::string& output_file) const
   {
     // Analyze delta mass patterns
     auto [histogram, charge_counts] = analyzeDeltaMassPatterns(peptide_ids, use_smoothing, false);
@@ -386,18 +416,20 @@ namespace OpenMS
     const size_t n = deltas.size();
     std::vector<double> smoothed_counts(n, 0.0);
 
-    // Perform Gaussian smoothing
+    // Perform Gaussian smoothing. deltas is ascending (extracted from the ordered
+    // histogram), so the points within 3 standard deviations form a contiguous
+    // range located by binary search — an open-search histogram has 1e4-1e5 bins
+    // and a full O(n^2) scan would dominate the analysis.
+    const double cutoff = 3.0 * sigma;
     for (size_t i = 0; i < n; ++i)
     {
       double weight_sum = 0.0;
 
-      for (size_t j = 0; j < n; ++j)
+      const size_t j_begin = std::lower_bound(deltas.begin(), deltas.end(), deltas[i] - cutoff) - deltas.begin();
+      const size_t j_end = std::upper_bound(deltas.begin(), deltas.end(), deltas[i] + cutoff) - deltas.begin();
+      for (size_t j = j_begin; j < j_end; ++j)
       {
         double mz_diff = deltas[i] - deltas[j];
-
-        // Ignore points beyond 3 standard deviations
-        if (std::abs(mz_diff) > 3.0 * sigma)
-          continue;
 
         double weight = gaussian_(mz_diff, sigma);
         smoothed_counts[i] += weight * counts[j];
@@ -467,17 +499,17 @@ namespace OpenMS
   }
 
   void OpenSearchModificationAnalysis::writeModificationSummary_(const std::vector<ModificationSummary>& modifications,
-                                                                const String& output_file) const
+                                                                const std::string& output_file) const
   {
     // Remove 'idxml' extension and add '_OutputTable.tsv'
-    String output_table = output_file;
-    if (output_table.hasSuffix(".idXML"))
+    std::string output_table = output_file;
+    if (StringUtils::hasSuffix(output_table, ".idXML"))
     {
-      output_table = output_table.substr(0, output_table.size() - 6) + "_OutputTable.tsv";
+      output_table = StringUtils::substr(output_table, 0, output_table.size() - 6) + "_OutputTable.tsv";
     }
-    else if (output_table.hasSuffix(".idxml"))
+    else if (StringUtils::hasSuffix(output_table, ".idxml"))
     {
-      output_table = output_table.substr(0, output_table.size() - 6) + "_OutputTable.tsv";
+      output_table = StringUtils::substr(output_table, 0, output_table.size() - 6) + "_OutputTable.tsv";
     }
     else
     {
@@ -522,7 +554,7 @@ namespace OpenMS
                                                                      double precursor_mass_tolerance,
                                                                      bool precursor_mass_tolerance_unit_ppm,
                                                                      bool use_smoothing,
-                                                                     const String& output_file) const
+                                                                     const std::string& output_file) const
   {
     OpenSearchAnalysisResult result;
 
@@ -543,10 +575,10 @@ namespace OpenMS
     // Write statistics tables if output file is specified
     if (!output_file.empty())
     {
-      String base_name = output_file;
-      if (base_name.hasSuffix(".idXML") || base_name.hasSuffix(".idxml"))
+      std::string base_name = output_file;
+      if (StringUtils::hasSuffix(base_name, ".idXML") || StringUtils::hasSuffix(base_name, ".idxml"))
       {
-        base_name = base_name.substr(0, base_name.size() - 6);
+        base_name = StringUtils::substr(base_name, 0, base_name.size() - 6);
       }
       writeDeltaMassStatistics(result.delta_mass_stats, base_name + "_DeltaMassStats.tsv");
       writePTMStatistics(result.ptm_stats, base_name + "_PTMStats.tsv");
@@ -564,6 +596,7 @@ namespace OpenMS
   {
     DeltaMassStatistics stats;
     constexpr double min_mass_for_ppm = 0.1; // Minimum mass to avoid division issues with ppm
+    constexpr double epsilon = 1e-8;         // Guard band when seeding a lookup at a window border
 
     // Effective tolerance for modification mass matching (capped for open search)
     const double mod_tol = precursor_mass_tolerance_unit_ppm
@@ -573,7 +606,12 @@ namespace OpenMS
     // Build modification lookup
     auto mod_lookup = buildModificationMassLookup_();
 
-    // Count total PSMs
+    // Count total PSMs and, in the same pass, collect the per-hit data needed for the
+    // unique peptide counts below: the delta mass and a dense id per distinct sequence.
+    std::vector<double> hit_delta_masses;
+    std::vector<UInt32> hit_sequence_ids;
+    std::unordered_map<std::string, UInt32> sequence_to_id;
+
     for (const auto& peptide_id : peptide_ids)
     {
       for (const auto& hit : peptide_id.getHits())
@@ -581,7 +619,7 @@ namespace OpenMS
         stats.total_psms++;
         if (hit.metaValueExists("DeltaMass"))
         {
-          double delta_mass = hit.getMetaValue("DeltaMass");
+          double delta_mass = (double)hit.getMetaValue("DeltaMass");
           if (std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_)
           {
             stats.unmodified_psms++;
@@ -590,9 +628,19 @@ namespace OpenMS
           {
             stats.modified_psms++;
           }
+
+          hit_delta_masses.push_back(delta_mass);
+          auto id_entry = sequence_to_id.emplace(hit.getSequence().toString(),
+                                                 static_cast<UInt32>(sequence_to_id.size()));
+          hit_sequence_ids.push_back(id_entry.first->second);
         }
       }
     }
+
+    // Per-sequence marker, used to count distinct sequences per delta mass bin without
+    // rebuilding a set of sequence strings for every bin
+    std::vector<UInt64> sequence_seen(sequence_to_id.size(), 0);
+    UInt64 seen_marker = 0;
 
     // Collect delta masses for median calculation
     std::vector<double> all_delta_masses;
@@ -629,14 +677,26 @@ namespace OpenMS
       }
 
       // Count unique peptides
-      entry.unique_peptides = countUniquePeptides_(peptide_ids, delta_mass, tolerance_da);
-
-      // Try to map to known modification
-      for (const auto& [mod_mass, mod_name] : mod_lookup)
+      ++seen_marker;
+      for (size_t i = 0; i < hit_delta_masses.size(); ++i)
       {
-        if (std::abs(mod_mass - delta_mass) <= mod_tol)
+        if (std::abs(hit_delta_masses[i] - delta_mass) <= tolerance_da &&
+            sequence_seen[hit_sequence_ids[i]] != seen_marker)
         {
-          entry.mapped_modification = mod_name;
+          sequence_seen[hit_sequence_ids[i]] = seen_marker;
+          entry.unique_peptides++;
+        }
+      }
+
+      // Try to map to known modification. Only entries within mod_tol of delta_mass can
+      // match, so the search starts at the window border; the lowest mass still wins.
+      for (auto mod_it = mod_lookup.lower_bound(delta_mass - mod_tol - epsilon);
+           mod_it != mod_lookup.end() && mod_it->first <= delta_mass + mod_tol + epsilon;
+           ++mod_it)
+      {
+        if (std::abs(mod_it->first - delta_mass) <= mod_tol)
+        {
+          entry.mapped_modification = mod_it->second;
           entry.is_known_modification = true;
           break;
         }
@@ -684,13 +744,13 @@ namespace OpenMS
     PTMStatistics stats;
 
     // Map to collect PTM data
-    std::map<String, PTMEntry> ptm_map;
-    std::map<String, std::unordered_set<std::string>> ptm_unique_peptides;
-    std::map<String, std::unordered_set<int>> ptm_unique_charges;
+    std::map<std::string, PTMEntry> ptm_map;
+    std::map<std::string, std::unordered_set<std::string>> ptm_unique_peptides;
+    std::map<std::string, std::unordered_set<int>> ptm_unique_charges;
 
     // Build modification lookup for theoretical masses
     auto mod_lookup = buildModificationMassLookup_();
-    std::map<String, double> name_to_mass;
+    std::map<std::string, double> name_to_mass;
     for (const auto& [mass, name] : mod_lookup)
     {
       name_to_mass[name] = mass;
@@ -704,14 +764,14 @@ namespace OpenMS
         if (!hit.metaValueExists("PTM"))
           continue;
 
-        String ptm_name = hit.getMetaValue("PTM");
+        std::string ptm_name = StringUtils::toStr(hit.getMetaValue("PTM"));
         if (ptm_name.empty())
         {
           continue;
         }
 
         // Check if unknown modification
-        if (ptm_name.hasPrefix("Unknown"))
+        if (StringUtils::hasPrefix(ptm_name, "Unknown"))
         {
           stats.unknown_modification_psms++;
           continue;
@@ -720,13 +780,13 @@ namespace OpenMS
         stats.total_modified_psms++;
 
         // Get or create PTM entry
-        if (ptm_map.find(ptm_name) == ptm_map.end())
+        if (!ptm_map.contains(ptm_name))
         {
           PTMEntry entry;
           entry.name = ptm_name;
 
           // Get theoretical mass
-          if (name_to_mass.find(ptm_name) != name_to_mass.end())
+          if (name_to_mass.contains(ptm_name))
           {
             entry.theoretical_mass = name_to_mass[ptm_name];
           }
@@ -753,7 +813,7 @@ namespace OpenMS
         // Analyze observed mass and residue frequency if available
         if (hit.metaValueExists("DeltaMass"))
         {
-          double obs_mass = hit.getMetaValue("DeltaMass");
+          double obs_mass = (double)hit.getMetaValue("DeltaMass");
           // Running average for observed mass
           entry.observed_mass = ((entry.observed_mass * (entry.count - 1)) + obs_mass) / entry.count;
 
@@ -814,7 +874,7 @@ namespace OpenMS
         if (!hit.metaValueExists("DeltaMass"))
           continue;
 
-        double hit_delta_mass = hit.getMetaValue("DeltaMass");
+        double hit_delta_mass = (double)hit.getMetaValue("DeltaMass");
         if (std::abs(hit_delta_mass - delta_mass) > tolerance)
           continue;
 
@@ -831,7 +891,7 @@ namespace OpenMS
   }
 
   void OpenSearchModificationAnalysis::writeDeltaMassStatistics(const DeltaMassStatistics& stats,
-                                                                const String& output_file) const
+                                                                const std::string& output_file) const
   {
     std::ofstream output_stream(output_file);
     if (!output_stream.is_open())
@@ -866,7 +926,7 @@ namespace OpenMS
   }
 
   void OpenSearchModificationAnalysis::writePTMStatistics(const PTMStatistics& stats,
-                                                          const String& output_file) const
+                                                          const std::string& output_file) const
   {
     std::ofstream output_stream(output_file);
     if (!output_stream.is_open())
@@ -909,23 +969,23 @@ namespace OpenMS
     OPENMS_LOG_INFO << "PTM statistics written to: " << output_file << std::endl;
   }
 
-  std::map<double, String, OpenSearchModificationAnalysis::FuzzyDoubleComparator>
+  std::map<double, std::string, OpenSearchModificationAnalysis::FuzzyDoubleComparator>
   OpenSearchModificationAnalysis::buildModificationMassLookup_() const
   {
-    std::map<double, String, FuzzyDoubleComparator> mass_to_mod; // uses default epsilon (1e-9)
+    std::map<double, std::string, FuzzyDoubleComparator> mass_to_mod; // uses default epsilon (1e-9)
 
-    std::vector<String> modification_names;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    std::vector<std::string> modification_names;
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     mod_db->getAllSearchModifications(modification_names);
 
-    for (const String& mod_name : modification_names)
+    for (const std::string& mod_name : modification_names)
     {
       const ResidueModification* residue = mod_db->getModification(mod_name);
-      String full_name = residue->getFullName();
+      std::string full_name = residue->getFullName();
       double diff_mono_mass = residue->getDiffMonoMass();
 
       // Skip substitutions
-      if (full_name.find("substitution") == std::string::npos)
+      if (!full_name.contains("substitution"))
       {
         mass_to_mod[diff_mono_mass] = full_name;
       }
@@ -934,37 +994,37 @@ namespace OpenMS
     return mass_to_mod;
   }
 
-  String OpenSearchModificationAnalysis::getTargetResidues_(const String& mod_name) const
+  std::string OpenSearchModificationAnalysis::getTargetResidues_(const std::string& mod_name) const
   {
     // Split compound names (e.g. "Oxidation//Deamidated" or "Oxidation+1Da") and resolve each part
-    std::vector<String> parts;
-    if (mod_name.find("//") != std::string::npos)
+    std::vector<std::string> parts;
+    if (mod_name.contains("//"))
     {
-      mod_name.split("//", parts);
+      StringUtils::split(mod_name, "//", parts);
     }
     else
     {
       // Strip isotope suffixes like "+1Da", "+2Da" etc.
-      String base_name = mod_name;
+      std::string base_name = mod_name;
       auto pos = mod_name.find("+");
       if (pos != std::string::npos && pos > 0)
       {
-        String suffix = mod_name.substr(pos);
-        if (suffix.hasSuffix("Da"))
+        std::string suffix = StringUtils::substr(mod_name, pos);
+        if (StringUtils::hasSuffix(suffix, "Da"))
         {
-          base_name = mod_name.substr(0, pos);
+          base_name = StringUtils::substr(mod_name, 0, pos);
         }
       }
       parts.push_back(base_name);
     }
 
-    std::vector<String> residues;
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    std::vector<std::string> residues;
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     for (const auto& part : parts)
     {
-      String trimmed = part;
-      trimmed.trim();
+      std::string trimmed = part;
+      StringUtils::trim(trimmed);
       if (trimmed.empty()) continue;
 
       try
@@ -972,8 +1032,8 @@ namespace OpenMS
         const ResidueModification* mod = mod_db->getModification(trimmed);
         if (mod != nullptr)
         {
-          String result;
-          String origin = mod->getOrigin();
+          std::string result;
+          std::string origin(1, mod->getOrigin());
           if (!origin.empty() && origin != "X")
           {
             result = origin;
@@ -1011,7 +1071,7 @@ namespace OpenMS
     }
 
     // Join results from multiple parts
-    String result;
+    std::string result;
     for (size_t i = 0; i < residues.size(); ++i)
     {
       if (i > 0) result += ",";
@@ -1033,7 +1093,7 @@ namespace OpenMS
         if (!hit.metaValueExists("DeltaMass"))
           continue;
 
-        double hit_delta_mass = hit.getMetaValue("DeltaMass");
+        double hit_delta_mass = (double)hit.getMetaValue("DeltaMass");
         if (std::abs(hit_delta_mass - delta_mass) <= tolerance)
         {
           unique_sequences.insert(hit.getSequence().toString());

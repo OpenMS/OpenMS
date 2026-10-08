@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -17,6 +18,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
@@ -40,13 +43,13 @@ START_SECTION(~PepXMLFile())
 delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const String& experiment_name, SpectrumMetaDataLookup& lookup))
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name, SpectrumMetaDataLookup& lookup))
 {
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
-  String pep_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
-  String mz_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
-  String exp_name = "PepXMLFile_test";
+  std::string pep_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
+  std::string mz_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
+  std::string exp_name = "PepXMLFile_test";
   PeakMap experiment;
   MzMLFile().load(mz_file, experiment);
   SpectrumMetaDataLookup lookup;
@@ -62,13 +65,13 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const String& experiment_name = ""))
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = ""))
 {
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
   // file contains results from two search runs:
-  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
-  String exp_name = "PepXMLFile_test";
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
+  std::string exp_name = "PepXMLFile_test";
   file.load(filename, proteins, peptides, exp_name);
 
   // peptide IDs:
@@ -148,7 +151,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(params.mass_type, ProteinIdentification::PeakMassType::MONOISOTOPIC);
   TEST_EQUAL(params.digestion_enzyme.getName(), "Trypsin");
 
-  vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
+  vector<std::string> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
   TEST_EQUAL(fix_mods.size(), 1)
   TEST_EQUAL(var_mods.size(), 12)
 
@@ -157,14 +160,14 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(var_mods[2], "Oxidation (M)")
   TEST_EQUAL(var_mods[3], "Gln->pyro-Glu (N-term Q)")
 
-  TEST_EQUAL(var_mods[4], "M[1.0]")
-  TEST_EQUAL(var_mods[5], ".n[2.0]")
-  TEST_EQUAL(var_mods[6], ".c[2.0]")
-  TEST_EQUAL(var_mods[7], ".n[2.5]")
-  TEST_EQUAL(var_mods[8], ".n[2.5]")
+  TEST_EQUAL(var_mods[4], "M[+1.0]")
+  TEST_EQUAL(var_mods[5], ".n[+2.0]")
+  TEST_EQUAL(var_mods[6], ".c[+2.0]")
+  TEST_EQUAL(var_mods[7], ".n[+2.5]")
+  TEST_EQUAL(var_mods[8], ".n[+2.5]")
   TEST_EQUAL(var_mods[9], ".n[-2.5]")
-  TEST_EQUAL(var_mods[10], ".n[2.5]")
-  TEST_EQUAL(var_mods[11], ".c[3.4]")
+  TEST_EQUAL(var_mods[10], ".n[+2.5]")
+  TEST_EQUAL(var_mods[11], ".c[+3.4]")
 
   /* TODO Probably would be nicer to have the following as fullID for readability
    *  (with the other notation you can't see if it has AA restrictions or if it is protein term)
@@ -190,13 +193,13 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 }
 END_SECTION
 
-START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const String& experiment_name = ""))
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = ""))
 {
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
   // file contains results from two search runs:
-  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
-  String exp_name = "PepXMLFile_test";
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
+  std::string exp_name = "PepXMLFile_test";
   file.keepNativeSpectrumName(true);
   file.load(filename, proteins, peptides, exp_name);
 
@@ -290,47 +293,106 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - matching of experiment names)
+{
+  // runs "c:/tpp/data/light/run1", "c:/tpp/data/heavy/run1" and "c:/tpp/data/light/prerun1" with one PSM each
+  // (the TPP writes '/' in "base_name" also on Windows, see issue #3502)
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_base_names.pepxml");
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  // sequence of the PSM loaded for 'experiment_name', empty unless exactly one run and PSM were loaded
+  auto loadedSequence = [&](const std::string& experiment_name)
+  {
+    PepXMLFile().load(filename, proteins, peptides, experiment_name);
+    if (proteins.size() != 1 || peptides.size() != 1) return std::string();
+    return peptides[0].getHits()[0].getSequence().toString();
+  };
+  // message of the Exception::ParseError that loading 'experiment_name' throws, empty if it loads
+  auto parseErrorMessage = [&](const std::string& experiment_name)
+  {
+    try
+    {
+      PepXMLFile().load(filename, proteins, peptides, experiment_name);
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return std::string(e.what());
+    }
+    return std::string();
+  };
+
+  // path separators do not matter, e.g. for a native Windows path of the spectra file:
+  TEST_EQUAL(loadedSequence("c:\\tpp\\data\\light\\run1.mzML"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("c:/tpp/data/light/run1"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("heavy\\run1.mzML"), "SAMPLEK")
+  TEST_EQUAL(loadedSequence("light/run1"), "PEPTIDEK")
+  TEST_EQUAL(loadedSequence("prerun1.mzML"), "TESTK")
+
+  // only whole path components match: "un1" selects no run, and the error lists the runs:
+  std::string message = parseErrorMessage("un1");
+  TEST_EQUAL(StringUtils::hasSubstring(message, "Found no experiment with name 'un1'"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(message, "'c:/tpp/data/light/run1', 'c:/tpp/data/heavy/run1', 'c:/tpp/data/light/prerun1'"), true)
+  // an absolute path has to match the whole "base_name":
+  TEST_EQUAL(StringUtils::hasSubstring(parseErrorMessage("/data/light/run1"), "Found no experiment with name"), true)
+  // "run1" matches runs of two different spectra files (but not "prerun1"), which are not merged:
+  message = parseErrorMessage("run1.mzML");
+  TEST_EQUAL(StringUtils::hasSubstring(message, "matches runs with different 'base_name's: 'c:/tpp/data/light/run1', 'c:/tpp/data/heavy/run1'. "), true)
+
+  // no experiment name: all runs
+  PepXMLFile().load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 3)
+  TEST_EQUAL(peptides.size(), 3)
+
+  // loading again after an error starts from scratch:
+  PepXMLFile reused;
+  TEST_EXCEPTION(Exception::ParseError, reused.load(filename, proteins, peptides, "run1"))
+  reused.load(filename, proteins, peptides, "heavy/run1");
+  TEST_EQUAL(peptides.size(), 1)
+  TEST_EQUAL(peptides[0].getHits()[0].getSequence().toString(), "SAMPLEK")
+}
+END_SECTION
+
+START_SECTION(void store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& mz_file = "", const std::string& mz_name = "", bool peptideprophet_analyzed = false))
 {
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
-  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
   PepXMLFile().load(filename, proteins, peptides);
 
   // Test PeptideProphet-analyzed pepxml.
-  String cm_file_out;
+  std::string cm_file_out;
   NEW_TMP_FILE(cm_file_out);
   PepXMLFile().store(cm_file_out, proteins, peptides, "", "test", true);
 
   FuzzyStringComparator fsc;
   fsc.setAcceptableAbsolute(1e-7);
   fsc.setAcceptableRelative(1.0 + 1e-7);
-  // fsc.setWhitelist (ListUtils::create<String>("base_name, local_path, <spectrum_query "));
-  String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out.pepxml");
+  // fsc.setWhitelist (ListUtils::create<std::string>("base_name, local_path, <spectrum_query "));
+  std::string filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out.pepxml");
   TEST_EQUAL(fsc.compareFiles(cm_file_out.c_str(), filename_out.c_str()), true)
 
   // Test raw_pepxml storage.
-  String cm_file_out_1;
+  std::string cm_file_out_1;
   NEW_TMP_FILE(cm_file_out_1);
   PepXMLFile().store(cm_file_out_1, proteins, peptides, "", "test", false);
 
   FuzzyStringComparator fsc_1;
   fsc_1.setAcceptableAbsolute(1e-7);
   fsc_1.setAcceptableRelative(1.0 + 1e-7);
-  // fsc_1.setWhitelist(ListUtils::create<String>("base_name, local_path, <spectrum_query "));
-  String filename_out_1 = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_1.pepxml");
+  // fsc_1.setWhitelist(ListUtils::create<std::string>("base_name, local_path, <spectrum_query "));
+  std::string filename_out_1 = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_1.pepxml");
   TEST_EQUAL(fsc_1.compareFiles(cm_file_out_1.c_str(), filename_out_1.c_str()), true)
 }
 END_SECTION
 
-START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
+START_SECTION([EXTRA] void store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& mz_file = "", const std::string& mz_name = "", bool peptideprophet_analyzed = false))
 {
   {  
     vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
     // file contains results from two search runs:
-    String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
-    String exp_name = "PepXMLFile_test";
+    std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
+    std::string exp_name = "PepXMLFile_test";
     PepXMLFile file;
     file.keepNativeSpectrumName(true);
     file.load(filename, proteins, peptides, exp_name);
@@ -341,7 +403,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
     TEST_REAL_SIMILAR(last.getMZ(), 585.3166250319);   // recomputed
 
     // Now try to store the file again ... 
-    String cm_file_out;
+    std::string cm_file_out;
     NEW_TMP_FILE(cm_file_out);
     file.store(cm_file_out, proteins, peptides, "", exp_name, false); // peptideprophet_analyzed = false is important!
 
@@ -405,14 +467,14 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
   {  
     vector<ProteinIdentification> proteins;
     PeptideIdentificationList peptides;
-    String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
-    String exp_name = "PepXMLFile_test";
+    std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
+    std::string exp_name = "PepXMLFile_test";
     PepXMLFile file;
     file.keepNativeSpectrumName(false);
     file.load(filename, proteins, peptides, exp_name);
 
     // Now try to store the file again ... 
-    String cm_file_out;
+    std::string cm_file_out;
     NEW_TMP_FILE(cm_file_out);
     file.store(cm_file_out, proteins, peptides, "", exp_name, false); // peptideprophet_analyzed = false is important!
 
@@ -431,24 +493,24 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
 END_SECTION
 
 // store PepXML with mzML file information
-START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file = "PepXMLFile_test.mzML", const String& mz_name = "", bool peptideprophet_analyzed = false))
+START_SECTION(void store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& mz_file = "PepXMLFile_test.mzML", const std::string& mz_name = "", bool peptideprophet_analyzed = false))
 {
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
-  String mzML_filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
-  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
+  std::string mzML_filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
   PepXMLFile().load(filename, proteins, peptides);
 
   // Test PeptideProphet-analyzed pepxml.
-  String cm_file_out;
+  std::string cm_file_out;
   NEW_TMP_FILE(cm_file_out);
   PepXMLFile().store(cm_file_out, proteins, peptides, mzML_filename, "test", true);
 
   FuzzyStringComparator fsc;
   fsc.setAcceptableAbsolute(1e-7);
   fsc.setAcceptableRelative(1.0 + 1e-7);
-  // fsc.setWhitelist (ListUtils::create<String>("base_name, local_path, <spectrum_query "));
-  String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_mzML.pepxml");
+  // fsc.setWhitelist (ListUtils::create<std::string>("base_name, local_path, <spectrum_query "));
+  std::string filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_mzML.pepxml");
   TEST_EQUAL(fsc.compareFiles(cm_file_out.c_str(), filename_out.c_str()), true)
 }
 END_SECTION
@@ -467,11 +529,11 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
   // PepXMLFile file; // shadow
   vector<ProteinIdentification> proteins, reread_proteins;
   PeptideIdentificationList peptides, reread_peptides;
-  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
   PepXMLFile().load(filename, proteins, peptides);
 
   // Test PeptideProphet-analyzed pepxml.
-  String cm_file_out;
+  std::string cm_file_out;
   NEW_TMP_FILE(cm_file_out);
   IdXMLFile().store(cm_file_out, proteins, peptides);
   IdXMLFile().load(cm_file_out, reread_proteins, reread_peptides);
@@ -481,8 +543,8 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
   TEST_EQUAL(params.db, reread_params.db);
   TEST_EQUAL(params.mass_type, reread_params.mass_type);
 
-  vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
-  vector<String> reread_fix_mods(reread_params.fixed_modifications), reread_var_mods(reread_params.variable_modifications);
+  vector<std::string> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
+  vector<std::string> reread_fix_mods(reread_params.fixed_modifications), reread_var_mods(reread_params.variable_modifications);
   TEST_EQUAL(fix_mods.size(), reread_fix_mods.size())
   TEST_EQUAL(var_mods.size(), reread_var_mods.size())
 
@@ -498,4 +560,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

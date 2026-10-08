@@ -11,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -260,7 +260,7 @@ namespace OpenMS
      * \param peak_index The datapoint
      * \return A string, e.g. "fwhm: 20, im: 3.3", depending on which float/string dataarrays are populated for the given datapoint
      */
-    virtual String getDataArrayDescription(const PeakIndex& peak_index)
+    virtual std::string getDataArrayDescription(const PeakIndex& peak_index)
     {
       (void)peak_index; // allow doxygen to document the param
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -295,29 +295,29 @@ namespace OpenMS
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
     /// The name of the layer, usually the basename of the file
-    const String& getName() const
+    const std::string& getName() const
     {
       return name_;
     }
     /// Set the name of the layer, usually the basename of the file
-    void setName(const String& new_name)
+    void setName(const std::string& new_name)
     {
       name_ = new_name;
     }
 
     /// get the extra annotation to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
-    const String& getNameSuffix() const
+    const std::string& getNameSuffix() const
     {
       return name_suffix_;
     }
     /// set an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
-    void setNameSuffix(const String& decorator)
+    void setNameSuffix(const std::string& decorator)
     {
       name_suffix_ = decorator;
     }
 
     /// get name augmented with attributes, e.g. '*' if modified
-    virtual String getDecoratedName() const;
+    virtual std::string getDecoratedName() const;
 
     /// if this layer is visible
     bool visible = true;
@@ -326,7 +326,7 @@ namespace OpenMS
     DataType type = DT_UNKNOWN;
 
     /// file name of the file the data comes from (if available)
-    String filename;
+    std::string filename;
 
     /// Layer parameters
     Param param;
@@ -352,9 +352,9 @@ namespace OpenMS
 
   private:
     /// layer name
-    String name_;
+    std::string name_;
     /// an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
-    String name_suffix_;
+    std::string name_suffix_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data
@@ -370,7 +370,7 @@ namespace OpenMS
         @param[in] file_dialog_text The header text of the file dialog shown to the user
         @param[in] gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
-    LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
+    LayerAnnotatorBase(const FileTypeList& supported_types, const std::string& file_dialog_text, QWidget* gui_lock);
     
     /// Make D'tor virtual for correct destruction from pointers to base
     virtual ~LayerAnnotatorBase() = default;
@@ -379,12 +379,12 @@ namespace OpenMS
     /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
     /// The file type is checked to be one of the supported_types_ before the annotateWorker_ function is called
     /// as implemented by the derived classes
-    bool annotateWithFileDialog(LayerDataBase& layer, LogWindow& log, const String& current_path) const;
+    bool annotateWithFileDialog(LayerDataBase& layer, LogWindow& log, const std::string& current_path) const;
 
     /// Annotates a @p layer, given a filename from which to load the data.
     /// The file type is checked to be one of the supported_types_ before the annotateWorker_ function is called
     /// as implemented by the derived classes
-    bool annotateWithFilename(LayerDataBase& layer, LogWindow& log, const String& filename) const;
+    bool annotateWithFilename(LayerDataBase& layer, LogWindow& log, const std::string& filename) const;
 
     /// get a derived annotator class, which supports annotation of the given file type.
     /// If multiple class support this type (currently not the case) an Exception::IllegalSelfOperation will be thrown
@@ -392,15 +392,15 @@ namespace OpenMS
     static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const FileTypes::Type& type);
 
     /// see getAnnotatorWhichSupports(const FileTypes::Type& type). File type is queried from filename
-    static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const String& filename);
+    static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const std::string& filename);
 
   protected:
     /// abstract virtual worker function to annotate a layer using content from the @p filename
     /// returns true on success
-    virtual bool annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const = 0;
+    virtual bool annotateWorker_(LayerDataBase& layer, const std::string& filename, LogWindow& log) const = 0;
 
     const FileTypeList supported_types_;
-    const String file_dialog_text_;
+    const std::string file_dialog_text_;
     QWidget* gui_lock_ = nullptr;///< optional widget which will be locked when calling annotateWorker_() in child-classes
   };
 
@@ -418,7 +418,7 @@ namespace OpenMS
   protected:
     /// loads the ID data from @p filename and calls Layer::annotate.
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const;
+    virtual bool annotateWorker_(LayerDataBase& layer, const std::string& filename, LogWindow& log) const;
   };
 
   /// Annotate a layer with AccurateMassSearch results (from an AMS-featureXML file).
@@ -435,7 +435,7 @@ namespace OpenMS
   protected:
     /// loads the featuremap from @p filename and calls Layer::annotate.
     /// Returns false if featureXML file was not created by AMS, and true otherwise (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const;
+    virtual bool annotateWorker_(LayerDataBase& layer, const std::string& filename, LogWindow& log) const;
   };
 
   /// Annotate a chromatogram layer with ID data (from an OSW sqlite file as produced by OpenSwathWorkflow or pyProphet).
@@ -452,7 +452,7 @@ namespace OpenMS
   protected:
     /// loads the OSWData from @p filename and stores the data using Layer::setChromatogramAnnotation()
     /// Always returns true (unless an exception is thrown from internal sub-functions)
-    virtual bool annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const;
+    virtual bool annotateWorker_(LayerDataBase& layer, const std::string& filename, LogWindow& log) const;
   };
 
   /// Print the contents to a stream.

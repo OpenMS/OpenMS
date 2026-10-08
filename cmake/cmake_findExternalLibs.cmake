@@ -18,13 +18,19 @@
 #   * on windows we need the *.lib versions (dlls alone won't do for linking)
 #   * never mix Release/Debug versions of libraries. Leads to strange segfaults,
 #     stack corruption etc, due to different runtime libs ...
-# compiler-wise: use the same compiler for contrib and OpenMS!
+# compiler-wise: build the dependencies with the same compiler as OpenMS!
 find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
 # BOOST
-set(OpenMS_BOOST_COMPONENTS date_time regex CACHE INTERNAL "Boost components for core lib")
-find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
+# OpenMS uses only header-only Boost libraries (Boost.Regex is header-only since
+# 1.76; FileInfo only needs Boost.Iostreams' filtering_ostream and null_sink,
+# which are templates), so no compiled Boost library is linked and static and
+# shared Boost installations work alike. A static Boost linked into libOpenMS.so
+# failed where it was not built with -fPIC and brought its own dependencies
+# (zstd, lzma, ICU) in as plain link flags (#3319); a compiled component would
+# bring that choice back.
+find_boost()
 
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
@@ -32,49 +38,8 @@ if(Boost_FOUND)
   set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION_SUBMINOR ${Boost_SUBMINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
-
-  get_target_property(location Boost::iostreams LOCATION)
-  get_target_property(target_type Boost::iostreams TYPE)
-  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
-    message(WARNING "Statically linked Boost from system installations like brew, are not fully supported yet.
-Either use '-DBOOST_USE_STATIC=OFF' to use the shared library or build boost with our contrib. Nonetheless,
-we are going to try to continue building.")
-    get_target_property(libs Boost::iostreams INTERFACE_LINK_LIBRARIES)
-    # If boost from brew, replace simple "link flags" like "-lzstd" with
-    # find_package calls and their resulting imported targets
-    # since boost CMake does not expose this transitive dependency as targets!
-    # see https://github.com/boostorg/boost_install/issues/64
-    foreach (lib ${libs})
-      if (lib MATCHES "zstd")
-        find_package(zstd)
-      elseif (lib MATCHES "lzma")
-        find_package(LibLZMA)
-      endif()
-    endforeach ()
-    ##
-    set_target_properties(Boost::iostreams
-          PROPERTIES INTERFACE_LINK_LIBRARIES "BZip2::BZip2;ZLIB::ZLIB;zstd::libzstd_shared;LibLZMA::LibLZMA")
-  endif()
-
-  get_target_property(location Boost::regex LOCATION)
-  get_target_property(target_type Boost::regex TYPE)
-  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
-    get_target_property(libs Boost::regex INTERFACE_LINK_LIBRARIES)
-    # If boost from brew, replace simple "link flags" like "-lzstd" with
-    # find_package calls and their resulting imported targets
-    # since boost CMake does not expose this transitive dependency as targets!
-    # see https://github.com/boostorg/boost_install/issues/64
-    foreach (lib ${libs})
-      if (lib MATCHES "icui18n")
-        find_package(ICU COMPONENTS "data" "uc" "i18n")
-      endif()
-    endforeach ()
-    ##
-    set_target_properties(Boost::regex
-            PROPERTIES INTERFACE_LINK_LIBRARIES "ICU::data;ICU:uc;ICU::i18n")
-  endif()
 else()
-  message(FATAL_ERROR "Boost or one of its components not found!")
+  message(FATAL_ERROR "Boost not found!")
 endif()
 
 #------------------------------------------------------------------------------
@@ -88,25 +53,84 @@ if (LIBSVM_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# COIN-OR
-# Our find module creates an imported CoinOR::CoinOR target
-find_package(COIN)
-if (COIN_FOUND)
-  set(OPENMS_HAS_COINOR 1)
-  set(LPTARGET "CoinOR::CoinOR")
-else()
-  #------------------------------------------------------------------------------
-  # GLPK
-  # creates GLPK::GLPK target
-  find_package(GLPK)
+# LP Solver selection
+# LP_SOLVER option: COIN, GLPK, HIGHS, or AUTO (default)
+# AUTO tries COIN-OR first, then GLPK, then HiGHS via FetchContent
+set(LP_SOLVER "AUTO" CACHE STRING "LP solver to use: AUTO, COIN, GLPK, or HIGHS")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS AUTO COIN GLPK HIGHS)
+
+if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "AUTO")
+  find_package(COIN QUIET)
+  if (COIN_FOUND)
+    set(OPENMS_HAS_COINOR 1)
+    set(LPTARGET "CoinOR::CoinOR")
+    message(STATUS "LP solver: COIN-OR")
+  elseif(LP_SOLVER STREQUAL "COIN")
+    message(FATAL_ERROR "LP_SOLVER set to COIN but COIN-OR was not found.")
+  endif()
+endif()
+
+if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
+  find_package(GLPK QUIET)
   if (GLPK_FOUND)
     set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
     set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
     set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
     set(LPTARGET "GLPK::GLPK")
-  else()
-    message(FATAL_ERROR "Either COIN-OR or GLPK has to be available (COIN-OR takes precedence).")
+    message(STATUS "LP solver: GLPK ${GLPK_VERSION_STRING}")
+  elseif(LP_SOLVER STREQUAL "GLPK")
+    message(FATAL_ERROR "LP_SOLVER set to GLPK but GLPK was not found.")
   endif()
+endif()
+
+if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
+  # Try to find a system-installed HiGHS first
+  find_package(highs QUIET CONFIG)
+  if (highs_FOUND)
+    set(OPENMS_HAS_HIGHS 1)
+    set(LPTARGET "highs::highs")
+    message(STATUS "LP solver: HiGHS (system)")
+  else()
+    # Fetch HiGHS via FetchContent
+    include(FetchContent)
+    FetchContent_Declare(
+      highs
+      GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
+      GIT_TAG        v1.14.0
+      GIT_SHALLOW    TRUE
+    )
+    set(HIGHS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(highs)
+    # OpenMS defaults to hidden C++ symbol visibility globally. HiGHS does not
+    # annotate its C++ API for export, so a shared HiGHS build must opt out of
+    # hidden visibility or libOpenMS cannot link against those symbols.
+    if (TARGET highs)
+      set_target_properties(highs PROPERTIES
+        CXX_VISIBILITY_PRESET default
+        VISIBILITY_INLINES_HIDDEN OFF)
+    endif()
+    if (TARGET libhighs)
+      set_target_properties(libhighs PROPERTIES
+        CXX_VISIBILITY_PRESET default
+        VISIBILITY_INLINES_HIDDEN OFF)
+    endif()
+    set(OPENMS_HAS_HIGHS 1)
+    set(LPTARGET "highs")
+    message(STATUS "LP solver: HiGHS (FetchContent)")
+  endif()
+endif()
+
+if (NOT LPTARGET)
+  message(FATAL_ERROR "No LP solver found. Set LP_SOLVER to COIN, GLPK, or HIGHS, or ensure one is available.")
+endif()
+
+# Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)
+if (NOT DEFINED CF_OPENMS_GLPK_VERSION_MAJOR)
+  set(CF_OPENMS_GLPK_VERSION_MAJOR 0)
+  set(CF_OPENMS_GLPK_VERSION_MINOR 0)
+  set(CF_OPENMS_GLPK_VERSION "0.0")
 endif()
 
 #------------------------------------------------------------------------------
@@ -129,6 +153,38 @@ endif()
 #------------------------------------------------------------------------------
 # bzip2
 find_package(BZip2 REQUIRED)
+
+#------------------------------------------------------------------------------
+# zstd (Zstandard, used for mzML binary data array compression, MS:1003780 ff.)
+# zstd is also a dependency of Apache Arrow/Parquet, so vcpkg and distribution
+# packages of Arrow already provide it (an Arrow built with bundled dependencies
+# carries a private copy, so install the system package there). Its config
+# package exports a shared or a static target depending on how it was built
+# (zstd >= 1.5.6 additionally provides zstd::libzstd), so take whichever exists.
+# Fall back to a plain header/library search for installations without the
+# config package.
+find_package(zstd CONFIG QUIET)
+if(TARGET zstd::libzstd)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd)
+elseif(TARGET zstd::libzstd_shared)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd_shared)
+elseif(TARGET zstd::libzstd_static)
+  set(OPENMS_ZSTD_TARGET zstd::libzstd_static)
+else()
+  find_path(OPENMS_ZSTD_INCLUDE_DIR NAMES zstd.h)
+  find_library(OPENMS_ZSTD_LIBRARY NAMES zstd libzstd zstd_static libzstd_static)
+  if(NOT OPENMS_ZSTD_INCLUDE_DIR OR NOT OPENMS_ZSTD_LIBRARY)
+    message(FATAL_ERROR "zstd (Zstandard) not found. Install the zstd development package "
+                        "(e.g. libzstd-dev, libzstd-devel or 'brew install zstd') or point CMake to it "
+                        "via CMAKE_PREFIX_PATH.")
+  endif()
+  add_library(OpenMS_zstd UNKNOWN IMPORTED)
+  set_target_properties(OpenMS_zstd PROPERTIES
+    IMPORTED_LOCATION "${OPENMS_ZSTD_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENMS_ZSTD_INCLUDE_DIR}")
+  set(OPENMS_ZSTD_TARGET OpenMS_zstd)
+endif()
+message(STATUS "Using zstd target: ${OPENMS_ZSTD_TARGET}")
 
 #------------------------------------------------------------------------------
 # libzip (ZIP64 archive support)
@@ -187,15 +243,19 @@ endif()
 find_package(CURL REQUIRED)
 
 #------------------------------------------------------------------------------
-# Apache Arrow and Parquet (required dependency)
-# Arrow 23+ required for parquet file format compatibility
+# Apache Arrow and Parquet (required dependency).
+# Arrow 23+ required for parquet file format compatibility. We don't pin the
+# version in find_package because Arrow's ConfigVersion uses SameMajorVersion
+# compatibility, so `find_package(Arrow 23 ...)` rejects 24.x even though
+# 24.x remains API-compatible for our usage. Enforce the minimum with an
+# explicit VERSION_LESS check after the package is located.
 find_package(Arrow CONFIG REQUIRED)
-if(Arrow_VERSION VERSION_LESS "23")
-  message(FATAL_ERROR "Arrow >= 23 required, found ${Arrow_VERSION}")
+if(Arrow_VERSION VERSION_LESS 23)
+  message(FATAL_ERROR "Apache Arrow >= 23 required (found ${Arrow_VERSION}).")
 endif()
 find_package(Parquet CONFIG REQUIRED)
-if(Parquet_VERSION VERSION_LESS "23")
-  message(FATAL_ERROR "Parquet >= 23 required, found ${Parquet_VERSION}")
+if(Parquet_VERSION VERSION_LESS 23)
+  message(FATAL_ERROR "Apache Parquet >= 23 required (found ${Parquet_VERSION}).")
 endif()
 
 # Arrow's CMake config may import nlohmann_json as a transitive dependency.
@@ -278,17 +338,160 @@ if(ArrowDataset_FOUND)
 
   if(OPENMS_ARROW_DATASET_TARGET)
     message(STATUS "Using Arrow Dataset target: ${OPENMS_ARROW_DATASET_TARGET}")
-    # Arrow Dataset (static) may pull in libxml2 symbols; link explicitly.
-    # This avoids missing xmlBufferFree at runtime when dataset pushdown is enabled.
-    find_package(LibXml2 REQUIRED)
+  endif()
+endif()
+
+# A statically linked Arrow needs libxml2: arrow_bundled_dependencies vendors
+# azure-storage-common, whose xml_wrapper.cpp (Azure::Storage::_internal::
+# XmlReader/XmlWriter) references xmlBufferCreate/xmlBufferFree and friends. It is
+# the only object in that archive that does -- the AWS SDK is bundled too but
+# brings its own parser (aws_xml_node_*) and needs no libxml2.
+#
+# This is deliberately outside the ArrowDataset block above: the archive comes in
+# through Arrow::arrow_static's own interface, so a static build without Arrow
+# Dataset needs libxml2 just the same.
+#
+# Record the edge on the Arrow target rather than adding LibXml2 as another direct
+# OpenMS dependency. CMake emits every direct link library before the transitive
+# archives it pulls in, so a direct entry lands on the link line ahead of
+# libarrow_bundled_dependencies.a -- and a --as-needed linker (the default on most
+# Linux distributions) then drops libxml2.so again because nothing has referenced
+# it yet. The result is a libOpenMS.so with undefined xml* symbols that only fails
+# when something dlopen()s it, e.g. "import pyopenms" => ImportError: undefined
+# symbol: xmlBufferFree. Appending to the imported target's interface instead puts
+# libxml2 after the archive that needs it, which is what the linker requires.
+if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
+   OR (OPENMS_ARROW_DATASET_TARGET AND
+       OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static"))
+  # Deliberately not REQUIRED: only the platforms that actually resolve those
+  # symbols against a system libxml2 need it. MSVC has no --as-needed, and the
+  # Windows vcpkg triplets link a static Arrow that vcpkg builds against its own
+  # ports, without the azure feature (see vcpkg.json), so the Windows builds need
+  # no libxml2 through Arrow; attaching it where it is found anyway is harmless.
+  # A mandatory lookup would turn a link-order workaround into a hard build
+  # dependency everywhere and fail configuration where it is not needed.
+  find_package(LibXml2 QUIET)
+  if(LibXml2_FOUND)
+    if(TARGET Arrow::arrow_bundled_dependencies)
+      set_property(TARGET Arrow::arrow_bundled_dependencies APPEND
+                   PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+    else()
+      # Older/repackaged Arrow configs without the bundled-dependencies target:
+      # attach to whichever static targets are in use. Appending puts libxml2 at
+      # the end of their interface, i.e. still behind Arrow's own archives.
+      if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static")
+        set_property(TARGET ${OPENMS_ARROW_TARGET} APPEND
+                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+      endif()
+      if(OPENMS_ARROW_DATASET_TARGET AND
+         OPENMS_ARROW_DATASET_TARGET STREQUAL "ArrowDataset::arrow_dataset_static")
+        set_property(TARGET ${OPENMS_ARROW_DATASET_TARGET} APPEND
+                     PROPERTY INTERFACE_LINK_LIBRARIES LibXml2::LibXml2)
+      endif()
+    endif()
+    message(STATUS "Arrow is linked statically: added LibXml2 to its link interface")
+  else()
+    message(STATUS "Arrow is linked statically, but no LibXml2 was found: skipping "
+                   "the libxml2 link-interface workaround. Install the libxml2 "
+                   "development files if linking fails with undefined xml* symbols.")
   endif()
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
+# wnetalign (Wasserstein network spectral alignment)
+option(WITH_WNETALIGN "Enable WNet alignment (fetches pylmcf, wnet, wnetalign)" OFF)
+
+set(WNETALIGN_INCLUDE_DIRS "")
+
+if(WITH_WNETALIGN)
+  set(_wnetalign_from_vcpkg FALSE)
+
+  if(OPENMS_USE_VCPKG)
+    # These ports are only installed when the optional 'wnetalign' manifest feature
+    # was requested (-DVCPKG_MANIFEST_FEATURES="...;wnetalign"), which is off by
+    # default -- so a miss here is the normal case, not an error. Check the results
+    # before using them: feeding an unvalidated -NOTFOUND into
+    # target_include_directories() fails at generate time with a message that does
+    # not mention wnetalign at all. On a miss we fall through to the FetchContent
+    # path below, the same find-then-fetch pattern used for opentims and
+    # openms-thermo-bridge.
+    # find_path() caches its result, and CMake only repeats the search when the
+    # cached value is <VAR>-NOTFOUND. A path found by an earlier configure therefore
+    # survives even once it has gone away -- switching VCPKG_TARGET_TRIPLET moves
+    # vcpkg_installed/<triplet>/include, and disabling the manifest feature removes
+    # the headers altogether. Without this, a stale entry would still satisfy the
+    # check below and be handed to target_include_directories() as a non-existent
+    # include directory. Drop entries that no longer resolve so the search reflects
+    # what is on disk now.
+    foreach(_wnetalign_cache_var WNETALIGN_INC WNET_INC PYLMCF_INC)
+      if(DEFINED ${_wnetalign_cache_var} AND NOT EXISTS "${${_wnetalign_cache_var}}")
+        unset(${_wnetalign_cache_var} CACHE)
+      endif()
+    endforeach()
+    unset(_wnetalign_cache_var)
+
+    find_path(WNETALIGN_INC NAMES aligner.hpp PATH_SUFFIXES wnetalign)
+    find_path(WNET_INC NAMES graph_elements.hpp PATH_SUFFIXES wnet)
+    find_path(PYLMCF_INC NAMES lmcf.hpp PATH_SUFFIXES pylmcf)
+
+    if(WNETALIGN_INC AND WNET_INC AND PYLMCF_INC)
+      set(WNETALIGN_INCLUDE_DIRS ${PYLMCF_INC} ${WNET_INC} ${WNETALIGN_INC})
+      set(_wnetalign_from_vcpkg TRUE)
+      message(STATUS "wnetalign: using vcpkg ports")
+    else()
+      message(STATUS "wnetalign: vcpkg ports not installed (enable the 'wnetalign' "
+                     "manifest feature to use them), fetching from git instead")
+    endif()
+  endif()
+
+  if(NOT _wnetalign_from_vcpkg)
+    include(FetchContent)
+
+    # Header-only: use GIT_REPOSITORY for reproducible versioned fetch.
+    # To override with local checkouts, set FETCHCONTENT_SOURCE_DIR_PYLMCF,
+    # FETCHCONTENT_SOURCE_DIR_WNET, FETCHCONTENT_SOURCE_DIR_WNETALIGN.
+    FetchContent_Declare(
+      pylmcf
+      GIT_REPOSITORY https://github.com/michalsta/pylmcf.git
+      GIT_TAG        v0.9.8  # d2c9c52bd67d7198ae17b389d77884357260f114
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+    FetchContent_Declare(
+      wnet
+      GIT_REPOSITORY https://github.com/michalsta/wnet.git
+      GIT_TAG        v0.9.11  # 18a15250adb7ed478ef40d26d736bcd873265c74
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+    FetchContent_Declare(
+      wnetalign
+      GIT_REPOSITORY https://github.com/michalsta/wnetalign.git
+      GIT_TAG        v0.9.8  # cff6a19a6b540247d57044e06b1852afe24346a0
+      GIT_SHALLOW    TRUE
+      SOURCE_SUBDIR  _no_cmake
+    )
+
+    # MakeAvailable populates source dirs without running the top-level
+    # CMakeLists (SOURCE_SUBDIR points to a nonexistent subdirectory), so
+    # nanobind Python modules are never configured.
+    FetchContent_MakeAvailable(pylmcf wnet wnetalign)
+
+    set(WNETALIGN_INCLUDE_DIRS
+      "${pylmcf_SOURCE_DIR}/src/pylmcf/cpp"
+      "${wnet_SOURCE_DIR}/src/wnet/cpp"
+      "${wnetalign_SOURCE_DIR}/src/wnetalign/cpp"
+    )
+
+    message(STATUS "wnetalign include dirs: ${WNETALIGN_INCLUDE_DIRS}")
+  endif()
+endif()
+
+#------------------------------------------------------------------------------
+# Done finding external libraries
 #------------------------------------------------------------------------------
 
-#except for the contrib libs, prefer shared libraries
+# for the libraries found below, prefer shared libraries
 if(NOT MSVC AND NOT APPLE)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
 endif()
@@ -306,68 +509,11 @@ find_package (Threads REQUIRED)
 #------------------------------------------------------------------------------
 # QT (only needed for GUI)
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "6.1.0")
-
-if (WITH_GUI)
-  find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Core QUIET)
-
-  IF (Qt6Core_FOUND)
-    message(STATUS "Found Qt ${Qt6Core_VERSION}")
-  ELSE()
-    message(FATAL_ERROR "Qt6Core not found — required when WITH_GUI=ON. Use -DWITH_GUI=OFF to build without GUI.")
-  ENDIF()
-
-  # --------------------------------------------------------------------------
-  # Find additional Qt libs
-  #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
-
-  # On macOS the platform plugin of QT requires PrintSupport. We link
-  # so it's packaged via the bundling/dependency tools/scripts
-  if (APPLE)
-    set (TEMP_OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} PrintSupport)
-  endif()
-
-  set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
-
-  if(NOT NO_WEBENGINE_WIDGETS)
-    set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
-  endif()
-
-  find_package(Qt6 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
-
-  IF (NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
-    message(STATUS "Qt6Widgets not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
-  ENDIF()
-  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
-
-  # TODO only works if WebEngineWidgets is the only optional component
-  set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-  if(Qt6WebEngineWidgets_FOUND)
-    list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
-  else()
-    message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
-  endif()
-
-  set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
-
-  foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
-  endforeach()
-
-  foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
-  endforeach()
-
-endif()
+include(${OPENMS_HOST_DIRECTORY}/cmake/cmake_findQt.cmake)
 
 #------------------------------------------------------------------------------
 # opentims (Bruker TimsTOF .d file reading)
 if (WITH_OPENTIMS)
-  # Enable C language for bundled ZSTD fallback (zstddeclib.c)
-  enable_language(C)
-
   find_package(Opentims QUIET)
 
   if(Opentims_FOUND)
@@ -381,12 +527,30 @@ if (WITH_OPENTIMS)
     # package), INTERFACE_COMPILE_DEFINITIONS may not be set; in that case we
     # conservatively inject sqlite3 because we cannot know how it was built.
     get_target_property(_opentims_defs opentims::opentims_cpp INTERFACE_COMPILE_DEFINITIONS)
+    set(_opentims_needs_sqlite FALSE)
     if(_opentims_defs MATCHES "OPENTIMS_LINK_SQLITE_STATICALLY"
        OR ((_opentims_defs MATCHES "NOTFOUND" OR _opentims_defs STREQUAL "") AND NOT opentims_FOUND))
-      target_include_directories(opentims::opentims_cpp INTERFACE
-        "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
-      target_link_libraries(opentims::opentims_cpp INTERFACE sqlite3)
-      message(STATUS "opentims: injecting OpenMS sqlite3 (library was built with static sqlite)")
+      set(_opentims_needs_sqlite TRUE)
+    endif()
+
+    if(_opentims_needs_sqlite)
+      #Deferred because unofficial::sqlite3::sqlite3 or SQLite::SQLite3 or SQLiteCpp doesn't exist yet,
+      #they are created inside add_subdirectory(src).
+      function(_openms_inject_opentims_sqlite)
+        if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+          target_link_libraries(opentims::opentims_cpp INTERFACE unofficial::sqlite3::sqlite3)
+          message(STATUS "opentims: injected sqlite3 (unofficial::sqlite3::sqlite3 via vcpkg)")
+        elseif(TARGET SQLite::SQLite3)
+          target_link_libraries(opentims::opentims_cpp INTERFACE SQLite::SQLite3)
+          message(STATUS "opentims: injected sqlite3 (SQLite::SQLite3)")
+        elseif(TARGET SQLiteCpp)
+          target_link_libraries(opentims::opentims_cpp INTERFACE SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+          message(STATUS "opentims: injected sqlite3 (SQLiteCpp)")
+        else()
+          message(FATAL_ERROR "opentims requires sqlite3 symbols but no suitable target is available.")
+        endif()
+      endfunction()
+      cmake_language(DEFER CALL _openms_inject_opentims_sqlite)
     endif()
   else()
     # No system install found — fetch and build from source.
@@ -430,23 +594,24 @@ if (WITH_OPENTIMS)
     target_include_directories(opentims_cpp PRIVATE
       "${CMAKE_SOURCE_DIR}/src/openms/extern/SQLiteCpp/sqlite3")
 
-    # ZSTD: prefer system; fall back to opentims's bundled decoder.
-    set(_OPENTIMS_SRC "${opentims_SOURCE_DIR}/src/opentims++")
-    find_package(zstd QUIET)
-    if(TARGET zstd::libzstd_shared)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_shared)
-      message(STATUS "opentims: using system zstd (shared)")
-    elseif(TARGET zstd::libzstd_static)
-      target_link_libraries(opentims_cpp PRIVATE zstd::libzstd_static)
-      message(STATUS "opentims: using system zstd (static)")
-    else()
-      target_sources(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd/zstddeclib.c")
-      target_include_directories(opentims_cpp PRIVATE "${_OPENTIMS_SRC}/zstd")
-      message(STATUS "opentims: using bundled zstd decoder (system zstd not found)")
-    endif()
+    # ZSTD: use the same zstd that OpenMS itself links (required, see above).
+    target_link_libraries(opentims_cpp PRIVATE ${OPENMS_ZSTD_TARGET})
 
     # Suppress warnings from third-party code
     target_compile_options(opentims_cpp PRIVATE $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
+
+    # opentims's own CMakeLists.txt applies /O2 to MSVC builds unconditionally
+    # Any Debug build then combines it with the /RTC1 that CMake puts in
+    # CMAKE_CXX_FLAGS_DEBUG, and MSVC rejects the pair:
+    #   cl : Command line error D8016 : '/RTC1' and '/O2' command-line options are incompatible
+    # reported in https://github.com/michalsta/opentims/issues/44 (remove this once opentims fixes it upstream)
+    if(MSVC)
+      get_target_property(_opentims_opts opentims_cpp COMPILE_OPTIONS)
+      if(_opentims_opts)
+        list(REMOVE_ITEM _opentims_opts "/O2")
+        set_property(TARGET opentims_cpp PROPERTY COMPILE_OPTIONS ${_opentims_opts})
+      endif()
+    endif()
 
     # Expose a namespaced alias so downstream CMakeLists always use
     # opentims::opentims_cpp regardless of how the library was obtained.
@@ -460,6 +625,195 @@ if (WITH_OPENTIMS)
     openms_register_export_target(opentims_cpp)
 
     message(STATUS "opentims: built from source (${opentims_SOURCE_DIR})")
+  endif()
+endif()
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# openms-thermo-bridge (Thermo RAW file reading)
+if (WITH_THERMO_RAW)
+  # 0.3.1 is the first release that publishes THIRD-PARTY-NOTICES.txt with its managed
+  # assemblies; the install below takes it from there.
+  find_package(OpenMSThermoBridge 0.3.1 QUIET)
+
+  if(OpenMSThermoBridge_FOUND)
+    message(STATUS "openms-thermo-bridge: using system installation")
+
+    # Ship the Thermo Fisher RawFileReader license with the Thermo assemblies, as the
+    # from-source branch below does. The vcpkg port installs it next to its CMake
+    # package (vcpkg-overlays/ports/openms-thermo-bridge/portfile.cmake).
+    set(_openms_thermo_license_file "${OpenMSThermoBridge_DIR}/ThermoRawFileReader-License.doc")
+    if(EXISTS "${_openms_thermo_license_file}")
+      install(FILES "${_openms_thermo_license_file}"
+              DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+              COMPONENT share)
+      openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                    "${_openms_thermo_license_file}")
+    else()
+      message(WARNING "openms-thermo-bridge: ${_openms_thermo_license_file} not found; "
+                      "the install will not include the Thermo RawFileReader license.")
+    endif()
+  else()
+    # No system install found — fetch and build from source.
+    message(STATUS "openms-thermo-bridge: system installation not found, fetching from git")
+    include(FetchContent)
+
+    FetchContent_Declare(
+      OpenMSThermoBridge
+      GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
+      # Pin to a specific reviewed upstream revision to keep builds reproducible.
+      # This is the commit the v0.3.1 release tag points at; tools/ci/fetch_thermo_assets.sh
+      # checks that its own pin matches and downloads the v0.3.1 release assets.
+      GIT_TAG        d809f8ac6264d00c81da4b7abe456a08f124f804  # v0.3.1
+    )
+
+    # Configure the thermo bridge build options
+    set(OPENMS_THERMO_BRIDGE_BUILD_CLI         OFF CACHE BOOL "" FORCE)
+    set(OPENMS_THERMO_BRIDGE_ENABLE_VENDOR_DOWNLOAD ON CACHE BOOL "" FORCE)
+    set(OPENMS_THERMO_BRIDGE_DOWNLOAD_TEST_DATA OFF CACHE BOOL "" FORCE)
+
+    # Build the bridge as a shared library. This avoids a typeinfo duplication
+    # issue on macOS: when the bridge was static, its object files introduced a
+    # second copy of typeinfo for std::exception inside libOpenMS.dylib that
+    # didn't coalesce with libc++abi's copy, breaking catch(std::exception&) for
+    # exceptions thrown across translation-unit boundaries. As a shared library,
+    # the bridge resolves standard typeinfo from libc++abi at load time — no
+    # duplication.
+    #
+    # The bridge .so/.dylib is installed alongside libOpenMS and registered in
+    # the CMake export set so downstream consumers resolve it via RPATH.
+    set(_openms_saved_build_testing ${BUILD_TESTING})
+    set(BUILD_TESTING OFF)
+    # The sub-project's install() calls have no COMPONENT, so CMake defaults them
+    # to "Unspecified". On macOS, that creates an unsigned dylib in Unspecified.pkg
+    # that fails Apple notarization. Route them to "library" instead — the same
+    # component used by install_library() below — so the existing signing step
+    # in cmake/package_mac_productbuild.cmake covers the library.
+    set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME library)
+    FetchContent_MakeAvailable(OpenMSThermoBridge)
+    unset(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME)
+    set(BUILD_TESTING ${_openms_saved_build_testing})
+
+    # Place the bridge shared library next to libOpenMS in the build tree so
+    # test executables find it via RPATH without extra configuration.
+    if(TARGET openms_thermo_bridge)
+      set_target_properties(openms_thermo_bridge PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}"
+      )
+    endif()
+
+    # Install the bridge alongside libOpenMS and register it in the CMake export
+    # set so OpenMSTargets.cmake includes it as an imported shared library.
+    # Downstream consumers (e.g. pyOpenMS) don't link it directly — it is a
+    # PRIVATE dependency of libOpenMS and is resolved at runtime via RPATH.
+    # DotNetHost::nethost is PRIVATE in the bridge's own CMakeLists, so it does
+    # NOT appear in the bridge's exported INTERFACE and won't be required from
+    # consumers that don't have the .NET SDK.
+    install_library(openms_thermo_bridge)
+    openms_register_export_target(openms_thermo_bridge)
+
+    if(WIN32)
+      # On Windows the bridge links the nethost *import* library, so
+      # openms_thermo_bridge.dll needs nethost.dll at run time. The .NET host pack
+      # that provides it is not on PATH, so install a copy next to the OpenMS
+      # libraries; installers and wheel repair tools (delvewheel) pick it up from
+      # there. FindDotNetHost.cmake ran inside the bridge's directory scope, so its
+      # result variables are not visible here: run it again in this scope.
+      list(APPEND CMAKE_MODULE_PATH "${OpenMSThermoBridge_SOURCE_DIR}/cmake")
+      find_package(DotNetHost QUIET)
+      list(POP_BACK CMAKE_MODULE_PATH)
+      if(DotNetHost_RUNTIME_LIBRARY)
+        install(FILES "${DotNetHost_RUNTIME_LIBRARY}"
+                DESTINATION ${INSTALL_LIB_DIR}
+                COMPONENT library)
+        message(STATUS "openms-thermo-bridge: installing ${DotNetHost_RUNTIME_LIBRARY} alongside libOpenMS")
+      else()
+        message(WARNING
+          "openms-thermo-bridge: nethost.dll was not located; openms_thermo_bridge.dll "
+          "will only load if nethost.dll is found on PATH at run time.")
+      endif()
+    endif()
+
+    message(STATUS "openms-thermo-bridge: built from source (${OpenMSThermoBridge_SOURCE_DIR})")
+
+    # Download and install the Thermo Fisher RawFileReader license.
+    # OPENMS_THERMO_BRIDGE_THERMO_COMMIT is a CMake cache variable set inside
+    # the bridge's CMakeLists.txt and is visible here after FetchContent_MakeAvailable.
+    # We pin the download to that exact commit so we always get the license that
+    # corresponds to the vendored DLL packages being used.
+    if(OPENMS_THERMO_BRIDGE_THERMO_COMMIT)
+      set(_openms_thermo_license_url
+          "https://raw.githubusercontent.com/thermofisherlsms/RawFileReader/${OPENMS_THERMO_BRIDGE_THERMO_COMMIT}/License.doc")
+      set(_openms_thermo_license_file
+          "${CMAKE_CURRENT_BINARY_DIR}/ThermoRawFileReader-License.doc")
+      if(NOT EXISTS "${_openms_thermo_license_file}")
+        message(STATUS "openms-thermo-bridge: downloading Thermo RawFileReader license")
+        file(DOWNLOAD
+            "${_openms_thermo_license_url}"
+            "${_openms_thermo_license_file}"
+            STATUS _openms_thermo_license_status
+            TLS_VERIFY ON)
+        list(GET _openms_thermo_license_status 0 _openms_thermo_license_code)
+        list(GET _openms_thermo_license_status 1 _openms_thermo_license_message)
+        if(NOT _openms_thermo_license_code EQUAL 0)
+          file(REMOVE "${_openms_thermo_license_file}")
+          message(WARNING
+              "openms-thermo-bridge: failed to download Thermo RawFileReader license "
+              "(${_openms_thermo_license_message}). "
+              "The install will not include the license file.")
+        endif()
+      endif()
+      if(EXISTS "${_openms_thermo_license_file}")
+        install(FILES "${_openms_thermo_license_file}"
+                DESTINATION "${INSTALL_SHARE_DIR}/LICENSES"
+                RENAME "ThermoRawFileReader-License.doc"
+                COMPONENT share)
+        openms_add_third_party_notice("LICENSES/ThermoRawFileReader-License.doc"
+                                      "${_openms_thermo_license_file}")
+      endif()
+    endif()
+  endif()
+
+  # Ship the managed half of the bridge (ThermoWrapperManaged.dll, its
+  # runtimeconfig.json and the Thermo CommonCore assemblies) inside the
+  # shared-data directory as well. The bridge installs them to
+  # <libdir>/openms_thermo_bridge/managed and locates them relative to its own
+  # shared library; that link breaks in relocated layouts such as Python wheels,
+  # where wheel repair tools rename and move the library. ThermoRawFile looks in
+  # <share>/openms_thermo_bridge/managed first, so every consumer that carries
+  # share/OpenMS (pyOpenMS wheels included) gets a working reader. The files are
+  # platform-independent IL assemblies (~1.6 MB), so they belong to 'share'.
+  # OpenMSThermoBridge_MANAGED_DIR is set by the bridge for both the
+  # FetchContent build (internal cache variable) and a system installation
+  # (OpenMSThermoBridgeHelpers.cmake). The directory is populated at build time
+  # when the bridge publishes the assemblies itself, which is fine for install().
+  if(OpenMSThermoBridge_MANAGED_DIR)
+    install(DIRECTORY "${OpenMSThermoBridge_MANAGED_DIR}/"
+            DESTINATION "${INSTALL_SHARE_DIR}/openms_thermo_bridge/managed"
+            COMPONENT share
+            PATTERN "*.pdb" EXCLUDE
+            PATTERN "*.zip" EXCLUDE)
+    # The bridge publishes THIRD-PARTY-NOTICES.txt with these assemblies, so the copy above
+    # installs it: the licenses of the bridge's own ThermoWrapperManaged, of CommandLineParser
+    # and OpenMcdf (MPL-2.0, with the address of its source code), and of nethost, which the
+    # native bridge library links. Thermo's own license is installed under LICENSES. A managed
+    # directory without the file (e.g. a pre-built one from a bridge older than 0.3.1) stops
+    # the installation instead of shipping the assemblies without their licenses.
+    install(CODE "
+      if(NOT EXISTS \"${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt\")
+        message(FATAL_ERROR \"openms-thermo-bridge: ${OpenMSThermoBridge_MANAGED_DIR} has no \"
+                            \"THIRD-PARTY-NOTICES.txt; use openms-thermo-bridge 0.3.1 or newer.\")
+      endif()"
+      COMPONENT share)
+    ## The file may not exist yet: the build publishes the assemblies when it builds the bridge.
+    openms_add_third_party_notice("openms_thermo_bridge/managed/THIRD-PARTY-NOTICES.txt"
+                                  "${OpenMSThermoBridge_MANAGED_DIR}/THIRD-PARTY-NOTICES.txt")
+  else()
+    message(WARNING
+      "openms-thermo-bridge: OpenMSThermoBridge_MANAGED_DIR is not set; the managed "
+      "bridge assemblies will not be installed into ${INSTALL_SHARE_DIR}.")
   endif()
 endif()
 #------------------------------------------------------------------------------

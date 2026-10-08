@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MzIdentML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://psi-pi.googlecode.com/svn/trunk/schema/mzIdentML1.1.0.xsd"
+	xmlns="http://psidev.info/psi/pi/mzIdentML/1.1"
+	version="1.1.0"
+	id="OpenMS_missing_mod_location"
+	creationDate="2014-11-02T22:32:45">
+<cvList>
+ 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies"  uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="3.15.0"></cv>
+ 	<cv id="UNIMOD" fullName="UNIMOD"        uri="http://www.unimod.org/obo/unimod.obo"></cv>
+ 	<cv id="UO"     fullName="UNIT-ONTOLOGY" uri="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo"></cv>
+</cvList>
+<AnalysisSoftwareList>
+	<AnalysisSoftware version="2.1.0" name="Mascot" id="SOF_1">
+		<SoftwareName>
+ 			<cvParam accession="MS:1001207" cvRef="PSI-MS" name="Mascot"/>
+		</SoftwareName>
+	</AnalysisSoftware>
+</AnalysisSoftwareList>
+<SequenceCollection>
+	<DBSequence accession="PROT1" searchDatabase_ref="DB_1" length="34" id="DBS_1">
+	<Seq>PEPTIDEKPEPTIDEMPEPTIDERPEPTIDECKR</Seq>
+		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="PROT1"/></DBSequence>
+	<!-- N-terminal Acetyl WITHOUT a 'location' attribute: must be inferred as N-terminal (issue #5443) -->
+	<Peptide id="PEP_acetyl">
+		<PeptideSequence>PEPTIDEK</PeptideSequence>
+		<Modification monoisotopicMassDelta="42.010565">
+			<cvParam cvRef="UNIMOD" accession="UNIMOD:1" name="Acetyl" value=""/>
+		</Modification>
+	</Peptide>
+	<!-- Oxidation WITHOUT a 'location' attribute: position is not uniquely terminal, so it must be skipped (not crash, not misplaced) -->
+	<Peptide id="PEP_oxidation">
+		<PeptideSequence>PEPTIDEM</PeptideSequence>
+		<Modification monoisotopicMassDelta="15.994915">
+			<cvParam cvRef="UNIMOD" accession="UNIMOD:35" name="Oxidation" value=""/>
+		</Modification>
+	</Peptide>
+	<!-- Amidated WITHOUT a 'location' attribute: exclusively C-terminal, so it must be inferred as C-terminal -->
+	<Peptide id="PEP_amidated">
+		<PeptideSequence>PEPTIDER</PeptideSequence>
+		<Modification monoisotopicMassDelta="-0.984016">
+			<cvParam cvRef="UNIMOD" accession="UNIMOD:2" name="Amidated" value=""/>
+		</Modification>
+	</Peptide>
+	<!-- Control: a regular internal modification WITH a valid 'location' still parses correctly -->
+	<Peptide id="PEP_carbamidomethyl">
+		<PeptideSequence>PEPTIDECK</PeptideSequence>
+		<Modification location="8" monoisotopicMassDelta="57.021464">
+			<cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl" value=""/>
+		</Modification>
+	</Peptide>
+	<!-- Acetyl WITHOUT 'location' but WITH residues="K": residue-specific (internal) even though Acetyl
+	     supports the N-terminus, so the exact position is unknown and it must be skipped, not forced N-terminal -->
+	<Peptide id="PEP_acetyl_on_K">
+		<PeptideSequence>PEPTIKDE</PeptideSequence>
+		<Modification residues="K" monoisotopicMassDelta="42.010565">
+			<cvParam cvRef="UNIMOD" accession="UNIMOD:1" name="Acetyl" value=""/>
+		</Modification>
+	</Peptide>
+	<PeptideEvidence id="PEV_acetyl" peptide_ref="PEP_acetyl" dBSequence_ref="DBS_1" post="P" pre="-" isDecoy="0"/>
+	<PeptideEvidence id="PEV_oxidation" peptide_ref="PEP_oxidation" dBSequence_ref="DBS_1" post="P" pre="K" isDecoy="0"/>
+	<PeptideEvidence id="PEV_amidated" peptide_ref="PEP_amidated" dBSequence_ref="DBS_1" post="C" pre="M" isDecoy="0"/>
+	<PeptideEvidence id="PEV_carbamidomethyl" peptide_ref="PEP_carbamidomethyl" dBSequence_ref="DBS_1" post="X" pre="R" isDecoy="0"/>
+	<PeptideEvidence id="PEV_acetyl_on_K" peptide_ref="PEP_acetyl_on_K" dBSequence_ref="DBS_1" post="R" pre="K" isDecoy="0"/>
+</SequenceCollection>
+<AnalysisCollection>
+	<SpectrumIdentification id="SI_1" spectrumIdentificationProtocol_ref="SIP_1" spectrumIdentificationList_ref="SIL_1" activityDate="2006-01-12T12:13:14">
+		<InputSpectra spectraData_ref="SDAT_1"/>
+		<SearchDatabaseRef searchDatabase_ref="DB_1"/>
+	</SpectrumIdentification>
+</AnalysisCollection>
+<AnalysisProtocolCollection>
+	<SpectrumIdentificationProtocol id="SIP_1" analysisSoftware_ref="SOF_1">
+		<SearchType>
+			<cvParam accession="MS:1001083" cvRef="PSI-MS" name="ms-ms search"/>
+		</SearchType>
+		<AdditionalSearchParams>
+			<userParam name="charges" unitName="xsd:string" value="+1, +2"/>
+		</AdditionalSearchParams>
+		<Enzymes independent="false">
+			<Enzyme missedCleavages="1" id="ENZ_1">
+				<EnzymeName>
+					<cvParam accession="MS:1001251" cvRef="PSI-MS" name="Trypsin"/>
+				</EnzymeName>
+			</Enzyme>
+		</Enzymes>
+		<Threshold>
+			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
+		</Threshold>
+	</SpectrumIdentificationProtocol>
+</AnalysisProtocolCollection>
+<DataCollection>
+	<Inputs>
+		<SearchDatabase location="MSDB" version="1.2.3" id="DB_1" >
+			<FileFormat>
+ 				<cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
+			</FileFormat>
+			<DatabaseName>
+				<userParam name="MSDB"/>
+			</DatabaseName>
+		</SearchDatabase>
+		<SpectraData location="UNKNOWN" id="SDAT_1">
+			<FileFormat>
+				<cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML format"/>
+			</FileFormat>
+			<SpectrumIDFormat>
+ 				<cvParam accession="MS:1000774" cvRef="PSI-MS" name="multiple peak list nativeID format"/>
+			</SpectrumIDFormat>
+		</SpectraData>
+	</Inputs>
+	<AnalysisData>
+		<SpectrumIdentificationList id="SIL_1">
+			<SpectrumIdentificationResult spectraData_ref="SDAT_1" spectrumID="index=1" id="SIR_1">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_acetyl" calculatedMassToCharge="500.0" experimentalMassToCharge="500.0" chargeState="2" id="SII_1">
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_acetyl"/>
+					<cvParam accession="MS:1002354" cvRef="PSI-MS" name="PSM-level q-value" value="0.01"/>
+				</SpectrumIdentificationItem>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="10.0"/>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="SDAT_1" spectrumID="index=2" id="SIR_2">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_oxidation" calculatedMassToCharge="500.0" experimentalMassToCharge="500.0" chargeState="2" id="SII_2">
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_oxidation"/>
+					<cvParam accession="MS:1002354" cvRef="PSI-MS" name="PSM-level q-value" value="0.02"/>
+				</SpectrumIdentificationItem>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="20.0"/>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="SDAT_1" spectrumID="index=3" id="SIR_3">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_amidated" calculatedMassToCharge="500.0" experimentalMassToCharge="500.0" chargeState="2" id="SII_3">
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_amidated"/>
+					<cvParam accession="MS:1002354" cvRef="PSI-MS" name="PSM-level q-value" value="0.03"/>
+				</SpectrumIdentificationItem>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="30.0"/>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="SDAT_1" spectrumID="index=4" id="SIR_4">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_carbamidomethyl" calculatedMassToCharge="500.0" experimentalMassToCharge="500.0" chargeState="2" id="SII_4">
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_carbamidomethyl"/>
+					<cvParam accession="MS:1002354" cvRef="PSI-MS" name="PSM-level q-value" value="0.04"/>
+				</SpectrumIdentificationItem>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="40.0"/>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="SDAT_1" spectrumID="index=5" id="SIR_5">
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_acetyl_on_K" calculatedMassToCharge="500.0" experimentalMassToCharge="500.0" chargeState="2" id="SII_5">
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_acetyl_on_K"/>
+					<cvParam accession="MS:1002354" cvRef="PSI-MS" name="PSM-level q-value" value="0.05"/>
+				</SpectrumIdentificationItem>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="50.0"/>
+			</SpectrumIdentificationResult>
+		</SpectrumIdentificationList>
+	</AnalysisData>
+</DataCollection>
+</MzIdentML>

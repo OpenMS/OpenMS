@@ -9,6 +9,12 @@
 #pragma once
 
 #include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/CVTerm.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+
+#include <set>
+#include <string>
+#include <tuple>
 
 namespace OpenMS
 {
@@ -32,7 +38,7 @@ namespace OpenMS
       {
       }
 
-      explicit ScoreType(const String& name, bool higher_better):
+      explicit ScoreType(const std::string& name, bool higher_better):
         cv_term(), higher_better(higher_better)
       {
         cv_term.setName(name);

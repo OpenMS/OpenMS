@@ -23,7 +23,6 @@ class QPoint;
 
 namespace OpenMS
 {
-  class String;
   enum class ShapeIcon
   {
     DIAMOND,
@@ -40,7 +39,7 @@ namespace OpenMS
   public:
     /// translates 'diamond', 'square', 'circle', 'triangle' into a ShapeIcon
     /// @throws Exception::InvalidValue otherwise
-    static ShapeIcon toShapeIcon(const String& icon);
+    static ShapeIcon toShapeIcon(const std::string& icon);
     
     /// static method to draw a dashed line
     static void drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, const QColor& color);

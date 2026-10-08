@@ -178,7 +178,7 @@ namespace OpenSWATH_Test
 
     MRMTransitionGroupType transition_group;
     {
-      String native_id = "tr3";
+      std::string native_id = "tr3";
       MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );
@@ -191,7 +191,7 @@ namespace OpenSWATH_Test
       transition_group.addTransition(tr, native_id );
     }
     {
-      String native_id = "tr1";
+      std::string native_id = "tr1";
       MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );
@@ -204,7 +204,7 @@ namespace OpenSWATH_Test
       transition_group.addTransition(tr, native_id );
     }
     {
-      String native_id = "tr5";
+      std::string native_id = "tr5";
       MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );

@@ -51,9 +51,9 @@ public:
     bool operator!=(const AcquisitionInfo& rhs) const;
 
     /// returns the method of combination
-    const String& getMethodOfCombination() const;
+    const std::string& getMethodOfCombination() const;
     /// sets the method of combination
-    void setMethodOfCombination(const String& method_of_combination);
+    void setMethodOfCombination(const std::string& method_of_combination);
 
     ///@name Export methods from private base std::vector<Acquisition>
     //@{
@@ -72,7 +72,7 @@ public:
     //@}
 
 protected:
-    String method_of_combination_;
+    std::string method_of_combination_;
 
   };
 } // namespace OpenMS

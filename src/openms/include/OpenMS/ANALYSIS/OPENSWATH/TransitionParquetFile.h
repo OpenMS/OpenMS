@@ -8,8 +8,10 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
+
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenSwath
 {
@@ -92,21 +94,96 @@ namespace OpenMS
       Optional columns:
       - traml_id (string)
       - annotation (string)
+
+      @ingroup FileIO
   */
   class OPENMS_DLLAPI TransitionParquetFile
   {
   public:
-    /// Default constructor
+    /// Default constructor (the class is stateless; API consists of the two convert* methods)
     TransitionParquetFile() = default;
 
     /// Default destructor
     ~TransitionParquetFile() = default;
 
-    /// Read a .oswpq library directory and populate a LightTargetedExperiment
-    void convertParquetToTargetedExperiment(const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const;
+    /**
+      @brief Read a @c .oswpq library and populate a @ref OpenSwath::LightTargetedExperiment.
 
-    /// Write a LightTargetedExperiment to a .oswpq library (zip file or directory)
-    void convertLightTargetedExperimentToParquet(const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const;
+      Opens @c library/precursors.parquet and @c library/transitions.parquet from @p oswpq_dir
+      (zip archive or extracted directory), validates each table against the
+      @ref OSWPrecursorSchema / @ref OSWTransitionSchema in subset mode (extra columns are
+      tolerated), and materialises the rows into @p targeted_exp.
+
+      @p targeted_exp is **reset** to an empty @ref OpenSwath::LightTargetedExperiment at the
+      start of the call — pre-existing contents are discarded rather than appended to.
+
+      The persistent @c precursor_id and @c transition_id columns define operational identity
+      in the returned experiment. They are converted to decimal strings for
+      @c LightCompound.id / @c LightTransition.transition_name, and transition
+      @c peptide_ref values use the corresponding @c precursor_id. Optional @c traml_id
+      columns remain source/provenance metadata and do not replace those canonical IDs.
+
+      @param[in]  oswpq_dir    Path to a @c .oswpq archive or to an already-extracted directory containing @c library/.
+      @param[out] targeted_exp Populated targeted experiment; cleared before being filled.
+      @throws Exception::MissingInformation If a required parquet entry (precursors / transitions) cannot be located inside @p oswpq_dir.
+      @throws Exception::InvalidValue If a loaded parquet table fails schema validation against the precursor / transition schema, or if any other required row-level field is missing during materialisation.
+    */
+    /// Compatibility overload retaining the existing two-argument API.
+    void convertParquetToTargetedExperiment(
+      const std::string& oswpq_dir,
+      OpenSwath::LightTargetedExperiment& targeted_exp) const;
+
+    /**
+      @brief Read a @c .oswpq library and additionally return source-ID provenance.
+
+      @param[in] oswpq_dir Path to a @c .oswpq archive or to an already-extracted directory containing @c library/.
+      @param[out] targeted_exp Populated targeted experiment; cleared before being filled.
+      @param[out] source_ids Optional source-precursor provenance. When provided, non-empty
+                  precursor @c traml_id values are mapped to their canonical @c precursor_id.
+      @throws Exception::MissingInformation If a required parquet entry (precursors / transitions) cannot be located inside @p oswpq_dir.
+      @throws Exception::InvalidValue If a loaded parquet table fails schema validation or required row-level information is missing.
+    */
+    void convertParquetToTargetedExperiment(
+      const std::string& oswpq_dir,
+      OpenSwath::LightTargetedExperiment& targeted_exp,
+      OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const;
+
+    /**
+      @brief Write a @ref OpenSwath::LightTargetedExperiment to a @c .oswpq library.
+
+      Output target depends on @p oswpq_path: if it points at an existing directory, the
+      parquet files are written directly under @c \<oswpq_path\>/library/. Otherwise the writer
+      stages the layout in a temporary directory, then assembles a zip archive at
+      @p oswpq_path via a @c .tmp staging archive that is renamed into place once complete.
+
+      @param[in] oswpq_path  Destination — existing directory or zip-file path.
+      @param[in] targeted_exp Canonical library to serialise. Precursor and transition IDs
+                 are preserved exactly, including zero and sparse values.
+      @throws Exception::FileNotWritable If a generated file inside the staging area cannot be written.
+      @throws Exception::MissingInformation If required per-row data (e.g. a transition lacking a peptide ref) is missing from @p targeted_exp.
+      @throws Exception::InvalidValue If row-level invariants are violated (e.g. duplicate precursor ids, schema-incompatible values).
+    */
+    /// Compatibility overload: preserves canonical input as-is, otherwise canonicalizes a source-style Light experiment once before writing.
+    void convertLightTargetedExperimentToParquet(
+      const std::string& oswpq_path,
+      const OpenSwath::LightTargetedExperiment& targeted_exp) const;
+
+    /**
+      @brief Write a canonical @ref OpenSwath::LightTargetedExperiment with optional source precursor provenance.
+
+      @param[in] oswpq_path Destination — existing directory or zip-file path.
+      @param[in] targeted_exp Canonical library to serialise. Precursor and transition IDs
+                 are preserved exactly, including zero and sparse values.
+      @param[in] source_ids Optional source-ID provenance. When supplied, precursor traml_id
+                 stores the original/source identifier while precursor_id remains canonical.
+      @throws Exception::FileNotWritable If a generated file inside the staging area cannot be written.
+      @throws Exception::MissingInformation If required per-row data is missing from @p targeted_exp.
+      @throws Exception::InvalidValue If row-level invariants are violated.
+    */
+    void convertLightTargetedExperimentToParquet(
+      const std::string& oswpq_path,
+      const OpenSwath::LightTargetedExperiment& targeted_exp,
+      const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const;
   };
 
 } // namespace OpenMS

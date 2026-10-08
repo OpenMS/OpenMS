@@ -28,7 +28,7 @@ namespace OpenMS
 public:
     virtual std::unique_ptr<TOPPASVertex> clone() const override;
     /// returns "OutputFileVertex"
-    String getName() const override;
+    std::string getName() const override;
     // documented in base class
     void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
     // documented in base class

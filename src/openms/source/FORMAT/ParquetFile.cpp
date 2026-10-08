@@ -11,10 +11,13 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <parquet/file_reader.h>
+#include <parquet/arrow/reader.h>
+#include <parquet/arrow/writer.h>
+#include <arrow/io/file.h>
 #include <filesystem>
 #include <fstream>
 #include <vector>
@@ -46,7 +49,7 @@ namespace OpenMS
 
   // ---- Parquet file I/O -----------------------------------------------------
 
-  void ParquetFile::writeTable(const std::shared_ptr<arrow::Table>& table, const String& filename,
+  void ParquetFile::writeTable(const std::shared_ptr<arrow::Table>& table, const std::string& filename,
                                int64_t row_group_size)
   {
     auto outfile_result = arrow::io::FileOutputStream::Open(std::string(filename));
@@ -58,14 +61,40 @@ namespace OpenMS
     // Use a larger default row_group_size than 1024 to improve compression and reduce metadata overhead.
     // Default is configurable by callers via the row_group_size parameter.
     auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, static_cast<int>(row_group_size));
+
+    // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+    // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+    // reader reports it as corrupt rather than as the smaller table it looks like. This one throws
+    // rather than returning, so a caller writing several tables into a directory would otherwise
+    // leave the earlier ones plus one truncated file. Close before removing: on Windows an open
+    // handle blocks the unlink.
+    const auto abandon = [&](const std::string& what, const std::string& detail)
+    {
+      (void)outfile->Close();
+      if (!File::remove(filename))
+      {
+        OPENMS_LOG_ERROR << "ParquetFile: Failed to remove incomplete output " << filename
+                         << std::endl;
+      }
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, what, detail);
+    };
+
     if (!status.ok())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Failed to write parquet table", status.ToString());
+      abandon("Failed to write parquet table", status.ToString());
+    }
+
+    // Close explicitly rather than leaving it to the destructor, which swallows the error: the
+    // final flush is where a full disk surfaces, and returning normally there would hand back a
+    // truncated file.
+    auto close_status = outfile->Close();
+    if (!close_status.ok())
+    {
+      abandon("Failed to close parquet file", close_status.ToString());
     }
   }
 
-  std::shared_ptr<arrow::Table> ParquetFile::readTable(const String& filename)
+  std::shared_ptr<arrow::Table> ParquetFile::readTable(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
@@ -228,7 +257,7 @@ namespace OpenMS
         if (v > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Unsigned integer value too large to fit into int64_t", String(std::to_string(v)));
+                                        "Unsigned integer value too large to fit into int64_t",std::string(std::to_string(v)));
         }
         return static_cast<int64_t>(v);
       }
@@ -338,11 +367,11 @@ namespace OpenMS
     // semicolon-delimited string
     if (array->type_id() == arrow::Type::STRING || array->type_id() == arrow::Type::LARGE_STRING)
     {
-      String raw = getString(array, row);
+      std::string raw = getString(array, row);
       if (!raw.empty())
       {
-        std::vector<String> parts;
-        raw.split(';', parts);
+        std::vector<std::string> parts;
+        StringUtils::split(raw, ';', parts);
         values.reserve(parts.size());
         for (const auto& part : parts)
         {
@@ -386,7 +415,7 @@ namespace OpenMS
   // ---- Parquet archive utilities --------------------------------------------
 
 
-  std::string ParquetFile::jsonEscape(const String& input)
+  std::string ParquetFile::jsonEscape(const std::string& input)
   {
     std::string out;
     out.reserve(input.size());
@@ -418,7 +447,7 @@ namespace OpenMS
     return out;
   }
 
-  int64_t ParquetFile::rowCount(const String& filename)
+  int64_t ParquetFile::rowCount(const std::string& filename)
   {
     if (!File::exists(filename)) return 0;
     std::unique_ptr<parquet::ParquetFileReader> reader = parquet::ParquetFileReader::OpenFile(std::string(filename), false);

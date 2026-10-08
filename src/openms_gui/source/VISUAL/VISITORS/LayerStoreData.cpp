@@ -22,7 +22,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  FileTypes::Type LayerStoreData::getSupportedExtension_(const String& filename) const
+  FileTypes::Type LayerStoreData::getSupportedExtension_(const std::string& filename) const
   {
     auto type = FileHandler::getTypeByFileName(filename);
     if (type == FileTypes::UNKNOWN)
@@ -35,12 +35,12 @@ namespace OpenMS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // helper for saving a peakmap to a file
-  void savePeakMapToFile(const String& path, const PeakMap& pm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
+  void savePeakMapToFile(const std::string& path, const PeakMap& pm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
     FileHandler().storeExperiment(path, pm, {}, lt);
   }
 
-  void LayerStoreDataPeakMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataPeakMapVisible::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
     savePeakMapToFile(path, pm_, lt, getSupportedExtension_(path));
   }
@@ -76,16 +76,24 @@ namespace OpenMS
   // Returns true if filtered chromatogram contains data
   bool filterChrom(const MSChromatogram& in, MSChromatogram& out, const RangeAllType& visible_range, const DataFilters& layer_filters)
   {
-    out = in;
-    out.clear(false); // keep metadata
+    // Collect the surviving indices and let select() subset the peaks *and* the
+    // parallel data arrays together; rebuilding by push_back would drop them
+    // (clear() removes the arrays, as they are parallel to the peaks).
+    std::vector<Size> keep;
     auto it_end = in.RTEnd(visible_range.getMaxRT());
     for (auto it = in.RTBegin(visible_range.getMinRT()); it != it_end; ++it)
     {
-      if (layer_filters.passes(in, it - in.begin()))
+      const Size i = it - in.begin();
+      if (layer_filters.passes(in, i))
       {
-        out.push_back(*it);
+        keep.push_back(i);
       }
     }
+    out = in;
+    out.select(keep);
+    // 'out = in' copied the cached ranges of the full chromatogram; select() subsets the peaks
+    // but deliberately does not recompute ranges, so refresh them to reflect only what survived.
+    out.updateRanges();
     return !out.empty();
   }
 
@@ -139,7 +147,7 @@ namespace OpenMS
     }
   }
 
-  void LayerStoreDataPeakMapAll::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataPeakMapAll::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
     savePeakMapToFile(path, *full_exp_, lt, getSupportedExtension_(path));
   }
@@ -152,12 +160,12 @@ namespace OpenMS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // helper for saving a FeatureMap to a file
-  void saveFeatureMapToFile(const String& path, const FeatureMap& fm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
+  void saveFeatureMapToFile(const std::string& path, const FeatureMap& fm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
     FileHandler().storeFeatures(path, fm, {FileTypes::FEATUREXML}, lt);
   }
 
-  void LayerStoreDataFeatureMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataFeatureMapVisible::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
     saveFeatureMapToFile(path, fm_, lt, this->getSupportedExtension_(path));
   }
@@ -180,7 +188,7 @@ namespace OpenMS
     }
   }
 
-  void LayerStoreDataFeatureMapAll::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataFeatureMapAll::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
     saveFeatureMapToFile(path, *full_fm_, lt, this->getSupportedExtension_(path));
   }
@@ -194,12 +202,12 @@ namespace OpenMS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // helper for saving a ConsensusMap to a file
-  void saveConsensusMapToFile(const String& path, const ConsensusMap& fm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
+  void saveConsensusMapToFile(const std::string& path, const ConsensusMap& fm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
     FileHandler().storeConsensusFeatures(path, fm, {FileTypes::CONSENSUSXML}, lt);
   }
 
-  void LayerStoreDataConsensusMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataConsensusMapVisible::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
     return saveConsensusMapToFile(path, cm_, lt, this->getSupportedExtension_(path));
   }
@@ -221,7 +229,7 @@ namespace OpenMS
     }
   }
 
-  void LayerStoreDataConsensusMapAll::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataConsensusMapAll::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
     return saveConsensusMapToFile(path, *full_cm_, lt, this->getSupportedExtension_(path));
   }
@@ -234,12 +242,12 @@ namespace OpenMS
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // helper for saving a PepIDs to a file
-  void savePepIdsToFile(const String& path, const IPeptideIds::PepIds& ids, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
+  void savePepIdsToFile(const std::string& path, const IPeptideIds::PepIds& ids, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
     FileHandler().storeIdentifications(path, {}, ids, {FileTypes::IDXML}, lt);
   }
 
-  void LayerStoreDataIdentVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataIdentVisible::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
     return savePepIdsToFile(path, ids_, lt, this->getSupportedExtension_(path));
   }
@@ -261,7 +269,7 @@ namespace OpenMS
     }
   }
 
-  void LayerStoreDataIdentAll::saveToFile(const String& path, const ProgressLogger::LogType lt) const
+  void LayerStoreDataIdentAll::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const
   {
     return savePepIdsToFile(path, *full_ids_, lt, this->getSupportedExtension_(path));
   }

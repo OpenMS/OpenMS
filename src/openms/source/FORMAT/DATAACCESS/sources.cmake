@@ -17,6 +17,8 @@ set(sources_list
 
 list(APPEND sources_list MSChromatogramParquetConsumer.cpp)
 list(APPEND sources_list MobilogramParquetConsumer.cpp)
+list(APPEND sources_list ParquetReaderHelpers.cpp)
+list(APPEND sources_list XIPMParquetConsumer.cpp)
 
 ### add path to the filenames
 set(sources)

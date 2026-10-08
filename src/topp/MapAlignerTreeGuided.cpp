@@ -144,7 +144,7 @@ private:
     setValidStrings_("copy_data", {"true","false"});
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
     if (section == "algorithm")
     {

@@ -21,10 +21,8 @@ AbsoluteQuantitationStandardsFile.h
 Base64.h
 BedRModFile.h
 Bzip2Ifstream.h
-Bzip2InputStream.h
 CachedMzML.h
 ChromeleonFile.h
-CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h
 ControlledVocabulary.h
@@ -36,17 +34,17 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+FileInfo.h
 FLASHDeconvFeatureFile.h
 FLASHDeconvSpectrumFile.h
 GNPSMetaValueFile.h
 GNPSMGFFile.h
 GNPSQuantificationFile.h
 GzipIfstream.h
-GzipInputStream.h
 ZipIfstream.h
-ZipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
+ImzMLFile.h
 IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
@@ -73,15 +71,15 @@ MzTabFile.h
 MzTabMFile.h
 MzXMLFile.h
 OMSFile.h
-OMSFileLoad.h
-OMSFileStore.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
+OSWParquetFile.h
 ParamCTDFile.h
 ParamCWLFile.h
 ParamJSONFile.h
 ParamXMLFile.h
+ParquetTableComparator.h
 PEFFFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -101,14 +99,13 @@ SwathFile.h
 SqliteConnector.h
 SqMassFile.h
 TextFile.h
-ToolDescriptionFile.h
 TransformationXMLFile.h
-TriqlerFile.h
 UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
+FileNameUtils.h
 MzIdentMLFile.h
 TraMLFile.h
 XMassFile.h
@@ -116,6 +113,7 @@ XQuestResultXMLFile.h
 MRMFile.h
 TargetedDataFileLoader.h
 ZlibCompression.h
+ZstdCompression.h
 )
 
 if (WITH_HDF5)
@@ -125,19 +123,30 @@ endif()
 list(APPEND sources_list_h ZipArchiveFile.h)
 list(APPEND sources_list_h MSExperimentArrowExport.h)
 list(APPEND sources_list_h ConsensusMapArrowExport.h)
-list(APPEND sources_list_h ParquetFile.h)
+list(APPEND sources_list_h ArrowSchemaRegistry.h)
+list(APPEND sources_list_h ArrowIOHelpers.h)
 list(APPEND sources_list_h ParquetFilter.h)
 list(APPEND sources_list_h XICParquetFile.h)
 list(APPEND sources_list_h XIMParquetFile.h)
+list(APPEND sources_list_h XIPMParquetFile.h)
 list(APPEND sources_list_h QPXFile.h)
+list(APPEND sources_list_h QPXIdentity.h)
 list(APPEND sources_list_h ProteinGroupArrowExport.h)
+list(APPEND sources_list_h QPXCollectionExport.h)
+list(APPEND sources_list_h QPXValueValidation.h)
 list(APPEND sources_list_h ProteinIdentificationArrowIO.h)
 list(APPEND sources_list_h FeatureMapArrowIO.h)
 list(APPEND sources_list_h ConsensusMapArrowIO.h)
+list(APPEND sources_list_h PSMArrowIO.h)
+list(APPEND sources_list_h ModificationDefinitionIO.h)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list_h BrukerTimsFile.h)
-  list(APPEND sources_list_h RationalScan2ImConverter.h)
+  list(APPEND sources_list_h BrukerTimsImagingFile.h)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list_h ThermoRawFile.h)
 endif()
 
 ### add path to the filenames
@@ -150,3 +159,50 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
+
+### Private (non-installed) headers: the Xerces InputSource / BinInputStream
+### adapters are internal plumbing used only by XMLFile.cpp / CompressedInputSource.cpp.
+### Keeping them off OpenMS_sources_h is what lets Xerces be a PRIVATE link dependency.
+###
+### SqliteConnector_impl.h exposes the raw SQLite C API (sqlite3 / sqlite3_stmt)
+### and OMSFileStore.h / OMSFileLoad.h expose the SQLiteCpp C++ API (SQLite::*).
+### Keeping all three off OpenMS_sources_h is what lets SQLite (SQLiteCpp) be a
+### fully private dependency: no SQLite type appears in any installed header.
+###
+### ParquetFile.h is the same case for Arrow: every one of its helpers takes or
+### returns an arrow::Status / arrow::Table / arrow::Array, so the header includes
+### <arrow/api.h> and cannot be compiled without Arrow's development files. It is
+### an internal helper shared by the Parquet-backed I/O classes -- the installed
+### readers/writers (XICParquetFile, QPXFile, ...) expose OpenMS types only -- so
+### keeping it off OpenMS_sources_h is what lets Arrow/Parquet stay PRIVATE.
+###
+### ZipRandomAccessFile.h is the same: Open() returns an
+### arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>>, so the header includes
+### <arrow/io/api.h>. The Arrow-based OpenSWATH and Parquet helpers that use either one
+### live in libOpenMS too (#10247), so no tool directory needs them installed.
+set(private_headers_list_h
+Bzip2InputStream.h
+CompressedInputSource.h
+GzipInputStream.h
+ZipInputStream.h
+SqliteConnector_impl.h
+OMSFileLoad.h
+OMSFileStore.h
+ParquetFile.h
+ZipRandomAccessFile.h
+)
+
+### RationalScan2ImConverter derives from OpenTIMS' Scan2InvIonMobilityConverter, so its
+### header includes <opentims++/...> and needs OpenTIMS' development files. Only
+### BrukerTimsFile.cpp and the class test use it; BrukerTimsFile.h itself hands out
+### OpenMS types, so OpenTIMS stays PRIVATE.
+if (WITH_OPENTIMS)
+  list(APPEND private_headers_list_h RationalScan2ImConverter.h)
+endif()
+
+set(private_sources_h)
+foreach(i ${private_headers_list_h})
+	list(APPEND private_sources_h ${directory}/${i})
+endforeach(i)
+source_group("Header Files\\OpenMS\\FORMAT" FILES ${private_sources_h})
+set(OpenMS_private_headers ${OpenMS_private_headers} ${private_sources_h})

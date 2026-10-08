@@ -15,9 +15,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  String LayerData1DBase::getDecoratedName() const
+  std::string LayerData1DBase::getDecoratedName() const
   {
-    String n = LayerDataBase::getDecoratedName();
+    std::string n = LayerDataBase::getDecoratedName();
     if (flipped)
     {
       n += " [flipped]";

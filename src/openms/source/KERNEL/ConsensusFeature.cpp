@@ -56,7 +56,7 @@ namespace OpenMS
   {
     if (!(handles_.insert(handle).second))
     {
-      String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
+      std::string key =std::string("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
     }
   }
@@ -67,7 +67,7 @@ namespace OpenMS
     auto unique_id = handle.getUniqueId();
     if (!(handles_.insert(std::move(handle)).second))
     {
-      String key = String("map") + map_index + "/feature" + unique_id;
+      std::string key =std::string("map") + map_index + "/feature" + unique_id;
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
     }
   }
@@ -128,7 +128,7 @@ namespace OpenMS
   DRange<2> ConsensusFeature::getPositionRange() const
   {
     DPosition<2> min = DPosition<2>::maxPositive();
-    DPosition<2> max = DPosition<2>::minPositive();
+    DPosition<2> max = DPosition<2>::minNegative();
     for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       if (it->getRT() < min[0])
@@ -154,7 +154,7 @@ namespace OpenMS
   DRange<1> ConsensusFeature::getIntensityRange() const
   {
     DPosition<1> min = DPosition<1>::maxPositive();
-    DPosition<1> max = DPosition<1>::minPositive();
+    DPosition<1> max = DPosition<1>::minNegative();
     for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       if (it->getIntensity() < min[0])
@@ -290,7 +290,7 @@ namespace OpenMS
       }
       if (fm[index].metaValueExists("dc_charge_adduct_mass"))
       {
-        adduct_mass = (double) fm[index].getMetaValue("dc_charge_adduct_mass");
+        adduct_mass = (double)fm[index].getMetaValue("dc_charge_adduct_mass");
       }
       else
       {
@@ -406,9 +406,9 @@ namespace OpenMS
     }
 
     os << "Meta information: \n";
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     cons.getKeys(keys);
-    for (const String& it : keys)
+    for (const std::string& it : keys)
     {
       os << "   " << (it) << ": " << cons.getMetaValue(it) << '\n';
     }

@@ -12,6 +12,9 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
+#include <map>
+#include <set>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -24,7 +27,10 @@ namespace OpenMS
   class OPENMS_DLLAPI PercolatorInfile
   {
     public:
-      static void store(const String& pin_file, 
+      /// PIN meta values added to each hit, keyed by (peptide ID index, hit index).
+      using PinFeatureMetaValueMap = std::map<std::pair<size_t, size_t>, std::set<std::string>>;
+
+      static void store(const std::string& pin_file, 
         const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
         const std::string& enz, 
@@ -59,18 +65,120 @@ namespace OpenMS
       * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.
       * TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));      
       */
-      static PeptideIdentificationList load(const String& pin_file, 
+      static PeptideIdentificationList load(const std::string& pin_file, 
         bool higher_score_better, 
-        const String& score_name, 
+        const std::string& score_name, 
         const StringList& extra_scores,
         StringList& filenames, 
-        String decoy_prefix = "",
+        std::string decoy_prefix = "",
         double threshold = 0.01, 
         bool SageAnnotation = false);
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
-      static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
-      
+      static std::string getScanIdentifier(const PeptideIdentification& pid, size_t index);
+
+      /**
+       * @brief The spectrum file of a PSM: its 'file_origin' (empty if not set), followed by '|' and its
+       * 'id_merge_index' if that is set.
+       *
+       * The SpecId of a PSM in the .pin file starts with it. When the PSMs of a .pin file come from more than
+       * one spectrum file, @ref store also writes it to a 'FileName' column. Percolator numbers the spectrum
+       * files from that column and identifies a spectrum by file, ScanNr and ExpMass (e.g. for target-decoy
+       * competition), so spectra of different files with the same scan number stay apart.
+       */
+      static std::string getFileIdentifier(const PeptideIdentification& pid);
+
+      /**
+       * @brief Returns the standard Percolator feature columns every .pin file should declare.
+       *
+       * The list contains the three mandatory header columns (SpecId, Label, ScanNr)
+       * followed by the standard per-PSM features that @ref preparePin_ computes and
+       * sets on every hit: ExpMass, CalcMass, mass, peplen, charge{min..max}, enzN,
+       * enzC, enzInt, dm, absdm. Callers should append their search-engine-specific
+       * extra_features (and finally Peptide, Proteins) to this list before calling @ref store.
+       * This is the single source of truth used by PercolatorAdapter and any other
+       * tool that emits .pin for external percolator consumption.
+       */
+      static StringList getStandardFeatureSet(int min_charge, int max_charge);
+
+      /**
+       * @brief Compute and stamp PIN-equivalent meta values on every PeptideHit.
+       *
+       * Runs the same per-hit computation that @ref preparePin_ applies when
+       * writing a .pin file — but mutates the PeptideIdentifications in place
+       * instead of writing to a text file. After this call, each kept hit
+       * carries the full set of PIN meta values:
+       *   SpecId, ScanNr, Label, CalcMass, ExpMass, deltamass, retentiontime,
+       *   mass, score, peplen, charge1..chargeN, enzN, enzC, enzInt, dm,
+       *   absdm, Peptide, Proteins.
+       *
+       * ExpMass and mass are the observed precursor m/z, the same for all hits of
+       * a spectrum (Percolator identifies a spectrum by ScanNr and ExpMass). A
+       * precursor isotope error ('isotope_error', observed minus theoretical in
+       * 13C spacings; or the legacy MS-GF+ 'IsotopeError') is removed from the
+       * mass difference only: dm, absdm and deltamass.
+       *
+       * Useful for in-process Percolator training (see OpenMS::Percolator):
+       * callers can then train on the exact same feature vectors the
+       * subprocess path would have seen via the .pin round-trip.
+       *
+       * Hits with empty PeptideEvidences or UNKNOWN target/decoy status are
+       * left untouched; their (pid_index, hit_index) pairs are returned so
+       * callers know to skip them.
+       *
+       * @param peptide_ids Mutated in place; each kept hit gets new meta values.
+       * @param enz         Enzyme name (same values accepted as for @ref store).
+       * @param min_charge  Lower bound for the charge{N} one-hot features.
+       * @param max_charge  Upper bound for the charge{N} one-hot features.
+       * @return Indices of skipped hits as (pid_index, hit_index) pairs.
+       */
+      static std::set<std::pair<size_t, size_t>> stampPinFeaturesOnHits(
+        PeptideIdentificationList& peptide_ids,
+        const std::string& enz,
+        int min_charge,
+        int max_charge);
+
+      /**
+       * @brief Compute and stamp PIN-equivalent meta values, recording newly added keys.
+       *
+       * This overload additionally records, for every kept hit, the meta-value keys
+       * that did not exist before stamping. Callers that temporarily stamp hits can
+       * use this record to remove only adapter-generated values afterwards while
+       * preserving input metadata with the same names.
+       *
+       * @param[in,out] peptide_ids Mutated in place; each kept hit gets PIN meta values.
+       * @param[in] enz Enzyme name (same values accepted as for @ref store).
+       * @param[in] min_charge Lower bound for the charge{N} one-hot features.
+       * @param[in] max_charge Upper bound for the charge{N} one-hot features.
+       * @param[out] added_meta_values Newly added keys per (peptide ID, hit) index.
+       * @return Indices of skipped hits as (pid_index, hit_index) pairs.
+       */
+      static std::set<std::pair<size_t, size_t>> stampPinFeaturesOnHits(
+        PeptideIdentificationList& peptide_ids,
+        const std::string& enz,
+        int min_charge,
+        int max_charge,
+        PinFeatureMetaValueMap& added_meta_values);
+
+      /**
+       * @brief Numeric value of a PIN feature, as the percolator executable reads it.
+       *
+       * The .pin writer (@ref store) prints every feature as text and the percolator executable
+       * parses that text as a number. So an integer or floating-point meta value counts as it is,
+       * and a string meta value counts as the number it spells: adapters that read search engine
+       * scores from text keep them as strings (e.g. SageAdapter, via @ref load). In-process
+       * rescoring has to read feature values through this function to train on the same numbers
+       * as the executable; DataValue's conversion to double does not parse a string, it yields an
+       * unrelated number.
+       *
+       * @param[in] value Meta value of the feature
+       * @param[in] feature Name of the feature (for the error message)
+       * @return The numeric value
+       * @throws Exception::InvalidValue if @p value is empty, a list, a string that is not a number,
+       *         or not finite (NaN, infinity); the executable rejects such a feature as well
+       */
+      static double getFeatureValue(const DataValue& value, const std::string& feature);
+
     protected:
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
@@ -83,7 +191,7 @@ namespace OpenMS
 
       static bool isEnz_(const char& n, const char& c, const std::string& enz);
 
-      static Size countEnzymatic_(const String& peptide, const std::string& enz);
+      static Size countEnzymatic_(const std::string& peptide, const std::string& enz);
 
   };
 } // namespace OpenMS

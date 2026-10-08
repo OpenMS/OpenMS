@@ -35,9 +35,9 @@ namespace OpenMS
                                 transition annotations must pass an empty `OpenSwath::LightTargetedExperiment`
                                 (i.e. one with no compounds/transitions). A null pointer is not accepted.
     */
-    MobilogramParquetConsumer(const String& filename,
+    MobilogramParquetConsumer(const std::string& filename,
                              UInt64 run_id,
-                             const String& source_file,
+                             const std::string& source_file,
                              const OpenSwath::LightTargetedExperiment& transition_exp);
 
     /// Destructor flushes pending data and closes the parquet writer.
@@ -55,10 +55,10 @@ namespace OpenMS
       @param[in] feature_id Optional feature id associated with the mobilogram (nullable: -1 means not set)
     */
     void consumeMobilogram(const Mobilogram& m,
-                 const String& mobilogram_type = "",
+                 const std::string& mobilogram_type = "",
                  Int64 ms_level = -1,
                  Int64 transition_id = -1,
-                 const String& transition_native_id = "",
+                 const std::string& transition_native_id = "",
                  double feature_rt = std::numeric_limits<double>::quiet_NaN(),
                  Int64 feature_id = -1);
 

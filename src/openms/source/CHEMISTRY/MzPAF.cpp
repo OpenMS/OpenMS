@@ -54,8 +54,8 @@ namespace OpenMS
     const char* function,
     MzPAFErrorCode error_code,
     size_t error_position,
-    const String& input,
-    const String& message
+    const std::string& input,
+    const std::string& message
   ) noexcept :
     Exception::ParseError(file, line, function, input, message),
     code_(error_code),
@@ -64,31 +64,31 @@ namespace OpenMS
     extractContext_(input, error_position);
   }
 
-  void MzPAFParseError::extractContext_(const String& input, size_t pos)
+  void MzPAFParseError::extractContext_(const std::string& input, size_t pos)
   {
     if (pos > 20)
     {
-      context_before_ = input.substr(pos - 20, 20);
+      context_before_ = StringUtils::substr(input, pos - 20, 20);
     }
     else
     {
-      context_before_ = input.substr(0, pos);
+      context_before_ = StringUtils::substr(input, 0, pos);
     }
 
     if (pos < input.size())
     {
       size_t remaining = input.size() - pos;
-      context_after_ = input.substr(pos, std::min(remaining, size_t(20)));
+      context_after_ = StringUtils::substr(input, pos, std::min(remaining, size_t(20)));
     }
   }
 
-  String MzPAFParseError::getFormattedMessage() const
+  std::string MzPAFParseError::getFormattedMessage() const
   {
     std::ostringstream oss;
     oss << "mzPAF parse error at position " << position_ << ": "
         << mzPAFErrorCodeToString(code_) << "\n";
     oss << "Context: " << context_before_ << ">>>" << context_after_ << "<<<";
-    return String(oss.str());
+    return oss.str();
   }
 
   //--------------------------------------------------------------------------
@@ -113,15 +113,22 @@ namespace OpenMS
   // MzPAFAnnotation implementation
   //--------------------------------------------------------------------------
 
+  namespace
+  {
+    bool hasValidSatelliteSubtype(const MzPAFAnnotation& ann)
+    {
+      return ! ann.satellite_subtype.has_value()
+             || ((ann.ion_series == MzPAFIonSeries::D || ann.ion_series == MzPAFIonSeries::W)
+                 && (ann.satellite_subtype.value() == 'a' || ann.satellite_subtype.value() == 'b'));
+    }
+  } // anonymous namespace
+
   bool MzPAFAnnotation::isValid() const
   {
-    if (ion_series == MzPAFIonSeries::UNKNOWN)
-    {
-      return false;
-    }
+    if (ion_series == MzPAFIonSeries::UNKNOWN || ! hasValidSatelliteSubtype(*this)) { return false; }
 
     // Standard fragment ions need ordinal
-    if (MzPAF::isStandardFragmentIon(ion_series) && !ordinal.has_value())
+    if (MzPAF::isPeptideFragmentIon(ion_series) && !ordinal.has_value())
     {
       return false;
     }
@@ -161,21 +168,11 @@ namespace OpenMS
 
   bool MzPAFAnnotation::operator==(const MzPAFAnnotation& other) const
   {
-    return analyte_index == other.analyte_index &&
-           ion_series == other.ion_series &&
-           ordinal == other.ordinal &&
-           immonium_residue == other.immonium_residue &&
-           internal_range == other.internal_range &&
-           reporter_name == other.reporter_name &&
-           formula == other.formula &&
-           named_compound == other.named_compound &&
-           neutral_losses == other.neutral_losses &&
-           isotope_offset == other.isotope_offset &&
-           adduct == other.adduct &&
-           charge == other.charge &&
-           mass_delta == other.mass_delta &&
-           confidence == other.confidence &&
-           embedded_sequence == other.embedded_sequence;
+    return analyte_index == other.analyte_index && ion_series == other.ion_series && satellite_subtype == other.satellite_subtype
+           && ordinal == other.ordinal && immonium_residue == other.immonium_residue && internal_range == other.internal_range
+           && reporter_name == other.reporter_name && formula == other.formula && named_compound == other.named_compound
+           && neutral_losses == other.neutral_losses && isotope_offset == other.isotope_offset && adduct == other.adduct && charge == other.charge
+           && mass_delta == other.mass_delta && confidence == other.confidence && embedded_sequence == other.embedded_sequence;
   }
 
   std::ostream& operator<<(std::ostream& os, const MzPAFAnnotation& ann)
@@ -326,7 +323,7 @@ namespace OpenMS
     class Parser
     {
     public:
-      explicit Parser(const String& input) :
+      explicit Parser(const std::string& input) :
         input_(input), tokenizer_(input)
       {
         advance_();
@@ -360,7 +357,7 @@ namespace OpenMS
       {
         try
         {
-          return String(text).toInt();
+          return StringUtils::toInt32(std::string(text));
         }
         catch (const Exception::ConversionError&)
         {
@@ -372,7 +369,7 @@ namespace OpenMS
       {
         try
         {
-          return String(text).toDouble();
+          return StringUtils::toDouble(std::string(text));
         }
         catch (const Exception::ConversionError&)
         {
@@ -380,7 +377,7 @@ namespace OpenMS
         }
       }
 
-      String parseBracketedContent_(TokenType open, TokenType close, const char* open_err, const char* close_err)
+      std::string parseBracketedContent_(TokenType open, TokenType close, const char* open_err, const char* close_err)
       {
         if (current_.type != open)
         {
@@ -388,10 +385,10 @@ namespace OpenMS
         }
         advance_();
 
-        String content;
+        std::string content;
         while (current_.type != close && current_.type != TokenType::END)
         {
-          content += String(current_.text);
+          content +=std::string(current_.text);
           advance_();
         }
 
@@ -449,15 +446,24 @@ namespace OpenMS
 
         char first = text[0];
 
-        // Standard fragment ions: a, b, c, x, y, z
-        if (first == 'a' || first == 'b' || first == 'c' ||
-            first == 'x' || first == 'y' || first == 'z')
+        // Peptide fragment ions, including d/v/w satellite ions
+        if (first == 'a' || first == 'b' || first == 'c' || first == 'x' || first == 'y' || first == 'z' || first == 'd' || first == 'v'
+            || first == 'w')
         {
           MzPAF::charToIonSeries(first, ann.ion_series);
 
-          if (text.size() > 1 && std::isdigit(text[1]))
+          // Only d/w allow the a/b subtype (da, db, wa, wb).
+          size_t ordinal_start = 1;
+          if ((first == 'd' || first == 'w') && text.size() > 1 && (text[1] == 'a' || text[1] == 'b'))
           {
-            ann.ordinal = parseInt_(text.substr(1), MzPAFErrorCode::INVALID_NUMBER, "Invalid ordinal number");
+            ann.satellite_subtype = text[1];
+            ordinal_start = 2;
+          }
+
+          if (text.size() > ordinal_start)
+          {
+            // Parse the entire suffix so invalid subtype letters cannot be silently discarded.
+            ann.ordinal = parseInt_(text.substr(ordinal_start), MzPAFErrorCode::INVALID_NUMBER, "Invalid ordinal number");
             advance_();
           }
           else
@@ -506,7 +512,7 @@ namespace OpenMS
           int start_pos;
           if (text.size() > 1 && std::isdigit(text[1]))
           {
-            start_pos = parseInt_(text.substr(1), MzPAFErrorCode::INVALID_NUMBER, "Invalid internal fragment start");
+            start_pos = parseInt_(StringUtils::substr(text, 1), MzPAFErrorCode::INVALID_NUMBER, "Invalid internal fragment start");
             advance_();
           }
           else
@@ -548,7 +554,7 @@ namespace OpenMS
         {
           ann.ion_series = MzPAFIonSeries::FORMULA;
           advance_();
-          String formula_str = parseBracketedContent_(TokenType::LBRACE, TokenType::RBRACE,
+          std::string formula_str = parseBracketedContent_(TokenType::LBRACE, TokenType::RBRACE,
                                                       "Expected '{' after 'f'", "Unclosed brace in formula ion");
           try
           {
@@ -577,7 +583,7 @@ namespace OpenMS
       {
         advance_(); // consume LBRACE
 
-        String seq_str;
+        std::string seq_str;
         int brace_depth = 1;
 
         while (brace_depth > 0 && current_.type != TokenType::END)
@@ -594,7 +600,7 @@ namespace OpenMS
               break;
             }
           }
-          seq_str += String(current_.text);
+          seq_str +=std::string(current_.text);
           advance_();
         }
 
@@ -650,7 +656,7 @@ namespace OpenMS
         MzPAFNeutralLoss loss;
         try
         {
-          loss.formula = EmpiricalFormula(String(current_.text));
+          loss.formula = EmpiricalFormula(std::string(current_.text));
         }
         catch (...)
         {
@@ -667,7 +673,7 @@ namespace OpenMS
 
         if (current_.type == TokenType::NUMBER)
         {
-          String num_str(current_.text);
+          std::string num_str(current_.text);
           advance_();
 
           if (current_.type == TokenType::IDENTIFIER &&
@@ -688,7 +694,7 @@ namespace OpenMS
         {
           try
           {
-            ann.adduct = EmpiricalFormula(String(current_.text));
+            ann.adduct = EmpiricalFormula(std::string(current_.text));
           }
           catch (...)
           {
@@ -706,12 +712,23 @@ namespace OpenMS
       {
         advance_();
 
+        // the charge may carry a sign ("c1^-1"), which the tokenizer hands back as its own token.
+        // Without this a negative charge is a parse error, so nucleic acid fragments -- which are always
+        // negatively charged -- cannot be expressed at all, and toString() writes names this parser
+        // then rejects.
+        int sign = 1;
+        if (current_.type == TokenType::MINUS || current_.type == TokenType::PLUS)
+        {
+          sign = (current_.type == TokenType::MINUS) ? -1 : 1;
+          advance_();
+        }
+
         if (current_.type != TokenType::NUMBER)
         {
           error_(MzPAFErrorCode::INVALID_CHARGE, "Expected charge number after '^'");
         }
 
-        ann.charge = parseInt_(current_.text, MzPAFErrorCode::INVALID_CHARGE, "Invalid charge number");
+        ann.charge = sign * parseInt_(current_.text, MzPAFErrorCode::INVALID_CHARGE, "Invalid charge number");
         advance_();
       }
 
@@ -743,7 +760,7 @@ namespace OpenMS
 
         if (current_.type == TokenType::IDENTIFIER)
         {
-          String suffix(current_.text);
+          std::string suffix(current_.text);
           if (suffix == "ppm")
           {
             delta.unit = MzPAFDeltaUnit::PPM;
@@ -788,7 +805,7 @@ namespace OpenMS
                               code, current_.position, input_, message);
       }
 
-      String input_;
+      std::string input_;
       Tokenizer tokenizer_;
       Token current_;
     };
@@ -799,7 +816,7 @@ namespace OpenMS
   // MzPAF implementation
   //--------------------------------------------------------------------------
 
-  MzPAFAnnotation MzPAF::parse(const String& input)
+  MzPAFAnnotation MzPAF::parse(const std::string& input)
   {
     if (input.empty())
     {
@@ -819,7 +836,7 @@ namespace OpenMS
     return result.annotations[0];
   }
 
-  MzPAFPeakAnnotations MzPAF::parseMultiple(const String& input)
+  MzPAFPeakAnnotations MzPAF::parseMultiple(const std::string& input)
   {
     if (input.empty())
     {
@@ -831,7 +848,7 @@ namespace OpenMS
     return parser.parseAll();
   }
 
-  std::optional<MzPAFAnnotation> MzPAF::tryParse(const String& input)
+  std::optional<MzPAFAnnotation> MzPAF::tryParse(const std::string& input)
   {
     try
     {
@@ -843,7 +860,7 @@ namespace OpenMS
     }
   }
 
-  std::optional<MzPAFPeakAnnotations> MzPAF::tryParseMultiple(const String& input)
+  std::optional<MzPAFPeakAnnotations> MzPAF::tryParseMultiple(const std::string& input)
   {
     try
     {
@@ -859,7 +876,7 @@ namespace OpenMS
   // Writer implementation
   //--------------------------------------------------------------------------
 
-  String MzPAF::toString(const MzPAFAnnotation& ann)
+  std::string MzPAF::toString(const MzPAFAnnotation& ann)
   {
     std::ostringstream oss;
 
@@ -878,7 +895,15 @@ namespace OpenMS
       case MzPAFIonSeries::X:
       case MzPAFIonSeries::Y:
       case MzPAFIonSeries::Z:
+      case MzPAFIonSeries::D:
+      case MzPAFIonSeries::V:
+      case MzPAFIonSeries::W:
         oss << ionSeriesToChar(ann.ion_series);
+        // Only da/db/wa/wb exist in mzPAF, so a subtype the format does not allow is dropped
+        // rather than written out -- emitting it would produce a string this parser rejects.
+        // Keeping this total matters because operator<<() and toString(MzPAFPeakAnnotations)
+        // both forward here; rejecting such an annotation is isValid()'s job.
+        if (ann.satellite_subtype.has_value() && hasValidSatelliteSubtype(ann)) { oss << ann.satellite_subtype.value(); }
         if (ann.ordinal.has_value())
         {
           oss << ann.ordinal.value();
@@ -986,10 +1011,10 @@ namespace OpenMS
       oss << "*" << ann.confidence.value();
     }
 
-    return String(oss.str());
+    return oss.str();
   }
 
-  String MzPAF::toString(const MzPAFPeakAnnotations& anns)
+  std::string MzPAF::toString(const MzPAFPeakAnnotations& anns)
   {
     if (anns.empty())
     {
@@ -1006,7 +1031,7 @@ namespace OpenMS
       oss << toString(anns.annotations[i]);
     }
 
-    return String(oss.str());
+    return oss.str();
   }
 
   //--------------------------------------------------------------------------
@@ -1035,14 +1060,14 @@ namespace OpenMS
   // Utilities
   //--------------------------------------------------------------------------
 
-  bool MzPAF::isStandardFragmentIon(MzPAFIonSeries series)
+  bool MzPAF::isPeptideFragmentIon(MzPAFIonSeries series)
   {
-    return series == MzPAFIonSeries::A || series == MzPAFIonSeries::B ||
-           series == MzPAFIonSeries::C || series == MzPAFIonSeries::X ||
-           series == MzPAFIonSeries::Y || series == MzPAFIonSeries::Z;
+    return series == MzPAFIonSeries::A || series == MzPAFIonSeries::B || series == MzPAFIonSeries::C || series == MzPAFIonSeries::X
+           || series == MzPAFIonSeries::Y || series == MzPAFIonSeries::Z || series == MzPAFIonSeries::D || series == MzPAFIonSeries::V
+           || series == MzPAFIonSeries::W;
   }
 
-  bool MzPAF::isMzPAFFormat(const String& annotation)
+  bool MzPAF::isMzPAFFormat(const std::string& annotation)
   {
     if (annotation.empty())
     {
@@ -1051,11 +1076,8 @@ namespace OpenMS
 
     char first = annotation[0];
 
-    if (first == 'a' || first == 'b' || first == 'c' ||
-        first == 'x' || first == 'y' || first == 'z' ||
-        first == 'p' || first == 'I' || first == 'm' ||
-        first == 'r' || first == 'f' || first == '_' ||
-        std::isdigit(first))
+    if (first == 'a' || first == 'b' || first == 'c' || first == 'x' || first == 'y' || first == 'z' || first == 'd' || first == 'v' || first == 'w'
+        || first == 'p' || first == 'I' || first == 'm' || first == 'r' || first == 'f' || first == '_' || std::isdigit(first))
     {
       return tryParse(annotation).has_value();
     }
@@ -1066,7 +1088,7 @@ namespace OpenMS
   std::optional<double> MzPAF::calculateTheoreticalMZ(
     const MzPAFAnnotation& ann, const AASequence& sequence)
   {
-    if (!isStandardFragmentIon(ann.ion_series))
+    if (!isPeptideFragmentIon(ann.ion_series))
     {
       return std::nullopt;
     }
@@ -1107,6 +1129,29 @@ namespace OpenMS
       case MzPAFIonSeries::Z:
         mass = sequence.getSuffix(pos).getMonoWeight(Residue::ZIon);
         break;
+      case MzPAFIonSeries::D:
+      {
+        char subtype = ann.satellite_subtype.value_or('\0');
+        const Residue& res = sequence[pos - 1];
+        if (!res.hasSatelliteLoss(subtype)) { return std::nullopt; }
+        mass = sequence.getPrefix(pos).getMonoWeight(Residue::AIon) + EmpiricalFormula("H").getMonoWeight() - res.getSatelliteLossFormula(subtype).getMonoWeight();
+        break;
+      }
+      case MzPAFIonSeries::V:
+      {
+        const Residue& res = sequence[sequence.size() - pos];
+        if (!res.hasVLoss()) { return std::nullopt; }
+        mass = sequence.getSuffix(pos).getMonoWeight(Residue::YIon) - res.getVLossFormula().getMonoWeight();
+        break;
+      }
+      case MzPAFIonSeries::W:
+      {
+        char subtype = ann.satellite_subtype.value_or('\0');
+        const Residue& res = sequence[sequence.size() - pos];
+        if (!res.hasSatelliteLoss(subtype)) { return std::nullopt; }
+        mass = sequence.getSuffix(pos).getMonoWeight(Residue::Zp1Ion) - res.getSatelliteLossFormula(subtype).getMonoWeight();
+        break;
+      }
       default:
         return std::nullopt;
     }
@@ -1139,6 +1184,12 @@ namespace OpenMS
       case MzPAFIonSeries::X: return 'x';
       case MzPAFIonSeries::Y: return 'y';
       case MzPAFIonSeries::Z: return 'z';
+      case MzPAFIonSeries::D:
+        return 'd';
+      case MzPAFIonSeries::V:
+        return 'v';
+      case MzPAFIonSeries::W:
+        return 'w';
       case MzPAFIonSeries::PRECURSOR: return 'p';
       case MzPAFIonSeries::IMMONIUM: return 'I';
       case MzPAFIonSeries::INTERNAL: return 'm';
@@ -1160,6 +1211,15 @@ namespace OpenMS
       case 'x': series = MzPAFIonSeries::X; return true;
       case 'y': series = MzPAFIonSeries::Y; return true;
       case 'z': series = MzPAFIonSeries::Z; return true;
+      case 'd':
+        series = MzPAFIonSeries::D;
+        return true;
+      case 'v':
+        series = MzPAFIonSeries::V;
+        return true;
+      case 'w':
+        series = MzPAFIonSeries::W;
+        return true;
       case 'p': series = MzPAFIonSeries::PRECURSOR; return true;
       case 'I': series = MzPAFIonSeries::IMMONIUM; return true;
       case 'm': series = MzPAFIonSeries::INTERNAL; return true;

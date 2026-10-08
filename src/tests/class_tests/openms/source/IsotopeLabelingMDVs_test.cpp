@@ -32,8 +32,8 @@ END_SECTION
 START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
                                               const Feature& measured_feature,
                                               Feature& normalized_featuremap,
-                                              const String& mass_intensity_type,
-                                              const String& feature_name) ))
+                                              const std::string& mass_intensity_type,
+                                              const std::string& feature_name) ))
 
   // case 1:  intensity with norm max and norm sum (x)  : intensity (peak area) not supplied
   // case 2:  peak apex with norm max and norm sum      : - Lactate1 & Lactate2 - peak_apex_int - norm_max
@@ -141,8 +141,8 @@ END_SECTION
 START_SECTION(( void IsotopeLabelingMDVs::calculateMDVs(
                                               const FeatureMap& measured_feature,
                                               FeatureMap& normalized_featuremap,
-                                              const String& mass_intensity_type,
-                                              const String& feature_name) ))
+                                              const std::string& mass_intensity_type,
+                                              const std::string& feature_name) ))
 
   // case 1:  intensity with norm max and norm sum (x)  : intensity (peak area) not supplied
   // case 2:  peak apex with norm max and norm sum      : - Lactate1 & Lactate2 - peak_apex_int - norm_max

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <functional>
@@ -41,10 +41,10 @@ namespace OpenMS
     */
     //@{
     /// Constructor
-    Ribonucleotide(const String& name = "unknown ribonucleotide",
-                   const String& code = ".",
-                   const String& new_code = "",
-                   const String& html_code = ".",
+    Ribonucleotide(const std::string& name = "unknown ribonucleotide",
+                   const std::string& code = ".",
+                   const std::string& new_code = "",
+                   const std::string& html_code = ".",
                    const EmpiricalFormula& formula = EmpiricalFormula(),
                    char origin = '.',
                    double mono_mass = 0.0,
@@ -80,16 +80,16 @@ namespace OpenMS
     //@{
 
     /// Return the short name
-    const String getCode() const;
+    const std::string getCode() const;
 
     /// Set the short name
-    void setCode(const String& code);
+    void setCode(const std::string& code);
 
     /// Get the name of the ribonucleotide
-    const String getName() const;
+    const std::string getName() const;
 
     /// Set the name of the ribonucleotide
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     /// Get formula for the ribonucleotide
     const EmpiricalFormula getFormula() const;
@@ -110,10 +110,10 @@ namespace OpenMS
     void setAvgMass(double avg_mass);
 
     /// Get the "new" (Modomics) code
-    const String getNewCode() const;
+    const std::string getNewCode() const;
 
     /// Set the "new" (Modomics) code
-    void setNewCode(const String &new_code);
+    void setNewCode(const std::string &new_code);
 
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);
@@ -125,10 +125,10 @@ namespace OpenMS
     void setOrigin(char origin);
 
     /// Set the HTML (RNAMods) code
-    String getHTMLCode() const;
+    std::string getHTMLCode() const;
 
     /// Get the HTML (RNAMods) code
-    void setHTMLCode(const String& html_code);
+    void setHTMLCode(const std::string& html_code);
 
     /// Get the terminal specificity
     enum TermSpecificityNuc getTermSpecificity() const;
@@ -154,10 +154,10 @@ namespace OpenMS
     /// Default value for sum formula after nucleobase loss
     static const EmpiricalFormula default_baseloss_;
 
-    String name_; ///< full name
-    String code_; ///< short name
-    String new_code_; ///< Modomics code
-    String html_code_; ///< RNAMods code
+    std::string name_; ///< full name
+    std::string code_; ///< short name
+    std::string new_code_; ///< Modomics code
+    std::string html_code_; ///< RNAMods code
     EmpiricalFormula formula_; ///< sum formula
     char origin_; ///< character of unmodified version of ribonucleotide
     double mono_mass_; ///< monoisotopic mass
@@ -195,7 +195,7 @@ namespace std
       std::size_t seed = 0;
 
       // Hash all fields used in operator==
-      // String fields: name_, code_, new_code_, html_code_
+      // std::string fields: name_, code_, new_code_, html_code_
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ribo.getName()));
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ribo.getCode()));
       OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(ribo.getNewCode()));

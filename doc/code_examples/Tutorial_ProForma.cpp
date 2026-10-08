@@ -194,13 +194,13 @@ int main()
   cout << "=== JSON Serialization ===" << endl;
 
   pf = ProForma::parse("[Acetyl]-PEM[UNIMOD:35]TIDE");
-  String json_str = ProForma::toJSON(pf);
+  std::string json_str = ProForma::toJSON(pf);
   cout << "JSON length: " << json_str.size() << " bytes" << endl;
 
   // Roundtrip: deserialize and compare
   Peptidoform restored = ProForma::peptidoformFromJSON(json_str);
-  String original = ProForma::toString(pf, WriteMode::LOSSLESS);
-  String roundtrip = ProForma::toString(restored, WriteMode::LOSSLESS);
+  std::string original = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string roundtrip = ProForma::toString(restored, WriteMode::LOSSLESS);
   cout << "Roundtrip OK: " << (original == roundtrip ? "yes" : "no") << endl;
   cout << endl;
 

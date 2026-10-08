@@ -36,7 +36,7 @@ START_SECTION(virtual ~MascotRemoteQuery())
 }
 END_SECTION
 
-START_SECTION((void setQuerySpectra(const String &exp)))
+START_SECTION((void setQuerySpectra(const std::string &exp)))
 {
   MascotRemoteQuery query;
 	query.setQuerySpectra("BEGIN IONS\n1 1\n1 1\nEND IONS");
@@ -58,7 +58,7 @@ START_SECTION((bool hasError() const ))
 }
 END_SECTION
 
-START_SECTION((const String& getErrorMessage() const ))
+START_SECTION((const std::string& getErrorMessage() const ))
 {
   MascotRemoteQuery query;
 	TEST_STRING_EQUAL(query.getErrorMessage(), "")

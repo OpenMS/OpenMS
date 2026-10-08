@@ -1,0 +1,87 @@
+name: "Parse a Version Number from a Tag or Input"
+description: "Extract a version number from a Git tag for the OpenMS release process"
+
+inputs:
+  version:
+    description: "If set, parse this version number instead of `GITHUB_REF_NAME`"
+    required: false
+  fallback:
+    description: "Text to use when this version is not a release.  Defaults to nightly."
+    required: false
+
+outputs:
+  has_version:
+    description: "Set to 'true' if a valid version number was found"
+    value: ${{ steps.version.outputs.has_version }}
+  version:
+    description: "The discovered version number"
+    value: ${{ steps.version.outputs.version }}
+  type:
+    description: "The word 'release' or the fallback"
+    value: ${{ steps.version.outputs.type }}
+  name:
+    description: "Release name followed by version number"
+    value: ${{ steps.version.outputs.name }}
+  major:
+    description: "The major version number or 0"
+    value: ${{ steps.version.outputs.major }}
+  minor:
+    description: "The minor version number or 0"
+    value: ${{ steps.version.outputs.minor }}
+  patch:
+    description: "The patch version number or 0"
+    value: ${{ steps.version.outputs.patch }}
+
+runs:
+  using: "composite"
+  steps:
+
+  - name: "Parse Version Number"
+    id: version
+    shell: bash
+    env:
+      VERSION_ALT: ${{ inputs.version }}
+      VERSION_FALLBACK: ${{ inputs.fallback }}
+    run: |
+      VERSION=$GITHUB_REF_NAME
+
+      if [[ -n "${VERSION_ALT:-}" ]]; then
+        if [[ "$VERSION_ALT" =~ ^v ]]; then
+          VERSION=$VERSION_ALT
+        else
+          VERSION="v${VERSION_ALT}"
+        fi
+      fi
+
+      if [[ "$VERSION" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        major="${BASH_REMATCH[1]}"
+        minor="${BASH_REMATCH[2]}"
+        patch="${BASH_REMATCH[3]}"
+        has_version=true
+        type=release
+      elif [[ "$VERSION" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)-?(.+)$ ]]; then
+        major="${BASH_REMATCH[1]}"
+        minor="${BASH_REMATCH[2]}"
+        patch="${BASH_REMATCH[3]}"
+        has_version=false         # Not an official release
+        type="${BASH_REMATCH[4]}" # Stuff like "rc2"
+      else
+        major="$(date +%Y)"
+        minor="$(date +%m)"
+        patch="$(date +%d)"
+        has_version=false
+        type=${VERSION_FALLBACK:-nightly}
+      fi
+
+      {
+        version="${major}.${minor}.${patch}"
+
+        echo "has_version=$has_version"
+        echo "major=$major"
+        echo "minor=$minor"
+        echo "patch=$patch"
+        echo "version=$version"
+        echo "type=$type"
+        echo "name=${type}-${version}"
+
+      } >>"$GITHUB_OUTPUT"

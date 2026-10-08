@@ -36,7 +36,7 @@ public:
       @param[out] run_concentrations Where the runConcentration data is going to be saved
     */
     void load(
-      const String& filename,
+      const std::string& filename,
       std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations
     ) const;
 
@@ -45,7 +45,7 @@ protected:
       @brief Extract one runConcentration from a single line
 
       Any missing information is going to be filled with default data:
-      - an empty string for String data
+      - an empty string for std::string data
       - the value 0.0 for concentration values
       - the value 1.0 for dilution factor
 
@@ -56,7 +56,7 @@ protected:
     */
     AbsoluteQuantitationStandards::runConcentration extractRunFromLine_(
       const StringList& line,
-      const std::map<String, Size>& headers
+      const std::map<std::string, Size>& headers
     ) const;
   };
 }

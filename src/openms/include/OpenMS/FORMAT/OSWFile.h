@@ -2,20 +2,25 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: George Rosenberger $
+// $Maintainer: George Rosenberger, Justin Sing $
 // $Authors: George Rosenberger, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportConfig.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportData.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceConfig.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceData.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <array>
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -46,7 +51,7 @@ namespace OpenMS
 
     /// opens an OSW file for reading.
     /// @throws Exception::FileNotReadable if @p filename does not exist
-    OSWFile(const String& filename);
+    OSWFile(const std::string& filename);
     OSWFile(const OSWFile& rhs) = default;
     OSWFile& operator=(const OSWFile& rhs) = default;
 
@@ -106,6 +111,47 @@ namespace OpenMS
     */
     static void writeFromPercolator(const std::string& osw_filename, const OSWFile::OSWLevel osw_level, const std::map< std::string, PercolatorFeature >& features);
 
+    /// Read peakgroup and precursor evidence required for peptidoform inference.
+    std::vector<IPFPrecursorRow> readIPFPrecursorData(const PeptidoformInferenceConfig& config) const;
+
+    /// Read transition-level evidence required for peptidoform inference.
+    std::vector<IPFTransitionRow> readIPFTransitionData(const PeptidoformInferenceConfig& config) const;
+
+    /// Read alignment-group membership required for optional across-run signal propagation from FEATURE_MS2_ALIGNMENT_CANDIDATE.
+    std::vector<IPFAlignmentRow> readIPFAlignmentData(const PeptidoformInferenceConfig& config) const;
+
+    /// Historical overload that reads legacy alignment-group membership from FEATURE_MS2_ALIGNMENT + SCORE_ALIGNMENT.
+    std::vector<IPFAlignmentRow> readIPFAlignmentData(double ipf_max_alignment_pep) const;
+
+    /// Write peptidoform inference results into SCORE_IPF, copying to @p output_filename first if requested.
+    void writeIPFResults(const std::string& output_filename, const std::vector<IPFResultRow>& results) const;
+
+    /// Read compact peptide-, protein-, or gene-level rows for context inference.
+    std::vector<LevelContextInputRow> readLevelContextData(InferenceLevel level, InferenceContext context) const;
+
+    /// Write context inference results into SCORE_PEPTIDE / SCORE_PROTEIN / SCORE_GENE.
+    void writeLevelContextResults(const std::string& output_filename,
+                                  InferenceLevel level,
+                                  InferenceContext context,
+                                  const std::vector<LevelContextResultRow>& results) const;
+
+    /// Read filtered feature rows for user-facing OpenSWATH results and matrix exports.
+    std::vector<OpenSwathExportRow> readOpenSwathExportRows(const OpenSwathExportFilterConfig& config) const;
+
+    /// Read scored feature rows for OpenSWATH Parquet export.
+    OpenSwathFeatureScoreTable readOpenSwathFeatureScoreTable(const OpenSwathParquetExportConfig& config) const;
+
+    /// Read optional transition-level score rows for OpenSWATH Parquet export.
+    OpenSwathTransitionScoreTable readOpenSwathTransitionScoreTable(const OpenSwathParquetExportConfig& config) const;
+
+    /**
+      @brief Read RUN IDs and convert their filenames to user-facing basenames.
+
+      The returned names are stripped to stem names when possible, so
+      @c sample.mzML.gz becomes @c sample.
+    */
+    std::map<Int64, std::string> readRunBasenames() const;
+
     /// extract the RUN::ID from the sqMass file
     /// @throws Exception::SqlOperationFailed more than on run exists
     UInt64 getRunID() const;
@@ -130,10 +176,9 @@ namespace OpenMS
     void readMeta_(OSWData& data);
 
   private:
-    String filename_;       ///< sql file to open/write to
+    std::string filename_;       ///< sql file to open/write to
     SqliteConnector conn_;  ///< SQL connection. Stays open as long as this object lives
     bool has_SCOREMS2_;     ///< database contains pyProphet's score_MS2 table with qvalues
   };
 
 } // namespace OpenMS
-

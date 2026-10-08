@@ -10,13 +10,9 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
-#include <arrow/io/file.h>
-#include <parquet/arrow/writer.h>
-#include <parquet/arrow/reader.h>
+#include <arrow/io/interfaces.h>
 
 #include <memory>
 #include <string>
@@ -99,7 +95,7 @@ namespace OpenMS
       @throws Exception::FileNotWritable if the file cannot be opened
       @throws Exception::InvalidValue if writing fails
     */
-    static void writeTable(const std::shared_ptr<arrow::Table>& table, const String& filename,
+    static void writeTable(const std::shared_ptr<arrow::Table>& table, const std::string& filename,
                 int64_t row_group_size = 262144);
 
     /**
@@ -113,7 +109,7 @@ namespace OpenMS
 
       @throws Exception::InvalidValue if reading fails
     */
-    static std::shared_ptr<arrow::Table> readTable(const String& filename);
+    static std::shared_ptr<arrow::Table> readTable(const std::string& filename);
     /**
       @brief Read a Parquet file from an Arrow RandomAccessFile into an Arrow Table.
 
@@ -217,7 +213,7 @@ namespace OpenMS
     /**
       @brief Read a string value from an Arrow Array.
 
-      Supports String and LargeString types.
+      Supports std::string and LargeString types.
 
       @param[in] array  The Arrow Array (may be nullptr)
       @param[in] row    Row index
@@ -255,13 +251,13 @@ namespace OpenMS
       Parquet-writing sources so callers can reuse a single canonical
       implementation.
     */
-    static std::string jsonEscape(const String& input);
+    static std::string jsonEscape(const std::string& input);
 
     /**
       @brief Return the number of rows in a parquet file using the low-level
       parquet reader metadata. Returns 0 if the file does not exist.
     */
-    static int64_t rowCount(const String& filename);
+    static int64_t rowCount(const std::string& filename);
 
     //@}
 

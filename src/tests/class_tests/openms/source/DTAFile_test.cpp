@@ -34,7 +34,7 @@ START_SECTION(~DTAFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(template<typename SpectrumType> void load(const String& filename, SpectrumType& spectrum) )
+START_SECTION(template<typename SpectrumType> void load(const std::string& filename, SpectrumType& spectrum) )
 	TOLERANCE_ABSOLUTE(0.01)
 	MSSpectrum s;
 	DTAFile f1;
@@ -266,8 +266,8 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 
 END_SECTION
 
-START_SECTION(template<typename SpectrumType> void store(const String& filename, const SpectrumType& spectrum) const )
-	String filename;
+START_SECTION(template<typename SpectrumType> void store(const std::string& filename, const SpectrumType& spectrum) const )
+	std::string filename;
 	NEW_TMP_FILE(filename);
 	
 	DTAFile dta;

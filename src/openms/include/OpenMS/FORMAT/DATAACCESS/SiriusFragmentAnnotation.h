@@ -45,7 +45,7 @@ namespace OpenMS
           @param[in] use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           @param[out] decoy_generation Extract decoy spectra from SIRIUS subdirectories. 
           */
-          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<String>& sirius_workspace_subdirs, double score_threshold,
+          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(const std::vector<std::string>& sirius_workspace_subdirs, double score_threshold,
                                                                                           bool use_exact_mass, bool decoy_generation);
 
           /**
@@ -79,7 +79,7 @@ namespace OpenMS
           @param[out] decoy Extract annotations for decoys? Or else targets. Run twice if you want both
           @param[in] use_exact_mass Option to use exact mass instead of peak mz in MSSpectrum.
           */
-          static std::vector<MSSpectrum> extractAnnotationsFromSiriusFile(const String& path_to_sirius_workspace, Size max_rank = 1, bool decoy = false, bool use_exact_mass = false);
+          static std::vector<MSSpectrum> extractAnnotationsFromSiriusFile(const std::string& path_to_sirius_workspace, Size max_rank = 1, bool decoy = false, bool use_exact_mass = false);
 
           /**
           @brief Extract columnname and index based in SIRIUS entries
@@ -91,11 +91,11 @@ namespace OpenMS
           @brief extractConcatNativeIDsFromSiriusMS
           Extract concatenated native id from SIRIUS output (./spectrum.ms) and concatenates them.
 
-          @return String native id of current SIRIUS compound
+          @return std::string native id of current SIRIUS compound
           
           @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
-          static OpenMS::String extractConcatNativeIDsFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
+          static std::string extractConcatNativeIDsFromSiriusMS_(const std::string& path_to_sirius_workspace);
 
           /**
           @brief extractConcatMIDsFromSiriusMS
@@ -103,21 +103,21 @@ namespace OpenMS
           M_id is the native id + an index, which is incremented based
           on the number of possible identifications (accurate mass search).
 
-          @return String m_id of current SIRIUS compound
+          @return std::string m_id of current SIRIUS compound
 
           @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
-          static OpenMS::String extractConcatMIDsFromSiriusMS_(const String& path_to_sirius_workspace);
+          static std::string extractConcatMIDsFromSiriusMS_(const std::string& path_to_sirius_workspace);
 
           /**
           @brief extractConcatMIDsFromSiriusMS
           Extract fid (i.e. original OpenMS feature ID) from SIRIUS output (./spectrum.ms).
 
-          @return String fid of current SIRIUS workspace
+          @return std::string fid of current SIRIUS workspace
 
           @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
-          static OpenMS::String extractFeatureIDFromSiriusMS_(const String& path_to_sirius_workspace);
+          static std::string extractFeatureIDFromSiriusMS_(const std::string& path_to_sirius_workspace);
 
 
           /**
@@ -128,7 +128,7 @@ namespace OpenMS
 
           @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
-          static std::map< Size, String > extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace);
+          static std::map< Size, std::string > extractCompoundRankingAndFilename_(const std::string& path_to_sirius_workspace);
 
           /**
           @brief extractCompoundRankingAndFilename
@@ -138,7 +138,7 @@ namespace OpenMS
 
           @param[in] path_to_sirius_workspace Path to SIRIUS workspace.
           */
-          static std::map< Size, double > extractCompoundRankingAndScore_(const String& path_to_sirius_workspace);
+          static std::map< Size, double > extractCompoundRankingAndScore_(const std::string& path_to_sirius_workspace);
 
   };
 } // namespace OpenMS

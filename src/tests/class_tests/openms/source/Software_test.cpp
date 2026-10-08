@@ -35,23 +35,23 @@ START_SECTION(~Software())
 	delete ptr;
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION(const std::string& getName() const)
   Software tmp;
   TEST_EQUAL(tmp.getName(),"");
 END_SECTION
 
-START_SECTION(void setName(const String& name))
+START_SECTION(void setName(const std::string& name))
   Software tmp;
   tmp.setName("name");
   TEST_EQUAL(tmp.getName(),"name");  
 END_SECTION
 
-START_SECTION(const String& getVersion() const)
+START_SECTION(const std::string& getVersion() const)
   Software tmp;
   TEST_EQUAL(tmp.getVersion(),"");
 END_SECTION
 
-START_SECTION(void setVersion(const String& version))
+START_SECTION(void setVersion(const std::string& version))
   Software tmp;
   tmp.setVersion("0.54");
   TEST_EQUAL(tmp.getVersion(),"0.54");

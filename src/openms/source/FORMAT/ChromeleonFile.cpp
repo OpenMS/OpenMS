@@ -14,7 +14,7 @@
 
 namespace OpenMS
 {
-  void ChromeleonFile::load(const String& filename, MSExperiment& experiment) const
+  void ChromeleonFile::load(const std::string& filename, MSExperiment& experiment) const
   {
     experiment.clear(true);
     std::ifstream ifs(filename, std::ifstream::in);
@@ -33,7 +33,7 @@ namespace OpenMS
         throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
     }
-    String line;
+    std::string line;
     MSChromatogram chromatogram;
     boost::smatch m;
     boost::regex re_channel("^Channel\t(.*)", boost::regex::no_mod_s);
@@ -101,8 +101,8 @@ namespace OpenMS
     while (!ifs.eof())
     {
       TextFile::getLine(ifs, line);
-      std::vector<String> substrings;
-      line.split('\t', substrings);
+      std::vector<std::string> substrings;
+      StringUtils::split(line, '\t', substrings);
       if (substrings.size() == 3)
       {
         chromatogram.push_back(ChromatogramPeak(
@@ -122,8 +122,9 @@ namespace OpenMS
     experiment.addChromatogram(chromatogram);
   }
 
-  double ChromeleonFile::removeCommasAndParseDouble(String& number) const
+  double ChromeleonFile::removeCommasAndParseDouble(std::string& number) const
   {
-    return number.remove(',').toDouble();
+    StringUtils::remove(number, ',');
+    return StringUtils::toDouble(number);
   }
 }

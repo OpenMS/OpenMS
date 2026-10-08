@@ -11,11 +11,11 @@
 #include <OpenMS/config.h>
 
 #include <xercesc/util/BinInputStream.hpp>
+#include <string>
 
 namespace OpenMS
 {
   class GzipIfstream;
-  class String;
 
   /**
     * @brief Implements the BinInputStream class of the xerces-c library in order to read gzip compressed XML files.
@@ -26,7 +26,7 @@ namespace OpenMS
   {
 public:
     ///Constructor
-    explicit GzipInputStream(const String& file_name);
+    explicit GzipInputStream(const std::string& file_name);
 
     explicit GzipInputStream(const char* const file_name);
 

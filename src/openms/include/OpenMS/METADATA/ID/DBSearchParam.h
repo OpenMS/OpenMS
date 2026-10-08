@@ -11,6 +11,13 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/ProcessingStep.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+
+#include <map>
+#include <set>
+#include <string>
+#include <tuple>
 
 namespace OpenMS
 {
@@ -23,14 +30,14 @@ namespace OpenMS
       enum MoleculeType molecule_type;
       enum MassType mass_type;
 
-      String database;
-      String database_version;
-      String taxonomy;
+      std::string database;
+      std::string database_version;
+      std::string taxonomy;
 
       std::set<Int> charges;
 
-      std::set<String> fixed_mods;
-      std::set<String> variable_mods;
+      std::set<std::string> fixed_mods;
+      std::set<std::string> variable_mods;
 
       double precursor_mass_tolerance;
       double fragment_mass_tolerance;

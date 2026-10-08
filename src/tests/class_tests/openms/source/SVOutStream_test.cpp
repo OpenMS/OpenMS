@@ -26,7 +26,7 @@ START_TEST(SVOutStream, "$Id$")
 SVOutStream* sv_ptr = nullptr;
 SVOutStream* sv_nullPointer = nullptr;
 
-START_SECTION((SVOutStream(std::ostream& out, const String& sep="\t", const String& replacement="_", String::QuotingMethod quoting=String::DOUBLE)))
+START_SECTION((SVOutStream(std::ostream& out, const std::string& sep="\t", const std::string& replacement="_", OpenMS::QuotingMethod quoting=OpenMS::QuotingMethod::DOUBLE)))
 {
   stringstream strstr;
   sv_ptr = new SVOutStream(strstr);
@@ -64,32 +64,32 @@ START_SECTION((template <typename T> SVOutStream& operator<<(const T& value)))
 }
 END_SECTION
 
-START_SECTION((SVOutStream& operator<<(String str)))
+START_SECTION((SVOutStream& operator<<(std::string str)))
 {
   stringstream strstr;
-  SVOutStream out(strstr, ",", "_", String::NONE);
-  out << String("a") << string("bc") << "d,f" << nl;
-  out << String("g\"i\"k") << 'l' << endl;
+  SVOutStream out(strstr, ",", "_", OpenMS::QuotingMethod::NONE);
+  out << std::string("a") << string("bc") << "d,f" << nl;
+  out << std::string("g\"i\"k") << 'l' << endl;
   TEST_EQUAL(strstr.str(), "a,bc,d_f\ng\"i\"k,l\n");
 }
 {
   stringstream strstr;
-  SVOutStream out(strstr, ",", "_", String::ESCAPE);
-  out << string("a") << "bc" << String("d,f") << nl;
+  SVOutStream out(strstr, ",", "_", OpenMS::QuotingMethod::ESCAPE);
+  out << string("a") << "bc" << std::string("d,f") << nl;
   out << "g\"i\"k" << 'l' << endl;
   TEST_EQUAL(strstr.str(), "\"a\",\"bc\",\"d,f\"\n\"g\\\"i\\\"k\",\"l\"\n");
 }
 {
   stringstream strstr;
-  SVOutStream out(strstr, ",", "_", String::DOUBLE);
-  out << "a" << String("bc") << string("d,f") << nl;
+  SVOutStream out(strstr, ",", "_", OpenMS::QuotingMethod::DOUBLE);
+  out << "a" << std::string("bc") << string("d,f") << nl;
   out << string("g\"i\"k") << 'l' << endl;
   TEST_EQUAL(strstr.str(), "\"a\",\"bc\",\"d,f\"\n\"g\"\"i\"\"k\",\"l\"\n");
 }
 {
   stringstream strstr;
-  SVOutStream out(strstr, "; ", ",_", String::NONE);
-  out << String("a") << "bc" << string("d; f") << nl;
+  SVOutStream out(strstr, "; ", ",_", OpenMS::QuotingMethod::NONE);
+  out << std::string("a") << "bc" << string("d; f") << nl;
   out << "g\"i\"k" << 'l' << endl;
   TEST_EQUAL(strstr.str(), "a; bc; d,_f\ng\"i\"k; l\n");
 }
@@ -97,26 +97,26 @@ END_SECTION
 
 START_SECTION((SVOutStream& operator<<(const std::string& str)))
 {
-  NOT_TESTABLE // tested with "operator<<(String)"
+  NOT_TESTABLE // tested with "operator<<std::string"
 }
 END_SECTION
 
 START_SECTION((SVOutStream& operator<<(const char* c_str)))
 {
-  NOT_TESTABLE // tested with "operator<<(String)"
+  NOT_TESTABLE // tested with "operator<<std::string"
 }
 END_SECTION
 
 START_SECTION((SVOutStream& operator<<(const char c)))
 {
-  NOT_TESTABLE // tested with "operator<<(String)"
+  NOT_TESTABLE // tested with "operator<<std::string"
 }
 END_SECTION
 
 START_SECTION((SVOutStream& operator<<(std::ostream& (*fp)(std::ostream&))))
 {
   stringstream strstr;
-  SVOutStream out(strstr, ",", "_", String::ESCAPE);
+  SVOutStream out(strstr, ",", "_", OpenMS::QuotingMethod::ESCAPE);
   out << endl << 123 << endl << "bla";
   TEST_EQUAL(strstr.str(), "\n123\n\"bla\"");
 }
@@ -125,16 +125,16 @@ END_SECTION
 START_SECTION((SVOutStream& operator<<(enum Newline)))
 {
   stringstream strstr;
-  SVOutStream out(strstr, ",", "_", String::ESCAPE);
+  SVOutStream out(strstr, ",", "_", OpenMS::QuotingMethod::ESCAPE);
   out << nl << 123 << nl << "bla";
   TEST_EQUAL(strstr.str(), "\n123\n\"bla\"");
 }
 END_SECTION
 
-START_SECTION((SVOutStream& write(const String& str)))
+START_SECTION((SVOutStream& write(const std::string& str)))
 {
   stringstream strstr;
-  SVOutStream out(strstr, ",", "_", String::ESCAPE);
+  SVOutStream out(strstr, ",", "_", OpenMS::QuotingMethod::ESCAPE);
   out << "bla" << 123 << nl;
   out.write("#This, is, a, comment\n");
   out << 4.56 << "test" << endl;

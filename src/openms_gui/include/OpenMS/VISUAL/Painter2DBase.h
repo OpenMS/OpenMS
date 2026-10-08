@@ -20,7 +20,6 @@
 class QPainter;
 class QPenStyle;
 class QPoint;
-class String;
 
 namespace OpenMS
 {

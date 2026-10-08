@@ -66,17 +66,17 @@ namespace OpenMS
                         const LayerDataDefs::ExperimentSharedPtrType& chrom_exp_sptr,
                         const LayerDataDefs::ODExperimentSharedPtrType& ondisc_sptr,
                         const OSWDataSharedPtrType& chrom_annotation,
-                        const String& layer_basename,
-                        const String& filename)
+                        const std::string& layer_basename,
+                        const std::string& filename)
   {
     //
     for (const auto& index : indices)
     {
       // get caption (either chromatogram idx or peptide sequence, if available)
-      String basename_suffix;
+      std::string basename_suffix;
       if (chrom_exp_sptr->getMSExperiment().metaValueExists("peptide_sequence"))
       {
-        basename_suffix = String(chrom_exp_sptr->getMSExperiment().getMetaValue("peptide_sequence"));
+        basename_suffix =StringUtils::toStr(chrom_exp_sptr->getMSExperiment().getMetaValue("peptide_sequence"));
       }
       ((basename_suffix += "[") += index) += "]";
 
@@ -143,8 +143,8 @@ namespace OpenMS
     auto chrom_sptr = layer->getChromatogramData();
     auto ondisc_sptr = layer->getOnDiscPeakData();
     auto annotation = layer->getChromatogramAnnotation();
-    const String basename = layer->getName();
-    const String filename = layer->filename;
+    const std::string basename = layer->getName();
+    const std::string filename = layer->filename;
     widget_1d->canvas()->removeLayers(); // this actually deletes layer
     layer = nullptr;                     // ... make sure its not used any more
 

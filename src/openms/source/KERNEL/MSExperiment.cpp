@@ -12,18 +12,51 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/MATH/MISC/LinearResampling.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <limits>
+#include <numeric>
 #include <unordered_set>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+namespace
+{
+  /// Reorders @p data so that afterwards data[i] holds the element that was at order[i].
+  /// The permutation is applied cycle by cycle, so only one element is held aside at a time.
+  template <typename ContainerType>
+  void applyPermutation(ContainerType& data, const std::vector<OpenMS::Size>& order)
+  {
+    std::vector<bool> done(data.size(), false);
+    for (OpenMS::Size i = 0; i < data.size(); ++i)
+    {
+      if (done[i] || order[i] == i)
+      {
+        done[i] = true;
+        continue;
+      }
+      auto hole = std::move(data[i]);
+      OpenMS::Size pos = i;
+      while (true)
+      {
+        const OpenMS::Size from = order[pos];
+        done[pos] = true;
+        if (from == i) // the cycle is closed
+        {
+          data[pos] = std::move(hole);
+          break;
+        }
+        data[pos] = std::move(data[from]);
+        pos = from;
+      }
+    }
+  }
+} // namespace
 
 namespace OpenMS
 {
@@ -279,12 +312,12 @@ namespace OpenMS
     if (rt_bins == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of RT bins must be positive", String(rt_bins));
+        "Number of RT bins must be positive",StringUtils::toStr(rt_bins));
     }
     if (mz_bins == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of m/z bins must be positive", String(mz_bins));
+        "Number of m/z bins must be positive",StringUtils::toStr(mz_bins));
     }
     if (min_rt >= max_rt)
     {
@@ -764,7 +797,7 @@ namespace OpenMS
     return ms_levels;
   }
 
-  const String sqMassRunID = "sqMassRunID";
+  const std::string sqMassRunID = "sqMassRunID";
 
   UInt64 MSExperiment::getSqlRunID() const
   {
@@ -791,7 +824,23 @@ namespace OpenMS
   */
   void MSExperiment::sortSpectra(bool sort_mz)
   {
-    std::sort(spectra_.begin(), spectra_.end(), SpectrumType::RTLess());
+    // std::sort gives no guarantee for spectra with equal retention time, so every map that has
+    // ties - an ion mobility frame, a FAIMS split, Bruker TIMS data - came out in an order that
+    // depends on the standard library, and consumers that walk the spectra in order (e.g.
+    // MassTraceDetection) saw them shuffled (#10054, #10051). Sorting a permutation of indices
+    // and applying it keeps tied spectra in their input order. It is also faster than sorting the
+    // spectra themselves, which moves an MSSpectrum (752 bytes on Linux/g++) per swap: measured on
+    // 200k spectra with 2000 distinct retention times, 0.14 s against 0.35 s for std::sort and
+    // 0.69 s for std::stable_sort, and without the O(n) buffer of std::stable_sort.
+    std::vector<Size> order(spectra_.size());
+    std::iota(order.begin(), order.end(), 0);
+    const auto rt_less = typename SpectrumType::RTLess();
+    std::sort(order.begin(), order.end(), [this, &rt_less](Size a, Size b) {
+      if (rt_less(spectra_[a], spectra_[b])) return true;
+      if (rt_less(spectra_[b], spectra_[a])) return false;
+      return a < b; // equal retention time: keep the input order
+    });
+    applyPermutation(spectra_, order);
 
     if (sort_mz)
     {
@@ -858,6 +907,7 @@ namespace OpenMS
   void MSExperiment::reset()
   {
     spectra_.clear();           //remove data
+    chromatograms_.clear();     //remove chromatograms
     clearRanges(); // reset all ranges
     ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
   }
@@ -907,8 +957,8 @@ namespace OpenMS
     for (const SourceFile& ss : sfs)
     {
       // assemble a single location string from the URI (path to file) and file name
-      String path = ss.getPathToFile();
-      String filename = ss.getNameOfFile();
+      std::string path = ss.getPathToFile();
+      std::string filename = ss.getNameOfFile();
 
       if (path.empty() || filename.empty())
       {
@@ -919,9 +969,9 @@ namespace OpenMS
       else
       {
         // use Windows or UNIX path separator?
-        String actual_path = path.hasPrefix("file:///") ? path.substr(8) : path;
-        String sep = (actual_path.has('\\') && !actual_path.has('/')) ? "\\" : "/";
-        String ms_run_location = path + sep + filename;
+        std::string actual_path = StringUtils::hasPrefix(path, "file:///") ? StringUtils::substr(path, 8) : path;
+        std::string sep = (StringUtils::has(actual_path, '\\') && !StringUtils::has(actual_path, '/')) ? "\\" : "/";
+        std::string ms_run_location = path + sep + filename;
         toFill.push_back(ms_run_location);
       }
     }
@@ -957,7 +1007,7 @@ namespace OpenMS
       const auto precursor = iterator->getPrecursors()[0];
       if (precursor.metaValueExists("spectrum_ref"))
       {
-        String ref = precursor.getMetaValue("spectrum_ref");
+        std::string ref = StringUtils::toStr(precursor.getMetaValue("spectrum_ref"));
         auto tmp_spec_iter = iterator; // such that we can reiterate later
         do
         {
@@ -1033,7 +1083,7 @@ namespace OpenMS
 
         // check if it has the parent a precursor
         const auto precursor = it->getPrecursors()[0];
-        String ref = precursor.getMetaValue("spectrum_ref", "");  
+        std::string ref = StringUtils::toStr(precursor.getMetaValue("spectrum_ref", ""));  
         if (!ref.empty() && ref == parent_native_id)
         {
           return it;
@@ -1208,8 +1258,20 @@ namespace OpenMS
     return chromatograms_[id];
   }
 
-  /// returns a single spectrum 
+  /// returns a single chromatogram (immutable)
+  const MSChromatogram & MSExperiment::getChromatogram(Size id) const
+  {
+    return chromatograms_[id];
+  }
+
+  /// returns a single spectrum
   MSSpectrum & MSExperiment::getSpectrum(Size id)
+  {
+    return spectra_[id];
+  }
+
+  /// returns a single spectrum (immutable)
+  const MSSpectrum & MSExperiment::getSpectrum(Size id) const
   {
     return spectra_[id];
   }
@@ -1246,11 +1308,7 @@ namespace OpenMS
     }
     if (rt_bin_size > 0)
     {
-      LinearResamplerAlign lra;
-      Param param = lra.getParameters();
-      param.setValue("spacing", rt_bin_size);
-      lra.setParameters(param);
-      lra.raster(TIC);
+      Internal::LinearResampling(rt_bin_size).raster(TIC);
     }
     return TIC;
   }
@@ -1374,4 +1432,3 @@ namespace OpenMS
     return os;
   }
 } //namespace OpenMS
-

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <string>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace OpenMS
@@ -39,8 +39,8 @@ namespace OpenMS
       @param[in] chebi_mapping_file Optional CSV mapping file with columns
                  "mod" (or "name") and "chebi_id" (or "chebi id").
     */
-    void store(const String& out_file,
+    void store(const std::string& out_file,
                const IdentificationData& id_data,
-               const String& chebi_mapping_file = "") const;
+               const std::string& chebi_mapping_file = "") const;
   };
 }

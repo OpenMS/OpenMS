@@ -4,6 +4,8 @@
 
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
+#include <utility>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -19,6 +21,6 @@ Int main()
   // ... set user-specified seeds, if needed
   FeatureMap seeds;
 
-  ff.run(input, output, parameters, seeds);
+  ff.run(std::move(input), output, parameters, seeds);
 
 } //end of main

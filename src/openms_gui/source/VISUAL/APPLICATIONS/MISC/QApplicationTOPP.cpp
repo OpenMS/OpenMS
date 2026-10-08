@@ -6,6 +6,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <clocale>
 #include <cstdio>
 #include <cstdlib>
 
@@ -38,6 +39,11 @@ namespace OpenMS
   QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) :
     QApplication(argc, argv)
   {
+    // QApplication (like any QCoreApplication on Unix) calls setlocale(LC_ALL, ""), which
+    // makes C library number parsing/formatting depend on the user's region (e.g. decimal
+    // comma in de_DE). Reset LC_NUMERIC to "C" as recommended by the Qt documentation.
+    setlocale(LC_NUMERIC, "C");
+
     // inject the GUIProgressLoggerImpl to be used by OpenMS lib via an extern variable
     make_gui_progress_logger = 
       []() -> ProgressLogger::ProgressLoggerImpl* { return new GUIProgressLoggerImpl(); };
@@ -56,13 +62,20 @@ namespace OpenMS
       this->setStyle("plastique");
     }
 
-    // customize look and feel via Qt style sheets
-    String filename = File::find("GUISTYLE/qtStyleSheet.qss");
-    QFile fh(toQString(filename));
-    fh.open(QFile::ReadOnly);
-    QString style_string = QLatin1String(fh.readAll());
-    //std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
-    this->setStyleSheet(style_string);
+    // Customize look and feel via Qt style sheets.
+    // A non-empty stylesheet at this point means the user passed the generic Qt option
+    // '-stylesheet <file>' on the command line (already applied by the QApplication base-class
+    // constructor above, see https://doc.qt.io/qt-5/qapplication.html#QApplication); in that case
+    // we keep the user's stylesheet instead of overriding it with the OpenMS default.
+    if (this->styleSheet().isEmpty())
+    {
+      std::string filename = File::find("GUISTYLE/qtStyleSheet.qss");
+      QFile fh(toQString(filename));
+      fh.open(QFile::ReadOnly);
+      QString style_string = QLatin1String(fh.readAll());
+      //std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
+      this->setStyleSheet(style_string);
+    }
   }
 
   QApplicationTOPP::~QApplicationTOPP() = default;
@@ -81,7 +94,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      String msg = String("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
+      std::string msg =std::string("Caught exception: '") + e.getName() + "' with message '" + e.what() + "'";
       OPENMS_LOG_ERROR << msg << "\n";
       QMessageBox::warning(nullptr, QString("Unexpected error occurred"), toQString(msg));
       return false;
@@ -116,6 +129,14 @@ namespace OpenMS
     label->setPixmap(QPixmap(":/TOPP_about.png"));
     grid->addWidget(label, 0, 0);
 
+    // Builds with the in-process Thermo reader ship Thermo's RawFileReader, whose license
+    // (section 3.2) requires this notice in the About box of software that distributes it.
+#ifdef WITH_THERMO_RAW
+    const QString thermo_notice = "RawFileReader reading tool. Copyright &copy; 2016 by Thermo Fisher Scientific, Inc. All rights reserved.<BR>";
+#else
+    const QString thermo_notice;
+#endif
+
     // text
     QString text = QString("<BR>"
                            "<FONT size=+3>%1</font><BR>"
@@ -125,6 +146,7 @@ namespace OpenMS
                            "OpenMS and TOPP is free software available under the<BR>"
                            "BSD 3-Clause License (BSD-new)<BR>"
                            "<BR>"
+                           "%5"
                            "<BR>"
                            "<BR>"
                            "<BR>"
@@ -134,7 +156,8 @@ namespace OpenMS
     .arg(toQString(VersionInfo::getVersion()))
     .arg( // if we have a revision, embed it also into the shown version number
       VersionInfo::getRevision().empty() ? "" : QString(" (") + toQString(VersionInfo::getRevision()) + ")")
-    .arg((TOPPBase::cite_openms.title + "<BR>" + TOPPBase::cite_openms.when_where + "<BR>doi:" + TOPPBase::cite_openms.doi).c_str());
+    .arg((TOPPBase::cite_openms.title + "<BR>" + TOPPBase::cite_openms.when_where + "<BR>doi:" + TOPPBase::cite_openms.doi).c_str())
+    .arg(thermo_notice);
 
     label = new QLabel(text, dlg);
 
@@ -143,7 +166,7 @@ namespace OpenMS
     // close button
     QPushButton* button = new QPushButton("Close", dlg);
     grid->addWidget(button, 1, 1, Qt::AlignBottom | Qt::AlignRight);
-    connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
+    connect(button, &QPushButton::clicked, dlg, &QWidget::close);
 
     // execute
     dlg->exec();

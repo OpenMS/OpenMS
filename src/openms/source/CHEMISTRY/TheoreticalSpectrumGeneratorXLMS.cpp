@@ -96,7 +96,7 @@ namespace OpenMS
         vector<EmpiricalFormula> loss_formulas = residues[i].getLossFormulas();
         for (Size k = 0; k != loss_formulas.size(); ++k)
         {
-          String loss_name = loss_formulas[k].toString();
+          std::string loss_name = loss_formulas[k].toString();
           if (loss_name == "H2O1") // for now only these most common losses are considered
           {
             if (loss_H2O_ < 1)
@@ -119,19 +119,9 @@ namespace OpenMS
     }
   }
 
-  TheoreticalSpectrumGeneratorXLMS::TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  TheoreticalSpectrumGeneratorXLMS::TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS& rhs) = default;
 
-  TheoreticalSpectrumGeneratorXLMS & TheoreticalSpectrumGeneratorXLMS::operator=(const TheoreticalSpectrumGeneratorXLMS & rhs)
-  {
-    if (this != &rhs)
-    {
-      DefaultParamHandler::operator=(rhs);
-    }
-    return *this;
-  }
+  TheoreticalSpectrumGeneratorXLMS& TheoreticalSpectrumGeneratorXLMS::operator=(const TheoreticalSpectrumGeneratorXLMS& rhs) = default;
 
   TheoreticalSpectrumGeneratorXLMS::~TheoreticalSpectrumGeneratorXLMS() = default;
 
@@ -229,7 +219,7 @@ namespace OpenMS
       return;
     }
 
-    String ion_type;
+    std::string ion_type;
     if (frag_alpha)
     {
       ion_type = "alpha|ci";
@@ -318,7 +308,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_)
         {
-          addLinearIonLosses_(spectrum, charges, ion_names, pos, res_type, frag_index, intensity, charge, ion_type, backward_losses[i]);
+          addLinearIonLosses_(spectrum, charges, ion_names, mono_weight, res_type, frag_index, intensity, charge, ion_type, backward_losses[i]);
         }
         if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
         {
@@ -434,7 +424,7 @@ namespace OpenMS
       return;
     }
 
-    String ion_type;
+    std::string ion_type;
     if (frag_alpha)
     {
       ion_type = "alpha|xi";
@@ -493,7 +483,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_ && forward_losses.size() >= i)
         {
-          String ion_name = "[" + ion_type + "$" + String(Residue::residueTypeToIonLetter(res_type)) + String(frag_index) + "]";
+          std::string ion_name = "[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
           addXLinkIonLosses_(spectrum, charges, ion_names, mono_weight, intensity, charge, ion_name, forward_losses[i-1]);
         }
 
@@ -533,7 +523,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_ && backward_losses.size() >= i+2)
         {
-          String ion_name = "[" + ion_type + "$" + String(Residue::residueTypeToIonLetter(res_type)) + String(frag_index) + "]";
+          std::string ion_name = "[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
           addXLinkIonLosses_(spectrum, charges, ion_names, mono_weight, intensity, charge, ion_name, backward_losses[i+1]);
         }
 
@@ -549,7 +539,7 @@ namespace OpenMS
 
 
   // helper to add a single peak to a spectrum (simple fragmentation)
-  void TheoreticalSpectrumGeneratorXLMS::addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size frag_index, int charge, String ion_type) const
+  void TheoreticalSpectrumGeneratorXLMS::addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size frag_index, int charge, std::string ion_type) const
   {
     if (pos < 0) {return;}
 
@@ -559,7 +549,7 @@ namespace OpenMS
     spectrum.push_back(p);
     if (add_metainfo_)
     {
-      ion_names.emplace_back("[" + ion_type + "$" + String(Residue::residueTypeToIonLetter(res_type)) + String(frag_index) + "]");
+      ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]");
     }
     if (add_charges_)
     {
@@ -567,7 +557,7 @@ namespace OpenMS
     }
   }
 
-  void TheoreticalSpectrumGeneratorXLMS::addLinearIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, Residue::ResidueType res_type, Size frag_index, double intensity, int charge, String ion_type, LossIndex & losses) const
+  void TheoreticalSpectrumGeneratorXLMS::addLinearIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, Residue::ResidueType res_type, Size frag_index, double intensity, int charge, std::string ion_type, LossIndex & losses) const
   {
     Peak1D p;
     p.setIntensity(intensity * rel_loss_intensity_);
@@ -581,7 +571,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back("[" + ion_type + "$" + String(Residue::residueTypeToIonLetter(res_type)) + String(frag_index) + "-H2O1]");
+          ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H2O1]");
         }
         if (add_charges_)
         {
@@ -600,7 +590,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back("[" + ion_type + "$" + String(Residue::residueTypeToIonLetter(res_type)) + String(frag_index) + "-H3N1]");
+          ion_names.emplace_back("[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "-H3N1]");
         }
         if (add_charges_)
         {
@@ -630,7 +620,8 @@ namespace OpenMS
     spectrum.push_back(p);
     if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
     {
-      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      // mono_pos is still the charged mass here, so the isotope offset has to be added before dividing by the charge
+      double pos = (mono_pos + Constants::C13C12_MASSDIFF_U) / static_cast<double>(charge);
       p.setMZ(pos);
       p.setIntensity(pre_int_);
       if (add_metainfo_)
@@ -660,7 +651,8 @@ namespace OpenMS
     spectrum.push_back(p);
     if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
     {
-      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      // mono_pos is still the charged mass here, so the isotope offset has to be added before dividing by the charge
+      double pos = (mono_pos + Constants::C13C12_MASSDIFF_U) / static_cast<double>(charge);
       p.setMZ(pos);
       p.setIntensity(pre_int_H2O_);
       if (add_metainfo_)
@@ -689,7 +681,8 @@ namespace OpenMS
     spectrum.push_back(p);
     if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
     {
-      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      // mono_pos is still the charged mass here, so the isotope offset has to be added before dividing by the charge
+      double pos = (mono_pos + Constants::C13C12_MASSDIFF_U) / static_cast<double>(charge);
       p.setMZ(pos);
       p.setIntensity(pre_int_NH3_);
       if (add_metainfo_)
@@ -742,8 +735,8 @@ namespace OpenMS
     // here the ion type is reversed compared to other peak types,
     // because for this special ion type, it would not make sense to call it alpha$y(n)-alpha$a(n)
     // Only one residue is left of the fragmented Peptide, so we call it a RES-linked beta
-    String ion_type;
-    String ion_name;
+    std::string ion_type;
+    std::string ion_name;
 
     if (add_metainfo_)
     {
@@ -785,7 +778,7 @@ namespace OpenMS
     }
   }
 
-  void TheoreticalSpectrumGeneratorXLMS::addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_name, LossIndex & losses) const
+  void TheoreticalSpectrumGeneratorXLMS::addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, std::string ion_name, LossIndex & losses) const
   {
     Peak1D p;
     p.setIntensity(intensity * rel_loss_intensity_);
@@ -799,7 +792,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back(ion_name.prefix(ion_name.size()-1) + "-H2O1]");
+          ion_names.emplace_back(StringUtils::prefix(ion_name, ion_name.size()-1) + "-H2O1]");
         }
         if (add_charges_)
         {
@@ -818,7 +811,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           // remove final bracket, insert loss name and add the bracket again
-          ion_names.emplace_back(ion_name.prefix(ion_name.size()-1) + "-H3N1]");
+          ion_names.emplace_back(StringUtils::prefix(ion_name, ion_name.size()-1) + "-H3N1]");
         }
         if (add_charges_)
         {
@@ -981,7 +974,7 @@ namespace OpenMS
       precursor_mass += beta.getMonoWeight();
     }
 
-    String ion_type;
+    std::string ion_type;
     AASequence peptide;
     AASequence peptide2;
     Size link_pos;
@@ -1041,7 +1034,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_ && forward_losses.size() >= i)
         {
-          String ion_name = "[" + ion_type + "$" + String(Residue::residueTypeToIonLetter(res_type)) + String(frag_index) + "]";
+          std::string ion_name = "[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
           LossIndex losses = losses_peptide2;
           losses.has_H2O_loss = losses_peptide2.has_H2O_loss || forward_losses[i-1].has_H2O_loss;
           losses.has_NH3_loss = losses_peptide2.has_NH3_loss || forward_losses[i-1].has_NH3_loss;
@@ -1084,7 +1077,7 @@ namespace OpenMS
         addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
         if (add_losses_ && backward_losses.size() >= i+2)
         {
-          String ion_name = "[" + ion_type + "$" + String(Residue::residueTypeToIonLetter(res_type)) + String(frag_index) + "]";
+          std::string ion_name = "[" + ion_type + "$" + std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(frag_index) + "]";
           LossIndex losses = losses_peptide2;
           losses.has_H2O_loss = losses_peptide2.has_H2O_loss || backward_losses[i+1].has_H2O_loss;
           losses.has_NH3_loss = losses_peptide2.has_NH3_loss || backward_losses[i+1].has_NH3_loss;

@@ -12,6 +12,7 @@
 //#define INFERENCE_BENCH
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -76,7 +77,7 @@ namespace OpenMS
     };
 
     /// an (currently unmodified) peptide sequence
-    BOOST_STRONG_TYPEDEF(String, Peptide);
+    BOOST_STRONG_TYPEDEF(std::string, Peptide);
 
     /// in which run a PSM was observed
     BOOST_STRONG_TYPEDEF(Size, RunIndex);
@@ -133,7 +134,7 @@ namespace OpenMS
       template < typename Edge, typename Graph >
       void examine_edge(Edge e, const Graph & tg)
       {
-        if (m.find(e.m_target) == m.end())
+        if (!m.contains(e.m_target))
         {
           next_v = boost::add_vertex(tg[e.m_target], gs.back());
           m[e.m_target] = next_v;
@@ -155,43 +156,43 @@ namespace OpenMS
     ///@brief Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
     /// e.g. for printing to dot format
     class LabelVisitor:
-        public boost::static_visitor<OpenMS::String>
+        public boost::static_visitor<std::string>
     {
     public:
 
-      OpenMS::String operator()(const PeptideHit* pep) const
+      std::string operator()(const PeptideHit* pep) const
       {
         return pep->getSequence().toString() + "_" + pep->getCharge();
       }
 
-      OpenMS::String operator()(const ProteinHit* prot) const
+      std::string operator()(const ProteinHit* prot) const
       {
         return prot->getAccession();
       }
 
-      OpenMS::String operator()(const ProteinGroup& /*protgrp*/) const
+      std::string operator()(const ProteinGroup& /*protgrp*/) const
       {
         return "PG";
       }
 
-      OpenMS::String operator()(const PeptideCluster& /*pc*/) const
+      std::string operator()(const PeptideCluster& /*pc*/) const
       {
         return "PepClust";
       }
 
-      OpenMS::String operator()(const Peptide& peptide) const
+      std::string operator()(const Peptide& peptide) const
       {
         return peptide;
       }
 
-      OpenMS::String operator()(const RunIndex& ri) const
+      std::string operator()(const RunIndex& ri) const
       {
-        return "rep" + String(ri);
+        return "rep" + StringUtils::toStr(ri);
       }
 
-      OpenMS::String operator()(const Charge& chg) const
+      std::string operator()(const Charge& chg) const
       {
-        return "chg" + String(chg);
+        return "chg" + StringUtils::toStr(chg);
       }
 
     };
@@ -311,7 +312,9 @@ namespace OpenMS
 
     /// @brief Visits nodes in the boost graph (either ptrs to an ID Object or some lightweight surrogates)
     /// and depending on their type gets the score (usually the posterior) plus if it is a decoy or a target.
-    /// If not known or not defined, returns (-1.0, false)
+    /// @throw Exception::MissingInformation if a hit's target/decoy status is unknown (the
+    ///        "target_decoy" meta value is not set; run PeptideIndexer first). Previously a
+    ///        missing value was silently misclassified as a decoy.
     class GetScoreTgTVisitor:
     public boost::static_visitor<std::pair<double,bool>>
         {
@@ -319,12 +322,25 @@ namespace OpenMS
 
           std::pair<double,bool> operator()(PeptideHit* pep) const
           {
-            return {pep->getScore(), pep->getMetaValue("target_decoy").toString()[0] == 't'};
+            const PeptideHit::TargetDecoyType td = pep->getTargetDecoyType();
+            if (td == PeptideHit::TargetDecoyType::UNKNOWN)
+            {
+              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "PeptideHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
+            }
+            // TARGET_DECOY counts as target, consistent with FalseDiscoveryRate
+            return {pep->getScore(), td != PeptideHit::TargetDecoyType::DECOY};
           }
 
           std::pair<double,bool> operator()(ProteinHit* prot) const
           {
-            return {prot->getScore(), prot->getMetaValue("target_decoy").toString()[0] == 't'};
+            const ProteinHit::TargetDecoyType td = prot->getTargetDecoyType();
+            if (td == ProteinHit::TargetDecoyType::UNKNOWN)
+            {
+              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "ProteinHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
+            }
+            return {prot->getScore(), td == ProteinHit::TargetDecoyType::TARGET};
           }
 
           std::pair<double,bool> operator()(ProteinGroup& pg) const
@@ -397,6 +413,8 @@ namespace OpenMS
     /// @pre Graph must contain PeptideCluster nodes (e.g. with clusterIndistProteinsAndPeptides).
     /// @param[in] removeAssociationsInData Also removes the corresponding PeptideEvidences in the underlying
     ///     ID data structure. Only deactivate if you know what you are doing.
+    /// @throws Exception::MissingInformation if a protein hit has no target/decoy annotation.
+    /// @throws Exception::InvalidValue if a protein hit has an unsupported target/decoy annotation.
     void resolveGraphPeptideCentric(bool removeAssociationsInData = true);
 
 
@@ -619,4 +637,3 @@ namespace OpenMS
     bool operator==(const IDBoostGraph::ProteinGroup& lhs, const IDBoostGraph::ProteinGroup& rhs);
   } //namespace Internal
 } //namespace OpenMS
-

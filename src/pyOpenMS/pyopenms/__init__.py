@@ -69,6 +69,28 @@ else:
             )
         del _possible_paths, _path, Path
 
+# Point the Thermo RAW reader at the managed bridge assemblies bundled with this
+# package (share/OpenMS/openms_thermo_bridge/managed). libOpenMS resolves its data
+# directory from compiled-in paths before it consults OPENMS_DATA_PATH, so on a
+# machine that still has the build or source tree the reader would look in the
+# wrong share/ folder. OPENMS_THERMO_MANAGED_DIR is the documented explicit
+# override and takes precedence over that resolution. A value the user already
+# set is respected, and nothing is set when the wheel carries no bridge.
+if not os.environ.get("OPENMS_THERMO_MANAGED_DIR"):
+    # A directory only qualifies when the complete runtime is present, so a stale or
+    # partial share/ named by OPENMS_DATA_PATH cannot shadow the bundled copy.
+    _managed_runtime_files = (
+        "ThermoWrapperManaged.dll",
+        "ThermoWrapperManaged.runtimeconfig.json",
+        "ThermoFisher.CommonCore.RawFileReader.dll",
+    )
+    for _share in (os.environ.get("OPENMS_DATA_PATH", ""), default_openms_data_path):
+        _managed = os.path.join(_share, "openms_thermo_bridge", "managed") if _share else ""
+        if _managed and all(os.path.isfile(os.path.join(_managed, _f)) for _f in _managed_runtime_files):
+            os.environ["OPENMS_THERMO_MANAGED_DIR"] = _managed
+            break
+    del _share, _managed, _managed_runtime_files
+
 
 # Patch pyarrow to handle filesystem registration conflicts with OpenMS Arrow C++.
 # Both pyarrow and C++ Arrow try to register
@@ -169,6 +191,26 @@ if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOp
     import ctypes
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
+
+
+# On Windows, Python >= 3.8 no longer uses PATH to resolve an extension module's
+# dependent DLLs; only the module's own directory, System32 and directories
+# registered via os.add_dll_directory() are searched. A wheel ships OpenMS.dll and
+# its dependencies next to the modules (found automatically), but an in-tree build
+# with NO_DEPENDENCIES=ON keeps them elsewhere (the OpenMS bin folder and the bin
+# folder of the dependency prefix). PYOPENMS_DLL_PATH (os.pathsep-separated) lets
+# the caller point pyOpenMS at those directories. Because it is an environment variable it also propagates to
+# child processes that `import pyopenms` (e.g. the subprocess probes in the test
+# suite), which os.add_dll_directory() alone cannot do. Inert when unset.
+_dll_directory_handles = []  # keep handles alive for the process lifetime
+if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+    for _dll_dir in os.environ.get("PYOPENMS_DLL_PATH", "").split(os.pathsep):
+        if _dll_dir and os.path.isdir(_dll_dir):
+            try:
+                _dll_directory_handles.append(os.add_dll_directory(_dll_dir))
+            except OSError:
+                pass
+    del _dll_dir
 
 
 def _import_submodules():
@@ -347,3 +389,10 @@ from ._dataframes_compat import peptide_identifications_to_df, update_scores_fro
 # Clean up namespace
 del _import_submodules, apply_addons, DataFrameMixin
 del os, here, sys
+# Names the imports above bound as a side effect: the __future__ feature, the
+# standard modules, and the modules "from ._sysinfo import *" brings in (ctypes
+# on Linux, as both "c" and "ctypes"; win32api on Windows with pywin32). None of
+# them is pyOpenMS API.
+for _cleanup_var in ('annotations', 'c', 'ctypes', 'importlib', 'warnings', 'win32api'):
+    globals().pop(_cleanup_var, None)
+del _cleanup_var

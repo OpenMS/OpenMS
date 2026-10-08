@@ -1,0 +1,1578 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MzIdentML id="report" version="1.3.0"
+             xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.3 http://localhost/mascot_2_8_1xy/xmlns/schema/mzIdentML/mzIdentML1.3.0.xsd"
+             xmlns="http://psidev.info/psi/pi/mzIdentML/1.3"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             creationDate="2022-04-11T15:36:24">
+  <cvList>
+    <cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies"   uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="4.1.69"></cv>
+    <cv id="UNIMOD" fullName="UNIMOD"        uri="http://www.unimod.org/obo/unimod.obo"></cv>
+    <cv id="UO"     fullName="UNIT-ONTOLOGY" uri="http://bioportal.bioontology.org/ontologies/UO?p=classes&amp;conceptid=root"></cv>
+  </cvList>
+  <cvParam cvRef="PSI-MS" accession="MS:1003385" name="mzIdentML crosslinking extension document version" value="1.0.0"/>
+  <AnalysisSoftwareList>
+    <AnalysisSoftware id="AS_mascot_server" name="Mascot Server" version="2.8.1" uri="http://www.matrixscience.com/search_form_select.html">
+      <ContactRole contact_ref="ORG_MSL">
+        <Role>
+          <cvParam accession="MS:1001267" name="software vendor" cvRef="PSI-MS" />
+        </Role>
+      </ContactRole>
+      <SoftwareName>
+        <cvParam accession="MS:1001207" name="Mascot" cvRef="PSI-MS" />
+      </SoftwareName>
+      <Customizations>
+        No customisations
+      </Customizations>
+    </AnalysisSoftware>
+    <AnalysisSoftware id="AS_mascot_parser" name="Mascot Parser" version="2.8.1.0" uri="http://www.matrixscience.com/msparser.html">
+      <ContactRole contact_ref="ORG_MSL">
+        <Role>
+          <cvParam accession="MS:1001267" name="software vendor" cvRef="PSI-MS" />
+        </Role>
+      </ContactRole>
+      <SoftwareName>
+        <cvParam accession="MS:1001478" name="Mascot Parser" cvRef="PSI-MS" />
+      </SoftwareName>
+      <Customizations>
+        No customisations
+      </Customizations>
+    </AnalysisSoftware>
+  </AnalysisSoftwareList>
+  <Provider id="PROVIDER">
+    <ContactRole contact_ref="PERSON_DOC_OWNER">
+      <Role>
+        <cvParam accession="MS:1001271" name="researcher" cvRef="PSI-MS" />
+      </Role>
+    </ContactRole>
+  </Provider>
+  <AuditCollection>
+    <Person id="PERSON_MSL">
+      <Affiliation organization_ref="ORG_MSL" />
+    </Person>
+    <Person id="PERSON_DOC_OWNER" name="">
+      <Affiliation organization_ref="ORG_DOC_OWNER" />
+    </Person>
+    <Organization id="ORG_MSL" name="Matrix Science Limited">
+      <cvParam accession="MS:1000589" name="contact email" value="support@matrixscience.com" cvRef="PSI-MS" />
+      <cvParam accession="MS:1000587" name="contact address" value="64 Baker Street, London W1U 7GB, UK" cvRef="PSI-MS" />
+      <cvParam accession="MS:1001755" name="contact phone number" value="+44 (0)20 7486 1050" cvRef="PSI-MS" />
+      <cvParam accession="MS:1001756" name="contact fax number" value="+44 (0)20 7224 1344" cvRef="PSI-MS" />
+      <cvParam accession="MS:1000588" name="contact URL" value="http://www.matrixscience.com" cvRef="PSI-MS" />
+    </Organization>
+    <Organization id="ORG_DOC_OWNER" />
+  </AuditCollection>
+  <SequenceCollection>
+    <DBSequence id="DBSeq_2_MND1_ARATH" searchDatabase_ref="SDB_PXD001538" accession="MND1_ARATH" >
+      <Seq>MSKKRGLSLEEKREKMLQIFYESQDFFLLKELEKMGPKKGVISQSVKDVIQSLVDDDLVAKDKIGISIYFWSLPSCAGNQLRSVRQKLESDLQGSNKRLAELVDQCEALKKGREESEERTEALTQLKDIEKKHKDLKNEMVQFADNDPATLEAKRNAIEVAHQSANRWTDNIFTLRQWCSNNFPQAKEQLEHLYTEAGITEDFDYIELSSFPLSSSHEADTAKQLVQDEA</Seq>
+      <cvParam accession="MS:1001088" name="protein description" cvRef="PSI-MS" value="Meiotic nuclear division protein 1 homolog OS=Arabidopsis t" />
+    </DBSequence>
+    <DBSequence id="DBSeq_2_HOP2_ARATH" searchDatabase_ref="SDB_PXD001538" accession="HOP2_ARATH" >
+      <Seq>MAPKSDNTEAIVLNFVNEQNKPLNTQNAADALQKFNLKKTAVQKALDSLADAGKITFKEYGKQKIYIARQDQFEIPNSEELAQMKEDNAKLQEQLQEKKKTISDVESEIKSLQSNLTLEEIQEKDAKLRKEVKEMEEKLVKLREGITLVRPEDKKAVEDMYADKINQWRKRKRMFRDIWDTVTENSPKDVKELKEELGIEYDEDVGLSFQAYADLIQHGKKRPRGQ</Seq>
+      <cvParam accession="MS:1001088" name="protein description" cvRef="PSI-MS" value="Homologous-pairing protein 2 homolog OS=Arabidopsis thalian" />
+    </DBSequence>
+    <Peptide id="peptide_1_1">
+      <PeptideSequence>QLVQDEA</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_2_1">
+      <PeptideSequence>ALDSLADAGK</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_3_1">
+      <PeptideSequence>WTDNIFTLR</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_4_1">
+      <PeptideSequence>LESDLQGSNKR</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_5_1">
+      <PeptideSequence>KTISDVESEIK</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_7_1">
+      <PeptideSequence>DVIQSLVDDDLVAK</PeptideSequence>
+      <Modification location="10" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="100" />
+      </Modification>
+      <Modification location="14" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink acceptor" value="100" />
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_7_2">
+      <PeptideSequence>DVIQSLVDDDLVAK</PeptideSequence>
+      <Modification location="9" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="101" />
+      </Modification>
+      <Modification location="14" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink acceptor" value="101" />
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_7_3">
+      <PeptideSequence>DVIQSLVDDDLVAK</PeptideSequence>
+      <Modification location="8" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="102" />
+      </Modification>
+      <Modification location="14" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink acceptor" value="102" />
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_8_1">
+      <PeptideSequence>TEALTQLKDIEKK</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_8_2_p1">
+      <PeptideSequence>TEALTQLK</PeptideSequence>
+      <Modification location="8" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="1"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_8_2_p2">
+      <PeptideSequence>DIEKK</PeptideSequence>
+      <Modification location="1" residues="D" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="1"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_8_3_p1">
+      <PeptideSequence>TEALTQLK</PeptideSequence>
+      <Modification location="8" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="2"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_8_3_p2">
+      <PeptideSequence>DIEKK</PeptideSequence>
+      <Modification location="3" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="2"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_9_1">
+      <PeptideSequence>TEALTQLKDIEKK</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_9_2_p1">
+      <PeptideSequence>TEALTQLK</PeptideSequence>
+      <Modification location="8" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="3"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_9_2_p2">
+      <PeptideSequence>DIEKK</PeptideSequence>
+      <Modification location="1" residues="D" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="3"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_9_3_p1">
+      <PeptideSequence>TEALTQLK</PeptideSequence>
+      <Modification location="8" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="4"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_9_3_p2">
+      <PeptideSequence>DIEKK</PeptideSequence>
+      <Modification location="3" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="4"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_10_1">
+      <PeptideSequence>DVIQSLVDDDLVAK</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_11_1">
+      <PeptideSequence>NEMVQFADNDPATLEAKR</PeptideSequence>
+      <Modification location="3" residues="M" monoisotopicMassDelta="15.994915">
+        <cvParam accession="UNIMOD:35" name="Oxidation" cvRef="UNIMOD" />
+        <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO" />
+      </Modification>
+      <Modification location="15" residues="E" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="103" />
+      </Modification>
+      <Modification location="17" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink acceptor" value="103" />
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_11_2">
+      <PeptideSequence>NEMVQFADNDPATLEAKR</PeptideSequence>
+      <Modification location="3" residues="M" monoisotopicMassDelta="15.994915">
+        <cvParam accession="UNIMOD:35" name="Oxidation" cvRef="UNIMOD" />
+        <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO" />
+      </Modification>
+      <Modification location="10" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="104" />
+      </Modification>
+      <Modification location="17" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink acceptor" value="104" />
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_12_1">
+      <PeptideSequence>NEMVQFADNDPATLEAKR</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_13_1_p1">
+      <PeptideSequence>KTISDVESEIK</PeptideSequence>
+      <Modification location="1" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="5"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_1_p2">
+      <PeptideSequence>TEALTQLK</PeptideSequence>
+      <Modification location="2" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="5"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_2_p1">
+      <PeptideSequence>KKTISDVESEIK</PeptideSequence>
+      <Modification location="1" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="6"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_2_p2">
+      <PeptideSequence>GLSLEEK</PeptideSequence>
+      <Modification location="6" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="6"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_3_p1">
+      <PeptideSequence>KKTISDVESEIK</PeptideSequence>
+      <Modification location="1" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="7"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_3_p2">
+      <PeptideSequence>GLSLEEK</PeptideSequence>
+      <Modification location="5" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="7"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_4_p1">
+      <PeptideSequence>KKTISDVESEIK</PeptideSequence>
+      <Modification location="2" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="8"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_4_p2">
+      <PeptideSequence>GLSLEEK</PeptideSequence>
+      <Modification location="6" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="8"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_5_p1">
+      <PeptideSequence>KKTISDVESEIK</PeptideSequence>
+      <Modification location="2" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="9"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_5_p2">
+      <PeptideSequence>GLSLEEK</PeptideSequence>
+      <Modification location="5" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="9"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_6_p1">
+      <PeptideSequence>KTISDVESEIK</PeptideSequence>
+      <Modification location="11" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="10"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_13_6_p2">
+      <PeptideSequence>TEALTQLK</PeptideSequence>
+      <Modification location="2" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="10"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_14_1_p1">
+      <PeptideSequence>LESDLQGSNKR</PeptideSequence>
+      <Modification location="10" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="11"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_14_1_p2">
+      <PeptideSequence>ALDSLADAGK</PeptideSequence>
+      <Modification location="7" residues="D" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="11"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_14_2_p1">
+      <PeptideSequence>LESDLQGSNKR</PeptideSequence>
+      <Modification location="4" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="12"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_14_2_p2">
+      <PeptideSequence>ALDSLADAGK</PeptideSequence>
+      <Modification location="10" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="12"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_14_3_p1">
+      <PeptideSequence>LESDLQGSNKR</PeptideSequence>
+      <Modification location="10" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="13"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_14_3_p2">
+      <PeptideSequence>ALDSLADAGK</PeptideSequence>
+      <Modification location="3" residues="D" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="13"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_14_4_p1">
+      <PeptideSequence>LESDLQGSNKR</PeptideSequence>
+      <Modification location="2" residues="E" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="14"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_14_4_p2">
+      <PeptideSequence>ALDSLADAGK</PeptideSequence>
+      <Modification location="10" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="14"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_15_1_p1">
+      <PeptideSequence>LESDLQGSNKR</PeptideSequence>
+      <Modification location="10" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="15"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_15_1_p2">
+      <PeptideSequence>WTDNIFTLR</PeptideSequence>
+      <Modification location="3" residues="D" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="15"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_1">
+      <PeptideSequence>HKDLKNEMVQFADNDPATLEAK</PeptideSequence>
+    </Peptide>
+    <Peptide id="peptide_16_2_p1">
+      <PeptideSequence>NEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="2" residues="E" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="16"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_2_p2">
+      <PeptideSequence>HKDLK</PeptideSequence>
+      <Modification location="5" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="16"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_3_p1">
+      <PeptideSequence>NEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="2" residues="E" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="17"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_3_p2">
+      <PeptideSequence>HKDLK</PeptideSequence>
+      <Modification location="2" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="17"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_4_p1">
+      <PeptideSequence>NEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="8" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="18"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_4_p2">
+      <PeptideSequence>HKDLK</PeptideSequence>
+      <Modification location="5" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="18"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_5_p1">
+      <PeptideSequence>NEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="8" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="19"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_5_p2">
+      <PeptideSequence>HKDLK</PeptideSequence>
+      <Modification location="2" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="19"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_6_p1">
+      <PeptideSequence>NEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="10" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="20"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_6_p2">
+      <PeptideSequence>HKDLK</PeptideSequence>
+      <Modification location="5" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="20"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_7_p1">
+      <PeptideSequence>NEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="10" residues="D" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="21"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_16_7_p2">
+      <PeptideSequence>HKDLK</PeptideSequence>
+      <Modification location="2" residues="K" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="21"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_1_p1">
+      <PeptideSequence>HKDLKNEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="5" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="22"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_1_p2">
+      <PeptideSequence>QLVQDEA</PeptideSequence>
+      <Modification location="8" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="22"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_2_p1">
+      <PeptideSequence>HKDLKNEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="2" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="23"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_2_p2">
+      <PeptideSequence>QLVQDEA</PeptideSequence>
+      <Modification location="8" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="23"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_3_p1">
+      <PeptideSequence>HKDLKNEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="5" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="24"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_3_p2">
+      <PeptideSequence>QLVQDEA</PeptideSequence>
+      <Modification location="6" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="24"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_4_p1">
+      <PeptideSequence>HKDLKNEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="2" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="25"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_4_p2">
+      <PeptideSequence>QLVQDEA</PeptideSequence>
+      <Modification location="6" residues="E" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="25"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_5_p1">
+      <PeptideSequence>HKDLKNEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="5" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="26"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_5_p2">
+      <PeptideSequence>QLVQDEA</PeptideSequence>
+      <Modification location="5" residues="D" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="26"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_6_p1">
+      <PeptideSequence>HKDLKNEMVQFADNDPATLEAK</PeptideSequence>
+      <Modification location="2" residues="K" monoisotopicMassDelta="-18.010565">
+        <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+        <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="27"/>
+      </Modification>
+    </Peptide>
+    <Peptide id="peptide_17_6_p2">
+      <PeptideSequence>QLVQDEA</PeptideSequence>
+      <Modification location="5" residues="D" monoisotopicMassDelta="0.0">
+        <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink receiver" value="27"/>
+      </Modification>
+    </Peptide>
+    <PeptideEvidence id="PE_1_1_2_MND1_ARATH_0_224_230" start="224" end="230" pre="K" post="-" peptide_ref="peptide_1_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_2_1_2_HOP2_ARATH_0_45_54" start="45" end="54" pre="K" post="I" peptide_ref="peptide_2_1" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_3_1_2_MND1_ARATH_0_168_176" start="168" end="176" pre="R" post="Q" peptide_ref="peptide_3_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_4_1_2_MND1_ARATH_0_88_98" start="88" end="98" pre="K" post="L" peptide_ref="peptide_4_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_5_1_2_HOP2_ARATH_0_100_110" start="100" end="110" pre="K" post="S" peptide_ref="peptide_5_1" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_7_1_2_MND1_ARATH_0_48_61" start="48" end="61" pre="K" post="D" peptide_ref="peptide_7_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_7_2_2_MND1_ARATH_0_48_61" start="48" end="61" pre="K" post="D" peptide_ref="peptide_7_2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_7_3_2_MND1_ARATH_0_48_61" start="48" end="61" pre="K" post="D" peptide_ref="peptide_7_3" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_8_1_2_MND1_ARATH_0_120_132" start="120" end="132" pre="R" post="H" peptide_ref="peptide_8_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_8_2_1_2_MND1_ARATH_0_120_127" start="120" end="127" pre="R" post="D" peptide_ref="peptide_8_2_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_8_2_2_2_MND1_ARATH_0_128_132" start="128" end="132" pre="K" post="H" peptide_ref="peptide_8_2_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_8_3_1_2_MND1_ARATH_0_120_127" start="120" end="127" pre="R" post="D" peptide_ref="peptide_8_3_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_8_3_2_2_MND1_ARATH_0_128_132" start="128" end="132" pre="K" post="H" peptide_ref="peptide_8_3_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_9_1_2_MND1_ARATH_0_120_132" start="120" end="132" pre="R" post="H" peptide_ref="peptide_9_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_9_2_1_2_MND1_ARATH_0_120_127" start="120" end="127" pre="R" post="D" peptide_ref="peptide_9_2_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_9_2_2_2_MND1_ARATH_0_128_132" start="128" end="132" pre="K" post="H" peptide_ref="peptide_9_2_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_9_3_1_2_MND1_ARATH_0_120_127" start="120" end="127" pre="R" post="D" peptide_ref="peptide_9_3_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_9_3_2_2_MND1_ARATH_0_128_132" start="128" end="132" pre="K" post="H" peptide_ref="peptide_9_3_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_10_1_2_MND1_ARATH_0_48_61" start="48" end="61" pre="K" post="D" peptide_ref="peptide_10_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_11_1_2_MND1_ARATH_0_138_155" start="138" end="155" pre="K" post="N" peptide_ref="peptide_11_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_11_2_2_MND1_ARATH_0_138_155" start="138" end="155" pre="K" post="N" peptide_ref="peptide_11_2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_12_1_2_MND1_ARATH_0_138_155" start="138" end="155" pre="K" post="N" peptide_ref="peptide_12_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_13_1_1_2_HOP2_ARATH_0_100_110" start="100" end="110" pre="K" post="S" peptide_ref="peptide_13_1_p1" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_13_1_2_2_MND1_ARATH_0_120_127" start="120" end="127" pre="R" post="D" peptide_ref="peptide_13_1_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_13_2_1_2_HOP2_ARATH_0_99_110" start="99" end="110" pre="K" post="S" peptide_ref="peptide_13_2_p1" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_13_2_2_2_MND1_ARATH_0_6_12" start="6" end="12" pre="R" post="R" peptide_ref="peptide_13_2_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_13_3_1_2_HOP2_ARATH_0_99_110" start="99" end="110" pre="K" post="S" peptide_ref="peptide_13_3_p1" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_13_3_2_2_MND1_ARATH_0_6_12" start="6" end="12" pre="R" post="R" peptide_ref="peptide_13_3_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_13_4_1_2_HOP2_ARATH_0_99_110" start="99" end="110" pre="K" post="S" peptide_ref="peptide_13_4_p1" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_13_4_2_2_MND1_ARATH_0_6_12" start="6" end="12" pre="R" post="R" peptide_ref="peptide_13_4_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_13_5_1_2_HOP2_ARATH_0_99_110" start="99" end="110" pre="K" post="S" peptide_ref="peptide_13_5_p1" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_13_5_2_2_MND1_ARATH_0_6_12" start="6" end="12" pre="R" post="R" peptide_ref="peptide_13_5_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_13_6_1_2_HOP2_ARATH_0_100_110" start="100" end="110" pre="K" post="S" peptide_ref="peptide_13_6_p1" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_13_6_2_2_MND1_ARATH_0_120_127" start="120" end="127" pre="R" post="D" peptide_ref="peptide_13_6_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_14_1_1_2_MND1_ARATH_0_88_98" start="88" end="98" pre="K" post="L" peptide_ref="peptide_14_1_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_14_1_2_2_HOP2_ARATH_0_45_54" start="45" end="54" pre="K" post="I" peptide_ref="peptide_14_1_p2" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_14_2_1_2_MND1_ARATH_0_88_98" start="88" end="98" pre="K" post="L" peptide_ref="peptide_14_2_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_14_2_2_2_HOP2_ARATH_0_45_54" start="45" end="54" pre="K" post="I" peptide_ref="peptide_14_2_p2" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_14_3_1_2_MND1_ARATH_0_88_98" start="88" end="98" pre="K" post="L" peptide_ref="peptide_14_3_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_14_3_2_2_HOP2_ARATH_0_45_54" start="45" end="54" pre="K" post="I" peptide_ref="peptide_14_3_p2" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_14_4_1_2_MND1_ARATH_0_88_98" start="88" end="98" pre="K" post="L" peptide_ref="peptide_14_4_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_14_4_2_2_HOP2_ARATH_0_45_54" start="45" end="54" pre="K" post="I" peptide_ref="peptide_14_4_p2" isDecoy="false" dBSequence_ref="DBSeq_2_HOP2_ARATH" />
+    <PeptideEvidence id="PE_15_1_1_2_MND1_ARATH_0_88_98" start="88" end="98" pre="K" post="L" peptide_ref="peptide_15_1_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_15_1_2_2_MND1_ARATH_0_168_176" start="168" end="176" pre="R" post="Q" peptide_ref="peptide_15_1_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_1_2_MND1_ARATH_0_133_154" start="133" end="154" pre="K" post="R" peptide_ref="peptide_16_1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_2_1_2_MND1_ARATH_0_138_154" start="138" end="154" pre="K" post="R" peptide_ref="peptide_16_2_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_2_2_2_MND1_ARATH_0_133_137" start="133" end="137" pre="K" post="N" peptide_ref="peptide_16_2_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_3_1_2_MND1_ARATH_0_138_154" start="138" end="154" pre="K" post="R" peptide_ref="peptide_16_3_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_3_2_2_MND1_ARATH_0_133_137" start="133" end="137" pre="K" post="N" peptide_ref="peptide_16_3_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_4_1_2_MND1_ARATH_0_138_154" start="138" end="154" pre="K" post="R" peptide_ref="peptide_16_4_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_4_2_2_MND1_ARATH_0_133_137" start="133" end="137" pre="K" post="N" peptide_ref="peptide_16_4_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_5_1_2_MND1_ARATH_0_138_154" start="138" end="154" pre="K" post="R" peptide_ref="peptide_16_5_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_5_2_2_MND1_ARATH_0_133_137" start="133" end="137" pre="K" post="N" peptide_ref="peptide_16_5_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_6_1_2_MND1_ARATH_0_138_154" start="138" end="154" pre="K" post="R" peptide_ref="peptide_16_6_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_6_2_2_MND1_ARATH_0_133_137" start="133" end="137" pre="K" post="N" peptide_ref="peptide_16_6_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_7_1_2_MND1_ARATH_0_138_154" start="138" end="154" pre="K" post="R" peptide_ref="peptide_16_7_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_16_7_2_2_MND1_ARATH_0_133_137" start="133" end="137" pre="K" post="N" peptide_ref="peptide_16_7_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_1_1_2_MND1_ARATH_0_133_154" start="133" end="154" pre="K" post="R" peptide_ref="peptide_17_1_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_1_2_2_MND1_ARATH_0_224_230" start="224" end="230" pre="K" post="-" peptide_ref="peptide_17_1_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_2_1_2_MND1_ARATH_0_133_154" start="133" end="154" pre="K" post="R" peptide_ref="peptide_17_2_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_2_2_2_MND1_ARATH_0_224_230" start="224" end="230" pre="K" post="-" peptide_ref="peptide_17_2_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_3_1_2_MND1_ARATH_0_133_154" start="133" end="154" pre="K" post="R" peptide_ref="peptide_17_3_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_3_2_2_MND1_ARATH_0_224_230" start="224" end="230" pre="K" post="-" peptide_ref="peptide_17_3_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_4_1_2_MND1_ARATH_0_133_154" start="133" end="154" pre="K" post="R" peptide_ref="peptide_17_4_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_4_2_2_MND1_ARATH_0_224_230" start="224" end="230" pre="K" post="-" peptide_ref="peptide_17_4_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_5_1_2_MND1_ARATH_0_133_154" start="133" end="154" pre="K" post="R" peptide_ref="peptide_17_5_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_5_2_2_MND1_ARATH_0_224_230" start="224" end="230" pre="K" post="-" peptide_ref="peptide_17_5_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_6_1_2_MND1_ARATH_0_133_154" start="133" end="154" pre="K" post="R" peptide_ref="peptide_17_6_p1" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+    <PeptideEvidence id="PE_17_6_2_2_MND1_ARATH_0_224_230" start="224" end="230" pre="K" post="-" peptide_ref="peptide_17_6_p2" isDecoy="false" dBSequence_ref="DBSeq_2_MND1_ARATH" />
+  </SequenceCollection>
+  <AnalysisCollection>
+    <SpectrumIdentification id="SI" spectrumIdentificationProtocol_ref="SIP"  spectrumIdentificationList_ref="SIL_1" activityDate="2022-04-11T15:27:43">
+      <InputSpectra spectraData_ref="SD_1" />
+      <SearchDatabaseRef searchDatabase_ref="SDB_contaminants" />
+      <SearchDatabaseRef searchDatabase_ref="SDB_PXD001538" />
+      <SearchDatabaseRef searchDatabase_ref="SDB_SwissProt" />
+    </SpectrumIdentification>
+    <ProteinDetection id="PD_1" proteinDetectionProtocol_ref="PDP_MascotParser_1" proteinDetectionList_ref="PDL_1" activityDate="2022-04-11T15:36:24">
+      <InputSpectrumIdentifications spectrumIdentificationList_ref="SIL_1" />
+    </ProteinDetection>
+  </AnalysisCollection>
+  <AnalysisProtocolCollection>
+    <SpectrumIdentificationProtocol id="SIP" analysisSoftware_ref="AS_mascot_server">
+      <SearchType>
+        <cvParam accession="MS:1001083" name="ms-ms search" cvRef="PSI-MS" value="" />
+      </SearchType>
+      <AdditionalSearchParams>
+        <userParam name="Mascot User Comment" value="PXD001538 EDC MH+" />
+        <userParam name="Mascot Instrument Name" value="ESI-TRAP" />
+        <cvParam accession="MS:1001211" name="parent mass type mono"    cvRef="PSI-MS" />
+        <cvParam accession="MS:1001118" name="param: b ion" cvRef="PSI-MS" />
+        <cvParam accession="MS:1001149" name="param: b ion-NH3" cvRef="PSI-MS" />
+        <cvParam accession="MS:1001150" name="param: b ion-H2O" cvRef="PSI-MS" />
+        <cvParam accession="MS:1001262" name="param: y ion" cvRef="PSI-MS" />
+        <cvParam accession="MS:1001151" name="param: y ion-NH3" cvRef="PSI-MS" /> <!-- deprecated? -->
+        <cvParam accession="MS:1001152" name="param: y ion-H2O" cvRef="PSI-MS" /> <!-- deprecated? -->
+        <cvParam accession="MS:1002494" name="crosslinking search" cvRef="PSI-MS"/>
+      </AdditionalSearchParams>
+      <ModificationParams>
+        <SearchModification fixedMod="true" massDelta="57.021464" residues="C">
+          <cvParam accession="UNIMOD:4" name="Carbamidomethyl" cvRef="UNIMOD" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="15.994915" residues="M">
+          <cvParam accession="UNIMOD:35" name="Oxidation" cvRef="UNIMOD" />
+        </SearchModification>
+
+        <!-- replace with more succinct definition of EDC for sake of example?        -->
+        <SearchModification fixedMod="false" massDelta="-18.010565" residues="K">
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor" value="1" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="0.0" residues="D E">
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="1" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="0.0" residues=".">
+          <SpecificityRules>
+            <cvParam cvRef="PSI-MS" accession="MS:1002058" name="modification specificity protein C-term"/>
+          </SpecificityRules>
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="1" />
+        </SearchModification>
+
+        <SearchModification fixedMod="false" massDelta="-18.010565" residues="D E">
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor" value="2" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="0.0" residues="K">
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="2" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="0.0" residues=".">
+          <SpecificityRules>
+            <cvParam cvRef="PSI-MS" accession="MS:1002057" name="modification specificity protein N-term"/>
+          </SpecificityRules>
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="2" />
+        </SearchModification>
+
+        <SearchModification fixedMod="false" massDelta="-18.010565" residues=".">
+          <SpecificityRules>
+            <cvParam cvRef="PSI-MS" accession="MS:1002057" name="modification specificity protein N-term"/>
+          </SpecificityRules>
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor" value="3" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="0.0" residues="D E">
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="3" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="0.0" residues=".">
+          <SpecificityRules>
+            <cvParam cvRef="PSI-MS" accession="MS:1002058" name="modification specificity protein C-term"/>
+          </SpecificityRules>
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="3" />
+        </SearchModification>
+
+        <SearchModification fixedMod="false" massDelta="-18.010565" residues=".">
+          <SpecificityRules>
+            <cvParam cvRef="PSI-MS" accession="MS:1002058" name="modification specificity protein C-term"/>
+          </SpecificityRules>
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002509" name="crosslink donor" value="4" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="0.0" residues="K">
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="4" />
+        </SearchModification>
+        <SearchModification fixedMod="false" massDelta="0.0" residues=".">
+          <SpecificityRules>
+            <cvParam cvRef="PSI-MS" accession="MS:1002057" name="modification specificity protein N-term"/>
+          </SpecificityRules>
+          <cvParam accession="UNIMOD:2018" name="Xlink:EDC" cvRef="UNIMOD" />
+          <cvParam cvRef="PSI-MS" accession="MS:1002510" name="crosslink acceptor" value="4" />
+        </SearchModification>
+
+      </ModificationParams>
+      <Enzymes>
+        <Enzyme id="ENZ_0" cTermGain="OH" nTermGain="H" missedCleavages="4" semiSpecific="0">
+          <SiteRegexp><![CDATA[(?<=[KR])]]></SiteRegexp>
+          <EnzymeName>
+            <cvParam accession="MS:1001313" name="Trypsin/P" cvRef="PSI-MS" />
+          </EnzymeName>
+        </Enzyme>
+      </Enzymes>
+      <MassTable id="MT_1" msLevel="1 2">
+        <Residue code="A" mass="71.037114" />
+        <Residue code="C" mass="103.009185" />
+        <Residue code="D" mass="115.026943" />
+        <Residue code="E" mass="129.042593" />
+        <Residue code="F" mass="147.068414" />
+        <Residue code="G" mass="57.021464" />
+        <Residue code="H" mass="137.058912" />
+        <Residue code="I" mass="113.084064" />
+        <Residue code="J" mass="113.084064" />
+        <Residue code="K" mass="128.094963" />
+        <Residue code="L" mass="113.084064" />
+        <Residue code="M" mass="131.040485" />
+        <Residue code="N" mass="114.042927" />
+        <Residue code="O" mass="237.147727" />
+        <Residue code="P" mass="97.052764" />
+        <Residue code="Q" mass="128.058578" />
+        <Residue code="R" mass="156.101111" />
+        <Residue code="S" mass="87.032028" />
+        <Residue code="T" mass="101.047679" />
+        <Residue code="U" mass="150.953633" />
+        <Residue code="V" mass="99.068414" />
+        <Residue code="W" mass="186.079313" />
+        <Residue code="Y" mass="163.063329" />
+        <AmbiguousResidue code="B">
+          <cvParam accession="MS:1001360" name="alternate single letter codes" cvRef="PSI-MS" value="D N" />
+        </AmbiguousResidue>
+        <AmbiguousResidue code="Z">
+          <cvParam accession="MS:1001360" name="alternate single letter codes" cvRef="PSI-MS" value="E Q" />
+        </AmbiguousResidue>
+        <AmbiguousResidue code="X">
+          <cvParam accession="MS:1001360" name="alternate single letter codes" cvRef="PSI-MS" value="A C D E F G H I K L M N O P Q R S T U V W Y" />
+        </AmbiguousResidue>
+      </MassTable>
+      <FragmentTolerance>
+        <cvParam accession="MS:1001412" name="search tolerance plus value" value="0.03" cvRef="PSI-MS" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO" />
+        <cvParam accession="MS:1001413" name="search tolerance minus value" value="0.03" cvRef="PSI-MS" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO" />
+      </FragmentTolerance>
+      <ParentTolerance>
+        <cvParam accession="MS:1001412" name="search tolerance plus value" value="10" cvRef="PSI-MS" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+        <cvParam accession="MS:1001413" name="search tolerance minus value" value="10" cvRef="PSI-MS" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+      </ParentTolerance>
+      <Threshold>
+        <cvParam accession="MS:1001316" name="Mascot:SigThreshold" cvRef="PSI-MS" value="0.05" />
+        <cvParam accession="MS:1001758" name="Mascot:SigThresholdType" cvRef="PSI-MS" value="homology" />
+      </Threshold>
+      <DatabaseFilters>
+        <Filter>
+          <FilterType>
+            <cvParam accession="MS:1001020" name="DB filter taxonomy" cvRef="PSI-MS" />
+          </FilterType>
+          <Include>
+            <cvParam accession="MS:1001467" name="taxonomy: NCBI TaxID" cvRef="PSI-MS" value="562" />
+          </Include>
+        </Filter>
+      </DatabaseFilters>
+    </SpectrumIdentificationProtocol>
+    <ProteinDetectionProtocol id="PDP_MascotParser_1"  analysisSoftware_ref="AS_mascot_parser">
+      <AnalysisParams>
+        <cvParam accession="MS:1001316" name="Mascot:SigThreshold"                               cvRef="PSI-MS" value="0.05" />
+        <cvParam accession="MS:1001317" name="Mascot:MaxProteinHits"                             cvRef="PSI-MS" value="Auto" />
+        <cvParam accession="MS:1001318" name="Mascot:ProteinScoringMethod"                       cvRef="PSI-MS" value="MudPIT" />
+        <cvParam accession="MS:1001319" name="Mascot:MinMSMSThreshold"                           cvRef="PSI-MS" value="-1" />
+        <cvParam accession="MS:1001758" name="Mascot:SigThresholdType"                           cvRef="PSI-MS" value="homology" />
+        <cvParam accession="MS:1001759" name="Mascot:ProteinGrouping"                            cvRef="PSI-MS" value="family clustering" />
+        <cvParam accession="MS:1003030" name="Mascot:MinNumSigUniqueSeqs"                        cvRef="PSI-MS" value="1" />
+        <cvParam accession="MS:1001320" name="Mascot:ShowHomologousProteinsWithSamePeptides"     cvRef="PSI-MS" value="0" />
+        <cvParam accession="MS:1001321" name="Mascot:ShowHomologousProteinsWithSubsetOfPeptides" cvRef="PSI-MS" value="1" />
+        <cvParam accession="MS:1001322" name="Mascot:RequireBoldRed"                             cvRef="PSI-MS" value="0" />
+        <cvParam accession="MS:1001323" name="Mascot:UseUnigeneClustering"                       cvRef="PSI-MS" value="1" />
+        <cvParam accession="MS:1001324" name="Mascot:IncludeErrorTolerantMatches"                cvRef="PSI-MS" value="1" />
+        <cvParam accession="MS:1001325" name="Mascot:ShowDecoyMatches"                           cvRef="PSI-MS" value="0" />
+      </AnalysisParams>
+      <Threshold>
+        <cvParam accession="MS:1001494" name="no threshold" cvRef="PSI-MS" />
+      </Threshold>
+    </ProteinDetectionProtocol>
+  </AnalysisProtocolCollection>
+  <DataCollection>
+    <Inputs>
+      <SourceFile location="file:///../data/20220411/F001386.dat" id="SF_1" >
+        <FileFormat>
+          <cvParam accession="MS:1001199" name="Mascot DAT format" cvRef="PSI-MS" />
+        </FileFormat>
+      </SourceFile>
+      <SearchDatabase location="file:///C:/inetpub/mascot_2_8_1xy/sequence/contaminants/current/contaminants_20160129.fasta" id="SDB_contaminants" name="contaminants" numDatabaseSequences="247" numResidues="128130" version="contaminants_20160129.fasta">
+        <FileFormat>
+          <cvParam accession="MS:1001348" name="FASTA format" cvRef="PSI-MS" />
+        </FileFormat>
+        <DatabaseName>
+          <userParam name="contaminants_20160129.fasta" />
+        </DatabaseName>
+        <cvParam accession="MS:1001073" name="database type amino acid" cvRef="PSI-MS" />
+      </SearchDatabase>
+      <SearchDatabase location="file:///C:/inetpub/mascot_2_8_1xy/sequence/PXD001538/current/PXD001538_20190829.fasta" id="SDB_PXD001538" name="PXD001538" numDatabaseSequences="2" numResidues="456" version="PXD001538_20190829.fasta">
+        <FileFormat>
+          <cvParam accession="MS:1001348" name="FASTA format" cvRef="PSI-MS" />
+        </FileFormat>
+        <DatabaseName>
+          <userParam name="PXD001538_20190829.fasta" />
+        </DatabaseName>
+        <cvParam accession="MS:1001073" name="database type amino acid" cvRef="PSI-MS" />
+      </SearchDatabase>
+      <SearchDatabase location="file:///C:/inetpub/mascot_2_8_1xy/sequence/SwissProt/current/SwissProt_2021_03.fasta" id="SDB_SwissProt" name="SwissProt" numDatabaseSequences="565254" numResidues="203850821" version="SwissProt_2021_03.fasta">
+        <FileFormat>
+          <cvParam accession="MS:1001348" name="FASTA format" cvRef="PSI-MS" />
+        </FileFormat>
+        <DatabaseName>
+          <userParam name="SwissProt_2021_03.fasta" />
+        </DatabaseName>
+        <cvParam accession="MS:1001073" name="database type amino acid" cvRef="PSI-MS" />
+      </SearchDatabase>
+      <SpectraData location="file:///F001386.mgf" id="SD_1" name="EDCMES12_mh+.mgf">
+        <FileFormat>
+          <cvParam accession="MS:1001062" name="Mascot MGF format" cvRef="PSI-MS" />
+        </FileFormat>
+        <SpectrumIDFormat>
+          <cvParam accession="MS:1000775" name="single peak list nativeID format" cvRef="PSI-MS" />
+        </SpectrumIDFormat>
+      </SpectraData>
+    </Inputs>
+    <AnalysisData>
+      <SpectrumIdentificationList id="SIL_1" numSequencesSearched="23427">
+        <FragmentationTable>
+          <Measure id="m_mz">
+            <cvParam cvRef="PSI-MS" accession="MS:1001225" name="product ion m/z" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z" />
+          </Measure>
+          <Measure id="m_intensity">
+            <cvParam cvRef="PSI-MS" accession="MS:1001226" name="product ion intensity" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of counts" />
+          </Measure>
+          <Measure id="m_error">
+            <cvParam cvRef="PSI-MS" accession="MS:1001227" name="product ion m/z error" unitAccession="MS:1000040" unitName="m/z" unitCvRef="PSI-MS" />
+          </Measure>
+        </FragmentationTable>
+        <SpectrumIdentificationResult id="SIR_1" spectrumID="index=7483" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_1_1"  calculatedMassToCharge="802.394117" chargeState="1" experimentalMassToCharge="802.3919" peptide_ref="peptide_1_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_1_1_2_MND1_ARATH_0_224_230" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="38.80" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.00023" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="23" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="15" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="230" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="8699" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="2581.1577" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="7484: Scan 8699 (rt=2581.16) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_2" spectrumID="index=8922" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_2_1"  calculatedMassToCharge="480.7534535" chargeState="2" experimentalMassToCharge="480.75447" peptide_ref="peptide_2_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_2_1_2_HOP2_ARATH_0_45_54" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="75.36" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="3.9e-07" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="24" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="265" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="10041" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="2956.2748" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="8923: Scan 10041 (rt=2956.27) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_3" spectrumID="index=21081" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_3_1"  calculatedMassToCharge="583.303655" chargeState="2" experimentalMassToCharge="583.30488" peptide_ref="peptide_3_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_3_1_2_MND1_ARATH_0_168_176" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="63.67" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1.1e-06" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="26" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="16" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="482" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="20510" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="5930.5912" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="21082: Scan 20510 (rt=5930.59) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_4" spectrumID="index=2980" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_4_1"  calculatedMassToCharge="416.21771" chargeState="3" experimentalMassToCharge="416.21674" peptide_ref="peptide_4_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_4_1_2_MND1_ARATH_0_88_98" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="89.68" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="3.8e-08" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="28" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="712" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="4391" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="1380.8912" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="2981: Scan 4391 (rt=1380.89) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_5" spectrumID="index=9332" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_5_1"  calculatedMassToCharge="624.8377125" chargeState="2" experimentalMassToCharge="624.83768" peptide_ref="peptide_5_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_5_1_2_HOP2_ARATH_0_100_110" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="90.73" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="3.1e-09" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="23" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="18" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="229" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="10367" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="3039.6382" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="9333: Scan 10367 (rt=3039.64) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_7" spectrumID="index=24337" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_7_1"  calculatedMassToCharge="756.401235" chargeState="2" experimentalMassToCharge="756.4018" peptide_ref="peptide_7_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_7_1_2_MND1_ARATH_0_48_61" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="54.87" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="7.2e-06" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+            <cvParam accession="MS:1003329" cvRef="PSI-MS" name="looplink spectrum identification item"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_7_2"  calculatedMassToCharge="756.401235" chargeState="2" experimentalMassToCharge="756.4018" peptide_ref="peptide_7_2" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_7_2_2_MND1_ARATH_0_48_61" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="41.72" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.00015" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+            <cvParam accession="MS:1003329" cvRef="PSI-MS" name="looplink spectrum identification item"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_7_3"  calculatedMassToCharge="756.401235" chargeState="2" experimentalMassToCharge="756.4018" peptide_ref="peptide_7_3" rank="4" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_7_3_2_MND1_ARATH_0_48_61" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="29.82" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0023" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+            <cvParam accession="MS:1003329" cvRef="PSI-MS" name="looplink spectrum identification item"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="27" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="16" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="532" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="23132" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="6762.9084" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="24338: Scan 23132 (rt=6762.91) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_8" spectrumID="index=9159" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_8_1"  calculatedMassToCharge="506.290870666667" chargeState="3" experimentalMassToCharge="506.29079" peptide_ref="peptide_8_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_8_1_2_MND1_ARATH_0_120_132" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="95.77" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1e-09" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_8_2_p1"  calculatedMassToCharge="506.290862333333" chargeState="3" experimentalMassToCharge="506.29079" peptide_ref="peptide_8_2_p1" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_8_2_1_2_MND1_ARATH_0_120_127" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="76.94" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="8e-08" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_8_2_p2"  calculatedMassToCharge="506.290862333333" chargeState="3" experimentalMassToCharge="506.29079" peptide_ref="peptide_8_2_p2" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_8_2_2_2_MND1_ARATH_0_128_132" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="76.94" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="8e-08" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_8_3_p1"  calculatedMassToCharge="506.290862333333" chargeState="3" experimentalMassToCharge="506.29079" peptide_ref="peptide_8_3_p1" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_8_3_1_2_MND1_ARATH_0_120_127" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="49.77" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="4.2e-05" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_8_3_p2"  calculatedMassToCharge="506.290862333333" chargeState="3" experimentalMassToCharge="506.29079" peptide_ref="peptide_8_3_p2" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_8_3_2_2_MND1_ARATH_0_128_132" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="49.77" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="4.2e-05" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="28" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="18" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="469" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="10192" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="2993.6498" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="9160: Scan 10192 (rt=2993.65) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_9" spectrumID="index=9162" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_9_1"  calculatedMassToCharge="758.932668" chargeState="2" experimentalMassToCharge="758.93268" peptide_ref="peptide_9_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_9_1_2_MND1_ARATH_0_120_132" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="62.68" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1.3e-06" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_9_2_p1"  calculatedMassToCharge="758.9326555" chargeState="2" experimentalMassToCharge="758.93268" peptide_ref="peptide_9_2_p1" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_9_2_1_2_MND1_ARATH_0_120_127" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="49.03" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="3.1e-05" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_9_2_p2"  calculatedMassToCharge="758.9326555" chargeState="2" experimentalMassToCharge="758.93268" peptide_ref="peptide_9_2_p2" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_9_2_2_2_MND1_ARATH_0_128_132" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="49.03" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="3.1e-05" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_9_3_p1"  calculatedMassToCharge="758.9326555" chargeState="2" experimentalMassToCharge="758.93268" peptide_ref="peptide_9_3_p1" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_9_3_1_2_MND1_ARATH_0_120_127" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="28.40" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0036" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_9_3_p2"  calculatedMassToCharge="758.9326555" chargeState="2" experimentalMassToCharge="758.93268" peptide_ref="peptide_9_3_p2" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_9_3_2_2_MND1_ARATH_0_128_132" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="28.40" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0036" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="28" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="16" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="469" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="10195" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="2994.373" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="9163: Scan 10195 (rt=2994.37) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_10" spectrumID="index=24018" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_10_1"  calculatedMassToCharge="765.406507" chargeState="2" experimentalMassToCharge="765.40684" peptide_ref="peptide_10_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_10_1_2_MND1_ARATH_0_48_61" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="95.97" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1e-09" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="28" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="18" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="657" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="22868" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="6675.2202" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="24019: Scan 22868 (rt=6675.22) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_11" spectrumID="index=17323" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_11_1"  calculatedMassToCharge="682.989825" chargeState="3" experimentalMassToCharge="682.99096" peptide_ref="peptide_11_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_11_1_2_MND1_ARATH_0_138_155" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="63.32" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1.2e-06" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+            <cvParam accession="MS:1003329" cvRef="PSI-MS" name="looplink spectrum identification item"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_11_2"  calculatedMassToCharge="682.989825" chargeState="3" experimentalMassToCharge="682.99096" peptide_ref="peptide_11_2" rank="2" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_11_2_2_MND1_ARATH_0_138_155" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="5.43" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.71" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+            <cvParam accession="MS:1003329" cvRef="PSI-MS" name="looplink spectrum identification item"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="25" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="16" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="347" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="17479" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="5039.6412" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="17324: Scan 17479 (rt=5039.64) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_12" spectrumID="index=13891" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_12_1"  calculatedMassToCharge="683.6617" chargeState="3" experimentalMassToCharge="683.66145" peptide_ref="peptide_12_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_12_1_2_MND1_ARATH_0_138_155" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="106.13" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1.1e-10" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="26" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="19" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="453" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="14546" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="4239.4456" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="13892: Scan 14546 (rt=4239.45) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_13" spectrumID="index=15122" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_13_1_p1"  calculatedMassToCharge="711.726465333333" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_1_p1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_1_1_2_HOP2_ARATH_0_100_110" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="77.19" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="2.1e-06" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="1" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_1_p2"  calculatedMassToCharge="711.726465333333" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_1_p2" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_1_2_2_MND1_ARATH_0_120_127" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="77.19" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="2.1e-06" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="1" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_2_p1"  calculatedMassToCharge="711.72646" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_2_p1" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_2_1_2_HOP2_ARATH_0_99_110" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="37.42" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.02" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_2_p2"  calculatedMassToCharge="711.72646" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_2_p2" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_2_2_2_MND1_ARATH_0_6_12" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="37.42" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.02" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_3_p1"  calculatedMassToCharge="711.72646" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_3_p1" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_3_1_2_HOP2_ARATH_0_99_110" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="37.42" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.02" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_3_p2"  calculatedMassToCharge="711.72646" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_3_p2" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_3_2_2_MND1_ARATH_0_6_12" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="37.42" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.02" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_4_p1"  calculatedMassToCharge="711.72646" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_4_p1" rank="4" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_4_1_2_HOP2_ARATH_0_99_110" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="32.94" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.057" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="4" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_4_p2"  calculatedMassToCharge="711.72646" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_4_p2" rank="4" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_4_2_2_MND1_ARATH_0_6_12" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="32.94" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.057" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="4" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_5_p1"  calculatedMassToCharge="711.72646" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_5_p1" rank="5" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_5_1_2_HOP2_ARATH_0_99_110" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="32.94" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.057" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="5" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_5_p2"  calculatedMassToCharge="711.72646" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_5_p2" rank="5" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_5_2_2_MND1_ARATH_0_6_12" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="32.94" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.057" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="5" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_6_p1"  calculatedMassToCharge="711.726465333333" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_6_p1" rank="6" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_6_1_2_HOP2_ARATH_0_100_110" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="2.41" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="65" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="6" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_13_6_p2"  calculatedMassToCharge="711.726465333333" chargeState="3" experimentalMassToCharge="711.72693" peptide_ref="peptide_13_6_p2" rank="6" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_13_6_2_2_MND1_ARATH_0_120_127" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="2.41" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="65" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="6" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="33" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="961" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="15677" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="4553.5907" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="15123: Scan 15677 (rt=4553.59) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_14" spectrumID="index=9463" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_14_1_p1"  calculatedMassToCharge="730.044967" chargeState="3" experimentalMassToCharge="730.04462" peptide_ref="peptide_14_1_p1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_14_1_1_2_MND1_ARATH_0_88_98" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="79.86" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="3.3e-08" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="1" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_14_1_p2"  calculatedMassToCharge="730.044967" chargeState="3" experimentalMassToCharge="730.04462" peptide_ref="peptide_14_1_p2" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_14_1_2_2_HOP2_ARATH_0_45_54" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="79.86" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="3.3e-08" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="1" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_14_2_p1"  calculatedMassToCharge="730.044967" chargeState="3" experimentalMassToCharge="730.04462" peptide_ref="peptide_14_2_p1" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_14_2_1_2_MND1_ARATH_0_88_98" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="45.91" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="8.1e-05" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_14_2_p2"  calculatedMassToCharge="730.044967" chargeState="3" experimentalMassToCharge="730.04462" peptide_ref="peptide_14_2_p2" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_14_2_2_2_HOP2_ARATH_0_45_54" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="45.91" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="8.1e-05" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_14_3_p1"  calculatedMassToCharge="730.044967" chargeState="3" experimentalMassToCharge="730.04462" peptide_ref="peptide_14_3_p1" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_14_3_1_2_MND1_ARATH_0_88_98" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="32.95" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0016" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_14_3_p2"  calculatedMassToCharge="730.044967" chargeState="3" experimentalMassToCharge="730.04462" peptide_ref="peptide_14_3_p2" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_14_3_2_2_HOP2_ARATH_0_45_54" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="32.95" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0016" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_14_4_p1"  calculatedMassToCharge="730.044967" chargeState="3" experimentalMassToCharge="730.04462" peptide_ref="peptide_14_4_p1" rank="4" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_14_4_1_2_MND1_ARATH_0_88_98" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="32.15" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0019" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="4" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_14_4_p2"  calculatedMassToCharge="730.044967" chargeState="3" experimentalMassToCharge="730.04462" peptide_ref="peptide_14_4_p2" rank="4" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_14_4_2_2_HOP2_ARATH_0_45_54" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="32.15" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0019" />
+            <cvParam accession="MS:1001175" name="peptide shared in multiple proteins" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="4" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="31" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="17" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="1213" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="10489" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="3071.5836" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="9464: Scan 10489 (rt=3071.58) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_15" spectrumID="index=16116" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_15_1_p1"  calculatedMassToCharge="798.411768" chargeState="3" experimentalMassToCharge="798.41246" peptide_ref="peptide_15_1_p1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_15_1_1_2_MND1_ARATH_0_88_98" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="112.89" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="2.6e-11" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="1" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_15_1_p2"  calculatedMassToCharge="798.411768" chargeState="3" experimentalMassToCharge="798.41246" peptide_ref="peptide_15_1_p2" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_15_1_2_2_MND1_ARATH_0_168_176" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="112.89" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="2.6e-11" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="1" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="31" />
+          <cvParam accession="MS:1001370" name="Mascot:homology threshold"  cvRef="PSI-MS" value="20" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="1064" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="16470" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="4758.7506" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="16117: Scan 16470 (rt=4758.75) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_16" spectrumID="index=13328" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_16_1"  calculatedMassToCharge="838.747942666667" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_1_2_MND1_ARATH_0_133_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="89.40" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1.2e-07" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_2_p1"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_2_p1" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_2_1_2_MND1_ARATH_0_138_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="89.40" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1.2e-07" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_2_p2"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_2_p2" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_2_2_2_MND1_ARATH_0_133_137" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="89.40" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="1.2e-07" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_3_p1"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_3_p1" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_3_1_2_MND1_ARATH_0_138_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="73.15" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="5.1e-06" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_3_p2"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_3_p2" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_3_2_2_MND1_ARATH_0_133_137" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="73.15" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="5.1e-06" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_4_p1"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_4_p1" rank="4" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_4_1_2_MND1_ARATH_0_138_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="28.70" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.14" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="4" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_4_p2"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_4_p2" rank="4" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_4_2_2_MND1_ARATH_0_133_137" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="28.70" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.14" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="4" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_5_p1"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_5_p1" rank="5" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_5_1_2_MND1_ARATH_0_138_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="21.45" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.75" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="5" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_5_p2"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_5_p2" rank="5" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_5_2_2_MND1_ARATH_0_133_137" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="21.45" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.75" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="5" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_6_p1"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_6_p1" rank="6" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_6_1_2_MND1_ARATH_0_138_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="15.79" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="2.8" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="6" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_6_p2"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_6_p2" rank="6" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_6_2_2_MND1_ARATH_0_133_137" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="15.79" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="2.8" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="6" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_7_p1"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_7_p1" rank="7" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_7_1_2_MND1_ARATH_0_138_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="6.50" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="23" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="7" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_16_7_p2"  calculatedMassToCharge="838.747934333333" chargeState="3" experimentalMassToCharge="838.74764" peptide_ref="peptide_16_7_p2" rank="7" passThreshold="false">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_16_7_2_2_MND1_ARATH_0_133_137" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="6.50" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="23" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="7" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="false" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="33" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="1105" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="14092" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="4120.2851" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="13329: Scan 14092 (rt=4120.29) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_17" spectrumID="index=17847" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_17_1_p1"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_1_p1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_1_1_2_MND1_ARATH_0_133_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="53.51" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.00064" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="1" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_1_p2"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_1_p2" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_1_2_2_MND1_ARATH_0_224_230" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="53.51" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.00064" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="1" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_2_p1"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_2_p1" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_2_1_2_MND1_ARATH_0_133_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="52.29" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.00085" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_2_p2"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_2_p2" rank="2" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_2_2_2_MND1_ARATH_0_224_230" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="52.29" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.00085" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="2" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_3_p1"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_3_p1" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_3_1_2_MND1_ARATH_0_133_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="49.10" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0018" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_3_p2"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_3_p2" rank="3" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_3_2_2_MND1_ARATH_0_224_230" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="49.10" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0018" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="3" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_4_p1"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_4_p1" rank="4" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_4_1_2_MND1_ARATH_0_133_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="47.65" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0025" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="4" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_4_p2"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_4_p2" rank="4" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_4_2_2_MND1_ARATH_0_224_230" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="47.65" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0025" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="4" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_5_p1"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_5_p1" rank="5" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_5_1_2_MND1_ARATH_0_133_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="47.59" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0025" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="5" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_5_p2"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_5_p2" rank="5" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_5_2_2_MND1_ARATH_0_224_230" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="47.59" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0025" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="5" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_6_p1"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_6_p1" rank="6" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_6_1_2_MND1_ARATH_0_133_154" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="46.14" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0035" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="6" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <SpectrumIdentificationItem id="SII_17_6_p2"  calculatedMassToCharge="825.15684" chargeState="4" experimentalMassToCharge="825.15557" peptide_ref="peptide_17_6_p2" rank="6" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_17_6_2_2_MND1_ARATH_0_224_230" />
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="46.14" />
+            <cvParam accession="MS:1001172" name="Mascot:expectation value" cvRef="PSI-MS" value="0.0035" />
+            <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002511" cvRef="PSI-MS" value="6" name="crosslink spectrum identification item"/>
+            <cvParam accession="MS:1002500" cvRef="PSI-MS" value="true" name="peptide passes threshold"/>
+          </SpectrumIdentificationItem>
+          <cvParam accession="MS:1001371" name="Mascot:identity threshold"  cvRef="PSI-MS" value="34" />
+          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum"  cvRef="PSI-MS" value="1121" />
+          <cvParam accession="MS:1000797" name="peak list scans"  cvRef="PSI-MS" value="17887" />
+          <cvParam accession="MS:1000016" name="scan start time"  cvRef="PSI-MS" value="5146.8317" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          <cvParam accession="MS:1000796" name="spectrum title"  cvRef="PSI-MS" value="17848: Scan 17887 (rt=5146.83) [C:\Users\johnc\Downloads\xlink help page\20140603_QEx3_RSLC4_Rampler_Mechtler_IMP_shotgun_EDCMES12.raw]" />
+        </SpectrumIdentificationResult>
+      </SpectrumIdentificationList>
+      <ProteinDetectionList id="PDL_1">
+        <ProteinAmbiguityGroup id="PAG_hit_1" >
+          <ProteinDetectionHypothesis id="PDH_MND1_ARATH_0" dBSequence_ref="DBSeq_2_MND1_ARATH"  passThreshold="true">
+            <PeptideHypothesis peptideEvidence_ref="PE_1_1_2_MND1_ARATH_0_224_230">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_1_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_3_1_2_MND1_ARATH_0_168_176">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_3_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_4_1_2_MND1_ARATH_0_88_98">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_4_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_7_1_2_MND1_ARATH_0_48_61">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_7_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_7_2_2_MND1_ARATH_0_48_61">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_7_2" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_7_3_2_MND1_ARATH_0_48_61">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_7_3" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_8_1_2_MND1_ARATH_0_120_132">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_8_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_9_1_2_MND1_ARATH_0_120_132">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_9_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_10_1_2_MND1_ARATH_0_48_61">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_10_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_11_1_2_MND1_ARATH_0_138_155">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_11_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_12_1_2_MND1_ARATH_0_138_155">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_12_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_16_1_2_MND1_ARATH_0_133_154">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_16_1" />
+            </PeptideHypothesis>
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="806.097142857143" />
+            <cvParam accession="MS:1001097" name="distinct peptide sequences" cvRef="PSI-MS" value="12" />
+            <cvParam accession="MS:1002401" name="leading protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002403" name="group representative" cvRef="PSI-MS" />
+          </ProteinDetectionHypothesis>
+          <cvParam accession="MS:1002415" name="protein group passes threshold" cvRef="PSI-MS" value="true" />
+          <cvParam accession="MS:1002407" name="cluster identifier" cvRef="PSI-MS" value="1" />
+        </ProteinAmbiguityGroup>
+        <ProteinAmbiguityGroup id="PAG_hit_2" >
+          <ProteinDetectionHypothesis id="PDH_HOP2_ARATH_0" dBSequence_ref="DBSeq_2_HOP2_ARATH"  passThreshold="true">
+            <PeptideHypothesis peptideEvidence_ref="PE_2_1_2_HOP2_ARATH_0_45_54">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_2_1" />
+            </PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_5_1_2_HOP2_ARATH_0_100_110">
+              <SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_5_1" />
+            </PeptideHypothesis>
+            <cvParam accession="MS:1001171" name="Mascot:score" cvRef="PSI-MS" value="254.14" />
+            <cvParam accession="MS:1001097" name="distinct peptide sequences" cvRef="PSI-MS" value="5" />
+            <cvParam accession="MS:1002401" name="leading protein" cvRef="PSI-MS" />
+            <cvParam accession="MS:1002403" name="group representative" cvRef="PSI-MS" />
+          </ProteinDetectionHypothesis>
+          <cvParam accession="MS:1002415" name="protein group passes threshold" cvRef="PSI-MS" value="true" />
+          <cvParam accession="MS:1002407" name="cluster identifier" cvRef="PSI-MS" value="2" />
+        </ProteinAmbiguityGroup>
+            <cvParam accession="MS:1002404" name="count of identified proteins" cvRef="PSI-MS" value="2" />
+      </ProteinDetectionList>
+    </AnalysisData>
+  </DataCollection>
+  <BibliographicReference 
+    id="10.1002/(SICI)1522-2683(19991201)20:18&lt;3551::AID-ELPS3551&gt;3.0.CO;2-2"
+    authors="David N. Perkins, Darryl J. C. Pappin, David M. Creasy, John S. Cottrell"
+    editor="" 
+    title="Probability-based protein identification by searching sequence databases using mass spectrometry data"
+    name="Probability-based protein identification by searching sequence databases using mass spectrometry data"
+    publication="Electrophoresis" 
+    volume="20" 
+    issue="18" 
+    pages="3551-3567" 
+    publisher="Wiley VCH"
+    year="1999"
+    />
+</MzIdentML>

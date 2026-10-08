@@ -136,10 +136,10 @@ namespace OpenMS
      * \param value The value of this Dim to format
      * \return A formatted string, e.g. "RT: 45.32"
      */
-    String formattedValue(const ValueType value) const;
+    std::string formattedValue(const ValueType value) const;
 
     /// like formattedValue() but with a custom unit prefix instead of the default one for the dim, e.g. "myText: 45.32" 
-    String formattedValue(ValueType value, const String& prefix) const;
+    std::string formattedValue(ValueType value, const std::string& prefix) const;
 
     /// return the recommended precision for the current unit (2 digits for RT, 8 for m/z, etc)
     int valuePrecision() const;

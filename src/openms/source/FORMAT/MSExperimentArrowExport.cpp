@@ -10,6 +10,7 @@
 
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <arrow/api.h>
@@ -47,7 +48,7 @@ bool passesMSLevelFilter(const MSSpectrum& spec,
                          const std::unordered_set<UInt>& ms_levels_set)
 {
   if (ms_levels_set.empty()) return true;
-  return ms_levels_set.find(spec.getMSLevel()) != ms_levels_set.end();
+  return ms_levels_set.contains(spec.getMSLevel());
 }
 
 /// Get iterator range for RT-filtered spectra using binary search
@@ -223,7 +224,7 @@ std::shared_ptr<arrow::Table> buildLongFormatTable(
     // Get spectrum-level data once per spectrum
     float rt = static_cast<float>(spec.getRT());
     uint8_t ms_level = static_cast<uint8_t>(spec.getMSLevel());
-    const String& native_id = spec.getNativeID();
+    const std::string& native_id = spec.getNativeID();
 
     // Precursor info (null for MS1)
     bool has_precursor = !spec.getPrecursors().empty();
@@ -894,7 +895,7 @@ std::shared_ptr<arrow::Table> exportChromatogramsToArrow(
     {
       double prec_mz = chrom.getPrecursor().getMZ();
       double prod_mz = chrom.getProduct().getMZ();
-      const String& native_id = chrom.getNativeID();
+      const std::string& native_id = chrom.getNativeID();
 
       for (const auto& point : chrom)
       {
@@ -1205,7 +1206,7 @@ arrow::Compression::type toArrowCompression(ParquetWriteConfig::Compression comp
 /// Write an Arrow table to a Parquet file
 bool writeTableToParquet(
   const std::shared_ptr<arrow::Table>& table,
-  const String& filename,
+  const std::string& filename,
   const ParquetWriteConfig& config)
 {
   // Open output file
@@ -1259,20 +1260,33 @@ bool writeTableToParquet(
     arrow_properties
   );
 
+  // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+  // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+  // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+  // removing: on Windows an open handle blocks the unlink. (The Close was already checked here;
+  // only the removal was missing.)
+  const auto abandon = [&](const std::string& what)
+  {
+    OPENMS_LOG_ERROR << "ParquetExport: " << what << std::endl;
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ParquetExport: Failed to remove incomplete output " << filename
+                       << std::endl;
+    }
+    return false;
+  };
+
   if (!status.ok())
   {
-    OPENMS_LOG_ERROR << "ParquetExport: Failed to write Parquet file: "
-                     << status.ToString() << std::endl;
-    return false;
+    return abandon("Failed to write Parquet file: " + status.ToString());
   }
 
   // Close the file
   auto close_status = outfile->Close();
   if (!close_status.ok())
   {
-    OPENMS_LOG_ERROR << "ParquetExport: Failed to close file: "
-                     << close_status.ToString() << std::endl;
-    return false;
+    return abandon("Failed to close file: " + close_status.ToString());
   }
 
   return true;
@@ -1283,7 +1297,7 @@ bool writeTableToParquet(
 
 bool MSExperimentArrowExport::exportSpectraToParquet(
   const MSExperiment& exp,
-  const String& filename,
+  const std::string& filename,
   const ArrowSpectraExportConfig& config,
   const ParquetWriteConfig& parquet_config)
 {
@@ -1302,7 +1316,7 @@ bool MSExperimentArrowExport::exportSpectraToParquet(
 
 bool MSExperimentArrowExport::exportChromatogramsToParquet(
   const MSExperiment& exp,
-  const String& filename,
+  const std::string& filename,
   const ArrowChromatogramExportConfig& config,
   const ParquetWriteConfig& parquet_config)
 {

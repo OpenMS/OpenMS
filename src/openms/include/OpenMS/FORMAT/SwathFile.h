@@ -11,16 +11,31 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
 #include <memory>
+#include <limits>
 
 namespace OpenMS
 {
   class ExperimentalSettings;
+
+  /**
+    @brief One FAIMS compensation-voltage group represented as ordinary OpenSWATH maps.
+
+    @p faims_cv is the compensation voltage in volts. For non-FAIMS input it is NaN,
+    matching IMDataConverter::splitByFAIMSCV(). The individual SwathMap objects remain
+    unchanged and retain their normal DIA isolation-window semantics.
+  */
+  struct OPENMS_DLLAPI FAIMSSwathMapGroup
+  {
+    double faims_cv{std::numeric_limits<double>::quiet_NaN()};
+    std::vector<OpenSwath::SwathMap> swath_maps;
+  };
+
   namespace Interfaces
   {
     class IMSDataConsumer;
@@ -46,9 +61,9 @@ public:
 
     /// Loads a Swath run from a list of split mzML files
     std::vector<OpenSwath::SwathMap> loadSplit(StringList file_list,
-                                               const String& tmp,
+                                               const std::string& tmp,
                                                std::shared_ptr<ExperimentalSettings>& exp_meta, 
-                                               const String& readoptions = "normal");
+                                               const std::string& readoptions = "normal");
 
     /**
       @brief Loads a Swath run from a single mzML file
@@ -66,20 +81,62 @@ public:
       @param[in] plugin_consumer An intermediate custom consumer
       @return Swath maps for MS2 and MS1 (unless readoptions == split, which returns no data)
     */
-    std::vector<OpenSwath::SwathMap> loadMzML(const String& file, 
-                                              const String& tmp,
+    std::vector<OpenSwath::SwathMap> loadMzML(const std::string& file, 
+                                              const std::string& tmp,
                                               std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                              const String& readoptions = "normal",
+                                              const std::string& readoptions = "normal",
                                               Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
+    /**
+      @brief Loads a Swath run from a pre-loaded in-memory MSExperiment
+
+      Used when the input format does not have a streaming reader (e.g. Thermo .raw
+      via openms-thermo-bridge), so the full experiment has already been materialized.
+      Avoids the round-trip through a temporary mzML file.
+
+      @param[in] exp The pre-loaded experiment (must contain all spectra and metadata)
+      @param[in] tmp Temporary directory (used only for readoptions=="cache")
+      @param[out] exp_meta ExperimentalSettings extracted from @p exp
+      @param[in] readoptions "normal" (in-memory) or "cache" (disk-cached)
+      @return Swath maps for MS2 and MS1
+    */
+    std::vector<OpenSwath::SwathMap> loadFromMSExperiment(const std::shared_ptr<PeakMap>& exp,
+                                                          const std::string& tmp,
+                                                          std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                          const std::string& readoptions = "normal");
+
+    /**
+      @brief Partition a pre-loaded experiment once by FAIMS CV and convert each group to SWATH maps.
+
+      This is the FAIMS-aware adapter for in-memory inputs such as Thermo RAW data loaded through
+      ThermoRawFile. It reuses IMDataConverter::splitByFAIMSCV() for CV assignment and
+      loadFromMSExperiment() for the existing SWATH-window conversion. No FAIMS-specific state is
+      added to OpenSwath::SwathMap; the CV is carried by the enclosing FAIMSSwathMapGroup.
+
+      The input experiment is consumed. For non-FAIMS data, one group with a NaN CV is returned.
+      For single-CV FAIMS data, one group with that CV is returned. Multi-CV input produces one
+      group per exact compensation voltage.
+
+      @param[in,out] exp Pre-loaded experiment; spectra are moved into per-CV groups
+      @param[in] tmp Temporary directory (used only for readoptions=="cache")
+      @param[out] exp_meta Experimental metadata copied before @p exp is consumed
+      @param[in] readoptions "normal" (in-memory) or "cache" (disk-cached)
+      @return FAIMS CV groups containing ordinary OpenSWATH maps
+    */
+    std::vector<FAIMSSwathMapGroup> loadFromMSExperimentByFAIMSCV(
+      PeakMap&& exp,
+      const std::string& tmp,
+      std::shared_ptr<ExperimentalSettings>& exp_meta,
+      const std::string& readoptions = "normal");
+
     /// Loads a Swath run from a single mzXML file
-    std::vector<OpenSwath::SwathMap> loadMzXML(const String& file, 
-                                               const String& tmp,
+    std::vector<OpenSwath::SwathMap> loadMzXML(const std::string& file,
+                                               const std::string& tmp,
                                                std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                               const String& readoptions = "normal");
+                                               const std::string& readoptions = "normal");
 
     /// Loads a Swath run from a single sqMass file
-    std::vector<OpenSwath::SwathMap> loadSqMass(const String& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */);
+    std::vector<OpenSwath::SwathMap> loadSqMass(const std::string& file, std::shared_ptr<ExperimentalSettings>& /* exp_meta */);
 
 #ifdef WITH_OPENTIMS
     /**
@@ -91,24 +148,24 @@ public:
       @param[in] readoptions How spectra are accessed: "normal" (in-memory) or "cache" (disk-cached)
       @return Vector of SwathMap structures representing the loaded Swath maps
     */
-    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
-                                                    const String& tmp,
+    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const std::string& file,
+                                                    const std::string& tmp,
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                                    const String& readoptions);
+                                                    const std::string& readoptions);
 
     /// @brief Convenience overload: loads Bruker TDF in-memory (readoptions="normal")
-    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const String& file,
+    std::vector<OpenSwath::SwathMap> loadBrukerTdf(const std::string& file,
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta);
 #endif
 
 protected:
 
     /// Cache a file to disk
-    OpenSwath::SpectrumAccessPtr doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
+    OpenSwath::SpectrumAccessPtr doCacheFile_(const std::string& in, const std::string& tmp, const std::string& tmp_fname,
                                               const std::shared_ptr<PeakMap >& experiment_metadata);
 
     /// Only read the meta data from a file and use it to populate exp_meta
-    std::shared_ptr< PeakMap > populateMetaData_(const String& file);
+    std::shared_ptr< PeakMap > populateMetaData_(const std::string& file);
 
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
     void countScansInSwath_(const std::vector<MSSpectrum>& exp,

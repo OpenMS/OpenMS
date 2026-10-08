@@ -672,7 +672,7 @@ namespace OpenMS
       return centroided_frame;
     }
 
-    void removeAllFloatDataArraysExcept(OpenMS::MSSpectrum& spectrum, const String& keep_name)
+    void removeAllFloatDataArraysExcept(OpenMS::MSSpectrum& spectrum, const std::string& keep_name)
     {
       auto& float_arrays = spectrum.getFloatDataArrays();
   
@@ -1257,7 +1257,7 @@ namespace OpenMS
 
 #ifdef DEBUG_IM_PICKER
   // write out IM frame as RT/MZ for debugging purposes to test algorithm that yet don't support the IM dimension
-  MzMLFile().store("debug" + String(input.getRT()) + ".mzML", frame_as_spectra);
+  MzMLFile().store("debug" + StringUtils::toStr(input.getRT()) + ".mzML", frame_as_spectra);
 #endif
 
       if (frame_as_spectra.size() <= 3 ) return;

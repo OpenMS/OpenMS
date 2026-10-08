@@ -27,7 +27,7 @@ namespace OpenMS
       This class generates the same peak types as SimpleTSGXLMS
       and the interface is very similar, but it is more complex and slower.
       If the parameters add_metainfo and add_charges are set to true, it will
-      generate a StringDataArray for String annotations of ion types
+      generate a StringDataArray for std::string annotations of ion types
       and an IntegerDataArray for peak charges and add them to the DataArrays
       of the produced PeakSpectrum. The spectra from this class are mainly used
       for annotation of matched experimental spectra.
@@ -163,7 +163,7 @@ namespace OpenMS
        * @param[in] charge The charge of the ion
        * @param[in] ion_type Another cross-linking specific ion-type
        */
-      virtual void addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
+      virtual void addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, std::string ion_type) const;
 
       /**
        * @brief Adds precursor masses including neutral losses for the given charge and adds charge and ion name to the given DataArrays
@@ -190,7 +190,7 @@ namespace OpenMS
        * @param[in] ion_type Another cross-linking specific ion-type
        * @param[in] losses a set of LossMasses with which to modify the current ion
        */
-      virtual void addLinearIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, Residue::ResidueType res_type, Size frag_index, double intensity, int charge, String ion_type, LossIndex & losses) const;
+      virtual void addLinearIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, Residue::ResidueType res_type, Size frag_index, double intensity, int charge, std::string ion_type, LossIndex & losses) const;
 
       /**
        * @brief Adds losses for a cross-linked ion
@@ -204,7 +204,7 @@ namespace OpenMS
        * @param[in] ion_type Another cross-linking specific ion-type
        * @param[in] losses a set of LossMasses with which to modify the current ion
        */
-      virtual void addXLinkIonLosses_(PeakSpectrum& spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_type, LossIndex & losses) const;
+      virtual void addXLinkIonLosses_(PeakSpectrum& spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, std::string ion_type, LossIndex & losses) const;
 
       /**
        * @brief Adds one-residue-linked ion peaks, that are specific to XLMS
@@ -306,7 +306,7 @@ namespace OpenMS
       double pre_int_NH3_;
       bool add_k_linked_ions_;
 
-      std::map< String, LossIndex > loss_db_;
+      std::map< std::string, LossIndex > loss_db_;
       double loss_H2O_ = 0;
       double loss_NH3_ = 0;
   };

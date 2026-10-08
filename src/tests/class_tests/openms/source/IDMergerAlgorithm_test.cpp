@@ -160,7 +160,7 @@ START_TEST(IDMergerAlgorithm, "$Id$")
       TEST_EQUAL(pr2.size(),0)
       TEST_EQUAL(pe1.size(),0)
       TEST_EQUAL(pe2.size(),0)
-      TEST_EQUAL(prres.getIdentifier().hasPrefix("mymerge"), true)
+      TEST_EQUAL(StringUtils::hasPrefix(prres.getIdentifier(), "mymerge"), true)
       StringList toFill; prres.getPrimaryMSRunPath(toFill);
       TEST_EQUAL(toFill.size(), 2)
 
@@ -185,7 +185,7 @@ START_TEST(IDMergerAlgorithm, "$Id$")
           TEST_EXCEPTION(Exception::MissingInformation,ima.insertRuns(pr2, pe2))
 
           // check windows path with correct filename
-          String fn = "C:\\foo\\s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta";
+          std::string fn = "C:\\foo\\s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta";
           pr2[0].getSearchParameters().db = fn;
 
           ima.insertRuns(std::move(pr2), std::move(pe2));

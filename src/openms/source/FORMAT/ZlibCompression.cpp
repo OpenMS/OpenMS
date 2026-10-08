@@ -42,7 +42,7 @@ namespace OpenMS
       case Z_BUF_ERROR:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                       "Destination buffer too small for compressed output",
-                                      String(compressed_length));
+                                      StringUtils::toStr(compressed_length));
       default:
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error!");
     }
@@ -129,7 +129,7 @@ namespace OpenMS
     }
   }
 
-  void ZlibCompression::uncompressString(const String& in, std::string& out, size_t output_size)
+  void ZlibCompression::uncompressString(const std::string& in, std::string& out, size_t output_size)
   {
     uncompressData(in.data(), in.size(), out, output_size);
   }

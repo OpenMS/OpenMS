@@ -88,14 +88,14 @@ START_SECTION((InstrumentSettings(const InstrumentSettings& source)))
   tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
   tmp.getScanWindows().resize(1);
   tmp.setPolarity(IonSource::Polarity::NEGATIVE);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",std::string("label"));
 	tmp.setZoomScan(true);
 
   InstrumentSettings tmp2(tmp);
   TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::NEGATIVE);  
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");  
 	TEST_EQUAL(tmp2.getZoomScan(),true);
 END_SECTION
 
@@ -104,7 +104,7 @@ START_SECTION((InstrumentSettings& operator= (const InstrumentSettings& source))
   tmp.setScanMode(InstrumentSettings::ScanMode::SIM);
   tmp.getScanWindows().resize(1);
   tmp.setPolarity(IonSource::Polarity::NEGATIVE);
-  tmp.setMetaValue("label",String("label"));
+  tmp.setMetaValue("label",std::string("label"));
 	tmp.setZoomScan(true);
 
   InstrumentSettings tmp2;
@@ -112,7 +112,7 @@ START_SECTION((InstrumentSettings& operator= (const InstrumentSettings& source))
   TEST_EQUAL(tmp2.getScanMode(),InstrumentSettings::ScanMode::SIM);
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::Polarity::NEGATIVE);  
-  TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+  TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getZoomScan(),true);
   
   tmp2 = InstrumentSettings();
@@ -140,7 +140,7 @@ START_SECTION((bool operator== (const InstrumentSettings& rhs) const))
 	TEST_EQUAL(edit==empty,false);
 	
 	edit = empty;
-	edit.setMetaValue("label",String("label"));
+	edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit==empty,false);
 
 	edit = empty;
@@ -165,7 +165,7 @@ START_SECTION((bool operator!= (const InstrumentSettings& rhs) const))
 	TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;
-	edit.setMetaValue("label",String("label"));
+	edit.setMetaValue("label",std::string("label"));
 	TEST_EQUAL(edit!=empty,true);
 
 	edit = empty;

@@ -112,7 +112,7 @@ namespace OpenMS
     return *this;
   }
 
-  UInt MetaInfoRegistry::registerName(const String& name, const String& description, const String& unit)
+  UInt MetaInfoRegistry::registerName(const std::string& name, const std::string& description, const std::string& unit)
   {
     UInt rv;
 #pragma omp critical (MetaInfoRegistry)
@@ -134,7 +134,7 @@ namespace OpenMS
     return rv;
   }
 
-  void MetaInfoRegistry::setDescription(UInt index, const String& description)
+  void MetaInfoRegistry::setDescription(UInt index, const std::string& description)
   {
     MapIndex2StringType::iterator pos;
 #pragma omp critical (MetaInfoRegistry)
@@ -146,12 +146,12 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!",StringUtils::toStr(index));
       }
     }
   }
 
-  void MetaInfoRegistry::setDescription(const String& name, const String& description)
+  void MetaInfoRegistry::setDescription(const std::string& name, const std::string& description)
   {
     MapString2IndexType::iterator pos;
 #pragma omp critical (MetaInfoRegistry)
@@ -168,7 +168,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoRegistry::setUnit(UInt index, const String& unit)
+  void MetaInfoRegistry::setUnit(UInt index, const std::string& unit)
   {
     MapIndex2StringType::iterator pos;
 #pragma omp critical (MetaInfoRegistry)
@@ -180,12 +180,12 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!",StringUtils::toStr(index));
       }
     }
   }
 
-  void MetaInfoRegistry::setUnit(const String& name, const String& unit)
+  void MetaInfoRegistry::setUnit(const std::string& name, const std::string& unit)
   {
     MapString2IndexType::iterator pos;
 #pragma omp critical (MetaInfoRegistry)
@@ -202,7 +202,7 @@ namespace OpenMS
     }
   }
 
-  UInt MetaInfoRegistry::getIndex(const String& name) const
+  UInt MetaInfoRegistry::getIndex(const std::string& name) const
   {
     UInt rv = UInt(-1);
 #pragma omp critical (MetaInfoRegistry)
@@ -216,24 +216,24 @@ namespace OpenMS
     return rv;
   }
 
-  String MetaInfoRegistry::getDescription(UInt index) const
+  std::string MetaInfoRegistry::getDescription(UInt index) const
   {
-    String result;
+    std::string result;
 #pragma omp critical (MetaInfoRegistry)
     {
       MapIndex2StringType::const_iterator it = index_to_description_.find(index);
       if (it == index_to_description_.end())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!",StringUtils::toStr(index));
       }
       result = it->second;
     }
     return result;
   }
 
-  String MetaInfoRegistry::getDescription(const String& name) const
+  std::string MetaInfoRegistry::getDescription(const std::string& name) const
   {
-    String rv;
+    std::string rv;
     UInt index = getIndex(name); // this has to be outside the OpenMP "critical" block!
     if (index == UInt(-1)) // not found
     {
@@ -249,24 +249,24 @@ namespace OpenMS
     return rv;
   }
 
-  String MetaInfoRegistry::getUnit(UInt index) const
+  std::string MetaInfoRegistry::getUnit(UInt index) const
   {
-    String result;
+    std::string result;
 #pragma omp critical (MetaInfoRegistry)
     {
       MapIndex2StringType::const_iterator it = index_to_unit_.find(index);
       if (it == index_to_unit_.end())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!",StringUtils::toStr(index));
       }
       result = it->second;
     }
     return result;
   }
 
-  String MetaInfoRegistry::getUnit(const String& name) const
+  std::string MetaInfoRegistry::getUnit(const std::string& name) const
   {
-    String rv;
+    std::string rv;
     UInt index = getIndex(name); // this has to be outside the OpenMP "critical" block!
     if (index == UInt(-1)) // not found
     {
@@ -282,9 +282,9 @@ namespace OpenMS
     return rv;
   }
 
-  String MetaInfoRegistry::getName(UInt index) const
+  std::string MetaInfoRegistry::getName(UInt index) const
   {
-    String rv;
+    std::string rv;
 #pragma omp critical (MetaInfoRegistry)
     {
       MapIndex2StringType::const_iterator it = index_to_name_.find(index);
@@ -294,7 +294,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!",StringUtils::toStr(index));
       }
     }
     return rv;

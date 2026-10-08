@@ -10,19 +10,25 @@
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
+#include <cctype>
 #include <map>
 #include <fstream>
+#include <type_traits>
 
 using namespace std;
 
 namespace OpenMS::Internal
 {
-  ConsensusXMLHandler::ConsensusXMLHandler(ConsensusMap& map, const String& filename) :
+  ConsensusXMLHandler::ConsensusXMLHandler(ConsensusMap& map, const std::string& filename) :
     XMLHandler("", "1.7"),
     ProgressLogger(),
     act_cons_element_(),
@@ -32,7 +38,7 @@ namespace OpenMS::Internal
     file_ = filename;
   }
 
-  ConsensusXMLHandler::ConsensusXMLHandler(const ConsensusMap& map, const String& filename) :
+  ConsensusXMLHandler::ConsensusXMLHandler(const ConsensusMap& map, const std::string& filename) :
     XMLHandler("", "1.7"),
     ProgressLogger(),
     act_cons_element_(),
@@ -59,9 +65,9 @@ namespace OpenMS::Internal
     return options_;
   }
 
-  void ConsensusXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void ConsensusXMLHandler::onEndElement(const char16_t* qname)
   {
-    String tag = sm_.convert(qname);
+    std::string tag = sm_.convert(qname);
     open_tags_.pop_back();
 
     if (tag == "consensusElement")
@@ -86,6 +92,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "SearchParameters")
     {
+      ModificationDefinitionIO::registerFrom(search_param_); // before any peptide sequence is parsed
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }
@@ -126,31 +133,31 @@ namespace OpenMS::Internal
     }
   }
 
-  void ConsensusXMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
+  void ConsensusXMLHandler::onCharacters(const char16_t* /*chars*/, Size /*length*/)
   {
   }
 
-  void ConsensusXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void ConsensusXMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
   {
-    const String& parent_tag = (open_tags_.empty() ? "" : open_tags_.back());
+    const std::string& parent_tag = (open_tags_.empty() ? "" : open_tags_.back());
     open_tags_.push_back(sm_.convert(qname));
-    const String& tag = open_tags_.back();
+    const std::string& tag = open_tags_.back();
 
-    String tmp_str;
+    std::string tmp_str;
     if (tag == "map")
     {
       setProgress(++progress_);
       Size last_map = attributeAsInt_(attributes, "id");
       last_meta_ = &consensus_map_->getColumnHeaders()[last_map];
       consensus_map_->getColumnHeaders()[last_map].filename = attributeAsString_(attributes, "name");
-      String unique_id;
+      std::string unique_id;
       if (XMLHandler::optionalAttributeAsString_(unique_id, attributes, "unique_id"))
       {
         UniqueIdInterface tmp;
         tmp.setUniqueId(unique_id);
         consensus_map_->getColumnHeaders()[last_map].unique_id = tmp.getUniqueId();
       }
-      String label;
+      std::string label;
       if (XMLHandler::optionalAttributeAsString_(label, attributes, "label"))
       {
         consensus_map_->getColumnHeaders()[last_map].label = label;
@@ -248,24 +255,24 @@ namespace OpenMS::Internal
       progress_ = 0;
       setProgress(++progress_);
       //check file version against schema version
-      String file_version = "";
+      std::string file_version;
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version.empty())
       {
         file_version = "1.0"; //default version is 1.0
       }
-      if (file_version.toDouble() > version_.toDouble())
+      if (StringUtils::toDouble(file_version) > StringUtils::toDouble(version_))
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
       }
       // handle document id
-      String document_id;
+      std::string document_id;
       if (optionalAttributeAsString_(document_id, attributes, "document_id"))
       {
         consensus_map_->setIdentifier(document_id);
       }
       // handle unique id
-      String unique_id;
+      std::string unique_id;
       if (optionalAttributeAsString_(unique_id, attributes, "id"))
       {
         consensus_map_->setUniqueId(unique_id);
@@ -276,7 +283,7 @@ namespace OpenMS::Internal
         consensus_map_->setUniqueId(unique_id);
       }
       //handle experiment type
-      String experiment_type;
+      std::string experiment_type;
       if (optionalAttributeAsString_(experiment_type, attributes, "experiment_type"))
       {
         consensus_map_->setExperimentType(experiment_type);
@@ -287,11 +294,11 @@ namespace OpenMS::Internal
     {
       if (last_meta_ == nullptr)
       {
-        fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
+        fatalError(LOAD,std::string("Unexpected UserParam in tag '") + parent_tag + "'");
       }
 
-      String name = attributeAsString_(attributes, "name");
-      String type = attributeAsString_(attributes, "type");
+      std::string name = attributeAsString_(attributes, "name");
+      std::string type = attributeAsString_(attributes, "type");
 
       if (type == "int")
       {
@@ -315,11 +322,11 @@ namespace OpenMS::Internal
       }
       else if (type == "string")
       {
-        last_meta_->setMetaValue(name, (String) attributeAsString_(attributes, "value"));
+        last_meta_->setMetaValue(name, (std::string) attributeAsString_(attributes, "value"));
       }
       else
       {
-        fatalError(LOAD, String("Invalid UserParam type '") + type + "'");
+        fatalError(LOAD,std::string("Invalid UserParam type '") + type + "'");
       }
     }
     else if (tag == "IdentificationRun")
@@ -334,13 +341,13 @@ namespace OpenMS::Internal
       // If these FeatureMaps have identical identifiers (SearchEngine time + type match exactly), then ALL PepIDs would be falsely attributed
       // to a single ProtID...
 
-      String id = attributeAsString_(attributes, "id");
+      std::string id = attributeAsString_(attributes, "id");
       while (true)
       { // loop until the identifier is unique (should be on the first iteration -- very(!) unlikely it will not be unique)
         // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
-        String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
+        std::string identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
 
-        if (id_identifier_.find(id) == id_identifier_.end())
+        if (!id_identifier_.contains(id))
         {
           prot_id_.setIdentifier(identifier);
           id_identifier_[id] = identifier;
@@ -357,15 +364,15 @@ namespace OpenMS::Internal
       search_param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(search_param_.missed_cleavages, attributes, "missed_cleavages");
       search_param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
-      String peak_unit;
+      std::string peak_unit;
       optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
       search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
       search_param_.precursor_mass_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
-      String precursor_unit;
+      std::string precursor_unit;
       optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
       search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
       //mass type
-      String mass_type = attributeAsString_(attributes, "mass_type");
+      std::string mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
       {
         search_param_.mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
@@ -375,7 +382,7 @@ namespace OpenMS::Internal
         search_param_.mass_type = ProteinIdentification::PeakMassType::AVERAGE;
       }
       //enzyme
-      String enzyme;
+      std::string enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme))
       {
@@ -416,7 +423,7 @@ namespace OpenMS::Internal
     {
       setProgress(++progress_);
       prot_hit_ = ProteinHit();
-      String accession = attributeAsString_(attributes, "accession");
+      std::string accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
 
@@ -427,7 +434,7 @@ namespace OpenMS::Internal
       }
 
       //sequence
-      String tmp = "";
+      std::string tmp;
       optionalAttributeAsString_(tmp, attributes, "sequence");
       prot_hit_.setSequence(tmp);
 
@@ -438,10 +445,10 @@ namespace OpenMS::Internal
     }
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
-      String id = attributeAsString_(attributes, "identification_run_ref");
-      if (id_identifier_.find(id) == id_identifier_.end())
+      std::string id = attributeAsString_(attributes, "identification_run_ref");
+      if (!id_identifier_.contains(id))
       {
-        warning(LOAD, String("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
+        warning(LOAD,std::string("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
       }
       pep_id_.setIdentifier(id_identifier_[id]);
 
@@ -466,7 +473,7 @@ namespace OpenMS::Internal
         pep_id_.setRT(rt);
       }
 
-      if (String ref; optionalAttributeAsString_(ref, attributes, "spectrum_reference"))
+      if (std::string ref; optionalAttributeAsString_(ref, attributes, "spectrum_reference"))
       {
         pep_id_.setSpectrumReference( ref);
       }
@@ -480,24 +487,23 @@ namespace OpenMS::Internal
       peptide_evidences_ = vector<PeptideEvidence>();
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
+      pep_hit_.setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
-      if (refs != nullptr)
+      std::string accession_string;
+      if (optionalAttributeAsString_(accession_string, attributes, "protein_refs"))
       {
-        String accession_string = sm_.convert(refs);
-        accession_string.trim();
-        vector<String> accessions;
-        accession_string.split(' ', accessions);
+        StringUtils::trim(accession_string);
+        vector<std::string> accessions;
+        StringUtils::split(accession_string, ' ', accessions);
         if (!accession_string.empty() && accessions.empty())
         {
           accessions.push_back(std::move(accession_string));
         }
 
-        for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
+        for (vector<std::string>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<std::string, std::string>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -506,17 +512,17 @@ namespace OpenMS::Internal
           }
           else
           {
-            fatalError(LOAD, String("Invalid protein reference '") + *it + "'");
+            fatalError(LOAD,std::string("Invalid protein reference '") + *it + "'");
           }
         }
       }
 
       //aa_before
-      String tmp; 
-      std::vector<String> splitted;
+      std::string tmp; 
+      std::vector<std::string> splitted;
       if (optionalAttributeAsString_(tmp, attributes, "aa_before"))
       {
-        tmp.split(' ', splitted);
+        StringUtils::split(tmp, ' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
           if (peptide_evidences_.size() < i + 1) 
@@ -530,7 +536,7 @@ namespace OpenMS::Internal
       //aa_after
       if (optionalAttributeAsString_(tmp, attributes, "aa_after"))
       {
-        tmp.split(' ', splitted);
+        StringUtils::split(tmp, ' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
           if (peptide_evidences_.size() < i + 1) 
@@ -544,28 +550,28 @@ namespace OpenMS::Internal
       //start
       if (optionalAttributeAsString_(tmp, attributes, "start"))
       {
-        tmp.split(' ', splitted);
+        StringUtils::split(tmp, ' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
             peptide_evidences_.emplace_back();
           }
-          peptide_evidences_[i].setStart(splitted[i].toInt());
+          peptide_evidences_[i].setStart(StringUtils::toInt32(splitted[i]));
         }
       }
 
       //end
       if (optionalAttributeAsString_(tmp, attributes, "end"))
       {
-        tmp.split(' ', splitted);
+        StringUtils::split(tmp, ' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
             peptide_evidences_.emplace_back();
           }
-          peptide_evidences_[i].setEnd(splitted[i].toInt());
+          peptide_evidences_[i].setEnd(StringUtils::toInt32(splitted[i]));
         }
       }
 
@@ -586,7 +592,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "processingAction" && parent_tag == "dataProcessing")
     {
-      String name = attributeAsString_(attributes, "name");
+      std::string name = attributeAsString_(attributes, "name");
       for (Size i = 0; i < DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
       {
         if (name == DataProcessing::NamesOfProcessingAction[i])
@@ -653,19 +659,24 @@ namespace OpenMS::Internal
     // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
     checkUniqueIdentifiers_(consensus_map.getProteinIdentifications());
 
+    const auto definitions = ModificationDefinitionIO::collect(consensus_map);
     for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
     {
       setProgress(++progress_);
       const ProteinIdentification& current_prot_id = consensus_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
-      identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
+      identifier_id_[current_prot_id.getIdentifier()] =std::string("PI_") + i;
       os << "date=\"" << current_prot_id.getDateTime().getDate() << "T" << current_prot_id.getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(current_prot_id.getSearchEngine()) << "\" ";
       os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
+      ProteinIdentification::SearchParameters search_param = current_prot_id.getSearchParameters();
+      if (const auto d = definitions.find(current_prot_id.getIdentifier()); d != definitions.end())
+      {
+        ModificationDefinitionIO::attach(search_param, d->second);
+      }
       os << "\t\t<SearchParameters " << "db=\"" << search_param.db << "\" " << "db_version=\"" << search_param.db_version << "\" " << "taxonomy=\""
          << search_param.taxonomy << "\" ";
       if (search_param.mass_type == ProteinIdentification::PeakMassType::MONOISOTOPIC)
@@ -677,10 +688,10 @@ namespace OpenMS::Internal
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << search_param.charges << "\" ";
-      String enzyme_name = search_param.digestion_enzyme.getName();
-      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
-      String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
-      String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
+      std::string enzyme_name = search_param.digestion_enzyme.getName();
+      os << "enzyme=\"" << StringUtils::toLower(enzyme_name) << "\" ";
+      std::string precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
+      std::string peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
 
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
          << "precursor_peak_tolerance=\"" << search_param.precursor_mass_tolerance << "\" ";
@@ -825,14 +836,14 @@ namespace OpenMS::Internal
     endProgress();
   }
 
-  void ConsensusXMLHandler::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name,
+  void ConsensusXMLHandler::writePeptideIdentification_(const std::string& filename, std::ostream& os, const PeptideIdentification& id, const std::string& tag_name,
                                                 UInt indentation_level)
   {
-    String indent = String(indentation_level, '\t');
+    std::string indent(indentation_level, '\t');
 
-    if (identifier_id_.find(id.getIdentifier()) == identifier_id_.end())
+    if (!identifier_id_.contains(id.getIdentifier()))
     {
-      warning(STORE, String("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier()
+      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier()
               + "' while writing '" + filename + "'!");
       return;
     }
@@ -872,20 +883,20 @@ namespace OpenMS::Internal
       IdXMLFile::createFlankingAAXMLString_(pes, os);
       IdXMLFile::createPositionXMLString_(pes, os);
 
-      String accs;
+      std::string accs;
       for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
       {
         if (!accs.empty())
         {
           accs += " ";
         }
-        String protein_accession = pe->getProteinAccession();
+        std::string protein_accession = pe->getProteinAccession();
 
         // empty accessions are not written out (legacy code)
         if (!protein_accession.empty())
         {
           accs += "PH_";
-          accs += String(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
+          accs +=StringUtils::toStr(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
         }
       }
 
@@ -909,19 +920,314 @@ namespace OpenMS::Internal
     os << indent << "</" << tag_name << ">\n";
   }
 
+  namespace
+  {
+    /**
+      @brief Encoding of ProteinIdentification::ProteinGroup data arrays as UserParam metavalues.
+
+      Protein groups themselves have long been flattened into a single string metavalue per group,
+      named "GROUPNAME_INDEX" and holding "probability,PH_0,PH_1,...". Their data arrays - which is
+      where PeptideAndProteinQuant stores protein abundances - had no representation at all and were
+      dropped on store. This adds one typed list metavalue per data array, named after the group entry
+      it belongs to, e.g.
+
+      @code
+      <UserParam type="string"    name="indistinguishable_proteins_0"            value="0.98,PH_0,PH_1"/>
+      <UserParam type="floatList" name="indistinguishable_proteins_0_fraction_group_level_abundance" value="[1.2,3.4]"/>
+      @endcode
+
+      UserParam is already unbounded inside @p ProteinIdentificationType and @p intList / @p floatList /
+      @p stringList are already valid UserParam types, so no schema change is needed and older readers
+      still load the file.
+    */
+    struct ProteinGroupQuant
+    {
+      /**
+        PeptideAndProteinQuant lays the non-abundance arrays out in this fixed order. The explicit
+        fraction-group/label arrays are the quantified-group marker and are consumed by name; they
+        are appended only when present so a round trip cannot invent a marker for legacy data.
+      */
+      static const StringList& canonicalFloatNames()
+      {
+        static const StringList names {"psm_count", "distinct_peptides", "file_channel_level_abundance"};
+        return names;
+      }
+      /// Float-array order used by files that still carry the removed sample-abundance grain
+      static const StringList& legacyCanonicalFloatNames()
+      {
+        static const StringList names {"abundances", "psm_count", "distinct_peptides", "file_channel_level_abundance"};
+        return names;
+      }
+      static const StringList& canonicalStringNames()
+      {
+        static const StringList names {"file_channel_level_filename", "file_level_filename"};
+        return names;
+      }
+      static const StringList& canonicalIntegerNames()
+      {
+        static const StringList names {"file_channel_level_channel", "file_level_psm_count"};
+        return names;
+      }
+
+      /// Suffix of the metavalue recording which protein hits the quantities belong to (see addQuantMetaValues())
+      static const std::string& refSuffix()
+      {
+        static const std::string suffix {"_quantified_proteins"};
+        return suffix;
+      }
+
+      /**
+        @brief True if @p array carries no information worth writing out.
+
+        "psm_count" and "distinct_peptides" are empty in every newly quantified group because
+        PeptideData::psm_counts is never populated. Legacy groups can still carry zero-filled
+        versions of these arrays; writing them would only add columns of zeros. The value check
+        makes them start being written automatically once counts are populated.
+
+        Every other non-empty array is written, in particular the three parallel
+        fraction-group/label arrays. They are the explicit quantified-group marker and must survive
+        even when every abundance is zero. For a legacy group, "abundances" is still preserved as
+        data, but it no longer gates mzTab or QPX output.
+      */
+      template <typename ArrayT>
+      static bool isRedundant(const ArrayT& array)
+      {
+        if (array.empty() || array.getName().empty()) { return true; }
+        if constexpr (std::is_arithmetic_v<typename ArrayT::value_type>)
+        {
+          if (array.getName() != "psm_count" && array.getName() != "distinct_peptides") { return false; }
+          return std::all_of(array.begin(), array.end(), [](auto v) { return v == 0; });
+        }
+        return false;
+      }
+
+      /// Writes one typed list metavalue per non-redundant data array of @p group. No-op for groups without any.
+      static void addQuantMetaValues(MetaInfoInterface& meta, const ProteinIdentification::ProteinGroup& group,
+                                     const std::string& group_key)
+      {
+        bool wrote_any = false;
+
+        for (const auto& fda : group.getFloatDataArrays())
+        {
+          if (isRedundant(fda)) { continue; }
+          meta.setMetaValue(group_key + "_" + fda.getName(), DoubleList(fda.begin(), fda.end()));
+          wrote_any = true;
+        }
+        for (const auto& ida : group.getIntegerDataArrays())
+        {
+          if (isRedundant(ida)) { continue; }
+          meta.setMetaValue(group_key + "_" + ida.getName(), IntList(ida.begin(), ida.end()));
+          wrote_any = true;
+        }
+        for (const auto& sda : group.getStringDataArrays())
+        {
+          if (isRedundant(sda)) { continue; }
+          meta.setMetaValue(group_key + "_" + sda.getName(), StringList(sda.begin(), sda.end()));
+          wrote_any = true;
+        }
+
+        // The group index is part of the key, so a tool that filters or renumbers groups without
+        // knowing about these params leaves them pointing at the wrong group. Recording the members
+        // they were computed for lets the reader notice and discard them instead of mis-attributing.
+        //
+        // This records ACCESSIONS, not the "PH_<n>" references the group itself is stored with: those
+        // are positional indices into the protein hit list, reassigned on every store. Dropping a
+        // leading protein hit together with its group shifts the PH_ numbers and the group indices by
+        // the same amount, so a PH_-based guard still matches and the check silently passes on exactly
+        // the renumbering it exists to catch. Accessions are stable under both.
+        if (wrote_any)
+        {
+          meta.setMetaValue(group_key + refSuffix(), StringList(group.accessions.begin(), group.accessions.end()));
+        }
+      }
+
+      /**
+        @brief Moves every metavalue this encoding owns out of @p meta, in a single pass.
+
+        The caller then works on the returned map. Reading and erasing the entries directly on @p meta
+        once per group is quadratic in the group count: MetaInfoInterface is backed by a flat_map, so
+        every erase memmoves the tail and every key enumeration allocates one std::string per metavalue.
+
+        Owned means the base entry "GROUPNAME_INDEX" and its quantity entries "GROUPNAME_INDEX_NAME";
+        anything else on the ProteinIdentification is left untouched.
+      */
+      static std::map<std::string, DataValue> extractGroupMetaValues(MetaInfoInterface& meta, const std::string& group_name)
+      {
+        std::vector<std::string> keys;
+        meta.getKeys(keys);
+
+        std::map<std::string, DataValue> owned;
+        std::vector<std::pair<std::string, DataValue>> kept;
+        kept.reserve(keys.size());
+        for (const std::string& key : keys)
+        {
+          if (isGroupKey(key, group_name)) { owned.emplace(key, meta.getMetaValue(key)); }
+          else { kept.emplace_back(key, meta.getMetaValue(key)); }
+        }
+        if (owned.empty()) { return owned; } // nothing to do - do not disturb the metavalues at all
+
+        // Rebuilding beats erasing one by one. Order is restored exactly: the flat_map is sorted by
+        // MetaInfoRegistry index, which is a property of the name and does not change on re-insert.
+        meta.clearMetaInfo();
+        for (auto& [key, value] : kept) { meta.setMetaValue(key, std::move(value)); }
+        return owned;
+      }
+
+      /// True if @p key is the base entry or a quantity entry of some group of @p group_name
+      static bool isGroupKey(const std::string& key, const std::string& group_name)
+      {
+        const std::string prefix = group_name + "_";
+        if (key.compare(0, prefix.size(), prefix) != 0) { return false; }
+        const std::string rest = key.substr(prefix.size());
+        const auto sep = rest.find('_');
+        const auto digits_end = (sep == std::string::npos) ? rest.size() : sep;
+        if (digits_end == 0) { return false; }
+        return std::all_of(rest.begin(), rest.begin() + digits_end, [](unsigned char c) { return std::isdigit(c); });
+      }
+
+      /**
+        @brief Restores the data arrays of @p group from @p owned, consuming the entries it uses.
+
+        @return false if quantities were present but belong to a different set of proteins than @p group
+                (they are dropped in that case, and @p group is left without data arrays).
+      */
+      static bool getQuantMetaValues(std::map<std::string, DataValue>& owned, ProteinIdentification::ProteinGroup& group,
+                                     const std::string& group_key)
+      {
+        const std::string prefix = group_key + "_";
+        // the entries of this group are a contiguous run in the ordered map
+        auto first = owned.lower_bound(prefix);
+        auto last = first;
+        while (last != owned.end() && last->first.compare(0, prefix.size(), prefix) == 0) { ++last; }
+
+        auto ref_it = owned.find(group_key + refSuffix());
+        if (ref_it == owned.end())
+        {
+          owned.erase(owned.find(group_key)); // consume the base entry, nothing else to restore
+          return true;
+        }
+
+        const bool matches = ref_it->second.toStringList() == group.accessions;
+        std::map<std::string, DoubleList> floats;
+        std::map<std::string, IntList> integers;
+        std::map<std::string, StringList> strings;
+        if (matches)
+        {
+          for (auto it = first; it != last; ++it)
+          {
+            if (it == ref_it) { continue; } // the ownership record, not a data array
+            const std::string array_name = it->first.substr(prefix.size());
+            switch (it->second.valueType())
+            {
+              case DataValue::DOUBLE_LIST: floats[array_name] = it->second.toDoubleList(); break;
+              case DataValue::INT_LIST: integers[array_name] = it->second.toIntList(); break;
+              case DataValue::STRING_LIST: strings[array_name] = it->second.toStringList(); break;
+              default: break; // the reference entry itself, or something we did not write
+            }
+          }
+        }
+        owned.erase(first, last);
+        owned.erase(owned.find(group_key));
+        if (!matches) { return false; }
+
+        if (floats.empty() && integers.empty() && strings.empty()) { return true; }
+
+        const bool has_legacy_sample_abundances = floats.contains("abundances");
+        fillCanonical(group.getFloatDataArrays(),
+                      has_legacy_sample_abundances ? legacyCanonicalFloatNames() : canonicalFloatNames(),
+                      floats);
+        fillCanonical(group.getIntegerDataArrays(), canonicalIntegerNames(), integers);
+        fillCanonical(group.getStringDataArrays(), canonicalStringNames(), strings);
+
+        // Legacy files used sample abundances as the length anchor for two omitted all-zero count
+        // arrays. Preserve that old in-memory shape without making new assay-only files depend on it.
+        if (has_legacy_sample_abundances)
+        {
+          const Size n_samples = group.getFloatDataArrays()[0].size();
+          for (Size i = 1; i <= 2; ++i)
+          {
+            if (group.getFloatDataArrays()[i].empty()) { group.getFloatDataArrays()[i].resize(n_samples, 0.0f); }
+          }
+        }
+        return true;
+      }
+
+      /// Places each parsed array into its canonical slot, appending any array with an unknown name
+      template <typename ArraysT, typename ValuesT>
+      static void fillCanonical(ArraysT& arrays, const StringList& canonical_names, const std::map<std::string, ValuesT>& parsed)
+      {
+        using ArrayT = typename ArraysT::value_type;
+        arrays.clear();
+        arrays.resize(canonical_names.size());
+        for (Size i = 0; i < canonical_names.size(); ++i)
+        {
+          arrays[i].setName(canonical_names[i]);
+          if (auto it = parsed.find(canonical_names[i]); it != parsed.end())
+          {
+            arrays[i].assign(it->second.begin(), it->second.end());
+          }
+        }
+        for (const auto& [name, values] : parsed)
+        {
+          if (ListUtils::contains(canonical_names, name)) { continue; }
+          ArrayT extra;
+          extra.setName(name);
+          extra.assign(values.begin(), values.end());
+          arrays.push_back(std::move(extra));
+        }
+      }
+
+      /**
+        @brief Removes quantity metavalues so they cannot be re-attached to the wrong group.
+
+        With @p exact_group, only those of the single group entry @p key are removed; otherwise @p key is
+        treated as a group name and the entries of all its groups are removed. The base
+        "GROUPNAME_INDEX" entries are never touched.
+      */
+      static void removeQuantMetaValues(MetaInfoInterface& meta, const std::string& key, bool exact_group = false)
+      {
+        std::vector<std::string> meta_keys;
+        meta.getKeys(meta_keys);
+        for (const std::string& meta_key : meta_keys)
+        {
+          if (isQuantKey(meta_key, key, exact_group)) { meta.removeMetaValue(meta_key); }
+        }
+      }
+
+      /// True if @p meta_key is a quantity entry of group entry (@p exact_group) resp. group name @p key
+      static bool isQuantKey(const std::string& meta_key, const std::string& key, bool exact_group)
+      {
+        const std::string prefix = key + "_";
+        if (meta_key.compare(0, prefix.size(), prefix) != 0) { return false; }
+        if (exact_group) { return true; }
+        // "<group_name>_<index>_<array name>": require the index, so base entries are kept
+        const std::string rest = meta_key.substr(prefix.size());
+        const auto sep = rest.find('_');
+        if (sep == std::string::npos || sep == 0) { return false; }
+        return std::all_of(rest.begin(), rest.begin() + sep, [](unsigned char c) { return std::isdigit(c); });
+      }
+    };
+  } // namespace
+
   void ConsensusXMLHandler::addProteinGroups_(
       MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
-      const String& group_name, const std::unordered_map<string, UInt>& accession_to_id, const String& runid,
+      const std::string& group_name, const std::unordered_map<string, UInt>& accession_to_id, const std::string& runid,
       XMLHandler::ActionMode mode)
   {
+    // A map that was loaded from a file written by a version that does not know the quantity params
+    // carries them along as ordinary metavalues, with indices that no longer match if the groups were
+    // filtered or renumbered in between. Drop them all; everything written below is regenerated from
+    // the in-memory data arrays.
+    ProteinGroupQuant::removeQuantMetaValues(meta, group_name);
+
     for (Size g = 0; g < groups.size(); ++g)
     {
-      String name = group_name + "_" + String(g);
+      std::string name = group_name + "_" + StringUtils::toStr(g);
       if (meta.metaValueExists(name))
       {
-        warning(mode, String("Metavalue '") + name + "' already exists. Overwriting...");
+        warning(mode,std::string("Metavalue '") + name + "' already exists. Overwriting...");
       }
-      String accessions;
+      std::string accessions;
       for (StringList::const_iterator acc_it = groups[g].accessions.begin();
            acc_it != groups[g].accessions.end(); ++acc_it)
       {
@@ -930,43 +1236,74 @@ namespace OpenMS::Internal
         const auto pos = accession_to_id.find(runid + "_" + *acc_it);
         if (pos != accession_to_id.end())
         {
-          accessions += "PH_" + String(pos->second);
+          accessions += "PH_" + StringUtils::toStr(pos->second);
         }
         else
         {
-          fatalError(mode, String("Invalid protein reference '") + *acc_it + "'");
+          fatalError(mode,std::string("Invalid protein reference '") + *acc_it + "'");
         }
       }
-      String value = String(groups[g].probability) + "," + accessions;
+      std::string value =StringUtils::toStr(groups[g].probability) + "," + accessions;
       meta.setMetaValue(name, value);
+
+      // Quantitative annotations (abundances, per-file/channel values, ...) live in the group's data
+      // arrays. Groups that carry none - the normal case outside ProteomicsLFQ/IsobaricWorkflow -
+      // produce no additional output here, so such files are written exactly as before.
+      ProteinGroupQuant::addQuantMetaValues(meta, groups[g], name);
     }
   }
 
   void ConsensusXMLHandler::getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>&
-  groups, const String& group_name)
+  groups, const std::string& group_name)
   {
     groups.clear();
+    if (last_meta_ == nullptr) { return; } // IdentificationRun without any ProteinIdentification
+
+    // Take every metavalue belonging to this group name out of the ProteinIdentification in ONE pass,
+    // and work on the copy below. Reading and erasing them per group instead is quadratic in the group
+    // count: the backing store is a flat_map, so each erase memmoves the tail, and enumerating the keys
+    // materialises one std::string per metavalue every time. With ~8 metavalues per quantified group
+    // that took 6.4 s to load 4000 groups, against 70 ms for the same groups without quantities.
+    std::map<std::string, DataValue> owned = ProteinGroupQuant::extractGroupMetaValues(*last_meta_, group_name);
+
     Size g_id = 0;
-    String current_meta = group_name + "_" + String(g_id);
+    std::string current_meta = group_name + "_" + StringUtils::toStr(g_id);
     StringList values;
-    while (last_meta_->metaValueExists(current_meta)) // assumes groups have incremental g_IDs
-    {
+    for (auto base_it = owned.find(current_meta); base_it != owned.end(); base_it = owned.find(current_meta))
+    { // assumes groups have incremental g_IDs
       // convert to proper ProteinGroup
       ProteinIdentification::ProteinGroup g;
-      String(last_meta_->getMetaValue(current_meta)).split(',', values);
+      StringUtils::split(StringUtils::toStr(base_it->second), ',', values);
       if (values.size() < 2)
       {
-        fatalError(LOAD, String("Invalid UserParam for ProteinGroups (not enough values)'"));
+        fatalError(LOAD,std::string("Invalid UserParam for ProteinGroups (not enough values)'"));
       }
-      g.probability = values[0].toDouble();
+      g.probability = StringUtils::toDouble(values[0]);
       for (Size i_ind = 1; i_ind < values.size(); ++i_ind)
       {
         g.accessions.push_back(proteinid_to_accession_[values[i_ind]]);
       }
+
+      // Restore the quantitative data arrays, if this group has any.
+      if (!ProteinGroupQuant::getQuantMetaValues(owned, g, current_meta))
+      {
+        // Deliberately not XMLHandler::warning(): that is routed to OPENMS_LOG_DEBUG in release builds
+        // ("suppress warnings in release mode (more happy users)"), which is the right call for parser
+        // noise but not for silently dropping a protein's quantities on the floor.
+        OPENMS_LOG_WARN << "Warning: while loading '" << file_ << "': the quantitative annotation of "
+                        << "protein group '" << current_meta << "' was computed for a different set of "
+                        << "proteins and has been discarded. The file was most likely written by this "
+                        << "version, then filtered by a tool that renumbers protein groups without "
+                        << "knowing about the quantities. Re-run the quantification to restore them."
+                        << std::endl;
+      }
+
       groups.push_back(std::move(g));
-      last_meta_->removeMetaValue(current_meta);
-      current_meta = group_name + "_" + String(++g_id);
+      current_meta = group_name + "_" + StringUtils::toStr(++g_id);
     }
+    // Anything left in `owned` belonged to a group whose base entry is gone - quantities that survived
+    // a renumbering elsewhere. They are simply not written back, so they cannot be re-attached to the
+    // wrong group on the next store.
   }
 
 } // namespace OpenMS

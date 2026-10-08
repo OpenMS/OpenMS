@@ -34,11 +34,11 @@ START_SECTION(void setDelayInSeconds(double delay))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void addFile(const String& path))
+START_SECTION(void addFile(const std::string& path))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void removeFile(const String& path))
+START_SECTION(void removeFile(const std::string& path))
 	NOT_TESTABLE
 END_SECTION
 

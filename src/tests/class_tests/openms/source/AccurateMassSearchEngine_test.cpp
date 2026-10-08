@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -75,6 +76,13 @@ START_SECTION([EXTRA]AdductInfo)
     double neutral_mass_recon = ai.getNeutralMass(mz);
     TEST_REAL_SIMILAR(neutral_mass, neutral_mass_recon);
   }
+  {
+    AdductInfo ai = AdductInfo::parseAdductString("2M+Na;1+");
+    TEST_EQUAL(ai.getMolMultiplier(), 2)
+  }
+  TEST_EXCEPTION(Exception::ConversionError, AdductInfo::parseAdductString("2.5M+H;1+"))
+  TEST_EXCEPTION(Exception::ParseError, AdductInfo::parseAdductString("M+Xx;1+"))
+  TEST_EXCEPTION(Exception::InvalidParameter, AdductInfo::parseAdductString("0M+H;1+"))
 
 }
 END_SECTION
@@ -91,7 +99,7 @@ START_SECTION(void init())
   NOT_TESTABLE // tested below
 END_SECTION
 
-START_SECTION((void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
+START_SECTION((void queryByMZ(const double& observed_mz, const Int& observed_charge, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
 {
   std::vector<AccurateMassSearchResult> hmdb_results_pos;
 
@@ -114,7 +122,7 @@ START_SECTION((void queryByMZ(const double& observed_mz, const Int& observed_cha
     double mz = m / 1 + EmpiricalFormula("Na").getMonoWeight() - Constants::ELECTRON_MASS_U; // assume M+Na;+1 as charge
     std::cout << "mz query mass:" << mz << "\n\n";
     // we'll get some other hits as well...
-    String id_list_pos[] = {"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4",
+    std::string id_list_pos[] = {"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4",
                             "C17H11N5" /* this one we want! */,
                             "C10H14NO6P", "C14H12O4", "C7H6O2"};
                          //{"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4", "C17H11N5", "C10H14NO6P", "C14H12O4", "C7H6O2"};
@@ -159,9 +167,9 @@ END_SECTION
 AccurateMassSearchEngine ams_feat_test;
 ams_feat_test.setParameters(ams_param);
 ams_feat_test.init();
-String feat_query_pos[] = {"C23H45NO4", "C20H37NO3", "C22H41NO"};
+std::string feat_query_pos[] = {"C23H45NO4", "C20H37NO3", "C22H41NO"};
 
-START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
+START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_index, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
 {
   Feature test_feat;
   test_feat.setRT(300.0);
@@ -204,7 +212,7 @@ START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_i
 END_SECTION
 
 
-START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
+START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const std::string& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
 {
   ConsensusFeature cons_feat;
   cons_feat.setRT(300.0);
@@ -275,7 +283,7 @@ END_SECTION
 FuzzyStringComparator fsc;
 // fsc.setAcceptableAbsolute((3.04011223650013 - 3.04011223637974)*1.1); // 1.3242891228060217e-10
 // also Linux may give slightly different results depending on optimization level (O0 vs O1) 
-// note that the default value for TEST_REAL_SIMILAR is 1e-5, see ./source/CONCEPT/ClassTest.cpp
+// note that the default value for TEST_REAL_SIMILAR is 1e-5, see src/testframework/source/CONCEPT/ClassTest.cpp
 fsc.setAcceptableAbsolute(1e-8);
 StringList sl;
 sl.push_back("xml-stylesheet");
@@ -293,13 +301,13 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
     ams_feat_test.run(exp_fm, test_mztab);
 
     // test annotation of input
-    String tmp_file;
+    std::string tmp_file;
     NEW_TMP_FILE(tmp_file);
     FeatureXMLFile ff;
     ff.store(tmp_file, exp_fm);
     TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.featureXML")), true);
 
-    String tmp_mztab_file;
+    std::string tmp_mztab_file;
     NEW_TMP_FILE(tmp_mztab_file);
     MzTabFile().store(tmp_mztab_file, test_mztab);
     TEST_EQUAL(fsc.compareFiles(tmp_mztab_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_featureXML.mzTab")), true);
@@ -317,7 +325,7 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
     MzTab test_mztab2;
     ams_feat_test2.run(exp_fm2, test_mztab2);
 
-    String tmp_mztab_file2;
+    std::string tmp_mztab_file2;
     NEW_TMP_FILE(tmp_mztab_file2);
     MzTabFile().store(tmp_mztab_file2, test_mztab2);
     TEST_EQUAL(fsc.compareFiles(tmp_mztab_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_featureXML.mzTab")), true);
@@ -333,7 +341,7 @@ START_SECTION((void run(FeatureMap&, MzTabM&) const))
     MzTabM test_mztabm;
     ams_feat_test.run(exp_fm, test_mztabm);
 
-    String tmp_mztabm_file;
+    std::string tmp_mztabm_file;
     NEW_TMP_FILE(tmp_mztabm_file);
     MzTabMFile().store(tmp_mztabm_file, test_mztabm);
     TEST_EQUAL(fsc.compareFiles(tmp_mztabm_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab")), true);
@@ -351,7 +359,7 @@ START_SECTION((void run(FeatureMap&, MzTabM&) const))
     MzTabM test_mztabm2;
     ams_feat_test2.run(exp_fm2, test_mztabm2);
 
-    String tmp_mztabm_file2;
+    std::string tmp_mztabm_file2;
     NEW_TMP_FILE(tmp_mztabm_file2);
     MzTabMFile().store(tmp_mztabm_file2, test_mztabm2);
     TEST_EQUAL(fsc.compareFiles(tmp_mztabm_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_mztabm_featureXML.mzTab")), true);
@@ -366,13 +374,13 @@ START_SECTION((void run(ConsensusMap&, MzTab&) const))
   ams_feat_test.run(exp_cm, test_mztab2);
 
   // test annotation of input
-  String tmp_file;
+  std::string tmp_file;
   NEW_TMP_FILE(tmp_file);
   ConsensusXMLFile ff;
   ff.store(tmp_file, exp_cm);
   TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.consensusXML")), true);
 
-  String tmp_mztab_file;
+  std::string tmp_mztab_file;
   NEW_TMP_FILE(tmp_mztab_file);
   MzTabFile().store(tmp_mztab_file, test_mztab2);
   TEST_EQUAL(fsc.compareFiles(tmp_mztab_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_consensusXML.mzTab")), true);
@@ -413,4 +421,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

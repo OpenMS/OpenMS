@@ -12,7 +12,7 @@ namespace OpenMS
 {
   bool AbsoluteQuantitationStandards::findComponentFeature_(
     const FeatureMap& feature_map,
-    const String& component_name,
+    const std::string& component_name,
     Feature& feature_found
   ) const
   {
@@ -33,7 +33,7 @@ namespace OpenMS
   void AbsoluteQuantitationStandards::mapComponentsToConcentrations(
     const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
     const std::vector<FeatureMap>& feature_maps,
-    std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>>& components_to_concentrations
+    std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>>& components_to_concentrations
   ) const
   {
     components_to_concentrations.clear();
@@ -49,11 +49,11 @@ namespace OpenMS
         fmap.getPrimaryMSRunPath(filename);
         if (!filename.empty()) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
         {
-          if (filename[0].hasSuffix(".mzML"))
+          if (StringUtils::hasSuffix(filename[0], ".mzML"))
           {
             filename[0].resize(filename[0].size() - 5);
           }
-          else if (filename[0].hasSuffix(".txt"))
+          else if (StringUtils::hasSuffix(filename[0], ".txt"))
           {
             filename[0].resize(filename[0].size() - 4);
           }
@@ -77,7 +77,7 @@ namespace OpenMS
         fc.concentration_units = run.concentration_units;
         fc.dilution_factor = run.dilution_factor;
         // add to the map
-        std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>>::iterator p;
+        std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>>::iterator p;
         p = components_to_concentrations.find(run.component_name);
         if (p == components_to_concentrations.end()) // if the key doesn't exist, insert it and create a new vector with fc as its only element
         {
@@ -95,7 +95,7 @@ namespace OpenMS
   void AbsoluteQuantitationStandards::getComponentFeatureConcentrations(
     const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
     const std::vector<FeatureMap>& feature_maps,
-    const String& component_name,
+    const std::string& component_name,
     std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations
   ) const
   {
@@ -107,9 +107,9 @@ namespace OpenMS
         filtered_rc.push_back(run);
       }
     }
-    std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_to_concentrations;
+    std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_to_concentrations;
     mapComponentsToConcentrations(filtered_rc, feature_maps, components_to_concentrations);
-    if (components_to_concentrations.count(component_name))
+    if (components_to_concentrations.contains(component_name))
     {
       feature_concentrations = components_to_concentrations.at(component_name);
     }

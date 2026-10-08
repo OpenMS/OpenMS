@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/ModificationDataProvider.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -25,12 +25,12 @@ namespace OpenMS
   {
   public:
     /// @param filename Path to a Unimod XML file (resolved via File::find)
-    explicit UnimodXMLDataProvider(const String& filename);
+    explicit UnimodXMLDataProvider(const std::string& filename);
 
     std::vector<std::unique_ptr<ResidueModification>> loadModifications() override;
 
   private:
-    String filename_;
+    std::string filename_;
   };
 
 } // namespace OpenMS

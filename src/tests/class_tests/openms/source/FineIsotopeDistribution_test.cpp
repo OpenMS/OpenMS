@@ -371,11 +371,11 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
   for (Size k = 0; k < 100; k++)
   {
     // human insulin
-    EmpiricalFormula ef (String("C") + (520 + k) +
-                         String("H") + (817 + k) + 
-                         String("N") + (139 + k) +
-                         String("O") + (147 + k) +
-                         String("S") + ( 8  + int(k/5)) ); // Sulfur is hard to do because of the abundant isotope 34
+    EmpiricalFormula ef (std::string("C") + (520 + k) +
+                         std::string("H") + (817 + k) + 
+                         std::string("N") + (139 + k) +
+                         std::string("O") + (147 + k) +
+                         std::string("S") + ( 8  + int(k/5)) ); // Sulfur is hard to do because of the abundant isotope 34
 
     std::cout << " Working on stress test " << k << " " << ef.toString() << std::endl;
 
@@ -393,11 +393,11 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
   for (Size k = 0; k < 100; k++)
   {
     // human insulin
-    EmpiricalFormula ef (String("C") + (520 + k) +
-                         String("H") + (817 + k) + 
-                         String("N") + (139 + k) +
-                         String("O") + (147 + k) +
-                         String("S") + ( 8  + int(k/5)) ); // Sulfur is hard to do because of the abundant isotope 34
+    EmpiricalFormula ef (std::string("C") + (520 + k) +
+                         std::string("H") + (817 + k) + 
+                         std::string("N") + (139 + k) +
+                         std::string("O") + (147 + k) +
+                         std::string("S") + ( 8  + int(k/5)) ); // Sulfur is hard to do because of the abundant isotope 34
 
     std::cout << " Working on stress test " << k << " " << ef.toString() << std::endl;
 

@@ -12,7 +12,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -44,10 +44,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a read-only handler
-      MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger);
+      MzXMLHandler(MapType& exp, const std::string& filename, const std::string& version, ProgressLogger& logger);
 
       /// Constructor for a write-only handler
-      MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger);
+      MzXMLHandler(const MapType& exp, const std::string& filename, const std::string& version, const ProgressLogger& logger);
 
       /// Destructor
       ~MzXMLHandler() override {}
@@ -60,13 +60,13 @@ public:
       void setLoadDetail(const LOADDETAIL d) override;
 
       // Docu in base class
-      void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname) override;
+      void onEndElement(const char16_t* qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
+      void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
       // Docu in base class
-      void characters(const XMLCh* const chars, const XMLSize_t length) override;
+      void onCharacters(const char16_t* chars, Size length) override;
 
       /// Write the contents to a stream
       void writeTo(std::ostream& os) override;
@@ -118,9 +118,9 @@ protected:
       struct SpectrumData
       {
         UInt peak_count_;
-        String precision_;
-        String compressionType_;
-        String char_rest_;
+        std::string precision_;
+        std::string compressionType_;
+        std::string char_rest_;
         SpectrumType spectrum;
         bool skip_data;
       };
@@ -147,10 +147,10 @@ protected:
 
       /// write metaInfo to xml (usually in nameValue-tag)
       /// returns true if metavalue existed and data was written to the stream
-      inline bool writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
+      inline bool writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const std::string& metakey, const std::string& attname);
 
       /// write metaInfo to xml (usually in nameValue-tag)
-      inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, const String& tag = "nameValue");
+      inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, const std::string& tag = "nameValue");
 
       /**
       @brief Fill a single spectrum with data from input

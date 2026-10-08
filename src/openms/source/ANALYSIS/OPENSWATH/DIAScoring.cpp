@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
@@ -25,6 +26,8 @@
 #include <numeric>
 #include <algorithm>
 #include <functional>
+#include <iostream>
+#include <unordered_map>
 
 #include <cmath> // for isnan
 #include <utility>
@@ -33,6 +36,138 @@ const double C13C12_MASSDIFF_U = 1.0033548;
 
 namespace OpenMS
 {
+  namespace
+  {
+    void hashCombine(std::size_t& seed, std::size_t value)
+    {
+      seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+
+    struct DIAScoringPool
+    {
+      std::vector<double> isotopes_int;
+      std::vector<double> exp_isotopes_int;
+      std::vector<double> bseries;
+      std::vector<double> yseries;
+      std::string byseries_sequence;
+      int byseries_charge = 0;
+      bool byseries_valid = false;
+
+      void reset()
+      {
+        isotopes_int.clear();
+        exp_isotopes_int.clear();
+      }
+    };
+    thread_local DIAScoringPool dias_pool;
+
+    struct DiaPrescoreThreadCache
+    {
+      std::vector<double> product_mz;
+      std::vector<double> library_intensity;
+      std::vector<int> fragment_charge;
+      double dia_extract_window = 0.0;
+      int nr_isotopes = 0;
+      int nr_charges = 0;
+      bool valid = false;
+      DiaPrescore::TransitionGroupTheoreticalSpectrumCache theoretical_spectrum_cache;
+    };
+    thread_local DiaPrescoreThreadCache dia_prescore_cache;
+
+    bool diaPrescoreCacheMatches(const DiaPrescoreThreadCache& cache,
+                                 const std::vector<OpenSwath::LightTransition>& transitions,
+                                 double dia_extract_window,
+                                 int nr_isotopes,
+                                 int nr_charges)
+    {
+      if (!cache.valid ||
+          cache.dia_extract_window != dia_extract_window ||
+          cache.nr_isotopes != nr_isotopes ||
+          cache.nr_charges != nr_charges ||
+          cache.product_mz.size() != transitions.size())
+      {
+        return false;
+      }
+
+      for (Size i = 0; i < transitions.size(); ++i)
+      {
+        if (cache.product_mz[i] != transitions[i].getProductMZ() ||
+            cache.library_intensity[i] != transitions[i].getLibraryIntensity() ||
+            cache.fragment_charge[i] != transitions[i].fragment_charge)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    void updateDiaPrescoreCacheKey(DiaPrescoreThreadCache& cache,
+                                   const std::vector<OpenSwath::LightTransition>& transitions,
+                                   double dia_extract_window,
+                                   int nr_isotopes,
+                                   int nr_charges)
+    {
+      cache.valid = false;
+      cache.product_mz.clear();
+      cache.library_intensity.clear();
+      cache.fragment_charge.clear();
+      cache.product_mz.reserve(transitions.size());
+      cache.library_intensity.reserve(transitions.size());
+      cache.fragment_charge.reserve(transitions.size());
+      for (const OpenSwath::LightTransition& transition : transitions)
+      {
+        cache.product_mz.push_back(transition.getProductMZ());
+        cache.library_intensity.push_back(transition.getLibraryIntensity());
+        cache.fragment_charge.push_back(transition.fragment_charge);
+      }
+      cache.dia_extract_window = dia_extract_window;
+      cache.nr_isotopes = nr_isotopes;
+      cache.nr_charges = nr_charges;
+      cache.valid = true;
+    }
+
+    struct AveragineIsotopeDistributionKey
+    {
+      double neutral_mass;
+      int nr_isotopes;
+
+      bool operator==(const AveragineIsotopeDistributionKey& rhs) const
+      {
+        return neutral_mass == rhs.neutral_mass &&
+               nr_isotopes == rhs.nr_isotopes;
+      }
+    };
+
+    struct AveragineIsotopeDistributionKeyHash
+    {
+      std::size_t operator()(const AveragineIsotopeDistributionKey& key) const
+      {
+        std::size_t seed = std::hash<double>{}(key.neutral_mass);
+        hashCombine(seed, std::hash<int>{}(key.nr_isotopes));
+        return seed;
+      }
+    };
+
+    const IsotopeDistribution& getCachedAveragineIsotopeDistribution(double neutral_mass, int nr_isotopes)
+    {
+      static thread_local std::unordered_map<AveragineIsotopeDistributionKey, IsotopeDistribution, AveragineIsotopeDistributionKeyHash> isotope_cache;
+      static constexpr std::size_t MAX_AVERAGINE_CACHE_ENTRIES = 100000;
+
+      const AveragineIsotopeDistributionKey key{neutral_mass, nr_isotopes};
+      const auto cached = isotope_cache.find(key);
+      if (cached != isotope_cache.end())
+      {
+        return cached->second;
+      }
+      if (isotope_cache.size() >= MAX_AVERAGINE_CACHE_ENTRIES)
+      {
+        isotope_cache.clear();
+      }
+
+      CoarseIsotopePatternGenerator solver(nr_isotopes);
+      return isotope_cache.emplace(key, solver.estimateFromPeptideWeight(neutral_mass)).first->second;
+    }
+  }
 
   DIAScoring::DIAScoring() :
     DefaultParamHandler("DIAScoring")
@@ -103,11 +238,7 @@ namespace OpenMS
   {
     isotope_corr = 0;
     isotope_overlap = 0;
-    // first compute a map of relative intensities from the feature, then compute the score
-    std::unordered_map<std::string, double> intensities;
-    intensities.reserve(transitions.size());
-    getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);
-    diaIsotopeScoresSub_(transitions, spectrum, intensities, im_range, isotope_corr, isotope_overlap);
+    diaIsotopeScoresSub_(transitions, spectrum, mrmfeature, im_range, isotope_corr, isotope_overlap);
   }
 
   void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions,
@@ -144,7 +275,8 @@ namespace OpenMS
       ppm_score += std::fabs(ppm);
       ppm_score_weighted += std::fabs(ppm) * normalized_library_intensity[k];
 #ifdef MRMSCORING_TESTING
-      std::cout << " weighted int of the peak is " << mz << " diff is in ppm " << diff_ppm << " thus append " << diff_ppm * diff_ppm << " or weighted " << diff_ppm * normalized_library_intensity[k] << std::endl;
+      std::cout << " weighted int of the peak is " << mz << " diff is in ppm " << ppm
+                << " thus append " << ppm * ppm << " or weighted " << ppm * normalized_library_intensity[k] << '\n';
 #endif
     }
 
@@ -184,16 +316,15 @@ namespace OpenMS
     // although precursor_mz can be received from the empirical formula (if non-empty), the actual precursor could be
     // slightly different. And also for compounds, usually the neutral sum_formula without adducts is given.
     // Therefore calculate the isotopes based on the formula but place them at precursor_mz
-    std::vector<double> isotopes_int;
-    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, sum_formula.getCharge(), im_range, isotopes_int);
-
+    dias_pool.exp_isotopes_int.clear();
+    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, sum_formula.getCharge(), im_range, dias_pool.exp_isotopes_int);
     double max_ratio = 0;
     int nr_occurrences = 0;
 
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
-    isotope_corr = scoreIsotopePattern_(isotopes_int, sum_formula);
-    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurrences, max_ratio, im_range);
+    isotope_corr = scoreIsotopePattern_(dias_pool.exp_isotopes_int, sum_formula);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, dias_pool.exp_isotopes_int[0], nr_occurrences, max_ratio, im_range);
     isotope_overlap = max_ratio;
   }
 
@@ -214,18 +345,19 @@ namespace OpenMS
   void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, RangeMobility& im_range,
                                                     double& isotope_corr, double& isotope_overlap) const
   {
-    std::vector<double> exp_isotopes_int;
-    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, charge_state, im_range, exp_isotopes_int);
-    CoarseIsotopePatternGenerator solver(dia_nr_isotopes_ + 1);
+    dias_pool.exp_isotopes_int.clear();
+    getIsotopeIntysFromExpSpec_(precursor_mz, spectrum, charge_state, im_range, dias_pool.exp_isotopes_int);
     // NOTE: this is a rough estimate of the neutral mz value since we would not know the charge carrier for negative ions
-    IsotopeDistribution isotope_dist = solver.estimateFromPeptideWeight(std::fabs(precursor_mz * charge_state));
+    const IsotopeDistribution& isotope_dist = getCachedAveragineIsotopeDistribution(
+      std::fabs(precursor_mz * charge_state),
+      static_cast<int>(dia_nr_isotopes_) + 1);
 
     double max_ratio;
     int nr_occurrences;
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
-    isotope_corr = scoreIsotopePattern_(exp_isotopes_int, isotope_dist);
-    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, exp_isotopes_int[0], nr_occurrences, max_ratio, im_range);
+    isotope_corr = scoreIsotopePattern_(dias_pool.exp_isotopes_int, isotope_dist);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, dias_pool.exp_isotopes_int[0], nr_occurrences, max_ratio, im_range);
     isotope_overlap = max_ratio;
   }
 
@@ -238,9 +370,19 @@ namespace OpenMS
     OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer"); // for peptides, charge should be positive
 
     double mz, intensity, im;
-    std::vector<double> yseries, bseries;
-    OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, generator, charge);
-    for (const auto& b_ion_mz : bseries)
+    const std::string sequence_key = sequence.toString();
+    if (!dias_pool.byseries_valid ||
+        dias_pool.byseries_charge != charge ||
+        dias_pool.byseries_sequence != sequence_key)
+    {
+      dias_pool.bseries.clear();
+      dias_pool.yseries.clear();
+      OpenMS::DIAHelpers::getBYSeries(sequence, dias_pool.bseries, dias_pool.yseries, generator, charge);
+      dias_pool.byseries_sequence = sequence_key;
+      dias_pool.byseries_charge = charge;
+      dias_pool.byseries_valid = true;
+    }
+    for (const auto& b_ion_mz : dias_pool.bseries)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(b_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
@@ -251,7 +393,7 @@ namespace OpenMS
         bseries_score++;
       }
     }
-    for (const auto& y_ion_mz : yseries)
+    for (const auto& y_ion_mz : dias_pool.yseries)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(y_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
@@ -266,53 +408,62 @@ namespace OpenMS
 
   void DIAScoring::score_with_isotopes(SpectrumSequence& spectrum, const std::vector<TransitionType>& transitions, const RangeMobility& im_range, double& dotprod, double& manhattan) const
   {
-    OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
-    dp.score(spectrum, transitions, im_range, dotprod, manhattan);
+    DiaPrescoreThreadCache& cache = dia_prescore_cache;
+    if (!diaPrescoreCacheMatches(cache, transitions, dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_))
+    {
+      OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
+      dp.buildTheoreticalSpectrum(transitions, cache.theoretical_spectrum_cache);
+      updateDiaPrescoreCacheKey(cache, transitions, dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
+    }
+    OpenMS::DiaPrescore::scorePrepared(spectrum, cache.theoretical_spectrum_cache, dia_extract_window_, im_range, dotprod, manhattan);
   }
 
   ///////////////////////////////////////////////////////////////////////////
   // Private methods
 
-  /// computes a vector of relative intensities for each feature (output to intensities)
-  void DIAScoring::getFirstIsotopeRelativeIntensities_(
-    const std::vector<TransitionType>& transitions,
-    OpenSwath::IMRMFeature* mrmfeature, std::unordered_map<std::string, double>& intensities) const
-  {
-    for (Size k = 0; k < transitions.size(); k++)
-    {
-      std::string native_id = transitions[k].getNativeID();
-      double rel_intensity = mrmfeature->getFeature(native_id)->getIntensity() / mrmfeature->getIntensity();
-      intensities.emplace(native_id, rel_intensity);
-    }
-  }
-
   void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, const SpectrumSequence& spectrum,
-                                        std::unordered_map<std::string, double>& intensities, //relative intensities
+                                        OpenSwath::IMRMFeature* mrmfeature,
                                         const RangeMobility& im_range,
                                         double& isotope_corr,
                                         double& isotope_overlap) const
   {
-    std::vector<double> isotopes_int;
+    dias_pool.isotopes_int.clear();
+    std::vector<double>& isotopes_int = dias_pool.isotopes_int;
     double max_ratio;
     int nr_occurences;
+    const double feature_intensity = mrmfeature->getIntensity();
+    if (!std::isfinite(feature_intensity) || feature_intensity <= 0.0)
+    {
+      return;
+    }
+    const auto* openms_feature = dynamic_cast<const OpenMS::MRMFeatureOpenMS*>(mrmfeature);
     for (Size k = 0; k < transitions.size(); k++)
     {
       isotopes_int.clear();
-      const String native_id = transitions[k].getNativeID();
-      double rel_intensity = intensities[native_id];
+      const TransitionType& transition = transitions[k];
+      double transition_intensity = 0.0;
+      if (openms_feature != nullptr)
+      {
+        transition_intensity = openms_feature->getFeatureIntensity(transition.transition_name, k);
+      }
+      else
+      {
+        transition_intensity = mrmfeature->getFeature(transition.transition_name)->getIntensity();
+      }
+      const double rel_intensity = transition_intensity / feature_intensity;
 
       // If no charge is given, we assume it to be 1
       int putative_fragment_charge = 1;
-      if (transitions[k].fragment_charge != 0)
+      if (transition.fragment_charge != 0)
       {
-        putative_fragment_charge = transitions[k].fragment_charge;
+        putative_fragment_charge = transition.fragment_charge;
       }
 
       // collect the potential isotopes of this peak
       double abs_charge = std::fabs(static_cast<double>(putative_fragment_charge));
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
       {
-        RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[k].getProductMZ() + iso * C13C12_MASSDIFF_U / abs_charge, dia_extract_window_, dia_extraction_ppm_);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition.getProductMZ() + iso * C13C12_MASSDIFF_U / abs_charge, dia_extract_window_, dia_extraction_ppm_);
         double mz, intensity, im;
         DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
         isotopes_int.push_back(intensity);
@@ -320,9 +471,9 @@ namespace OpenMS
 
       // calculate the scores:
       // isotope correlation (forward) and the isotope overlap (backward) scores
-      double score = scoreIsotopePattern_(isotopes_int, transitions[k].getProductMZ(), putative_fragment_charge);
+      double score = scoreIsotopePattern_(isotopes_int, transition.getProductMZ(), putative_fragment_charge);
       isotope_corr += score * rel_intensity;
-      largePeaksBeforeFirstIsotope_(spectrum, transitions[k].getProductMZ(), isotopes_int[0], nr_occurences, max_ratio, im_range);
+      largePeaksBeforeFirstIsotope_(spectrum, transition.getProductMZ(), isotopes_int[0], nr_occurences, max_ratio, im_range);
       isotope_overlap += nr_occurences * rel_intensity;
     }
   }
@@ -335,7 +486,7 @@ namespace OpenMS
 
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
-      double center =  mono_mz - C13C12_MASSDIFF_U / (double) ch;
+      double center = mono_mz - C13C12_MASSDIFF_U / (double) ch;
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(center, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
@@ -368,7 +519,7 @@ namespace OpenMS
         nr_occurences += 1; // we count how often this happens...
 
 #ifdef MRMSCORING_TESTING
-        cout << " _ overlap diff ppm  " << ddiff_ppm << " and inten ratio " << ratio << " with " << mono_int << endl;
+        std::cout << " _ overlap diff ppm  " << ddiff_ppm << " and inten ratio " << ratio << " with " << mono_int << '\n';
 #endif
       }
     }
@@ -380,12 +531,11 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(putative_fragment_charge != 0, "Charge needs to be set to != 0"); // charge can be positive and negative
 
-    IsotopeDistribution isotope_dist;
-
     // create the theoretical distribution from the peptide weight
-    CoarseIsotopePatternGenerator solver(dia_nr_isotopes_ + 1);
     // NOTE: this is a rough estimate of the neutral mz value since we would not know the charge carrier for negative ions
-    isotope_dist = solver.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
+    const IsotopeDistribution& isotope_dist = getCachedAveragineIsotopeDistribution(
+      std::fabs(product_mz * putative_fragment_charge),
+      static_cast<int>(dia_nr_isotopes_) + 1);
 
     return scoreIsotopePattern_(isotopes_int, isotope_dist);
   } //end of dia_isotope_corr_sub

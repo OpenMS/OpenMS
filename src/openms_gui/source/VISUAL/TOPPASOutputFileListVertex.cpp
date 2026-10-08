@@ -34,7 +34,7 @@ namespace OpenMS
     return std::make_unique<TOPPASOutputFileListVertex>(*this);
   }
 
-  String TOPPASOutputFileListVertex::getName() const
+  std::string TOPPASOutputFileListVertex::getName() const
     {
       return "OutputFileVertex";
     }
@@ -81,7 +81,7 @@ namespace OpenMS
       return;
     }
 
-    String full_dir = createOutputDir(); // create output dir
+    std::string full_dir = createOutputDir(); // create output dir
 
     round_total_ = (int)pkg.size(); // take number of rounds from previous tool(s) - should all be equal
     round_counter_ = 0;             // once round_counter_ reaches round_total_, we are done
@@ -140,7 +140,7 @@ namespace OpenMS
               if (ft == FileTypes::UNKNOWN)
               { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
                 const Param& p = ttv->getParam();
-                String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
+                std::string out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
                 if (p.exists(out_type)) { ft = FileTypes::nameToType(p.getValue(out_type).toString()); }
               }
             }
@@ -169,13 +169,13 @@ namespace OpenMS
         round_counter_ = (int)round; // for global update, in case someone asks
         for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
         {
-          String file_from = fromQString(pkg[round][param_index_src].filenames[i]);
-          String file_to = fromQString(output_files_[round][param_index_me].filenames[i]);
+          std::string file_from = fromQString(pkg[round][param_index_src].filenames[i]);
+          std::string file_to = fromQString(output_files_[round][param_index_me].filenames[i]);
           if (File::exists(file_to))
           {
             if (! QFile::remove(toQString(file_to))) // todo: this goes wrong on first run .... why???
             {
-              String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
+              std::string msg = "Error: Could not remove old output file '" + file_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName()
                            + "' in preparation to write the new one. Please make sure the file is not open in other applications and try again.";
               OPENMS_LOG_ERROR << msg << std::endl;
@@ -202,7 +202,7 @@ namespace OpenMS
           }
           else
           {
-            String msg = "Error: Could not copy temporary output file '" + file_from + "' for node '"
+            std::string msg = "Error: Could not copy temporary output file '" + file_from + "' for node '"
                          + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + file_to
                          + "'. Probably the old file still exists (see earlier errors).";
             OPENMS_LOG_ERROR << msg << std::endl;

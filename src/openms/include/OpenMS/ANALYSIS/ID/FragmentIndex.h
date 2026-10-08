@@ -143,6 +143,8 @@ namespace OpenMS
      *
      * Provides read-only access to all peptides currently held by the index,
      * typically populated during build().
+     * With peptide:deduplicate=true, non-SNES entries retain one representative
+     * protein coordinate per exact peptidoform, not every protein occurrence.
      *
      * @return const reference to the internal std::vector of Peptide.
      *
@@ -151,6 +153,10 @@ namespace OpenMS
      * thread mutates the index (e.g., build()/clear()).
      */
     const std::vector<Peptide>& getPeptides() const;
+
+    /// Number of theoretical fragments stored in the index (0 before build()), including the c and
+    /// z+1 ions of ions:electron_ions.
+    Size getNumFragments() const noexcept { return fi_fragments_.size() + electron_fragments_.size(); }
 
 #ifdef DEBUG_FRAGMENT_INDEX
     /**
@@ -182,6 +188,7 @@ namespace OpenMS
     /** @brief Given a set of Fasta files, builds the Fragment Index datastructure (FID). First all fragments are sorted
      * by their own mass. Next they are placed in buckets. The min-fragment mass is stored for each bucket, whereupon
      * the fragments are sorted within the buckets by their originating precursor mass.
+     * Replaces any previously built index; a failed build leaves isBuild() false.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
      */
@@ -282,7 +289,8 @@ namespace OpenMS
       float fragment_mz;
     };
 
-    /**@brief Queries one peak
+    /**@brief Queries one peak (against the ion series of the ions:add_*_ions parameters, not the
+     * c and z+1 ions of ions:electron_ions)
      * @param[in] peak The queried peak
      * @param[in] peptide_idx_range The range of precursors/peptides the peptide could potentially belongs to
      * @param[in] peak_charge The charge of the peak. Is used to calculate the mass from the mz
@@ -316,6 +324,26 @@ namespace OpenMS
     void querySpectrum(const MSSpectrum& spectrum,
                        const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                        SpectrumMatchesTopN& sms);
+
+    /**
+     * @brief Query a spectrum, optionally also against the c and z+1 ions of ions:electron_ions.
+     *
+     * As querySpectrum(spectrum, fasta_entries, sms). Candidates are ranked by their number of
+     * matched fragments before scoring:max_candidates_per_spectrum cuts them. With
+     * @p with_electron_ions, matches to the c and z+1 ions indexed by ions:electron_ions count as
+     * well, as if the ion series above held them; without, the candidates are those of an index
+     * without these ions. Use it for electron-activated spectra, so that the c and z+1 ions do not
+     * change the candidates of other spectra.
+     *
+     * @param[in]  spectrum           Experimental spectrum with a single precursor.
+     * @param[in]  fasta_entries      The FASTA database passed to build().
+     * @param[out] sms                Accumulated candidate matches.
+     * @param[in]  with_electron_ions Also match the c and z+1 ions of ions:electron_ions.
+     */
+    void querySpectrum(const MSSpectrum& spectrum,
+                       const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                       SpectrumMatchesTopN& sms,
+                       bool with_electron_ions);
 
     /** @brief Reconstruct a fully modified AASequence from a Peptide's bitmask.
      *
@@ -530,6 +558,7 @@ protected:
       double c_offset{0.0};
       double x_offset{0.0};
       double z_offset{0.0};
+      double zp1_offset{0.0}; ///< z+1 (z-dot) ions, the main C-terminal fragments of ETD-type spectra
     };
     static IonOffsets ion_offsets_;
 
@@ -539,6 +568,8 @@ protected:
     /// series selection. See @ref generateFragmentsForSeries_ for the explicit-flag
     /// variant used by the SNES mother path.
     /// @param[out] fragments  Output vector to append Fragment entries to
+    /// @param[out] electron_fragments  Output vector for the c and z+1 ions of ions:electron_ions
+    ///             that the series above lack (untouched if ions:electron_ions is off)
     /// @param[in]  sequence   Raw amino acid string (no modifications)
     /// @param[in]  seq_len    Length of sequence
     /// @param[in]  peptide_idx Index of this peptide in fi_peptides_
@@ -547,6 +578,7 @@ protected:
     /// @param[in]  residue_mod_masses  Per-residue modification mass deltas (nullptr if none; array of seq_len doubles)
     void generateFragmentsLightweight_(
       std::vector<Fragment>& fragments,
+      std::vector<Fragment>& electron_fragments,
       const char* sequence,
       size_t seq_len,
       UInt32 peptide_idx,
@@ -574,6 +606,7 @@ protected:
     /// @param[in] add_y Emit y-ions (suffix).
     /// @param[in] add_x Emit x-ions (suffix).
     /// @param[in] add_z Emit z-ions (suffix).
+    /// @param[in] add_zp1 Emit z+1 ions (z-dot, suffix).
     void generateFragmentsForSeries_(
       std::vector<Fragment>& fragments,
       const char* sequence,
@@ -587,10 +620,15 @@ protected:
       bool add_c,
       bool add_y,
       bool add_x,
-      bool add_z) const;
+      bool add_z,
+      bool add_zp1) const;
 
     std::vector<Peptide> fi_peptides_;   ///< vector of all (digested) peptides
     std::vector<Fragment> fi_fragments_; ///< vector of all theoretical fragments (b- and y- ions)
+    /// The c and z+1 ions of ions:electron_ions that fi_fragments_ lacks. They are bucketed on their
+    /// own (electron_bucket_min_mz_) and matched only when a query asks for them.
+    std::vector<Fragment> electron_fragments_;
+    std::vector<float> electron_bucket_min_mz_; ///< smallest fragment m/z of each bucket of electron_fragments_
 
     /// Protein lengths indexed by protein_idx, populated at build() time.
     /// Used by SNES v1.1 to gate PROTEIN_C_TERM variable-mod bin walks.
@@ -655,19 +693,31 @@ private:
                             SpectrumMatchesTopN& sms);
 
     /**
-     * @brief queries peaks for a given experimental spectrum with a set range of potential peptides, isotope error and precursor charge. Hits are transferred into a PSM list.
-     * Technically an adapter between query(...) and openSearch(...)/searchDifferentPrecursorRanges(...)
-     * @param[out] candidates The n best Spectrum matches
+     * @brief Counts fragment matches for ONE (precursor charge, isotope error) block and appends
+     * the surviving candidates to @p candidates.
+     *
+     * Every peak of @p spectrum is walked against the fragment buckets at fragment charges
+     * 1..min(@p precursor_charge, @c fragment:max_charge) and the hits are counted per peptide
+     * of @p candidates_range. Only candidates reaching @c fragment:min_matched_ions — clamped to
+     * at least one matched peak, so a candidate that matched nothing is never a candidate — are
+     * emitted, in ascending peptide index within the block. Candidates that could not survive
+     * trimHits are therefore never materialized.
+     *
+     * @param[in,out] candidates Accumulator the block's matches are APPENDED to. Must NOT be
+     *                pre-sized — entries are appended, never indexed into. Pre-existing entries
+     *                are preserved, so one container can accumulate several blocks.
      * @param[in] spectrum The queried experimental spectrum
-     * @param[in] candidates_range The range of precursors/peptides the peptide could potentially belong to
+     * @param[in] candidates_range The half-open [first, second) range of peptides the precursor could belong to
      * @param[in] isotope_error The applied isotope error
      * @param[in] precursor_charge The applied precursor charge
+     * @param[in] with_electron_ions Also count matches to the c and z+1 ions of ions:electron_ions
      */
     void queryPeaks(SpectrumMatchesTopN& candidates,
                    const MSSpectrum& spectrum,
                    const std::pair<size_t, size_t>& candidates_range,
                    const int16_t isotope_error,
-                   const uint16_t precursor_charge);
+                   const uint16_t precursor_charge,
+                   const bool with_electron_ions);
     /**
      * @brief If closed search loops over all isotope errors. For each iteration loop over all peaks with queryPeaks.
      * @brief If open search applies a precursor-mass window
@@ -675,11 +725,19 @@ private:
      * @param[in] precursor_mass The mass of the precursor (mz * charge)
      * @param[out] sms The Top m SpectrumMatches
      * @param[in] charge Applied charge
+     * @param[in] with_electron_ions Also count matches to the c and z+1 ions of ions:electron_ions
      */
     void searchDifferentPrecursorRanges(const MSSpectrum& spectrum,
                                         float precursor_mass,
                                         SpectrumMatchesTopN& sms,
-                                        uint16_t charge);
+                                        uint16_t charge,
+                                        bool with_electron_ions);
+
+    /// Sorts @p fragments by m/z, cuts them into buckets of bucketsize_ and sorts each bucket by
+    /// peptide index; @p bucket_min_mz receives the smallest m/z of each bucket.
+    void sortAndBucketFragments_(std::vector<Fragment>& fragments,
+                                 std::vector<float>& bucket_min_mz,
+                                 int num_threads);
 
     /** @brief places the k-largest elements in the front of the input array. Inside of the k-largest elements and outside the elements are not sorted
      *
@@ -693,11 +751,17 @@ private:
     bool add_c_ions_;
     bool add_x_ions_;
     bool add_z_ions_;
+    bool add_zp1_ions_;
+    bool electron_ions_{false}; ///< ions:electron_ions: also index c and z+1 ions, in electron_fragments_
 
     // SpectrumGenerator independend member variables
     std::string digestion_enzyme_;
     EnzymaticDigestion::Specificity enzyme_specificity_{EnzymaticDigestion::SPEC_FULL}; ///< 'full' (default), 'semi' (semi-tryptic), or 'none' (e.g. immunopeptidomics)
 
+    /// Whether a position is the original or, with Met clipping enabled, mature protein N-terminus.
+    bool isProteinNTerminal_(const std::string& protein, Size start) const;
+
+    bool clip_nterm_methionine_ {false}; ///< Include initial Met loss (enabled by ProSE).
     size_t missed_cleavages_; ///< number of missed cleavages
     float peptide_min_mass_;
     float peptide_max_mass_;

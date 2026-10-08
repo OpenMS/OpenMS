@@ -137,7 +137,7 @@ namespace OpenMS
 
     /// function initialized based on the algorithm parameters that is used to filter PeptideHits
     /// @todo extend to allow filtering only for the current run
-    std::function<void(PeptideIdentification&/*, const String& run_id*/)> checkConvertAndFilterPepHits_;
+    std::function<void(PeptideIdentification&/*, const std::string& run_id*/)> checkConvertAndFilterPepHits_;
 
     unsigned int debug_lvl_;
 

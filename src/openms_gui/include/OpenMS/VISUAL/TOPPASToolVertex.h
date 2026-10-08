@@ -108,7 +108,7 @@ public:
       ///The type of the parameter
       IOType type;
       ///The name of the parameter
-      String param_name;
+      std::string param_name;
       ///The valid file types for this parameter
       StringList valid_types;
     };
@@ -116,7 +116,7 @@ public:
     /// Default constructor
     TOPPASToolVertex();
     /// Constructor
-    TOPPASToolVertex(const String& name, const String& type = "");
+    TOPPASToolVertex(const std::string& name, const std::string& type = "");
     /// Copy constructor
     TOPPASToolVertex(const TOPPASToolVertex& rhs);
     /// Destructor
@@ -127,9 +127,9 @@ public:
     virtual std::unique_ptr<TOPPASVertex> clone() const override;
 
     /// returns the name of the TOPP tool
-    String getName() const override;
+    std::string getName() const override;
     /// Returns the type of the tool
-    const String& getType() const;
+    const std::string& getType() const;
     /// Returns input file/list parameters together with their valid types.
     QVector<IOInfo> getInputParameters() const;
     /// Returns output file/list/dir parameters together with their valid types.
@@ -151,7 +151,7 @@ public:
     /// Updates the vector containing the lists of current output files for all output parameters
     /// using the input files as guidance
     /// Returns true on success, on failure the error_message is filled
-    bool updateCurrentOutputFileNames(const RoundPackages& pkg, String& error_message);
+    bool updateCurrentOutputFileNames(const RoundPackages& pkg, std::string& error_message);
     /// return if tool failed or is ready etc.
     TOOLSTATUS getStatus() const;
     /// Lets the user edit the parameters of the tool
@@ -159,9 +159,9 @@ public:
     /// Returns the number of iterations this tool has to perform
     int numIterations();
     /// Returns the full directory (including preceding tmp path)
-    String getFullOutputDirectory() const;
+    std::string getFullOutputDirectory() const;
     /// Returns the directory where this tool stores its output files
-    String getOutputDir() const;
+    std::string getOutputDir() const;
     /// Creates all necessary directories
     void createDirs();
     /// Opens the folder where the file is contained
@@ -241,11 +241,11 @@ protected:
     void smartFileNames_(std::vector<QStringList>& filenames);
 
     /// The name of the tool
-    String name_;
+    std::string name_;
     /// The type of the tool, or "" if it does not have a type
-    String type_;
+    std::string type_;
     /// The temporary path
-    String tmp_path_;
+    std::string tmp_path_;
     /// The parameters of the tool
     Param param_;
     /// current status of the tool

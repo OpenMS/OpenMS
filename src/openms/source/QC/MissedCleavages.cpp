@@ -49,7 +49,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing information in ProteinIdentifications.");
     }
 
-    String enzyme = prot_ids[0].getSearchParameters().digestion_enzyme.getName();
+    std::string enzyme = prot_ids[0].getSearchParameters().digestion_enzyme.getName();
     auto max_mc = prot_ids[0].getSearchParameters().missed_cleavages;
 
     // Exception if digestion enzyme is not given
@@ -97,7 +97,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing information in ProteinIdentifications.");
     }
 
-    String enzyme = fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
+    std::string enzyme = fmap.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.getName();
     auto max_mc = fmap.getProteinIdentifications()[0].getSearchParameters().missed_cleavages;
 
     // Exception if digestion enzyme is not given
@@ -123,9 +123,9 @@ namespace OpenMS
   }
 
 
-  const String& MissedCleavages::getName() const
+  const std::string& MissedCleavages::getName() const
   {
-    static const String& name = "MissedCleavages";
+    static const std::string& name = "MissedCleavages";
     return name;
   }
 

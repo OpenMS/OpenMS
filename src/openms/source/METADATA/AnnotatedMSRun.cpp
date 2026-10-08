@@ -57,7 +57,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__,
         function_name, // Use the provided function name
         "Internal inconsistency: Number of spectra and peptide identifications do not match.",
-        String(data.getSpectra().size()) + " vs " + String(peptide_ids_.size()));
+        StringUtils::toStr(data.getSpectra().size()) + " vs " + StringUtils::toStr(peptide_ids_.size()));
     }
   }
 }

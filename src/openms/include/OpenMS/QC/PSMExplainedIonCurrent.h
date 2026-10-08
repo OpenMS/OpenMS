@@ -82,7 +82,7 @@ namespace OpenMS
                  ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /// returns the name of the metric
-    const String& getName() const override;
+    const std::string& getName() const override;
 
     /// returns results
     const std::vector<Statistics>& getResults() const;

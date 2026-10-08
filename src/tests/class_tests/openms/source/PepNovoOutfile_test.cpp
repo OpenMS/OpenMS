@@ -63,10 +63,10 @@ END_SECTION
 PepNovoOutfile file;
 
 
-START_SECTION((void load(const std::string &result_filename, std::vector< PeptideIdentification > &peptide_identifications, ProteinIdentification &protein_identification, const double &score_threshold, const IndexPosMappingType &id_rt_mz, const std::map< String, String > &mod_id_map)))
+START_SECTION((void load(const std::string &result_filename, std::vector< PeptideIdentification > &peptide_identifications, ProteinIdentification &protein_identification, const double &score_threshold, const IndexPosMappingType &id_rt_mz, const std::map<std::string, std::string> &mod_id_map)))
   PeptideIdentificationList peptide_identifications;
   ProteinIdentification protein_identification;
-  map< String, double > filenames_and_precursor_retention_times;
+  map<std::string, double > filenames_and_precursor_retention_times;
 
   // test exceptions
   //TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915f, filenames_and_precursor_retention_times), "the file 'a' could not be found")
@@ -80,7 +80,7 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
 
 
   // test the actual program
-  map<String, String> key_to_mod;
+  map<std::string, std::string> key_to_mod;
   key_to_mod["K+42"]="Acetyl (K)";
   key_to_mod["Y+42"]="Acetyl (Y)";
 
@@ -148,7 +148,7 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
 END_SECTION
 
 
-START_SECTION(void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification))
+START_SECTION(void getSearchEngineAndVersion(const std::string& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification))
   ProteinIdentification protein_identification;
 
   // test the actual program

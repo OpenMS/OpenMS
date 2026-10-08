@@ -89,12 +89,12 @@ namespace OpenMS
         groups.begin();
          group_it != groups.end(); ++group_it)
     {
-      for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
+      for (vector<std::string>::const_iterator acc_it = group_it->accessions.begin();
            acc_it != group_it->accessions.end(); ++acc_it)
       {
         Size idx = group_it - groups.begin();
         prot_acc_to_indist_prot_grp[*acc_it] = idx;
-        if (decoy_accs.find(*acc_it) != decoy_accs.end())
+        if (decoy_accs.contains(*acc_it))
         {
           indist_prot_grp_decoy[idx] = true;
         }
@@ -118,7 +118,7 @@ namespace OpenMS
         for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
              pepev_it != pepev.end(); ++pepev_it, ++ev_idx)
         {
-          String acc = pepev_it->getProteinAccession();
+          std::string acc = pepev_it->getProteinAccession();
 
           auto found = prot_acc_to_indist_prot_grp.find(acc);
           if (found == prot_acc_to_indist_prot_grp.end())
@@ -285,7 +285,7 @@ namespace OpenMS
          groups.begin();
          group_it != groups.end(); ++group_it)
     {
-      for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
+      for (vector<std::string>::const_iterator acc_it = group_it->accessions.begin();
            acc_it != group_it->accessions.end(); ++acc_it)
       {
         Size idx = group_it - groups.begin();
@@ -309,7 +309,7 @@ namespace OpenMS
         for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
              pepev_it != pepev.end(); ++pepev_it)
         {
-          String acc = pepev_it->getProteinAccession();
+          std::string acc = pepev_it->getProteinAccession();
           auto found = prot_acc_to_indist_prot_grp_.find(acc);
           if (found == prot_acc_to_indist_prot_grp_.end())
           {
@@ -533,7 +533,7 @@ namespace OpenMS
                                                              " after building data structures.\n";
       }
 
-      vector<String> accessions = origin_groups[*grp_it].accessions;
+      vector<std::string> accessions = origin_groups[*grp_it].accessions;
 
       // Put the accessions of the indist. groups into the subsuming
       // ambiguity group
@@ -546,7 +546,7 @@ namespace OpenMS
         if (statistics_)
         {
          OPENMS_LOG_DEBUG << "Group: ";
-          for (const String& s : origin_groups[*grp_it].accessions)
+          for (const std::string& s : origin_groups[*grp_it].accessions)
           {
            OPENMS_LOG_DEBUG << s << ", ";
           }
@@ -603,7 +603,7 @@ namespace OpenMS
                                                                  " after building data structures.\n";
           }
 
-          vector<String> accessions = origin_groups[*grp_it].accessions;
+          vector<std::string> accessions = origin_groups[*grp_it].accessions;
 
           // Put the accessions of the indist. groups into the subsuming
           // ambiguity group
@@ -616,7 +616,7 @@ namespace OpenMS
             if (statistics_)
             {
              OPENMS_LOG_DEBUG << "Group: ";
-              for (const String& s : origin_groups[*grp_it].accessions)
+              for (const std::string& s : origin_groups[*grp_it].accessions)
               {
                OPENMS_LOG_DEBUG << s << ", ";
               }
@@ -713,7 +713,7 @@ namespace OpenMS
                               << " after building data structures.\n";
       }
 
-      const vector<String>& accessions = origin_groups[*grp_it].accessions;
+      const vector<std::string>& accessions = origin_groups[*grp_it].accessions;
 
       // Put the accessions of the indist. groups into the subsuming
       // ambiguity group
@@ -723,7 +723,7 @@ namespace OpenMS
       if (statistics_)
       {
         OPENMS_LOG_DEBUG << "Group: ";
-        for (const String& s : accessions)
+        for (const std::string& s : accessions)
         {
           OPENMS_LOG_DEBUG << s << ", ";
         }

@@ -15,7 +15,7 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/DataProcessingUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -99,16 +99,16 @@ namespace OpenMS
     // ensure non-redundant modification parameter
     for (auto& pi : protein_identifications_)
     {
-      std::vector<String>::iterator it_2;
+      std::vector<std::string>::iterator it_2;
 
       // remove redundant variable modifications
-      std::vector<String>& varMod = pi.getSearchParameters().variable_modifications;
+      std::vector<std::string>& varMod = pi.getSearchParameters().variable_modifications;
       sort(varMod.begin(), varMod.end());
       it_2 = unique(varMod.begin(), varMod.end());
       varMod.resize(it_2 - varMod.begin());
 
       // remove redundant fixed modifications
-      std::vector<String>& fixMod = pi.getSearchParameters().fixed_modifications;
+      std::vector<std::string>& fixMod = pi.getSearchParameters().fixed_modifications;
       sort(fixMod.begin(), fixMod.end());
       it_2 = unique(fixMod.begin(), fixMod.end());
       fixMod.resize(it_2 - fixMod.begin());
@@ -179,16 +179,16 @@ namespace OpenMS
     // ensure non-redundant modification parameter
     for (auto& pi : protein_identifications_)
     {
-      std::vector<String>::iterator it_2;
+      std::vector<std::string>::iterator it_2;
 
       // remove redundant variable modifications
-      std::vector<String>& varMod = pi.getSearchParameters().variable_modifications;
+      std::vector<std::string>& varMod = pi.getSearchParameters().variable_modifications;
       sort(varMod.begin(), varMod.end());
       it_2 = unique(varMod.begin(), varMod.end());
       varMod.resize(it_2 - varMod.begin());
 
       // remove redundant fixed modifications
-      std::vector<String>& fixMod = pi.getSearchParameters().fixed_modifications;
+      std::vector<std::string>& fixMod = pi.getSearchParameters().fixed_modifications;
       sort(fixMod.begin(), fixMod.end());
       it_2 = unique(fixMod.begin(), fixMod.end());
       fixMod.resize(it_2 - fixMod.begin());
@@ -199,10 +199,10 @@ namespace OpenMS
     {
       if (pid.metaValueExists("map_index"))
       {
-        Size old_index = pid.getMetaValue("map_index");
+        Size old_index = (Size)pid.getMetaValue("map_index");
         pid.setMetaValue("map_index", lhs_map_size + old_index);
       }
-      unassigned_peptide_identifications_.push_back(pid);
+      unassigned_peptide_identifications_.push_back(std::move(pid));
     }
 
     // combine IDs (new format):
@@ -215,7 +215,7 @@ namespace OpenMS
       {
         if (pid.metaValueExists("map_index"))
         {
-          Size old_index = pid.getMetaValue("map_index");
+          Size old_index = (Size)pid.getMetaValue("map_index");
           pid.setMetaValue("map_index", lhs_map_size + old_index);
         }
       }
@@ -234,7 +234,7 @@ namespace OpenMS
       // update IDs (new format):
       cf.updateIDReferences(trans);
 
-      emplace_back(cf);
+      emplace_back(std::move(cf));
     }
 
     // consistency
@@ -287,12 +287,12 @@ namespace OpenMS
     column_description_ = column_description;
   }
 
-  const String& ConsensusMap::getExperimentType() const
+  const std::string& ConsensusMap::getExperimentType() const
   {
     return experiment_type_;
   }
 
-  void ConsensusMap::setExperimentType(const String& experiment_type)
+  void ConsensusMap::setExperimentType(const std::string& experiment_type)
   {
     if (experiment_type != "label-free"
       && experiment_type != "labeled_MS1"
@@ -444,7 +444,7 @@ namespace OpenMS
     protein_identifications_ = std::move(protein_identifications);
   }
 
-  const ProteinIdentification* ConsensusMap::findProteinIdentification(const String& identifier) const
+  const ProteinIdentification* ConsensusMap::findProteinIdentification(const std::string& identifier) const
   {
     for (const auto& prot_id : protein_identifications_)
     {
@@ -456,7 +456,7 @@ namespace OpenMS
     return nullptr;
   }
 
-  ProteinIdentification* ConsensusMap::findProteinIdentification(const String& identifier)
+  ProteinIdentification* ConsensusMap::findProteinIdentification(const std::string& identifier)
   {
     for (auto& prot_id : protein_identifications_)
     {
@@ -509,7 +509,7 @@ namespace OpenMS
   {
     if (s.empty())
     {
-      OPENMS_LOG_WARN << "Setting empty MS runs paths. Expected one for each map. Resulting ConsensusMap contains " + String(column_description_.size()) + " maps." << std::endl;
+      OPENMS_LOG_WARN << "Setting empty MS runs paths. Expected one for each map. Resulting ConsensusMap contains " + StringUtils::toStr(column_description_.size()) + " maps." << std::endl;
       for (auto & cd : column_description_)
       {
         cd.second.filename = "UNKNOWN";
@@ -518,14 +518,14 @@ namespace OpenMS
     else if (!column_description_.empty() && s.size() != column_description_.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Number of MS runs paths (" + String(s.size()) +
-        ") must match number of columns (" + String(column_description_.size()) + ").");
+        "Number of MS runs paths (" + StringUtils::toStr(s.size()) +
+        ") must match number of columns (" + StringUtils::toStr(column_description_.size()) + ").");
     }
 
     Size i(0);
     for (auto const & p : s)
     {
-      if (!p.hasSuffix("mzML") && !p.hasSuffix("mzml"))
+      if (!StringUtils::hasSuffix(p, "mzML") && !StringUtils::hasSuffix(p, "mzml"))
       {
         OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
                         << "Filename: '" << p << "'" << std::endl;
@@ -540,7 +540,7 @@ namespace OpenMS
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);
-    if (ms_path.size() == 1 && ms_path[0].hasSuffix("mzML") && File::exists(ms_path[0]))
+    if (ms_path.size() == 1 && StringUtils::hasSuffix(ms_path[0], "mzML") && File::exists(ms_path[0]))
     {
       setPrimaryMSRunPath(ms_path);
     }
@@ -646,11 +646,11 @@ namespace OpenMS
     std::map<Size, Size> wrong_ID_count; // which IDs were given which are not valid
 
     // check file descriptions
-    std::set<String> maps;
-    String all_maps; // for output later
+    std::set<std::string> maps;
+    std::string all_maps; // for output later
     for (ColumnHeaders::const_iterator it = column_description_.begin(); it != column_description_.end(); ++it)
     {
-      String s = String("  file: ") + it->second.filename + " label: " + it->second.label;
+      std::string s =std::string("  file: ") + it->second.filename + " label: " + it->second.label;
       maps.insert(s);
       all_maps += s;
     }
@@ -671,7 +671,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       const ConsensusFeature& elem = (*this)[i];
       for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
       {
-        if (column_description_.find(it->getMapIndex()) == column_description_.end())
+        if (!column_description_.contains(it->getMapIndex()))
         {
           ++stats_wrongMID;
           ++wrong_ID_count[it->getMapIndex()];
@@ -703,11 +703,31 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
   {
     // @TODO: handle IDs in new format (IdentificationData)
 
-    Size numbr_exps = column_description_.size();
-    std::vector<FeatureMap>fmaps(numbr_exps);
+    // Column headers are keyed by map index, and the keys need not be contiguous (e.g. after
+    // 'FileFilter -consensus:map 0 3', or for a consensusXML without <map id="0">). The result
+    // vector is therefore addressed by the position of a map index among the column headers
+    // (in key order), never by the raw map index, which may lie outside the vector.
+    std::map<UInt64, Size> index_to_position;
+    Size position = 0;
+    for (const auto& column : column_description_)
+    {
+      index_to_position[column.first] = position++;
+    }
+    auto positionOf = [&index_to_position](UInt64 map_index) -> Size
+    {
+      const auto pos = index_to_position.find(map_index);
+      if (pos == index_to_position.end())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Map index " + std::to_string(map_index) + " does not name a column of this ConsensusMap. Check input!");
+      }
+      return pos->second;
+    };
+
+    std::vector<FeatureMap> fmaps(index_to_position.size());
 
     // Check for Isobaric Analyzer
-    bool iso_analyze = QCBase::isLabeledExperiment(*this);
+    bool iso_analyze = DataProcessingUtils::hasIsobaricAnalyzer(getDataProcessing());
 
     for (const auto& cf : *this)
     {
@@ -777,16 +797,18 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       // Add new Features to corresponding FeatureMap.
       for (auto it = new_feats.begin(); it != new_feats.end(); ++it)
       {
-        fmaps[it->first].emplace_back(std::move(it->second));
+        fmaps[positionOf(it->first)].emplace_back(std::move(it->second));
       }
     }
 
     // Add unassigned PeptideIdentifications to ...
     if (iso_analyze)
     {
-      // ... the first FeatureMap.
-      fmaps[0].getUnassignedPeptideIdentifications() = this->getUnassignedPeptideIdentifications();
-      fmaps[0].getProteinIdentifications() = this->getProteinIdentifications(); // wrong! improve: only copy the ProtID which belongs to this FMap!
+      // ... the first FeatureMap, i.e. the one of map index 0. It is resolved like any other map
+      // index, so a missing column 0 (or no column at all) is reported instead of written out of bounds.
+      const Size first = positionOf(0);
+      fmaps[first].getUnassignedPeptideIdentifications() = this->getUnassignedPeptideIdentifications();
+      fmaps[first].getProteinIdentifications() = this->getProteinIdentifications(); // wrong! improve: only copy the ProtID which belongs to this FMap!
     }
     else
     {
@@ -798,7 +820,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
         }
-        fmaps[upep_id.getMetaValue("map_index")].getUnassignedPeptideIdentifications().push_back(upep_id);
+        fmaps[positionOf(static_cast<UInt64>(upep_id.getMetaValue("map_index")))].getUnassignedPeptideIdentifications().push_back(upep_id);
       }
     }
 
@@ -810,7 +832,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     return fmaps;
   }
 
-  unsigned ConsensusMap::ColumnHeader::getLabelAsUInt(const String& experiment_type) const
+  unsigned ConsensusMap::ColumnHeader::getLabelAsUInt(const std::string& experiment_type) const
   {
     if (metaValueExists("channel_id"))
     {

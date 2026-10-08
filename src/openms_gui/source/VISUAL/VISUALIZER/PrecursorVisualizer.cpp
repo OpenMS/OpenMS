@@ -44,12 +44,12 @@ namespace OpenMS
 
   void PrecursorVisualizer::update_()
   {
-    mz_->setText(String(temp_.getMZ()).c_str());
-    int_->setText(String(temp_.getIntensity()).c_str());
-    charge_->setText(String(temp_.getCharge()).c_str());
+    mz_->setText(StringUtils::toStr(temp_.getMZ()).c_str());
+    int_->setText(StringUtils::toStr(temp_.getIntensity()).c_str());
+    charge_->setText(StringUtils::toStr(temp_.getCharge()).c_str());
 
-    window_low_->setText(String(temp_.getIsolationWindowLowerOffset()).c_str());
-    window_up_->setText(String(temp_.getIsolationWindowUpperOffset()).c_str());
+    window_low_->setText(StringUtils::toStr(temp_.getIsolationWindowLowerOffset()).c_str());
+    window_up_->setText(StringUtils::toStr(temp_.getIsolationWindowUpperOffset()).c_str());
 
     //actions
     activation_methods_->clear();
@@ -76,7 +76,7 @@ namespace OpenMS
       activation_methods_->addItem(item);
     }
 
-    activation_energy_->setText(String(temp_.getActivationEnergy()).c_str());
+    activation_energy_->setText(StringUtils::toStr(temp_.getActivationEnergy()).c_str());
   }
 
   void PrecursorVisualizer::store()

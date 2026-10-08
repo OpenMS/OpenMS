@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <map>
 
 namespace OpenMS
@@ -34,9 +34,9 @@ public:
         @param[in] filename to acqus File.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
-        @exception Exception::ConversionError is thrown if error conversion from String to calibration param.
+        @exception Exception::ConversionError is thrown if error conversion from std::string to calibration param.
       */
-      explicit AcqusHandler(const String & filename);
+      explicit AcqusHandler(const std::string & filename);
 
       /// Destructor
       virtual ~AcqusHandler();
@@ -45,7 +45,7 @@ public:
       double getPosition(Size index) const;
 
       /// Read param as string
-      String getParam(const String & param);
+      std::string getParam(const std::string & param);
 
       /// Get size of spectrum
       Size getSize() const;
@@ -55,7 +55,7 @@ private:
       AcqusHandler();
 
       /// Map for params saving
-      std::map<String, String> params_;
+      std::map<std::string, std::string> params_;
 
       /**@name Internal params for calibration */
       //@{

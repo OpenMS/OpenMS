@@ -11,7 +11,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
@@ -37,7 +36,7 @@ int main()
   protein_id.setHits(protein_hits);
 
   DateTime now = DateTime::now();
-  String date_string = now.getDate();
+  std::string date_string = now.getDate();
   protein_id.setDateTime(now);
 
   // Example of possible search parameters

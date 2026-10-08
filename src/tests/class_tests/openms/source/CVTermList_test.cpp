@@ -71,7 +71,7 @@ START_SECTION((bool operator!=(const CVTermList &cv_term_list) const ))
 }
 END_SECTION
 
-START_SECTION((bool hasCVTerm(const String &accession) const ))
+START_SECTION((bool hasCVTerm(const std::string &accession) const ))
 {
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
@@ -181,7 +181,7 @@ START_SECTION((void replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_m
   tmp.push_back(cv_term);
   std::vector<CVTerm> tmp2;
   tmp2.push_back(cv_term2);
-  std::map<String, std::vector<CVTerm> >new_terms;
+  std::map<std::string, std::vector<CVTerm> >new_terms;
   new_terms["my_accession2"] = tmp2;
   TEST_EQUAL(new_terms.find("my_accession2") != new_terms.end(), true);
 

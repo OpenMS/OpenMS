@@ -1,13 +1,12 @@
 # Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche $
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_class_tests_openms")
 
 #------------------------------------------------------------------------------
@@ -21,8 +20,13 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURE
 include(executables.cmake)
 
 #------------------------------------------------------------------------------
+# scan this project's include dir for API docs, so TestFileValidation.h's
+# VALIDATE_TMP_FILES / VALIDATE_FILE land on the ClassTest doxygen page
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+
+#------------------------------------------------------------------------------
 # Include directories for tests
-set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/")
+set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/;${PROJECT_SOURCE_DIR}/include/")
 # add OpenMS directories
 set(OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES "${OpenMS_INCLUDE_DIRECTORIES};${Boost_INCLUDE_DIRS}")
 include_directories(${OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES})
@@ -39,7 +43,7 @@ endif()
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)
-  target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
+  target_link_libraries(${_class_test} OpenMSTestSupport ${OpenMS_LIBRARIES})
   openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
@@ -52,21 +56,92 @@ endforeach(_class_test)
 #------------------------------------------------------------------------------
 # some tests need special treatment
 
+# Class tests of classes that live with a TOPP tool rather than in the library. A tool that
+# has a test/CMakeLists.txt gets it added here, and declares its tests with
+# openms_add_tool_class_test(), which cmake/class_test_macros.cmake defines. Adding a test/
+# folder to a tool is all it takes; nothing in this file changes.
+#
+# They are declared from this project rather than from the tool's own CMakeLists.txt because
+# src/topp is configured before src/tests: at that point OpenMS/test_config.h has not been
+# generated, the -O0 test flags and the test runtime output directory are unset, and the
+# ENABLE_CLASS_TESTING/PACKAGE_TYPE gating of src/tests/CMakeLists.txt does not exist yet.
+#
+# TOPP_TOOLS is empty when BUILD_TOPP_TOOLS is OFF, so a build that does not want the tools
+# does not compile their sources into test binaries either.
+
+include("${OPENMS_HOST_DIRECTORY}/cmake/class_test_macros.cmake")
+
+foreach(_topp_tool ${TOPP_TOOLS})
+  if(EXISTS "${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test/CMakeLists.txt")
+    add_subdirectory("${OPENMS_HOST_DIRECTORY}/src/topp/${_topp_tool}/test"
+                     "topp_${_topp_tool}_tests")
+  endif()
+endforeach()
+
 # StopWatch_test needs to be run alone to avoid timing errors
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
-#------------------------------------------------------------------------------
-# 2 - add link dependencies (TODO could be more finegrained for boost)
-foreach(t ${Boost_dependent_tests})
-  foreach(comp ${OpenMS_BOOST_COMPONENTS})
-    target_link_libraries(${t} Boost::${comp})
-  endforeach()
-endforeach()
+# PipEchoAlgorithm_realistic_test synthesises ~10k features across 3 runs and
+# drives the LIBSVM-based MBR FDR path over many rounds. It is slow (seconds to
+# minutes) and skips silently unless OPENMS_RUN_SLOW_TESTS is set, so it does
+# not bloat the default CI run. Labelled "slow" so it can be excluded/selected
+# explicitly (e.g. ctest -LE slow) and given a generous timeout for when it runs.
+set_tests_properties(PipEchoAlgorithm_realistic_test PROPERTIES LABELS "slow" TIMEOUT 1800)
 
+# Percolator_subprocess_parity_test runs side-by-side comparisons against the
+# external `percolator` binary. Tests that need it are gated via the
+# PERCOLATOR_BINARY environment variable and skip silently when unset. Search
+# PATH first, then fall back to the repo's bundled THIRDPARTY/<os>/<arch>/
+# layout so local dev builds pick it up automatically.
+set(_percolator_thirdparty_hints)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  list(APPEND _percolator_thirdparty_hints
+    "${OpenMS_SOURCE_DIR}/THIRDPARTY/Linux/${CMAKE_SYSTEM_PROCESSOR}/Percolator"
+    "${CMAKE_SOURCE_DIR}/THIRDPARTY/Linux/${CMAKE_SYSTEM_PROCESSOR}/Percolator")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  list(APPEND _percolator_thirdparty_hints
+    "${OpenMS_SOURCE_DIR}/THIRDPARTY/MacOS/${CMAKE_SYSTEM_PROCESSOR}/Percolator"
+    "${CMAKE_SOURCE_DIR}/THIRDPARTY/MacOS/${CMAKE_SYSTEM_PROCESSOR}/Percolator")
+endif()
+find_program(PERCOLATOR_BINARY_FOR_TEST percolator
+  PATHS ENV PATH ${_percolator_thirdparty_hints})
+
+if (PERCOLATOR_BINARY_FOR_TEST)
+  set_tests_properties(Percolator_subprocess_parity_test PROPERTIES
+    ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST}")
+  # Compute PercolatorAdapter path at configure time.
+  # TOPP tools are placed in ${CMAKE_BINARY_DIR}/bin/ (the root build dir's bin/),
+  # which is the same directory that the top-level CMakeLists sets as
+  # CMAKE_RUNTIME_OUTPUT_DIRECTORY. Generator expressions like $<TARGET_FILE:...>
+  # cannot be evaluated in ENVIRONMENT properties across sub-project boundaries.
+  if (WIN32)
+    set(_percolator_adapter_suffix ".exe")
+  else()
+    set(_percolator_adapter_suffix "")
+  endif()
+  set(_percolator_adapter_path "${CMAKE_BINARY_DIR}/bin/PercolatorAdapter${_percolator_adapter_suffix}")
+  set_tests_properties(PercolatorAdapter_parity_test PROPERTIES
+    ENVIRONMENT "PERCOLATOR_BINARY=${PERCOLATOR_BINARY_FOR_TEST};PERCOLATOR_ADAPTER_BINARY=${_percolator_adapter_path}")
+  message(STATUS "Percolator_subprocess_parity_test: enabled (found ${PERCOLATOR_BINARY_FOR_TEST})")
+  message(STATUS "PercolatorAdapter_parity_test: enabled (adapter at ${_percolator_adapter_path})")
+else()
+  message(STATUS "Percolator_subprocess_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)")
+  message(STATUS "PercolatorAdapter_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)")
+endif()
+
+#------------------------------------------------------------------------------
+# 2 - add link dependencies
 target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(Libzip_test libzip::zip)
+# Xerces is a PRIVATE dependency of libOpenMS. These tests exercise the internal
+# Xerces InputSource / BinInputStream adapters directly, so they must link Xerces
+# themselves.
+target_link_libraries(ZipInputStream_test XercesC::XercesC)
+target_link_libraries(GzipInputStream_test XercesC::XercesC)
+target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
+target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
-target_link_libraries(LPWrapper_test CoinOR::CoinOR)
+target_link_libraries(LPWrapper_test ${LPTARGET})
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
 target_link_libraries(BilinearInterpolation_test Eigen3::Eigen)
@@ -77,6 +152,8 @@ target_link_libraries(MRMScoring_test Eigen3::Eigen)
 if (WITH_HDF5)
   target_link_libraries(HDF5_test HDF5::HDF5)
 endif()
+
+target_link_libraries(OSWParquetFile_test ${OPENMS_ARROW_TARGET})
 
 target_link_libraries(Arrow_test
   ${OPENMS_ARROW_TARGET}
@@ -90,7 +167,18 @@ target_link_libraries(ConsensusMapArrowExport_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
+target_link_libraries(ProteinGroupArrowExport_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
 target_link_libraries(QPXFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+# Builds its invalid inputs with arrow::FloatBuilder / ArrayData::Make rather than through the
+# exporters, so it needs Arrow itself, not just what OpenMS re-exports. On Linux/macOS the symbols
+# happen to be reachable through libOpenMS; on Windows they are dllimport and the link fails.
+target_link_libraries(QPXValueValidation_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
@@ -103,6 +191,18 @@ target_link_libraries(FeatureMapArrowIO_test
   ${OPENMS_PARQUET_TARGET}
 )
 target_link_libraries(ConsensusMapArrowIO_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+target_link_libraries(PSMArrowIO_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+target_link_libraries(XICParquetFile_test
+  ${OPENMS_ARROW_TARGET}
+  ${OPENMS_PARQUET_TARGET}
+)
+target_link_libraries(XIMParquetFile_test
   ${OPENMS_ARROW_TARGET}
   ${OPENMS_PARQUET_TARGET}
 )
@@ -139,15 +239,78 @@ if (TARGET OpenSwathOSWParquetRoundTrip_test)
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+if (TARGET OpenSwathExport_test)
+  target_link_libraries(OpenSwathExport_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET OpenSwathPercolatorScoring_test)
+  target_link_libraries(OpenSwathPercolatorScoring_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+  #Test calls sqlite3 directly, so linkage required.
+  if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test unofficial::sqlite3::sqlite3)
+  elseif(TARGET SQLite::SQLite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test SQLite::SQLite3)
+  elseif(TARGET SQLiteCpp)
+    target_link_libraries(OpenSwathPercolatorScoring_test SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+  elseif(TARGET sqlite3)
+    target_link_libraries(OpenSwathPercolatorScoring_test sqlite3)
+  endif()
+endif()
 if (TARGET ArrowSchemaRegistry_test)
   target_link_libraries(ArrowSchemaRegistry_test
     ${OPENMS_ARROW_TARGET}
     ${OPENMS_PARQUET_TARGET}
   )
 endif()
+if (TARGET OpenSwathResultsExporter_test)
+  target_link_libraries(OpenSwathResultsExporter_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET OpenSwathParquetExporter_test)
+  target_link_libraries(OpenSwathParquetExporter_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET ArrowIOHelpers_test)
+  target_link_libraries(ArrowIOHelpers_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+# Builds its fixture tables with arrow::*Builder rather than through an exporter, so it needs
+# Arrow itself, not just what OpenMS re-exports -- the same reason QPXValueValidation_test does.
+if (TARGET ParquetTableComparator_test)
+  target_link_libraries(ParquetTableComparator_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
+if (TARGET ParquetFile_test)
+  target_link_libraries(ParquetFile_test
+    ${OPENMS_ARROW_TARGET}
+    ${OPENMS_PARQUET_TARGET}
+  )
+endif()
 
 if (TARGET BrukerTimsFile_test AND WITH_OPENTIMS)
-  target_link_libraries(BrukerTimsFile_test opentims::opentims_cpp sqlite3)
+  target_link_libraries(BrukerTimsFile_test opentims::opentims_cpp)
+  if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+    target_link_libraries(BrukerTimsFile_test unofficial::sqlite3::sqlite3)
+  elseif(TARGET SQLite::SQLite3)
+    target_link_libraries(BrukerTimsFile_test SQLite::SQLite3)
+  elseif(TARGET SQLiteCpp)
+    target_link_libraries(BrukerTimsFile_test SQLiteCpp ${OPENMS_SQLITECPP_EXTRA_LIBS})
+  elseif(TARGET sqlite3)
+    target_link_libraries(BrukerTimsFile_test sqlite3)
+  endif()
 endif()
 
 if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
@@ -155,9 +318,39 @@ if (TARGET BrukerTimsFile_test AND OPENTIMS_DDA_TEST_DATA)
     OPENTIMS_DDA_TEST_DATA="${OPENTIMS_DDA_TEST_DATA}"
     OPENTIMS_DIA_TEST_DATA="${OPENTIMS_DIA_TEST_DATA}"
     OPENTIMS_TEST_FASTA="${OPENTIMS_TEST_FASTA}")
-  # This test loads real Bruker .d files (DDA + DIA) including frame aggregation
-  # and a peptide search engine run, so it needs a generous timeout.
-  set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 1200)
+  # This test loads real Bruker .d files (DDA + DIA) including frame aggregation,
+  # a peptide search engine run, and three-way (greedy vs. hill) centroiding
+  # comparisons (which add 4 extra full-fixture loads), so it needs a generous timeout.
+  set_tests_properties(BrukerTimsFile_test PROPERTIES TIMEOUT 3600)
+endif()
+
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
+  target_compile_definitions(ThermoRawFile_test PRIVATE
+    THERMO_RAW_TEST_DATA="${THERMO_RAW_TEST_DATA}")
+endif()
+
+# Optional Thermo FAIMS-DIA integration fixture. It can be supplied explicitly via
+# THERMO_FAIMS_DIA_TEST_DATA or downloaded by ENABLE_THERMO_FAIMS_DIA_TESTS.
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_FAIMS_DIA_TEST_DATA)
+  # Normalize manually supplied native paths (especially Windows paths with
+  # backslashes) before embedding the value as a C/C++ string literal.
+  file(TO_CMAKE_PATH "${THERMO_FAIMS_DIA_TEST_DATA}" _thermo_faims_dia_test_data)
+  target_compile_definitions(ThermoRawFile_test PRIVATE
+    THERMO_FAIMS_DIA_TEST_DATA="${_thermo_faims_dia_test_data}")
+endif()
+
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND
+    (THERMO_RAW_TEST_DATA OR THERMO_FAIMS_DIA_TEST_DATA))
+  set_tests_properties(ThermoRawFile_test PROPERTIES TIMEOUT 1200)
+
+  # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
+  # test binary. The bridge looks first in the executable's own directory; on
+  # Windows the test exe is in src/tests/class_tests/bin (not next to
+  # libOpenMS), so the OpenMS-target POST_BUILD copy in src/openms/CMakeLists
+  # is in a different directory and would not be found at test runtime.
+  if (COMMAND openms_thermo_bridge_copy_runtime_files)
+    openms_thermo_bridge_copy_runtime_files(TARGET ThermoRawFile_test)
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -173,3 +366,59 @@ foreach(i ${TEST_executables})
   list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 source_group("" FILES ${sources_VS})
+
+if(WITH_ONNX)
+  # Class tests run from the build-tree test directory and expect models below data/.
+  # Reuse the models downloaded by src/openms/CMakeLists.txt instead of downloading
+  # them again. No .onnx.data sidecars are needed because the exported models are
+  # embedded-weight ONNX files.
+  set(TEST_DATA_DIR "${CMAKE_BINARY_DIR}/src/tests/class_tests/openms/data")
+  file(MAKE_DIRECTORY "${TEST_DATA_DIR}")
+
+  foreach(MODEL IN LISTS OPENMS_PEPTDEEP_MODELS)
+    set(SOURCE_MODEL "${OPENMS_PEPTDEEP_MODEL_DIR}/${MODEL}")
+    set(TEST_MODEL "${TEST_DATA_DIR}/${MODEL}")
+
+    if(NOT EXISTS "${SOURCE_MODEL}")
+      message(FATAL_ERROR
+        "Expected PeptDeep model was not found: ${SOURCE_MODEL}. "
+        "The OpenMS ONNX model download step should have created this file.")
+    endif()
+
+    configure_file("${SOURCE_MODEL}" "${TEST_MODEL}" COPYONLY)
+  endforeach()
+endif()
+
+# This test exercises the private Boost graph implementation.
+target_link_libraries(IDBoostGraph_test Boost::boost)
+
+# Boost used directly by these implementation/test translation units.
+foreach(_boost_consumer IN ITEMS
+  DBSuitability_test
+  EmgFitter1D_test
+  EmgModel_test
+  FastLowessSmoothing_test
+  HashGrid_test
+  LogConfigHandler_test
+  LogStream_test
+  LowessSmoothing_test
+  MRMAssay_test
+  MRMDecoy_test
+  MRMMapping_test
+  MRMTransitionGroupPicker_test
+  OpenSwathDataAccessHelper_test
+  OpenSwathHelper_test
+  OpenSwathMRMFeatureAccessOpenMS_test
+  OpenSwathSpectrumAccessOpenMS_test
+  PeakPickerChromatogram_test
+  PeakPickerMobilogram_test
+  StatisticFunctions_test
+  TransitionPQPFile_test
+  TransitionTSVFile_test
+  UniqueIdGenerator_test
+)
+  if(TARGET ${_boost_consumer})
+    target_link_libraries(${_boost_consumer} Boost::boost)
+  endif()
+endforeach()
+unset(_boost_consumer)

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/test_config.h>
 
@@ -30,10 +31,10 @@ START_TEST(OMSFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-String oms_tmp;
+std::string oms_tmp;
 IdentificationData ids;
 
-START_SECTION(void store(const String& filename, const IdentificationData& id_data))
+START_SECTION(void store(const std::string& filename, const IdentificationData& id_data))
 {
   vector<ProteinIdentification> proteins_in;
   PeptideIdentificationList peptides_in;
@@ -55,7 +56,7 @@ START_SECTION(void store(const String& filename, const IdentificationData& id_da
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, IdentificationData& id_data))
+START_SECTION(void load(const std::string& filename, IdentificationData& id_data))
 {
   IdentificationData out;
   OMSFile().load(oms_tmp, out);
@@ -102,7 +103,7 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, const FeatureMap& features))
+START_SECTION(void store(const std::string& filename, const FeatureMap& features))
 {
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFileOMStest_1.featureXML"), features);
@@ -120,7 +121,7 @@ START_SECTION(void store(const String& filename, const FeatureMap& features))
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, FeatureMap& features))
+START_SECTION(void load(const std::string& filename, FeatureMap& features))
 {
   FeatureMap features;
   OMSFile().load(oms_tmp, features);
@@ -144,7 +145,7 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
   //features.setUnassignedPeptideIdentifications(un_peptides);
   features.sortByPosition();
 
-  String fxml_tmp;
+  std::string fxml_tmp;
   NEW_TMP_FILE(fxml_tmp);
   FeatureXMLFile().store(fxml_tmp, features);
 
@@ -160,7 +161,7 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, const ConsensusMap& consensus))
+START_SECTION(void store(const std::string& filename, const ConsensusMap& consensus))
 {
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), consensus);
@@ -178,7 +179,7 @@ START_SECTION(void store(const String& filename, const ConsensusMap& consensus))
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, ConsensusMap& consensus))
+START_SECTION(void load(const std::string& filename, ConsensusMap& consensus))
 {
   ConsensusMap consensus;
   OMSFile().load(oms_tmp, consensus);
@@ -201,7 +202,7 @@ START_SECTION(void load(const String& filename, ConsensusMap& consensus))
   }
   consensus.sortByPosition();
 
-  String cxml_tmp;
+  std::string cxml_tmp;
   NEW_TMP_FILE(cxml_tmp);
   ConsensusXMLFile().store(cxml_tmp, consensus);
   TEST_EQUAL(File::empty(cxml_tmp), false);
@@ -222,4 +223,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

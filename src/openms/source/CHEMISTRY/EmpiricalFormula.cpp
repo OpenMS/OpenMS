@@ -31,7 +31,7 @@ namespace OpenMS
     charge_(0)
   {}
 
-  EmpiricalFormula::EmpiricalFormula(const String& formula)
+  EmpiricalFormula::EmpiricalFormula(const std::string& formula)
   {
     charge_ = parseFormula_(formula_, formula);
   }
@@ -245,13 +245,23 @@ namespace OpenMS
     return charge_;
   }
 
-  String EmpiricalFormula::toString() const
+  EmpiricalFormula& EmpiricalFormula::addChargeAdduct(Int count, const std::string& adduct)
   {
-    String formula;
+    EmpiricalFormula add(adduct);
+    add.setCharge(0);          // ignore any charge that might be encoded in the adduct string
+    add = add * count;         // scale the adduct's atoms by the (signed) count
+    *this += add;              // fold the adduct atoms into this formula (add is neutral)
+    setCharge(0);              // ionization is now explicit in the composition -> neutral formula
+    return *this;
+  }
+
+  std::string EmpiricalFormula::toString() const
+  {
+    std::string formula;
     auto formula_map = toMap();
     for (const auto& it : formula_map)
     {
-      (formula += it.first) += String(it.second);
+      (formula += it.first) +=StringUtils::toStr(it.second);
     }
     return formula;
   }
@@ -369,7 +379,7 @@ namespace OpenMS
 
   bool EmpiricalFormula::hasElement(const Element* element) const
   {
-    return formula_.find(element) != formula_.end();
+    return formula_.contains(element);
   }
 
   bool EmpiricalFormula::contains(const EmpiricalFormula& ef) const
@@ -396,7 +406,7 @@ namespace OpenMS
 
   ostream& operator<<(ostream& os, const EmpiricalFormula& formula)
   {
-    std::map<String, SignedSize> new_formula;
+    std::map<std::string, SignedSize> new_formula;
     for (const auto& it : formula.formula_)
     {
       new_formula[it.first->getSymbol()] = it.second;
@@ -437,14 +447,14 @@ namespace OpenMS
     return os;
   }
 
-  Int EmpiricalFormula::parseFormula_(MapType_& ef, const String& input_formula) const
+  Int EmpiricalFormula::parseFormula_(std::map<const Element*, SignedSize>& ef, const std::string& input_formula) const
   {
     Int charge{0};
-    String formula(input_formula);
-    formula.trim();
+    std::string formula(input_formula);
+    StringUtils::trim(formula);
 
     // we start with the charge part, read until the begin of the formula or a element symbol occurs
-    String suffix;
+    std::string suffix;
     for (SignedSize reverse_i(formula.size() - 1); reverse_i >= 0; --reverse_i)
     {
       if (!isalpha(formula[reverse_i]))
@@ -472,7 +482,7 @@ namespace OpenMS
       if (i != suffix.size())
       {
         // we found the charge part
-        String charge_str;
+        std::string charge_str;
         for (Size j = i + 1; j < suffix.size(); ++j)
         {
           charge_str += suffix[j];
@@ -481,7 +491,7 @@ namespace OpenMS
         Int tmp_charge = 1;
         if (!charge_str.empty())
         {
-          tmp_charge = charge_str.toInt();
+          tmp_charge = StringUtils::toInt32(charge_str);
         }
 
         if (suffix[i] == '-')
@@ -516,7 +526,7 @@ namespace OpenMS
       {
         if (suffix[0] == '-' || suffix[0] == '+')
         {
-          charge = suffix.toInt();
+          charge = StringUtils::toInt32(suffix);
           return charge;
         }
       }
@@ -579,9 +589,9 @@ namespace OpenMS
     const ElementDB* db = ElementDB::getInstance();
     for (Size i = 0; i != splitter.size(); ++i)
     {
-      const String& split = splitter[i];
-      String number;
-      String symbol;
+      const std::string& split = splitter[i];
+      std::string number;
+      std::string symbol;
       bool had_symbol(false);
       for (SignedSize j = split.size() - 1; j >= 0; --j)
       {
@@ -599,7 +609,7 @@ namespace OpenMS
       SignedSize num(1);
       if (!number.empty())
       {
-        num = number.toInt();
+        num = StringUtils::toInt32(number);
       }
 
       const Element* e = db->getElement(symbol);
@@ -669,8 +679,37 @@ namespace OpenMS
       return charge_ < rhs.charge_;
     }
     
-    // Map comparison is now deterministic due to ElementPtrComparator_ in the map definition
-    return formula_ < rhs.formula_;
+    // Deterministic comparison: compare elements by atomic number, not pointer address
+    auto it1 = formula_.begin();
+    auto it2 = rhs.formula_.begin();
+    while (it1 != formula_.end() && it2 != rhs.formula_.end())
+    {
+      const Element* e1 = it1->first;
+      const Element* e2 = it2->first;
+      
+      // Fast path: same element pointer
+      if (e1 != e2)
+      {
+        // Compare by atomic number for deterministic ordering
+        unsigned int atom_num1 = e1->getAtomicNumber();
+        unsigned int atom_num2 = e2->getAtomicNumber();
+        if (atom_num1 != atom_num2)
+        {
+          return atom_num1 < atom_num2;
+        }
+      }
+      
+      // Same element (or same atomic number), compare counts
+      if (it1->second != it2->second)
+      {
+        return it1->second < it2->second;
+      }
+      ++it1;
+      ++it2;
+    }
+    
+    // All elements matched
+    return false;
   }
 
   EmpiricalFormula EmpiricalFormula::hydrogen(int n_atoms)

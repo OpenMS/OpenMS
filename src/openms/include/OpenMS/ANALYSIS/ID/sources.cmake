@@ -12,7 +12,6 @@ ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
 ConsensusIDAlgorithmBest.h
 ConsensusIDAlgorithmIdentity.h
-CometModification.h
 ConsensusIDAlgorithmPEPIons.h
 ConsensusIDAlgorithmPEPMatrix.h
 ConsensusIDAlgorithmRanks.h
@@ -24,7 +23,6 @@ FIAMSDataProcessor.h
 FIAMSScheduler.h
 FragmentIndex.h
 HyperScore.h
-IDBoostGraph.h
 IDDecoyProbability.h
 IDConflictResolverAlgorithm.h
 IDMapper.h
@@ -36,11 +34,12 @@ IonIdentityMolecularNetworking.h
 MetaboliteSpectralMatching.h
 ProSEAlgorithm.h
 MorpheusScore.h
-NeighborSeq.h
 OpenSearchModificationAnalysis.h
 PeptideIndexing.h
 PeptideProteinResolution.h
+Percolator.h
 PercolatorFeatureSetHelper.h
+PercolatorTypes.h
 PrecursorPurity.h
 PScore.h
 Scores.h
@@ -59,3 +58,8 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\ANALYSIS\\ID" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
+
+# Implementation detail of protein inference: its graph types are Boost.Graph, so it is not
+# installed. Code outside the library that needs indistinguishable protein groups calls
+# BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups() instead.
+list(APPEND OpenMS_private_headers ${directory}/IDBoostGraph.h)

@@ -138,7 +138,11 @@ namespace OpenMS
     return *this;
   }
 
-  //FeatureMap& FeatureMap::operator=(FeatureMap&&) = default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+  // Can be defaulted: moving preserves the addresses of the IdentificationData
+  // objects referenced by the contained features, so (unlike the copy assignment
+  // above) no ID-reference translation is required. This mirrors the defaulted
+  // move constructor.
+  FeatureMap& FeatureMap::operator=(FeatureMap&&) = default;
 
 
   bool FeatureMap::operator==(const FeatureMap& rhs) const
@@ -352,7 +356,7 @@ namespace OpenMS
     protein_identifications_ = protein_identifications;
   }
 
-  const ProteinIdentification* FeatureMap::findProteinIdentification(const String& identifier) const
+  const ProteinIdentification* FeatureMap::findProteinIdentification(const std::string& identifier) const
   {
     for (const auto& prot_id : protein_identifications_)
     {
@@ -364,7 +368,7 @@ namespace OpenMS
     return nullptr;
   }
 
-  ProteinIdentification* FeatureMap::findProteinIdentification(const String& identifier)
+  ProteinIdentification* FeatureMap::findProteinIdentification(const std::string& identifier)
   {
     for (auto& prot_id : protein_identifications_)
     {
@@ -416,9 +420,9 @@ namespace OpenMS
       return;
     }
 
-    for (const String& filename : s)
+    for (const std::string& filename : s)
     {
-      if (!filename.hasSuffix("mzML") && !filename.hasSuffix("mzml"))
+      if (!StringUtils::hasSuffix(filename, "mzML") && !StringUtils::hasSuffix(filename, "mzml"))
       {
         OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
                         << "Filename: '" << filename << "'" << std::endl;
@@ -433,7 +437,7 @@ namespace OpenMS
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);
-    if (ms_path.size() == 1 && ms_path[0].hasSuffix("mzML") && File::exists(ms_path[0]))
+    if (ms_path.size() == 1 && StringUtils::hasSuffix(ms_path[0], "mzML") && File::exists(ms_path[0]))
     {
       setPrimaryMSRunPath(ms_path);
     }

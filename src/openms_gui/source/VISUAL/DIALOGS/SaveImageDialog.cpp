@@ -42,13 +42,13 @@ namespace OpenMS
 
     QPushButton * button = new QPushButton(this);
     button->setText("Cancel");
-    connect(button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(button, &QPushButton::clicked, this, &QDialog::reject);
     box_layout->addWidget(button);
 
     button = new QPushButton(this);
     button->setText("Accept");
     button->setDefault(true);
-    connect(button, SIGNAL(clicked()), this, SLOT(checkSize()));
+    connect(button, &QPushButton::clicked, this, &SaveImageDialog::checkSize);
     box_layout->addWidget(button);
 
     //add picture format selector
@@ -93,20 +93,20 @@ namespace OpenMS
     grid->addLayout(box_layout, 1, 1);
     size_x_ = new QLineEdit(this);
     size_x_->setValidator(v);
-    connect(size_x_, SIGNAL(textChanged(const QString &)), this, SLOT(xSizeChanged(const QString &)));
+    connect(size_x_, &QLineEdit::textChanged, this, &SaveImageDialog::xSizeChanged);
     box_layout->addWidget(size_x_);
     label = new QLabel("x", this);
     box_layout->addWidget(label);
     size_y_ = new QLineEdit(this);
     size_y_->setValidator(v);
-    connect(size_y_, SIGNAL(textChanged(const QString &)), this, SLOT(ySizeChanged(const QString &)));
+    connect(size_y_, &QLineEdit::textChanged, this, &SaveImageDialog::ySizeChanged);
     box_layout->addWidget(size_y_);
     label = new QLabel("pixel", this);
     box_layout->addWidget(label);
 
     size_proportions_ = new QCheckBox("keep proportions", this);
     size_proportions_->setChecked(true);
-    connect(size_proportions_, SIGNAL(toggled(bool)), this, SLOT(proportionsActivated(bool)));
+    connect(size_proportions_, &QCheckBox::toggled, this, &SaveImageDialog::proportionsActivated);
     grid->addWidget(size_proportions_, 2, 1);
   }
 

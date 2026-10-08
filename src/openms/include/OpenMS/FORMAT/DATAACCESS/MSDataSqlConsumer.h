@@ -52,7 +52,7 @@ namespace OpenMS
         @param[in] lossy_compression Whether to use lossy compression (numpress)
         @param[in] linear_mass_acc Desired mass accuracy for RT or m/z space (absolute value)
       */
-      MSDataSqlConsumer(const String& sql_filename, UInt64 run_id, int buffer_size = 500, bool full_meta = true, bool lossy_compression=false, double linear_mass_acc=1e-4);
+      MSDataSqlConsumer(const std::string& sql_filename, UInt64 run_id, int buffer_size = 500, bool full_meta = true, bool lossy_compression=false, double linear_mass_acc=1e-4);
 
       /**
         @brief Destructor
@@ -70,7 +70,7 @@ namespace OpenMS
       void flush();
 
       /// Add/insert a RUN entry into the sqMass file (ID and filename)
-      void addRun(const String& filename, const UInt64 run_id);
+      void addRun(const std::string& filename, const UInt64 run_id);
       /// Change the current run id used for subsequent chromatogram/spectrum writes
       void setRunId(const UInt64 run_id);
 
@@ -90,7 +90,7 @@ namespace OpenMS
 
     protected:
 
-      String filename_;
+      std::string filename_;
       OpenMS::Internal::MzMLSqliteHandler * handler_;
 
       size_t flush_after_;

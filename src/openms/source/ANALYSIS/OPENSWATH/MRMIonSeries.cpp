@@ -19,29 +19,29 @@ namespace OpenMS
 
   MRMIonSeries::~MRMIonSeries() = default;
 
-  std::pair<String, double> MRMIonSeries::getIon(IonSeries& ionseries, const String& ionid)
+  std::pair<std::string, double> MRMIonSeries::getIon(IonSeries& ionseries, const std::string& ionid)
   {
-    if (ionseries.find(ionid) != ionseries.end())
+    if (ionseries.contains(ionid))
     {
       return make_pair(ionid, ionseries[ionid]);
     }
     else
     {
-      return make_pair(String("unannotated"), -1);
+      return make_pair(std::string("unannotated"), -1);
     }
   }
 
   namespace
   {
     /// Extract charge from annotation string (e.g., "b8^2" -> 2, "y5" -> 1)
-    int extractChargeFromAnnotation_(const String& annotation)
+    int extractChargeFromAnnotation_(const std::string& annotation)
     {
       size_t pos = annotation.find('^');
       if (pos != std::string::npos && pos + 1 < annotation.size())
       {
         try
         {
-          return annotation.substr(pos + 1).toInt();
+          return StringUtils::toInt32(StringUtils::substr(annotation, pos + 1));
         }
         catch (...)
         {
@@ -52,7 +52,7 @@ namespace OpenMS
     }
 
     /// Extract ordinal from annotation string (e.g., "b8^2" -> 8, "y15" -> 15)
-    int extractOrdinalFromAnnotation_(const String& annotation)
+    int extractOrdinalFromAnnotation_(const std::string& annotation)
     {
       if (annotation.empty() || annotation == "unannotated")
       {
@@ -67,7 +67,7 @@ namespace OpenMS
       {
         try
         {
-          return annotation.substr(1, i - 1).toInt();
+          return StringUtils::toInt32(StringUtils::substr(annotation, 1, i - 1));
         }
         catch (...)
         {
@@ -78,14 +78,14 @@ namespace OpenMS
     }
   } // anonymous namespace
 
-  std::pair<String, double> MRMIonSeries::annotateIon(const IonSeries& ionseries, const double ProductMZ, const double mz_threshold)
+  std::pair<std::string, double> MRMIonSeries::annotateIon(const IonSeries& ionseries, const double ProductMZ, const double mz_threshold)
   {
     // make sure to only use annotated transitions and to use the theoretical MZ
     using namespace boost::assign;
 
     // Iterate over ion type and then ordinal
-    std::pair<String, double> ion;
-    String unannotated = "unannotated";
+    std::pair<std::string, double> ion;
+    std::string unannotated = "unannotated";
     ion = make_pair(unannotated, -1);
     double closest_delta = std::numeric_limits<double>::max();
     int best_charge = std::numeric_limits<int>::max();
@@ -136,30 +136,30 @@ namespace OpenMS
     return ion;
   }
 
-  TargetedExperiment::Interpretation MRMIonSeries::annotationToCVTermList_(const String& annotation)
+  TargetedExperiment::Interpretation MRMIonSeries::annotationToCVTermList_(const std::string& annotation)
   {
     // CVTermList interpretation;
     TargetedExperiment::Interpretation interpretation;
 
-    String fragment_type;
+    std::string fragment_type;
     int fragment_nr = -1;
     double fragment_loss = 0;
     // int fragment_gain = 0;
 
-    std::vector<String> best_annotation;
-    annotation.split("/", best_annotation);
+    std::vector<std::string> best_annotation;
+    StringUtils::split(annotation, "/", best_annotation);
 
     if (best_annotation[0] == "Precursor_i0" || best_annotation[0] == "MS2_Precursor_i0")
     {
       return interpretation;
     }
-    else if (best_annotation[0].find("-") != std::string::npos)
+    else if (best_annotation[0].contains("-"))
     {
-      std::vector<String> best_annotation_loss;
-      best_annotation[0].split("-", best_annotation_loss);
+      std::vector<std::string> best_annotation_loss;
+      StringUtils::split(best_annotation[0], "-", best_annotation_loss);
 
       fragment_type = best_annotation_loss[0].substr(0, 1);
-      fragment_nr = best_annotation_loss[0].substr(1).toInt();
+      fragment_nr = StringUtils::toInt32(best_annotation_loss[0].substr(1));
 
       // SpectraST style neutral loss
       try
@@ -173,19 +173,19 @@ namespace OpenMS
         fragment_loss = -1 * nl_formula.getMonoWeight();
       }
     }
-    else if (best_annotation[0].find("+") != std::string::npos)
+    else if (best_annotation[0].contains("+"))
     {
-      std::vector<String> best_annotation_gain;
-      best_annotation[0].split("+", best_annotation_gain);
+      std::vector<std::string> best_annotation_gain;
+      StringUtils::split(best_annotation[0], "+", best_annotation_gain);
 
       fragment_type = best_annotation_gain[0].substr(0, 1);
-      fragment_nr = best_annotation_gain[0].substr(1).toInt();
-      // fragment_gain = String(best_annotation_gain[1]).toInt(); // fragment neutral gain is not implemented as CV term.
+      fragment_nr = StringUtils::toInt32(best_annotation_gain[0].substr(1));
+      // fragment_gain =StringUtils::toInt32(StringUtils::toStr(best_annotation_gain[1])); // fragment neutral gain is not implemented as CV term.
     }
     else
     {
       fragment_type = best_annotation[0].substr(0, 1);
-      fragment_nr = best_annotation[0].substr(1).toInt();
+      fragment_nr = StringUtils::toInt32(best_annotation[0].substr(1));
     }
 
     if (fragment_nr != -1)
@@ -245,15 +245,15 @@ namespace OpenMS
   {
     OpenMS::ReactionMonitoringTransition::Product p = tr.getProduct();
 
-    std::vector<String> best_annotation;
-    tr.getMetaValue("annotation").toString().split("/", best_annotation);
+    std::vector<std::string> best_annotation;
+    StringUtils::split(tr.getMetaValue("annotation").toString(), "/", best_annotation);
 
-    String annotation;
-    if (best_annotation[0].find("^") != std::string::npos)
+    std::string annotation;
+    if (best_annotation[0].contains("^"))
     {
-      std::vector<String> best_annotation_charge;
-      best_annotation[0].split("^", best_annotation_charge);
-      p.setChargeState(String(best_annotation_charge[1]).toInt());
+      std::vector<std::string> best_annotation_charge;
+      StringUtils::split(best_annotation[0], "^", best_annotation_charge);
+      p.setChargeState(StringUtils::toInt32(best_annotation_charge[1]));
       annotation = best_annotation_charge[0];
     }
     else
@@ -269,13 +269,13 @@ namespace OpenMS
     tr.setProduct(p);
   }
 
-  void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransition& tr, const String& annotation)
+  void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransition& tr, const std::string& annotation)
   {
     tr.setMetaValue("annotation", annotation);
     annotationToCV_(tr);
   }
 
-  void MRMIonSeries::annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide& peptide, const double precursor_mz_threshold, double product_mz_threshold, const bool enable_reannotation, const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges, const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow)
+  void MRMIonSeries::annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide& peptide, const double precursor_mz_threshold, double product_mz_threshold, const bool enable_reannotation, const std::vector<std::string>& fragment_types, const std::vector<size_t>& fragment_charges, const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow)
   {
     OPENMS_PRECONDITION(peptide.hasCharge(), "Cannot annotate transition without a peptide charge state")
     // TODO: we should not have transitions without charge states
@@ -296,9 +296,9 @@ namespace OpenMS
 
     double prec_pos = sequence.getMZ(precursor_charge);
     bool unannotated = false;
-    std::pair<String, double> target_ion = std::make_pair(String("unannotated"), -1);
+    std::pair<std::string, double> target_ion = std::make_pair(std::string("unannotated"), -1);
     double pos = -1;
-    String ionstring;
+    std::string ionstring;
 
     if (!tr.getProduct().getInterpretationList().empty())
     {
@@ -362,7 +362,7 @@ namespace OpenMS
 
       if (interpretation.ordinal > 0)
       {
-        ionstring += String(interpretation.ordinal);
+        ionstring +=StringUtils::toStr(interpretation.ordinal);
       }
       else
       {
@@ -371,7 +371,7 @@ namespace OpenMS
 
       if (interpretation.hasCVTerm("MS:1001524") && (enable_specific_losses || enable_unspecific_losses)) // fragment ion neutral loss
       {
-        double nl = interpretation.getCVTerms().at("MS:1001524")[0].getValue().toString().toDouble();
+        double nl = StringUtils::toDouble(interpretation.getCVTerms().at("MS:1001524")[0].getValue().toString());
         // SpectraST style neutral losses
         if (nl == -18)
         {
@@ -443,7 +443,7 @@ namespace OpenMS
         // Double CV term (compatible with PSI CV terms)
         else if (nl < 0)
         {
-          ionstring += String(Math::roundDecimal(nl, round_decPow));
+          ionstring +=StringUtils::toStr(Math::roundDecimal(nl, round_decPow));
           pos -= nl / fragment_charge;
 
         }
@@ -456,7 +456,7 @@ namespace OpenMS
       if (fragment_charge >= 1 && 
            std::find(fragment_charges.begin(), fragment_charges.end(), fragment_charge) != fragment_charges.end())
       {
-        ionstring += "^" + String(fragment_charge);
+        ionstring += "^" + StringUtils::toStr(fragment_charge);
         tr.setMetaValue("annotation", ionstring);
       }
       else
@@ -528,9 +528,9 @@ namespace OpenMS
     tr.setProduct(p);
   }
 
-  std::map<String, double> MRMIonSeries::getIonSeries(const AASequence& sequence,
+  std::map<std::string, double> MRMIonSeries::getIonSeries(const AASequence& sequence,
                                                                 size_t precursor_charge,
-                                                                const std::vector<String>& fragment_types,
+                                                                const std::vector<std::string>& fragment_types,
                                                                 const std::vector<size_t>& fragment_charges,
                                                                 const bool enable_specific_losses,
                                                                 const bool enable_unspecific_losses,
@@ -550,7 +550,7 @@ namespace OpenMS
     static const double yion_adj = Residue::getInternalToYIon().getMonoWeight();
     static const double zion_adj = Residue::getInternalToZIon().getMonoWeight();
 
-    std::map<String, double> ionseries;
+    std::map<std::string, double> ionseries;
 
     const Size seq_size = sequence.size();
     if (seq_size == 0)
@@ -576,7 +576,7 @@ namespace OpenMS
     const double total_internal_mass = cumulative_mass[seq_size];
 
     // Lambda to handle neutral losses for a residue range
-    auto add_neutral_losses = [&](const String& ft, Size ordinal, Size start_idx, Size end_idx, double pos, size_t charge)
+    auto add_neutral_losses = [&](const std::string& ft, Size ordinal, Size start_idx, Size end_idx, double pos, size_t charge)
     {
       for (Size j = start_idx; j < end_idx; ++j)
       {
@@ -586,12 +586,12 @@ namespace OpenMS
           {
             if (enable_specific_losses && lit != H2O && lit != NH3 && lit != CN2 && lit != CNO)
             {
-              ionseries[ft + String(ordinal) + "-" + lit.toString() + "^" + String(charge)] =
+              ionseries[ft + StringUtils::toStr(ordinal) + "-" + lit.toString() + "^" + StringUtils::toStr(charge)] =
                   Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
             }
             else if (enable_unspecific_losses && (lit == H2O || lit == NH3 || lit == CN2 || lit == CNO))
             {
-              ionseries[ft + String(ordinal) + "-" + lit.toString() + "^" + String(charge)] =
+              ionseries[ft + StringUtils::toStr(ordinal) + "-" + lit.toString() + "^" + StringUtils::toStr(charge)] =
                   Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
             }
           }
@@ -618,7 +618,7 @@ namespace OpenMS
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               ft + " ion series for peptide sequence \"" + sequence.toString() +
-              "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
+              "\" with precursor charge +" + StringUtils::toStr(precursor_charge) + " could not be generated.");
         }
 
         // Get the appropriate ion type adjustment
@@ -652,7 +652,7 @@ namespace OpenMS
 
           // Compute m/z: (internal_mass + protons + ion_adjustment) / charge
           const double pos = (internal_mass + proton_mass_contrib + ion_adj) / static_cast<double>(charge);
-          ionseries[ft + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);
+          ionseries[ft + StringUtils::toStr(i) + "^" + StringUtils::toStr(charge)] = Math::roundDecimal(pos, round_decPow);
 
           // Handle neutral losses for residues in this fragment
           add_neutral_losses(ft, i, start_idx, end_idx, pos, charge);

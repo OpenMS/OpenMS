@@ -6,7 +6,7 @@
 
 ## Build Gotchas
 
-- **Boost on macOS**: Use `-DBOOST_USE_STATIC_LIBS=OFF` (upstream Boost issue with transitive deps)
+- **vcpkg is a git submodule**: run `git submodule update --init vcpkg` (or clone with `--recurse-submodules`), then configure with a preset, e.g. `cmake --preset linux-x64-release -B OpenMS-build` (`cmake --list-presets` lists them). The presets set `OPENMS_USE_VCPKG=ON` and vcpkg builds the dependencies from `vcpkg.json`; the first configure takes a while.
 - **CMAKE_PREFIX_PATH**: Use `;` separator with `-D` flag, `:` with env var on Unix
 - **delocate-wheel `-L`**: Destination subdir inside wheel, NOT library search path. Use `delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}`
 

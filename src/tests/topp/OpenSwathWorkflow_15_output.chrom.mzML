@@ -99,41 +99,7 @@
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<chromatogramList count="18" defaultDataProcessingRef="dp_sp_0">
-			<chromatogram id="PEPTIDEA_Extra_Precursor_i0" index="0" defaultArrayLength="10">
-				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
-					<precursor>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-							</selectedIon>
-						</selectedIonList>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEAAAA"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="28">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
-						<binary>eJxzUGEAgxQgPgHEHUAAABgAA7E=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="20">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJxzeP//AAMOAABM9wLv</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="PEPTIDEA_Precursor_i0" index="1" defaultArrayLength="19">
+			<chromatogram id="0_Precursor_i0" index="0" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -150,11 +116,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -170,7 +131,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEA_Precursor_i1" index="2" defaultArrayLength="19">
+			<chromatogram id="0_Precursor_i1" index="1" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -187,11 +148,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -207,7 +163,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEA_Precursor_i2" index="3" defaultArrayLength="19">
+			<chromatogram id="0_Precursor_i2" index="2" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -224,11 +180,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -244,7 +195,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_Precursor_i0" index="4" defaultArrayLength="19">
+			<chromatogram id="2_Precursor_i0" index="3" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -261,11 +212,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -281,7 +227,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_Precursor_i1" index="5" defaultArrayLength="19">
+			<chromatogram id="2_Precursor_i1" index="4" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -298,11 +244,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -318,7 +259,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB_Precursor_i2" index="6" defaultArrayLength="19">
+			<chromatogram id="2_Precursor_i2" index="5" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -335,11 +276,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -355,7 +291,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_Precursor_i0" index="7" defaultArrayLength="19">
+			<chromatogram id="3_Precursor_i0" index="6" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -372,11 +308,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -392,7 +323,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_Precursor_i1" index="8" defaultArrayLength="19">
+			<chromatogram id="3_Precursor_i1" index="7" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -409,11 +340,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -429,7 +355,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC_Precursor_i2" index="9" defaultArrayLength="19">
+			<chromatogram id="3_Precursor_i2" index="8" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -446,11 +372,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -466,7 +387,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDED_Precursor_i0" index="10" defaultArrayLength="19">
+			<chromatogram id="4_Precursor_i0" index="9" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -483,11 +404,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -503,7 +419,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDED_Precursor_i1" index="11" defaultArrayLength="19">
+			<chromatogram id="4_Precursor_i1" index="10" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -520,11 +436,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -540,7 +451,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDED_Precursor_i2" index="12" defaultArrayLength="19">
+			<chromatogram id="4_Precursor_i2" index="11" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -557,11 +468,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -577,7 +483,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEF_Precursor_i0" index="13" defaultArrayLength="19">
+			<chromatogram id="6_Precursor_i0" index="12" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -594,11 +500,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -614,7 +515,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEF_Precursor_i1" index="14" defaultArrayLength="19">
+			<chromatogram id="6_Precursor_i1" index="13" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -631,11 +532,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -651,7 +547,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEF_Precursor_i2" index="15" defaultArrayLength="19">
+			<chromatogram id="6_Precursor_i2" index="14" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -668,11 +564,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -688,7 +579,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEE_Precursor_i0" index="16" defaultArrayLength="19">
+			<chromatogram id="5_Precursor_i0" index="15" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -705,11 +596,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -725,7 +611,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEE_Precursor_i1" index="17" defaultArrayLength="19">
+			<chromatogram id="5_Precursor_i1" index="16" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -742,11 +628,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -762,7 +643,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEE_Precursor_i2" index="18" defaultArrayLength="19">
+			<chromatogram id="5_Precursor_i2" index="17" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -779,11 +660,6 @@
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
 						</activation>
 					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -804,27 +680,26 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="PEPTIDEA_Extra_Precursor_i0">6874</offset>
-		<offset idRef="PEPTIDEA_Precursor_i0">8838</offset>
-		<offset idRef="PEPTIDEA_Precursor_i1">11005</offset>
-		<offset idRef="PEPTIDEA_Precursor_i2">13190</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">15375</offset>
-		<offset idRef="PEPTIDEB_Precursor_i1">17542</offset>
-		<offset idRef="PEPTIDEB_Precursor_i2">19727</offset>
-		<offset idRef="PEPTIDEC_Precursor_i0">21912</offset>
-		<offset idRef="PEPTIDEC_Precursor_i1">24079</offset>
-		<offset idRef="PEPTIDEC_Precursor_i2">26264</offset>
-		<offset idRef="PEPTIDED_Precursor_i0">28449</offset>
-		<offset idRef="PEPTIDED_Precursor_i1">30617</offset>
-		<offset idRef="PEPTIDED_Precursor_i2">32803</offset>
-		<offset idRef="PEPTIDEF_Precursor_i0">34989</offset>
-		<offset idRef="PEPTIDEF_Precursor_i1">37215</offset>
-		<offset idRef="PEPTIDEF_Precursor_i2">39457</offset>
-		<offset idRef="PEPTIDEE_Precursor_i0">41643</offset>
-		<offset idRef="PEPTIDEE_Precursor_i1">43869</offset>
-		<offset idRef="PEPTIDEE_Precursor_i2">46111</offset>
+		<offset idRef="0_Precursor_i0">6874</offset>
+		<offset idRef="0_Precursor_i1">8799</offset>
+		<offset idRef="0_Precursor_i2">10742</offset>
+		<offset idRef="2_Precursor_i0">12685</offset>
+		<offset idRef="2_Precursor_i1">14610</offset>
+		<offset idRef="2_Precursor_i2">16553</offset>
+		<offset idRef="3_Precursor_i0">18496</offset>
+		<offset idRef="3_Precursor_i1">20421</offset>
+		<offset idRef="3_Precursor_i2">22364</offset>
+		<offset idRef="4_Precursor_i0">24307</offset>
+		<offset idRef="4_Precursor_i1">26232</offset>
+		<offset idRef="4_Precursor_i2">28176</offset>
+		<offset idRef="6_Precursor_i0">30120</offset>
+		<offset idRef="6_Precursor_i1">32104</offset>
+		<offset idRef="6_Precursor_i2">34104</offset>
+		<offset idRef="5_Precursor_i0">36048</offset>
+		<offset idRef="5_Precursor_i1">38032</offset>
+		<offset idRef="5_Precursor_i2">40032</offset>
 	</index>
 </indexList>
-<indexListOffset>48331</indexListOffset>
+<indexListOffset>42010</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

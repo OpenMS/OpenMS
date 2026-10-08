@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -20,6 +21,8 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+
+#include <algorithm>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -68,7 +71,7 @@ namespace OpenMS
     return mod_identifier_;
   }
 
-  String MzTabModification::toCellString() const
+  std::string MzTabModification::toCellString() const
   {
     if (isNull())
     {
@@ -76,7 +79,7 @@ namespace OpenMS
     }
     else
     {
-      String pos_param_string;
+      std::string pos_param_string;
 
       for (Size i = 0; i != pos_param_pairs_.size(); ++i)
       {
@@ -91,17 +94,17 @@ namespace OpenMS
         // add | as separator (except for last one)
         if (i < pos_param_pairs_.size() - 1)
         {
-          pos_param_string += String("|");
+          pos_param_string +=std::string("|");
         }
       }
 
       // quick sanity check
       if (mod_identifier_.isNull())
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Modification or Substitution identifier MUST NOT be null or empty in MzTabModification"));
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Modification or Substitution identifier MUST NOT be null or empty in MzTabModification"));
       }
 
-      String res;
+      std::string res;
       // only add '-' if we have position information
       if (!pos_param_string.empty())
       {
@@ -115,35 +118,36 @@ namespace OpenMS
     }
   }
 
-  void MzTabModification::fromCellString(const String& s)
+  void MzTabModification::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::toLower(lower);
+    StringUtils::trim(lower);
     if (lower == "null")
     {
       setNull(true);
     }
     else
     {
-      if (!lower.hasSubstring("-")) // no positions? simply use s as mod identifier
+      if (!StringUtils::hasSubstring(lower, "-")) // no positions? simply use s as mod identifier
       {
-        mod_identifier_.set(String(s).trim());
+        mod_identifier_.fromCellString(StringUtils::trimmed(s));
       }
       else
       {
-        String ss = s;
-        ss.trim();
-        std::vector<String> fields;
-        ss.split("-", fields);
+        std::string ss = s;
+        StringUtils::trim(ss);
+        std::vector<std::string> fields;
+        StringUtils::split(ss, "-", fields);
 
         if (fields.size() != 2)
         {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't convert to MzTabModification from '") + s);
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Can't convert to MzTabModification from '") + s);
         }
-        mod_identifier_.fromCellString(fields[1].trim());
+        mod_identifier_.fromCellString(StringUtils::trim(fields[1]));
 
-        std::vector<String> position_fields;
-        fields[0].split("|", position_fields);
+        std::vector<std::string> position_fields;
+        StringUtils::split(fields[0], "|", position_fields);
 
         for (Size i = 0; i != position_fields.size(); ++i)
         {
@@ -151,12 +155,12 @@ namespace OpenMS
 
           if (spos == std::string::npos) // only position information and no parameter
           {
-            pos_param_pairs_.emplace_back(position_fields[i].toInt(), MzTabParameter());
+            pos_param_pairs_.emplace_back(StringUtils::toInt32(position_fields[i]), MzTabParameter());
           }
           else
           {
             // extract position part
-            Int pos = String(position_fields[i].begin(), position_fields[i].begin() + spos).toInt();
+            Int pos = StringUtils::toInt32(std::string(position_fields[i].begin(), position_fields[i].begin() + spos));
 
             // extract [,,,] part
             MzTabParameter param;
@@ -181,7 +185,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabModificationList::toCellString() const
+  std::string MzTabModificationList::toCellString() const
   {
     if (isNull())
     {
@@ -189,7 +193,7 @@ namespace OpenMS
     }
     else
     {
-      String ret;
+      std::string ret;
       for (std::vector<MzTabModification>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
       {
         if (it != entries_.begin())
@@ -202,22 +206,23 @@ namespace OpenMS
     }
   }
 
-  void MzTabModificationList::fromCellString(const String& s)
+  void MzTabModificationList::fromCellString(const std::string& s)
   {
-    String lower = s;
-    lower.toLower().trim();
+    std::string lower = s;
+    StringUtils::toLower(lower);
+    StringUtils::trim(lower);
     if (lower == "null")
     {
       setNull(true);
     }
     else
     {
-      String ss = s;
-      std::vector<String> fields;
+      std::string ss = s;
+      std::vector<std::string> fields;
 
-      if (!ss.hasSubstring("[")) // no parameters
+      if (!StringUtils::hasSubstring(ss, "[")) // no parameters
       {
-        ss.split(",", fields);
+        StringUtils::split(ss, ",", fields);
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabModification ms;
@@ -264,11 +269,11 @@ namespace OpenMS
         }
 
         // now the split at comma is save
-        ss.split(",", fields);
+        StringUtils::split(ss, ",", fields);
 
         for (Size i = 0; i != fields.size(); ++i)
         {
-          fields[i].substitute(((char)007), ','); // resubstitute comma after split
+          StringUtils::substitute(fields[i], ((char)007), ','); // resubstitute comma after split
           MzTabModification ms;
           ms.fromCellString(fields[i]);
           entries_.push_back(ms);
@@ -296,20 +301,20 @@ namespace OpenMS
 
   MzTabMetaData::MzTabMetaData()
   {
-    mz_tab_version.fromCellString(String("1.0.0"));
+    mz_tab_version.fromCellString(std::string("1.0.0"));
   }
 
   // static method remapping the target/decoy column from an opt_ to a standardized column
   static void remapTargetDecoyPSMAndPeptideSection_(std::vector<MzTabOptionalColumnEntry>& opt_entries)
   {
-    const String old_header("opt_global_target_decoy");
-    const String new_header("opt_global_cv_MS:1002217_decoy_peptide"); // for PRIDE
+    const std::string old_header("opt_global_target_decoy");
+    const std::string new_header("opt_global_cv_MS:1002217_decoy_peptide"); // for PRIDE
     for (auto &opt_entry : opt_entries)
     {
       if (opt_entry.first == old_header || opt_entry.first == new_header)
       {
 	opt_entry.first = new_header;
-        const String &current_value = opt_entry.second.get();
+        const std::string &current_value = opt_entry.second.get();
         if (current_value == "target" || current_value == "target+decoy")
         {
           opt_entry.second = MzTabString("0");
@@ -325,14 +330,14 @@ namespace OpenMS
   // static method remapping the target/decoy column from an opt_ to a standardized column
   static void remapTargetDecoyProteinSection_(std::vector<MzTabOptionalColumnEntry>& opt_entries)
   {
-    const String old_header("opt_global_target_decoy");
-    const String new_header("opt_global_cv_PRIDE:0000303_decoy_hit"); // for PRIDE
+    const std::string old_header("opt_global_target_decoy");
+    const std::string new_header("opt_global_cv_PRIDE:0000303_decoy_hit"); // for PRIDE
     for (auto &opt_entry : opt_entries)
     {
       if (opt_entry.first == old_header || opt_entry.first == new_header)
       {
 	opt_entry.first = new_header;
-        const String &current_value = opt_entry.second.get();
+        const std::string &current_value = opt_entry.second.get();
         if (current_value == "target" || current_value == "target+decoy")
         {
           opt_entry.second = MzTabString("0");
@@ -450,7 +455,7 @@ namespace OpenMS
     osm_data_ = osd;
   }
 
-  void MzTab::setCommentRows(const std::map<Size, String>& com)
+  void MzTab::setCommentRows(const std::map<Size, std::string>& com)
   {
     comment_rows_ = com;
   }
@@ -465,42 +470,42 @@ namespace OpenMS
     return empty_rows_;
   }
 
-  const std::map<Size, String>& MzTab::getCommentRows() const
+  const std::map<Size, std::string>& MzTab::getCommentRows() const
   {
     return comment_rows_;
   }
 
-  std::vector<String> MzTab::getProteinOptionalColumnNames() const
+  std::vector<std::string> MzTab::getProteinOptionalColumnNames() const
   {
     return getOptionalColumnNames_(protein_data_);
   }
 
-  std::vector<String> MzTab::getPeptideOptionalColumnNames() const
+  std::vector<std::string> MzTab::getPeptideOptionalColumnNames() const
   {
     return getOptionalColumnNames_(peptide_data_);
   }
 
-  std::vector<String> MzTab::getPSMOptionalColumnNames() const
+  std::vector<std::string> MzTab::getPSMOptionalColumnNames() const
   {
     return getOptionalColumnNames_(psm_data_);
   }
 
-  std::vector<String> MzTab::getSmallMoleculeOptionalColumnNames() const
+  std::vector<std::string> MzTab::getSmallMoleculeOptionalColumnNames() const
   {
     return getOptionalColumnNames_(small_molecule_data_);
   }
 
-  std::vector<String> MzTab::getNucleicAcidOptionalColumnNames() const
+  std::vector<std::string> MzTab::getNucleicAcidOptionalColumnNames() const
   {
     return getOptionalColumnNames_(nucleic_acid_data_);
   }
 
-  std::vector<String> MzTab::getOligonucleotideOptionalColumnNames() const
+  std::vector<std::string> MzTab::getOligonucleotideOptionalColumnNames() const
   {
     return getOptionalColumnNames_(oligonucleotide_data_);
   }
 
-  std::vector<String> MzTab::getOSMOptionalColumnNames() const
+  std::vector<std::string> MzTab::getOSMOptionalColumnNames() const
   {
     return getOptionalColumnNames_(osm_data_);
   }
@@ -517,7 +522,7 @@ namespace OpenMS
       return;
     }
 
-    String pre, post, start, end, accession;
+    std::string pre, post, start, end, accession;
     for (Size i = 0; i != peptide_evidences.size(); ++i)
     {
       // get AABefore and AAAfter as well as start and end for all pep evidences
@@ -536,7 +541,7 @@ namespace OpenMS
       }
       else
       {
-        pre += String(peptide_evidences[i].getAABefore());
+        pre +=StringUtils::toStr(peptide_evidences[i].getAABefore());
       }
 
       if (peptide_evidences[i].getAAAfter() == PeptideEvidence::UNKNOWN_AA)
@@ -549,7 +554,7 @@ namespace OpenMS
       }
       else
       {
-        post += String(peptide_evidences[i].getAAAfter());
+        post +=StringUtils::toStr(peptide_evidences[i].getAAAfter());
       }
 
       // start/end
@@ -559,7 +564,7 @@ namespace OpenMS
       }
       else
       {
-        start += String(peptide_evidences[i].getStart() + 1); // counting in mzTab starts at 1
+        start +=StringUtils::toStr(peptide_evidences[i].getStart() + 1); // counting in mzTab starts at 1
       }
 
       if (peptide_evidences[i].getEnd() == PeptideEvidence::UNKNOWN_POSITION)
@@ -568,7 +573,7 @@ namespace OpenMS
       }
       else
       {
-        end += String(peptide_evidences[i].getEnd() + 1); // counting in mzTab starts at 1
+        end +=StringUtils::toStr(peptide_evidences[i].getEnd() + 1); // counting in mzTab starts at 1
       }
 
       accession += peptide_evidences[i].getProteinAccession();
@@ -584,16 +589,16 @@ namespace OpenMS
 
 
   void MzTab::addMetaInfoToOptionalColumns(
-    const set<String>& keys,
+    const set<std::string>& keys,
     vector<MzTabOptionalColumnEntry>& opt,
-    const String& id,
+    const std::string& id,
     const MetaInfoInterface& meta)
   {
-    for (String const & key : keys)
+    for (std::string const & key : keys)
     {
       MzTabOptionalColumnEntry opt_entry;
       // column names must not contain spaces
-      opt_entry.first = "opt_" + id + "_" + String(key).substitute(' ','_');
+      { std::string key_clean = key; StringUtils::substitute(key_clean, ' ', '_'); opt_entry.first = "opt_" + id + "_" + key_clean; }
       
       if (meta.metaValueExists(key))
       {
@@ -604,16 +609,16 @@ namespace OpenMS
     }
   }
 
-  map<Size, MzTabModificationMetaData> MzTab::generateMzTabStringFromModifications(const vector<String>& mods)
+  map<Size, MzTabModificationMetaData> MzTab::generateMzTabStringFromModifications(const vector<std::string>& mods)
   {
     map<Size, MzTabModificationMetaData> mods_mztab;
     Size index(1);
-    for (String const & s : mods)
+    for (std::string const & s : mods)
     {
       MzTabModificationMetaData mod;
       MzTabParameter mp;
-      ModificationsDB* mod_db = ModificationsDB::getInstance();
-      String unimod_accession;
+      const ModificationsDB* mod_db = ModificationsDB::getInstance();
+      std::string unimod_accession;
       try
       {
         const ResidueModification* m = mod_db->getModification(s);
@@ -622,7 +627,7 @@ namespace OpenMS
         {
           // MzTab standard is to report Unimod accession.
           mp.setCVLabel("UNIMOD");
-          mp.setAccession(unimod_accession.toUpper());
+          mp.setAccession(StringUtils::toUpper(unimod_accession));
         }
         mp.setName(m->getId());
         mod.modification = mp;
@@ -647,7 +652,7 @@ namespace OpenMS
         {
           mod.position = MzTabString("Protein N-term");
         }
-        mod.site = MzTabString(String(m->getOrigin()));
+        mod.site = MzTabString(StringUtils::toStr(m->getOrigin()));
         mods_mztab[index] = mod;
       }
       catch(...)
@@ -659,7 +664,7 @@ namespace OpenMS
     return mods_mztab;
   }
 
-  map<Size, MzTabModificationMetaData> MzTab::generateMzTabStringFromVariableModifications(const vector<String>& mods)
+  map<Size, MzTabModificationMetaData> MzTab::generateMzTabStringFromVariableModifications(const vector<std::string>& mods)
   {
     if (mods.empty())
     {
@@ -675,7 +680,7 @@ namespace OpenMS
     }
   }
 
-  map<Size, MzTabModificationMetaData> MzTab::generateMzTabStringFromFixedModifications(const vector<String>& mods)
+  map<Size, MzTabModificationMetaData> MzTab::generateMzTabStringFromFixedModifications(const vector<std::string>& mods)
   {
     if (mods.empty())
     {
@@ -693,14 +698,14 @@ namespace OpenMS
 
   MzTab MzTab::exportFeatureMapToMzTab(
     const FeatureMap & feature_map,
-    const String & filename)
+    const std::string & filename)
   {
     OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
     MzTab mztab;
     MzTabMetaData meta_data;
 
     const vector<ProteinIdentification> &prot_ids = feature_map.getProteinIdentifications();
-    vector<String> var_mods, fixed_mods;
+    vector<std::string> var_mods, fixed_mods;
     MzTabString db, db_version;
     if (!prot_ids.empty())
     {
@@ -726,8 +731,8 @@ namespace OpenMS
     if (!spectra_data.empty())
     {
       // prepend file:// if not there yet
-      String m = spectra_data[0];
-      if (!m.hasPrefix("file://")) {m = String("file://") + m; }
+      std::string m = spectra_data[0];
+      if (!StringUtils::hasPrefix(m, "file://")) {m =std::string("file://") + m; }
       ms_run.location = MzTabString(m);
     }
     else
@@ -744,9 +749,9 @@ namespace OpenMS
 
     // pre-analyze data for occurring meta values at feature and peptide hit level
     // these are used to build optional columns containing the meta values in internal data structures
-    set<String> feature_user_value_keys;
-    set<String> peptide_identifications_user_value_keys;
-    set<String> peptide_hit_user_value_keys;
+    set<std::string> feature_user_value_keys;
+    set<std::string> peptide_identifications_user_value_keys;
+    set<std::string> peptide_hit_user_value_keys;
     MzTab::getFeatureMapMetaValues_(
       feature_map,     
       feature_user_value_keys,
@@ -770,10 +775,10 @@ namespace OpenMS
 
   MzTabPeptideSectionRow MzTab::peptideSectionRowFromFeature_(
     const Feature& f, 
-    const set<String>& feature_user_value_keys,
-    const set<String>& peptide_identifications_user_value_keys,
-    const set<String>& peptide_hit_user_value_keys,
-    const vector<String>& fixed_mods)
+    const set<std::string>& feature_user_value_keys,
+    const set<std::string>& peptide_identifications_user_value_keys,
+    const set<std::string>& peptide_hit_user_value_keys,
+    const vector<std::string>& fixed_mods)
   {
     MzTabPeptideSectionRow row;
     row.mass_to_charge = MzTabDouble(f.getMZ());
@@ -807,7 +812,7 @@ namespace OpenMS
     row.opt_.push_back(opt_global_modified_sequence);
 
     // create and fill opt_ columns for feature (peptide) user values
-    addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_, String("global"), f);
+    addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_,std::string("global"), f);
 
     const PeptideIdentificationList& pep_ids = f.getPeptideIdentifications();
     if (pep_ids.empty())
@@ -843,9 +848,9 @@ namespace OpenMS
     const AASequence& aas = best_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
 
-    row.modifications = extractModificationList(best_ph, fixed_mods, vector<String>());
+    row.modifications = extractModificationList(best_ph, fixed_mods, vector<std::string>());
 
-    const set<String>& accessions = best_ph.extractProteinAccessionsSet();
+    const set<std::string>& accessions = best_ph.extractProteinAccessionsSet();
     const vector<PeptideEvidence>& peptide_evidences = best_ph.getPeptideEvidences();
 
     row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
@@ -866,7 +871,7 @@ namespace OpenMS
     }
 
     // create and fill opt_ columns for psm (PeptideHit) user values
-    addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, String("global"), best_ph);
+    addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_,std::string("global"), best_ph);
 
     // remap the target/decoy column
     remapTargetDecoyPSMAndPeptideSection_(row.opt_);
@@ -878,20 +883,23 @@ namespace OpenMS
     const ConsensusFeature& c, 
     const ConsensusMap& consensus_map,
     const StringList& ms_runs,
+    const Size n_assays,
     const Size n_study_variables,
-    const set<String>& consensus_feature_user_value_keys,
-    const set<String>& peptide_identifications_user_value_keys,
-    const set<String>& peptide_hit_user_value_keys,
-    const map<String, size_t>& idrun_2_run_index,
+    const set<std::string>& consensus_feature_user_value_keys,
+    const set<std::string>& peptide_identifications_user_value_keys,
+    const set<std::string>& peptide_hit_user_value_keys,
+    const map<std::string, size_t>& idrun_2_run_index,
     const map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-    const std::map< std::pair< String, unsigned >, unsigned>& path_label_to_assay,
-    const vector<String>& fixed_mods,
+    const std::map< std::pair< std::string, unsigned >, unsigned>& path_label_to_assay,
+    const vector<Size>& assay_to_study_variable,
+    const vector<vector<Size>>& study_variable_to_assays,
+    const vector<std::string>& fixed_mods,
     bool export_subfeatures)
   {
     MzTabPeptideSectionRow row;
 
     const ConsensusMap::ColumnHeaders& cm_column_headers = consensus_map.getColumnHeaders();
-    const String & experiment_type = consensus_map.getExperimentType();
+    const std::string & experiment_type = consensus_map.getExperimentType();
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
 
     // create opt_ column for peptide sequence containing modification
@@ -900,9 +908,9 @@ namespace OpenMS
     row.opt_.push_back(opt_global_modified_sequence);
 
     // Defines how to consume user value keys for the upcoming keys
-    const auto addUserValueToRowBy = [&row](const function<void(const String &s, MzTabOptionalColumnEntry &entry)>& f) -> function<void(const String &key)>
+    const auto addUserValueToRowBy = [&row](const function<void(const std::string &s, MzTabOptionalColumnEntry &entry)>& f) -> function<void(const std::string &key)>
     {
-      return [f,&row](const String &user_value_key)
+      return [f,&row](const std::string &user_value_key)
         {
           MzTabOptionalColumnEntry opt_entry;
           opt_entry.first = "opt_global_" + user_value_key;
@@ -915,7 +923,7 @@ namespace OpenMS
 
     // create opt_ columns for consensus map user values
     for_each(consensus_feature_user_value_keys.begin(), consensus_feature_user_value_keys.end(),
-      addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+      addUserValueToRowBy([&c](const std::string &key, MzTabOptionalColumnEntry &opt_entry)
         {
           if (c.metaValueExists(key))
           {
@@ -926,7 +934,7 @@ namespace OpenMS
 
     // add optional columns for first peptide identification in consensus feature
     for_each(peptide_identifications_user_value_keys.begin(), peptide_identifications_user_value_keys.end(),
-      addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+      addUserValueToRowBy([&c](const std::string &key, MzTabOptionalColumnEntry &opt_entry)
         {
           opt_entry.second = MzTabString(c.getMetaValue(key).toString());
         })
@@ -934,7 +942,7 @@ namespace OpenMS
 
     // create opt_ columns for psm (PeptideHit) user values
     for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
-      				addUserValueToRowBy([](const String&, MzTabOptionalColumnEntry&){}));
+      				addUserValueToRowBy([](const std::string&, MzTabOptionalColumnEntry&){}));
 
     row.mass_to_charge = MzTabDouble(c.getMZ());
     MzTabDoubleList rt_list;
@@ -947,7 +955,23 @@ namespace OpenMS
     row.charge = MzTabInteger(c.getCharge());
     row.best_search_engine_score[1] = MzTabDouble();
 
-    // initialize columns
+    // Preserve the existing compact layout when assay and study-variable grain are identical.
+    // Once the design genuinely splits them, initialize every assay column in every row.
+    // Ask the mapping, not the two counts: a sample section may hold a sample that owns no assay,
+    // so the counts can agree while one study variable owns two assays and another owns none. Under
+    // the count test the assay columns would then be dropped AND the multi-assay study variable
+    // would stay null below, so those intensities would vanish from the row entirely.
+    const bool has_distinct_assay_grain = std::any_of(
+      study_variable_to_assays.begin() + 1, study_variable_to_assays.end(),
+      [](const std::vector<Size>& assays) { return assays.size() != 1; });
+    if (has_distinct_assay_grain)
+    {
+      for (Size assay = 1; assay <= n_assays; ++assay)
+      {
+        row.peptide_abundance_assay[assay] = MzTabDouble();
+      }
+    }
+
     OPENMS_LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
     for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
     {
@@ -961,36 +985,73 @@ namespace OpenMS
       row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
     }
 
+    map<Size, double> assay_abundances;
     const ConsensusFeature::HandleSetType& fs = c.getFeatures();
     for (auto fit = fs.begin(); fit != fs.end(); ++fit)
     {
-      UInt study_variable{1};
       const int index = fit->getMapIndex();
       const ConsensusMap::ColumnHeader& ch = cm_column_headers.at(index);
 
       UInt label = ch.getLabelAsUInt(experiment_type);
-      // convert from column index to study variable index
       auto pl = make_pair(ch.filename, label);
-      study_variable = path_label_to_assay.at(pl) + 1; // for now, a study_variable is one assay (both 1-based). And pathLabelToSample mapping reports 0-based.
-
-      //TODO implement aggregation in case we generalize study_variable to include multiple assays.
-      row.peptide_abundance_stdev_study_variable[study_variable];
-      row.peptide_abundance_std_error_study_variable[study_variable];
-      row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
+      const auto assay_it = path_label_to_assay.find(pl);
+      if (assay_it == path_label_to_assay.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column ('" + ch.filename + "', label " + StringUtils::toStr(label)
+          + ") has no quantification unit in the experimental design.");
+      }
+      const Size assay = assay_it->second + 1; // design mapping is zero-based; mzTab assays are one-based
+      const Size study_variable = assay_to_study_variable.at(assay);
+      assay_abundances[assay] += fit->getIntensity();
 
       if (export_subfeatures)
       {
-        MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
-        opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + String(study_variable) + "]";
-        opt_global_mass_to_charge_study_variable.second = MzTabString(String(fit->getMZ()));
-        row.opt_.push_back(opt_global_mass_to_charge_study_variable);
+        // One column per handle. Keying on the study variable is only unique while it owns a single
+        // assay; once it groups replicates, two handles would emit the same column name twice. Keep
+        // the established name in the single-assay case and fall back to the assay otherwise.
+        const bool sv_is_one_assay = study_variable_to_assays.at(study_variable).size() == 1;
+        const std::string suffix = sv_is_one_assay
+          ? "study_variable[" + StringUtils::toStr(study_variable) + "]"
+          : "assay[" + StringUtils::toStr(assay) + "]";
 
-        MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
-        opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + String(study_variable) + "]";
-        opt_global_retention_time_study_variable.second = MzTabString(String(fit->getRT()));
-        row.opt_.push_back(opt_global_retention_time_study_variable);
+        MzTabOptionalColumnEntry opt_global_mass_to_charge;
+        opt_global_mass_to_charge.first = "opt_global_mass_to_charge_" + suffix;
+        opt_global_mass_to_charge.second = MzTabString(StringUtils::toStr(fit->getMZ()));
+        row.opt_.push_back(opt_global_mass_to_charge);
+
+        MzTabOptionalColumnEntry opt_global_retention_time;
+        opt_global_retention_time.first = "opt_global_retention_time_" + suffix;
+        opt_global_retention_time.second = MzTabString(StringUtils::toStr(fit->getRT()));
+        row.opt_.push_back(opt_global_retention_time);
+      }
+    }
+
+    // A consensus feature can contain one handle for each fraction of an assay.
+    // mzTab assay abundance is the sum over those handles.
+    if (has_distinct_assay_grain)
+    {
+      for (const auto& [assay, abundance] : assay_abundances)
+      {
+        row.peptide_abundance_assay[assay] = MzTabDouble(abundance);
+      }
+    }
+
+    // Copying a single assay is an identity operation. Replicate aggregation is deliberately
+    // left unspecified, so study variables with several assays remain null.
+    for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
+    {
+      const auto& assays = study_variable_to_assays.at(study_variable);
+      if (assays.size() == 1)
+      {
+        const auto abundance = assay_abundances.find(assays.front());
+        if (abundance != assay_abundances.end())
+        {
+          row.peptide_abundance_study_variable[study_variable] = MzTabDouble(abundance->second);
         }
       }
+    }
 
     const PeptideIdentificationList& curr_pep_ids = c.getPeptideIdentifications();
     if (!curr_pep_ids.empty())
@@ -1005,9 +1066,9 @@ namespace OpenMS
       row.sequence = MzTabString(aas.toUnmodifiedString());
 
       // annotate variable modifications (no fixed ones)
-      row.modifications = extractModificationList(best_ph, fixed_mods, vector<String>());
+      row.modifications = extractModificationList(best_ph, fixed_mods, vector<std::string>());
 
-      const set<String>& accessions = best_ph.extractProteinAccessionsSet();
+      const set<std::string>& accessions = best_ph.extractProteinAccessionsSet();
       const vector<PeptideEvidence> &peptide_evidences = best_ph.getPeptideEvidences();
 
       row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
@@ -1015,12 +1076,12 @@ namespace OpenMS
       row.accession = peptide_evidences.empty() ? MzTabString() : MzTabString(peptide_evidences[0].getProteinAccession());
 
       // fill opt_ columns based on best ID in the feature
-      vector<String> id_keys;
+      vector<std::string> id_keys;
       best_id.getKeys(id_keys);
 
       for (Size k = 0; k != id_keys.size(); ++k)
       {
-        String mztabstyle_key = id_keys[k];
+        std::string mztabstyle_key = id_keys[k];
         std::replace(mztabstyle_key.begin(), mztabstyle_key.end(), ' ', '_');
 
         // find matching entry in opt_ (TODO: speed this up)
@@ -1028,7 +1089,7 @@ namespace OpenMS
         {
           MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
 
-          if (opt_entry.first == String("opt_global_") + mztabstyle_key)
+          if (opt_entry.first ==std::string("opt_global_") + mztabstyle_key)
           {
             opt_entry.second = MzTabString(best_id.getMetaValue(id_keys[k]).toString());
           }
@@ -1047,12 +1108,12 @@ namespace OpenMS
       }
 
       // fill opt_ column of psm
-      vector<String> ph_keys;
+      vector<std::string> ph_keys;
       best_ph.getKeys(ph_keys);
 
       for (Size k = 0; k != ph_keys.size(); ++k)
       {
-        String mztabstyle_key = ph_keys[k];
+        std::string mztabstyle_key = ph_keys[k];
         std::replace(mztabstyle_key.begin(), mztabstyle_key.end(), ' ', '_');
 
         // find matching entry in opt_ (TODO: speed this up)
@@ -1060,7 +1121,7 @@ namespace OpenMS
         {
           MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
 
-          if (opt_entry.first == String("opt_global_") + mztabstyle_key)
+          if (opt_entry.first ==std::string("opt_global_") + mztabstyle_key)
           {
             opt_entry.second = MzTabString(best_ph.getMetaValue(ph_keys[k]).toString());
           }
@@ -1088,7 +1149,7 @@ namespace OpenMS
         {
           if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
           {
-            id_merge_index = pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+            id_merge_index = (size_t)(Int)pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
             msfile_index = map_run_fileidx_2_msfileidx.at({spec_run_index, id_merge_index});
           }
           else
@@ -1102,10 +1163,10 @@ namespace OpenMS
         auto sit = row.search_engine_score_ms_run[1].find(msfile_index);
         if (sit == row.search_engine_score_ms_run[1].end())
         {
-          String ref = "";
+          std::string ref;
           if (pep.metaValueExists("spectrum_reference"))
           {
-            ref = pep.getMetaValue("spectrum_reference");
+            ref = StringUtils::toStr(pep.getMetaValue("spectrum_reference"));
           }
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                               "PSM " + ref + " does not map to an MS file registered in the quantitative metadata. "
@@ -1135,9 +1196,9 @@ namespace OpenMS
   std::optional<MzTabPSMSectionRow> MzTab::PSMSectionRowFromPeptideID_(
      const PeptideIdentification& pid,
      const vector<const ProteinIdentification*>& prot_ids,
-     map<String, size_t>& idrun_2_run_index,
+     map<std::string, size_t>& idrun_2_run_index,
      map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-     map<Size, vector<pair<String, String>>>& run_to_search_engines,
+     map<Size, vector<pair<std::string, std::string>>>& run_to_search_engines,
      const Size current_psm_idx,
      const Size psm_id,
      const MzTabString& db,
@@ -1167,16 +1228,16 @@ namespace OpenMS
     row.exp_mass_to_charge = MzTabDouble(pid.getMZ());
 
     // meta data on peptide identifications
-    vector<String> pid_keys;
+    vector<std::string> pid_keys;
     pid.getKeys(pid_keys);
-    set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
+    set<std::string> pid_key_set(pid_keys.begin(), pid_keys.end());
     // remove key that only exists for backwards compatibility (will likely be deprecated in the future)
     pid_key_set.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);    
     
-    addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
+    addMetaInfoToOptionalColumns(pid_key_set, row.opt_,std::string("global"), pid);
 
     // link to spectrum in MS run
-    String spectrum_nativeID = pid.getSpectrumReference();
+    std::string spectrum_nativeID = pid.getSpectrumReference();
     size_t run_index = idrun_2_run_index.at(pid.getIdentifier());
     StringList filenames;
     prot_ids[run_index]->getPrimaryMSRunPath(filenames);
@@ -1184,7 +1245,7 @@ namespace OpenMS
     StringList localization_mods;
     if (prot_ids[run_index]->getSearchParameters().metaValueExists(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM))
     {
-      localization_mods = prot_ids[run_index]->getSearchParameters().getMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM);
+      localization_mods = prot_ids[run_index]->getSearchParameters().getMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM).toStringList();
     }
 
     size_t msfile_index(0);
@@ -1238,18 +1299,23 @@ namespace OpenMS
       current_ph = phs.at(current_psm_idx);
     }
 
+    // The PSM section describes the spectrum match: a hit whose sequence was reduced to a peptide
+    // identity (MS1LabeledWorkflow removes the labels, which belong to the channel) reports the
+    // peptidoform it was matched with, so that the calculated mass fits the precursor.
+    // current_ph is this function's own copy, so it can carry the matched peptidoform in place.
+    if (MS1LabelState::hasMatchedSequence(current_ph)) { current_ph.setSequence(MS1LabelState::matchedSequence(current_ph)); }
     const AASequence& aas = current_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
 
     // extract all modifications in the current sequence for reporting.
     // In contrast to peptide and protein section where fixed modifications are not reported we now report all modifications.
     // If localization mods are specified we add localization scores
-    row.modifications = extractModificationList(current_ph, vector<String>(), localization_mods);
+    row.modifications = extractModificationList(current_ph, vector<std::string>(), localization_mods);
     
     MzTabParameterList search_engines;
 
     //TODO support columns for multiple search engines/scores    
-    pair<String, String> name_version = *run_to_search_engines[run_index].begin();
+    pair<std::string, std::string> name_version = *run_to_search_engines[run_index].begin();
     search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
     row.search_engine = search_engines;
 
@@ -1265,16 +1331,16 @@ namespace OpenMS
     row.opt_.push_back(opt_entry);
 
     // meta data on PSMs
-    vector<String> ph_keys;
+    vector<std::string> ph_keys;
     current_ph.getKeys(ph_keys);
 
-    set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
-    addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), current_ph);
+    set<std::string> ph_key_set(ph_keys.begin(), ph_keys.end());
+    addMetaInfoToOptionalColumns(ph_key_set, row.opt_,std::string("global"), current_ph);
 
     // TODO Think about if the uniqueness can be determined by # of peptide evidences
     //  b/c this would only differ when evidences come from different DBs
     // TODO This also does not consider protein groups but this might be fine here
-    const set<String>& accessions = current_ph.extractProteinAccessionsSet();
+    const set<std::string>& accessions = current_ph.extractProteinAccessionsSet();
     row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
 
     // create row for every PeptideEvidence entry (mapping to a protein)
@@ -1292,15 +1358,32 @@ namespace OpenMS
   size_t MzTab::getQuantStudyVariables_(const ProteinIdentification& pid)
   {
     size_t quant_study_variables(0);
-    for (auto & p : pid.getIndistinguishableProteins())
+    for (const auto& p : pid.getIndistinguishableProteins())
     {
-      if (p.getFloatDataArrays().empty()
-        || p.getFloatDataArrays()[0].getName() != "abundances")
+      const ProteinIdentification::ProteinGroup::FloatDataArray* assay_abundances = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
+      for (const auto& array : p.getFloatDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_abundance") { assay_abundances = &array; }
+      }
+      for (const auto& array : p.getIntegerDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_fraction_group") { fraction_groups = &array; }
+        else if (array.getName() == "fraction_group_level_label") { labels = &array; }
+      }
+
+      // The three parallel assay arrays are the explicit quantified-group marker. Their
+      // abundance count is only used as a non-zero gate by the callers; the consensus-map
+      // exporter derives the actual assay and study-variable counts from the design.
+      if (assay_abundances == nullptr || fraction_groups == nullptr || labels == nullptr
+          || assay_abundances->size() != fraction_groups->size()
+          || assay_abundances->size() != labels->size())
       {
         quant_study_variables = 0;
         break;
       }
-      quant_study_variables = p.getFloatDataArrays()[0].size();
+      quant_study_variables = assay_abundances->size();
     }
     return quant_study_variables; 
   }
@@ -1327,7 +1410,7 @@ namespace OpenMS
 
   void MzTab::mapIDRunFileIndex2MSFileIndex_(
     const vector<const ProteinIdentification*>& prot_ids, 
-    const map<String, size_t>& msfilename_2_msrunindex,
+    const map<std::string, size_t>& msfilename_2_msrunindex,
     bool skip_first_run, 
     std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx)
   {
@@ -1347,7 +1430,7 @@ namespace OpenMS
       if (!files.empty())
       {
         size_t file_index(0);
-        for (const String& file : files)
+        for (const std::string& file : files)
         {
           map_run_fileidx_2_msfileidx[{run_index,file_index}] = msfilename_2_msrunindex.at(file);
           file_index++;
@@ -1366,10 +1449,10 @@ namespace OpenMS
     const vector<const ProteinIdentification*>& prot_ids,
     const vector<const PeptideIdentification*>& pep_ids,
     bool skip_first_run,
-    map<tuple<String, String, String>, set<Size>>& search_engine_to_runs,
-    map<Size, vector<pair<String, String>>>& run_to_search_engines,
-    map<Size, vector<vector<pair<String, String>>>>& run_to_search_engine_settings,
-    map<String, vector<pair<String, String>>>& search_engine_to_settings)
+    map<tuple<std::string, std::string, std::string>, set<Size>>& search_engine_to_runs,
+    map<Size, vector<pair<std::string, std::string>>>& run_to_search_engines,
+    map<Size, vector<vector<pair<std::string, std::string>>>>& run_to_search_engine_settings,
+    map<std::string, vector<pair<std::string, std::string>>>& search_engine_to_settings)
   {    
     size_t run_index(0);
     for (auto it = prot_ids.cbegin(); it != prot_ids.cend(); ++it)
@@ -1381,10 +1464,10 @@ namespace OpenMS
         continue;
       }
 
-      const String &search_engine_name = prot_ids[run_index]->getSearchEngine();
-      const String &search_engine_version = prot_ids[run_index]->getSearchEngineVersion();
+      const std::string &search_engine_name = prot_ids[run_index]->getSearchEngine();
+      const std::string &search_engine_version = prot_ids[run_index]->getSearchEngineVersion();
 
-      String search_engine_score_type = "unknown_score";
+      std::string search_engine_score_type = "unknown_score";
 
       // this is very inefficient.. but almost the only way
       for (const auto& pep : pep_ids)
@@ -1401,17 +1484,17 @@ namespace OpenMS
       // store main search engine as first entry in run_to_search_engines
       run_to_search_engines[run_index].push_back(make_pair(search_engine_name, search_engine_version));
 
-      vector<String> mvkeys;
+      vector<std::string> mvkeys;
       const ProteinIdentification::SearchParameters& sp2 = prot_ids[run_index]->getSearchParameters();
       sp2.getKeys(mvkeys);
 
-      for (const String & mvkey : mvkeys)
+      for (const std::string & mvkey : mvkeys)
       {
         // this is how search engines get overwritten by PercolatorAdapter or ConsensusID
-        if (mvkey.hasPrefix("SE:"))
+        if (StringUtils::hasPrefix(mvkey, "SE:"))
         {
-          String se_name = mvkey.substr(3);
-          String se_ver = sp2.getMetaValue(mvkey);
+          std::string se_name = StringUtils::substr(mvkey, 3);
+          std::string se_ver = StringUtils::toStr(sp2.getMetaValue(mvkey));
           run_to_search_engines[run_index].emplace_back(se_name, se_ver);
           // TODO conserve score_type of underlying search engines (currently always "")
           // TODO for now we only save the MAIN search engine in the SE_to_runs, to only have
@@ -1426,7 +1509,7 @@ namespace OpenMS
         const auto& se_setting_pairs = prot_ids[run_index]->getSearchEngineSettingsAsPairs(run_se_ver.first);
         // we currently only record the first occurring settings for each search engine.
         search_engine_to_settings.emplace(run_se_ver.first, se_setting_pairs);
-        auto it_inserted = run_to_search_engine_settings.emplace(run_index, vector<vector<pair<String, String>>>{se_setting_pairs});
+        auto it_inserted = run_to_search_engine_settings.emplace(run_index, vector<vector<pair<std::string, std::string>>>{se_setting_pairs});
         if (!it_inserted.second)
         {
           it_inserted.first->second.emplace_back(se_setting_pairs);
@@ -1440,15 +1523,15 @@ namespace OpenMS
   // static
   MzTabString MzTab::getModificationIdentifier_(const ResidueModification& r)
   {
-    String unimod = r.getUniModAccession();
-    unimod.toUpper();
+    std::string unimod = r.getUniModAccession();
+    StringUtils::toUpper(unimod);
     if (!unimod.empty())
     {
       return MzTabString(unimod);
     }
     else
     {
-      MzTabString non_unimod_accession = MzTabString("CHEMMOD:" + String(r.getDiffMonoMass()));
+      MzTabString non_unimod_accession = MzTabString("CHEMMOD:" + StringUtils::toStr(r.getDiffMonoMass()));
       return non_unimod_accession;
     }
   }
@@ -1457,7 +1540,7 @@ namespace OpenMS
     const ProteinHit& hit,
     const MzTabString& db,
     const MzTabString& db_version,
-    const set<String>& protein_hit_user_value_keys)
+    const set<std::string>& protein_hit_user_value_keys)
   {
     MzTabProteinSectionRow protein_row;
     protein_row.accession = MzTabString(hit.getAccession());
@@ -1465,7 +1548,7 @@ namespace OpenMS
  // protein_row.taxid = hit.getTaxonomyID(); // TODO maybe add as meta value to protein hit NEWT taxonomy for the species.
  // MzTabString species = hit.getSpecies(); // Human readable name of the species
     protein_row.database = db; // Name of the protein database.
-    protein_row.database_version = db_version; // String Version of the protein database.
+    protein_row.database_version = db_version; // std::string Version of the protein database.
     protein_row.best_search_engine_score[1] = MzTabDouble(hit.getScore());
  // MzTabParameterList search_engine; // Search engine(s) identifying the protein.
  // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
@@ -1493,7 +1576,7 @@ namespace OpenMS
  // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
 
     // create and fill opt_ columns for protein hit user values
-    addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_, String("global"), hit);
+    addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_,std::string("global"), hit);
 
     // optional column for protein groups
     MzTabOptionalColumnEntry opt_column_entry;
@@ -1513,7 +1596,7 @@ namespace OpenMS
   {
     MzTabProteinSectionRow protein_row;
     protein_row.database = db; // Name of the protein database.
-    protein_row.database_version = db_version; // String Version of the protein database.
+    protein_row.database_version = db_version; // std::string Version of the protein database.
 
     MzTabStringList ambiguity_members;
     ambiguity_members.setSeparator(',');
@@ -1561,7 +1644,7 @@ namespace OpenMS
     const ProteinHit& leader_protein = protein_hits[*protein_hits_idx.begin()];
 
     protein_row.database = db; // Name of the protein database.
-    protein_row.database_version = db_version; // String Version of the protein database.
+    protein_row.database_version = db_version; // std::string Version of the protein database.
 
     // column: accession and ambiguity_members
     MzTabStringList ambiguity_members;
@@ -1586,7 +1669,7 @@ namespace OpenMS
 
     // TODO: we could count the number of targets or set it to target if at least one target is inside the group
 
-    const String col_name = entries.size() == 1 ? "single_protein" :  "indistinguishable_protein_group";
+    const std::string col_name = entries.size() == 1 ? "single_protein" :  "indistinguishable_protein_group";
     opt_column_entry.second = MzTabString(col_name);
     protein_row.opt_.push_back(opt_column_entry);
 
@@ -1631,9 +1714,9 @@ namespace OpenMS
 
     if (leader_protein.metaValueExists("GO"))
     {
-      StringList sl = leader_protein.getMetaValue("GO");
-      String s{};
-      s.concatenate(sl.begin(), sl.end(), ",");
+      StringList sl = leader_protein.getMetaValue("GO").toStringList();
+      std::string s{};
+      s = StringUtils::concatenate(sl, ",");
       protein_row.go_terms.fromCellString(s);
     }
 
@@ -1662,7 +1745,7 @@ namespace OpenMS
 
     if (leader_protein.metaValueExists("num_psms_ms_run"))
     {
-      const IntList& il = leader_protein.getMetaValue("num_psms_ms_run");
+      const IntList& il = leader_protein.getMetaValue("num_psms_ms_run").toIntList();
       for (Size ili = 0; ili != il.size(); ++ili)
       {
         protein_row.num_psms_ms_run[ili+1] = MzTabInteger(il[ili]);
@@ -1671,7 +1754,7 @@ namespace OpenMS
 
     if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
     {
-      const IntList& il = leader_protein.getMetaValue("num_peptides_distinct_ms_run");
+      const IntList& il = leader_protein.getMetaValue("num_peptides_distinct_ms_run").toIntList();
       for (Size ili = 0; ili != il.size(); ++ili)
       {
         protein_row.num_peptides_distinct_ms_run[ili+1] = MzTabInteger(il[ili]);
@@ -1680,7 +1763,7 @@ namespace OpenMS
 
     if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
     {
-      const IntList& il = leader_protein.getMetaValue("num_peptides_unique_ms_run");
+      const IntList& il = leader_protein.getMetaValue("num_peptides_unique_ms_run").toIntList();
       for (Size ili = 0; ili != il.size(); ++ili)
       {
         protein_row.num_peptides_unique_ms_run[ili+1] = MzTabInteger(il[ili]);
@@ -1700,9 +1783,110 @@ Not sure how to handle these:
     return protein_row;
   }
 
-  map<String, Size> MzTab::mapIDRunIdentifier2IDRunIndex_(const vector<const ProteinIdentification*>& prot_ids)
+  namespace
   {
-    map<String, Size> idrunid_2_idrunindex;
+    bool applyAssayProteinQuantification(
+      MzTabProteinSectionRow& protein_row,
+      const ProteinIdentification::ProteinGroup& group,
+      const vector<pair<UInt, UInt>>& assay_keys,
+      const vector<vector<Size>>& study_variable_to_assays)
+    {
+      const auto& float_arrays = group.getFloatDataArrays();
+
+      const ProteinIdentification::ProteinGroup::FloatDataArray* assay_abundances = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* fraction_groups = nullptr;
+      const ProteinIdentification::ProteinGroup::IntegerDataArray* labels = nullptr;
+      for (const auto& array : float_arrays)
+      {
+        if (array.getName() == "fraction_group_level_abundance")
+        {
+          assay_abundances = &array;
+        }
+      }
+      for (const auto& array : group.getIntegerDataArrays())
+      {
+        if (array.getName() == "fraction_group_level_fraction_group")
+        {
+          fraction_groups = &array;
+        }
+        else if (array.getName() == "fraction_group_level_label")
+        {
+          labels = &array;
+        }
+      }
+
+      const bool any_assay_array = assay_abundances != nullptr || fraction_groups != nullptr || labels != nullptr;
+      if (!any_assay_array)
+      {
+        return false; // old consensusXML or another producer: keep any legacy abundance columns
+      }
+
+      const auto warnAndFallback = [&group](const std::string& reason)
+      {
+        const std::string accession = group.accessions.empty() ? "<unknown>" : group.accessions.front();
+        OPENMS_LOG_WARN << "Cannot use assay-level protein abundances for group '" << accession
+                        << "': " << reason << ". Keeping any pre-existing abundance columns.\n";
+        return false;
+      };
+
+      if (assay_abundances == nullptr || fraction_groups == nullptr || labels == nullptr)
+      {
+        return warnAndFallback("the three named parallel arrays are not all present");
+      }
+      if (assay_abundances->size() != fraction_groups->size() || assay_abundances->size() != labels->size())
+      {
+        return warnAndFallback("the named parallel arrays have different lengths");
+      }
+
+      map<pair<UInt, UInt>, float> abundance_by_assay_key;
+      for (Size i = 0; i < assay_abundances->size(); ++i)
+      {
+        // Both keys are 1-based: MSFileSectionEntry defaults fraction_group to 1 and isValid_()
+        // requires the set to start at 1. Same boundary as the QPX sibling
+        // (ProteinGroupArrowExport_impl.h fractionGroupAbundances). A zero here means the design
+        // did not come from a canonical producer, so it is refused rather than tolerated.
+        if ((*fraction_groups)[i] <= 0 || (*labels)[i] <= 0)
+        {
+          return warnAndFallback("a fraction group or label key is not 1-based");
+        }
+        const pair<UInt, UInt> key(static_cast<UInt>((*fraction_groups)[i]),
+                                   static_cast<UInt>((*labels)[i]));
+        if (!abundance_by_assay_key.emplace(key, (*assay_abundances)[i]).second)
+        {
+          return warnAndFallback("a (fraction_group, label) key occurs more than once");
+        }
+      }
+
+      protein_row.protein_abundance_assay.clear();
+      protein_row.protein_abundance_study_variable.clear();
+      protein_row.protein_abundance_stdev_study_variable.clear();
+      protein_row.protein_abundance_std_error_study_variable.clear();
+
+      for (Size i = 0; i < assay_keys.size(); ++i)
+      {
+        const Size assay = i + 1;
+        const auto value = abundance_by_assay_key.find(assay_keys[i]);
+        protein_row.protein_abundance_assay[assay] = value == abundance_by_assay_key.end()
+          ? MzTabDouble()
+          : MzTabDouble(value->second);
+      }
+
+      for (Size study_variable = 1; study_variable < study_variable_to_assays.size(); ++study_variable)
+      {
+        const auto& assays = study_variable_to_assays[study_variable];
+        protein_row.protein_abundance_study_variable[study_variable] = assays.size() == 1
+          ? protein_row.protein_abundance_assay.at(assays.front())
+          : MzTabDouble();
+        protein_row.protein_abundance_stdev_study_variable[study_variable] = MzTabDouble();
+        protein_row.protein_abundance_std_error_study_variable[study_variable] = MzTabDouble();
+      }
+      return true;
+    }
+  }
+
+  map<std::string, Size> MzTab::mapIDRunIdentifier2IDRunIndex_(const vector<const ProteinIdentification*>& prot_ids)
+  {
+    map<std::string, Size> idrunid_2_idrunindex;
     size_t current_idrun_index(0);
     for (auto const& pid : prot_ids)
     {
@@ -1715,8 +1899,8 @@ Not sure how to handle these:
   void MzTab::mapBetweenMSFileNameAndMSRunIndex_(
     const vector<const ProteinIdentification*>& prot_ids, 
     bool skip_first, 
-    map<String, size_t>& msfilename_2_msrunindex,
-    map<size_t, String>& msrunindex_2_msfilename)
+    map<std::string, size_t>& msfilename_2_msrunindex,
+    map<size_t, std::string>& msrunindex_2_msfilename)
   {
     size_t current_ms_run_index(1);
     bool first = true;
@@ -1734,13 +1918,13 @@ Not sure how to handle these:
       if (!ms_run_in_data.empty())
       {
         // prepend file:// if not there yet
-        for (const String& s : ms_run_in_data)
+        for (const std::string& s : ms_run_in_data)
         {
-          // use the string without file: prefix for the map
-          msrunindex_2_msfilename.emplace(current_ms_run_index, s);
+          // use the string without file: prefix for the map; a file listed by several runs keeps its first index
           const auto& msfileidxpair_success = msfilename_2_msrunindex.emplace(s, current_ms_run_index);
           if (msfileidxpair_success.second) // newly inserted
           {
+            msrunindex_2_msfilename.emplace(current_ms_run_index, s);
             current_ms_run_index++;
           }
         }
@@ -1748,23 +1932,23 @@ Not sure how to handle these:
       else
       {
         // next line is a hack. In case we would ever have some idXML where some runs are annotated
-        // and others are not. If a run is not annotated use its index as a String key.        
-        msrunindex_2_msfilename.emplace(current_ms_run_index, String(current_ms_run_index));
-        msfilename_2_msrunindex.emplace(String(current_ms_run_index), current_ms_run_index);
+        // and others are not. If a run is not annotated use its index as a std::string key.        
+        msrunindex_2_msfilename.emplace(current_ms_run_index,StringUtils::toStr(current_ms_run_index));
+        msfilename_2_msrunindex.emplace(StringUtils::toStr(current_ms_run_index), current_ms_run_index);
         current_ms_run_index++;
       }
     }
   }
 
   void MzTab::addMSRunMetaData_(
-    const map<size_t, String>& msrunindex_2_msfilename,
+    const map<size_t, std::string>& msrunindex_2_msfilename,
     MzTabMetaData& meta_data)
   {
     for (const auto& r2f : msrunindex_2_msfilename)
     {
       MzTabMSRunMetaData ms_run;
-      String m = r2f.second;
-      if (!m.hasPrefix("file://")) m = String("file://") + m;
+      std::string m = r2f.second;
+      if (!StringUtils::hasPrefix(m, "file://")) m =std::string("file://") + m;
       ms_run.location = MzTabString(m);
       meta_data.ms_run[r2f.first] = ms_run;
     }
@@ -1778,7 +1962,7 @@ Not sure how to handle these:
     Size idx{0};
     for (const ProteinIdentification::ProteinGroup & p : groups)
     {
-      for (const String & a : p.accessions)
+      for (const std::string & a : p.accessions)
       {
         // find protein corresponding to accession stored in group
         auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph)
@@ -1800,22 +1984,22 @@ Not sure how to handle these:
 
   void MzTab::addSearchMetaData_(
     const vector<const ProteinIdentification*>& prot_ids,
-    const map<tuple<String, String, String>, set<Size>>& search_engine_to_runs,
-    const map<String, vector<pair<String,String>>>& search_engine_to_settings,
+    const map<tuple<std::string, std::string, std::string>, set<Size>>& search_engine_to_runs,
+    const map<std::string, vector<pair<std::string, std::string>>>& search_engine_to_settings,
     MzTabMetaData& meta_data,
     bool first_run_inference_only)
   {
-    set<String> protein_scoretypes;
-    map<pair<String, String>, vector<pair<String,String>>> protein_settings;
+    set<std::string> protein_scoretypes;
+    map<pair<std::string, std::string>, vector<pair<std::string, std::string>>> protein_settings;
     for (const auto& prot_run : prot_ids)
     {
       //TODO this is a little hack to convert back and from
       protein_scoretypes.insert(getProteinScoreType_(*prot_run).toCellString());
       if (prot_run->hasInferenceData())
       {
-        String eng = prot_run->getInferenceEngine();
-        String ver = prot_run->getInferenceEngineVersion();
-        protein_settings.emplace(make_pair(std::move(eng), std::move(ver)),vector<pair<String,String>>{});
+        std::string eng = prot_run->getInferenceEngine();
+        std::string ver = prot_run->getInferenceEngineVersion();
+        protein_settings.emplace(make_pair(std::move(eng), std::move(ver)),vector<pair<std::string, std::string>>{});
         // TODO add settings for inference tools?
       }
       if (first_run_inference_only) break;
@@ -1826,11 +2010,11 @@ Not sure how to handle these:
     {
       MzTabParameter p{};
       //TODO actually we should make a distinction between protein and protein group-level FDRs
-      if (mztpar.hasSubstring("q-value"))
+      if (StringUtils::hasSubstring(mztpar, "q-value"))
       {
         p.fromCellString("[MS,MS:1003117,OpenMS:Target-decoy protein q-value, ]");
       }
-      else if (mztpar.hasSubstring("Epifany"))
+      else if (StringUtils::hasSubstring(mztpar, "Epifany"))
       {
         p.fromCellString("[MS,MS:1003119,EPIFANY:Protein posterior probability,]");
       }
@@ -1888,7 +2072,7 @@ Not sure how to handle these:
       {
         sesoftware.fromCellString("[MS,MS:1001476,X!Tandem," + get<1>(name_ver_score_to_runs.first) + "]");
       }
-      else if (get<0>(name_ver_score_to_runs.first).hasSubstring("ConsensusID"))
+      else if (StringUtils::hasSubstring(get<0>(name_ver_score_to_runs.first), "ConsensusID"))
       {
         sesoftware.fromCellString("[MS,MS:1002188,TOPP ConsensusID," + get<1>(name_ver_score_to_runs.first) + "]");
       }
@@ -1919,7 +2103,7 @@ Not sure how to handle these:
       //Huge TODO: we need to somehow correctly support peptide-level scores
       MzTabParameter psm_score_type;
       MzTabParameter pep_score_type;
-      const tuple<String, String, String>& name_version_score = se.first;
+      const tuple<std::string, std::string, std::string>& name_version_score = se.first;
 
       psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + ",]");
       pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
@@ -1938,7 +2122,7 @@ Not sure how to handle these:
           psm_score_type = pep_score_type; // since we have no way to have two types
         }
       }
-      else if (get<2>(name_version_score).hasSubstring("q-value"))
+      else if (StringUtils::hasSubstring(get<2>(name_version_score), "q-value"))
       {
         if (get<0>(name_version_score) == "Percolator")
         {
@@ -1951,13 +2135,13 @@ Not sure how to handle these:
       }
       else if (get<2>(name_version_score) == "Posterior Error Probability" || get<2>(name_version_score) == "pep")
       {
-        if (get<0>(name_version_score).hasSubstring("ConsensusID"))
+        if (StringUtils::hasSubstring(get<0>(name_version_score), "ConsensusID"))
         {
-          const String& name = get<0>(name_version_score);
-          String algo = name.suffix('_');
+          const std::string& name = get<0>(name_version_score);
+          std::string algo = StringUtils::suffix(name, '_');
           psm_score_type.fromCellString("[MS,MS:1003113,OpenMS:ConsensusID PEP," + algo + "]");
         }
-        else if (get<0>(name_version_score).hasSubstring("Percolator"))
+        else if (StringUtils::hasSubstring(get<0>(name_version_score), "Percolator"))
         {
           psm_score_type.fromCellString("[MS,MS:1001493,percolator:PEP,]");
         }
@@ -1992,13 +2176,13 @@ Not sure how to handle these:
     p.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
     for (const auto& pid : peptide_ids)
     {
-      String spec_ref = pid->getMetaValue("spectrum_reference", "");
+      std::string spec_ref = pid->getSpectrumReference(); // lenient: tolerates non-string spectrum_reference DataValues
       // note: don't change order as some may contain the other terms as well. Taken from mzTab specification document
-      if (spec_ref.hasSubstring("controllerNumber=")) { p.fromCellString("[MS,MS:1000768,Thermo nativeID format,]"); return p; }
-      if (spec_ref.hasSubstring("process=")) { p.fromCellString("[MS,MS:1000769,Waters nativeID format,]"); return p; }
-      if (spec_ref.hasSubstring("cycle=")) { p.fromCellString("[MS,MS:1000770,WIFF nativeID format,]"); return p; }
-      if (spec_ref.hasSubstring("scan=")) { p.fromCellString("[MS,MS:1000776,scan number only nativeID format,]"); return p; }
-      if (spec_ref.hasSubstring("spectrum=")) { p.fromCellString("[MS,MS:1000777,spectrum identifier nativeID format,]"); return p; }
+      if (StringUtils::hasSubstring(spec_ref, "controllerNumber=")) { p.fromCellString("[MS,MS:1000768,Thermo nativeID format,]"); return p; }
+      if (StringUtils::hasSubstring(spec_ref, "process=")) { p.fromCellString("[MS,MS:1000769,Waters nativeID format,]"); return p; }
+      if (StringUtils::hasSubstring(spec_ref, "cycle=")) { p.fromCellString("[MS,MS:1000770,WIFF nativeID format,]"); return p; }
+      if (StringUtils::hasSubstring(spec_ref, "scan=")) { p.fromCellString("[MS,MS:1000776,scan number only nativeID format,]"); return p; }
+      if (StringUtils::hasSubstring(spec_ref, "spectrum=")) { p.fromCellString("[MS,MS:1000777,spectrum identifier nativeID format,]"); return p; }
       return p;
     }
     return p;
@@ -2007,11 +2191,11 @@ Not sure how to handle these:
   MzTab::IDMzTabStream::IDMzTabStream(
     const std::vector<const ProteinIdentification*>& prot_ids,
     const std::vector<const PeptideIdentification*>& peptide_ids,
-    const String& filename,
+    const std::string& filename,
     bool first_run_inference_only,
     bool export_empty_pep_ids,
     bool export_all_psms,
-    const String& title):
+    const std::string& title):
       prot_ids_(prot_ids),
       peptide_ids_(peptide_ids),
       filename_(filename),
@@ -2030,8 +2214,8 @@ Not sure how to handle these:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
-    map<String, size_t> msfilename_2_msrunindex;
-    map<size_t, String> msrunindex_2_msfilename;
+    map<std::string, size_t> msfilename_2_msrunindex;
+    map<size_t, std::string> msrunindex_2_msfilename;
     MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, first_run_inference_, msfilename_2_msrunindex, msrunindex_2_msfilename);
 
     // MS runs of a peptide identification object is stored in
@@ -2044,8 +2228,8 @@ Not sure how to handle these:
     MzTab::getSearchModifications_(prot_ids_, var_mods, fixed_mods_);
 
     // Determine search engines used in the different MS runs.
-    map<tuple<String, String, String>, set<Size>> search_engine_to_runs;
-    map<String, vector<pair<String,String>>> search_engine_to_settings;
+    map<tuple<std::string, std::string, std::string>, set<Size>> search_engine_to_runs;
+    map<std::string, vector<pair<std::string, std::string>>> search_engine_to_settings;
 
     // search engine and version <-> MS runs index
     MzTab::mapBetweenRunAndSearchEngines_(
@@ -2078,9 +2262,9 @@ Not sure how to handle these:
     for (const auto& k : peptide_hit_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
     
     // rename some of them to be compatible with PRIDE
-    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
+    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
     prt_optional_column_names_.emplace_back("opt_global_result_type");
-    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
     psm_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
  
     ///////////////////////////////////////////////////////////////////////
@@ -2126,7 +2310,7 @@ Not sure how to handle these:
 
       // trim db name for rows (full name already stored in meta data)
       const ProteinIdentification::SearchParameters & sp = prot_ids_[0]->getSearchParameters();
-      String db_basename = File::basename(sp.db);
+      std::string db_basename = File::basename(sp.db);
       db_ = MzTabString(FileHandler::stripExtension(db_basename));
       db_version_ = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
     }
@@ -2139,14 +2323,14 @@ Not sure how to handle these:
 
     // set run meta data
     Size run_index{1};
-    for (String m : ms_runs_)
+    for (std::string m : ms_runs_)
     {
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
       mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
 
       // prepend file:// if not there yet
-      if (!m.hasPrefix("file://")) {m = String("file://") + m; }
+      if (!StringUtils::hasPrefix(m, "file://")) {m =std::string("file://") + m; }
 
       mztab_run_metadata.location = MzTabString(m);
 
@@ -2161,17 +2345,17 @@ Not sure how to handle these:
     return meta_data_; 
   }
 
-  const vector<String>& MzTab::IDMzTabStream::getProteinOptionalColumnNames() const
+  const vector<std::string>& MzTab::IDMzTabStream::getProteinOptionalColumnNames() const
   {
     return prt_optional_column_names_;
   }
 
-  const vector<String>& MzTab::IDMzTabStream::getPeptideOptionalColumnNames() const
+  const vector<std::string>& MzTab::IDMzTabStream::getPeptideOptionalColumnNames() const
   {
     return pep_optional_column_names_;
   }
 
-  const vector<String>& MzTab::IDMzTabStream::getPSMOptionalColumnNames() const
+  const vector<std::string>& MzTab::IDMzTabStream::getPSMOptionalColumnNames() const
   {
     return psm_optional_column_names_;
   }
@@ -2295,7 +2479,7 @@ state0:
         export_empty_pep_ids_,
         export_all_psms_);
 
-    if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
+    if (!export_all_psms_ || current_psm_idx_ + 1 >= pid->getHits().size())
     {
       ++pep_id_;
       current_psm_idx_ = 0;
@@ -2320,11 +2504,11 @@ state0:
   MzTab MzTab::exportIdentificationsToMzTab(
     const vector<ProteinIdentification>& prot_ids,
     const PeptideIdentificationList& peptide_ids,
-    const String& filename,
+    const std::string& filename,
     bool first_run_inference_only,
     bool export_empty_pep_ids,
     bool export_all_psms,
-    const String& title)
+    const std::string& title)
   {
     vector<const PeptideIdentification*> pep_ids_ptr;
     pep_ids_ptr.reserve(peptide_ids.size());
@@ -2354,7 +2538,7 @@ state0:
     return m;
   }
 
-  MzTabModificationList MzTab::extractModificationList(const PeptideHit& pep_hit, const vector<String>& fixed_mods, const vector<String>& localization_mods)
+  MzTabModificationList MzTab::extractModificationList(const PeptideHit& pep_hit, const vector<std::string>& fixed_mods, const vector<std::string>& localization_mods)
   {
     const AASequence& aas = pep_hit.getSequence();
     MzTabModificationList mod_list;
@@ -2364,7 +2548,7 @@ state0:
     MzTabParameter localization_score;
     if (has_loc_mods && pep_hit.metaValueExists("Luciphor_global_flr"))
     {
-      localization_score.fromCellString("[MS,MS:1002380,false localization rate," + String(pep_hit.getMetaValue("Luciphor_global_flr"))+"]");
+      localization_score.fromCellString("[MS,MS:1002380,false localization rate," + StringUtils::toStr(pep_hit.getMetaValue("Luciphor_global_flr"))+"]");
     }
 
     if (aas.isModified())
@@ -2430,14 +2614,14 @@ state0:
   }
 
   void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map,
-    set<String>& feature_user_value_keys, 
-    set<String>& peptide_identification_user_value_keys, 
-    set<String>& peptide_hit_user_value_keys)
+    set<std::string>& feature_user_value_keys, 
+    set<std::string>& peptide_identification_user_value_keys, 
+    set<std::string>& peptide_hit_user_value_keys)
   {
     for (Size i = 0; i < feature_map.size(); ++i)
     {
       const Feature& f = feature_map[i];
-      vector<String> keys;
+      vector<std::string> keys;
       f.getKeys(keys); //TODO: why not just return it?
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
@@ -2445,13 +2629,13 @@ state0:
       const PeptideIdentificationList& pep_ids = f.getPeptideIdentifications();
       for (PeptideIdentification const & pep_id : pep_ids)
       {
-        vector<String> pep_keys;
+        vector<std::string> pep_keys;
         pep_id.getKeys(pep_keys);
         peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
 
         for (PeptideHit const & hit : pep_id.getHits())
         {
-          vector<String> ph_keys;
+          vector<std::string> ph_keys;
           hit.getKeys(ph_keys);
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
@@ -2464,23 +2648,23 @@ state0:
 
   // local helper to extract meta values with space substituted with '_'
   void extractMetaValuesFromIDs(const PeptideIdentificationList & curr_pep_ids, 
-    set<String>& peptide_identification_user_value_keys,
-    set<String>& peptide_hit_user_value_keys)
+    set<std::string>& peptide_identification_user_value_keys,
+    set<std::string>& peptide_hit_user_value_keys)
     {
       for (auto const & pep_id : curr_pep_ids)
       {      
-        vector<String> pep_keys;
+        vector<std::string> pep_keys;
         pep_id.getKeys(pep_keys);
         // replace whitespaces with underscore
-        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
         peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
 
         for (auto const & hit : pep_id.getHits())
         {
-          vector<String> ph_keys;
+          vector<std::string> ph_keys;
           hit.getKeys(ph_keys);
           // replace whitespaces with underscore
-          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -2488,23 +2672,23 @@ state0:
 
   // local helper to extract meta values with space substituted with '_'
   void extractMetaValuesFromIDPointers(const vector<const PeptideIdentification*> & curr_pep_ids, 
-    set<String>& peptide_identification_user_value_keys,
-    set<String>& peptide_hit_user_value_keys)
+    set<std::string>& peptide_identification_user_value_keys,
+    set<std::string>& peptide_hit_user_value_keys)
     {
       for (auto const * pep_id : curr_pep_ids)
       {      
-        vector<String> pep_keys;
+        vector<std::string> pep_keys;
         pep_id->getKeys(pep_keys);
         // replace whitespaces with underscore
-        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
         peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
 
         for (auto const & hit : pep_id->getHits())
         {
-          vector<String> ph_keys;
+          vector<std::string> ph_keys;
           hit.getKeys(ph_keys);
           // replace whitespaces with underscore
-          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -2512,9 +2696,9 @@ state0:
 
   // extract *all* meta values stored at consensus feature, peptide id and peptide hit level
   void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
-    set<String>& consensus_feature_user_value_keys,
-    set<String>& peptide_identification_user_value_keys,
-    set<String>& peptide_hit_user_value_keys)
+    set<std::string>& consensus_feature_user_value_keys,
+    set<std::string>& peptide_identification_user_value_keys,
+    set<std::string>& peptide_hit_user_value_keys)
   {
     // extract meta values from unassigned peptide identifications
     const PeptideIdentificationList & curr_pep_ids = consensus_map.getUnassignedPeptideIdentifications();
@@ -2522,10 +2706,10 @@ state0:
 
     for (ConsensusFeature const & c : consensus_map)
     {
-      vector<String> keys;
+      vector<std::string> keys;
       c.getKeys(keys);
       // replace whitespaces with underscore
-      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+      std::transform(keys.begin(), keys.end(), keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
 
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
@@ -2542,18 +2726,18 @@ state0:
   void MzTab::getIdentificationMetaValues_(
     const std::vector<const ProteinIdentification*>& prot_ids, 
     std::vector<const PeptideIdentification*>& peptide_ids_,
-    std::set<String>& protein_hit_user_value_keys,
-    std::set<String>& peptide_id_user_value_keys,
-    std::set<String>& peptide_hit_user_value_keys)
+    std::set<std::string>& protein_hit_user_value_keys,
+    std::set<std::string>& peptide_id_user_value_keys,
+    std::set<std::string>& peptide_hit_user_value_keys)
   {
     for (auto const & pid : prot_ids)
     {
       for (auto const & hit : pid->getHits())
       {
-        vector<String> keys;
+        vector<std::string> keys;
         hit.getKeys(keys);
         // replace whitespaces with underscore
-        std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        std::transform(keys.begin(), keys.end(), keys.begin(), [&](std::string& s) { return StringUtils::substitute(s, ' ', '_'); });
         protein_hit_user_value_keys.insert(keys.begin(), keys.end());
       }
     }
@@ -2583,14 +2767,14 @@ state0:
 
   MzTab::CMMzTabStream::CMMzTabStream(
     const ConsensusMap& consensus_map,
-    const String& filename,
+    const std::string& filename,
     const bool first_run_inference_only,
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
     const bool export_subfeatures,
     const bool export_empty_pep_ids,
     const bool export_all_psms,
-    const String& title) 
+    const std::string& title) 
   :
     consensus_map_(consensus_map),
     filename_(filename), 
@@ -2646,8 +2830,8 @@ state0:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
-    map<String, size_t> msfilename_2_msrunindex;
-    map<size_t, String> msrunindex_2_msfilename;
+    map<std::string, size_t> msfilename_2_msrunindex;
+    map<size_t, std::string> msrunindex_2_msfilename;
     MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, first_run_inference_, msfilename_2_msrunindex, msrunindex_2_msfilename);
 
     // MS runs of a peptide identification object is stored in
@@ -2663,8 +2847,8 @@ state0:
     MzTabParameter msrun_spectrum_identifier_type = MzTab::getMSRunSpectrumIdentifierType_(peptide_ids_);
 
     // Determine search engines used in the different MS runs.
-    map<tuple<String, String, String>, set<Size>> search_engine_to_runs;
-    map<String, vector<pair<String,String>>> search_engine_to_settings;
+    map<tuple<std::string, std::string, std::string>, set<Size>> search_engine_to_runs;
+    map<std::string, vector<pair<std::string, std::string>>> search_engine_to_settings;
 
     // search engine and version <-> MS runs index
     MzTab::mapBetweenRunAndSearchEngines_(
@@ -2709,7 +2893,7 @@ state0:
 
     // PSM optional columns: also from meta values in consensus features
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
-    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
     psm_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
 
     ///////////////////////////////////////////////////////////////////////
@@ -2754,7 +2938,7 @@ state0:
 
       // trim db name for rows (full name already stored in meta data)
       const ProteinIdentification::SearchParameters & sp = prot_ids_[0]->getSearchParameters();
-      String db_basename = File::basename(sp.db);
+      std::string db_basename = File::basename(sp.db);
       db_ = MzTabString(FileHandler::stripExtension(db_basename));
 
       db_version_ = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
@@ -2770,8 +2954,8 @@ state0:
         // pre-analyze data for occurring meta values at protein hit level
         // these are used to build optional columns containing the meta values in internal data structures
         
-        set<String> protein_hit_user_value_keys_tmp =
-          MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<String> >(protein_hits.begin(), protein_hits.end(), 100.0);
+        set<std::string> protein_hit_user_value_keys_tmp =
+          MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<std::string> >(protein_hits.begin(), protein_hits.end(), 100.0);
 
         // we do not want descriptions twice
         protein_hit_user_value_keys_tmp.erase("Description");
@@ -2781,27 +2965,67 @@ state0:
     }
 
     // column headers may not contain spaces
-    set<String> protein_hit_user_value_keys_tmp_2;
+    set<std::string> protein_hit_user_value_keys_tmp_2;
     // replace whitespaces with underscore
     std::transform(protein_hit_user_value_keys_.begin(),
                    protein_hit_user_value_keys_.end(),
                    std::inserter(protein_hit_user_value_keys_tmp_2, protein_hit_user_value_keys_tmp_2.begin()),
-                   [](String s) { return s.substitute(' ', '_'); });
+                   [](std::string s) { return StringUtils::substitute(s, ' ', '_'); });
 
     std::swap(protein_hit_user_value_keys_, protein_hit_user_value_keys_tmp_2);
 
     // PRT optional columns
     for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.emplace_back("opt_global_" + k);
-    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
+    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(),std::string("opt_global_target_decoy"),std::string("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
     prt_optional_column_names_.emplace_back("opt_global_result_type");
 
-    // determine number of samples
+    // Build mzTab assays from OpenMS quantification units. The named protein arrays use the
+    // same canonical (fraction_group, label) ordering through their explicit parallel keys.
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
+    set<pair<UInt, UInt>> assay_key_set;
+    map<pair<UInt, UInt>, Size> assay_key_to_sample;
+    for (const auto& entry : ed.getMSFileSection())
+    {
+      const pair<UInt, UInt> assay_key(entry.fraction_group, entry.label);
+      assay_key_set.insert(assay_key);
+      auto [sample_it, inserted] = assay_key_to_sample.emplace(assay_key, entry.sample);
+      if (!inserted && sample_it->second != entry.sample)
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The same (fraction_group, label) quantification unit resolves to several samples.");
+      }
+    }
 
-    Size n_assays = ed.getNumberOfSamples();
+    assay_keys_.assign(assay_key_set.begin(), assay_key_set.end());
+    n_assays_ = assay_keys_.size();
+    n_study_variables_ = ed.getNumberOfSamples();
+    assay_to_study_variable_.assign(n_assays_ + 1, 0);
+    study_variable_to_assays_.clear();
+    study_variable_to_assays_.resize(n_study_variables_ + 1);
 
-    // TODO for now every assay is a study variable since we do not aggregate across e.g. replicates.
-    n_study_variables_ = n_assays;
+    map<pair<UInt, UInt>, UInt> assay_index_by_key;
+    for (Size i = 0; i < assay_keys_.size(); ++i)
+    {
+      const Size assay = i + 1;
+      const Size study_variable = assay_key_to_sample.at(assay_keys_[i]) + 1;
+      if (study_variable > n_study_variables_)
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "A quantification unit resolves to a sample outside the experimental design's sample section.");
+      }
+      assay_index_by_key[assay_keys_[i]] = static_cast<UInt>(i);
+      assay_to_study_variable_[assay] = study_variable;
+      study_variable_to_assays_[study_variable].push_back(assay);
+    }
+
+    path_label_to_assay_.clear();
+    for (const auto& entry : ed.getMSFileSection())
+    {
+      path_label_to_assay_[{entry.path, entry.label}] =
+        assay_index_by_key.at({entry.fraction_group, entry.label});
+    }
 
     ///////////////////////////////////////////////////////////////////////
     // MetaData section
@@ -2809,7 +3033,7 @@ state0:
     meta_data_.title = MzTabString(title);
 
     MzTabParameter quantification_method;
-    const String & experiment_type = consensus_map.getExperimentType();
+    const std::string & experiment_type = consensus_map.getExperimentType();
     if (experiment_type == "label-free")
     {
       quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");
@@ -2846,14 +3070,16 @@ state0:
 
     // set run meta data
     Size run_index{1};
-    for (String m : ms_runs_)
+    map<std::string, Size> path_to_ms_run_index;
+    for (std::string m : ms_runs_)
     {
+      path_to_ms_run_index.try_emplace(m, run_index);
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
       mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
 
       // prepend file:// if not there yet
-      if (!m.hasPrefix("file://")) {m = String("file://") + m; }
+      if (!StringUtils::hasPrefix(m, "file://")) {m =std::string("file://") + m; }
 
       mztab_run_metadata.location = MzTabString(m);
 
@@ -2862,20 +3088,21 @@ state0:
       ++run_index;
     }
 
-    // assay index (and sample index) must be unique numbers 1..n
-    // fraction_group + label define the quant. values of an assay (which currently corresponds to our Sample ID)
-    path_label_to_assay_ = ed.getPathLabelToSampleMapping(false);
-
-    // assay meta data
+    // Populate each assay with every MS run (fraction) belonging to its quantification unit.
     for (auto const & c : consensus_map.getColumnHeaders())
     {
-      Size assay_index{1};
-
-      MzTabAssayMetaData assay;
       MzTabParameter quantification_reagent;
       Size label = c.second.getLabelAsUInt(experiment_type);
       auto pl = make_pair(c.second.filename, label);
-      assay_index = path_label_to_assay_[pl] + 1; // sample rows are a vector and therefore their IDs zero-based, mzTab assays 1-based
+      const auto assay_it = path_label_to_assay_.find(pl);
+      if (assay_it == path_label_to_assay_.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column ('" + c.second.filename + "', label " + StringUtils::toStr(label)
+          + ") has no quantification unit in the experimental design.");
+      }
+      const Size assay_index = assay_it->second + 1;
 
       if (experiment_type == "label-free")
       {
@@ -2890,25 +3117,33 @@ state0:
         quantification_reagent.fromCellString("[PRIDE,PRIDE:0000317,MS2 based isotope labeling," + c.second.label + "]");
       }
       
-      // look up run index by filename
-      //TODO again, check if we rather want fraction groups instead of individual files.
-      auto md_it = find_if(meta_data_.ms_run.begin(), meta_data_.ms_run.end(),
-        [&c] (const pair<Size, MzTabMSRunMetaData>& m) {
-          return m.second.location.toCellString().hasSuffix(c.second.filename);
-        } );
-      Size curr_run_index = md_it->first;
+      const auto run_it = path_to_ms_run_index.find(c.second.filename);
+      if (run_it == path_to_ms_run_index.end())
+      {
+        throw Exception::MissingInformation(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The consensus map column '" + c.second.filename + "' has no ms_run entry; the primary MS "
+          "run paths and the column headers disagree.");
+      }
+      const Size curr_run_index = run_it->second;
 
       meta_data_.assay[assay_index].quantification_reagent = quantification_reagent;
-      meta_data_.assay[assay_index].ms_run_ref.push_back(curr_run_index);
+      auto& ms_run_refs = meta_data_.assay[assay_index].ms_run_ref;
+      if (find(ms_run_refs.begin(), ms_run_refs.end(), curr_run_index) == ms_run_refs.end())
+      {
+        ms_run_refs.push_back(curr_run_index);
+      }
+    }
 
-      // study variable meta data
-      MzTabString sv_description;
-      // TODO how would we represent study variables? = Collection of sample rows that are equal except for replicate
-      //  columns?
-      meta_data_.study_variable[assay_index].description.fromCellString("no description given");
-      IntList al;
-      al.push_back(assay_index);
-      meta_data_.study_variable[assay_index].assay_refs = al;
+    // An OpenMS Sample is an mzTab study variable; its quantification units are replicate assays.
+    for (Size study_variable = 1; study_variable <= n_study_variables_; ++study_variable)
+    {
+      auto& study_variable_meta = meta_data_.study_variable[study_variable];
+      study_variable_meta.description.fromCellString("no description given");
+      for (const Size assay : study_variable_to_assays_[study_variable])
+      {
+        study_variable_meta.assay_refs.push_back(static_cast<int>(assay));
+      }
     }
   }
 
@@ -2917,17 +3152,17 @@ state0:
     return meta_data_; 
   }
 
-  const vector<String>& MzTab::CMMzTabStream::getProteinOptionalColumnNames() const
+  const vector<std::string>& MzTab::CMMzTabStream::getProteinOptionalColumnNames() const
   {
     return prt_optional_column_names_;
   }
 
-  const vector<String>& MzTab::CMMzTabStream::getPeptideOptionalColumnNames() const
+  const vector<std::string>& MzTab::CMMzTabStream::getPeptideOptionalColumnNames() const
   {
     return pep_optional_column_names_;
   }
 
-  const vector<String>& MzTab::CMMzTabStream::getPSMOptionalColumnNames() const
+  const vector<std::string>& MzTab::CMMzTabStream::getPSMOptionalColumnNames() const
   {
     return psm_optional_column_names_;
   }
@@ -3017,6 +3252,11 @@ state0:
         ind2prot_,
         db_,
         db_version_);
+      applyAssayProteinQuantification(
+        prt_row,
+        group,
+        assay_keys_,
+        study_variable_to_assays_);
       ++prt_indistgroup_id_;
 
       std::swap(row, prt_row);
@@ -3052,6 +3292,7 @@ state0:
      c.get(), 
      consensus_map_, 
      ms_runs_,
+     n_assays_,
      n_study_variables_, 
      consensus_feature_user_value_keys_, 
      consensus_feature_peptide_identification_user_value_keys_, 
@@ -3059,6 +3300,8 @@ state0:
      idrunid_2_idrunindex_,
      map_id_run_fileidx_2_msfileidx_,
      path_label_to_assay_,
+     assay_to_study_variable_,
+     study_variable_to_assays_,
      fixed_mods_,
      export_subfeatures_);
 
@@ -3085,7 +3328,7 @@ state0:
         export_empty_pep_ids_,
         export_all_psms_);
 
-    if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
+    if (!export_all_psms_ || current_psm_idx_ + 1 >= pid->getHits().size())
     {
       ++pep_counter_;
       current_psm_idx_ = 0;
@@ -3109,14 +3352,14 @@ state0:
 
   MzTab MzTab::exportConsensusMapToMzTab(
     const ConsensusMap& consensus_map,
-    const String& filename,
+    const std::string& filename,
     const bool first_run_inference_only,
     const bool export_unidentified_features,
     const bool export_unassigned_ids,
     const bool export_subfeatures,
     const bool export_empty_pep_ids,
     const bool export_all_psms,
-    const String& title)
+    const std::string& title)
   {  
     OPENMS_LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
 

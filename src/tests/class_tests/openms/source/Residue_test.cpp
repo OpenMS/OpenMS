@@ -42,7 +42,7 @@ START_SECTION((virtual ~Residue()))
 }
 END_SECTION
 
-ResidueDB* db = ResidueDB::getInstance();
+const ResidueDB* db = ResidueDB::getInstance();
 e_ptr = new Residue(*db->getResidue("Lys"));
 
 EmpiricalFormula h2o("H2O");
@@ -92,7 +92,7 @@ START_SECTION(Residue(const Residue &residue))
   TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(Residue(const String &name, const String &three_letter_code, const String &one_letter_code, const EmpiricalFormula &formula))
+START_SECTION(Residue(const std::string &name, const std::string &three_letter_code, const std::string &one_letter_code, const EmpiricalFormula &formula))
 {
   Residue copy(e_ptr->getName(), e_ptr->getThreeLetterCode(), e_ptr->getOneLetterCode(), e_ptr->getFormula());
   TEST_EQUAL(copy.getName(), e_ptr->getName())
@@ -110,7 +110,7 @@ START_SECTION(Residue& operator=(const Residue &residue))
 }
 END_SECTION
 
-START_SECTION(void setName(const String &name))
+START_SECTION(void setName(const std::string &name))
 {
   Residue copy(*e_ptr);
   e_ptr->setName("BLUBB");
@@ -118,16 +118,16 @@ START_SECTION(void setName(const String &name))
 }
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION(const std::string& getName() const)
 {
   TEST_EQUAL(e_ptr->getName(), "BLUBB")
 }
 END_SECTION
 
-START_SECTION(void setSynonyms(const std::set< String > &synonyms))
+START_SECTION(void setSynonyms(const std::set<std::string> &synonyms))
 {
   Residue copy(*e_ptr);
-  set<String> syn;
+  set<std::string> syn;
   syn.insert("BLI");
   syn.insert("BLA");
   e_ptr->setSynonyms(syn);
@@ -135,7 +135,7 @@ START_SECTION(void setSynonyms(const std::set< String > &synonyms))
 }
 END_SECTION
 
-START_SECTION(void addSynonym(const String &synonym))
+START_SECTION(void addSynonym(const std::string &synonym))
 {
   Residue copy(*e_ptr);
   e_ptr->addSynonym("BLUFF");
@@ -143,13 +143,13 @@ START_SECTION(void addSynonym(const String &synonym))
 }
 END_SECTION
 
-START_SECTION(const std::set<String>& getSynonyms() const)
+START_SECTION(const std::set<std::string>& getSynonyms() const)
 {
   TEST_EQUAL(e_ptr->getSynonyms().size(), 3)
 }
 END_SECTION
 
-START_SECTION(void setThreeLetterCode(const String &three_letter_code))
+START_SECTION(void setThreeLetterCode(const std::string &three_letter_code))
 {
   Residue copy(*e_ptr);
   e_ptr->setThreeLetterCode("BLA");
@@ -157,13 +157,13 @@ START_SECTION(void setThreeLetterCode(const String &three_letter_code))
 }
 END_SECTION
 
-START_SECTION(const String& getThreeLetterCode() const)
+START_SECTION(const std::string& getThreeLetterCode() const)
 {
   TEST_EQUAL(e_ptr->getThreeLetterCode(), "BLA")
 }
 END_SECTION
 
-START_SECTION(void setOneLetterCode(const String &one_letter_code))
+START_SECTION(void setOneLetterCode(const std::string &one_letter_code))
 {
   Residue copy(*e_ptr);
   e_ptr->setOneLetterCode("B");
@@ -171,7 +171,7 @@ START_SECTION(void setOneLetterCode(const String &one_letter_code))
 }
 END_SECTION
 
-START_SECTION(const String& getOneLetterCode() const)
+START_SECTION(const std::string& getOneLetterCode() const)
 {
   TEST_EQUAL(e_ptr->getOneLetterCode(), "B")
 }
@@ -205,26 +205,26 @@ START_SECTION(const std::vector<EmpiricalFormula>& getLossFormulas() const)
 }
 END_SECTION
 
-START_SECTION(void setLossNames(const std::vector<String> &name))
+START_SECTION(void setLossNames(const std::vector<std::string> &name))
 {
   Residue copy(*e_ptr);
   TEST_EQUAL(*e_ptr, copy)
-  vector<String> names;
+  vector<std::string> names;
   names.push_back("Waesserchen");
   e_ptr->setLossNames(names);
   TEST_NOT_EQUAL(*e_ptr, copy)
 }
 END_SECTION
 
-START_SECTION(const std::vector<String>& getLossNames() const)
+START_SECTION(const std::vector<std::string>& getLossNames() const)
 {
-  vector<String> names;
+  vector<std::string> names;
   names.push_back("Waesserchen");
   TEST_EQUAL(e_ptr->getLossNames() == names, true)
 }
 END_SECTION
 
-START_SECTION(void addLossName(const String& name))
+START_SECTION(void addLossName(const std::string& name))
 {
   Residue copy(*e_ptr);
   TEST_EQUAL(*e_ptr, copy)
@@ -261,26 +261,26 @@ START_SECTION(void addNTermLossFormula(const EmpiricalFormula&))
 }
 END_SECTION
 
-START_SECTION(void setNTermLossNames(const std::vector< String > &name))
+START_SECTION(void setNTermLossNames(const std::vector<std::string> &name))
 {
   Residue copy(*e_ptr);
   TEST_EQUAL(*e_ptr, copy);
-  vector<String> names;
+  vector<std::string> names;
   names.push_back("Nwaesserchen");
   e_ptr->setNTermLossNames(names);
   TEST_NOT_EQUAL(*e_ptr, copy)
 }
 END_SECTION
 
-START_SECTION(const std::vector<String>& getNTermLossNames() const)
+START_SECTION(const std::vector<std::string>& getNTermLossNames() const)
 {
-  vector<String> names;
+  vector<std::string> names;
   names.push_back("Nwaesserchen");
   TEST_EQUAL(e_ptr->getNTermLossNames() == names, true)
 }
 END_SECTION
 
-START_SECTION(void addNTermLossName(const String &name))
+START_SECTION(void addNTermLossName(const std::string &name))
 {
   Residue copy(*e_ptr);
   TEST_EQUAL(*e_ptr, copy);
@@ -294,7 +294,7 @@ START_SECTION(bool hasNTermNeutralLosses() const)
   Residue copy(*e_ptr);
   TEST_EQUAL(copy.hasNTermNeutralLosses(), true)
   copy.setNTermLossFormulas(vector<EmpiricalFormula>());
-  copy.setNTermLossNames(vector<String>());
+  copy.setNTermLossNames(vector<std::string>());
   TEST_EQUAL(copy.hasNTermNeutralLosses(), false)
 }
 END_SECTION
@@ -336,7 +336,7 @@ START_SECTION(double getMonoWeight(ResidueType res_type=Full) const)
 END_SECTION
 
 
-START_SECTION(void setModification(const String& name))
+START_SECTION(void setModification(const std::string& name))
 {
   e_ptr->setOneLetterCode("M"); // we need M for this mod
   TEST_EQUAL(e_ptr->getModificationName(), "")
@@ -362,7 +362,26 @@ START_SECTION(void setModificationByDiffMonoMass(double diffMonoMass))
 }
 END_SECTION
 
-START_SECTION(String Residue::toString() const)
+START_SECTION([EXTRA] setModification with a modification that has no mass difference)
+{
+  // Issue #10029: PSI-MOD stores the mass and formula of the residue as it occurs inside a
+  // peptide chain, i.e. without the water that Residue's (free amino acid) mass and formula
+  // include. Adopting those absolute values for a term that describes no difference at all -
+  // e.g. 'MOD:00026 L-threonine residue' - stripped a water from the residue.
+  Residue thr(*db->getResidue("Thr"));
+  const double mono_weight = thr.getMonoWeight();
+  const double average_weight = thr.getAverageWeight();
+  const EmpiricalFormula formula = thr.getFormula();
+
+  thr.setModification("MOD:00026");
+  TEST_EQUAL(thr.isModified(), true)
+  TEST_REAL_SIMILAR(thr.getMonoWeight(), mono_weight)
+  TEST_REAL_SIMILAR(thr.getAverageWeight(), average_weight)
+  TEST_EQUAL(thr.getFormula() == formula, true)
+}
+END_SECTION
+
+START_SECTION(std::string Residue::toString() const)
 {
   auto rr(*db->getResidue("Met"));
   TEST_EQUAL(rr.toString(), "M");
@@ -376,7 +395,7 @@ START_SECTION(String Residue::toString() const)
 }
 END_SECTION
 
-START_SECTION(const String& getModificationName() const)
+START_SECTION(const std::string& getModificationName() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
@@ -419,7 +438,7 @@ START_SECTION(bool operator==(const Residue &residue) const)
   r = *e_ptr;
   TEST_EQUAL(r == *e_ptr, true)
 
-  set<String> syns;
+  set<std::string> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);
   TEST_EQUAL(r == *e_ptr, false)
@@ -516,7 +535,7 @@ START_SECTION(bool operator!=(const Residue &residue) const)
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
 
-  set<String> syns;
+  set<std::string> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);
   TEST_EQUAL(r != *e_ptr, true)
@@ -683,9 +702,9 @@ START_SECTION(bool isModified() const)
 }
 END_SECTION
 
-START_SECTION((void setResidueSets(const std::set< String > &residues_sets)))
+START_SECTION((void setResidueSets(const std::set<std::string> &residues_sets)))
 {
-  set<String> res_sets;
+  set<std::string> res_sets;
   res_sets.insert("rs1");
   res_sets.insert("rs2");
   e_ptr->setResidueSets(res_sets);
@@ -693,14 +712,14 @@ START_SECTION((void setResidueSets(const std::set< String > &residues_sets)))
 }
 END_SECTION
 
-START_SECTION((void addResidueSet(const String &residue_sets)))
+START_SECTION((void addResidueSet(const std::string &residue_sets)))
   e_ptr->addResidueSet("rs3");
   TEST_EQUAL(e_ptr->getResidueSets().size(), 3)
 END_SECTION
 
-START_SECTION((const std::set<String>& getResidueSets() const))
+START_SECTION((const std::set<std::string>& getResidueSets() const))
 {
-  set<String> res_sets;
+  set<std::string> res_sets;
   res_sets.insert("rs1");
   res_sets.insert("rs2");
   res_sets.insert("rs3");
@@ -708,7 +727,7 @@ START_SECTION((const std::set<String>& getResidueSets() const))
 }
 END_SECTION
 
-START_SECTION((bool isInResidueSet(const String &residue_set)))
+START_SECTION((bool isInResidueSet(const std::string &residue_set)))
 {
   TEST_EQUAL(e_ptr->isInResidueSet("rs1"), true)
   TEST_EQUAL(e_ptr->isInResidueSet("rs3"), true)
@@ -716,7 +735,7 @@ START_SECTION((bool isInResidueSet(const String &residue_set)))
 }
 END_SECTION
 
-START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
+START_SECTION((static std::string getResidueTypeName(const ResidueType res_type)))
 {
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Full), "full")
   TEST_STRING_EQUAL(Residue::getResidueTypeName(Residue::Internal), "internal")
@@ -748,6 +767,24 @@ START_SECTION((static String getResidueTypeName(const ResidueType res_type)))
 }
 END_SECTION
 
+START_SECTION((double getHydrophobicity(const HydrophobicityScaleMethod scale) const))
+{
+  Residue res;
+  res.setOneLetterCode("A");
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE),1.800);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG),0.620);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::HOPP_WOODS),-0.5);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BULL_BREESE),0.610);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::BLACK_MOULD),0.616);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::GUY),0.1);
+  TEST_REAL_SIMILAR(res.getHydrophobicity(HydrophobicityScaleMethod::EISENBERG_CONSENSUS),0.25);
+  res.setOneLetterCode("X");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
+  res.setOneLetterCode("");
+  TEST_EXCEPTION(Exception::InvalidValue,res.getHydrophobicity(HydrophobicityScaleMethod::KYTE_DOOLITTLE));
+}
+END_SECTION
+
 delete e_ptr;
 
 /////////////////////////////////////////////////////////////
@@ -762,7 +799,7 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   r1.setName("TestResidue");
   r1.setThreeLetterCode("TST");
   r1.setOneLetterCode("T");
-  r1.setFormula(EmpiricalFormula("C4H8N2O3"));
+  r1.setFormula(EmpiricalFormula("C4H10N2O3"));
   r1.setAverageWeight(132.0);
   r1.setMonoWeight(132.05);
   r1.setPka(2.1);
@@ -776,7 +813,7 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   r2.setName("TestResidue");
   r2.setThreeLetterCode("TST");
   r2.setOneLetterCode("T");
-  r2.setFormula(EmpiricalFormula("C4H8N2O3"));
+  r2.setFormula(EmpiricalFormula("C4H10N2O3"));
   r2.setAverageWeight(132.0);
   r2.setMonoWeight(132.05);
   r2.setPka(2.1);
@@ -823,7 +860,7 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   TEST_EQUAL(residue_map[r3], 3)
 
   // Test 5: Residues from ResidueDB
-  ResidueDB* rdb = ResidueDB::getInstance();
+  const ResidueDB* rdb = ResidueDB::getInstance();
   const Residue* ala = rdb->getResidue("Ala");
   const Residue* gly = rdb->getResidue("Gly");
   const Residue* ala2 = rdb->getResidue("Alanine"); // Same as Ala
@@ -845,6 +882,121 @@ START_SECTION(([EXTRA] std::hash<Residue>))
   std::size_t original_hash = std::hash<Residue>{}(r1_copy);
   r1_copy.setName("ChangedName");
   TEST_NOT_EQUAL(std::hash<Residue>{}(r1_copy), original_hash)
+}
+END_SECTION
+
+START_SECTION((Satellite ion methods and types))
+{
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::DIon), "d-ion")
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::VIon), "v-ion")
+  TEST_EQUAL(Residue::getResidueTypeName(Residue::WIon), "w-ion")
+
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::DIon), "d")
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::VIon), "v")
+  TEST_EQUAL(Residue::residueTypeToIonLetter(Residue::WIon), "w")
+
+  const ResidueDB* rdb = ResidueDB::getInstance();
+  const Residue* gly = rdb->getResidue("Gly");
+  const Residue* ala = rdb->getResidue("Ala");
+  const Residue* val = rdb->getResidue("Val");
+  const Residue* leu = rdb->getResidue("Leu");
+  const Residue* ile = rdb->getResidue("Ile");
+  const Residue* thr = rdb->getResidue("Thr");
+
+  // v-loss tests
+  TEST_EQUAL(gly->hasVLoss(), false)
+  TEST_EQUAL(gly->getVLossFormula(), EmpiricalFormula(""))
+  TEST_EQUAL(ala->hasVLoss(), true)
+  TEST_EQUAL(ala->getVLossFormula(), EmpiricalFormula("CH4"))
+  TEST_EQUAL(leu->hasVLoss(), true)
+  TEST_EQUAL(leu->getVLossFormula(), EmpiricalFormula("C4H10"))
+
+  // satellite loss tests
+  TEST_EQUAL(gly->hasSatelliteLoss(), false)
+  TEST_EQUAL(ala->hasSatelliteLoss(), false)
+  TEST_EQUAL(val->hasSatelliteLoss(), true)
+  TEST_EQUAL(val->getSatelliteLossFormula(), EmpiricalFormula("CH3"))
+
+  TEST_EQUAL(leu->hasSatelliteLoss(), true)
+  TEST_EQUAL(leu->getSatelliteLossFormula(), EmpiricalFormula("C3H7"))
+
+  // Ile subtype a (-CH3, 15 Da) vs subtype b (-C2H5, 29 Da)
+  TEST_EQUAL(ile->hasSatelliteLoss('a'), true)
+  TEST_EQUAL(ile->hasSatelliteLoss('b'), true)
+  TEST_EQUAL(ile->getSatelliteLossFormula('a'), EmpiricalFormula("CH3"))
+  TEST_EQUAL(ile->getSatelliteLossFormula('b'), EmpiricalFormula("C2H5"))
+
+  // Thr subtype a (-OH) vs subtype b (-CH3)
+  TEST_EQUAL(thr->hasSatelliteLoss('a'), true)
+  TEST_EQUAL(thr->hasSatelliteLoss('b'), true)
+  TEST_EQUAL(thr->getSatelliteLossFormula('a'), EmpiricalFormula("OH"))
+  TEST_EQUAL(thr->getSatelliteLossFormula('b'), EmpiricalFormula("CH3"))
+
+  const Residue* arg = rdb->getResidue("Arg");
+  TEST_EQUAL(arg->hasSatelliteLoss(), true)
+  TEST_EQUAL(arg->getSatelliteLossFormula(), EmpiricalFormula("C3H8N3"))
+
+  // Invalid subtype 'c' must be rejected
+  TEST_EQUAL(leu->hasSatelliteLoss('c'), false)
+  TEST_EQUAL(leu->getSatelliteLossFormula('c'), EmpiricalFormula(""))
+  TEST_EQUAL(ile->hasSatelliteLoss('c'), false)
+  TEST_EQUAL(ile->getSatelliteLossFormula('c'), EmpiricalFormula(""))
+
+  // Modified residues must reject satellite and v losses
+  Residue mod_met(*rdb->getResidue("Met"));
+  mod_met.setModification("Oxidation");
+  TEST_EQUAL(mod_met.hasSatelliteLoss(), false)
+  TEST_EQUAL(mod_met.getSatelliteLossFormula(), EmpiricalFormula(""))
+  TEST_EQUAL(mod_met.hasVLoss(), false)
+  TEST_EQUAL(mod_met.getVLossFormula(), EmpiricalFormula(""))
+
+  // Residue weights and formulas for DIon, VIon, WIon
+  TOLERANCE_ABSOLUTE(0.001)
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::DIon), leu->getMonoWeight(Residue::AIon) - EmpiricalFormula("C3H6").getMonoWeight())
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::VIon), leu->getMonoWeight(Residue::YIon) - EmpiricalFormula("C4H10").getMonoWeight())
+  TEST_REAL_SIMILAR(leu->getMonoWeight(Residue::WIon), leu->getMonoWeight(Residue::Zp1Ion) - EmpiricalFormula("C3H7").getMonoWeight())
+
+  TEST_EQUAL(leu->getFormula(Residue::DIon), leu->getFormula(Residue::AIon) - EmpiricalFormula("C3H6"))
+  TEST_EQUAL(leu->getFormula(Residue::VIon), leu->getFormula(Residue::YIon) - EmpiricalFormula("C4H10"))
+  TEST_EQUAL(leu->getFormula(Residue::WIon), leu->getFormula(Residue::Zp1Ion) - EmpiricalFormula("C3H7"))
+
+  // Independently specified formulas exercise all three Residue APIs.
+  const vector<pair<Residue::ResidueType, EmpiricalFormula>> expected = {
+    {Residue::DIon, EmpiricalFormula("C2H5N")},
+    {Residue::VIon, EmpiricalFormula("C2H3NO2")},
+    {Residue::WIon, EmpiricalFormula("C3H4O2")}
+  };
+  for (const auto& [type, formula] : expected)
+  {
+    TEST_EQUAL(leu->getFormula(type), formula)
+    TEST_REAL_SIMILAR(leu->getMonoWeight(type), formula.getMonoWeight())
+    TEST_REAL_SIMILAR(leu->getAverageWeight(type), formula.getAverageWeight())
+    TEST_EXCEPTION(Exception::InvalidValue, gly->getFormula(type))
+    TEST_EXCEPTION(Exception::InvalidValue, gly->getMonoWeight(type))
+    TEST_EXCEPTION(Exception::InvalidValue, gly->getAverageWeight(type))
+    TEST_EXCEPTION(Exception::InvalidValue, mod_met.getFormula(type))
+    TEST_EXCEPTION(Exception::InvalidValue, mod_met.getMonoWeight(type))
+    TEST_EXCEPTION(Exception::InvalidValue, mod_met.getAverageWeight(type))
+  }
+  for (const auto type : {Residue::DIon, Residue::WIon})
+  {
+    for (const auto* residue : {ala, rdb->getResidue("Pro")})
+    {
+      TEST_EXCEPTION(Exception::InvalidValue, residue->getFormula(type))
+      TEST_EXCEPTION(Exception::InvalidValue, residue->getMonoWeight(type))
+      TEST_EXCEPTION(Exception::InvalidValue, residue->getAverageWeight(type))
+    }
+  }
+
+  // Absolute-mass regression: w-ion is a radical z+1 fragment minus the satellite
+  // side-chain loss, not a plain z-ion minus the loss (that would be missing one H).
+  // Cys satellite loss is HS; the radical z-ion (Zp1Ion) already carries the extra H
+  // relative to the even-electron z-ion (ZIon), so w = Zp1Ion - HS, not ZIon - HS.
+  const Residue* cys = rdb->getResidue("Cys");
+  TEST_EQUAL(cys->hasSatelliteLoss(), true)
+  TEST_EQUAL(cys->getSatelliteLossFormula(), EmpiricalFormula("HS"))
+  TEST_EQUAL(cys->getFormula(Residue::WIon), cys->getFormula(Residue::Zp1Ion) - EmpiricalFormula("HS"))
+  TEST_NOT_EQUAL(cys->getFormula(Residue::WIon), cys->getFormula(Residue::ZIon) - EmpiricalFormula("HS"))
 }
 END_SECTION
 

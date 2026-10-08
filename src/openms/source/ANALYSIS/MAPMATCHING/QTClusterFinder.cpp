@@ -6,7 +6,9 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <boost/heap/fibonacci_heap.hpp>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/ML/CLUSTERING/HashGrid.h>
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -26,6 +28,17 @@ using std::unordered_set;
 
 namespace OpenMS
 {
+struct QTClusterFinder::Heap : boost::heap::fibonacci_heap<QTCluster>
+{
+};
+struct QTClusterFinder::HeapHandles : std::vector<Heap::handle_type>
+{
+};
+struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
+{
+  using HashGrid<OpenMS::GridFeature*>::HashGrid;
+};
+
   QTClusterFinder::QTClusterFinder() :
     BaseGroupFinder(), feature_distance_(FeatureDistance())
   {
@@ -53,8 +66,8 @@ namespace OpenMS
     // don't check for low max. intensity, because intensities may be ignored:
     if ((max_mz < 1e-16) || (max_mz > 1e16) || (max_intensity > 1e16))
     {
-      String msg = "Maximum m/z or intensity out of range (m/z: " + 
-        String(max_mz) + ", intensity: " + String(max_intensity) + "). "
+      std::string msg = "Maximum m/z or intensity out of range (m/z: " + 
+        StringUtils::toStr(max_mz) + ", intensity: " + StringUtils::toStr(max_intensity) + "). "
         "Has 'updateRanges' been called on the input maps?";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
@@ -91,8 +104,8 @@ namespace OpenMS
     if (use_IDs_)
     {
       // map string "modified sequence/charge" to all RTs the feature has been observed in the different maps
-      std::unordered_map<String, std::vector<double>> ided_feat_rts;
-      //std::unordered_map<String, std::vector<const typename MapType::FeatureType*>> ided_feats;
+      std::unordered_map<std::string, std::vector<double>> ided_feat_rts;
+      //std::unordered_map<std::string, std::vector<const typename MapType::FeatureType*>> ided_feats;
       double minRT = std::numeric_limits<double>::max();
       for (auto& map : input_maps)
       {
@@ -112,7 +125,7 @@ namespace OpenMS
               {
                 //TODO we could loosen the score filtering by requiring only ONE IDed feature of a peptide to pass the threshold.
                 // Would require a second pass though
-                const String key = pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge();
+                const std::string key = pepIDs[0].getHits()[0].getSequence().toString() + "/" + feat.getCharge();
                 const auto [it, inserted] = ided_feat_rts.emplace(key, std::vector<double>{feat.getRT()});
                 if (!inserted) // already present
                 {
@@ -264,9 +277,20 @@ namespace OpenMS
     }
     std::sort(massrange.begin(), massrange.end());
 
+    // No features in any input map: nothing to link. Return the already-cleared
+    // (empty) result. This must happen BEFORE the nr_partitions_ == 1 branch, because
+    // run_internal_() -> setParameters_() throws on the resulting invalid maximum m/z,
+    // and before the partition loop, which would dereference the empty mass range via
+    // front()/back()/size()-1. (The <2-maps case is validated by the caller,
+    // FeatureGroupingAlgorithmQT::group_.)
+    if (massrange.empty())
+    {
+      return;
+    }
+
     if (nr_partitions_ == 1)
     {
-      // Only one partition 
+      // Only one partition
       run_internal_(input_maps, result_map, true);
     }
     else
@@ -402,7 +426,7 @@ namespace OpenMS
     Heap cluster_heads;
 
     // handles to cluster heads to reach them (index == cluster.id_) in cluster_heads for updating
-    vector<Heap::handle_type> handles;
+    HeapHandles handles;
 
     // "cold" cluster bodies, where most of their data lies
     vector<QTCluster::BulkData> cluster_data;
@@ -447,7 +471,7 @@ namespace OpenMS
                                               ConsensusFeature& feature,
                                               ElementMapping& element_mapping,
                                               const Grid& grid,
-                                              const vector<Heap::handle_type>& handles)
+                                              const HeapHandles& handles)
   {
     // pop until the top is valid
     while (cluster_heads.top().isInvalid())
@@ -514,7 +538,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     float best_quality = 0;
     size_t best_quality_index = 0;
     // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constanst::UserParam::IIMN_LINKED_GROUPS)
-    vector<String> linked_groups;
+    vector<std::string> linked_groups;
     // the features of the current best cluster are inserted into the new consensus feature
     for (const auto& element : elements)
     {
@@ -526,7 +550,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       feature.insert(element.map_index, elem_feat);
       if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
       {
-        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
+        feature.setMetaValue(StringUtils::toStr(elem_feat.getUniqueId()), elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
       }
       if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && (elem_feat.getQuality() > best_quality))
       {
@@ -535,7 +559,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
       if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP).toString());
       }
     }
     if (elements[best_quality_index].feature->getFeature().metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
@@ -552,10 +576,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   }
 
   void QTClusterFinder::updateClustering_(ElementMapping& element_mapping,
-                                          const Grid& grid, 
+                                          const Grid& grid,
                                           const QTCluster::Elements& elements,
                                           Heap& cluster_heads,
-                                          const vector<Heap::handle_type>& handles,
+                                          const HeapHandles& handles,
                                           Size best_id)
   {
     // remove the current best from the heap and consolidate the heap from previous lazy updates
@@ -690,7 +714,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
             // Skip features that we have already used -> we cannot add them to
             // be neighbors any more
-            if (already_used_.find(neighbor_feature) != already_used_.end() )
+            if (already_used_.contains(neighbor_feature) )
             {
               continue;
             }
@@ -758,7 +782,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   void QTClusterFinder::computeClustering_(const Grid& grid,
                                            Heap& cluster_heads,
                                            vector<QTCluster::BulkData>& cluster_data,
-                                           vector<Heap::handle_type>& handles,
+                                           HeapHandles& handles,
                                            ElementMapping& element_mapping)
   {
     cluster_heads.clear();

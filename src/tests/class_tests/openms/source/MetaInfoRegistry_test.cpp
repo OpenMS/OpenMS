@@ -41,7 +41,7 @@ END_SECTION
 
 MetaInfoRegistry mir;
 
-START_SECTION((UInt registerName(const String& name, const String& description = "", const String& unit = "")))
+START_SECTION((UInt registerName(const std::string& name, const std::string& description = "", const std::string& unit = "")))
 {
 	UInt testname = mir.registerName("testname", "this is just a test");
   TEST_EQUAL(testname, 1024);
@@ -52,27 +52,27 @@ START_SECTION((UInt registerName(const String& name, const String& description =
 }
 END_SECTION
 
-START_SECTION((void setDescription(UInt index, const String& description)))
+START_SECTION((void setDescription(UInt index, const std::string& description)))
 	mir.setDescription(1026, "foo");
 	TEST_STRING_EQUAL(mir.getDescription(1026), "foo")
 END_SECTION
 
-START_SECTION((void setDescription(const String& name, const String& description)))
+START_SECTION((void setDescription(const std::string& name, const std::string& description)))
 	mir.setDescription("another testname", "bar");
 	TEST_STRING_EQUAL(mir.getDescription(1026), "bar")
 END_SECTION
 
-START_SECTION((void setUnit(UInt index, const String& unit)))
+START_SECTION((void setUnit(UInt index, const std::string& unit)))
 	mir.setUnit(1026, "foo");
 	TEST_STRING_EQUAL(mir.getUnit(1026), "foo")
 END_SECTION
 
-START_SECTION((void setUnit(const String& name, const String& unit)))
+START_SECTION((void setUnit(const std::string& name, const std::string& unit)))
 	mir.setUnit("another testname", "bar");
 	TEST_STRING_EQUAL(mir.getUnit(1026), "bar")
 END_SECTION
 
-START_SECTION((UInt getIndex(const String& name) const))
+START_SECTION((UInt getIndex(const std::string& name) const))
 	TEST_EQUAL(mir.getIndex("testname"), 1024)
 	TEST_EQUAL(mir.getIndex("retention time"), 1025)
 	TEST_EQUAL(mir.getIndex("isotopic_range"), 1)
@@ -80,7 +80,7 @@ START_SECTION((UInt getIndex(const String& name) const))
   TEST_EQUAL(mir.getIndex("unregistered name"), UInt(-1))
 END_SECTION
 
-START_SECTION((String getName(UInt index) const))
+START_SECTION((std::string getName(UInt index) const))
 	TEST_STRING_EQUAL(mir.getName(1), "isotopic_range")
 	TEST_STRING_EQUAL(mir.getName(2), "cluster_id")
 	TEST_STRING_EQUAL(mir.getName(3), "label")
@@ -89,28 +89,28 @@ START_SECTION((String getName(UInt index) const))
 	TEST_STRING_EQUAL(mir.getName(1025), "retention time")
 END_SECTION
 
-START_SECTION((String getDescription(UInt index) const))
+START_SECTION((std::string getDescription(UInt index) const))
 	TEST_STRING_EQUAL(mir.getDescription(1024), "this is just a test")
 	TEST_STRING_EQUAL(mir.getDescription(1025), "this is just another test")
 	TEST_STRING_EQUAL(mir.getDescription(1), "consecutive numbering of the peaks in an isotope pattern. 0 is the monoisotopic peak")
 	TEST_STRING_EQUAL(mir.getDescription(2), "consecutive numbering of isotope clusters in a spectrum")
 END_SECTION
 
-START_SECTION((String getDescription(const String& name) const))
+START_SECTION((std::string getDescription(const std::string& name) const))
 	TEST_STRING_EQUAL(mir.getDescription("testname"), "this is just a test")
 	TEST_STRING_EQUAL(mir.getDescription("retention time"), "this is just another test")
 	TEST_STRING_EQUAL(mir.getDescription("isotopic_range"), "consecutive numbering of the peaks in an isotope pattern. 0 is the monoisotopic peak")
 	TEST_STRING_EQUAL(mir.getDescription("cluster_id"), "consecutive numbering of isotope clusters in a spectrum")
 END_SECTION
 
-START_SECTION((String getUnit(UInt index) const))
+START_SECTION((std::string getUnit(UInt index) const))
 	TEST_STRING_EQUAL(mir.getUnit(1024), "")
 	TEST_STRING_EQUAL(mir.getUnit(1025), "sec")
 	TEST_STRING_EQUAL(mir.getUnit(1), "")
 	TEST_STRING_EQUAL(mir.getUnit(2), "")
 END_SECTION
 
-START_SECTION((String getUnit(const String& name) const))
+START_SECTION((std::string getUnit(const std::string& name) const))
 	TEST_STRING_EQUAL(mir.getUnit("testname"), "")
   TEST_STRING_EQUAL(mir.getUnit("retention time"), "sec")
 	TEST_STRING_EQUAL(mir.getUnit("isotopic_range"), "")
@@ -196,7 +196,7 @@ START_SECTION([EXTRA] multithreaded example)
   for (int k = 1; k < nr_iterations + 1; k++)
   {
 #if 0
-    std::string val = "newValue" + String(k%1000);
+    std::string val = "newValue" + StringUtils::toStr(k%1000);
 #else
     std::string val = "newValue";
 #endif

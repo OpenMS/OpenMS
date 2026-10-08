@@ -9,7 +9,7 @@
 
 #include <OpenMS/VISUAL/Painter2DBase.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/VISUAL/LayerDataChrom.h>
@@ -93,10 +93,10 @@ namespace OpenMS
         painter->drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 
         // draw sequence
-        String sequence;
+        std::string sequence;
         if (show_labels)
         {
-          sequence = id.getMetaValue("label");
+          sequence = StringUtils::toStr(id.getMetaValue("label"));
         }
         else
         {
@@ -104,7 +104,7 @@ namespace OpenMS
         }
         if (sequence.empty() && !id.getHits().empty())
         {
-          sequence = id.getHits()[0].getMetaValue("label");
+          sequence = StringUtils::toStr(id.getHits()[0].getMetaValue("label"));
         }
         if (id.getHits().size() > 1)
           sequence += "...";
@@ -472,15 +472,26 @@ namespace OpenMS
         // position of precursor in MS2 (only works for 2D views with RT, m/z), not for ion mobility (IM, m/z) views.
         try
         {
-          const auto data_xy_ms2 = canvas->unit_mapper_.map(Peak2D({it->getRT(), it->getPrecursors()[0].getMZ()}, {}));
-          const QPoint pos_px_ms2 = canvas->dataToWidget_(data_xy_ms2); 
+          const auto& precursor = it->getPrecursors()[0];
+          const auto data_xy_ms2 = canvas->unit_mapper_.map(Peak2D({it->getRT(), precursor.getMZ()}, {}));
+          const QPoint pos_px_ms2 = canvas->dataToWidget_(data_xy_ms2);
           const int x2 = pos_px_ms2.x();
           const int y2 = pos_px_ms2.y();
+
+          // draw the isolation window m/z limits (minimum and maximum) as a dashed line, if the information is present
+          const double iso_lower = precursor.getIsolationWindowLowerOffset();
+          const double iso_upper = precursor.getIsolationWindowUpperOffset();
+          if (iso_lower > 0 || iso_upper > 0)
+          {
+            const auto data_xy_iso_min = canvas->unit_mapper_.map(Peak2D({it->getRT(), precursor.getMZ() - iso_lower}, {}));
+            const auto data_xy_iso_max = canvas->unit_mapper_.map(Peak2D({it->getRT(), precursor.getMZ() + iso_upper}, {}));
+            drawDashedLine(canvas->dataToWidget_(data_xy_iso_min), canvas->dataToWidget_(data_xy_iso_max), &painter, Qt::black);
+          }
 
           if (it_prec != peak_map.end())
           {
             // position of precursor in MS1
-            const auto data_xy_ms1 = canvas->unit_mapper_.map(Peak2D({it_prec->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+            const auto data_xy_ms1 = canvas->unit_mapper_.map(Peak2D({it_prec->getRT(), precursor.getMZ()}, {}));
             const QPoint pos_px_ms1 = canvas->dataToWidget_(data_xy_ms1);
             const int x = pos_px_ms1.x();
             const int y = pos_px_ms1.y();
@@ -574,7 +585,7 @@ namespace OpenMS
         QColor color;
         if (f.metaValueExists(5))
         {
-          color = QColor(toQString(String(f.getMetaValue(5))));
+          color = QColor(toQString(StringUtils::toStr(f.getMetaValue(5))));
         }
         else
         {
@@ -603,7 +614,7 @@ namespace OpenMS
           else if (layer_->label == LayerDataBase::L_META_LABEL)
           {
             painter->setPen(Qt::darkBlue);
-            painter->drawText(pos.x() + 10, pos.y() + 10, toQString(String(f.getMetaValue(3))));
+            painter->drawText(pos.x() + 10, pos.y() + 10, toQString(StringUtils::toStr(f.getMetaValue(3))));
           }
         }
       }
@@ -668,7 +679,7 @@ namespace OpenMS
         QColor color;
         if (cf.metaValueExists(5))
         {
-          color = toQString(String(cf.getMetaValue(5)));
+          color = toQString(StringUtils::toStr(cf.getMetaValue(5)));
         }
         else
         {

@@ -90,8 +90,8 @@ protected:
     //----------------------------------------------------------------
     // load data
     //----------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
     double sampling_rate = getDoubleOption_("sampling_rate");
     double min_int_cutoff = getDoubleOption_("min_int_cutoff");
     bool align_sampling = getFlag_("align_sampling");

@@ -15,7 +15,6 @@
 
 namespace OpenMS
 {
-  class String;
   /**
     @brief Helper functions for MSSpectrum and MSChromatogram.
 
@@ -25,7 +24,7 @@ namespace OpenMS
   /// Returns an iterator to the first data array with the given name. 
   /// The end iterator is returned in case no data array with given name exists.
   template <class DataArrayT>
-  typename DataArrayT::iterator getDataArrayByName(DataArrayT& a, const String& name)
+  typename DataArrayT::iterator getDataArrayByName(DataArrayT& a, const std::string& name)
   {
     typename DataArrayT::iterator it = a.begin();
     for (; it != a.end(); ++it)
@@ -36,7 +35,7 @@ namespace OpenMS
   }
   
   template <class DataArrayT>
-  typename DataArrayT::const_iterator getDataArrayByName(const DataArrayT& a, const String& name)
+  typename DataArrayT::const_iterator getDataArrayByName(const DataArrayT& a, const std::string& name)
   {
     typename DataArrayT::const_iterator it = a.begin();
     for (; it != a.end(); ++it)

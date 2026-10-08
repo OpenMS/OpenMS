@@ -54,14 +54,14 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid);
+    void load(const std::string& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid);
 
     /**
         @brief Stores the identifications in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const;
+    void store(const std::string& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const;
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -72,7 +72,32 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
+    bool isSemanticallyValid(const std::string& filename, StringList& errors, StringList& warnings);
+
+    /**
+        @brief Checks if a file validates against the mzIdentML schema that matches its declared version.
+
+        Unlike the base-class @ref Internal::XMLFile::isValid (which always validates against the schema
+        the file adapter was constructed with), this overload first detects the mzIdentML version declared
+        in @p filename and validates against the corresponding schema (1.1.0, 1.2.0 or 1.3.0). This keeps
+        older, still-valid mzIdentML files from being reported as invalid just because OpenMS now writes
+        1.3.0. The schema version actually used is returned via @p used_version.
+
+        @param[in]     filename     File name of the file to be checked.
+        @param[in,out] os           Error-message sink for validation errors.
+        @param[out]    used_version Receives the schema version the file was validated against.
+
+        @exception Exception::FileNotFound is thrown if the file could not be opened
+    */
+    bool isValid(const std::string& filename, std::ostream& os, std::string& used_version);
+
+    /**
+        @brief Detect the mzIdentML version declared in @p filename (e.g. "1.1.0").
+
+        Reads the @c version attribute / target namespace from the document header. Falls back to the
+        adapter's default version (1.3.0) if no version can be determined or no matching schema exists.
+    */
+    std::string detectVersion(const std::string& filename) const;
 
 private:
 

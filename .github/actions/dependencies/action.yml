@@ -1,0 +1,157 @@
+name: "Install OpenMS Dependencies"
+description: "Central action for all dependency management"
+inputs:
+  compiler:
+    description: "The name of the compiler to use"
+    required: true
+  ssh_key:
+    description: "SSH private key for the rsync cache archive"
+    required: false
+  ssh_host:
+    description: "SSH host for the rsync cache archive"
+    required: false
+  ssh_port:
+    description: "SSH port for the rsync cache archive"
+    required: false
+  ssh_user:
+    description: "SSH user for the rsync cache archive"
+    required: false
+outputs:
+  cmake_prefix:
+    description: "Path to add to CMAKE_PREFIX"
+    value: ${{ steps.combine.outputs.cmake_prefix }}
+runs:
+  using: "composite"
+  steps:
+    - name: Add THIRDPARTY
+      shell: bash
+      run: |
+          # initialize THIRDPARTY
+          git submodule update --init THIRDPARTY
+
+          # add third-party binaries to PATH
+          # use flat THIRDPARTY structure
+          mkdir -p _thirdparty
+
+          tp_folder=${{ runner.os }}
+          if [ "$tp_folder" = "macOS" ]; then
+            tp_folder=MacOS
+          fi
+
+          # Copy the correct architecture
+          cp -R "THIRDPARTY/$tp_folder/$(uname -m)"/* _thirdparty/
+
+          # Copy architecture independent tools
+          cp -R THIRDPARTY/All/* _thirdparty/
+
+          # add third-party binaries to PATH
+          for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*; do
+            if [ "${{ runner.os }}" = "Windows" ]; then
+              echo "${thirdpartytool//\//\\}" >> "$GITHUB_PATH"
+            else
+              echo "${thirdpartytool}" >> "$GITHUB_PATH"
+            fi
+          done
+
+    - name: Install Qt (Windows)
+      if: runner.os == 'Windows'
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.8.3'    ## Qt 6.8.3 ships no msvc2026 build; the win64_msvc2022_64 binaries are
+                            ## ABI-compatible with the VS2026 (v145) toolchain (shared v14x ABI).
+        arch: 'win64_msvc2022_64'
+        cache: 'false'
+        archives: 'qtsvg qtimageformats qtbase'
+
+    - name: "Dependencies: Windows"
+      id: deps-windows
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        bash tools/ci/deps-windows.sh
+        echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
+        echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
+
+    - name: "Dependencies: Linux"
+      id: deps-linux
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        bash tools/ci/deps-ubuntu.sh
+
+        if [[ "${{ inputs.compiler }}" == clang* ]]; then
+          major_ver=$(clang -dumpversion | cut -d. -f1)
+          sudo apt-get -qq install -y "libomp-${major_ver}-dev" "llvm-${major_ver}"
+          for tool in /usr/bin/llvm-*-${major_ver}; do
+            base=$(basename "$tool" "-${major_ver}")
+            sudo ln -sf "$tool" "/usr/local/bin/${base}"
+          done
+        fi
+
+        echo "cmake_prefix=" >>$GITHUB_OUTPUT
+
+    - name: "Dependencies: macOS"
+      id: deps-macos
+      if: runner.os == 'macOS'
+      env:
+        # We need to add this, otherwise brew "helpfully" updates all
+        # of the GitHub preinstalled packages, which can cause issues:
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+      shell: bash
+      run: |
+        bash tools/ci/deps-macos.sh
+
+        brew_path=$(brew --prefix)
+        echo "$brew_path/bin" >>"$GITHUB_PATH"
+        echo "$(brew --prefix flex)/bin" >> "$GITHUB_PATH"
+        echo "$(brew --prefix bison)/bin" >> "$GITHUB_PATH"
+        echo "cmake_prefix=$brew_path" >>"$GITHUB_OUTPUT"
+
+    - name: Combine Outputs
+      id: combine
+      shell: bash
+      run: |
+        cmake_prefix_s=""
+        cmake_prefix_a=(
+          "${{ steps.conda-setup.outputs.cmake_prefix}}"
+          "${{ steps.deps-windows.outputs.cmake_prefix}}"
+          "${{ steps.deps-linux.outputs.cmake_prefix}}"
+          "${{ steps.deps-macos.outputs.cmake_prefix}}"
+        )
+
+        for path in "${cmake_prefix_a[@]}"; do
+          if [ -n "$path" ]; then
+            if [ -n "$cmake_prefix_s" ]; then
+              cmake_prefix_s="${cmake_prefix_s};"
+            fi
+            cmake_prefix_s="${cmake_prefix_s}${path}"
+          fi
+        done
+
+        echo "cmake_prefix=${cmake_prefix_s}" >> "$GITHUB_OUTPUT"
+
+    - uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
+      with:
+        name: vcpkg-cache
+        path: ${{ github.workspace }}/.vcpkg-cache
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        ssh_key: ${{ inputs.ssh_key }}
+        ssh_host: ${{ inputs.ssh_host }}
+        ssh_port: ${{ inputs.ssh_port }}
+        ssh_user: ${{ inputs.ssh_user }}
+
+    - name: Init vcpkg submodule
+      shell: bash
+      run: |
+        git submodule update --init vcpkg
+
+    - name: Point vcpkg at the Local Binary Cache
+      shell: bash
+      run: |
+        mkdir -p "${{ github.workspace }}/.vcpkg-cache"
+        echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/.vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        doNotCache: true

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -83,7 +84,7 @@ START_SECTION((void quantify(const ConsensusMap &consensus_map_in, ConsensusMap 
 	iq.setParameters(p);
 	iq.quantify(cm_in,cm_out);
 
-	String cm_file_out;
+	std::string cm_file_out;
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
 
@@ -186,4 +187,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

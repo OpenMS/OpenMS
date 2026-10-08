@@ -45,6 +45,162 @@ namespace OpenMS
     resolveBetweenFeatures_(features);
   }
 
+  IDConflictResolverAlgorithm::UnresolvedIdentifications
+  IDConflictResolverAlgorithm::reduceToOnePerSpectrum(PeptideIdentificationList& ids)
+  {
+    UnresolvedIdentifications report;
+
+    // One keyable entry per identification. The spectrum reference is a metavalue, so
+    // getSpectrumReference() builds a string on every call - read it once here rather than
+    // from inside the comparator. The sequence is referenced, never copied.
+    struct Entry
+    {
+      const std::string* reference;
+      const AASequence* sequence;
+      Int charge;
+      Size index;
+    };
+    std::vector<std::string> references(ids.size());
+    std::vector<Entry> entries;
+    entries.reserve(ids.size());
+
+    for (Size i = 0; i < ids.size(); ++i)
+    {
+      const PeptideIdentification& id = ids[i];
+      if (id.getHits().empty())
+      {
+        continue; // nothing to key on, and nothing that could be double-counted
+      }
+      references[i] = id.getSpectrumReference();
+      if (references[i].empty())
+      {
+        ++report.without_spectrum_reference;
+        continue;
+      }
+      const PeptideHit& hit = id.getHits().front();
+      entries.push_back({&references[i], &hit.getSequence(), hit.getCharge(), i});
+    }
+
+    // Sort by the key, then by input position so the surviving member of a group is
+    // deterministic when scores tie.
+    std::sort(entries.begin(), entries.end(), [](const Entry& left, const Entry& right)
+    {
+      if (*left.reference != *right.reference) { return *left.reference < *right.reference; }
+      if (*left.sequence != *right.sequence)   { return *left.sequence < *right.sequence; }
+      if (left.charge != right.charge)         { return left.charge < right.charge; }
+      return left.index < right.index;
+    });
+
+    std::vector<bool> remove(ids.size(), false);
+
+    for (Size begin = 0; begin < entries.size();)
+    {
+      // One spectrum's entries: [begin, spectrum_end).
+      Size spectrum_end = begin;
+      while (spectrum_end < entries.size()
+             && *entries[spectrum_end].reference == *entries[begin].reference)
+      {
+        ++spectrum_end;
+      }
+
+      Size surviving_here = 0;
+      for (Size group = begin; group < spectrum_end;)
+      {
+        // One (reference, sequence, charge) group: [group, group_end).
+        // Sequence membership is tested with the ordering used to sort, not with operator==:
+        // the two disagree on what identifies a residue (operator< compares the one-letter code,
+        // operator== the interned Residue*), so a pair that operator< calls equivalent could be
+        // split apart here and its duplicate silently missed. Since the range is sorted
+        // ascending, "not less than its group leader" is exactly "sorts equal to it".
+        Size group_end = group;
+        while (group_end < spectrum_end
+               && !(*entries[group].sequence < *entries[group_end].sequence)
+               && entries[group_end].charge == entries[group].charge)
+        {
+          ++group_end;
+        }
+
+        if (group_end - group == 1) { ++surviving_here; group = group_end; continue; }
+
+        // "Best" is only defined if the group agrees on which direction is better. It normally
+        // does - a caller that got here has one score type - but a disagreement would otherwise
+        // be resolved by a coin flip, silently discarding a measurement.
+        const bool higher_better = ids[entries[group].index].isHigherScoreBetter();
+        bool consistent = true;
+        for (Size i = group + 1; i < group_end; ++i)
+        {
+          if (ids[entries[i].index].isHigherScoreBetter() != higher_better) { consistent = false; break; }
+        }
+        if (!consistent)
+        {
+          ++report.inconsistent_score_direction;
+          // Counted as ONE, like the reduced branch: this group is a single peptidoform that
+          // could not be reduced, not evidence that the spectrum carries several. Counting its
+          // members individually would push multiply_identified_spectra above 1 and report the
+          // spectrum as chimeric, which is the opposite of what happened.
+          ++surviving_here;
+          group = group_end;
+          continue;
+        }
+
+        Size best = group;
+        for (Size i = group + 1; i < group_end; ++i)
+        {
+          const double score = ids[entries[i].index].getHits().front().getScore();
+          const double best_score = ids[entries[best].index].getHits().front().getScore();
+          if (higher_better ? (score > best_score) : (score < best_score)) { best = i; }
+        }
+
+        for (Size i = group; i < group_end; ++i)
+        {
+          if (i != best) { remove[entries[i].index] = true; }
+        }
+        report.removed += group_end - group - 1;
+        ++surviving_here;
+
+        if (report.example.empty())
+        {
+          report.example = *entries[group].reference + " / " + entries[group].sequence->toString()
+                         + " / charge " + StringUtils::toStr(entries[group].charge);
+        }
+
+        group = group_end;
+      }
+
+      if (surviving_here > 1) { ++report.multiply_identified_spectra; }
+      begin = spectrum_end;
+    }
+
+    if (report.removed > 0)
+    {
+      auto& data = ids.getData();
+      Size out = 0;
+      for (Size i = 0; i < data.size(); ++i)
+      {
+        if (remove[i]) { continue; }
+        if (out != i) { data[out] = std::move(data[i]); }
+        ++out;
+      }
+      data.resize(out);
+    }
+
+    return report;
+  }
+
+  namespace
+  {
+    /// Order for finding the lowest-scoring identification: like compareIDsSmallerScores_, but identifications without
+    /// hits come last, so that they are never the best one when lower scores are better (as for higher scores).
+    bool lowerScoreFirst(const PeptideIdentification& left, const PeptideIdentification& right)
+    {
+      if (left.getHits().empty() || right.getHits().empty())
+      {
+        return left.getHits().size() > right.getHits().size();
+      }
+      return left.getHits()[0].getScore() < right.getHits()[0].getScore();
+    }
+  } // namespace
+
   // static
   void IDConflictResolverAlgorithm::resolveConflictKeepMatching_(
       PeptideIdentificationList & peptides,
@@ -66,7 +222,7 @@ namespace OpenMS
     }
     else  // find lowest-scoring ID
     {
-      pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
+      pos = min_element(peptides.begin(), peptides.end(), lowerScoreFirst);
     }
 
     const AASequence& best = (*pos).getHits()[0].getSequence();
@@ -93,7 +249,7 @@ namespace OpenMS
       else // not found
       {
         // annotate feature_id for later reference
-        it->setMetaValue("feature_id", String(uid));
+        it->setMetaValue("feature_id",StringUtils::toStr(uid));
         // move to "removed" vector
         removed.push_back(std::move(*it));
         // erase and update iterator
@@ -122,7 +278,7 @@ namespace OpenMS
         pep.setHits(best_hit);
       }
       // annotate feature id
-      pep.setMetaValue("feature_id", String(uid));
+      pep.setMetaValue("feature_id",StringUtils::toStr(uid));
     }
 
     PeptideIdentificationList::iterator pos;
@@ -132,7 +288,7 @@ namespace OpenMS
     }
     else  // find lowest-scoring ID
     {
-      pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
+      pos = min_element(peptides.begin(), peptides.end(), lowerScoreFirst);
     }
 
     // copy conflicting ones left to best one
@@ -164,7 +320,7 @@ namespace OpenMS
     // Annotate all IDs with feature_id and sort hits (best first)
     for (PeptideIdentification& pep : peptides)
     {
-      pep.setMetaValue("feature_id", String(uid));
+      pep.setMetaValue("feature_id",StringUtils::toStr(uid));
       pep.sort();
     }
 
@@ -215,7 +371,7 @@ namespace OpenMS
       for (Size j = 0; j < hits.size(); ++j)
       {
         const AASequence& seq = hits[j].getSequence();
-        if (seen_in_run.count(seq) == 0)
+        if (!seen_in_run.contains(seq))
         {
           // First occurrence of this sequence in this ID: use its rank
           rank_sums[seq] += static_cast<double>(j);

@@ -15,7 +15,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/FEATUREFINDER/FFIDAlgoExternalIDHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
@@ -23,58 +22,136 @@
 #include <map>
 
 namespace OpenMS {
+/**
+  @brief ID-guided MS1 feature finder; the algorithm behind @ref TOPP_FeatureFinderIdentification.
+
+  Uses peptide identifications as targets to drive chromatogram extraction from MS1 data,
+  builds a per-peptide assay library on the fly, scores extracted peak groups with
+  @ref MRMFeatureFinderScoring, and emits a @ref FeatureMap of quantified features.
+
+  @section FFid_inputs Inputs
+
+  Peptide IDs (@p peptides / @p proteins) are the high-confidence anchors used to define
+  the candidate elution windows.
+
+  Optional @p seeds from an upstream untargeted feature finder can also be added.
+
+  @section FFid_faims FAIMS handling
+
+  If the input @ref PeakMap carries multiple FAIMS compensation voltages, @ref run splits
+  the data via @ref IMDataConverter::splitByFAIMSCV, runs the per-CV pipeline in a fresh
+  algorithm instance per group (peptide IDs filtered by @c FAIMS_CV through
+  @ref FAIMSHelper::filterPeptidesByFAIMSCV), annotates the resulting features with the
+  @c FAIMS_CV meta value, and merges everything back into the caller's @p features.
+  IDs without a @c FAIMS_CV are processed against @em every CV group for backward
+  compatibility. In the multi-FAIMS case, @ref getLibrary returns an empty library because
+  each CV group has its own assay library.
+
+  @section FFid_sideeffects ID-list transformations inside run()
+
+  The ID list is taken by value (see the run() signature), so the @em caller's
+  container is never observably modified. The transformations described here happen
+  on the function's local copy and influence which IDs reach @p features:
+
+  - The local copy of @p peptides is shrunk to the best hit per identification.
+  - FFid meta values are added to each surviving hit before it is written into
+    @p features.
+  - If @p seeds carries IDs, those are appended to the local copy of @p peptides
+    before scoring.
+
+  @section FFid_primary Primary MS-run path
+
+  After feature detection the @ref FeatureMap's @c primaryMSRunPath is set to the
+  @c ms_data_'s recorded run path; if that is not a valid / readable mzML, @p spectra_file
+  is used as a fallback annotation (see @ref MSExperiment overload of
+  @ref FeatureMap::setPrimaryMSRunPath).
+
+  @ingroup FeatureFinder
+*/
 class OPENMS_DLLAPI FeatureFinderIdentificationAlgorithm :
   public DefaultParamHandler
 {
 public:
-  /// default constructor
+  /// Default constructor; installs the FFid parameters (see class docs)
   FeatureFinderIdentificationAlgorithm();
 
-  /// Main method for actual FeatureFinder
-  /// External IDs (@p peptides_ext, @p proteins_ext) may be empty,
-  /// in which case no machine learning or FDR estimation will be performed.
-  /// Optional seeds from e.g. untargeted FeatureFinders can be added with
-  /// @p seeds.
-  /// Results will be written to @p features.
-  /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath
-  /// stored in the MSExperiment.
-  /// If that path is not a valid and readable mzML @p spectra_file
-  /// will be annotated as a fall-back.
-  /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
-  /// and potential seed IDs added.
-  ///
-  /// FAIMS data is handled automatically: if the MS data contains multiple FAIMS
-  /// compensation voltages, each CV group is processed independently (with peptide IDs
-  /// filtered by FAIMS_CV) and results are combined with FAIMS_CV annotation on features.
-  /// IDs without FAIMS_CV annotation are included in all groups for backward compatibility.
-  /// For multi-FAIMS data, getLibrary() returns an empty library since each FAIMS group
-  /// has its own assay library.
+  /**
+    @brief Run the FFid pipeline; for FAIMS data this dispatches one run per CV group and merges results.
+
+    See the class brief for the seeds list, the FAIMS handling, the side effects on the
+    input ID list, and the primary-MS-run-path fallback semantics.
+
+    @param[in]  peptides      Peptide IDs (taken by value). The local copy is shrunk to best hit per identification and FFid meta values are added before being written into @p features; the caller's container is not modified.
+    @param[in]  proteins      Protein IDs corresponding to @p peptides.
+    @param[out] features      Quantified feature map; pre-existing contents are cleared for FAIMS data and replaced.
+    @param[in]  seeds         Optional pre-detected features from an untargeted feature finder.
+    @param[in]  spectra_file  Source mzML path used as a fallback for @c primaryMSRunPath annotation when the MSExperiment's own path isn't usable.
+  */
   void run(
     PeptideIdentificationList peptides,
     const std::vector<ProteinIdentification>& proteins,
-    PeptideIdentificationList peptides_ext,
-    std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds = FeatureMap(),
-    const String& spectra_file = ""
+    const std::string& spectra_file = ""
     );
 
+  /// Filter an existing candidate @ref FeatureMap in place and (optionally) fit elution models (entry point used to re-process candidates exported via the @c candidates_out parameter).
   void runOnCandidates(FeatureMap& features);
 
+  /**
+    @brief Mutable access to the cached MS1 data.
+    @return Reference to the cached @ref PeakMap (already pre-processed by @ref run when called after run()).
+  */
   PeakMap& getMSData();
+  /**
+    @brief Read-only access to the cached MS1 data.
+    @return Const reference to the cached @ref PeakMap.
+  */
   const PeakMap& getMSData() const;
 
-  /// @brief set the MS data used for feature detection
+  /**
+    @brief Copy the MS data into the algorithm instance; useful from pyOpenMS where moving is awkward.
+    @param[in] ms_data Source @ref PeakMap; copied into the internal cache.
+  */
   void setMSData(const PeakMap& ms_data); // for pyOpenMS
+  /**
+    @brief Move the MS data into the algorithm instance (no copy).
+    @param[in] ms_data Source @ref PeakMap; moved into the internal cache. @ref getMSData will later expose the cached (possibly preprocessed) copy, not the original.
+  */
   void setMSData(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
+  /**
+    @brief Mutable access to the accumulated extracted chromatograms (XICs) from the last @ref run.
+    @return Reference to the accumulated XIC @ref PeakMap.
+  */
   PeakMap& getChromatograms();
+  /**
+    @brief Read-only access to the accumulated extracted chromatograms.
+    @return Const reference to the accumulated XIC @ref PeakMap.
+  */
   const PeakMap& getChromatograms() const;
 
+  /**
+    @brief Mutable access to the progress logger used by the algorithm.
+    @return Reference to the @ref ProgressLogger (configure log type, etc.).
+  */
   ProgressLogger& getProgressLogger();
+  /**
+    @brief Read-only access to the progress logger.
+    @return Const reference to the @ref ProgressLogger.
+  */
   const ProgressLogger& getProgressLogger() const;
 
+  /**
+    @brief Mutable access to the assay library used / produced by the last @ref run.
+    @return Reference to the @ref TargetedExperiment library.
+    @note For multi-FAIMS inputs this returns an empty library because each CV group has its own internal library.
+  */
   TargetedExperiment& getLibrary();
+  /**
+    @brief Read-only access to the assay library used / produced by the last @ref run.
+    @return Const reference to the @ref TargetedExperiment library (empty for multi-FAIMS inputs — see the non-const overload).
+  */
   const TargetedExperiment& getLibrary() const;
 
 protected:
@@ -84,17 +161,16 @@ protected:
 
   /// mapping: RT (not necessarily unique) -> pointer to peptide
   typedef std::multimap<double, PeptideIdentification*> RTMap;
-  /// mapping: charge -> internal/external: (RT -> pointer to peptide)
-  typedef std::map<Int, std::pair<RTMap, RTMap> > ChargeMap;
-  /// mapping: sequence -> charge -> internal/external ID information
+  /// mapping: charge -> (RT -> pointer to peptide)
+  typedef std::map<Int, RTMap> ChargeMap;
+  /// mapping: sequence -> charge -> ID information
   typedef std::map<AASequence, ChargeMap> PeptideMap;
-  /// mapping: peptide ref. -> int./ext.: (RT -> pointer to peptide)
-  typedef std::map<String, std::pair<RTMap, RTMap> > PeptideRefRTMap;
+  /// mapping: peptide ref. -> (RT -> pointer to peptide)
+  typedef std::map<std::string, RTMap> PeptideRefRTMap;
 
   PeptideMap peptide_map_;
 
-  Size n_internal_peps_; ///< number of internal peptide
-  Size n_external_peps_; ///< number of external peptides
+  Size n_peptides_ = 0; ///< number of peptides
 
   Size batch_size_; ///< nr of peptides to use at the same time during chromatogram extraction
   double rt_window_; ///< RT window width
@@ -106,24 +182,14 @@ protected:
   double isotope_pmin_; ///< min. isotope probability for peptide assay
   Size n_isotopes_; ///< number of isotopes for peptide assay
 
-  double rt_quantile_;
-
   double peak_width_;
   double min_peak_width_;
   double signal_to_noise_;
 
-  String elution_model_;
-
-  // SVM related parameters
-  double svm_min_prob_;
-  StringList svm_predictor_names_;
-  String svm_xval_out_;
-  double svm_quality_cutoff;
-  Size svm_n_parts_; ///< number of partitions for SVM cross-validation
-  Size svm_n_samples_; ///< number of samples for SVM training
+  std::string elution_model_;
 
   // output file (before filtering)
-  String candidates_out_;
+  std::string candidates_out_;
 
   Size debug_level_;
 
@@ -133,7 +199,7 @@ protected:
   struct RTRegion
   {
     double start, end;
-    ChargeMap ids; ///< internal/external peptide IDs (per charge) in this region
+    ChargeMap ids; ///< peptide IDs (per charge) in this region
   };
 
   /**
@@ -178,8 +244,8 @@ protected:
     bool operator()(const PeptideIdentification& p1,
                     const PeptideIdentification& p2)
     {
-      const String& seq1 = p1.getHits()[0].getSequence().toString();
-      const String& seq2 = p2.getHits()[0].getSequence().toString();
+      const std::string& seq1 = p1.getHits()[0].getSequence().toString();
+      const std::string& seq2 = p2.getHits()[0].getSequence().toString();
       if (seq1 == seq2)
       {
         Int charge1 = p1.getHits()[0].getCharge();
@@ -199,8 +265,8 @@ protected:
   {
     bool operator()(const Feature& f1, const Feature& f2)
     {
-      const String& ref1 = f1.getMetaValue("PeptideRef");
-      const String& ref2 = f2.getMetaValue("PeptideRef");
+      const std::string ref1 = StringUtils::toStr(f1.getMetaValue("PeptideRef"));
+      const std::string ref2 = StringUtils::toStr(f2.getMetaValue("PeptideRef"));
       if (ref1 == ref2)
       {
         return f1.getRT() < f2.getRT();
@@ -223,14 +289,7 @@ protected:
 
   const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
 
-  /// SVM probability -> number of pos./neg. features (for FDR calculation):
-  std::map<double, std::pair<Size, Size> > svm_probs_internal_;
-  /// SVM probabilities for "external" features (for FDR calculation):
-  std::multiset<double> svm_probs_external_;
-  Size n_internal_features_; ///< internal feature counter (for FDR calculation)
-  Size n_external_features_; ///< external feature counter (for FDR calculation)
-  /// TransformationDescription trafo_; // RT transformation (to range 0-1)
-  std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
+  std::map<std::string, double> isotope_probs_; ///< isotope probabilities of transitions
   /**
    * @brief Ion mobility statistics per peptide reference (peptide sequence/charge:region)
    *
@@ -238,7 +297,7 @@ protected:
    * Populated during createAssayLibrary_() and used during annotateFeatures_()
    * to add IM_median, IM_min, and IM_max meta-values to features.
    */
-  std::map<String, IMStats> im_stats_;
+  std::map<std::string, IMStats> im_stats_;
 
   /**
    * @brief Global ion mobility statistics from all peptide identifications
@@ -250,12 +309,11 @@ protected:
   IMStats global_im_stats_;
 
   MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
-  Internal::FFIDAlgoExternalIDHandler external_id_handler_; ///< Handler for external peptide IDs
 
   ProgressLogger prog_log_;
 
   /// generate transitions (isotopic traces) for a peptide ion and add them to the library:
-  void generateTransitions_(const String& peptide_id, double mz, Int charge,
+  void generateTransitions_(const std::string& peptide_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist);
 
   void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt) const;
@@ -311,12 +369,11 @@ protected:
 
   void ensureConvexHulls_(Feature& feature) const;
 
-  void postProcess_(FeatureMap& features, bool with_external_ids);
+  void postProcess_(FeatureMap& features);
 
   /// Helper functions for run()
-  void validateSVMParameters_() const;
   void initializeFeatureFinder_();
-  double calculateRTWindow_(double rt_uncertainty) const;
+  double calculateRTWindow_() const;
   void removeSeedPseudoIDs_(FeatureMap& features);
 
   /// Helper function to check if a peptide hit is a seed pseudo-ID
@@ -337,21 +394,18 @@ protected:
   /// Make sure it stays valid until destruction of the class.
   /// @todo find better solution
   void addPeptideToMap_(PeptideIdentification& peptide,
-    PeptideMap& peptide_map,
-    bool external = false);
+    PeptideMap& peptide_map);
 
-  void filterFeatures_(FeatureMap& features, bool classified);
+  void filterFeatures_(FeatureMap& features);
 
   /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
   /// Called by run() either directly or for each FAIMS CV group
   void runSingleGroup_(
     PeptideIdentificationList peptides,
     const std::vector<ProteinIdentification>& proteins,
-    PeptideIdentificationList peptides_ext,
-    std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds,
-    const String& spectra_file);
+    const std::string& spectra_file);
 
   // seeds for untargeted extraction
   Size addSeeds_(PeptideIdentificationList& peptides, const FeatureMap& seeds);

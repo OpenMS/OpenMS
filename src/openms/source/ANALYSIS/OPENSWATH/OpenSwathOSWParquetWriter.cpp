@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
@@ -15,8 +16,9 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <fstream>
@@ -24,6 +26,7 @@
 #include <future>
 #include <limits>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <filesystem>
@@ -71,7 +74,7 @@ namespace OpenMS
       if (meta.isEmpty()) return false;
       try
       {
-        value = meta.toString().toDouble();
+        value = StringUtils::toDouble(meta.toString());
         return true;
       }
       catch (Exception::ConversionError&)
@@ -109,7 +112,7 @@ namespace OpenMS
       if (meta.isEmpty()) return false;
       try
       {
-        value = meta.toString().toDouble();
+        value = StringUtils::toDouble(meta.toString());
         return true;
       }
       catch (Exception::ConversionError&)
@@ -118,9 +121,9 @@ namespace OpenMS
       }
     }
 
-    std::vector<String> getSeparateScore_(const Feature& feature, const std::string& score_name)
+    std::vector<std::string> getSeparateScore_(const Feature& feature, const std::string& score_name)
     {
-      std::vector<String> separated_scores;
+      std::vector<std::string> separated_scores;
 
       if (!feature.getMetaValue(score_name).isEmpty())
       {
@@ -131,12 +134,12 @@ namespace OpenMS
         else if (feature.getMetaValue(score_name).valueType() == DataValue::INT_LIST)
         {
           std::vector<int> int_scores = feature.getMetaValue(score_name).toIntList();
-          for (int score : int_scores) separated_scores.emplace_back(score);
+          for (int score : int_scores) separated_scores.emplace_back(StringUtils::toStr(score));
         }
         else if (feature.getMetaValue(score_name).valueType() == DataValue::DOUBLE_LIST)
         {
           std::vector<double> double_scores = feature.getMetaValue(score_name).toDoubleList();
-          for (double score : double_scores) separated_scores.emplace_back(score);
+          for (double score : double_scores) separated_scores.emplace_back(StringUtils::toStr(score));
         }
         else
         {
@@ -147,11 +150,11 @@ namespace OpenMS
       return separated_scores;
     }
 
-    bool parseOptionalInt64_(const String& text, int64_t& value)
+    bool parseOptionalInt64_(const std::string& text, int64_t& value)
     {
       try
       {
-        value = text.toInt64();
+        value = StringUtils::toInt64(text);
         return true;
       }
       catch (Exception::ConversionError&)
@@ -160,11 +163,11 @@ namespace OpenMS
       }
     }
 
-    bool parseOptionalDouble_(const String& text, double& value)
+    bool parseOptionalDouble_(const std::string& text, double& value)
     {
       try
       {
-        value = text.toDouble();
+        value = StringUtils::toDouble(text);
         return true;
       }
       catch (Exception::ConversionError&)
@@ -174,7 +177,7 @@ namespace OpenMS
     }
 
     void appendOptionalFloatFromList_(arrow::DoubleBuilder& builder,
-                                      const std::vector<String>& values,
+                                      const std::vector<std::string>& values,
                                       Size index,
                                       const char* column)
     {
@@ -192,7 +195,7 @@ namespace OpenMS
     struct RunEntry
     {
       int64_t run_id = 0;
-      String filename;
+      std::string filename;
     };
 
     struct RunCounts
@@ -202,12 +205,12 @@ namespace OpenMS
       int64_t feature_transition = 0;
     };
 
-    int64_t getParquetRowCount_(const String& filename)
+    int64_t getParquetRowCount_(const std::string& filename)
     {
       return OpenMS::ParquetFile::rowCount(filename);
     }
 
-    std::vector<RunEntry> readRuns_(const String& runs_parquet)
+    std::vector<RunEntry> readRuns_(const std::string& runs_parquet)
     {
       std::vector<RunEntry> runs;
       if (!File::exists(runs_parquet))
@@ -232,17 +235,17 @@ namespace OpenMS
       return runs;
     }
 
-    std::string jsonEscape_(const String& input)
+    std::string jsonEscape_(const std::string& input)
     {
       return OpenMS::ParquetFile::jsonEscape(input);
     }
 
-    void writeMetadata_(const String& base_dir,
+    void writeMetadata_(const std::string& base_dir,
                         const std::vector<RunEntry>& runs,
                         const std::vector<RunCounts>& run_counts,
                         const RunCounts& total_counts)
     {
-      const String metadata_path = base_dir + "/metadata.json";
+      const std::string metadata_path = base_dir + "/metadata.json";
       std::ofstream out(metadata_path.c_str(), std::ios::out | std::ios::trunc);
       if (!out.is_open())
       {
@@ -268,7 +271,7 @@ namespace OpenMS
       if (runs.size() != run_counts.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Run count metadata mismatch", String(run_counts.size()));
+                                      "Run count metadata mismatch",StringUtils::toStr(run_counts.size()));
       }
 
       for (Size i = 0; i < runs.size(); ++i)
@@ -300,17 +303,30 @@ namespace OpenMS
 
   } // namespace
 
-  void OpenSwathOSWParquetWriter::write(const String& output_path,
+  void OpenSwathOSWParquetWriter::write(const std::string& output_path,
                                         const OpenSwath::LightTargetedExperiment& assay_library,
                                         const FeatureMap& feature_map,
                                         UInt64 run_id,
-                                        const String& input_filename,
+                                        const std::string& input_filename,
                                         bool enable_uis_scoring) const
   {
+    write(output_path, assay_library, feature_map, run_id, input_filename, enable_uis_scoring, nullptr);
+  }
+
+  void OpenSwathOSWParquetWriter::write(const std::string& output_path,
+                                        const OpenSwath::LightTargetedExperiment& assay_library,
+                                        const FeatureMap& feature_map,
+                                        UInt64 run_id,
+                                        const std::string& input_filename,
+                                        bool enable_uis_scoring,
+                                        const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const
+  {
+    OpenSwathLibraryIDNormalizer::validateCanonicalIDs(assay_library);
+
     const UInt64 run_id_clean = Internal::SqliteHelper::clearSignBit(run_id);
     const bool output_is_dir = File::isDirectory(output_path);
-    std::unique_ptr<File::TempDir> temp_dir;
-    String base_dir = output_path;
+    std::unique_ptr<TempDir> temp_dir;
+    std::string base_dir = output_path;
     if (!output_is_dir)
     {
       if (File::exists(output_path) && preserve_existing_)
@@ -324,13 +340,13 @@ namespace OpenMS
       }
       else
       {
-        temp_dir = std::make_unique<File::TempDir>();
+        temp_dir = std::make_unique<TempDir>();
         base_dir = temp_dir->getPath() + "/oswpq_output";
       }
     }
 
-    const String library_dir = base_dir + "/library";
-    const String runs_dir = base_dir + "/runs";
+    const std::string library_dir = base_dir + "/library";
+    const std::string runs_dir = base_dir + "/runs";
     if (!File::exists(base_dir))
     {
       File::makeDir(base_dir);
@@ -340,43 +356,73 @@ namespace OpenMS
       File::makeDir(runs_dir);
     }
 
-    const String precursors_path = library_dir + "/precursors.parquet";
-    const String transitions_path = library_dir + "/transitions.parquet";
+    const std::string precursors_path = library_dir + "/precursors.parquet";
+    const std::string transitions_path = library_dir + "/transitions.parquet";
     const bool library_ready = File::exists(precursors_path) && File::exists(transitions_path);
-    // If library files exist, perform a basic compatibility check to avoid
-    // silently reusing an incompatible library when appending runs. A mismatch
-    // between the existing library tables and the provided `assay_library`
-    // (counts differ) is a strong signal of incompatibility and can create
-    // broken foreign-key relationships between run-level files and the
-    // library tables. Fail fast with a clear error message.
+    // Existing output may have been produced by an older writer that allocated a
+    // different numeric ID domain. Counts alone are not sufficient: the same number
+    // of rows can still map a given integer to a different precursor/transition.
+    // Compare the complete operational foreign-key domain before appending a run.
     if (library_ready)
     {
-      const int64_t existing_precursors = getParquetRowCount_(precursors_path);
-      const int64_t existing_transitions = getParquetRowCount_(transitions_path);
-      // Use deduplicated counts from the provided assay_library (unique compound ids
-      // and unique transition names) to compare against existing parquet tables. The
-      // writer deduplicates compounds/transitions when generating the library, so a
-      // direct comparison to raw vector sizes can give false incompatibility errors.
-      std::unordered_set<String> unique_compounds;
-      unique_compounds.reserve(assay_library.compounds.size());
-      for (const auto& c : assay_library.compounds) unique_compounds.insert(c.id);
-      const int64_t expected_precursors = static_cast<int64_t>(unique_compounds.size());
+      std::unordered_set<int64_t> expected_precursor_ids;
+      expected_precursor_ids.reserve(assay_library.compounds.size());
+      for (const auto& compound : assay_library.compounds)
+      {
+        expected_precursor_ids.insert(StringUtils::toInt64(compound.id));
+      }
 
-      std::unordered_set<String> unique_transitions;
-      unique_transitions.reserve(assay_library.transitions.size());
-      for (const auto& t : assay_library.transitions) unique_transitions.insert(t.transition_name);
-      const int64_t expected_transitions = static_cast<int64_t>(unique_transitions.size());
+      std::unordered_map<int64_t, int64_t> expected_transition_refs;
+      expected_transition_refs.reserve(assay_library.transitions.size());
+      for (const auto& transition : assay_library.transitions)
+      {
+        expected_transition_refs.emplace(StringUtils::toInt64(transition.transition_name),
+                                         StringUtils::toInt64(transition.peptide_ref));
+      }
 
-      if (existing_precursors != expected_precursors || existing_transitions != expected_transitions)
+      auto existing_precursor_table = ParquetFile::readTable(precursors_path);
+      auto existing_precursor_id_col = ParquetFile::getColumn(existing_precursor_table, OSWPrecursorSchema::PRECURSOR_ID);
+      std::unordered_set<int64_t> existing_precursor_ids;
+      existing_precursor_ids.reserve(static_cast<size_t>(existing_precursor_table->num_rows()));
+      for (int64_t row = 0; row < existing_precursor_table->num_rows(); ++row)
+      {
+        const int64_t id = ParquetFile::getInt64(existing_precursor_id_col, row, -1, false);
+        if (!existing_precursor_ids.insert(id).second)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Existing OSWPQ library contains duplicate precursor_id",
+                                        StringUtils::toStr(id));
+        }
+      }
+
+      auto existing_transition_table = ParquetFile::readTable(transitions_path);
+      auto existing_transition_id_col = ParquetFile::getColumn(existing_transition_table, OSWTransitionSchema::TRANSITION_ID);
+      auto existing_transition_precursor_col = ParquetFile::getColumn(existing_transition_table, OSWTransitionSchema::PRECURSOR_ID);
+      std::unordered_map<int64_t, int64_t> existing_transition_refs;
+      existing_transition_refs.reserve(static_cast<size_t>(existing_transition_table->num_rows()));
+      for (int64_t row = 0; row < existing_transition_table->num_rows(); ++row)
+      {
+        const int64_t transition_id = ParquetFile::getInt64(existing_transition_id_col, row, -1, false);
+        const int64_t precursor_id = ParquetFile::getInt64(existing_transition_precursor_col, row, -1, false);
+        if (!existing_transition_refs.emplace(transition_id, precursor_id).second)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Existing OSWPQ library contains duplicate transition_id",
+                                        StringUtils::toStr(transition_id));
+        }
+      }
+
+      if (existing_precursor_ids != expected_precursor_ids ||
+          existing_transition_refs != expected_transition_refs)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Existing library at '" + library_dir + "' appears incompatible with provided assay_library. Please rebuild the library or use a different output path.",
-                                      String("existing_precursors=") + String(existing_precursors) + ", expected_precursors=" + String(expected_precursors));
+                                      "Existing OSWPQ library uses a different canonical precursor/transition ID domain. Please rebuild the archive or use a different output path.",
+                                      library_dir);
       }
     }
     if (!library_ready)
     {
-      const String library_tmp_dir = base_dir + "/library_tmp";
+      const std::string library_tmp_dir = base_dir + "/library_tmp";
       if (File::exists(library_tmp_dir))
       {
         File::removeDirRecursively(library_tmp_dir);
@@ -387,12 +433,12 @@ namespace OpenMS
       }
       File::makeDir(library_tmp_dir);
       File::makeDir(library_dir);
-      TransitionParquetFile().convertLightTargetedExperimentToParquet(library_tmp_dir, assay_library);
+      TransitionParquetFile().convertLightTargetedExperimentToParquet(library_tmp_dir, assay_library, source_ids);
       File::copyDirRecursively(library_tmp_dir + "/library", library_dir);
       File::removeDirRecursively(library_tmp_dir);
     }
 
-    const String run_path = runs_dir + "/run_id=" + String(run_id_clean);
+    const std::string run_path = runs_dir + "/run_id=" + StringUtils::toStr(run_id_clean);
     if (File::exists(run_path))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -400,68 +446,25 @@ namespace OpenMS
     }
     File::makeDir(run_path);
 
-    // Map compound.id -> precursor_id (int64). We must avoid collisions
-    // between numeric ids present in the source library and auto-assigned ids
-    // generated here (next_precursor_id). If a numeric id duplicates a
-    // previously-assigned id, prefer to auto-assign a fresh id to ensure
-    // uniqueness and preserve the original string id in the library's
-    // traml_id column for round-tripping.
-    std::unordered_map<String, int64_t> compound_to_precursor;
+    // The assay library has already crossed the canonical OpenSWATH ID boundary.
+    // Preserve precursor and transition IDs exactly for run-level foreign keys;
+    // downstream result writers must never allocate a second library ID domain.
+    std::unordered_map<std::string, int64_t> compound_to_precursor;
     compound_to_precursor.reserve(assay_library.compounds.size());
-    std::unordered_set<int64_t> used_precursor_ids;
-    int64_t next_precursor_id = 1;
     for (const auto& compound : assay_library.compounds)
     {
-      if (compound_to_precursor.find(compound.id) != compound_to_precursor.end())
-      {
-        continue;
-      }
-
-      int64_t precursor_id = 0;
-      bool parsed_numeric = false;
-      try
-      {
-        precursor_id = String(compound.id).toInt64();
-        parsed_numeric = true;
-      }
-      catch (Exception::ConversionError&)
-      {
-        // fall through - we'll assign an auto id below
-      }
-
-      if (parsed_numeric)
-      {
-        // If numeric id collides with an already-used id, reject the numeric
-        // value and fall back to auto-assigning. This prevents accidental
-        // collisions between user-provided numeric ids and our auto ids.
-        if (used_precursor_ids.find(precursor_id) != used_precursor_ids.end() || precursor_id <= 0)
-        {
-          precursor_id = next_precursor_id++;
-        }
-        else
-        {
-          // accept the numeric id and ensure next_precursor_id moves past it
-          if (precursor_id >= next_precursor_id)
-          {
-            next_precursor_id = precursor_id + 1;
-          }
-        }
-      }
-      else
-      {
-        precursor_id = next_precursor_id++;
-      }
-
-      used_precursor_ids.insert(precursor_id);
-      compound_to_precursor[compound.id] = precursor_id;
+      compound_to_precursor.emplace(compound.id, StringUtils::toInt64(compound.id));
     }
 
-    std::unordered_map<String, int64_t> transition_to_id;
+    std::unordered_map<std::string, int64_t> transition_to_id;
     transition_to_id.reserve(assay_library.transitions.size());
-    int64_t transition_id = 1;
+    std::unordered_set<int64_t> valid_transition_ids;
+    valid_transition_ids.reserve(assay_library.transitions.size());
     for (const auto& transition : assay_library.transitions)
     {
-      transition_to_id[transition.transition_name] = transition_id++;
+      const int64_t transition_id = StringUtils::toInt64(transition.transition_name);
+      transition_to_id.emplace(transition.transition_name, transition_id);
+      valid_transition_ids.insert(transition_id);
     }
 
     arrow::Int64Builder feature_id_builder;
@@ -606,7 +609,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "Feature missing PeptideRef meta value");
       }
-      const String peptide_ref = feature.getMetaValue("PeptideRef");
+      const std::string peptide_ref = StringUtils::toStr(feature.getMetaValue("PeptideRef"));
       auto precursor_it = compound_to_precursor.find(peptide_ref);
       if (precursor_it == compound_to_precursor.end())
       {
@@ -724,13 +727,11 @@ namespace OpenMS
           {
             continue;
           }
-          const String native_id = sub_it.getMetaValue("native_id");
+          const std::string native_id = StringUtils::toStr(sub_it.getMetaValue("native_id"));
           int64_t transition_id_value = 0;
-          // Prefer explicit name lookup in the library mapping. Only use the
-          // numeric fallback when the native_id is numeric and the id falls
-          // inside the valid id domain (1..transition_id-1). This prevents
-          // accidental acceptance of arbitrary numeric strings that are not
-          // actually present in the library table.
+          // Prefer exact canonical-name lookup. Retain a numeric fallback for legacy
+          // feature metadata only when that numeric ID is actually present in the
+          // canonical library; zero and sparse transition IDs are valid.
           auto it = transition_to_id.find(native_id);
           if (it != transition_to_id.end())
           {
@@ -738,8 +739,7 @@ namespace OpenMS
           }
           else if (parseOptionalInt64_(native_id, transition_id_value))
           {
-            // numeric fallback is only valid if present in library id domain
-            if (transition_id_value <= 0 || transition_id_value >= transition_id)
+            if (!valid_transition_ids.contains(transition_id_value))
             {
               throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "Transition references unknown numeric id", native_id);
@@ -801,8 +801,8 @@ namespace OpenMS
         }
         else if (sub_it.metaValueExists("FeatureLevel") && sub_it.getMetaValue("FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {
-          std::vector<String> precursor_id;
-          String(sub_it.getMetaValue("native_id")).split(String("Precursor_i"), precursor_id);
+          std::vector<std::string> precursor_id;
+          StringUtils::split(StringUtils::toStr(sub_it.getMetaValue("native_id")), "Precursor_i", precursor_id);
           if (precursor_id.size() < 2)
           {
             continue;
@@ -868,7 +868,7 @@ namespace OpenMS
 
         for (Size i = 0; i < id_target_transition_names.size(); ++i)
         {
-          const String& transition_name = id_target_transition_names[i];
+          const std::string& transition_name = id_target_transition_names[i];
           auto it = transition_to_id.find(transition_name);
           if (it == transition_to_id.end()) continue;
 
@@ -983,7 +983,7 @@ namespace OpenMS
 
         for (Size i = 0; i < id_decoy_transition_names.size(); ++i)
         {
-          const String& transition_name = id_decoy_transition_names[i];
+          const std::string& transition_name = id_decoy_transition_names[i];
           auto it = transition_to_id.find(transition_name);
           if (it == transition_to_id.end()) continue;
 
@@ -1257,7 +1257,7 @@ namespace OpenMS
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Runs table schema validation failed: " + runs_validation.toString(), "");
         }
-        const String runs_parquet = runs_dir + "/runs.parquet";
+        const std::string runs_parquet = runs_dir + "/runs.parquet";
         if (File::exists(runs_parquet))
         {
           auto existing_table = ParquetFile::readTable(runs_parquet);
@@ -1268,7 +1268,7 @@ namespace OpenMS
             if (existing_run_ids->Value(row) == static_cast<int64_t>(run_id_clean))
             {
               throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Run id already present in runs.parquet", String(run_id_clean));
+                                            "Run id already present in runs.parquet",StringUtils::toStr(run_id_clean));
             }
           }
           auto combined_result = arrow::ConcatenateTables({existing_table, runs_table});
@@ -1284,7 +1284,7 @@ namespace OpenMS
           ParquetFile::writeTable(runs_table, runs_parquet);
         }
       }
-      const String runs_parquet = runs_dir + "/runs.parquet";
+      const std::string runs_parquet = runs_dir + "/runs.parquet";
     auto runs = readRuns_(runs_parquet);
     std::vector<RunCounts> run_counts;
     run_counts.reserve(runs.size());
@@ -1292,7 +1292,7 @@ namespace OpenMS
     RunCounts total_counts;
     for (const auto& run : runs)
     {
-      const String current_run_path = runs_dir + "/run_id=" + String(run.run_id);
+      const std::string current_run_path = runs_dir + "/run_id=" + StringUtils::toStr(run.run_id);
       RunCounts counts;
       counts.features = getParquetRowCount_(current_run_path + "/features.parquet");
       counts.feature_precursor = getParquetRowCount_(current_run_path + "/feature_precursor.parquet");
@@ -1311,7 +1311,7 @@ namespace OpenMS
     if (!output_is_dir)
     {
       const std::filesystem::path dirpath = std::filesystem::u8path(std::string(base_dir));
-      const String output_zip_abs = File::absolutePath(output_path);
+      const std::string output_zip_abs = File::absolutePath(output_path);
       // If we're preserving an existing archive (we unpacked it above), don't
       // remove it here. Otherwise remove any existing file to start fresh.
       if (File::exists(output_zip_abs) && !preserve_existing_)
@@ -1323,7 +1323,7 @@ namespace OpenMS
         if (it->is_directory()) continue;
         const auto full = it->path();
         std::string rel = std::filesystem::relative(full, dirpath).generic_string();
-        ZipArchiveFile::addOrReplaceFromFile(output_path, String(rel), String(full.string()));
+        ZipArchiveFile::addOrReplaceFromFile(output_path,std::string(rel),std::string(full.string()));
       }
       ZipArchiveFile::writeSidecarIndex(output_zip_abs);
     }

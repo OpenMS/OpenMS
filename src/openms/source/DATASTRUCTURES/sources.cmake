@@ -8,7 +8,6 @@ BinaryTreeNode.cpp
 CalibrationData.cpp
 ChargePair.cpp
 Compomer.cpp
-ConstRefVector.cpp
 ConvexHull2D.cpp
 CVMappingTerm.cpp
 CVMappingRule.cpp
@@ -37,13 +36,10 @@ OSWData.cpp
 Param.cpp
 ParamValue.cpp
 QTCluster.cpp
-String.cpp
-StringView.cpp
 StringListUtils.cpp
 StringUtils.cpp
-StringUtilsSimple.cpp
-StringConversions.cpp
 ToolDescription.cpp
+RegularExpression.cpp
 )
 
 ### add path to the filenames
@@ -57,3 +53,5 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\DATASTRUCTURES" FILES ${sources})
+
+list(APPEND OpenMS_private_headers ${directory}/RegularExpressionInternal.h)

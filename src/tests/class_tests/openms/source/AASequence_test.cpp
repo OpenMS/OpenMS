@@ -58,7 +58,7 @@ START_SECTION(AASequence(const AASequence& rhs))
   TEST_EQUAL(seq, seq2)
 END_SECTION
 
-START_SECTION(AASequence fromString(const String& s, bool permissive = true))
+START_SECTION(AASequence fromString(const std::string& s, bool permissive = true))
 {
   AASequence seq = AASequence::fromString("CNARCKNCNCNARCDRE");
   TEST_EQUAL(seq.isModified(), false)
@@ -343,6 +343,24 @@ START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::
   TEST_EQUAL(seq.getFormula(), EmpiricalFormula("O10SH33N5C24"))
   TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH33N5C24+"))
   TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
+  // z+1 ("z-dot", the main electron-transfer fragment) and z+2 carry one and two extra hydrogens
+  TEST_EQUAL(seq.getFormula(Residue::Zp1Ion, 0), seq.getFormula(Residue::ZIon, 0) + EmpiricalFormula("H"))
+  TEST_EQUAL(seq.getFormula(Residue::Zp2Ion, 0), seq.getFormula(Residue::ZIon, 0) + EmpiricalFormula("H2"))
+  // ... and, being C-terminal fragments, they carry a C-terminal modification like the z ion does
+  AASequence seq_c_term = AASequence::fromString("ACDEF");
+  seq_c_term.setCTerminalModification("Amidated (C-term)");
+  TEST_EQUAL(seq_c_term.getFormula(Residue::Zp1Ion, 0), seq_c_term.getFormula(Residue::ZIon, 0) + EmpiricalFormula("H"))
+  TEST_EQUAL(seq_c_term.getFormula(Residue::Zp1Ion, 0) - seq.getFormula(Residue::Zp1Ion, 0),
+             seq_c_term.getFormula(Residue::ZIon, 0) - seq.getFormula(Residue::ZIon, 0))
+
+  // Absolute-mass regression: the w ion is formed by satellite side-chain loss from the
+  // radical z+1 (z-dot) ion, not from the even-electron z ion, which is one H short.
+  // AAAACAK / w3 (suffix "CAK", satellite loss HS from Cys) from Kempkes et al. 2018
+  // (DOI: 10.1002/jms.4298), where w3 is observed at nominal m/z 272.
+  AASequence w3_suffix = AASequence::fromString("AAAACAK").getSuffix(3);
+  TEST_EQUAL(w3_suffix.toString(), "CAK")
+  TEST_EQUAL(w3_suffix.getFormula(Residue::WIon, 0), EmpiricalFormula("C12H21N3O4"))
+  TEST_NOT_EQUAL(w3_suffix.getFormula(Residue::WIon, 0), EmpiricalFormula("C12H20N3O4"))
 END_SECTION
 
 START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
@@ -380,6 +398,35 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::ZIon, 1), ala_z_neutral.getMonoWeight()+Constants::PROTON_MASS_U);
   //73.02900
 
+  EmpiricalFormula ala_zp1_neutral = ala_z_neutral+EmpiricalFormula("H");
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::Zp1Ion, 1), ala_zp1_neutral.getMonoWeight()+Constants::PROTON_MASS_U);
+  //74.03623
+
+  EmpiricalFormula ala_zp2_neutral = ala_z_neutral+EmpiricalFormula("H2");
+  TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::Zp2Ion, 1), ala_zp2_neutral.getMonoWeight()+Constants::PROTON_MASS_U);
+  //75.04406
+
+  // direct calculation and calculation via the empirical formula must agree for the z+1/z+2 types too
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp1Ion, 1),
+                    AASequence::fromString("DFPIANGER").getFormula(Residue::Zp1Ion, 1).getMonoWeight())
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp2Ion, 1),
+                    AASequence::fromString("DFPIANGER").getFormula(Residue::Zp2Ion, 1).getMonoWeight())
+
+  // a C-terminal modification shifts the z+1/z+2 ions by the same amount as the z ion
+  AASequence amidated = AASequence::fromString("DFPIANGER");
+  amidated.setCTerminalModification("Amidated (C-term)");
+  const double c_term_shift = amidated.getMonoWeight(Residue::ZIon) - AASequence::fromString("DFPIANGER").getMonoWeight(Residue::ZIon);
+  TEST_REAL_SIMILAR(amidated.getMonoWeight(Residue::Zp1Ion) - AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp1Ion), c_term_shift)
+  TEST_REAL_SIMILAR(amidated.getMonoWeight(Residue::Zp2Ion) - AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Zp2Ion), c_term_shift)
+  TEST_REAL_SIMILAR(amidated.getMonoWeight(Residue::Zp1Ion), amidated.getMonoWeight(Residue::ZIon) + EmpiricalFormula("H").getMonoWeight())
+
+  // Absolute-mass regression for the w ion: AAAACAK / w3 (suffix "CAK") from
+  // Kempkes et al. 2018 (DOI: 10.1002/jms.4298); the published w3 peak is at
+  // nominal m/z 272, i.e. one H heavier than a (wrongly) z-ion-based calculation.
+  AASequence w3_suffix = AASequence::fromString("AAAACAK").getSuffix(3);
+  TEST_REAL_SIMILAR(w3_suffix.getMonoWeight(Residue::WIon, 1),
+                    EmpiricalFormula("C12H21N3O4").getMonoWeight() + Constants::PROTON_MASS_U)
+  TEST_REAL_SIMILAR(w3_suffix.getMonoWeight(Residue::WIon, 0), w3_suffix.getFormula(Residue::WIon, 0).getMonoWeight())
 
   TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(), double(1017.48796))
 
@@ -550,7 +597,7 @@ START_SECTION(bool hasSuffix(const AASequence& peptide) const)
 END_SECTION
 
 START_SECTION(ConstIterator begin() const)
-  String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
+  std::string result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -564,7 +611,7 @@ START_SECTION(ConstIterator end() const)
 END_SECTION
 
 START_SECTION(Iterator begin())
-  String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
+  std::string result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -585,7 +632,7 @@ END_SECTION
 //  // TODO
 //END_SECTION
 
-START_SECTION(String toString() const)
+START_SECTION(std::string toString() const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   AASequence seq3 = AASequence::fromString("DFPIAN(Deamidated)GER");
@@ -595,7 +642,7 @@ START_SECTION(String toString() const)
   TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(Deamidated)GER")
 END_SECTION
 
-START_SECTION(String toUnmodifiedString() const)
+START_SECTION(std::string toUnmodifiedString() const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   AASequence seq3 = AASequence::fromString("DFPIAN(Deamidated)GER");
@@ -605,7 +652,7 @@ START_SECTION(String toUnmodifiedString() const)
   TEST_STRING_EQUAL(seq3.toUnmodifiedString(), "DFPIANGER")
 END_SECTION
 
-START_SECTION(String toUniModString() const)
+START_SECTION(std::string toUniModString() const)
   AASequence s = AASequence::fromString("PEPC(Carbamidomethyl)PEPM(Oxidation)PEPR");
   TEST_STRING_EQUAL(s.toUniModString(), "PEPC(UniMod:4)PEPM(UniMod:35)PEPR");
   s.setNTerminalModification("Acetyl (N-term)");
@@ -613,10 +660,10 @@ START_SECTION(String toUniModString() const)
   TEST_STRING_EQUAL(s.toUniModString(), ".(UniMod:1)PEPC(UniMod:4)PEPM(UniMod:35)PEPR.(UniMod:2)");
 END_SECTION
 
-START_SECTION(String toBracketString(const std::vector<String> & fixed_modifications = std::vector<String>()) const)
+START_SECTION(std::string toBracketString(const std::vector<std::string> & fixed_modifications = std::vector<std::string>()) const)
   AASequence s = AASequence::fromString("PEPC(Carbamidomethyl)PEPM(Oxidation)PEPR");
   TEST_STRING_EQUAL(s.toBracketString(), "PEPC[160]PEPM[147]PEPR");
-  vector<String> fixed_mods;
+  vector<std::string> fixed_mods;
   fixed_mods.push_back("Carbamidomethyl (C)");
   TEST_STRING_EQUAL(s.toBracketString(true, false, fixed_mods), "PEPCPEPM[147]PEPR");
   TEST_STRING_SIMILAR(s.toBracketString(false, false, fixed_mods), "PEPCPEPM[147.0354000171]PEPR");
@@ -633,7 +680,7 @@ START_SECTION(String toBracketString(const std::vector<String> & fixed_modificat
   TEST_STRING_EQUAL(s.toBracketString(true, true, fixed_mods), "PEPCPEPM[+16]PEPR");
 END_SECTION
 
-START_SECTION(void setModification(Size index, const String &modification))
+START_SECTION(void setModification(Size index, const std::string &modification))
   AASequence seq1 = AASequence::fromString("ACDEFNEK");
   seq1.setModification(5, "Deamidated");
   TEST_STRING_EQUAL(seq1[5].getModificationName(), "Deamidated");
@@ -656,7 +703,70 @@ START_SECTION(void setModification(Size index, const String &modification))
   TEST_STRING_EQUAL(seq1.toString(), "AC[-1.234]DE[-1.234]FN(Deamidated)E[-1.234]K")
 END_SECTION
 
-START_SECTION(void setNTerminalModification(const String &modification))
+START_SECTION(void setModificationByDiffMonoMass(Size index, double diffMonoMass))
+  const double mass_shift = 306.025304840900048;
+  AASequence modified = AASequence::fromString("AEADNLDDKK");
+  modified.setModificationByDiffMonoMass(8, mass_shift);
+
+  const std::string serialized = modified.toString();
+  TEST_TRUE(serialized.find("K[+") != std::string::npos)
+
+  const AASequence round_tripped = AASequence::fromString(serialized);
+  TEST_REAL_SIMILAR(round_tripped.getMonoWeight(), modified.getMonoWeight())
+
+  // Use distinct unknown-modification IDs so both cache insertion orders can
+  // be tested independently in the process-global ModificationsDB.
+  const double reverse_order_mass_shift = mass_shift + 1.0;
+  AASequence oxidized_first = AASequence::fromString("M(Oxidation)PEPTIDE");
+  AASequence plain_second = AASequence::fromString("MPEPTIDE");
+  const double oxidized_weight = oxidized_first.getMonoWeight();
+  const double plain_weight = plain_second.getMonoWeight();
+  oxidized_first.setModificationByDiffMonoMass(0, mass_shift);
+  plain_second.setModificationByDiffMonoMass(0, mass_shift);
+
+  AASequence plain_first = AASequence::fromString("MPEPTIDE");
+  AASequence oxidized_second = AASequence::fromString("M(Oxidation)PEPTIDE");
+  plain_first.setModificationByDiffMonoMass(0, reverse_order_mass_shift);
+  oxidized_second.setModificationByDiffMonoMass(0, reverse_order_mass_shift);
+
+  TEST_REAL_SIMILAR(oxidized_first.getMonoWeight() - mass_shift, oxidized_weight)
+  TEST_REAL_SIMILAR(plain_second.getMonoWeight() - mass_shift, plain_weight)
+  TEST_REAL_SIMILAR(plain_first.getMonoWeight() - reverse_order_mass_shift, plain_weight)
+  TEST_REAL_SIMILAR(oxidized_second.getMonoWeight() - reverse_order_mass_shift, oxidized_weight)
+  TEST_REAL_SIMILAR(oxidized_first.getMonoWeight() - mass_shift, oxidized_second.getMonoWeight() - reverse_order_mass_shift)
+  TEST_REAL_SIMILAR(plain_second.getMonoWeight() - mass_shift, plain_first.getMonoWeight() - reverse_order_mass_shift)
+  TEST_FALSE(oxidized_first.toString() == plain_second.toString())
+  TEST_FALSE(oxidized_second.toString() == plain_first.toString())
+END_SECTION
+
+START_SECTION(void setNTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term))
+  const double shift = 306.025304840900048;
+  AASequence seq = AASequence::fromString("AEADNLDDKK");
+  const double unmodified = seq.getMonoWeight();
+  seq.setNTerminalModificationByDiffMonoMass(shift, false);
+
+  // the modification must actually be applied, not assigned to a shadowing local
+  TEST_TRUE(seq.hasNTerminalModification())
+  TEST_FALSE(seq.hasCTerminalModification())
+  TEST_REAL_SIMILAR(seq.getMonoWeight() - unmodified, shift)
+  TEST_REAL_SIMILAR(AASequence::fromString(seq.toString()).getMonoWeight(), seq.getMonoWeight())
+END_SECTION
+
+START_SECTION(void setCTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term))
+  const double shift = 306.025304840900048;
+  AASequence seq = AASequence::fromString("AEADNLDDKK");
+  const double unmodified = seq.getMonoWeight();
+  seq.setCTerminalModificationByDiffMonoMass(shift, false);
+
+  // must land on the C-terminus - the C-terminal overload used to write the
+  // N-terminal member name, so a naive de-shadowing would modify the wrong end
+  TEST_TRUE(seq.hasCTerminalModification())
+  TEST_FALSE(seq.hasNTerminalModification())
+  TEST_REAL_SIMILAR(seq.getMonoWeight() - unmodified, shift)
+  TEST_REAL_SIMILAR(AASequence::fromString(seq.toString()).getMonoWeight(), seq.getMonoWeight())
+END_SECTION
+
+START_SECTION(void setNTerminalModification(const std::string &modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   TEST_EQUAL(seq1 == seq2, false)
@@ -692,7 +802,7 @@ START_SECTION(void setNTerminalModification(const String &modification))
 
 END_SECTION
 
-START_SECTION(const String& getNTerminalModificationName() const)
+START_SECTION(const std::string& getNTerminalModificationName() const)
   AASequence seq1 = AASequence::fromString("(MOD:00051)DFPIANGER");
   TEST_EQUAL(seq1.getNTerminalModificationName(), "MOD:00051");
 
@@ -720,7 +830,7 @@ START_SECTION(const ResidueModification* getCTerminalModification() const)
   TEST_EQUAL(seq1.getCTerminalModification(),  0);
 END_SECTION
 
-START_SECTION(void setCTerminalModification(const String& modification))
+START_SECTION(void setCTerminalModification(const std::string& modification))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("DFPIANGER(Amidated)");
 
@@ -751,7 +861,7 @@ START_SECTION(void setCTerminalModification(const String& modification))
   TEST_TRUE(seq5 == seq6)
 END_SECTION
 
-START_SECTION(const String& getCTerminalModificationName() const)
+START_SECTION(const std::string& getCTerminalModificationName() const)
   AASequence seq1 = AASequence::fromString("DFPIANGER(Amidated)");
   TEST_EQUAL(seq1.getCTerminalModificationName(), "Amidated");
 
@@ -853,7 +963,7 @@ END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
   AASequence a = AASequence::fromString("THREEAAAWITHYYY");
-  std::map<String, Size> table;
+  std::map<std::string, Size> table;
   a.getAAFrequencies(table);
 
   TEST_EQUAL(table["T"]==2, true);
@@ -1124,7 +1234,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     // test that we can re-read the UniModString
     test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[1617.23339"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
+    TEST_EQUAL(StringUtils::hasPrefix(test_other.toString(), "IDE.[1617.23339"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
 
@@ -1132,7 +1242,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     auto bs = test_seq.toBracketString(false, true);
     test_other = AASequence::fromString(bs);
     TEST_EQUAL(test_other.size(), 3)
-    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[+1600.2306539"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
+    TEST_EQUAL(StringUtils::hasPrefix(test_other.toString(), "IDE.[+1600.2306539"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     test_other = AASequence::fromString(test_seq.toBracketString(false, false));
     TEST_EQUAL(test_other.size(), 3)
@@ -1191,9 +1301,40 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
   AASequence test;
   TEST_EXCEPTION(Exception::ParseError, test = AASequence::fromString("PEPTX[+160.230654]IDE"));
 
-  AASequence seq11 = AASequence::fromString("PEPM[147.035405]TIDEK");
+  AASequence seq11 = AASequence::fromString("PEPM[147.0354]TIDEK");
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
+}
+END_SECTION
+
+START_SECTION([EXTRA] Small mass tags are not replaced by a zero-mass modification)
+{
+  // Issue #10029: a small (signed) mass tag - a calibration offset, an isotope error or a
+  // placeholder written by an open search - used to be replaced by the PSI-MOD "residue" term
+  // 'MOD:00026 L-threonine residue' (mass difference 0), which additionally stripped a water
+  // from the peptide. Such a tag must be kept as an unknown modification of exactly that mass.
+  const double base = AASequence::fromString("PEPTIDE").getMonoWeight();
+  const std::vector<std::pair<std::string, double>> tags =
+    {{"PEPT[-0.5]IDE", -0.5},
+     {"PEPT[+0.001]IDE", 0.001},
+     {"PEPT[-0.001]IDE", -0.001},
+     {"PEPT[+0.000000001]IDE", 0.000000001},
+     {"PEPT[+0.00335]IDE", 0.00335}};
+  for (const auto& [seq_string, delta] : tags)
+  {
+    AASequence aa = AASequence::fromString(seq_string);
+    TEST_STRING_EQUAL(aa.toString(), seq_string)
+    TEST_EQUAL(aa[3].isModified(), true)
+    TEST_STRING_EQUAL(aa[3].getModificationName(), "") // user-defined, i.e. no database entry
+    TEST_REAL_SIMILAR(aa.getMonoWeight() - base, delta)
+  }
+
+  // The same term applied explicitly describes an (unmodified) threonine, so it must not change
+  // the mass of the peptide either
+  AASequence thr_term = AASequence::fromString("PEPT(MOD:00026)IDE");
+  TEST_EQUAL(thr_term[3].isModified(), true)
+  TEST_REAL_SIMILAR(thr_term.getMonoWeight(), base)
+  TEST_EQUAL(thr_term.getFormula() == AASequence::fromString("PEPTIDE").getFormula(), true)
 }
 END_SECTION
 
@@ -1203,11 +1344,20 @@ START_SECTION([EXTRA] Test integer vs float tags)
 
   // Test a few modifications with the "correct" accurate mass
   {
-  AASequence seq11 = AASequence::fromString("PEPM[147.035405]TIDEK"); // UniMod oxMet is 147.035405
+  AASequence seq11 = AASequence::fromString("PEPM[147.0354]TIDEK"); // UniMod oxMet is 147.035405
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
   TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), 35)
   TEST_EQUAL(seq11[3].getModification()->getUniModAccession(), "UniMod:35")
+
+  // A mass is only matched with the precision it was written with. The absolute masses
+  // tabulated by UniMod are built from residue masses that are rounded to five decimals, so
+  // "147.035405" differs from OpenMS' Met + Oxidation by ~5e-6 Da - more than the 1e-6 Da
+  // implied by six decimals - and is therefore kept as an (exact) unknown mass:
+  AASequence seq11b = AASequence::fromString("PEPM[147.035405]TIDEK");
+  TEST_EQUAL(seq11b.isModified(), true);
+  TEST_STRING_EQUAL(seq11b[3].getModificationName(), "");
+  TEST_REAL_SIMILAR(seq11b.getMonoWeight(), seq11.getMonoWeight())
 
   AASequence seq12 = AASequence::fromString("PEPT[181.014]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
@@ -1230,10 +1380,16 @@ START_SECTION([EXTRA] Test integer vs float tags)
 
   // Test a few modifications with the accurate mass slightly off to match some other modification
   {
-  AASequence seq11 = AASequence::fromString("PEPM[147.01]TIDEK");
+  AASequence seq11 = AASequence::fromString("PEPM[147.03]TIDEK");
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation")
   TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), 35)
+
+  // ... but only as far as the written precision allows: 147.01 is 25 mDa away from oxidized
+  // methionine, which is more than the 0.01 Da implied by two decimals
+  AASequence seq11b = AASequence::fromString("PEPM[147.01]TIDEK");
+  TEST_EQUAL(seq11b.isModified(), true);
+  TEST_STRING_EQUAL(seq11b[3].getModificationName(), "")
 
   AASequence seq12 = AASequence::fromString("PEPT[181.004]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
@@ -1245,7 +1401,7 @@ START_SECTION([EXTRA] Test integer vs float tags)
   TEST_STRING_EQUAL(seq13[3].getModificationName(), "Sulfo");
   TEST_EQUAL(seq13[3].getModification()->getUniModRecordId(), 40)
 
-  AASequence seq14 = AASequence::fromString("PEPTC[159.035405]IDE");
+  AASequence seq14 = AASequence::fromString("PEPTC[159.0354]IDE");
   TEST_EQUAL(seq14.isModified(), true);
   TEST_STRING_EQUAL(seq14[4].getModificationName(), "Delta:H(4)C(3)O(1)");
   TEST_EQUAL(seq14[4].getModification()->getUniModRecordId(), 206)
@@ -1260,7 +1416,7 @@ START_SECTION([EXTRA] Test integer vs float tags)
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
 
-  AASequence seq12 = AASequence::fromString("PEPT[+79.96632]TIDEK");
+  AASequence seq12 = AASequence::fromString("PEPT[+79.96633]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
   TEST_STRING_EQUAL(seq12[3].getModificationName(), "Phospho");
 
@@ -1327,7 +1483,7 @@ START_SECTION([EXTRA] Peptide equivalence)
   // Test Carbamidomethyl
   TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC(Carbamidomethyl)IDE"))
   TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC(Iodoacetamide derivative)IDE"))
-  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[160.030654]IDE")) // 103.00919 + 57.02
+  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[160.0306]IDE")) // 103.00919 + 57.02
   TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[+57.02]IDE"))
   TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[160]IDE")) // 103.00919 + 57.02
   TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[+57]IDE"))
@@ -1336,20 +1492,20 @@ START_SECTION([EXTRA] Peptide equivalence)
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[+16]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[147]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[+15.99]GER"))
-  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[147.035405]GER"))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[147.0354]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM(Oxidation)GER"))
 
   // Test Oxidation
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+16]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+15.99]GER"))
-  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.035405]GER"))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.0354]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM(Oxidation)GER"))
 
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+16]GER."))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147]GER."))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+15.99]GER."))
-  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.035405]GER."))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.0354]GER."))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM(Oxidation)GER."))
 
   // Test Phosphorylation
@@ -1392,7 +1548,7 @@ END_SECTION
 
 START_SECTION([EXTRA] Tag in peptides)
 {
-  String I_weight = String(ResidueDB::getInstance()->getResidue("I")->getMonoWeight(Residue::Internal));
+  std::string I_weight =StringUtils::toStr(ResidueDB::getInstance()->getResidue("I")->getMonoWeight(Residue::Internal));
   AASequence aa1 = AASequence::fromString("DFPIANGER");
   AASequence aa2 = AASequence::fromString("DPFX[" + I_weight + "]ANGER");
   AASequence aa3 = AASequence::fromString("X[" + I_weight + "]DFPANGER");
@@ -1423,7 +1579,7 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(aaCtermMod.getCTerminalModificationName(), "Label:18O(2)")
 
   // Carbamylation
-  vector<String> fixed_mods;
+  vector<std::string> fixed_mods;
   TEST_STRING_EQUAL(aaNoMod.toBracketString(true, false, fixed_mods), "DFPIANGER");
   TEST_STRING_EQUAL(aaNoMod.toBracketString(false, false, fixed_mods), "DFPIANGER");
   TEST_STRING_EQUAL(aaNtermMod.toBracketString(true, false, fixed_mods), "n[29]DFPIANGER");
@@ -1577,7 +1733,7 @@ START_SECTION([EXTRA] multithreaded example)
 #pragma omp parallel for reduction (+: test)
   for (int k = 1; k < nr_iterations + 1; k++)
   {
-    auto aa = AASequence::fromString("TEST[" +  String(0.14*k) + "]PEPTIDE");
+    auto aa = AASequence::fromString("TEST[" +  StringUtils::toStr(0.14*k) + "]PEPTIDE");
     test += aa.size();
   }
   TEST_EQUAL(test, nr_iterations*11)
@@ -1636,4 +1792,70 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((Satellite ion absolute formulas and unsupported cleavage residues))
+{
+  struct SatelliteCase
+  {
+    const char* sequence;
+    Residue::ResidueType type;
+    const char* formula;
+    double mz;
+  };
+  const vector<SatelliteCase> cases = {
+    {"AL", Residue::DIon, "C5H10N2O", 115.086589785771},
+    {"LA", Residue::VIon, "C5H8N2O3", 145.060769721971},
+    {"CAK", Residue::WIon, "C12H21N3O4", 272.160484136671}
+  };
+  TOLERANCE_ABSOLUTE(0.000001)
+  for (const auto& c : cases)
+  {
+    const AASequence seq = AASequence::fromString(c.sequence);
+    for (Int charge : {0, 1, 2, 3})
+    {
+      EmpiricalFormula expected(c.formula);
+      expected.setCharge(charge);
+      TEST_EQUAL(seq.getFormula(c.type, charge), expected)
+      TEST_REAL_SIMILAR(seq.getMonoWeight(c.type, charge), expected.getMonoWeight())
+      TEST_REAL_SIMILAR(seq.getAverageWeight(c.type, charge), expected.getAverageWeight())
+      if (charge > 0)
+      {
+        TEST_REAL_SIMILAR(seq.getMZ(charge, c.type), (c.mz + (charge - 1) * Constants::PROTON_MASS_U) / charge)
+      }
+    }
+  }
+  for (const auto type : {Residue::DIon, Residue::VIon, Residue::WIon})
+  {
+    for (const auto* residue : {"G", "M(Oxidation)"})
+    {
+      const AASequence seq = AASequence::fromString(type == Residue::DIon ? std::string("A") + residue : std::string(residue) + "A");
+      TEST_EXCEPTION(Exception::InvalidValue, seq.getFormula(type))
+      TEST_EXCEPTION(Exception::InvalidValue, seq.getMonoWeight(type))
+      TEST_EXCEPTION(Exception::InvalidValue, seq.getAverageWeight(type))
+      TEST_EXCEPTION(Exception::InvalidValue, seq.getMZ(2, type))
+    }
+  }
+  for (const auto type : {Residue::DIon, Residue::WIon})
+  {
+    for (const auto* residue : {"A", "P"})
+    {
+      const AASequence seq = AASequence::fromString(type == Residue::DIon ? std::string("L") + residue : std::string(residue) + "L");
+      TEST_EXCEPTION(Exception::InvalidValue, seq.getFormula(type))
+      TEST_EXCEPTION(Exception::InvalidValue, seq.getMonoWeight(type))
+      TEST_EXCEPTION(Exception::InvalidValue, seq.getAverageWeight(type))
+    }
+  }
+  // Modifications away from the cleavage residue remain supported.
+  const auto oxidized = AASequence::fromString("M(Oxidation)L");
+  TEST_REAL_SIMILAR(oxidized.getMonoWeight(Residue::DIon), oxidized.getFormula(Residue::DIon).getMonoWeight())
+  const auto acetylated = AASequence::fromString("(Acetyl)AL");
+  TEST_REAL_SIMILAR(acetylated.getMonoWeight(Residue::DIon) - AASequence::fromString("AL").getMonoWeight(Residue::DIon), EmpiricalFormula("C2H2O").getMonoWeight())
+  const auto amidated = AASequence::fromString("LA.(Amidated)");
+  for (const auto type : {Residue::VIon, Residue::WIon})
+  {
+    TEST_REAL_SIMILAR(amidated.getMonoWeight(type), amidated.getFormula(type).getMonoWeight())
+    TEST_REAL_SIMILAR(amidated.getMonoWeight(type) - AASequence::fromString("LA").getMonoWeight(type), EmpiricalFormula("HNO-1").getMonoWeight())
+  }
+}
+END_SECTION
+
 END_TEST

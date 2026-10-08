@@ -212,27 +212,27 @@ START_SECTION((bool operator == (const CVMappingRule& rhs) const))
 }
 END_SECTION
 
-START_SECTION((void setIdentifier(const String &identifier)))
+START_SECTION((void setIdentifier(const std::string &identifier)))
 {
   ptr->setIdentifier("my_test_identifier");
 	TEST_STRING_EQUAL(ptr->getIdentifier(), "my_test_identifier")
 }
 END_SECTION
 
-START_SECTION((const String& getIdentifier() const ))
+START_SECTION((const std::string& getIdentifier() const ))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void setElementPath(const String &element_path)))
+START_SECTION((void setElementPath(const std::string &element_path)))
 {
   ptr->setElementPath("my_test_elementpath");
 	TEST_STRING_EQUAL(ptr->getElementPath(), "my_test_elementpath")
 }
 END_SECTION
 
-START_SECTION((const String& getElementPath() const ))
+START_SECTION((const std::string& getElementPath() const ))
 {
   NOT_TESTABLE
 }
@@ -268,14 +268,14 @@ START_SECTION((CombinationsLogic getCombinationsLogic() const ))
 }
 END_SECTION
 
-START_SECTION((void setScopePath(const String &path)))
+START_SECTION((void setScopePath(const std::string &path)))
 {
   ptr->setScopePath("my_test_scopepath");
 	TEST_STRING_EQUAL(ptr->getScopePath(), "my_test_scopepath")
 }
 END_SECTION
 
-START_SECTION((const String& getScopePath() const ))
+START_SECTION((const std::string& getScopePath() const ))
 {
   NOT_TESTABLE
 }

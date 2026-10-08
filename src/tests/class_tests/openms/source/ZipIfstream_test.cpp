@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 #include <string>
@@ -114,6 +115,28 @@ END_SECTION
 START_SECTION([EXTRA] open nonexistent file throws FileNotFound)
   ZipIfstream zif;
   TEST_EXCEPTION(Exception::FileNotFound, zif.open("/nonexistent/path/to/file.zip"))
+END_SECTION
+
+START_SECTION([EXTRA] open corrupt ZIP throws FileNotReadable)
+{
+  // A file that exists but is not a valid ZIP archive (garbage bytes, no central
+  // directory) must raise a clear exception rather than crash or read garbage.
+  // libzip's zip_open() returns nullptr; since the file exists, ZipIfstream::open
+  // reports it as not readable (vs FileNotFound for a missing path).
+  std::string base;
+  NEW_TMP_FILE(base)
+  const std::string corrupt_zip = base + ".zip";
+  {
+    std::ofstream os(corrupt_zip.c_str(), std::ios::binary);
+    os << "This is definitely not a valid ZIP archive -- just plain text bytes.";
+  }
+  TEST_EQUAL(File::exists(corrupt_zip), true)
+
+  ZipIfstream zif;
+  TEST_EXCEPTION(Exception::FileNotReadable, zif.open(corrupt_zip.c_str()))
+
+  File::remove(corrupt_zip);
+}
 END_SECTION
 
 START_SECTION([EXTRA] FileHandler::getTypeByFileName strips .zip extension)

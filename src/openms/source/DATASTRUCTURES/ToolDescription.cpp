@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -16,15 +17,14 @@ namespace OpenMS
   namespace Internal
   {
     // C'Tor with arguments
-    ToolDescriptionInternal::ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types) :
-      is_internal(p_is_internal),
+    ToolDescriptionInternal::ToolDescriptionInternal(const std::string& p_name, const std::string& p_category, const StringList& p_types) :
       name(p_name),
       category(p_category),
       types(p_types)
     {
     }
 
-    ToolDescriptionInternal::ToolDescriptionInternal(const String& p_name, const StringList& p_types) :
+    ToolDescriptionInternal::ToolDescriptionInternal(const std::string& p_name, const StringList& p_types) :
       
       name(p_name),
       category(),
@@ -37,8 +37,7 @@ namespace OpenMS
       if (this == &rhs)
         return true;
 
-      return is_internal == rhs.is_internal
-             && name == rhs.name
+      return name == rhs.name
              && category == rhs.category
              && types == rhs.types;
     }
@@ -52,8 +51,8 @@ namespace OpenMS
     }
     
     // C'Tor for internal TOPP tools
-    ToolDescription::ToolDescription(const String& p_name, const String& p_category, const StringList& p_types) :
-      ToolDescriptionInternal(true, p_name, p_category, p_types)
+    ToolDescription::ToolDescription(const std::string& p_name, const std::string& p_category, const StringList& p_types) :
+      ToolDescriptionInternal(p_name, p_category, p_types)
     {
     }
 

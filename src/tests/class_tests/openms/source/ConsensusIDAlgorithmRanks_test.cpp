@@ -99,7 +99,7 @@ START_SECTION(void apply(PeptideIdentificationList& ids))
   param.setValue("filter:considered_hits", 5);
   consensus.setParameters(param);
   // apply:
-  map<String,String> empty;
+  map<std::string, std::string> empty;
   PeptideIdentificationList f = ids;
   consensus.apply(f, empty);
 

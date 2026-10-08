@@ -10,6 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -22,9 +23,9 @@ namespace OpenMS
 
   Residue::Residue() = default;
 
-  Residue::Residue(const String& name,
-            const String& three_letter_code,
-            const String& one_letter_code,
+  Residue::Residue(const std::string& name,
+            const std::string& three_letter_code,
+            const std::string& one_letter_code,
             const EmpiricalFormula& formula,
             double pka,
             double pkb,
@@ -32,7 +33,7 @@ namespace OpenMS
             double gb_sc,
             double gb_bb_l,
             double gb_bb_r,
-            const set<String>& synonyms):
+            const set<std::string>& synonyms):
     name_(name),
     synonyms_(synonyms),
     three_letter_code_(three_letter_code),
@@ -55,57 +56,57 @@ namespace OpenMS
 
   Residue::~Residue() = default;
 
-  void Residue::setName(const String& name)
+  void Residue::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  const String& Residue::getName() const
+  const std::string& Residue::getName() const
   {
     return name_;
   }
 
-  String Residue::getResidueTypeName(const Residue::ResidueType res_type)
+  std::string Residue::getResidueTypeName(const Residue::ResidueType res_type)
   {
-    return names_of_residuetype[res_type];
+    return std::string(names_of_residuetype[res_type]);
   }
 
-  void Residue::setSynonyms(const set<String>& synonyms)
+  void Residue::setSynonyms(const set<std::string>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  void Residue::addSynonym(const String& synonym)
+  void Residue::addSynonym(const std::string& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  const set<String>& Residue::getSynonyms() const
+  const set<std::string>& Residue::getSynonyms() const
   {
     return synonyms_;
   }
 
-  void Residue::setThreeLetterCode(const String& three_letter_code)
+  void Residue::setThreeLetterCode(const std::string& three_letter_code)
   {
-    OPENMS_PRECONDITION(three_letter_code.empty() || three_letter_code.size() == 3, "Three letter code needs to be a String of size 3")
+    OPENMS_PRECONDITION(three_letter_code.empty() || three_letter_code.size() == 3, "Three letter code needs to be a std::string of size 3")
     three_letter_code_ = three_letter_code;
   }
 
-  const String& Residue::getThreeLetterCode() const
+  const std::string& Residue::getThreeLetterCode() const
   {
-    OPENMS_POSTCONDITION(three_letter_code_.empty() || three_letter_code_.size() == 3, "Three letter code needs to be a String of size 3")
+    OPENMS_POSTCONDITION(three_letter_code_.empty() || three_letter_code_.size() == 3, "Three letter code needs to be a std::string of size 3")
     return three_letter_code_;
   }
 
-  void Residue::setOneLetterCode(const String& one_letter_code)
+  void Residue::setOneLetterCode(const std::string& one_letter_code)
   {
-    OPENMS_PRECONDITION(one_letter_code.empty() || one_letter_code.size() == 1, "One letter code needs to be a String of size 1")
+    OPENMS_PRECONDITION(one_letter_code.empty() || one_letter_code.size() == 1, "One letter code needs to be a std::string of size 1")
     one_letter_code_ = one_letter_code;
   }
 
-  const String& Residue::getOneLetterCode() const
+  const std::string& Residue::getOneLetterCode() const
   {
-    OPENMS_POSTCONDITION(one_letter_code_.empty() || one_letter_code_.size() == 1, "One letter code needs to be a String of size 1")
+    OPENMS_POSTCONDITION(one_letter_code_.empty() || one_letter_code_.size() == 1, "One letter code needs to be a std::string of size 1")
     return one_letter_code_;
   }
 
@@ -177,17 +178,17 @@ namespace OpenMS
     return loss_formulas_;
   }
 
-  void Residue::addLossName(const String& name)
+  void Residue::addLossName(const std::string& name)
   {
     loss_names_.push_back(name);
   }
 
-  void Residue::setLossNames(const vector<String>& names)
+  void Residue::setLossNames(const vector<std::string>& names)
   {
     loss_names_ = names;
   }
 
-  const vector<String>& Residue::getLossNames() const
+  const vector<std::string>& Residue::getLossNames() const
   {
     return loss_names_;
   }
@@ -207,17 +208,17 @@ namespace OpenMS
     return NTerm_loss_formulas_;
   }
 
-  void Residue::addNTermLossName(const String& name)
+  void Residue::addNTermLossName(const std::string& name)
   {
     NTerm_loss_names_.push_back(name);
   }
 
-  void Residue::setNTermLossNames(const vector<String>& names)
+  void Residue::setNTermLossNames(const vector<std::string>& names)
   {
     NTerm_loss_names_ = names;
   }
 
-  const vector<String>& Residue::getNTermLossNames() const
+  const vector<std::string>& Residue::getNTermLossNames() const
   {
     return NTerm_loss_names_;
   }
@@ -230,8 +231,19 @@ namespace OpenMS
     mono_weight_ = formula_.getMonoWeight();
   }
 
+  void Residue::validateSatelliteIon_(ResidueType type) const
+  {
+    if (((type == DIon || type == WIon) && !hasSatelliteLoss()) ||
+        (type == VIon && !hasVLoss()))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Cannot calculate " + getResidueTypeName(type) + " for unsupported or modified residue.", getName());
+    }
+  }
+
   EmpiricalFormula Residue::getFormula(ResidueType res_type) const
   {
+    validateSatelliteIon_(res_type);
     switch (res_type)
     {
     case Full:
@@ -270,6 +282,15 @@ namespace OpenMS
     case Zp2Ion:
       return internal_formula_ + getInternalToZp2Ion();
 
+    case DIon:
+      return internal_formula_ + getInternalToAIon() + EmpiricalFormula("H") - getSatelliteLossFormula();
+
+    case VIon:
+      return internal_formula_ + getInternalToYIon() - getVLossFormula();
+
+    case WIon:
+      return internal_formula_ + getInternalToZp1Ion() - getSatelliteLossFormula();
+
     default:
       cerr << "Residue::getFormula: unknown ResidueType" << endl;
       return formula_;
@@ -284,6 +305,7 @@ namespace OpenMS
 
   double Residue::getAverageWeight(ResidueType res_type) const
   {
+    validateSatelliteIon_(res_type);
 
     switch (res_type)
     {
@@ -317,6 +339,15 @@ namespace OpenMS
     case ZIon:
       return average_weight_ + (getInternalToZIon() - getInternalToFull()).getAverageWeight();
 
+    case DIon:
+      return average_weight_ + (getInternalToAIon() + EmpiricalFormula("H") - getInternalToFull()).getAverageWeight() - getSatelliteLossFormula().getAverageWeight();
+
+    case VIon:
+      return average_weight_ + (getInternalToYIon() - getInternalToFull()).getAverageWeight() - getVLossFormula().getAverageWeight();
+
+    case WIon:
+      return average_weight_ + (getInternalToZp1Ion() - getInternalToFull()).getAverageWeight() - getSatelliteLossFormula().getAverageWeight();
+
     default:
       cerr << "Residue::getAverageWeight: unknown ResidueType" << endl;
       return average_weight_;
@@ -331,6 +362,7 @@ namespace OpenMS
 
   double Residue::getMonoWeight(ResidueType res_type) const
   {
+    validateSatelliteIon_(res_type);
     switch (res_type)
     {
     case Full:
@@ -369,6 +401,15 @@ namespace OpenMS
     case Zp2Ion:
       return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp2_monoweight_;
 
+    case DIon:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_a_monoweight_ + EmpiricalFormula("H").getMonoWeight() - getSatelliteLossFormula().getMonoWeight();
+
+    case VIon:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_y_monoweight_ - getVLossFormula().getMonoWeight();
+
+    case WIon:
+      return mono_weight_ - internal_to_full_monoweight_ + internal_to_zp1_monoweight_ - getSatelliteLossFormula().getMonoWeight();
+
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;
       return mono_weight_;
@@ -379,31 +420,44 @@ namespace OpenMS
   {
     modification_ = mod;
 
-    // update all the members
-    if (mod->getAverageMass() != 0)
-    {
-      average_weight_ = mod->getAverageMass();
-    }
-    if (mod->getMonoMass() != 0)
-    {
-      mono_weight_ = mod->getMonoMass();
-    }
-    // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
-    // as in the case of XLMOD.obo modifications
-    if ( (mod->getMonoMass() == 0) && (mod->getDiffMonoMass() != 0) )
-    {
-      mono_weight_ += mod->getDiffMonoMass();
-    }
+    // A modification that describes neither a mass nor a formula difference does not change the
+    // residue. Its absolute mass and formula must not be adopted in that case: those follow the
+    // convention of the database the modification was read from, and PSI-MOD stores the residue
+    // as it occurs inside a peptide chain, i.e. without the water that Residue's (free amino
+    // acid) mass and formula include. Adopting them would silently strip a water, e.g. for the
+    // PSI-MOD "residue" terms such as 'MOD:00026 L-threonine residue'.
+    const bool changes_residue = (mod->getDiffMonoMass() != 0.0) ||
+                                 (mod->getDiffAverageMass() != 0.0) ||
+                                 !mod->getDiffFormula().isEmpty();
 
-    if (!mod->getDiffFormula().isEmpty())
+    // update all the members
+    if (changes_residue)
     {
-      setFormula(getFormula() + mod->getDiffFormula());
-    }
-    else if (!mod->getFormula().empty())
-    {
-      String formula = mod->getFormula();
-      formula.removeWhitespaces();
-      setFormula(EmpiricalFormula(formula));
+      if (mod->getAverageMass() != 0)
+      {
+        average_weight_ = mod->getAverageMass();
+      }
+      if (mod->getMonoMass() != 0)
+      {
+        mono_weight_ = mod->getMonoMass();
+      }
+      // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
+      // as in the case of XLMOD.obo modifications
+      if ( (mod->getMonoMass() == 0) && (mod->getDiffMonoMass() != 0) )
+      {
+        mono_weight_ += mod->getDiffMonoMass();
+      }
+
+      if (!mod->getDiffFormula().isEmpty())
+      {
+        setFormula(getFormula() + mod->getDiffFormula());
+      }
+      else if (!mod->getFormula().empty())
+      {
+        std::string formula = mod->getFormula();
+        StringUtils::removeWhitespaces(formula);
+        setFormula(EmpiricalFormula(formula));
+      }
     }
 
     // neutral losses
@@ -421,16 +475,16 @@ namespace OpenMS
     return modification_;
   }
 
-  void Residue::setModification(const String& name)
+  void Residue::setModification(const std::string& name)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
     setModification(mod);
   }
 
   void Residue::setModification(const ResidueModification& mod)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     //TODO think again. Most functions here or in ModificationsDB only check for fullID
     const ResidueModification* modindb = mod_db->searchModification(mod);
     if (modindb == nullptr)
@@ -442,10 +496,10 @@ namespace OpenMS
 
   void Residue::setModificationByDiffMonoMass(double diffMonoMass)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
     bool multimatch = false;
     // quickly check for user-defined modification added by createUnknownFromMassString (e.g. M[+12321])
-    String diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
+    std::string diffMonoMassStr = ResidueModification::getDiffMonoMassWithBracket(diffMonoMass);
     const ResidueModification* mod = mod_db->searchModificationsFast(one_letter_code_ + diffMonoMassStr, multimatch);
     const double tol = 0.002;
     if (mod == nullptr)
@@ -455,7 +509,7 @@ namespace OpenMS
     if (mod == nullptr)
     {
       OPENMS_LOG_WARN << "Modification with monoisotopic mass diff. of " << diffMonoMassStr << " not found in databases with tolerance " << tol << ". Adding unknown modification." << std::endl;
-      mod = ResidueModification::createUnknownFromMassString(String(diffMonoMass),
+      mod = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(diffMonoMass),
                                                                         diffMonoMass,
                                                                         true,
                                                                         ResidueModification::ANYWHERE,
@@ -464,9 +518,10 @@ namespace OpenMS
     setModification(mod);
   }
 
-  const String& Residue::getModificationName() const
+  const std::string& Residue::getModificationName() const
   {
-    if (!isModified()) return String::EMPTY;
+    static const std::string EMPTY;
+    if (!isModified()) return EMPTY;
     return modification_->getId();
   }
 
@@ -510,17 +565,17 @@ namespace OpenMS
     gb_sc_ = gb_sc;
   }
 
-  void Residue::setResidueSets(const set<String>& residue_sets)
+  void Residue::setResidueSets(const set<std::string>& residue_sets)
   {
     residue_sets_ = residue_sets;
   }
 
-  const set<String> & Residue::getResidueSets() const
+  const set<std::string> & Residue::getResidueSets() const
   {
     return residue_sets_;
   }
 
-  void Residue::addResidueSet(const String& residue_set)
+  void Residue::addResidueSet(const std::string& residue_set)
   {
     residue_sets_.insert(residue_set);
   }
@@ -582,9 +637,92 @@ namespace OpenMS
     return !(*this == residue);
   }
 
-  bool Residue::isInResidueSet(const String& residue_set)
+  bool Residue::isInResidueSet(const std::string& residue_set)
   {
-    return residue_sets_.find(residue_set) != residue_sets_.end();
+    return residue_sets_.contains(residue_set);
+  }
+
+  bool Residue::hasVLoss() const
+  {
+    // Modified residues have unknown side-chain attachment; Glycine has no side chain beyond H.
+    if (isModified() || one_letter_code_ == "G") { return false; }
+    static const EmpiricalFormula gly_backbone("C2H3NO");
+    return internal_formula_.contains(gly_backbone) && (internal_formula_ != gly_backbone);
+  }
+
+  EmpiricalFormula Residue::getVLossFormula() const
+  {
+    if (!hasVLoss()) { return EmpiricalFormula(); }
+    // v ions eliminate HR, including two more H atoms than the side-chain
+    // substitution relative to glycine.
+    static const EmpiricalFormula v_backbone("C2HNO");
+    return internal_formula_ - v_backbone;
+  }
+
+  bool Residue::hasSatelliteLoss(char subtype) const
+  {
+    if (isModified() || one_letter_code_.empty()) { return false; }
+    if (subtype != '\0' && subtype != 'a' && subtype != 'b') { return false; }
+    char olc = one_letter_code_[0];
+    switch (olc)
+    {
+      case 'V':
+      case 'L':
+      case 'D':
+      case 'E':
+      case 'N':
+      case 'Q':
+      case 'M':
+      case 'C':
+      case 'S':
+      case 'K':
+      case 'R':
+      case 'U':
+      case 'I':
+      case 'T':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  EmpiricalFormula Residue::getSatelliteLossFormula(char subtype) const
+  {
+    if (!hasSatelliteLoss(subtype)) { return EmpiricalFormula(); }
+    char olc = one_letter_code_[0];
+    switch (olc)
+    {
+      case 'V':
+        return EmpiricalFormula("CH3");
+      case 'L':
+        return EmpiricalFormula("C3H7");
+      case 'I':
+        return (subtype == 'b') ? EmpiricalFormula("C2H5") : EmpiricalFormula("CH3");
+      case 'T':
+        return (subtype == 'b') ? EmpiricalFormula("CH3") : EmpiricalFormula("OH");
+      case 'D':
+        return EmpiricalFormula("CHO2");
+      case 'E':
+        return EmpiricalFormula("C2H3O2");
+      case 'N':
+        return EmpiricalFormula("CH2NO");
+      case 'Q':
+        return EmpiricalFormula("C2H4NO");
+      case 'M':
+        return EmpiricalFormula("C2H5S");
+      case 'C':
+        return EmpiricalFormula("HS");
+      case 'S':
+        return EmpiricalFormula("OH");
+      case 'K':
+        return EmpiricalFormula("C3H8N");
+      case 'R':
+        return EmpiricalFormula("C3H8N3");
+      case 'U':
+        return EmpiricalFormula("HSe");
+      default:
+        return EmpiricalFormula();
+    }
   }
 
   std::string Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)
@@ -599,13 +737,16 @@ namespace OpenMS
       case Residue::ZIon: return "z";
       case Residue::Zp1Ion: return "z.";
       case Residue::Zp2Ion: return "z'";
+      case Residue::DIon: return "d";
+      case Residue::VIon: return "v";
+      case Residue::WIon: return "w";
       default:
        OPENMS_LOG_ERROR << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
     return "";
   }
 
-  String Residue::toString() const
+  std::string Residue::toString() const
   {
     if (getOneLetterCode().empty())
     {
@@ -628,6 +769,86 @@ namespace OpenMS
        << residue.one_letter_code_ << ' '
        << residue.formula_;
     return os;
+  }
+
+  double Residue::getHydrophobicity(const HydrophobicityScaleMethod scale) const
+  {     
+    char amino_acid;
+    if (one_letter_code_.size() == 1)
+    {
+      amino_acid = one_letter_code_[0];
+    }
+    else 
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "One letter code for this residue is empty", "");
+    }
+    if (amino_acid < 'A' || amino_acid > 'Z') 
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
+    }
+    static const double scales[7][26] = 
+    {
+      // KyteDoolitlle scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        1.800,   999, 2.500, -3.50, -3.50, 2.800, -0.40, -3.20, 4.500,   999, -3.90, 3.800, 1.900, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -3.50,   999, -1.60, -3.50, -4.50, -0.80, -0.70,   999, 4.200, -0.90,   999, -1.30,   999
+      },
+      // Eisenberg normalized scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.620,   999, 0.290, -0.90, -0.74, 1.190, 0.480, -0.40, 1.380,   999, -1.50, 1.060, 0.640, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -0.780,  999, 0.120, -0.85, -2.53, -0.18, -0.05,   999, 1.080, 0.810,   999, 0.260,   999
+      },
+      // HoppWoods scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        -0.50,   999, -1.00, 3.000, 3.000, -2.50, 0.000, -0.50, -1.80,   999, 3.000, -1.80, -1.30, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.200,   999, 0.000, 0.200, 3.000, 0.300, -0.40,   999, -1.50, -3.40,   999, -2.30,   999
+      },
+      // BullBreese scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.610,   999, 0.360, 0.610, 0.510, -1.52, 0.810, 0.690, -1.45,   999, 0.460, -1.65, -0.66, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.890,   999, -0.17, 0.970, 0.690, 0.420, 0.290,   999, -0.75, -1.20,   999, -1.43,   999
+      },
+      // BlackMould scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.616,   999, 0.680, 0.028, 0.043, 1.000, 0.501, 0.165, 0.943,   999, 0.283, 0.943, 0.738, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.236,   999, 0.711, 0.251, 0.000, 0.359, 0.450,   999, 0.825, 0.878,   999, 0.880,   999
+      },
+      // Guy scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.100,   999, -1.42, 0.780, 0.830, -2.12, 0.330, -0.500, -1.13,   999, 1.400, -1.18, -1.59, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        0.480,   999, 0.730, 0.950, 1.910, 0.520, 0.070,   999, -1.27, -0.51,   999, -0.21,   999
+      },
+      // Eisenberg consensus scale
+      {
+      //    A,     B,     C,     D,     E,     F,     G,     H,     I,     J,     K,     L,     M,    
+        0.250,   999, 0.040, -0.72, -0.62, 0.610, 0.160, -0.40, 0.730,   999, -1.10, 0.530, 0.260, 
+      //    N,     O,     P,     Q,     R,     S,     T,     U,     V,     W,     X,     Y,     Z
+        -0.64,   999, -0.07, -0.69, -1.76, -0.26, -0.18,   999, 0.540, 0.370,   999, 0.020,   999
+      }   
+    };
+    const int scale_idx = static_cast<int>(scale);
+    if (scale_idx < 0 || scale_idx >= 7)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown hydrophobicity scale", StringUtils::toStr(scale_idx));
+    }
+    const double result = scales[scale_idx][amino_acid - 'A'];
+    if (result == 999)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hydrophobicity value known for this residue", one_letter_code_);
+    }
+    return result;
   }
 
   // static members

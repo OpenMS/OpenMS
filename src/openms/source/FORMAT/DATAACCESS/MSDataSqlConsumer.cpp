@@ -13,7 +13,7 @@
 namespace OpenMS
 {
 
-  MSDataSqlConsumer::MSDataSqlConsumer(const String& filename, UInt64 run_id, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
+  MSDataSqlConsumer::MSDataSqlConsumer(const std::string& filename, UInt64 run_id, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
         filename_(filename),
         handler_(new OpenMS::Internal::MzMLSqliteHandler(filename, run_id) ),
         flush_after_(flush_after),
@@ -42,7 +42,7 @@ namespace OpenMS
     delete handler_;
   }
 
-  void MSDataSqlConsumer::addRun(const String& filename, const UInt64 run_id)
+  void MSDataSqlConsumer::addRun(const std::string& filename, const UInt64 run_id)
   {
     // set handler's run id and write run level information
     handler_->setRunId(run_id);

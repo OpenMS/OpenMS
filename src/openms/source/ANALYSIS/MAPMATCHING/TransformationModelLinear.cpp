@@ -124,7 +124,7 @@ namespace OpenMS
     params_.setValue("y_datum_max", y_datum_max_);
   }
 
-  void TransformationModelLinear::getParameters(double& slope, double& intercept, String& x_weight, String& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min, double& y_datum_max) const
+  void TransformationModelLinear::getParameters(double& slope, double& intercept, std::string& x_weight, std::string& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min, double& y_datum_max) const
   {
     slope = slope_;
     intercept = intercept_;

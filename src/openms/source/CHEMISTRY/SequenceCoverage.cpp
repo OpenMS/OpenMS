@@ -17,7 +17,7 @@ namespace OpenMS
     const AASequence& protein,
     const std::vector<AASequence>& peptides)
   {
-    const String protein_str = protein.toUnmodifiedString();
+    const std::string protein_str = protein.toUnmodifiedString();
     const Size protein_length = protein.size();
 
     if (protein_length == 0 || peptides.empty())
@@ -29,7 +29,7 @@ namespace OpenMS
 
     for (const auto& pep : peptides)
     {
-      const String peptide_str = pep.toUnmodifiedString();
+      const std::string peptide_str = pep.toUnmodifiedString();
 
       if (peptide_str.empty())
       {
@@ -38,7 +38,7 @@ namespace OpenMS
 
       Size pos = protein_str.find(peptide_str);
 
-      while (pos != String::npos)
+      while (pos != std::string::npos)
       {
         for (Size i = pos; i < pos + peptide_str.size(); ++i)
         {

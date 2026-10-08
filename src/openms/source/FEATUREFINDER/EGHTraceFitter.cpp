@@ -274,17 +274,17 @@ namespace OpenMS
     return bounds.second - bounds.first;
   }
 
-  String EGHTraceFitter::getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)
+  std::string EGHTraceFitter::getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)
   {
     std::stringstream s;
-    s << String(function_name)  << "(x)= " << baseline << " + ";
+    s << StringUtils::toStr(function_name)  << "(x)= " << baseline << " + ";
     s << "("; // the overall bracket
     s << "((" << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )) > 0) ? "; // condition
     s <<  (trace.theoretical_int *  height_) << " * exp(-1 * (x - " << (rt_shift + apex_rt_) << ")**2 " <<
       "/" <<
       " ( " << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )))";
     s << " : 0)";
-    return String(s.str());
+    return s.str();
   }
 
   std::pair<double, double> EGHTraceFitter::getAlphaBoundaries_(const double alpha) const

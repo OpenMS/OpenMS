@@ -30,12 +30,12 @@ void DecoyGenerator::setSeed(UInt64 seed)
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 {
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
-  String s = protein.toUnmodifiedString();
+  std::string s = protein.toUnmodifiedString();
   std::reverse(s.begin(), s.end());
   return AASequence::fromString(s);
 }
 
-AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const String& protease) const
+AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const std::string& protease) const
 {
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
   std::vector<AASequence> peptides;
@@ -44,7 +44,7 @@ AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const Stri
   ed.setEnzyme(protease);
   ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
-  String pseudo_reversed;
+  std::string pseudo_reversed;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {
     std::string s = peptides[i].toUnmodifiedString();
@@ -60,7 +60,7 @@ AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const Stri
 }
 
 // generate decoy protein sequences
-std::vector<AASequence> DecoyGenerator::shuffle(const AASequence& protein, const String& protease, int decoy_factor)
+std::vector<AASequence> DecoyGenerator::shuffle(const AASequence& protein, const std::string& protease, int decoy_factor)
 {
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
   
@@ -76,7 +76,7 @@ std::vector<AASequence> DecoyGenerator::shuffle(const AASequence& protein, const
   std::vector<AASequence> decoy_proteins;
   for (int variant = 0; variant < decoy_factor; ++variant)
   {
-    String decoy_sequence;
+    std::string decoy_sequence;
     for (const auto & aas : output)
     {
       if (aas.size() <= 2)
@@ -100,7 +100,7 @@ std::vector<AASequence> DecoyGenerator::shuffle(const AASequence& protein, const
 
 AASequence DecoyGenerator::shufflePeptides(
         const AASequence& protein,
-        const String& protease,
+        const std::string& protease,
         const int max_attempts)
 {  
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
@@ -111,7 +111,7 @@ AASequence DecoyGenerator::shufflePeptides(
   ed.setEnzyme(protease);
   ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
-  String protein_shuffled;
+  std::string protein_shuffled;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {
     const std::string peptide_string = peptides[i].toUnmodifiedString();
@@ -129,10 +129,10 @@ AASequence DecoyGenerator::shufflePeptides(
     }
     if (cached) continue;
 
-    String peptide_string_shuffled = peptide_string;
+    std::string peptide_string_shuffled = peptide_string;
     auto last = --peptide_string_shuffled.end();
     double lowest_identity(1.0);
-    String lowest_identity_string(peptide_string_shuffled);
+    std::string lowest_identity_string(peptide_string_shuffled);
     for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
     {
       shuffler_.portable_random_shuffle(std::begin(peptide_string_shuffled), last);
@@ -169,9 +169,9 @@ AASequence DecoyGenerator::shufflePeptides(
   }
   if (cached) return AASequence::fromString(protein_shuffled);
 
-  String peptide_string_shuffled = peptide_string;
+  std::string peptide_string_shuffled = peptide_string;
   double lowest_identity(1.0);
-  String lowest_identity_string(peptide_string_shuffled);
+  std::string lowest_identity_string(peptide_string_shuffled);
   for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
   {
     shuffler_.portable_random_shuffle(std::begin(peptide_string_shuffled), std::end(peptide_string_shuffled));
@@ -195,7 +195,7 @@ AASequence DecoyGenerator::shufflePeptides(
 }
 
 // static
-double DecoyGenerator::SequenceIdentity_(const String& decoy, const String& target)
+double DecoyGenerator::SequenceIdentity_(const std::string& decoy, const std::string& target)
 {
   int match = 0;
   for (Size i = 0; i < target.size(); ++i)

@@ -16,7 +16,6 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <boost/dynamic_bitset.hpp>
 #include <iostream>
 
 namespace OpenMS
@@ -102,7 +101,7 @@ namespace OpenMS
     int precursor_MS1_window_ = 0;
 
     /// FLASHIda log file name
-    String ida_log_file_;
+    std::string ida_log_file_;
 
     /// mass tolerances, and minimum cosine scores per MS level
     DoubleList tols_, min_cos_;
@@ -121,7 +120,7 @@ namespace OpenMS
     /// FLASHIda parsing information is stored here: MS1 scan - information
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_ida_;
     /// a map from native ID to precursor peak group
-    std::map<String, PeakGroup> native_id_precursor_peak_group_map_;
+    std::map<std::string, PeakGroup> native_id_precursor_peak_group_map_;
 
     /// read dataset to update ms level information
     void updateMSLevels_(MSExperiment& map);

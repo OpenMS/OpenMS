@@ -194,7 +194,9 @@ namespace OpenMS::Math
       UInt trueNeg = 0;
       for (std::vector<std::pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
       {
-        if (cit->second)
+        // iterate over NEGATIVE samples (cit->second == false) to match the
+        // division by neg_; the guard was wrongly cit->second (issue #9488, ML-21)
+        if (!cit->second)
         {
           if ((double)trueNeg++ / neg_ > 1 - fraction)
           {

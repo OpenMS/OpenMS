@@ -9,7 +9,7 @@
 #include <OpenMS/VISUAL/PainterBase.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cassert>
 
@@ -22,7 +22,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ShapeIcon PainterBase::toShapeIcon(const String& icon)
+  ShapeIcon PainterBase::toShapeIcon(const std::string& icon)
   {
     if (icon == "diamond") return ShapeIcon::DIAMOND;
     if (icon == "square")  return ShapeIcon::SQUARE;

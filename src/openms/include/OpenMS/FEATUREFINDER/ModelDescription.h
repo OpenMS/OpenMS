@@ -67,19 +67,19 @@ public:
     /** Accessors */
     //@{
     /// Non-mutable access to model name
-    const String & getName() const
+    const std::string & getName() const
     {
       return name_;
     }
 
     /// Mutable access to the model name
-    String & getName()
+    std::string & getName()
     {
       return name_;
     }
 
     /// Set the model name
-    void setName(const String & name)
+    void setName(const std::string & name)
     {
       name_ = name;
     }
@@ -118,7 +118,7 @@ public:
 
 protected:
 
-    String name_;
+    std::string name_;
     Param parameters_;
   };
 }

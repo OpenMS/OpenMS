@@ -41,7 +41,7 @@ IMSAlphabetParser<> * parser = new IMSAlphabetTextParser();
 
 START_SECTION((virtual void parse(std::istream &is)))
 {
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
 
   // just create the file

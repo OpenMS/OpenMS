@@ -35,11 +35,11 @@ namespace OpenMS
 
   void PeptideHitVisualizer::update_()
   {
-    peptidehit_score_->setText(String(temp_.getScore()).c_str());
+    peptidehit_score_->setText(StringUtils::toStr(temp_.getScore()).c_str());
     peptidehit_score_->setReadOnly(true);
-    peptidehit_charge_->setText(String(temp_.getCharge()).c_str());
+    peptidehit_charge_->setText(StringUtils::toStr(temp_.getCharge()).c_str());
     peptidehit_charge_->setReadOnly(true);
-    peptidehit_rank_->setText(String(temp_.getRank()).c_str());
+    peptidehit_rank_->setText(StringUtils::toStr(temp_.getRank()).c_str());
     peptidehit_rank_->setReadOnly(true);
     peptidehit_sequence_->setText(temp_.getSequence().toString().c_str());
     peptidehit_sequence_->setReadOnly(true);

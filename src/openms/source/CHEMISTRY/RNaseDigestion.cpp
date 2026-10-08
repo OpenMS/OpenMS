@@ -24,12 +24,12 @@ namespace OpenMS
 
     const DigestionEnzymeRNA* rnase =
         dynamic_cast<const DigestionEnzymeRNA*>(enzyme_);
-    String five_prime_code = rnase->getFivePrimeGain();
+    std::string five_prime_code = rnase->getFivePrimeGain();
     if (five_prime_code == "p")
     {
       five_prime_code = "5'-p";
     }
-    String three_prime_code = rnase->getThreePrimeGain();
+    std::string three_prime_code = rnase->getThreePrimeGain();
     if (three_prime_code == "p")
     {
       three_prime_code = "3'-p";
@@ -44,7 +44,7 @@ namespace OpenMS
     }
     
 
-    static RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
+    static const RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
     five_prime_gain_ = five_prime_code.empty() ?
                            nullptr :
                            ribo_db->getRibonucleotide(five_prime_code);
@@ -56,8 +56,8 @@ namespace OpenMS
     cuts_before_regexes_.clear();
 
     StringList CAregexes, CBregexes;
-    rnase->getCutsAfterRegEx().split(',', CAregexes);
-    rnase->getCutsBeforeRegEx().split(',', CBregexes);
+    StringUtils::split(rnase->getCutsAfterRegEx(), ',', CAregexes);
+    StringUtils::split(rnase->getCutsBeforeRegEx(), ',', CBregexes);
     for (auto it = std::begin(CAregexes); it != std::end(CAregexes); ++it)
     {
       cuts_after_regexes_.emplace_back(*it);
@@ -69,7 +69,7 @@ namespace OpenMS
   }
 
 
-  void RNaseDigestion::setEnzyme(const String& enzyme_name)
+  void RNaseDigestion::setEnzyme(const std::string& enzyme_name)
   {
     setEnzyme(RNaseDB::getInstance()->getEnzyme(enzyme_name));
   }
@@ -88,6 +88,16 @@ namespace OpenMS
     }
 
     vector<pair<Size, Size>> result;
+    // no fragment can reach the minimum length (also keeps the unsigned "rna.size() - min_length" below from wrapping)
+    if (rna.size() < min_length)
+    {
+      return result;
+    }
+    // no length fits (also keeps the unsigned "max_length - min_length + 1" below from wrapping)
+    if (max_length < min_length)
+    {
+      return result;
+    }
     if (enzyme_->getName() == NoCleavage) // no cleavage
     {
       Size length = rna.size();
@@ -121,14 +131,14 @@ namespace OpenMS
         }
         for (auto it = cuts_after_regexes_.begin(); it != cuts_after_regexes_.end() && is_match; ++it) // Check if the cuts_after_regexes all match
         {
-          if (!boost::regex_search(rna[i - cuts_after_regexes_.size() + (it - cuts_after_regexes_.begin())]->getCode(), *it))
+          if (!it->search(rna[i - cuts_after_regexes_.size() + (it - cuts_after_regexes_.begin())]->getCode()))
           {
             is_match = false;
           }
         }
         for (auto it = cuts_before_regexes_.begin(); it != cuts_before_regexes_.end() && is_match; ++it) // Check if the cuts_before_regexes all match
         {
-          if (!boost::regex_search(rna[i + (it - cuts_before_regexes_.begin())]->getCode(), *it))
+          if (!it->search(rna[i + (it - cuts_before_regexes_.begin())]->getCode()))
           {
             is_match = false;
           }
@@ -221,13 +231,13 @@ namespace OpenMS
         continue;
       }
 
-      String origin_code(1, mod->getOrigin());
-      const String& modified_code = mod->getCode();
+      std::string origin_code(1, mod->getOrigin());
+      const std::string& modified_code = mod->getCode();
 
       for (const auto& pattern : cuts_after_regexes_)
       {
-        bool origin_matches = boost::regex_search(origin_code, pattern);
-        bool modified_matches = boost::regex_search(modified_code, pattern);
+        bool origin_matches = pattern.search(origin_code);
+        bool modified_matches = pattern.search(modified_code);
         if (origin_matches && !modified_matches)
         {
           groups.cuts_after_sensitive.insert(mod);
@@ -237,8 +247,8 @@ namespace OpenMS
 
       for (const auto& pattern : cuts_before_regexes_)
       {
-        bool origin_matches = boost::regex_search(origin_code, pattern);
-        bool modified_matches = boost::regex_search(modified_code, pattern);
+        bool origin_matches = pattern.search(origin_code);
+        bool modified_matches = pattern.search(modified_code);
         if (origin_matches && !modified_matches)
         {
           groups.cuts_before_sensitive.insert(mod);
@@ -283,7 +293,7 @@ namespace OpenMS
         continue;
       }
 
-      const String& code = residue->getCode();
+      const std::string& code = residue->getCode();
       if (code.size() != 1)
       {
         continue;
@@ -319,7 +329,7 @@ namespace OpenMS
     }
     vector<Size> cut_points(cut_points_set.begin(), cut_points_set.end());
 
-    set<String> emitted;
+    set<std::string> emitted;
     std::function<void(NASequence&, Size, Size, Size)> recurse =
       [&](NASequence& current_parent, Size start, Size end, Size used_mods)
     {
@@ -329,9 +339,9 @@ namespace OpenMS
       {
         NASequence fragment = current_parent.getSubsequence(start, length);
         applyTerminalGains_(fragment, make_pair(start, length), rna.size());
-        String key = String(start);
+        std::string key = std::to_string(start);
         key += ":";
-        key += String(end);
+        key += std::to_string(end);
         key += ":";
         key += fragment.toString();
         if (emitted.insert(key).second)
@@ -437,11 +447,11 @@ namespace OpenMS
         IdentificationData::IdentifiedOligo oligo(fragment);
         Size end_pos = pos.first + pos.second; // past-the-end position!
         IdentificationData::ParentMatch match(pos.first, end_pos - 1);
-        match.left_neighbor = ((pos.first > 0) ?
-                               rna[pos.first - 1]->getCode() :
+        match.left_neighbor = std::string(1, (pos.first > 0) ?
+                               rna[pos.first - 1]->getCode()[0] :
                                IdentificationData::ParentMatch::LEFT_TERMINUS);
-        match.right_neighbor = ((end_pos < rna.size()) ?
-                                rna[end_pos]->getCode() :
+        match.right_neighbor = std::string(1, (end_pos < rna.size()) ?
+                                rna[end_pos]->getCode()[0] :
                                 IdentificationData::ParentMatch::RIGHT_TERMINUS);
         oligo.parent_matches[parent_ref].insert(match);
         id_data.registerIdentifiedOligo(oligo);

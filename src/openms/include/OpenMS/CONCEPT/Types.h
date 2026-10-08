@@ -219,14 +219,6 @@ namespace OpenMS
     return std::numeric_limits<unsigned int>::digits10;
   }
 
-  class DataValue;
-  /// DataValue will be printed like double.
-  template <>
-  inline constexpr Int writtenDigits<DataValue>(const DataValue&)
-  {
-    return std::numeric_limits<double>::digits10;
-  }
-
   /*
     META-COMMENT:  DO NOT INTRODUCE ANY LINEBREAKS BELOW IN
     "<code>std::numeric_limits<long double>::digits10 == 18</code>".
@@ -264,17 +256,6 @@ namespace OpenMS
   inline constexpr Int writtenDigits(const FloatingPointType& /* unused */)
   {
     return 6;
-  }
-
-  namespace Internal
-  {
-    /**
-      Used to set the locale to "C", to avoid
-      problems on machines with incompatible
-      locale settings (this overwrites the
-      locale setting of the environment!)
-    */
-    extern OPENMS_DLLAPI const char* OpenMS_locale;
   }
 
 } // namespace OpenMS

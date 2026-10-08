@@ -12,7 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 
 #include <QtWidgets/QGraphicsView>
@@ -40,7 +40,7 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASWidget(const Param & preferences, QWidget * parent = nullptr, const String & tmp_path = "");
+    TOPPASWidget(const Param & preferences, QWidget * parent = nullptr, const std::string & tmp_path = "");
 
     /// Destructor
     ~TOPPASWidget() override;
@@ -59,7 +59,7 @@ signals:
     /// Emitted when a drop event occurs
     void toolDroppedOnWidget(double x = 0.0, double y = 0.0);
     /// Emitted when a drop event occurs
-    void pipelineDroppedOnWidget(const String & filename, bool new_window);
+    void pipelineDroppedOnWidget(const std::string & filename, bool new_window);
 
 protected:
 

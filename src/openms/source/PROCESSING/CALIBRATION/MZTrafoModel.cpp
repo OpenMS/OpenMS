@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
 #include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
@@ -361,9 +362,9 @@ namespace OpenMS
     coeff_.push_back(power);
   }
 
-  OpenMS::String MZTrafoModel::toString() const
+  std::string MZTrafoModel::toString() const
   {
-    String s;
+    std::string s;
     if (coeff_.empty())
     {
       s = "nan, nan, nan";

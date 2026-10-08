@@ -5,7 +5,7 @@
 // $Authors: Simon Gene Gottlieb $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ParamTags.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>
 #include <fstream>
@@ -114,21 +114,21 @@ namespace OpenMS
       std::set<std::string> tags;
       for (auto const& t : param_it->tags)
       {
-        if (t == TOPPBase::TAG_INPUT_FILE)
+        if (t == ParamTags::TAG_INPUT_FILE)
         {
           tags.insert("file");
         }
-        else if (t == TOPPBase::TAG_OUTPUT_FILE)
+        else if (t == ParamTags::TAG_OUTPUT_FILE)
         {
           tags.insert("file");
           tags.insert("output");
         }
-        else if (t == TOPPBase::TAG_OUTPUT_PREFIX)
+        else if (t == ParamTags::TAG_OUTPUT_PREFIX)
         {
           tags.insert("output");
           tags.insert("prefixed");
         }
-        else if (t == TOPPBase::TAG_OUTPUT_DIR)
+        else if (t == ParamTags::TAG_OUTPUT_DIR)
         {
           tags.insert("directory");
           tags.insert("output");
@@ -159,9 +159,15 @@ namespace OpenMS
           setValueLimits(tdl::DoubleValue {static_cast<double>(param_it->value), param_it->min_float, param_it->max_float});
           break;
         case ParamValue::STRING_VALUE:
-          if (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false" && param_it->value == "false")
+          // every parameter restricted to 'true' and 'false' is a boolean, whatever the order of
+          // the two and whichever of them is the default: the CWL description is generated once
+          // per tool, so its type must not depend on the value the parameters happen to carry.
+          // ParamJSONFile::load, which reads the inputs back from the runner, also treats all of
+          // them as booleans. A 'true' default is unproblematic because the generated CWL passes
+          // the inputs as '-ini cwl_inputs.json' instead of building command-line flags.
+          if (param_it->isBool())
           {
-            std::get<tdl::Node::Children>(stack.back().value).push_back(tdl::Node {param_it->name, param_it->description, tags, false});
+            std::get<tdl::Node::Children>(stack.back().value).push_back(tdl::Node {param_it->name, param_it->description, tags, param_it->value == "true"});
           }
           else
           {
@@ -244,9 +250,9 @@ namespace OpenMS
       auto& name = element.name;
 
       // strip of the tool namespace part and ignore entries that aren't part of the name space (like ToolName:version)
-      if (name.size() >= toolNamespace.size() && name.substr(0, toolNamespace.size()) == toolNamespace)
+      if (name.size() >= toolNamespace.size() && StringUtils::substr(name, 0, toolNamespace.size()) == toolNamespace)
       {
-        name = name.substr(toolNamespace.size());
+        name = StringUtils::substr(name, toolNamespace.size());
       }
       else
       {
@@ -258,7 +264,7 @@ namespace OpenMS
         name = replaceAll(name, ":", "__");
       } else {
         if (auto pos = name.rfind(':'); pos != std::string::npos) {
-            name = name.substr(pos+1);
+            name = StringUtils::substr(name, pos+1);
         }
       }
 

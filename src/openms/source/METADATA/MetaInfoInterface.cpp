@@ -115,7 +115,7 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const DataValue& MetaInfoInterface::getMetaValue(const String& name) const
+  const DataValue& MetaInfoInterface::getMetaValue(const std::string& name) const
   {
     if (meta_ == nullptr)
     {
@@ -124,7 +124,7 @@ namespace OpenMS
     return meta_->getValue(name, DataValue::EMPTY);
   }
 
-  DataValue MetaInfoInterface::getMetaValue(const String& name, const DataValue& default_value) const
+  DataValue MetaInfoInterface::getMetaValue(const std::string& name, const DataValue& default_value) const
   {
     if (meta_ == nullptr)
     {
@@ -151,7 +151,7 @@ namespace OpenMS
     return meta_->getValue(index, default_value);
   }
 
-  bool MetaInfoInterface::metaValueExists(const String& name) const
+  bool MetaInfoInterface::metaValueExists(const std::string& name) const
   {
     if (meta_ == nullptr)
     {
@@ -169,7 +169,7 @@ namespace OpenMS
     return meta_->exists(index);
   }
 
-  void MetaInfoInterface::setMetaValue(const String& name, const DataValue& value)
+  void MetaInfoInterface::setMetaValue(const std::string& name, const DataValue& value)
   {
     createIfNotExists_();
     meta_->setValue(name, value);
@@ -194,7 +194,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoInterface::getKeys(std::vector<String>& keys) const
+  void MetaInfoInterface::getKeys(std::vector<std::string>& keys) const
   {
     if (meta_ != nullptr)
     {
@@ -225,7 +225,7 @@ namespace OpenMS
     meta_ = nullptr;
   }
 
-  void MetaInfoInterface::removeMetaValue(const String& name)
+  void MetaInfoInterface::removeMetaValue(const std::string& name)
   {
     if (meta_ != nullptr)
     {

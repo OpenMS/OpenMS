@@ -28,8 +28,8 @@ namespace OpenMS
   }
 
   Ribonucleotide::Ribonucleotide(
-    const String& name, const String& code, const String& new_code,
-    const String& html_code, const EmpiricalFormula& formula, char origin,
+    const std::string& name, const std::string& code, const std::string& new_code,
+    const std::string& html_code, const EmpiricalFormula& formula, char origin,
     double mono_mass, double avg_mass, enum TermSpecificityNuc term_spec,
     const EmpiricalFormula& baseloss_formula):
     name_(name), code_(code), new_code_(new_code), html_code_(html_code),
@@ -55,22 +55,22 @@ namespace OpenMS
         baseloss_formula_ == ribonucleotide.baseloss_formula_;
   }
 
-  const String Ribonucleotide::getCode() const
+  const std::string Ribonucleotide::getCode() const
   {
     return code_;
   }
 
-  void Ribonucleotide::setCode(const String& code)
+  void Ribonucleotide::setCode(const std::string& code)
   {
     code_ = code;
   }
 
-  const String Ribonucleotide::getName() const
+  const std::string Ribonucleotide::getName() const
   {
     return name_;
   }
 
-  void Ribonucleotide::setName(const String& name)
+  void Ribonucleotide::setName(const std::string& name)
   {
     name_ = name;
   }
@@ -95,12 +95,12 @@ namespace OpenMS
     avg_mass_ = avg_mass;
   }
 
-  const String Ribonucleotide::getNewCode() const
+  const std::string Ribonucleotide::getNewCode() const
   {
     return new_code_;
   }
 
-  void Ribonucleotide::setNewCode(const String& new_code)
+  void Ribonucleotide::setNewCode(const std::string& new_code)
   {
     new_code_ = new_code;
   }
@@ -115,12 +115,12 @@ namespace OpenMS
     origin_ = origin;
   }
 
-  String Ribonucleotide::getHTMLCode() const
+  std::string Ribonucleotide::getHTMLCode() const
   {
     return html_code_;
   }
 
-  void Ribonucleotide::setHTMLCode(const String& html_code)
+  void Ribonucleotide::setHTMLCode(const std::string& html_code)
   {
     html_code_ = html_code;
   }
@@ -144,7 +144,7 @@ namespace OpenMS
   {
     if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
     {
-      String msg = "invalid terminal specificity";
+      std::string msg = "invalid terminal specificity";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     msg, "NUMBER_OF_TERM_SPECIFICITY");
     }

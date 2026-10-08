@@ -3,9 +3,9 @@
  * @brief nanobind type casters for OpenMS STL container specializations
  *
  * Provides type casters for:
- *   - std::vector<OpenMS::String>
- *   - std::set<OpenMS::String>
- *   - std::map<OpenMS::String, ...>
+ *   - std::vector<std::string>
+ *   - std::set<std::string>
+ *   - std::map<std::string, ...>
  *   - OpenMS::StringList, IntList, DoubleList
  *   - CVTermMap (nested map structure)
  */
@@ -17,7 +17,7 @@
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/set.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/METADATA/CVTerm.h>
 
@@ -27,16 +27,16 @@ namespace nanobind {
 namespace detail {
 
 /**
- * Type caster for std::vector<OpenMS::String>
+ * Type caster for std::vector<std::string>
  *
- * Optimized conversion between Python list[str] and C++ vector<String>
+ * Optimized conversion between Python list[str] and C++ vector<std::string>
  */
 template <>
-struct type_caster<std::vector<OpenMS::String>> {
+struct type_caster<std::vector<std::string>> {
 public:
-    NB_TYPE_CASTER(std::vector<OpenMS::String>, const_name("list[str]"))
+    NB_TYPE_CASTER(std::vector<std::string>, const_name("list[str]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value.clear();
             return true;
@@ -66,7 +66,7 @@ public:
                 Py_ssize_t size;
                 const char* data = PyUnicode_AsUTF8AndSize(item, &size);
                 if (data) {
-                    value.push_back(OpenMS::String(data, size));
+                    value.push_back(std::string(data, size));
                 } else {
                     Py_DECREF(item);
                     PyErr_Clear();
@@ -76,7 +76,7 @@ public:
                 char* data;
                 Py_ssize_t size;
                 if (PyBytes_AsStringAndSize(item, &data, &size) == 0) {
-                    value.push_back(OpenMS::String(data, size));
+                    value.push_back(std::string(data, size));
                 } else {
                     Py_DECREF(item);
                     PyErr_Clear();
@@ -89,7 +89,7 @@ public:
                     Py_ssize_t size;
                     const char* data = PyUnicode_AsUTF8AndSize(str, &size);
                     if (data) {
-                        value.push_back(OpenMS::String(data, size));
+                        value.push_back(std::string(data, size));
                     }
                     Py_DECREF(str);
                 } else {
@@ -105,7 +105,7 @@ public:
         return true;
     }
 
-    static handle from_cpp(const std::vector<OpenMS::String>& src, rv_policy policy,
+    static handle from_cpp(const std::vector<std::string>& src, rv_policy policy,
                           cleanup_list* cleanup) noexcept {
         PyObject* list = PyList_New(src.size());
         if (!list) return handle();
@@ -116,32 +116,37 @@ public:
                 Py_DECREF(list);
                 return handle();
             }
-            PyList_SET_ITEM(list, i, item);
+            // PyList_SetItem steals the reference even when it fails, so the item
+            // must not be released again here; only the partially built list is.
+            if (PyList_SetItem(list, static_cast<Py_ssize_t>(i), item) != 0) {
+                Py_DECREF(list);
+                return handle();
+            }
         }
 
         return list;
     }
 
-    static handle from_cpp(std::vector<OpenMS::String>& src, rv_policy policy,
+    static handle from_cpp(std::vector<std::string>& src, rv_policy policy,
                           cleanup_list* cleanup) noexcept {
-        return from_cpp(const_cast<const std::vector<OpenMS::String>&>(src), policy, cleanup);
+        return from_cpp(const_cast<const std::vector<std::string>&>(src), policy, cleanup);
     }
 
-    static handle from_cpp(std::vector<OpenMS::String>&& src, rv_policy policy,
+    static handle from_cpp(std::vector<std::string>&& src, rv_policy policy,
                           cleanup_list* cleanup) noexcept {
-        return from_cpp(const_cast<const std::vector<OpenMS::String>&>(src), policy, cleanup);
+        return from_cpp(const_cast<const std::vector<std::string>&>(src), policy, cleanup);
     }
 };
 
 /**
- * Type caster for std::set<OpenMS::String>
+ * Type caster for std::set<std::string>
  */
 template <>
-struct type_caster<std::set<OpenMS::String>> {
+struct type_caster<std::set<std::string>> {
 public:
-    NB_TYPE_CASTER(std::set<OpenMS::String>, const_name("set[str]"))
+    NB_TYPE_CASTER(std::set<std::string>, const_name("set[str]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value.clear();
             return true;
@@ -162,13 +167,13 @@ public:
                 Py_ssize_t size;
                 const char* data = PyUnicode_AsUTF8AndSize(item, &size);
                 if (data) {
-                    value.insert(OpenMS::String(data, size));
+                    value.insert(std::string(data, size));
                 }
             } else if (PyBytes_Check(item)) {
                 char* data;
                 Py_ssize_t size;
                 if (PyBytes_AsStringAndSize(item, &data, &size) == 0) {
-                    value.insert(OpenMS::String(data, size));
+                    value.insert(std::string(data, size));
                 }
             } else {
                 Py_DECREF(item);
@@ -188,7 +193,7 @@ public:
         return true;
     }
 
-    static handle from_cpp(const std::set<OpenMS::String>& src, rv_policy policy,
+    static handle from_cpp(const std::set<std::string>& src, rv_policy policy,
                           cleanup_list* cleanup) noexcept {
         PyObject* set = PySet_New(nullptr);
         if (!set) return handle();
@@ -206,29 +211,29 @@ public:
         return set;
     }
 
-    static handle from_cpp(std::set<OpenMS::String>& src, rv_policy policy,
+    static handle from_cpp(std::set<std::string>& src, rv_policy policy,
                           cleanup_list* cleanup) noexcept {
-        return from_cpp(const_cast<const std::set<OpenMS::String>&>(src), policy, cleanup);
+        return from_cpp(const_cast<const std::set<std::string>&>(src), policy, cleanup);
     }
 
-    static handle from_cpp(std::set<OpenMS::String>&& src, rv_policy policy,
+    static handle from_cpp(std::set<std::string>&& src, rv_policy policy,
                           cleanup_list* cleanup) noexcept {
-        return from_cpp(const_cast<const std::set<OpenMS::String>&>(src), policy, cleanup);
+        return from_cpp(const_cast<const std::set<std::string>&>(src), policy, cleanup);
     }
 };
 
 /**
- * Type caster for std::map<OpenMS::String, V>
+ * Type caster for std::map<std::string, V>
  *
- * This is a template that handles maps with OpenMS::String keys.
+ * This is a template that handles maps with std::string keys.
  */
 template <typename V>
-struct type_caster<std::map<OpenMS::String, V>> {
+struct type_caster<std::map<std::string, V>> {
 public:
-    using MapType = std::map<OpenMS::String, V>;
+    using MapType = std::map<std::string, V>;
     NB_TYPE_CASTER(MapType, const_name("dict[str, ") + make_caster<V>::Name + const_name("]"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value.clear();
             return true;
@@ -246,7 +251,7 @@ public:
 
         while (PyDict_Next(src.ptr(), &pos, &key, &val)) {
             // Convert key
-            OpenMS::String cpp_key;
+            std::string cpp_key;
             if (PyUnicode_Check(key)) {
                 Py_ssize_t size;
                 const char* data = PyUnicode_AsUTF8AndSize(key, &size);
@@ -254,18 +259,19 @@ public:
                     PyErr_Clear();
                     return false;
                 }
-                cpp_key = OpenMS::String(data, size);
+                cpp_key = std::string(data, size);
             } else {
                 return false;
             }
 
             // Convert value
             type_caster<V> value_caster;
-            if (!value_caster.from_python(handle(val), flags, cleanup)) {
+            if (!value_caster.from_python(handle(val), flags_for_local_caster<V>(flags), cleanup) ||
+                !value_caster.template can_cast<V>()) {
                 return false;
             }
 
-            value[cpp_key] = std::move(value_caster.value);
+            value.emplace(std::move(cpp_key), value_caster.operator cast_t<V>());
         }
 
         return true;
@@ -314,12 +320,12 @@ public:
 };
 
 /**
- * Type caster for OpenMS::StringList (alias for std::vector<OpenMS::String>)
+ * Type caster for OpenMS::StringList (alias for std::vector<std::string>)
  *
  * Note: StringList is a typedef, so this just delegates to the vector caster.
  * This caster is provided for explicit type matching.
  */
-// StringList is already handled by std::vector<OpenMS::String>
+// StringList is already handled by std::vector<std::string>
 
 /**
  * Type caster for OpenMS::IntList (std::vector<int>)
@@ -334,11 +340,11 @@ public:
 /**
  * Type caster for CVTermMap
  *
- * CVTermMap is: std::map<String, std::vector<CVTerm>>
+ * CVTermMap is: std::map<std::string, std::vector<CVTerm>>
  * This nested structure needs special handling.
  */
 // Note: CVTerm is a class that will be wrapped normally.
-// The map caster for std::map<OpenMS::String, V> handles this when V = std::vector<CVTerm>
+// The map caster for std::map<std::string, V> handles this when V = std::vector<CVTerm>
 
 }  // namespace detail
 }  // namespace nanobind
@@ -348,7 +354,7 @@ public:
  */
 namespace pyopenms {
 
-using StringList = std::vector<OpenMS::String>;
+using StringList = std::vector<std::string>;
 using IntList = std::vector<int>;
 using DoubleList = std::vector<double>;
 

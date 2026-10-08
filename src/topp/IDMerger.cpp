@@ -110,7 +110,7 @@ protected:
     peptides.swap(pepxml_peptides);
 
     // prepare scores and coverage values of protein hits from the protXML:
-    map<String, pair<double, double> > hit_values;
+    map<std::string, pair<double, double> > hit_values;
     ProteinIdentification& protein = protxml_proteins[0];
     for (ProteinHit & hit : protein.getHits())
     {
@@ -152,7 +152,7 @@ protected:
 
   void annotateFileOrigin_(vector<ProteinIdentification>& proteins,
                            PeptideIdentificationList& peptides,
-                           String filename)
+                           std::string filename)
   {
     if (test_mode_) { filename = File::basename(filename); }
 
@@ -169,7 +169,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    vector<String> formats = {"idXML", "oms"};
+    vector<std::string> formats = {"idXML", "oms", "idparquet"};
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same type)");
     setValidFormats_("in", formats);
     registerOutputFile_("out", "<file>", "", "Output file (must have the same type as the input files)");
@@ -190,8 +190,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     StringList file_names = getStringList_("in");
-    String out = getStringOption_("out");
-    String add_to = getStringOption_("add_to");
+    std::string out = getStringOption_("out");
+    std::string add_to = getStringOption_("add_to");
     bool annotate_file_origin = getStringOption_("annotate_file_origin") == "true" ? true : false;
 
     if (file_names.empty())
@@ -231,7 +231,7 @@ protected:
 
     // check file types:
     FileTypes::Type type;
-    String out_type = getStringOption_("out_type");
+    std::string out_type = getStringOption_("out_type");
     if (!out_type.empty())
     {
       type = FileTypes::nameToType(out_type);
@@ -240,7 +240,7 @@ protected:
     {
       type = FileHandler::getTypeByFileName(out);
     }
-    for (const String& file_name : file_names)
+    for (const std::string& file_name : file_names)
     {
       FileTypes::Type current_type = FileHandler::getType(file_name);
       if ((type == FileTypes::UNKNOWN) && (current_type != FileTypes::UNKNOWN))
@@ -308,11 +308,11 @@ protected:
       Param p = merger.getParameters();
       p.setValue("annotate_origin", annotate_file_origin ? "true" : "false");
       merger.setParameters(p);
-      for (String& file : file_names)
+      for (std::string& file : file_names)
       {
         vector<ProteinIdentification> prots;
         PeptideIdentificationList peps;
-        idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML});
+        idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML, FileTypes::IDPARQUET});
         merger.insertRuns(prots, peps);
       }
       merger.returnResultsAndClear(proteins[0], peptides);
@@ -327,18 +327,24 @@ protected:
     //-------------------------------------------------------------
     OPENMS_LOG_DEBUG << "protein IDs: " << proteins.size() << endl
               << "peptide IDs: " << peptides.size() << endl;
-    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
     return EXECUTION_OK;
   }
 
   void mergeIds_(StringList file_names,
                  bool annotate_file_origin,
-                 const String& add_to,
+                 const std::string& add_to,
                  vector<ProteinIdentification>& proteins,
                  PeptideIdentificationList& peptides)
   {
-    map<String, ProteinIdentification> proteins_by_id;
+    // Keep both an insertion-ordered key list and a hash map for O(1) lookup so
+    // the merged output preserves the order in which IdentificationRuns were
+    // first seen (which mirrors input-file order). Using a plain std::map here
+    // would silently re-sort runs alphabetically by identifier and break tools
+    // like IDRipper that rely on stable run ordering.
+    vector<std::string> proteins_order;
+    std::unordered_map<std::string, ProteinIdentification> proteins_by_id;
     vector<PeptideIdentificationList> peptides_by_file;
     StringList add_to_ids; // IDs from the "add_to" file (if any)
 
@@ -351,9 +357,9 @@ protected:
     peptides_by_file.resize(file_names.size());
     for (Size i = 0; i < file_names.size(); ++i)
     {
-      const String& file_name = file_names[i];
+      const std::string& file_name = file_names[i];
       vector<ProteinIdentification> additional_proteins;
-      FileHandler().loadIdentifications(file_name, additional_proteins, peptides_by_file[i], {FileTypes::IDXML});
+      FileHandler().loadIdentifications(file_name, additional_proteins, peptides_by_file[i], {FileTypes::IDXML, FileTypes::IDPARQUET});
 
       if (annotate_file_origin) // set MetaValue "file_origin" if flag is set
       {
@@ -363,8 +369,10 @@ protected:
 
       for (const ProteinIdentification& prot : additional_proteins)
       {
-        const String& id = prot.getIdentifier();
-        proteins_by_id[id] = prot;
+        const std::string& id = prot.getIdentifier();
+        auto [it, inserted] = proteins_by_id.try_emplace(id, prot);
+        if (inserted) { proteins_order.push_back(id); }
+        else          { it->second = prot; }
         if (i == 0) { add_to_ids.push_back(id); }
       }
     }
@@ -376,20 +384,23 @@ protected:
       {
         peptides.insert(peptides.end(), peps.begin(), peps.end());
       }
-      // only append the runs (no merging of proteins)
-      for (auto map_it = proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
+      // only append the runs (no merging of proteins) — in first-seen order
+      for (const std::string& id : proteins_order)
       {
-        proteins.push_back(map_it->second);
+        proteins.push_back(proteins_by_id[id]);
       }
     }
     else // add only new IDs to an existing file
     {
-      // copy over data from reference file ("add_to"):
-      map<String, ProteinIdentification> selected_proteins;
+      // copy over data from reference file ("add_to") in insertion order
+      vector<std::string> selected_proteins_order;
+      std::unordered_map<std::string, ProteinIdentification> selected_proteins;
       for (auto ids_it = add_to_ids.begin();
             ids_it != add_to_ids.end(); ++ids_it)
       {
-        selected_proteins[*ids_it] = proteins_by_id[*ids_it];
+        auto [it, inserted] = selected_proteins.try_emplace(*ids_it, proteins_by_id[*ids_it]);
+        if (inserted) { selected_proteins_order.push_back(*ids_it); }
+        else          { it->second = proteins_by_id[*ids_it]; }
       }
       // keep track of peptides that shouldn't be duplicated:
       set<AASequence> sequences;
@@ -407,7 +418,7 @@ protected:
       for (auto file_it = ++peptides_by_file.begin(); file_it != peptides_by_file.end();
             ++file_it)
       {
-        set<String> accessions; // keep track to avoid duplicates
+        set<std::string> accessions; // keep track to avoid duplicates
         for (auto pep_it = file_it->begin(); pep_it != file_it->end(); ++pep_it)
         {
           if (pep_it->getHits().empty()) continue;
@@ -415,27 +426,27 @@ protected:
           const PeptideHit& hit = pep_it->getHits()[0];
           OPENMS_LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
           // skip ahead if peptide is not new:
-          if (sequences.find(hit.getSequence()) != sequences.end()) continue;
+          if (sequences.contains(hit.getSequence())) continue;
           OPENMS_LOG_DEBUG << "new peptide!" << endl;
           pep_it->getHits().resize(1); // restrict to best hit for simplicity
           peptides.push_back(*pep_it);
 
-          set<String> protein_accessions = hit.extractProteinAccessionsSet();
+          set<std::string> protein_accessions = hit.extractProteinAccessionsSet();
 
           // copy over proteins:
-          for (String const & acc : protein_accessions)
+          for (std::string const & acc : protein_accessions)
           {
             OPENMS_LOG_DEBUG << "accession: " << acc << endl;
             // skip ahead if accession is not new:
-            if (accessions.find(acc) != accessions.end())
+            if (accessions.contains(acc))
             {
               continue;
             }
             OPENMS_LOG_DEBUG << "new accession!" << endl;
             // first find the right protein identification:
-            const String& id = pep_it->getIdentifier();
+            const std::string& id = pep_it->getIdentifier();
             OPENMS_LOG_DEBUG << "identifier: " << id << endl;
-            if (proteins_by_id.find(id) == proteins_by_id.end())
+            if (!proteins_by_id.contains(id))
             {
               writeLogError_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
               continue;
@@ -450,9 +461,10 @@ protected:
               continue;
             }
             // we may need to copy protein ID meta data, if we haven't yet:
-            if (selected_proteins.find(id) == selected_proteins.end())
+            if (!selected_proteins.contains(id))
             {
               OPENMS_LOG_DEBUG << "adding protein identification" << endl;
+              selected_proteins_order.push_back(id);
               selected_proteins[id] = protein;
               selected_proteins[id].getHits().clear();
               // remove potentially invalid information:
@@ -466,10 +478,12 @@ protected:
           }
         }
       }
-      for (auto map_it = selected_proteins.rbegin(); map_it != selected_proteins.rend();
-            ++map_it)
+      // emit selected runs in first-seen order (was rbegin/rend on a sorted map,
+      // which produced reverse-alphabetical-by-identifier order — an artifact, not
+      // a contract).
+      for (const std::string& id : selected_proteins_order)
       {
-        proteins.push_back(map_it->second);
+        proteins.push_back(selected_proteins[id]);
       }
     }
   }

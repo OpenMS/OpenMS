@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -48,7 +48,13 @@ namespace OpenMS
     REPORTER,   ///< Reporter ion (r)
     FORMULA,    ///< Chemical formula ion (f)
     NAMED,      ///< Named compound (_)
-    UNKNOWN     ///< Unknown or unrecognized ion type
+    UNKNOWN,    ///< Unknown or unrecognized ion type
+    // The satellite series are appended after UNKNOWN on purpose. They were added later, and
+    // the enumerator values are exposed arithmetically to Python (nb::is_arithmetic), so the
+    // existing values have to stay put. Do not "tidy" this by moving UNKNOWN back to the end.
+    D,          ///< d-ion (N-terminal satellite ion, partial side-chain loss)
+    V,          ///< v-ion (C-terminal satellite ion, complete side-chain loss)
+    W           ///< w-ion (C-terminal satellite ion, partial side-chain loss)
   };
 
   /**
@@ -103,6 +109,8 @@ namespace OpenMS
     Examples:
     - y4                  - Simple y-ion at position 4
     - b2-H2O              - b-ion with neutral loss
+    - d5, v7, w3          - Satellite ions with side-chain losses
+    - da4, db4, wa4, wb4  - Satellite ions with an a/b subtype
     - y4^2                - Doubly charged y-ion
     - y2+2i               - Second isotope peak
     - y4/0.001            - With mass delta in Da
@@ -124,16 +132,17 @@ namespace OpenMS
     std::optional<int> ordinal;                     ///< Position/ordinal (4 in y4)
     std::optional<char> immonium_residue;           ///< Residue for immonium ions (Y in IY)
     std::optional<std::pair<int, int>> internal_range; ///< Range for internal fragments (m3:6 -> {3,6})
-    std::optional<String> reporter_name;            ///< Name for reporter ions (r[TMT127N])
+    std::optional<std::string> reporter_name;            ///< Name for reporter ions (r[TMT127N])
     std::optional<EmpiricalFormula> formula;        ///< Chemical formula for formula ions (f{C16H22O})
-    std::optional<String> named_compound;           ///< Name for named compound ions (_[name])
+    std::optional<std::string> named_compound;           ///< Name for named compound ions (_[name])
     std::vector<MzPAFNeutralLoss> neutral_losses;   ///< Neutral losses (-H2O, -NH3, etc.)
     std::optional<int> isotope_offset;              ///< Isotope offset (+1i, +2i for M+1, M+2)
     std::optional<EmpiricalFormula> adduct;         ///< Adduct ion (+Na, +K, etc.)
     std::optional<int> charge;                      ///< Charge state (^2, ^3)
     std::optional<MzPAFMassDelta> mass_delta;       ///< Mass delta (/0.001, /-1.4ppm)
     std::optional<double> confidence;               ///< Confidence score (*0.75)
-    std::optional<String> embedded_sequence;        ///< Embedded ProForma sequence string ({LC[Carbamidomethyl]})
+    std::optional<std::string> embedded_sequence;        ///< Embedded ProForma sequence string ({LC[Carbamidomethyl]})
+    std::optional<char> satellite_subtype;               ///< Optional 'a' or 'b' subtype, valid only for d- and w-ions
 
     /// Check if this annotation has minimal valid data
     bool isValid() const;
@@ -215,21 +224,21 @@ namespace OpenMS
       const char* function,
       MzPAFErrorCode error_code,
       size_t error_position,
-      const String& input,
-      const String& message
+      const std::string& input,
+      const std::string& message
     ) noexcept;
 
     MzPAFErrorCode getErrorCode() const noexcept { return code_; }
     size_t getPosition() const noexcept { return position_; }
-    String getFormattedMessage() const;
+    std::string getFormattedMessage() const;
 
   private:
     MzPAFErrorCode code_;
     size_t position_;
-    String context_before_;
-    String context_after_;
+    std::string context_before_;
+    std::string context_after_;
 
-    void extractContext_(const String& input, size_t pos);
+    void extractContext_(const std::string& input, size_t pos);
   };
 
   //--------------------------------------------------------------------------
@@ -257,7 +266,7 @@ namespace OpenMS
     MzPAFPeakAnnotations anns = MzPAF::parseMultiple("b2,y4^2");
 
     // Convert back to string
-    String s = MzPAF::toString(ann);
+    std::string s = MzPAF::toString(ann);
 
     // Check if a string is mzPAF format
     if (MzPAF::isMzPAFFormat("y4^2")) { ... }
@@ -284,7 +293,7 @@ namespace OpenMS
       @note If the input contains multiple comma-separated annotations, only the first is returned.
             Use parseMultiple() for multi-annotation strings.
     */
-    static MzPAFAnnotation parse(const String& input);
+    static MzPAFAnnotation parse(const std::string& input);
 
     /**
       @brief Parse an mzPAF string with potentially multiple annotations
@@ -293,7 +302,7 @@ namespace OpenMS
       @return All parsed annotations
       @throws MzPAFParseError if parsing fails
     */
-    static MzPAFPeakAnnotations parseMultiple(const String& input);
+    static MzPAFPeakAnnotations parseMultiple(const std::string& input);
 
     /**
       @brief Try to parse an mzPAF string (non-throwing)
@@ -301,7 +310,7 @@ namespace OpenMS
       @param[in] input The mzPAF string to parse
       @return The parsed annotation, or std::nullopt on failure
     */
-    static std::optional<MzPAFAnnotation> tryParse(const String& input);
+    static std::optional<MzPAFAnnotation> tryParse(const std::string& input);
 
     /**
       @brief Try to parse multiple annotations (non-throwing)
@@ -309,7 +318,7 @@ namespace OpenMS
       @param[in] input The mzPAF string to parse
       @return The parsed annotations, or empty on failure
     */
-    static std::optional<MzPAFPeakAnnotations> tryParseMultiple(const String& input);
+    static std::optional<MzPAFPeakAnnotations> tryParseMultiple(const std::string& input);
 
     //--------------------------------------------------------------------------
     // Serialization
@@ -320,8 +329,12 @@ namespace OpenMS
 
       @param[in] ann The annotation to convert
       @return The mzPAF string representation
+      @note This function is total and never throws. An annotation carrying a satellite subtype
+            that mzPAF does not allow -- anything other than 'a'/'b', or a subtype on a series
+            other than d/w -- is written without it, mirroring how an UNKNOWN series is written
+            as '?'. Use isValid() to reject such an annotation.
     */
-    static String toString(const MzPAFAnnotation& ann);
+    static std::string toString(const MzPAFAnnotation& ann);
 
     /**
       @brief Convert multiple annotations to mzPAF string
@@ -329,7 +342,7 @@ namespace OpenMS
       @param[in] anns The annotations to convert
       @return The mzPAF string representation (comma-separated)
     */
-    static String toString(const MzPAFPeakAnnotations& anns);
+    static std::string toString(const MzPAFPeakAnnotations& anns);
 
     //--------------------------------------------------------------------------
     // PeakAnnotation Integration
@@ -371,12 +384,16 @@ namespace OpenMS
       @param[in] annotation The string to check
       @return True if the string appears to be mzPAF format
     */
-    static bool isMzPAFFormat(const String& annotation);
+    static bool isMzPAFFormat(const std::string& annotation);
 
     /**
       @brief Calculate theoretical m/z for an annotation
 
       Calculates the theoretical m/z value for the annotated ion based on the sequence.
+
+      @note Satellite ions (d, v, w, including their subtypes) are parsed and serialized,
+            but their residue-dependent side-chain losses are not yet supported here;
+            these ions return std::nullopt.
 
       @param[in] ann The annotation
       @param[in] sequence The peptide sequence
@@ -386,18 +403,25 @@ namespace OpenMS
       const MzPAFAnnotation& ann, const AASequence& sequence);
 
     /**
-      @brief Check if ion series is a standard fragment ion (a, b, c, x, y, z)
+      @brief Check if ion series is a peptide fragment ion (a, b, c, d, v, w, x, y, z)
+
+      These are exactly the series that mzPAF requires to carry an ordinal.
 
       @param[in] series The ion series to check
-      @return True if it's a standard fragment ion type
+      @return True if it's a peptide fragment ion type
+      @note True here does not imply a computable mass. calculateTheoreticalMZ() returns
+            std::nullopt for the satellite series d/v/w, so
+            `if (isPeptideFragmentIon(s)) mz = *calculateTheoreticalMZ(...)` would
+            dereference an empty optional.
     */
-    static bool isStandardFragmentIon(MzPAFIonSeries series);
+    static bool isPeptideFragmentIon(MzPAFIonSeries series);
 
     /**
       @brief Get the ion series character for an annotation
 
       @param[in] series The ion series enum
-      @return The character representation (a, b, c, x, y, z, p, I, m, r, f, _)
+      @return The character representation (a, b, c, d, v, w, x, y, z, p, I, m, r, f, _)
+      @note The satellite subtype is stored separately in MzPAFAnnotation::satellite_subtype.
     */
     static char ionSeriesToChar(MzPAFIonSeries series);
 

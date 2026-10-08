@@ -120,12 +120,12 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
     TEST_EQUAL(proteins_in[i].getSearchParameters().digestion_enzyme ==  proteins_out[i].getSearchParameters().digestion_enzyme, true);
   }
   */
-  // String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
+  // std::string filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
   // IdXMLFile().store(filename, proteins_out, peptides_out);
 }
 END_SECTION
 
-START_SECTION((void importSequences(IdentificationData&, const vector<FASTAFile::FASTAEntry>&, IdentificationData::MoleculeType, const String&)))
+START_SECTION((void importSequences(IdentificationData&, const vector<FASTAFile::FASTAEntry>&, IdentificationData::MoleculeType, const std::string&)))
 {
   vector<FASTAFile::FASTAEntry> fasta;
   FASTAFile().load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), fasta);
@@ -140,8 +140,8 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   vector<ProteinIdentification> proteins_in;
   PeptideIdentificationList peptides_in;
 
-  String filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
-  //String filename = OPENMS_GET_TEST_DATA_PATH("debug_fraction_1_IDs_after_transfer.idXML");
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
+  //std::string filename = OPENMS_GET_TEST_DATA_PATH("debug_fraction_1_IDs_after_transfer.idXML");
   IdXMLFile().load(filename, proteins_in, peptides_in);
 
   IdentificationData ids;
@@ -218,7 +218,7 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
 {
   vector<ProteinIdentification> proteins_in;
   PeptideIdentificationList peptides_in;
-  String filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
   IdXMLFile().load(filename, proteins_in, peptides_in);
 
   IdentificationData ids;

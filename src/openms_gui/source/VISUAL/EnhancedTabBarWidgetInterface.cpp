@@ -28,7 +28,7 @@ namespace OpenMS
     sp_.emitAboutToBeDestroyed(window_id_);
   }
 
-  void EnhancedTabBarWidgetInterface::addToTabBar(EnhancedTabBar* const parent, const String& caption, const bool make_active_tab)
+  void EnhancedTabBarWidgetInterface::addToTabBar(EnhancedTabBar* const parent, const std::string& caption, const bool make_active_tab)
   {
     // use signal/slot to communicate, since directly storing the parent pointer for later access is dangerous (it may already be destroyed during program exit)
     QObject::connect(&this->sp_, &SignalProvider::aboutToBeDestroyed, parent, &EnhancedTabBar::removeId);

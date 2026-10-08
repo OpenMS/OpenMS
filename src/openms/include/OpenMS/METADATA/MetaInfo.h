@@ -15,12 +15,12 @@
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
-#include <boost/container/flat_map.hpp>
+#include <utility>
+#include <vector>
 #include <functional>
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief A Type-Name-Value tuple class.
@@ -45,7 +45,7 @@ namespace OpenMS
   {
 public:
     /// Internal map type (UInt key to DataValue)
-    using MapType = boost::container::flat_map<UInt, DataValue>;
+    using MapType = std::vector<std::pair<UInt, DataValue>>;
     /// Mutable iterator type
     using iterator = MapType::iterator;
     /// Const iterator type
@@ -80,7 +80,7 @@ public:
      * If an entry with the same index already exists, it will be overwritten
      * with the value from @p rhs.
      *
-     * Uses an O(n+m) two-way merge algorithm since the underlying flat_map is sorted.
+     * Uses an O(n+m) two-way merge algorithm since the underlying vector is sorted.
      *
      * @param rhs The MetaInfo to merge from.
      * @return Reference to this object.
@@ -88,22 +88,22 @@ public:
     MetaInfo& operator+=(const MetaInfo& rhs);
 
     /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
-    const DataValue& getValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;
+    const DataValue& getValue(const std::string& name, const DataValue& default_value = DataValue::EMPTY) const;
     /// Returns the value corresponding to an index, or a default value (default: DataValue::EMPTY) if not found
     const DataValue& getValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const;
 
     /// Returns whether an entry with the given name exists
-    bool exists(const String& name) const;
+    bool exists(const std::string& name) const;
     /// Returns whether an entry with the given index exists
     bool exists(UInt index) const;
 
     /// Sets the DataValue corresponding to a name
-    void setValue(const String& name, const DataValue& value);
+    void setValue(const std::string& name, const DataValue& value);
     /// Sets the DataValue corresponding to an index
     void setValue(UInt index, const DataValue& value);
 
     /// Removes the DataValue corresponding to @p name if it exists
-    void removeValue(const String& name);
+    void removeValue(const std::string& name);
     /// Removes the DataValue corresponding to @p index if it exists
     void removeValue(UInt index);
 
@@ -111,7 +111,7 @@ public:
     static MetaInfoRegistry& registry();
 
     /// Fills the given vector with a list of all keys for which a value is set
-    void getKeys(std::vector<String>& keys) const;
+    void getKeys(std::vector<std::string>& keys) const;
 
     /// Fills the given vector with a list of all keys for which a value is set
     void getKeys(std::vector<UInt>& keys) const;
@@ -174,6 +174,9 @@ public:
     Size size() const { return index_to_value_.size(); }
 
 private:
+    iterator find_(UInt index);
+    const_iterator find_(UInt index) const;
+
 
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;

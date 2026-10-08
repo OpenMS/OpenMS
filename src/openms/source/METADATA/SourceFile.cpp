@@ -47,22 +47,22 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const String& SourceFile::getNameOfFile() const
+  const std::string& SourceFile::getNameOfFile() const
   {
     return name_of_file_;
   }
 
-  void SourceFile::setNameOfFile(const String& name_of_file)
+  void SourceFile::setNameOfFile(const std::string& name_of_file)
   {
     name_of_file_ = name_of_file;
   }
 
-  const String& SourceFile::getPathToFile() const
+  const std::string& SourceFile::getPathToFile() const
   {
     return path_to_file_;
   }
 
-  void SourceFile::setPathToFile(const String& path_to_file)
+  void SourceFile::setPathToFile(const std::string& path_to_file)
   {
     path_to_file_ = path_to_file;
   }
@@ -77,17 +77,17 @@ namespace OpenMS
     file_size_ = static_cast<double>(file_size);
   }
 
-  const String& SourceFile::getFileType() const
+  const std::string& SourceFile::getFileType() const
   {
     return file_type_;
   }
 
-  void SourceFile::setFileType(const String& file_type)
+  void SourceFile::setFileType(const std::string& file_type)
   {
     file_type_ = file_type;
   }
 
-  const String& SourceFile::getChecksum() const
+  const std::string& SourceFile::getChecksum() const
   {
     return checksum_;
   }
@@ -97,28 +97,28 @@ namespace OpenMS
     return checksum_type_;
   }
 
-  void SourceFile::setChecksum(const String& checksum, ChecksumType type)
+  void SourceFile::setChecksum(const std::string& checksum, ChecksumType type)
   {
     checksum_ = checksum;
     checksum_type_ = type;
   }
 
-  const String& SourceFile::getNativeIDType() const
+  const std::string& SourceFile::getNativeIDType() const
   {
     return native_id_type_;
   }
 
-  void SourceFile::setNativeIDType(const String& type)
+  void SourceFile::setNativeIDType(const std::string& type)
   {
     native_id_type_ = type;
   }
 
-  const String& SourceFile::getNativeIDTypeAccession() const
+  const std::string& SourceFile::getNativeIDTypeAccession() const
   {
     return native_id_type_accession_;
   }
 
-  void SourceFile::setNativeIDTypeAccession(const String& accession)
+  void SourceFile::setNativeIDTypeAccession(const std::string& accession)
   {
     native_id_type_accession_ = accession;
   }

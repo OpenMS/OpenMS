@@ -72,21 +72,21 @@ public:
     /** @name Accessors
     */
     //@{
-    void setName(const String & name);
+    void setName(const std::string & name);
 
-    const String & getName() const;
+    const std::string & getName() const;
 
-    void setNativeID(const String & name);
+    void setNativeID(const std::string & name);
 
-    const String & getNativeID() const;
+    const std::string & getNativeID() const;
 
-    void setPeptideRef(const String & peptide_ref);
+    void setPeptideRef(const std::string & peptide_ref);
 
-    const String & getPeptideRef() const;
+    const std::string & getPeptideRef() const;
 
-    void setCompoundRef(const String & compound_ref);
+    void setCompoundRef(const std::string & compound_ref);
 
-    const String & getCompoundRef() const;
+    const std::string & getCompoundRef() const;
 
     /// sets the precursor mz (Q1 value)
     void setPrecursorMZ(double mz);
@@ -282,11 +282,11 @@ protected:
     */
     //@{
 
-    String name_; ///< id, required attribute
+    std::string name_; ///< id, required attribute
 
     // attributes to a peptide / compound (optional)
-    String peptide_ref_; ///< Reference to a specific peptide
-    String compound_ref_; ///< Reference to a specific compound
+    std::string peptide_ref_; ///< Reference to a specific peptide
+    std::string compound_ref_; ///< Reference to a specific compound
 
     /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the \<Transition\> tag)
     double library_intensity_;

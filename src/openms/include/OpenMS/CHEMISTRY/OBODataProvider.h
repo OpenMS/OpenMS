@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/ModificationDataProvider.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -32,12 +32,12 @@ namespace OpenMS
       @param filename Path to an OBO file (resolved via File::find)
       @param cross_links_only If true, return only cross-linkers; if false, exclude them
     */
-    explicit OBODataProvider(const String& filename, bool cross_links_only = false);
+    explicit OBODataProvider(const std::string& filename, bool cross_links_only = false);
 
     std::vector<std::unique_ptr<ResidueModification>> loadModifications() override;
 
   private:
-    String filename_;
+    std::string filename_;
     bool cross_links_only_;
   };
 

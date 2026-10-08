@@ -8,17 +8,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-// the available quantitation methods
+// the available quantitation methods (instantiated via IsobaricQuantitationMethod::create())
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -64,7 +55,10 @@ This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 1
 Note: TMT 32-plex and 35-plex default to an identity correction matrix (no isotope correction) until lot-specific values are provided via the correction_matrix parameter.
 It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
 in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
-The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
+The MS level for quantification is chosen automatically, i.e. the highest MS level present is used (if MS3 is present, e.g. for SPS-MS3, MS2 will be ignored).
+The @p select_activation filter is only applied within that quantification level. If MS3 scans are present but none of them match @p select_activation
+(e.g. setting CID while the MS3 reporter scans are HCD/"beam-type CID"), the tool fails with an error instead of silently quantifying the MS2 scans.
+Set @p select_activation to "auto" (HCD/HCID) or "any" (disable filtering) if in doubt.
 For intensity, the closest non-zero m/z signal to the theoretical position is taken as reporter ion abundance.
 The position (RT, m/z) of the consensus centroid is the precursor position in MS1 (from the MS2 spectrum);
 the consensus sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
@@ -138,8 +132,8 @@ class TOPPIsobaricAnalyzer :
   public TOPPBase
 {
 private:
-  std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
-  std::map<String, String> quant_method_names_;
+  std::map<std::string, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+  std::map<std::string, std::string> quant_method_names_;
 
   void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr, std::string name)
   {
@@ -152,15 +146,12 @@ public:
   TOPPIsobaricAnalyzer() :
     TOPPBase("IsobaricAnalyzer", "Calculates isobaric quantitative values for peptides")
   {
-    addMethod_(make_unique<ItraqFourPlexQuantitationMethod>(), "iTRAQ 4-plex");
-    addMethod_(make_unique<ItraqEightPlexQuantitationMethod>(), "iTRAQ 8-plex");
-    addMethod_(make_unique<TMTSixPlexQuantitationMethod>(), "TMT 6-plex");
-    addMethod_(make_unique<TMTTenPlexQuantitationMethod>(), "TMT 10-plex");
-    addMethod_(make_unique<TMTElevenPlexQuantitationMethod>(), "TMT 11-plex");
-    addMethod_(make_unique<TMTSixteenPlexQuantitationMethod>(), "TMT 16-plex");
-    addMethod_(make_unique<TMTEighteenPlexQuantitationMethod>(), "TMT 18-plex");
-    addMethod_(make_unique<TMTThirtyTwoPlexQuantitationMethod>(), "TMT 32-plex");
-    addMethod_(make_unique<TMTThirtyFivePlexQuantitationMethod>(), "TMT 35-plex");
+    using MT = IsobaricQuantitationMethod::MethodType;
+    for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+    {
+      const MT mt = static_cast<MT>(i);
+      addMethod_(IsobaricQuantitationMethod::create(mt), std::string(IsobaricQuantitationMethod::methodDisplayName(mt)));
+    }
   }
 
 protected:
@@ -176,7 +167,11 @@ protected:
     setValidStrings_("type", valid_types);
 
     registerInputFile_("in", "<file>", "", "input raw/picked data file ");
-    setValidFormats_("in", {"mzML"});
+    setValidFormats_("in", {"mzML",
+#ifdef WITH_THERMO_RAW
+      "raw",
+#endif
+    });
     registerOutputFile_("out", "<file>", "", "output consensusXML file with quantitative information");
     setValidFormats_("out", {"consensusXML"});
 
@@ -184,20 +179,21 @@ protected:
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
     for (const auto& qm : quant_methods_)
     {
-      registerSubsection_(qm.second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
+      registerSubsection_(qm.second->getMethodName(),std::string("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
-    ItraqFourPlexQuantitationMethod temp_quant;
+    // any concrete method works to obtain the extractor/quantifier defaults; pick an arbitrary one
+    auto temp_quant = IsobaricQuantitationMethod::create(IsobaricQuantitationMethod::MethodType::ITRAQ_4PLEX);
     if (section == "extraction")
     {
-      return IsobaricChannelExtractor(&temp_quant).getParameters();
+      return IsobaricChannelExtractor(temp_quant.get()).getParameters();
     }
     else if (section == "quantification")
     {
-      return IsobaricQuantifier(&temp_quant).getParameters();
+      return IsobaricQuantifier(temp_quant.get()).getParameters();
     }
     else
     {
@@ -217,15 +213,15 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
 
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML, FileTypes::RAW}, log_type_);
 
     //-------------------------------------------------------------
     // init quant method

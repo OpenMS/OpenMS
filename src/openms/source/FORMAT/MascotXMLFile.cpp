@@ -8,7 +8,6 @@
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS
@@ -19,20 +18,20 @@ namespace OpenMS
   {
   }
 
-  void MascotXMLFile::load(const String& filename,
+  void MascotXMLFile::load(const std::string& filename,
                            ProteinIdentification& protein_identification,
                            PeptideIdentificationList& id_data,
                            const SpectrumMetaDataLookup& lookup)
   {
-    map<String, vector<AASequence> > peptides;
+    map<std::string, vector<AASequence> > peptides;
 
     load(filename, protein_identification, id_data, peptides, lookup);
   }
 
-  void MascotXMLFile::load(const String& filename,
+  void MascotXMLFile::load(const std::string& filename,
                            ProteinIdentification& protein_identification,
                            PeptideIdentificationList& id_data,
-                           map<String, vector<AASequence> >& peptides,
+                           map<std::string, vector<AASequence> >& peptides,
                            const SpectrumMetaDataLookup& lookup)
   {
     //clear
@@ -108,7 +107,7 @@ namespace OpenMS
   }
 
 
-  void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const PeakMap& exp, const String& scan_regex)
+  void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const PeakMap& exp, const std::string& scan_regex)
   {
     // load spectra and extract scan numbers from the native IDs
     // (expected format: "... scan=#"):

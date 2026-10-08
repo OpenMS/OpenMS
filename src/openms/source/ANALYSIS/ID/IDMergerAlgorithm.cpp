@@ -21,7 +21,7 @@ namespace OpenMS
   //TODO parameterize so it only adds/keeps best per peptide, peptide charge, modified peptide
   // How? Maybe keep a map here about the best scores and lookup before adding and update and insert only if better
   // proteins of this peptide could be skipped (if we assume same database as we do currently, it has to be there already)
-  IDMergerAlgorithm::IDMergerAlgorithm(const String& runIdentifier, bool addTimeStampToID) :
+  IDMergerAlgorithm::IDMergerAlgorithm(const std::string& runIdentifier, bool addTimeStampToID) :
       IDMergerAlgorithm::DefaultParamHandler("IDMergerAlgorithm"),
       prot_result_(),
       pep_result_(),
@@ -138,7 +138,7 @@ namespace OpenMS
     filled_ = false;
   }
 
-  String IDMergerAlgorithm::getNewIdentifier_(bool addTimeStampToID) const
+  std::string IDMergerAlgorithm::getNewIdentifier_(bool addTimeStampToID) const
   {
     if (!addTimeStampToID) return id_;
     std::array<char, 64> buffer;
@@ -147,7 +147,7 @@ namespace OpenMS
     time(&rawtime);
     const auto timeinfo = localtime(&rawtime);
     strftime(buffer.data(), sizeof(buffer), "%d-%m-%Y %H-%M-%S", timeinfo);
-    return id_ + String(buffer.data());
+    return id_ + std::string(buffer.data());
   }
 
 
@@ -169,7 +169,7 @@ namespace OpenMS
 
   void IDMergerAlgorithm::updateAndMovePepIDs_(
       PeptideIdentificationList&& pepIDs,
-      const map<String, Size>& runID_to_runIdx,
+      const map<std::string, Size>& runID_to_runIdx,
       const vector<StringList>& originFiles,
       bool annotate_origin)
   {
@@ -179,7 +179,7 @@ namespace OpenMS
     // subsequent calls of this function
     for (auto &pid : pepIDs)
     {
-      const String &runID = pid.getIdentifier();
+      const std::string &runID = pid.getIdentifier();
 
       const auto& runIdxIt = runID_to_runIdx.find(runID);
 
@@ -193,7 +193,7 @@ namespace OpenMS
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
             "Old IdentificationRun not found for PeptideIdentification "
-            "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ").");
+            "(" + StringUtils::toStr(pid.getMZ()) + ", " + StringUtils::toStr(pid.getRT()) + ").");
         */
       }
 
@@ -204,7 +204,7 @@ namespace OpenMS
         const StringList& origins = originFiles[runIdxIt->second];
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+          oldFileIdx = (Size)(Int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
         }
         else if (origins.size() > 1)
         {
@@ -215,7 +215,7 @@ namespace OpenMS
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
               "Trying to annotate new id_merge_index for PeptideIdentification "
-              "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
+              "(" + StringUtils::toStr(pid.getMZ()) + ", " + StringUtils::toStr(pid.getRT()) + ") but"
               "no old id_merge_index present");
         }
 
@@ -226,7 +226,7 @@ namespace OpenMS
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
               "Trying to annotate new id_merge_index for PeptideIdentification "
-              "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
+              "(" + StringUtils::toStr(pid.getMZ()) + ", " + StringUtils::toStr(pid.getRT()) + ") but"
               " the index exceeds the number of files in the run.");
         }
         pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_origin_to_idx_[origins[oldFileIdx]]);
@@ -264,14 +264,14 @@ namespace OpenMS
       //TODO this will make multiple runs from the same file appear multiple times.
       // should be ok but check all possibilities at some point
       originFiles.push_back(toFill);
-      for (String& f : toFill)
+      for (std::string& f : toFill)
       {
         file_origin_to_idx_.emplace(std::move(f), file_origin_to_idx_.size());
       }
       toFill.clear();
     }
 
-    std::map<String, Size> runIDToRunIdx;
+    std::map<std::string, Size> runIDToRunIdx;
     for (Size oldProtRunIdx = 0; oldProtRunIdx < old_protRuns.size(); ++oldProtRunIdx)
     {
       ProteinIdentification &protIDRun = old_protRuns[oldProtRunIdx];
@@ -309,7 +309,7 @@ namespace OpenMS
       //TODO this will make multiple runs from the same file appear multiple times.
       // should be ok but check all possibilities at some point
       originFiles.push_back(toFill);
-      for (String& f : toFill)
+      for (std::string& f : toFill)
       {
         file_origin_to_idx_.emplace(std::move(f), file_origin_to_idx_.size());
       }
@@ -318,7 +318,7 @@ namespace OpenMS
 
     for (auto &pid : pepIDs)
     {
-      const String &runID = pid.getIdentifier();
+      const std::string &runID = pid.getIdentifier();
 
       //TODO maybe create lookup table in the beginning runIDToRunRef
       Size oldProtRunIdx = 0;
@@ -337,7 +337,7 @@ namespace OpenMS
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
             "Old IdentificationRun not found for PeptideIdentification "
-            "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ").");
+            "(" + StringUtils::toStr(pid.getMZ()) + ", " + StringUtils::toStr(pid.getRT()) + ").");
 
       }
 
@@ -347,7 +347,7 @@ namespace OpenMS
         Size oldFileIdx(0);
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+          oldFileIdx = (Size)(Int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
         }
           // If there is more than one possible file it might be from
           // and it is not annotated -> fail
@@ -358,7 +358,7 @@ namespace OpenMS
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
               "Trying to annotate new id_merge_index for PeptideIdentification "
-              "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
+              "(" + StringUtils::toStr(pid.getMZ()) + ", " + StringUtils::toStr(pid.getRT()) + ") but"
               "no old id_merge_index present");
         }
         pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
@@ -391,12 +391,12 @@ namespace OpenMS
       to.setSearchParameters(from.getSearchParameters());
   }
 
-  bool IDMergerAlgorithm::checkOldRunConsistency_(const vector<ProteinIdentification>& protRuns, const String& experiment_type) const
+  bool IDMergerAlgorithm::checkOldRunConsistency_(const vector<ProteinIdentification>& protRuns, const std::string& experiment_type) const
   {
     return checkOldRunConsistency_(protRuns, protRuns[0], experiment_type);
   }
 
-  bool IDMergerAlgorithm::checkOldRunConsistency_(const vector<ProteinIdentification>& protRuns, const ProteinIdentification& ref, const String& experiment_type) const
+  bool IDMergerAlgorithm::checkOldRunConsistency_(const vector<ProteinIdentification>& protRuns, const ProteinIdentification& ref, const std::string& experiment_type) const
   {
     bool ok = true;
     for (const auto& idRun : protRuns)

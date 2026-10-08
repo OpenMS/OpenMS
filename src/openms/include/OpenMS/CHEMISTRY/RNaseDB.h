@@ -10,7 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <memory>
 #include <vector>

@@ -1,6 +1,7 @@
 // Copyright (c) 2002-present, OpenMS Inc.
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <boost/math/distributions/binomial.hpp>
 #include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
@@ -279,7 +280,11 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   }
   else
   {
-    // FAIMS: split by CV (moves ms_data_), process groups in parallel, merge
+    // FAIMS: split by CV (moves ms_data_), process groups in parallel, merge.
+    // splitByFAIMSCV() only redistributes spectra, so the chromatograms are kept
+    // aside here and put back together with the spectra below.
+    std::vector<MSChromatogram> chromatograms = std::move(ms_data_.getChromatograms());
+
     std::vector<std::pair<double, MSExperiment>> groups =
       IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
 
@@ -322,6 +327,34 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
       }
     }
 
+    // Reassemble ms_data_ from the per-CV groups. Without this, getMSData() would
+    // return the experiment splitByFAIMSCV() emptied, and a caller that reuses the
+    // data after run() (e.g. ProteomicsLFQ handing it to FeatureFinderIdentification)
+    // would silently continue on zero spectra. The spectra are moved back, so this
+    // costs no additional peak memory, and the result matches what the in-place path
+    // above leaves behind: MS1 only, centroided/TOF-filtered as configured.
+    if (!groups.empty())
+    {
+      Size n_spectra = 0;
+      for (const auto& group_pair : groups)
+      {
+        n_spectra += group_pair.second.size();
+      }
+      ms_data_.getExperimentalSettings() = groups.front().second.getExperimentalSettings();
+      ms_data_.reserveSpaceSpectra(n_spectra);
+      for (auto& group_pair : groups)
+      {
+        for (MSSpectrum& spec : group_pair.second)
+        {
+          ms_data_.addSpectrum(std::move(spec));
+        }
+        group_pair.second.clear(true);
+      }
+      // the groups are ordered by CV, so restore acquisition order across them
+      ms_data_.sortSpectra(false);
+    }
+    ms_data_.setChromatograms(std::move(chromatograms));
+
     // Optionally merge features representing the same analyte at different FAIMS CV values
     if (faims_merge_features_)
     {
@@ -334,6 +367,12 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
       }
     }
   }
+
+  // Both paths leave the stored experiment changed: MS1-only, and centroided/TOF-filtered
+  // as configured. The FAIMS path additionally goes through splitByFAIMSCV(), whose
+  // exp.clear(true) drops the ranges outright. Recompute once here so getMSData() reports
+  // ranges that describe the spectra it hands back, the same way on either path.
+  ms_data_.updateRanges();
 
   // Restore original paseftol_ value for subsequent calls.
   paseftol_ = original_paseftol;
@@ -877,7 +916,9 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
     total_peaks_after += centroided_spectrum.size();
   }
 
-  exp = centroided_exp;
+  // Replace only the spectra: assigning the whole experiment would drop the
+  // experimental settings and the chromatograms, which centroiding does not touch.
+  exp.setSpectra(std::move(centroided_exp.getSpectra()));
   OPENMS_LOG_INFO << "Centroiding: " << total_peaks_before
                   << " profile points -> " << total_peaks_after << " centroided peaks" << endl;
 }
@@ -1406,7 +1447,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Ion mobility array index out of range.",
-                                    String(im_index));
+                                    StringUtils::toStr(im_index));
     }
     im_array_ptr = &fda[im_index];
   }
@@ -1422,7 +1463,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Ion mobility array shorter than peak list.",
-                                      String(peak_idx));
+                                      StringUtils::toStr(peak_idx));
       }
       const double im = (*im_array_ptr)[peak_idx];
       int im_bin = (paseftol_ > 0.0) ? static_cast<int>(im / paseftol_) : 0;
@@ -1493,14 +1534,14 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Ion mobility array index out of range.",
-                                      String(im_index_local));
+                                      StringUtils::toStr(im_index_local));
       }
       const auto& im_array_local = fda_local[im_index_local];
       if (p_idx >= im_array_local.size())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Ion mobility array shorter than peak list.",
-                                      String(p_idx));
+                                      StringUtils::toStr(p_idx));
       }
       ion_mobility = im_array_local[p_idx];
     }
@@ -1539,9 +1580,9 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
     const int fi = use_im_current ? im_bin_per_peak[static_cast<Size>(idx)] : 0;
 
     // Collect candidate previous-scan peaks from neighboring m/z bins.
-    bool flag1 = prev_fast_dict.find(fm) != prev_fast_dict.end();
-    bool flag2 = prev_fast_dict.find(fm - 1) != prev_fast_dict.end();
-    bool flag3 = prev_fast_dict.find(fm + 1) != prev_fast_dict.end();
+    bool flag1 = prev_fast_dict.contains(fm);
+    bool flag2 = prev_fast_dict.contains(fm - 1);
+    bool flag3 = prev_fast_dict.contains(fm + 1);
 
     Size assigned_hill = numeric_limits<Size>::max();
 
@@ -1614,7 +1655,7 @@ void Biosaur2Algorithm::linkScanToHills_(const MSSpectrum& spectrum,
           {
             continue;
           }
-          if (banned_prev_idx_set.find(idx_prev) != banned_prev_idx_set.end())
+          if (banned_prev_idx_set.contains(idx_prev))
           {
             continue;
           }
@@ -1978,7 +2019,7 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::splitHills_(const vector<Hill
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Split hill meta data arrays are inconsistent.",
-                                      String(new_hill.scan_indices.size()));
+                                      StringUtils::toStr(new_hill.scan_indices.size()));
       }
 
 	      new_hill.length = new_hill.scan_indices.size();
@@ -2165,10 +2206,10 @@ map<int, pair<double, double>> Biosaur2Algorithm::performInitialIsotopeCalibrati
     {
       isotope_calib_map[ic] = calibrateMass_(isotope_errors[ic]);
     }
-    else if (ic > 1 && isotope_calib_map.find(ic - 1) != isotope_calib_map.end())
+    else if (ic > 1 && isotope_calib_map.contains(ic - 1))
     {
       auto prev = isotope_calib_map[ic - 1];
-      auto prev2 = isotope_calib_map.find(ic - 2) != isotope_calib_map.end() ?
+      auto prev2 = isotope_calib_map.contains(ic - 2) ?
                    isotope_calib_map[ic - 2] : make_pair(0.0, itol_ppm);
 
       double shift_delta = prev.first - prev2.first;
@@ -2738,7 +2779,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
     const double mono_mz_center = mono_hill.mz_weighted_mean;
 
     // Skip patterns whose monoisotopic hill is already used.
-    if (occupied_hills.find(mono_hill.hill_idx) != occupied_hills.end())
+    if (occupied_hills.contains(mono_hill.hill_idx))
     {
       continue;
     }
@@ -2746,7 +2787,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
     bool iso_conflict = false;
     for (const auto& iso : pc.isotopes)
     {
-      if (occupied_hills.find(iso.hill_idx) != occupied_hills.end())
+      if (occupied_hills.contains(iso.hill_idx))
       {
         iso_conflict = true;
         break;
@@ -2760,7 +2801,7 @@ vector<Biosaur2Algorithm::PeptideFeature> Biosaur2Algorithm::selectNonOverlappin
       vector<IsotopeCandidate> tmp_iso;
       for (const auto& iso : pc.isotopes)
       {
-        if (occupied_hills.find(iso.hill_idx) == occupied_hills.end())
+        if (!occupied_hills.contains(iso.hill_idx))
         {
           tmp_iso.push_back(iso);
         }
@@ -3254,7 +3295,7 @@ double Biosaur2Algorithm::cosineCorrelation_(const vector<double>& intensities1,
   return dot_product / (sqrt(norm1) * sqrt(norm2));
 }
 
-void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const String& filename) const
+void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const std::string& filename) const
 {
   ofstream out(filename);
   if (!out)
@@ -3283,7 +3324,7 @@ void Biosaur2Algorithm::writeTSV(const vector<PeptideFeature>& features, const S
   OPENMS_LOG_INFO << "Wrote " << features.size() << " features to TSV file: " << filename << endl;
 }
 
-void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const String& filename) const
+void Biosaur2Algorithm::writeHills(const vector<Hill>& hills, const std::string& filename) const
 {
   ofstream out(filename);
   if (!out)

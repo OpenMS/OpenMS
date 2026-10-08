@@ -10,9 +10,10 @@
 
 #include <OpenMS/config.h>
 
+#include <string>
+
 namespace OpenMS
 {
-  class String;
   /**
     @brief Detect Java and retrieve information.
 
@@ -32,7 +33,7 @@ public:
       @param[in] verbose_on_error On error, should an error message be printed to OPENMS_LOG_ERROR?
       @return Returns false if Java executable can not be called; true if Java executable can be executed
     **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
+    static bool canRun(const std::string& java_executable, bool verbose_on_error = true);
   };
 
 }

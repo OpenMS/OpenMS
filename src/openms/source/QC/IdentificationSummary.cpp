@@ -19,8 +19,8 @@ namespace OpenMS
   IdentificationSummary::Result IdentificationSummary::compute(vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
   {
     IdentificationSummary::Result result;
-    set<String> peptides;
-    set<String> proteins;
+    set<std::string> peptides;
+    set<std::string> proteins;
 
     // PSMs and collect unique peptides in set
     for (const auto& pep_id : pep_ids)
@@ -93,7 +93,7 @@ namespace OpenMS
 
 
   /// Returns the name of the metric
-  const String& IdentificationSummary::getName() const
+  const std::string& IdentificationSummary::getName() const
   {
     return name_;
   }

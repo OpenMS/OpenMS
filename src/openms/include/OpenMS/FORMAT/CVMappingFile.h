@@ -17,7 +17,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief Used to load CvMapping files
@@ -25,7 +24,9 @@ namespace OpenMS
     This file contains the mapping of CV terms to the schema, which
     is used by PSI standard formats to semantically validate files.
 
-    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
+    A documented schema for this format is the PSI CvMapping schema
+    (http://www.psidev.info/sites/default/files/CvMapping.xsd, also archived at
+    https://github.com/OpenMS/OpenMS/tree/release/3.5.0/share/OpenMS/SCHEMAS/CvMapping.xsd)
 
     @ingroup FileIO
   */
@@ -50,18 +51,18 @@ public:
         @param[out] cv_mappings  The CVMappings instance in which the rules, cvs and other content from the file should be stored
         @param[in] strip_namespaces if enable, namespace definitions of the paths are eliminated, e.g. 'pf:cvParam' -> 'cvParam'
     */
-    void load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces = false);
+    void load(const std::string& filename, CVMappings& cv_mappings, bool strip_namespaces = false);
 
 protected:
 
     // Docu in base class
-    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
+    void onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes) override;
 
     // Docu in base class
-    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
+    void onEndElement(const char16_t* qname) override;
 
     // Docu in base class
-    void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
+    void onCharacters(const char16_t* chars, Size /*length*/) override;
 
 private:
 
@@ -71,7 +72,7 @@ private:
     ///Not implemented
     CVMappingFile& operator=(const CVMappingFile& rhs);
 
-    String tag_;
+    std::string tag_;
 
     bool strip_namespaces_;
 

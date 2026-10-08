@@ -102,7 +102,6 @@ For the untargeted detection of small molecule features we can use the :py:class
 
   exp.sortSpectra(True)
 
-  mass_traces = []
   mtd = oms.MassTraceDetection()
   mtd_params = mtd.getDefaults()
   mtd_params.setValue(
@@ -112,23 +111,20 @@ For the untargeted detection of small molecule features we can use the :py:class
       "noise_threshold_int", 3000.0
   )  # adjust to noise level in your data
   mtd.setParameters(mtd_params)
-  mtd.run(exp, mass_traces, 0)
+  mass_traces = mtd.run(exp)
 
-  mass_traces_split = []
-  mass_traces_final = []
   epd = oms.ElutionPeakDetection()
   epd_params = epd.getDefaults()
   epd_params.setValue("width_filtering", "fixed")
   epd.setParameters(epd_params)
-  epd.detectPeaks(mass_traces, mass_traces_split)
+  mass_traces_split = epd.detectPeaks(mass_traces)
 
   if epd.getParameters().getValue("width_filtering") == "auto":
-      epd.filterByPeakWidth(mass_traces_split, mass_traces_final)
+      mass_traces_final = epd.filterByPeakWidth(mass_traces_split)
   else:
       mass_traces_final = mass_traces_split
 
   fm = oms.FeatureMap()
-  feat_chrom = []
   ffm = oms.FeatureFindingMetabo()
   ffm_params = ffm.getDefaults()
   ffm_params.setValue("isotope_filtering_model", "none")
@@ -138,10 +134,10 @@ For the untargeted detection of small molecule features we can use the :py:class
   ffm_params.setValue("mz_scoring_by_elements", "false")
   ffm_params.setValue("report_convex_hulls", "true")
   ffm.setParameters(ffm_params)
-  ffm.run(mass_traces_final, fm, feat_chrom)
+  ffm.run(mass_traces_final, fm)  # fills fm
 
   fm.setUniqueIds()
-  fm.setPrimaryMSRunPath(["ms_data.mzML".encode()])
+  fm.setPrimaryMSRunPath(["ms_data.mzML"])
 
 Metabolomics - Targeted
 ***********************
@@ -151,7 +147,7 @@ specified in an assay library (a tab-separated text file). Detected features are
 stored in a :py:class:`~.FeatureXMLFile`. This tool is useful for the targeted extraction of features for a well-defined set of compounds
 with known sum formulas and retention times.
 For more information on the format of the assay library and available parameters visit the `FeatureFinderMetaboIdent documentation
-<https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/UTILS_FeatureFinderMetaboIdent.html>`_.
+<https://archive.openms.de/openms/Documentation/release/latest/html/TOPP_FeatureFinderMetaboIdent.html>`_.
 
 
 The pyOpenMS :py:class:`~.FeatureFinderAlgorithmMetaboIdent` needs a list of :py:class:`~.FeatureFinderMetaboIdentCompound` objects as an assay libray for it's
@@ -168,6 +164,12 @@ The pyOpenMS :py:class:`~.FeatureFinderAlgorithmMetaboIdent` needs a list of :py
    "deoxyadenosine","C10H13N5O3",0,1,243.0,0,0
    "inosine","C10H12N4O5",0,1,264.0,0,0
 
+Two optional columns can be appended after ``IsoDistribution``:
+
+- ``IonMobility`` — target ion mobility value used to filter extraction windows (ion mobility data only).
+- ``Adduct`` — adduct string in standard notation (e.g. ``[M+H]+``, ``[M+Na]+``, ``[M-H]-``, ``[2M+H]+``).
+  When present, the m/z is computed via the specified adduct; if omitted, ``[M+H]+`` is assumed for positive charges and ``[M-H]-`` for negative charges.
+
 .. code-block:: python
 
   import csv
@@ -178,8 +180,14 @@ The pyOpenMS :py:class:`~.FeatureFinderAlgorithmMetaboIdent` needs a list of :py
       metaboTable = []
       with open(path_to_library_file, "r") as tsv_file:
           tsv_reader = csv.reader(tsv_file, delimiter="\t")
-          next(tsv_reader)  # skip header
+          header = next(tsv_reader)
+          has_im = "IonMobility" in header
+          has_adduct = "Adduct" in header
           for row in tsv_reader:
+              ion_mobilities = (
+                  [float(im) for im in row[7].split(",")] if has_im and len(row) > 7 else []
+              )
+              adduct = row[8] if has_adduct and len(row) > 8 else (row[7] if has_adduct and not has_im and len(row) > 7 else "")
               metaboTable.append(
                   oms.FeatureFinderMetaboIdentCompound(
                       row[0],  # name
@@ -193,6 +201,8 @@ The pyOpenMS :py:class:`~.FeatureFinderAlgorithmMetaboIdent` needs a list of :py
                       [
                           float(iso_distrib) for iso_distrib in row[6].split(",")
                       ],  # isotope distributions
+                      ion_mobilities,  # ion mobilities (empty if column absent)
+                      adduct,          # adduct string (empty string if column absent)
                   )
               )
       return metaboTable
@@ -227,9 +237,9 @@ Now we can use the following code to detect features with :py:class:`~.FeatureFi
 
   # edit some parameters
   params = ff.getParameters()
-  params[b"extract:mz_window"] = 5.0  # 5 ppm
-  params[b"extract:rt_window"] = 20.0  # 20 seconds
-  params[b"detect:peak_width"] = 3.0  # 3 seconds
+  params["extract:mz_window"] = 5.0  # 5 ppm
+  params["extract:rt_window"] = 20.0  # 20 seconds
+  params["detect:peak_width"] = 3.0  # 3 seconds
   ff.setParameters(params)
 
   # run the FeatureFinderMetaboIdent with the metabo_table and mzML file path -> store results in fm

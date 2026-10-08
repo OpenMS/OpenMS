@@ -107,7 +107,7 @@ public:
     // @}
 
 private:
-    String method_;
+    std::string method_;
   };
 
 

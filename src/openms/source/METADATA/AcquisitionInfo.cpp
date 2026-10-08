@@ -25,12 +25,12 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const String & AcquisitionInfo::getMethodOfCombination() const
+  const std::string & AcquisitionInfo::getMethodOfCombination() const
   {
     return method_of_combination_;
   }
 
-  void AcquisitionInfo::setMethodOfCombination(const String & method_of_combination)
+  void AcquisitionInfo::setMethodOfCombination(const std::string & method_of_combination)
   {
     method_of_combination_ = method_of_combination;
   }

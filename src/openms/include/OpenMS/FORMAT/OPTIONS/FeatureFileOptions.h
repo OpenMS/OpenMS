@@ -16,62 +16,90 @@ namespace OpenMS
 {
   /**
     @brief Options for loading files containing features.
+
+    A passive value object: each setter stores its value, each getter
+    returns the stored value. The defaults loaded by the constructor are
+    @c loadConvexHull == @c true, @c loadSubordinates == @c true,
+    @c metadataOnly == @c false, @c sizeOnly == @c false, and no
+    RT / m/z / intensity range set (i.e. the @c has*Range queries return
+    @c false).
+
+    Reader implementations interpret these options. The @c has*Range
+    flags indicate whether a range was ever supplied --
+    @c getRTRange / @c getMZRange / @c getIntensityRange only return a
+    meaningful range when the corresponding @c has*Range is @c true.
+
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI FeatureFileOptions
   {
 public:
-    ///Default constructor
+    /// Default constructor; see class brief for the default option values.
     FeatureFileOptions();
-    ///Destructor
+    /// Destructor.
     ~FeatureFileOptions();
 
-    ///@name convex hull option
-    ///sets whether or not to load convex hull
+    ///@name Convex-hull option
+    ///@{
+    /// Set whether to load each feature's convex hull (default @c true).
     void setLoadConvexHull(bool convex);
-    ///returns whether or not to load convex hull
+    /// Whether to load each feature's convex hull.
     bool getLoadConvexHull() const;
+    ///@}
 
-    ///@name subordinate option
-    ///sets whether or not load subordinates
+    ///@name Subordinate option
+    ///@{
+    /// Set whether to load a feature's subordinates (default @c true).
     void setLoadSubordinates(bool sub);
-    ///returns whether or not to load subordinates
+    /// Whether to load a feature's subordinates.
     bool getLoadSubordinates() const;
+    ///@}
 
-    ///@name metadata option
-    ///sets whether or not to load only meta data
+    ///@name Metadata-only option
+    ///@{
+    /// Set whether to skip the per-feature payload and load only metadata (default @c false).
     void setMetadataOnly(bool only);
-    ///returns whether or not to load only meta data
+    /// Whether only metadata is loaded.
     bool getMetadataOnly() const;
+    ///@}
 
-    ///@name lazyload option
-    ///sets whether or not to load only feature count
+    ///@name Size-only option
+    ///@{
+    /// Set whether to read just the feature count and skip the actual features (default @c false).
     void setSizeOnly(bool only);
-    ///returns whether or not to load only meta data
+    /// Whether to read just the feature count.
     bool getSizeOnly() const;
+    ///@}
 
-    ///@name RT range option
-    ///restricts the range of RT values for peaks to load
+    ///@name RT-range option
+    ///@{
+    /// Restrict loaded features to the given RT range. Also marks the range as set (@ref hasRTRange returns @c true afterwards).
     void setRTRange(const DRange<1> & range);
-    ///returns @c true if an RT range has been set
+    /// @c true if @ref setRTRange has been called.
     bool hasRTRange() const;
-    ///returns the RT range
+    /// The configured RT range; only meaningful when @ref hasRTRange is @c true.
     const DRange<1> & getRTRange() const;
+    ///@}
 
     ///@name m/z range option
-    ///restricts the range of MZ values for peaks to load
+    ///@{
+    /// Restrict loaded features to the given m/z range. Also marks the range as set (@ref hasMZRange returns @c true afterwards).
     void setMZRange(const DRange<1> & range);
-    ///returns @c true if an MZ range has been set
+    /// @c true if @ref setMZRange has been called.
     bool hasMZRange() const;
-    ///returns the MZ range
+    /// The configured m/z range; only meaningful when @ref hasMZRange is @c true.
     const DRange<1> & getMZRange() const;
+    ///@}
 
-    ///@name Intensity range option
-    ///restricts the range of intensity values for peaks to load
+    ///@name Intensity-range option
+    ///@{
+    /// Restrict loaded features to the given intensity range. Also marks the range as set (@ref hasIntensityRange returns @c true afterwards).
     void setIntensityRange(const DRange<1> & range);
-    ///returns @c true if an intensity range has been set
+    /// @c true if @ref setIntensityRange has been called.
     bool hasIntensityRange() const;
-    ///returns the intensity range
+    /// The configured intensity range; only meaningful when @ref hasIntensityRange is @c true.
     const DRange<1> & getIntensityRange() const;
+    ///@}
 
 private:
     bool loadConvexhull_;

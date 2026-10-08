@@ -163,7 +163,7 @@ START_SECTION(MLE)
   {
     if(!it->empty())
     {
-      rand_score_vector.push_back(it->toDouble());
+      rand_score_vector.push_back(StringUtils::toDouble(*it));
     }
   }
   vector<double> w (rand_score_vector.size(),1.0);

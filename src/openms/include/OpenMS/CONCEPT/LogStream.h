@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <sstream>
 #include <iostream>
@@ -249,30 +249,61 @@ protected:
       //@}
     };
 
-    ///
+    /**
+      @brief Sink-side hook that is notified whenever a @ref LogStream flushes a complete message.
+
+      Subclass this and override @ref logNotify to react to log events programmatically.
+      Register the notifier at a @ref LogStream via @ref registerAt — the log stream then
+      treats the notifier's internal @c stream_ as one of its output sinks, writes each
+      flushed line into it, and invokes the override at the end of every message. Use
+      @ref stream_ inside @ref logNotify to read the formatted message body.
+
+      Lifecycle: @ref unregister is called automatically by the destructor (RAII); calling
+      @ref registerAt while already registered first detaches from the previous stream.
+
+      @ingroup Concept
+    */
     class OPENMS_DLLAPI LogStreamNotifier
     {
 public:
 
-      /// Empty constructor.
+      /// Construct a detached notifier; @c registered_at_ starts at @c nullptr.
       LogStreamNotifier();
 
-      /// Destructor
+      /// Destructor; calls @ref unregister so the @ref LogStream stops dispatching to this notifier.
       virtual ~LogStreamNotifier();
 
-      ///
+      /**
+        @brief Hook called by the registered @ref LogStream after each complete message has been flushed.
+
+        The default implementation is a no-op. Override in a subclass to react to log events
+        (read @ref stream_ to get the formatted message body).
+      */
       virtual void logNotify();
 
-      ///
+      /**
+        @brief Attach this notifier to @p log_stream so its @ref logNotify is invoked after every flushed message.
+
+        If this notifier is already registered at another stream, the prior registration is
+        released first (via @ref unregister). After the call, the @ref stream_ buffer is
+        added to @p log_stream's output list and tagged as the notification target.
+
+        @param[in,out] log_stream LogStream that will dispatch notifications to this notifier.
+      */
       void registerAt(LogStream & log_stream);
 
-      ///
+      /**
+        @brief Detach from the currently registered @ref LogStream, if any.
+
+        Removes @ref stream_ from the log stream's output list and resets @c registered_at_
+        to @c nullptr. No-op when the notifier is not currently registered.
+      */
       void unregister();
 
 protected:
-      std::stringstream stream_;
+      std::stringstream stream_;   ///< Buffer that receives the formatted log line from the registered @ref LogStream; read inside @ref logNotify.
 
-      LogStream * registered_at_;
+      LogStream * registered_at_;  ///< The @ref LogStream this notifier is currently attached to, or @c nullptr if detached. Managed by @ref registerAt / @ref unregister.
     };
 
 
@@ -296,11 +327,13 @@ protected:
       <br>
       Which produces an error message in the log.
 
-      @note The log stream macros are thread safe and can be used in a
-      multithreaded environment, the global variables are not! The macros are
-      protected by a OPENMS_THREAD_CRITICAL directive (which translates to an
-      OpenMP critical pragma), however there may be a small performance penalty
-      to this.
+      @note The OPENMS_LOG_* macros are thread-safe: each thread logs through its
+      own thread-local LogStream/LogStreamBuf (see getThreadLocalLog*()), so the
+      per-stream buffers and caches are never shared. The final writes to the
+      shared sink(s) (e.g. @c std::cerr / @c std::cout) and to the shared Colorizer
+      are serialized by a global mutex inside LogStreamBuf::distribute_(). The global
+      LogStream objects returned by getGlobalLog*() are NOT thread-safe for direct
+      logging and should only be (re)configured before threads are started.
 
     */
     class OPENMS_DLLAPI LogStream :
@@ -438,6 +471,9 @@ public:
         flushed before streams are reconfigured globally.
       */
       void flushIncomplete();
+
+      /// Is @p stream currently one of this LogStream's output destinations?
+      bool hasStream(std::ostream & stream);
       //@}
 private:
 
@@ -456,15 +492,22 @@ private:
     }; //LogStream
 
     /**
-      @brief RAII guard that temporarily removes a stream from a LogStream and re-inserts it on scope exit.
+      @brief RAII guard that temporarily removes an attached stream from a LogStream and re-inserts it on scope exit.
 
       This class provides exception-safe temporary removal of output streams from LogStream objects.
       Use this when you need to temporarily suppress logging to a specific stream (e.g., cout)
       during operations that may throw exceptions.
 
+      @note The guard acts only on a stream that is attached when it is constructed; for an
+            unattached stream it does nothing (will not insert on scope exit).
+
+      @note The OPENMS_LOG_* macros write to thread-local streams whose sink list is copied from
+            the global one on first access. Guard the thread-local stream (getThreadLocalLog*()),
+            not the global one, to suppress output reliably.
+
       Example usage:
       @code
-      LogSinkGuard guard(getGlobalLogInfo(), cout); // Removes cout, will re-insert on scope exit
+      LogSinkGuard guard(getThreadLocalLogInfo(), cout); // Removes cout, will re-insert on scope exit
       some_operation_that_may_throw();
       // cout is automatically re-inserted when guard goes out of scope
       @endcode
@@ -475,20 +518,33 @@ private:
     {
     public:
       /**
-        @brief Construct a guard that removes the stream and re-inserts it on destruction.
+        @brief Construct a guard that removes @p stream, if attached, and re-inserts it on destruction.
 
         @param log_stream The LogStream to remove the stream from (and re-insert into on destruction)
-        @param stream The stream to temporarily remove (e.g., std::cout)
+        @param stream The stream to temporarily remove (e.g., std::cout); if it is not one of
+                      @p log_stream's destinations, the guard does nothing
       */
       LogSinkGuard(LogStream& log_stream, std::ostream& stream)
-        : log_stream_(log_stream), stream_(stream)
+        : log_stream_(log_stream), stream_(stream), was_attached_(log_stream.hasStream(stream))
       {
+        if (!was_attached_)
+        {
+          return;
+        }
+        // Drain pending output so pre-guard text reaches this sink before it is detached.
+        log_stream_.flushIncomplete();
         log_stream_.remove(stream_);
       }
 
-      /// Destructor re-inserts the stream
+      /// Destructor discards any suppressed output, then re-inserts the sink.
       ~LogSinkGuard()
       {
+        if (!was_attached_)
+        {
+          return;
+        }
+        // Drain buffered output while the sink is still detached so it does not leak through.
+        log_stream_.flushIncomplete();
         log_stream_.insert(stream_);
       }
 
@@ -501,6 +557,8 @@ private:
     private:
       LogStream& log_stream_;
       std::ostream& stream_;
+      /// was the sink attached when the guard was constructed? if not, the guard does nothing
+      const bool was_attached_;
     };
 
   } // namespace Logger

@@ -34,12 +34,12 @@ namespace OpenMS
       options_ = options;
   }
 
-  bool IndexedMzMLFileLoader::load(const String& filename, OnDiscPeakMap& exp)
+  bool IndexedMzMLFileLoader::load(const std::string& filename, OnDiscPeakMap& exp)
   {
     return exp.openFile(filename);
   }
 
-  void IndexedMzMLFileLoader::store(const String& filename, OnDiscPeakMap& exp)
+  void IndexedMzMLFileLoader::store(const std::string& filename, OnDiscPeakMap& exp)
   {
     // Create a writing data consumer which consumes the experiment (writes it to disk)
     PlainMSDataWritingConsumer consumer(filename);
@@ -59,7 +59,7 @@ namespace OpenMS
     }
   }
 
-  void IndexedMzMLFileLoader::store(const String& filename, PeakMap& exp)
+  void IndexedMzMLFileLoader::store(const std::string& filename, PeakMap& exp)
   {
     MzMLFile f;
     options_.setWriteIndex(true);  // ensure that we write the index

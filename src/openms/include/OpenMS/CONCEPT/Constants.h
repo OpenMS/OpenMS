@@ -393,6 +393,30 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
+      // User parameter name for the standard score of the best candidate's score within
+      // the pool of all candidates scored for the same spectrum. 0 when fewer than two
+      // candidates were scored or when all of them tied.
+      inline const std::string HYPERSCORE_ZSCORE = "hyperscore_zscore";
+
+      // User parameter name for ln(1 + number of candidates scored for a spectrum).
+      // The +1 offset keeps the value defined for spectra without any candidate; it is
+      // order-preserving, so the feature stays monotone in the candidate count. The count
+      // is capped by the search engine's per-spectrum candidate limit, so this saturates.
+      inline const std::string LN_NUM_CANDIDATES = "ln_num_candidates";
+
+      // User parameter name for the matched ion current normalized by the spectrum's total ion current
+      inline const std::string MATCHED_ION_CURRENT_FRACTION = "matched_ion_current_fraction";
+
+      // User parameter name for the fraction of cleavage sites where both a prefix ion and its
+      // complementary suffix ion were matched
+      inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
+
+      /// Sum of local peak-density-based surprise over matched theoretical fragments.
+      inline const std::string CHANCE_MATCH_SURPRISE = "chance_match_surprise";
+
+      /// Matched-fragment evidence discounted by alternative assignments and local peak density.
+      inline const std::string MASS_COMPETITION_EVIDENCE = "mass_competition_evidence";
+
       /** User parameter name to indicate a peptide q-value
               String
       */
@@ -592,7 +616,7 @@ namespace OpenMS
       inline const std::string   ADDUCT_GROUP = "Group";
 
       /** User parameter name for a list of ADDUCT_GROUP annotations in a ConsensusFeature. (Required for IIMN)
-              vector<String>
+              vector<std::string>
       */
       inline const std::string   IIMN_LINKED_GROUPS = "LinkedGroups";
 
@@ -636,6 +660,11 @@ namespace OpenMS
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
 
+      /** User parameter name for the collision cross section (CCS, in Angstrom^2) of a metabolite. (Used by MetaboliteSpectralMatcher for ion-mobility filtering)
+              double
+      */
+      inline const std::string   MSM_CCS = "CCS";
+
       /** User parameter name for the base name which links to underlying peak map
               String
       */
@@ -655,6 +684,12 @@ namespace OpenMS
               String
       */
       inline const std::string   NUM_PEAKS = "num_peaks";
+
+      /** SearchParameters meta value carrying the definitions of modifications not in the shipped vocabularies.
+              String: ';'-joined ResidueModification definition records. A single string, not a
+              stringList: the parquet meta-value codec splits lists on ',' without escaping.
+      */
+      inline const std::string   MODIFICATION_DEFINITIONS = "modification_definitions";
     }
 
     //@}

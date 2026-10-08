@@ -47,7 +47,7 @@ namespace OpenMS
   }
 
   /// Returns the name of the metric
-  const String& FeatureSummary::getName() const
+  const std::string& FeatureSummary::getName() const
   {
     return name_;
   }

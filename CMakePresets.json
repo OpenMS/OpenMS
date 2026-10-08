@@ -1,0 +1,456 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_COLOR_DIAGNOSTICS": "ON",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "OPENMS_USE_VCPKG": "ON"
+            }
+        },
+        {
+            "name": "linux-base",
+            "hidden": true,
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "macos-base",
+            "hidden": true,
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        },
+        {
+            "name": "windows-base",
+            "hidden": true,
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "linux-x64-base",
+            "hidden": true,
+            "inherits": "linux-base",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic"
+            }
+        },
+        {
+            "name": "linux-arm64-base",
+            "hidden": true,
+            "inherits": "linux-base",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-linux-dynamic"
+            }
+        },
+        {
+            "name": "macos-arm64-base",
+            "hidden": true,
+            "inherits": "macos-base",
+            "description": "OpenMP_ROOT is where Homebrew on Apple silicon keeps its keg-only libomp (tools/ci/deps-macos.sh installs it). Apple's Clang ships no OpenMP runtime, so without it OpenMS falls back to -fopenmp-simd and runs single-threaded. Pass -DOpenMP_ROOT=$(brew --prefix libomp) for another Homebrew prefix.",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-osx-dynamic-sysroot",
+                "OpenMP_ROOT": "/opt/homebrew/opt/libomp"
+            }
+        },
+        {
+            "name": "windows-x64-base",
+            "hidden": true,
+            "inherits": "windows-base",
+            "description": "Windows x64 settings that do not depend on the build type. VCPKG_TARGET_TRIPLET is deliberately NOT set here: unlike Linux and macOS, whose triplets build every dependency in both debug and release form and so suit any configuration, the Windows triplets differ in exactly that respect, so each preset below has to name the one that matches its build type."
+        },
+        {
+            "name": "debug-base",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release-base",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "relwithdebinfo-base",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "ci-base",
+            "hidden": true,
+            "cacheVariables": {
+                "OPENMS_TEST_INSTALLED_CONSUMER": "ON",
+                "MT_REQUIRE_OPENMP": "ON",
+                "WITH_GUI": "ON",
+                "ENABLE_DOCS": "ON",
+                "WITH_THERMO_RAW":"ON",
+                "ENABLE_THERMO_RAW_TESTS": "OFF",
+                "ENABLE_TUTORIALS": "OFF",
+                "WITH_ONNX": "ON",
+                "WITH_OPENTIMS":"ON",
+                "ENABLE_OPENTIMS_TESTS": "OFF",
+                "WITH_WNETALIGN": "OFF",
+                "USE_EXTERNAL_JSON": "ON",
+                "USE_EXTERNAL_SQLITECPP": "ON",
+                "USE_EXTERNAL_SIMDE": "ON",
+                "USE_EXTERNAL_ISOSPEC":"ON",
+                "USE_EXTERNAL_EOLBSPLINE":"ON",
+                "WITH_HDF5": "OFF",
+                "PYOPENMS":"OFF",
+                "VCPKG_MANIFEST_FEATURES":"isospec;eol-bspline;simde;nlohmann-json;sqlitecpp;openms-thermo-bridge;opentims;onnxruntime"
+            }
+        },
+        {
+            "name": "linux-x64-debug",
+            "displayName": "Linux x64 Debug",
+            "description": "OpenMS with vcpkg dependencies on Linux x64 Debug",
+            "inherits": [
+                "linux-x64-base",
+                "debug-base"
+            ]
+        },
+        {
+            "name": "linux-x64-relwithdebinfo",
+            "displayName": "Linux x64 RelWithDebInfo",
+            "description": "OpenMS with vcpkg dependencies on Linux x64 RelWithDebInfo",
+            "inherits": [
+                "linux-x64-base",
+                "relwithdebinfo-base"
+            ]
+        },
+        {
+            "name": "linux-x64-release",
+            "displayName": "Linux x64 Release",
+            "description": "OpenMS with vcpkg dependencies on Linux x64 Release",
+            "inherits": [
+                "linux-x64-base",
+                "release-base"
+            ]
+        },
+        {
+            "name": "linux-arm64-debug",
+            "displayName": "Linux arm64 Debug",
+            "description": "OpenMS with vcpkg dependencies on Linux arm64 Debug",
+            "inherits": [
+                "linux-arm64-base",
+                "debug-base"
+            ]
+        },
+        {
+            "name": "linux-arm64-relwithdebinfo",
+            "displayName": "Linux arm64 RelWithDebInfo",
+            "description": "OpenMS with vcpkg dependencies on Linux arm64 RelWithDebInfo",
+            "inherits": [
+                "linux-arm64-base",
+                "relwithdebinfo-base"
+            ]
+        },
+        {
+            "name": "linux-arm64-release",
+            "displayName": "Linux arm64 Release",
+            "description": "OpenMS with vcpkg dependencies on Linux arm64 Release",
+            "inherits": [
+                "linux-arm64-base",
+                "release-base"
+            ]
+        },
+        {
+            "name": "macos-arm64-debug",
+            "displayName": "MacOS arm64 Debug",
+            "description": "OpenMS with vcpkg dependencies on MacOS arm64 Debug",
+            "inherits": [
+                "macos-arm64-base",
+                "debug-base"
+            ]
+        },
+        {
+            "name": "macos-arm64-relwithdebinfo",
+            "displayName": "MacOS arm64 RelWithDebInfo",
+            "description": "OpenMS with vcpkg dependencies on MacOS arm64 RelWithDebInfo",
+            "inherits": [
+                "macos-arm64-base",
+                "relwithdebinfo-base"
+            ]
+        },
+        {
+            "name": "macos-arm64-release",
+            "displayName": "MacOS arm64 Release",
+            "description": "OpenMS with vcpkg dependencies on MacOS arm64 Release",
+            "inherits": [
+                "macos-arm64-base",
+                "release-base"
+            ]
+        },
+        {
+            "name": "windows-x64-debug",
+            "displayName": "Windows x64 Debug",
+            "description": "OpenMS with vcpkg dependencies on Windows x64 Debug. A Debug build links the debug CRT (/MDd) and must not be mixed with release dependencies, so it uses x64-windows-static-md, which sets no VCPKG_BUILD_TYPE and therefore builds every dependency in both debug and release form. There is no working debug-only alternative: ports install their headers from the release half. The Debug build links the debug half, so this preset's first configure is slower than the other Windows presets. It is also the preset to use for a multi-configuration Visual Studio solution, being the only one whose dependencies cover both configurations.",
+            "inherits": [
+                "windows-x64-base",
+                "debug-base"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
+            }
+        },
+        {
+            "name": "windows-x64-relwithdebinfo",
+            "displayName": "Windows x64 RelWithDebInfo",
+            "description": "OpenMS with vcpkg dependencies on Windows x64 RelWithDebInfo. RelWithDebInfo links the release CRT (/MD), so the release-only triplet is sufficient and avoids building every dependency twice.",
+            "inherits": [
+                "windows-x64-base",
+                "relwithdebinfo-base"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release"
+            }
+        },
+        {
+            "name": "windows-x64-release",
+            "displayName": "Windows x64 Release",
+            "description": "OpenMS with vcpkg dependencies on Windows x64 Release. Release links the release CRT (/MD), so the release-only triplet is sufficient and avoids building every dependency twice.",
+            "inherits": [
+                "windows-x64-base",
+                "release-base"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release"
+            }
+        },
+        {
+            "name": "linux-x64-ci",
+            "displayName": "Linux x64 CI",
+            "description": "OpenMS CI preset with vcpkg dependencies on Linux x64",
+            "inherits": [
+                "linux-x64-base",
+                "release-base",
+                "ci-base"
+            ],
+            "cacheVariables": {
+                "OPENMS_VERIFY_INTERFACE_HEADER_SETS": "ON"
+            }
+        },
+        {
+            "name": "linux-arm64-ci",
+            "displayName": "Linux arm64 CI",
+            "description": "OpenMS CI preset with vcpkg dependencies on Linux arm64",
+            "inherits": [
+                "linux-arm64-base",
+                "release-base",
+                "ci-base"
+            ]
+        },
+        {
+            "name": "macos-arm64-ci",
+            "displayName": "macOS arm64 CI",
+            "description": "OpenMS CI preset with vcpkg dependencies on macOS arm64",
+            "inherits": [
+                "macos-arm64-base",
+                "release-base",
+                "ci-base"
+            ]
+        },
+        {
+            "name": "windows-x64-ci",
+            "displayName": "Windows x64 CI",
+            "description": "OpenMS CI preset with vcpkg dependencies on Windows x64. Builds Release, so the release-only triplet is sufficient and avoids building every dependency twice.",
+            "inherits": [
+                "windows-x64-base",
+                "release-base",
+                "ci-base"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static-md-release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "linux-x64-debug",
+            "configurePreset": "linux-x64-debug"
+        },
+        {
+            "name": "linux-x64-release",
+            "configurePreset": "linux-x64-release"
+        },
+        {
+            "name": "linux-x64-relwithdebinfo",
+            "configurePreset": "linux-x64-relwithdebinfo"
+        },
+        {
+            "name": "linux-arm64-debug",
+            "configurePreset": "linux-arm64-debug"
+        },
+        {
+            "name": "linux-arm64-release",
+            "configurePreset": "linux-arm64-release"
+        },
+        {
+            "name": "linux-arm64-relwithdebinfo",
+            "configurePreset": "linux-arm64-relwithdebinfo"
+        },
+        {
+            "name": "macos-arm64-debug",
+            "configurePreset": "macos-arm64-debug"
+        },
+        {
+            "name": "macos-arm64-release",
+            "configurePreset": "macos-arm64-release"
+        },
+        {
+            "name": "macos-arm64-relwithdebinfo",
+            "configurePreset": "macos-arm64-relwithdebinfo"
+        },
+        {
+            "name": "windows-x64-debug",
+            "configurePreset": "windows-x64-debug"
+        },
+        {
+            "name": "windows-x64-release",
+            "configurePreset": "windows-x64-release"
+        },
+        {
+            "name": "windows-x64-relwithdebinfo",
+            "configurePreset": "windows-x64-relwithdebinfo"
+        },
+        {
+            "name": "linux-x64-ci",
+            "configurePreset": "linux-x64-ci"
+        },
+        {
+            "name": "linux-arm64-ci",
+            "configurePreset": "linux-arm64-ci"
+        },
+        {
+            "name": "macos-arm64-ci",
+            "configurePreset": "macos-arm64-ci"
+        },
+        {
+            "name": "windows-x64-ci",
+            "configurePreset": "windows-x64-ci"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "test-base",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error"
+            }
+        },
+        {
+            "name": "test-base-ci",
+            "hidden": true,
+            "execution": {
+                "jobs": 4
+            }
+        },
+        {
+            "name": "linux-x64-debug",
+            "configurePreset": "linux-x64-debug",
+            "inherits": "test-base"
+        },
+        {
+            "name": "linux-x64-release",
+            "configurePreset": "linux-x64-release",
+            "inherits": "test-base"
+        },
+        {
+            "name": "linux-x64-relwithdebinfo",
+            "configurePreset": "linux-x64-relwithdebinfo",
+            "inherits": "test-base"
+        },
+        {
+            "name": "linux-arm64-debug",
+            "configurePreset": "linux-arm64-debug",
+            "inherits": "test-base"
+        },
+        {
+            "name": "linux-arm64-release",
+            "configurePreset": "linux-arm64-release",
+            "inherits": "test-base"
+        },
+        {
+            "name": "linux-arm64-relwithdebinfo",
+            "configurePreset": "linux-arm64-relwithdebinfo",
+            "inherits": "test-base"
+        },
+        {
+            "name": "macos-arm64-debug",
+            "configurePreset": "macos-arm64-debug",
+            "inherits": "test-base"
+        },
+        {
+            "name": "macos-arm64-release",
+            "configurePreset": "macos-arm64-release",
+            "inherits": "test-base"
+        },
+        {
+            "name": "macos-arm64-relwithdebinfo",
+            "configurePreset": "macos-arm64-relwithdebinfo",
+            "inherits": "test-base"
+        },
+        {
+            "name": "windows-x64-debug",
+            "configurePreset": "windows-x64-debug",
+            "inherits": "test-base"
+        },
+        {
+            "name": "windows-x64-release",
+            "configurePreset": "windows-x64-release",
+            "inherits": "test-base"
+        },
+        {
+            "name": "windows-x64-relwithdebinfo",
+            "configurePreset": "windows-x64-relwithdebinfo",
+            "inherits": "test-base"
+        },
+        {
+            "name": "linux-x64-ci",
+            "configurePreset": "linux-x64-ci",
+            "inherits": ["test-base","test-base-ci"]
+        },
+        {
+            "name": "linux-arm64-ci",
+            "configurePreset": "linux-arm64-ci",
+            "inherits": ["test-base","test-base-ci"]
+        },
+        {
+            "name": "macos-arm64-ci",
+            "configurePreset": "macos-arm64-ci",
+            "inherits": ["test-base","test-base-ci"]
+        },
+        {
+            "name": "windows-x64-ci",
+            "configurePreset": "windows-x64-ci",
+            "inherits": ["test-base","test-base-ci"]
+        }
+    ]
+}

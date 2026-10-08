@@ -34,7 +34,7 @@ namespace OpenMS
     using EnzymaticDigestion::setEnzyme;
 
     /// Sets the enzyme for the digestion (by name)
-    void setEnzyme(const String& name);
+    void setEnzyme(const std::string& name);
 
     /** 
        @brief Performs the enzymatic digestion of a protein represented as AASequence.
@@ -85,7 +85,7 @@ namespace OpenMS
       @return True if peptide has correct n/c terminals (according to enzyme, specificity and above flags)
 
     */
-    bool isValidProduct(const String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages = true, bool allow_nterm_protein_cleavage = false, bool allow_random_asp_pro_cleavage = false) const;
+    bool isValidProduct(const std::string& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages = true, bool allow_nterm_protein_cleavage = false, bool allow_random_asp_pro_cleavage = false) const;
 
     /// forwards to isValidProduct using protein.toUnmodifiedString()
     bool isValidProduct(const AASequence& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages = true, bool allow_nterm_protein_cleavage = false, bool allow_random_asp_pro_cleavage = false) const;

@@ -48,11 +48,11 @@ namespace OpenMS
    **/
     Result compute(const FeatureMap& feature_map);
 
-    const String& getName() const override;
+    const std::string& getName() const override;
 
     QCBase::Status requirements() const override;
 
   private:
-    const String name_ = "Summary of features from featureXML file";
+    const std::string name_ = "Summary of features from featureXML file";
   };
 } // namespace OpenMS

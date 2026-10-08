@@ -16,7 +16,7 @@
 #include <unordered_map>
 
 #include <OpenMS/METADATA/ProteinHit.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 ///////////////////////////
 
@@ -31,9 +31,9 @@ using namespace std;
 
 float score = 4.4f;
 UInt rank = 3;
-String sequence = "ARRAY";
-String accession = "PROOE34";
-String description = "class II antigen";
+std::string sequence = "ARRAY";
+std::string accession = "PROOE34";
+std::string description = "class II antigen";
 
 ProteinHit* ptr = nullptr;	
 ProteinHit* nullPointer = nullptr;
@@ -46,7 +46,7 @@ START_SECTION(~ProteinHit())
   delete ptr;
 END_SECTION
 
-START_SECTION((ProteinHit(double score, UInt rank, String accession, String sequence)))
+START_SECTION((ProteinHit(double score, UInt rank, std::string accession, std::string sequence)))
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
@@ -169,18 +169,18 @@ START_SECTION(bool operator != (const ProteinHit& rhs) const)
 	hit = hit2;		
 END_SECTION
 
-START_SECTION(const String& getAccession() const)
+START_SECTION(const std::string& getAccession() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getAccession(), accession)
 END_SECTION
 
-START_SECTION(const String& getDescription() const)
+START_SECTION(const std::string& getDescription() const)
 	ProteinHit hit(score, rank, accession, sequence);
   hit.setDescription(description);
 	TEST_EQUAL(hit.getDescription(), description)
 END_SECTION
 
-START_SECTION(const String& getSequence() const)
+START_SECTION(const std::string& getSequence() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
 END_SECTION
@@ -216,19 +216,19 @@ START_SECTION(void setScore(const double score))
 	TEST_EQUAL(hit.getScore(), score);
 END_SECTION
 
-START_SECTION(void setSequence(const String& sequence))
+START_SECTION(void setSequence(const std::string& sequence))
 	ProteinHit hit;
 	hit.setSequence(sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
 END_SECTION
 
-START_SECTION(void setAccession(const String& accession))
+START_SECTION(void setAccession(const std::string& accession))
 	ProteinHit hit;
 	hit.setAccession(accession);
 	TEST_EQUAL(hit.getAccession(), accession)
 END_SECTION
 
-START_SECTION(void setDescription(const String& description))
+START_SECTION(void setDescription(const std::string& description))
 	ProteinHit hit;
 	hit.setDescription(description);
 	TEST_EQUAL(hit.getDescription(), description)

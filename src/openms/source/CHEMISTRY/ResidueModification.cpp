@@ -13,10 +13,14 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <charconv>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include <utility>
+#include <vector>
 
 using namespace std;
 
@@ -33,7 +37,8 @@ namespace OpenMS
     diff_average_mass_(0.0),
     diff_mono_mass_(0.0),
     neutral_loss_mono_masses_(0),
-    neutral_loss_average_masses_(0)
+    neutral_loss_average_masses_(0),
+    provenance_(DEFINED) // default: an unnecessary definition is harmless, a missing one is not
   {
   }
 
@@ -83,6 +88,9 @@ namespace OpenMS
   }
 
 
+  // provenance_ is intentionally not compared (nor in operator< / std::hash): searchModification()
+  // gates the no-dedup inserter on operator==, so a mismatch would create a second entry under the
+  // same FullId. Provenance describes the source of the definition, not the chemistry.
   bool ResidueModification::operator==(const ResidueModification& rhs) const
   {
     return id_ == rhs.id_ &&
@@ -113,17 +121,17 @@ namespace OpenMS
 
   ResidueModification::~ResidueModification() = default;
 
-  void ResidueModification::setId(const String& id)
+  void ResidueModification::setId(const std::string& id)
   {
     id_ = id;
   }
 
-  const String& ResidueModification::getId() const
+  const std::string& ResidueModification::getId() const
   {
     return id_;
   }
 
-  void ResidueModification::setFullId(const String& full_id)
+  void ResidueModification::setFullId(const std::string& full_id)
   {
     if (full_id.empty())
     {
@@ -131,14 +139,14 @@ namespace OpenMS
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot create full ID for modification with missing (short) ID.");
       }
-      String specificity;
+      std::string specificity;
       if (term_spec_ != ResidueModification::ANYWHERE)
       {
         specificity = getTermSpecificityName(); // "C-term" or "N-term"
       }
       if (!specificity.empty() && (origin_ != 'X'))
       {
-        specificity += " " + String(origin_);
+        specificity += " " + StringUtils::toStr(origin_);
       }
       else if (specificity.empty())
       {
@@ -152,17 +160,17 @@ namespace OpenMS
     }
   }
 
-  const String& ResidueModification::getFullId() const
+  const std::string& ResidueModification::getFullId() const
   {
     return full_id_;
   }
 
-  void ResidueModification::setPSIMODAccession(const String& id)
+  void ResidueModification::setPSIMODAccession(const std::string& id)
   {
     psi_mod_accession_ = id;
   }
 
-  const String& ResidueModification::getPSIMODAccession() const
+  const std::string& ResidueModification::getPSIMODAccession() const
   {
     return psi_mod_accession_;
   }
@@ -177,28 +185,28 @@ namespace OpenMS
     return unimod_record_id_;
   }
 
-  const String ResidueModification::getUniModAccession() const
+  const std::string ResidueModification::getUniModAccession() const
   {
     if (unimod_record_id_ < 0) return "";
-    return String("UniMod:") + unimod_record_id_; // return copy of temp object
+    return std::string("UniMod:") + unimod_record_id_; // return copy of temp object
   }
 
-  void ResidueModification::setFullName(const String& full_name)
+  void ResidueModification::setFullName(const std::string& full_name)
   {
     full_name_ = full_name;
   }
 
-  const String& ResidueModification::getFullName() const
+  const std::string& ResidueModification::getFullName() const
   {
     return full_name_;
   }
 
-  void ResidueModification::setName(const String& name)
+  void ResidueModification::setName(const std::string& name)
   {
     name_ = name;
   }
 
-  const String& ResidueModification::getName() const
+  const std::string& ResidueModification::getName() const
   {
     return name_;
   }
@@ -207,12 +215,12 @@ namespace OpenMS
   {
     if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid terminal specificity", String(term_spec));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid terminal specificity",StringUtils::toStr(term_spec));
     }
     term_spec_ = term_spec;
   }
 
-  void ResidueModification::setTermSpecificity(const String& term_spec)
+  void ResidueModification::setTermSpecificity(const std::string& term_spec)
   {
     if (term_spec == "C-term")
     {
@@ -245,7 +253,7 @@ namespace OpenMS
     return term_spec_;
   }
 
-  String ResidueModification::getTermSpecificityName(TermSpecificity term_spec) const
+  std::string ResidueModification::getTermSpecificityName(TermSpecificity term_spec) const
   {
     if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
     {
@@ -265,7 +273,7 @@ namespace OpenMS
 
     default: break; // shouldn't happen
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No name for this terminal specificity", String(term_spec));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No name for this terminal specificity",StringUtils::toStr(term_spec));
   }
 
   void ResidueModification::setOrigin(char origin)
@@ -280,8 +288,8 @@ namespace OpenMS
     }
     else
     {
-      String msg = "Modification '" + id_ + "': origin must be a letter from A to Y, excluding B and J.";
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, String(origin));
+      std::string msg = "Modification '" + id_ + "': origin must be a letter from A to Y, excluding B and J.";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg,StringUtils::toStr(origin));
     }
   }
 
@@ -295,10 +303,10 @@ namespace OpenMS
     classification_ = classification;
   }
 
-  void ResidueModification::setSourceClassification(const String& classification)
+  void ResidueModification::setSourceClassification(const std::string& classification)
   {
-    String c = classification;
-    c.toLower();
+    std::string c = classification;
+    StringUtils::toLower(c);
     if (c == "artifact" || c == "artefact") // unimod uses Artefact (BE) not Artifact (AE)
     {
       classification_ = ARTIFACT;
@@ -386,7 +394,7 @@ namespace OpenMS
     return classification_;
   }
 
-  String ResidueModification::getSourceClassificationName(SourceClassification classification) const
+  std::string ResidueModification::getSourceClassificationName(SourceClassification classification) const
   {
     if (classification == NUMBER_OF_SOURCE_CLASSIFICATIONS)
     {
@@ -431,6 +439,16 @@ namespace OpenMS
     }
   }
 
+  void ResidueModification::setProvenance(Provenance provenance)
+  {
+    provenance_ = provenance;
+  }
+
+  ResidueModification::Provenance ResidueModification::getProvenance() const
+  {
+    return provenance_;
+  }
+
   void ResidueModification::setAverageMass(double mass)
   {
     average_mass_ = mass;
@@ -471,12 +489,12 @@ namespace OpenMS
     return diff_mono_mass_;
   }
 
-  void ResidueModification::setFormula(const String& formula)
+  void ResidueModification::setFormula(const std::string& formula)
   {
     formula_ = formula;
   }
 
-  const String& ResidueModification::getFormula() const
+  const std::string& ResidueModification::getFormula() const
   {
     return formula_;
   }
@@ -491,17 +509,17 @@ namespace OpenMS
     return diff_formula_;
   }
 
-  void ResidueModification::addSynonym(const String& synonym)
+  void ResidueModification::addSynonym(const std::string& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  void ResidueModification::setSynonyms(const set<String>& synonyms)
+  void ResidueModification::setSynonyms(const set<std::string>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  const set<String>& ResidueModification::getSynonyms() const
+  const set<std::string>& ResidueModification::getSynonyms() const
   {
     return synonyms_;
   }
@@ -546,13 +564,13 @@ namespace OpenMS
     return id_.empty() && !full_id_.empty();
   }
   
-  const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod,
+  const ResidueModification* ResidueModification::createUnknownFromMassString(const std::string& mod,
                                                                               const double mass,
                                                                               const bool delta_mass,
                                                                               const TermSpecificity specificity,
                                                                               const Residue* residue)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     // -----------------------------------
     // Dealing with an unknown modification
@@ -564,8 +582,8 @@ namespace OpenMS
     // set when adding a modification using setModification_
     if (specificity == ResidueModification::N_TERM || specificity == ResidueModification::PROTEIN_N_TERM)
     {
-      String residue_name = "[" + mod + "]";
-      String residue_id = ".n" + residue_name;
+      std::string residue_name = "[" + mod + "]";
+      std::string residue_id = ".n" + residue_name;
 
       // Check if it already exists, if not create new modification, transfer
       // ownership to ModDB
@@ -573,6 +591,7 @@ namespace OpenMS
       {
         unique_ptr<ResidueModification> new_mod(new ResidueModification);
         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setProvenance(MASS_ONLY);
         new_mod->setFullName(residue_name); // display name
         new_mod->setTermSpecificity(specificity);
 
@@ -601,8 +620,8 @@ namespace OpenMS
     else
       if (specificity == ResidueModification::C_TERM || specificity == ResidueModification::PROTEIN_C_TERM)
       {
-        String residue_name = "[" + mod + "]";
-        String residue_id = ".c" + residue_name;
+        std::string residue_name = "[" + mod + "]";
+        std::string residue_id = ".c" + residue_name;
 
         // Check if it already exists, if not create new modification, transfer
         // ownership to ModDB
@@ -610,6 +629,7 @@ namespace OpenMS
         {
           unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+          new_mod->setProvenance(MASS_ONLY);
           new_mod->setFullName(residue_name); // display name
           new_mod->setTermSpecificity(specificity);
 
@@ -641,14 +661,15 @@ namespace OpenMS
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot create non-terminal mod without origin AA residue.", "nullptr");
         }
-        String modification_name = "[" + mod + "]";
-        String residue_id = String(residue->getOneLetterCode()) + modification_name; // e.g. N[12345.6]
+        std::string modification_name = "[" + mod + "]";
+        std::string residue_id =std::string(residue->getOneLetterCode()) + modification_name; // e.g. N[12345.6]
 
         if (!mod_db->has(residue_id))
         {
           // create new modification
           unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+          new_mod->setProvenance(MASS_ONLY);
           new_mod->setFullName(modification_name); // display name
 
           // We will set origin to make sure the same modification will be used
@@ -715,7 +736,7 @@ namespace OpenMS
       }
       if (mod_merged->getOrigin() != mod_new->getOrigin())
       {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Modifications to be merged to not have the same origin: ") + mod_merged->getOrigin() + " != " + mod_new->getOrigin());
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Modifications to be merged to not have the same origin: ") + mod_merged->getOrigin() + " != " + mod_new->getOrigin());
       }
       new_mass += mod_new->getDiffMonoMass();
     }
@@ -723,7 +744,7 @@ namespace OpenMS
     // sanity check: mods and residue need same origin
     if (mod_merged->getTermSpecificity() == ANYWHERE && residue != nullptr && residue->getOneLetterCode()[0] != mod_merged->getOrigin())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Modification and residue do not have the same origin: ") + mod_merged->getOrigin() + " != " + residue->getOneLetterCode());
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Modification and residue do not have the same origin: ") + mod_merged->getOrigin() + " != " + residue->getOneLetterCode());
     }
     // create new residue from it
     const ResidueModification* mod_sum =
@@ -736,9 +757,208 @@ namespace OpenMS
     return mod_sum;
   }
 
-  String ResidueModification::toString() const
+  namespace
   {
-    String ret;
+    // Escape a definition-record field: the three characters that have structural meaning.
+    std::string escapeField_(const std::string& in)
+    {
+      std::string out;
+      out.reserve(in.size());
+      for (const char c : in)
+      {
+        if (c == '\\' || c == '|' || c == ';') out += '\\';
+        out += c;
+      }
+      return out;
+    }
+
+    // Split on an unescaped separator, unescaping as we go. A trailing lone backslash is kept literally.
+    std::vector<std::string> splitEscaped_(const std::string& in, const char sep)
+    {
+      std::vector<std::string> parts(1);
+      for (std::size_t i = 0; i < in.size(); ++i)
+      {
+        const char c = in[i];
+        if (c == '\\' && i + 1 < in.size())
+        {
+          parts.back() += in[++i];
+        }
+        else if (c == sep)
+        {
+          parts.emplace_back();
+        }
+        else
+        {
+          parts.back() += c;
+        }
+      }
+      return parts;
+    }
+
+    std::string doubleToRecord_(const double d)
+    {
+      char buf[64];
+      const auto res = std::to_chars(buf, buf + sizeof(buf), d); // shortest exact round trip
+      if (res.ec != std::errc())
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Cannot write the mass " + std::to_string(d) + " into a modification definition record");
+      }
+      return std::string(buf, res.ptr);
+    }
+
+    double recordToDouble_(const std::string& field, const std::string& record)
+    {
+      if (field.empty()) return 0.0;
+      try
+      {
+        return StringUtils::toDouble(field); // libc++ has no floating-point std::from_chars
+      }
+      catch (const Exception::ConversionError&)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                    "Modification definition record has a malformed number: '" + field + "'");
+      }
+    }
+  } // namespace
+
+  std::string ResidueModification::toDefinitionString() const
+  {
+    if (id_.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot write a definition record for a modification without an Id: resolution goes through the name.");
+    }
+    std::string losses;
+    for (const EmpiricalFormula& f : neutral_loss_diff_formulas_)
+    {
+      if (!losses.empty()) losses += ',';
+      losses += f.toString();
+    }
+    const std::string fields[] = {
+      "1",
+      id_,
+      full_id_,
+      full_name_,
+      std::string(1, origin_),
+      getTermSpecificityName(term_spec_),
+      diff_formula_.isEmpty() ? std::string() : diff_formula_.toString(),
+      doubleToRecord_(diff_mono_mass_),
+      doubleToRecord_(diff_average_mass_),
+      losses
+    };
+    std::string out;
+    for (const std::string& f : fields)
+    {
+      if (!out.empty()) out += '|';
+      out += escapeField_(f);
+    }
+    return out;
+  }
+
+  ResidueModification ResidueModification::fromDefinitionString(const std::string& record)
+  {
+    const std::vector<std::string> f = splitEscaped_(record, '|');
+    // version | Id | FullId | FullName | origin | term_spec | diff_formula | diff_mono | diff_avg [| losses [| ...]]
+    if (f.size() < 9)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                  "Modification definition record has " + std::to_string(f.size()) + " fields, expected at least 9");
+    }
+    if (f[0] != "1")
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                  "Unsupported modification definition record version '" + f[0] + "'");
+    }
+    if (f[1].empty())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                  "Modification definition record has an empty Id");
+    }
+    if (f[4].size() != 1)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, record,
+                                  "Modification definition record origin must be a single residue letter, got '" + f[4] + "'");
+    }
+
+    ResidueModification mod;
+    mod.setId(f[1]);
+    mod.setFullName(f[3]);
+    mod.setTermSpecificity(f[5]); // throws InvalidValue on an unknown name
+    mod.setOrigin(f[4][0]);       // throws InvalidValue on a non-residue letter
+    if (!f[6].empty()) mod.setDiffFormula(EmpiricalFormula(f[6]));
+    mod.setDiffMonoMass(recordToDouble_(f[7], record));
+    mod.setDiffAverageMass(recordToDouble_(f[8], record));
+    if (f.size() > 9 && !f[9].empty())
+    {
+      std::vector<EmpiricalFormula> losses;
+      std::vector<double> loss_mono, loss_avg;
+      std::stringstream ss(f[9]);
+      std::string item;
+      while (std::getline(ss, item, ','))
+      {
+        if (item.empty()) continue;
+        losses.emplace_back(item);
+        loss_mono.push_back(losses.back().getMonoWeight());
+        loss_avg.push_back(losses.back().getAverageWeight());
+      }
+      mod.setNeutralLossDiffFormulas(losses);
+      mod.setNeutralLossMonoMasses(loss_mono); // the record carries formulas only; keep the object consistent
+      mod.setNeutralLossAverageMasses(loss_avg);
+    }
+
+    // the record's FullId is authoritative (dedup key) but should agree with the derived one
+    ResidueModification derived(mod);
+    derived.setFullId();
+    if (f[2].empty())
+    {
+      mod.setFullId(derived.getFullId());
+    }
+    else
+    {
+      mod.setFullId(f[2]);
+      if (f[2] != derived.getFullId())
+      {
+        OPENMS_LOG_WARN << "Modification definition '" << f[1] << "': FullId '" << f[2]
+                        << "' does not match the one derived from its site ('" << derived.getFullId()
+                        << "'); keeping the record's." << std::endl;
+      }
+    }
+    mod.setProvenance(DEFINED);
+    return mod;
+  }
+
+  std::vector<std::string> ResidueModification::splitDefinitionRecords(const std::string& records)
+  {
+    if (records.empty()) return {};
+    std::vector<std::string> out;
+    // split on unescaped ';' without unescaping; fromDefinitionString needs the escapes intact
+    std::string cur;
+    for (std::size_t i = 0; i < records.size(); ++i)
+    {
+      const char c = records[i];
+      if (c == '\\' && i + 1 < records.size())
+      {
+        cur += c;
+        cur += records[++i];
+      }
+      else if (c == ';')
+      {
+        if (!cur.empty()) out.push_back(cur);
+        cur.clear();
+      }
+      else
+      {
+        cur += c;
+      }
+    }
+    if (!cur.empty()) out.push_back(cur);
+    return out;
+  }
+
+  std::string ResidueModification::toString() const
+  {
+    std::string ret;
 
     if (term_spec_ != ANYWHERE) ret = ".";
     else ret = origin_;
@@ -777,24 +997,24 @@ namespace OpenMS
 
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ResidueModification is in an invalid state. This is a bug. Please report it!", "");
   }
-  String ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
+  std::string ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
   {
-    return String(diff_mono_mass < 0.0 ? "-" : "+") += std::fabs(diff_mono_mass);
+    return std::string(diff_mono_mass < 0.0 ? "-" : "+") + StringUtils::toStr(std::fabs(diff_mono_mass));
   }
-  String ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
+  std::string ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
   {
-    String ret = '[';
+    std::string ret(1, '[');
     ret += getDiffMonoMassString(diff_mono_mass);
     ret += ']';
     return ret;
   }
-  String ResidueModification::getMonoMassWithBracket(const double mono_mass)
+  std::string ResidueModification::getMonoMassWithBracket(const double mono_mass)
   {
     if (mono_mass < 0.0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification has negative mono mass. Cannot distinguish between delta masses due to '-'!", String(mono_mass));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification has negative mono mass. Cannot distinguish between delta masses due to '-'!",StringUtils::toStr(mono_mass));
     }
-    String ret = '[';
+    std::string ret(1, '[');
     ret += mono_mass;
     ret += ']';
     return ret;

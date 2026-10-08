@@ -15,41 +15,75 @@ else()
   set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Debian-Linux-${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
+## A package built from anything but a release (a nightly, a branch) carries its
+## prerelease identifier in the control version too, after a '~': 3.6.0~nightly.2026.09.27.
+## dpkg sorts '~' before everything, even the end of the string, so the package sorts
+## below the release 3.6.0 and a later nightly above an earlier one. With the plain
+## 3.6.0 of before, apt treated a nightly and the release as the same version.
+## Without a Debian revision the version may not contain '-', so every character
+## outside [A-Za-z0-9.+~] becomes '.'.
+if(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER)
+  string(REGEX REPLACE "[^A-Za-z0-9.+~]" "." _openms_deb_prerelease "${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
+  set(CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION}~${_openms_deb_prerelease}")
+endif()
+
 ## CPack issues when building the package.
 ## https://bugs.launchpad.net/ubuntu/+source/cmake/+bug/972419
 ## https://ubuntuforums.org/showthread.php?t=2316865
 ## Workaround after packaging: https://cmake.org/pipermail/cmake/2012-May/050483.html
-## Following needs CMake 3.7+. Just install from cmake.org
 set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 
 ## We usually do not want to ship things like stdlib or glibc. Could mess up a system slighlty, when installed system wide
 #include(InstallRequiredSystemLibraries)
 
-# Don't add RPATH
-SET(CMAKE_SKIP_INSTALL_RPATH TRUE)
+## Some libraries reach the staging tree with empty RUNPATH entries, which the loader
+## reads as the current working directory: the release workflow links the binaries
+## under PACKAGE_TYPE=none and packages them after reconfiguring (the script explains
+## how that leaves them behind). The script removes them before the package is built.
+list(APPEND CPACK_PRE_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_clean_runpath.cmake")
 
-## Try autogeneration of dependencies:
-## This may result in non-standard package names in the dependencies (e.g. when using Qt from a Thirdparty repo)
-## It also will add system dependencies like a minimum glibc or gomp version (not necessarily bad)
-##set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+## dpkg-shlibdeps names the packages of the build host, which in Ubuntu 24.04 carry
+## the t64 suffix of the 64-bit time_t transition (libqt6gui6t64). Older releases, and
+## also Debian 13 and Ubuntu 25.10 and 26.04, name most Qt libraries without it
+## (libqt6gui6). After CPack has written the package, the script adds the old name as an
+## alternative wherever the renamed package provides it (libqt6gui6t64 (>= X) |
+## libqt6gui6 (>= X)), keeping the version constraint. It has to edit the derived entries: a hand-written
+## "t64 | non-t64" entry would be ANDed with the derived plain t64 one.
+list(APPEND CPACK_POST_BUILD_SCRIPTS "${CMAKE_CURRENT_LIST_DIR}/cpack_deb_t64_dependencies.cmake")
+
+## Derive dependencies from the built binaries; a hand-written list goes stale and
+## installs on systems the binaries cannot run on. A library the package ships itself
+## (SQLite, in lib/) needs no Debian package. Apart from the alternatives the
+## post-build script above adds, Depends is what dpkg-shlibdeps derives.
+##
+## This was on once before (#10202) and had to come off again (#10207), because the
+## staging tree carried foreign-architecture binaries: ThermoRawFileParser's NuGet
+## runtimes/<rid>/ tree ships a libMono.Unix.so for seven runtime identifiers
+## (android-arm, android-arm64, android-x64, android-x86, linux-arm, linux-arm64,
+## linux-x64), and on any one host five of the seven are foreign -- see the binary
+## list in the failing run 35434550390, where they are the only such files.
+## dpkg-shlibdeps answers each with "cannot find library libc.so.6 needed by
+## ... (ELF format: ...; abi: ...)", an error --ignore-missing-info does not cover, so
+## CPack aborted before writing the package. install_thirdparty_folder()
+## (cmake/install_macros.cmake) now installs only the runtime identifiers this build
+## targets, so nothing foreign reaches the staging tree. The private libraries the tool
+## still cannot resolve (libOpenMS_CLI.so and its siblings) are same-architecture, and
+## those come back as warnings rather than errors, so they do not stop it.
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 ## Debug for now. Not much output.
 set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
 
 ## TODO also install headers? make a dev package configuration?
-set(CPACK_COMPONENTS_ALL applications doc library share Dependencies ${THIRDPARTY_COMPONENT_GROUP})
-
-## TODO we only need to put dependencies on shared libs. But this depends on what is found and what is statically linked on build machine.
-## We should probably use a full system-shared-libs-only machine for building. Then the deps should look similar to below.
-#set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxerces-c-dev (>= 3.1.1), libeigen3-dev, libboost-dev (>= 1.54.0), libboost-iostreams-dev (>= 1.54.0), libboost-date-time-dev (>= 1.54.0), libboost-math-dev (>= 1.54.0), libsvm-dev (>= 3.12), libglpk-dev (>= 4.52.1), zlib1g-dev (>= 1.2.7), libbz2-dev (>= 1.0.6), libqt4-dev (>= 4.8.2), libqt4-opengl-dev (>= 4.8.2), libqtwebkit-dev (>= 2.2.1), coinor-libcoinutils-dev (>= 2.6.4)")
-
-## Autogeneration with SHLIBDEPS will add to this variable. For now we include most things statically and require the standard Qt package and libc6 only.
-## (only available in Ubuntu >=17.10). For older Ubuntu, dependencies can be installed from a thirdparty repo.
-## External libraries from Debian repositories should be listed here to avoid file conflicts
-## Note: SQLiteCpp is statically linked, but SQLite3 is dynamically linked at runtime
-set(CPACK_DEBIAN_PACKAGE_DEPENDS 
-  "libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widgets6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2), libyaml-cpp0.7 | libyaml-cpp0.8, libsqlite3-0 (>= 3.35.0), libzip5"
-)
+## The libraries come in layers (cmake/install_macros.cmake): library (core),
+## library_cli (TOPP tool framework, needed by the TOPP tools) and library_gui.
+## 'Applications' as install_tool() registers it: CPack installs a component by
+## name and a mismatch would package none of the TOPP tools.
+set(CPACK_COMPONENTS_ALL Applications doc library library_cli share ${THIRDPARTY_COMPONENT_GROUP})
+if(WITH_GUI)
+  ## the GUI applications (install_tool() in src/openms_gui/CMakeLists.txt)
+  list(APPEND CPACK_COMPONENTS_ALL library_gui ${OPENMS_GUI_APPLICATIONS_COMPONENT})
+endif()
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")
@@ -75,4 +109,4 @@ add_custom_target(dist
 ## TODO make postinstall script that sets OPENMS_DATA_PATH
 
 # For source packages add build dependencies. Not used and not tested.
-#set(CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS "debhelper (>= 9), dpkg-dev (>= 1.16.1~), cmake (>= 2.6.3), imagemagick, doxygen (>= 1.8.1.2), graphviz, texlive-extra-utils, texlive-latex-extra, latex-xcolor, texlive-font-utils, ghostscript, texlive-fonts-recommended"
+#set(CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS "debhelper (>= 9), dpkg-dev (>= 1.16.1~), cmake (>= 2.6.3), imagemagick, doxygen (>= 1.8.1.2), graphviz, texlive-extra-utils, texlive-latex-extra, latex-xcolor, texlive-font-utils, texlive-fonts-recommended"

@@ -23,6 +23,7 @@ namespace OpenMS
            source_files_ == rhs.source_files_ &&
            contacts_ == rhs.contacts_ &&
            instrument_ == rhs.instrument_ &&
+           instrument_configurations_ == rhs.instrument_configurations_ &&
            hplc_ == rhs.hplc_ &&
            datetime_ == rhs.datetime_ &&
            comment_ == rhs.comment_ &&
@@ -96,6 +97,21 @@ namespace OpenMS
     instrument_ = instrument;
   }
 
+  const std::map<std::string, Instrument>& ExperimentalSettings::getInstrumentConfigurations() const
+  {
+    return instrument_configurations_;
+  }
+
+  std::map<std::string, Instrument>& ExperimentalSettings::getInstrumentConfigurations()
+  {
+    return instrument_configurations_;
+  }
+
+  void ExperimentalSettings::setInstrumentConfigurations(const std::map<std::string, Instrument>& configurations)
+  {
+    instrument_configurations_ = configurations;
+  }
+
   const DateTime & ExperimentalSettings::getDateTime() const
   {
     return datetime_;
@@ -128,22 +144,22 @@ namespace OpenMS
     return os;
   }
 
-  const String & ExperimentalSettings::getComment() const
+  const std::string & ExperimentalSettings::getComment() const
   {
     return comment_;
   }
 
-  void ExperimentalSettings::setComment(const String & comment)
+  void ExperimentalSettings::setComment(const std::string & comment)
   {
     comment_ = comment;
   }
 
-  const String & ExperimentalSettings::getFractionIdentifier() const
+  const std::string & ExperimentalSettings::getFractionIdentifier() const
   {
     return fraction_identifier_;
   }
 
-  void ExperimentalSettings::setFractionIdentifier(const String & fraction_identifier)
+  void ExperimentalSettings::setFractionIdentifier(const std::string & fraction_identifier)
   {
     fraction_identifier_ = fraction_identifier;
   }

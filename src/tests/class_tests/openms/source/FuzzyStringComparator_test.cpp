@@ -18,7 +18,7 @@ using namespace OpenMS;
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>
@@ -180,11 +180,11 @@ END_SECTION
 
   START_SECTION((void setWhitelist(const StringList &rhs)))
   {
-    fsc.setWhitelist(ListUtils::create<String>("null,eins,zwei,drei"));
+    fsc.setWhitelist(ListUtils::create<std::string>("null,eins,zwei,drei"));
     TEST_STRING_EQUAL(fsc.getWhitelist()[0],"null");
     TEST_STRING_EQUAL(fsc_cref.getWhitelist()[1],"eins");
     TEST_EQUAL(fsc_cref.getWhitelist().size(),4);
-    fsc.setWhitelist(ListUtils::create<String>("zero,one,two,three,four"));
+    fsc.setWhitelist(ListUtils::create<std::string>("zero,one,two,three,four"));
     TEST_STRING_EQUAL(fsc.getWhitelist()[0],"zero");
     TEST_STRING_EQUAL(fsc_cref.getWhitelist()[1],"one");
     TEST_EQUAL(fsc_cref.getWhitelist().size(),5);
@@ -280,8 +280,8 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 		fsc.setAcceptableAbsolute(0.01);
 		bool result = (fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3")!=0);
 		TEST_EQUAL(result,true);
-		std::vector<OpenMS::String> substrings;
-		result = OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); result = StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		TEST_EQUAL(result, false);
 		TEST_EQUAL(substrings.size(), 0);
@@ -296,8 +296,8 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 		fsc.setAcceptableAbsolute(0.01);
 		bool result = (fsc.compareStrings("1 \n 		   2	\n 3","1.01 \n \n		\n\n  					  	0002.01000 \n 3")!=0);
 		TEST_EQUAL(result,true);
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),17);
@@ -312,8 +312,8 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 		fsc.setAcceptableRelative(1.01);
 		fsc.setAcceptableAbsolute(0.01);
 		fsc.compareStrings("1 \n 		   2	\n 3","1.11 \n \n		\n\n  					  	0004.01000 \n 3");
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),36);
@@ -333,8 +333,8 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 			 "1 \n xx\n 2.008	\n 3",
 			 "1.11 \nU\n		\n\n  q					  	0002.04000 \n 3"
 			);
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),246);
@@ -375,8 +375,8 @@ START_SECTION((bool compareStreams(std::istream &input_1, std::istream &input_2)
 		std::istringstream lhs("1 \n xx\n 2.008	\n 3");
 		std::istringstream rhs("1.11 \nU\n		\n\n  q					  	0002.04000 \n 3");
 		fsc.compareStreams(lhs,rhs);
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),246);
@@ -414,8 +414,8 @@ START_SECTION((bool compareFiles(const std::string &filename_1, const std::strin
 			file2.close();
 		}
 		fsc.compareFiles(filename1,filename2);
-		std::vector<OpenMS::String> substrings;
-		OpenMS::String(log.str()).split('\n',substrings);
+		std::vector<std::string> substrings;
+		{ std::string log_str = log.str(); StringUtils::split(log_str, '\n', substrings); }
 		// STATUS(log.str());
 		// Magic alert! - You might need to edit these numbers if reportSuccess_() or reportFailure_() changes.
 		TEST_EQUAL(substrings.size(),246);
@@ -428,6 +428,58 @@ START_SECTION((bool compareFiles(const std::string &filename_1, const std::strin
 		TEST_STRING_EQUAL(substrings[175],"FAILED: 'input_1 is not a number, but input_2 is'");
 		TEST_STRING_EQUAL(substrings[210],"FAILED: 'line from input_1 is shorter than line from input_2'");
 	}
+}
+END_SECTION
+
+//------------------------------------------------------------
+
+START_SECTION(([EXTRA] non-finite numbers are compared by category, not by arithmetic))
+{
+  // Every comparison against NaN is false, so the absolute-difference and ratio tests could not
+  // reject one: 'absdiff > absdiff_max_', 'ratio < 0', 'ratio < 1' and finally
+  // 'ratio > ratio_max_' - the sole gate to reportFailure_ - were all false and the pair was
+  // accepted. A value that regressed to NaN was therefore invisible to every file comparison in
+  // the suite, whatever the other file held. Infinities are ordered and were handled correctly
+  // against finite numbers, but +inf against -inf produced a NaN ratio and fell through the same
+  // way.
+  const auto equal = [](const std::string& lhs, const std::string& rhs)
+  {
+    std::ostringstream log;
+    FuzzyStringComparator fsc;
+    fsc.setLogDestination(log);
+    fsc.setAcceptableRelative(1.01);
+    fsc.setAcceptableAbsolute(0.01);
+    return fsc.compareStrings(lhs, rhs);
+  };
+
+  // The same non-finite value on both sides is equal. A reference file may legitimately contain
+  // 'nan', and two NaNs never reach the '==' fast path because NaN != NaN.
+  TEST_TRUE(equal("x nan", "x nan"))
+  TEST_TRUE(equal("x inf", "x inf"))
+  TEST_TRUE(equal("x -inf", "x -inf"))
+
+  // NaN against anything else must be reported. The second of these is the direction a real
+  // regression travels: the tool emits NaN where the reference holds a legitimate number.
+  TEST_FALSE(equal("x nan", "x 5.0"))
+  TEST_FALSE(equal("x 5.0", "x nan"))
+  TEST_FALSE(equal("x nan", "x inf"))
+  TEST_FALSE(equal("x nan", "x -inf"))
+  TEST_FALSE(equal("x nan", "x 0.0"))
+
+  // Opposite infinities are not the same value.
+  TEST_FALSE(equal("x inf", "x -inf"))
+  TEST_FALSE(equal("x -inf", "x inf"))
+
+  // Unchanged: an infinity against a finite number was already reported, by the ratio test for
+  // +inf and by the sign test for -inf, and keeps that path.
+  TEST_FALSE(equal("x inf", "x 5.0"))
+  TEST_FALSE(equal("x -inf", "x 5.0"))
+
+  // Unchanged: ordinary numbers still obey the configured tolerances, and a NaN elsewhere on the
+  // line does not make the rest of it permissive.
+  TEST_TRUE(equal("x 1.000 nan", "x 1.001 nan"))
+  TEST_FALSE(equal("x 1.0 nan", "x 2.0 nan"))
+  TEST_FALSE(equal("x nan", "x abc"))
 }
 END_SECTION
 

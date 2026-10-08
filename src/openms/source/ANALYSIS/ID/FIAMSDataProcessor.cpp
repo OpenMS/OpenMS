@@ -115,7 +115,7 @@ namespace OpenMS {
 
   FeatureMap FIAMSDataProcessor::convertToFeatureMap(const MSSpectrum& input)
   {
-    String polarity_ = param_.getValue("polarity").toString();
+    std::string polarity_ = param_.getValue("polarity").toString();
     FeatureMap output;
     for (auto it = input.begin(); it != input.end(); ++it) {
         Feature f;
@@ -174,10 +174,10 @@ namespace OpenMS {
 
   bool FIAMSDataProcessor::run(const MSExperiment& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum)
   {
-    String postfix = String(static_cast<int>(n_seconds));
+    std::string postfix =StringUtils::toStr(static_cast<int>(n_seconds));
     std::string dir_output_ = param_.getValue("dir_output");
     std::string filename_ = param_.getValue("filename");
-    String filepath_picked = dir_output_ + "/" + filename_ + "_picked_" + postfix + ".mzML";
+    std::string filepath_picked = dir_output_ + "/" + filename_ + "_picked_" + postfix + ".mzML";
     MSSpectrum picked_spectrum;
     bool is_cached;
     if (load_cached_spectrum && File::exists(filepath_picked)) {
@@ -209,7 +209,7 @@ namespace OpenMS {
     return is_cached;
   }
 
-  void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, const String& filename)
+  void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, const std::string& filename)
   {
       MSExperiment exp;
       exp.addSpectrum(input);

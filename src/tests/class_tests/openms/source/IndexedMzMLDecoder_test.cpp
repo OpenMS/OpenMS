@@ -36,7 +36,7 @@ START_SECTION((~IndexedMzMLDecoder()))
   delete ptr;
 END_SECTION
 
-START_SECTION((int parseOffsets(String filename, std::streampos indexoffset, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets)))
+START_SECTION((int parseOffsets(std::string filename, std::streampos indexoffset, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets)))
   // see also IndexedMzMLFile_test.cpp
   std::streampos res = IndexedMzMLDecoder().findIndexListOffset(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_NOT_EQUAL(res, -1)
@@ -52,7 +52,7 @@ START_SECTION((int parseOffsets(String filename, std::streampos indexoffset, Off
 END_SECTION
 
     
-START_SECTION((std::streampos findIndexListOffset(String filename, int buffersize = 1023)))
+START_SECTION((std::streampos findIndexListOffset(std::string filename, int buffersize = 1023)))
   // see also IndexedMzMLFile_test.cpp
   //
   std::streampos res = IndexedMzMLDecoder().findIndexListOffset(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));

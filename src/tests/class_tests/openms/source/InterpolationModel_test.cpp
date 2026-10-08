@@ -152,7 +152,7 @@ START_SECTION(([EXTRA]void setCutOff(IntensityType cut_off)))
   TEST_REAL_SIMILAR(s.getCutOff(), 4.4)
 END_SECTION
 
-START_SECTION(([EXTRA]const String& getName() const))
+START_SECTION(([EXTRA]const std::string& getName() const))
 	TestModel s;
   TEST_EQUAL(s.getName(), "TestModel")
 END_SECTION

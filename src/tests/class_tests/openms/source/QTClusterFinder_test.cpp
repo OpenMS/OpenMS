@@ -13,6 +13,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/Feature.h>
@@ -220,6 +221,33 @@ END_SECTION
 START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map)))
 {
 	NOT_TESTABLE; // same as "run" for feature maps (tested above)
+}
+END_SECTION
+
+START_SECTION([EXTRA] void run() with only empty input maps (regression: no dereference of empty mass range))
+{
+  // Two default-constructed (empty) FeatureMaps must not crash the partition
+  // path: previously run_() dereferenced an empty 'massrange' vector
+  // (front()/back()/size()-1) leading to undefined behavior/crash.
+  vector<FeatureMap> input(2); // two empty maps
+  input[0].updateRanges();
+  input[1].updateRanges();
+
+  QTClusterFinder finder;
+  // default parameters -> nr_partitions == 100 -> non-trivial partition path
+  ConsensusMap result;
+  finder.run(input, result);
+  TEST_EQUAL(result.size(), 0);
+
+  // nr_partitions == 1 takes the single-partition branch (run_internal_), whose
+  // setParameters_() throws on the invalid maximum m/z of empty maps. The empty
+  // guard must short-circuit before that branch as well, so this must not throw.
+  Param p = finder.getParameters();
+  p.setValue("nr_partitions", 1);
+  finder.setParameters(p);
+  ConsensusMap result_single;
+  finder.run(input, result_single);
+  TEST_EQUAL(result_single.size(), 0);
 }
 END_SECTION
 

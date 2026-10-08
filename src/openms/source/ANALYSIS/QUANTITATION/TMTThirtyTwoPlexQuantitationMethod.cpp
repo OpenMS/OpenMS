@@ -14,7 +14,6 @@
 #include <algorithm>
 
 namespace OpenMS{
-    const String TMTThirtyTwoPlexQuantitationMethod::name_ = "tmt32plex";
     /*
         For 32plex experiments, use TMTpro 32plex Label Reagent Matched Set (Cat. No. A40000839) 
         or TMTpro 16plex Deuterated Label Reagent Set (Cat. No. A40000817) and TMTpro 16plex Label Reagent Set (Cat. No. A44520)
@@ -79,7 +78,9 @@ namespace OpenMS{
         134.157491, 135.154526
     };
 
-    TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(){
+    TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod() :
+        IsobaricQuantitationMethod(MethodType::TMT_32PLEX)
+    {
         setName("TMTThirtyTwoPlexQuantitationMethod");
 
         // Reporter ion masses from Thermo TMTpro documentation:
@@ -194,11 +195,6 @@ TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(const TMT
 
 TMTThirtyTwoPlexQuantitationMethod& TMTThirtyTwoPlexQuantitationMethod::operator=(const TMTThirtyTwoPlexQuantitationMethod& rhs)
 = default;
-
-const String& TMTThirtyTwoPlexQuantitationMethod::getMethodName() const
-{
-    return TMTThirtyTwoPlexQuantitationMethod::name_;
-}
 
 const IsobaricQuantitationMethod::IsobaricChannelList& TMTThirtyTwoPlexQuantitationMethod::getChannelInformation() const
 {

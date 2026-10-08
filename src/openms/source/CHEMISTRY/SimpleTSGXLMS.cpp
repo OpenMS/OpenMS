@@ -78,7 +78,7 @@ namespace OpenMS
         vector<EmpiricalFormula> loss_formulas = residues[i].getLossFormulas();
         for (Size k = 0; k != loss_formulas.size(); ++k)
         {
-          String loss_name = loss_formulas[k].toString();
+          std::string loss_name = loss_formulas[k].toString();
           if (loss_name == "H2O1") // for now only these most common losses are considered
           {
             if (loss_H2O_ < 1)
@@ -101,19 +101,9 @@ namespace OpenMS
     }
   }
 
-  SimpleTSGXLMS::SimpleTSGXLMS(const SimpleTSGXLMS & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  SimpleTSGXLMS::SimpleTSGXLMS(const SimpleTSGXLMS& rhs) = default;
 
-  SimpleTSGXLMS & SimpleTSGXLMS::operator=(const SimpleTSGXLMS & rhs)
-  {
-    if (this != &rhs)
-    {
-      DefaultParamHandler::operator=(rhs);
-    }
-    return *this;
-  }
+  SimpleTSGXLMS& SimpleTSGXLMS::operator=(const SimpleTSGXLMS& rhs) = default;
 
   SimpleTSGXLMS::~SimpleTSGXLMS() = default;
 
@@ -237,7 +227,7 @@ namespace OpenMS
 
         if (add_losses_)
         {
-          addLosses_(spectrum, pos, charge, backward_losses[i]);
+          addLosses_(spectrum, mono_weight, charge, backward_losses[i]);
         }
         spectrum.emplace_back(pos, charge);
 

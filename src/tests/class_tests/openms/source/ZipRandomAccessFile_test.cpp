@@ -8,6 +8,7 @@
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <fstream>
 #include <vector>
 #include <cstring>
@@ -21,11 +22,11 @@ using namespace OpenMS;
 
 START_TEST(ZipRandomAccessFile, "$Id$")
 
-START_SECTION(static arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> Open(const String&, const String&, std::unique_ptr<File::TempDir>&))
+START_SECTION(static arrow::Result<std::shared_ptr<arrow::io::RandomAccessFile>> Open(const std::string&, const std::string&, std::unique_ptr<TempDir>&))
 {
   // create temporary directory
-  std::unique_ptr<File::TempDir> tmpdir(new File::TempDir(false));
-  String tmp_path = tmpdir->getPath();
+  std::unique_ptr<TempDir> tmpdir(new TempDir(false));
+  std::string tmp_path = tmpdir->getPath();
 
 #if __has_include(<zip.h>)
   // create a zip archive with one entry

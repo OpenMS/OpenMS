@@ -12,9 +12,12 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
+
+#include <set>
 
 
 using namespace OpenMS;
@@ -42,16 +45,22 @@ START_SECTION((~MzIdentMLFile()))
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
 {
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
-  std::vector<String> fm{"Carbamidomethyl (C)", "Xlink:DTSSP[88] (Protein N-term)"};
+  std::vector<std::string> fm{"Carbamidomethyl (C)", "Xlink:DTSSP[88] (Protein N-term)"};
   MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(),2)
   TEST_EQUAL(protein_ids[0].getHits().size(),2)
   TEST_EQUAL(protein_ids[1].getHits().size(),1)
+  TEST_EQUAL(peptide_ids.size(),5)
+
+  // loading again into the same containers must replace, not accumulate
+  // (regression: the DOM handler only appends; load() now clears first, matching IdXMLFile::load)
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(protein_ids.size(),2)
   TEST_EQUAL(peptide_ids.size(),5)
   TEST_EQUAL(peptide_ids[0].getHits().size(),1)
   TEST_EQUAL(peptide_ids[1].getHits().size(),1)
@@ -105,14 +114,61 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 }
 END_SECTION
 
-START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids) )
+START_SECTION(([EXTRA] read mzIdentML Modification without the optional location attribute (issue #5443)))
+{
+  // The 'location' attribute of <Modification> is optional in mzIdentML; some search engines omit it for
+  // terminal modifications. Reading such a file used to crash with an IndexOverflow exception. The reader
+  // must now infer a terminal position (or skip the modification) instead of applying a negative index.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_missing_mod_location.mzid"), protein_ids, peptide_ids);
+
+  ABORT_IF(peptide_ids.size() != 5)
+  for (Size i = 0; i < peptide_ids.size(); ++i)
+  {
+    ABORT_IF(peptide_ids[i].getHits().empty())
+  }
+
+  // 1) N-terminal Acetyl without 'location' -> inferred as N-terminal
+  const AASequence& acetyl_seq = peptide_ids[0].getHits()[0].getSequence();
+  TEST_EQUAL(acetyl_seq.toUnmodifiedString(), "PEPTIDEK")
+  TEST_TRUE(acetyl_seq.hasNTerminalModification())
+  TEST_FALSE(acetyl_seq.hasCTerminalModification())
+  TEST_EQUAL(acetyl_seq.getNTerminalModificationName(), "Acetyl")
+
+  // 2) Oxidation without 'location' -> position not uniquely terminal -> skipped (but no crash and no misplacement)
+  const AASequence& oxidation_seq = peptide_ids[1].getHits()[0].getSequence();
+  TEST_EQUAL(oxidation_seq.toUnmodifiedString(), "PEPTIDEM")
+  TEST_FALSE(oxidation_seq.isModified())
+  TEST_EQUAL(oxidation_seq.toString(), "PEPTIDEM")
+
+  // 3) Amidated without 'location' -> exclusively C-terminal -> inferred as C-terminal
+  const AASequence& amidated_seq = peptide_ids[2].getHits()[0].getSequence();
+  TEST_EQUAL(amidated_seq.toUnmodifiedString(), "PEPTIDER")
+  TEST_TRUE(amidated_seq.hasCTerminalModification())
+  TEST_FALSE(amidated_seq.hasNTerminalModification())
+  TEST_EQUAL(amidated_seq.getCTerminalModificationName(), "Amidated")
+
+  // 4) Control: a regular internal modification WITH a valid 'location' is still parsed correctly
+  const AASequence& carbamidomethyl_seq = peptide_ids[3].getHits()[0].getSequence();
+  TEST_EQUAL(carbamidomethyl_seq.toString(), "PEPTIDEC(Carbamidomethyl)K")
+
+  // 5) Acetyl without 'location' but with residues="K" -> residue-specific (internal), position unknown,
+  //    so it is skipped rather than forced onto the N-terminus even though Acetyl supports the N-terminus
+  const AASequence& acetyl_on_k_seq = peptide_ids[4].getHits()[0].getSequence();
+  TEST_EQUAL(acetyl_on_k_seq.toUnmodifiedString(), "PEPTIKDE")
+  TEST_FALSE(acetyl_on_k_seq.isModified())
+}
+END_SECTION
+
+START_SECTION(void store(std::string filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids) )
 {
   //store and load data from various sources, starting with idxml, contents already checked above, so checking integrity of the data over repeated r/w
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   PeptideIdentificationList peptide_ids, peptide_ids2;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids2, peptide_ids2);
 
@@ -232,9 +288,9 @@ START_SECTION(([EXTRA] multiple runs))
 {
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   PeptideIdentificationList peptide_ids, peptide_ids2;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
+  std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
   MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids2, peptide_ids2);
 
@@ -254,7 +310,7 @@ START_SECTION(([EXTRA] thresholds))
 {
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
 
   TEST_EQUAL(protein_ids.size(),1)
@@ -278,7 +334,7 @@ START_SECTION(([EXTRA] thresholds))
     }
   }
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   protein_ids.clear();
@@ -310,7 +366,7 @@ START_SECTION(([EXTRA] regression test for file loading on example files))
 {
   std::vector<ProteinIdentification> protein_ids;
   PeptideIdentificationList peptide_ids;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  std::string input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
 //  input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
 //  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
@@ -334,7 +390,7 @@ START_SECTION(([EXTRA] compability issues))
 //  TEST_EQUAL(peptide_ids.size(), 10)
 //  TEST_EQUAL(peptide_ids[0].getHits().size(), 1)
 
-//  String filename;
+//  std::string filename;
 //  NEW_TMP_FILE(filename)
 //  mzidfile.store(filename , protein_ids, peptide_ids);
 
@@ -365,7 +421,7 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   vector<ProteinIdentification> protein_ids2;
   PeptideIdentificationList peptide_ids2;
 
-  String input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_labelled.mzid");
+  std::string input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_labelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
   //
   TEST_EQUAL(peptide_ids[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1), 3)
@@ -375,7 +431,7 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(), "FIVKASSGPR")
 
   // Reading and writing
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
@@ -386,8 +442,8 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(protein_ids2[0].getSearchParameters().precursor_mass_tolerance_ppm, true)
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue1"), "[K, N-term]")
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue2"), "[K, N-term]")
-  TEST_REAL_SIMILAR(String(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass")).toDouble(), 138.0680796)
-  TEST_REAL_SIMILAR(String(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass_isoshift")).toDouble(), 12.075321)
+  TEST_REAL_SIMILAR(StringUtils::toDouble(StringUtils::toStr(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass"))), 138.0680796)
+  TEST_REAL_SIMILAR(StringUtils::toDouble(StringUtils::toStr(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass_isoshift"))), 12.075321)
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("extra_features"), "precursor_mz_error_ppm,\
 OpenPepXL:score,isotope_error,OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,\
 OpenPepXL:xcorr common,OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,OpenPepXL:prescore,OpenPepXL:log_occupancy,\
@@ -420,7 +476,7 @@ precursor_residual_peak_count")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2), 4)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA), "ANYWHERE")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA), "ANYWHERE")
-  TEST_REAL_SIMILAR(String(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)).toDouble(), 138.0680796)
+  TEST_REAL_SIMILAR(StringUtils::toDouble(StringUtils::toStr(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS))), 138.0680796)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD), "DSS")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].charge, 1)
@@ -439,11 +495,11 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   vector<ProteinIdentification> protein_ids2;
   PeptideIdentificationList peptide_ids2;
 
-  String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid");
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
 
   // Reading and writing
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
@@ -453,7 +509,7 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(protein_ids2[0].getSearchParameters().precursor_mass_tolerance_ppm, true)
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue1"), "[K, N-term]")
   TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue2"), "[K, N-term]")
-  TEST_EQUAL(String(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass")).toDouble(), 138.0680796)
+  TEST_EQUAL(StringUtils::toDouble(StringUtils::toStr(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass"))), 138.0680796)
   TEST_EQUAL(protein_ids[0].getMetaValue("SpectrumIdentificationProtocol"), "MS:1002494") // crosslinking search
 
   // PeptideIdentification (Indices may change, without making the reading/writing invalid, if e.g. more is added to the test file)
@@ -496,6 +552,308 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE), "-")
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1), 12)
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2), "-")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 crosslinking scores_and_thresholds))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_crosslinking.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // every parsed identification carries a spectrum reference; collect hits across all ids
+  // (a SpectrumIdentificationResult may legitimately yield an id without hits, so guard the hit access)
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    TEST_EQUAL(pid.getSpectrumReference().empty(), false)
+    total_hits += pid.getHits().size();
+    if (!pid.getHits().empty())
+    {
+      TEST_EQUAL(pid.getHits()[0].getSequence().empty(), false)
+    }
+  }
+  TEST_EQUAL(total_hits > 0, true)
+
+  // store/load roundtrip: the writer must default to mzIdentML 1.3.0 and the reader must read it back without loss
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+
+  // the default writer path emits version 1.3.0
+  TextFile written(filename);
+  bool has_version_130 = false;
+  for (TextFile::ConstIterator it = written.begin(); it != written.end(); ++it)
+  {
+    if (StringUtils::hasSubstring(*it, "version=\"1.3.0\"")) { has_version_130 = true; break; }
+  }
+  TEST_EQUAL(has_version_130, true)
+
+  vector<ProteinIdentification> protein_ids2;
+  PeptideIdentificationList peptide_ids2;
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+  TEST_EQUAL(!peptide_ids2.empty(), true)
+  TEST_EQUAL(!protein_ids2.empty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 noncovalent association))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_noncov_assoc.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // parsed hits must have valid sequences (modification/cvParam fallbacks resolved correctly)
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    total_hits += pid.getHits().size();
+    if (!pid.getHits().empty())
+    {
+      TEST_EQUAL(pid.getHits()[0].getSequence().empty(), false)
+    }
+  }
+  TEST_EQUAL(total_hits > 0, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 EDC crosslinking))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_xlink_edc.mzid");
+  // EDC files mix crosslinked and standalone (non-XL) peptides; both must parse without throwing
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  Size total_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    total_hits += pid.getHits().size();
+  }
+  TEST_EQUAL(total_hits > 0, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mzIdentML 1.3 multiple spectra per identification))
+{
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_v1.3_multi_spectra.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+  TEST_EQUAL(!protein_ids.empty(), true)
+  TEST_EQUAL(!peptide_ids.empty(), true)
+
+  // multiple SpectrumIdentificationLists yield several distinct spectrum references
+  set<std::string> refs;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    refs.insert(pid.getSpectrumReference());
+  }
+  TEST_EQUAL(refs.size() > 1, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] PeptideSequence held in a CDATA section, behind a comment or padded with whitespace))
+{
+  // reference: the same identifications with the plain spelling '<PeptideSequence>PEPTIDER</PeptideSequence>'
+  std::vector<ProteinIdentification> ref_protein_ids;
+  PeptideIdentificationList ref_peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"), ref_protein_ids, ref_peptide_ids);
+
+  // same file, but one sequence sits in a CDATA section, one is preceded by an XML comment inside the element
+  // and one is surrounded by whitespace; the reader used to discard the first two ("Non Text Node")
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_cdata_comment_peptide_sequence.mzid"), protein_ids, peptide_ids);
+
+  TEST_EQUAL(protein_ids.size(), ref_protein_ids.size())
+  ABORT_IF(peptide_ids.size() != ref_peptide_ids.size())
+  std::multiset<std::string> all_sequences;
+  for (Size i = 0; i < peptide_ids.size(); ++i)
+  {
+    std::multiset<std::string> sequences, ref_sequences;
+    for (const PeptideHit& hit : peptide_ids[i].getHits())
+    {
+      sequences.insert(hit.getSequence().toString());
+      all_sequences.insert(hit.getSequence().toString());
+    }
+    for (const PeptideHit& hit : ref_peptide_ids[i].getHits())
+    {
+      ref_sequences.insert(hit.getSequence().toString());
+    }
+    TEST_EQUAL(sequences == ref_sequences, true)
+  }
+  // the three rewritten peptides are referenced by PSMs and came back as plain residues
+  TEST_EQUAL(all_sequences.count("PEPTIDER"), 1)    // CDATA section
+  TEST_EQUAL(all_sequences.count("PEPTIDERR"), 1)   // padded with whitespace
+  TEST_EQUAL(all_sequences.count("PEPTIDERRRR"), 2) // comment before the residues
+  TEST_EQUAL(all_sequences.count(""), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Peptide with an empty PeptideSequence element))
+{
+  // '<PeptideSequence></PeptideSequence>' and '<PeptideSequence/>' are schema-valid and are what the writer
+  // emits for a hit with an empty sequence; the reader used to dereference the missing first child node of
+  // such an element and crash
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_empty_peptide_sequence.mzid"), protein_ids, peptide_ids);
+
+  // the proteins reached through the PeptideEvidences are still there
+  ABORT_IF(protein_ids.size() != 1)
+  TEST_EQUAL(protein_ids[0].getHits().size(), 2)
+
+  // every PSM is kept: the ones referencing an empty peptide carry an empty sequence, the others keep theirs
+  ABORT_IF(peptide_ids.size() != 3)
+  const std::vector<std::multiset<std::string>> expected = {
+    {"", "PEPTIDERR"},  // spectrumID 17: PEPTIDER (now '<PeptideSequence></PeptideSequence>') and PEPTIDERR
+    {"", "PEPTIDERRR"}, // spectrumID 45: PEPTIDERRRR (now '<PeptideSequence/>') and PEPTIDERRR
+    {"", "PEPTIDERRR"}  // spectrumID 99: PEPTIDERRR and PEPTIDERRRR (now '<PeptideSequence/>')
+  };
+  for (Size i = 0; i < peptide_ids.size(); ++i)
+  {
+    std::multiset<std::string> sequences;
+    Size n_empty = 0;
+    for (const PeptideHit& hit : peptide_ids[i].getHits())
+    {
+      sequences.insert(hit.getSequence().toString());
+      if (hit.getSequence().empty()) ++n_empty;
+      TEST_EQUAL(hit.getPeptideEvidences().empty(), false) // the PSM was built completely
+    }
+    TEST_EQUAL(sequences == expected[i], true)
+    TEST_EQUAL(n_empty, 1)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load a PeptideHit with an empty sequence))
+{
+  // the writer emits '<PeptideSequence></PeptideSequence>' for such a hit; loading the file used to crash
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid"), protein_ids, peptide_ids);
+  ABORT_IF(peptide_ids.empty() || peptide_ids[0].getHits().empty())
+
+  PeptideHit empty_hit(0.5, 3, 1, AASequence());
+  empty_hit.setPeptideEvidences(peptide_ids[0].getHits()[0].getPeptideEvidences()); // a protein reference is needed to be written
+  peptide_ids[0].insertHit(empty_hit);
+  Size n_hits = 0;
+  for (const PeptideIdentification& pid : peptide_ids)
+  {
+    n_hits += pid.getHits().size();
+  }
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+
+  std::vector<ProteinIdentification> protein_ids2;
+  PeptideIdentificationList peptide_ids2;
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+
+  TEST_EQUAL(peptide_ids2.size(), peptide_ids.size())
+  Size n_hits2 = 0, n_empty2 = 0;
+  for (const PeptideIdentification& pid : peptide_ids2)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      ++n_hits2;
+      if (hit.getSequence().empty()) ++n_empty2;
+    }
+  }
+  TEST_EQUAL(n_hits2, n_hits)
+  TEST_EQUAL(n_empty2, 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] score selection with Comet:expectation value and PSM-level q-value))
+{
+  // Comet:expectation value (MS:1002257) is lower-is-better and must not displace a PSM-level q-value.
+  // Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_comet_scores.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(peptide_ids.size(), 5)
+  ABORT_IF(peptide_ids.size() != 5)
+
+  struct Expected
+  {
+    std::string score_type;
+    bool higher_better;
+    double best_score;
+  };
+  const std::vector<Expected> expected{
+    {"q-value", false, 0.0001},                // expectation value and q-value
+    {"q-value", false, 0.0001},                // the same, q-value listed first
+    {"Comet:expectation value", false, 1e-05}, // expectation value only
+    {"q-value", false, 0.0001},                // q-value only
+    {"Comet:xcorr", true, 3.5}                 // xcorr, expectation value and q-value: the raw score is used
+  };
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    PeptideIdentification& pid = peptide_ids[i];
+    pid.sort();
+    TEST_STRING_EQUAL(pid.getScoreType(), expected[i].score_type)
+    TEST_EQUAL(pid.isHigherScoreBetter(), expected[i].higher_better)
+    TEST_EQUAL(pid.getHits().size(), 2)
+    if (pid.getHits().empty()) continue;
+    TEST_STRING_EQUAL(pid.getHits()[0].getSequence().toString(), "PEPTIDER")
+    TEST_REAL_SIMILAR(pid.getHits()[0].getScore(), expected[i].best_score)
+  }
+
+  // the expectation value stays available when the q-value is used
+  TEST_REAL_SIMILAR(double(peptide_ids[0].getHits()[0].getMetaValue("MS:1002257")), 1e-05)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] score selection with X!Tandem and OMSSA scores))
+{
+  // X!Tandem:expect (MS:1001330), OMSSA:evalue (MS:1001328) and OMSSA:pvalue (MS:1001329) have no score order in
+  // PSI-MS; they are lower-is-better. Every result holds a better (PEPTIDER) and a worse (PEPTIDERR) hit.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_xtandem_omssa_scores.mzid"), protein_ids, peptide_ids);
+  TEST_EQUAL(peptide_ids.size(), 6)
+  ABORT_IF(peptide_ids.size() != 6)
+
+  struct Expected
+  {
+    std::string score_type;
+    bool higher_better;
+    double best_score;
+  };
+  const std::vector<Expected> expected{
+    {"X\\!Tandem:expect", false, 0.001},     // expect and hyperscore
+    {"q-value", false, 0.005},               // expect, hyperscore and q-value: the expect yields to the q-value
+    {"X\\!Tandem:hyperscore", true, 45.5},   // hyperscore only
+    {"OMSSA:evalue", false, 0.002},          // E-value and p-value
+    {"q-value", false, 0.004},               // E-value, p-value and q-value
+    {"OMSSA:pvalue", false, 2e-06}           // p-value only
+  };
+  for (Size i = 0; i < expected.size(); ++i)
+  {
+    PeptideIdentification& pid = peptide_ids[i];
+    pid.sort();
+    TEST_STRING_EQUAL(pid.getScoreType(), expected[i].score_type)
+    TEST_EQUAL(pid.isHigherScoreBetter(), expected[i].higher_better)
+    TEST_EQUAL(pid.getHits().size(), 2)
+    if (pid.getHits().empty()) continue;
+    TEST_STRING_EQUAL(pid.getHits()[0].getSequence().toString(), "PEPTIDER")
+    TEST_REAL_SIMILAR(pid.getHits()[0].getScore(), expected[i].best_score)
+  }
+
+  // the search engine scores stay available when the q-value is used
+  TEST_REAL_SIMILAR(double(peptide_ids[1].getHits()[0].getMetaValue("MS:1001330")), 0.001)
+  TEST_REAL_SIMILAR(double(peptide_ids[1].getHits()[0].getMetaValue("MS:1001331")), 45.5)
 }
 END_SECTION
 

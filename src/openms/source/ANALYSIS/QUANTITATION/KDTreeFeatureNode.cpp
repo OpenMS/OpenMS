@@ -45,7 +45,7 @@ KDTreeFeatureNode::value_type KDTreeFeatureNode::operator[](Size i) const
   }
   else
   {
-    const String& err_msg = "Indices other than 0 (RT) and 1 (m/z) are not allowed!";
+    const std::string& err_msg = "Indices other than 0 (RT) and 1 (m/z) are not allowed!";
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, err_msg);
   }
 }

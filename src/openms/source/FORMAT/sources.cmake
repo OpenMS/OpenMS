@@ -25,7 +25,9 @@ FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
+FileInfo.cpp
 FileTypes.cpp
+FileNameUtils.cpp
 GNPSMetaValueFile.cpp
 GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
@@ -35,6 +37,7 @@ ZipIfstream.cpp
 ZipInputStream.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
+ImzMLFile.cpp
 IndentedStream.cpp
 IndexedMzMLFileLoader.cpp
 InspectInfile.cpp
@@ -67,13 +70,14 @@ OMSFileStore.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
+OSWParquetFile.cpp
 ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
 ParamXMLFile.cpp
+ParquetTableComparator.cpp
 PEFFFile.cpp
 PTMXMLFile.cpp
-PeakTypeEstimator.cpp
 PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
@@ -90,10 +94,8 @@ SqMassFile.cpp
 SwathFile.cpp
 SVOutStream.cpp
 TextFile.cpp
-ToolDescriptionFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
-TriqlerFile.cpp
 UnimodXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp
@@ -101,6 +103,7 @@ XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
+ZstdCompression.cpp
 MRMFile.cpp
 TargetedDataFileLoader.cpp
 )
@@ -116,18 +119,29 @@ list(APPEND sources_list ConsensusMapArrowExport.cpp)
 list(APPEND sources_list ParquetFile.cpp)
 list(APPEND sources_list ParquetFilter.cpp)
 list(APPEND sources_list QPXFile.cpp)
+list(APPEND sources_list QPXIdentity.cpp)
 list(APPEND sources_list XICParquetFile.cpp)
 list(APPEND sources_list XIMParquetFile.cpp)
+list(APPEND sources_list XIPMParquetFile.cpp)
 list(APPEND sources_list ProteinGroupArrowExport.cpp)
+list(APPEND sources_list QPXCollectionExport.cpp)
+list(APPEND sources_list QPXValueValidation.cpp)
 list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
 list(APPEND sources_list FeatureMapArrowIO.cpp)
 list(APPEND sources_list ConsensusMapArrowIO.cpp)
+list(APPEND sources_list PSMArrowIO.cpp)
+list(APPEND sources_list ModificationDefinitionIO.cpp)
 list(APPEND sources_list ArrowSchemaRegistry.cpp)
 list(APPEND sources_list ArrowIOHelpers.cpp)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
+  list(APPEND sources_list BrukerTimsImagingFile.cpp)
   list(APPEND sources_list RationalScan2ImConverter.cpp)
+endif()
+
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list ThermoRawFile.cpp)
 endif()
 
 ### add path to the filenames

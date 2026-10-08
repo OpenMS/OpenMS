@@ -14,16 +14,16 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# Specify the path to the contrib-build. Will be added to CMAKE_PREFIX_PATH
-# for searching and as first entry in the includes/libraries to avoid
-# mismatches with installed system libraries
-if(NOT OPENMS_CONTRIB_LIBS)
-  message("Note: OPENMS_CONTRIB_LIBS not set. Unless you are certain that you have all contributing libraries in system paths, please specify an explicit path to the built contrib libraries via
--DOPENMS_CONTRIB_LIBS")
-else()
-  list(INSERT CMAKE_PREFIX_PATH 0 ${OPENMS_CONTRIB_LIBS})
-  list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
-  list(REMOVE_ITEM CMAKE_PREFIX_PATH "") # Remove empty entries
+# OPENMS_CONTRIB_LIBS pointed the build at a contrib build (OpenMS/contrib). The
+# option went away after OpenMS 3.6, together with the contrib (#10327). Stop
+# instead of ignoring it: a build that silently dropped the prefix would pick up
+# other libraries than the ones the user asked for.
+if(DEFINED OPENMS_CONTRIB_LIBS)
+  message(FATAL_ERROR
+    "OPENMS_CONTRIB_LIBS was removed after OpenMS 3.6, together with the contrib. "
+    "Add the prefix of the dependencies to CMAKE_PREFIX_PATH, or let vcpkg build them "
+    "(cmake --preset <platform>-release, see 'cmake --list-presets'). "
+    "A build directory that still has the option cached needs 'cmake -U OPENMS_CONTRIB_LIBS'.")
 endif()
 
 #------------------------------------------------------------------------------

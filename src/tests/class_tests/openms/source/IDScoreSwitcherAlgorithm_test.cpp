@@ -30,7 +30,7 @@ START_TEST(IDRipper, "$Id$")
 ///load input data
 std::vector< ProteinIdentification > protein_identifications;
 PeptideIdentificationList identifications;
-String document_id;
+std::string document_id;
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDScoreSwitcherAlgorithm_test_input.idXML"), protein_identifications, identifications, document_id);
 PeptideIdentification identification = identifications[0];
 ProteinIdentification protein_identification = protein_identifications[0];

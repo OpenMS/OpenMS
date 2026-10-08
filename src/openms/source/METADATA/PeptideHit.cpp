@@ -213,11 +213,11 @@ namespace OpenMS
   void PeptideHit::setAnalysisResults(const std::vector<PeptideHit::PepXMLAnalysisResult>& aresult)
   {
     // Remove all existing analysis result meta values
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     getKeys(keys);
     for (const auto& key : keys)
     {
-      if (key.hasPrefix("_ar_"))
+      if (StringUtils::hasPrefix(key, "_ar_"))
       {
         removeMetaValue(key);
       }
@@ -227,13 +227,13 @@ namespace OpenMS
     for (size_t i = 0; i < aresult.size(); ++i)
     {
       const auto& ar = aresult[i];
-      setMetaValue("_ar_" + String(i) + "_score_type", ar.score_type);
-      setMetaValue("_ar_" + String(i) + "_score", ar.main_score);
-      setMetaValue("_ar_" + String(i) + "_higher_is_better", ar.higher_is_better == true ? "true" : "false");
+      setMetaValue("_ar_" + StringUtils::toStr(i) + "_score_type", ar.score_type);
+      setMetaValue("_ar_" + StringUtils::toStr(i) + "_score", ar.main_score);
+      setMetaValue("_ar_" + StringUtils::toStr(i) + "_higher_is_better", ar.higher_is_better == true ? "true" : "false");
       
       for (const auto& subscore : ar.sub_scores)
       {
-        setMetaValue("_ar_" + String(i) + "_subscore_" + subscore.first, subscore.second);
+        setMetaValue("_ar_" + StringUtils::toStr(i) + "_subscore_" + subscore.first, subscore.second);
       }
     }
   }
@@ -242,13 +242,13 @@ namespace OpenMS
   {
     size_t index = getNumberOfAnalysisResultsFromMetaValues_();
     
-    setMetaValue("_ar_" + String(index) + "_score_type", aresult.score_type);
-    setMetaValue("_ar_" + String(index) + "_score", aresult.main_score);
-    setMetaValue("_ar_" + String(index) + "_higher_is_better", aresult.higher_is_better == true ? "true" : "false");
+    setMetaValue("_ar_" + StringUtils::toStr(index) + "_score_type", aresult.score_type);
+    setMetaValue("_ar_" + StringUtils::toStr(index) + "_score", aresult.main_score);
+    setMetaValue("_ar_" + StringUtils::toStr(index) + "_higher_is_better", aresult.higher_is_better == true ? "true" : "false");
     
     for (const auto& subscore : aresult.sub_scores)
     {
-      setMetaValue("_ar_" + String(index) + "_subscore_" + subscore.first, subscore.second);
+      setMetaValue("_ar_" + StringUtils::toStr(index) + "_subscore_" + subscore.first, subscore.second);
     }
   }
   
@@ -260,13 +260,13 @@ namespace OpenMS
   size_t PeptideHit::getNumberOfAnalysisResultsFromMetaValues_() const
   {
     size_t count = 0;
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     getKeys(keys);
     
     for (const auto& key : keys)
     {
-      if (key.hasPrefix("_ar_") &&
-          key.hasSuffix("_score_type"))
+      if (StringUtils::hasPrefix(key, "_ar_") &&
+          StringUtils::hasSuffix(key, "_score_type"))
       {
         ++count;
       }
@@ -278,7 +278,7 @@ namespace OpenMS
   std::vector<PeptideHit::PepXMLAnalysisResult> PeptideHit::extractAnalysisResultsFromMetaValues_() const
   {
     std::vector<PeptideHit::PepXMLAnalysisResult> results;
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     getKeys(keys);
     
     // First, find all indices that have analysis results
@@ -286,13 +286,13 @@ namespace OpenMS
     
     for (const auto& key : keys)
     {
-      const String prefix = "_ar_";
-      const String suffix = "_score_type";
-      if (key.hasPrefix(prefix) &&
-          key.hasSuffix(suffix))
+      const std::string prefix = "_ar_";
+      const std::string suffix = "_score_type";
+      if (StringUtils::hasPrefix(key, prefix) &&
+          StringUtils::hasSuffix(key, suffix))
       {
-        String index_str = key.substr(prefix.size(), key.size() - prefix.size() - suffix.size()); // Extract index from _ar_<index>_score_type"
-        indices.insert(index_str.toInt());
+        std::string index_str = StringUtils::substr(key, prefix.size(), key.size() - prefix.size() - suffix.size()); // Extract index from _ar_<index>_score_type"
+        indices.insert(StringUtils::toInt32(index_str));
       }
     }
     
@@ -300,7 +300,7 @@ namespace OpenMS
     for (size_t index : indices)
     {
       PeptideHit::PepXMLAnalysisResult ar;
-      String prefix = "_ar_" + String(index) + "_";
+      std::string prefix = "_ar_" + StringUtils::toStr(index) + "_";
       
       // Get score type
       if (metaValueExists(prefix + "score_type"))
@@ -311,7 +311,7 @@ namespace OpenMS
       // Get main score
       if (metaValueExists(prefix + "score"))
       {
-        ar.main_score = getMetaValue(prefix + "score");
+        ar.main_score = (double)getMetaValue(prefix + "score");
       }
       
       // Get higher_is_better flag
@@ -321,13 +321,13 @@ namespace OpenMS
       }
       
       // Get sub-scores
-      String subscore_prefix = prefix + "subscore_";
+      std::string subscore_prefix = prefix + "subscore_";
       for (const auto& key : keys)
       {
-        if (key.hasPrefix(subscore_prefix))
+        if (StringUtils::hasPrefix(key, subscore_prefix))
         {
-          String subscore_name = key.substr(subscore_prefix.size());
-          ar.sub_scores[subscore_name] = getMetaValue(key);
+          std::string subscore_name = StringUtils::substr(key, subscore_prefix.size());
+          ar.sub_scores[subscore_name] = (double)getMetaValue(key);
         }
       }
       
@@ -351,9 +351,9 @@ namespace OpenMS
     }
   }
 
-  std::set<String> PeptideHit::extractProteinAccessionsSet() const
+  std::set<std::string> PeptideHit::extractProteinAccessionsSet() const
   {
-    set<String> accessions;
+    set<std::string> accessions;
     for (const auto& ev : peptide_evidences_)
     {
       // don't return empty accessions
@@ -411,7 +411,7 @@ namespace OpenMS
       return TargetDecoyType::UNKNOWN;
     }
     
-    String td = getMetaValue("target_decoy").toString().toLower();
+    std::string td = StringUtils::toLowered(getMetaValue("target_decoy").toString());
     if (td == "decoy") return TargetDecoyType::DECOY;
     if (td == "target+decoy") return TargetDecoyType::TARGET_DECOY;
     if (td == "target") return TargetDecoyType::TARGET;
@@ -422,8 +422,8 @@ namespace OpenMS
   std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
   {
     return stream << "peptide hit with sequence '" + hit.getSequence().toString() +
-           "', charge " + String(hit.getCharge()) + ", score " +
-           String(hit.getScore());
+           "', charge " + StringUtils::toStr(hit.getCharge()) + ", score " +
+           StringUtils::toStr(hit.getScore());
   }
 
   // PeakAnnotation method implementations
@@ -440,17 +440,18 @@ namespace OpenMS
     return true;
   }
 
-  void PeptideHit::PeakAnnotation::writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
+  void PeptideHit::PeakAnnotation::writePeakAnnotationsString_(std::string& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
   {
     if (annotations.empty()) { return; }
 
     // sort by mz, charge, ...
     stable_sort(annotations.begin(), annotations.end());
 
-    String val;
+    std::string val;
     for (auto& a : annotations)
     {
-      annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
+      { std::string ann = std::string(a.annotation); StringUtils::quote(ann);
+        annotation_string += StringUtils::toStr(a.mz) + "," + StringUtils::toStr(a.intensity) + "," + StringUtils::toStr(a.charge) + "," + ann; }
       if (&a != &annotations.back()) { annotation_string += "|"; }
     }
   }

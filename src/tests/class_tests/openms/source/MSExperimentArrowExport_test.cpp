@@ -446,6 +446,34 @@ START_SECTION(exportChromatogramsToArrowCDataInterface - with RT filter)
 }
 END_SECTION
 
+
+START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
+{
+  MSExperiment exp;
+  MSSpectrum spec;
+  spec.setRT(1.0);
+  spec.setMSLevel(1);
+  spec.push_back(Peak1D(100.0, 200.0f));
+  exp.addSpectrum(spec);
+
+  std::string good_file;
+  NEW_TMP_FILE(good_file)
+  TEST_TRUE(MSExperimentArrowExport::exportSpectraToParquet(exp, good_file))
+  TEST_TRUE(File::exists(good_file))
+
+  // arrow::io::FileOutputStream::Open creates and truncates the file before the table is written,
+  // so a failure afterwards leaves a fragment with no Parquet footer, which a reader reports as
+  // corrupt. A row group size of 0 is refused by Parquet for a non-empty table, which reaches
+  // that failure deterministically on every platform.
+  ParquetWriteConfig no_row_group;
+  no_row_group.row_group_size = 0;
+  std::string failed_file;
+  NEW_TMP_FILE(failed_file)
+  TEST_FALSE(MSExperimentArrowExport::exportSpectraToParquet(exp, failed_file, ArrowSpectraExportConfig{}, no_row_group))
+  TEST_FALSE(File::exists(failed_file))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // Config struct tests
 /////////////////////////////////////////////////////////////
@@ -493,7 +521,7 @@ START_SECTION(exportSpectraToParquet - basic export)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -510,7 +538,7 @@ START_SECTION(exportSpectraToParquet - with compression options)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -532,7 +560,7 @@ START_SECTION(exportSpectraToParquet - with filtering)
 {
   MSExperiment exp = createTestExperiment();
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -552,7 +580,7 @@ START_SECTION(exportSpectraToParquet - empty experiment)
 {
   MSExperiment exp;
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -586,7 +614,7 @@ START_SECTION(exportChromatogramsToParquet - basic export)
   chrom2.push_back(ChromatogramPeak(25.0, 75.0));
   exp.addChromatogram(chrom2);
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 
@@ -613,7 +641,7 @@ START_SECTION(exportChromatogramsToParquet - with compression options)
   chrom.push_back(ChromatogramPeak(15.0, 750.0));
   exp.addChromatogram(chrom);
 
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename);
   filename += ".parquet";
 

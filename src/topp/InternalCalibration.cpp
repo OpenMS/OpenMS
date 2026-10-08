@@ -211,12 +211,12 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    String cal_id = getStringOption_("cal:id_in");
-    String cal_lock = getStringOption_("cal:lock_in");
-    String file_cal_lock_out = getStringOption_("cal:lock_out");
-    String file_cal_lock_fail_out = getStringOption_("cal:lock_fail_out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
+    std::string cal_id = getStringOption_("cal:id_in");
+    std::string cal_lock = getStringOption_("cal:lock_in");
+    std::string file_cal_lock_out = getStringOption_("cal:lock_out");
+    std::string file_cal_lock_fail_out = getStringOption_("cal:lock_fail_out");
     double rt_chunk = getDoubleOption_("RT_chunking");
     
     IntList ms_level = getIntList_("ms_level");
@@ -267,13 +267,13 @@ protected:
       vector<InternalCalibration::LockMass> ref_masses;
       for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
       {
-        std::vector<String> vec;
-        iter->split(",", vec);
+        std::vector<std::string> vec;
+        StringUtils::split(*iter, ",", vec);
         if (vec.size() != 3)
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file ") + cal_lock + " does not have three comma-separated entries per row!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Input file ") + cal_lock + " does not have three comma-separated entries per row!");
         }
-        ref_masses.push_back(InternalCalibration::LockMass(vec[0].toDouble(), vec[1].toInt(), vec[2].toInt()));
+        ref_masses.push_back(InternalCalibration::LockMass(StringUtils::toDouble(vec[0]), StringUtils::toInt32(vec[1]), StringUtils::toInt32(vec[2])));
       }
 
       bool lock_require_mono = getFlag_("cal:lock_require_mono");
@@ -320,9 +320,9 @@ protected:
     //
     // create models and calibrate
     //
-    String model_type = getStringOption_("cal:model_type");
+    std::string model_type = getStringOption_("cal:model_type");
     MZTrafoModel::MODELTYPE md = MZTrafoModel::nameToEnum(model_type);
-    Size RANSAC_initial_points = model_type.hasSubstring("linear") ? 2 : 3;
+    Size RANSAC_initial_points = StringUtils::hasSubstring(model_type, "linear") ? 2 : 3;
     Math::RANSACParam p(RANSAC_initial_points, getIntOption_("RANSAC:iter"), getDoubleOption_("RANSAC:threshold"), getIntOption_("RANSAC:pc_inliers"), true);
     MZTrafoModel::setRANSACParams(p);
     if (getFlag_("test"))
@@ -332,9 +332,9 @@ protected:
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
     MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
 
-    String file_models_plot = getStringOption_("quality_control:models_plot");
-    String file_residuals_plot = getStringOption_("quality_control:residuals_plot");
-    String rscript_executable;
+    std::string file_models_plot = getStringOption_("quality_control:models_plot");
+    std::string file_residuals_plot = getStringOption_("quality_control:residuals_plot");
+    std::string rscript_executable;
     if (!file_models_plot.empty() || !file_residuals_plot.empty())
     { // only check for existence of Rscript if output files are requested...
       rscript_executable = getStringOption_("rscript_executable");

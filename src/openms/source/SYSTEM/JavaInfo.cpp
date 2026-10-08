@@ -39,7 +39,7 @@ namespace bp = boost::process;
 namespace OpenMS
 {
 
-  bool JavaInfo::canRun(const String& java_executable, bool verbose_on_error)
+  bool JavaInfo::canRun(const std::string& java_executable, bool verbose_on_error)
   {
     try
     {
@@ -90,7 +90,7 @@ namespace OpenMS
           << "  Make sure Java is installed and this location is correct.\n";
         if (to_path(java_executable).is_relative())
         {
-          static String path;
+          static std::string path;
           if (path.empty())
           {
             path = getenv("PATH");
@@ -99,7 +99,7 @@ namespace OpenMS
             << "  or use an absolute path+filename pointing to Java.\n"
             << "  The current SYSTEM PATH is: '" << path << "'.\n\n"
 #ifdef __APPLE__
-            << "  On MacOSX, application bundles change the system PATH; Open your executable (e.g. KNIME/TOPPAS/TOPPView) from within the bundle (e.g. ./TOPPAS.app/Contents/MacOS/TOPPAS) to preserve the system PATH or use an absolute path to Java!\n"
+            << "  On MacOSX, application bundles change the system PATH; Open your executable (e.g. TOPPAS/TOPPView) from within the bundle (e.g. ./TOPPAS.app/Contents/MacOS/TOPPAS) to preserve the system PATH or use an absolute path to Java!\n"
 #endif
             << std::endl;
         }

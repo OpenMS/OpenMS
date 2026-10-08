@@ -383,14 +383,14 @@ START_SECTION((virtual double getArea()))
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)))
+START_SECTION((virtual std::string getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)))
 {
-  String formula = gaussian_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
+  std::string formula = gaussian_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
   // should look like -- f(x)= 0 + 7.99996 * exp(-0.5*(x-680.1)**2/(1.50001)**2) --
-  TEST_EQUAL(formula.hasPrefix("f(x)= 0 + "), true)
-  TEST_EQUAL(formula.hasSubstring("exp(-0.5*(x-"), true)
-  TEST_EQUAL(formula.hasSubstring(")**2/("), true)
-  TEST_EQUAL(formula.hasSuffix(")**2)"), true)
+  TEST_EQUAL(StringUtils::hasPrefix(formula, "f(x)= 0 + "), true)
+  TEST_EQUAL(StringUtils::hasSubstring(formula, "exp(-0.5*(x-"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(formula, ")**2/("), true)
+  TEST_EQUAL(StringUtils::hasSuffix(formula, ")**2)"), true)
 }
 END_SECTION
 

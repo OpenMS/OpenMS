@@ -81,8 +81,8 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    const String in = getStringOption_("in");
-    const String out = getStringOption_("out");
+    const std::string in = getStringOption_("in");
+    const std::string out = getStringOption_("out");
 
     if (in.empty() || out.empty())
     {
@@ -112,12 +112,12 @@ protected:
       // Fall through to error if directory has no parquet files
     }
 
-    if (in.hasSuffix(".featureXML"))
+    if (StringUtils::hasSuffix(in, ".featureXML"))
     {
       return exportFeatureMap_(in, out);
     }
 
-    if (in.hasSuffix(".consensusXML"))
+    if (StringUtils::hasSuffix(in, ".consensusXML"))
     {
       return exportConsensusMap_(in, out);
     }
@@ -128,7 +128,7 @@ protected:
   }
 
 private:
-  ExitCodes exportFeatureMap_(const String& in, const String& out)
+  ExitCodes exportFeatureMap_(const std::string& in, const std::string& out)
   {
     OPENMS_LOG_INFO << "Loading featureXML..." << endl;
     FeatureMap fm;
@@ -145,7 +145,7 @@ private:
     return EXECUTION_OK;
   }
 
-  ExitCodes exportConsensusMap_(const String& in, const String& out)
+  ExitCodes exportConsensusMap_(const std::string& in, const std::string& out)
   {
     OPENMS_LOG_INFO << "Loading consensusXML..." << endl;
     ConsensusMap cm;
@@ -162,9 +162,9 @@ private:
     return EXECUTION_OK;
   }
 
-  ExitCodes importFromParquet_(const String& in, const String& out)
+  ExitCodes importFromParquet_(const std::string& in, const std::string& out)
   {
-    if (out.hasSuffix(".featureXML"))
+    if (StringUtils::hasSuffix(out, ".featureXML"))
     {
       OPENMS_LOG_INFO << "Importing FeatureMap from Parquet directory: " << in << endl;
       FeatureMap fm;
@@ -180,7 +180,7 @@ private:
       return EXECUTION_OK;
     }
 
-    if (out.hasSuffix(".consensusXML"))
+    if (StringUtils::hasSuffix(out, ".consensusXML"))
     {
       OPENMS_LOG_INFO << "Importing ConsensusMap from Parquet directory: " << in << endl;
       ConsensusMap cm;

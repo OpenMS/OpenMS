@@ -61,8 +61,8 @@ namespace OpenMS
       // If keys are same, compare values for each key
       for (UInt key : lhs_keys)
       {
-        String lhs_val = getMetaValue(key).toString();
-        String rhs_val = rhs.getMetaValue(key).toString();
+        std::string lhs_val = getMetaValue(key).toString();
+        std::string rhs_val = rhs.getMetaValue(key).toString();
         if (lhs_val != rhs_val)
           return lhs_val < rhs_val;
       }
@@ -108,12 +108,12 @@ namespace OpenMS
   }
 
 
-  void MetaInfoDescription::setName(const String & name)
+  void MetaInfoDescription::setName(const std::string & name)
   {
     name_ = name;
   }
 
-  const String & MetaInfoDescription::getName() const
+  const std::string & MetaInfoDescription::getName() const
   {
     return name_;
   }

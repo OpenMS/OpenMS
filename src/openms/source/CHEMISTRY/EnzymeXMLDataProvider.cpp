@@ -19,7 +19,7 @@
 namespace OpenMS
 {
   template <typename EnzymeType>
-  EnzymeXMLDataProvider<EnzymeType>::EnzymeXMLDataProvider(const String& filename, bool optional)
+  EnzymeXMLDataProvider<EnzymeType>::EnzymeXMLDataProvider(const std::string& filename, bool optional)
     : filename_(filename), optional_(optional)
   {
   }
@@ -29,7 +29,7 @@ namespace OpenMS
   {
     std::vector<std::unique_ptr<EnzymeType>> enzymes;
 
-    String file;
+    std::string file;
     try
     {
       file = File::find(filename_);
@@ -50,8 +50,8 @@ namespace OpenMS
       return enzymes;
     }
 
-    std::vector<String> split;
-    String(param.begin().getName()).split(':', split);
+    std::vector<std::string> split;
+    StringUtils::split(std::string(param.begin().getName()), ':', split);
     if (split[0] != "Enzymes")
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, split[0], "name 'Enzymes' expected");
@@ -60,7 +60,7 @@ namespace OpenMS
     try
     {
       // helper: construct an enzyme from accumulated key/value pairs
-      auto build_enzyme = [&enzymes](const std::map<String, String>& kv)
+      auto build_enzyme = [&enzymes](const std::map<std::string, std::string>& kv)
       {
         auto enzyme = std::make_unique<EnzymeType>();
         for (const auto& [key, value] : kv)
@@ -73,11 +73,11 @@ namespace OpenMS
         enzymes.push_back(std::move(enzyme));
       };
 
-      std::map<String, String> values;
-      String previous_enzyme = split[1];
+      std::map<std::string, std::string> values;
+      std::string previous_enzyme = split[1];
       for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
       {
-        String(it.getName()).split(':', split);
+        StringUtils::split(std::string(it.getName()), ':', split);
         if (split[0] != "Enzymes")
         {
           break;
@@ -88,7 +88,7 @@ namespace OpenMS
           previous_enzyme = split[1];
           values.clear();
         }
-        values[it.getName()] = String(it->value.toString());
+        values[it.getName()] =std::string(it->value.toString());
       }
       build_enzyme(values); // add last enzyme
     }

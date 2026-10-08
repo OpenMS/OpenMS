@@ -14,7 +14,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  UnimodXMLDataProvider::UnimodXMLDataProvider(const String& filename)
+  UnimodXMLDataProvider::UnimodXMLDataProvider(const std::string& filename)
     : filename_(filename)
   {
   }

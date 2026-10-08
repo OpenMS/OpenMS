@@ -3,9 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>LSMinimumSystemVersion</key>
-	<string>12.0</string>
-	<key>BundleIsRelocatable</key>
-	<false/>
+	<string>${OPENMS_BUNDLE_MINIMUM_SYSTEM_VERSION}</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>

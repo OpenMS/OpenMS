@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -21,7 +22,6 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>
 
@@ -81,7 +81,7 @@ class TOPPOpenSwathAssayGenerator :
 public:
 
   TOPPOpenSwathAssayGenerator() :
-    TOPPBase("OpenSwathAssayGenerator", "Generates assays according to different models for a specific TraML", true)
+    TOPPBase("OpenSwathAssayGenerator", "Generates assays according to different models for a specific TraML")
   {
   }
 
@@ -118,10 +118,10 @@ protected:
     registerDoubleOption_("product_upper_mz_limit", "<double>", 2000, "upper MZ limit for fragment ions", false);
 
     registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, false);
-    setValidFormats_("swath_windows_file", ListUtils::create<String>("txt"));
+    setValidFormats_("swath_windows_file", ListUtils::create<std::string>("txt"));
 
     registerInputFile_("unimod_file", "<file>", "", "(Modified) Unimod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability", false, false);
-    setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
+    setValidFormats_("unimod_file", ListUtils::create<std::string>("xml"));
 
     registerFlag_("enable_ipf", "IPF: set this flag if identification transitions should be generated for IPF. Note: Requires setting 'unimod_file'.");
     registerIntOption_("max_num_alternative_localizations", "<int>", 10000, "IPF: maximum number of site-localization permutations", false, true);
@@ -139,13 +139,13 @@ protected:
     FileHandler fh;
 
     //input file type
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -155,7 +155,7 @@ protected:
     }
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
@@ -171,8 +171,8 @@ protected:
 
     Int min_transitions = getIntOption_("min_transitions");
     Int max_transitions = getIntOption_("max_transitions");
-    String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
-    String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
+    std::string allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
+    std::string allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
     bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
     bool enable_identification_specific_losses = !getFlag_("disable_identification_specific_losses");
@@ -187,9 +187,9 @@ protected:
     double product_mz_threshold = getDoubleOption_("product_mz_threshold");
     double product_lower_mz_limit = getDoubleOption_("product_lower_mz_limit");
     double product_upper_mz_limit = getDoubleOption_("product_upper_mz_limit");
-    String swath_windows_file = getStringOption_("swath_windows_file");
+    std::string swath_windows_file = getStringOption_("swath_windows_file");
 
-    String unimod_file = getStringOption_("unimod_file");
+    std::string unimod_file = getStringOption_("unimod_file");
     bool is_test = getFlag_("test");
 
     // Get IPF decoy parameters from command line
@@ -206,12 +206,12 @@ protected:
       disable_decoy_transitions = true;
     }
 
-    std::vector<String> allowed_fragment_types;
-    allowed_fragment_types_string.split(",", allowed_fragment_types);
+    std::vector<std::string> allowed_fragment_types;
+    StringUtils::split(allowed_fragment_types_string, ",", allowed_fragment_types);
 
-    std::vector<String> allowed_fragment_charges_string_vector;
+    std::vector<std::string> allowed_fragment_charges_string_vector;
     std::vector<size_t> allowed_fragment_charges;
-    allowed_fragment_charges_string.split(",", allowed_fragment_charges_string_vector);
+    StringUtils::split(allowed_fragment_charges_string, ",", allowed_fragment_charges_string_vector);
     for (size_t i = 0; i < allowed_fragment_charges_string_vector.size(); i++)
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
@@ -222,20 +222,6 @@ protected:
     if (enable_ipf && unimod_file.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please provide a valid Unimod XML file for IPF.");
-    }
-
-    // Load Unimod file
-    if (!unimod_file.empty())
-    {
-      if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
-      {
-        ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(unimod_file, String(""), String(""));
-        OPENMS_LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
-      }
-      else
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ModificationsDB has been instantiated before and can not be generated from the provided Unimod XML file.");
-      }
     }
 
     std::vector<std::pair<double, double> > swathes;
@@ -255,202 +241,37 @@ protected:
       }
     }
 
-    // Use memory-efficient Light path for TSV/PQP → TSV/PQP workflows.
-    // This includes IPF (identifying transitions) which is now supported via uisTransitionsLight().
-    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP
-                       || in_type == FileTypes::OSWPQ
-                       )
-                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP
-                       || out_type == FileTypes::OSWPQ
-                       );
+    OpenSwathLibraryPreparation::AssayGeneratorParameters prep_parameters;
+    prep_parameters.min_transitions = min_transitions;
+    prep_parameters.max_transitions = max_transitions;
+    prep_parameters.allowed_fragment_types = allowed_fragment_types;
+    prep_parameters.allowed_fragment_charges = allowed_fragment_charges;
+    prep_parameters.enable_detection_specific_losses = enable_detection_specific_losses;
+    prep_parameters.enable_detection_unspecific_losses = enable_detection_unspecific_losses;
+    prep_parameters.precursor_mz_threshold = precursor_mz_threshold;
+    prep_parameters.precursor_lower_mz_limit = precursor_lower_mz_limit;
+    prep_parameters.precursor_upper_mz_limit = precursor_upper_mz_limit;
+    prep_parameters.product_mz_threshold = product_mz_threshold;
+    prep_parameters.product_lower_mz_limit = product_lower_mz_limit;
+    prep_parameters.product_upper_mz_limit = product_upper_mz_limit;
+    prep_parameters.swathes = swathes;
+    prep_parameters.enable_ipf = enable_ipf;
+    prep_parameters.max_num_alternative_localizations = max_num_alternative_localizations;
+    prep_parameters.enable_identification_ms2_precursors = enable_identification_ms2_precursors;
+    prep_parameters.enable_identification_specific_losses = enable_identification_specific_losses;
+    prep_parameters.enable_identification_unspecific_losses = enable_identification_unspecific_losses;
+    prep_parameters.enable_swath_specifity = enable_swath_specifity;
+    prep_parameters.disable_decoy_transitions = disable_decoy_transitions;
+    prep_parameters.ipf_decoy_seed = uis_seed;
+    prep_parameters.test_mode = is_test;
+    prep_parameters.unimod_file = unimod_file;
 
-    if (use_light_path)
-    {
-      // Memory-efficient Light path
-      OpenSwath::LightTargetedExperiment light_exp;
-
-      OPENMS_LOG_INFO << "Loading " << in << " (Light path)" << std::endl;
-      if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
-      {
-        Param reader_parameters = getParam_().copy("algorithm:", true);
-        TransitionTSVFile tsv_reader;
-        tsv_reader.setLogType(log_type_);
-        tsv_reader.setParameters(reader_parameters);
-        tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, light_exp);
-      }
-      else if (in_type == FileTypes::PQP)
-      {
-        TransitionPQPFile pqp_reader;
-        Param reader_parameters = getParam_().copy("algorithm:", true);
-        pqp_reader.setLogType(log_type_);
-        pqp_reader.setParameters(reader_parameters);
-        pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp);
-      }
-      else if (in_type == FileTypes::OSWPQ)
-      {
-        TransitionParquetFile parquet_reader;
-        parquet_reader.convertParquetToTargetedExperiment(in, light_exp);
-      }
-
-      MRMAssay assays;
-      assays.setLogType(ProgressLogger::CMD);
-
-      OPENMS_LOG_INFO << "Annotating transitions (Light)" << std::endl;
-      assays.reannotateTransitionsLight(light_exp, precursor_mz_threshold, product_mz_threshold,
-                                        allowed_fragment_types, allowed_fragment_charges,
-                                        enable_detection_specific_losses, enable_detection_unspecific_losses);
-
-      OPENMS_LOG_INFO << "Filtering and selecting detecting transitions (Light)" << std::endl;
-      assays.restrictTransitionsLight(light_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
-      assays.detectingTransitionsLight(light_exp, min_transitions, max_transitions);
-
-      if (enable_ipf)
-      {
-        // Generate UIS SWATH windows (same logic as heavy path)
-        std::vector<std::pair<double, double>> uis_swathes;
-        if (!enable_swath_specifity || swathes.empty())
-        {
-          int num_precursor_windows = static_cast<int>(Math::round((precursor_upper_mz_limit - precursor_lower_mz_limit) / precursor_mz_threshold));
-          for (int i = 0; i < num_precursor_windows; i++)
-          {
-            uis_swathes.push_back(std::make_pair((precursor_lower_mz_limit + (i * precursor_mz_threshold)),
-                                                 (precursor_lower_mz_limit + ((i + 1) * precursor_mz_threshold))));
-          }
-        }
-        else
-        {
-          uis_swathes = swathes;
-        }
-
-        OPENMS_LOG_INFO << "Generating identifying transitions for IPF (Light)" << std::endl;
-        assays.uisTransitionsLight(light_exp, allowed_fragment_types, allowed_fragment_charges,
-                                   enable_identification_specific_losses, enable_identification_unspecific_losses,
-                                   enable_identification_ms2_precursors, product_mz_threshold, uis_swathes,
-                                   -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);
-
-        // Restrict transitions to product m/z limits (same as heavy path)
-        std::vector<std::pair<double, double>> empty_swathes;
-        assays.restrictTransitionsLight(light_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
-      }
-
-      OPENMS_LOG_INFO << "Writing assays " << out << std::endl;
-      if (out_type == FileTypes::TSV)
-      {
-        TransitionTSVFile tsv_writer;
-        tsv_writer.setLogType(log_type_);
-        tsv_writer.convertLightTargetedExperimentToTSV(out.c_str(), light_exp);
-      }
-      else if (out_type == FileTypes::PQP)
-      {
-        TransitionPQPFile pqp_writer;
-        pqp_writer.setLogType(log_type_);
-        pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_exp);
-      }
-      else if (out_type == FileTypes::OSWPQ)
-      {
-        TransitionParquetFile parquet_writer;
-        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
-      }
-    }
-    else
-    {
-      // Heavy path for TraML or IPF
-      TargetedExperiment targeted_exp;
-
-      OPENMS_LOG_INFO << "Loading " << in << std::endl;
-      if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
-      {
-        const char* tr_file = in.c_str();
-        Param reader_parameters = getParam_().copy("algorithm:", true);
-        TransitionTSVFile tsv_reader = TransitionTSVFile();
-        tsv_reader.setLogType(log_type_);
-        tsv_reader.setParameters(reader_parameters);
-        tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
-        tsv_reader.validateTargetedExperiment(targeted_exp);
-      }
-      else if (in_type == FileTypes::PQP)
-      {
-        const char* tr_file = in.c_str();
-        TransitionPQPFile pqp_reader = TransitionPQPFile();
-        Param reader_parameters = getParam_().copy("algorithm:", true);
-        pqp_reader.setLogType(log_type_);
-        pqp_reader.setParameters(reader_parameters);
-        pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
-        pqp_reader.validateTargetedExperiment(targeted_exp);
-      }
-      else if (in_type == FileTypes::OSWPQ)
-      {
-        writeLogError_("Error: Parquet input is only supported for light-weight conversions.");
-        return PARSE_ERROR;
-      }
-      else if (in_type == FileTypes::TRAML)
-      {
-        FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
-      }
-
-      MRMAssay assays = MRMAssay();
-      assays.setLogType(ProgressLogger::CMD);
-
-      OPENMS_LOG_INFO << "Annotating transitions" << std::endl;
-      assays.reannotateTransitions(targeted_exp, precursor_mz_threshold, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
-
-      OPENMS_LOG_INFO << "Annotating detecting transitions" << std::endl;
-      assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
-      assays.detectingTransitions(targeted_exp, min_transitions, max_transitions);
-
-      if (enable_ipf)
-      {
-        std::vector<std::pair<double, double> > uis_swathes;
-
-        // Generate default UIS SWATH windows if swath specificity is disabled
-        // or if no swathes were provided (same logic as light path)
-        if (!enable_swath_specifity || swathes.empty())
-        {
-          int num_precursor_windows = static_cast<int>(Math::round((precursor_upper_mz_limit - precursor_lower_mz_limit) / precursor_mz_threshold));
-          for (int i = 0; i < num_precursor_windows; i++)
-          {
-            uis_swathes.push_back(std::make_pair((precursor_lower_mz_limit + (i * precursor_mz_threshold)),
-                                                 (precursor_lower_mz_limit + ((i + 1) * precursor_mz_threshold))));
-          }
-        }
-        else
-        {
-          uis_swathes = swathes;
-        }
-
-        OPENMS_LOG_INFO << "Generating identifying transitions for IPF" << std::endl;
-        assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);
-        std::vector<std::pair<double, double> > empty_swathes;
-        assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
-      }
-
-      OPENMS_LOG_INFO << "Writing assays " << out << std::endl;
-      if (out_type == FileTypes::TSV)
-      {
-        const char* tr_file = out.c_str();
-        TransitionTSVFile tsv_reader = TransitionTSVFile();
-        tsv_reader.setLogType(log_type_);
-        tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_exp);
-      }
-      else if (out_type == FileTypes::PQP)
-      {
-        const char * tr_file = out.c_str();
-        TransitionPQPFile pqp_reader = TransitionPQPFile();
-        pqp_reader.setLogType(log_type_);
-        pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_exp);
-      }
-      else if (out_type == FileTypes::TRAML)
-      {
-        FileHandler().storeTransitions(out, targeted_exp, {FileTypes::TRAML});
-      }
-      else if (out_type == FileTypes::OSWPQ)
-      {
-        OpenSwath::LightTargetedExperiment light_exp;
-        OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
-        TransitionParquetFile parquet_writer;
-        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
-      }
-    }
+    OpenSwathLibraryPreparation preparation;
+    preparation.setLogType(log_type_);
+    // Use the shared initialization path before prepareAssays() parses any
+    // modified sequences. prepareAssays() repeats this guard idempotently.
+    preparation.ensureUnimodLoaded(prep_parameters);
+    preparation.prepareAssays(in, in_type, out, out_type, prep_parameters, getParam_().copy("algorithm:", true));
 
     return EXECUTION_OK;
   }

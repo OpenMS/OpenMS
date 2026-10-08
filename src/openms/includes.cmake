@@ -1,4 +1,7 @@
 set(OpenMS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
+# Implementation headers under source/ and include/ belong to the PRIVATE
+# private_headers file set. Initialise before either phase appends to the list.
+set(OpenMS_private_headers CACHE INTERNAL "Private (non-installed) libOpenMS headers")
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
 include(source/INTERFACES_IMPL/sources.cmake)
@@ -32,13 +35,14 @@ include(source/FORMAT/VALIDATORS/sources.cmake)
 include(source/FORMAT/OPTIONS/sources.cmake)
 include(source/FORMAT/sources.cmake)
 include(source/IONMOBILITY/sources.cmake)
+include(source/IMAGING/sources.cmake)
 include(source/ANALYSIS/QUANTITATION/sources.cmake)
 include(source/ANALYSIS/SEQUENCE/sources.cmake)
+include(source/ANALYSIS/MAPMATCHING/PIPECHO/sources.cmake)
 include(source/ANALYSIS/MAPMATCHING/sources.cmake)
 include(source/ANALYSIS/DECHARGING/sources.cmake)
 include(source/ANALYSIS/ID/sources.cmake)
 include(source/ANALYSIS/MRM/sources.cmake)
-include(source/ANALYSIS/NUXL/sources.cmake)
 include(source/ANALYSIS/TARGETED/sources.cmake)
 include(source/ANALYSIS/TOPDOWN/sources.cmake)
 include(source/ANALYSIS/XLMS/sources.cmake)
@@ -78,6 +82,7 @@ include(include/OpenMS/ML/NNLS/sources.cmake)
 include(include/OpenMS/ML/SVM/sources.cmake)
 include(include/OpenMS/ML/RANSAC/sources.cmake)
 include(include/OpenMS/ML/REGRESSION/sources.cmake)
+include(include/OpenMS/ML/sources.cmake)
 include(include/OpenMS/MATH/sources.cmake)
 include(include/OpenMS/MATH/STATISTICS/sources.cmake)
 include(include/OpenMS/DATASTRUCTURES/sources.cmake)
@@ -96,6 +101,7 @@ include(include/OpenMS/FORMAT/MSNUMPRESS/sources.cmake)
 include(include/OpenMS/FORMAT/VALIDATORS/sources.cmake)
 include(include/OpenMS/FORMAT/OPTIONS/sources.cmake)
 include(include/OpenMS/IONMOBILITY/sources.cmake)
+include(include/OpenMS/IMAGING/sources.cmake)
 
 include(include/OpenMS/ANALYSIS/DECHARGING/sources.cmake)
 include(include/OpenMS/ANALYSIS/ID/sources.cmake)
@@ -103,7 +109,6 @@ include(include/OpenMS/ANALYSIS/MAPMATCHING/sources.cmake)
 include(include/OpenMS/ANALYSIS/QUANTITATION/sources.cmake)
 include(include/OpenMS/ANALYSIS/SEQUENCE/sources.cmake)
 include(include/OpenMS/ANALYSIS/MRM/sources.cmake)
-include(include/OpenMS/ANALYSIS/NUXL/sources.cmake)
 include(include/OpenMS/ANALYSIS/TARGETED/sources.cmake)
 include(include/OpenMS/ANALYSIS/TOPDOWN/sources.cmake)
 include(include/OpenMS/ANALYSIS/XLMS/sources.cmake)
@@ -140,8 +145,7 @@ include(include/OpenMS/APPLICATIONS/sources.cmake)
 
 ## add configured config.h&Co to source group
 source_group("Header Files\\OpenMS" FILES ${OpenMS_configured_headers})
-## merge all headers to sources (for source group view in VS)
-list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OpenMS_configured_headers})
+## Header file sets provide IDE source listing without merging headers here.
 
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?

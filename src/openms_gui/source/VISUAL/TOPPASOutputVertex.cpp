@@ -58,17 +58,17 @@ namespace OpenMS
     GUIHelpers::openFolder(toQString(getFullOutputDirectory()));
   }
 
-  String TOPPASOutputVertex::getFullOutputDirectory() const
+  std::string TOPPASOutputVertex::getFullOutputDirectory() const
   {
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-    auto dir = fromQString(ts->getOutDir()).substitute("\\", "/").ensureLastChar('/') + getOutputDir();
-    String clean_dir = fromQString(QDir::cleanPath(toQString(dir)));
-    return clean_dir.substitute("\\", "/").ensureLastChar('/');
+    auto dir = StringUtils::ensureLastChar(StringUtils::substituted(fromQString(ts->getOutDir()), "\\", "/"), '/') + getOutputDir();
+    std::string clean_dir = fromQString(QDir::cleanPath(toQString(dir)));
+    return StringUtils::ensureLastChar(StringUtils::substitute(clean_dir, "\\", "/"), '/');
   }
 
-  String TOPPASOutputVertex::getOutputDir() const
+  std::string TOPPASOutputVertex::getOutputDir() const
   {
-    String dir = "TOPPAS_out/";
+    std::string dir = "TOPPAS_out/";
     if (output_folder_name_.isEmpty())
     {
       TOPPASEdge* e = *inEdgesBegin();
@@ -84,13 +84,13 @@ namespace OpenMS
     else { 
       dir += fromQString(output_folder_name_);
     }
-    dir.ensureLastChar('/');
+    StringUtils::ensureLastChar(dir, '/');
     return dir;
   }
 
-  String TOPPASOutputVertex::createOutputDir() const
+  std::string TOPPASOutputVertex::createOutputDir() const
   {
-    String full_dir = getFullOutputDirectory();
+    std::string full_dir = getFullOutputDirectory();
     if (! File::exists(full_dir))
     {
       if (! File::makeDir(full_dir)) { std::cerr << "Could not create path " << full_dir << std::endl; }

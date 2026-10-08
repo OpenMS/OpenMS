@@ -87,7 +87,7 @@ namespace OpenMS
 
     // Optionally, we will write dumps of the hash table buckets.
     bool do_dump_buckets = false;
-    String dump_buckets_basename;
+    std::string dump_buckets_basename;
     if (param_.getValue("dump_buckets") != "")
     {
       do_dump_buckets = true;
@@ -97,7 +97,7 @@ namespace OpenMS
 
     // Even more optionally, we will write dumps of the hashed pairs.
     bool do_dump_pairs = false;
-    String dump_pairs_basename;
+    std::string dump_pairs_basename;
     if (param_.getValue("dump_pairs") != "")
     {
       do_dump_pairs = true;
@@ -231,11 +231,11 @@ namespace OpenMS
 
     do // begin of hashing (the extra syntax helps with code folding in eclipse!)
     {
-      String dump_pairs_filename;
+      std::string dump_pairs_filename;
       std::ofstream dump_pairs_file;
       if (do_dump_pairs)
       {
-        dump_pairs_filename = dump_pairs_basename + String(dump_buckets_serial);
+        dump_pairs_filename = dump_pairs_basename + StringUtils::toStr(dump_buckets_serial);
         dump_pairs_file.open(dump_pairs_filename.c_str());
         dump_pairs_file << "#" << ' ' << "i" << ' ' << "k" << std::endl;
       }
@@ -316,11 +316,11 @@ namespace OpenMS
       UInt filtering_stage = 0;
 
       // optionally, dump before filtering
-      String dump_buckets_filename;
+      std::string dump_buckets_filename;
       std::ofstream dump_buckets_file;
       if (do_dump_buckets)
       {
-        dump_buckets_filename = dump_buckets_basename + "_" + String(dump_buckets_serial);
+        dump_buckets_filename = dump_buckets_basename + "_" + StringUtils::toStr(dump_buckets_serial);
         dump_buckets_file.open(dump_buckets_filename.c_str());
         VV_(dump_buckets_filename);
 
