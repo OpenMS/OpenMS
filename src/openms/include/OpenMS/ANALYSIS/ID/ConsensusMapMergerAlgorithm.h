@@ -53,6 +53,11 @@ namespace OpenMS
     /// Similar to above, merges every ID Run into one big run. Proteins get only inserted once but Peptides stay unfiltered
     /// i.e. might occur in several PeptideIdentifications afterwards
     /// @note Groups are not carried over during merging.
+    /// @note In identification data, the runs stay as they are: an inference result (without inference yet) pools them,
+    ///   with the proteins of the merged run, and export writes it as the merged protein run (with 'id_merge_index' for
+    ///   the identifications). Maps with peptide identifications are converted for this
+    ///   (IdentificationDataConverter::editAsIdentificationData()); so are they for mergeProteinIDRuns(), whose new runs
+    ///   are inference results like this.
     /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
     void mergeAllIDRuns(ConsensusMap& cmap) const;
 
@@ -64,6 +69,12 @@ namespace OpenMS
                             const std::map<unsigned, unsigned>& mapIdx_to_new_protIDRun) const;
 
   private:
+
+    /// mergeAllIDRuns() for a map with identification data: an inference result (without inference) pools the runs
+    void mergeAllIDRunsNative_(ConsensusMap& cmap) const;
+    /// mergeProteinIDRuns() for a map with identification data: an inference result (without inference) pools the
+    /// runs of each new run
+    void mergeProteinIDRunsNative_(ConsensusMap& cmap, const std::map<unsigned, unsigned>& mapIdx_to_new_protIDRun) const;
 
     /// Checks consistency of search engines and settings across runs before merging.
     /// Uses the first run as reference and compares all to it.

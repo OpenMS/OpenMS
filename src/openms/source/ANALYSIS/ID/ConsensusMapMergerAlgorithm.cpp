@@ -9,8 +9,10 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 
@@ -94,8 +96,71 @@ namespace OpenMS
     mergeProteinIDRuns(cmap, map_idx_2_rep_batch);
   }
 
+  namespace
+  {
+    using ID = IdentificationData;
+
+    /// The identifier of the legacy protein run of @p run: that of the inference result that covers it, else its own
+    std::string legacyRun(const ID& data, const ID::Run& run)
+    {
+      for (const auto& result : data.getInferenceResults())
+      {
+        for (const auto& input : result.inputs)
+        {
+          if (input.run_uuid == run.getUuid())
+          {
+            return result.proteins.getIdentifier().empty() ? result.identifier : result.proteins.getIdentifier();
+          }
+        }
+      }
+      return IdentificationDataAdapter::legacyIdentifier(run);
+    }
+
+    /// The legacy protein runs of @p data, as export writes them (with their protein hits)
+    vector<ProteinIdentification> legacyRuns(const ID& data)
+    {
+      IdentificationDataAdapter::ExportOptions options;
+      options.loss_policy = IdentificationDataAdapter::LossPolicy::ALLOW;
+      return IdentificationDataAdapter::toLegacy(data, options).proteins;
+    }
+
+    /// Replace the inference results that cover runs that @p results pool with @p results
+    void replaceResults(ID& data, vector<ID::InferenceResult> results)
+    {
+      std::set<std::string> covered;
+      for (const auto& result : results)
+      {
+        for (const auto& item : result.inputs) covered.insert(item.run_uuid);
+      }
+      vector<ID::InferenceResult> kept;
+      for (const auto& result : data.getInferenceResults())
+      {
+        if (std::none_of(result.inputs.begin(), result.inputs.end(), [&](const auto& item) { return covered.contains(item.run_uuid); }))
+        {
+          kept.push_back(result);
+        }
+      }
+      data.clearInferenceResults();
+      for (auto& result : kept) data.addInferenceResult(std::move(result));
+      for (auto& result : results) data.addInferenceResult(std::move(result));
+    }
+
+    ID::InferenceInput inferenceInput(const ID::Run& run)
+    {
+      ID::InferenceInput result;
+      result.run_identifier = run.getIdentifier();
+      result.run_uuid = run.getUuid();
+      return result;
+    }
+  } // namespace
+
   void ConsensusMapMergerAlgorithm::mergeProteinIDRuns(ConsensusMap &cmap,
                                              map<unsigned, unsigned> const &mapIdx_to_new_protIDRun) const
+  {
+    IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) { mergeProteinIDRunsNative_(map, mapIdx_to_new_protIDRun); });
+  }
+
+  void ConsensusMapMergerAlgorithm::mergeProteinIDRunsNative_(ConsensusMap& cmap, const map<unsigned, unsigned>& mapIdx_to_new_protIDRun) const
   {
     // one of label-free, labeled_MS1, labeled_MS2
     const std::string & experiment_type = cmap.getExperimentType();
@@ -107,13 +172,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Merging untested for labelled experiments" << endl;
     }
 
-    // Unfortunately we need a kind of bimap here.
-    // For the features we need oldMapIdx -> newIDRunIdx
     // For the new runs we need newIDRunIdx -> <[file_origins], [mapIdcs]> once to initialize them with metadata
-    // TODO should we instead better try to collect the primaryMSRuns from the old Runs?
-    // TODO I just saw that in the columnHeaders might have the featureXMLs as origins but we should enforce that
-    //  this will be changed to the mzML by all tools
-    //  Therefore we somehow need to check consistency of ColumnHeaders and ProteinIdentification (file_origins).
     map<unsigned, pair<set<std::string>,vector<Int>>> new_idcs;
     for (const auto& new_idx : mapIdx_to_new_protIDRun)
     {
@@ -144,50 +203,37 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Merging into " << new_size << " protein ID runs." << endl;
     }
 
+    // The legacy protein runs (as export writes them: a run, or the runs that an inference result pools) are merged.
     // Mapping from old run ID std::string to new runIDs indices, i.e. calculate from the file/label pairs (=ColumnHeaders),
     // which ProteinIdentifications need to be merged.
+    auto& data = cmap.getIdentificationData();
+    vector<ProteinIdentification> old_prot_ids = legacyRuns(data);
     map<std::string, set<Size>> run_id_to_new_run_idcs;
-    // this is to check how many old runs contribute to the new runs
-    // this can help save time and we can double check
-    vector<Size> nr_inputs_for_new_run_ids(new_size, 0);
     for (const auto& newidx_to_originset_map_idx_pair : new_idcs)
     {
-      for (auto& old_prot_id : cmap.getProteinIdentifications())
+      for (const auto& old_prot_id : old_prot_ids)
       {
         StringList primary_runs;
         old_prot_id.getPrimaryMSRunPath(primary_runs);
         set<std::string> current_content(primary_runs.begin(), primary_runs.end());
         const set<std::string>& merge_request = newidx_to_originset_map_idx_pair.second.first;
         // if this run is fully covered by a requested merged set, use it for it.
-        Size count = 1;
         if (std::includes(merge_request.begin(), merge_request.end(), current_content.begin(), current_content.end()))
         {
-          auto it = run_id_to_new_run_idcs.emplace(old_prot_id.getIdentifier(), set<Size>());
-          if (!it.second)
-          {
-            OPENMS_LOG_WARN << "Duplicate protein run ID found. Uniquifying it." << endl;
-            old_prot_id.setIdentifier(old_prot_id.getIdentifier() + "_" + count);
-            it = run_id_to_new_run_idcs.emplace(old_prot_id.getIdentifier(), set<Size>());
-          }
-          it.first->second.emplace(newidx_to_originset_map_idx_pair.first);
-          nr_inputs_for_new_run_ids.at(newidx_to_originset_map_idx_pair.first)++;
+          run_id_to_new_run_idcs[old_prot_id.getIdentifier()].emplace(newidx_to_originset_map_idx_pair.first);
         }
       }
     }
 
     vector<ProteinIdentification> new_prot_ids{new_size};
-    //TODO preallocate with sum of proteins?
     unordered_map<ProteinHit,set<Size>,hash_type,equal_type> proteins_collected_hits_runs(0, accessionHash_, accessionEqual_);
-
-    // we only need to store an offset if we append the primaryRunPaths
-    //(oldRunID, newRunIdx) -> newMergeIdxOffset
-    map<pair<std::string,Size>, Size> oldrunid_newrunidx_pair2newmergeidx_offset;
-
+    // the runs that each new run pools, in the order of their files
+    vector<vector<ID::InferenceInput>> new_run_inputs(new_size);
     for (auto& runid2newrunidcs_pair : run_id_to_new_run_idcs)
     {
       // find old run
-      auto it = cmap.getProteinIdentifications().begin();
-      for (; it != cmap.getProteinIdentifications().end(); ++it)
+      auto it = old_prot_ids.begin();
+      for (; it != old_prot_ids.end(); ++it)
       {
         if (it->getIdentifier() == runid2newrunidcs_pair.first)
           break;
@@ -197,33 +243,27 @@ namespace OpenMS
       {
         // go through new runs and fill the proteins and update search settings
         // if first time filling this new run:
-        //TODO safe to check for empty identifier?
-
         if (new_prot_ids.at(newrunid).getIdentifier().empty())
         {
           //initialize new run
           new_prot_ids[newrunid].setSearchEngine(it->getSearchEngine());
           new_prot_ids[newrunid].setSearchEngineVersion(it->getSearchEngineVersion());
           new_prot_ids[newrunid].setSearchParameters(it->getSearchParameters());
-          StringList toFill;
-          it->getPrimaryMSRunPath(toFill);
-          new_prot_ids[newrunid].setPrimaryMSRunPath(toFill);
           new_prot_ids[newrunid].setIdentifier("condition" + StringUtils::toStr(newrunid));
-          oldrunid_newrunidx_pair2newmergeidx_offset.emplace(std::piecewise_construct,
-                                                             std::forward_as_tuple(runid2newrunidcs_pair.first, newrunid),
-                                                             std::forward_as_tuple(0));
         }
-        // if not, merge settings or check consistency
+        // if not, check consistency
         else
         {
-          //check consistency and add origins
           it->peptideIDsMergeable(new_prot_ids[newrunid], experiment_type);
-          Size offset = new_prot_ids[newrunid].nrPrimaryMSRunPaths();
-          StringList toFill; it->getPrimaryMSRunPath(toFill); // new ones
-          new_prot_ids[newrunid].addPrimaryMSRunPath(toFill); //add to previous
-          oldrunid_newrunidx_pair2newmergeidx_offset.emplace(std::piecewise_construct,
-                                                             std::forward_as_tuple(runid2newrunidcs_pair.first, newrunid),
-                                                             std::forward_as_tuple(offset));
+        }
+      }
+      // the identifications of a run that several new runs use stay with the last one (as merged peptide
+      // identifications refer to the last one)
+      for (const auto& run : data.getRuns())
+      {
+        if (run.getMoleculeKind() == ID::MoleculeKind::PEPTIDE && legacyRun(data, run) == runid2newrunidcs_pair.first)
+        {
+          new_run_inputs[*runid2newrunidcs_pair.second.rbegin()].push_back(inferenceInput(run));
         }
       }
 
@@ -246,61 +286,54 @@ namespace OpenMS
       }
     }
 
-    //Now update the references in the PeptideHits
-    //TODO double check the PrimaryRunPaths with the initial requested merge
-
-    function<void(PeptideIdentification&)> fun = [&run_id_to_new_run_idcs, &oldrunid_newrunidx_pair2newmergeidx_offset, &new_prot_ids](PeptideIdentification& pid)
+    // A new run pools its runs: an inference result (without inference yet), which export writes as the merged
+    // protein run, its files in the order of the runs (each identification's 'id_merge_index' points into them).
+    for (const auto& run : data.getRuns())
     {
-      const set<Size>& runs_to_put = run_id_to_new_run_idcs.at(pid.getIdentifier());
-      //TODO check that in the beginning until we support it
-      if (runs_to_put.size() > 1)
+      if (run.getMoleculeKind() == ID::MoleculeKind::PEPTIDE && run.getNumberOfIdentifications() > 0
+          && !run_id_to_new_run_idcs.contains(legacyRun(data, run)))
       {
-       OPENMS_LOG_WARN << "Warning: Merging parts of IDRuns currently untested. If it is not a TMT/iTraq sample,"
-                    "something is wrong anyway.";
-        // in this case you would need to copy the PeptideID
-        // should only happen in TMT/itraq
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Identification run '" + legacyRun(data, run) + "' is not part of a merged run.");
       }
-
-      Size old_merge_idx = 0;
-      //TODO we could lookup the old protein ID and see if there were multiple MSruns. If so, we should fail if not
-      // exist
-      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
-      {
-        old_merge_idx = (Size)(Int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
-      }
-
-      // The offsets are keyed by the original run, so look them up before the PSM moves to the new run.
-      const std::string old_run_id = pid.getIdentifier();
-      for (const auto& run_to_put : runs_to_put)
-      {
-        const ProteinIdentification& new_prot_id_run = new_prot_ids[run_to_put];
-        pid.setIdentifier(new_prot_id_run.getIdentifier());
-        pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,
-            old_merge_idx + oldrunid_newrunidx_pair2newmergeidx_offset.at({old_run_id, run_to_put}));
-      }
-    };
-
-    cmap.applyFunctionOnPeptideIDs(fun);
-    cmap.setProteinIdentifications(std::move(new_prot_ids));
+    }
+    vector<ID::InferenceResult> results;
+    for (Size i = 0; i < new_size; ++i)
+    {
+      ID::InferenceResult result;
+      result.identifier = new_prot_ids[i].getIdentifier();
+      result.proteins = std::move(new_prot_ids[i]);
+      result.inputs = std::move(new_run_inputs[i]);
+      results.push_back(std::move(result));
+    }
+    replaceResults(data, std::move(results));
   }
 
   //merge proteins across fractions and replicates
   void ConsensusMapMergerAlgorithm::mergeAllIDRuns(ConsensusMap& cmap) const
   {
-    if (cmap.getProteinIdentifications().size() == 1)
+    IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) { mergeAllIDRunsNative_(map); });
+  }
+
+  void ConsensusMapMergerAlgorithm::mergeAllIDRunsNative_(ConsensusMap& cmap) const
+  {
+    auto& data = cmap.getIdentificationData();
+    // the legacy protein runs: runs, or the runs that an inference result pools
+    vector<ProteinIdentification> old_prot_runs = legacyRuns(data);
+    if (old_prot_runs.size() <= 1)
       return;
 
     // Everything needs to agree
-    checkOldRunConsistency_(cmap.getProteinIdentifications(), cmap.getExperimentType());
+    checkOldRunConsistency_(old_prot_runs, cmap.getExperimentType());
 
     ProteinIdentification new_prot_id_run;
     //TODO create better ID
     new_prot_id_run.setIdentifier("merged");
     //TODO merge SearchParams e.g. in case of SILAC
-    new_prot_id_run.setSearchEngine(cmap.getProteinIdentifications()[0].getSearchEngine());
-    new_prot_id_run.setSearchEngineVersion(cmap.getProteinIdentifications()[0].getSearchEngineVersion());
-    new_prot_id_run.setSearchParameters(cmap.getProteinIdentifications()[0].getSearchParameters());
-    std::string old_inference_engine = cmap.getProteinIdentifications()[0].getInferenceEngine();
+    new_prot_id_run.setSearchEngine(old_prot_runs[0].getSearchEngine());
+    new_prot_id_run.setSearchEngineVersion(old_prot_runs[0].getSearchEngineVersion());
+    new_prot_id_run.setSearchParameters(old_prot_runs[0].getSearchParameters());
+    std::string old_inference_engine = old_prot_runs[0].getInferenceEngine();
     if (!old_inference_engine.empty())
     {
       OPENMS_LOG_WARN << "Inference was already performed on the runs in this ConsensusXML."
@@ -309,24 +342,7 @@ namespace OpenMS
       // deliberately do not take over old inference settings.
     }
 
-    //we do it based on the IDRuns since ID Runs maybe different from quantification in e.g. TMT
-    vector<std::string> merged_origin_files{};
-    map<std::string,pair<Size,bool>> oldrunid2offset_multi_pair;
-    for (const auto& pid : cmap.getProteinIdentifications())
-    {
-      vector<std::string> out;
-      pid.getPrimaryMSRunPath(out);
-      Size offset = merged_origin_files.size();
-      merged_origin_files.insert(merged_origin_files.end(), out.begin(), out.end());
-      oldrunid2offset_multi_pair.emplace(std::piecewise_construct,
-                                         std::forward_as_tuple(pid.getIdentifier()),
-                                         std::forward_as_tuple(offset, out.size() > 1));
-    }
-    new_prot_id_run.setPrimaryMSRunPath(merged_origin_files);
-
     unordered_set<ProteinHit,hash_type,equal_type> proteins_collected_hits(0, accessionHash_, accessionEqual_);
-
-    std::vector<ProteinIdentification>& old_prot_runs = cmap.getProteinIdentifications();
     typedef std::vector<ProteinHit>::iterator iter_t;
     for (auto& prot_run : old_prot_runs)
     {
@@ -337,51 +353,23 @@ namespace OpenMS
       );
       hits.clear();
     }
-
-    std::map<std::string, Size> run_id_to_run_idx;
-    for (Size old_prot_run_idx = 0; old_prot_run_idx < old_prot_runs.size(); ++old_prot_run_idx)
-    {
-      ProteinIdentification& protIDRun = old_prot_runs[old_prot_run_idx];
-      run_id_to_run_idx[protIDRun.getIdentifier()] = old_prot_run_idx;
-    }
-
-    const std::string& new_prot_id_run_string = new_prot_id_run.getIdentifier();
-
-    function<void(PeptideIdentification &)> fun =
-    [&new_prot_id_run_string, &oldrunid2offset_multi_pair](PeptideIdentification& pid) -> void
-    {
-      const auto& p = oldrunid2offset_multi_pair[pid.getIdentifier()];
-      pid.setIdentifier(new_prot_id_run_string);
-      Size old = 0;
-      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
-      {
-        old = (Size)(Int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
-      }
-      else
-      {
-        if (p.second)
-        {
-          throw Exception::MissingInformation(
-              __FILE__,
-              __LINE__,
-              OPENMS_PRETTY_FUNCTION,
-              "No id_merge_index value in a merged ID run."); //TODO add more info about where.
-        }
-      }
-      pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, old + p.first);
-    };
-
-    cmap.applyFunctionOnPeptideIDs(fun);
-
     auto& hits = new_prot_id_run.getHits();
     for (auto& prot : proteins_collected_hits)
     {
       hits.emplace_back(std::move(const_cast<ProteinHit&>(prot))); //careful this completely invalidates the set
     }
     proteins_collected_hits.clear();
-    cmap.getProteinIdentifications().resize(1);
-    swap(cmap.getProteinIdentifications()[0], new_prot_id_run);
-    //TODO remove unreferenced proteins? Can this happen when merging all? I think not.
+
+    // The merged run pools all runs: an inference result (without inference yet), which export writes as the merged
+    // protein run, its files in the order of the runs (each identification's 'id_merge_index' points into them).
+    ID::InferenceResult result;
+    result.identifier = new_prot_id_run.getIdentifier();
+    result.proteins = std::move(new_prot_id_run);
+    for (const auto& run : data.getRuns())
+    {
+      if (run.getMoleculeKind() == ID::MoleculeKind::PEPTIDE) result.inputs.push_back(inferenceInput(run));
+    }
+    replaceResults(data, {std::move(result)});
   }
 
   bool ConsensusMapMergerAlgorithm::checkOldRunConsistency_(const vector<ProteinIdentification>& protRuns, const std::string& experiment_type) const
