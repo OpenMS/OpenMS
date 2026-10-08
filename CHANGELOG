@@ -21,6 +21,9 @@ OpenMS Library:
     (.pin) feature set: it stamps the PIN features, trains, transfers q-value/PEP/SVM score into
     the main score and the PSI-MS meta values, and removes the stamped features again. It is the
     in-process backend of PercolatorAdapter, moved out of the tool so other tools (ProSE) can use it.
+    Hits it cannot rescore (no peptide evidence, no target/decoy annotation or a missing feature)
+    now get q-value = PEP = 1 and SVM score = -100, as on PercolatorAdapter's executable path,
+    instead of keeping their search engine score under the Percolator score type.
   - OpenSWATH (MRMFeatureFinderScoring) and AccurateMassSearchEngine record the score type of the
     peptide identifications they write: xx_lda_prelim_score (or xx_swath_prelim_score,
     OverallQuality; higher is better) and MassErrorAbsPPMScore (lower is better). AccurateMassSearch

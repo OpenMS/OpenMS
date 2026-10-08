@@ -2277,6 +2277,8 @@ Stamps the PIN features, trains, and writes SVM score (MS:1001492),
 q-value (MS:1001491) and PEP (MS:1001493) onto each hit. The main score
 becomes the one selected by score_type ("q-value", "pep" or "svm"), and
 the original score is kept as a meta value named after the old score type.
+Hits that cannot be rescored (no peptide evidence, no target/decoy
+annotation or a missing feature) get q-value = PEP = 1 and SVM score = -100.
 The stamped features are removed again. Returns the number of rescored hits.
 
 feature_set: e.g. PercolatorInfile.getStandardFeatureSet(min_charge, max_charge) plus extra

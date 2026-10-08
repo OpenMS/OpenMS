@@ -22,6 +22,7 @@
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -1367,7 +1368,8 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "score_type must be 'q-value', 'pep' or 'svm'", score_type);
   }
-  if (peptide_ids.empty() || peptide_ids.front().getHits().empty())
+  if (std::none_of(peptide_ids.begin(), peptide_ids.end(),
+                   [](const PeptideIdentification& pid) { return !pid.getHits().empty(); }))
   {
     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
       "No PSMs to rescore.");
@@ -1503,13 +1505,19 @@ Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
     auto& hits = pid.getHits();
     for (size_t j = 0; j < hits.size(); ++j)
     {
-      if (!rescored[i][j]) continue;
       PeptideHit& hit = hits[j];
-      const double svm  = hit.getMetaValue("percolator_score");
-      const double qval = hit.getMetaValue("percolator_q_value");
-      const double pep  = hit.getMetaValue("percolator_pep");
-
       hit.setMetaValue(old_score_type, hit.getScore());  // preserve original
+      // Hits that were not rescored get the values the executable path gives PSMs missing from
+      // Percolator's output (q-value = PEP = 1, SVM score = -100: confidently not identified), so
+      // their main score matches the new score type of the identification.
+      double svm = -100.0, qval = 1.0, pep = 1.0;
+      if (rescored[i][j])
+      {
+        svm  = hit.getMetaValue("percolator_score");
+        qval = hit.getMetaValue("percolator_q_value");
+        pep  = hit.getMetaValue("percolator_pep");
+      }
+
       hit.setMetaValue("MS:1001492", svm);    // percolator:score
       hit.setMetaValue("MS:1001491", qval);   // percolator:Q value
       hit.setMetaValue("MS:1001493", pep);    // percolator:PEP

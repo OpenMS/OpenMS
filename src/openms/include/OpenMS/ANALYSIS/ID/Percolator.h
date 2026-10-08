@@ -155,7 +155,10 @@ namespace OpenMS
          (e.g. CalcMass) are kept.
 
       Hits without peptide evidences, without target/decoy information or with a missing
-      feature are not rescored; they keep their original score (see stampPinFeaturesOnHits).
+      feature are not rescored (see stampPinFeaturesOnHits). Like PSMs missing from the
+      executable's output, they get q-value = PEP = 1 and SVM score = -100 (meta values and main
+      score), so that they rank last under the new score type; their original score is kept as
+      a meta value as well.
 
       @param[in,out] peptide_ids  Target and decoy PSMs (annotated with 'target_decoy' and peptide evidences)
       @param[in] feature_set      PIN feature columns, e.g. PercolatorInfile::getStandardFeatureSet()
