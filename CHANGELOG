@@ -115,6 +115,12 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    IsobaricWorkflow:
+      - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
+        WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
+        experimental design names the runs with their extension (e.g. run1.raw).
+      - FIX: no longer crashes while printing reporter statistics when a channel has no
+        reporter signal at all.
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
