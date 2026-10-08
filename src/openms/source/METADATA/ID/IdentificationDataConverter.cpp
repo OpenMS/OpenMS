@@ -485,7 +485,8 @@ void IdentificationDataConverter::exportIDs(const ID& data,
         PeptideIdentification item;
         static_cast<MetaInfoInterface&>(item) = query;
         item.setIdentifier(run.getIdentifier());
-        item.setSpectrumReference(query.data_id);
+        // An empty data ID is no spectrum reference (as in IdentificationDataAdapter).
+        if (! query.data_id.empty()) item.setSpectrumReference(query.data_id);
         item.removeMetaValue("id_merge_index");
         if (known && files.size() > 1) item.setMetaValue("id_merge_index", static_cast<Int64>(file_index));
         if (query.rt) item.setRT(*query.rt);

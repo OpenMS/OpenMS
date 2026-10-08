@@ -741,10 +741,19 @@ namespace OpenMS
     f.getPeptideIdentifications().back().setHigherScoreBetter(false);
     for (const AccurateMassSearchResult& result : amr)
     {
+      // An unmatched mass (kept with keep_unidentified_masses) is an identification without hits, as in the native
+      // annotation.
+      if (result.getMatchingIndex() == static_cast<Size>(-1)) continue;
       PeptideHit hit;
-      // An unmatched mass (kept with keep_unidentified_masses, identifier "null") has no m/z error; its score stays 0.
-      if (result.getMatchingIndex() != static_cast<Size>(-1)) hit.setScore(std::fabs(result.getMZErrorPPM()));
+      hit.setScore(std::fabs(result.getMZErrorPPM()));
       hit.setMetaValue("identifier", result.getMatchingHMDBids());
+      // A compound, as IdentificationDataConverter writes and reads them: represented by the first matching database
+      // entry, and qualified by all of them.
+      hit.setMetaValue("molecule_type", "compound");
+      hit.setMetaValue("label", result.getMatchingHMDBids().front());
+      hit.setMetaValue("identification:encoding", static_cast<int>(IdentificationData::Encoding::DATABASE_ID));
+      hit.setMetaValue("identification:identifier_databases", StringList(result.getMatchingHMDBids().size(), database_name_));
+      hit.setMetaValue("identification:identifier_accessions", result.getMatchingHMDBids());
       StringList names;
       for (Size i = 0; i < result.getMatchingHMDBids().size(); ++i)
       { // mapping ok?
