@@ -36,6 +36,15 @@ static PeptideIdentification makePepID_(const std::string& reference,
   return id;
 }
 
+// The protein run of the identifications that the map sections put on features.
+static ProteinIdentification makeSearch_()
+{
+  ProteinIdentification search;
+  search.setIdentifier("search");
+  search.setSearchEngine("Engine");
+  return search;
+}
+
 START_TEST(IDConflictResolverAlgorithm, "$Id$")
 
 START_SECTION((static void resolve(FeatureMap& features, bool keep_matching = false)))
@@ -54,8 +63,10 @@ START_SECTION((static void resolve(FeatureMap& features, bool keep_matching = fa
       ids.push_back(makePepID_("scan=2", "PEPTIDEK", 2, 0.25, higher_better));
       ids.push_back(makePepID_("scan=3", "PEPTIDER", 2, 0.75, higher_better));
       ids.push_back(makePepID_("scan=4", "", 2, 0.0, higher_better)); // no hits
+      for (auto& id : ids) id.setIdentifier("search");
       feature.setPeptideIdentifications(ids);
       map.push_back(feature);
+      map.setProteinIdentifications({makeSearch_()});
       IDConflictResolverAlgorithm::resolve(map, keep_matching);
       const auto& kept = map[0].getPeptideIdentifications();
       ABORT_IF(kept.empty() || kept[0].getHits().empty())
@@ -77,6 +88,8 @@ START_SECTION(resolveBetweenFeatures())
   hit.setScore(23);
   hit.setSequence(AASequence::fromString("MORRISSEY"));
   PeptideIdentification id;
+  id.setIdentifier("search");
+  id.setScoreType("score");
   id.insertHit(hit);
   PeptideIdentificationList ids;
   ids.push_back(id);
@@ -85,6 +98,8 @@ START_SECTION(resolveBetweenFeatures())
   hit2.setScore(23);
   hit2.setSequence(AASequence::fromString("M(Oxidation)ORRISSEY"));
   PeptideIdentification id2;
+  id2.setIdentifier("search");
+  id2.setScoreType("score");
   id2.insertHit(hit2);
   PeptideIdentificationList ids2;
   ids2.push_back(id2);
@@ -119,6 +134,7 @@ START_SECTION(resolveBetweenFeatures())
   
   map.push_back(f1);
   map.push_back(f2);
+  map.setProteinIdentifications({makeSearch_()});
   
   IDConflictResolverAlgorithm::resolveBetweenFeatures(map);
   
@@ -188,6 +204,7 @@ START_SECTION(resolveAllHitRankAggregation())
   PeptideIdentification id1;
   id1.setHigherScoreBetter(true);
   id1.setScoreType("score");
+  id1.setIdentifier("search");
   id1.insertHit(hitB1);
   id1.insertHit(hitA1);
 
@@ -197,6 +214,7 @@ START_SECTION(resolveAllHitRankAggregation())
   PeptideIdentification id2;
   id2.setHigherScoreBetter(true);
   id2.setScoreType("score");
+  id2.setIdentifier("search");
   id2.insertHit(hitA2);
   id2.insertHit(hitB2);
 
@@ -206,6 +224,7 @@ START_SECTION(resolveAllHitRankAggregation())
   PeptideIdentification id3;
   id3.setHigherScoreBetter(true);
   id3.setScoreType("score");
+  id3.setIdentifier("search");
   id3.insertHit(hitA3);
   id3.insertHit(hitB3);
 
@@ -216,6 +235,7 @@ START_SECTION(resolveAllHitRankAggregation())
   cf.setPeptideIdentifications(pep_ids);
 
   cmap.push_back(cf);
+  cmap.setProteinIdentifications({makeSearch_()});
 
   IDConflictResolverAlgorithm::resolveAllHitRankAggregation(cmap);
 

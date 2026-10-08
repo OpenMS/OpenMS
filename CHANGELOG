@@ -100,6 +100,13 @@ OpenMS Library:
     consensus map normalizers, FileInfo's and QcMLFile's identification counts of feature and
     consensus maps and SeedListGenerator's seeds from featureXML read identification data (peptide
     identifications are converted).
+  - IDConflictResolverAlgorithm works on identification data: an identification a feature no longer
+    links is unassigned, a match removed from an identification is removed from the data (peptide
+    identifications are converted, resolved and converted back, with the same result). Unassigned
+    identifications follow the identification order, so the identifications that resolution
+    unassigns are no longer appended after the others: the order of unassigned identifications in
+    consensusXML and of PSM rows in mzTab of ProteomicsLFQ, MS1LabeledWorkflow, QualityControl and
+    IDConflictResolver changes (values unchanged).
   - .featureparquet and .consensusparquet bundles store a map's owning identification data
     (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
     keyed by feature unique ID, stored as int64 like the feature tables so they join without a

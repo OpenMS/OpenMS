@@ -386,23 +386,6 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<UnassignedPeptideIdentification identification_run_ref="PI_13" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="842.917114257812" RT="2269.45581054688" spectrum_reference="spectrum=3280" >
-		<PeptideHit score="0.142857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
-			<UserParam type="string" name="target_decoy" value="target"/>
-			<UserParam type="float" name="XTandem_score" value="36.200000000000003"/>
-			<UserParam type="float" name="nextscore" value="33.200000000000003"/>
-			<UserParam type="float" name="delta" value="2.016"/>
-			<UserParam type="float" name="mass" value="3366.630000000000109"/>
-			<UserParam type="float" name="E-Value" value="2.8e-06"/>
-			<UserParam type="float" name="hyperscore" value="36.200000000000003"/>
-			<UserParam type="float" name="b_score" value="7.4"/>
-			<UserParam type="int" name="b_ions" value="9"/>
-			<UserParam type="float" name="y_score" value="7.7"/>
-			<UserParam type="int" name="y_ions" value="10"/>
-			<UserParam type="string" name="protein_references" value="unique"/>
-		</PeptideHit>
-		<UserParam type="string" name="feature_id" value="not mapped"/>
-	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="763.75048828125" RT="1525.90893554688" spectrum_reference="spectrum=2321" >
 		<UserParam type="int" name="spectrum_index" value="540"/>
 		<UserParam type="int" name="map_index" value="2"/>
@@ -491,6 +474,23 @@
 		<UserParam type="int" name="spectrum_index" value="894"/>
 		<UserParam type="int" name="map_index" value="4"/>
 		<UserParam type="string" name="feature_id" value="7556036852336985019"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_13" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="842.917114257812" RT="2269.45581054688" spectrum_reference="spectrum=3280" >
+		<PeptideHit score="0.142857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="36.200000000000003"/>
+			<UserParam type="float" name="nextscore" value="33.200000000000003"/>
+			<UserParam type="float" name="delta" value="2.016"/>
+			<UserParam type="float" name="mass" value="3366.630000000000109"/>
+			<UserParam type="float" name="E-Value" value="2.8e-06"/>
+			<UserParam type="float" name="hyperscore" value="36.200000000000003"/>
+			<UserParam type="float" name="b_score" value="7.4"/>
+			<UserParam type="int" name="b_ions" value="9"/>
+			<UserParam type="float" name="y_score" value="7.7"/>
+			<UserParam type="int" name="y_ions" value="10"/>
+			<UserParam type="string" name="protein_references" value="unique"/>
+		</PeptideHit>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="6">
 		<map id="0" name="BSA1.featureXML" unique_id="2091680114383440625" label="" size="749">
