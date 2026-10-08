@@ -127,6 +127,12 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    IsobaricWorkflow:
+      - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
+        WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
+        experimental design names the runs with their extension (e.g. run1.raw).
+      - FIX: no longer crashes while printing reporter statistics when a channel has no
+        reporter signal at all.
     ProSE:
       - PARAM: Percolator rescoring runs in-process (OpenMS' built-in Percolator, the default
         backend of PercolatorAdapter) and is switched on with the new flag -rescore. The parameter

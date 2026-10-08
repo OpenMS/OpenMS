@@ -892,6 +892,15 @@ namespace OpenMS
 
       Size missing = old_size - cur_deltas.size();
 
+      // A channel without any reporter signal (e.g. a run that is not labelled with this method) has no
+      // deltas; Math::median would throw on the empty range.
+      if (cur_deltas.empty())
+      {
+        OPENMS_LOG_INFO << "<no signal> | #missing: " << missing << "\n";
+        ++channel_nr;
+        continue;
+      }
+
       // sort
       double median = Math::median(cur_deltas.begin(), cur_deltas.end(), false);
       // transform to absolute value
