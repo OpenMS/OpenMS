@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -44,7 +45,7 @@ START_SECTION((~BedRModFile()))
 }
 END_SECTION
 
-START_SECTION((void store(const String& out_file, const IdentificationData& id_data, const String& chebi_mapping_file = "")))
+START_SECTION((void store(const std::string& out_file, const IdentificationData& id_data, const std::string& chebi_mapping_file = "")))
 {
   // Create test identification data
   IdentificationData id_data;
@@ -77,7 +78,7 @@ START_SECTION((void store(const String& out_file, const IdentificationData& id_d
   id_data.registerObservationMatch(match);
 
   // Store to file
-  String test_file;
+  std::string test_file;
   NEW_TMP_FILE(test_file);
   BedRModFile file;
   file.store(test_file, id_data);
@@ -85,7 +86,7 @@ START_SECTION((void store(const String& out_file, const IdentificationData& id_d
   // Read and verify the output
   TextFile output;
   output.load(test_file);
-  vector<String> lines(output.begin(), output.end());
+  vector<std::string> lines(output.begin(), output.end());
 
   // Count data lines (non-header, non-empty)
   int data_lines = 0;
@@ -97,10 +98,10 @@ START_SECTION((void store(const String& out_file, const IdentificationData& id_d
     {
       continue;
     }
-    if (line.hasPrefix("#modification_names="))
+    if (line.starts_with("#modification_names="))
     {
       // Should list all 4 bases including the modified one (m5C)
-      found_mod_names_header = (line.find("m5C") != String::npos);
+      found_mod_names_header = (line.find("m5C") != std::string::npos);
     }
     if (line[0] == '#')
     {
@@ -148,7 +149,7 @@ START_SECTION((void store - terminal modifications excluded))
   id_data.registerObservationMatch(match);
 
   // Store to file
-  String test_file;
+  std::string test_file;
   NEW_TMP_FILE(test_file);
   BedRModFile file;
   file.store(test_file, id_data);
@@ -156,7 +157,7 @@ START_SECTION((void store - terminal modifications excluded))
   // Read and verify the output
   TextFile output;
   output.load(test_file);
-  vector<String> lines(output.begin(), output.end());
+  vector<std::string> lines(output.begin(), output.end());
 
   // Count data lines - should only have the 2 non-terminal bases (A and U)
   int data_lines = 0;
@@ -205,7 +206,7 @@ START_SECTION((void store - matches without q-value are skipped))
   id_data.registerObservationMatch(match);
 
   // Store to file
-  String test_file;
+  std::string test_file;
   NEW_TMP_FILE(test_file);
   BedRModFile file;
   file.store(test_file, id_data);
@@ -213,7 +214,7 @@ START_SECTION((void store - matches without q-value are skipped))
   // Read and verify the output
   TextFile output;
   output.load(test_file);
-  vector<String> lines(output.begin(), output.end());
+  vector<std::string> lines(output.begin(), output.end());
 
   // Count data lines
   int data_lines = 0;
@@ -228,6 +229,63 @@ START_SECTION((void store - matches without q-value are skipped))
 
   // Should have 0 data lines since no q-value was provided
   TEST_EQUAL(data_lines, 0)
+}
+END_SECTION
+
+START_SECTION((void store - sentinel q-values do not produce rows or affect frequency))
+{
+  IdentificationData id_data;
+  auto parent_ref = id_data.registerParentSequence(
+    ID::ParentSequence("test_rna_sentinel", ID::MoleculeType::RNA, "ACG"));
+
+  ID::IdentifiedOligo valid_oligo(NASequence::fromString("ACG"));
+  valid_oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 2));
+  auto valid_ref = id_data.registerIdentifiedOligo(valid_oligo);
+
+  ID::IdentifiedOligo sentinel_oligo(NASequence::fromString("A[m5C]G"));
+  sentinel_oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 2));
+  auto sentinel_ref = id_data.registerIdentifiedOligo(sentinel_oligo);
+
+  auto input_ref = id_data.registerInputFile(ID::InputFile("test.mzML"));
+  auto valid_obs = id_data.registerObservation(ID::Observation("valid", input_ref, 100.0, 500.0));
+  auto sentinel_obs = id_data.registerObservation(ID::Observation("sentinel", input_ref, 101.0, 500.0));
+  auto score_ref = id_data.registerScoreType(ID::ScoreType("hyperscore", true));
+  auto qvalue_ref = id_data.registerScoreType(ID::ScoreType("PSM-level q-value", false));
+
+  ID::ObservationMatch valid_match(valid_ref, valid_obs, 2);
+  valid_match.addScore(score_ref, 100.0);
+  valid_match.addScore(qvalue_ref, 0.01);
+  id_data.registerObservationMatch(valid_match);
+
+  ID::ObservationMatch sentinel_match(sentinel_ref, sentinel_obs, 2);
+  sentinel_match.addScore(score_ref, 100.0);
+  sentinel_match.addScore(qvalue_ref, -1.0);
+  id_data.registerObservationMatch(sentinel_match);
+
+  std::string test_file;
+  NEW_TMP_FILE(test_file);
+  BedRModFile().store(test_file, id_data);
+
+  TextFile output;
+  output.load(test_file);
+  int data_lines = 0;
+  for (const auto& line : output)
+  {
+    if (line.empty() || line[0] == '#')
+    {
+      continue;
+    }
+    vector<std::string> fields;
+    StringUtils::split(line, '\t', fields);
+    TEST_TRUE(fields.size() >= 11)
+    if (fields.size() >= 11)
+    {
+      TEST_EQUAL(fields[4], "0.01")
+      TEST_EQUAL(fields[10], "100")
+    }
+    ++data_lines;
+  }
+  TEST_EQUAL(data_lines, 3)
 }
 END_SECTION
 
@@ -273,7 +331,7 @@ START_SECTION((void store - target_mapping_count reflects target occurrences))
   id_data.registerObservationMatch(match);
 
   // Store to file
-  String test_file;
+  std::string test_file;
   NEW_TMP_FILE(test_file);
   BedRModFile file;
   file.store(test_file, id_data);
@@ -281,7 +339,7 @@ START_SECTION((void store - target_mapping_count reflects target occurrences))
   // Read and verify the output
   TextFile output;
   output.load(test_file);
-  vector<String> lines(output.begin(), output.end());
+  vector<std::string> lines(output.begin(), output.end());
 
   // Check that target_mapping_count (column 12) equals 3 for all data lines
   // (2 occurrences in target 1 + 1 occurrence in target 2 = 3 total target occurrences)
@@ -295,8 +353,8 @@ START_SECTION((void store - target_mapping_count reflects target occurrences))
     }
     
     // Parse the line (tab-separated)
-    vector<String> fields;
-    line.split('\t', fields);
+    vector<std::string> fields;
+    StringUtils::split(line, '\t', fields);
     
     // Check that we have enough fields
     TEST_TRUE(fields.size() >= 12)
@@ -304,8 +362,7 @@ START_SECTION((void store - target_mapping_count reflects target occurrences))
     if (fields.size() >= 12)
     {
       // Column 12 (0-indexed: 11) is unique_mapping/target_mapping_count
-      String mapping_count_str = fields[11];
-      Int mapping_count = mapping_count_str.toInt();
+      Int mapping_count = StringUtils::toInt32(fields[11]);
       
       // Should be 3 (only target occurrences)
       TEST_EQUAL(mapping_count, 3)
@@ -351,7 +408,7 @@ START_SECTION((void store - target_mapping_count equals 1 for unique mapping))
   id_data.registerObservationMatch(match);
 
   // Store to file
-  String test_file;
+  std::string test_file;
   NEW_TMP_FILE(test_file);
   BedRModFile file;
   file.store(test_file, id_data);
@@ -359,7 +416,7 @@ START_SECTION((void store - target_mapping_count equals 1 for unique mapping))
   // Read and verify the output
   TextFile output;
   output.load(test_file);
-  vector<String> lines(output.begin(), output.end());
+  vector<std::string> lines(output.begin(), output.end());
 
   // Check that target_mapping_count equals 1
   int data_lines_checked = 0;
@@ -370,14 +427,14 @@ START_SECTION((void store - target_mapping_count equals 1 for unique mapping))
       continue;
     }
     
-    vector<String> fields;
-    line.split('\t', fields);
+    vector<std::string> fields;
+    StringUtils::split(line, '\t', fields);
     
     TEST_TRUE(fields.size() >= 12)
     
     if (fields.size() >= 12)
     {
-      Int mapping_count = fields[11].toInt();
+      Int mapping_count = StringUtils::toInt32(fields[11]);
       TEST_EQUAL(mapping_count, 1)
       data_lines_checked++;
     }
@@ -424,7 +481,7 @@ START_SECTION((void store - decoy-only mappings have target_mapping_count of 0))
   id_data.registerObservationMatch(match);
 
   // Store to file
-  String test_file;
+  std::string test_file;
   NEW_TMP_FILE(test_file);
   BedRModFile file;
   file.store(test_file, id_data);
@@ -432,7 +489,7 @@ START_SECTION((void store - decoy-only mappings have target_mapping_count of 0))
   // Read and verify the output
   TextFile output;
   output.load(test_file);
-  vector<String> lines(output.begin(), output.end());
+  vector<std::string> lines(output.begin(), output.end());
 
   // Check that target_mapping_count equals 0 for decoy-only mappings
   int data_lines_checked = 0;
@@ -443,14 +500,14 @@ START_SECTION((void store - decoy-only mappings have target_mapping_count of 0))
       continue;
     }
     
-    vector<String> fields;
-    line.split('\t', fields);
+    vector<std::string> fields;
+    StringUtils::split(line, '\t', fields);
     
     TEST_TRUE(fields.size() >= 12)
     
     if (fields.size() >= 12)
     {
-      Int mapping_count = fields[11].toInt();
+      Int mapping_count = StringUtils::toInt32(fields[11]);
       TEST_EQUAL(mapping_count, 0)
       data_lines_checked++;
     }
