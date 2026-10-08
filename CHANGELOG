@@ -23,6 +23,9 @@ OpenMS Library:
     hits of feature and consensus maps now score their absolute m/z error in ppm instead of 0; the
     signed error stays in the meta value mz_error_ppm (and is what MassErrorPPMScore names in the
     mzTab and mzTab-M output).
+  - FeatureOverlapFilter::mergeCoincidentFeatures merges features with the same charge, RT and m/z
+    (within 0.01 ppm) into the most intense one, which keeps the peptide identifications of all of
+    them (also in pyOpenMS).
   - FIX: IDConflictResolverAlgorithm::resolve keeps a feature's best identification with hits when
     lower scores are better. It picked an identification without hits instead (moving the feature's
     hits to the unassigned list), and with keep_matching read that identification's missing first hit
@@ -122,6 +125,13 @@ TOPP tools:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,
         and stays 'unknown' if the input file name has none. -dbversion now defaults to empty.
+    ProteomicsLFQ:
+      - FIX: Features that FeatureFinderIdentification reports at the same charge, RT and m/z (one
+        signal targeted once per positional isomer, e.g. when the HCD and ETD scans of a precursor
+        localize a phosphosite differently) are merged before ID conflict resolution. The signal was
+        quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
+        identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
+        feature rows.
 
 Build System:
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
