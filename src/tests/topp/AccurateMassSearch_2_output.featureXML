@@ -87,7 +87,7 @@
 			<quality dim="1">0.0</quality>
 			<overallquality>1.054042e-04</overallquality>
 			<charge>0</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorPPMScore" higher_score_better="false" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="1.99871001087511" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[b6db36a2-5130-11e9-8f91-784f43534648]"/>
 					<UserParam type="stringList" name="description" value="[Lenacil]"/>
@@ -116,7 +116,7 @@
 			<quality dim="1">0.0</quality>
 			<overallquality>7.195689e-04</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorPPMScore" higher_score_better="false" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="1.15337005258795" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[99675-03-3]"/>
 					<UserParam type="stringList" name="description" value="[Isofenphos-methyl]"/>

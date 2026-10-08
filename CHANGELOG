@@ -19,8 +19,10 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 OpenMS Library:
   - OpenSWATH (MRMFeatureFinderScoring) and AccurateMassSearchEngine record the score type of the
     peptide identifications they write: xx_lda_prelim_score (or xx_swath_prelim_score,
-    OverallQuality; higher is better) and MassErrorPPMScore (lower is better). AccurateMassSearch
-    hits of feature and consensus maps now score their m/z error in ppm instead of 0.
+    OverallQuality; higher is better) and MassErrorAbsPPMScore (lower is better). AccurateMassSearch
+    hits of feature and consensus maps now score their absolute m/z error in ppm instead of 0; the
+    signed error stays in the meta value mz_error_ppm (and is what MassErrorPPMScore names in the
+    mzTab and mzTab-M output).
   - FIX: IDConflictResolverAlgorithm::resolve keeps a feature's best identification with hits when
     lower scores are better. It picked an identification without hits instead (moving the feature's
     hits to the unassigned list), and with keep_matching read that identification's missing first hit
