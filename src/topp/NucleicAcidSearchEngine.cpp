@@ -211,6 +211,8 @@ protected:
     setMinFloat_("preprocessing:window_mower:windowsize", 1.0);
     registerIntOption_("preprocessing:window_mower:peakcount", "<num>", 50, "Number of peaks that should be kept per window", false, true);
     setMinInt_("preprocessing:window_mower:peakcount", 1);
+    registerStringOption_("preprocessing:window_mower:movetype", "<type>", "slide", "Window movement for noise filtering; use jump to reproduce historical NASE preprocessing", false, true);
+    setValidStrings_("preprocessing:window_mower:movetype", ListUtils::create<String>("slide,jump"));
     registerFlag_("preprocessing:filter_nlargest", "Apply NLargest filter to keep only the top N most intense peaks", true);
     registerTOPPSubsection_("preprocessing:nlargest", "NLargest filter parameters");
     registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
@@ -793,7 +795,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const String& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -813,7 +815,7 @@ protected:
       Param filter_param = window_mower_filter.getParameters();
       filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
       filter_param.setValue("peakcount", window_peakcount, "The number of peaks that should be kept.");
-      filter_param.setValue("movetype", "slide", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+      filter_param.setValue("movetype", window_movetype, "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
       window_mower_filter.setParameters(filter_param);
     }
 
@@ -1714,6 +1716,7 @@ protected:
     bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
     double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
     int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
+    String window_movetype = getStringOption_("preprocessing:window_mower:movetype");
     bool use_nlargest = getFlag_("preprocessing:filter_nlargest");
     int nlargest_n = getIntOption_("preprocessing:nlargest:n");
     bool remove_precursor = getFlag_("preprocessing:remove_precursor_peak");
@@ -1725,7 +1728,7 @@ protected:
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
                        max_charge, include_unknown_charge,
-                       use_window_mower, window_size, window_peakcount,
+                       use_window_mower, window_size, window_peakcount, window_movetype,
                        use_nlargest, nlargest_n,
                        remove_precursor, precursor_mass_tolerance,
                        precursor_tolerance_ppm, precursor_peak_isotopes);
