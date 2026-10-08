@@ -206,6 +206,14 @@ if (NOT (${MARACLUSTER_BINARY} STREQUAL "MARACLUSTER_BINARY-NOTFOUND"))
   ## reads as ppm without one; -debug 4 makes the adapter log the command line it runs.
   add_test("TOPP_MaRaClusterAdapter_3" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -debug 4 -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -consensus_out MaRaClusterAdapter_3_out_1.tmp.mzML -precursor_tolerance 0.05 -precursor_tolerance_units Da -maracluster_executable "${MARACLUSTER_BINARY}")
   set_tests_properties("TOPP_MaRaClusterAdapter_3" PROPERTIES PASS_REGULAR_EXPRESSION " -p 0\\.05Da ")
+  ## The n-th -id_in file belongs to the n-th -in file, so the PSMs of the second idXML get the second
+  ## mzML as file_origin (all idXMLs used to be annotated from the first mzML).
+  add_test("TOPP_MaRaClusterAdapter_4" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_2.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_2.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML -out MaRaClusterAdapter_4_out_1.tmp.idXML -maracluster_executable "${MARACLUSTER_BINARY}")
+  add_test("TOPP_MaRaClusterAdapter_4_out_1" ${CMAKE_COMMAND} -DINPUT_FILE=MaRaClusterAdapter_4_out_1.tmp.idXML -DEXPECTED=MaRaClusterAdapter_1_in_2.mzML -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_MaRaClusterAdapter_4_out_1" PROPERTIES DEPENDS "TOPP_MaRaClusterAdapter_4")
+  ## more idXML than mzML files
+  add_test("TOPP_MaRaClusterAdapter_5" ${TOPP_BIN_PATH}/MaRaClusterAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_1.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML ${DATA_DIR_TOPP}/THIRDPARTY/MaRaClusterAdapter_1_in_3.idXML -out MaRaClusterAdapter_5_out_1.tmp.idXML -maracluster_executable "${MARACLUSTER_BINARY}")
+  set_tests_properties("TOPP_MaRaClusterAdapter_5" PROPERTIES PASS_REGULAR_EXPRESSION "more idXML files .parameter .id_in.. than mzML files")
 endif()
 
 #------------------------------------------------------------------------------
@@ -225,6 +233,12 @@ if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
   add_test("TOPP_PercolatorAdapter_1_subprocess" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess true -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_subprocess_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
   add_test("TOPP_PercolatorAdapter_1_subprocess_out" ${DIFF} -in1 PercolatorAdapter_1_subprocess_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_subprocess_out.idXML -whitelist ${_topp_percolator_diff_whitelist})
   set_tests_properties("TOPP_PercolatorAdapter_1_subprocess_out" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1_subprocess")
+  ### several inputs with target-decoy competition through the executable: the pin FileName column keeps
+  ### spectra of different inputs with the same scan number and precursor m/z apart (in-process variant in CMakeLists.txt)
+  add_test("TOPP_PercolatorAdapter_multiple_inputs_tdc_subprocess" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -use_subprocess true -post_processing_tdc -in ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_1.tmp.idXML ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_2.tmp.idXML -out ${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_tdc_subprocess_out.tmp.idXML -out_type idXML -percolator_executable "${PERCOLATOR_BINARY}")
+  set_tests_properties("TOPP_PercolatorAdapter_multiple_inputs_tdc_subprocess" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_multiple_inputs_prepare")
+  add_test("TOPP_PercolatorAdapter_multiple_inputs_tdc_subprocess_check" ${CMAKE_COMMAND} -DOPERATION=check_tdc -DINPUT_FILE=${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -DID_FILE=${TESTS_TEMP_DIR}/PercolatorAdapter_multiple_inputs_tdc_subprocess_out.tmp.idXML -DINPUT_NAME_1=PercolatorAdapter_multiple_inputs_1.tmp.idXML -DINPUT_NAME_2=PercolatorAdapter_multiple_inputs_2.tmp.idXML -P ${DATA_DIR_TOPP}/PercolatorAdapter_multiple_inputs_test.cmake)
+  set_tests_properties("TOPP_PercolatorAdapter_multiple_inputs_tdc_subprocess_check" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_multiple_inputs_tdc_subprocess")
   add_test("TOPP_PercolatorAdapter_2" ${TOPP_BIN_PATH}/PercolatorAdapter -test -osw_level ms1 -in_osw ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_2.osw -out PercolatorAdapter_2_out1.osw -out_type osw -percolator_executable "${PERCOLATOR_BINARY}")
   add_test("TOPP_PercolatorAdapter_3" ${TOPP_BIN_PATH}/PercolatorAdapter -test -osw_level ms2 -in_osw PercolatorAdapter_2_out1.osw -out PercolatorAdapter_3_out1.osw -out_type osw -percolator_executable "${PERCOLATOR_BINARY}")
   set_tests_properties("TOPP_PercolatorAdapter_3" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_2")

@@ -73,6 +73,7 @@ OMSFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
+OSWParquetFile.h
 ParamCTDFile.h
 ParamCWLFile.h
 ParamJSONFile.h

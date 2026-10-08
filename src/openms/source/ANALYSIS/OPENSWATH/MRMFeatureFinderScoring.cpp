@@ -1217,13 +1217,18 @@ namespace OpenMS
     {
       pep_hit_.setCharge(pep.getChargeState());
     }
-    const double xx_lda_prescore = mrmfeature.metaValueExists("xx_lda_prelim_score") ?
+    // The hit's score is a preliminary score of the feature (higher is better); the score type names it.
+    const bool has_lda_prescore = mrmfeature.metaValueExists("xx_lda_prelim_score");
+    const double xx_lda_prescore = has_lda_prescore ?
       static_cast<double>(mrmfeature.getMetaValue("xx_lda_prelim_score")) : mrmfeature.getOverallQuality();
     pep_hit_.setScore(xx_lda_prescore);
+    pep_id_.setScoreType(has_lda_prescore ? "xx_lda_prelim_score" : "OverallQuality");
     if (swath_present && mrmfeature.metaValueExists("xx_swath_prelim_score"))
     {
       pep_hit_.setScore(mrmfeature.getMetaValue("xx_swath_prelim_score"));
+      pep_id_.setScoreType("xx_swath_prelim_score");
     }
+    pep_id_.setHigherScoreBetter(true);
 
     if (pep.isPeptide() && !pep.sequence.empty())
     {

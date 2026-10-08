@@ -15,9 +15,12 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <functional>
 #include <limits>
+#include <optional>
 #include <regex>
 #include <unordered_set>
 
@@ -72,6 +75,14 @@ namespace OpenMS
       }
     }
     return StringUtils::removeWhitespaces(scan_identifier);
+  }
+
+  std::string PercolatorInfile::getFileIdentifier(const PeptideIdentification& pid)
+  {
+    std::string identifier = pid.getMetaValue("file_origin", std::string()).toString();
+    // the index is a number: after the last '|', it cannot run into the file origin ("run1" vs. "run" + 1)
+    if (pid.metaValueExists("id_merge_index")) identifier += "|" + pid.getMetaValue("id_merge_index").toString();
+    return identifier;
   }
 
   PeptideIdentificationList PercolatorInfile::load(
@@ -431,8 +442,7 @@ namespace OpenMS
       ++pid_index_1based;
 
       const std::string scan_identifier = getScanIdentifier(pep_id, pid_index_1based);
-      std::string file_identifier = pep_id.getMetaValue("file_origin", std::string());
-      file_identifier += StringUtils::toStr(pep_id.getMetaValue("id_merge_index", std::string()));
+      const std::string file_identifier = getFileIdentifier(pep_id);
 
       const Int scan_number = SpectrumLookup::extractScanNumber(
         scan_identifier, scan_regex, /*no_error=*/true);
@@ -492,24 +502,28 @@ namespace OpenMS
           calc_mass = getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass");
         }
 
-        double row_exp_mass = exp_mass;
+        // The precursor isotope error (observed minus theoretical, in 13C spacings) is removed from the mass
+        // difference only. ExpMass and mass stay the observed precursor m/z, the same for every PSM of the spectrum:
+        // Percolator takes PSMs with the same ScanNr but different ExpMass for different spectra, so PSMs at
+        // different isotope errors would not compete with each other.
+        double isotope_corrected_mass = exp_mass;
         if (hit.metaValueExists("IsotopeError"))  // legacy MSGF+ adapter meta (<2.6)
         {
           const float isoErr = StringUtils::toFloat(hit.getMetaValue("IsotopeError").toString());
-          row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
         else if (hit.metaValueExists(Constants::UserParam::ISOTOPE_ERROR))
         {
           const float isoErr = StringUtils::toFloat(hit.getMetaValue(Constants::UserParam::ISOTOPE_ERROR).toString());
-          row_exp_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+          isotope_corrected_mass -= (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
 
-        stamp_meta_value("ExpMass", row_exp_mass);
+        stamp_meta_value("ExpMass", exp_mass);
 
-        const double delta_mass = row_exp_mass - calc_mass;
+        const double delta_mass = isotope_corrected_mass - calc_mass;
         stamp_meta_value("deltamass", delta_mass);
         stamp_meta_value("retentiontime", retention_time);
-        stamp_meta_value("mass", row_exp_mass);
+        stamp_meta_value("mass", exp_mass);
 
         stamp_meta_value("score", hit.getScore());
         stamp_meta_value("peplen", static_cast<int>(unmodified_sequence.size()));
@@ -591,9 +605,9 @@ namespace OpenMS
     int max_charge)
   {
     TextFile txt;
-    txt.addLine(ListUtils::concatenate(feature_set, "\t"));
     if (peptide_ids.empty())
     {
+      txt.addLine(ListUtils::concatenate(feature_set, "\t"));
       OPENMS_LOG_WARN << "No identifications provided. Creating empty percolator input." << endl;
       return txt;
     }
@@ -602,9 +616,11 @@ namespace OpenMS
     PeptideIdentificationList stamped(peptide_ids);
     const auto skipped = stampPinFeaturesOnHits(stamped, enz, min_charge, max_charge);
 
+    // Rows: the kept hits that carry every column of the feature set.
+    std::vector<std::pair<size_t, size_t>> rows;
+    std::set<std::string> files;
     size_t missing_meta_value_count = 0;
     set<std::string> missing_meta_values;
-
     for (size_t pid_idx = 0; pid_idx < stamped.size(); ++pid_idx)
     {
       const auto& hits = stamped[pid_idx].getHits();
@@ -612,29 +628,60 @@ namespace OpenMS
       {
         if (skipped.contains({pid_idx, hit_idx})) continue;
         const PeptideHit& hit = hits[hit_idx];
-
-        StringList feats;
+        bool complete = true;
         for (const std::string& feat : feature_set)
         {
-          if (hit.metaValueExists(feat))
+          if (!hit.metaValueExists(feat))
           {
-            feats.push_back(hit.getMetaValue(feat).toString());
+            complete = false;
+            missing_meta_values.insert(feat);
           }
         }
-        if (feats.size() == feature_set.size())
+        if (!complete)
         {
-          txt.addLine(ListUtils::concatenate(feats, "\t"));
+          ++missing_meta_value_count;
+          continue;
         }
-        else
-        {
-          missing_meta_value_count++;
-          for (const auto& f : feature_set)
-          {
-            if (std::find(feats.begin(), feats.end(), f) == feats.end())
-              missing_meta_values.insert(f);
-          }
-        }
+        rows.emplace_back(pid_idx, hit_idx);
+        files.insert(getFileIdentifier(stamped[pid_idx]));
       }
+    }
+
+    // Percolator numbers the spectrum files from an optional 'FileName' column, without which all PSMs count as
+    // one file: spectra of different files with the same ScanNr and ExpMass would be one spectrum. Optional columns
+    // precede the features, so it follows the leading optional columns of the feature set.
+    StringList columns = feature_set;
+    std::optional<size_t> file_column;
+    if (files.size() > 1)
+    {
+      auto lower = [](std::string name)
+      {
+        std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        return name;
+      };
+      const std::set<std::string> optional_columns {"scannr", "expmass", "calcmass", "rt", "retentiontime", "filename", "spectrafile"};
+      const bool named = std::any_of(columns.begin(), columns.end(), [&](const std::string& c) { const auto l = lower(c); return l == "filename" || l == "spectrafile"; });
+      if (!named)
+      {
+        size_t position = std::min<size_t>(2, columns.size()); // after SpecId and Label
+        while (position < columns.size() && optional_columns.contains(lower(columns[position]))) ++position;
+        columns.insert(columns.begin() + position, "FileName");
+        file_column = position;
+      }
+    }
+    txt.addLine(ListUtils::concatenate(columns, "\t"));
+
+    for (const auto& [pid_idx, hit_idx] : rows)
+    {
+      const PeptideHit& hit = stamped[pid_idx].getHits()[hit_idx];
+      StringList feats;
+      feats.reserve(columns.size());
+      for (const std::string& feat : feature_set)
+      {
+        feats.push_back(hit.getMetaValue(feat).toString());
+      }
+      if (file_column) feats.insert(feats.begin() + *file_column, getFileIdentifier(stamped[pid_idx]));
+      txt.addLine(ListUtils::concatenate(feats, "\t"));
     }
 
     if (missing_meta_value_count != 0)

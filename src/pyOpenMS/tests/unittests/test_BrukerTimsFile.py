@@ -22,6 +22,7 @@ def test_config_defaults():
     assert cfg.load_ms1 is True
     assert cfg.ms1_centroid_mz_ppm == pytest.approx(10.0)
     assert cfg.ms1_centroid_im_pct == pytest.approx(0.0)
+    assert cfg.ms2_centroid_algo == pyopenms.BrukerTimsFile.Config.CentroidAlgo.OFF
     assert cfg.dia_ms2_n_neighbors == 0
     assert cfg.dia_ms2_min_support == 1
     assert cfg.dia_ms2_centroid is False
@@ -43,6 +44,14 @@ def test_config_field_assignment():
     assert cfg.ms1_centroid_mz_ppm == pytest.approx(5.0)
     assert cfg.export_mode == pyopenms.BrukerTimsFile.Config.ExportMode.FRAME
     assert cfg.bruker_sdk_path == "/opt/bruker/libtimsdata.so"
+
+
+def test_hillbased_dia_no_rt_aggregation_config():
+    cfg = pyopenms.BrukerTimsFile.Config()
+    cfg.ms2_centroid_algo = pyopenms.BrukerTimsFile.Config.CentroidAlgo.HILL_BASED
+    cfg.dia_ms2_n_neighbors = 0
+    assert cfg.ms2_centroid_algo == pyopenms.BrukerTimsFile.Config.CentroidAlgo.HILL_BASED
+    assert cfg.dia_ms2_n_neighbors == 0
 
 
 def test_export_mode_enum_values():
