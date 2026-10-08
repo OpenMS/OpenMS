@@ -4404,7 +4404,7 @@ namespace OpenMS
     // read gets no faster with more). A read in the background, next to the index build or the search
     // of another file, gets a quarter of them, at least 2: with all of them, it slowed the index build
     // down when the read was hidden behind it anyway.
-    int readerThreads(bool background)
+    int readerThreads([[maybe_unused]] bool background)
     {
 #ifdef _OPENMP
       const int threads = omp_get_max_threads();
