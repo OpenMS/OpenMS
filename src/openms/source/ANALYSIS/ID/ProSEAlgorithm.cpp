@@ -2398,7 +2398,8 @@ namespace OpenMS
         "Candidate-retrieval spectra must hold one entry per scoring spectrum.");
     }
     startProgress(0, spectra.size(), progress_label);
-    size_t count_spectra{};
+    // incremented by every thread and read by the master thread for the progress display: atomic for both
+    std::atomic<Size> count_spectra{0};
     const double proton_mass_u = Constants::PROTON_MASS_U;
     // Hoisted out of the omp parallel block: clang with `default(none)` forbids
     // referencing namespace-scope constants inside the loop without explicit sharing.
@@ -2416,10 +2417,8 @@ namespace OpenMS
       if (scoring_failed.load(std::memory_order_relaxed)) continue;
       try
       {
-      #pragma omp atomic
-      ++count_spectra;
-
-      IF_MASTERTHREAD { setProgress(count_spectra); }
+      const Size spectra_done = count_spectra.fetch_add(1, std::memory_order_relaxed) + 1;
+      IF_MASTERTHREAD { setProgress(spectra_done); }
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
       const TheoreticalSpectrumGenerator& spectrum_generator = generators.forSpectrum(exp_spectrum);
