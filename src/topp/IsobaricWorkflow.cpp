@@ -352,7 +352,7 @@ protected:
     int ms1_spec_idx,
     const MSExperiment& exp,
     bool has_ms3,
-    bool max_precursor_isotope_deviation,
+    double max_precursor_isotope_deviation,
     bool calc_id_purity,
     bool interpolate_precursor_purity)
   {
