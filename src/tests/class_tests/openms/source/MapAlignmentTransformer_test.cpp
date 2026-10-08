@@ -17,7 +17,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -207,30 +207,45 @@ END_SECTION
 
 START_SECTION(([EXTRA] maps: the identification data is transformed like peptide identifications))
 {
-  // the retention times of all identifications (linked or not) are transformed, the original ones stored on request
-  const auto check = [&](auto map) {
-    std::vector<std::pair<IdentificationData::QueryReference, double>> before;
-    for (const auto& run : map.getIdentificationData().getRuns())
-      for (const auto& source : run.getSources())
-        for (const auto& query : source.identifications)
-          if (query.rt) before.emplace_back(IdentificationData::QueryReference {run.getUuid(), query.getId()}, *query.rt);
-    TEST_EQUAL(before.empty(), false)
-    MapAlignmentTransformer::transformRetentionTimes(map, td, true);
-    for (const auto& [reference, rt] : before)
-    {
-      const auto& after = map.getIdentificationData().findRunByUuid(reference.run_uuid)->getIdentification(reference.query);
-      TEST_REAL_SIMILAR(*after.rt, td.apply(rt))
-      TEST_REAL_SIMILAR(after.getMetaValue("original_RT"), rt)
-    }
-  };
+  using namespace OpenMS::Internal::ClassTest;
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), features);
-  IdentificationDataConverter::importFeatureIDs(features);
-  check(features);
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
-  IdentificationDataConverter::importConsensusIDs(consensus);
-  check(consensus);
+  for (bool store_original_rt : {false, true})
+  {
+    TEST_EQUAL(nativeDifference(features, [&](FeatureMap map, bool) {
+                 MapAlignmentTransformer::transformRetentionTimes(map, td, store_original_rt);
+                 return map;
+               }),
+               "")
+    TEST_EQUAL(nativeDifference(consensus, [&](ConsensusMap map, bool) {
+                 MapAlignmentTransformer::transformRetentionTimes(map, td, store_original_rt);
+                 return map;
+               }),
+               "")
+  }
+  // the comparison notices identifications that only one model transforms
+  TEST_EQUAL(nativeDifference(features, [&](FeatureMap map, bool) {
+               MapAlignmentTransformer::transformRetentionTimes(map.getUnassignedPeptideIdentifications(), td);
+               return map;
+             }).starts_with("unassigned: peptide identification 0: position"),
+             true)
+  // the transformation applies to linked and unlinked identifications
+  toNative(features);
+  std::vector<std::pair<IdentificationData::QueryReference, double>> before;
+  for (const auto& run : features.getIdentificationData().getRuns())
+    for (const auto& source : run.getSources())
+      for (const auto& query : source.identifications)
+        if (query.rt) before.emplace_back(IdentificationData::QueryReference {run.getUuid(), query.getId()}, *query.rt);
+  ABORT_IF(before.empty())
+  MapAlignmentTransformer::transformRetentionTimes(features, td, true);
+  for (const auto& [reference, rt] : before)
+  {
+    const auto& after = features.getIdentificationData().findRunByUuid(reference.run_uuid)->getIdentification(reference.query);
+    TEST_REAL_SIMILAR(*after.rt, td.apply(rt))
+    TEST_REAL_SIMILAR(after.getMetaValue("original_RT"), rt)
+  }
 }
 END_SECTION
 

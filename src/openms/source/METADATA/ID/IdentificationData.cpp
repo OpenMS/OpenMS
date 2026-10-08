@@ -801,7 +801,7 @@ Size ID::Run::eraseIdentifications(const std::function<bool(const Identification
           for (const auto& match : query.matches_)
             matches.insert(match.id_);
   }
-  // Removing the matches first changes nothing if it throws.
+  // Removing the matches first rebuilds the score columns; it changes nothing if it throws.
   // Afterwards the identifications to remove are empty, and erasing them cannot throw.
   filterMatches([&](const Match& match) { return ! matches.contains(match.id_); }, true);
   Size offset = 0;
@@ -815,6 +815,7 @@ Size ID::Run::eraseIdentifications(const std::function<bool(const Identification
   }
   query_count_ -= erased;
   invalidateIndexes_();
+  ++revision_;
   return erased;
 }
 Size ID::Run::retainBest(ScoreId score, bool keep_ties, bool keep_empty_queries)

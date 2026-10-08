@@ -266,6 +266,7 @@ START_SECTION((Size Run::eraseIdentifications(const std::function<bool(const Ide
   auto last = run.addIdentification(second_file, {});
   auto d = run.addMatch(last, peptide("PEPTIDED"), {4.0});
   run.setSelectedMatch(removed, c);
+  const auto view = run.bindScore(raw);
   // a throwing predicate changes nothing
   TEST_EXCEPTION(std::runtime_error, run.eraseIdentifications([](const ID::Identification& query) -> bool {
     if (query.getMatches().empty()) throw std::runtime_error("stop");
@@ -273,8 +274,11 @@ START_SECTION((Size Run::eraseIdentifications(const std::function<bool(const Ide
   }))
   TEST_EQUAL(run.getNumberOfIdentifications(), 5)
   TEST_EQUAL(run.getNumberOfMatches(), 4)
+  const auto revision = run.getRevision();
   TEST_EQUAL(run.eraseIdentifications([](const ID::Identification&) { return false; }), 0)
+  TEST_EQUAL(run.getRevision(), revision)
   TEST_EQUAL(run.eraseIdentifications([&](const ID::Identification& query) { return query.getId() == removed || query.getId() == empty_removed; }), 2)
+  TEST_TRUE(run.getRevision() > revision)
   TEST_EQUAL(run.getNumberOfIdentifications(), 3)
   TEST_EQUAL(run.getNumberOfMatches(), 2)
   TEST_TRUE(run.findIdentification(removed) == nullptr && run.findIdentification(empty_removed) == nullptr)
@@ -282,9 +286,10 @@ START_SECTION((Size Run::eraseIdentifications(const std::function<bool(const Ide
   TEST_TRUE(run.findIdentification(empty_kept) != nullptr)
   TEST_EQUAL(run.getSources()[0].identifications.size(), 1)
   TEST_EQUAL(run.getSources()[1].identifications.size(), 2)
-  // the remaining matches keep their scores
+  // the remaining matches keep their scores; views of the earlier state are rejected
   TEST_REAL_SIMILAR(*run.getScore(a, raw), 1.0)
   TEST_REAL_SIMILAR(*run.getScore(d, raw), 4.0)
+  TEST_EXCEPTION(Exception::InvalidValue, view(run.getMatch(d)))
   TEST_REAL_SIMILAR(*run.bindScore(raw)(run.getMatch(d)), 4.0)
   // IDs are not reused
   TEST_TRUE(run.addIdentification(first_file, {}).value > last.value)
