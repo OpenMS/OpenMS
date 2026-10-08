@@ -5161,24 +5161,32 @@ START_SECTION(([EXTRA] resolveDecoyStrategy_ detects the decoy marker of large d
 }
 END_SECTION
 
-START_SECTION(([EXTRA] scoring:method=mass_accuracy requires a finite, positive fragment tolerance; 'auto' falls back to HyperScore without one))
+START_SECTION(([EXTRA] fragment:mass_tolerance must be finite and positive for every scoring method))
 {
   // HyperScore::computeMassAccuracy() rejects such a tolerance; it is checked when the parameters are set, not
-  // on a worker thread of the parallel scoring loop (where it terminated the process).
-  for (const double tolerance : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+  // on a worker thread of the parallel scoring loop (where it terminated the process). HyperScore and the fragment
+  // index cannot match with it either: 0, negative and NaN tolerances gave no hits and infinity inflated scores, so
+  // 'auto' and 'hyperscore' reject it too.
+  for (const std::string method : {"mass_accuracy", "auto", "hyperscore"})
   {
-    ProSEAlgorithm_test prose;
-    Param p = prose.getParameters();
-    p.setValue("scoring:method", "mass_accuracy");
-    p.setValue("fragment:mass_tolerance", tolerance);
-    p.setValue("fragment:mass_tolerance_unit", "ppm");
-    p.setValue("annotate:local_fragment_evidence", "false");
-    p.setValue("fragment:deisotope", "false");
-    p.setValue("calibration:enabled", "false");
-    TEST_EXCEPTION(Exception::InvalidParameter, prose.setParameters(p))
-    p.setValue("scoring:method", "auto");
-    prose.setParameters(p);
-    TEST_EQUAL(prose.mass_accuracy_score_, false)
+    for (const std::string unit : {"ppm", "Da"})
+    {
+      for (const double tolerance : {0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+      {
+        for (const std::string local_evidence : {"false", "true"})
+        {
+          ProSEAlgorithm_test prose;
+          Param p = prose.getParameters();
+          p.setValue("scoring:method", method);
+          p.setValue("fragment:mass_tolerance", tolerance);
+          p.setValue("fragment:mass_tolerance_unit", unit);
+          p.setValue("annotate:local_fragment_evidence", local_evidence);
+          p.setValue("fragment:deisotope", "false");
+          p.setValue("calibration:enabled", "false");
+          TEST_EXCEPTION(Exception::InvalidParameter, prose.setParameters(p))
+        }
+      }
+    }
   }
   ProSEAlgorithm_test prose;
   Param p = prose.getParameters();
@@ -5187,6 +5195,10 @@ START_SECTION(([EXTRA] scoring:method=mass_accuracy requires a finite, positive 
   p.setValue("fragment:mass_tolerance_unit", "ppm");
   prose.setParameters(p);
   TEST_EQUAL(prose.mass_accuracy_score_, true)
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  prose.setParameters(p);
+  TEST_EQUAL(prose.mass_accuracy_score_, false)
 }
 END_SECTION
 

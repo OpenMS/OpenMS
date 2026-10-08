@@ -463,10 +463,13 @@ namespace OpenMS
     peaks_window_type_ = param_.getValue("peaks:window_type").toString();
 
     fragment_mass_tolerance_ = param_.getValue("fragment:mass_tolerance");
-    if (param_.getValue("annotate:local_fragment_evidence").toBool() && (! std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0))
+    // Every scoring method and the fragment index match within this tolerance (0, negative and NaN tolerances match
+    // nothing, infinity everything), and HyperScore::computeMassAccuracy() and local fragment evidence require it.
+    // Checked here, before the parallel scoring loops.
+    if (! std::isfinite(fragment_mass_tolerance_) || fragment_mass_tolerance_ <= 0.0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Local fragment evidence requires a finite, positive fragment:mass_tolerance.");
+        "fragment:mass_tolerance must be finite and positive (got " + std::to_string(fragment_mass_tolerance_) + ").");
     }
 
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
@@ -510,16 +513,8 @@ namespace OpenMS
     scoring_max_charge_ = static_cast<int>(param_.getValue("fragment:max_charge"));
 
     // Mass-accuracy weighting needs fragment errors of a few ppm; 'auto' uses it for high-resolution ppm tolerances only.
-    // HyperScore::computeMassAccuracy() requires a finite, positive tolerance; checked here, before the parallel
-    // scoring loops, where an exception would otherwise terminate the process.
     const std::string scoring_method = param_.getValue("scoring:method").toString();
-    const bool usable_fragment_tolerance = std::isfinite(fragment_mass_tolerance_) && fragment_mass_tolerance_ > 0.0;
-    if (scoring_method == "mass_accuracy" && ! usable_fragment_tolerance)
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "scoring:method=mass_accuracy requires a finite, positive fragment:mass_tolerance.");
-    }
-    const bool high_resolution_ppm = fragment_mass_tolerance_unit_ == "ppm" && deisotope_supported && usable_fragment_tolerance;
+    const bool high_resolution_ppm = fragment_mass_tolerance_unit_ == "ppm" && deisotope_supported;
     mass_accuracy_score_ = scoring_method == "mass_accuracy" || (scoring_method == "auto" && high_resolution_ppm);
     mass_error_sd_ppm_ = param_.getValue("scoring:mass_error_sd");
     if (mass_accuracy_score_ && (! std::isfinite(mass_error_sd_ppm_) || mass_error_sd_ppm_ <= 0.0))
