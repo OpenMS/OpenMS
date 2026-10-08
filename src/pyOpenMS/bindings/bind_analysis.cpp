@@ -2263,6 +2263,25 @@ Instances are NOT concurrent-safe; construct one per worker.
              nb::overload_cast<const OpenMS::RescoreInput&>(&OpenMS::Percolator::rescore),
              "input"_a,
              "Domain-agnostic rescoring on a feature matrix.")
+        .def("rescorePSMs",
+             [](OpenMS::Percolator& self, OpenMS::PeptideIdentificationList& peptide_ids,
+                const OpenMS::StringList& feature_set, const std::string& enzyme,
+                int min_charge, int max_charge, const std::string& score_type)
+             { return self.rescorePSMs(peptide_ids, feature_set, enzyme, min_charge, max_charge, score_type); },
+             "peptide_ids"_a, "feature_set"_a, "enzyme"_a, "min_charge"_a, "max_charge"_a,
+             "score_type"_a = "q-value",
+             R"doc(
+Rescore PSMs in place on the standard Percolator (.pin) feature set.
+
+Stamps the PIN features, trains, and writes SVM score (MS:1001492),
+q-value (MS:1001491) and PEP (MS:1001493) onto each hit. The main score
+becomes the one selected by score_type ("q-value", "pep" or "svm"), and
+the original score is kept as a meta value named after the old score type.
+The stamped features are removed again. Returns the number of rescored hits.
+
+feature_set: e.g. PercolatorInfile.getStandardFeatureSet(min_charge, max_charge) plus extra
+features plus "Peptide" and "Proteins".
+)doc")
         ;
     def_DefaultParamHandler<OpenMS::Percolator>(percolator_class);
 
