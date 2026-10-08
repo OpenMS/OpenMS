@@ -19,7 +19,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1000" RT="36" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1000" RT="36" >
 				<PeptideHit score="1" sequence="AAAAA" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -32,7 +32,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1000" RT="49" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1000" RT="49" >
 				<PeptideHit score="1" sequence="AAAAA" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -45,7 +45,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1000" RT="144" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1000" RT="144" >
 				<PeptideHit score="1" sequence="CCCCC" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -58,7 +58,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="500" RT="144" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="500" RT="144" >
 				<PeptideHit score="1" sequence="CCCCC" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -71,7 +71,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1000" RT="324" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1000" RT="324" >
 				<PeptideHit score="1" sequence="DDDDD" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -84,11 +84,11 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1000" RT="576" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1000" RT="576" >
 				<PeptideHit score="1" sequence="EEEEE" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1000" RT="576" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1000" RT="576" >
 				<PeptideHit score="1" sequence="FFFFF" charge="1" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -101,7 +101,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1000" RT="900" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1000" RT="900" >
 				<PeptideHit score="1" sequence="GGGGG" charge="1" protein_refs="PH_0 PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -114,7 +114,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1000" RT="1296" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1000" RT="1296" >
 				<PeptideHit score="1" sequence="HHHHH" charge="1" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>

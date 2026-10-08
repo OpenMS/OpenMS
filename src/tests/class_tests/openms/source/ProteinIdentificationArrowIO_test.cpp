@@ -687,6 +687,7 @@ START_SECTION(importSearchParamsFromArrow - round trip)
   prot_id.setHigherScoreBetter(false);
   prot_id.setSignificanceThreshold(0.01);
   prot_id.setPrimaryMSRunPath(StringList{"sample_1.mzML", "sample_2.mzML"});
+  prot_id.setPrimaryMSRunPath(StringList{"sample_1.raw", "sample_2.raw"}, true);
 
   DateTime dt;
   dt.set("2024-06-15 14:30:00");
@@ -746,6 +747,10 @@ START_SECTION(importSearchParamsFromArrow - round trip)
   TEST_EQUAL(ms_runs.size(), 2)
   TEST_EQUAL(ms_runs[0], "sample_1.mzML")
   TEST_EQUAL(ms_runs[1], "sample_2.mzML")
+  // The raw files have no column of their own; they travel as a meta value.
+  StringList raw_runs;
+  imp.getPrimaryMSRunPath(raw_runs, true);
+  TEST_EQUAL(raw_runs == StringList({"sample_1.raw", "sample_2.raw"}), true)
 
   // SearchParameters
   const auto& imp_sp = imp.getSearchParameters();
