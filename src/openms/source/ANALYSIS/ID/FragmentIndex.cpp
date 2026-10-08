@@ -3659,7 +3659,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         // Enumerate bitmask subsets 1..(2^n_slots - 1) with constraints:
         //   - popcount ≤ max_variable_mods_per_peptide_
         //   - no two active bits share a residue position
-        //   - Σ_subset ≈ sigma_delta_ within 1e-6 Da
+        //   - Σ_subset ≈ sigma_delta_ (see the Σ match check below)
         // Cap: ≤ 16 subsets per mother (across all k, Σ tuples in this query).
         if (n_slots == 0) continue;
         // Enumerate the non-empty bitmasks in [1, 2^n_slots - 1] with at most
@@ -3693,15 +3693,18 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           if (conflict) continue;
 
           // Σ match check.
-          // sigma_delta_ is stored as float; tolerate float→double rounding
-          // by using 1e-4 Da (~0.1 mDa) rather than 1e-6. Minimum modification
-          // delta separation in Unimod is ≥1 mDa, so 0.1 mDa is safe.
+          // sigma_delta_ is stored as float: tolerate its rounding (half an ulp,
+          // |Σ| * 2^-24: up to 1.2e-4 Da above 2048 Da, e.g. two N-glycans) on top
+          // of 1e-4 Da (~0.1 mDa) for the summation order. Minimum modification
+          // delta separation in Unimod is ≥1 mDa, so this is safe.
           double subset_sigma = 0.0;
           for (size_t s = 0; s < n_slots; ++s)
           {
             if (bm & (uint64_t{1} << s)) subset_sigma += slots[s].delta_mass;
           }
-          if (std::abs(subset_sigma - static_cast<double>(sm_raw.sigma_delta_)) >= 1e-4) continue;
+          const double stored_sigma = static_cast<double>(sm_raw.sigma_delta_);
+          if (std::abs(subset_sigma - stored_sigma)
+              >= 1e-4 + std::abs(stored_sigma) * static_cast<double>(std::numeric_limits<float>::epsilon()) / 2) continue;
 
           // Per-mother cap.
           size_t& count = subsets_per_mother[sm_raw.peptide_idx_];

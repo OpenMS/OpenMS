@@ -4711,4 +4711,75 @@ START_SECTION(([EXTRA] SNES expands a hit into the modification subsets within v
 }
 END_SECTION
 
+START_SECTION(([EXTRA] SNES realizes modification subsets whose total shift is large))
+{
+  // The Σ of a hit is stored as float: above 2048 Da its rounding (up to 1.2e-4 Da) exceeded the 1e-4 Da tolerance of
+  // the subset match, so e.g. two Hex(5)HexNAc(4) (N) glycans (Σ = 3245.163 Da, stored 1.1e-4 Da off) were never
+  // realized by SNES, while the conventional index finds the peptidoform.
+  const vector<FASTAFile::FASTAEntry> db{{"P1", "", "GGGANGTPEPNESIDERGGG"}};
+  const ResidueModification* glycan = ModificationsDB::getInstance()->getModification("Hex(5)HexNAc(4) (N)");
+  AASequence target = AASequence::fromString("ANGTPEPNESIDER");
+  target.setModification(1, glycan);
+  target.setModification(7, glycan);
+  TheoreticalSpectrumGenerator tsg;
+  PeakSpectrum spectrum;
+  tsg.getSpectrum(spectrum, target, 1, 1);
+  Precursor precursor;
+  precursor.setMZ(target.getMZ(3));
+  precursor.setCharge(3);
+  spectrum.setPrecursors({precursor});
+  spectrum.setMSLevel(2);
+  const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
+  for (const string snes : {"false", "true"})
+  {
+    FragmentIndex fi;
+    Param p = fi.getParameters();
+    p.setValue("decoys", "false");
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 10);
+    p.setValue("peptide:max_size", 20);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("precursor:isotope_error_min", 0);
+    p.setValue("precursor:isotope_error_max", 0);
+    p.setValue("precursor:min_charge", 2);
+    p.setValue("precursor:max_charge", 4);
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:max_mz", 6000);
+    p.setValue("fragment:min_matched_ions", 3);
+    p.setValue("modifications:fixed", vector<string>{});
+    p.setValue("modifications:variable", vector<string>{"Hex(5)HexNAc(4) (N)"});
+    p.setValue("modifications:variable_max_per_peptide", 2);
+    p.setValue("snes_enabled", snes);
+    fi.setParameters(p);
+    fi.build(db);
+    TEST_EQUAL(fi.isSnesMode(), snes == "true")
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, db, sms);
+    bool found = false;
+    for (const auto& hit : sms.hits_)
+    {
+      const FragmentIndex::Peptide& entry = fi.getPeptides()[hit.peptide_idx_];
+      AASequence seq;
+      if (fi.isSnesMode())
+      {
+        const int realized = fi.realizeSNESLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
+        if (realized < 0) continue;
+        seq = fi.reconstructRealizedSubSequence(entry, db, static_cast<size_t>(realized), hit.subset_bitmask_);
+      }
+      else
+      {
+        seq = fi.reconstructModifiedSequence(entry, db);
+      }
+      found |= (seq == target);
+    }
+    TEST_EQUAL(std::string(found ? "found" : "not found") + " with snes_enabled=" + snes, "found with snes_enabled=" + snes)
+  }
+}
+END_SECTION
+
 END_TEST
