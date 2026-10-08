@@ -17,6 +17,7 @@
 			<VariableModification name="E-18.0106" />
 			<VariableModification name="M+15.9949" />
 			<VariableModification name="Q-17.0265" />
+				<UserParam type="string" name="ScoreSoftware:Posterior Error Probability" value="IDPosteriorErrorProbability"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type_protein" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="urn:lsid:rumpelstielzchen" score="140.600006103516" sequence="HIJKLMN">
@@ -34,6 +35,7 @@
 			<FixedModification name="C+1234.5678" />
 			<VariableModification name="C-1700" />
 			<VariableModification name="Q-1700" />
+				<UserParam type="string" name="ScoreSoftware:Posterior Error Probability" value="IDPosteriorErrorProbability"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type_protein" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_2" accession="a1" score="70.3000030517578" sequence="OPQREST">
@@ -41,7 +43,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_1" >
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_1" >
 		<PeptideHit score="4324.455" sequence="G" charge="23" aa_after="Y" protein_refs="PH_2">
 			<UserParam type="int" name="label" value="19"/>
 		</PeptideHit>
@@ -62,7 +64,7 @@
 				<pt x="1.5" y="1.8" />
 				<pt x="2.5" y="2.8" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_3" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_3" >
 				<PeptideHit score="4324.435" sequence="E" charge="23" aa_after="Y" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -99,7 +101,7 @@
 					<UserParam type="float" name="FWHM" value="0.0"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_2" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" spectrum_reference="UNKNOWN_OBSERVATION_2" >
 				<PeptideHit score="4324.434" sequence="A" charge="23" aa_after="Y" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="label" value="17"/>
