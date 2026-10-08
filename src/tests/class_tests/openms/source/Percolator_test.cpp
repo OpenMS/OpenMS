@@ -20,6 +20,11 @@
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/PercolatorInfile.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -273,6 +278,80 @@ START_SECTION((void rescore(std::vector<PeptideIdentification>& peptide_ids, con
   TEST_EQUAL(n_targets > 0, true)
   TEST_EQUAL(n_decoys > 0, true)
   TEST_EQUAL(target_sum / n_targets > decoy_sum / n_decoys, true)
+}
+END_SECTION
+
+START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge)))
+{
+  // Comet PSMs (targets and decoys), as PercolatorAdapter's in-process TOPP test uses them.
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  FileHandler().loadIdentifications(
+    OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/PercolatorAdapter_1.idXML"), prot_ids, pep_ids);
+  int min_charge = 10;
+  int max_charge = 0;
+  Size n_hits = 0;
+  for (const PeptideIdentification& pid : pep_ids)
+  {
+    for (const PeptideHit& hit : pid.getHits())
+    {
+      min_charge = std::min(min_charge, hit.getCharge());
+      max_charge = std::max(max_charge, hit.getCharge());
+      ++n_hits;
+    }
+  }
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
+  const StringList extra = ListUtils::create<std::string>(
+    prot_ids.front().getSearchParameters().getMetaValue("extra_features").toString());
+  feature_set.insert(feature_set.end(), extra.begin(), extra.end());
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  // PercolatorAdapter_1.ini
+  Percolator perc;
+  Param pp = perc.getDefaults();
+  pp.setValue("test_fdr", 0.5);
+  pp.setValue("train_fdr", 0.5);
+  pp.setValue("subset_max_train", 0);
+  pp.setValue("train_best_positive", "false");
+  pp.setValue("post_processing_tdc", "false");
+  pp.setValue("pep_method", "nonparametric");
+  pp.setValue("num_threads", 1);
+  perc.setParameters(pp);
+
+  // Nothing to train on: hits unchanged, 0 returned.
+  PeptideIdentificationList unchanged = pep_ids;
+  TEST_EQUAL(perc.rescorePSMs(unchanged, StringList{"SpecId", "Label", "Peptide"}, "trypsin", min_charge, max_charge), 0)
+  TEST_TRUE(unchanged == pep_ids)
+
+  PeptideIdentificationList rescored = pep_ids;
+  TEST_EQUAL(perc.rescorePSMs(rescored, feature_set, "trypsin", min_charge, max_charge), n_hits)
+  for (Size i = 0; i < rescored.size(); ++i)
+  {
+    for (Size j = 0; j < rescored[i].getHits().size(); ++j)
+    {
+      const PeptideHit& hit = rescored[i].getHits()[j];
+      const PeptideHit& before = pep_ids[i].getHits()[j];
+      TEST_TRUE(hit.metaValueExists("percolator_score"))
+      const double q = hit.getMetaValue("percolator_q_value");
+      const double pep = hit.getMetaValue("percolator_pep");
+      TEST_EQUAL(q >= 0.0 && q <= 1.0, true)
+      TEST_EQUAL(pep >= 0.0 && pep <= 1.0, true)
+      // Score untouched; the temporary PIN meta values are gone, the input's are kept.
+      TEST_REAL_SIMILAR(hit.getScore(), before.getScore())
+      TEST_FALSE(hit.metaValueExists("peplen"))
+      TEST_FALSE(hit.metaValueExists("enzInt"))
+      std::vector<std::string> keys_before, keys_after;
+      before.getKeys(keys_before);
+      hit.getKeys(keys_after);
+      TEST_EQUAL(keys_after.size(), keys_before.size() + 3)
+    }
+  }
+
+  // Same input, same parameters: same result.
+  PeptideIdentificationList again = pep_ids;
+  perc.rescorePSMs(again, feature_set, "trypsin", min_charge, max_charge);
+  TEST_TRUE(again == rescored)
 }
 END_SECTION
 

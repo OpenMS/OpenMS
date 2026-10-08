@@ -12,6 +12,7 @@
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -31,6 +32,8 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 
+#include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -84,6 +87,7 @@ peaks in every 100 Da window, including the short final window, for high-resolut
 quota. Use `jump` for legacy filtering at every resolution, or `jump_full` to always retain
 the full quota. This changes high-resolution preprocessing, not the scoring formula.
 
+@note Percolator rescoring: '-percolator' rescores the PSMs of each input file with Percolator before FDR filtering and output; the main score becomes the Percolator PSM q-value. By default ('-percolator_backend in_process') ProSE uses the Percolator library built into OpenMS, so nothing has to be installed. '-percolator_backend executable' runs the percolator executable ('-percolator_executable') via @ref TOPP_PercolatorAdapter instead. Both use the same features and settings (as PercolatorAdapter with '-train_best_positive -post_processing_tdc'). A file without decoys or with fewer than 100 PSMs keeps its HyperScores.
 @note Memory in chunked multi-file runs: '-Search:database:chunk_size' bounds the fragment-index memory only. With multiple '-in' files and chunking active, the chunk-major schedule keeps every input file's preprocessed MS2 spectra in memory for the whole search (each chunk's index is built once and scored against all files). Budget roughly the sum of all files' MS2 peak data on top of one chunk's index, or split very large cohorts across separate invocations (see the sharded-FDR workflow below).
 @note Deferred / distributed (sharded) FDR: to search shards on separate nodes and control FDR globally afterwards, run each shard with '-Search:FDR:protein' = 0 (the default), optionally with '-Search:FDR:PSM' > 0 for per-run PSM filtering. Per-file outputs retain the full target+decoy set, so you can pool them and apply FDR once downstream — e.g. @ref TOPP_IDMerger &rarr; @ref TOPP_ProteinInference / @ref TOPP_Epifany &rarr; @ref TOPP_FalseDiscoveryRate / @ref TOPP_IDFilter (idXML route) — or run a single ProSE process over all shards with '-out_merged'.
 
@@ -107,6 +111,128 @@ class ProSE :
     }
 
   protected:
+    /// Percolator's name for an OpenMS enzyme (as PercolatorAdapter -enzyme and
+    /// PercolatorInfile take it), e.g. "Trypsin/P" -> "trypsinp". Enzymes Percolator does
+    /// not know become "no_enzyme": every cleavage site counts as enzymatic.
+    static std::string percolatorEnzymeName_(const std::string& openms_name)
+    {
+      std::string name;
+      for (char c : openms_name)
+      {
+        if (c != '/') name += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+      }
+      static const std::set<std::string> percolator_enzymes = {
+        "no_enzyme", "elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin", "lys-n",
+        "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
+      return percolator_enzymes.contains(name) ? name : "no_enzyme";
+    }
+
+    /**
+      @brief Rescores the PSMs of one file with the Percolator library (in-process).
+
+      Same features, settings and annotation as the executable backend, i.e.
+      PercolatorAdapter -train_best_positive -post_processing_tdc -score_type q-value:
+      the main score becomes the PSM q-value, the SVM score, q-value and PEP are stored as
+      MS:1001492, MS:1001491 and MS:1001493, the HyperScore as a meta value, and only the
+      best hit per spectrum is kept.
+
+      @return false if no PSM could be rescored (the identifications are then unchanged)
+      @throws Exception::InvalidValue if Percolator rejects the input (identifications unchanged)
+    */
+    static bool rescoreWithPercolatorInProcess_(std::vector<ProteinIdentification>& protein_ids,
+                                                PeptideIdentificationList& peptide_ids,
+                                                int threads)
+    {
+      if (protein_ids.empty() || peptide_ids.empty()) return false;
+
+      // Charge range of the hits, as PercolatorAdapter determines it.
+      int min_charge = 10;
+      int max_charge = 0;
+      for (const PeptideIdentification& pid : peptide_ids)
+      {
+        for (const PeptideHit& hit : pid.getHits())
+        {
+          min_charge = std::min(min_charge, hit.getCharge());
+          max_charge = std::max(max_charge, hit.getCharge());
+        }
+      }
+
+      const ProteinIdentification::SearchParameters& sp = protein_ids.front().getSearchParameters();
+      StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
+      if (sp.metaValueExists("extra_features"))
+      {
+        StringList extra = ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString());
+        feature_set.insert(feature_set.end(), extra.begin(), extra.end());
+      }
+      else
+      {
+        feature_set.push_back("score");
+      }
+
+      // PercolatorAdapter's defaults where they differ from the library's.
+      Percolator perc;
+      Param pp = perc.getDefaults();
+      pp.setValue("train_best_positive", "true");
+      pp.setValue("post_processing_tdc", "true");
+      pp.setValue("subset_max_train", 0);           // train on all PSMs
+      pp.setValue("pep_method", "nonparametric");   // the executable's PEP estimator
+      // One model per cross-validation fold: more than 3 threads do not help.
+      pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 3));
+      perc.setParameters(pp);
+
+      if (perc.rescorePSMs(peptide_ids, feature_set, percolatorEnzymeName_(sp.digestion_enzyme.getName()),
+                           min_charge, max_charge) == 0)
+      {
+        return false;
+      }
+
+      const std::string run_identifier = protein_ids.front().getIdentifier();
+      for (PeptideIdentification& pid : peptide_ids)
+      {
+        const std::string old_score_type = pid.getScoreType();
+        pid.setIdentifier(run_identifier);
+        pid.setScoreType("q-value");
+        pid.setHigherScoreBetter(false);
+        for (PeptideHit& hit : pid.getHits())
+        {
+          if (hit.metaValueExists("percolator_q_value"))
+          {
+            const double svm = hit.getMetaValue("percolator_score");
+            const double q_value = hit.getMetaValue("percolator_q_value");
+            const double pep = hit.getMetaValue("percolator_pep");
+            hit.setMetaValue(old_score_type, hit.getScore());
+            hit.setMetaValue("MS:1001492", svm);     // percolator:score
+            hit.setMetaValue("MS:1001491", q_value); // percolator:Q value
+            hit.setMetaValue("MS:1001493", pep);     // posterior error probability
+            hit.setScore(q_value);
+            hit.removeMetaValue("percolator_score");
+            hit.removeMetaValue("percolator_q_value");
+            hit.removeMetaValue("percolator_pep");
+          }
+          else
+          {
+            // Not rescored (no peptide evidence, target/decoy unknown or a feature missing):
+            // as the executable backend reports a PSM missing from Percolator's output.
+            hit.setMetaValue("MS:1001492", -100.0);
+            hit.setMetaValue("MS:1001491", 1.0);
+            hit.setMetaValue("MS:1001493", 1.0);
+            hit.setScore(1.0);
+          }
+        }
+      }
+      IDFilter::keepNBestHits(peptide_ids, 1);
+
+      for (ProteinIdentification& run : protein_ids)
+      {
+        // Downstream tools (e.g. MzTab export, ConsensusID) recognize Percolator-processed
+        // runs by the search engine name, as written by PercolatorAdapter.
+        run.setSearchEngine("Percolator");
+        run.setSearchEngineVersion("3.08-vendored");
+        run.setMetaValue("percolator", "ProSE (in-process)");
+      }
+      return true;
+    }
+
     void registerOptionsAndFlags_() override
     {
       registerInputFileList_("in", "<files>", StringList(), "Input spectrum file(s). Multiple files are searched against the same database; the fragment index is built once and reused.");
@@ -142,13 +268,17 @@ class ProSE :
 
       registerFlag_("no_summary", "Suppress the end-of-search report printed to the command line. The -summary_out YAML file (if requested) is still written.", true);
 
-      registerInputFile_("percolator_executable", "<executable>",
-#ifdef OPENMS_WINDOWSPLATFORM
-        "",
-#else
-        "",
-#endif
-        "Path to the Percolator executable. If set, per-file PSMs are rescored with Percolator (via PercolatorAdapter) before output. Leave empty to skip rescoring.", false, true, ListUtils::create<std::string>("skipexists"));
+      registerFlag_("percolator", "Rescore the PSMs of each input file with Percolator before FDR filtering and output. "
+        "The main score becomes the Percolator PSM q-value. Needs decoys and at least 100 PSMs per file; other files keep their HyperScores.");
+
+      registerStringOption_("percolator_backend", "<choice>", "in_process",
+        "How -percolator runs Percolator. 'in_process': the Percolator library built into OpenMS, nothing to install. "
+        "'executable': the external percolator binary (-percolator_executable), run via PercolatorAdapter.", false, true);
+      setValidStrings_("percolator_backend", {"in_process", "executable"});
+
+      registerInputFile_("percolator_executable", "<executable>", "",
+        "Path to the Percolator executable, used with '-percolator_backend executable' (empty: 'percolator' from PATH). "
+        "Setting it also turns on -percolator.", false, true, ListUtils::create<std::string>("skipexists"));
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
@@ -217,7 +347,21 @@ class ProSE :
       progresslogger.setLogType(log_type_);
 
       Param search_params = getParam_().copy("Search:", true);
-      const std::string percolator_executable = getStringOption_("percolator_executable");
+      // Percolator rescoring. Setting -percolator_executable used to be the only way to turn it on,
+      // so it still does; the backend is chosen by -percolator_backend either way.
+      const std::string percolator_executable_option = getStringOption_("percolator_executable");
+      const bool rescore_percolator = getFlag_("percolator") || !percolator_executable_option.empty();
+      const bool percolator_in_process = getStringOption_("percolator_backend") == "in_process";
+      const std::string percolator_executable = percolator_executable_option.empty() ? "percolator" : percolator_executable_option;
+      if (!getFlag_("percolator") && !percolator_executable_option.empty())
+      {
+        OPENMS_LOG_INFO << "[ProSE] -percolator_executable is set: Percolator rescoring is on (as with -percolator)." << endl;
+      }
+      if (rescore_percolator && percolator_in_process && !percolator_executable_option.empty())
+      {
+        OPENMS_LOG_WARN << "[ProSE] Rescoring with the in-process Percolator; -percolator_executable is not used. "
+                        << "Set '-percolator_backend executable' to run the executable." << endl;
+      }
       const double user_protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
       const double user_psm_fdr = static_cast<double>(search_params.getValue("FDR:PSM"));
 
@@ -226,7 +370,7 @@ class ProSE :
       // would (a) filter on the wrong score (raw HyperScore q-values, not
       // Percolator q-values) and (b) strip decoys, leaving Percolator with
       // nothing for target/decoy competition ("No decoys found").
-      if (!percolator_executable.empty() && (user_protein_fdr > 0.0 || user_psm_fdr > 0.0))
+      if (rescore_percolator && (user_protein_fdr > 0.0 || user_psm_fdr > 0.0))
       {
         OPENMS_LOG_INFO << "[ProSE] Percolator rescoring enabled: deferring PSM/protein FDR to post-rescoring." << endl;
         search_params.setValue("FDR:PSM", 0.0);
@@ -299,7 +443,7 @@ class ProSE :
       // Timer spans search + Percolator + FDR + output writing (stopped at report time).
       StopWatch sw_total; sw_total.start();
       // Keep the algorithm's pooled aggregate only where the -out_merged block below consumes it verbatim; with Percolator that block re-merges the rescored per-file results, so the pre-rescoring pool would be waste.
-      const bool build_pooled_aggregate = !out_merged.empty() && in_list.size() > 1 && percolator_executable.empty();
+      const bool build_pooled_aggregate = !out_merged.empty() && in_list.size() > 1 && !rescore_percolator;
       ProSEAlgorithm::MultiFileSearchResult mfres =
         sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
                                            build_pooled_aggregate);
@@ -329,7 +473,7 @@ class ProSE :
       // Tracks whether PSM-level FDR filtering was actually applied per file in
       // this (Percolator) branch — false for files skipped for lack of decoys.
       std::vector<bool> psm_fdr_applied(in_list.size(), false);
-      if (!percolator_executable.empty())
+      if (rescore_percolator)
       {
         // Percolator requires decoys for target/decoy competition.
         // Check per-file results for target_decoy annotations.
@@ -354,9 +498,41 @@ class ProSE :
                           << "Use '-Search:decoys auto' / 'generate' or provide a FASTA with decoy "
                           << "proteins. Skipping rescoring." << endl;
         }
+        else if (percolator_in_process)
+        {
+          const int threads = getIntOption_("threads");
+          for (Size i = 0; i < in_list.size(); ++i)
+          {
+            auto& result = mfres.per_file[i];
+            if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
+            if (result.peptide_ids.size() < 100)
+            {
+              OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_list[i]
+                              << " (only " << result.peptide_ids.size() << " PSMs, need >= 100)." << endl;
+              continue;
+            }
+            OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_list[i] << " with Percolator (in-process)..." << endl;
+            try
+            {
+              percolator_succeeded[i] = rescoreWithPercolatorInProcess_(result.protein_ids, result.peptide_ids, threads);
+              if (!percolator_succeeded[i])
+              {
+                OPENMS_LOG_WARN << "Percolator rescoring found no PSMs with all features in " << in_list[i]
+                                << ". Using original HyperScore results." << endl;
+              }
+            }
+            catch (const Exception::BaseException& e)
+            {
+              // rescorePSMs leaves the hits untouched when Percolator rejects the input
+              // (e.g. too few decoys or no discriminating feature).
+              OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_list[i] << " (" << e.what()
+                              << "). Using original HyperScore results." << endl;
+            }
+          }
+        }
         else
         {
-          // Resolve the sibling PercolatorAdapter binary. runExternalProcess_ hands the
+          // Executable backend. Resolve the sibling PercolatorAdapter binary. runExternalProcess_ hands the
           // executable to boost::process, which only searches PATH for bare names — in a
           // dev build the OpenMS bin/ directory is typically not on PATH, so invoking
           // "PercolatorAdapter" by name silently falls back to HyperScore. findSibling
@@ -386,17 +562,17 @@ class ProSE :
           // Write intermediate idXML for PercolatorAdapter input
           std::string tmp_in = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
           std::string tmp_out = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
-          std::string tmp_weights = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
           FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
 
           std::vector<std::string> perc_params = {
             "-in", tmp_in,
             "-out", tmp_out,
             "-percolator_executable", percolator_executable,
+            "-enzyme", percolatorEnzymeName_(result.protein_ids.front().getSearchParameters().digestion_enzyme.getName()),
             "-train_best_positive",
             "-score_type", "q-value",
             "-post_processing_tdc",
-            "-weights", tmp_weights
+            "-use_subprocess", "true"
           };
 
           OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_list[i] << " with Percolator..." << endl;
@@ -419,13 +595,12 @@ class ProSE :
           // Clean up temp files
           File::remove(tmp_in);
           File::remove(tmp_out);
-          File::remove(tmp_weights);
         }
         }
 
         // Apply deferred PSM-level FDR filtering. For files rescored by Percolator,
-        // scores are already q-values (PercolatorAdapter was invoked with
-        // -score_type q-value). For files that fell back to HyperScores (Percolator
+        // scores are already q-values (both backends report the Percolator PSM
+        // q-value as main score). For files that fell back to HyperScores (Percolator
         // skipped/failed), compute q-values via FalseDiscoveryRate first.
         // PSM-level FDR filters target+decoy PSMs alike by q-value; no decoy-specific stripping
         // here (categorical decoy removal is a protein-FDR finalization step, see below).
@@ -868,7 +1043,7 @@ class ProSE :
           // 'file://<basename>' rewrite -test applies to the per-file runs above, because it maps
           // the -in paths one-to-one -- unless two -in files in different directories share a
           // basename, which only -test could ever collapse and which no ProSE test does.
-          if (percolator_executable.empty() && !mfres.aggregate.protein_ids.empty())
+          if (!rescore_percolator && !mfres.aggregate.protein_ids.empty())
           {
             merged_protein_ids.emplace_back(std::move(mfres.aggregate.protein_ids[0]));
             merged_peptides = std::move(mfres.aggregate.peptide_ids);
@@ -1077,7 +1252,7 @@ class ProSE :
           }
 
           // -- Percolator rescoring status. --
-          if (!percolator_executable.empty())
+          if (rescore_percolator)
           {
             Size n_ok = 0;
             for (bool b : percolator_succeeded) { if (b) { ++n_ok; } }

@@ -4775,6 +4775,36 @@ add_test("TOPP_ProSE_10_out" ${DIFF}
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_10_out" PROPERTIES DEPENDS "TOPP_ProSE_10")
 
+# Test 13: Percolator rescoring with the in-process backend (the default of -percolator): the Test 6
+# search, rescored before PSM and protein FDR. FileInfo counts with the tolerances of Test 6; the
+# golden's search engine line ("Percolator") catches a silent fallback to HyperScores.
+add_test("TOPP_ProSE_13_percolator" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -percolator
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_13_percolator_out.tmp.idXML)
+add_test("TOPP_ProSE_13_percolator_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_13_percolator_out.tmp.idXML
+  -out_tsv ${TESTS_TEMP_DIR}/ProSE_13_percolator_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_13_percolator_info" PROPERTIES DEPENDS "TOPP_ProSE_13_percolator")
+add_test("TOPP_ProSE_13_percolator_info_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_13_percolator_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_13_percolator_info.tsv -absdiff 3
+  -whitelist "file name" "database")
+set_tests_properties("TOPP_ProSE_13_percolator_info_out" PROPERTIES DEPENDS "TOPP_ProSE_13_percolator_info")
+# The executable backend needs PercolatorAdapter and the percolator executable; without the
+# executable ProSE warns and keeps the HyperScores (exit code 0).
+add_test("TOPP_ProSE_13_percolator_executable_missing" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -percolator -percolator_backend executable
+  -percolator_executable ${TESTS_TEMP_DIR}/this_percolator_does_not_exist
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_13_percolator_executable_missing_out.tmp.idXML)
+set_tests_properties("TOPP_ProSE_13_percolator_executable_missing" PROPERTIES
+  PASS_REGULAR_EXPRESSION "Using original HyperScore results")
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format

@@ -70,6 +70,47 @@ def test_reproducible_with_same_seed():
         assert abs(a - b) < 1e-9
 
 
+def test_rescore_psms():
+    """rescorePSMs on PSMs: percolator_* meta values on rescored hits, scores unchanged."""
+    import random
+    rng = random.Random(3)
+    peptide_ids = oms.PeptideIdentificationList()
+    for i in range(600):
+        is_decoy = (i % 2 == 1)
+        hit = oms.PeptideHit()
+        hit.setSequence(oms.AASequence.fromString("PEPTIDE" + "ACDEFGHILMNPQSTVWY"[i % 18] + "K"))
+        hit.setCharge(2)
+        hit.setScore(float(i))
+        evidence = oms.PeptideEvidence()
+        evidence.setProteinAccession(("DECOY_P%d" if is_decoy else "P%d") % i)
+        evidence.setAABefore("R")
+        evidence.setAAAfter("A")
+        hit.setPeptideEvidences([evidence])
+        hit.setMetaValue("target_decoy", "decoy" if is_decoy else "target")
+        hit.setMetaValue("f", (0.0 if is_decoy else 1.5) + rng.gauss(0.0, 1.0))
+        pid = oms.PeptideIdentification()
+        pid.setMZ(500.0 + i)
+        pid.setRT(10.0 * i)
+        pid.setScoreType("score")
+        pid.setHigherScoreBetter(True)
+        pid.setMetaValue("spectrum_reference", "scan=%d" % (i + 1))
+        pid.setHits([hit])
+        peptide_ids.push_back(pid)
+
+    p = oms.Percolator()
+    # nothing to train on: 0, nothing changed
+    assert p.rescorePSMs(peptide_ids, ["SpecId", "Label"], "trypsin", 2, 2) == 0
+    assert not peptide_ids[0].getHits()[0].metaValueExists("percolator_q_value")
+
+    assert p.rescorePSMs(peptide_ids, ["f"], "trypsin", 2, 2) == 600
+    for i in range(peptide_ids.size()):
+        hit = peptide_ids[i].getHits()[0]
+        q = hit.getMetaValue("percolator_q_value")
+        assert 0.0 <= q <= 1.0
+        assert hit.getScore() == float(i)
+        assert not hit.metaValueExists("peplen")  # temporary PIN meta values are removed
+
+
 if __name__ == "__main__":
     test_import_percolator()
     print("test_import_percolator: passed")
@@ -77,4 +118,6 @@ if __name__ == "__main__":
     print("test_low_level_rescore_on_separable_data: passed")
     test_reproducible_with_same_seed()
     print("test_reproducible_with_same_seed: passed")
+    test_rescore_psms()
+    print("test_rescore_psms: passed")
     print("\nAll Percolator pyOpenMS tests passed.")

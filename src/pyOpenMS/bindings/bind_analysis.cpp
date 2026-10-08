@@ -2263,6 +2263,23 @@ Instances are NOT concurrent-safe; construct one per worker.
              nb::overload_cast<const OpenMS::RescoreInput&>(&OpenMS::Percolator::rescore),
              "input"_a,
              "Domain-agnostic rescoring on a feature matrix.")
+        .def("rescorePSMs", &OpenMS::Percolator::rescorePSMs,
+             "peptide_ids"_a, "feature_set"_a, "enzyme"_a, "min_charge"_a, "max_charge"_a,
+             R"doc(
+Rescore PSMs in place as the percolator executable rescores their .pin file.
+
+Stamps the PIN features (PercolatorInfile.getStandardFeatureSet plus search engine
+features) on the hits, rescores them with the same cross-validation folds and
+target-decoy competition as the executable, and adds percolator_score /
+percolator_q_value / percolator_pep meta values. Scores are not changed.
+
+:param peptide_ids: PeptideIdentificationList with target and decoy PSMs (modified in place)
+:param feature_set: PIN columns; SpecId, Label, ScanNr, ExpMass, Peptide and Proteins are ignored
+:param enzyme: Enzyme name as for PercolatorInfile.store, e.g. "trypsin"
+:param min_charge: Lower bound for the charge one-hot features
+:param max_charge: Upper bound for the charge one-hot features
+:returns: Number of rescored hits (0: nothing to rescore, hits unchanged)
+)doc")
         ;
     def_DefaultParamHandler<OpenMS::Percolator>(percolator_class);
 

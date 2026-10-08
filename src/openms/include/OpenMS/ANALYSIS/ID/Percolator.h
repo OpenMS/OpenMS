@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <memory>
 #include <vector>
@@ -131,6 +132,41 @@ namespace OpenMS
               discriminative feature, malformed input dimensions).
     */
     RescoreOutput rescore(const RescoreInput& input);
+
+    /**
+      @brief Rescore PSMs in place as the percolator executable rescores their .pin file.
+
+      The in-process equivalent of writing @p peptide_ids with PercolatorInfile::store()
+      and running the percolator executable on the result. Every hit gets the PIN feature
+      values as temporary meta values (PercolatorInfile::stampPinFeaturesOnHits), its
+      scan number, spectrum file, experimental and calculated mass go into the
+      PIN-compatible fields of the RescoreInput, so cross-validation folds and
+      target-decoy competition see the same rows as the executable. The temporary meta
+      values are removed afterwards; meta values that already existed are kept.
+
+      Each rescored hit gets the meta values "percolator_score", "percolator_q_value"
+      and "percolator_pep". Scores, score types and other meta values are not changed.
+      Hits without peptide evidence, without target/decoy annotation or without one of
+      the features are not rescored and get none of these meta values.
+
+      Uses the parameters set on this instance (e.g. post_processing_tdc, num_threads).
+
+      @param peptide_ids Target and decoy PSMs. Mutated in place.
+      @param feature_set PIN columns as from PercolatorInfile::getStandardFeatureSet()
+             plus any search-engine features. The non-feature columns SpecId, Label,
+             ScanNr, ExpMass, Peptide and Proteins are ignored.
+      @param enzyme Enzyme name as for PercolatorInfile::store() (e.g. "trypsin").
+      @param min_charge Lower bound for the charge{N} one-hot features.
+      @param max_charge Upper bound for the charge{N} one-hot features.
+      @return Number of rescored hits. 0 if there was nothing to rescore (no hits or no
+              usable feature); @p peptide_ids is then unchanged.
+      @throws Exception::InvalidValue if Percolator's sanity checks fail (e.g. too few decoys).
+    */
+    Size rescorePSMs(PeptideIdentificationList& peptide_ids,
+                     const StringList& feature_set,
+                     const std::string& enzyme,
+                     int min_charge,
+                     int max_charge);
 
     /**
       @brief SVM weights trained in the last rescore()/train() call.

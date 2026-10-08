@@ -17,6 +17,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - Percolator::rescorePSMs rescores PSMs in place as the percolator executable rescores their
+    .pin file (same PIN features, cross-validation folds and target-decoy competition). The
+    in-process backends of PercolatorAdapter and ProSE use it.
   - OpenSWATH (MRMFeatureFinderScoring) and AccurateMassSearchEngine record the score type of the
     peptide identifications they write: xx_lda_prelim_score (or xx_swath_prelim_score,
     OverallQuality; higher is better) and MassErrorAbsPPMScore (lower is better). AccurateMassSearch
@@ -115,6 +118,12 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    ProSE:
+      - PARAM: New -percolator rescores the PSMs of each file with Percolator, by default with
+        the Percolator library built into OpenMS (-percolator_backend in_process), so the
+        percolator executable is no longer needed. -percolator_backend executable runs it via
+        PercolatorAdapter as before. -percolator_executable still turns rescoring on, but is
+        used only with the executable backend. Both backends now get the search enzyme.
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.

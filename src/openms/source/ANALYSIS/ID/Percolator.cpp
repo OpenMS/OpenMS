@@ -30,6 +30,7 @@
 #include <map>
 #include <numeric>
 #include <queue>
+#include <set>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -1221,6 +1222,124 @@ PercolatorModel Percolator::loadModel(const std::string& filename)
   }
   model.weights.push_back(bias);
   return model;
+}
+
+Size Percolator::rescorePSMs(PeptideIdentificationList& peptide_ids,
+                             const StringList& feature_set,
+                             const std::string& enzyme,
+                             int min_charge,
+                             int max_charge)
+{
+  // Stamp the PIN feature values on all hits, as PercolatorInfile::store() computes them
+  // when it writes the .pin file for the executable: CalcMass, ExpMass, mass, peplen,
+  // chargeN, enzN/enzC/enzInt, dm/absdm, score, etc. Search-engine-specific features are
+  // already meta values. Training on these values matches the executable's feature vectors
+  // row for row.
+  PercolatorInfile::PinFeatureMetaValueMap added_pin_meta_values;
+  const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
+    peptide_ids, enzyme, min_charge, max_charge, added_pin_meta_values);
+  OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
+                  << skipped.size() << " PSMs skipped (no evidence or unknown TD)."
+                  << std::endl;
+
+  // Removes only the meta values the stamping added; input meta values with a PIN column
+  // name (notably CalcMass) survive, as with the executable, which reads a copy.
+  auto strip_pin_meta_values = [&]()
+  {
+    for (const auto& [hit_location, keys] : added_pin_meta_values)
+    {
+      PeptideHit& hit = peptide_ids[hit_location.first].getHits()[hit_location.second];
+      for (const std::string& key : keys)
+      {
+        hit.removeMetaValue(key);
+      }
+    }
+  };
+
+  // SpecId/Label/ScanNr/Peptide/Proteins are strings or bookkeeping, not features. ExpMass
+  // is used by Percolator to tell spectra apart (RescoreInput::exp_masses), not for training.
+  const std::set<std::string> pin_metadata_not_feature {
+    "SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"
+  };
+  StringList numeric_features;
+  for (const std::string& f : feature_set)
+  {
+    if (pin_metadata_not_feature.contains(f)) continue;
+    numeric_features.push_back(f);
+  }
+
+  // Fill the PIN-compatible fields here rather than with fillPINCompatibleFields(): rows
+  // stay aligned with the hits when some are skipped (see above, or a missing feature).
+  RescoreInput ri;
+  ri.feature_names = numeric_features;
+  std::vector<std::pair<size_t, size_t>> hit_locs;
+  // Spectrum files in order of appearance, as Percolator numbers the FileName column of the pin
+  // file: it identifies a spectrum by file, scan number and precursor m/z (e.g. for target-decoy
+  // competition), so spectra of different inputs with the same scan number must not share a file.
+  std::map<std::string, int> spec_files;
+  if (!numeric_features.empty())
+  {
+    for (size_t i = 0; i < peptide_ids.size(); ++i)
+    {
+      const auto& pid = peptide_ids[i];
+      for (size_t j = 0; j < pid.getHits().size(); ++j)
+      {
+        if (skipped.contains({i, j})) continue;
+        const PeptideHit& hit = pid.getHits()[j];
+
+        std::vector<double> row;
+        row.reserve(numeric_features.size());
+        bool ok = true;
+        for (const std::string& f : numeric_features)
+        {
+          if (!hit.metaValueExists(f)) { ok = false; break; }
+          // as the executable reads the .pin: search engine scores may be stored as strings
+          row.push_back(PercolatorInfile::getFeatureValue(hit.getMetaValue(f), f));
+        }
+        if (!ok) continue;
+
+        ri.features.push_back(std::move(row));
+        ri.is_decoy.push_back(hit.isDecoy());
+        ri.scan_numbers.push_back(static_cast<int>(hit.getMetaValue("ScanNr")));
+        ri.spec_file_numbers.push_back(spec_files.try_emplace(
+          PercolatorInfile::getFileIdentifier(pid), static_cast<int>(spec_files.size())).first->second);
+        ri.exp_masses.push_back(static_cast<double>(hit.getMetaValue("ExpMass")));
+        ri.calc_masses.push_back(
+          PercolatorInfile::getFeatureValue(hit.getMetaValue("CalcMass"), "CalcMass"));
+        hit_locs.emplace_back(i, j);
+      }
+    }
+  }
+
+  if (ri.features.empty())
+  {
+    strip_pin_meta_values();
+    return 0;
+  }
+  OPENMS_LOG_INFO << "Rescoring " << ri.features.size() << " PSMs in-process with "
+                  << numeric_features.size() << " features." << std::endl;
+
+  RescoreOutput ro;
+  try
+  {
+    ro = rescore(ri);
+  }
+  catch (...)
+  {
+    strip_pin_meta_values();
+    throw;
+  }
+
+  for (size_t row = 0; row < ro.scores.size(); ++row)
+  {
+    const auto [pid_i, hit_i] = hit_locs[row];
+    PeptideHit& hit = peptide_ids[pid_i].getHits()[hit_i];
+    hit.setMetaValue("percolator_score",   ro.scores[row]);
+    hit.setMetaValue("percolator_q_value", ro.q_values[row]);
+    hit.setMetaValue("percolator_pep",     ro.peps[row]);
+  }
+  strip_pin_meta_values();
+  return hit_locs.size();
 }
 
 void Percolator::rescore(std::vector<PeptideIdentification>& peptide_ids,
