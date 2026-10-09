@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       build-only:
-        description: Build and upload installer artifacts without deploying or publishing
+        description: Skip documentation deployment and release publishing
         type: boolean
         default: true
+      deploy-installers:
+        description: Upload installers to a branch-specific OpenMS archive directory
+        type: boolean
+        default: false
   push:
     tags:
       - 'v[0-9]*'
@@ -311,7 +315,7 @@ jobs:
 
   deploy-installer:
     name: "Deploy Installer"
-    if: github.event_name != 'workflow_dispatch' || !inputs.build-only
+    if: github.event_name != 'workflow_dispatch' || !inputs['build-only'] || inputs['deploy-installers']
     runs-on: ubuntu-latest
     needs:
       - build-and-test
@@ -335,7 +339,20 @@ jobs:
           merge-multiple: true
           path: ${{ github.workspace }}/downloads
 
+      - name: Upload Branch Installers
+        if: github.event_name == 'workflow_dispatch'
+        uses: ./.github/actions/rsync
+        with:
+          key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+          host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          src: ${{ github.workspace }}/downloads/*
+          dst: /OpenMSInstaller/branches/${{ github.ref_name }}/${{ github.sha }}
+          mkpath: true
+
       - name: Upload Installer and Mark as Latest
+        if: github.event_name != 'workflow_dispatch'
         uses: ./.github/actions/rsync
         with:
           key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
@@ -352,7 +369,7 @@ jobs:
 
   deploy-docs:
     name: "Deploy Documentation"
-    if: github.event_name != 'workflow_dispatch' || !inputs.build-only
+    if: github.event_name != 'workflow_dispatch' || !inputs['build-only']
     runs-on: ubuntu-latest
     needs:
       - build-and-test
@@ -390,7 +407,7 @@ jobs:
 
   publish-release:
     name: "Publish Release"
-    if: github.event_name != 'workflow_dispatch' || !inputs.build-only
+    if: github.event_name != 'workflow_dispatch' || !inputs['build-only']
     runs-on: ubuntu-latest
     permissions: write-all
     needs:
@@ -586,7 +603,7 @@ jobs:
 
   create-website-update:
     name: Create Website Update
-    if: (github.event_name != 'workflow_dispatch' || !inputs.build-only) && github.repository == 'OpenMS/OpenMS' && needs.build-and-test.outputs.has_version == 'true'
+    if: (github.event_name != 'workflow_dispatch' || !inputs['build-only']) && github.repository == 'OpenMS/OpenMS' && needs.build-and-test.outputs.has_version == 'true'
     runs-on: ubuntu-latest
     permissions: write-all
     needs:
