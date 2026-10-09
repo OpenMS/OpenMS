@@ -43,6 +43,55 @@ START_SECTION(~PepXMLFile())
 delete ptr;
 END_SECTION
 
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - case-insensitive sample enzyme lookup)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_case_insensitive_enzyme.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1);
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "Trypsin");
+}
+END_SECTION
+
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - missing optional no_cut)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_missing_no_cut.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1);
+  TEST_FALSE(peptides.empty());
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,,,C");
+  TEST_TRUE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
+}
+END_SECTION
+
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - missing optional no_cut with nonempty cut)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_missing_no_cut_nonempty_cut.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1);
+  TEST_FALSE(peptides.empty());
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
+  TEST_FALSE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
+}
+END_SECTION
+
+START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides) - does not carry digestion enzyme into next run)
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  const std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_run_enzyme_reset.pepXML");
+  file.load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 2);
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
+  TEST_NOT_EQUAL(proteins[1].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
+}
+END_SECTION
+
 START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name, SpectrumMetaDataLookup& lookup))
 {
   vector<ProteinIdentification> proteins;

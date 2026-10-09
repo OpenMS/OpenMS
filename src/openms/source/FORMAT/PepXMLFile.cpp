@@ -1177,6 +1177,7 @@ namespace OpenMS
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
       enzyme_ = "unknown_enzyme";
+      params_.digestion_enzyme = DigestionEnzymeProtein();
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       // Record the spectra file as the run's primary MS run path now, so pepXML files
@@ -1891,8 +1892,17 @@ namespace OpenMS
 
       fixed_modifications_.clear();
       variable_modifications_.clear();
+      const auto digestion_enzyme = params_.digestion_enzyme;
       params_ = ProteinIdentification::SearchParameters();
-      params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      const std::string enzyme_name = StringUtils::toLower(enzyme_);
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
+      {
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
+      }
+      else
+      {
+        params_.digestion_enzyme = digestion_enzyme;
+      }
       std::string mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1984,17 +1994,30 @@ namespace OpenMS
 
       if (ProteaseDB::getInstance()->hasEnzyme(StringUtils::toLower(enzyme_)))
       {
-        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(StringUtils::toLower(enzyme_)));
+      }
+      else
+      {
+        params_.digestion_enzyme = DigestionEnzymeProtein();
       }
     }
     else if (element == "specificity" && params_.digestion_enzyme.getName() == "unknown_enzyme") // parent: "sample_enzyme"
     { // special case: search parameter that occurs *before* "search_summary"!
       std::string cut_before = attributeAsString_(attributes, "cut");
-      std::string no_cut_after = attributeAsString_(attributes, "no_cut");
+      std::string no_cut_after;
+      optionalAttributeAsString_(no_cut_after, attributes, "no_cut");
       std::string sense = attributeAsString_(attributes, "sense");
-      params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
-          "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense,
-          cut_before, no_cut_after, sense));
+      const std::string enzyme_name = "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense;
+      if (cut_before.empty())
+      {
+        // OpenMS writes an empty cut for an unknown enzyme with no cleavage positions.
+        params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(enzyme_name, "", std::set<std::string>()));
+      }
+      else
+      {
+        params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
+            enzyme_name, cut_before, no_cut_after, sense));
+      }
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {

@@ -540,6 +540,8 @@ Dependencies:
     input files in MaRaCluster's index step, single-threaded, before it clusters them:
     1.04.1's Windows build crashes in about one run in ten when it converts several files
     in parallel (OpenMS/THIRDPARTY#113, #10259).
+  - PepXMLFile accepts the optional pepXML `no_cut` attribute when reading unknown enzymes,
+    including files written by OpenMS (#10321).
 
 PyOpenMS:
   - BREAKING: boolean parameters are Python bools (#10116). Reading/writing Params
