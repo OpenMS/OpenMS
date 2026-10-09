@@ -161,6 +161,10 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
+    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
+    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
+    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 Build System:
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
