@@ -176,13 +176,14 @@ namespace OpenMS::Internal
       os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 
       // write protein hits
+      auto& run_accessions = accession_to_id_[current_prot_id.getIdentifier()];
       for (Size j = 0; j < current_prot_id.getHits().size(); ++j)
       {
         os << "\t\t\t<ProteinHit";
 
         // prot_count
         os << " id=\"PH_" << prot_count << "\"";
-        accession_to_id_[current_prot_id.getIdentifier() + "_" + current_prot_id.getHits()[j].getAccession()] = prot_count;
+        run_accessions[current_prot_id.getHits()[j].getAccession()] = prot_count;
         ++prot_count;
 
         os << " accession=\"" << writeXMLEscape(current_prot_id.getHits()[j].getAccession()) << "\"";
@@ -972,6 +973,8 @@ namespace OpenMS::Internal
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(id.getIdentifier()) + " (while writing '" + filename + "')");
     }
+    // the protein hits of the run, the only ones its peptide hits may reference (registered with the run)
+    const auto& run_proteins = accession_to_id_.at(id.getIdentifier());
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
     os << "score_type=\"" << writeXMLEscape(id.getScoreType()) << "\" ";
@@ -1021,8 +1024,8 @@ namespace OpenMS::Internal
         // empty accessions are not written out (legacy code)
         if (!protein_accession.empty())
         {
-          const auto protein = accession_to_id_.find(id.getIdentifier() + "_" + protein_accession);
-          if (protein == accession_to_id_.end())
+          const auto protein = run_proteins.find(protein_accession);
+          if (protein == run_proteins.end())
           {
             // a reference to no protein hit cannot be read back (see ProteinRunReferences::checkProteinAccessions())
             throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

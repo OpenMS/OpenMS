@@ -730,13 +730,14 @@ namespace OpenMS::Internal
 
       //TODO @julianus @timo IMPLEMENT PROTEIN GROUP SUPPORT!!
       // write protein hits
+      auto& run_accessions = accession_to_id_[current_prot_id.getIdentifier()];
       for (Size j = 0; j < current_prot_id.getHits().size(); ++j)
       {
         os << "\t\t\t<ProteinHit";
 
         // prot_count
         os << " id=\"PH_" << prot_count << "\"";
-        accession_to_id_[current_prot_id.getIdentifier() + "_" + current_prot_id.getHits()[j].getAccession()] = prot_count;
+        run_accessions[current_prot_id.getHits()[j].getAccession()] = prot_count;
         ++prot_count;
 
         os << " accession=\"" << writeXMLEscape(current_prot_id.getHits()[j].getAccession()) << "\"";
@@ -758,9 +759,9 @@ namespace OpenMS::Internal
       // add ProteinGroup info to metavalues (hack)
       MetaInfoInterface meta = current_prot_id;
       addProteinGroups_(meta, current_prot_id.getProteinGroups(),
-                        "protein_group", accession_to_id_, current_prot_id.getIdentifier(), STORE);
+                        "protein_group", run_accessions, STORE);
       addProteinGroups_(meta, current_prot_id.getIndistinguishableProteins(),
-                        "indistinguishable_proteins", accession_to_id_, current_prot_id.getIdentifier(), STORE);
+                        "indistinguishable_proteins", run_accessions, STORE);
       writeUserParam_("UserParam", os, meta, 3);
       os << "\t\t</ProteinIdentification>\n";
       os << "\t</IdentificationRun>\n";
@@ -853,6 +854,8 @@ namespace OpenMS::Internal
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(id.getIdentifier()) + " (while writing '" + filename + "')");
     }
+    // the protein hits of the run, the only ones its peptide hits may reference (registered with the run)
+    const auto& run_proteins = accession_to_id_.at(id.getIdentifier());
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
     os << "score_type=\"" << writeXMLEscape(id.getScoreType()) << "\" ";
@@ -901,8 +904,8 @@ namespace OpenMS::Internal
         // empty accessions are not written out (legacy code)
         if (!protein_accession.empty())
         {
-          const auto protein = accession_to_id_.find(id.getIdentifier() + "_" + protein_accession);
-          if (protein == accession_to_id_.end())
+          const auto protein = run_proteins.find(protein_accession);
+          if (protein == run_proteins.end())
           {
             // a reference to no protein hit cannot be read back (see ProteinRunReferences::checkProteinAccessions())
             throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1224,7 +1227,7 @@ namespace OpenMS::Internal
 
   void ConsensusXMLHandler::addProteinGroups_(
       MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
-      const std::string& group_name, const std::unordered_map<string, UInt>& accession_to_id, const std::string& runid,
+      const std::string& group_name, const std::unordered_map<string, UInt>& accession_to_id,
       XMLHandler::ActionMode mode)
   {
     // A map that was loaded from a file written by a version that does not know the quantity params
@@ -1246,7 +1249,7 @@ namespace OpenMS::Internal
       {
         if (acc_it != groups[g].accessions.begin())
           accessions += ",";
-        const auto pos = accession_to_id.find(runid + "_" + *acc_it);
+        const auto pos = accession_to_id.find(*acc_it);
         if (pos != accession_to_id.end())
         {
           accessions += "PH_" + StringUtils::toStr(pos->second);

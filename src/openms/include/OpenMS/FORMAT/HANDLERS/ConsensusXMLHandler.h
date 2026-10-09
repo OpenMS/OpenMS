@@ -76,7 +76,7 @@ protected:
     /// to throw appropriate warnings/errors
     void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
                            const std::string& group_name, const std::unordered_map<std::string, UInt>& accession_to_id,
-                           const std::string& runid, XMLHandler::ActionMode mode);
+                           XMLHandler::ActionMode mode);
 
     /// Read and store ProteinGroup data
     void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const std::string& group_name);
@@ -109,8 +109,8 @@ protected:
     std::map<std::string, std::string> proteinid_to_accession_;
     /// the identifier of the run of each protein hit (by its id): a peptide hit may only reference the protein hits of its run
     std::unordered_map<std::string, std::string> proteinid_to_run_;
-    /// Map from search identifier concatenated with protein accession to id
-    std::unordered_map<std::string, UInt> accession_to_id_;
+    /// Map from run identifier to the protein accessions of the run and their protein hit ids (while storing)
+    std::unordered_map<std::string, std::unordered_map<std::string, UInt>> accession_to_id_;
     /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
     std::map<std::string, std::string> identifier_id_;
     /// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)

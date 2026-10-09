@@ -797,6 +797,40 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
     TEST_EXCEPTION(Exception::ParseError, ConsensusXMLFile().load(cross_run, two_runs_in))
     File::remove(cross_run);
   }
+
+  // the protein hits of runs "A" and "A_B" are distinct, also for accessions "B_C" and "C" (both pairs were looked
+  // up as "A_B_C" when writing, so a peptide hit referenced the protein of the other run)
+  {
+    ConsensusMap runs = map;
+    runs.getUnassignedPeptideIdentifications().clear();
+    for (const auto& [identifier, accession] : std::vector<std::pair<std::string, std::string>>{{"A", "B_C"}, {"A_B", "C"}})
+    {
+      ProteinIdentification protein_run;
+      protein_run.setIdentifier(identifier);
+      protein_run.setDateTime(DateTime::now());
+      protein_run.insertHit(ProteinHit(0.0, 1, accession, ""));
+      runs.getProteinIdentifications().push_back(protein_run);
+      PeptideIdentification run_peptide = peptide;
+      run_peptide.setIdentifier(identifier);
+      run_peptide.getHits()[0].addPeptideEvidence(PeptideEvidence(accession, 0, 6, '-', '-'));
+      runs.getUnassignedPeptideIdentifications().push_back(run_peptide);
+    }
+    std::string runs_file;
+    NEW_TMP_FILE_EXT(runs_file, ".consensusXML")
+    ConsensusXMLFile().store(runs_file, runs);
+    ConsensusMap runs_in;
+    ConsensusXMLFile().load(runs_file, runs_in);
+    ABORT_IF(runs_in.getUnassignedPeptideIdentifications().size() != 2 || runs_in.getProteinIdentifications().size() != 3)
+    for (Size i = 0; i < 2; ++i) // (run identifiers are made unique on load)
+    {
+      const PeptideIdentification& run_peptide = runs_in.getUnassignedPeptideIdentifications()[i];
+      const ProteinIdentification& protein_run = runs_in.getProteinIdentifications()[i + 1];
+      TEST_EQUAL(run_peptide.getIdentifier(), protein_run.getIdentifier())
+      TEST_EQUAL(run_peptide.getHits()[0].getPeptideEvidences()[0].getProteinAccession(), protein_run.getHits()[0].getAccession())
+    }
+    TEST_EQUAL(runs_in.getProteinIdentifications()[1].getHits()[0].getAccession(), "B_C")
+    TEST_EQUAL(runs_in.getProteinIdentifications()[2].getHits()[0].getAccession(), "C")
+  }
 }
 END_SECTION
 
