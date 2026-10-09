@@ -17,6 +17,27 @@
 namespace OpenMS
 {
 
+  namespace
+  {
+    /// Correction polynomial at @p m, ignoring the calibrant range
+    double polynomial(const MzCalibrationTof2MzConverter::Correction& c, double m)
+    {
+      double value = 0.0;
+      for (int k = c.n - 1; k >= 0; --k)
+      {
+        value = value * m + c.coefficients[k];
+      }
+      return value;
+    }
+
+    /// ModelType 2 correction at base-curve m/z @p m: polynomial inside [low, high], 0 outside
+    double correctionAt(const MzCalibrationTof2MzConverter::Correction& c, double m)
+    {
+      if (c.n <= 0 || m < c.low || m > c.high) return 0.0;
+      return polynomial(c, m);
+    }
+  }
+
   MzCalibrationTof2MzConverter::FrameModel MzCalibrationTof2MzConverter::makeFrameModel(
     const Calibration& cal, double frame_t1, double frame_t2)
   {
@@ -32,6 +53,10 @@ namespace OpenMS
     {
       m.c3 = cal.c3;
       m.c4 = cal.c4;
+    }
+    else if (cal.model_type == 2)
+    {
+      m.correction = cal.correction;
     }
     return m;
   }
@@ -84,12 +109,30 @@ namespace OpenMS
         s = (m.c0 - t) / q;
       }
     }
-    return s * s - m.c4;
+    const double mz = s * s - m.c4;
+    return mz - correctionAt(m.correction, mz);
   }
 
   uint32_t MzCalibrationTof2MzConverter::mzToTof(const FrameModel& m, double mz)
   {
-    const double s = std::sqrt(std::max(mz + m.c4, 0.0));
+    // Undo the ModelType 2 correction: the base m/z is either mz itself (outside the calibrant range)
+    // or the solution of base - polynomial(base) = mz inside it. The correction is a few mDa and changes
+    // by far less than 1 per m/z unit, so the fixed-point iteration converges fast. Near the range limits
+    // mz and base can lie on different sides of a limit, so the range is checked on the solved base.
+    double base = mz;
+    if (m.correction.n > 0)
+    {
+      double inside = mz;
+      for (int i = 0; i < 4; ++i)
+      {
+        inside = mz + polynomial(m.correction, inside);
+      }
+      if (inside >= m.correction.low && inside <= m.correction.high)
+      {
+        base = inside;
+      }
+    }
+    const double s = std::sqrt(std::max(base + m.c4, 0.0));
     const double t = m.c0 + s * (m.b + s * (m.c2 + s * m.c3));
     const double tof = (t - m.delay) / m.timebase;
     return tof > 0.0 ? static_cast<uint32_t>(tof + 0.5) : 0;
@@ -193,6 +236,46 @@ namespace OpenMS
         }
       }
 
+      // ModelType 2: correction polynomial in C5..C14 (these columns only exist in files with ModelType 2)
+      size_t n_without_correction = 0;
+      for (auto& [id, cal] : calibrations)
+      {
+        if (cal.model_type != 2) continue;
+        try
+        {
+          SQLite::Statement q(db, "SELECT C5, C6, C7, C8, C9, C10, C11, C12, C13, C14 FROM MzCalibration WHERE Id = ?");
+          q.bind(1, static_cast<int64_t>(id));
+          if (!q.executeStep()) continue;
+          bool usable = !q.getColumn(0).isNull() && !q.getColumn(1).isNull() && !q.getColumn(2).isNull();
+          MzCalibrationTof2MzConverter::Correction corr;
+          if (usable)
+          {
+            corr.low = q.getColumn(0).getDouble();
+            corr.high = q.getColumn(1).getDouble();
+            corr.n = q.getColumn(2).getInt();
+            usable = std::isfinite(corr.low) && std::isfinite(corr.high) && corr.low < corr.high
+                     && corr.n >= 1 && corr.n <= static_cast<int>(corr.coefficients.size());
+          }
+          for (int k = 0; usable && k < corr.n; ++k)
+          {
+            usable = !q.getColumn(3 + k).isNull() && std::isfinite(q.getColumn(3 + k).getDouble());
+            if (usable) corr.coefficients[k] = q.getColumn(3 + k).getDouble();
+          }
+          if (usable)
+          {
+            cal.correction = corr;
+          }
+          else
+          {
+            ++n_without_correction;
+          }
+        }
+        catch (const SQLite::Exception&)
+        {
+          ++n_without_correction; // no C5..C14 columns
+        }
+      }
+
       // 2. One model per frame, with the frame's temperatures
       std::vector<MzCalibrationTof2MzConverter::FrameModel> frame_models;
       std::set<int> model_types;
@@ -269,11 +352,11 @@ namespace OpenMS
                                 + ", per-frame temperature correction)";
       OPENMS_LOG_INFO << "TIMS m/z calibration: MzCalibration table (ModelType " << types << ", "
                       << n_frames << " frames, per-frame temperature correction)" << std::endl;
-      if (model_types.count(2))
+      if (n_without_correction > 0 && model_types.count(2))
       {
-        OPENMS_LOG_INFO << "TIMS m/z calibration: the ModelType 2 correction terms are not modelled; "
-                        << "between about m/z 222 and 1525, m/z can deviate from the Bruker SDK by a "
-                        << "few ppm" << std::endl;
+        OPENMS_LOG_WARN << "TIMS m/z calibration: " << n_without_correction << " ModelType 2 calibration(s) "
+                        << "without usable correction terms (C5..C14); m/z uses the base curve only, which "
+                        << "can deviate from the Bruker SDK by a few ppm" << std::endl;
       }
 
       return std::make_unique<MzCalibrationTof2MzConverter>(std::move(frame_models), std::move(description));

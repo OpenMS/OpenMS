@@ -50,6 +50,10 @@ hand-editing sources and committing them, to keep sync self-healing.
   drops, `#pragma once` on the new header-only regressors, etc.
   Regenerated 2026-04-24 (commit 9f227d7c03) from the current-tree-vs-upstream
   diff — replaces the former 01-06 chain which had accumulated drift.
+- `patches/02-atomic-include-negatives.patch` — makes the static
+  `PosteriorEstimator::includeNegativesInResult` a `std::atomic<bool>`:
+  `Scores::calcQvals` sets it from the OpenMP cross-validation loops, a data race
+  on a plain `bool`.
 
 ### Regenerating the patch
 

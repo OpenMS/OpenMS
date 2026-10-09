@@ -1518,6 +1518,10 @@ namespace OpenMS
   // =====================================================================
   using Config = BrukerTimsFile::Config;
 
+  /// Bruker attribution required by the TDF-SDK licence (section 4.4) wherever the SDK is used.
+  static const char* const BRUKER_SDK_ATTRIBUTION =
+    "This software uses Software software. Copyright \xC2\xA9 2019 by Bruker Daltonik GmbH. All rights reserved.";
+
   static std::unique_ptr<TimsDataHandle> openTimsDataHandle(
     const std::string& path, const Config& config = Config())
   {
@@ -1557,8 +1561,7 @@ namespace OpenMS
     }
 
     // m/z: use the MzCalibration table with per-frame temperature correction unless the
-    // linear GlobalMetadata model was requested. The Bruker SDK branch below only replaces
-    // the 1/K0 converter.
+    // linear GlobalMetadata model was requested. An optional Bruker SDK (below) replaces it.
     if (strategy != Strategy::LINEAR)
     {
       if (auto mz_converter = tryCreateMzCalibrationConverter(path_string))
@@ -1588,12 +1591,15 @@ namespace OpenMS
         try
         {
           auto pcs = mapPressureCompensation(config.pressure_compensation);
-          handle->scan2inv_ion_mobility_converter =
-            BrukerScan2InvIonMobilityConverterFactory::instance(sdk_path)
-              .produce(*handle, pcs);
-          OPENMS_LOG_INFO << "TIMS calibration: Bruker SDK"
+          // the SDK is the vendor reference for both m/z and 1/K0; only switch once both work
+          auto tof2mz = BrukerTof2MzConverterFactory::instance(sdk_path).produce(*handle, pcs);
+          auto scan2im = BrukerScan2InvIonMobilityConverterFactory::instance(sdk_path).produce(*handle, pcs);
+          handle->tof2mz_converter = std::move(tof2mz);
+          handle->scan2inv_ion_mobility_converter = std::move(scan2im);
+          OPENMS_LOG_INFO << "TIMS calibration: Bruker SDK (m/z + 1/K0)"
                           << (pcs != NoPressureCompensation ? " (pressure_comp=on)" : "")
-                          << std::endl;
+                          << " [" << sdk_path << "]" << std::endl;
+          OPENMS_LOG_INFO << BRUKER_SDK_ATTRIBUTION << std::endl;
           return handle;
         }
         catch (const std::exception& e)
@@ -1603,8 +1609,10 @@ namespace OpenMS
             throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               std::string("Bruker SDK failed: ") + e.what());
           }
-          OPENMS_LOG_DEBUG << "Bruker SDK not available (" << e.what()
-                          << "), trying rational" << std::endl;
+          // the SDK is optional: say so visibly, then continue without it
+          OPENMS_LOG_WARN << "Bruker SDK '" << sdk_path << "' could not be used (" << e.what()
+                          << "); continuing without it (m/z and 1/K0 from the analysis.tdf calibration tables)"
+                          << std::endl;
         }
       }
       else if (strategy == Strategy::BRUKER_SDK)

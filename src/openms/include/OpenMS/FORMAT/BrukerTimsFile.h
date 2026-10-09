@@ -197,10 +197,18 @@ namespace OpenMS
         1/K0 — AUTO (default): tries Bruker SDK → rational (TimsCalibration table) → linear.
 
         m/z — every strategy except LINEAR uses the MzCalibration table of analysis.tdf with the
-        per-frame temperature correction (MzCalibrationTof2MzConverter): exact for ModelType 1,
-        within a few ppm of the Bruker SDK for ModelType 2. If the table is missing or
+        per-frame temperature correction (MzCalibrationTof2MzConverter): exact for ModelType 1;
+        for ModelType 2 with usable correction columns (C5..C14) exact inside the calibrant range
+        and within a few ppm of the Bruker SDK just outside it (without them, the base curve is
+        used, which is within a few ppm everywhere). If the table is missing or
         unsupported, and always with LINEAR, m/z comes from the linear approximation in
         sqrt(m/z) over the acquisition range (GlobalMetadata), which can be off by tens of ppm.
+
+        Bruker SDK (optional, never required except by BRUKER_SDK): with AUTO or BRUKER_SDK and an
+        SDK given by bruker_sdk_path or OPENMS_BRUKER_SDK_PATH, both m/z and 1/K0 come from the SDK
+        (logged as "TIMS calibration: Bruker SDK (m/z + 1/K0)"). If it cannot be loaded, AUTO logs a
+        warning and continues with the calibration tables above; BRUKER_SDK throws. The SDK exists
+        only for x86-64 Linux and Windows.
       */
       enum class TimsCalibrationStrategy { AUTO, BRUKER_SDK, RATIONAL, LINEAR };
       TimsCalibrationStrategy tims_calibration_strategy = TimsCalibrationStrategy::AUTO;
@@ -212,7 +220,7 @@ namespace OpenMS
       PressureCompensation pressure_compensation = PressureCompensation::NONE;
 
       /// Path to Bruker SDK library (timsdata.dll / libtimsdata.so).
-      /// Empty string (default): discover from OPENMS_BRUKER_SDK_PATH env var.
+      /// Empty string (default): discover from OPENMS_BRUKER_SDK_PATH env var; neither set = no SDK.
       std::string bruker_sdk_path;
     };
 
