@@ -295,6 +295,17 @@ namespace OpenMS
     */
     Size eraseIdentifications(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&)>& remove);
 
+    /*!
+      @brief Erase the features for which @p remove returns true, with the identifications that only they link
+
+      As erasing features with their peptide identifications: matches that erased features (or their subordinates) link
+      and no other feature does are erased, and so are identifications that only erased features linked and that are
+      left without matches. Unassigned identifications stay. The order of the other features is kept.
+
+      @return The number of erased features
+    */
+    Size eraseFeatures(const std::function<bool(const Feature&)>& remove);
+
     /// Immutable access to the contained identification data
     const IdentificationData& getIdentificationData() const;
 

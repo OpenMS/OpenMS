@@ -919,6 +919,58 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     return erased.first.size();
   }
 
+
+  namespace
+  {
+    /**
+      @brief Erase the features of @p map that @p erase flags, and from its identification data what only they link
+
+      @p links collects the query and match links of a feature (with its subordinates).
+    */
+    template<class Map, class Links>
+    Size eraseFlaggedFeatures(Map& map, const std::vector<bool>& erase, const Links& links)
+    {
+      const Size n_erased = std::count(erase.begin(), erase.end(), true);
+      if (n_erased == 0) return 0;
+      auto& data = map.getIdentificationData();
+      if (! data.empty())
+      {
+        std::set<IdentificationData::QueryReference> kept_queries, erased_queries;
+        std::set<IdentificationData::MatchReference> kept_matches, erased_matches;
+        for (Size i = 0; i < map.size(); ++i)
+        {
+          if (erase[i]) links(map[i], erased_queries, erased_matches);
+          else links(map[i], kept_queries, kept_matches);
+        }
+        for (const auto& match : kept_matches) erased_matches.erase(match);
+        for (const auto& query : kept_queries) erased_queries.erase(query);
+        data.eraseMatches([&](const IdentificationData::Run& run, const IdentificationData::Identification&, const IdentificationData::Match& match) {
+          return erased_matches.contains({run.getUuid(), match.getId()});
+        });
+        data.eraseIdentifications([&](const IdentificationData::Run& run, const IdentificationData::Identification& query) {
+          return query.getMatches().empty() && erased_queries.contains({run.getUuid(), query.getId()});
+        });
+      }
+      Size index = 0;
+      map.erase(std::remove_if(map.begin(), map.end(), [&](const auto&) { return erase[index++]; }), map.end());
+      return n_erased;
+    }
+  } // namespace
+
+  Size ConsensusMap::eraseFeatures(const std::function<bool(const ConsensusFeature&)>& remove)
+  {
+    std::vector<bool> erase;
+    erase.reserve(size());
+    for (const auto& feature : *this) erase.push_back(remove(feature));
+    const auto links = [&](const ConsensusFeature& feature, std::set<IdentificationData::QueryReference>& queries,
+                           std::set<IdentificationData::MatchReference>& matches) {
+      const auto linked = feature.getLinkedIDQueries(id_data_);
+      queries.insert(linked.begin(), linked.end());
+      matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+    };
+    return eraseFlaggedFeatures(*this, erase, links);
+  }
+
   std::vector<IdentificationData::QueryMatches> ConsensusMap::getUnassignedIdentifications() const
   {
     std::set<IdentificationData::QueryReference> queries;

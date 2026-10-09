@@ -40,6 +40,8 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
@@ -777,44 +779,10 @@ protected:
     }
   }
 
-  /// determine in which runs of the current fraction a peptide was quantified
-  /// returns map sequence+charge -> map index in consensus map that have non-zero quant values
-  map<pair<std::string, UInt>, vector<int> > getPeptideOccurrence_(const ConsensusMap &cons)
+  /// Whether a feature links an identification
+  static bool hasIdentification_(const BaseFeature& feature)
   {
-    map<Size, UInt> num_consfeat_of_size;
-    map<Size, UInt> num_consfeat_of_size_with_id;
-
-    map<pair<std::string, UInt>, vector<int> > seq_charge2map_occurence;
-    for (const ConsensusFeature& cfeature : cons)
-    {
-      ++num_consfeat_of_size[cfeature.size()];
-      const auto& pids = cfeature.getPeptideIdentifications();
-      if (! pids.empty())
-      {
-        ++num_consfeat_of_size_with_id[cfeature.size()];
-
-        // count how often a peptide/charge pair has been observed in the different maps
-        const vector<PeptideHit>& phits = pids[0].getHits();
-        if (! phits.empty())
-        {
-          const std::string s = phits[0].getSequence().toString();
-          const int z = phits[0].getCharge();
-
-          if (seq_charge2map_occurence[make_pair(s, z)].empty())
-          {
-            seq_charge2map_occurence[make_pair(s, z)] = vector<int>(cons.getColumnHeaders().size(), 0);
-          }
-
-          // assign id to all dimensions in the consensus feature
-          for (auto const& f : cfeature.getFeatures())
-          {
-            Size map_index = f.getMapIndex();
-            seq_charge2map_occurence[make_pair(s, z)][map_index] += 1;
-          }
-        }
-      }
-    }
-    return seq_charge2map_occurence;
+    return ! feature.getIDQueries().empty() || ! feature.getIDMatches().empty();
   }
 
   ExitCodes checkSingleRunPerID_(const vector<ProteinIdentification>& protein_ids, const std::string& id_file_abs_path)
@@ -1580,6 +1548,10 @@ protected:
     for (auto& f : fm) { drop_invented(f.getPeptideIdentifications()); }
     drop_invented(fm.getUnassignedPeptideIdentifications());
 
+    // A checkpoint written with peptide identifications (by an earlier version): the run continues with its
+    // identifications as identification data, as a detected one does (see detectRun_()).
+    IdentificationDataConverter::moveToIdentificationData(fm);
+
     rd.features = std::move(fm);
     return CheckpointState::USABLE;
   }
@@ -1778,6 +1750,10 @@ protected:
             fm, // fills fm
             seeds, mz_file);
 
+    // From here on, the identifications are identification data: every later step (conflict resolution, alignment,
+    // linking, inference, quantification) works on it, and the outputs are written from it.
+    IdentificationDataConverter::moveToIdentificationData(fm);
+
     if (filter_by_quant_scores)
     {
       SimpleSVM::PredictorMap predictors;
@@ -1798,7 +1774,7 @@ protected:
         predictors["var_elution_model_fit_score"].push_back(f.getMetaValue("var_elution_model_fit_score"));
 
         bool is_offset = f.metaValueExists("OffsetPeptide");
-        bool has_id = ! f.getPeptideIdentifications().empty();
+        bool has_id = hasIdentification_(f);
         if (is_offset)
         {
           if (quant_decoy < 1000)
@@ -1845,22 +1821,21 @@ protected:
 
       if (quant_decoy > 4 && quant_target > 4)
       {
-        fm.erase(std::remove_if(fm.begin(), fm.end(),
-                                [&](const Feature& f) {
-                                  double quant_score = f.getMetaValue("p_quant");
-                                  bool is_offset = f.metaValueExists("OffsetPeptide");
-                                  bool has_id = ! f.getPeptideIdentifications().empty();
-                                  bool untargeted_feature = ! is_offset && ! has_id;
-                                  bool is_feature_with_id = ! is_offset && has_id;
+        // erased features take the identifications that only they link along, as peptide identifications would go
+        fm.eraseFeatures([&](const Feature& f) {
+          double quant_score = f.getMetaValue("p_quant");
+          bool is_offset = f.metaValueExists("OffsetPeptide");
+          bool has_id = hasIdentification_(f);
+          bool untargeted_feature = ! is_offset && ! has_id;
+          bool is_feature_with_id = ! is_offset && has_id;
 
-                                  if (is_feature_with_id && quant_score < feature_with_id_min_score) return true;
-                                  if (untargeted_feature && quant_score < feature_without_id_min_score) return true;
-                                  if (is_offset && quant_score < feature_without_id_min_score) return true;
-                                  return false;
-                                }),
-                 fm.end());
+          if (is_feature_with_id && quant_score < feature_with_id_min_score) return true;
+          if (untargeted_feature && quant_score < feature_without_id_min_score) return true;
+          if (is_offset && quant_score < feature_without_id_min_score) return true;
+          return false;
+        });
 
-        fm.erase(std::remove_if(fm.begin(), fm.end(), [](const Feature& f) { return f.metaValueExists("OffsetPeptide"); }), fm.end());
+        fm.eraseFeatures([](const Feature& f) { return f.metaValueExists("OffsetPeptide"); });
       }
     }
 
@@ -2130,7 +2105,7 @@ protected:
     }
 
     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    consensus_fraction.sortPeptideIdentificationsByMapIndex();
+    // (The identifications of a consensus feature are in the order of their maps, as the linked maps' runs are.)
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
 
     // No normalization here, deliberately. A median scaling used to run at this point unless
@@ -2162,10 +2137,15 @@ protected:
     bool bayesian = getStringOption_("protein_inference") == "bayesian";
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
 
-    // Study-wide inference operates on a single merged ID run.
+    // Study-wide inference operates on all identification runs at once.
     ConsensusMapMergerAlgorithm cmerge;
-    // The following will result in a SINGLE protein run for the whole consensusMap.
+    // The following will result in a SINGLE inference result (protein run) for the whole consensusMap.
     cmerge.mergeAllIDRuns(consensus);
+    IdentificationData& data = consensus.getIdentificationData();
+    // The protein run of that inference result, which the protein-level steps below work on
+    const auto editProteins = [&data](const std::function<void(ProteinIdentification&)>& edit) {
+      IdentificationDataAdapter::editPooledProteins(data, edit);
+    };
 
     if (! bayesian) // simple aggregation
     {
@@ -2176,7 +2156,7 @@ protected:
       bpia.setParameters(bpiaparams);
 
       // TODO parameterize if unassigned IDs without feature should contribute?
-      bpia.run(consensus, consensus.getProteinIdentifications()[0], true);
+      bpia.run(consensus, true);
     }
     else // if (bayesian)
     {
@@ -2192,7 +2172,7 @@ protected:
       if (! groups)
       {
         // should be enough to just clear the groups. Only indistinguishable will be annotated above.
-        consensus.getProteinIdentifications()[0].getIndistinguishableProteins().clear();
+        editProteins([](ProteinIdentification& proteins) { proteins.getIndistinguishableProteins().clear(); });
       }
     }
 
@@ -2215,12 +2195,15 @@ protected:
       fdr.setParameters(fdr_param);
     }
 
-    // ensure that only one final inference result is generated for now
-    assert(consensus.getProteinIdentifications().size() == 1);
+    const auto updateGroups = [](ProteinIdentification& proteins) {
+      IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
+      IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+    };
 
-    auto& overall_proteins = consensus.getProteinIdentifications()[0];
-    if (! picked) { fdr.applyBasic(overall_proteins); }
-    else { fdr.applyPickedProteinFDR(overall_proteins, picked_decoy_string_, picked_decoy_prefix_); }
+    editProteins([&](ProteinIdentification& overall_proteins) {
+      if (! picked) { fdr.applyBasic(overall_proteins); }
+      else { fdr.applyPickedProteinFDR(overall_proteins, picked_decoy_string_, picked_decoy_prefix_); }
+    });
 
     bool pepFDR = getStringOption_("FDR_type") == "PSM+peptide";
     // TODO Think about the implications of mixing PSMs from different files and searches.
@@ -2235,23 +2218,18 @@ protected:
     { // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
       IDFilter::removeDanglingProteinReferences(consensus, true);
       IDFilter::removeUnreferencedProteins(consensus, true); // if we don't filter peptides for now, we don't need this
-      IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(), overall_proteins.getHits());
-      IDFilter::updateProteinGroups(overall_proteins.getProteinGroups(), overall_proteins.getHits());
+      editProteins(updateGroups);
     }
 
     // FDR filtering
-    if (max_psm_fdr < 1.) // PSM level
+    if (max_psm_fdr < 1.) // PSM level (of the identifications of the features and the unassigned ones)
     {
-      for (auto& f : consensus)
-      {
-        IDFilter::filterHitsByScore(f.getPeptideIdentifications(), max_psm_fdr);
-      }
-      IDFilter::filterHitsByScore(consensus.getUnassignedPeptideIdentifications(), max_psm_fdr);
+      IDFilter::filterHitsByScore(consensus, max_psm_fdr);
     }
 
     if (max_fdr < 1.) // protein level
     {
-      IDFilter::filterHitsByScore(overall_proteins, max_fdr);
+      editProteins([&](ProteinIdentification& overall_proteins) { IDFilter::filterHitsByScore(overall_proteins, max_fdr); });
     }
 
     if (max_fdr < 1. || ! getFlag_("PeptideQuantification:quantify_decoys")) { IDFilter::removeDanglingProteinReferences(consensus, true); }
@@ -2260,11 +2238,11 @@ protected:
 
     if (max_fdr < 1. || max_psm_fdr < 1. || ! getFlag_("PeptideQuantification:quantify_decoys"))
     {
-      IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(), overall_proteins.getHits());
-      IDFilter::updateProteinGroups(overall_proteins.getProteinGroups(), overall_proteins.getHits());
+      editProteins(updateGroups);
     }
 
-    if (overall_proteins.getHits().empty())
+    const auto noProteins = [&data]() { return IdentificationDataAdapter::pooledInferenceResult(data)->proteins.getHits().empty(); };
+    if (noProteins())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "No proteins left after FDR filtering. Please check the log and adjust your settings.");
@@ -2275,17 +2253,13 @@ protected:
     //  which also means that e.g., target+decoy peptides are not unique
     if (! greedy_group_resolution && ! groups)
     {
-      for (auto& f : consensus)
-      {
-        IDFilter::keepUniquePeptidesPerProtein(f.getPeptideIdentifications());
-      }
-      IDFilter::keepUniquePeptidesPerProtein(consensus.getUnassignedPeptideIdentifications());
+      IDFilter::keepUniquePeptidesPerProtein(consensus);
 
       // Proteins whose peptides were all shared have no evidence left; drop them before grouping so
       // the groups below do not reference proteins that the cleanup after this function removes.
       IDFilter::removeUnreferencedProteins(consensus, true);
 
-      if (overall_proteins.getHits().empty())
+      if (noProteins())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "No protein is supported by a strictly unique peptide. Note that "
@@ -2297,16 +2271,18 @@ protected:
       // quantification and every exporter report abundances on protein groups. Give each remaining
       // protein its own singleton group so a protein quantified from its strictly unique peptides is
       // actually reported instead of failing the "no indistinguishable protein groups" check later.
-      overall_proteins.fillIndistinguishableGroupsWithSingletons();
+      editProteins([](ProteinIdentification& overall_proteins) { overall_proteins.fillIndistinguishableGroupsWithSingletons(); });
     }
 
-    // compute coverage (sequence was annotated during PeptideIndexing)
-    // TODO: do you really want to compute coverage from unquantified peptides also?
-    overall_proteins.computeCoverage(consensus, true);
+    editProteins([&](ProteinIdentification& overall_proteins) {
+      // compute coverage (sequence was annotated during PeptideIndexing)
+      // TODO: do you really want to compute coverage from unquantified peptides also?
+      overall_proteins.computeCoverage(consensus, true);
 
-    // TODO: this might not be correct if only the best peptidoform is kept
-    // determine observed modifications (exclude fixed mods)
-    overall_proteins.computeModifications(consensus, StringList(fixed_modifications.begin(), fixed_modifications.end()), true);
+      // TODO: this might not be correct if only the best peptidoform is kept
+      // determine observed modifications (exclude fixed mods)
+      overall_proteins.computeModifications(consensus, StringList(fixed_modifications.begin(), fixed_modifications.end()), true);
+    });
 
     return EXECUTION_OK;
   }
@@ -2583,7 +2559,6 @@ protected:
       }
 
       consensus.sortByPosition();
-      consensus.sortPeptideIdentificationsByMapIndex();
 
       if (debug_level_ >= 666)
       {
@@ -2665,6 +2640,9 @@ protected:
       }
     }
 
+    // The identifications of the spectral counts (the feature-based ones are identification data since detection)
+    IdentificationDataConverter::moveToIdentificationData(consensus);
+
     //-------------------------------------------------------------
     // ID related algorithms
     //-------------------------------------------------------------
@@ -2696,7 +2674,7 @@ protected:
       pq_param.setValue("consensus:normalize", "false");
       quantifier.setParameters(pq_param);
 
-      quantifier.readQuantData(consensus.getProteinIdentifications(), consensus.getUnassignedPeptideIdentifications(), design_);
+      quantifier.readQuantData(consensus.getIdentificationData(), design_);
     }
 
     // nothing to filter. everything in consensus should be uptodate with inference.
@@ -2707,30 +2685,36 @@ protected:
     // Protein quantification
     //-------------------------------------------------------------
 
-    // Should always be there by now, even if just singletons
-    ProteinIdentification& inferred_proteins = consensus.getProteinIdentifications()[0];
-    if (inferred_proteins.getIndistinguishableProteins().empty())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information on indistinguishable protein groups found.");
-    }
+    // The protein run of the inference result (see inferProteinGroups_())
+    IdentificationDataAdapter::editPooledProteins(consensus.getIdentificationData(), [&](ProteinIdentification& inferred_proteins) {
+      // Should always be there by now, even if just singletons
+      if (inferred_proteins.getIndistinguishableProteins().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information on indistinguishable protein groups found.");
+      }
 
-    quantifier.quantifyProteins(inferred_proteins);
-    auto const& protein_quants = quantifier.getProteinResults();
-    if (protein_quants.empty()) { OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl; }
+      quantifier.quantifyProteins(inferred_proteins);
+      auto const& protein_quants = quantifier.getProteinResults();
+      if (protein_quants.empty()) { OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl; }
 
-    //-------------------------------------------------------------
-    // Export of MzTab file as final output
-    //-------------------------------------------------------------
+      //-------------------------------------------------------------
+      // Export of MzTab file as final output
+      //-------------------------------------------------------------
 
-    // Annotate quants to protein(groups) for easier export in mzTab
-    // Note: we keep protein groups that have not been quantified
-    quantifier.annotateQuantificationsToProteins(protein_quants, inferred_proteins, false);
+      // Annotate quants to protein(groups) for easier export in mzTab
+      // Note: we keep protein groups that have not been quantified
+      quantifier.annotateQuantificationsToProteins(protein_quants, inferred_proteins, false);
+    });
 
     // For correctness, we would need to set the run reference in the pepIDs of the consensusXML all to the first run then
     // And probably make sure that peptides that correspond to filtered out proteins are not producing errors
     // e.g. by removing them with a Filter beforehand.
 
     consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
+
+    // The output formats (QPX, consensusXML, mzTab) hold peptide identifications: export the identifications once
+    // rather than in a copy of the map per output.
+    IdentificationDataConverter::exportConsensusIDs(consensus);
 
     {
       if (!out_qpx.empty())
@@ -2761,22 +2745,8 @@ protected:
           return CANNOT_WRITE_OUTPUT_FILE;
         }
 
-        // PSM-level export: collect all peptide IDs from consensus map
-        PeptideIdentificationList all_pepids;
-        for (const auto& feature : consensus)
-        {
-          for (const auto& pepid : feature.getPeptideIdentifications())
-          {
-            all_pepids.push_back(pepid);
-          }
-        }
-        for (const auto& pepid : consensus.getUnassignedPeptideIdentifications())
-        {
-          all_pepids.push_back(pepid);
-        }
-
-        if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids,
-                                      out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
+        // PSM-level export: the identifications of the consensus features and the unassigned ones
+        if (!QPXFile::exportToParquet(consensus, out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
                                       ParquetWriteConfig{}, &feature_links))
         {
           OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << std::endl;
@@ -2827,8 +2797,7 @@ protected:
       // TODO: add a helper method to quickly check if experimental design file contain the right columns
       //  (and put this at start of tool)
 
-      // shrink protein runs to the one containing the inference data
-      consensus.getProteinIdentifications().resize(1);
+      // (the export of the identifications above wrote the one inference result as the only protein run)
 
       msstats.storeLFQ(out_msstats, consensus, design_, StringList(),
                        false, // lfq

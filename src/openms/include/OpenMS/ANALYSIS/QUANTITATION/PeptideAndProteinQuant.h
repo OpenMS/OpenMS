@@ -162,6 +162,19 @@ public:
                        const ExperimentalDesign& ed);
 
     /**
+         @brief Read quantitative data from identification data (for quantification via spectral counting).
+
+         As the overload for peptide identifications: every identification counts its best match (by primary score),
+         unless that is a decoy, for the MS file of the identification (the file of its source, or the first file of
+         its run if that is not known).
+
+         Parameters should be set before using this method, as setting parameters will clear all results.
+
+         @throw Exception::MissingInformation if a run names no MS file, or an MS file is not in @p ed
+    */
+    void readQuantData(const IdentificationData& identifications, const ExperimentalDesign& ed);
+
+    /**
          @brief Compute peptide abundances.
 
          Based on quantitative data for individual charge states (in member @p pep_quant_), overall abundances for peptides are computed (and stored again in @p pep_quant_).

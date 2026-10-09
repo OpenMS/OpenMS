@@ -649,6 +649,16 @@ const ConsensusMap& IdentificationDataConverter::withIdentificationData(const Co
   importMap(*converted, true);
   return *converted;
 }
+std::vector<ProteinIdentification> IdentificationDataConverter::proteinIdentifications(const FeatureMap& map)
+{
+  if (! map.getProteinIdentifications().empty() || map.getIdentificationData().empty()) return map.getProteinIdentifications();
+  return Adapter::toLegacy(map.getIdentificationData(), legacyOptions()).proteins;
+}
+std::vector<ProteinIdentification> IdentificationDataConverter::proteinIdentifications(const ConsensusMap& map)
+{
+  if (! map.getProteinIdentifications().empty() || map.getIdentificationData().empty()) return map.getProteinIdentifications();
+  return Adapter::toLegacy(map.getIdentificationData(), legacyOptions()).proteins;
+}
 const FeatureMap& IdentificationDataConverter::withPeptideIdentifications(const FeatureMap& map, std::optional<FeatureMap>& exported)
 {
   if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return map;

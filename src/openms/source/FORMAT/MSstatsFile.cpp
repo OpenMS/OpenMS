@@ -343,7 +343,9 @@ void MSstatsFile::storeLFQ(const std::string& filename,
     isotope_label_type = "H";
   }
 
-  if (consensus_map.getProteinIdentifications().empty())
+  // the protein runs (of a map with identification data, as export writes them)
+  const std::vector<ProteinIdentification> protein_runs = IdentificationDataConverter::proteinIdentifications(consensus_map);
+  if (protein_runs.empty())
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
 	  "No protein information found in the ConsensusXML.");
@@ -351,14 +353,14 @@ void MSstatsFile::storeLFQ(const std::string& filename,
 
   // warn if we have more than one protein ID run
   //TODO actually allow having more than one inference run e.g. for different conditions
-  if (consensus_map.getProteinIdentifications().size() > 1)
+  if (protein_runs.size() > 1)
   {
     OPENMS_LOG_WARN << "Found " +
-    StringUtils::toStr(consensus_map.getProteinIdentifications().size()) +
+    StringUtils::toStr(protein_runs.size()) +
     " protein runs in consensusXML. Using first one only to parse inference data for now." << std::endl;
   }
 
-  if (!consensus_map.getProteinIdentifications()[0].hasInferenceData())
+  if (!protein_runs[0].hasInferenceData())
   {
     OPENMS_LOG_WARN << "No inference was performed on the first run, defaulting to one-peptide-rule." << std::endl;
   }
@@ -369,8 +371,8 @@ void MSstatsFile::storeLFQ(const std::string& filename,
   // TODO currently we always create the mapping. If groups are missing we create it based on singletons which is
   //  quite unnecessary. Think about skipping if no groups are present
 
-  //consensus_map.getProteinIdentifications()[0].fillIndistinguishableGroupsWithSingletons();
-  const IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
+  //protein_runs[0].fillIndistinguishableGroupsWithSingletons();
+  const IndProtGrps& ind_prots = protein_runs[0].getIndistinguishableProteins();
 
   // Map protein accession to its indistinguishable group
   std::unordered_map< std::string, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);
@@ -515,7 +517,9 @@ void MSstatsFile::storeISO(const std::string& filename,
 
   checkConditionISO_(sampleSection, bioreplicate, condition, mixture);
 
-  if (consensus_map.getProteinIdentifications().empty())
+  // the protein runs (of a map with identification data, as export writes them)
+  const std::vector<ProteinIdentification> protein_runs = IdentificationDataConverter::proteinIdentifications(consensus_map);
+  if (protein_runs.empty())
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "No protein information found in the ConsensusXML.");
@@ -523,14 +527,14 @@ void MSstatsFile::storeISO(const std::string& filename,
 
   // warn if we have more than one protein ID run
   //TODO actually allow having more than one inference run e.g. for different conditions
-  if (consensus_map.getProteinIdentifications().size() > 1)
+  if (protein_runs.size() > 1)
   {
     OPENMS_LOG_WARN << "Found " +
-                       StringUtils::toStr(consensus_map.getProteinIdentifications().size()) +
+                       StringUtils::toStr(protein_runs.size()) +
                        " protein runs in consensusXML. Using first one only to parse inference data for now." << std::endl;
   }
 
-  if (!consensus_map.getProteinIdentifications()[0].hasInferenceData())
+  if (!protein_runs[0].hasInferenceData())
   {
     OPENMS_LOG_WARN << "No inference was performed on the first run, defaulting to one-peptide-rule." << std::endl;
   }
@@ -639,7 +643,7 @@ void MSstatsFile::storeISO(const std::string& filename,
   // If indistinguishable groups are not annotated (no inference or only trivial inference has been performed) we assume
   // that all proteins can be independently quantified (each forming an indistinguishable group).
   //TODO refactor since shared with LFQ and ISO
-  const IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
+  const IndProtGrps& ind_prots = protein_runs[0].getIndistinguishableProteins();
 
   // Map protein accession to its indistinguishable group
   std::unordered_map< std::string, const IndProtGrp* > accession_to_group = getAccessionToGroupMap_(ind_prots);

@@ -986,6 +986,38 @@ START_SECTION((Size eraseMatches(...) and Size eraseIdentifications(...)))
 }
 END_SECTION
 
+START_SECTION((Size eraseFeatures(const std::function<bool(const ConsensusFeature&)>& remove)))
+{
+  ConsensusMap map;
+  using ID = IdentificationData;
+  auto& run = map.getIdentificationData().addRun("search");
+  ID::ScoreDefinition raw;
+  raw.name = "raw";
+  run.setPrimaryScore(run.addScore(raw));
+  const auto source = run.addSource({});
+  const auto query = run.addIdentification(source, {});
+  const auto other = run.addIdentification(source, {});
+  ID::MatchData data;
+  data.representation = "PEPTIDE";
+  const auto first = run.addMatch(query, data, {1.0});
+  data.representation = "PEPTIDER";
+  const auto second = run.addMatch(other, data, {2.0});
+  map.resize(3);
+  map[0].addIDMatch({run.getUuid(), first});
+  map[1].addIDMatch({run.getUuid(), second});
+  map[2].addIDMatch({run.getUuid(), second});
+  map[0].setMetaValue("erase", 1);
+  map[1].setMetaValue("erase", 1);
+  TEST_EQUAL(map.eraseFeatures([](const ConsensusFeature& feature) { return feature.metaValueExists("erase"); }), 2)
+  ABORT_IF(map.size() != 1)
+  // the identification that only an erased feature linked is gone, the one a kept feature links stays
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 1)
+  TEST_EQUAL(map[0].getLinkedIdentifications(map.getIdentificationData()).size(), 1)
+  TEST_TRUE(map.getUnassignedIdentifications().empty())
+  map.getIdentificationData().validate();
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

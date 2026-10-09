@@ -763,4 +763,47 @@ START_SECTION(([EXTRA] molecule details are stored apart; an absent box equals e
 }
 END_SECTION
 
+START_SECTION((std::vector<QueryMatches> resolveLinks(...) const))
+{
+  // Two runs; queries with IDs 1 and 2 each, as runs of separately imported maps have them after merging.
+  ID data;
+  std::vector<ID::QueryReference> references;
+  for (const std::string name : {"A", "B"})
+  {
+    auto& run = data.addRun(name);
+    const auto source = run.addSource({});
+    for (int i = 0; i < 2; ++i) references.push_back({run.getUuid(), run.addIdentification(source, {})});
+  }
+  // A2 (ID 2 of run A) and B1 (ID 1 of run B): runs that share IDs are ordered by run, then ID, as export orders them.
+  auto linked = data.resolveLinks({references[1], references[2]}, {});
+  ABORT_IF(linked.size() != 2)
+  TEST_EQUAL(linked[0].run->getIdentifier(), "A")
+  TEST_EQUAL(linked[1].run->getIdentifier(), "B")
+  TEST_EQUAL(data.getUnlinked({}, {}).front().run->getIdentifier(), "A")
+
+  // Without shared IDs the order is by ID, then run (the order of the peptide identifications an import numbers).
+  ID unique;
+  std::vector<ID::QueryReference> unique_references;
+  for (const std::string name : {"A", "B"})
+  {
+    auto& run = unique.addRun(name);
+    const auto source = run.addSource({});
+    unique_references.push_back({run.getUuid(), run.importIdentification(source, ID::QueryId {name == "A" ? 2u : 1u}, {})});
+  }
+  linked = unique.resolveLinks({unique_references.begin(), unique_references.end()}, {});
+  ABORT_IF(linked.size() != 2)
+  TEST_EQUAL(linked[0].run->getIdentifier(), "B")
+  TEST_EQUAL(linked[1].run->getIdentifier(), "A")
+
+  // The order follows edits of the runs: once run A no longer shares an ID with run B, it is by ID again.
+  auto& a = data.getRun("A");
+  a.eraseIdentifications([](const ID::Identification&) { return true; });
+  const auto a3 = a.addIdentification(a.getSourceId(0), {});
+  linked = data.resolveLinks({{a.getUuid(), a3}, references[2]}, {});
+  ABORT_IF(linked.size() != 2)
+  TEST_EQUAL(linked[0].run->getIdentifier(), "B")
+  TEST_EQUAL(linked[1].run->getIdentifier(), "A")
+}
+END_SECTION
+
 END_TEST

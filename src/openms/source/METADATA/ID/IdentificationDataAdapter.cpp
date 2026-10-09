@@ -1022,6 +1022,15 @@ void IdentificationDataAdapter::storeInferenceResult(ID& data, const ID::Inferen
   data.addInferenceResult(result);
 }
 
+void IdentificationDataAdapter::editPooledProteins(ID& data, const std::function<void(ProteinIdentification&)>& edit)
+{
+  auto result = pooledInferenceResult(data);
+  if (! result) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications to edit the proteins of");
+  edit(result->proteins);
+  if (result->protein_score && result->protein_score->name != result->proteins.getScoreType()) result->protein_score.reset();
+  storeInferenceResult(data, *result);
+}
+
 std::vector<ProteinHit> IdentificationDataAdapter::proteinHits(const ID::Run& run)
 {
   std::vector<ProteinHit> hits;

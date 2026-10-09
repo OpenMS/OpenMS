@@ -19,6 +19,8 @@
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
@@ -1015,6 +1017,50 @@ START_SECTION((get*DataArrayByName throws ElementNotFound for missing name))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getIntegerDataArrayByName("missing_int"))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getStringDataArrayByName("missing_str"))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getFloatDataArrayByName("missing_float"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] computeCoverage(const ConsensusMap&, bool) and computeModifications(const ConsensusMap&, ...) with identification data))
+{
+  // A consensus map with an identification on a feature and an unassigned one, with peptide and with identification data
+  ProteinIdentification run;
+  run.setIdentifier("run");
+  ProteinHit protein;
+  protein.setAccession("P1");
+  protein.setSequence("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS");
+  run.insertHit(protein);
+  const auto peptide = [](const std::string& sequence, Int start, Int end) {
+    PeptideHit hit(1.0, 1, 2, AASequence::fromString(sequence));
+    hit.addPeptideEvidence(PeptideEvidence("P1", start, end, PeptideEvidence::UNKNOWN_AA, PeptideEvidence::UNKNOWN_AA));
+    PeptideIdentification id;
+    id.setIdentifier("run");
+    id.setScoreType("score");
+    id.insertHit(hit);
+    return id;
+  };
+  ConsensusMap legacy;
+  legacy.setProteinIdentifications({run});
+  legacy.resize(1);
+  legacy[0].getPeptideIdentifications().push_back(peptide("M(Oxidation)KQSTIALALLPLLFTPVTK", 0, 19));
+  legacy.getUnassignedPeptideIdentifications().push_back(peptide("TPEMPVLENR", 22, 31));
+  ConsensusMap native = legacy;
+  IdentificationDataConverter::importConsensusIDs(native);
+
+  for (bool use_unassigned : {true, false})
+  {
+    ProteinIdentification from_legacy = run, from_native = run;
+    from_legacy.computeCoverage(legacy, use_unassigned);
+    from_native.computeCoverage(native, use_unassigned);
+    TEST_REAL_SIMILAR(from_native.getHits()[0].getCoverage(), from_legacy.getHits()[0].getCoverage())
+    from_legacy.computeModifications(legacy, StringList(), use_unassigned);
+    from_native.computeModifications(native, StringList(), use_unassigned);
+    TEST_EQUAL(from_native.getHits()[0].getModifications() == from_legacy.getHits()[0].getModifications(), true)
+  }
+  ProteinIdentification covered = run;
+  covered.computeCoverage(native, true);
+  TEST_REAL_SIMILAR(covered.getHits()[0].getCoverage(), 100.0 * 30 / 60)
+  covered.computeModifications(native, StringList(), true);
+  TEST_EQUAL(covered.getHits()[0].getModifications().size(), 1)
 }
 END_SECTION
 

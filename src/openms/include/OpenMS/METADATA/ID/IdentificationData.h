@@ -606,7 +606,8 @@ public:
     @brief Resolve links to identifications and matches (e.g. of a feature)
 
     Every linked identification appears once, with its linked matches (an identification linked only by itself has none),
-    ordered by identification ID, then run: the order of peptide identifications exported from imported ones.
+    ordered by identification ID, then run (by run, then ID, if runs share IDs, e.g. those of linked maps): the order
+    of exported peptide identifications.
 
     @throw Exception::MissingInformation if a link refers to an identification or match that does not exist
   */
@@ -654,9 +655,23 @@ public:
   void swap(IdentificationData& other);
 
 private:
+  /// Whether runs share query IDs, cached for a state of the runs (their UUIDs and revisions); copies start empty
+  struct SharedQueryIds
+  {
+    std::mutex mutex;
+    std::vector<std::pair<std::string, UInt64>> state;
+    bool shared = false;
+    SharedQueryIds() = default;
+    SharedQueryIds(const SharedQueryIds&) {}
+    SharedQueryIds& operator=(const SharedQueryIds&) { return *this; }
+  };
   std::deque<Run> runs_;
   std::vector<InferenceResult> inference_;
   bool callback_active_ = false;
+  mutable SharedQueryIds shared_query_ids_;
   void checkMutation_() const;
+  /// Whether two runs have identifications with the same ID (combined datasets, e.g. linked maps); export then orders
+  /// identifications by run, then ID
+  bool sharesQueryIds_() const;
 };
 } // namespace OpenMS

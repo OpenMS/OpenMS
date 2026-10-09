@@ -14,8 +14,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <functional>
 #include <numeric>
 #include <unordered_set>
 
@@ -509,6 +511,53 @@ namespace OpenMS
     }
   }
 
+  namespace
+  {
+    /// Add the protein evidence of @p peptide_hit to @p map_acc_2_evidence
+    void addEvidence(unordered_map<std::string, set<PeptideEvidence>>& map_acc_2_evidence, const PeptideHit& peptide_hit)
+    {
+      // matched proteins for hit
+      for (const auto& evidence : peptide_hit.getPeptideEvidences())
+      {
+        map_acc_2_evidence[evidence.getProteinAccession()].insert(evidence);
+      }
+    }
+
+    /**
+      @brief Visit the peptide hits of the consensus features of @p cmap (and of its unassigned identifications)
+
+      For a map with identification data, these are the matches that the features link (and the unassigned ones), as
+      the peptide hits that export gives them.
+    */
+    void visitHits(const ConsensusMap& cmap, bool use_unassigned_ids, const std::function<void(const PeptideHit&)>& visit)
+    {
+      const IdentificationData& data = cmap.getIdentificationData();
+      if (data.empty())
+      {
+        const auto visit_ids = [&](const PeptideIdentificationList& pep_ids) {
+          for (const auto& peptide_id : pep_ids)
+          {
+            for (const auto& peptide_hit : peptide_id.getHits()) visit(peptide_hit);
+          }
+        };
+        for (const auto& feat : cmap) visit_ids(feat.getPeptideIdentifications());
+        if (use_unassigned_ids) visit_ids(cmap.getUnassignedPeptideIdentifications());
+        return;
+      }
+      const auto visit_ids = [&](const std::vector<IdentificationData::QueryMatches>& identifications) {
+        for (const auto& identification : identifications)
+        {
+          for (const auto* match : identification.matches)
+          {
+            visit(IdentificationDataAdapter::materializePeptide(*identification.run, *match, *identification.run->getPrimaryScore()));
+          }
+        }
+      };
+      for (const auto& feat : cmap) visit_ids(feat.getLinkedIdentifications(data));
+      if (use_unassigned_ids) visit_ids(cmap.getUnassignedIdentifications());
+    }
+  } // namespace
+
   void ProteinIdentification::fillEvidenceMapping_(unordered_map<std::string, set<PeptideEvidence> >& map_acc_2_evidence,
                                                    const PeptideIdentificationList& pep_ids) const
   {
@@ -516,15 +565,9 @@ namespace OpenMS
     for (const auto & peptide_id : pep_ids)
     {
       // peptide hits
-      const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
-      for (const auto & peptide_hit : peptide_hits)
+      for (const auto & peptide_hit : peptide_id.getHits())
       {
-        const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
-        // matched proteins for hit
-        for (const auto & evidence : ph_evidences)
-        {
-          map_acc_2_evidence[evidence.getProteinAccession()].insert(evidence);
-        }
+        addEvidence(map_acc_2_evidence, peptide_hit);
       }
     }
   }
@@ -541,14 +584,7 @@ namespace OpenMS
   {
     // map protein accession to the corresponding peptide evidence
     unordered_map<std::string, set<PeptideEvidence> > map_acc_2_evidence;
-    for (const auto& feat : cmap)
-    {
-      fillEvidenceMapping_(map_acc_2_evidence,feat.getPeptideIdentifications());
-    }
-    if (use_unassigned_ids)
-    {
-      fillEvidenceMapping_(map_acc_2_evidence, cmap.getUnassignedPeptideIdentifications());
-    }
+    visitHits(cmap, use_unassigned_ids, [&](const PeptideHit& peptide_hit) { addEvidence(map_acc_2_evidence, peptide_hit); });
     computeCoverageFromEvidenceMapping_(map_acc_2_evidence);
   }
 
@@ -624,11 +660,11 @@ namespace OpenMS
     // map protein accession to observed position,modifications pairs
     unordered_map<std::string, set<pair<Size, ResidueModification>>> prot2mod;
 
-    for (const auto& feat : cmap)
-    {
-      fillModMapping_(feat.getPeptideIdentifications(), skip_modifications, prot2mod);
-    }
-    if (use_unassigned_ids) fillModMapping_(cmap.getUnassignedPeptideIdentifications(), skip_modifications, prot2mod);
+    visitHits(cmap, use_unassigned_ids, [&](const PeptideHit& peptide_hit) {
+      PeptideIdentification peptide_id;
+      peptide_id.insertHit(peptide_hit);
+      fillModMapping_(PeptideIdentificationList {peptide_id}, skip_modifications, prot2mod);
+    });
 
     for (auto & protein_hit : protein_hits_)
     {

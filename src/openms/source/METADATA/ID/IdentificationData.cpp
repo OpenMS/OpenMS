@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <unordered_set>
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -1146,10 +1147,45 @@ std::vector<ID::QueryMatches> ID::resolveLinks(const std::set<QueryReference>& q
     std::sort(entry.matches.begin(), entry.matches.end(), std::less<const Match*>());
     result.push_back(std::move(entry));
   }
+  // As export orders them: by ID, then run, or by run, then ID if runs share IDs.
+  const bool shared = sharesQueryIds_();
   std::stable_sort(result.begin(), result.end(), [&](const QueryMatches& a, const QueryMatches& b) {
+    if (shared) return std::make_pair(positions[a.run], a.query->getId()) < std::make_pair(positions[b.run], b.query->getId());
     return std::make_pair(a.query->getId(), positions[a.run]) < std::make_pair(b.query->getId(), positions[b.run]);
   });
   return result;
+}
+bool ID::sharesQueryIds_() const
+{
+  std::vector<std::pair<std::string, UInt64>> state;
+  state.reserve(runs_.size());
+  for (const auto& run : runs_)
+    state.emplace_back(run.getUuid(), run.getRevision());
+  std::lock_guard<std::mutex> lock(shared_query_ids_.mutex);
+  if (state != shared_query_ids_.state || state.empty())
+  {
+    bool shared = false;
+    std::unordered_set<UInt64> ids;
+    for (const auto& run : runs_)
+    {
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          if (! ids.insert(query.getId().value).second)
+          {
+            shared = true;
+            break;
+          }
+        }
+        if (shared) break;
+      }
+      if (shared) break;
+    }
+    shared_query_ids_.shared = shared;
+    shared_query_ids_.state = std::move(state);
+  }
+  return shared_query_ids_.shared;
 }
 std::vector<ID::QueryMatches> ID::getUnlinked(const std::set<QueryReference>& queries, const std::set<MatchReference>& matches) const
 {

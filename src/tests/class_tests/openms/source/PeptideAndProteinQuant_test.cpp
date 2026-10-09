@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -443,6 +444,63 @@ START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, Pepti
   // fromIdentifications numbers inferred fraction groups 1..n, like every other producer.
   TEST_REAL_SIMILAR(seq_it->second.fraction_group_abundances.at(1).at(1), 1);
   TEST_REAL_SIMILAR(seq_it->second.fraction_group_abundances.at(2).at(1), 1);
+}
+END_SECTION
+
+START_SECTION((void readQuantData(const IdentificationData& identifications, const ExperimentalDesign& ed)))
+{
+  // The same spectral counts as from the peptide identifications the identification data is imported from
+  const auto compare = [](std::vector<ProteinIdentification> proteins, PeptideIdentificationList peptides) {
+    const ExperimentalDesign design = ExperimentalDesign::fromIdentifications(proteins);
+    const IdentificationData identifications = IdentificationDataAdapter::fromLegacy(proteins, peptides);
+    PeptideAndProteinQuant from_legacy, from_native;
+    from_legacy.readQuantData(proteins, peptides, design);
+    from_native.readQuantData(identifications, design);
+    from_legacy.quantifyPeptides();
+    from_native.quantifyPeptides();
+    const auto& legacy = from_legacy.getPeptideResults();
+    const auto& native = from_native.getPeptideResults();
+    TEST_EQUAL(native.size(), legacy.size())
+    TEST_EQUAL(legacy.empty(), false)
+    for (const auto& [sequence, data] : legacy)
+    {
+      const auto found = native.find(sequence);
+      TEST_EQUAL(found != native.end(), true)
+      if (found == native.end()) continue;
+      TEST_EQUAL(found->second.psm_count, data.psm_count)
+      TEST_EQUAL(found->second.accessions == data.accessions, true)
+      TEST_EQUAL(found->second.abundances == data.abundances, true)
+      TEST_EQUAL(found->second.fraction_group_abundances == data.fraction_group_abundances, true)
+    }
+    TEST_EQUAL(from_native.getStatistics().quant_features, from_legacy.getStatistics().quant_features)
+    TEST_EQUAL(from_native.getStatistics().total_features, from_legacy.getStatistics().total_features)
+  };
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.idXML"), proteins, peptides);
+  // (one search run: the file has two search engines with different scores, which identification data does not combine)
+  PeptideIdentificationList first_run;
+  for (const auto& peptide : peptides)
+  {
+    if (peptide.getIdentifier() == proteins[0].getIdentifier()) first_run.push_back(peptide);
+  }
+  compare({proteins[0]}, first_run);
+
+  // a merged run: the identifications count for the files of their sources
+  ProteinIdentification protein;
+  protein.setIdentifier("merged_run");
+  protein.setPrimaryMSRunPath({"/data/fileA.mzML", "/data/fileB.mzML"});
+  PeptideIdentificationList merged;
+  for (int merge_index : {0, 1, 1})
+  {
+    PeptideIdentification pep;
+    pep.setIdentifier("merged_run");
+    pep.setScoreType("score");
+    pep.setHits({PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDEK"))});
+    pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, merge_index);
+    merged.push_back(pep);
+  }
+  compare({protein}, merged);
 }
 END_SECTION
 

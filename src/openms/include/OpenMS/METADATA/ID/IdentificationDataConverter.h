@@ -66,6 +66,12 @@ public:
   static const FeatureMap& withPeptideIdentifications(const FeatureMap& map, std::optional<FeatureMap>& exported);
   static const ConsensusMap& withPeptideIdentifications(const ConsensusMap& map, std::optional<ConsensusMap>& exported);
   /**
+    @brief The protein identifications of a map: its own, or for a map with identification data (and none of its own)
+    those that export writes (exportFeatureIDs()), e.g. the protein run of an inference result
+  */
+  static std::vector<ProteinIdentification> proteinIdentifications(const FeatureMap& map);
+  static std::vector<ProteinIdentification> proteinIdentifications(const ConsensusMap& map);
+  /**
     @brief Move the peptide identifications of a map into its identification data, for code that edits identification data
 
     @return Whether @p map had peptide identifications, i.e. whether to move them back afterwards (exportFeatureIDs())

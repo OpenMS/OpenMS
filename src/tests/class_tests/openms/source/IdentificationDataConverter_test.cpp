@@ -325,6 +325,41 @@ START_SECTION((static bool makeRunsDistinct(ConsensusMap& map, std::set<std::str
 }
 END_SECTION
 
+START_SECTION((static const ConsensusMap& withPeptideIdentifications(const ConsensusMap& map, std::optional<ConsensusMap>& exported) and proteinIdentifications()))
+{
+  ConsensusMap legacy;
+  ProteinIdentification run;
+  run.setIdentifier("search");
+  run.setSearchEngine("engine");
+  legacy.setProteinIdentifications({run});
+  legacy.resize(1);
+  PeptideIdentification peptide;
+  peptide.setIdentifier("search");
+  peptide.setScoreType("score");
+  peptide.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE")));
+  legacy[0].getPeptideIdentifications().push_back(peptide);
+
+  // a map with peptide identifications is its own view
+  std::optional<ConsensusMap> exported;
+  TEST_EQUAL(&IdentificationDataConverter::withPeptideIdentifications(legacy, exported), &legacy)
+  TEST_EQUAL(exported.has_value(), false)
+  TEST_EQUAL(IdentificationDataConverter::proteinIdentifications(legacy).size(), 1)
+
+  // a map with identification data has a view with its identifications exported, and the protein runs export writes
+  ConsensusMap native = legacy;
+  IdentificationDataConverter::importConsensusIDs(native);
+  const ConsensusMap& view = IdentificationDataConverter::withPeptideIdentifications(native, exported);
+  TEST_EQUAL(exported.has_value(), true)
+  TEST_EQUAL(view[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(view.getIdentificationData().empty(), true)
+  TEST_EQUAL(native[0].getPeptideIdentifications().empty(), true)
+  const auto proteins = IdentificationDataConverter::proteinIdentifications(native);
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].getIdentifier(), "search")
+  TEST_EQUAL(proteins[0].getSearchEngine(), "engine")
+}
+END_SECTION
+
 START_SECTION((static const std::vector<FeatureMap>& withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted)))
 {
   // maps with distinct runs are used as they are:

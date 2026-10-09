@@ -485,6 +485,37 @@ START_SECTION((static IdentificationData::Run& unscoredRun(IdentificationData& d
 }
 END_SECTION
 
+START_SECTION((static void editPooledProteins(IdentificationData& data, const std::function<void(ProteinIdentification&)>& edit)))
+{
+  ProteinIdentification search;
+  search.setIdentifier("search");
+  search.setSearchEngine("test-search");
+  search.setScoreType("PEP");
+  search.setHigherScoreBetter(false);
+  ProteinHit protein(0.0, 1, "P1", "PEPTIDEK");
+  search.setHits({protein});
+  auto data = Adapter::fromLegacy({search}, {peptide()});
+  // protein-level values: an inference result over the run
+  Adapter::editPooledProteins(data, [](ProteinIdentification& proteins) {
+    proteins.setScoreType("q-value");
+    proteins.getHits()[0].setScore(0.01);
+  });
+  TEST_EQUAL(data.getInferenceResults().size(), 1)
+  const auto exported = Adapter::toLegacy(data);
+  ABORT_IF(exported.proteins.size() != 1 || exported.proteins[0].getHits().size() != 1)
+  TEST_EQUAL(exported.proteins[0].getScoreType(), "q-value")
+  TEST_REAL_SIMILAR(exported.proteins[0].getHits()[0].getScore(), 0.01)
+  // the protein sequence comes from the run's database sequences, as before
+  TEST_EQUAL(exported.proteins[0].getHits()[0].getSequence(), "PEPTIDEK")
+  // a second edit works on the stored result
+  Adapter::editPooledProteins(data, [](ProteinIdentification& proteins) { TEST_EQUAL(proteins.getScoreType(), "q-value") });
+  TEST_EQUAL(data.getInferenceResults().size(), 1)
+  // nothing to edit without peptide identifications
+  IdentificationData empty;
+  TEST_EXCEPTION(Exception::MissingInformation, Adapter::editPooledProteins(empty, [](ProteinIdentification&) {}))
+}
+END_SECTION
+
 START_SECTION((static void replacePrimaryScore(IdentificationData& data, const IdentificationData::ScoreDefinition& definition, ...)))
 {
   ProteinIdentification search;

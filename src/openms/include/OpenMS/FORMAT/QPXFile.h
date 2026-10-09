@@ -40,6 +40,8 @@ namespace OpenMS
 
   @ingroup FileIO
 */
+class ConsensusMap;
+
 class OPENMS_DLLAPI QPXFile
 {
 public:
@@ -91,6 +93,20 @@ public:
   static bool exportToParquet(
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications,
+    const std::string& filename,
+    bool export_all_psms = false,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const QPXIdentity::FeatureLinks* feature_links = nullptr);
+
+  /**
+    @brief Export the PSMs of a consensus map to a Parquet file
+
+    As the overload for peptide identifications, with those of the consensus features followed by the unassigned ones
+    and the protein identifications of the map. A map with identification data is exported as its peptide
+    identifications (IdentificationDataConverter::withPeptideIdentifications()).
+  */
+  static bool exportToParquet(
+    const ConsensusMap& cmap,
     const std::string& filename,
     bool export_all_psms = false,
     const ParquetWriteConfig& config = ParquetWriteConfig{},
@@ -156,6 +172,21 @@ public:
   static bool exportToParquetStreaming(
     const std::vector<ProteinIdentification>& protein_identifications,
     const std::vector<const PeptideIdentification*>& peptide_identification_ptrs,
+    const std::string& filename,
+    bool export_all_psms = false,
+    size_t batch_size = 1000000,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    int n_threads = 1,
+    const QPXIdentity::FeatureLinks* feature_links = nullptr);
+
+  /**
+    @brief Stream the PSMs of a consensus map (of its features, then the unassigned ones) to a QPX Parquet file
+
+    As the overload for peptide identification pointers, which point into @p cmap (or, for a map with identification
+    data, into a copy with its identifications exported, see IdentificationDataConverter::withPeptideIdentifications()).
+  */
+  static bool exportToParquetStreaming(
+    const ConsensusMap& cmap,
     const std::string& filename,
     bool export_all_psms = false,
     size_t batch_size = 1000000,

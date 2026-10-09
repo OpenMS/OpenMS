@@ -777,6 +777,67 @@ START_SECTION((Size eraseMatches(...) and Size eraseIdentifications(...)))
 }
 END_SECTION
 
+START_SECTION((Size eraseFeatures(const std::function<bool(const Feature&)>& remove)))
+{
+  FeatureMap map;
+  using ID = IdentificationData;
+  auto& run = map.getIdentificationData().addRun("search");
+  ID::ScoreDefinition raw;
+  raw.name = "raw";
+  run.setPrimaryScore(run.addScore(raw));
+  const auto source = run.addSource({});
+  const auto partly_assigned = run.addIdentification(source, {});
+  const auto shared = run.addIdentification(source, {});
+  const auto unassigned = run.addIdentification(source, {});
+  const auto without_matches = run.addIdentification(source, {});
+  ID::MatchData data;
+  data.representation = "PEPTIDE";
+  const auto linked = run.addMatch(partly_assigned, data, {1.0});
+  data.representation = "PEPTIDER";
+  run.addMatch(partly_assigned, data, {2.0});
+  data.representation = "PEPTIDEK";
+  const auto shared_match = run.addMatch(shared, data, {3.0});
+  run.addMatch(unassigned, data, {4.0});
+  const std::string uuid = run.getUuid();
+  map.resize(3);
+  map[0].addIDMatch({uuid, linked});
+  map[1].addIDMatch({uuid, shared_match});
+  map[2].addIDMatch({uuid, shared_match});
+  Feature subordinate;
+  subordinate.addIDQuery({uuid, without_matches});
+  map[2].getSubordinates().push_back(subordinate);
+  map[0].setMetaValue("erase", 1);
+  map[1].setMetaValue("erase", 1);
+
+  // A match that a kept feature links stays; one that only erased features link goes, its identification stays with
+  // its unassigned matches.
+  TEST_EQUAL(map.eraseFeatures([](const Feature& feature) { return feature.metaValueExists("erase"); }), 2)
+  ABORT_IF(map.size() != 1)
+  const auto& ids = map.getIdentificationData();
+  TEST_EQUAL(ids.getRuns()[0].getNumberOfIdentifications(), 4)
+  TEST_EQUAL(ids.getRuns()[0].getNumberOfMatches(), 3)
+  TEST_EQUAL(ids.getRuns()[0].getIdentification(partly_assigned).getMatches().size(), 1)
+  TEST_EQUAL(map[0].getLinkedIdentifications(ids).size(), 1)
+  TEST_EQUAL(map.getUnassignedIdentifications().size(), 2)
+
+  // Identifications that only erased features (or their subordinates) linked go when they have no matches left.
+  TEST_EQUAL(map.eraseFeatures([](const Feature&) { return true; }), 1)
+  TEST_EQUAL(map.size(), 0)
+  TEST_EQUAL(ids.getRuns()[0].getNumberOfIdentifications(), 2)
+  TEST_TRUE(ids.getRuns()[0].findIdentification(shared) == nullptr)
+  TEST_TRUE(ids.getRuns()[0].findIdentification(without_matches) == nullptr)
+  TEST_EQUAL(map.getUnassignedIdentifications().size(), 2)
+  map.getIdentificationData().validate();
+
+  // A map with peptide identifications erases them with its features.
+  FeatureMap legacy;
+  legacy.resize(2);
+  legacy[0].getPeptideIdentifications().resize(1);
+  TEST_EQUAL(legacy.eraseFeatures([](const Feature& feature) { return ! feature.getPeptideIdentifications().empty(); }), 1)
+  TEST_EQUAL(legacy.size(), 1)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

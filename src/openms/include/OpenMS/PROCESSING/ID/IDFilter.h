@@ -1242,6 +1242,29 @@ namespace OpenMS
     static void keepNBestPeptideHits(ConsensusMap& map, Size n);
 
     /**
+       @brief Keeps the peptide hits of a Consensus/FeatureMap with a score at least as good as @p threshold_score
+
+       As filterHitsByScore() for peptide identifications, for the identifications that features link and the
+       unassigned ones. Works on identification data: matches whose primary score is not at least as good as
+       @p threshold_score (score orientation is taken into account) or that have no primary score value are erased;
+       identifications stay, also without matches. Maps with peptide identifications are converted for this
+       (IdentificationDataConverter::editAsIdentificationData()).
+    */
+    static void filterHitsByScore(FeatureMap& map, double threshold_score);
+    static void filterHitsByScore(ConsensusMap& map, double threshold_score);
+
+    /**
+       @brief Keeps the peptide hits of a Consensus/FeatureMap that match exactly one protein
+
+       As keepUniquePeptidesPerProtein() for peptide identifications, for the identifications that features link and
+       the unassigned ones: matches without the meta value 'protein_references' (added by PeptideIndexer) or whose
+       value is not 'unique' are erased. Works on identification data; maps with peptide identifications are converted
+       for this (IdentificationDataConverter::editAsIdentificationData()).
+    */
+    static void keepUniquePeptidesPerProtein(FeatureMap& map);
+    static void keepUniquePeptidesPerProtein(ConsensusMap& map);
+
+    /**
        @brief Removes the peptide identifications without hits of a Consensus/FeatureMap
 
        Works on identification data: identifications without matches are erased, and features no longer link an

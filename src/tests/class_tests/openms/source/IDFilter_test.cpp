@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -1166,6 +1167,64 @@ START_SECTION((static void keepNBestPeptideHits(FeatureMap& map, Size n)))
   map.getIdentificationData() = nativeMap().getIdentificationData();
   IDFilter::keepNBestPeptideHits(map, 2);
   TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfMatches(), 4)
+}
+END_SECTION
+
+START_SECTION((static void filterHitsByScore(ConsensusMap& map, double threshold_score)))
+{
+  auto map = nativeMap();
+  // q-values: lower is better
+  IDFilter::filterHitsByScore(map, 0.02);
+  TEST_EQUAL(ListUtils::concatenate(matchSequences(map), ","), "PEPTIDEA,PEPTIDEA")
+  // identifications stay, also without matches (the unassigned one of PEPTIDEC)
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 5)
+  TEST_EQUAL(map[0].getIDMatches().size(), 1)
+
+  // a map with peptide identifications is filtered as its peptide identifications
+  ConsensusMap legacy = nativeMap();
+  IdentificationDataConverter::exportConsensusIDs(legacy);
+  ConsensusMap expected = legacy;
+  for (auto& feature : expected) IDFilter::filterHitsByScore(feature.getPeptideIdentifications(), 0.02);
+  IDFilter::filterHitsByScore(expected.getUnassignedPeptideIdentifications(), 0.02);
+  IDFilter::filterHitsByScore(legacy, 0.02);
+  TEST_EQUAL(legacy[0].getPeptideIdentifications() == expected[0].getPeptideIdentifications(), true)
+  TEST_EQUAL(legacy[1].getPeptideIdentifications() == expected[1].getPeptideIdentifications(), true)
+  TEST_EQUAL(legacy.getUnassignedPeptideIdentifications().size(), expected.getUnassignedPeptideIdentifications().size())
+}
+END_SECTION
+
+START_SECTION((static void filterHitsByScore(FeatureMap& map, double threshold_score)))
+{
+  FeatureMap map;
+  map.getIdentificationData() = nativeMap().getIdentificationData();
+  IDFilter::filterHitsByScore(map, 0.03);
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfMatches(), 3)
+}
+END_SECTION
+
+START_SECTION((static void keepUniquePeptidesPerProtein(ConsensusMap& map)))
+{
+  auto map = nativeMap();
+  auto& run = map.getIdentificationData().getRun("search");
+  const auto annotate = [&](const std::string& sequence, const std::string& value) {
+    std::vector<std::pair<ID::MatchId, ID::MatchData>> edits;
+    for (const auto& source : run.getSources())
+      for (const auto& query : source.identifications)
+        for (const auto& match : query.getMatches())
+          if (match.representation == sequence)
+          {
+            ID::MatchData data = match.getData();
+            data.setMetaValue("protein_references", value);
+            edits.emplace_back(match.getId(), data);
+          }
+    for (const auto& [id, data] : edits) run.replaceMatch(id, data);
+  };
+  annotate("PEPTIDEA", "unique");
+  annotate("PEPTIDEB", "non-unique");
+  // PEPTIDEC has no annotation and goes as well
+  IDFilter::keepUniquePeptidesPerProtein(map);
+  TEST_EQUAL(ListUtils::concatenate(matchSequences(map), ","), "PEPTIDEA,PEPTIDEA")
+  TEST_EQUAL(map[0].getIDMatches().size(), 1)
 }
 END_SECTION
 

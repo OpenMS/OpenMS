@@ -407,6 +407,39 @@ namespace OpenMS
     }
 
     template<class MapType>
+    void filterByScore(MapType& map, double threshold_score)
+    {
+      // as HasGoodScore: a match without a primary score value is not at least as good
+      map.eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
+        const auto primary = run.getPrimaryScore();
+        if (!primary) return false;
+        const auto score = run.getScore(match.getId(), *primary);
+        if (!score) return true;
+        return run.getScoreDefinition(*primary).higher_better ? !(*score >= threshold_score) : !(*score <= threshold_score);
+      });
+    }
+
+    template<class MapType>
+    void keepUnique(MapType& map)
+    {
+      Size n_initial = 0, n_missing = 0; // keep track of numbers of matches
+      map.eraseMatches([&](const ID::Run&, const ID::Identification&, const ID::Match& match) {
+        ++n_initial;
+        if (!match.metaValueExists("protein_references"))
+        {
+          ++n_missing;
+          return true;
+        }
+        return match.getMetaValue("protein_references") != DataValue("unique");
+      });
+      if (n_missing > 0)
+      {
+        OPENMS_LOG_WARN << "Filtering peptides by unique match to a protein removed " << n_missing << " of " << n_initial
+                        << " hits (total) that were missing the required meta value ('protein_references', added by PeptideIndexer)." << endl;
+      }
+    }
+
+    template<class MapType>
     void edit(MapType& map, const std::function<void(MapType&)>& operation)
     {
       IdentificationDataConverter::editAsIdentificationData(map, operation);
@@ -674,6 +707,26 @@ namespace OpenMS
   void IDFilter::keepNBestPeptideHits(ConsensusMap& map, Size n)
   {
     edit<ConsensusMap>(map, [&](ConsensusMap& m) { keepNBest(m, n); });
+  }
+
+  void IDFilter::filterHitsByScore(FeatureMap& map, double threshold_score)
+  {
+    edit<FeatureMap>(map, [&](FeatureMap& m) { filterByScore(m, threshold_score); });
+  }
+
+  void IDFilter::filterHitsByScore(ConsensusMap& map, double threshold_score)
+  {
+    edit<ConsensusMap>(map, [&](ConsensusMap& m) { filterByScore(m, threshold_score); });
+  }
+
+  void IDFilter::keepUniquePeptidesPerProtein(FeatureMap& map)
+  {
+    edit<FeatureMap>(map, [](FeatureMap& m) { keepUnique(m); });
+  }
+
+  void IDFilter::keepUniquePeptidesPerProtein(ConsensusMap& map)
+  {
+    edit<ConsensusMap>(map, [](ConsensusMap& m) { keepUnique(m); });
   }
 
   void IDFilter::removeEmptyIdentifications(FeatureMap& map)

@@ -23,6 +23,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -1071,6 +1072,76 @@ namespace OpenMS
 
       // count peptides in the different fractions, filenames, charge states, and channels
       pep_quant_[seq].abundances[fraction][filename][hit.getCharge()][label] += 1;
+    }
+    stats_.total_peptides = pep_quant_.size();
+  }
+
+
+  void PeptideAndProteinQuant::readQuantData(const IdentificationData& identifications, const ExperimentalDesign& ed)
+  {
+    updateMembers_(); // clear data
+    experimental_design_ = ed; // store experimental design for aggregation
+    buildSampleIDLookup_(); // precompute (basename, channel) -> sample lookup
+
+    stats_.n_samples = ed.getNumberOfSamples();
+    stats_.n_fractions = ed.getNumberOfFractions();
+    stats_.n_ms_files = ed.getNumberOfMSFiles();
+
+    // every identification with all its matches, and the MS file it comes from
+    std::vector<IdentificationData::QueryMatches> all;
+    std::vector<std::string> ms_files;
+    for (const auto& run : identifications.getRuns())
+    {
+      const StringList files = IdentificationDataAdapter::legacyFiles(run);
+      if (files.empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS file annotated in identification run '" + run.getIdentifier() + "'.");
+      }
+      OPENMS_LOG_DEBUG << "  run " << run.getIdentifier() << " : MS file(s) " << ListUtils::concatenate(files, ", ") << endl;
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          IdentificationData::QueryMatches identification {&run, &query, {}};
+          for (const auto& match : query.getMatches()) identification.matches.push_back(&match);
+          all.push_back(std::move(identification));
+          // a file that is not known: the first file of the run, as for a peptide identification without 'id_merge_index'
+          ms_files.push_back(source.file.path.empty() ? files.front() : source.file.path);
+        }
+      }
+    }
+
+    stats_.total_features = all.size();
+    countPeptides_(all);
+
+    const ExperimentalDesign::MSFileSection& run_section = ed.getMSFileSection();
+    for (Size i = 0; i < all.size(); ++i)
+    {
+      const auto* best = all[i].getBestMatch();
+      if (best == nullptr) continue;
+
+      // don't quantify decoys
+      if (best->target_decoy == IdentificationData::TargetDecoy::DECOY) continue;
+
+      stats_.quant_features++;
+      const std::string& ms_file_path = ms_files[i];
+
+      // determine sample and fraction by MS file name
+      auto row = find_if(begin(run_section), end(run_section),
+        [&ms_file_path](const ExperimentalDesign::MSFileSectionEntry& r) { return File::basename(r.path) == File::basename(ms_file_path); });
+      if (row == end(run_section))
+      {
+        OPENMS_LOG_ERROR << "MS file: " << ms_file_path << " not found in experimental design." << endl;
+        for (const auto& r : run_section)
+        {
+          OPENMS_LOG_ERROR << r.path << endl;
+        }
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "MS file annotated in identification run doesn't match any in the experimental design.");
+      }
+
+      // count peptides in the different fractions, filenames, charge states, and channels
+      pep_quant_[AASequence::fromString(best->representation)].abundances[row->fraction][File::stemName(ms_file_path)][best->charge][row->label] += 1;
     }
     stats_.total_peptides = pep_quant_.size();
   }

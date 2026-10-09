@@ -180,6 +180,18 @@ public:
   static std::optional<IdentificationData::InferenceResult> pooledInferenceResult(const IdentificationData& data);
   /// Add @p result to @p data, replacing the inference results that cover any of its input runs
   static void storeInferenceResult(IdentificationData& data, const IdentificationData::InferenceResult& result);
+  /**
+    @brief Edit the protein run of the inference result over all peptide identifications of @p data
+    (pooledInferenceResult()) and store it (storeInferenceResult())
+
+    For protein-level steps that work on a protein run, e.g. protein FDR, filtering proteins by score, protein
+    coverage or quantification. If the edit gives the proteins another score type, the protein score definition of
+    the result no longer applies and is dropped.
+
+    @throw Exception::MissingInformation if @p data has no peptide runs
+    @throw Exception::InvalidParameter if the peptide identifications are not in one protein run
+  */
+  static void editPooledProteins(IdentificationData& data, const std::function<void(ProteinIdentification&)>& edit);
 
   /**
     @name Legacy file lists
