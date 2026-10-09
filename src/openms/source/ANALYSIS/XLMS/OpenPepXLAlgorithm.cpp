@@ -21,6 +21,7 @@
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
@@ -246,37 +247,45 @@ using namespace OpenMS;
     p.setValue("ignore_charge", "false");
     idmapper.setParameters(p);
 
-    progresslogger.startProgress(0, 1, "Map spectrum precursors to linked features...");
-    idmapper.annotate(cfeatures, PeptideIdentificationList(), vector<ProteinIdentification>(), true, true, spectra);
-    progresslogger.endProgress();
-
     vector< double > spectrum_precursors;
 
-    // find pairs of MS2 spectra, that correspond to MS1 features linked by the consensus map / FeatureFinderMultiplex
-    for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
+    // The precursors at the linked features become identifications (with the spectrum index and the map index of the
+    // matching feature), which the consensus features of a copy of the map link.
+    ConsensusMap linked_features = cfeatures;
+    IdentificationDataConverter::moveToIdentificationData(linked_features);
+    progresslogger.startProgress(0, 1, "Map spectrum precursors to linked features...");
+    idmapper.annotate(linked_features, IdentificationData(), true, true, spectra);
+    progresslogger.endProgress();
     {
-      if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
-      {
-        for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
-        {
-          if (static_cast<Size>(cit->getPeptideIdentifications()[x].getMetaValue("map_index")) == 0)
-          {
-            for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)
-            {
-              if (static_cast<Size>(cit->getPeptideIdentifications()[y].getMetaValue("map_index")) == 1)
-              {
-                const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
-                const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
-                spectrum_pairs.emplace_back(pi_0.getMetaValue("spectrum_index"), pi_1.getMetaValue("spectrum_index"));
-                double current_precursor_mz0 = spectra[pi_0.getMetaValue("spectrum_index")].getPrecursors()[0].getMZ();
-                double current_precursor_mz1 = spectra[pi_1.getMetaValue("spectrum_index")].getPrecursors()[0].getMZ();
-                double current_precursor_charge0 = spectra[pi_0.getMetaValue("spectrum_index")].getPrecursors()[0].getCharge();
-                double current_precursor_charge1 = spectra[pi_1.getMetaValue("spectrum_index")].getPrecursors()[0].getCharge();
+      const IdentificationData& data = linked_features.getIdentificationData();
 
-                double current_precursor_mass0 = (current_precursor_mz0 * current_precursor_charge0) - (current_precursor_charge0 * Constants::PROTON_MASS_U);
-                double current_precursor_mass1 = (current_precursor_mz1 * current_precursor_charge1) - (current_precursor_charge1 * Constants::PROTON_MASS_U);
-                spectrum_precursors.push_back(current_precursor_mass0);
-                spectrum_precursors.push_back(current_precursor_mass1);
+      // find pairs of MS2 spectra, that correspond to MS1 features linked by the consensus map / FeatureFinderMultiplex
+      for (const ConsensusFeature& cf : linked_features)
+      {
+        const auto linked = cf.getLinkedIdentifications(data);
+        if (cf.getFeatures().size() == 2 && linked.size() >= 2)
+        {
+          for (Size x = 0; x < linked.size(); ++x)
+          {
+            if (static_cast<Size>(linked[x].query->getMetaValue("map_index")) == 0)
+            {
+              for (Size y = 0; y < linked.size(); ++y)
+              {
+                if (static_cast<Size>(linked[y].query->getMetaValue("map_index")) == 1)
+                {
+                  const Size spectrum_0 = linked[x].query->getMetaValue("spectrum_index");
+                  const Size spectrum_1 = linked[y].query->getMetaValue("spectrum_index");
+                  spectrum_pairs.emplace_back(spectrum_0, spectrum_1);
+                  double current_precursor_mz0 = spectra[spectrum_0].getPrecursors()[0].getMZ();
+                  double current_precursor_mz1 = spectra[spectrum_1].getPrecursors()[0].getMZ();
+                  double current_precursor_charge0 = spectra[spectrum_0].getPrecursors()[0].getCharge();
+                  double current_precursor_charge1 = spectra[spectrum_1].getPrecursors()[0].getCharge();
+
+                  double current_precursor_mass0 = (current_precursor_mz0 * current_precursor_charge0) - (current_precursor_charge0 * Constants::PROTON_MASS_U);
+                  double current_precursor_mass1 = (current_precursor_mz1 * current_precursor_charge1) - (current_precursor_charge1 * Constants::PROTON_MASS_U);
+                  spectrum_precursors.push_back(current_precursor_mass0);
+                  spectrum_precursors.push_back(current_precursor_mass1);
+                }
               }
             }
           }
