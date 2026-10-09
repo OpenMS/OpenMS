@@ -236,6 +236,8 @@ OpenMS Library:
   - FIX: Picked protein-group FDR in prefix mode also removed the decoy string from the end of an
     accession, so a target such as "XDECOY_" was taken as a decoy and the FDR threw
     std::out_of_range. The decoy string is removed only at the configured end now.
+  - FIX: Picked protein FDR made a pair's winner a target when two hits of the same decoy tied.
+    A tie prefers a target only if one of the tied hits is a target now.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

@@ -411,6 +411,18 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
     TEST_REAL_SIMILAR(qs[0], 1.0 / 3.0)
     TEST_REAL_SIMILAR(qs[1], 1.0 / 3.0)
   }
+
+  // (9) Two equal-scoring hits of the same decoy (no target) stay a decoy: {DECOY_A} 0.9 D, {C} 0.5 T.
+  // FDR 0.9 -> (1+1)/(0+1) = 2, 0.5 -> (1+1)/(1+1) = 1; q = 1 for both. Before the fix the tie made
+  // the pair's winner a target, {DECOY_A} did not vote and both groups got 1/2.
+  {
+    ProteinIdentification run = picked_run(true, {{"DECOY_A", 0.9}, {"DECOY_A", 0.9}, {"C", 0.5}},
+                                           {{0.9, {"DECOY_A"}}, {0.5, {"C"}}});
+    fdr.applyPickedProteinFDR(run, "DECOY_", true);
+    vector<double> qs = group_qvalues(run);
+    TEST_REAL_SIMILAR(qs[0], 1.0)
+    TEST_REAL_SIMILAR(qs[1], 1.0)
+  }
 }
 END_SECTION
 

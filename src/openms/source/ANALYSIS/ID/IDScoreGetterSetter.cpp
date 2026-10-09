@@ -192,7 +192,7 @@ namespace OpenMS
         }
         else if (hit.getScore() == it->second.first)
         {
-          it->second = {hit.getScore(), true}; //prefer targets. Alternative: put 0.5
+          if (target) it->second.second = 1.0; //prefer targets (a tie of two decoys stays a decoy). Alternative: put 0.5
         }
       }
     }
