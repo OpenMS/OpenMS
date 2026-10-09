@@ -241,6 +241,7 @@ namespace OpenMS
       @param[in] exp_spectrum                  Experimental MS2 spectrum (sorted by m/z).
       @param[in] db_spectrum                   DB MS2 spectrum (sorted by m/z).
       @param[in] mz_lower_bound                Minimum m/z to consider; peaks below this are ignored. Default 0.0.
+      @param[in] use_mass_accuracy             Weight matched peaks by mass error within the fragment tolerance.
       @return Hyperscore (>= 0; 0 if fewer than three matched peaks).
     */
     static double computeHyperScore(
@@ -264,6 +265,7 @@ namespace OpenMS
       @param[in]  db_spectrum                   DB MS2 spectrum (sorted by m/z).
       @param[out] annotations                   Per-matched-peak annotations (annotation string, charge, m/z, intensity); appended to.
       @param[in]  mz_lower_bound                Minimum m/z to consider; peaks below this are ignored.
+      @param[in]  use_mass_accuracy             Weight matched peaks by mass error within the fragment tolerance.
       @return Hyperscore (>= 0; 0 if fewer than three matched peaks).
     */
     static double computeHyperScore(
