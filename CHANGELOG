@@ -17,6 +17,11 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - BrukerTimsFile applies the ModelType 2 correction of the MzCalibration table (columns C5..C14:
+    a polynomial in m/z subtracted inside the calibrant range, as in Bruker's high precision
+    calibration). When these columns are present and usable, m/z now matches the Bruker SDK inside
+    that range (before: up to 1.3-7.8 ppm off); within about 4 m/z units outside its limits
+    deviations of a few ppm remain. Without them the base curve is used, with a warning.
   - FIX: PeptideAndProteinQuant (ProteinQuantifier, IsobaricWorkflow) reported file/channel-level
     protein abundances of 0 for run files whose name stem contains a dot (e.g. sample.v1.mzML).
   - BrukerTimsFile computes m/z from the MzCalibration table of analysis.tdf, with the per-frame
@@ -24,7 +29,7 @@ OpenMS Library:
     came from a linear approximation in sqrt(m/z) over the acquisition range, which was off from the
     Bruker SDK by -37 to -4 ppm on a 2020 timsTOF Pro run, mostly by up to +-17 ppm on newer runs,
     and by up to 1800 ppm on older otofControl runs. Now m/z matches the SDK for MzCalibration
-    ModelType 1 and is within a few ppm for ModelType 2. tims_calibration_strategy LINEAR keeps the
+    ModelType 1 (ModelType 2: see the entry above). tims_calibration_strategy LINEAR keeps the
     old m/z; bruker:calibrate (OLS) only applies to it. DDA MS2 spectra convert TOF to m/z with a
     real frame id instead of 0.
   - Added FileHandler::loadImagingExperiment(), which loads mass spectrometry imaging files (imzML and
