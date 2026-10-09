@@ -20,8 +20,11 @@
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/PercolatorInfile.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -1589,6 +1592,127 @@ START_SECTION([EXTRA] TRON solver capture for BLAS-to-Eigen migration)
   TEST_REAL_SIMILAR(out.scores[50],  /* row 50  */    6.7241872137246)
   TEST_REAL_SIMILAR(out.scores[100], /* row 100 */   -1.01713704846917)
   TEST_REAL_SIMILAR(out.scores[199], /* row 199 */   -0.648701128332891)
+}
+END_SECTION
+
+START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge, const std::string& score_type)))
+{
+  // 300 target and 300 decoy PSMs (one spectrum each); target search engine scores are higher on average.
+  const std::string aas = "ACDEFGHILMNPQSTVWY";
+  auto makeIds = [&]()
+  {
+    PeptideIdentificationList ids;
+    for (int i = 0; i < 600; ++i)
+    {
+      const bool decoy = i % 2 == 1;
+      std::string seq;
+      for (int k = 0; k < 8 + i % 5; ++k) seq += aas[(i * 7 + k * 13) % aas.size()];
+      seq += 'K';
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(seq));
+      hit.setCharge(2);
+      // deterministic noise in [-1, 1): std::normal_distribution differs between standard libraries
+      hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod(i * 0.6180339887498949, 1.0) - 1.0);
+      hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+      PeptideEvidence ev(decoy ? "DECOY_P" + std::to_string(i) : "P" + std::to_string(i), 0, 0, 'K', 'A');
+      hit.setPeptideEvidences({ev});
+      PeptideIdentification pid;
+      pid.setScoreType("hyperscore");
+      pid.setHigherScoreBetter(true);
+      pid.setMZ(hit.getSequence().getMZ(2));
+      pid.setRT(10.0 * i);
+      pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+      pid.setHits({hit});
+      ids.push_back(pid);
+    }
+    return ids;
+  };
+
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.push_back("score");
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  PeptideIdentificationList ids = makeIds();
+  // input meta value with a PIN column name: must survive the PIN meta value cleanup
+  ids[0].getHits()[0].setMetaValue("CalcMass", 1234.5);
+  std::vector<double> original_scores;
+  for (const auto& pid : ids) original_scores.push_back(pid.getHits()[0].getScore());
+
+  Percolator perc;
+  const Size n = perc.rescorePSMs(ids, feature_set, "trypsin", 2, 2, "q-value");
+  TEST_EQUAL(n, 600)
+  Size confident_targets = 0, confident_decoys = 0;
+  bool all_annotated = true, no_pin_left = true;
+  for (Size i = 0; i < ids.size(); ++i)
+  {
+    TEST_EQUAL(ids[i].getScoreType(), "q-value")
+    TEST_EQUAL(ids[i].isHigherScoreBetter(), false)
+    const PeptideHit& hit = ids[i].getHits()[0];
+    all_annotated = all_annotated && hit.metaValueExists("MS:1001491") && hit.metaValueExists("MS:1001492")
+                    && hit.metaValueExists("MS:1001493")
+                    && double(hit.getMetaValue("hyperscore")) == original_scores[i]
+                    && hit.getScore() == double(hit.getMetaValue("MS:1001491"));
+    no_pin_left = no_pin_left && !hit.metaValueExists("ScanNr") && !hit.metaValueExists("ExpMass")
+                  && !hit.metaValueExists("enzN") && !hit.metaValueExists("peplen") && !hit.metaValueExists("score")
+                  && (i == 0 || !hit.metaValueExists("CalcMass"));
+    if (hit.getScore() <= 0.01) ++(hit.isDecoy() ? confident_decoys : confident_targets);
+  }
+  TEST_EQUAL(all_annotated, true)
+  TEST_EQUAL(no_pin_left, true)
+  TEST_REAL_SIMILAR(double(ids[0].getHits()[0].getMetaValue("CalcMass")), 1234.5)
+  TEST_EQUAL(confident_targets > 100, true)
+  TEST_EQUAL(confident_decoys < confident_targets / 10, true)
+
+  // svm and pep as main score
+  PeptideIdentificationList ids_pep = makeIds();
+  perc.rescorePSMs(ids_pep, feature_set, "trypsin", 2, 2, "pep");
+  TEST_EQUAL(ids_pep[0].getScoreType(), "Posterior Error Probability")
+  TEST_REAL_SIMILAR(ids_pep[0].getHits()[0].getScore(), double(ids_pep[0].getHits()[0].getMetaValue("MS:1001493")))
+  PeptideIdentificationList ids_svm = makeIds();
+  perc.rescorePSMs(ids_svm, feature_set, "trypsin", 2, 2, "svm");
+  TEST_EQUAL(ids_svm[0].getScoreType(), "svm")
+  TEST_EQUAL(ids_svm[0].isHigherScoreBetter(), true)
+
+  // an identification without hits first and a hit that cannot be rescored (no peptide evidence):
+  // the others are still rescored; the unrescored hit gets the executable's "not identified" values
+  PeptideIdentification no_hits;
+  no_hits.setScoreType("hyperscore");
+  auto makeMixedIds = [&]()
+  {
+    PeptideIdentificationList ids_m = makeIds();
+    ids_m.insert(ids_m.begin(), no_hits);
+    PeptideHit no_evidence = ids_m[1].getHits()[0];
+    no_evidence.setPeptideEvidences({});
+    no_evidence.setScore(25.0);
+    ids_m[1].getHits().push_back(no_evidence);
+    return ids_m;
+  };
+  PeptideIdentificationList ids_mixed = makeMixedIds();
+  TEST_EQUAL(perc.rescorePSMs(ids_mixed, feature_set, "trypsin", 2, 2, "q-value"), 600)
+  TEST_EQUAL(ids_mixed[0].getScoreType(), "q-value")
+  const PeptideHit& unrescored = ids_mixed[1].getHits()[1];
+  TEST_REAL_SIMILAR(unrescored.getScore(), 1.0)
+  TEST_REAL_SIMILAR(double(unrescored.getMetaValue("MS:1001491")), 1.0)
+  TEST_REAL_SIMILAR(double(unrescored.getMetaValue("MS:1001493")), 1.0)
+  TEST_REAL_SIMILAR(double(unrescored.getMetaValue("MS:1001492")), -100.0)
+  TEST_REAL_SIMILAR(double(unrescored.getMetaValue("hyperscore")), 25.0)
+  TEST_EQUAL(double(ids_mixed[1].getHits()[0].getMetaValue("MS:1001492")) > -100.0, true) // rescored
+  PeptideIdentificationList ids_mixed_svm = makeMixedIds();
+  perc.rescorePSMs(ids_mixed_svm, feature_set, "trypsin", 2, 2, "svm");
+  TEST_REAL_SIMILAR(ids_mixed_svm[1].getHits()[1].getScore(), -100.0)
+
+  // errors leave the input untouched
+  PeptideIdentificationList only_empty;
+  only_empty.push_back(no_hits);
+  TEST_EXCEPTION(Exception::MissingInformation, perc.rescorePSMs(only_empty, feature_set, "trypsin", 2, 2))
+  PeptideIdentificationList empty;
+  TEST_EXCEPTION(Exception::MissingInformation, perc.rescorePSMs(empty, feature_set, "trypsin", 2, 2))
+  PeptideIdentificationList untouched = makeIds();
+  TEST_EXCEPTION(Exception::InvalidValue, perc.rescorePSMs(untouched, feature_set, "trypsin", 2, 2, "hyperscore"))
+  TEST_EXCEPTION(Exception::MissingInformation, perc.rescorePSMs(untouched, StringList{"SpecId", "Label", "Peptide"}, "trypsin", 2, 2))
+  TEST_EQUAL(untouched[0].getScoreType(), "hyperscore")
+  TEST_EQUAL(untouched[0].getHits()[0].metaValueExists("ScanNr"), false)
 }
 END_SECTION
 

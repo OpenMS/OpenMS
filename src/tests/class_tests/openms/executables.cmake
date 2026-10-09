@@ -264,6 +264,7 @@ set(format_executables_list
   OSWFileInference_test
   PTMXMLFile_test
   ParamCTDFile_test
+  ParamCWLFile_test
   ParamJSONFile_test
   ParamXMLFile_test
   ParquetFilter_test

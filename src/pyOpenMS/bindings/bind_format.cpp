@@ -530,6 +530,16 @@ Computes a SHA-1 hash of the file content
             nb::gil_scoped_release release;
             self.loadExperiment(filename, exp, allowed_types, log, rewrite_source_file, compute_hash);
         }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "rewrite_source_file"_a = false, "compute_hash"_a = false, "Load experiment with options")
+        .def("loadImagingExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSImagingExperiment& exp) {
+            nb::gil_scoped_release release;
+            self.loadImagingExperiment(filename, exp);
+        }, "filename"_a, "exp"_a,
+           "Load an imaging file (imzML, Bruker MALDI imaging .d) into an MSImagingExperiment; loadExperiment rejects these formats")
+        .def("loadImagingExperiment", [](OpenMS::FileHandler& self, const std::string& filename, OpenMS::MSImagingExperiment& exp,
+             const std::vector<OpenMS::FileTypes::Type>& allowed_types, OpenMS::ProgressLogger::LogType log) {
+            nb::gil_scoped_release release;
+            self.loadImagingExperiment(filename, exp, allowed_types, log);
+        }, "filename"_a, "exp"_a, "allowed_types"_a, "log"_a, "Load imaging experiment with options")
 
         .def("storeExperiment", [](OpenMS::FileHandler& self, const std::string& filename, const OpenMS::MSExperiment& exp) {
             nb::gil_scoped_release release;
@@ -1849,6 +1859,8 @@ annotation_id: Optional annotation identifier (UInt, max value = not set)
         .def(nb::init<const OpenMS::PercolatorInfile &>())
         .def("__copy__", [](const OpenMS::PercolatorInfile& self) { return OpenMS::PercolatorInfile(self); })
         .def("__deepcopy__", [](const OpenMS::PercolatorInfile& self, nb::dict) { return OpenMS::PercolatorInfile(self); }, "memo"_a)
+        .def_static("getStandardFeatureSet", &OpenMS::PercolatorInfile::getStandardFeatureSet, "min_charge"_a, "max_charge"_a,
+                    "Standard PIN columns: SpecId, Label, ScanNr, ExpMass, CalcMass, mass, peplen, charge{min..max}, enzN, enzC, enzInt, dm, absdm")
         .def_static("store", [](const std::string& pin_file, const OpenMS::PeptideIdentificationList& peptide_ids, const std::vector<std::string>& feature_set, const std::string& enz, int min_charge, int max_charge) { return OpenMS::PercolatorInfile::store(pin_file, peptide_ids, feature_set, enz, min_charge, max_charge); }, "pin_file"_a, "peptide_ids"_a, "feature_set"_a, "enz"_a, "min_charge"_a, "max_charge"_a)
         ;
 
