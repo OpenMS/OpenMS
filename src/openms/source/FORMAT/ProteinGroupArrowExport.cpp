@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <optional>
 
 #include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport_impl.h>
@@ -186,9 +188,12 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   return exportToArrow(cmap, ExperimentalDesign::fromConsensusMap(cmap));
 }
 
-std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const ConsensusMap& cmap,
+std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const ConsensusMap& input_map,
                                                                     const ExperimentalDesign& design)
 {
+  // the identifications as peptide identifications, which this format holds
+  std::optional<ConsensusMap> exported;
+  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
   if (cmap.getProteinIdentifications().empty())
   {
     OPENMS_LOG_WARN << "ProteinGroupArrowExport: No protein identifications found" << std::endl;

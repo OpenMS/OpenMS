@@ -55,6 +55,17 @@ public:
   static const FeatureMap& withIdentificationData(const FeatureMap& map, std::optional<FeatureMap>& converted);
   static const ConsensusMap& withIdentificationData(const ConsensusMap& map, std::optional<ConsensusMap>& converted);
   /**
+    @brief Read access to the identifications of a map as peptide identifications, for code that works on them (e.g.
+    writers of formats that hold peptide identifications)
+
+    The converse of withIdentificationData().
+
+    @return @p map if it has no identification data or has peptide identifications, else @p exported: a copy of @p map
+    with its identification data exported as peptide identifications (exportFeatureIDs())
+  */
+  static const FeatureMap& withPeptideIdentifications(const FeatureMap& map, std::optional<FeatureMap>& exported);
+  static const ConsensusMap& withPeptideIdentifications(const ConsensusMap& map, std::optional<ConsensusMap>& exported);
+  /**
     @brief Move the peptide identifications of a map into its identification data, for code that edits identification data
 
     @return Whether @p map had peptide identifications, i.e. whether to move them back afterwards (exportFeatureIDs())

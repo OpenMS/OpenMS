@@ -686,6 +686,8 @@ public:
          bool nextPSMRow(MzTabPSMSectionRow& row);
 
        private:
+         /// A map with identification data, with them as peptide identifications (IdentificationDataConverter::withPeptideIdentifications())
+         std::optional<ConsensusMap> exported_map_;
          const ConsensusMap& consensus_map_;
          std::set<std::string> protein_hit_user_value_keys_;
          std::set<std::string> consensus_feature_user_value_keys_;

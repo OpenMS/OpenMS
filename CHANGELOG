@@ -145,6 +145,11 @@ OpenMS Library:
     precursor without identification once instead of repeating it.
     OpenPepXL pairs spectra and MultiplexResolverAlgorithm resolves multiplets through these links
     (outputs unchanged); OpenPepXLAlgorithm::run() no longer adds identifications to its input map.
+  - Writers of formats that hold peptide identifications accept maps with identification data:
+    IdentificationDataConverter::withPeptideIdentifications() (the converse of
+    withIdentificationData()) gives them a view with the identifications exported. mzTab map
+    export, the QPX feature, psm-preflight and protein group views write such maps as they
+    write the same map with peptide identifications.
   - Algorithms that work on identification data convert the peptide identifications of maps.
     Each peptide identification needs the protein identification run (the search run) with its
     identifier, as search engines and ID mapping write it; the run may have no protein hits or

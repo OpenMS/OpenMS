@@ -19,6 +19,13 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+
+#include <fstream>
+#include <iterator>
 
 START_TEST(MzTab, "$Id$")
 
@@ -339,6 +346,40 @@ START_SECTION([EXTRA] consensus-map assays use fraction-group/label grain and sa
     TEST_REAL_SIMILAR(peptide_row.peptide_abundance_assay.at(2).get(), 7.0)
   }
   TEST_TRUE(peptide_row.peptide_abundance_study_variable.at(1).isNull())
+}
+END_SECTION
+
+START_SECTION([EXTRA] maps with identification data export as their peptide identifications)
+{
+  // The mzTab file a map is exported to
+  const auto exported = [](const MzTab& mz_tab) {
+    std::string filename;
+    NEW_TMP_FILE(filename);
+    MzTabFile().store(filename, mz_tab);
+    std::ifstream in(filename);
+    return std::string(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+  };
+
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("BSA.consensusXML"), consensus);
+  ConsensusMap native_consensus = consensus;
+  IdentificationDataConverter::importConsensusIDs(native_consensus);
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(native_consensus), false)
+  const auto consensus_export = [&](const ConsensusMap& map) {
+    return exported(MzTab::exportConsensusMapToMzTab(map, "BSA.consensusXML", true, true, true, true, true, true));
+  };
+  const std::string legacy_consensus = consensus_export(consensus);
+  TEST_EQUAL(legacy_consensus.find("PSM\t") != std::string::npos, true)
+  TEST_EQUAL(consensus_export(native_consensus) == legacy_consensus, true)
+
+  FeatureMap features;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), features);
+  FeatureMap native_features = features;
+  IdentificationDataConverter::importFeatureIDs(native_features);
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(native_features), false)
+  const std::string legacy_features = exported(MzTab::exportFeatureMapToMzTab(features, "MQEvidence_1.featureXML"));
+  TEST_EQUAL(legacy_features.find("PEP\t") != std::string::npos, true)
+  TEST_EQUAL(exported(MzTab::exportFeatureMapToMzTab(native_features, "MQEvidence_1.featureXML")) == legacy_features, true)
 }
 END_SECTION
 

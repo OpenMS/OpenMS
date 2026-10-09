@@ -649,6 +649,20 @@ const ConsensusMap& IdentificationDataConverter::withIdentificationData(const Co
   importMap(*converted, true);
   return *converted;
 }
+const FeatureMap& IdentificationDataConverter::withPeptideIdentifications(const FeatureMap& map, std::optional<FeatureMap>& exported)
+{
+  if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return map;
+  exported = map;
+  exportMap(*exported, true);
+  return *exported;
+}
+const ConsensusMap& IdentificationDataConverter::withPeptideIdentifications(const ConsensusMap& map, std::optional<ConsensusMap>& exported)
+{
+  if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return map;
+  exported = map;
+  exportMap(*exported, true);
+  return *exported;
+}
 namespace
 {
   template<class Map>

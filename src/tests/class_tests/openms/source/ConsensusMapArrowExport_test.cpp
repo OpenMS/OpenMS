@@ -12,6 +12,9 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/NativeIdentificationTest.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 ///////////////////////////
 
@@ -351,6 +354,28 @@ START_SECTION(([EXTRA] unmapped features are separated by observed_mz, not by rt
   const auto same_mz_result = same_mz_validator.validate(same_mz_table);
   TEST_FALSE(same_mz_result.valid)
   TEST_TRUE(same_mz_result.toString().find("primary key") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToArrow - a map with identification data exports as its peptide identifications))
+{
+  ConsensusMap cmap = createTestConsensusMap();
+  // the identifications name their search run, as identification data needs it
+  Internal::ClassTest::addSearchRun(cmap);
+  ConsensusMap native = cmap;
+  IdentificationDataConverter::importConsensusIDs(native);
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(native), false)
+
+  auto legacy_table = ConsensusMapArrowExport::exportToArrow(cmap);
+  auto native_table = ConsensusMapArrowExport::exportToArrow(native);
+  ABORT_IF(legacy_table == nullptr || native_table == nullptr)
+  TEST_EQUAL(legacy_table->num_rows(), 4)
+  TEST_TRUE(native_table->Equals(*legacy_table))
+
+  // (the fixture has no protein groups, so neither export has a table)
+  auto legacy_groups = ProteinGroupArrowExport::exportToArrow(cmap);
+  auto native_groups = ProteinGroupArrowExport::exportToArrow(native);
+  TEST_EQUAL(native_groups == nullptr, legacy_groups == nullptr)
 }
 END_SECTION
 

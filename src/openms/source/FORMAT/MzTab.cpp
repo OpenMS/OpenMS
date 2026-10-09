@@ -19,6 +19,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
@@ -697,10 +698,13 @@ namespace OpenMS
   }
 
   MzTab MzTab::exportFeatureMapToMzTab(
-    const FeatureMap & feature_map,
+    const FeatureMap & input_map,
     const std::string & filename)
   {
     OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
+    // mzTab holds the identifications as peptide identifications
+    std::optional<FeatureMap> exported;
+    const FeatureMap& feature_map = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
     MzTab mztab;
     MzTabMetaData meta_data;
 
@@ -2766,7 +2770,7 @@ state0:
 
 
   MzTab::CMMzTabStream::CMMzTabStream(
-    const ConsensusMap& consensus_map,
+    const ConsensusMap& input_map,
     const std::string& filename,
     const bool first_run_inference_only,
     const bool export_unidentified_features,
@@ -2776,13 +2780,15 @@ state0:
     const bool export_all_psms,
     const std::string& title) 
   :
-    consensus_map_(consensus_map),
+    consensus_map_(IdentificationDataConverter::withPeptideIdentifications(input_map, exported_map_)),
     filename_(filename), 
     export_unidentified_features_(export_unidentified_features),
     export_subfeatures_(export_subfeatures),
     export_empty_pep_ids_(export_empty_pep_ids),
     export_all_psms_(export_all_psms)
   {
+    // the map with peptide identifications
+    const ConsensusMap& consensus_map = consensus_map_;
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
     prot_ids_.reserve(prot_id.size());

@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <optional>
 
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/METADATA/MS1LabelState.h>
@@ -1448,8 +1450,11 @@ void requireResolvableIdRunsWith(const ConsensusMap& cmap, const IdentifierMSRun
 } // anonymous namespace (feature range builder + shared per-map lookups)
 
 
-void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& cmap)
+void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& input_map)
 {
+  // the identifications as peptide identifications, which this format holds
+  std::optional<ConsensusMap> exported;
+  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
   Size divergent = 0;
   Size first_index = 0;
   for (Size i = 0; i < cmap.size(); ++i)
@@ -1468,8 +1473,11 @@ void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& c
     "as consensusparquet, which preserves every identification.");
 }
 
-void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& cmap)
+void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& input_map)
 {
+  // the identifications as peptide identifications, which this format holds
+  std::optional<ConsensusMap> exported;
+  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
   // Builds its own mapper so the check is usable without the rest of buildFeatureIdLookups().
   // The in-exporter paths pass the lookup's mapper instead, to avoid building it twice.
   std::set<std::string> seen_identifiers;
@@ -1489,9 +1497,12 @@ void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& cmap)
   requireResolvableIdRunsWith(cmap, mapper);
 }
 
-std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& cmap,
+std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& input_map,
                                                                      QPXIdentity::FeatureLinks* out_links)
 {
+  // the identifications as peptide identifications, which this format holds
+  std::optional<ConsensusMap> exported;
+  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
   const auto id_lut = buildFeatureIdLookups(cmap);
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper);
@@ -1503,11 +1514,14 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
 
 
 bool ConsensusMapArrowExport::exportToParquet(
-  const ConsensusMap& cmap,
+  const ConsensusMap& input_map,
   const std::string& filename,
   const ParquetWriteConfig& config,
   QPXIdentity::FeatureLinks* out_links)
 {
+  // the identifications as peptide identifications, which this format holds
+  std::optional<ConsensusMap> exported;
+  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
   auto table = exportToArrow(cmap, out_links);
   if (!table)
   {
@@ -1580,13 +1594,16 @@ bool ConsensusMapArrowExport::exportToParquet(
 
 
 bool ConsensusMapArrowExport::exportToParquetStreaming(
-  const ConsensusMap& cmap,
+  const ConsensusMap& input_map,
   const std::string& filename,
   size_t batch_size,
   const ParquetWriteConfig& config,
   int n_threads,
   QPXIdentity::FeatureLinks* out_links)
 {
+  // the identifications as peptide identifications, which this format holds
+  std::optional<ConsensusMap> exported;
+  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
   if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
 
   // Resolve the number of OpenMP threads used to build each batch's partitions.

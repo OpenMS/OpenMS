@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/QPXCollectionExport.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <optional>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
@@ -29,8 +31,11 @@
 namespace OpenMS
 {
 
-bool QPXCollectionExport::requireExportable(const ConsensusMap& cmap, const ExperimentalDesign& design)
+bool QPXCollectionExport::requireExportable(const ConsensusMap& input_map, const ExperimentalDesign& design)
 {
+  // the identifications as peptide identifications, which this format holds
+  std::optional<ConsensusMap> exported;
+  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
   const auto refuse = [](const std::string& what)
   {
     OPENMS_LOG_ERROR << "QPXCollectionExport: " << what

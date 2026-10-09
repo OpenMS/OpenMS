@@ -23,6 +23,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -771,6 +772,14 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   TEST_NOT_EQUAL(t_derived, nullptr)
   TEST_EQUAL(t_derived->num_rows(), 2)
   TEST_TRUE(groupedRuns(t_derived) == runs)
+
+  // A map with identification data exports as its protein identifications.
+  ConsensusMap native = cmap;
+  IdentificationDataConverter::importConsensusIDs(native);
+  TEST_EQUAL(native.getProteinIdentifications().empty(), true)
+  auto t_native = ProteinGroupArrowExport::exportToArrow(native, design);
+  ABORT_IF(t_native == nullptr)
+  TEST_TRUE(t_native->Equals(*t))
 }
 END_SECTION
 
