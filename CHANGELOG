@@ -45,6 +45,9 @@ OpenMS Library:
     or named the wrong protein). Storing now throws Exception::ElementNotFound before the file is opened
     (ProteinRunReferences::checkProteinAccessions, also in pyOpenMS), as idXML does. OpenSwathWorkflow
     adds the proteins of every batch to its run.
+    Loading idXML, featureXML and consensusXML refuses a protein reference (protein_refs) to a protein hit
+    of another run (it was resolved file-wide, so such references, e.g. written by the former 'PH_0'
+    fallback, named whatever protein that hit was).
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).

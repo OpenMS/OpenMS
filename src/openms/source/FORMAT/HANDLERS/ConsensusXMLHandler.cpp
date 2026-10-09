@@ -443,6 +443,7 @@ namespace OpenMS::Internal
 
       //insert id and accession to map
       proteinid_to_accession_[attributeAsString_(attributes, "id")] = accession;
+      proteinid_to_run_[attributeAsString_(attributes, "id")] = prot_id_.getIdentifier();
     }
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
@@ -508,6 +509,11 @@ namespace OpenMS::Internal
           std::map<std::string, std::string>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
+            // a peptide hit references the protein hits of its peptide identification's run (no other run's)
+            if (proteinid_to_run_[*it] != pep_id_.getIdentifier())
+            {
+              fatalError(LOAD, std::string("Invalid protein reference '") + *it + "': protein " + it2->second + " is no protein hit of the peptide identification's run");
+            }
             PeptideEvidence pe;
             pe.setProteinAccession(it2->second);
             peptide_evidences_.push_back(std::move(pe));

@@ -15,6 +15,7 @@
 #include <iterator>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
@@ -673,6 +674,40 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   }
   TEST_EXCEPTION(Exception::ParseError, FeatureXMLFile().load(dangling, in))
   File::remove(dangling);
+
+  // a peptide hit may only reference the protein hits of its run (a reference to another run's protein, as written
+  // for unknown accessions by former versions, cannot be loaded)
+  {
+    FeatureMap two_runs = map;
+    ProteinIdentification other;
+    other.setIdentifier("other");
+    other.setDateTime(DateTime::now());
+    other.insertHit(ProteinHit(0.0, 1, "PROT_B", ""));
+    two_runs.getProteinIdentifications()[0].insertHit(ProteinHit(0.0, 1, "PROT_A", ""));
+    two_runs.getProteinIdentifications().push_back(other);
+    two_runs.getUnassignedPeptideIdentifications()[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_A", 0, 6, '-', '-'));
+    std::string two_runs_file;
+    NEW_TMP_FILE_EXT(two_runs_file, ".featureXML")
+    FeatureXMLFile().store(two_runs_file, two_runs);
+    FeatureMap two_runs_in;
+    FeatureXMLFile().load(two_runs_file, two_runs_in);
+    TEST_EQUAL(two_runs_in.getUnassignedPeptideIdentifications()[0].getHits()[0].getPeptideEvidences()[0].getProteinAccession(), "PROT_A")
+    std::string text;
+    {
+      std::ifstream is(two_runs_file);
+      text.assign(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>());
+    }
+    const Size ref_pos = text.find("protein_refs=\"PH_0\""); // PROT_A of the first run
+    TEST_NOT_EQUAL(ref_pos, std::string::npos)
+    text.replace(ref_pos, std::string("protein_refs=\"PH_0\"").size(), "protein_refs=\"PH_1\""); // PROT_B of the other run
+    const std::string cross_run = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + ".featureXML";
+    {
+      std::ofstream os(cross_run);
+      os << text;
+    }
+    TEST_EXCEPTION(Exception::ParseError, FeatureXMLFile().load(cross_run, two_runs_in))
+    File::remove(cross_run);
+  }
 }
 END_SECTION
 

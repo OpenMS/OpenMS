@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -153,6 +155,8 @@ protected:
     std::vector<PeptideEvidence> peptide_evidences_;
     /// Map from protein id to accession
     std::unordered_map<std::string, std::string> proteinid_to_accession_;
+    /// the identifier of the run of each protein hit (by its id): a peptide hit may only reference the protein hits of its run
+    std::unordered_map<std::string, std::string> proteinid_to_run_;
     /// Document identifier
     std::string* document_id_;
     /// true if a prot id is contained in the current run

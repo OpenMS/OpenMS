@@ -26,6 +26,7 @@
 #include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <sstream>
 
@@ -644,6 +645,31 @@ START_SECTION([EXTRA] store - many peptide identifications are written in input 
     TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, IdXMLFile().store(file_no_run, prots, no_run),
       "Peptide identification has no matching protein run: 'runNone'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.")
     TEST_EQUAL(File::exists(file_no_run), false) // checked before the file is opened
+  }
+
+  // a peptide hit may only reference the protein hits of its run
+  {
+    std::string file_cross_run;
+    NEW_TMP_FILE(file_cross_run)
+    IdXMLFile().store(file_cross_run, prots, peps);
+    std::string text;
+    {
+      std::ifstream is(file_cross_run);
+      text.assign(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>());
+    }
+    // the first peptide hit of the second run references ACC2 of that run: let it reference ACC1 of the first run
+    const Size second_run = text.find("<IdentificationRun", text.find("<IdentificationRun") + 1);
+    const Size ref = text.find("protein_refs=\"PH_1\"", text.find("<PeptideIdentification", second_run));
+    TEST_NOT_EQUAL(ref, std::string::npos)
+    text.replace(ref, std::string("protein_refs=\"PH_1\"").size(), "protein_refs=\"PH_0\"");
+    {
+      std::ofstream os(file_cross_run);
+      os << text;
+    }
+    std::vector<ProteinIdentification> prots_cross;
+    PeptideIdentificationList peps_cross;
+    TEST_EXCEPTION(Exception::ParseError, IdXMLFile().load(file_cross_run, prots_cross, peps_cross))
+    File::remove(file_cross_run);
   }
 
   // unknown accessions in two peptide identifications of the first run: the one first in input order is reported

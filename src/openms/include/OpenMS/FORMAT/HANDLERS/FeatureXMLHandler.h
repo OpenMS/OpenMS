@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -152,6 +154,8 @@ protected:
     PeptideHit pep_hit_;
     /// Map from protein id to accession
     std::map<std::string, std::string> proteinid_to_accession_;
+    /// the identifier of the run of each protein hit (by its id): a peptide hit may only reference the protein hits of its run
+    std::unordered_map<std::string, std::string> proteinid_to_run_;
     /// Map from search identifier concatenated with protein accession to id
     std::map<std::string, Size> accession_to_id_;
     /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
