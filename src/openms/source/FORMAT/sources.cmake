@@ -137,6 +137,7 @@ if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
   list(APPEND sources_list BrukerTimsImagingFile.cpp)
   list(APPEND sources_list RationalScan2ImConverter.cpp)
+  list(APPEND sources_list MzCalibrationTof2MzConverter.cpp)
 endif()
 
 if (WITH_THERMO_RAW)
