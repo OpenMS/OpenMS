@@ -47,7 +47,7 @@ FileConverter -in sample.raw -out sample.mzML
 These tools also accept `.raw` files as input:
 CometAdapter, FeatureFinderCentroided, FeatureFinderIdentification, FeatureFinderLFQ,
 FeatureFinderMetabo, FeatureFinderMetaboIdent, FeatureFinderMultiplex, FLASHDeconv,
-IsobaricAnalyzer, MassTraceExtractor, MetaboliteSpectralMatcher, MS1LabeledWorkflow,
+IsobaricAnalyzer, IsobaricWorkflow, MassTraceExtractor, MetaboliteSpectralMatcher, MS1LabeledWorkflow,
 NucleicAcidSearchEngine, OpenPepXL, OpenSwathPeakMapExtractor, OpenSwathWorkflow, ProSE,
 ProteomicsLFQ, SageAdapter and SimpleSearchEngine.
 
@@ -72,11 +72,12 @@ directory while the tool runs, so that directory needs space for the unpacked da
 Bruker's SDK is not needed: OpenMS computes m/z and ion mobility (1/K0) from the calibration
 stored in the file. If Bruker's SDK library (`timsdata.dll` or `libtimsdata.so`) is
 installed, set the environment variable `OPENMS_BRUKER_SDK_PATH` to the library's path to
-convert ion mobility with Bruker's own code instead.
+compute m/z and ion mobility with Bruker's own code instead. A library that cannot be loaded
+is reported as a warning, and OpenMS falls back to the stored calibration.
 
 These tools accept `.d` and `.d.zip` input:
 CometAdapter, FeatureFinderIdentification, FeatureFinderLFQ, FeatureFinderMetaboIdent,
-FileConverter, IonMobilityBinning, MetaboliteSpectralMatcher, NucleicAcidSearchEngine,
+FileConverter, IonMobilityBinning, IsobaricWorkflow, MetaboliteSpectralMatcher, NucleicAcidSearchEngine,
 OpenSwathPeakMapExtractor, OpenSwathWorkflow, PeakPickerIM, ProSE, ProteomicsLFQ,
 SageAdapter, SimpleSearchEngine and TransitionListEvidenceFilter.
 

@@ -9,7 +9,9 @@ Loading an imzML file
 *********************
 
 :py:class:`~.ImzMLFile` loads a data set into an :py:class:`~.MSImagingExperiment`, which holds one spectrum per
-pixel and the geometry of the image. :py:class:`~.FileHandler` does not read imzML.
+pixel and the geometry of the image. :py:meth:`.FileHandler.loadImagingExperiment` loads the same data set and
+also reads Bruker timsTOF MALDI imaging ``.d`` folders. ``FileHandler.loadExperiment`` rejects imaging files with an
+``InvalidFileType`` error, so use ``loadImagingExperiment`` for them.
 
 The geometry is two-dimensional and covers the first plane (``z = 1``) of a data set. Spectra of other planes are
 loaded too, and ``getMSExperiment()`` returns them, but pixel access, regions and ion images leave them out.
