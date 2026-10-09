@@ -191,12 +191,13 @@ ParquetFile.h
 ZipRandomAccessFile.h
 )
 
-### RationalScan2ImConverter derives from OpenTIMS' Scan2InvIonMobilityConverter, so its
-### header includes <opentims++/...> and needs OpenTIMS' development files. Only
-### BrukerTimsFile.cpp and the class test use it; BrukerTimsFile.h itself hands out
-### OpenMS types, so OpenTIMS stays PRIVATE.
+### RationalScan2ImConverter and MzCalibrationTof2MzConverter derive from OpenTIMS'
+### Scan2InvIonMobilityConverter / Tof2MzConverter, so their headers include
+### <opentims++/...> and need OpenTIMS' development files. Only BrukerTimsFile.cpp and the
+### class test use them; BrukerTimsFile.h itself hands out OpenMS types, so OpenTIMS stays PRIVATE.
 if (WITH_OPENTIMS)
   list(APPEND private_headers_list_h RationalScan2ImConverter.h)
+  list(APPEND private_headers_list_h MzCalibrationTof2MzConverter.h)
 endif()
 
 set(private_sources_h)

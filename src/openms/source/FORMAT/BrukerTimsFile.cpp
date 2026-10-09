@@ -25,6 +25,7 @@
 #include <opentims++/opentims.h>
 #include <opentims++/tof2mz_converter.h>
 #include <opentims++/scan2inv_ion_mobility_converter.h>
+#include <OpenMS/FORMAT/MzCalibrationTof2MzConverter.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 
@@ -1555,6 +1556,23 @@ namespace OpenMS
                       << std::endl;
     }
 
+    // m/z: use the MzCalibration table with per-frame temperature correction unless the
+    // linear GlobalMetadata model was requested. The Bruker SDK branch below only replaces
+    // the 1/K0 converter.
+    if (strategy != Strategy::LINEAR)
+    {
+      if (auto mz_converter = tryCreateMzCalibrationConverter(path_string))
+      {
+        handle->tof2mz_converter = std::move(mz_converter);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "TIMS m/z calibration: MzCalibration table not usable, using the linear "
+                           "approximation from GlobalMetadata (errors of tens of ppm are possible)"
+                        << std::endl;
+      }
+    }
+
     // 2. Try Bruker SDK (AUTO or BRUKER_SDK)
     if (strategy == Strategy::AUTO || strategy == Strategy::BRUKER_SDK)
     {
@@ -2605,7 +2623,14 @@ namespace OpenMS
 
     // OLS recalibration for DDA (when config.calibrate == true)
     const double cal_tol = (config.calibration_tolerance > 0.0) ? config.calibration_tolerance : 0.1;
-    if (config.calibrate)
+    const bool open_source_mz = dynamic_cast< ::OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get()) != nullptr;
+    if (config.calibrate && !open_source_mz)
+    {
+      // The OLS fit is linear in sqrt(m/z); it would replace a more accurate stored calibration
+      OPENMS_LOG_INFO << "OLS m/z recalibration skipped: m/z comes from "
+                      << handle.tof2mz_converter->description() << "." << std::endl;
+    }
+    if (config.calibrate && open_source_mz)
     {
       // Collect (tof_index, sqrt(monoisotopic_mz)) pairs for regression
       std::vector<double> tof_vals;
@@ -2697,11 +2722,17 @@ namespace OpenMS
       std::vector<uint32_t> all_tofs;
       std::vector<uint64_t> all_intensities;
       std::vector<double> all_im;
+      // m/z of each raw peak as converted for its own frame (exact per-frame calibration)
+      std::vector<double> all_frame_mz;
       double rt_sum = 0.0;
+      // Valid frame used to convert merged TOF centroids back to m/z. The Bruker SDK
+      // calibrates per frame and rejects frame id 0, so it must be a real frame.
+      uint32_t ref_frame_id = 0;
 
       for (const DDAPrecursorInfo* entry : entries)
       {
         if (!handle.has_frame(entry->frame_id)) continue;
+        if (ref_frame_id == 0) ref_frame_id = entry->frame_id;
 
         const FrameData& fd = getFrameData(entry->frame_id);
         rt_sum += fd.rt;
@@ -2713,6 +2744,7 @@ namespace OpenMS
           all_tofs.push_back(fd.tofs[p]);
           all_intensities.push_back(static_cast<uint64_t>(fd.intensities[p]));
           all_im.push_back(fd.inv_ion_mobilities[p]);
+          all_frame_mz.push_back(fd.mzs[p]);
         }
       }
 
@@ -2735,11 +2767,10 @@ namespace OpenMS
       const auto dda_ms2_algo = effectiveMS2Algo(config, /*emit_warnings=*/false);
       if (dda_ms2_algo == BrukerTimsFile::Config::CentroidAlgo::HILL_BASED)
       {
-        std::vector<double> hb_mz(all_tofs.size());
+        std::vector<double> hb_mz = std::move(all_frame_mz);
         std::vector<double> hb_int(all_tofs.size());
         for (std::size_t i = 0; i < all_tofs.size(); ++i)
         {
-          handle.tof2mz_converter->convert(0, &hb_mz[i], &all_tofs[i], 1);
           hb_int[i] = static_cast<double>(all_intensities[i]);
         }
         Internal::PASEFHillCentroider::Params p;
@@ -2889,17 +2920,23 @@ namespace OpenMS
       all_intensity_d.reserve(all_tofs.size());
       kept_im.reserve(all_tofs.size());
 
+      std::vector<uint32_t> kept_tofs;
+      kept_tofs.reserve(all_tofs.size());
       for (size_t i = 0; i < all_tofs.size(); ++i)
       {
         if (keep[i])
         {
-          // Convert TOF to m/z using the registered converter
-          double mz = 0;
-          handle.tof2mz_converter->convert(0, &mz, &all_tofs[i], 1);
-          all_mz.push_back(mz);
+          kept_tofs.push_back(all_tofs[i]);
           all_intensity_d.push_back(static_cast<double>(all_intensities[i]));
           kept_im.push_back(all_im[i]);
         }
+      }
+      // Convert TOF to m/z with the registered converter, in one batch
+      all_mz.resize(kept_tofs.size());
+      if (!kept_tofs.empty())
+      {
+        handle.tof2mz_converter->convert(ref_frame_id, all_mz.data(), kept_tofs.data(),
+                                         static_cast<uint32_t>(kept_tofs.size()));
       }
 
       if (all_mz.empty())
