@@ -312,6 +312,33 @@ jobs:
           path: |
             ${{ runner.temp }}/${{ steps.source-name.outputs.tarball }}
 
+  # The vcpkg dependencies of the Debug SDK, on their own first. The triplet
+  # x64-windows-static-md builds every port in both configurations, and the first
+  # run of a new binary cache builds them all from source (3 h 20 min in a dry
+  # run, ONNX Runtime alone 54 min); the cache is uploaded only by a job that
+  # succeeds. One job that went on to build OpenMS in Debug would run close to
+  # the 6-hour limit and lose the dependencies with every failure, so this job
+  # stops after configuring. With a warm cache it is a matter of minutes.
+  build-windows-debug-deps:
+    name: "Build the Windows Debug SDK dependencies"
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Configure OpenMS (Debug)
+        uses: ./.github/actions/build
+        with:
+          compiler: cl.exe
+          preset: windows-x64-debug-ci
+          configure_only: "true"
+          run_tests: "false"
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+
   # The Windows Debug SDK: MSVC's debug CRT (/MDd) is not compatible with the
   # release one, so a Debug build of a consumer cannot link the Release SDK. This
   # job builds the libraries once more in Debug, with the vcpkg dependencies in
@@ -320,6 +347,7 @@ jobs:
   build-windows-debug-sdk:
     name: "Build the Windows Debug SDK"
     runs-on: windows-2025
+    needs: build-windows-debug-deps
     steps:
       - uses: actions/checkout@v6
         with:

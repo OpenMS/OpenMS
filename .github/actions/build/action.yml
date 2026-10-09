@@ -16,6 +16,14 @@ inputs:
     description: "Whether to run the test suite after the build (ctest --preset)"
     required: false
     default: "true"
+  configure_only:
+    description: >-
+      Stop after configuring: the dependencies are installed and vcpkg builds
+      whatever its binary cache lacks, but OpenMS itself is not built and no
+      compiler cache is saved. A job that only warms the vcpkg cache of a preset
+      whose dependencies take hours to build from source.
+    required: false
+    default: "false"
   macosx_deployment_target:
     description: >-
       The oldest macOS the binaries run on (-mmacosx-version-min). Keep it at the
@@ -269,7 +277,9 @@ runs:
           -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
 
-        cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
+        if [[ "${{ inputs.configure_only }}" != "true" ]]; then
+          cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
+        fi
 
     - name: Verify public headers
       if: ${{ runner.os == 'Linux' && runner.arch == 'X64' }}
@@ -316,8 +326,11 @@ runs:
     #
     # Test failures still save: the build was complete by then, so the cache is
     # too, and a red test says nothing about the objects.
+    # Not after a configure-only run: the cache would be empty, and under the
+    # primary key of this run it would shadow the one a full build of the same
+    # run saves afterwards, which could then not be saved under that key again.
     - name: Save Build Cache
-      if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.build.outcome == 'success' && inputs.configure_only != 'true' }}
       uses: actions/cache/save@v5
       with:
         path: .ccache
