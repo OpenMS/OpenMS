@@ -497,6 +497,38 @@ def test_converter_turns_feature_annotations_into_links_and_back():
     assert restored.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() == "PEPTIDE"
 
 
+def test_id_mapper_links_features_to_identification_data():
+    run = oms.ProteinIdentification()
+    run.setIdentifier("search")
+    peptide = oms.PeptideIdentification()
+    peptide.setIdentifier("search")
+    peptide.setScoreType("hyperscore")
+    peptide.setRT(100.0)
+    peptide.setMZ(500.0)
+    peptide.setHits([oms.PeptideHit(7.0, 1, 2, oms.AASequence.fromString("PEPTIDE"))])
+    ids = oms.IdentificationDataAdapter.importLegacy([run], oms.PeptideIdentificationList([peptide])).data
+    features = oms.FeatureMap()
+    for mz in (500.0, 500.05):
+        feature = oms.Feature()
+        feature.setRT(100.0)
+        feature.setMZ(mz)
+        features.push_back(feature)
+    mapper = oms.IDMapper()
+    params = mapper.getParameters()
+    params.setValue("mz_tolerance", 0.1)
+    params.setValue("mz_measure", "Da")
+    params.setValue("ignore_charge", "true")
+    mapper.setParameters(params)
+
+    mapper.annotate(features, ids, True, True)
+    # one identification, linked by both features
+    (first,) = features[0].getIDMatches()
+    (second,) = features[1].getIDMatches()
+    assert first == second
+    assert features.getIdentificationData().findRunByUuid(first.run_uuid).getMatch(first.match).representation == "PEPTIDE"
+    assert len(features[0].getPeptideIdentifications()) == 0
+
+
 def test_native_filter_writes_reduced_dataset_with_explicit_inference_policy(tmp_path):
     data, query, first, second = make_data_with_inference()
     source = str(tmp_path / "source")

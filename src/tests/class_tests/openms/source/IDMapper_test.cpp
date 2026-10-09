@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////
 
@@ -37,6 +38,41 @@ class IDMapper2 : public IDMapper
     }
 
 };
+
+namespace
+{
+  // Identifications at (RT 100, m/z 500) and (RT 300, m/z 800) with one hit each, in run "search"
+  IdentificationData nativeIDs()
+  {
+    std::vector<ProteinIdentification> proteins(1);
+    proteins[0].setIdentifier("search");
+    proteins[0].setSearchEngine("Engine");
+    PeptideIdentificationList peptides;
+    for (const auto& [rt, mz, sequence] : std::vector<std::tuple<double, double, std::string>> {{100.0, 500.0, "PEPTIDE"}, {300.0, 800.0, "PEPTIDER"}})
+    {
+      PeptideIdentification peptide;
+      peptide.setIdentifier("search");
+      peptide.setScoreType("score");
+      peptide.setRT(rt);
+      peptide.setMZ(mz);
+      peptide.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString(sequence)));
+      peptides.push_back(peptide);
+    }
+    return IdentificationDataAdapter::fromLegacy(proteins, peptides);
+  }
+
+  IDMapper centroidMapper()
+  {
+    IDMapper mapper;
+    Param p = mapper.getParameters();
+    p.setValue("rt_tolerance", 5.0);
+    p.setValue("mz_tolerance", 0.1);
+    p.setValue("mz_measure", "Da");
+    p.setValue("ignore_charge", "true");
+    mapper.setParameters(p);
+    return mapper;
+  }
+}
 
 START_TEST(IDMapper, "$Id$")
 
@@ -666,6 +702,7 @@ START_SECTION(([EXTRA] annotate(ConsensusMap& map, ...) with TMT/iTRAQ spectrum 
     {
       PeptideIdentification id;
       id.setIdentifier("run");
+      id.setScoreType("score");
       id.setRT(100.0);
       id.setMZ(500.0);
       id.setSpectrumReference(reference);
@@ -694,6 +731,129 @@ START_SECTION(([EXTRA] annotate(ConsensusMap& map, ...) with TMT/iTRAQ spectrum 
   TEST_EQUAL(wiff[0].getPeptideIdentifications().size(), 1)
   TEST_EQUAL(wiff[0].getPeptideIdentifications()[0].getSpectrumReference(), "96001")
   TEST_EQUAL(wiff[1].getPeptideIdentifications().size(), 0)
+}
+END_SECTION
+
+START_SECTION((void annotate(FeatureMap& map, const IdentificationData& ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap())))
+{
+  // two overlapping features at the first identification
+  FeatureMap map;
+  for (double mz : {500.0, 500.05})
+  {
+    Feature feature;
+    feature.setRT(100.0);
+    feature.setMZ(mz);
+    map.push_back(feature);
+  }
+  // a spectrum whose precursor has no identification, at the second feature
+  PeakMap spectra;
+  MSSpectrum spectrum;
+  spectrum.setRT(101.0);
+  spectrum.setNativeID("scan=7");
+  Precursor precursor;
+  precursor.setMZ(500.14);
+  spectrum.setPrecursors({precursor});
+  spectra.addSpectrum(spectrum);
+
+  centroidMapper().annotate(map, nativeIDs(), true, true, spectra);
+  const auto& data = map.getIdentificationData();
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(map), false)
+  TEST_EQUAL(map.getDataProcessing().size(), 1)
+  TEST_EQUAL(map.getDataProcessing()[0].getSoftware().getName(), "Engine")
+
+  // one identification per spectrum: both features link the same identification
+  const auto first = map[0].getLinkedIdentifications(data);
+  const auto second = map[1].getLinkedIdentifications(data);
+  TEST_EQUAL(first.size(), 1)
+  ABORT_IF(first.size() != 1)
+  TEST_EQUAL(first[0].matches.size(), 1)
+  TEST_EQUAL(second.size(), 2)
+  ABORT_IF(second.size() != 2)
+  TEST_EQUAL(second[0].query == first[0].query, true)
+
+  // the precursor without identification: an identification without matches that the second feature links
+  TEST_EQUAL(second[1].matches.empty(), true)
+  TEST_EQUAL(second[1].query->getMatches().empty(), true)
+  TEST_EQUAL(second[1].query->data_id, "scan=7")
+  TEST_EQUAL(second[1].query->getMetaValue("spectrum_index"), 0)
+  TEST_EQUAL(second[1].run->getPrimaryScore().has_value(), false)
+  TEST_EQUAL(IdentificationDataAdapter::legacyIdentifier(*second[1].run), first[0].run->getIdentifier())
+
+  // the identification that maps to no feature stays unassigned
+  const auto unassigned = map.getUnassignedIdentifications();
+  TEST_EQUAL(unassigned.size(), 1)
+  ABORT_IF(unassigned.size() != 1)
+  TEST_REAL_SIMILAR(*unassigned[0].query->rt, 300.0)
+
+  // export: a peptide identification per linking feature, the precursor's without score type, in one protein run
+  FeatureMap exported = map;
+  IdentificationDataConverter::exportFeatureIDs(exported);
+  TEST_EQUAL(exported.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(exported[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(exported[1].getPeptideIdentifications().size(), 2)
+  ABORT_IF(exported[1].getPeptideIdentifications().size() != 2)
+  TEST_EQUAL(exported[1].getPeptideIdentifications()[0].getScoreType(), "score")
+  TEST_EQUAL(exported[1].getPeptideIdentifications()[1].getScoreType(), "")
+  TEST_EQUAL(exported[1].getPeptideIdentifications()[1].getIdentifier(), exported.getProteinIdentifications()[0].getIdentifier())
+  TEST_EQUAL(exported.getUnassignedPeptideIdentifications().size(), 1)
+
+  // the overload for peptide identifications annotates a map with identification data as identification data
+  FeatureMap native;
+  native.push_back(map[0]);
+  native[0].getIDMatches().clear();
+  native[0].getIDQueries().clear();
+  native.getIdentificationData().addRun("other");
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  IdentificationDataConverter::exportIDs(nativeIDs(), proteins, peptides);
+  centroidMapper().annotate(native, peptides, proteins, true, true);
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(native), false)
+  TEST_EQUAL(native[0].getLinkedIdentifications(native.getIdentificationData()).size(), 1)
+
+  // a map with peptide identifications needs them as identification data
+  FeatureMap legacy;
+  legacy.getProteinIdentifications().resize(1);
+  TEST_EXCEPTION(Exception::InvalidParameter, centroidMapper().annotate(legacy, nativeIDs()))
+}
+END_SECTION
+
+START_SECTION((void annotate(ConsensusMap& map, const IdentificationData& ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false, const PeakMap& spectra = PeakMap())))
+{
+  // two consensus features with subelements of maps 0 and 1 at the first identification
+  ConsensusMap map;
+  for (UInt64 map_index : {0, 1})
+  {
+    ConsensusFeature feature;
+    feature.setRT(100.0);
+    feature.setMZ(500.0);
+    feature.insert(map_index, Peak2D({100.0, 500.0}, 1.0), map_index);
+    map.push_back(feature);
+  }
+
+  // shared: both consensus features link the identification
+  ConsensusMap shared = map;
+  centroidMapper().annotate(shared, nativeIDs(), true, false);
+  TEST_EQUAL(shared.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 2)
+  TEST_EQUAL(shared[0].getLinkedIdentifications(shared.getIdentificationData())[0].query
+             == shared[1].getLinkedIdentifications(shared.getIdentificationData())[0].query, true)
+  TEST_EQUAL(shared.getUnassignedIdentifications().size(), 1)
+
+  // with the map index of the subelement: an identification per assignment, which replaces the one it copies
+  centroidMapper().annotate(map, nativeIDs(), true, true);
+  const auto& data = map.getIdentificationData();
+  TEST_EQUAL(data.getRuns()[0].getNumberOfIdentifications(), 3)
+  for (Size i = 0; i < map.size(); ++i)
+  {
+    const auto linked = map[i].getLinkedIdentifications(data);
+    TEST_EQUAL(linked.size(), 1)
+    ABORT_IF(linked.size() != 1)
+    TEST_EQUAL(linked[0].query->getMetaValue("map_index"), i)
+    TEST_EQUAL(linked[0].matches.size(), 1)
+    ABORT_IF(linked[0].matches.empty())
+    TEST_EQUAL(linked[0].matches[0]->representation, "PEPTIDE")
+    TEST_REAL_SIMILAR(*linked[0].run->getScore(linked[0].matches[0]->getId(), *linked[0].run->getPrimaryScore()), 1.0)
+  }
+  TEST_EQUAL(map.getUnassignedIdentifications().size(), 1)
 }
 END_SECTION
 

@@ -777,6 +777,68 @@ std::string IdentificationDataAdapter::legacyIdentifier(const ID::Run& run)
   return run.getSettings().metaValueExists(LEGACY_RUN) ? run.getSettings().getMetaValue(LEGACY_RUN).toString() : run.getIdentifier();
 }
 
+ID::Run& IdentificationDataAdapter::unscoredRun(ID& data, const std::string& identifier)
+{
+  auto& run = data.getRun(identifier);
+  if (! run.getPrimaryScore()) return run;
+  const auto legacy = legacyIdentifier(run);
+  const auto settings_of = [](const ID::Run& item) {
+    auto settings = item.getSettings();
+    settings.removeMetaValue(LEGACY_RUN);
+    return settings;
+  };
+  const auto files_of = [](const ID::Run& item) {
+    std::vector<ID::SourceFile> files;
+    for (const auto& source : item.getSources())
+      files.push_back(source.file);
+    return files;
+  };
+  for (const auto& other : data.getRuns())
+  {
+    if (! other.getScoreDefinitions().empty() || other.getMoleculeKind() != run.getMoleculeKind() || legacyIdentifier(other) != legacy) continue;
+    if (settings_of(other) == settings_of(run) && files_of(other) == files_of(run) && other.getDatabases() == run.getDatabases()
+        && other.getDatabaseSequences() == run.getDatabaseSequences())
+      return data.getRun(other.getIdentifier());
+  }
+  // A new run, named as import names the runs of another score type
+  std::string name;
+  Size suffix = 1;
+  do
+  {
+    name = legacy + ":score_" + std::to_string(suffix++);
+  } while (std::any_of(data.getRuns().begin(), data.getRuns().end(), [&](const ID::Run& item) { return item.getIdentifier() == name; }));
+  // Runs are not moved when one is added, so 'run' stays valid.
+  auto& added = data.addRun(name, run.getMoleculeKind());
+  auto settings = run.getSettings();
+  settings.setMetaValue(LEGACY_RUN, legacy);
+  added.setSettings(settings);
+  for (const auto& file : files_of(run))
+    added.addSource(file);
+  for (const auto& database : run.getDatabases())
+    added.addDatabase(database);
+  added.setDatabaseSequences(run.getDatabaseSequences());
+  // Export writes the legacy protein run of an inference result that both runs are inputs of once.
+  auto results = data.getInferenceResults();
+  bool input = false;
+  for (auto& result : results)
+  {
+    const auto found = std::find_if(result.inputs.begin(), result.inputs.end(), [&](const auto& item) { return item.run_uuid == run.getUuid(); });
+    if (found == result.inputs.end()) continue;
+    auto added_input = *found;
+    added_input.run_identifier = added.getIdentifier();
+    added_input.run_uuid = added.getUuid();
+    result.inputs.push_back(std::move(added_input));
+    input = true;
+  }
+  if (input)
+  {
+    data.clearInferenceResults();
+    for (auto& result : results)
+      data.addInferenceResult(std::move(result));
+  }
+  return added;
+}
+
 void IdentificationDataAdapter::keepLegacyProteinScoreType(ID::Run& run)
 {
   if (! run.getPrimaryScore() || run.getSettings().metaValueExists(LEGACY_PROTEIN_SCORE_TYPE)) return;

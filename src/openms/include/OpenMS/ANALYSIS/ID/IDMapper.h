@@ -103,9 +103,31 @@ public:
       @param[in] spectra [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index
                      to each Feature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
+      A map that holds identification data is annotated as identification data (see the overload for identification data), with
+      @p ids and @p protein_ids imported; otherwise its features get peptide identifications.
+
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
     */
     void annotate(FeatureMap& map, const PeptideIdentificationList& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap());
+
+    /**
+      @brief Mapping method for feature maps with identification data
+
+      As the overload for peptide identifications: the runs of @p ids are added to the identification data of @p map
+      (IdentificationData::merge()), and every feature that an identification maps to links it with its matches. An
+      identification that maps to several features is linked by all of them; one that maps to none stays unassigned
+      (unlinked). Identifications without matches are not added.
+
+      With @p spectra, every precursor without identification that maps to a feature becomes an identification without
+      matches (with the spectrum index as meta value "spectrum_index"), which the feature links. It is in the first run
+      of @p map (a new run "UNKNOWN_SEARCH_RUN_IDENTIFIER" if there is none), as legacy peptide identifications without
+      score type (see IdentificationDataAdapter::unscoredRun()).
+
+      @exception Exception::MissingInformation is thrown if an identification of @p ids has no RT or m/z
+      @exception Exception::InvalidParameter is thrown if @p map has peptide identifications (convert them first, see
+      IdentificationDataConverter::moveToIdentificationData())
+    */
+    void annotate(FeatureMap& map, const IdentificationData& ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap());
 
     /**
       @brief Mapping method for consensus maps
@@ -121,12 +143,31 @@ public:
       @param[in] spectra [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index
                      to each ConsensusFeature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
+      A map that holds identification data is annotated as identification data (see the overload for identification data), with
+      @p ids and @p protein_ids imported; otherwise its consensus features get peptide identifications.
+
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
     */
     void annotate(ConsensusMap& map, const PeptideIdentificationList& ids, 
                   const std::vector<ProteinIdentification>& protein_ids, 
                   bool measure_from_subelements = false, 
                   bool annotate_ids_with_subelements = false, 
+                  const PeakMap& spectra = PeakMap());
+
+    /**
+      @brief Mapping method for consensus maps with identification data
+
+      As the overload for peptide identifications, with identifications linked as by annotate(FeatureMap&, const IdentificationData&, bool, bool, const PeakMap&).
+      With @p annotate_ids_with_subelements, every assignment of an identification to a consensus feature is an
+      identification of its own, with the map index of the matching subelement as meta value "map_index" (and the
+      identification it copies is removed). For TMT/iTRAQ data (mapped by spectrum reference), identifications that map
+      to no consensus feature are removed.
+
+      @exception Exception::MissingInformation is thrown if an identification of @p ids has no RT or m/z
+      @exception Exception::InvalidParameter is thrown if @p map has peptide identifications (convert them first, see
+      IdentificationDataConverter::moveToIdentificationData())
+    */
+    void annotate(ConsensusMap& map, const IdentificationData& ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false,
                   const PeakMap& spectra = PeakMap());
 
 
@@ -210,6 +251,9 @@ public:
       return ret;
     }
 
+    /// As above, for the identifications of @p ids (identifications without matches do not identify a spectrum)
+    static PeptideIdentificationListState mapPrecursorsToIdentifications(const PeakMap& spectra, const IdentificationData& ids, double mz_tol = 0.001,
+                                                                         double rt_tol = 0.001);
 
 protected:
     void updateMembers_() override;
@@ -233,11 +277,18 @@ protected:
 
     /// helper function that checks if all peptide hits are annotated with RT and MZ meta values
     void checkHits_(const PeptideIdentificationList& ids) const;
+    /// check that all identifications of @p ids have RT and m/z
+    void checkHits_(const IdentificationData& ids) const;
 
-    /// get RT, m/z and charge value(s) of a PeptideIdentification
-    /// - multiple m/z values are returned if "mz_reference" is set to "peptide" (one for each PeptideHit)
+    /// annotate @p map, which holds its identifications as identification data, with @p ids (without data processing)
+    void annotate_(FeatureMap& map, IdentificationData ids, bool use_centroid_rt, bool use_centroid_mz, const PeakMap& spectra);
+    void annotate_(ConsensusMap& map, IdentificationData ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra);
+
+    /// get RT, m/z and charge value(s) of an identification (with RT and m/z) of @p run
+    /// - multiple m/z values are returned if "mz_reference" is set to "peptide" (one for each match)
     /// - one m/z value is returned if "mz_reference" is set to "precursor"
-    void getIDDetails_(const PeptideIdentification& id, double& rt_pep, DoubleList& mz_values, IntList& charges, bool use_avg_mass = false) const;
+    void getIDDetails_(const IdentificationData::Run& run, const IdentificationData::Identification& id, double& rt_pep, DoubleList& mz_values, IntList& charges,
+                       bool use_avg_mass = false) const;
 
     /// increase a bounding box by the given RT and m/z tolerances
     void increaseBoundingBox_(DBoundingBox<2>& box);
@@ -248,6 +299,8 @@ protected:
 
     /// create DataProcessing entries from ProteinIdentification objects and append to the given vector
     static void addIdentificationDataProcessing_(std::vector<DataProcessing>& data_processing, const std::vector<ProteinIdentification>& protein_ids);
+    /// as above, for the legacy protein runs of the runs of @p ids
+    static void addIdentificationDataProcessing_(std::vector<DataProcessing>& data_processing, const IdentificationData& ids);
 
   };
 

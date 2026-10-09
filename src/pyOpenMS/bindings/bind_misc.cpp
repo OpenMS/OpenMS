@@ -1118,6 +1118,34 @@ RT and m/z are taken from the peptides, or (if missing) from the feature itself
 :param clear_ids: Reset peptide and protein identifications of each scan before annotating
 :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 )doc")
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::FeatureMap& map, const OpenMS::IdentificationData& ids, bool use_centroid_rt, bool use_centroid_mz, const OpenMS::MSExperiment& spectra) { self.annotate(map, ids, use_centroid_rt, use_centroid_mz, spectra); }, "map"_a, "ids"_a, "use_centroid_rt"_a = false, "use_centroid_mz"_a = false, "spectra"_a = OpenMS::MSExperiment(),
+            R"doc(
+Mapping method for feature maps with identification data\n
+The runs of 'ids' are added to the identification data of 'map', and every feature that an identification maps to links it with its matches.
+An identification that maps to several features is linked by all of them; one that maps to none stays unassigned (unlinked).
+With 'spectra', precursors without identification that map to a feature become identifications without matches, which the feature links.
+:param map: FeatureMap (with its identifications as identification data) to receive the identifications
+:param ids: Identifications to map
+:param use_centroid_rt: Whether to use the RT value of feature centroids even if convex hulls are present
+:param use_centroid_mz: Whether to use the m/z value of feature centroids even if convex hulls are present
+:param spectra: [Optional] The underlying mass spectra, for precursors without identification
+:raises:
+Exception: InvalidParameter if 'map' has peptide identifications
+)doc")
+        .def("annotate", [](OpenMS::IDMapper& self, OpenMS::ConsensusMap& map, const OpenMS::IdentificationData& ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const OpenMS::MSExperiment& spectra) { self.annotate(map, ids, measure_from_subelements, annotate_ids_with_subelements, spectra); }, "map"_a, "ids"_a, "measure_from_subelements"_a = false, "annotate_ids_with_subelements"_a = false, "spectra"_a = OpenMS::MSExperiment(),
+            R"doc(
+Mapping method for consensus maps with identification data\n
+As for feature maps; with 'annotate_ids_with_subelements', every assignment is an identification of its own with the map index of the matching subelement as meta value "map_index".
+:param map: ConsensusMap (with its identifications as identification data) to receive the identifications
+:param ids: Identifications to map
+:param measure_from_subelements: Do distance estimate from FeatureHandles instead of Centroid
+:param annotate_ids_with_subelements: Store map index of FeatureHandle in the identification
+:param spectra: [Optional] The underlying mass spectra, for precursors without identification
+:raises:
+Exception: InvalidParameter if 'map' has peptide identifications
+)doc")
+        .def_static("mapPrecursorsToIdentifications", [](const OpenMS::MSExperiment& spectra, const OpenMS::IdentificationData& ids, double mz_tol, double rt_tol) { return OpenMS::IDMapper::mapPrecursorsToIdentifications(spectra, ids, mz_tol, rt_tol); }, "spectra"_a, "ids"_a, "mz_tol"_a = 0.001, "rt_tol"_a = 0.001,
+            "Partition the spectra by identification state of their precursors, for the identifications of 'ids' (identifications without matches do not identify a spectrum)")
         .def_static("mapPrecursorsToIdentifications", [](const OpenMS::MSExperiment& spectra, const OpenMS::PeptideIdentificationList& ids, double mz_tol, double rt_tol) { return OpenMS::IDMapper::mapPrecursorsToIdentifications(spectra, ids, mz_tol, rt_tol); }, "spectra"_a, "ids"_a, "mz_tol"_a, "rt_tol"_a, 
             R"doc(
 Mapping method for peak maps\n

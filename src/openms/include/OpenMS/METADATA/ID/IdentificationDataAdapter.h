@@ -125,6 +125,17 @@ public:
   /// The identifier of the legacy protein run of @p run, which export gives its peptide identifications
   static std::string legacyIdentifier(const IdentificationData::Run& run);
   /**
+    @brief The run of @p data for identifications without matches and without score type in the legacy protein run of
+    the run @p identifier, e.g. of spectra without identification (as IDMapper adds them)
+
+    A legacy peptide identification has a score type even without hits. Import gives peptide identifications whose
+    score type is not the first one of their protein run a run of their own, which export writes into that protein run.
+    This is the run that import makes for an empty score type: the run @p identifier itself if it has no primary score,
+    else a run without scores that has its legacy protein run, settings, sources and databases and is an input of its
+    inference results (an existing one, or a new one).
+  */
+  static IdentificationData::Run& unscoredRun(IdentificationData& data, const std::string& identifier);
+  /**
     @brief Give every match of every run of @p data a new primary score, as legacy rescoring does
 
     Every match gets the value of @p value (from its run, the match and its current primary score) in the score

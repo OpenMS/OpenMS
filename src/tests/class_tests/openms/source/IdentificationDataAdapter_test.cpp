@@ -442,6 +442,49 @@ START_SECTION((static void keepLegacyProteinScoreType(IdentificationData::Run& r
 }
 END_SECTION
 
+START_SECTION((static IdentificationData::Run& unscoredRun(IdentificationData& data, const std::string& identifier)))
+{
+  // A search run with two files and inferred proteins (with an inference result)
+  ProteinIdentification search;
+  search.setIdentifier("search");
+  search.setSearchEngine("test-search");
+  search.setScoreType("protein score");
+  search.setPrimaryMSRunPath({"a.mzML", "b.mzML"});
+  ProteinHit protein(0.9, 1, "P1", "PEPTIDEK");
+  search.setHits({protein});
+  auto first = peptide();
+  first.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
+  const std::vector<ProteinIdentification> proteins {search};
+  auto data = Adapter::fromLegacy(proteins, {first});
+  TEST_EQUAL(data.getInferenceResults().size(), 1)
+
+  auto& run = Adapter::unscoredRun(data, "search");
+  TEST_NOT_EQUAL(run.getIdentifier(), "search")
+  TEST_EQUAL(Adapter::legacyIdentifier(run), "search")
+  TEST_EQUAL(run.getScoreDefinitions().empty(), true)
+  TEST_EQUAL(run.getSources().size(), 2)
+  TEST_EQUAL(data.getInferenceResults()[0].inputs.size(), 2)
+  // the same run on a second call
+  TEST_EQUAL(&Adapter::unscoredRun(data, "search"), &run)
+  // a run without primary score is its own
+  TEST_EQUAL(&Adapter::unscoredRun(data, run.getIdentifier()), &run)
+
+  // export writes its identifications without score type into the legacy protein run
+  PeptideIdentification unidentified;
+  unidentified.setIdentifier("search");
+  unidentified.setRT(50);
+  unidentified.setMZ(600);
+  run.addIdentification(Adapter::legacySource(run, Adapter::legacyFiles(run).size(), unidentified), ID::Observation {});
+  const auto exported = Adapter::toLegacy(data);
+  TEST_EQUAL(exported.proteins.size(), 1)
+  ABORT_IF(exported.proteins.size() != 1)
+  TEST_EQUAL(exported.proteins[0] == Adapter::toLegacy(Adapter::fromLegacy(proteins, {first})).proteins[0], true)
+  ABORT_IF(exported.peptides.size() != 2)
+  TEST_EQUAL(exported.peptides[1].getScoreType(), "")
+  TEST_EQUAL(exported.peptides[1].getIdentifier(), "search")
+}
+END_SECTION
+
 START_SECTION((static void replacePrimaryScore(IdentificationData& data, const IdentificationData::ScoreDefinition& definition, ...)))
 {
   ProteinIdentification search;

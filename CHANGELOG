@@ -131,6 +131,18 @@ OpenMS Library:
     'min_score' and 'use_adducts' as align() does); MapAlignmentAlgorithmTreeGuided reads linked
     identifications and combines maps in identification data; MapAlignmentTransformer transforms
     identification RTs only in identification data.
+  - IDMapper annotates feature and consensus maps as identification data: annotate() overloads
+    for IdentificationData add its runs to the map and link each identification (one per
+    spectrum) from every (consensus) feature it maps to; identifications that map to none stay
+    unassigned. Only with annotate_ids_with_subelements does every assignment become an
+    identification of its own (with "map_index"). Precursors without identification become
+    identifications without matches in a run without scores that shares the legacy protein run
+    (IdentificationDataAdapter::unscoredRun()). The overloads for peptide identifications
+    annotate maps with identification data in place and other maps as before (outputs
+    unchanged; their peptide identifications need their protein identification run, see
+    below), except that with consensus:use_subelements and spectra, but without
+    annotate_ids_with_subelements, a consensus feature with several matching subelements links a
+    precursor without identification once instead of repeating it.
   - Algorithms that work on identification data convert the peptide identifications of maps.
     Each peptide identification needs the protein identification run (the search run) with its
     identifier, as search engines and ID mapping write it; the run may have no protein hits or

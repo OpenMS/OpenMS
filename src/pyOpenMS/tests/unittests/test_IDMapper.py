@@ -13,6 +13,7 @@ class TestIDMapper(unittest.TestCase):
 
     def create_test_peptide_id(self, rt, mz, sequence="PEPTIDER", score=100.0, charge=2):
         pi = oms.PeptideIdentification()
+        pi.setIdentifier("search")
         pi.setRT(rt)
         pi.setMZ(mz)
         pi.setScoreType("search_engine_score")
@@ -40,6 +41,12 @@ class TestIDMapper(unittest.TestCase):
         self.assertGreater(len(hits), 0, "Peptide identification has no hits.")
         self.assertEqual(hits[0].getSequence().toString(), expected_sequence)
 
+    def search_runs(self):
+        """The protein identification run (search run) that the peptide identifications refer to."""
+        run = oms.ProteinIdentification()
+        run.setIdentifier("search")
+        return [run]
+
     def to_pep_list(self, peps):
         """Helper to convert Python lists to C++ PeptideIdentificationList."""
         pep_list = oms.PeptideIdentificationList()
@@ -65,7 +72,7 @@ class TestIDMapper(unittest.TestCase):
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
 
-        mapper.annotate(features, peptide_ids, [], True, True, empty_exp)
+        mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
         self.assert_feature_has_identification(features[0], "TESTPEPTIDE")
 
     def test_annotate_featuremap_with_msexperiment(self):
@@ -87,7 +94,7 @@ class TestIDMapper(unittest.TestCase):
         exp.addSpectrum(self.create_test_spectrum(500.0, 2, 800.0))
         exp.updateRanges()
 
-        mapper.annotate(features, peptide_ids, [], True, True, exp)
+        mapper.annotate(features, peptide_ids, self.search_runs(), True, True, exp)
         self.assert_feature_has_identification(features[0], "MATCHEDPEP")
 
     def test_annotate_tolerance_settings(self):
@@ -110,7 +117,7 @@ class TestIDMapper(unittest.TestCase):
 
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
-        mapper.annotate(features, peptide_ids, [], True, True, empty_exp)
+        mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
 
         pep_ids = features[0].getPeptideIdentifications()
         self.assertEqual(len(pep_ids), 1)
@@ -150,7 +157,7 @@ class TestIDMapper(unittest.TestCase):
 
                 peptide_ids = self.to_pep_list([self.create_test_peptide_id(500.0, 800.0, "HULLTEST")])
 
-                mapper.annotate(features, peptide_ids, [], use_centroid_rt, use_centroid_mz, empty_exp)
+                mapper.annotate(features, peptide_ids, self.search_runs(), use_centroid_rt, use_centroid_mz, empty_exp)
 
                 pep_ids = features[0].getPeptideIdentifications()
                 self.assertEqual(len(pep_ids), 1)
@@ -165,7 +172,7 @@ class TestIDMapper(unittest.TestCase):
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
 
-        mapper.annotate(features, peptide_ids, [], True, True, empty_exp)
+        mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
 
     def test_annotate_empty_peptide_ids(self):
         """Verify no exceptions on empty PeptideIdentifications."""
@@ -177,7 +184,7 @@ class TestIDMapper(unittest.TestCase):
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
 
-        mapper.annotate(features, peptide_ids, [], True, True, empty_exp)
+        mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
         self.assertEqual(len(features[0].getPeptideIdentifications()), 0)
 
     def test_annotate_multiple_features_multiple_ids(self):
@@ -202,7 +209,7 @@ class TestIDMapper(unittest.TestCase):
         empty_exp = oms.MSExperiment()
         empty_exp.updateRanges()
 
-        mapper.annotate(features, peptide_ids, [], True, True, empty_exp)
+        mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
 
         self.assert_feature_has_identification(features[0], "PEPONE")
         self.assert_feature_has_identification(features[1], "PEPTWO")

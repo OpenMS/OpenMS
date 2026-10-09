@@ -11,10 +11,13 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <functional>
+#include <optional>
 #include <unordered_set>
 
 using namespace std;
@@ -97,6 +100,21 @@ namespace OpenMS
       }
       data_processing.push_back(dp);
     }
+  }
+
+  void IDMapper::addIdentificationDataProcessing_(std::vector<DataProcessing>& data_processing, const IdentificationData& ids)
+  {
+    // one per legacy protein run, as for the protein identifications that export writes
+    std::vector<ProteinIdentification> protein_ids;
+    std::set<std::string> identifiers;
+    for (const auto& run : ids.getRuns())
+    {
+      if (identifiers.insert(IdentificationDataAdapter::legacyIdentifier(run)).second)
+      {
+        protein_ids.push_back(IdentificationDataAdapter::settingsToLegacy(run));
+      }
+    }
+    addIdentificationDataProcessing_(data_processing, protein_ids);
   }
 
   void IDMapper::annotate(AnnotatedMSRun& map,
@@ -242,10 +260,18 @@ namespace OpenMS
 
   void IDMapper::annotate(AnnotatedMSRun& map, const FeatureMap& fmap, const bool clear_ids, const bool map_ms1)
   {
-    const vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
+    // The identifications of a map with identification data, as peptide identifications
+    std::optional<FeatureMap> exported;
+    if (!fmap.getIdentificationData().empty())
+    {
+      exported.emplace(fmap);
+      IdentificationDataConverter::exportFeatureIDs(*exported);
+    }
+    const FeatureMap& features = exported ? *exported : fmap;
+    const vector<ProteinIdentification>& protein_ids = features.getProteinIdentifications();
     PeptideIdentificationList peptide_ids;
 
-    for (FeatureMap::const_iterator it = fmap.begin(); it != fmap.end(); ++it)
+    for (FeatureMap::const_iterator it = features.begin(); it != features.end(); ++it)
     {
       const PeptideIdentificationList& pi = it->getPeptideIdentifications();
       for (PeptideIdentificationList::const_iterator itp = pi.begin(); itp != pi.end(); ++itp)
@@ -262,13 +288,13 @@ namespace OpenMS
 
   enum class NATIVE_ID_TYPE
   {
-    UNKNOWN, MS2IDMS3TMT, MS2IDTMT 
+    UNKNOWN, MS2IDMS3TMT, MS2IDTMT
   };
 
   NATIVE_ID_TYPE checkTMTType(const ConsensusMap& map)
   {
     for (auto & cf : map)
-    {      
+    {
       // check if the native id of an identifying spectrum is annotated
       if (cf.metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
       {
@@ -282,6 +308,193 @@ namespace OpenMS
     return NATIVE_ID_TYPE::UNKNOWN;
   }
 
+  namespace
+  {
+    using ID = IdentificationData;
+
+    /// An identification to map, with its run and the source that holds it
+    struct Entry
+    {
+      const ID::Run* run = nullptr;
+      const ID::Source* source = nullptr;
+      const ID::Identification* query = nullptr;
+    };
+
+    std::set<std::string> uuidsOf(const ID& data)
+    {
+      std::set<std::string> uuids;
+      for (const auto& run : data.getRuns())
+      {
+        uuids.insert(run.getUuid());
+      }
+      return uuids;
+    }
+
+    /// The identifications of the runs @p uuids of @p data, in the order of their IDs, then runs: the order of the
+    /// peptide identifications they were imported from
+    std::vector<Entry> entriesOf(const ID& data, const std::set<std::string>& uuids)
+    {
+      std::vector<std::tuple<UInt64, Size, Entry>> ordered;
+      Size position = 0;
+      for (const auto& run : data.getRuns())
+      {
+        if (uuids.contains(run.getUuid()))
+        {
+          for (const auto& source : run.getSources())
+          {
+            for (const auto& query : source.identifications)
+            {
+              ordered.emplace_back(query.getId().value, position, Entry {&run, &source, &query});
+            }
+          }
+        }
+        ++position;
+      }
+      std::stable_sort(ordered.begin(), ordered.end(), [](const auto& a, const auto& b) {
+        return std::make_pair(std::get<0>(a), std::get<1>(a)) < std::make_pair(std::get<0>(b), std::get<1>(b));
+      });
+      std::vector<Entry> entries;
+      entries.reserve(ordered.size());
+      for (const auto& item : ordered)
+      {
+        entries.push_back(std::get<2>(item));
+      }
+      return entries;
+    }
+
+    ID::QueryReference referenceOf(const Entry& entry)
+    {
+      return {entry.run->getUuid(), entry.query->getId()};
+    }
+
+    /// Link @p feature to the identification of @p entry with its matches
+    void link(BaseFeature& feature, const Entry& entry)
+    {
+      feature.addIDQuery(referenceOf(entry));
+      for (const auto& match : entry.query->getMatches())
+      {
+        feature.addIDMatch({entry.run->getUuid(), match.getId()});
+      }
+    }
+
+    /// The file of the identification of @p entry, as for legacy peptide identifications (IdentifierMSRunMapper::getPrimaryMSRunPath())
+    std::string sourcePath(const Entry& entry)
+    {
+      if (!entry.source->file.path.empty()) return entry.source->file.path;
+      // a file that is not known: the first file of the run, or the deprecated meta value
+      const StringList files = IdentificationDataAdapter::legacyFiles(*entry.run);
+      if (!files.empty()) return files.front();
+      return StringUtils::toStr(entry.query->getMetaValue(Constants::UserParam::BASE_NAME, ""));
+    }
+
+    /// An ID for new identifications of @p data, greater than those of all its identifications, so that export lists them after those
+    UInt64 nextQueryId(const ID& data)
+    {
+      UInt64 next = 1;
+      for (const auto& run : data.getRuns())
+      {
+        next = std::max(next, run.getNextQueryId());
+      }
+      return next;
+    }
+
+    /**
+      @brief Identifications of precursors without identification
+
+      They are in the first run of the map (a new run "UNKNOWN_SEARCH_RUN_IDENTIFIER" if there is none), as legacy
+      peptide identifications without score type (IdentificationDataAdapter::unscoredRun()).
+    */
+    class Precursors
+    {
+    public:
+      Precursors(ID& data, const PeakMap& spectra) :
+        data_(data), spectra_(spectra)
+      {
+        if (data.getRuns().empty())
+        {
+          // a search run is mandatory, so we create one
+          auto& run = data.addRun("UNKNOWN_SEARCH_RUN_IDENTIFIER");
+          ID::RunSettings settings;
+          settings.date = DateTime::now();
+          run.setSettings(settings);
+        }
+        run_ = data.getRuns().front().getIdentifier();
+      }
+
+      /// A new identification of precursor @p mz of spectrum @p spectrum_index
+      ID::QueryReference add(Size spectrum_index, double mz, std::optional<UInt64> map_index = std::nullopt)
+      {
+        if (!next_)
+        {
+          run_ = IdentificationDataAdapter::unscoredRun(data_, run_).getIdentifier();
+          next_ = nextQueryId(data_);
+        }
+        auto& run = data_.getRun(run_);
+        ID::Observation observation;
+        observation.rt = spectra_[spectrum_index].getRT();
+        observation.mz = mz;
+        observation.setMetaValue("spectrum_index", spectrum_index);
+        observation.data_id = spectra_[spectrum_index].getNativeID();
+        if (map_index)
+        {
+          // we use no underscore here to be compatible with linkers
+          observation.setMetaValue("map_index", *map_index);
+        }
+        // the file of the precursor is not known (if the run has several), as for legacy peptide identifications without 'id_merge_index'
+        const auto source = IdentificationDataAdapter::legacySource(run, IdentificationDataAdapter::legacyFiles(run).size(), PeptideIdentification());
+        return {run.getUuid(), run.importIdentification(source, ID::QueryId {next_++}, std::move(observation))};
+      }
+
+    private:
+      ID& data_;
+      const PeakMap& spectra_;
+      std::string run_;
+      UInt64 next_ = 0;
+    };
+
+    /**
+      @brief Annotate @p map as identification data with @p annotate
+
+      A map with identification data is annotated as it is. Otherwise, its peptide identifications are moved into its
+      identification data and back afterwards (also if @p annotate throws), so it holds peptide identifications.
+    */
+    template<class Map>
+    void annotateAsIdentificationData(Map& map, const std::function<void(Map&)>& annotate)
+    {
+      if (!map.getIdentificationData().empty() && !IdentificationDataConverter::hasPeptideIdentifications(map))
+      {
+        annotate(map);
+        return;
+      }
+      IdentificationDataConverter::moveToIdentificationData(map);
+      const auto restore = [&map]() {
+        if constexpr (std::is_same_v<Map, FeatureMap>) IdentificationDataConverter::exportFeatureIDs(map);
+        else IdentificationDataConverter::exportConsensusIDs(map);
+      };
+      try
+      {
+        annotate(map);
+      }
+      catch (...)
+      {
+        restore();
+        throw;
+      }
+      restore();
+    }
+
+    template<class Map>
+    void checkNative(const Map& map)
+    {
+      if (IdentificationDataConverter::hasPeptideIdentifications(map))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "IDMapper: the map has peptide identifications; annotating it with identification data needs them as "
+                                          "identification data (see IdentificationDataConverter::moveToIdentificationData())");
+      }
+    }
+  } // namespace
+
   void IDMapper::annotate(
     ConsensusMap& map,
     const PeptideIdentificationList& ids,
@@ -292,22 +505,52 @@ namespace OpenMS
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);
-
-    // append protein identifications to Map
-    map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
+    auto imported = IdentificationDataAdapter::fromLegacy(protein_ids, ids);
 
     // preserve data processing from identification runs (search engine, database, etc.)
     addIdentificationDataProcessing_(map.getDataProcessing(), protein_ids);
 
-    // keep track of assigned/unassigned peptide identifications.
-    // maps Pep.Id. index to number of assignments to a feature
+    annotateAsIdentificationData<ConsensusMap>(map, [&](ConsensusMap& native) {
+      annotate_(native, std::move(imported), measure_from_subelements, annotate_ids_with_subelements, spectra);
+    });
+  }
+
+  void IDMapper::annotate(ConsensusMap& map, const IdentificationData& ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
+  {
+    checkNative(map);
+    annotate_(map, ids, measure_from_subelements, annotate_ids_with_subelements, spectra);
+
+    // preserve data processing from identification runs (search engine, database, etc.)
+    addIdentificationDataProcessing_(map.getDataProcessing(), ids);
+  }
+
+  void IDMapper::annotate_(ConsensusMap& map, IdentificationData ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
+  {
+    checkHits_(ids);
+    const vector<Size> unidentified = mapPrecursorsToIdentifications(spectra, ids).unidentified;
+    // whether spectrum references of TMT/iTRAQ data are scan numbers is told by the first identification
+    std::string first_reference;
+    if (const auto all = entriesOf(ids, uuidsOf(ids)); !all.empty())
+    {
+      first_reference = all.front().query->data_id;
+    }
+
+    // identifications without matches are not mapped
+    ids.eraseIdentifications([](const ID::Run&, const ID::Identification& query) { return query.getMatches().empty(); });
+    const std::set<std::string> uuids = uuidsOf(ids);
+    ID& data = map.getIdentificationData();
+    data.merge(ids);
+    const std::vector<Entry> entries = entriesOf(data, uuids);
+
+    // keep track of assigned/unassigned identifications.
+    // maps entry index to number of assignments to a feature
     std::unordered_map<Size, Size> assigned_ids;
 
     // keep track of assigned/unassigned precursors
     std::unordered_map<Size, Size> assigned_precursors;
 
-    // store which peptides fit which feature (and avoid double entries)
-    // consensusMap -> {peptide_index}
+    // store which identifications fit which feature (and avoid double entries)
+    // consensusMap -> {entry index}
     vector<set<size_t>> mapping(map.size());
 
     DoubleList mz_values;
@@ -317,29 +560,20 @@ namespace OpenMS
     // for statistics
     Size id_matches_none(0), id_matches_single(0), id_matches_multiple(0);
 
-    // build map from file to peptide id
-    std::map<std::string, std::unordered_map<std::string, const PeptideIdentification*>> file2nativeid2pepid;
-    bool has_spectrum_references{false};
-
-    std::unordered_map<std::string, ConsensusFeature*> nativeid2cf;
-
     NATIVE_ID_TYPE native_id_type = checkTMTType(map);
 
     // We have TMT data: spectrum references annotated at consensus feature and in id
     // We can directly map by native id
     if ((native_id_type != NATIVE_ID_TYPE::UNKNOWN) )
     {
+      // build map from file to identification
+      std::map<std::string, std::unordered_map<std::string, const Entry*>> file2nativeid2entry;
+      bool has_spectrum_references{false};
       bool lookForScanNrsAsIntegers = false;
-      ProteinIdentification::Mapping mspath_mapping{protein_ids}; // used to retrieve spectrum file information annotated in protein ids given a peptide identification
 
-      for (Size i = 0; i < ids.size(); ++i)
+      for (const Entry& entry : entries)
       {
-        const PeptideIdentification* pid = &ids[i];
-        
-        if (pid->getHits().empty()) continue; // skip IDs without peptide annotations
-
-        std::string spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
-        std::string spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+        const std::string& spectrum_reference = entry.query->data_id;
         // missing file origin is fine, but we need a spectrum_reference if we want to build the map
         if (spectrum_reference.empty()) continue;
         // TODO make a unique decision in the whole class on if to extract by scan number or full string?
@@ -348,16 +582,16 @@ namespace OpenMS
           // check if spectrum reference is a string that just contains a number
           try
           {
-            StringUtils::toInt64(ids[0].getSpectrumReference());
+            StringUtils::toInt64(first_reference);
             lookForScanNrsAsIntegers = true;
           }
           catch (...)
           {
             lookForScanNrsAsIntegers = false;
-          }  
+          }
         }
-        auto& inner_map = file2nativeid2pepid[spectrum_file];
-        auto result = inner_map.insert({spectrum_reference, pid});
+        auto& inner_map = file2nativeid2entry[File::basename(sourcePath(entry))];
+        auto result = inner_map.insert({spectrum_reference, &entry});
         if (!result.second)
         {
           OPENMS_LOG_WARN << "Duplicate spectrum reference detected: "<< spectrum_reference << "\n";
@@ -380,26 +614,29 @@ namespace OpenMS
         OPENMS_LOG_WARN << "IDMapper is configured to validate charges. Because the data looks like TMT/iTRAQ this option will be ignored."  << std::endl;
       }
 
+      // the identifications that a consensus feature links
+      std::set<ID::QueryReference> linked;
       // Default-constructed, so empty() holds until the first scan_id sets it below. A compiled
       // empty pattern ("") is not empty(): with it the fallback never ran, and extractScanNumber()
       // found no capture group and threw. Declared outside the loop, the regex is derived once.
       RegularExpression scanregex;
       for (auto& cf : map)
-      {  
-        const auto first_channel = *cf.getFeatures().begin();                  
+      {
+        const auto first_channel = *cf.getFeatures().begin();
         std::string filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
         std::string cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
         std::string cf_scan_id = StringUtils::toStr(cf.getMetaValue(cf_scan_id_key_name, ""));
-        if (!cf_scan_id.empty()) 
+        if (!cf_scan_id.empty())
         {
           // This assumes all scan_ids are of the same structure
           if (lookForScanNrsAsIntegers && scanregex.empty()) { scanregex.assign(SpectrumLookup::getRegExFromNativeID(cf_scan_id)); }
-          if (auto run_it = file2nativeid2pepid.find(filename); run_it != file2nativeid2pepid.end()) // TMT/iTRAQ run has identifications
+          if (auto run_it = file2nativeid2entry.find(filename); run_it != file2nativeid2entry.end()) // TMT/iTRAQ run has identifications
           {
             if (auto scanid_it = run_it->second.find(cf_scan_id); scanid_it != run_it->second.end()) // TMT/iTRAQ run has scan_id with identification
             {
-              cf.getPeptideIdentifications().push_back(*scanid_it->second);
+              link(cf, *scanid_it->second);
+              linked.insert(referenceOf(*scanid_it->second));
               ++id_matches_single; // in TMT we only match to single consensus feature
             }
             // look for only the scan_number in case the search engine only extracted this (e.g. Sage)
@@ -414,34 +651,45 @@ namespace OpenMS
               auto scanid_it = run_it->second.find(StringUtils::toStr(scan_number));
               if(scanid_it != run_it->second.end())
               {
-                cf.getPeptideIdentifications().push_back(*scanid_it->second);
+                link(cf, *scanid_it->second);
+                linked.insert(referenceOf(*scanid_it->second));
                 ++id_matches_single; // in TMT we only match to single consensus feature
               }
             }
-          } // else identification file does not contained scan id (e.g. was removed)  
+          } // else identification file does not contained scan id (e.g. was removed)
           else
           {
-            OPENMS_LOG_WARN << "ConsensusMap for TMT/iTRAQ experiment contains scan identifier '" << cf_scan_id 
-                          << "' quantified in file '" << filename 
+            OPENMS_LOG_WARN << "ConsensusMap for TMT/iTRAQ experiment contains scan identifier '" << cf_scan_id
+                          << "' quantified in file '" << filename
                           << "' but there is no matching identification."
-                          << std::endl;            
-          }        
+                          << std::endl;
+          }
         }
         else // missing spectrum id annotation
         {
             OPENMS_LOG_WARN << "ConsensusMap for TMT/iTRAQ experiment is missing the scan identifier meta value '" << cf_scan_id << "'"
-                          << std::endl;            
-        } 
+                          << std::endl;
+        }
       }
+      // TMT/iTRAQ data has no unassigned identifications: those that map to no consensus feature are not kept
+      data.eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) {
+        return uuids.contains(run.getUuid()) && !linked.contains({run.getUuid(), query.getId()});
+      });
     }
     else
     { // non TMT data (e.g., label-free)
-      for (Size i = 0; i < ids.size(); ++i)
+      // assignments that are identifications of their own, with the map index of the matching subelement
+      struct Assignment
       {
-        // skip IDs without peptide annotations
-        if (ids[i].getHits().empty()) continue;
+        Size feature;
+        Size entry;
+        UInt64 map_index;
+      };
+      std::vector<Assignment> own_assignments;
 
-        getIDDetails_(ids[i], rt_pep, mz_values, charges);
+      for (Size i = 0; i < entries.size(); ++i)
+      {
+        getIDDetails_(*entries[i].run, *entries[i].query, rt_pep, mz_values, charges);
 
         bool id_mapped(false);
 
@@ -477,37 +725,38 @@ namespace OpenMS
             if (!measure_from_subelements)
             {
               if (
-                  isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && 
-                  (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))  
-                  ) 
+                  isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) &&
+                  (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))
+                  )
               {
                 id_mapped = true;
                 was_added = true;
-                map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+                link(map[cm_index], entries[i]);
                 ++assigned_ids[i];
               }
             }
             else
-            {            
+            {
               for (ConsensusFeature::HandleSetType::const_iterator it_handle = map[cm_index].getFeatures().begin();
                   it_handle != map[cm_index].getFeatures().end();
                   ++it_handle)
               {
-                if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()) && 
+                if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()) &&
                     (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
                 {
                   id_mapped = true;
                   was_added = true;
                   if (!mapping[cm_index].contains(i))
                   {
-                    // Store the map index of the peptide feature in the id the feature was mapped to.
-                    PeptideIdentification id_pep = ids[i];
                     if (annotate_ids_with_subelements)
                     {
-                      id_pep.setMetaValue("map_index", it_handle->getMapIndex());
+                      // the identification gets the map index of the matching subelement, so this assignment is an identification of its own
+                      own_assignments.push_back({cm_index, i, it_handle->getMapIndex()});
                     }
-
-                    map[cm_index].getPeptideIdentifications().push_back(id_pep);
+                    else
+                    {
+                      link(map[cm_index], entries[i]);
+                    }
                     ++assigned_ids[i];
                     mapping[cm_index].insert(i);
                   }
@@ -525,10 +774,9 @@ namespace OpenMS
 
         } // features
 
-        // the id has not been mapped to any consensus feature
+        // the id has not been mapped to any consensus feature, so it stays unassigned
         if (!id_mapped)
         {
-          map.getUnassignedPeptideIdentifications().push_back(ids[i]);
           ++id_matches_none;
         }
       } // Identifications
@@ -544,42 +792,65 @@ namespace OpenMS
           ++id_matches_multiple;
         }
       }
+
+      if (!own_assignments.empty())
+      {
+        // Copies of the assigned identifications (with their matches and scores) replace them, in the order of assignment.
+        struct Copy
+        {
+          std::string run;
+          ID::SourceId source;
+          ID::Observation observation;
+          std::vector<std::pair<ID::MatchData, std::vector<std::optional<double>>>> matches;
+          Size feature;
+        };
+        std::vector<Copy> copies;
+        std::set<ID::QueryReference> copied;
+        for (const auto& assignment : own_assignments)
+        {
+          const Entry& entry = entries[assignment.entry];
+          Copy copy {entry.run->getIdentifier(), entry.source->id, entry.query->getObservation(), {}, assignment.feature};
+          // we use no underscore here to be compatible with linkers
+          copy.observation.setMetaValue("map_index", assignment.map_index);
+          for (const auto& match : entry.query->getMatches())
+          {
+            copy.matches.emplace_back(match.getData(), entry.run->getScores(match));
+          }
+          copies.push_back(std::move(copy));
+          copied.insert(referenceOf(entry));
+        }
+        UInt64 next = nextQueryId(data);
+        for (auto& copy : copies)
+        {
+          auto& run = data.getRun(copy.run);
+          const auto query = run.importIdentification(copy.source, ID::QueryId {next++}, std::move(copy.observation));
+          auto& feature = map[copy.feature];
+          feature.addIDQuery({run.getUuid(), query});
+          for (const auto& [match, scores] : copy.matches)
+          {
+            feature.addIDMatch({run.getUuid(), run.addMatch(query, match, scores)});
+          }
+        }
+        data.eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) { return copied.contains({run.getUuid(), query.getId()}); });
+      }
     }
 
-    vector<Size> unidentified = mapPrecursorsToIdentifications(spectra, ids).unidentified;
-
-    if (!ids.empty() && !spectra.empty())
+    if (!entries.empty() && !spectra.empty())
     {
+      OPENMS_LOG_INFO << "Mapping " << entries.size() << "PeptideIdentifications to " << spectra.size() << " spectra." << endl;
 
-      OPENMS_LOG_INFO << "Mapping " << ids.size() << "PeptideIdentifications to " << spectra.size() << " spectra." << endl;
-
+      const auto state = mapPrecursorsToIdentifications(spectra, ids);
       OPENMS_LOG_INFO << "Identification state of spectra: \n"
-               << "Unidentified: " << unidentified.size() << "\n"
-               << "Identified:   " << mapPrecursorsToIdentifications(spectra, ids).identified.size() << "\n"
-               << "No precursor: " << mapPrecursorsToIdentifications(spectra, ids).no_precursors.size() << endl;
+               << "Unidentified: " << state.unidentified.size() << "\n"
+               << "Identified:   " << state.identified.size() << "\n"
+               << "No precursor: " << state.no_precursors.size() << endl;
     }
 
-    // we need a valid search run identifier so we try to:
-    //   extract one from the map (either assigned or unassigned).
-    //   or fall back to a new search run identifier.
-    ProteinIdentification empty_protein_id;
+    // identifications of unidentified precursors need a search run
+    std::optional<Precursors> precursors;
     if (!unidentified.empty())
     {
-      empty_protein_id.setDateTime(DateTime::now());
-      if (!map.getProteinIdentifications().empty())
-      {
-        empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
-      }
-      else if (!map.getUnassignedPeptideIdentifications().empty())
-      {
-        empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
-      }
-      else
-      {
-        // No search run identifier given so we create a new one
-        empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");
-        map.getProteinIdentifications().push_back(empty_protein_id);
-      }
+      precursors.emplace(data, spectra);
     }
 
     // for statistics:
@@ -590,27 +861,20 @@ namespace OpenMS
     {
       Size spectrum_index = unidentified[ui];
       const MSSpectrum& spectrum = spectra[spectrum_index];
-      const vector<Precursor>& precursors = spectrum.getPrecursors();
+      const vector<Precursor>& precursor_list = spectrum.getPrecursors();
 
       bool precursor_mapped(false);
 
       // check if precursor has been identified
-      for (Size i_p = 0; i_p < precursors.size(); ++i_p)
+      for (Size i_p = 0; i_p < precursor_list.size(); ++i_p)
       {
         // check by precursor mass and spectrum RT
-        double mz_p = precursors[i_p].getMZ();
-        int z_p = precursors[i_p].getCharge();
+        double mz_p = precursor_list[i_p].getMZ();
+        int z_p = precursor_list[i_p].getCharge();
         double rt_value = spectrum.getRT();
 
-        PeptideIdentification precursor_empty_id;
-        precursor_empty_id.setRT(rt_value);
-        precursor_empty_id.setMZ(mz_p);
-        precursor_empty_id.setMetaValue("spectrum_index", spectrum_index);
-        if (!spectra[spectrum_index].getNativeID().empty())
-        {
-          precursor_empty_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE,  spectra[spectrum_index].getNativeID());
-        }
-        precursor_empty_id.setIdentifier(empty_protein_id.getIdentifier());
+        // the identification of the precursor that the matching consensus features link
+        std::optional<ID::QueryReference> precursor_id;
 
         // iterate over the consensus features
         for (Size cm_index = 0; cm_index < map.size(); ++cm_index)
@@ -628,7 +892,8 @@ namespace OpenMS
           {
             if (isMatch_(rt_value - map[cm_index].getRT(), mz_p, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge())))
             {
-              map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
+              if (!precursor_id) precursor_id = precursors->add(spectrum_index, mz_p);
+              map[cm_index].addIDQuery(*precursor_id);
               ++assigned_precursors[spectrum_index];
               precursor_mapped = true;
             }
@@ -643,13 +908,14 @@ namespace OpenMS
               {
                 if (annotate_ids_with_subelements)
                 {
-                  // store the map index the precursor was mapped to
-                  Size map_index = it_handle->getMapIndex();
-
-                  // we use no underscore here to be compatible with linkers
-                  precursor_empty_id.setMetaValue("map_index", map_index);
+                  // store the map index the precursor was mapped to: an identification for this subelement
+                  map[cm_index].addIDQuery(precursors->add(spectrum_index, mz_p, it_handle->getMapIndex()));
                 }
-                map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
+                else
+                {
+                  if (!precursor_id) precursor_id = precursors->add(spectrum_index, mz_p);
+                  map[cm_index].addIDQuery(*precursor_id);
+                }
                 ++assigned_precursors[spectrum_index];
                 precursor_mapped = true;
               }
@@ -673,7 +939,7 @@ namespace OpenMS
     }
 
     // some statistics output
-    if (!ids.empty())
+    if (!entries.empty())
     {
       OPENMS_LOG_INFO << "Unassigned peptides: " << id_matches_none << "\n"
                << "Peptides assigned to exactly one feature: " << id_matches_single << "\n"
@@ -684,25 +950,48 @@ namespace OpenMS
     {
       OPENMS_LOG_INFO << "Unassigned precursors without identification: " << spectrum_matches_none << "\n"
                << "Unidentified precursor assigned to exactly one feature: " << spectrum_matches_single << "\n"
-               << "Unidentified precursor assigned to multiple features: " << spectrum_matches_multiple << "\n";
+               << "Unidentified precursor assigned to multiple features: " << spectrum_matches_multiple << endl;
     }
   }
 
-  void IDMapper::annotate(FeatureMap& map, 
-    const PeptideIdentificationList& ids, 
+  void IDMapper::annotate(FeatureMap& map,
+    const PeptideIdentificationList& ids,
     const vector<ProteinIdentification>& protein_ids,
-    bool use_centroid_rt, 
-    bool use_centroid_mz, 
+    bool use_centroid_rt,
+    bool use_centroid_mz,
     const PeakMap& spectra)
   {
-    // cout << "Starting annotation..." << endl;
     checkHits_(ids); // check RT and m/z are present
-
-    // append protein identifications
-    map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
+    auto imported = IdentificationDataAdapter::fromLegacy(protein_ids, ids);
 
     // preserve data processing from identification runs (search engine, database, etc.)
     addIdentificationDataProcessing_(map.getDataProcessing(), protein_ids);
+
+    annotateAsIdentificationData<FeatureMap>(map, [&](FeatureMap& native) {
+      annotate_(native, std::move(imported), use_centroid_rt, use_centroid_mz, spectra);
+    });
+  }
+
+  void IDMapper::annotate(FeatureMap& map, const IdentificationData& ids, bool use_centroid_rt, bool use_centroid_mz, const PeakMap& spectra)
+  {
+    checkNative(map);
+    annotate_(map, ids, use_centroid_rt, use_centroid_mz, spectra);
+
+    // preserve data processing from identification runs (search engine, database, etc.)
+    addIdentificationDataProcessing_(map.getDataProcessing(), ids);
+  }
+
+  void IDMapper::annotate_(FeatureMap& map, IdentificationData ids, bool use_centroid_rt, bool use_centroid_mz, const PeakMap& spectra)
+  {
+    checkHits_(ids); // check RT and m/z are present
+    const vector<Size> unidentified = mapPrecursorsToIdentifications(spectra, ids).unidentified;
+
+    // identifications without matches are not mapped
+    ids.eraseIdentifications([](const ID::Run&, const ID::Identification& query) { return query.getMatches().empty(); });
+    const std::set<std::string> uuids = uuidsOf(ids);
+    ID& data = map.getIdentificationData();
+    data.merge(ids);
+    const std::vector<Entry> entries = entriesOf(data, uuids);
 
     // check if all features have at least one convex hull
     // if not, use the centroid and the given tolerances
@@ -791,21 +1080,16 @@ namespace OpenMS
     Size matches_none = 0, matches_single = 0, matches_multi = 0;
 
     // cout << "Finding matches..." << endl;
-    // iterate over peptide IDs:
-    for (const PeptideIdentification& id_it : ids)
+    // iterate over identifications (an identification that matches no feature stays unassigned):
+    for (const Entry& entry : entries)
     {
-      // cout << "Peptide ID: " << id_it - ids.begin() << endl;
-
-      if (id_it.getHits().empty()) continue;
-
       DoubleList mz_values;
       double rt_value;
       IntList charges;
-      getIDDetails_(id_it, rt_value, mz_values, charges, use_avg_mass);
+      getIDDetails_(*entry.run, *entry.query, rt_value, mz_values, charges, use_avg_mass);
 
       if ((rt_value < min_rt) || (rt_value > max_rt)) // RT out of bounds
       {
-        map.getUnassignedPeptideIdentifications().push_back(id_it);
         ++matches_none;
         continue;
       }
@@ -842,7 +1126,7 @@ namespace OpenMS
             {
               // only one m/z value to check, which was already incorporated
               // into the overall bounding box -> success!
-              feat.getPeptideIdentifications().push_back(id_it);
+              link(feat, entry);
               ++matching_features;
               break;                     // "mz_it" loop
             }
@@ -861,7 +1145,7 @@ namespace OpenMS
               increaseBoundingBox_(box);
               if (box.encloses(id_pos)) // success!
               {
-                feat.getPeptideIdentifications().push_back(id_it);
+                link(feat, entry);
                 ++matching_features;
                 found_match = true;
                 break; // "ch_it" loop
@@ -873,7 +1157,6 @@ namespace OpenMS
       }
       if (matching_features == 0)
       {
-        map.getUnassignedPeptideIdentifications().push_back(id_it);
         ++matches_none;
       }
       else if (matching_features == 1)
@@ -886,34 +1169,16 @@ namespace OpenMS
       }
     }
 
-    vector<Size> unidentified = mapPrecursorsToIdentifications(spectra, ids).unidentified;
-
     // map all unidentified precursor to features
     Size spectrum_matches_none(0);
     Size spectrum_matches_single(0);
     Size spectrum_matches_multi(0);
 
-    // we need a valid search run identifier so we try to:
-    //   extract one from the map (either assigned or unassigned).
-    //   or fall back to a new search run identifier.
-    ProteinIdentification empty_protein_id;
+    // identifications of unidentified precursors need a search run
+    std::optional<Precursors> precursors;
     if (!unidentified.empty())
     {
-      empty_protein_id.setDateTime(DateTime::now());
-      if (!map.getProteinIdentifications().empty())
-      {
-        empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
-      }
-      else if (!map.getUnassignedPeptideIdentifications().empty())
-      {
-        empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
-      }
-      else
-      {
-        // add a new search identification run (mandatory)
-        empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");
-        map.getProteinIdentifications().push_back(empty_protein_id);
-      }
+      precursors.emplace(data, spectra);
     }
 
     // are there any mapped but unidentified precursors?
@@ -921,15 +1186,15 @@ namespace OpenMS
     {
       Size spectrum_index = unidentified[i];
       const MSSpectrum& spectrum = spectra[spectrum_index];
-      const vector<Precursor>& precursors = spectrum.getPrecursors();
+      const vector<Precursor>& precursor_list = spectrum.getPrecursors();
 
       // check if precursor has been identified
-      for (Size i_p = 0; i_p < precursors.size(); ++i_p)
+      for (Size i_p = 0; i_p < precursor_list.size(); ++i_p)
       {
         // check by precursor mass and spectrum RT
-        double mz_p = precursors[i_p].getMZ();
+        double mz_p = precursor_list[i_p].getMZ();
         double rt_value = spectrum.getRT();
-        int z_p = precursors[i_p].getCharge();
+        int z_p = precursor_list[i_p].getCharge();
 
         if ((rt_value < min_rt) || (rt_value > max_rt)) // RT out of bounds
         {
@@ -940,17 +1205,6 @@ namespace OpenMS
         // iterate over candidate features:
         Size index = SignedSize(floor(rt_value)) - offset;
         Size matching_features = 0;
-
-        PeptideIdentification precursor_empty_id;
-        precursor_empty_id.setRT(rt_value);
-        precursor_empty_id.setMZ(mz_p);
-        precursor_empty_id.setMetaValue("spectrum_index", spectrum_index);
-        if (!spectra[spectrum_index].getNativeID().empty())
-        {
-          precursor_empty_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectra[spectrum_index].getNativeID());
-        }
-        precursor_empty_id.setIdentifier(empty_protein_id.getIdentifier());
-        //precursor_empty_id.setCharge(z_p);
 
         for (SignedSize& hash_it : hash_table[index])
         {
@@ -970,7 +1224,8 @@ namespace OpenMS
             {
               // only one m/z value to check, which was already incorporated
               // into the overall bounding box -> success!
-              feat.getPeptideIdentifications().push_back(precursor_empty_id);
+              feat.addIDQuery(precursors->add(spectrum_index, mz_p));
+              ++matching_features;
               break; // "mz_it" loop
             }
             // else: check all the mass traces
@@ -988,7 +1243,7 @@ namespace OpenMS
               increaseBoundingBox_(box);
               if (box.encloses(id_pos)) // success!
               {
-                feat.getPeptideIdentifications().push_back(precursor_empty_id);
+                feat.addIDQuery(precursors->add(spectrum_index, mz_p));
                 ++matching_features;
                 found_match = true;
                 break; // "ch_it" loop
@@ -1024,6 +1279,42 @@ namespace OpenMS
     << "Unidentified precursor assigned to multiple features: " << spectrum_matches_multi << "\n";
 
     OPENMS_LOG_INFO << map.getAnnotationStatistics() << endl;
+  }
+
+  IDMapper::PeptideIdentificationListState IDMapper::mapPrecursorsToIdentifications(const PeakMap& spectra, const IdentificationData& ids, double mz_tol,
+                                                                                    double rt_tol)
+  {
+    // positions (m/z, RT) of the identifications with matches: those without do not identify a spectrum
+    std::vector<std::pair<double, double>> positions;
+    for (const auto& run : ids.getRuns())
+    {
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          if (query.getMatches().empty()) continue;
+          positions.emplace_back(query.mz.value_or(std::numeric_limits<double>::quiet_NaN()), query.rt.value_or(std::numeric_limits<double>::quiet_NaN()));
+        }
+      }
+    }
+    PeptideIdentificationListState ret;
+    for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
+    {
+      const MSSpectrum& spectrum = spectra[spectrum_index];
+      if (spectrum.getPrecursors().empty())
+      {
+        ret.no_precursors.push_back(spectrum_index);
+        continue;
+      }
+      // check if a precursor has been identified, by precursor mass and spectrum RT
+      const bool identified = std::any_of(spectrum.getPrecursors().begin(), spectrum.getPrecursors().end(), [&](const Precursor& precursor) {
+        return std::any_of(positions.begin(), positions.end(), [&](const auto& position) {
+          return fabs(position.first - precursor.getMZ()) < mz_tol && fabs(spectrum.getRT() - position.second) < rt_tol;
+        });
+      });
+      (identified ? ret.identified : ret.unidentified).push_back(spectrum_index);
+    }
+    return ret;
   }
 
   double IDMapper::getAbsoluteMZTolerance_(const double mz) const
@@ -1067,29 +1358,52 @@ namespace OpenMS
     }
   }
 
-  void IDMapper::getIDDetails_(const PeptideIdentification& id, double& rt_pep, DoubleList& mz_values, IntList& charges, bool use_avg_mass) const
+  void IDMapper::checkHits_(const IdentificationData& ids) const
+  {
+    for (const auto& run : ids.getRuns())
+    {
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          if (!query.rt)
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper: 'RT' information missing for peptide identification!");
+          }
+          if (!query.mz)
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper: 'MZ' information missing for peptide identification!");
+          }
+        }
+      }
+    }
+  }
+
+  void IDMapper::getIDDetails_(const IdentificationData::Run& run, const IdentificationData::Identification& id, double& rt_pep, DoubleList& mz_values,
+                               IntList& charges, bool use_avg_mass) const
   {
     mz_values.clear();
     charges.clear();
 
-    rt_pep = id.getRT();
+    rt_pep = *id.rt;
 
-    // collect m/z values of pepId
-    if (param_.getValue("mz_reference") == "precursor") // use precursor m/z of pepId
+    // collect m/z values of the identification
+    if (param_.getValue("mz_reference") == "precursor") // use precursor m/z of the identification
     {
-      mz_values.push_back(id.getMZ());
+      mz_values.push_back(*id.mz);
     }
 
-    for (const PeptideHit& hit_it : id.getHits())
+    for (const auto& match : id.getMatches())
     {
-      Int charge = hit_it.getCharge();
+      Int charge = match.charge;
       charges.push_back(charge);
 
-      if (param_.getValue("mz_reference") == "peptide") // use mass of each pepHit (assuming H+ adducts)
+      if (param_.getValue("mz_reference") == "peptide") // use mass of each match (assuming H+ adducts)
       {
+        const AASequence sequence = IdentificationDataAdapter::materializePeptide(run, match, *run.getPrimaryScore()).getSequence();
         double mass = use_avg_mass ?
-                      hit_it.getSequence().getAverageWeight(Residue::Full, charge) :
-                      hit_it.getSequence().getMonoWeight(Residue::Full, charge);
+                      sequence.getAverageWeight(Residue::Full, charge) :
+                      sequence.getMonoWeight(Residue::Full, charge);
 
         mz_values.push_back(mass / (double) charge);
       }
