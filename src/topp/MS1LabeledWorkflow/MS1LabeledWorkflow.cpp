@@ -331,6 +331,7 @@ protected:
     Param idm_defaults = IDMapper().getDefaults();
     idm_defaults.addTag("mz_reference", "advanced");
     idm_defaults.addTag("ignore_charge", "advanced");
+    idm_defaults.remove("match_meta_value"); // set to the FAIMS CV (see MS1LabeledFAIMS::annotate())
 
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
     ma_defaults.setValue("max_rt_shift", 0.1);
@@ -781,45 +782,52 @@ protected:
   {
     struct Candidate
     {
-      Size feature;
-      Size id_index;
+      IdentificationData::QueryReference identification;
       double mz_ppm;
       double rt_diff;
     };
     std::map<std::string, vector<Candidate>> by_spectrum_match; // (spectrum, peptidoform, charge) -> where it sits
 
-    for (Size f = 0; f < multiplets.size(); ++f)
+    // Every assignment is an identification of its own (IDMapper with 'annotate_ids_with_subelements').
+    IdentificationData& data = multiplets.getIdentificationData();
+    for (const ConsensusFeature& cf : multiplets)
     {
-      ConsensusFeature& cf = multiplets[f];
-      auto& ids = cf.getPeptideIdentifications();
-      for (Size i = 0; i < ids.size(); ++i)
+      for (const auto& entry : cf.getLinkedIdentifications(data))
       {
-        PeptideIdentification& id = ids[i];
-        if (id.getHits().empty()) { continue; }
+        if (entry.matches.empty()) { continue; }
+        const IdentificationData::Identification& id = *entry.query;
+        const double id_mz = id.mz.value_or(0.0);
+        const double id_rt = id.rt.value_or(0.0);
 
         // the channel closest to the precursor is the one the spectrum belongs to
         double best_ppm = std::numeric_limits<double>::infinity(), best_rt = 0.0;
         Size best_map_index = 0;
         for (const FeatureHandle& handle : cf.getFeatures())
         {
-          const double ppm = std::abs(handle.getMZ() - id.getMZ()) / handle.getMZ() * 1e6;
+          const double ppm = std::abs(handle.getMZ() - id_mz) / handle.getMZ() * 1e6;
           if (ppm < best_ppm)
           {
             best_ppm = ppm;
-            best_rt = std::abs(handle.getRT() - id.getRT());
+            best_rt = std::abs(handle.getRT() - id_rt);
             best_map_index = handle.getMapIndex();
           }
         }
-        if (!cf.getFeatures().empty()) { id.setMetaValue("map_index", best_map_index); }
-
-        const std::string reference = id.getSpectrumReference();
-        if (reference.empty()) { continue; }
-        const std::string key = reference + '\t' + id.getHits()[0].getSequence().toString() + '\t' + StringUtils::toStr(id.getHits()[0].getCharge());
-        by_spectrum_match[key].push_back({f, i, best_ppm, best_rt});
+        if (!id.data_id.empty())
+        {
+          const IdentificationData::Match& first = *entry.matches[0];
+          const std::string key = id.data_id + '\t' + first.representation + '\t' + StringUtils::toStr(first.charge);
+          by_spectrum_match[key].push_back({{entry.run->getUuid(), id.getId()}, best_ppm, best_rt});
+        }
+        if (!cf.getFeatures().empty())
+        {
+          IdentificationData::Observation observation = id;
+          observation.setMetaValue("map_index", best_map_index);
+          data.getRun(entry.run->getIdentifier()).replaceObservation(id.getId(), observation);
+        }
       }
     }
 
-    vector<std::set<Size>> to_remove(multiplets.size()); // per multiplet: indices of the copies to drop
+    std::set<IdentificationData::QueryReference> to_remove; // the copies to drop
     Size shared = 0;
     for (auto& [key, candidates] : by_spectrum_match)
     {
@@ -830,18 +838,13 @@ protected:
                                             { return std::tie(a.mz_ppm, a.rt_diff) < std::tie(b.mz_ppm, b.rt_diff); });
       for (auto it = candidates.begin(); it != candidates.end(); ++it)
       {
-        if (it != closest) { to_remove[it->feature].insert(it->id_index); }
+        if (it != closest) { to_remove.insert(it->identification); }
       }
     }
-    for (Size f = 0; f < multiplets.size(); ++f)
+    if (!to_remove.empty())
     {
-      if (to_remove[f].empty()) { continue; }
-      auto& ids = multiplets[f].getPeptideIdentifications().getData();
-      // highest index first, so that the remaining indices stay valid
-      for (auto it = to_remove[f].rbegin(); it != to_remove[f].rend(); ++it)
-      {
-        ids.erase(ids.begin() + static_cast<std::ptrdiff_t>(*it));
-      }
+      multiplets.eraseIdentifications([&](const IdentificationData::Run& run, const IdentificationData::Identification& id)
+                                      { return to_remove.contains({run.getUuid(), id.getId()}); });
     }
     if (shared > 0)
     {
@@ -873,6 +876,11 @@ protected:
     ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, in_db, fraction_group, fraction, protein_ids, peptide_ids,
                                         fixed_modifications, variable_modifications, ms1);
     if (e != EXECUTION_OK) { return e; }
+    // From here on, the identifications of the run are identification data: mapping, conflict resolution, alignment,
+    // linking, inference and quantification work on it, and the outputs are written from it.
+    const IdentificationData identifications = IdentificationDataAdapter::fromLegacy(protein_ids, peptide_ids);
+    protein_ids.clear();
+    peptide_ids.clear();
 
     ConsensusMap multiplets;
     MSExperiment blacklist;
@@ -886,7 +894,7 @@ protected:
       Param idm_param = getParam_().copy("id_mapping:", true);
       writeDebug_("Parameters passed to IDMapper", idm_param, 3);
       mapper.setParameters(idm_param);
-      MS1LabeledFAIMS::annotate(mapper, multiplets, peptide_ids, protein_ids);
+      MS1LabeledFAIMS::annotate(mapper, multiplets, identifications);
     }
 
     // a spectrum match that landed on several multiplets stays on the closest one only
@@ -896,7 +904,7 @@ protected:
     IDConflictResolverAlgorithm::resolve(multiplets);
 
     Size identified = 0;
-    for (const auto& cf : multiplets) { identified += !cf.getPeptideIdentifications().empty(); }
+    for (const auto& cf : multiplets) { identified += !cf.getIDQueries().empty() || !cf.getIDMatches().empty(); }
     OPENMS_LOG_INFO << "Mapped identifications onto " << identified << " of " << multiplets.size() << " multiplet(s)." << endl;
 
     // remove quant/ID conflicts and complete the multiplets
@@ -910,14 +918,18 @@ protected:
       writeDebug_("Parameters passed to MultiplexResolverAlgorithm", res_param, 3);
       resolver.setParameters(res_param);
 
+      // the identifications of conflicting multiplets are still valid PSMs: they stay (unassigned) for inference,
+      // without quantification
       ConsensusMap conflicts;
-      resolver.resolve(multiplets, resolved, conflicts, blacklist);
+      resolver.resolve(multiplets, resolved, conflicts, blacklist, true);
       const Size n_resolved = resolved.size();
 
+      IdentificationData& data = resolved.getIdentificationData();
       Size conflicts_with_id = 0, unidentified = 0, kept_for_mbr = 0;
       for (auto& cf : conflicts)
       {
-        if (cf.getPeptideIdentifications().empty())
+        const auto conflicting = cf.getLinkedIdentifications(conflicts.getIdentificationData());
+        if (conflicting.empty())
         {
           ++unidentified;
           // With match between runs, a complete unidentified multiplet is kept: linking can hand it the
@@ -930,11 +942,13 @@ protected:
           }
           continue;
         }
-        // identifications of conflicting multiplets are still valid PSMs: keep them for inference, without quantification
-        for (auto& id : cf.getPeptideIdentifications())
+        // as unassigned identifications, they belong to no channel
+        for (const auto& entry : conflicting)
         {
-          id.removeMetaValue("map_index");
-          resolved.getUnassignedPeptideIdentifications().push_back(std::move(id));
+          auto& run = data.getRun(entry.run->getIdentifier());
+          IdentificationData::Observation observation = run.getIdentification(entry.query->getId());
+          observation.removeMetaValue("map_index");
+          run.replaceObservation(entry.query->getId(), observation);
           ++conflicts_with_id;
         }
       }
@@ -971,27 +985,42 @@ protected:
     // match between runs, inference and quantification. The resolver above has used the labels; from
     // here on every identification (quantified or not) is reduced to the peptide and carries its
     // label state as meta values.
-    for (auto& cf : resolved)
     {
-      for (auto& id : cf.getPeptideIdentifications())
+      IdentificationData& data = resolved.getIdentificationData();
+      for (const auto& current : data.getRuns())
       {
-        for (auto& hit : id.getHits()) { stripLabels_(hit); }
+        auto& run = data.getRun(current.getIdentifier());
+        std::vector<std::tuple<IdentificationData::MatchId, IdentificationData::MatchData, std::vector<std::optional<double>>>> stripped;
+        for (const auto& source : run.getSources())
+        {
+          for (const auto& identification : source.identifications)
+          {
+            for (const auto& match : identification.getMatches())
+            {
+              IdentificationData::MatchData edited = match.getData();
+              stripLabels_(edited);
+              stripped.emplace_back(match.getId(), std::move(edited), run.getScores(match));
+            }
+          }
+        }
+        // a new sequence is a new hypothesis, with the scores of the match
+        for (const auto& [match, edited, scores] : stripped) { run.replaceMatch(match, edited, scores); }
       }
     }
-    for (auto& id : resolved.getUnassignedPeptideIdentifications())
-    {
-      for (auto& hit : id.getHits()) { stripLabels_(hit); }
-    }
 
-    // the resolver records the channel of the identified feature of a completed multiplet on its hit;
+    // the resolver records the channel of the identified feature of a completed multiplet on its match;
     // make the identification's map index agree with it so that linking carries the right channel forward
-    for (auto& cf : resolved)
     {
-      for (auto& id : cf.getPeptideIdentifications())
+      IdentificationData& data = resolved.getIdentificationData();
+      for (const auto& cf : resolved)
       {
-        if (!id.getHits().empty() && id.getHits()[0].metaValueExists("map_index"))
+        for (const auto& entry : cf.getLinkedIdentifications(data))
         {
-          id.setMetaValue("map_index", id.getHits()[0].getMetaValue("map_index"));
+          if (entry.matches.empty() || !entry.matches[0]->metaValueExists("map_index")) { continue; }
+          auto& run = data.getRun(entry.run->getIdentifier());
+          IdentificationData::Observation observation = *entry.query;
+          observation.setMetaValue("map_index", entry.matches[0]->getMetaValue("map_index"));
+          run.replaceObservation(entry.query->getId(), observation);
         }
       }
     }
@@ -1008,10 +1037,6 @@ protected:
     }
     resolved.setExperimentType("labeled_MS1");
     resolved.updateRanges();
-
-    // From here on, the identifications of the run are identification data: alignment, linking, inference and
-    // quantification work on it, and the outputs are written from it.
-    IdentificationDataConverter::moveToIdentificationData(resolved);
 
     return EXECUTION_OK;
   }
@@ -1406,17 +1431,17 @@ protected:
   }
 
   /**
-    @brief Reduce the hit's sequence to the peptide identity and record its label state.
+    @brief Reduce the match's sequence to the peptide identity and record its label state.
 
     The label modifications of '-labels' are removed from the sequence (the channel, not the
-    peptide, carries the label), and the hit is annotated with 'labeled_sequence' (as searched),
+    peptide, carries the label), and the match is annotated with 'labeled_sequence' (as searched),
     'removed_labels' (short names, or 'none') and 'channel' (1-based; the 'Label' of the
     experimental design; 0 if unknown). These are exported as opt_ columns by mzTab and as
     cv_params by the QPX feature and psm views.
   */
-  void stripLabels_(PeptideHit& hit) const
+  void stripLabels_(IdentificationData::MatchData& match) const
   {
-    const AASequence original = hit.getSequence();
+    const AASequence original = AASequence::fromString(match.representation);
     AASequence stripped = original;
     vector<std::string> removed;
 
@@ -1450,10 +1475,10 @@ protected:
       }
     }
 
-    hit.setSequence(stripped);
-    hit.setMetaValue(MS1LabelState::LABELED_SEQUENCE, original.toString());
-    hit.setMetaValue(MS1LabelState::REMOVED_LABELS, removed.empty() ? std::string("none") : ListUtils::concatenate(removed, ","));
-    hit.setMetaValue(MS1LabelState::CHANNEL, channelOfLabels_(removed));
+    match.representation = stripped.toString();
+    match.setMetaValue(MS1LabelState::LABELED_SEQUENCE, original.toString());
+    match.setMetaValue(MS1LabelState::REMOVED_LABELS, removed.empty() ? std::string("none") : ListUtils::concatenate(removed, ","));
+    match.setMetaValue(MS1LabelState::CHANNEL, channelOfLabels_(removed));
   }
 
   /// QPX names channels with a fixed vocabulary; refuse '-out_qpx' up front for labels outside of it

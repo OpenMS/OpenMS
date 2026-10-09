@@ -209,45 +209,13 @@ std::map<MS1LabeledFAIMS::CV, std::vector<ConsensusMap>> MS1LabeledFAIMS::split_
   return result;
 }
 
-void MS1LabeledFAIMS::append_(ConsensusMap& result, ConsensusMap&& part)
+void MS1LabeledFAIMS::annotate(const IDMapper& mapper, ConsensusMap& map, const IdentificationData& ids)
 {
-  if (result.getColumnHeaders().empty())
-  {
-    result = std::move(part);
-    return;
-  }
-  // appendRows rewrites filenames and duplicates protein runs. These partitions share columns
-  // and protein runs: only feature rows, column sizes and unassigned IDs need concatenating.
-  for (const auto& [index, header] : part.getColumnHeaders())
-  {
-    result.getColumnHeaders().at(index).size += header.size;
-  }
-  for (auto& feature : part)
-  {
-    result.push_back(std::move(feature));
-  }
-  for (auto& id : part.getUnassignedPeptideIdentifications())
-  {
-    result.getUnassignedPeptideIdentifications().push_back(std::move(id));
-  }
-}
-
-void MS1LabeledFAIMS::annotate(IDMapper& mapper,
-                               ConsensusMap& map,
-                               const PeptideIdentificationList& ids,
-                               const std::vector<ProteinIdentification>& proteins)
-{
-  map.setUnassignedPeptideIdentifications(ids);
-  auto partitions = split_({map});
-  map.clear(true);
-  for (auto& [cv, parts] : partitions)
-  {
-    auto& part = parts.front();
-    auto part_ids = std::move(part.getUnassignedPeptideIdentifications());
-    part.getUnassignedPeptideIdentifications().clear();
-    mapper.annotate(part, part_ids, proteins, true, true);
-    append_(map, std::move(part));
-  }
+  IDMapper constrained = mapper;
+  Param param = constrained.getParameters();
+  param.setValue("match_meta_value", Constants::UserParam::FAIMS_CV);
+  constrained.setParameters(param);
+  constrained.annotate(map, ids, true, true);
   map.sortByPosition();
   map.updateRanges();
 }

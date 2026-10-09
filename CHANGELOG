@@ -161,14 +161,18 @@ OpenMS Library:
     ProteinIdentification::computeCoverage()/computeModifications() read maps with identification
     data. Linked identifications of runs that share query IDs (e.g. of linked maps) are resolved in
     the order export writes them (by run, then ID).
-  - MS1LabeledWorkflow works on identification data from the end of each run's quantification:
-    alignment, linking (within each FAIMS compensation voltage), inference, FDR, filtering,
-    quantification and the channel ratios (MS1LabeledRatioQuantifier) work on it, and the
-    identifications are exported once for the output formats. Mapping the identifications onto the
-    multiplets and resolving them still works on peptide identifications. The unassigned
-    identifications in its consensusXML and its mzTab PSM rows now follow the runs, then the
-    identifications in their original order (values unchanged). Linking within FAIMS compensation
-    voltages takes the identifications from the input maps once, for the multiplets of all voltages.
+  - MS1LabeledWorkflow works on identification data: it converts the identifications of each run
+    once, after loading, and mapping them onto the multiplets (within each FAIMS compensation
+    voltage), conflict resolution, multiplet completion, label handling, alignment, linking,
+    inference, FDR, filtering, quantification and the channel ratios (MS1LabeledRatioQuantifier)
+    work on it; the identifications are exported once for the output formats. The unassigned
+    identifications in its consensusXML and its mzTab PSM rows now follow the runs, then the order
+    of the identification files (values unchanged). Linking within FAIMS compensation voltages takes
+    the identifications from the input maps once, for the multiplets of all voltages. New for this:
+    IDMapper parameter 'match_meta_value' (assign an identification only to features with the same
+    value of a meta value, e.g. 'FAIMS_CV') and MultiplexResolverAlgorithm::resolve() option
+    keep_conflicting_identifications (the resolved output keeps the identifications of the
+    conflicting multiplets as unassigned ones).
   - FileFilter filters feature and consensus maps on identification data (annotation, clashes, best
     identification, sequence and accession whitelists, unassigned identifications), and IDSplitter
     splits off their identification data; IDSplitter's idXML lists each identification once, in its

@@ -27,8 +27,9 @@ public:
   /// Recover identification CVs from spectrum references before any RT-based reference repair.
   static void annotateCompensationVoltages(const MSExperiment& spectra, PeptideIdentificationList& ids);
 
-  /// Map IDs only onto multiplets acquired at the same CV.
-  static void annotate(IDMapper& mapper, ConsensusMap& map, const PeptideIdentificationList& ids, const std::vector<ProteinIdentification>& proteins);
+  /// Map IDs only onto multiplets acquired at the same CV (each assignment an identification of its own, with the map
+  /// index of the matching channel), as @p mapper does with the parameter 'match_meta_value' set to the CV.
+  static void annotate(const IDMapper& mapper, ConsensusMap& map, const IdentificationData& ids);
 
   /// Link only within a CV, preserving the input maps' channel subelements.
   static void group(FeatureGroupingAlgorithmQT& linker, const std::vector<ConsensusMap>& maps, ConsensusMap& result);
@@ -36,6 +37,5 @@ public:
 private:
   static CV getCV_(const MetaInfoInterface& value);
   static std::map<CV, std::vector<ConsensusMap>> split_(const std::vector<ConsensusMap>& maps);
-  static void append_(ConsensusMap& result, ConsensusMap&& part);
 };
 } // namespace OpenMS

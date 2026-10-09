@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace OpenMS;
@@ -150,7 +151,7 @@ START_SECTION((static void annotateCompensationVoltages(const MSExperiment&, Pep
 }
 END_SECTION
 
-START_SECTION((static void annotate(IDMapper&, ConsensusMap&, const PeptideIdentificationList&, const std::vector<ProteinIdentification>&)))
+START_SECTION((static void annotate(const IDMapper&, ConsensusMap&, const IdentificationData&)))
 {
   auto map = makeMap(0);
   const auto proteins = map.getProteinIdentifications();
@@ -158,15 +159,22 @@ START_SECTION((static void annotate(IDMapper&, ConsensusMap&, const PeptideIdent
   IDMapper mapper;
   // The wrong CV is an exact m/z match. It must never receive the identification.
   PeptideIdentificationList ids {makeId("scan=4", -65.0), makeId("scan=9", -85.0)};
-  MS1LabeledFAIMS::annotate(mapper, map, ids, proteins);
+  MS1LabeledFAIMS::annotate(mapper, map, IdentificationDataAdapter::fromLegacy(proteins, ids));
   TEST_EQUAL(map.size(), 2)
-  TEST_EQUAL(map[0].getPeptideIdentifications().size(), 0)
-  TEST_EQUAL(map[1].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL((int)map[1].getPeptideIdentifications()[0].getMetaValue("map_index"), 0)
-  TEST_EQUAL(map.getUnassignedPeptideIdentifications().size(), 1)
-  TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getSpectrumReference(), "scan=9")
-  TEST_EQUAL(map.getProteinIdentifications().size(), 1)
+  const auto& data = map.getIdentificationData();
+  TEST_EQUAL(map[0].getLinkedIdentifications(data).size(), 0)
+  const auto linked = map[1].getLinkedIdentifications(data);
+  TEST_EQUAL(linked.size(), 1)
+  ABORT_IF(linked.size() != 1)
+  TEST_EQUAL((int)linked[0].query->getMetaValue("map_index"), 0)
+  const auto unassigned = map.getUnassignedIdentifications();
+  TEST_EQUAL(unassigned.size(), 1)
+  ABORT_IF(unassigned.size() != 1)
+  TEST_EQUAL(unassigned[0].query->data_id, "scan=9")
+  TEST_EQUAL(data.getRuns().size(), 1)
   TEST_EQUAL(map.getColumnHeaders().at(0).filename, "run0.mzML")
+  // the mapper given keeps its parameters
+  TEST_EQUAL(mapper.getParameters().getValue("match_meta_value").toString(), "")
 }
 END_SECTION
 
