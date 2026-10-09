@@ -136,8 +136,10 @@ Dependencies:
     Debug build of your own code links and a debugger steps into OpenMS code. MSVC's debug
     and release runtimes cannot be mixed, which is why the two configurations are separate
     archives; the README of each names the other. find_package(OpenMS) now refuses a project
-    configuration built against the other runtime, with a message naming the archive to use,
-    where CMake used to link the configuration the SDK has without a word.
+    configuration built against the other runtime, with a message naming the archive to use
+    (under a multi-configuration generator that configuration fails to compile with the same
+    message, the others build), where CMake used to link the configuration the SDK has
+    without a word.
   - vcpkg builds use OpenSSL 3.6.5 instead of 3.6.4, so the installers, the DEBs, the macOS
     package and the pyOpenMS wheels bundle it. 3.6.5 fixes the 13 advisories of 2026-09-29
     listed under 3.6.0's known issues, among them the High-severity CVE-2026-84782 (DTLS,

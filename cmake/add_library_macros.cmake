@@ -178,9 +178,28 @@ function(openms_add_library)
     set(_CONFIG_H "include/${openms_add_library_DLL_EXPORT_PATH}${openms_add_library_TARGET_NAME}Config.h")
     string(TOUPPER ${openms_add_library_TARGET_NAME} _TARGET_UPPER_CASE)
     include(GenerateExportHeader)
+    # Every public header of the library includes this one, so it is where a
+    # consuming project learns, at the first OpenMS header it compiles, that the
+    # configuration it is building cannot use the installation: OpenMSConfig.cmake
+    # defines OPENMS_MSVC_RUNTIME_MISMATCH for a configuration whose MSVC C++ runtime
+    # (/MD or /MDd) is not the one the installation was built against (see the
+    # runtime check in cmake/OpenMSConfig.cmake.in). Nothing defines it otherwise.
+    set(_openms_runtime_check [=[
+/* OpenMSConfig.cmake defines OPENMS_MSVC_RUNTIME_MISMATCH for a configuration of the
+ * consuming project whose MSVC C++ runtime is not the one this installation was built
+ * against (1: the installation uses the release runtime /MD and this configuration
+ * /MDd, 2: the other way round); a program mixing the two is not supported. */
+#if defined(OPENMS_MSVC_RUNTIME_MISMATCH) && OPENMS_MSVC_RUNTIME_MISMATCH == 1
+#  error "This OpenMS installation was built against MSVC's release C++ runtime (/MD), which the Debug configuration (/MDd) cannot link. Build another configuration, or use an OpenMS installation built Debug (the Windows SDK archive with the -Debug suffix). OPENMS_SKIP_MSVC_RUNTIME_CHECK=ON at configure time disables this check."
+#elif defined(OPENMS_MSVC_RUNTIME_MISMATCH) && OPENMS_MSVC_RUNTIME_MISMATCH == 2
+#  error "This OpenMS installation was built against MSVC's debug C++ runtime (/MDd), which a configuration other than Debug (/MD) cannot link. Build the Debug configuration, or use an OpenMS installation built Release (the Windows SDK archive without the -Debug suffix). OPENMS_SKIP_MSVC_RUNTIME_CHECK=ON at configure time disables this check."
+#endif
+]=])
     generate_export_header(${openms_add_library_TARGET_NAME}
                           EXPORT_MACRO_NAME ${_TARGET_UPPER_CASE}_DLLAPI
-                          EXPORT_FILE_NAME ${_CONFIG_H})
+                          EXPORT_FILE_NAME ${_CONFIG_H}
+                          CUSTOM_CONTENT_FROM_VARIABLE _openms_runtime_check)
+    unset(_openms_runtime_check)
 
     string(REGEX REPLACE "/" "\\\\" _fixed_path ${openms_add_library_DLL_EXPORT_PATH})
 

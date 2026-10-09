@@ -251,17 +251,19 @@ case "$build_type" in
   Debug)
     msvc_requirement="Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Debug configuration
         with the dynamic debug runtime (/MDd). A Release build of your code (/MD)
-        cannot link this SDK: find_package(OpenMS) refuses any configuration but
-        Debug (with a Visual Studio generator, set CMAKE_CONFIGURATION_TYPES=Debug);
-        use OpenMS-SDK-<version>-Windows-x64.zip for that. The .pdb files of the
-        OpenMS libraries are next to the DLLs in bin/, so a debugger can step into
-        OpenMS code." ;;
+        cannot link this SDK: find_package(OpenMS) refuses a single-configuration
+        build of any other configuration, and under a multi-configuration generator
+        (Visual Studio) every configuration but Debug fails to compile with an error
+        that says so; use OpenMS-SDK-<version>-Windows-x64.zip for those. The .pdb
+        files of the OpenMS libraries are next to the DLLs in bin/, so a debugger
+        can step into OpenMS code." ;;
   *)
     msvc_requirement="Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Release configuration
         with the dynamic runtime (/MD). A Debug build of your code (/MDd) cannot
-        link this SDK: find_package(OpenMS) refuses the Debug configuration (with a
-        Visual Studio generator, set CMAKE_CONFIGURATION_TYPES to the others, e.g.
-        Release); use OpenMS-SDK-<version>-Windows-x64-Debug.zip for that." ;;
+        link this SDK: find_package(OpenMS) refuses a single-configuration Debug
+        build, and under a multi-configuration generator (Visual Studio) the Debug
+        configuration fails to compile with an error that says so; use
+        OpenMS-SDK-<version>-Windows-x64-Debug.zip for it." ;;
 esac
 # The version the README's find_package() example names is the one the package
 # file answers to (OpenMSConfigVersion.cmake, e.g. 3.6.0), not the <version> of
