@@ -642,7 +642,7 @@ START_SECTION(([EXTRA] Best tied RNA match is independent of allocation order))
       auto input = ids.registerInputFile(ID::InputFile("ties.mzML"));
       auto observation = ids.registerObservation(ID::Observation("scan=1", input));
       auto score = ids.registerScoreType(ID::ScoreType("test", higher_better));
-      vector<String> sequences = {"AAG", "AGG"};
+      vector<string> sequences = {"AAG", "AGG"};
       if (reverse)
       {
         std::reverse(sequences.begin(), sequences.end());
