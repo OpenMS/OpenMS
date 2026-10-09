@@ -33,7 +33,7 @@ Using it from CMake (3.24 or newer)
 
 Configure your project with the SDK on the prefix path:
 
-  cmake -S . -B build -DCMAKE_BUILD_TYPE=@BUILD_TYPE@ -DCMAKE_PREFIX_PATH=/path/to/OpenMS-SDK-<version>-<platform>
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=@BUILD_TYPE@ -DCMAKE_PREFIX_PATH=/path/to/OpenMS-SDK-<version>-<platform>@SDK_SUFFIX@
 
 A complete example project (library, plain program and TOPP-style tool) is in
 the OpenMS sources under src/tests/external.
