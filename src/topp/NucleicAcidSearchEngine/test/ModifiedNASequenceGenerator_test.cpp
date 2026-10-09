@@ -108,7 +108,7 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
   ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 1, ams, true);
   // original + two one-site U modifications at the unmodified U position
   TEST_EQUAL(ams.size(), 3);
-  set<String> seqs;
+  set<string> seqs;
   for (const NASequence& s : ams) seqs.insert(s.toString());
   TEST_EQUAL(seqs.count(sequence.toString()), 1);
   TEST_EQUAL(seqs.count(NASequence::fromString("A[m2,2G][m3U]A").toString()), 1);
@@ -119,6 +119,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

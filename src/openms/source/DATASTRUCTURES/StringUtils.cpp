@@ -17,14 +17,11 @@
 #include <memory>
 #include <type_traits>
 
-// Locale headers for the locale-independent strtod_l/strtof_l fallback used with libc++
-// (see OPENMS_NO_FLOAT_FROM_CHARS below).
-#if defined(_LIBCPP_VERSION)
-  #include <clocale>
-  #include <locale.h>
-  #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-    #include <xlocale.h>
-  #endif
+// Locale headers for the locale-independent strtod_l/strtof_l fallback.
+#include <clocale>
+#include <locale.h>
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+  #include <xlocale.h>
 #endif
 
 // DataValue can now be included here; it depends on String.h which includes StringUtils.h,
@@ -187,7 +184,6 @@ namespace OpenMS
   #define OPENMS_NO_FLOAT_FROM_CHARS 1
 #endif
 
-#ifdef OPENMS_NO_FLOAT_FROM_CHARS
     // std::strtod/strtof honour the decimal separator of the global C locale (LC_NUMERIC).
     // QApplication calls setlocale(LC_ALL, ""), so in e.g. a de_DE locale "60.5" would parse
     // as 60. std::from_chars is locale-independent, so parse with an explicit "C" locale.
@@ -253,7 +249,6 @@ namespace OpenMS
       res.ec = (errno == ERANGE && std::isinf(value)) ? std::errc::result_out_of_range : std::errc{};
       return res;
     }
-#endif
 
     /// Thin wrapper dispatching to std::from_chars or the libc++ fallback above.
     template <typename T>
@@ -262,7 +257,12 @@ namespace OpenMS
 #ifdef OPENMS_NO_FLOAT_FROM_CHARS
       return fromCharsFloat(first, last, value);
 #else
-      return std::from_chars(first, last, value);
+      auto result = std::from_chars(first, last, value);
+      // Some standard libraries report result_out_of_range for representable
+      // subnormals. The C-locale parser distinguishes those from overflow.
+      if (result.ec == std::errc::result_out_of_range)
+        return fromCharsFloat(first, last, value);
+      return result;
 #endif
     }
   } // anonymous namespace

@@ -2,6 +2,11 @@ name: "Release"
 
 on:
   workflow_dispatch:
+    inputs:
+      build-only:
+        description: Build and upload installer artifacts without deploying or publishing
+        type: boolean
+        default: true
   push:
     tags:
       - 'v[0-9]*'
@@ -306,6 +311,7 @@ jobs:
 
   deploy-installer:
     name: "Deploy Installer"
+    if: github.event_name != 'workflow_dispatch' || !inputs.build-only
     runs-on: ubuntu-latest
     needs:
       - build-and-test
@@ -346,6 +352,7 @@ jobs:
 
   deploy-docs:
     name: "Deploy Documentation"
+    if: github.event_name != 'workflow_dispatch' || !inputs.build-only
     runs-on: ubuntu-latest
     needs:
       - build-and-test
@@ -383,6 +390,7 @@ jobs:
 
   publish-release:
     name: "Publish Release"
+    if: github.event_name != 'workflow_dispatch' || !inputs.build-only
     runs-on: ubuntu-latest
     permissions: write-all
     needs:
@@ -578,7 +586,7 @@ jobs:
 
   create-website-update:
     name: Create Website Update
-    if: github.repository == 'OpenMS/OpenMS' && needs.build-and-test.outputs.has_version == 'true'
+    if: (github.event_name != 'workflow_dispatch' || !inputs.build-only) && github.repository == 'OpenMS/OpenMS' && needs.build-and-test.outputs.has_version == 'true'
     runs-on: ubuntu-latest
     permissions: write-all
     needs:

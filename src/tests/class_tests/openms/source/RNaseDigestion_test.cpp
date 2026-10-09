@@ -276,7 +276,7 @@ START_SECTION((void digestWithCleavageSensitiveMods(const NASequence& rna,
   rd.digestWithCleavageSensitiveMods(NASequence::fromString("GGA"), groups, 1,
                                      out);
 
-  set<String> sequences;
+  set<string> sequences;
   for (const auto& product : out)
   {
     sequences.insert(product.fragment.toString());
