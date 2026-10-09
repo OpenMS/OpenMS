@@ -405,10 +405,19 @@ START_SECTION((template < typename ToType > void decodeIntegers(const std::strin
   b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN,res,false);
   TEST_EQUAL(res.size(), 0)
 
-  // src = "Q A..A=="; // spaces and dots are not allowed
-  // b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN,res,false);
-  // TODO : some error checking and handling
-  // TEST_EQUAL(res.size(), 0)
+  // CPP-055: decodeIntegersUncompressed_ indexed decoder_[(int)in[i] - 43] with no check that
+  // in[i] is part of the Base64 alphabet. A char outside ['+', 'z'] (e.g. a space, here below
+  // 43) wraps to a negative index for any byte with the sign bit set once cast through a signed
+  // char, an out-of-bounds read before decoder_'s start; a char inside that range but not itself
+  // part of the alphabet (e.g. '.' here) hits one of decoder_'s internal '$' sentinel positions.
+  // Spaces and dots are not allowed -- this must now throw instead of silently indexing out of
+  // bounds.
+  src = "Q A..A==";
+  TEST_EXCEPTION(Exception::ConversionError, b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN, res, false))
+
+  // length at least 4 but not a multiple of 4
+  src = "QQQQQ";
+  TEST_EXCEPTION(Exception::ConversionError, b64.decodeIntegers(src, Base64::BYTEORDER_BIGENDIAN, res, false))
 }
 END_SECTION
 
