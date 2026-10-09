@@ -216,6 +216,11 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - FIX: FalseDiscoveryRate::applyPickedProteinFDR read past the end of its score map for a protein
+    group that took no part in the target-decoy competition (all its members lost their pairs) and
+    whose score lay beyond every calibrated group score. The group got an arbitrary value (in our
+    builds a number close to 0, i.e. the best q-value); it gets the q-value of the last calibrated
+    score now. If no group takes part, Exception::MissingInformation is thrown.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

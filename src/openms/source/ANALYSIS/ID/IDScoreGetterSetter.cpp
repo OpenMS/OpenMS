@@ -258,9 +258,17 @@ namespace OpenMS
                                       const string & /*score_type*/,
                                       bool /*higher_better*/)
   {
+    if (grps.empty()) return;
+    if (scores_to_FDR.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No protein group took part in the target-decoy competition, so no group FDR can be calculated.");
+    }
     for (auto &grp : grps)
     {
-      grp.probability = (scores_to_FDR.lower_bound(grp.probability)->second);
+      auto it = scores_to_FDR.lower_bound(grp.probability);
+      if (it == scores_to_FDR.end()) --it; // beyond the last calibrated score: that score's value
+      grp.probability = it->second;
     }
   }
   void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<std::string, ScoreToTgtDecLabelPair> const& seq_to_fdr,
