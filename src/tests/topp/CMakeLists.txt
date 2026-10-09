@@ -6265,6 +6265,19 @@ add_test("TOPP_NucleicAcidSearchEngine_6_out1" ${CMAKE_COMMAND} -E compare_files
 set_tests_properties("TOPP_NucleicAcidSearchEngine_5_out1" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_4;TOPP_NucleicAcidSearchEngine_5")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_6_out1" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_4;TOPP_NucleicAcidSearchEngine_6")
 
+# Residual precursor intensity is calculated from raw MS2 peaks, even when
+# precursor peaks are removed from the spectrum used for scoring.
+add_test("TOPP_NucleicAcidSearchEngine_7" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_72_out.tmp.mzTab -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_71_out.tmp.idXML -report:precursor_percentage true -preprocessing:remove_precursor_peak true)
+add_test("TOPP_NucleicAcidSearchEngine_71_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_71_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_71_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("TOPP_NucleicAcidSearchEngine_72_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_72_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_72_out.mzTab -whitelist "ms_run[1]-location")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_71_out" "TOPP_NucleicAcidSearchEngine_72_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_7")
+
+# A zero tolerance has no matching raw peak at the selected precursor m/z.
+add_test("TOPP_NucleicAcidSearchEngine_8" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_82_out.tmp.mzTab -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_81_out.tmp.idXML -report:precursor_percentage true -report:precursor_percentage_mass_tolerance 0)
+add_test("TOPP_NucleicAcidSearchEngine_81_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_81_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_81_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("TOPP_NucleicAcidSearchEngine_82_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_82_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_82_out.mzTab -whitelist "ms_run[1]-location")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_81_out" "TOPP_NucleicAcidSearchEngine_82_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_8")
+
 #------------------------------------------------------------------------------
 # RNAMassCalculator:
 add_test("TOPP_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out ${TESTS_TEMP_DIR}/RNAMassCalculator.tmp.txt)

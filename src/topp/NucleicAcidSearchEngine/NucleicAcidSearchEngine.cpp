@@ -60,11 +60,13 @@
 
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <iostream>
 #include <iterator>
 #include <vector>
 #include <map>
+#include <optional>
 #include <regex>
 #include <random>
 #include <tuple>
@@ -97,6 +99,13 @@ Given a FASTA file containing RNA sequences (and optionally decoys) and an mzML 
 
 Output is in the form of an mzTab-like text file containing the search results.
 Optionally, an idXML file suitable for visualizing search results in TOPPView (parameter @p id_out) and a "target coordinates" file for label-free quantification using FeatureFinderMetaboIdent (parameter @p lfq_out) can be generated.
+With @p report:precursor_percentage enabled, each identified spectrum match reports
+@c precursor_percentage in idXML and @c opt_precursor_percentage in mzTab.
+This is 100 times the strongest raw MS2 peak intensity within the configured
+mass tolerance of the selected precursor m/z, divided by the raw MS2 base peak
+intensity. A missing peak in the tolerance window gives 0%; a spectrum without
+a single selected precursor or a positive base peak has no value. The metric is
+calculated before any normalization, filtering, or precursor peak removal.
 
 Modified ribonucleotides can either be specified in the FASTA input file if they are expected at a specific site. As globally replacing the unmodified base (as @e fixed modifications), or set as @e variable modifications in the tool options.
 Information on available modifications is taken from the Modomics database (http://modomics.genesilico.pl/).
@@ -278,6 +287,11 @@ protected:
     setValidStrings_("oligo:enzyme", all_enzymes);
 
     registerTOPPSubsection_("report", "Reporting Options");
+    registerFlag_("report:precursor_percentage", "Report the residual precursor peak intensity as a percentage of the base peak intensity in the raw MS2 spectrum", false);
+    registerDoubleOption_("report:precursor_percentage_mass_tolerance", "<tolerance>", 10.0, "Mass tolerance for finding the residual precursor peak in the raw MS2 spectrum", false, true);
+    setMinFloat_("report:precursor_percentage_mass_tolerance", 0.0);
+    registerStringOption_("report:precursor_percentage_mass_tolerance_unit", "<unit>", "ppm", "Unit for the residual precursor peak mass tolerance", false, true);
+    setValidStrings_("report:precursor_percentage_mass_tolerance_unit", {"Da", "ppm"});
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
     registerDoubleOption_("report:require_coverage", "<fraction>", 0.0, "Minimum fraction of internal oligonucleotide positions that must be covered by fragment ions (0.0 = no requirement, 1.0 = full coverage required). Coverage requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position.", false, true);
@@ -801,6 +815,32 @@ protected:
   }
 
 
+  /// Return no value for spectra without one selected precursor or a positive base peak.
+  static optional<double> calculatePrecursorPercentage_(const MSSpectrum& spectrum,
+                                                        double mass_tolerance,
+                                                        bool tolerance_ppm)
+  {
+    if (spectrum.getPrecursors().size() != 1) return nullopt;
+
+    double precursor_mz = spectrum.getPrecursors()[0].getMZ();
+    if (!isfinite(precursor_mz) || precursor_mz <= 0.0) return nullopt;
+    double tolerance = tolerance_ppm ? precursor_mz * mass_tolerance * 1e-6 : mass_tolerance;
+    double base_peak_intensity = 0.0;
+    double residual_intensity = 0.0;
+    for (const Peak1D& peak : spectrum)
+    {
+      double intensity = peak.getIntensity();
+      if (!isfinite(intensity)) continue;
+      base_peak_intensity = max(base_peak_intensity, intensity);
+      if (abs(peak.getMZ() - precursor_mz) <= tolerance)
+      {
+        residual_intensity = max(residual_intensity, intensity);
+      }
+    }
+    if (base_peak_intensity <= 0.0) return nullopt;
+    return 100.0 * residual_intensity / base_peak_intensity;
+  }
+
   void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes)
   {
     // filter MS2 map
@@ -1142,6 +1182,10 @@ protected:
         match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
+        if (spectrum.metaValueExists("precursor_percentage"))
+        {
+          match.setMetaValue("precursor_percentage", spectrum.getMetaValue("precursor_percentage"));
+        }
         match.adduct_opt = hit.precursor_ref->adduct;
 #pragma omp critical (id_data_access)
         id_data.registerObservationMatch(match);
@@ -1493,6 +1537,19 @@ protected:
     options.addMSLevel(2);
     f.setOptions(options);
     f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+    if (getFlag_("report:precursor_percentage"))
+    {
+      double tolerance = getDoubleOption_("report:precursor_percentage_mass_tolerance");
+      bool tolerance_ppm = (getStringOption_("report:precursor_percentage_mass_tolerance_unit") == "ppm");
+      for (MSSpectrum& spectrum : spectra)
+      {
+        optional<double> percentage = calculatePrecursorPercentage_(spectrum, tolerance, tolerance_ppm);
+        if (percentage)
+        {
+          spectrum.setMetaValue("precursor_percentage", *percentage);
+        }
+      }
+    }
     spectra.sortSpectra(true);
 
     // input file meta data:

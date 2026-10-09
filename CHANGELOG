@@ -109,6 +109,10 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    NucleicAcidSearchEngine:
+      - Optional report:precursor_percentage reports the strongest residual precursor peak in
+        each raw MS2 spectrum as a percentage of its base peak intensity. The matching m/z
+        tolerance is configurable; identified matches carry the value in idXML and mzTab.
     UniPEFF:
       - Without -dbversion, '# DbVersion=' takes the download date UniProt puts into its
         file names, e.g. 2025_07_05 for uniprotkb_proteome_UP000005640_2025_07_05.xml.gz,

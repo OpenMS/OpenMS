@@ -252,6 +252,13 @@ namespace OpenMS
         opt_meta.second.set(StringUtils::toStr(match.getMetaValue("isotope_offset")));
         xsm.opt_.push_back(opt_meta);
       }
+      if (match.metaValueExists("precursor_percentage"))
+      {
+        MzTabOptionalColumnEntry opt_meta;
+        opt_meta.first = "opt_precursor_percentage";
+        opt_meta.second.set(StringUtils::toStr(match.getMetaValue("precursor_percentage")));
+        xsm.opt_.push_back(opt_meta);
+      }
       // don't repeat data from the peptide section (e.g. accessions)
       // why are "pre"/"post"/"start"/"end" not in the peptide section?!
       output.push_back(xsm);
