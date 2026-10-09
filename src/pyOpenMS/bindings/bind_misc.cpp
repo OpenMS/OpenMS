@@ -5533,10 +5533,10 @@ XMLFile
             self.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
         }, "transition_group"_a, "trafo"_a, "swath_maps"_a, "output"_a, "ms1only"_a = false,
            "Score peak groups in a transition group")
-        .def("addProteinIdentificationRun", [](const OpenMS::MRMFeatureFinderScoring& self, const OpenSwath::LightTargetedExperiment& transition_exp, OpenMS::FeatureMap& output) {
-            self.addProteinIdentificationRun(transition_exp, output);
+        .def_static("addProteinIdentificationRun", [](const OpenSwath::LightTargetedExperiment& transition_exp, OpenMS::FeatureMap& output) {
+            OpenMS::MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, output);
         }, "transition_exp"_a, "output"_a,
-           "Adds the protein identification run (search run) that the peptide identifications of the features reference (pickExperiment() adds it; call this after scorePeakgroups())")
+           "Adds the protein identification run (search run) that the peptide identifications of the features reference, with the proteins of the transition list; merges them into the run if the output already has it (pickExperiment() adds it; call this after scorePeakgroups())")
         ;
     def_ProgressLogger<OpenMS::MRMFeatureFinderScoring>(mrmfeaturefinderscoring_class);
 

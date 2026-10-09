@@ -32,19 +32,26 @@ OpenMS Library:
     (which added an empty run) and mzIdentML (which assigned the first run).
   - FIX: Producers of peptide identifications without their run, whose identifications the writers
     dropped: MzIdentMLFile and XQuestResultXMLFile lost the run identifier of cross-linking
-    identifications (OPXLHelper::removeBetaPeptideHits, and every cross-link match but the last of
-    a spectrum); FeatureMapArrowIO did not rename the run identifier of subordinate identifications
-    on load; OpenSwathWorkflow's featureXML output had no run (MRMFeatureFinderScoring::
-    addProteinIdentificationRun adds it after scorePeakgroups); FeatureFinderIdentification wrote
-    its feature candidates (candidates_out) before setting the runs; FeatureFinderAlgorithmMetaboIdent
-    took the run only from the first FAIMS group; ConsensusMap::split (not isobaric) copied no runs;
-    IDMerger -add_to kept a peptide without its run when none of its proteins was found there; the
-    OMSSA XML loader of FileHandler overwrote the first run and added an empty one.
+    identifications (OPXLHelper::removeBetaPeptideHits, which now also keeps the matches of the
+    same spectrum of different runs apart, and every cross-link match but the last of a spectrum);
+    FeatureMapArrowIO did not rename the run identifier of subordinate identifications on load;
+    OpenSwathWorkflow's featureXML output had no run (MRMFeatureFinderScoring::
+    addProteinIdentificationRun adds it with the proteins of the transition list, or merges them
+    into an existing run); FeatureFinderIdentification wrote its feature candidates (candidates_out)
+    before setting the runs, and reported the pseudo IDs of seeds and offset peptides that the PSM
+    score cutoff rejected as unassigned identifications (re-scoring candidates now removes the
+    pseudo IDs, too); FeatureFinderAlgorithmMetaboIdent took the run only from the first FAIMS group;
+    ConsensusMap::split (not isobaric) copied no runs; IDMerger -add_to kept a peptide without its
+    run when none of its proteins was found there, and added a protein shared by two runs of a file
+    to the first run only; the OMSSA XML loader of FileHandler overwrote the first run and added an
+    empty one. OpenSwathAnalyzer added a run per SWATH file, with the same identifier (several files
+    could not be stored); it adds one now.
   - FIX: featureXML and consensusXML wrote a protein reference to a protein that is no protein hit of
     the peptide identification's run as 'PH_0', i.e. as another protein (the file could not be read back
     or named the wrong protein). Storing now throws Exception::ElementNotFound before the file is opened
-    (ProteinRunReferences::checkProteinAccessions, also in pyOpenMS), as idXML does. OpenSwathWorkflow
-    adds the proteins of every batch to its run.
+    (ProteinRunReferences::checkProteinAccessions, also in pyOpenMS). idXML wrote a reference to the
+    protein hit of an earlier run for an accession missing from the peptide identification's run; it
+    throws Exception::ElementNotFound for it now, as for an unknown accession.
     Loading idXML, featureXML and consensusXML refuses a protein reference (protein_refs) to a protein hit
     of another run (it was resolved file-wide, so such references, e.g. written by the former 'PH_0'
     fallback, named whatever protein that hit was).

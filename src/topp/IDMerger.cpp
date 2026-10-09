@@ -419,7 +419,7 @@ protected:
       for (auto file_it = ++peptides_by_file.begin(); file_it != peptides_by_file.end();
             ++file_it)
       {
-        set<std::string> accessions; // keep track to avoid duplicates
+        set<pair<std::string, std::string>> accessions; // (run, accession): keep track to avoid duplicates in a run
         for (auto pep_it = file_it->begin(); pep_it != file_it->end(); ++pep_it)
         {
           if (pep_it->getHits().empty()) continue;
@@ -458,8 +458,8 @@ protected:
           for (std::string const & acc : protein_accessions)
           {
             OPENMS_LOG_DEBUG << "accession: " << acc << endl;
-            // skip ahead if accession is not new:
-            if (accessions.contains(acc))
+            // skip ahead if accession is not new (in this run):
+            if (accessions.contains({id, acc}))
             {
               continue;
             }
@@ -473,7 +473,7 @@ protected:
               continue;
             }
             selected_proteins[id].insertHit(*hit_it);
-            accessions.insert(acc);
+            accessions.insert({id, acc});
             // NOTE: we're only adding the first protein hit for each
             // accession, not taking into account scores or any meta data
           }

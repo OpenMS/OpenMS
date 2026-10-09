@@ -1135,8 +1135,8 @@ namespace OpenMS
       }
     }
 
-    // Collect PeptideHits to the same spectrum under one PeptideIdentification
-    map<std::string, PeptideIdentification> new_peptide_ids;
+    // Collect PeptideHits to the same spectrum (of the same run) under one PeptideIdentification
+    map<pair<std::string, std::string>, PeptideIdentification> new_peptide_ids; // key: run identifier, spectrum
     for (PeptideIdentification& id : peptide_ids)
     {
       if (!id.getHits().empty())
@@ -1144,9 +1144,10 @@ namespace OpenMS
         PeptideHit& hit = id.getHits()[0];
         PeptideIdentification new_id;
         std::string current_spectrum = StringUtils::toStr(id.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE));
-        if (new_peptide_ids.contains(current_spectrum))
+        const pair<std::string, std::string> key(id.getIdentifier(), current_spectrum);
+        if (new_peptide_ids.contains(key))
         {
-          new_id = (*new_peptide_ids.find(current_spectrum)).second;
+          new_id = (*new_peptide_ids.find(key)).second;
         }
         else
         {
@@ -1158,13 +1159,13 @@ namespace OpenMS
         }
         hit.removeMetaValue("xl_chain");
         new_id.insertHit(hit);
-        new_peptide_ids[current_spectrum] = new_id;
+        new_peptide_ids[key] = new_id;
 
       }
     }
     std::vector<PeptideIdentification> new_peptide_ids_vector;
     new_peptide_ids_vector.reserve(new_peptide_ids.size());
-    for (pair<std::string, PeptideIdentification> mit : new_peptide_ids)
+    for (const auto& mit : new_peptide_ids)
     {
       new_peptide_ids_vector.push_back(mit.second);
     }

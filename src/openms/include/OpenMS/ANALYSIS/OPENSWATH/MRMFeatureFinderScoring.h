@@ -135,13 +135,14 @@ public:
     /** @brief Adds the protein identification run (search run) that the peptide identifications of the features reference
 
      The run has the proteins of @p transition_exp. pickExperiment() adds it; call this when scoring with scorePeakgroups()
-     directly, since every peptide identification needs its protein identification run. Nothing is added if @p output
-     already has the run.
+     directly, since every peptide identification needs its protein identification run. If @p output already has the run
+     (e.g. from another part of the transition list), the proteins it does not have yet are added to it, in the order of
+     @p transition_exp.
 
      @param[in] transition_exp The transition list describing the experiment
      @param[in,out] output The output features
     */
-    void addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output) const;
+    static void addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output);
 
     /** @brief Prepares the internal mappings of peptides and proteins.
      *

@@ -9,6 +9,8 @@
 #include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
+#include <unordered_set>
+
 // data access
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -278,25 +280,33 @@ namespace OpenMS
     return;
   }
 
-  void MRMFeatureFinderScoring::addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output) const
+  void MRMFeatureFinderScoring::addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output)
   {
-    for (const ProteinIdentification& run : output.getProteinIdentifications())
+    auto& runs = output.getProteinIdentifications();
+    auto run = std::find_if(runs.begin(), runs.end(),
+                            [](const ProteinIdentification& r) { return r.getIdentifier() == run_identifier; });
+    if (run == runs.end())
     {
-      if (run.getIdentifier() == run_identifier) return; // already there
+      runs.emplace_back();
+      run = std::prev(runs.end());
+      run->setIdentifier(run_identifier);
     }
-    std::vector<ProteinHit> protein_hits;
+    // add the proteins the run does not have yet, in the order of the transition list
+    std::unordered_set<std::string> accessions;
+    for (const ProteinHit& hit : run->getHits())
+    {
+      accessions.insert(hit.getAccession());
+    }
     for (const ProteinType& prot : transition_exp.getProteins())
     {
-      ProteinHit prot_hit = ProteinHit();
-      prot_hit.setSequence(prot.sequence);
-      prot_hit.setAccession(prot.id);
-      protein_hits.push_back(prot_hit);
+      if (accessions.insert(prot.id).second)
+      {
+        ProteinHit prot_hit;
+        prot_hit.setSequence(prot.sequence);
+        prot_hit.setAccession(prot.id);
+        run->insertHit(prot_hit);
+      }
     }
-
-    ProteinIdentification prot_id = ProteinIdentification();
-    prot_id.setHits(protein_hits);
-    prot_id.setIdentifier(run_identifier);
-    output.getProteinIdentifications().push_back(prot_id);
   }
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)

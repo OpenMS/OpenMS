@@ -925,6 +925,26 @@ START_SECTION([EXTRA] store - many peptide identifications are written in input 
     TEST_EQUAL(File::exists(file_no_run), false) // checked before the file is opened
   }
 
+  // a protein that is a protein hit of another run only cannot be referenced (it was written as a reference to that run's
+  // protein hit, which cannot be loaded)
+  {
+    PeptideIdentificationList other_run = peps;
+    other_run[1].setIdentifier("runPar2"); // already of the second run, whose evidences name ACC2
+    for (PeptideHit& hit : other_run[1].getHits()) hit.setPeptideEvidences({PeptideEvidence("ACC1", 0, 7, '-', 'P')});
+    std::string file_other_run;
+    NEW_TMP_FILE(file_other_run)
+    std::string message;
+    try
+    {
+      IdXMLFile().store(file_other_run, prots, other_run);
+    }
+    catch (const Exception::ElementNotFound& e)
+    {
+      message = e.what();
+    }
+    TEST_EQUAL(message.find("No accession ACC1 found in run 'runPar2'") != std::string::npos, true)
+  }
+
   // a peptide hit may only reference the protein hits of its run
   {
     std::string file_cross_run;

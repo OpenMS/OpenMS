@@ -303,6 +303,14 @@ namespace OpenMS
     // only, so embedded use does not affect later resampling in the process.
     Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
 
+    // The peptide identifications of the features reference the protein identification run (search run) of the
+    // transition list, which scorePeakgroups() does not add: add it (with all proteins, in the order of the transition
+    // list) once here instead of for every scoring batch.
+    if (store_features)
+    {
+      MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, out_featureFile);
+    }
+
     // user-controllable overrides for inner batching and outer concurrency
     const int user_inner_batch_size = innerBatchSize;
     const int user_max_concurrent_swaths = maxConcurrentSwaths;
@@ -853,7 +861,11 @@ namespace OpenMS
                 {
                   context.feature_file.push_back(*feature_it);
                 }
-                addProteinIdentificationRuns_(featureFile, context.feature_file);
+                for (std::vector<ProteinIdentification>::const_iterator protid_it = featureFile.getProteinIdentifications().begin();
+                     protid_it != featureFile.getProteinIdentifications().end(); ++protid_it)
+                {
+                  context.feature_file.getProteinIdentifications().push_back(*protid_it);
+                }
               }
 
               --context.remaining_score_jobs;
@@ -1155,34 +1167,6 @@ namespace OpenMS
 #endif
   }
 
-  void OpenSwathWorkflow::addProteinIdentificationRuns_(const FeatureMap& featureFile, FeatureMap& out_featureFile)
-  {
-    auto& out_runs = out_featureFile.getProteinIdentifications();
-    for (const ProteinIdentification& run : featureFile.getProteinIdentifications())
-    {
-      auto out_run = std::find_if(out_runs.begin(), out_runs.end(),
-                                  [&run](const ProteinIdentification& r) { return r.getIdentifier() == run.getIdentifier(); });
-      if (out_run == out_runs.end())
-      {
-        out_runs.push_back(run);
-        continue;
-      }
-      // the same run of another batch: add the proteins of its transitions
-      std::unordered_set<std::string> accessions;
-      for (const ProteinHit& hit : out_run->getHits())
-      {
-        accessions.insert(hit.getAccession());
-      }
-      for (const ProteinHit& hit : run.getHits())
-      {
-        if (accessions.insert(hit.getAccession()).second)
-        {
-          out_run->insertHit(hit);
-        }
-      }
-    }
-  }
-
   void OpenSwathWorkflow::writeOutFeaturesAndChroms_(
     std::vector< OpenMS::MSChromatogram > & chromatograms,
     std::vector< MSChromatogram >& ms1_chromatograms,
@@ -1217,7 +1201,13 @@ namespace OpenMS
       {
         out_featureFile.push_back(*feature_it);
       }
-      addProteinIdentificationRuns_(featureFile, out_featureFile);
+      for (std::vector<ProteinIdentification>::const_iterator protid_it =
+             featureFile.getProteinIdentifications().begin();
+           protid_it != featureFile.getProteinIdentifications().end();
+           ++protid_it)
+      {
+        out_featureFile.getProteinIdentifications().push_back(*protid_it);
+      }
     }
   }
 
@@ -1555,12 +1545,6 @@ namespace OpenMS
                                    output,
                                    id);
       }
-    }
-
-    // the peptide identifications of the features reference the protein identification run (search run)
-    if (!output.empty())
-    {
-      featureFinder.addProteinIdentificationRun(transition_exp, output);
     }
 
     // Only write at the very end since this is a step that needs a barrier.

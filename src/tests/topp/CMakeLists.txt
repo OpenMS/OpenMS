@@ -178,6 +178,10 @@ set_tests_properties("TOPP_IDMerger_4_out1" PROPERTIES DEPENDS "TOPP_IDMerger_4"
 add_test("TOPP_IDMerger_5" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_2_input1.idXML -add_to ${DATA_DIR_TOPP}/IDMerger_5_input1.idXML -out ${TESTS_TEMP_DIR}/IDMerger_5_output.tmp.idXML -annotate_file_origin "false")
 add_test("TOPP_IDMerger_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/IDMerger_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDMerger_5_output.idXML )
 set_tests_properties("TOPP_IDMerger_5_out1" PROPERTIES DEPENDS "TOPP_IDMerger_5")
+# "add_to" with two runs that share a protein: each run gets the protein hit its new peptide references (the output loads)
+add_test("TOPP_IDMerger_7" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_7_input.idXML -add_to ${DATA_DIR_TOPP}/IDMerger_5_input1.idXML -out ${TESTS_TEMP_DIR}/IDMerger_7_output.tmp.idXML -annotate_file_origin "false")
+add_test("TOPP_IDMerger_7_load" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/IDMerger_7_output.tmp.idXML)
+set_tests_properties("TOPP_IDMerger_7_load" PROPERTIES DEPENDS "TOPP_IDMerger_7")
 
 # .oms (SQLite) files - inputs based on BSA example data, generated like this:
 # IDFileConverter -in share/OpenMS/examples/BSA/BSA2_OMSSA.idXML -out ${TESTS_TEMP_DIR}/src/tests/topp/IDMerger_6_input2.oms
@@ -471,6 +475,14 @@ add_test("TOPP_FeatureFinderIdentification_5_out1" ${DIFF} -whitelist "feature i
 set_tests_properties("TOPP_FeatureFinderIdentification_5_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_5")
 add_test("TOPP_FeatureFinderIdentification_5_out2" ${DIFF} -whitelist "feature id" "spectra_data" "featureMap" -in1 ${TESTS_TEMP_DIR}/FeatureFinderIdentification_5_candidates.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderIdentification_5_candidates.featureXML)
 set_tests_properties("TOPP_FeatureFinderIdentification_5_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_5")
+# Pseudo IDs of offset peptides (here also rejected by the PSM score cutoff) are no PSMs: the output stores (every
+# peptide identification needs its run) and has no pseudo hits. The candidates keep them; re-scoring removes them, too.
+add_test("TOPP_FeatureFinderIdentification_6" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_6.tmp.featureXML -candidates_out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_6_candidates.tmp.featureXML -add_mass_offset_peptides 10.005 -min_psm_cutoff 0.01 -extract:mz_window 0.1 -extract:batch_size 10 -detect:peak_width 60 -model:type none)
+add_test("TOPP_FeatureFinderIdentification_6_rescore" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -candidates_in ${TESTS_TEMP_DIR}/FeatureFinderIdentification_6_candidates.tmp.featureXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_6_rescored.tmp.featureXML -model:type none)
+set_tests_properties("TOPP_FeatureFinderIdentification_6_rescore" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_6")
+add_test("TOPP_FeatureFinderIdentification_6_no_pseudo_ids"
+  bash -c "grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_6_candidates.tmp.featureXML && ! grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_6.tmp.featureXML && ! grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_6_rescored.tmp.featureXML")
+set_tests_properties("TOPP_FeatureFinderIdentification_6_no_pseudo_ids" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_6_rescore")
 
 
 #------------------------------------------------------------------------------

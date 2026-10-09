@@ -100,6 +100,14 @@ namespace OpenMS
   }
 
   void IdXMLFile::store(const std::string& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id)
+  {
+    // every peptide identification needs its protein identification run: fail before the file is opened (outside of
+    // storeFile_(), whose errors note that a partial file may remain)
+    ProteinRunReferences::check(protein_ids, peptide_ids);
+    storeFile_(filename, protein_ids, peptide_ids, document_id);
+  }
+
+  void IdXMLFile::storeFile_(const std::string& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id)
   try
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
@@ -111,9 +119,6 @@ namespace OpenMS
           filename,
           "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::IDXML) + "'");
     }
-
-    // every peptide identification needs its protein identification run: fail before the file is opened
-    ProteinRunReferences::check(protein_ids, peptide_ids);
 
     //set filename for the handler. Just in case (e.g. when fatalError function is used).
     file_ = filename;
@@ -266,6 +271,8 @@ namespace OpenMS
     // write ProteinIdentification Runs
     for (Size i = 0; i < protein_ids.size(); ++i)
     {
+      // the peptide hits (and protein groups) of a run reference the protein hits of that run only
+      accession_to_id.clear();
       os << "\t<IdentificationRun ";
       os << "date=\"" << protein_ids[i].getDateTime().getDate() << "T" << protein_ids[i].getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(protein_ids[i].getSearchEngine()) << "\" ";
@@ -374,7 +381,7 @@ namespace OpenMS
         }
         if (thrown) std::rethrow_exception(thrown);
       };
-      const char* const store_function = OPENMS_PRETTY_FUNCTION; // names store(), not a lambda, in the exceptions below
+      const char* const store_function = OPENMS_PRETTY_FUNCTION; // names storeFile_(), not a lambda, in the exceptions below
 
       // writeUserParam_(), leaving out the meta values with index skip_a or skip_b
       const auto write_user_params = [&call_serialized](std::ostream& out, const MetaInfoInterface& meta_info,
@@ -486,7 +493,7 @@ namespace OpenMS
               {
                 const std::string message = "No accession " + protein_accession + " found in run '" + run_identifier +
                     "' for PSM " + p_hit.getSequence().toString() + "_" + StringUtils::toStr(p_hit.getCharge()) +
-                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.";
+                    ". Every protein of a peptide evidence needs to be a protein hit of the peptide identification's run.";
                 call_serialized([&] { throw Exception::ElementNotFound(__FILE__, __LINE__, store_function, message); });
               }
             }

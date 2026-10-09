@@ -378,6 +378,9 @@ protected:
 
   /// Helper function to check if a peptide hit is a seed pseudo-ID
   static bool isSeedPseudoHit_(const PeptideHit& hit);
+  /// Is @p pid a pseudo ID (of a seed or offset peptide)?
+  static bool isPseudoID_(const PeptideIdentification& pid);
+
   /// Is @p pid a pseudo ID (of a seed or offset peptide) without hits (or empty)?
   static bool isEmptyPseudoID_(const PeptideIdentification& pid);
 

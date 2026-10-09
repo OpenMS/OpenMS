@@ -2084,20 +2084,13 @@ namespace OpenMS::Internal
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
 
-            if (runOfList_(spectrumIdentificationList_ref).findHit(db.accession)
-                == runOfList_(spectrumIdentificationList_ref).getHits().end())
+            ProteinIdentification& run = runOfList_(spectrumIdentificationList_ref);
+            if (run.findHit(db.accession) == run.getHits().end())
             { // butt ugly! TODO @ mths for ProteinInference
-              runOfList_(spectrumIdentificationList_ref).insertHit(ProteinHit());
-              runOfList_(spectrumIdentificationList_ref).getHits().back().setSequence(db.sequence);
-              runOfList_(spectrumIdentificationList_ref).getHits().back().setAccession(db.accession);
-              if (idec)
-              {
-                runOfList_(spectrumIdentificationList_ref).getHits().back().setMetaValue("isDecoy", "true");
-              }
-              else
-              {
-                runOfList_(spectrumIdentificationList_ref).getHits().back().setMetaValue("isDecoy", "false");
-              }
+              run.insertHit(ProteinHit());
+              run.getHits().back().setSequence(db.sequence);
+              run.getHits().back().setAccession(db.accession);
+              run.getHits().back().setMetaValue("isDecoy", idec ? "true" : "false");
             }
           }
           phs[pep].addPeptideEvidence(pev);
@@ -2315,20 +2308,13 @@ namespace OpenMS::Internal
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
 
-            if (runOfList_(spectrumIdentificationList_ref).findHit(db.accession)
-                == runOfList_(spectrumIdentificationList_ref).getHits().end())
+            ProteinIdentification& run = runOfList_(spectrumIdentificationList_ref);
+            if (run.findHit(db.accession) == run.getHits().end())
             { // butt ugly! TODO @ mths for ProteinInference
-              runOfList_(spectrumIdentificationList_ref).insertHit(ProteinHit());
-              runOfList_(spectrumIdentificationList_ref).getHits().back().setSequence(db.sequence);
-              runOfList_(spectrumIdentificationList_ref).getHits().back().setAccession(db.accession);
-              if (idec)
-              {
-                runOfList_(spectrumIdentificationList_ref).getHits().back().setMetaValue("isDecoy", "true");
-              }
-              else
-              {
-                runOfList_(spectrumIdentificationList_ref).getHits().back().setMetaValue("isDecoy", "false");
-              }
+              run.insertHit(ProteinHit());
+              run.getHits().back().setSequence(db.sequence);
+              run.getHits().back().setAccession(db.accession);
+              run.getHits().back().setMetaValue("isDecoy", idec ? "true" : "false");
             }
           }
           hit.addPeptideEvidence(pev);

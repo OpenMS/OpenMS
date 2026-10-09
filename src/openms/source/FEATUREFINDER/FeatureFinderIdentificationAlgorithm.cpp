@@ -449,11 +449,17 @@ namespace OpenMS
     return StringUtils::hasPrefix(hit.getSequence().toUnmodifiedString(), "XXX");
   }
 
+  bool FeatureFinderIdentificationAlgorithm::isPseudoID_(const PeptideIdentification& pid)
+  {
+    // set on the pseudo IDs of seeds and offset peptides (see addSeeds_() and addOffsetPeptides_())
+    return pid.metaValueExists("SeedFeatureID");
+  }
+
   bool FeatureFinderIdentificationAlgorithm::isEmptyPseudoID_(const PeptideIdentification& pid)
   {
-    // pseudo IDs (see addSeeds_() and addOffsetPeptides_()) carry the identifier of their protein identification run,
-    // so they are not PeptideIdentification::empty() without their hits
-    return pid.empty() || (pid.getHits().empty() && pid.metaValueExists("SeedFeatureID"));
+    // pseudo IDs carry the identifier of their protein identification run, so they are not
+    // PeptideIdentification::empty() without their hits
+    return pid.empty() || (pid.getHits().empty() && isPseudoID_(pid));
   }
 
   void FeatureFinderIdentificationAlgorithm::removeSeedPseudoIDs_(FeatureMap& features)
@@ -951,6 +957,8 @@ namespace OpenMS
 
     statistics_(features);
 
+    // remove all hits with pseudo ids (seeds and offset peptides), which the candidates keep
+    removeSeedPseudoIDs_(features);
   }
 
   void FeatureFinderIdentificationAlgorithm::statistics_(FeatureMap const & features) const
@@ -1645,7 +1653,7 @@ namespace OpenMS
     {
       if (hit.isDecoy())
       {
-        unassignedIDs_.push_back(peptide);
+        if (!isPseudoID_(peptide)) unassignedIDs_.push_back(peptide); // pseudo IDs are no PSMs to report
         return;
       }
     }
@@ -1654,7 +1662,7 @@ namespace OpenMS
       if ( (peptide.isHigherScoreBetter() && hit.getScore() < psm_score_cutoff_) ||
            (!peptide.isHigherScoreBetter() && hit.getScore() > psm_score_cutoff_) )
       {
-        unassignedIDs_.push_back(peptide);
+        if (!isPseudoID_(peptide)) unassignedIDs_.push_back(peptide); // pseudo IDs are no PSMs to report
         return;
       }
     }
