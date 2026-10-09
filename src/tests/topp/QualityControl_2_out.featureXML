@@ -164,6 +164,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="float" name="FWHM" value="10.592152715830631"/>
 			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="460.2" RT="1350" spectrum_reference="spectrum=999" >
+				<UserParam type="float" name="FWHM" value="10.592152715830631"/>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.760234539183594e09"/>
 			<UserParam type="string" name="PeptideRef" value="ARAEDAMDEASGR/3"/>
 			<UserParam type="float" name="leftWidth" value="1347.135986328125"/>

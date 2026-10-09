@@ -124,6 +124,8 @@
 			<quality dim="1">0.0</quality>
 			<overallquality>4.326448</overallquality>
 			<charge>3</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="460.2" RT="1350.0" spectrum_reference="spectrum=999" >
+			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="460.20484945008" RT="1349.89575195313" spectrum_reference="spectrum=217" >
 				<PeptideHit score="0.02" sequence="ARAEDAMDEASGR" charge="3" aa_before="K" aa_after="L" start="39" end="51" protein_refs="PH_3">
 					<UserParam type="string" name="target_decoy" value="target"/>
