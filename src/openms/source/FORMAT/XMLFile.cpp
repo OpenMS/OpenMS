@@ -8,6 +8,8 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 
+#include <OpenMS/CONCEPT/Init.h>
+
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -130,7 +132,7 @@ private:
       // initialize parser
       try
       {
-        xercesc::XMLPlatformUtils::Initialize();
+        Internal::xercesInitialize(); // serialised: Xerces requires it, and parseBuffer_() runs on several threads at once
       }
       catch (const xercesc::XMLException & toCatch)
       {
@@ -187,7 +189,7 @@ private:
       // initialize parser
       try
       {
-        xercesc::XMLPlatformUtils::Initialize();
+        Internal::xercesInitialize(); // serialised: Xerces requires it, and parseBuffer_() runs on several threads at once
       }
       catch (const xercesc::XMLException & toCatch)
       {

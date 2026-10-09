@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+
+#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -84,7 +86,7 @@ namespace OpenMS::Internal
 
       try
       {
-        XMLPlatformUtils::Initialize(); // Initialize Xerces infrastructure
+        Internal::xercesInitialize(); // Initialize Xerces infrastructure (serialised)
       }
       catch (XMLException& e)
       {
@@ -117,7 +119,7 @@ namespace OpenMS::Internal
 
       try
       {
-        XMLPlatformUtils::Initialize(); // Initialize Xerces infrastructure
+        Internal::xercesInitialize(); // Initialize Xerces infrastructure (serialised)
       }
       catch (XMLException& e)
       {
@@ -166,7 +168,7 @@ namespace OpenMS::Internal
       // Terminate Xerces
       try
       {
-        XMLPlatformUtils::Terminate(); // Terminate after release of memory
+        Internal::xercesTerminate(); // Terminate after release of memory (serialised)
       }
       catch (xercesc::XMLException& e)
       {

@@ -649,6 +649,19 @@ protected:
             "# runs: " + StringUtils::toStr(protein_ids.size()));
       }
 
+      // PercolatorInfile removes the precursor isotope error as observed minus theoretical. ProSE before
+      // report:isotope_error_convention (and with its setting 'theoretical_minus_observed') wrote the opposite sign
+      // and no 'isotope_error_convention' search parameter.
+      if (protein_ids.front().getSearchEngine() == "ProSE"
+          && !protein_ids.front().getSearchParameters().metaValueExists("isotope_error_convention"))
+      {
+        OPENMS_LOG_WARN << "Warning: '" << in << "' comes from a ProSE search without the search parameter "
+                        << "'isotope_error_convention' (ProSE before OpenMS 3.7, or report:isotope_error_convention="
+                        << "theoretical_minus_observed). Its 'isotope_error' has the opposite sign, so dm and absdm of "
+                        << "PSMs with a nonzero isotope error contain twice the isotope offset instead of none. Search "
+                        << "again with the default report:isotope_error_convention to correct this." << endl;
+      }
+
       //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
       for (PeptideIdentification& pep_id : peptide_ids)
       {
