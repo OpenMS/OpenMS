@@ -20,7 +20,8 @@ OpenMS Library:
   - FIX: OnDiscMSExperiment::getSpectrum and getChromatogram keep the retention time, MS level, name and
     all data arrays (float, string, integer, e.g. ion mobility) when an m/z, RT or intensity range is set.
     The range filter copied only the SpectrumSettings / ChromatogramSettings, and the data arrays are now
-    filtered together with the peaks.
+    filtered together with the peaks. The returned spectrum's or chromatogram's m/z, RT and intensity ranges
+    describe the kept peaks; a data array whose length does not match the peak list is emptied.
   - Added FileHandler::loadImagingExperiment(), which loads mass spectrometry imaging files (imzML and
     Bruker timsTOF MALDI imaging .d) into an MSImagingExperiment; exposed through pyOpenMS.
     FileHandler::loadExperiment() now rejects Bruker MALDI imaging .d folders with InvalidFileType, as

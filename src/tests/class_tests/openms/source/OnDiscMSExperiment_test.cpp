@@ -591,7 +591,13 @@ START_SECTION(([EXTRA] Range filters keep spectrum metadata and filter data arra
   };
 
   od.getOptions().setMZRange(DRange<1>(125.0, 165.0));   // keeps mz 130..160 -> indices 3..6
-  check(od.getSpectrum(0), {3, 4, 5, 6});
+  MSSpectrum s_mz = od.getSpectrum(0);
+  check(s_mz, {3, 4, 5, 6});
+  // the cached ranges describe the kept peaks, not the unfiltered spectrum
+  TEST_REAL_SIMILAR(s_mz.getMinMZ(), 130.0);
+  TEST_REAL_SIMILAR(s_mz.getMaxMZ(), 160.0);
+  TEST_REAL_SIMILAR(s_mz.getMinIntensity(), 40.0);
+  TEST_REAL_SIMILAR(s_mz.getMaxIntensity(), 70.0);
 
   od.getOptions() = PeakFileOptions();
   od.getOptions().setIntensityRange(DRange<1>(25.0, 65.0));   // keeps intensity 30..60 -> indices 2..5
@@ -624,10 +630,48 @@ START_SECTION(([EXTRA] Range filters keep spectrum metadata and filter data arra
     }
   };
   od.getOptions().setRTRange(DRange<1>(3.5, 6.5));   // rt 4..6 -> indices 3..5
-  checkChrom(od.getChromatogram(0), {3, 4, 5});
+  MSChromatogram c_rt = od.getChromatogram(0);
+  checkChrom(c_rt, {3, 4, 5});
+  TEST_REAL_SIMILAR(c_rt.getMinRT(), 4.0);
+  TEST_REAL_SIMILAR(c_rt.getMaxRT(), 6.0);
   od.getOptions() = PeakFileOptions();
   od.getOptions().setIntensityRange(DRange<1>(25.0, 55.0));   // intensity 30..50 -> indices 2..4
   checkChrom(od.getChromatogram(0), {2, 3, 4});
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Range filter on a spectrum with a data array of the wrong length does not throw))
+{
+  // a data array shorter than the peak list cannot be aligned with the kept peaks; it is emptied instead of throwing
+  PeakMap exp;
+  MSSpectrum spec;
+  spec.setRT(10.0);
+  for (Size i = 0; i < 10; ++i) spec.emplace_back(100.0 + 10.0 * i, 10.0 * (i + 1));
+  MSSpectrum::FloatDataArray fda;
+  fda.setName("short array");
+  fda.push_back(1.0);
+  fda.push_back(2.0);
+  spec.getFloatDataArrays().push_back(fda);
+  exp.addSpectrum(spec);
+
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  IndexedMzMLFileLoader().store(filename, exp);
+
+  OnDiscPeakMap od;
+  TEST_EQUAL(od.openFile(filename), true);
+  MSSpectrum ref = od.getSpectrum(0);
+  TEST_EQUAL(ref.size(), 10);
+  od.getOptions().setMZRange(DRange<1>(125.0, 165.0));
+  MSSpectrum s = od.getSpectrum(0);
+  TEST_EQUAL(s.size(), 4);
+  TEST_REAL_SIMILAR(s.getRT(), 10.0);
+  if (!ref.getFloatDataArrays().empty() && ref.getFloatDataArrays()[0].size() != ref.size())
+  {
+    // the reader kept the mis-sized array: the filtered spectrum must keep the array (and its name) but empty
+    TEST_EQUAL(s.getFloatDataArrays().size(), 1);
+    if (!s.getFloatDataArrays().empty()) TEST_EQUAL(s.getFloatDataArrays()[0].empty(), true);
+  }
 }
 END_SECTION
 
