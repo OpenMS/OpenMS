@@ -45,6 +45,7 @@ namespace OpenMS
       container.updateRanges();
     }
   } // namespace
+
   bool OnDiscMSExperiment::openFile(const std::string& filename, bool skipMetaData)
   {
     filename_ = filename;
