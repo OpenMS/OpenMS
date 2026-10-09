@@ -245,6 +245,11 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    All tools:
+      - FIX: -debug activates console debug logging in the main thread even when its
+        thread-local logger was initialized before parameter parsing. Debug levels from INI
+        files also take effect, and a subsequent run with debug disabled removes the console
+        destination from both the global configuration and the current thread (#10478).
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The

@@ -77,6 +77,26 @@ namespace OpenMS
 
   namespace
   {
+    // Existing thread-local loggers do not inherit later changes to the global configuration.
+    // Configure this thread as well as the template used by newly started worker threads.
+    void configureDebugLogging(bool enabled)
+    {
+      auto& local_debug = getThreadLocalLogDebug();
+      // Flush to the old destinations so suppressed or cached messages cannot leak into a later run.
+      local_debug.flushIncomplete();
+      local_debug.rdbuf()->clearCache();
+      if (enabled)
+      {
+        getGlobalLogDebug().insert(cout);
+        local_debug.insert(cout);
+      }
+      else
+      {
+        getGlobalLogDebug().remove(cout);
+        local_debug.remove(cout);
+      }
+    }
+
     /// Does any entry of @p valid_strings denote the same format as @p type?
     /// Compared by type, so a tool declaring 'fasta' accepts 'db.fa' and one declaring 'fa' accepts 'db.fasta'.
     /// Entries that are not known formats keep their exact spelling, so a custom extension only matches itself.
@@ -317,6 +337,7 @@ namespace OpenMS
 
     // set debug level
     debug_level_ = getParamAsInt_("debug", 0);
+    configureDebugLogging(debug_level_ > 0);
     writeDebug_("Debug level: " + StringUtils::toStr(debug_level_), 1);
 
     // print command line to console
@@ -512,8 +533,8 @@ namespace OpenMS
       // debug level
       //-------------------------------------------------------------
       debug_level_ = getParamAsInt_("debug", 0);
+      configureDebugLogging(debug_level_ > 0);
       writeDebug_("Debug level (after ini file): " + StringUtils::toStr(debug_level_), 1);
-      if (debug_level_ > 0) getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
       //-------------------------------------------------------------
       //progress logging
