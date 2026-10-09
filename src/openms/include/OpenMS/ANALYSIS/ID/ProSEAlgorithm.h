@@ -328,6 +328,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * - Maps delta masses to known modifications
      * - Generates PTM statistics with residue localization
      * - Writes TSV output files if output_base_name is provided
+     * - Applies FDR:protein as search() does, after the modification analysis
      *
      * @param in_spectra Input path to the spectra file (mzML or Bruker .d) containing MS/MS spectra
      * @param in_db Input path to the protein sequence database in FASTA format

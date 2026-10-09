@@ -2506,7 +2506,61 @@ END_SECTION
 
 START_SECTION((SearchResult searchWithModificationAnalysis(const std::string &, const std::string &, const std::string &) const))
 {
-  NOT_TESTABLE // tested via TOPP tool
+  // A single input is a complete experiment: both single-file overloads apply FDR:protein as search(file) does
+  // (protein inference, picked-protein FDR, decoys removed), after the modification analysis.
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  std::string tmp_mzml;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  std::string tmp_fasta;
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FASTAFile().store(tmp_fasta, fasta_db);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("FDR:PSM", 0.05);
+  p.setValue("FDR:protein", 0.5);
+  algo.setParameters(p);
+
+  const auto accessions = [](const std::vector<ProteinIdentification>& runs)
+  {
+    std::vector<std::string> acc;
+    for (const ProteinHit& hit : runs.at(0).getHits()) { acc.push_back(hit.getAccession()); }
+    std::sort(acc.begin(), acc.end());
+    return ListUtils::concatenate(acc, ",");
+  };
+  const auto decoy_psms = [](const PeptideIdentificationList& peptide_ids)
+  {
+    Size n = 0;
+    for (const auto& pid : peptide_ids) { for (const auto& hit : pid.getHits()) { n += hit.isDecoy(); } }
+    return n;
+  };
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(tmp_mzml, tmp_fasta, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(decoy_psms(pep_ids), 0)
+
+  ProSEAlgorithm::SearchResult from_file = algo.searchWithModificationAnalysis(tmp_mzml, tmp_fasta);
+  TEST_EQUAL(from_file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(from_file.is_open_search, true)
+  TEST_EQUAL(accessions(from_file.protein_ids), accessions(prot_ids))
+  TEST_EQUAL(decoy_psms(from_file.peptide_ids), 0)
+
+  ProSEAlgorithm::SearchResult in_memory = algo.searchWithModificationAnalysis(spectra, fasta_db);
+  TEST_EQUAL(in_memory.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(accessions(in_memory.protein_ids), accessions(prot_ids))
+  TEST_EQUAL(decoy_psms(in_memory.peptide_ids), 0)
 }
 END_SECTION
 

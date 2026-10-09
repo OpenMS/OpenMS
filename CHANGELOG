@@ -188,6 +188,9 @@ OpenMS Library:
     scoring:method, when the parameters are set; such searches ended without hits or with inflated
     scores. An exception on a worker thread of the parallel preprocessing, scoring and calibration
     loops is rethrown after the loop instead of terminating the process.
+  - FIX: ProSEAlgorithm::searchWithModificationAnalysis() for a single input (spectrum file or
+    in-memory spectra) ignored FDR:protein and returned the decoys; like search(), it now applies
+    protein inference and picked-protein FDR and removes the decoys.
   - FIX: GlobalExceptionHandler records the last exception per thread (the fields were shared strings
     that exceptions constructed on several threads at once wrote concurrently), and its singleton is
     initialised thread-safely. Xerces initialisation and termination are serialised
