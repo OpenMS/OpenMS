@@ -269,6 +269,22 @@ START_SECTION(([QcMLFile::Attachment] std::string toXMLString(UInt indentation_l
   TEST_EQUAL(xml.find("unitAccession=\"UO:0000169\"") != std::string::npos, true)
   TEST_EQUAL(xml.find("unitRef=\"") != std::string::npos, false)
   TEST_EQUAL(xml.find("unitAcc=\"") != std::string::npos, false)
+
+  // CPP-156: the table-row writer computed a space-substituted copy_row but then concatenated
+  // the original, unmodified row (*it) instead, so a cell containing a space (e.g. "hello world")
+  // is written with the space intact and becomes two tokens when the row is split on whitespace
+  // while reloading.
+  QcMLFile::Attachment table_at;
+  table_at.colTypes.push_back("col1");
+  table_at.colTypes.push_back("col2");
+  std::vector<std::string> row;
+  row.push_back("hello world");
+  row.push_back("x");
+  table_at.tableRows.push_back(row);
+
+  std::string table_xml = table_at.toXMLString(0);
+  TEST_EQUAL(table_xml.find("hello_world") != std::string::npos, true)
+  TEST_EQUAL(table_xml.find("hello world") != std::string::npos, false)
 }
 END_SECTION
 

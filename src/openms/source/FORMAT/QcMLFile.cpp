@@ -239,7 +239,7 @@ namespace OpenMS
           StringUtils::substitute(sit, std::string(" "), std::string("_"));
         }
 
-        s += StringUtils::trimmed(ListUtils::concatenate(*it, " "));
+        s += StringUtils::trimmed(ListUtils::concatenate(copy_row, " "));
         s += "</tableRowValues>\n";
       }
       s += "</table>";
