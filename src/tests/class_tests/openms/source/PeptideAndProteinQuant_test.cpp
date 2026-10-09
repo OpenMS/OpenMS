@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 #include <algorithm>
 #include <cmath>
@@ -1497,6 +1498,43 @@ START_SECTION(([EXTRA] best_charge selects by assay prevalence and retains all s
   TEST_EQUAL(qpx_labels[0], 1);
   TEST_EQUAL(qpx_labels[1], 2);
   TEST_EQUAL(qpx_labels[2], 3);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] annotateQuantificationsToProteins keeps file/channel abundances of dotted file names))
+{
+  // "run.v1.mzML" has the stem "run.v1"; the design file name must not be stripped twice
+  // (to "run"), or every file/channel abundance of such a file is reported as 0.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_fractionated_input({"run.v1"}, 2,
+                          {{0, 1, "PEPTIDEK", 2, 10.0},
+                           {0, 2, "PEPTIDEK", 2, 20.0}},
+                          "Prot", consensus, design);
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("top:N", 0);
+  p.setValue("top:aggregate", "sum");
+  p.setValue("top:include_all", "true");
+  quantifier.setParameters(p);
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins();
+
+  ProteinIdentification proteins;
+  ProteinIdentification::ProteinGroup group;
+  group.accessions = {"Prot"};
+  group.probability = 1.0;
+  proteins.getIndistinguishableProteins().push_back(group);
+  quantifier.annotateQuantificationsToProteins(quantifier.getProteinResults(), proteins, true);
+  const auto& annotated = proteins.getIndistinguishableProteins().front();
+  const auto& abundances = *getDataArrayByName(annotated.getFloatDataArrays(), "file_channel_level_abundance");
+  const auto& filenames = *getDataArrayByName(annotated.getStringDataArrays(), "file_channel_level_filename");
+  TEST_EQUAL(abundances.size(), 2);
+  TEST_REAL_SIMILAR(abundances[0], 10.0);
+  TEST_REAL_SIMILAR(abundances[1], 20.0);
+  TEST_STRING_EQUAL(filenames[0], "run.v1");
 }
 END_SECTION
 

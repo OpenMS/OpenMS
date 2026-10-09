@@ -505,10 +505,12 @@ namespace OpenMS
       std::exception_ptr error;
       std::atomic<bool> failed(false);
 
-#ifdef _OPENMP
       // at most one thread per block and at most 16: with more, the formatting outruns the serial write into the file and
-      // the threads only wait
-      const int team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
+      // the threads only wait. Declared without OpenMP, too: with the -fopenmp-simd fallback the compiler still parses
+      // the clauses of the parallel pragma below.
+      [[maybe_unused]] int team_size = 1;
+#ifdef _OPENMP
+      team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
 #endif
 #pragma omp parallel if (num_blocks > 1) num_threads(team_size)
       {
