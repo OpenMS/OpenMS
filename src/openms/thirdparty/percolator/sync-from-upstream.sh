@@ -41,6 +41,7 @@ echo ">>> Applying local patches..."
 # paths (apply with -p0); 02-06 use `git format-patch` style with a/b/
 # prefixes (apply with -p1). Auto-detect per-patch by inspecting first line.
 repo_root=$(git -C "$here" rev-parse --show-toplevel)
+failed=""
 for p in "$here/patches/"*.patch; do
   [ -e "$p" ] || continue
   echo "  applying $p"
@@ -50,7 +51,7 @@ for p in "$here/patches/"*.patch; do
     p_level=0
   fi
   # --reject leaves partial failures visible in *.rej files; continue on fail.
-  git -C "$repo_root" apply --reject --whitespace=nowarn "-p$p_level" "$p" 2>&1 || true
+  git -C "$repo_root" apply --reject --whitespace=nowarn "-p$p_level" "$p" 2>&1 || failed+=" $(basename "$p")"
 done
 
 echo ">>> Normalizing line endings (CRLF -> LF) post-patch..."
@@ -62,6 +63,11 @@ rej_count=$(find "$here" -maxdepth 1 -name "*.rej" 2>/dev/null | wc -l)
 if [ "$rej_count" -gt 0 ]; then
   echo "  WARN: $rej_count files had hunks that failed — see *.rej files"
   find "$here" -maxdepth 1 -name "*.rej" -printf "    %f\n"
+fi
+
+if [ -n "$failed" ]; then
+  echo "ERROR: patches did not apply:$failed; upstream commit not recorded" >&2
+  exit 1
 fi
 
 echo ">>> Recording upstream commit..."
