@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
+#include <OpenMS/ANALYSIS/ID/FragmentIonLikelihoodModel.h>
 #include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
@@ -20,9 +21,12 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>   // std::min (used by inline computeModMatchTolerance_)
+#include <functional>  // std::hash (ProteinMapping_)
 #include <iosfwd>      // std::ostream (renderRunSummary / renderModificationSummary)
 #include <map>
 #include <string>      // std::string (renderRunSummaryJson return / manifest)
+#include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>     // std::pair (renderRunSummaryJson manifest)
 #include <vector>
@@ -299,6 +303,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            double protein_fdr);
 
     /**
+     * @brief Annotate PSM q-values by target-decoy competition of the best hit of each spectrum, as FDR:PSM does.
+     *
+     * Uses FalseDiscoveryRate (decoy hits are kept and annotated) and replaces hit scores by q-values; no filtering.
+     * With FDR:PSM_groups = 'scored_charges' and multiply charged fragments scored (scoring:fragment_charges), PSMs
+     * whose best hits were scored with different numbers of fragment charges compete separately, because HyperScore
+     * grows with the number of theoretical ions. With one group, or a group without target or decoy hits, all PSMs
+     * compete together.
+     *
+     * @param[in,out] peptide_ids PSMs with target_decoy annotations (PeptideIndexing).
+     */
+    void annotatePsmQValues(PeptideIdentificationList& peptide_ids) const;
+
+    /**
      * @brief Search with comprehensive results including modification analysis tables
      *
      * This method performs a peptide database search and additionally returns
@@ -529,6 +546,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       uint16_t applied_charge = 0; ///< precursor charge used for this PSM
       uint16_t matched_prefix_ions = 0; ///< number of matched prefix ions (a/b/c)
       uint16_t matched_suffix_ions = 0; ///< number of matched suffix ions (x/y/z)
+      UInt32 index_peptide = 0; ///< the candidate: its index in FragmentIndex::getPeptides() of the searched index (protein mapping)
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
@@ -605,22 +623,89 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
-     * @brief Filter, deisotope and decharge spectra.
-     *
-     * Optionally retains two spectrum-aligned copies of each spectrum (same order as @p exp after sorting by RT):
-     * @p query_spectra after zero-intensity removal and m/z sorting, before deisotoping and local filtering
-     * (candidate retrieval with fragment:query_spectrum=raw), and @p evidence_spectra after deisotoping, before
-     * window/top-N filtering (annotate:local_fragment_evidence).
-     */
+      @brief MS2 deisotoping rule of preprocessSpectra_().
+
+      Filled from the parameters fragment:deisotope_* by updateMembers_(), whose defaults are the Sage-like rule
+      (min_peaks = 2, charge_cap_precursor: charges up to the precursor charge, at most 3, and sum_intensity). The member
+      defaults are the behaviour before these parameters existed (envelopes of at least three peaks, charges 1-3 in every
+      spectrum, the monoisotopic peak keeps its own intensity); the preprocessSpectra_() overload without settings uses them.
+    */
+    struct DeisotopingSettings_
+    {
+      unsigned int min_peaks{3};          ///< fragment:deisotope_min_peaks
+      bool charge_cap_precursor{false};   ///< fragment:deisotope_charge_cap = precursor
+      bool sum_intensity{false};          ///< fragment:deisotope_sum_intensity
+    };
+
+    /**
+      @brief filter, deisotope, decharge spectra
+
+      @p deisotoping sets the envelope rule of the deisotoper (see DeisotopingSettings_).
+
+      With @p ion_evidence, a compact copy of every spectrum's peaks is kept for the self-trained ion priors
+      (annotate:self_trained_ion_priors): the peaks after deisotoping, before the window and top-N filters, or, with
+      @p ion_evidence_scored_peaks, the peaks that are scored. The lists are indexed like @p exp after its sort by RT.
+
+      With @p query_spectra, a copy of each spectrum after zero-intensity removal and m/z sorting, before
+      deisotoping and local filtering, is kept for candidate retrieval (fragment:query_spectrum=raw); with
+      @p evidence_spectra, a copy after deisotoping, before window/top-N filtering (annotate:local_fragment_evidence).
+      Both are aligned with @p exp after its sort by RT.
+    */
     static void preprocessSpectra_(PeakMap& exp,
                                    double fragment_mass_tolerance,
                                    bool fragment_mass_tolerance_unit_ppm,
                                    bool deisotope_requested,
                                    Size peaks_keep_n,
                                    Int peaks_window_top,
-                                   const std::string& window_type = "auto",
+                                   const std::string& window_type,
+                                   const DeisotopingSettings_& deisotoping,
+                                   FragmentIonLikelihoodModel::PeakLists* ion_evidence = nullptr,
+                                   bool ion_evidence_scored_peaks = false,
                                    PeakMap* evidence_spectra = nullptr,
                                    PeakMap* query_spectra = nullptr);
+
+    /// preprocessSpectra_() with the DeisotopingSettings_ defaults (the behaviour before its parameters existed)
+    static void preprocessSpectra_(PeakMap& exp,
+                                   double fragment_mass_tolerance,
+                                   bool fragment_mass_tolerance_unit_ppm,
+                                   bool deisotope_requested,
+                                   Size peaks_keep_n,
+                                   Int peaks_window_top,
+                                   const std::string& window_type = "auto");
+
+    /**
+     * @brief Learn per-run fragment ion likelihoods from confident PSMs and annotate every hit with them.
+     *
+     * Implements annotate:self_trained_ion_priors. The spectra are split into two folds by the parity of their
+     * scan_index. Each fold trains its own FragmentIonLikelihoodModel on its rank-one target hits at target-decoy
+     * competition q <= annotate:ion_prior_train_fdr of the native score, computed within the fold, with their
+     * reversed sequences matched against the same spectra as noise. Every hit is then scored by the model of the
+     * other fold (cross-fitting), so neither a PSM's own spectrum nor its label, nor any other label of its fold,
+     * enters the model that scores it; targets and decoys are scored alike. Both folds need
+     * annotate:ion_prior_min_psms training PSMs (a fold without a decoy hit has the estimate (0 + 1) / T); otherwise
+     * all features of the file are 0 and a warning is logged. This run-level gate is the one place where the labels
+     * of a fold reach its own features: at the boundary, a single label (in either fold) decides whether both folds
+     * get their cross-fitted features or all zeros. The gate treats targets and decoys alike, but it is not formally
+     * independent of the labels. Adds the feature names to the search parameters' extra_features and records the
+     * settings that determine the features (annotate:ion_prior_*) and the training set (ion_prior:*). Native scores
+     * and the retained candidates are unchanged. Call after PeptideIndexing (target/decoy labels) and before FDR
+     * (which overwrites the native scores). Does nothing when the ion priors are off, which includes target-only
+     * searches (decoys=ignore).
+     *
+     * @param[in] spectra Preprocessed spectra, indexed by the scan_index meta value of the PSMs (precursor
+     *            activation selects the ion series).
+     * @param[in] evidence Peak lists of the same spectra from preprocessSpectra_.
+     * @param[in,out] protein_ids Search parameters of protein_ids[0] receive the feature names and training facts.
+     * @param[in,out] peptide_ids Every hit receives the meta values of annotate:ion_prior_features (ion_prior_llr,
+     *                ion_prior_explained, ion_prior_topk_observed).
+     */
+    void annotateIonPriors_(const PeakMap& spectra,
+                            const FragmentIonLikelihoodModel::PeakLists& evidence,
+                            std::vector<ProteinIdentification>& protein_ids,
+                            PeptideIdentificationList& peptide_ids) const;
+
+    /// Reversed sequence keeping the C-terminal residue and every residue's modification: the noise hypothesis of a confident PSM
+    static AASequence reversedNoiseSequence_(const AASequence& sequence);
 
     /// Keep the strongest peaks in each non-overlapping 100 Da window, including a short final window.
     static void filterLocalPeaks_(MSSpectrum& spectrum, Size peaks_per_window);
@@ -716,6 +801,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                                         const std::vector<double>& densities,
                                                         double tolerance, bool ppm);
 
+    /// localFragmentEvidence_() restricted to the ions of @p theoretical with charge <= @p max_charge, with a
+    /// caller-owned buffer for the sorted alternative assignments (reused across candidates).
+    static LocalFragmentEvidence_ localFragmentEvidence_(const MSSpectrum& spectrum,
+                                                        const MSSpectrum& theoretical,
+                                                        int max_charge,
+                                                        const std::vector<double>& densities,
+                                                        double tolerance, bool ppm,
+                                                        std::vector<double>& alternatives);
+
     /// True if the precursor of @p spectrum was activated by electrons (ETD, ECD, EThcD or ETciD)
     static bool isElectronActivated_(const MSSpectrum& spectrum);
 
@@ -732,6 +826,21 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
         const std::vector<FASTAFile::FASTAEntry>& fasta_db,
         const DecoyStrategy_& strategy) const;
+
+    /// As above, but takes the entries of @p fasta_db over instead of copying them
+    std::vector<FASTAFile::FASTAEntry> buildDecoyAugmentedDB_(
+        std::vector<FASTAFile::FASTAEntry>&& fasta_db,
+        const DecoyStrategy_& strategy) const;
+
+    /// prepareContext(fasta_db, electron_ions) that takes the entries of @p fasta_db over instead of copying them.
+    /// With @p searched_spectra, the index holds only the peptides these spectra can reach (see FragmentIndex::build):
+    /// the context then serves only one search of these spectra, without calibration.
+    SearchContext prepareContext_(std::vector<FASTAFile::FASTAEntry>&& fasta_db, bool electron_ions,
+                                  const std::function<const PeakMap*(Size)>& searched_spectra = {}) const;
+
+    /// Whether a single-use context may index only the peptides the searched spectra can reach: not with
+    /// calibration, which may change the precursor windows after the index is built.
+    bool restrictIndexToSpectra_() const { return !calibration_enabled_; }
 
     /**
      * @brief Build a strided protein sample for chunked calibration.
@@ -864,8 +973,6 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size precursor_min_charge_;
     Size precursor_max_charge_;
 
-    IntList precursor_isotopes_;
-
     double fragment_mass_tolerance_;
 
     std::string fragment_mass_tolerance_unit_;
@@ -877,6 +984,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool deisotope_requested_{true};
     bool scoring_multiple_charges_{false}; ///< Resolved scoring:fragment_charges: score charges above 1
     int scoring_max_charge_{2};            ///< Upper fragment charge bound (fragment:max_charge)
+    bool mass_accuracy_score_{false};      ///< Resolved scoring:method: mass-accuracy weighted HyperScore
+    double mass_error_sd_ppm_{7.0};        ///< Width of the mass-accuracy kernel in ppm (scoring:mass_error_sd)
 
     /// Fragment charges that score a candidate of the given precursor charge; also used by the calibration pass.
     int scoringMaxCharge_(int precursor_charge) const
@@ -886,6 +995,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     Size peaks_keep_n_{0};     ///< NLargest cap on MS2 peaks before scoring; 0 = resolution-aware auto (peaks:keep_n)
     Int peaks_window_top_{20}; ///< WindowMower peaks-per-100Da before scoring (peaks:window_top)
     std::string peaks_window_type_ {"auto"}; ///< Resolution-aware treatment of the final peak window
+    DeisotopingSettings_ deisotoping_;        ///< MS2 deisotoping rule (fragment:deisotope_*)
     bool query_raw_spectrum_{false}; ///< Retrieve candidates with the spectrum before deisotoping and local filtering (fragment:query_spectrum)
 
     StringList modifications_fixed_;
@@ -900,9 +1010,20 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string decoy_prefix_;
 
     double fdr_psm_{0.0};
+    bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
 
     StringList annotate_psm_;
+
+    bool self_trained_ion_priors_{false};       ///< annotate:self_trained_ion_priors
+    FragmentIonLikelihoodModel::ContextSet ion_prior_model_{FragmentIonLikelihoodModel::ContextSet::RICH}; ///< annotate:ion_prior_model
+    bool ion_prior_scored_peaks_{false};        ///< annotate:ion_prior_peaks == scored
+    int ion_prior_max_fragment_charge_{2};      ///< annotate:ion_prior_max_fragment_charge (capped at precursor charge - 1)
+    double ion_prior_train_fdr_{0.01};          ///< annotate:ion_prior_train_fdr: TDC q-value threshold of the training PSMs
+    Size ion_prior_min_psms_{100};              ///< annotate:ion_prior_min_psms: training PSMs required per fold
+    bool ion_prior_feature_llr_{true};          ///< annotate:ion_prior_features holds ion_prior_llr
+    bool ion_prior_feature_explained_{true};    ///< annotate:ion_prior_features holds ion_prior_explained
+    bool ion_prior_feature_topk_{false};        ///< annotate:ion_prior_features holds ion_prior_topk_observed
 
     Size peptide_min_size_;
     Size peptide_max_size_;
@@ -912,6 +1033,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     std::string peptide_motif_;
 
     Size report_top_hits_;
+    /// report:isotope_error_convention: the PSMs report isotope_error as observed minus theoretical (true) or with the
+    /// sign of the search offset, theoretical minus observed (false)
+    bool isotope_error_observed_minus_theoretical_{true};
 
     bool add_a_ions_{false};
     bool add_b_ions_{true};
@@ -921,6 +1045,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     bool add_z_ions_{false};
     bool add_zp1_ions_{false};
     bool ions_by_activation_{true}; ///< add c and z+1 ions for electron-activated spectra
+    bool protein_mapping_from_index_{true}; ///< peptide:protein_mapping = index
 
     Size database_chunk_size_{0};  ///< 0 = disabled; >0 = chunk DB into groups of this many proteins
 
@@ -1002,6 +1127,75 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                            FragmentIndex& fragment_index,
                                            const std::vector<FASTAFile::FASTAEntry>& db,
                                            const PeakMap* query_spectra = nullptr) const;
+
+    /**
+     * @brief The protein occurrences of the sequences of a search's hits (peptide:protein_mapping = index).
+     *
+     * buildProteinMapping_() collects them while the fragment index exists, applyProteinMapping_() writes what
+     * PeptideIndexing::run() writes. PeptideIndexing (without mismatches and I/L equivalence; missed cleavages
+     * ignored; the initial methionine and the residue after it may be cleaved off) maps an unmodified hit
+     * sequence S to every (protein, position) at which S occurs, where up to aaa_max ambiguous residues (B, J, Z, X)
+     * of the protein may stand for residues of S, and isValidProduct() accepts the span. These are:
+     *  1. the spans of the digest of the index with the residues S (FragmentIndex::getProteinOccurrences(), which
+     *     includes the occurrences removed by peptide:deduplicate): they lie at enzymatic cleavage sites, have the
+     *     missed cleavages, length and mass of S and no ambiguous residue;
+     *  2. spans at position 1 or 2 of a protein that starts with M, which isValidProduct() takes as N-terminal;
+     *  3. spans over 1 to aaa_max ambiguous residues, each one standing for a residue that AhoCorasickAmbiguous
+     *     matches it with.
+     * The spans of 2. and 3. are checked with isValidProduct(). Configurations, databases and hits for which this
+     * does not reproduce PeptideIndexing exactly leave a reason (fallback_reason); then PeptideIndexing runs.
+     */
+    struct ProteinMapping_
+    {
+      /// Number of hash tables that sequences are spread over (by their hash), so that they are filled in parallel
+      static constexpr Size SHARDS = 64;
+      /// The unmodified hit sequences (views into the database), one entry each
+      std::vector<std::string_view> sequences;
+      /// Per entry: its occurrences {protein index, position}, ascending (PeptideIndexing's evidence order)
+      std::vector<std::vector<std::pair<UInt32, UInt32>>> occurrences;
+      /// Sequence -> entry, in SHARDS hash tables
+      std::vector<std::unordered_map<std::string_view, Size>> entries;
+      /// Why PeptideIndexing has to run instead; empty if the mapping applies
+      std::string fallback_reason;
+
+      /// The entry of @p sequence, or sequences.size() if there is none
+      Size find(std::string_view sequence) const
+      {
+        if (entries.empty()) return sequences.size();
+        const auto& table = entries[std::hash<std::string_view>{}(sequence) % SHARDS];
+        const auto entry = table.find(sequence);
+        return entry == table.end() ? sequences.size() : entry->second;
+      }
+    };
+
+    /**
+     * @brief Collects the protein occurrences of the sequences of the index peptides @p candidates.
+     *
+     * @param[in] index The searched fragment index (built from @p db); must still hold its peptides
+     * @param[in] db The searched database
+     * @param[in] candidates Indices into FragmentIndex::getPeptides(): the candidates of the hits (in any order,
+     *            repeats allowed)
+     * @param[in] indexer_parameters The parameters PeptideIndexing would run with
+     */
+    static ProteinMapping_ buildProteinMapping_(const FragmentIndex& index,
+                                                const std::vector<FASTAFile::FASTAEntry>& db,
+                                                std::vector<UInt32> candidates,
+                                                const Param& indexer_parameters);
+
+    /**
+     * @brief Writes what PeptideIndexing::run(@p db, @p protein_ids, @p peptide_ids) with @p indexer_parameters
+     * writes: the evidences, target_decoy and protein_references of every hit, the protein hits and the
+     * PeptideIndexer:* search parameters.
+     *
+     * @return false, with @p fallback_reason set and nothing changed, if @p mapping cannot reproduce PeptideIndexing
+     *         for these identifications (e.g. a hit whose sequence it does not hold); then PeptideIndexing has to run.
+     */
+    static bool applyProteinMapping_(const ProteinMapping_& mapping,
+                                     const std::vector<FASTAFile::FASTAEntry>& db,
+                                     const Param& indexer_parameters,
+                                     std::vector<ProteinIdentification>& protein_ids,
+                                     PeptideIdentificationList& peptide_ids,
+                                     std::string& fallback_reason);
 
     /// Helper: does @p accession carry the decoy @p marker at the given position?
     /// Empty marker → false. Pure std::string (no String dependency).

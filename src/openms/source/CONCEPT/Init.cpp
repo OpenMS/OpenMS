@@ -10,8 +10,30 @@
 
 #include <xercesc/util/PlatformUtils.hpp>
 
+#include <mutex>
+
 namespace OpenMS::Internal
 {
+  namespace
+  {
+    std::mutex& xercesMutex()
+    {
+      static std::mutex mutex;
+      return mutex;
+    }
+  }
+
+  void xercesInitialize()
+  {
+    const std::lock_guard<std::mutex> lock(xercesMutex());
+    xercesc::XMLPlatformUtils::Initialize();
+  }
+
+  void xercesTerminate()
+  {
+    const std::lock_guard<std::mutex> lock(xercesMutex());
+    xercesc::XMLPlatformUtils::Terminate();
+  }
 
   // Initialize xerces
   // see ticket #352 for more details
@@ -19,12 +41,12 @@ namespace OpenMS::Internal
   {
     xerces_init() 
     {
-      xercesc::XMLPlatformUtils::Initialize();
+      xercesInitialize();
     }
 
     ~xerces_init() 
     {
-      xercesc::XMLPlatformUtils::Terminate();
+      xercesTerminate();
     }
 
   };
