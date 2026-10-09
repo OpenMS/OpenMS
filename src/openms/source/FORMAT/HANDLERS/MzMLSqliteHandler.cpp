@@ -200,6 +200,11 @@ namespace OpenMS::Internal
           {
             containers[curr_id].resize(data.size());
           }
+          else if (containers[curr_id].size() != data.size())
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Intensity array length does not match the length of a previously read data array for the same spectrum / chromatogram");
+          }
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
@@ -210,15 +215,20 @@ namespace OpenMS::Internal
         else if (data_type == 0)
         {
           // mz (should only occur in spectra)
-          if (boost::is_same<ContainerT, MSChromatogram>::value) 
+          if (boost::is_same<ContainerT, MSChromatogram>::value)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Found m/z data type for chromatogram (instead of retention time)");
           }
 
           if (containers[curr_id].empty())
           {
             containers[curr_id].resize(data.size());
+          }
+          else if (containers[curr_id].size() != data.size())
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "m/z array length does not match the length of a previously read data array for the same spectrum");
           }
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
@@ -230,12 +240,20 @@ namespace OpenMS::Internal
         else if (data_type == 2)
         {
           // rt (should only occur in chromatograms)
-          if (boost::is_same<ContainerT, MSSpectrum >::value) 
+          if (boost::is_same<ContainerT, MSSpectrum >::value)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Found retention time data type for spectrum (instead of m/z)");
           }
-          if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
+          if (containers[curr_id].empty())
+          {
+            containers[curr_id].resize(data.size());
+          }
+          else if (containers[curr_id].size() != data.size())
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Retention time array length does not match the length of a previously read data array for the same chromatogram");
+          }
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {

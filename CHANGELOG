@@ -57,6 +57,11 @@ OpenMS Library:
     Loading idXML, featureXML and consensusXML refuses a protein reference (protein_refs) to a protein hit
     of another run (it was resolved file-wide, so such references, e.g. written by the former 'PH_0'
     fallback, named whatever protein that hit was).
+  - FIX: OnDiscMSExperiment::getSpectrum and getChromatogram keep the retention time, MS level, name and
+    all data arrays (float, string, integer, e.g. ion mobility) when an m/z, RT or intensity range is set.
+    The range filter copied only the SpectrumSettings / ChromatogramSettings, and the data arrays are now
+    filtered together with the peaks. The returned spectrum's or chromatogram's m/z, RT and intensity ranges
+    describe the kept peaks; a data array whose length does not match the peak list is emptied.
   - BrukerTimsFile applies the ModelType 2 correction of the MzCalibration table (columns C5..C14:
     a polynomial in m/z subtracted inside the calibrant range, as in Bruker's high precision
     calibration). When these columns are present and usable, m/z now matches the Bruker SDK inside
