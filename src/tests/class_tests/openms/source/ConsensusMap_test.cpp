@@ -1015,6 +1015,44 @@ START_SECTION((Size eraseFeatures(const std::function<bool(const ConsensusFeatur
   TEST_EQUAL(map[0].getLinkedIdentifications(map.getIdentificationData()).size(), 1)
   TEST_TRUE(map.getUnassignedIdentifications().empty())
   map.getIdentificationData().validate();
+
+}
+END_SECTION
+
+START_SECTION((Size eraseUnassignedIdentifications()))
+{
+  ConsensusMap map;
+  using ID = IdentificationData;
+  auto& run = map.getIdentificationData().addRun("search");
+  ID::ScoreDefinition raw;
+  raw.name = "raw";
+  run.setPrimaryScore(run.addScore(raw));
+  const auto source = run.addSource({});
+  const auto linked = run.addIdentification(source, {});
+  const auto partly = run.addIdentification(source, {});
+  run.addIdentification(source, {}); // without matches, not linked
+  const auto unlinked = run.addIdentification(source, {});
+  ID::MatchData data;
+  data.representation = "PEPTIDE";
+  run.addMatch(linked, data, {1.0});
+  const auto kept = run.addMatch(partly, data, {2.0});
+  data.representation = "PEPTIDER";
+  run.addMatch(partly, data, {3.0});
+  run.addMatch(unlinked, data, {4.0});
+  map.resize(2);
+  map[0].addIDQuery({run.getUuid(), linked});
+  map[1].addIDMatch({run.getUuid(), kept});
+  // A feature that links an identification links it without its matches (a peptide identification without hits):
+  // its match is unassigned, as are the match of the partly linked one and the two identifications no feature links.
+  TEST_EQUAL(map.getUnassignedIdentifications().size(), 4)
+  TEST_EQUAL(map.eraseUnassignedIdentifications(), 4)
+  const auto& remaining = map.getIdentificationData().getRuns()[0];
+  TEST_EQUAL(remaining.getNumberOfIdentifications(), 2)
+  TEST_EQUAL(remaining.getNumberOfMatches(), 1)
+  TEST_EQUAL(remaining.getIdentification(linked).getMatches().empty(), true)
+  TEST_TRUE(map.getUnassignedIdentifications().empty())
+  TEST_EQUAL(map[1].getLinkedIdentifications(map.getIdentificationData())[0].matches.size(), 1)
+  map.getIdentificationData().validate();
 }
 END_SECTION
 

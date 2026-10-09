@@ -396,6 +396,18 @@ public:
     */
     Size eraseFeatures(const std::function<bool(const ConsensusFeature&)>& remove);
 
+    /**
+      @brief Erase the identifications and matches that no consensus feature links: the counterpart of clearing the
+      unassigned peptide identifications (see getUnassignedIdentifications())
+
+      An identification that no feature links goes with its matches if none of them is linked; of an identification
+      that a feature links (as a peptide identification without hits) or links through some of its matches, the
+      other matches go.
+
+      @return The number of erased identifications and matches
+    */
+    Size eraseUnassignedIdentifications();
+
     /// Immutable access to the contained identification data
     const IdentificationData& getIdentificationData() const;
 

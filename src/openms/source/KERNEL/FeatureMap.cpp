@@ -602,6 +602,38 @@ namespace OpenMS
     return eraseFlaggedFeatures(*this, erase, links);
   }
 
+  Size FeatureMap::eraseUnassignedIdentifications()
+  {
+    using ID = IdentificationData;
+    std::set<ID::QueryReference> linked_queries;
+    std::set<ID::MatchReference> linked_matches;
+    const auto collect = [&](const auto& self, const Feature& feature) -> void {
+      linked_queries.insert(feature.getIDQueries().begin(), feature.getIDQueries().end());
+      linked_matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+      for (const auto& subordinate : feature.getSubordinates())
+        self(self, subordinate);
+    };
+    for (const auto& feature : *this)
+      collect(collect, feature);
+    std::set<ID::QueryReference> queries;
+    std::set<ID::MatchReference> matches;
+    for (const auto& entry : id_data_.getUnlinked(linked_queries, linked_matches))
+    {
+      const ID::QueryReference reference {entry.run->getUuid(), entry.query->getId()};
+      // An identification that no feature links, with no linked match, is unassigned as a whole. Of one that a feature
+      // links (as a peptide identification without hits), or links through some of its matches, the other matches are.
+      if (! linked_queries.contains(reference) && entry.matches.size() == entry.query->getMatches().size()) queries.insert(reference);
+      else
+        for (const auto* match : entry.matches) matches.insert({reference.run_uuid, match->getId()});
+    }
+    const Size n_matches = eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
+      return matches.contains({run.getUuid(), match.getId()});
+    });
+    return n_matches + eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) {
+      return queries.contains({run.getUuid(), query.getId()});
+    });
+  }
+
   std::vector<IdentificationData::QueryMatches> FeatureMap::getUnassignedIdentifications() const
   {
     std::set<IdentificationData::QueryReference> queries;

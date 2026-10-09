@@ -835,6 +835,36 @@ START_SECTION((Size eraseFeatures(const std::function<bool(const Feature&)>& rem
   legacy[0].getPeptideIdentifications().resize(1);
   TEST_EQUAL(legacy.eraseFeatures([](const Feature& feature) { return ! feature.getPeptideIdentifications().empty(); }), 1)
   TEST_EQUAL(legacy.size(), 1)
+
+}
+END_SECTION
+
+START_SECTION((Size eraseUnassignedIdentifications()))
+{
+  FeatureMap map;
+  using ID = IdentificationData;
+  auto& run = map.getIdentificationData().addRun("search");
+  ID::ScoreDefinition raw;
+  raw.name = "raw";
+  run.setPrimaryScore(run.addScore(raw));
+  const auto source = run.addSource({});
+  const auto by_subordinate = run.addIdentification(source, {});
+  const auto unlinked = run.addIdentification(source, {});
+  ID::MatchData data;
+  data.representation = "PEPTIDE";
+  const auto subordinate_match = run.addMatch(by_subordinate, data, {1.0});
+  run.addMatch(unlinked, data, {2.0});
+  map.resize(1);
+  Feature subordinate;
+  subordinate.addIDMatch({run.getUuid(), subordinate_match});
+  map[0].getSubordinates().push_back(subordinate);
+  // the match a subordinate links stays with its identification
+  TEST_EQUAL(map.eraseUnassignedIdentifications(), 1)
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 1)
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfMatches(), 1)
+  TEST_EQUAL(map.getIdentificationData().getRuns()[0].findIdentification(by_subordinate) != nullptr, true)
+  TEST_TRUE(map.getUnassignedIdentifications().empty())
+  TEST_EQUAL(map.eraseUnassignedIdentifications(), 0)
 }
 END_SECTION
 

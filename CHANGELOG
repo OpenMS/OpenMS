@@ -169,6 +169,14 @@ OpenMS Library:
     identifications in its consensusXML and its mzTab PSM rows now follow the runs, then the
     identifications in their original order (values unchanged). Linking within FAIMS compensation
     voltages takes the identifications from the input maps once, for the multiplets of all voltages.
+  - FileFilter filters feature and consensus maps on identification data (annotation, clashes, best
+    identification, sequence and accession whitelists, unassigned identifications), and IDSplitter
+    splits off their identification data; IDSplitter's idXML lists each identification once, in its
+    original order (previously the unassigned ones came first). TextExporter, MzTabExporter and
+    IDFilter export the identification data of featureparquet/consensusparquet input, which they
+    previously ignored. New for this: FeatureMap/ConsensusMap::eraseUnassignedIdentifications() and
+    IdentificationDataConverter::moveToPeptideIdentifications() (the converse of
+    moveToIdentificationData()).
   - Writers of formats that hold peptide identifications accept maps with identification data:
     IdentificationDataConverter::withPeptideIdentifications() (the converse of
     withIdentificationData()) gives them a view with the identifications exported. mzTab map

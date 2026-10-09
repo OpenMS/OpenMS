@@ -914,6 +914,18 @@ bool IdentificationDataConverter::moveToIdentificationData(ConsensusMap& map)
   importMap(map, true);
   return true;
 }
+bool IdentificationDataConverter::moveToPeptideIdentifications(FeatureMap& map)
+{
+  if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return false;
+  exportMap(map, true);
+  return true;
+}
+bool IdentificationDataConverter::moveToPeptideIdentifications(ConsensusMap& map)
+{
+  if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return false;
+  exportMap(map, true);
+  return true;
+}
 
 MzTab IdentificationDataConverter::exportMzTab(const ID& data)
 {

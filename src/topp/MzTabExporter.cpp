@@ -14,6 +14,7 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -121,6 +122,8 @@ protected:
         // load featureXML/featureparquet
         FeatureMap feature_map;
         FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
+        // mzTab holds peptide identifications (identification data, e.g. of a featureparquet bundle, is exported)
+        IdentificationDataConverter::moveToPeptideIdentifications(feature_map);
 
         // calculate coverage
         PeptideIdentificationList pep_ids;

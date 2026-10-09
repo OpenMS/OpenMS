@@ -13,6 +13,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -783,6 +784,8 @@ protected:
 
         FeatureMap feature_map;
         FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET}, log_type_);
+        // the text output holds peptide identifications (identification data, e.g. of a featureparquet bundle, is exported)
+        IdentificationDataConverter::moveToPeptideIdentifications(feature_map);
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
@@ -964,6 +967,8 @@ protected:
         ConsensusMap consensus_map;
 
         FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET}, log_type_);
+        // the text output holds peptide identifications (identification data, e.g. of a consensusparquet bundle, is exported)
+        IdentificationDataConverter::moveToPeptideIdentifications(consensus_map);
 
         // for optional export of ConsensusFeature meta values, collect all possible meta value keys
         std::set<std::string> meta_value_keys;

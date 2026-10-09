@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -250,6 +251,8 @@ protected:
     else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
     {
       FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
+      // the filters work on peptide identifications (identification data, e.g. of a consensusparquet bundle, is exported)
+      IdentificationDataConverter::moveToPeptideIdentifications(cmap);
       for (auto& f : cmap)
       {
         UInt64 id = f.getUniqueId();

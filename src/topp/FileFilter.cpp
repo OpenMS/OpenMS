@@ -28,11 +28,14 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
 #include <algorithm>
 #include <iterator>
 #include <memory>
+#include <set>
+#include <type_traits>
 
 using namespace OpenMS;
 using namespace std;
@@ -193,111 +196,149 @@ private:
     }
   }
 
-  static bool checkPeptideIdentification_(BaseFeature& feature,
-                                          const bool remove_annotated_features,
-                                          const bool remove_unannotated_features,
-                                          const StringList& sequences,
-                                          const std::string& sequence_comparison_method,
-                                          const StringList& accessions,
-                                          const bool keep_best_score_id,
-                                          const bool remove_clashes)
+  /// Whether the identifications that @p feature links pass the filters on annotation and clashes (as of the peptide
+  /// identifications of the feature)
+  static bool checkAnnotation_(const BaseFeature& feature, const IdentificationData& data, const bool remove_annotated_features,
+                               const bool remove_unannotated_features, const bool remove_clashes)
   {
-    //flag: remove_annotated_features and non-empty peptideIdentifications
-    if (remove_annotated_features && !feature.getPeptideIdentifications().empty())
+    const auto identifications = feature.getLinkedIdentifications(data);
+    //flag: remove_annotated_features and identifications
+    if (remove_annotated_features && !identifications.empty())
     {
       return false;
     }
-    //flag: remove_unannotated_features and no peptideIdentifications
-    if (remove_unannotated_features && feature.getPeptideIdentifications().empty())
+    //flag: remove_unannotated_features and no identifications
+    if (remove_unannotated_features && identifications.empty())
     {
       return false;
     }
-    //flag: remove_clashes
-    if (remove_clashes && !feature.getPeptideIdentifications().empty())
+    //flag: remove_clashes: every match has the sequence of the first one
+    if (remove_clashes)
     {
-      std::string temp = feature.getPeptideIdentifications().begin()->getHits().begin()->getSequence().toString();
-      //loop over all peptideIdentifications
-      for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
+      const std::string* first = nullptr;
+      for (const auto& identification : identifications)
       {
-        //loop over all peptideHits
-        for (const PeptideHit& pep_hit : pep.getHits())
+        for (const auto* match : identification.matches)
         {
-          if (pep_hit.getSequence().toString() != temp)
-          {
-            return false;
-          }
+          if (first == nullptr) { first = &match->representation; }
+          else if (match->representation != *first) { return false; }
         }
       }
     }
-    //flag: keep_best_score_id
-    if (keep_best_score_id && !feature.getPeptideIdentifications().empty())
+    return true;
+  }
+
+  /// Whether a match that @p feature links passes the sequence and accession whitelists (true without whitelists)
+  static bool checkSequencesAndAccessions_(const BaseFeature& feature, const IdentificationData& data, const StringList& sequences,
+                                           const std::string& sequence_comparison_method, const StringList& accessions)
+  {
+    if (sequences.empty() && accessions.empty())
     {
-      PeptideIdentification temp = feature.getPeptideIdentifications().front();
-      //loop over all peptideIdentifications
-      for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
-      {
-        //loop over all peptideHits
-        for (const PeptideHit& pep_hit : pep.getHits())
-        {
-          if ((pep.isHigherScoreBetter() && pep_hit.getScore() > temp.getHits().front().getScore()) ||
-              (!pep.isHigherScoreBetter() && pep_hit.getScore() < temp.getHits().front().getScore()))
-          {
-            temp = pep;
-          }
-        }
-      }
-      feature.setPeptideIdentifications(PeptideIdentificationList(1, temp));
-      // not filtering sequences or accessions
-      if (sequences.empty() && accessions.empty())
-      {
-        return true;
-      }
+      return true;
     }
-    //flag: sequences or accessions
-    if (!sequences.empty() || !accessions.empty())
+    bool sequen = false;
+    bool access = false;
+    for (const auto& identification : feature.getLinkedIdentifications(data))
     {
-      bool sequen = false;
-      bool access = false;
-      //loop over all peptideIdentifications
-      for (const PeptideIdentification& pep_id : feature.getPeptideIdentifications())
+      for (const auto* match : identification.matches)
       {
-        //loop over all peptideHits
-        for (const PeptideHit& pep_hit : pep_id.getHits())
+        if (sequenceIsWhiteListed_(AASequence::fromString(match->representation), sequences, sequence_comparison_method))
         {
-          if (sequenceIsWhiteListed_(pep_hit.getSequence(), sequences, sequence_comparison_method)) 
+          sequen = true;
+        }
+        for (const auto& evidence : match->sequence_evidence)
+        {
+          for (const std::string& accession : accessions)
           {
-            sequen = true;
-          }
-          
-          //loop over all accessions of the peptideHits
-          set<std::string> protein_accessions = pep_hit.extractProteinAccessionsSet();
-          for (set<std::string>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
-          {
-            //loop over all accessions entries of the StringList
-            for (StringList::const_iterator acc_it = accessions.begin(); acc_it != accessions.end(); ++acc_it)
+            if (StringUtils::hasSubstring(evidence.accession, accession))
             {
-              if (StringUtils::hasSubstring(*p_acc_it, *acc_it))
-              {
-                access = true;
-              }
+              access = true;
             }
           }
         }
       }
-      if (!sequences.empty() && !accessions.empty())
+    }
+    if (!sequences.empty() && !accessions.empty())
+    {
+      return sequen && access;
+    }
+    if (!sequences.empty())
+    {
+      return sequen;
+    }
+    return access;
+  }
+
+  /**
+    @brief Every feature of @p map keeps the identification with its best match only, as a feature keeps its best peptide
+    identification
+
+    Without scored matches, the first identification stays. What only the links that features no longer have linked
+    goes, as the peptide identifications that features no longer have.
+  */
+  template <typename MapType>
+  static void keepBestIdentifications_(MapType& map)
+  {
+    using ID = IdentificationData;
+    const ID& data = map.getIdentificationData();
+    std::set<ID::QueryReference> dropped_queries;
+    std::set<ID::MatchReference> dropped_matches;
+    for (auto& feature : map)
+    {
+      const auto identifications = feature.getLinkedIdentifications(data);
+      if (identifications.size() < 2)
       {
-        return sequen && access;
+        continue;
       }
-      if (!sequences.empty())
+      const auto best = feature.getBestLinkedMatch(data);
+      const auto kept = best ? std::find_if(identifications.begin(), identifications.end(),
+                                            [&](const ID::QueryMatches& entry) { return entry.query == best->query; })
+                             : identifications.begin();
+      const ID::QueryReference kept_query {kept->run->getUuid(), kept->query->getId()};
+      for (auto it = feature.getIDQueries().begin(); it != feature.getIDQueries().end();)
       {
-        return sequen;
+        if (*it == kept_query) { ++it; continue; }
+        dropped_queries.insert(*it);
+        it = feature.getIDQueries().erase(it);
       }
-      else
+      for (auto it = feature.getIDMatches().begin(); it != feature.getIDMatches().end();)
       {
-        return access;
+        const auto* run = data.findRunByUuid(it->run_uuid);
+        const ID::QueryReference query {it->run_uuid, run->getIdentificationForMatch(it->match).getId()};
+        if (query == kept_query) { ++it; continue; }
+        dropped_queries.insert(query);
+        dropped_matches.insert(*it);
+        it = feature.getIDMatches().erase(it);
       }
     }
-    return true;
+    if (dropped_queries.empty())
+    {
+      return;
+    }
+    std::set<ID::QueryReference> linked_queries;
+    std::set<ID::MatchReference> linked_matches;
+    const auto collect = [&](const auto& self, const auto& feature) -> void {
+      const auto queries = feature.getLinkedIDQueries(data);
+      linked_queries.insert(queries.begin(), queries.end());
+      linked_matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+      {
+        for (const auto& subordinate : feature.getSubordinates()) { self(self, subordinate); }
+      }
+    };
+    for (const auto& feature : map)
+    {
+      collect(collect, feature);
+    }
+    auto& edit = map.getIdentificationData();
+    edit.eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
+      const ID::MatchReference reference {run.getUuid(), match.getId()};
+      return dropped_matches.contains(reference) && !linked_matches.contains(reference);
+    });
+    edit.eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) {
+      const ID::QueryReference reference {run.getUuid(), query.getId()};
+      return query.getMatches().empty() && dropped_queries.contains(reference) && !linked_queries.contains(reference);
+    });
   }
 
   /**
@@ -1138,19 +1179,21 @@ protected:
         f.getFeatOptions().setMZRange(DRange<1>(mz_l, mz_u));
         f.getFeatOptions().setIntensityRange(DRange<1>(it_l, it_u));
         f.loadFeatures(in, feature_map);
+        // From here on, the identifications are identification data (featureXML output exports them).
+        IdentificationDataConverter::moveToIdentificationData(feature_map);
 
 
         //-------------------------------------------------------------
         // calculations
         //-------------------------------------------------------------
 
-        //copy all properties
-        FeatureMap map_sm = feature_map;
-        //.. but delete feature information
-        map_sm.clear(false);
+        FeatureMap map_sm = std::move(feature_map);
+        const IdentificationData& ids = map_sm.getIdentificationData();
 
         // only keep charge ch_l:ch_u   (WARNING: feature files without charge information have charge=0, see Ctor of KERNEL/Feature.h)
-        for (Feature& fm : feature_map)
+        std::vector<bool> keep;
+        keep.reserve(map_sm.size());
+        for (Feature& fm : map_sm)
         {
           bool const rt_ok = f.getFeatOptions().getRTRange().encloses(DPosition<1>(fm.getRT()));
           bool const mz_ok = f.getFeatOptions().getMZRange().encloses(DPosition<1>(fm.getMZ()));
@@ -1160,20 +1203,32 @@ protected:
           bool const q_ok = ((q_l <= fm.getOverallQuality()) && (fm.getOverallQuality() <= q_u));
           if (remove_hulls) fm.getConvexHulls().clear();
 
-          if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok)
+          bool ok = rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok;
+          if (ok)
           {
             if (remove_meta_enabled)
             {
               meta_ok = checkMetaOk(fm, meta_info);
             }
-            bool const annotation_ok = checkPeptideIdentification_(fm, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
-            if (annotation_ok && meta_ok) map_sm.push_back(fm);
+            ok = meta_ok && checkAnnotation_(fm, ids, remove_annotated_features, remove_unannotated_features, remove_clashes);
           }
+          keep.push_back(ok);
         }
-        //delete unassigned PeptideIdentifications
+        // the sequence and accession whitelists apply to the best identification only, if only that one is kept
+        if (keep_best_score_id)
+        {
+          keepBestIdentifications_(map_sm);
+        }
+        for (Size i = 0; i < map_sm.size(); ++i)
+        {
+          keep[i] = keep[i] && checkSequencesAndAccessions_(map_sm[i], ids, sequences, sequence_comparison_method, accessions);
+        }
+        // erased features take the identifications that only they link along, as peptide identifications would go
+        map_sm.eraseFeatures([&](const Feature& fm) { return !keep[&fm - &map_sm[0]]; });
+        //delete unassigned identifications
         if (remove_unassigned_ids)
         {
-          map_sm.getUnassignedPeptideIdentifications().clear();
+          map_sm.eraseUnassignedIdentifications();
         }
         //update minimum and maximum position/intensity
         map_sm.updateRanges();
@@ -1206,36 +1261,50 @@ protected:
         f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
         f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));
         f.loadConsensusFeatures(in, consensus_map);
+        // From here on, the identifications are identification data (consensusXML output exports them).
+        IdentificationDataConverter::moveToIdentificationData(consensus_map);
 
         //-------------------------------------------------------------
         // calculations
         //-------------------------------------------------------------
 
-        // copy all properties
-        ConsensusMap consensus_map_filtered = consensus_map;
-        //.. but delete feature information
-        consensus_map_filtered.resize(0);
+        ConsensusMap consensus_map_filtered = std::move(consensus_map);
+        const IdentificationData& ids = consensus_map_filtered.getIdentificationData();
 
-        for (ConsensusFeature& cm : consensus_map)
+        std::vector<bool> keep;
+        keep.reserve(consensus_map_filtered.size());
+        for (const ConsensusFeature& cm : consensus_map_filtered)
         {
           const bool charge_ok = ((charge_l <= cm.getCharge()) && (cm.getCharge() <= charge_u));
           const bool size_ok = ((cm.size() >= size_l) && (cm.size() <= size_u));
 
-          if (charge_ok && size_ok)
+          bool ok = charge_ok && size_ok;
+          if (ok)
           {
             // this is expensive, so evaluate after everything else passes the test
             if (remove_meta_enabled)
             {
               meta_ok = checkMetaOk(cm, meta_info);
             }
-            const bool annotation_ok = checkPeptideIdentification_(cm, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
-            if (annotation_ok && meta_ok) consensus_map_filtered.push_back(cm);
+            ok = meta_ok && checkAnnotation_(cm, ids, remove_annotated_features, remove_unannotated_features, remove_clashes);
           }
+          keep.push_back(ok);
         }
-        //delete unassigned PeptideIdentifications
+        // the sequence and accession whitelists apply to the best identification only, if only that one is kept
+        if (keep_best_score_id)
+        {
+          keepBestIdentifications_(consensus_map_filtered);
+        }
+        for (Size i = 0; i < consensus_map_filtered.size(); ++i)
+        {
+          keep[i] = keep[i] && checkSequencesAndAccessions_(consensus_map_filtered[i], ids, sequences, sequence_comparison_method, accessions);
+        }
+        // erased features take the identifications that only they link along, as peptide identifications would go
+        consensus_map_filtered.eraseFeatures([&](const ConsensusFeature& cm) { return !keep[&cm - &consensus_map_filtered[0]]; });
+        //delete unassigned identifications
         if (remove_unassigned_ids)
         {
-          consensus_map_filtered.getUnassignedPeptideIdentifications().clear();
+          consensus_map_filtered.eraseUnassignedIdentifications();
         }
         //update minimum and maximum position/intensity
         consensus_map_filtered.updateRanges();
@@ -1300,7 +1369,8 @@ protected:
             cm_new.getColumnHeaders()[*map_it].unique_id = consensus_map_filtered.getColumnHeaders()[*map_it].unique_id;
           }
 
-          cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
+          // the identifications of the consensus features that are kept (unassigned ones are not, see below)
+          cm_new.getIdentificationData() = consensus_map_filtered.getIdentificationData();
 
           const bool and_connective = getFlag_("consensus:map_and");
           for (ConsensusFeature& cm : consensus_map_filtered) // iterate over consensuses in the original consensus map
@@ -1324,6 +1394,9 @@ protected:
               cm_new.push_back(consensus_feature_new);
             }
           }
+
+          // only the consensus features keep their identifications
+          cm_new.eraseUnassignedIdentifications();
 
           // assign unique ids
           cm_new.applyMemberFunction(&UniqueIdInterface::setUniqueId);

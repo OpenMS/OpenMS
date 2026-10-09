@@ -16,6 +16,10 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+
+#include <type_traits>
 
 using namespace OpenMS;
 using namespace std;
@@ -78,6 +82,29 @@ protected:
     peptides.swap(unique);
   }
 
+  /// Take the identifications of @p map (as peptide and protein identifications) and leave it without them
+  template <typename MapType>
+  static void split_(MapType& map, vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)
+  {
+    IdentificationDataConverter::moveToIdentificationData(map);
+    auto exported = IdentificationDataAdapter::toLegacy(map.getIdentificationData());
+    proteins = std::move(exported.proteins);
+    peptides = std::move(exported.peptides);
+    const auto unlink = [](const auto& self, auto& feature) -> void {
+      feature.getIDQueries().clear();
+      feature.getIDMatches().clear();
+      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+      {
+        for (auto& subordinate : feature.getSubordinates()) { self(self, subordinate); }
+      }
+    };
+    for (auto& feature : map)
+    {
+      unlink(unlink, feature);
+    }
+    map.getIdentificationData().clear();
+  }
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
@@ -109,16 +136,7 @@ protected:
     {
       FeatureMap features;
       FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
-      features.getUnassignedPeptideIdentifications().swap(peptides);
-      for (FeatureMap::Iterator feat_it = features.begin();
-           feat_it != features.end(); ++feat_it)
-      {
-        peptides.insert(peptides.end(),
-                        feat_it->getPeptideIdentifications().begin(),
-                        feat_it->getPeptideIdentifications().end());
-        feat_it->getPeptideIdentifications().clear();
-      }
-      features.getProteinIdentifications().swap(proteins);
+      split_(features, proteins, peptides);
       if (!out.empty())
       {
         addDataProcessing_(features,
@@ -130,16 +148,7 @@ protected:
     {
       ConsensusMap consensus;
       FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
-      consensus.getUnassignedPeptideIdentifications().swap(peptides);
-      for (ConsensusMap::Iterator cons_it = consensus.begin();
-           cons_it != consensus.end(); ++cons_it)
-      {
-        peptides.insert(peptides.end(),
-                        cons_it->getPeptideIdentifications().begin(),
-                        cons_it->getPeptideIdentifications().end());
-        cons_it->getPeptideIdentifications().clear();
-      }
-      consensus.getProteinIdentifications().swap(proteins);
+      split_(consensus, proteins, peptides);
       if (!out.empty())
       {
         addDataProcessing_(consensus,

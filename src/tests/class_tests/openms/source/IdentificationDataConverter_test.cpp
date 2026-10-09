@@ -360,6 +360,50 @@ START_SECTION((static const ConsensusMap& withPeptideIdentifications(const Conse
 }
 END_SECTION
 
+START_SECTION((static bool moveToPeptideIdentifications(FeatureMap& map) and (ConsensusMap& map)))
+{
+  FeatureMap legacy;
+  ProteinIdentification run;
+  run.setIdentifier("search");
+  legacy.setProteinIdentifications({run});
+  legacy.resize(1);
+  PeptideIdentification peptide;
+  peptide.setIdentifier("search");
+  peptide.setScoreType("score");
+  peptide.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE")));
+  legacy[0].getPeptideIdentifications().push_back(peptide);
+  PeptideIdentification unassigned = peptide;
+  unassigned.setRT(10.0);
+  legacy.getUnassignedPeptideIdentifications().push_back(unassigned);
+
+  // a map with peptide identifications (or none at all) stays as it is
+  FeatureMap unchanged = legacy;
+  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(unchanged), false)
+  TEST_EQUAL(unchanged == legacy, true)
+  FeatureMap empty;
+  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(empty), false)
+
+  // a map with identification data gets them as peptide identifications again
+  FeatureMap native = legacy;
+  TEST_EQUAL(IdentificationDataConverter::moveToIdentificationData(native), true)
+  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(native), true)
+  TEST_EQUAL(native.getIdentificationData().empty(), true)
+  TEST_EQUAL(native[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(native.getUnassignedPeptideIdentifications().size(), 1)
+  TEST_EQUAL(native.getProteinIdentifications().size(), 1)
+
+  ConsensusMap consensus;
+  consensus.setProteinIdentifications({run});
+  consensus.resize(1);
+  consensus[0].getPeptideIdentifications().push_back(peptide);
+  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(consensus), false)
+  TEST_EQUAL(IdentificationDataConverter::moveToIdentificationData(consensus), true)
+  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(consensus), true)
+  TEST_EQUAL(consensus[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(consensus.getIdentificationData().empty(), true)
+}
+END_SECTION
+
 START_SECTION((static const std::vector<FeatureMap>& withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted)))
 {
   // maps with distinct runs are used as they are:

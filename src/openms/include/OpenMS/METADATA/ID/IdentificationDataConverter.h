@@ -80,6 +80,14 @@ public:
   static bool moveToIdentificationData(FeatureMap& map);
   static bool moveToIdentificationData(ConsensusMap& map);
   /**
+    @brief Move the identification data of a map into peptide identifications, for code that works on them (e.g. writers
+    of formats that hold peptide identifications): the converse of moveToIdentificationData()
+
+    @return Whether @p map had identification data and no peptide identifications, i.e. whether it changed
+  */
+  static bool moveToPeptideIdentifications(FeatureMap& map);
+  static bool moveToPeptideIdentifications(ConsensusMap& map);
+  /**
     @brief Edit the identifications of a map as identification data
 
     Runs @p edit on @p map. A map with peptide identifications has them moved into its identification data for the
