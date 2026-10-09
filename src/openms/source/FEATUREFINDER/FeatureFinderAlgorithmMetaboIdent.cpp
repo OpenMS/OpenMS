@@ -190,7 +190,6 @@ namespace OpenMS
     library_.clear(true);
     trafo_ = TransformationDescription();
     n_shared_ = 0;
-    bool first_group = true;
 
     for (auto& [group_cv, faims_group] : faims_groups)
     {
@@ -212,8 +211,9 @@ namespace OpenMS
         features.push_back(feat);
       }
 
-      // Copy ProteinIdentifications from first group
-      if (first_group)
+      // Copy ProteinIdentifications (the run "id" of the unassigned peptide identifications, which a group only has if
+      // it has targets without features) from the first group that has them
+      if (features.getProteinIdentifications().empty())
       {
         features.setProteinIdentifications(features_cv.getProteinIdentifications());
       }
@@ -241,7 +241,6 @@ namespace OpenMS
       trafo_.setDataPoints(points);
 
       n_shared_ += ff_group.getNShared();
-      first_group = false;
     }
 
     // Warn about library output for FAIMS data

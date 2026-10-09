@@ -68,6 +68,7 @@
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <filesystem>
 #include <iomanip>
@@ -1031,7 +1032,7 @@ protected:
     for (PeptideIdentification& p : peptide_ids)
     {
       if (p.getIdentifier() == old_identifier) { p.setIdentifier(new_identifier); }
-      else { OPENMS_LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl; }
+      else { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(p.getIdentifier())); }
     }
 
     bool missing_spec_ref(false);

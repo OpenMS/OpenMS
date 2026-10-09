@@ -30,6 +30,7 @@
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <locale>
 #include <new>
@@ -817,8 +818,7 @@ END_SECTION
 
 START_SECTION([EXTRA] store - many peptide identifications are written in input order with any number of threads and the first error is reported)
 {
-  // more peptide identifications than one block of the parallel writer, in two runs and some of no run; hits not in
-  // score order
+  // more peptide identifications than one block of the parallel writer, in two runs; hits not in score order
   std::vector<ProteinIdentification> prots(2);
   prots[0].setIdentifier("runPar1");
   prots[1].setIdentifier("runPar2");
@@ -833,7 +833,7 @@ START_SECTION([EXTRA] store - many peptide identifications are written in input 
   for (Size l = 0; l < n; ++l)
   {
     PeptideIdentification& pep = peps[l];
-    pep.setIdentifier(l % 50 == 13 ? "runNone" : l % 2 == 0 ? "runPar1" : "runPar2"); // no run: not written
+    pep.setIdentifier(l % 2 == 0 ? "runPar1" : "runPar2");
     pep.setScoreType("score");
     pep.setHigherScoreBetter(true);
     pep.setRT(double(l));
@@ -879,7 +879,7 @@ START_SECTION([EXTRA] store - many peptide identifications are written in input 
   // run by run, in input order
   std::vector<Size> expected;
   for (Size l = 0; l < n; l += 2) expected.push_back(l);
-  for (Size l = 1; l < n; l += 2) if (l % 50 != 7 && l % 50 != 13) expected.push_back(l);
+  for (Size l = 1; l < n; l += 2) if (l % 50 != 7) expected.push_back(l);
   std::vector<ProteinIdentification> prots_in;
   PeptideIdentificationList peps_in;
   IdXMLFile().load(file_n, prots_in, peps_in);
@@ -912,6 +912,63 @@ START_SECTION([EXTRA] store - many peptide identifications are written in input 
     TEST_EQUAL(hit.getPeakAnnotations()[0].mz, 100.0 + double(l))
     TEST_EQUAL(hit.getPeptideEvidences().size(), 1)
     TEST_EQUAL(hit.getPeptideEvidences()[0].getProteinAccession(), l % 2 == 0 ? "ACC1" : "ACC2")
+  }
+
+  // a peptide identification without its protein identification run cannot be written (it is not omitted)
+  {
+    PeptideIdentificationList no_run = peps;
+    no_run[13].setIdentifier("runNone");
+    std::string file_no_run;
+    NEW_TMP_FILE(file_no_run)
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, IdXMLFile().store(file_no_run, prots, no_run),
+      "Peptide identification has no matching protein run: 'runNone'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.")
+    TEST_EQUAL(File::exists(file_no_run), false) // checked before the file is opened
+  }
+
+  // a protein that is a protein hit of another run only cannot be referenced (it was written as a reference to that run's
+  // protein hit, which cannot be loaded)
+  {
+    PeptideIdentificationList other_run = peps;
+    other_run[1].setIdentifier("runPar2"); // already of the second run, whose evidences name ACC2
+    for (PeptideHit& hit : other_run[1].getHits()) hit.setPeptideEvidences({PeptideEvidence("ACC1", 0, 7, '-', 'P')});
+    std::string file_other_run;
+    NEW_TMP_FILE(file_other_run)
+    std::string message;
+    try
+    {
+      IdXMLFile().store(file_other_run, prots, other_run);
+    }
+    catch (const Exception::ElementNotFound& e)
+    {
+      message = e.what();
+    }
+    TEST_EQUAL(message.find("No accession ACC1 found in run 'runPar2'") != std::string::npos, true)
+    File::remove(file_other_run); // the partial file (see store())
+  }
+
+  // a peptide hit may only reference the protein hits of its run
+  {
+    std::string file_cross_run;
+    NEW_TMP_FILE(file_cross_run)
+    IdXMLFile().store(file_cross_run, prots, peps);
+    std::string text;
+    {
+      std::ifstream is(file_cross_run);
+      text.assign(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>());
+    }
+    // the first peptide hit of the second run references ACC2 of that run: let it reference ACC1 of the first run
+    const Size second_run = text.find("<IdentificationRun", text.find("<IdentificationRun") + 1);
+    const Size ref = text.find("protein_refs=\"PH_1\"", text.find("<PeptideIdentification", second_run));
+    TEST_NOT_EQUAL(ref, std::string::npos)
+    text.replace(ref, std::string("protein_refs=\"PH_1\"").size(), "protein_refs=\"PH_0\"");
+    {
+      std::ofstream os(file_cross_run);
+      os << text;
+    }
+    std::vector<ProteinIdentification> prots_cross;
+    PeptideIdentificationList peps_cross;
+    TEST_EXCEPTION(Exception::ParseError, IdXMLFile().load(file_cross_run, prots_cross, peps_cross))
+    File::remove(file_cross_run);
   }
 
   // unknown accessions in two peptide identifications of the first run: the one first in input order is reported

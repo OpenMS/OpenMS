@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <vector>
 
 using namespace std;
@@ -30,6 +31,9 @@ namespace OpenMS
     IdentificationData& id_data, const vector<ProteinIdentification>& proteins,
     const PeptideIdentificationList& peptides)
   {
+    // every peptide identification needs its protein identification run (the processing step it is assigned to)
+    ProteinRunReferences::check(proteins, peptides);
+
     map<std::string, ID::ProcessingStepRef> id_to_step;
     ProgressLogger progresslogger;
     progresslogger.setLogType(ProgressLogger::CMD);
@@ -1002,6 +1006,9 @@ namespace OpenMS
   void IdentificationDataConverter::importFeatureIDs(FeatureMap& features,
                                                      bool clear_original)
   {
+    // check before the features are modified
+    ProteinRunReferences::check(features);
+
     // collect all peptide IDs:
     PeptideIdentificationList peptides = features.getUnassignedPeptideIdentifications();
     // get peptide IDs from each feature and its subordinates, add meta values:
@@ -1206,6 +1213,9 @@ namespace OpenMS
     // i.e. from 'protein_identifications_'/'unassigned_peptide_identifications_' (consensus map)
     // and 'peptides_' (features) to 'id_data_' (consensus map) and 'primary_id_'/'id_matches_' (features);
     // use meta values to temporarily store which features IDs are assigned to
+
+    // check before the consensus features are modified
+    ProteinRunReferences::check(consensus);
 
     // collect all peptide IDs:
     PeptideIdentificationList peptides = consensus.getUnassignedPeptideIdentifications();

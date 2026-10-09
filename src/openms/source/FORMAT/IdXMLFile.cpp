@@ -20,6 +20,7 @@
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
@@ -93,11 +94,20 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
+    proteinid_to_run_.clear();
 
     endProgress();
   }
 
   void IdXMLFile::store(const std::string& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id)
+  {
+    // every peptide identification needs its protein identification run: fail before the file is opened (outside of
+    // storeFile_(), whose errors note that a partial file may remain)
+    ProteinRunReferences::check(protein_ids, peptide_ids);
+    storeFile_(filename, protein_ids, peptide_ids, document_id);
+  }
+
+  void IdXMLFile::storeFile_(const std::string& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id)
   try
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
@@ -245,15 +255,10 @@ namespace OpenMS
     }
     std::vector<std::vector<Size>> run_peptide_ids(protein_ids.size()); // the ones with hits, written
     std::vector<Size> run_empty_count(protein_ids.size(), 0); // the ones without hits, omitted
-    std::vector<Size> without_run; // the ones whose identifier names no run, omitted
     for (Size l = 0; l < peptide_ids.size(); ++l)
     {
-      const auto run = run_of_identifier.find(peptide_ids[l].getIdentifier());
-      if (run == run_of_identifier.end())
-      {
-        without_run.push_back(l);
-      }
-      else if (peptide_ids[l].getHits().empty())
+      const auto run = run_of_identifier.find(peptide_ids[l].getIdentifier()); // exists, checked above
+      if (peptide_ids[l].getHits().empty())
       {
         ++run_empty_count[run->second];
       }
@@ -266,6 +271,8 @@ namespace OpenMS
     // write ProteinIdentification Runs
     for (Size i = 0; i < protein_ids.size(); ++i)
     {
+      // the peptide hits (and protein groups) of a run reference the protein hits of that run only
+      accession_to_id.clear();
       os << "\t<IdentificationRun ";
       os << "date=\"" << protein_ids[i].getDateTime().getDate() << "T" << protein_ids[i].getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(protein_ids[i].getSearchEngine()) << "\" ";
@@ -374,7 +381,7 @@ namespace OpenMS
         }
         if (thrown) std::rethrow_exception(thrown);
       };
-      const char* const store_function = OPENMS_PRETTY_FUNCTION; // names store(), not a lambda, in the exceptions below
+      const char* const store_function = OPENMS_PRETTY_FUNCTION; // names storeFile_(), not a lambda, in the exceptions below
 
       // writeUserParam_(), leaving out the meta values with index skip_a or skip_b
       const auto write_user_params = [&call_serialized](std::ostream& out, const MetaInfoInterface& meta_info,
@@ -486,7 +493,7 @@ namespace OpenMS
               {
                 const std::string message = "No accession " + protein_accession + " found in run '" + run_identifier +
                     "' for PSM " + p_hit.getSequence().toString() + "_" + StringUtils::toStr(p_hit.getCharge()) +
-                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.";
+                    ". Every protein of a peptide evidence needs to be a protein hit of the peptide identification's run.";
                 call_serialized([&] { throw Exception::ElementNotFound(__FILE__, __LINE__, store_function, message); });
               }
             }
@@ -598,10 +605,6 @@ namespace OpenMS
       os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>\n";
     }
 
-    for (const Size l : without_run)
-    {
-      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[l].getIdentifier() + "' while writing '" + filename + "'!");
-    }
     // write footer
     os << "</IdXML>\n";
 
@@ -628,6 +631,7 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
+    proteinid_to_run_.clear();
   }
   // Every failure of store() is raised, and the output is never removed: if writing fails (opening, a block, a write, the
   // final flush or close, an allocation), a partial file may remain. An OpenMS exception keeps its type, and its message
@@ -803,6 +807,7 @@ namespace OpenMS
 
       // insert id and accession to map
       proteinid_to_accession_[attributeAsString_(attributes, "id")] = accession;
+      proteinid_to_run_[attributeAsString_(attributes, "id")] = prot_id_.getIdentifier();
     }
     // PEPTIDES
     else if (tag == "PeptideIdentification")
@@ -880,6 +885,11 @@ namespace OpenMS
           const auto it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
+            // a peptide hit references the protein hits of its peptide identification's run (no other run's)
+            if (proteinid_to_run_[*it] != pep_id_.getIdentifier())
+            {
+              fatalError(LOAD, std::string("Invalid protein reference '") + *it + "': protein " + it2->second + " is no protein hit of the peptide identification's run");
+            }
             PeptideEvidence pe;
             pe.setProteinAccession(it2->second);
             peptide_evidences_.push_back(std::move(pe));

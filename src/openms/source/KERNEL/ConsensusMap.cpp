@@ -822,6 +822,21 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         }
         fmaps[positionOf(static_cast<UInt64>(upep_id.getMetaValue("map_index")))].getUnassignedPeptideIdentifications().push_back(upep_id);
       }
+
+      // every peptide identification needs its protein identification run: copy the runs each FeatureMap refers to
+      for (auto& fm : fmaps)
+      {
+        std::set<std::string> identifiers;
+        for (const Feature& f : fm)
+        {
+          for (const PeptideIdentification& pep_id : f.getPeptideIdentifications()) identifiers.insert(pep_id.getIdentifier());
+        }
+        for (const PeptideIdentification& pep_id : fm.getUnassignedPeptideIdentifications()) identifiers.insert(pep_id.getIdentifier());
+        for (const ProteinIdentification& run : this->getProteinIdentifications())
+        {
+          if (identifiers.contains(run.getIdentifier())) fm.getProteinIdentifications().push_back(run);
+        }
+      }
     }
 
     for (auto& fm : fmaps)
