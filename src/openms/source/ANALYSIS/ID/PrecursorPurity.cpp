@@ -34,7 +34,7 @@ namespace OpenMS
       int charge = precursor_info.getCharge();
       if (charge == 0) charge = 1; // assume charge 1 for ions without charge
       // compute distance between isotopic peaks based on the precursor charge.
-      const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(charge);
+      const double charge_dist = Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
 
       // the actual boundary values
       const double strict_lower_mz = precursor_info.getMZ() - precursor_info.getIsolationWindowLowerOffset();
@@ -69,15 +69,19 @@ namespace OpenMS
         // find nearest peak in precursor window
         const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
 
-        // handle border cases
-
-        // check if next peak has smaller dist
-        const_spec_iterator np_it2 = np_it;
-        ++np_it;
-
-        if (std::fabs(np_it2->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+        // Compare the peaks below and above the expected position, staying inside the window.
+        if (np_it != lower_bound)
         {
-          np_it = np_it2;
+          const_spec_iterator previous_it = np_it;
+          --previous_it;
+          if (np_it == upper_bound || std::fabs(previous_it->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+          {
+            np_it = previous_it;
+          }
+        }
+        if (np_it == upper_bound)
+        {
+          break; // This half of the isolation window contains no peaks.
         }
 
         // compute difference between found peak and expected
@@ -121,15 +125,19 @@ namespace OpenMS
         // find nearest peak in precursor window
         const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
 
-        // handle border cases
-
-        // check if next peak has smaller dist
-        const_spec_iterator np_it2 = np_it;
-        ++np_it;
-
-        if (std::fabs(np_it2->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+        // Compare the peaks below and above the expected position, staying inside the window.
+        if (np_it != lower_bound)
         {
-          np_it = np_it2;
+          const_spec_iterator previous_it = np_it;
+          --previous_it;
+          if (np_it == upper_bound || std::fabs(previous_it->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+          {
+            np_it = previous_it;
+          }
+        }
+        if (np_it == upper_bound)
+        {
+          break; // This half of the isolation window contains no peaks.
         }
 
         // compute difference between found peak and expected
