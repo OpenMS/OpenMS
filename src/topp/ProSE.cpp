@@ -110,6 +110,14 @@ class ProSE :
     }
 
   protected:
+    /// Identification output format: idparquet for a .idparquet name, otherwise idXML. Names
+    /// without a known extension (e.g. TOPPAS '.unknown' outputs) are written as idXML; other
+    /// recognised extensions are rejected by FileHandler::storeIdentifications.
+    static FileTypes::Type identificationOutputType_(const std::string& path)
+    {
+      return FileHandler::getTypeByFileName(path) == FileTypes::IDPARQUET ? FileTypes::IDPARQUET : FileTypes::IDXML;
+    }
+
     void registerOptionsAndFlags_() override
     {
       registerInputFileList_("in", "<files>", StringList(), "Input spectrum file(s). Multiple files are searched against the same database; the fragment index is built once and reused.");
@@ -128,8 +136,8 @@ class ProSE :
       registerOutputFileList_("out", "<files>", StringList(), "Output identification file(s), one per -in: idXML or an idparquet directory bundle (format by extension). Must have the same number of entries as -in.", false);
       setValidFormats_("out", ListUtils::create<std::string>("idXML,idparquet"));
 
-      registerOutputFileList_("out_idxml", "<files>", StringList(), "Deprecated, use -out. Output idXML identification file(s). Must have the same number of entries as -in. Cannot be combined with -out.", false, true);
-      setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML"));
+      registerOutputFileList_("out_idxml", "<files>", StringList(), "Deprecated, use -out (same behaviour). Output identification file(s): idXML or an idparquet directory bundle (format by extension). Must have the same number of entries as -in. Cannot be combined with -out.", false, true);
+      setValidFormats_("out_idxml", ListUtils::create<std::string>("idXML,idparquet"));
 
       registerOutputDir_("out_qpx", "<dir>", "", "Output directory for QPX exchange format Parquet files. Writes per-input <basename>.psm.parquet and <basename>.pg.parquet, plus merged quantms.psm.parquet and quantms.pg.parquet. The pg files are written only when protein groups were actually inferred, which needs 'FDR:protein' > 0 together with decoys, or '-out_merged' with more than one input; an identification-only run produces no pg file rather than an empty one.", false, true);
 
@@ -623,9 +631,9 @@ class ProSE :
         {
           try
           {
-            FileHandler().storeIdentifications(out_id_list[i], result.protein_ids, result.peptide_ids,
-                                               {FileTypes::IDXML, FileTypes::IDPARQUET});
-            if (FileHandler::getTypeByFileName(out_id_list[i]) == FileTypes::IDPARQUET)
+            const FileTypes::Type id_type = identificationOutputType_(out_id_list[i]);
+            FileHandler().storeIdentifications(out_id_list[i], result.protein_ids, result.peptide_ids, {id_type});
+            if (id_type == FileTypes::IDPARQUET)
             {
               written_idparquet.push_back(out_id_list[i]);
             }
@@ -900,6 +908,8 @@ class ProSE :
       // already completed above. Per-file outputs (-out / -out_qpx /
       // -out_parquet) are not modified by this block — they retain run-level
       // information.
+      bool merged_id_written = false;
+      bool merged_id_failed = false;
       if (!out_merged.empty() && in_list.size() > 1)
       {
         try
@@ -1019,14 +1029,16 @@ class ProSE :
           }
 
           FileHandler().storeIdentifications(out_merged, merged_protein_ids, merged_peptides,
-                                             {FileTypes::IDXML, FileTypes::IDPARQUET});
+                                             {identificationOutputType_(out_merged)});
+          merged_id_written = true;
         }
         catch (const Exception::BaseException& e)
         {
           OPENMS_LOG_ERROR << "Failed to write merged identification output -> " << out_merged
                            << ": " << e.what()
                            << ". Per-file outputs were written (check above for any per-file errors)." << endl;
-          // Do NOT propagate; per-file outputs are already on disk.
+          // Do NOT propagate; per-file outputs are already on disk. ProSE still fails at the end.
+          merged_id_failed = true;
         }
       }
       else if (!out_merged.empty() && in_list.size() == 1)
@@ -1054,9 +1066,9 @@ class ProSE :
         add_manifest("idXML", written_idxml);
         add_manifest("idparquet", written_idparquet);
         add_manifest("pin", written_pin);
-        if (!out_merged.empty() && in_list.size() > 1)
+        if (merged_id_written)
         {
-          add_manifest(FileHandler::getTypeByFileName(out_merged) == FileTypes::IDPARQUET ? "merged idparquet" : "merged idXML", {out_merged});
+          add_manifest(identificationOutputType_(out_merged) == FileTypes::IDPARQUET ? "merged idparquet" : "merged idXML", {out_merged});
         }
         if (!out_qpx_dir.empty()) { add_manifest("QPX parquet", {out_qpx_dir}); }
         if (!out_parquet_dir.empty()) { add_manifest("OpenMS parquet", {out_parquet_dir}); }
@@ -1200,6 +1212,11 @@ class ProSE :
       {
         OPENMS_LOG_ERROR << "ProSE finished with " << failed_count
                          << " file(s) failing out of " << in_list.size() << "." << endl;
+        return INTERNAL_ERROR;
+      }
+      if (merged_id_failed)
+      {
+        OPENMS_LOG_ERROR << "ProSE failed to write the merged identification output " << out_merged << "." << endl;
         return INTERNAL_ERROR;
       }
       if (!merged_ok)
