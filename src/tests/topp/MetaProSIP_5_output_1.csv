@@ -1,0 +1,7 @@
+Group 1	# Distinct Peptides	# Unambiguous Proteins	Median Global LR	median RIA 1	median RIA 2
+	1	1	0.267537205681027	0.613333333333335	36.363333333334673
+	Protein Accession	Description	# Unique Peptides	Median Global LR	median RIA 1	median RIA 2
+	CONTIG23640_802236	 length=2326  numreads=28 strand:-1 frame:0 orf_location:136:990	1	0.267537205681027	0.613333333333335	36.363333333334673
+		Peptide Sequence	RT	Exp. m/z	Theo. m/z	Charge	Score	TIC fraction	#non-natural weights		RIA 1	INT 1	Cor. 1	RIA 2	INT 2	Cor. 2	Peak intensities	Global LR
+		YGGAVDPTVLGGVK	80.14	666.8615	666.861538013920949	2	0.174659044235501	0.834237245213722	7		0.6	1747402	1.00	36.4	178529	0.88	800822 565091 203043 58690 18707 13895 8025 9000 14189 11390 12540 12939 13195 15623 15383 19355 19787 24075 23423 25444 25105 25264 25321 25998 28155 22556 21537 22415 20730 18188 18500 16478 16082 11670 11427 11179 8844 8088 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 	0.267537205681027
+Non-Unique Peptides	Accessions	Peptide Sequence	Descriptions	Score	RT	Exp. m/z	Theo. m/z	Charge	#non-natural weights		Peak intensities	Global LR

@@ -1715,6 +1715,22 @@ add_test("TOPP_MetaProSIP_2" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_D
 set_tests_properties("TOPP_MetaProSIP_2" PROPERTIES PASS_REGULAR_EXPRESSION "heatmap_bins;Out of valid range") ## bins must be >= 1
 add_test("TOPP_MetaProSIP_3" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_3_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_3_output_2.tmp.csv -heatmap_bins -1)
 set_tests_properties("TOPP_MetaProSIP_3" PROPERTIES PASS_REGULAR_EXPRESSION "heatmap_bins;Out of valid range") ## negative wraps to a huge Size
+# pseudo features: for MS2 spectra without identification (averagine), and for unassigned identifications
+add_test("TOPP_MetaProSIP_4" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_4_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_4_output_2.tmp.csv -use_averagine_ids)
+add_test("TOPP_MetaProSIP_4_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_4_output_1.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_4_output_1.csv )
+set_tests_properties("TOPP_MetaProSIP_4_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_4")
+add_test("TOPP_MetaProSIP_4_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_4_output_2.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_4_output_2.csv )
+set_tests_properties("TOPP_MetaProSIP_4_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_4")
+add_test("TOPP_MetaProSIP_5" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_5_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_5_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_5_output_2.tmp.csv -use_unassigned_ids)
+add_test("TOPP_MetaProSIP_5_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_5_output_1.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_5_output_1.csv )
+set_tests_properties("TOPP_MetaProSIP_5_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_5")
+add_test("TOPP_MetaProSIP_5_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_5_output_2.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_5_output_2.csv )
+set_tests_properties("TOPP_MetaProSIP_5_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_5")
+add_test("TOPP_MetaProSIP_6" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_5_input.featureXML -out_csv ${TESTS_TEMP_DIR}/MetaProSIP_6_output_1.tmp.csv -out_peptide_centric_csv ${TESTS_TEMP_DIR}/MetaProSIP_6_output_2.tmp.csv -use_averagine_ids -use_unassigned_ids)
+add_test("TOPP_MetaProSIP_6_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_6_output_1.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_6_output_1.csv )
+set_tests_properties("TOPP_MetaProSIP_6_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_6")
+add_test("TOPP_MetaProSIP_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/MetaProSIP_6_output_2.tmp.csv -in2 ${DATA_DIR_TOPP}/MetaProSIP_6_output_2.csv )
+set_tests_properties("TOPP_MetaProSIP_6_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_6")
 
 #------------------------------------------------------------------------------
 # MetaboliteAdductDecharger tests
