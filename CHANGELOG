@@ -283,6 +283,12 @@ TOPP tools:
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
         HyperScores with a warning.
+      - FIX: -out_pin holds the PSMs before any FDR filter. With Search:FDR:PSM, the .pin had only the
+        PSMs that passed, with q-values as score; with one input and Search:FDR:protein, it had no
+        decoys, so Percolator could not use it. The search now also hands back the PSMs before
+        FDR:PSM (ProSEAlgorithm::setKeepPreFdrPsms), and the .pin is written from them before the
+        protein FDR; with -rescore it still holds the rescored PSMs before the FDR filters. The other
+        outputs do not change.
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.

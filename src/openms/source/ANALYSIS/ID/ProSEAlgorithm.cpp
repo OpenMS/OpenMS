@@ -3849,6 +3849,7 @@ namespace OpenMS
     // (FalseDiscoveryRate default add_decoy_peptides=false), may strip decoys
     // entirely, and overwrites each hit's HyperScore with its q-value.
     capturePreFdrStats_(peptide_ids, last_run_stats_);
+    if (keep_pre_fdr_psms_) { pre_fdr_peptide_ids_ = peptide_ids; }
 
     if (fdr_psm_ > 0.0 && has_decoys)
     {
@@ -5070,6 +5071,7 @@ namespace OpenMS
         }
         // Pre-FDR stats (target/decoy counts + HyperScore distribution).
         capturePreFdrStats_(result.peptide_ids, result.stats);
+        if (keep_pre_fdr_psms_) { result.pre_fdr_peptide_ids = result.peptide_ids; }
         if (fdr_psm_ > 0.0 && has_decoys)
         {
           StopWatch sw_fdr; sw_fdr.start();
@@ -5248,6 +5250,8 @@ namespace OpenMS
 
         result.stats = last_run_stats_;
         result.stats.input_file = File::basename(in_spectra);
+        result.pre_fdr_peptide_ids = std::move(pre_fdr_peptide_ids_);
+        pre_fdr_peptide_ids_ = PeptideIdentificationList();
 
         if (!result.protein_ids.empty())
           result.protein_ids[0].setPrimaryMSRunPath({in_spectra}, spectra);
