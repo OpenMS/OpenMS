@@ -13,6 +13,10 @@
 #include <OpenMS/FORMAT/QcMLFile.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <algorithm>
 #include <vector>
 
@@ -347,6 +351,49 @@ START_SECTION(([QcMLFile::QualityParameter] std::string toXMLString(UInt indenta
 }
 END_SECTION
 
+START_SECTION((void collectQCData(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids, const FeatureMap& feature_map, const ConsensusMap& consensus_map, const std::string& inputfile_raw, const bool remove_duplicate_features, const MSExperiment& exp) - RIC slump percentage))
+{
+  // CPP-160: "percentage of ric slumps" (QC:0000057) used integer division before the
+  // multiplication by 100, so it truncated to 0 for any experiment with more than 100
+  // spectra, and was wrong whenever the spectrum count did not divide 100 evenly.
+  MSExperiment exp;
+  for (Size i = 0; i < 100; ++i)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(double(i));
+    Peak1D peak;
+    peak.setMZ(500.0);
+    peak.setIntensity(100.0); // below the 10000 slump threshold
+    spec.push_back(peak);
+    exp.addSpectrum(spec);
+  }
+  for (Size i = 100; i < 200; ++i)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(double(i));
+    Peak1D peak;
+    peak.setMZ(500.0);
+    peak.setIntensity(50000.0); // above the slump threshold
+    spec.push_back(peak);
+    exp.addSpectrum(spec);
+  }
+  exp.updateRanges();
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  FeatureMap feature_map;
+  ConsensusMap consensus_map;
+
+  QcMLFile qc;
+  qc.collectQCData(prot_ids, pep_ids, feature_map, consensus_map, "test.mzML", false, exp);
+
+  // 100 of 200 spectra are below the threshold: the correct percentage is 50, not
+  // (100 / 200) * 100 == 0.
+  TEST_EQUAL(qc.exportQP("test", "QC:0000057"), "50")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

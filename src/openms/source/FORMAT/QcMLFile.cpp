@@ -1294,7 +1294,8 @@ namespace OpenMS
         qp.id = base_name + "_ticslump"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000023";
-        qp.value =StringUtils::toStr((100 / exp.size()) * below_10k);
+        // multiply before dividing: exp.size() is usually >> 100, so (100 / exp.size()) truncates to 0 first
+        qp.value =StringUtils::toStr(100 * below_10k / exp.size());
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1368,7 +1369,8 @@ namespace OpenMS
       qp.id = base_name + "_ricslump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000057";
-      qp.value =StringUtils::toStr((100 / exp.size()) * below_10k);
+      // multiply before dividing: exp.size() is usually >> 100, so (100 / exp.size()) truncates to 0 first
+      qp.value =StringUtils::toStr(100 * below_10k / exp.size());
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
