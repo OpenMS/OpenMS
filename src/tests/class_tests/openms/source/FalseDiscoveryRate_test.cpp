@@ -302,6 +302,30 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
     ProteinIdentification run = picked_run(true, {{"A", 0.9}, {"DECOY_A", 0.95}}, {{0.9, {"A"}}});
     TEST_EXCEPTION(Exception::MissingInformation, fdr.applyPickedProteinFDR(run, "DECOY_", true))
   }
+
+  // (4) Score direction. Lower score = better. Pairs: P1, P4 have no decoy; P2 wins (0.02 < 0.025);
+  // DECOY_P3 wins (0.03 < 0.06). Votes: 0.01 T, 0.02 T, 0.03 D, 0.05 T.
+  // FDR: 0.01 -> 1/2, 0.02 -> 1/3, 0.03 -> 2/3, 0.05 -> 1/2; q: 1/3, 1/3, 1/2, 1/2.
+  // {DECOY_P2} (0.025) lies between 0.02 and 0.03: its closest equal-or-better calibrated score is
+  // 0.02, so q = 1/3 (as for a higher-better score). Before the fix it got the WORSE neighbour's 1/2.
+  // The same fixture with negated scores and higher = better must give the same q-values.
+  {
+    for (bool higher_better : {false, true})
+    {
+      const double s = higher_better ? -1.0 : 1.0;
+      ProteinIdentification run = picked_run(higher_better,
+        {{"P1", s * 0.01}, {"P2", s * 0.02}, {"DECOY_P2", s * 0.025}, {"DECOY_P3", s * 0.03}, {"P3", s * 0.06}, {"P4", s * 0.05}},
+        {{s * 0.01, {"P1"}}, {s * 0.02, {"P2"}}, {s * 0.025, {"DECOY_P2"}}, {s * 0.03, {"DECOY_P3"}}, {s * 0.06, {"P3"}}, {s * 0.05, {"P4"}}});
+      fdr.applyPickedProteinFDR(run, "DECOY_", true);
+      vector<double> qs = group_qvalues(run);
+      TEST_REAL_SIMILAR(qs[0], 1.0 / 3.0)
+      TEST_REAL_SIMILAR(qs[1], 1.0 / 3.0)
+      TEST_REAL_SIMILAR(qs[2], 1.0 / 3.0)
+      TEST_REAL_SIMILAR(qs[3], 0.5)
+      TEST_REAL_SIMILAR(qs[4], 0.5)
+      TEST_REAL_SIMILAR(qs[5], 0.5)
+    }
+  }
 }
 END_SECTION
 

@@ -252,11 +252,14 @@ namespace OpenMS
   * @brief For protein groups. Unaffected by keep_decoy_proteins. Always keeps all for now @todo.
   * score_type and higher_better unused since ProteinGroups do not carry that information.
   * You have to assume that groups will always have the same scores as the ProteinHits
+  * Like a hit, a group gets the value of the closest calibrated score that is equal or better
+  * (in the direction old_higher_better of its current score).
   */
   void IDScoreGetterSetter::setScores_(const map<double, double> &scores_to_FDR,
                                       vector <ProteinIdentification::ProteinGroup> &grps,
                                       const string & /*score_type*/,
-                                      bool /*higher_better*/)
+                                      bool /*higher_better*/,
+                                      bool old_higher_better)
   {
     if (grps.empty()) return;
     if (scores_to_FDR.empty())
@@ -266,8 +269,9 @@ namespace OpenMS
     }
     for (auto &grp : grps)
     {
-      auto it = scores_to_FDR.lower_bound(grp.probability);
-      if (it == scores_to_FDR.end()) --it; // beyond the last calibrated score: that score's value
+      auto it = old_higher_better ? scores_to_FDR.lower_bound(grp.probability) : scores_to_FDR.upper_bound(grp.probability);
+      // lower is better: step back to the closest lower calibrated score; outside the calibrated range: its nearest end
+      if (it == scores_to_FDR.end() || (!old_higher_better && it != scores_to_FDR.begin())) --it;
       grp.probability = it->second;
     }
   }
