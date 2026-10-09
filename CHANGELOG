@@ -143,6 +143,8 @@ OpenMS Library:
     below), except that with consensus:use_subelements and spectra, but without
     annotate_ids_with_subelements, a consensus feature with several matching subelements links a
     precursor without identification once instead of repeating it.
+    OpenPepXL pairs spectra and MultiplexResolverAlgorithm resolves multiplets through these links
+    (outputs unchanged); OpenPepXLAlgorithm::run() no longer adds identifications to its input map.
   - Algorithms that work on identification data convert the peptide identifications of maps.
     Each peptide identification needs the protein identification run (the search run) with its
     identifier, as search engines and ID mapping write it; the run may have no protein hits or

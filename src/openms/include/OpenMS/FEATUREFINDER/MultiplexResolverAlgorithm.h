@@ -43,7 +43,11 @@ namespace OpenMS
     The identifications must carry the map index of the feature handle they were mapped to in the meta
     value @c map_index (IDMapper with @c annotate_ids_with_subelements). When a multiplet is completed,
     the new map index of the identified feature is recorded in the meta value @c map_index of the first
-    peptide hit.
+    match (peptide hit) of its identification.
+
+    The algorithm works on the identifications of the map as identification data (the first identification
+    of a consensus feature is the first that it links); a map with peptide identifications is converted, and
+    the output maps get peptide identifications again.
 
     Parameters: section @c algorithm holds the label specification and tolerances, section @c labels the
     mass shift of every known label (see MultiplexDeltaMassesGenerator).
@@ -63,7 +67,8 @@ namespace OpenMS
 
       @p map_out and @p map_conflicts inherit the meta data of @p map_in (column headers, protein
       identifications, unassigned peptide identifications, data processing) and receive the
-      consensus features that could resp. could not be matched to a theoretical mass-shift pattern.
+      consensus features that could resp. could not be matched to a theoretical mass-shift pattern,
+      with the identifications they link.
       Both output maps get fresh unique ids for their features, and the column header sizes of
       @p map_out are set to its number of features.
 
@@ -98,25 +103,27 @@ namespace OpenMS
       @brief Check whether all delta masses of the detected pattern match one of the theoretical pattern
 
       @param[in] consensus Detected pattern
+      @param[in] identification Its (first) identification, with the meta value @c map_index
       @param[in] pattern Theoretical pattern
       @param[in] theoretical_delta_mass_at_label_set Theoretical mass shift at which the label set was matched
       @param[out] delta_mass_matched Which delta masses of the theoretical pattern were matched
       @return true if every detected delta mass has a theoretical counterpart within the mass tolerance
     */
-    bool matchDeltaMasses_(const ConsensusFeature& consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
+    bool matchDeltaMasses_(const ConsensusFeature& consensus, const MetaInfoInterface& identification, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
                            double theoretical_delta_mass_at_label_set, std::vector<bool>& delta_mass_matched) const;
 
     /**
       @brief Find the theoretical delta mass pattern matching the detected one
 
       @param[in] consensus Detected pattern
+      @param[in] identification Its (first) identification, with the meta value @c map_index
       @param[in] label_set Label set extracted from the sequence annotated to the detected pattern
       @param[in] theoretical_patterns All theoretical patterns
       @param[out] delta_mass_matched Which delta masses of the matching pattern were matched
       @param[out] index_label_set Index within the matching pattern at which the label set was matched
       @return Index of the matching pattern, or -1
     */
-    int findMatchingPattern_(const ConsensusFeature& consensus, const MultiplexDeltaMasses::LabelSet& label_set,
+    int findMatchingPattern_(const ConsensusFeature& consensus, const MetaInfoInterface& identification, const MultiplexDeltaMasses::LabelSet& label_set,
                              const std::vector<MultiplexDeltaMasses>& theoretical_patterns,
                              std::vector<bool>& delta_mass_matched, int& index_label_set) const;
 
@@ -129,6 +136,8 @@ namespace OpenMS
 
     /**
       @brief Complete an incomplete multiplet with dummy features
+
+      The complete multiplet links the identifications of @p consensus.
 
       @param[in] consensus Possibly incomplete multiplet
       @param[in] pattern Matching theoretical pattern

@@ -12,11 +12,12 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <cmath>
 #include <limits>
+#include <optional>
+#include <set>
 
 using namespace std;
 
@@ -91,12 +92,12 @@ namespace OpenMS
   }
 
   bool MultiplexResolverAlgorithm::matchDeltaMasses_(const ConsensusFeature& consensus,
+                                                     const MetaInfoInterface& id,
                                                      const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
                                                      double theoretical_delta_mass_at_label_set,
                                                      std::vector<bool>& delta_mass_matched) const
   {
     const double first_mass = consensus.getFeatures().begin()->getMZ() * consensus.getFeatures().begin()->getCharge();
-    const PeptideIdentification& id = consensus.getPeptideIdentifications()[0];
     if (!id.metaValueExists("map_index"))
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The meta value 'map_index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
@@ -135,6 +136,7 @@ namespace OpenMS
   }
 
   int MultiplexResolverAlgorithm::findMatchingPattern_(const ConsensusFeature& consensus,
+                                                       const MetaInfoInterface& identification,
                                                        const MultiplexDeltaMasses::LabelSet& label_set,
                                                        const std::vector<MultiplexDeltaMasses>& theoretical_patterns,
                                                        std::vector<bool>& delta_mass_matched, int& index_label_set) const
@@ -149,7 +151,7 @@ namespace OpenMS
         // the label set occurs in this pattern; now all detected mass shifts have to fit as well
         delta_mass_matched.assign(delta_mass_matched.size(), false);
 
-        if (matchDeltaMasses_(consensus, pattern, shift, delta_mass_matched))
+        if (matchDeltaMasses_(consensus, identification, pattern, shift, delta_mass_matched))
         {
           return static_cast<int>(it_pattern - theoretical_patterns.begin());
         }
@@ -262,8 +264,9 @@ namespace OpenMS
     consensus_complete.setCharge(consensus.getCharge());
     consensus_complete.setIntensity(consensus.getIntensity()); // alternatively, reduce intensity due to new zero-intensity dummy features
     consensus_complete.setQuality(consensus.getQuality());
-    consensus_complete.setPeptideIdentifications(consensus.getPeptideIdentifications());
-    consensus_complete.getPeptideIdentifications()[0].getHits()[0].setMetaValue("map_index", index_label_set);
+    // the identifications of the multiplet (resolve() records the new map index in the first match)
+    consensus_complete.getIDQueries() = consensus.getIDQueries();
+    consensus_complete.getIDMatches() = consensus.getIDMatches();
 
     // walk the theoretical pattern: copy detected features, construct dummy features for the missing ones
     auto it_mass_shift = pattern.begin();
@@ -312,6 +315,52 @@ namespace OpenMS
     return consensus_complete;
   }
 
+  namespace
+  {
+    using ID = IdentificationData;
+
+    /**
+      @brief Remove from the identification data of @p map what only consensus features of @p original that @p map
+      does not have link
+
+      Those identifications were assigned in @p original, so they are no unassigned ones of @p map. Matches that
+      were unassigned in @p original stay.
+    */
+    void removeOtherFeatureIdentifications(ConsensusMap& map, const ConsensusMap& original)
+    {
+      ID& data = map.getIdentificationData();
+      std::set<ID::MatchReference> kept_matches;
+      std::set<ID::QueryReference> kept_queries;
+      for (const ConsensusFeature& feature : map)
+      {
+        kept_matches.insert(feature.getIDMatches().begin(), feature.getIDMatches().end());
+        const auto queries = feature.getLinkedIDQueries(data);
+        kept_queries.insert(queries.begin(), queries.end());
+      }
+      std::set<ID::MatchReference> removed_matches;
+      std::set<ID::QueryReference> removed_queries;
+      for (const ConsensusFeature& feature : original)
+      {
+        for (const auto& match : feature.getIDMatches())
+        {
+          if (!kept_matches.contains(match)) removed_matches.insert(match);
+        }
+        for (const auto& query : feature.getLinkedIDQueries(original.getIdentificationData()))
+        {
+          if (!kept_queries.contains(query)) removed_queries.insert(query);
+        }
+      }
+      if (removed_matches.empty() && removed_queries.empty()) return;
+      data.eraseMatches([&](const ID::Run& run, const ID::Identification&, const ID::Match& match) {
+        return removed_matches.contains({run.getUuid(), match.getId()});
+      });
+      // identifications that have no unassigned matches left
+      data.eraseIdentifications([&](const ID::Run& run, const ID::Identification& query) {
+        return query.getMatches().empty() && removed_queries.contains({run.getUuid(), query.getId()});
+      });
+    }
+  } // namespace
+
   void MultiplexResolverAlgorithm::resolve(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts,
                                            const MSExperiment& blacklist) const
   {
@@ -326,41 +375,62 @@ namespace OpenMS
     MultiplexDeltaMassesGenerator generator(param_.getValue("algorithm:labels").toString(),
                                             param_.getValue("algorithm:max_nr_labelled_aas"), label_mass_shift);
 
+    // the identifications of the consensus features as identification data
+    std::optional<ConsensusMap> converted;
+    const ConsensusMap& in = IdentificationDataConverter::withIdentificationData(map_in, converted);
+    const ID& data = in.getIdentificationData();
+
     // both outputs start as empty copies of the input, i.e. with its meta data
-    map_out = map_in;
-    map_conflicts = map_in;
+    map_out = in;
+    map_conflicts = in;
     map_out.resize(0);
     map_conflicts.resize(0);
 
     const std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
     const size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
 
-    for (const ConsensusFeature& cf : map_in)
+    for (const ConsensusFeature& cf : in)
     {
       // consensus features without sequence annotations are written unchanged to the conflict output
-      if (cf.getPeptideIdentifications().empty() || cf.getPeptideIdentifications()[0].getHits().empty())
+      const auto linked = cf.getLinkedIdentifications(data);
+      if (linked.empty() || linked[0].matches.empty())
       {
         map_conflicts.push_back(cf);
         continue;
       }
 
       // extract the label set from the attached peptide sequence (only the first one is considered)
-      const AASequence& sequence = cf.getPeptideIdentifications()[0].getHits()[0].getSequence();
+      const ID::QueryMatches& identification = linked[0];
+      const ID::Match& match = *identification.matches[0];
+      const AASequence sequence = AASequence::fromString(match.representation);
       const MultiplexDeltaMasses::LabelSet label_set = generator.extractLabelSet(sequence);
       std::vector<bool> delta_mass_matched(multiplicity, false);
       int index_label_set = -1;
 
-      const int index = findMatchingPattern_(cf, label_set, theoretical_masses, delta_mass_matched, index_label_set);
+      const int index = findMatchingPattern_(cf, *identification.query, label_set, theoretical_masses, delta_mass_matched, index_label_set);
 
       if (index >= 0)
       {
-        map_out.push_back(completeConsensus_(cf, theoretical_masses[index].getDeltaMasses(), delta_mass_matched, index_label_set, blacklist));
+        const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern = theoretical_masses[index].getDeltaMasses();
+        map_out.push_back(completeConsensus_(cf, pattern, delta_mass_matched, index_label_set, blacklist));
+        if (cf.size() != pattern.size())
+        {
+          // the new map index of the identified feature
+          ID::Run& run = map_out.getIdentificationData().getRun(identification.run->getIdentifier());
+          ID::MatchData annotated = match.getData();
+          annotated.setMetaValue("map_index", index_label_set);
+          run.replaceMatch(match.getId(), annotated);
+        }
       }
       else
       {
         map_conflicts.push_back(cf);
       }
     }
+
+    // the identifications of the consensus features of the other output are not unassigned ones
+    removeOtherFeatureIdentifications(map_out, in);
+    removeOtherFeatureIdentifications(map_conflicts, in);
 
     // update map sizes
     for (unsigned map_index = 0; map_index < multiplicity; ++map_index)
@@ -370,5 +440,11 @@ namespace OpenMS
 
     map_out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     map_conflicts.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    if (converted)
+    {
+      IdentificationDataConverter::exportConsensusIDs(map_out);
+      IdentificationDataConverter::exportConsensusIDs(map_conflicts);
+    }
   }
 } // namespace OpenMS

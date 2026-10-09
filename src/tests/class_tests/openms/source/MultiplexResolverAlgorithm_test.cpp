@@ -12,7 +12,9 @@
 #include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/NativeIdentificationTest.h>
 #include <OpenMS/test_config.h>
 #include <cmath>
 
@@ -118,6 +120,7 @@ ConsensusMap makeDuplexMap()
     map.push_back(cf);
   }
   map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  Internal::ClassTest::addSearchRun(map);
   return map;
 }
 
@@ -232,6 +235,7 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
     cf.insert(makeHandle(1, 100.0, 500.0 + (LYS8 + ARG10) / 2, 2, 200.0));
     cf.getPeptideIdentifications().push_back(makeId("PEPTIDEK(Label:13C(6)15N(2))AAR(Label:13C(6)15N(4))", 2, 1));
     in2.push_back(cf);
+    Internal::ClassTest::addSearchRun(in2);
 
     ConsensusMap out3, conflicts3;
     resolver.resolve(in2, out3, conflicts3);
@@ -253,6 +257,38 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
     ConsensusMap out4, conflicts4;
     TEST_EXCEPTION(Exception::MissingInformation, resolver.resolve(in3, out4, conflicts4))
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolve() on identification data))
+{
+  // a map with identification data gives outputs with identification data
+  ConsensusMap in = makeDuplexMap();
+  in.getUnassignedPeptideIdentifications().push_back(makeId("AAAAK", 2, 0));
+  Internal::ClassTest::addSearchRun(in);
+  IdentificationDataConverter::importConsensusIDs(in);
+  MultiplexResolverAlgorithm resolver;
+  ConsensusMap out, conflicts;
+  resolver.resolve(in, out, conflicts);
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(out), false)
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(conflicts), false)
+  ABORT_IF(out.size() != 3 || conflicts.size() != 2)
+
+  // each output keeps the identifications of its consensus features and the unassigned one of the input
+  TEST_EQUAL(out.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 4)
+  TEST_EQUAL(conflicts.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 2)
+  TEST_EQUAL(out.getUnassignedIdentifications().size(), 1)
+  TEST_EQUAL(conflicts.getUnassignedIdentifications().size(), 1)
+
+  // the new map index of the identified feature of a completed multiplet is recorded on its match
+  const auto completed = out[1].getLinkedIdentifications(out.getIdentificationData());
+  ABORT_IF(completed.size() != 1 || completed[0].matches.empty())
+  TEST_EQUAL((int)completed[0].matches[0]->getMetaValue("map_index"), 1)
+  const auto unchanged = out[0].getLinkedIdentifications(out.getIdentificationData());
+  ABORT_IF(unchanged.size() != 1 || unchanged[0].matches.empty())
+  TEST_EQUAL(unchanged[0].matches[0]->metaValueExists("map_index"), false)
+  // the input is not changed
+  TEST_EQUAL(in[1].getLinkedIdentifications(in.getIdentificationData())[0].matches[0]->metaValueExists("map_index"), false)
 }
 END_SECTION
 
