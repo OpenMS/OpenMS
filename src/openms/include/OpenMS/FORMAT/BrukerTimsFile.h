@@ -61,7 +61,9 @@ namespace OpenMS
     struct Config
     {
       double calibration_tolerance = 0.0;  ///< m/z recalibration tolerance in Da (0 = default 0.1 Da)
-      bool calibrate = false;              ///< Enable m/z recalibration (off by default; may fail on some datasets)
+      bool calibrate = false;              ///< Enable DDA OLS m/z recalibration (off by default; may fail on some datasets).
+                                           ///< Only applies to the linear m/z model: skipped when m/z comes from the
+                                           ///< MzCalibration table (see tims_calibration_strategy).
 
       bool load_ms1 = true;                ///< Load MS1 spectra. Disable (false) for MS2-only workflows
                                            ///< (peptide database search) where MS1 surveys are not needed —
@@ -189,8 +191,17 @@ namespace OpenMS
       enum ExportMode { AUTO, SPECTRUM, FRAME };
       ExportMode export_mode = AUTO;       ///< AUTO detects DDA vs DIA; SPECTRUM forces per-precursor; FRAME returns raw 4D frames
 
-      /// Strategy for converting TIMS scan indices to 1/K0 values.
-      /// AUTO (default): tries Bruker SDK → rational (TimsCalibration table) → linear.
+      /**
+        @brief Strategy for converting TIMS scan indices to 1/K0 values, and TOF indices to m/z.
+
+        1/K0 — AUTO (default): tries Bruker SDK → rational (TimsCalibration table) → linear.
+
+        m/z — every strategy except LINEAR uses the MzCalibration table of analysis.tdf with the
+        per-frame temperature correction (MzCalibrationTof2MzConverter): exact for ModelType 1,
+        within a few ppm of the Bruker SDK for ModelType 2. If the table is missing or
+        unsupported, and always with LINEAR, m/z comes from the linear approximation in
+        sqrt(m/z) over the acquisition range (GlobalMetadata), which can be off by tens of ppm.
+      */
       enum class TimsCalibrationStrategy { AUTO, BRUKER_SDK, RATIONAL, LINEAR };
       TimsCalibrationStrategy tims_calibration_strategy = TimsCalibrationStrategy::AUTO;
 
