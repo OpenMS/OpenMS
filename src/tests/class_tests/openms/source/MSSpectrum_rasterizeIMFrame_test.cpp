@@ -14,6 +14,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
+#include <limits>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -344,6 +346,60 @@ START_SECTION((void rasterizeIMFrame - SUM vs MAX aggregation))
   // MAX should only keep max single intensity: 1000
   TEST_REAL_SIMILAR(sum_value, 5000.0f)
   TEST_REAL_SIMILAR(max_value, 1000.0f)
+}
+END_SECTION
+
+START_SECTION((void rasterizeIMFrame - NaN m/z or IM is skipped instead of polluting bin 0))
+{
+  // CPP-077 (NaN gap): a NaN m/z or IM compares false against every bound in the range check
+  // ("Skip peaks outside the requested ranges"), so it used to fall through to
+  // static_cast<Int64>(NaN). On this toolchain that cast yields 0, which is already a valid bin
+  // index, so the peak silently lands in bin 0 of that dimension and its intensity is summed in,
+  // instead of being excluded as the comment intends. Two peaks here each have one NaN coordinate
+  // but an otherwise in-range value in the other dimension, so each would mis-map to a different,
+  // otherwise-untouched bin if not skipped.
+  MSSpectrum spec;
+  Peak1D good_peak;
+  good_peak.setMZ(550.0);   // mz_bin 2
+  good_peak.setIntensity(1000.0);
+  spec.push_back(good_peak);
+  Peak1D nan_mz_peak;
+  nan_mz_peak.setMZ(std::numeric_limits<double>::quiet_NaN()); // would mis-map to mz_bin 0
+  nan_mz_peak.setIntensity(777.0);
+  spec.push_back(nan_mz_peak);
+  Peak1D nan_im_peak;
+  nan_im_peak.setMZ(510.0);  // legitimately mz_bin 0
+  nan_im_peak.setIntensity(555.0);
+  spec.push_back(nan_im_peak);
+
+  MSSpectrum::FloatDataArray im_array;
+  im_array.setName("Ion Mobility");
+  im_array.setMetaValue("unit_accession", "MS:1002815");
+  im_array.push_back(1.0f);                                    // good_peak: im_bin 2
+  im_array.push_back(1.0f);                                    // nan_mz_peak: im_bin 2
+  im_array.push_back(std::numeric_limits<float>::quiet_NaN()); // nan_im_peak: would mis-map to im_bin 0
+  spec.getFloatDataArrays().push_back(im_array);
+
+  Size im_bins = 4;
+  Size mz_bins = 4;
+  vector<float> output(im_bins * mz_bins, 0.0f);
+
+  spec.rasterizeIMFrame(output.data(), im_bins, mz_bins,
+                        0.0, 2.0,
+                        490.0, 610.0,
+                        MSSpectrum::RasterAggregation::SUM);
+
+  // Row-major: pixel_idx = mz_bin * im_bins + im_bin.
+  // good_peak -> (mz_bin 2, im_bin 2) -> index 10, intensity 1000.
+  // nan_mz_peak would mis-map to (mz_bin 0, im_bin 2) -> index 2, polluting it with 777.
+  // nan_im_peak would mis-map to (mz_bin 0, im_bin 0) -> index 0, polluting it with 555.
+  TEST_REAL_SIMILAR(output[10], 1000.0f)
+  TEST_REAL_SIMILAR(output[2], 0.0f)
+  TEST_REAL_SIMILAR(output[0], 0.0f)
+
+  float total_sum = 0.0f;
+  for (float val : output) total_sum += val;
+  TEST_REAL_SIMILAR(total_sum, 1000.0f)
 }
 END_SECTION
 

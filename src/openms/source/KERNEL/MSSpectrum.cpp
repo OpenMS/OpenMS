@@ -15,6 +15,8 @@
 #include <OpenMS/KERNEL/PeakTypeEstimator.h>
 #include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
 
+#include <cmath>
+
 namespace OpenMS
 {
   void MSSpectrum::checkDataArraySizes_() const
@@ -927,8 +929,10 @@ namespace OpenMS
       const double mz = (*this)[peak_idx].getMZ();
       const double im = im_data[peak_idx];
 
-      // Skip peaks outside the requested ranges
-      if (mz < min_mz || mz > max_mz || im < min_im || im > max_im)
+      // Skip peaks outside the requested ranges; a NaN m/z or IM compares false against every
+      // bound here, so it would otherwise fall through to the cast below instead of being skipped
+      if (!std::isfinite(mz) || !std::isfinite(im)
+       || mz < min_mz || mz > max_mz || im < min_im || im > max_im)
       {
         continue;
       }
@@ -942,9 +946,17 @@ namespace OpenMS
       {
         mz_bin = mz_bins_minus_one;
       }
+      else if (mz_bin < 0)
+      {
+        mz_bin = 0;
+      }
       if (im_bin > im_bins_minus_one)
       {
         im_bin = im_bins_minus_one;
+      }
+      else if (im_bin < 0)
+      {
+        im_bin = 0;
       }
 
       // Row-major order: mz_bin * im_bins + im_bin
