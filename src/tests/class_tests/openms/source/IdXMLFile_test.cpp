@@ -21,15 +21,92 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
+#include <cerrno>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
+#include <exception>
+#include <filesystem>
 #include <fstream>
 #include <limits>
+#include <locale>
+#include <new>
 #include <sstream>
+#include <streambuf>
 
 #ifdef _OPENMP
 #include <omp.h>
+#endif
+#ifdef __linux__
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
+
+// The fault-injection sections below (an allocation failure, a change of the working directory, or a file renamed into
+// the place of the output while store() runs) replace the global operator new of this test program; the replacement
+// must also receive the allocations of libOpenMS. That is the case on Linux (and checked at run time, see
+// allocFaultReachesLibOpenMS()); elsewhere, or if OPENMS_TEST_NO_FAULT_INJECTION is defined, they are skipped with a
+// message.
+#if defined(__linux__) && !defined(OPENMS_TEST_NO_FAULT_INJECTION)
+#define FAULT_INJECTION_TESTS 1
+#else
+#define FAULT_INJECTION_TESTS 0
+#endif
+
+#if FAULT_INJECTION_TESTS
+// Fault injection for the allocation tests below. Armed on one thread, the n-th allocation of that thread after arming
+// runs action() or, without an action, throws std::bad_alloc; with then_throw, it runs action() and then throws
+// std::bad_alloc. Allocations made inside action() are not counted. Over-aligned allocations (operator new with
+// std::align_val_t) are not replaced and not counted.
+namespace AllocFault
+{
+  thread_local long countdown = 0;
+  thread_local bool fired = false;
+  thread_local bool in_action = false;
+  thread_local bool then_throw = false;
+  thread_local void (*action)() = nullptr;
+  void arm(long n, void (*on_fire)() = nullptr, bool throw_after_action = false)
+  {
+    fired = false;
+    action = on_fire;
+    then_throw = throw_after_action;
+    countdown = n;
+  }
+  void disarm() { countdown = 0; action = nullptr; then_throw = false; }
+}
+void* operator new(std::size_t size)
+{
+  if (AllocFault::countdown > 0 && !AllocFault::in_action && --AllocFault::countdown == 0)
+  {
+    AllocFault::fired = true;
+    if (AllocFault::action == nullptr) throw std::bad_alloc();
+    AllocFault::in_action = true;
+    AllocFault::action();
+    AllocFault::in_action = false;
+    if (AllocFault::then_throw) throw std::bad_alloc();
+  }
+  if (void* p = std::malloc(size == 0 ? 1 : size)) return p;
+  throw std::bad_alloc();
+}
+void* operator new[](std::size_t size) { return ::operator new(size); }
+void* operator new(std::size_t size, const std::nothrow_t&) noexcept
+{
+  try { return ::operator new(size); } catch (...) { return nullptr; }
+}
+void* operator new[](std::size_t size, const std::nothrow_t&) noexcept
+{
+  try { return ::operator new(size); } catch (...) { return nullptr; }
+}
+void operator delete(void* p) noexcept { std::free(p); }
+void operator delete[](void* p) noexcept { std::free(p); }
+void operator delete(void* p, std::size_t) noexcept { std::free(p); }
+void operator delete[](void* p, std::size_t) noexcept { std::free(p); }
+void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
+void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 #endif
 
 ///////////////////////////
@@ -76,6 +153,208 @@ namespace
   {
     return slurp4b(path).find(needle) != std::string::npos;
   }
+
+  // exposes the block formatter of the parallel writer
+  struct IdXMLFileBlockWriter : public IdXMLFile
+  {
+    using IdXMLFile::formatBlock_;
+  };
+
+  // whether the message of an error of store() names the file and says that a partial file may remain (store() does not
+  // remove its output)
+  bool saysPartialFileRemains(const std::string& message, const std::string& file)
+  {
+    return message.find("writing '" + file + "' did not complete: a partial file may remain") != std::string::npos;
+  }
+
+  // the message of the exception of type E that f() throws; empty if it throws none or another one
+  template <typename E, typename F>
+  std::string messageOf(F&& f)
+  {
+    try
+    {
+      f();
+    }
+    catch (const E& e)
+    {
+      return e.what();
+    }
+    catch (...)
+    {
+    }
+    return std::string();
+  }
+
+  // whether @p file holds a partial idXML: written to, but not to its end
+  bool isPartialIdXML(const std::string& file)
+  {
+    if (!File::exists(file)) return false;
+    const std::string content = slurp4b(file);
+    return !content.empty() && content.find("</IdXML>") == std::string::npos;
+  }
+
+  // a stream buffer that cannot grow, as a std::stringbuf whose allocation fails
+  struct BadAllocStreamBuf : public std::streambuf
+  {
+  protected:
+    int_type overflow(int_type) override { throw std::bad_alloc(); }
+  };
+
+  // a stream buffer that fails without throwing
+  struct FailingStreamBuf : public std::streambuf
+  {
+  protected:
+    int_type overflow(int_type) override { return traits_type::eof(); }
+  };
+
+#if FAULT_INJECTION_TESTS
+  void noAction() {}
+
+  // whether the replacement of operator new above receives an allocation made inside libOpenMS (it does not, e.g., with
+  // a statically linked C++ runtime)
+  bool allocFaultReachesLibOpenMS()
+  {
+    AllocFault::arm(1, &noAction);
+    const std::string name = File::getUniqueName(false);
+    const bool fired = AllocFault::fired;
+    AllocFault::disarm();
+    return fired && !name.empty();
+  }
+
+  // the working directory test of store(): the action of AllocFault changes to directory B once the output in A exists
+  std::filesystem::path cwd_test_dir_b;
+  std::filesystem::path cwd_test_out_a;
+  bool cwd_test_changed = false;
+  void changeToDirBOnceOutputExists()
+  {
+    std::error_code ec;
+    if (!cwd_test_changed && std::filesystem::exists(cwd_test_out_a, ec))
+    {
+      std::filesystem::current_path(cwd_test_dir_b, ec);
+      cwd_test_changed = !ec;
+    }
+  }
+
+  // the open-failure test of store(): the action of AllocFault notes whether the output exists
+  std::filesystem::path open_test_file;
+  bool open_test_file_seen = false;
+  void noteWhetherOpenTestFileExists()
+  {
+    std::error_code ec;
+    open_test_file_seen = std::filesystem::exists(open_test_file, ec);
+  }
+
+  // the replacement test of store(): once store() has written to its output (its size is no longer 0, so opening it is
+  // over), the action of AllocFault moves the output aside and renames the sentinel into its place, as another process
+  // could
+  std::filesystem::path swap_test_out;
+  std::filesystem::path swap_test_aside;
+  std::filesystem::path swap_test_sentinel;
+  bool swap_test_swapped = false;
+  void swapInSentinelOnceOutputWritten()
+  {
+    std::error_code ec;
+    const std::uintmax_t size = std::filesystem::file_size(swap_test_out, ec);
+    if (swap_test_swapped || ec || size == 0) return;
+    std::filesystem::rename(swap_test_out, swap_test_aside, ec);
+    if (ec) return;
+    std::filesystem::rename(swap_test_sentinel, swap_test_out, ec);
+    swap_test_swapped = !ec;
+  }
+
+  // the replacement test of store() while it opens its output: as above, but while the output exists and is still
+  // empty, i.e. also within opening it
+  void swapInSentinelWhileOutputEmpty()
+  {
+    std::error_code ec;
+    const std::uintmax_t size = std::filesystem::file_size(swap_test_out, ec);
+    if (swap_test_swapped || ec || size != 0) return;
+    std::filesystem::rename(swap_test_out, swap_test_aside, ec);
+    if (ec) return;
+    std::filesystem::rename(swap_test_sentinel, swap_test_out, ec);
+    swap_test_swapped = !ec;
+  }
+
+#ifdef __GLIBCXX__
+  // The reporting test of store(): a code conversion facet whose unshift() throws makes the final close() of store()
+  // throw (libstdc++). Just before it throws, it arms AllocFault, so that the n-th allocation after the throw fails: an
+  // allocation made to report the error.
+  struct CloseTestError
+  {
+  };
+  std::exception_ptr close_test_error; // what the facet throws (rethrown: throwing it allocates nothing); CloseTestError if null
+  long close_test_alloc_n = 0;         // 0: no allocation fails
+  struct ArmAndThrowOnUnshift : public std::codecvt<char, char, std::mbstate_t>
+  {
+  protected:
+    bool do_always_noconv() const noexcept override { return false; }
+    result do_out(state_type&, const char* from, const char* from_end, const char*& from_next, char* to, char* to_end,
+                  char*& to_next) const override
+    {
+      const std::ptrdiff_t n = std::min(from_end - from, to_end - to);
+      std::copy(from, from + n, to);
+      from_next = from + n;
+      to_next = to + n;
+      return from_next == from_end ? ok : partial;
+    }
+    result do_unshift(state_type&, char*, char*, char*&) const override
+    {
+      if (close_test_alloc_n > 0) AllocFault::arm(close_test_alloc_n);
+      if (close_test_error) std::rethrow_exception(close_test_error);
+      throw CloseTestError();
+    }
+  };
+
+  // Runs in a child process (an allocation failure may end it): store() whose close() throws the error of @p kind (0:
+  // Exception::ConversionError, 1: std::bad_alloc, 2: CloseTestError, which is not a std::exception), and the n-th
+  // allocation after that fails (none if n is 0). Returns 0 if store() raised that error with its type (the OpenMS
+  // exception with the note, unless the failed allocation was one of the note's), 1 otherwise; plus 16 if the
+  // allocation failure was injected.
+  int closeTestChild(int kind, long n, const std::string& file, const std::vector<ProteinIdentification>& prots,
+                     const PeptideIdentificationList& peps)
+  {
+    struct rlimit no_core = {0, 0};
+    ::setrlimit(RLIMIT_CORE, &no_core); // a child that is ended leaves no core file
+    if (kind == 0) close_test_error = std::make_exception_ptr(Exception::ConversionError(__FILE__, __LINE__, "closeTestChild", "an error while closing"));
+    if (kind == 1) close_test_error = std::make_exception_ptr(std::bad_alloc());
+    close_test_alloc_n = n;
+    std::locale::global(std::locale(std::locale(), new ArmAndThrowOnUnshift));
+    IdXMLFile writer; // constructed before store(): only allocations after the throw fail
+    bool with_type = false;
+    try
+    {
+      writer.store(file, prots, peps);
+      AllocFault::disarm();
+    }
+    catch (const Exception::ConversionError& e)
+    {
+      AllocFault::disarm();
+      with_type = kind == 0 && (AllocFault::fired || saysPartialFileRemains(e.what(), file));
+    }
+    catch (const std::bad_alloc&)
+    {
+      AllocFault::disarm();
+      with_type = kind == 1;
+    }
+    catch (const CloseTestError&)
+    {
+      AllocFault::disarm();
+      with_type = kind == 2;
+    }
+    catch (...)
+    {
+      AllocFault::disarm();
+    }
+    return (with_type ? 0 : 1) | (AllocFault::fired ? 16 : 0);
+  }
+#endif
+#endif
+
+  [[maybe_unused]] const char* const fault_injection_unavailable = "SKIPPED: fault injection (a replacement of the global operator new "
+      "that also receives the allocations of libOpenMS) is available on Linux only, and not if "
+      "OPENMS_TEST_NO_FAULT_INJECTION is defined";
+  const char* const fault_injection_unreached = "SKIPPED: the replacement of operator new in this test program does "
+      "not receive the allocations of libOpenMS (e.g. a statically linked C++ runtime)";
 
   // first occurrence only; returns false when @p from is absent
   bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
@@ -758,6 +1037,858 @@ START_SECTION([EXTRA] store - hits with NaN scores are written in the order of P
     }
   }
   TEST_EQUAL(same_order, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - a failing store() throws and says so; the partial file is left in place)
+{
+  // The block formatter of the parallel writer: a failure of the block's stream buffer propagates. Without exceptions on
+  // the stream, the std::bad_alloc would only set badbit and the partial block would be written as if complete.
+  const auto write_block = [](std::ostream& out) { out << "\t\t<PeptideIdentification score_type=\"score\" >\n" << 1.25 << '\n'; };
+  {
+    std::ostringstream formatted, direct;
+    IdXMLFileBlockWriter::formatBlock_(formatted, write_block);
+    write_block(direct);
+    TEST_EQUAL(formatted.str(), direct.str())
+  }
+  {
+    BadAllocStreamBuf buffer;
+    std::ostream out(&buffer);
+    TEST_EXCEPTION(std::bad_alloc, IdXMLFileBlockWriter::formatBlock_(out, write_block))
+  }
+  {
+    FailingStreamBuf buffer;
+    std::ostream out(&buffer);
+    TEST_EXCEPTION(std::ios_base::failure, IdXMLFileBlockWriter::formatBlock_(out, write_block))
+  }
+
+  std::vector<ProteinIdentification> prots(1);
+  prots[0].setIdentifier("runFail");
+  prots[0].setDateTime(DateTime::now());
+  prots[0].insertHit(ProteinHit(0.0, 1, "ACC_FAIL", ""));
+  const auto make_peps = [](Size n)
+  {
+    PeptideIdentificationList peps(n);
+    for (Size l = 0; l < n; ++l)
+    {
+      peps[l].setIdentifier("runFail");
+      peps[l].setScoreType("score");
+      peps[l].setHigherScoreBetter(true);
+      peps[l].setRT(double(l));
+      peps[l].setMZ(500.0 + double(l));
+      peps[l].setSpectrumReference("scan=" + StringUtils::toStr(l));
+      for (const std::string sequence : {"PEPTIDEA", "PEPTIDEB"})
+      {
+        PeptideHit hit(double(l), 0, 2, AASequence::fromString(sequence));
+        hit.addPeptideEvidence(PeptideEvidence("ACC_FAIL", 0, 7, '-', 'P'));
+        hit.setMetaValue("fail_test_string", std::string(64, 'x'));
+        peps[l].insertHit(hit);
+      }
+    }
+    return peps;
+  };
+
+  // A block that throws: the error keeps its type, its message names the file and says that a partial file may remain,
+  // and the partial file is left in place (store() does not remove its output).
+  {
+    PeptideIdentificationList bad = make_peps(100);
+    for (PeptideHit& hit : bad[40].getHits()) hit.setMetaValue("fail_test_empty", DataValue()); // cannot be written
+    std::string file_bad;
+    NEW_TMP_FILE(file_bad)
+    const std::string message = messageOf<Exception::ConversionError>([&] { IdXMLFile().store(file_bad, prots, bad); });
+    TEST_TRUE(saysPartialFileRemains(message, file_bad))
+    TEST_TRUE(isPartialIdXML(file_bad))
+    std::remove(file_bad.c_str()); // partial, not to be validated
+  }
+
+  // An exception from any other part of the file, here the protein section (a meta value without a value cannot be
+  // written), as well: for a file that store() created, and for a regular file that existed before (its content is
+  // replaced when store() opens it), the partial file is left in place and the message says so.
+  std::vector<ProteinIdentification> bad_prots = prots;
+  {
+    std::vector<ProteinHit> hits = bad_prots[0].getHits();
+    hits[0].setMetaValue("fail_test_empty", DataValue());
+    bad_prots[0].setHits(hits);
+  }
+  for (const bool existed : {false, true})
+  {
+    std::string file_bad;
+    NEW_TMP_FILE(file_bad)
+    std::remove(file_bad.c_str());
+    if (existed) { std::ofstream(file_bad) << "previous content\n"; }
+    const std::string message = messageOf<Exception::ConversionError>([&] { IdXMLFile().store(file_bad, bad_prots, make_peps(10)); });
+    TEST_TRUE(saysPartialFileRemains(message, file_bad))
+    TEST_TRUE(isPartialIdXML(file_bad))
+    std::remove(file_bad.c_str()); // partial, not to be validated
+  }
+
+#ifdef __linux__
+  // Names that store() did not create and that are not a regular file of their own are left in place when store()
+  // fails, as every output is (regression guard: an earlier version removed some outputs of a failed store()).
+  // The names are unique (File::getUniqueName), so concurrent runs of this test do not interfere, and they are not
+  // NEW_TMP_FILEs: the end-of-test validation would read them.
+  PeptideIdentificationList bad_peps = make_peps(100);
+  for (PeptideHit& hit : bad_peps[40].getHits()) hit.setMetaValue("fail_test_empty", DataValue());
+  for (const bool fail_in_block : {true, false})
+  {
+    // a file with a second hard link: neither name is removed (failure in a block of peptide identifications, or in
+    // the protein section)
+    const std::string original = "IdXMLFile_test_" + File::getUniqueName(false) + "_original.idXML";
+    const std::string link = "IdXMLFile_test_" + File::getUniqueName(false) + "_hardlink.idXML";
+    { std::ofstream(original) << "previous content\n"; }
+    std::error_code ec;
+    std::filesystem::create_hard_link(original, link, ec);
+    ABORT_IF(bool(ec))
+    if (fail_in_block) { TEST_EXCEPTION(Exception::ConversionError, IdXMLFile().store(link, prots, bad_peps)) }
+    else { TEST_EXCEPTION(Exception::ConversionError, IdXMLFile().store(link, bad_prots, make_peps(10))) }
+    TEST_EQUAL(File::exists(link), true)
+    TEST_EQUAL(File::exists(original), true)
+    std::remove(link.c_str());
+    std::remove(original.c_str());
+  }
+
+  // Disk full: an idXML symlinked to /dev/full. One identification fits into the buffer of the file, so the error shows
+  // only when the stream is flushed on close; 400 identifications overflow it while the blocks are written. Either way,
+  // store() throws and says that a partial file may remain; the link stays, /dev/full itself is untouched.
+  struct stat device;
+  if (::stat("/dev/full", &device) == 0 && S_ISCHR(device.st_mode))
+  {
+#ifdef _OPENMP
+    const int max_threads = omp_get_max_threads();
+#endif
+    for (const Size n : {Size(1), Size(400)})
+    {
+      for ([[maybe_unused]] const int threads : {1, 4})
+      {
+#ifdef _OPENMP
+        omp_set_num_threads(threads);
+#endif
+        const PeptideIdentificationList peps = make_peps(n);
+        const std::string link = "IdXMLFile_test_" + File::getUniqueName(false) + "_dev_full.idXML";
+        ABORT_IF(::symlink("/dev/full", link.c_str()) != 0)
+        const std::string message = messageOf<Exception::UnableToCreateFile>([&] { IdXMLFile().store(link, prots, peps); });
+        TEST_TRUE(saysPartialFileRemains(message, link))
+        struct stat link_stat;
+        TEST_EQUAL(::lstat(link.c_str(), &link_stat) == 0 && S_ISLNK(link_stat.st_mode), true)
+        std::remove(link.c_str());
+      }
+    }
+#ifdef _OPENMP
+    omp_set_num_threads(max_threads);
+#endif
+    TEST_EQUAL(::stat("/dev/full", &device) == 0 && S_ISCHR(device.st_mode), true)
+  }
+#else
+  STATUS("SKIPPED (Linux only): a file with a second hard link, and an idXML symlinked to /dev/full")
+#endif
+
+  // the same identifications into a regular file: written completely
+  std::string file_ok;
+  NEW_TMP_FILE(file_ok)
+  IdXMLFile().store(file_ok, prots, make_peps(400));
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  IdXMLFile().load(file_ok, prots_in, peps_in);
+  TEST_EQUAL(peps_in.size(), 400)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - an allocation failure anywhere in store() is raised and leaves the output in place)
+{
+#if FAULT_INJECTION_TESTS
+  if (!allocFaultReachesLibOpenMS())
+  {
+    STATUS(fault_injection_unreached)
+  }
+  else
+  {
+    // Every allocation of the calling thread in store() fails once, one after the other. store() must raise the failure
+    // (the std::bad_alloc unchanged; an OpenMS exception with a message that names the file and says that a partial file
+    // may remain), and must not remove its output: once the output exists when the allocation fails (it existed before,
+    // or opening created it), it is left in place. A store() that completes (the failed allocation was handled, e.g. a
+    // nothrow allocation) writes the complete file.
+    std::vector<ProteinIdentification> prots(1);
+    prots[0].setIdentifier("runAlloc");
+    prots[0].setDateTime(DateTime::now());
+    prots[0].insertHit(ProteinHit(0.0, 1, "ACC_ALLOC", ""));
+    PeptideIdentificationList peps(3); // one block, formatted by the calling thread
+    for (Size l = 0; l < peps.size(); ++l)
+    {
+      peps[l].setIdentifier("runAlloc");
+      peps[l].setScoreType("score");
+      peps[l].setHigherScoreBetter(true);
+      peps[l].setRT(double(l));
+      peps[l].setMZ(500.0 + double(l));
+      PeptideHit hit(double(l), 0, 2, AASequence::fromString("PEPTIDER"));
+      hit.addPeptideEvidence(PeptideEvidence("ACC_ALLOC", 0, 7, '-', '-'));
+      hit.setMetaValue("alloc_test", std::string(64, 'x'));
+      peps[l].insertHit(hit);
+    }
+    // longer than any short-string buffer, so that copying the name allocates. Not a NEW_TMP_FILE: the sweep leaves
+    // partial files, and VALIDATE_TMP_FILES at the end would check it.
+    const std::string file = "IdXMLFile_test_" + File::getUniqueName(false) + "_" + std::string(100, 'n') + ".idXML";
+    IdXMLFile().store(file, prots, peps);
+    const std::string complete = slurp4b(file);
+    const std::string previous = "previous content\n";
+    open_test_file = file;
+    for (const bool existed : {false, true})
+    {
+      long injected = 0, failed_stores = 0, raised_bad_alloc = 0, left_in_place = 0, wrong = 0, first_wrong = 0;
+      for (long n = 1; n < 10000000; ++n)
+      {
+        std::remove(file.c_str());
+        if (existed) { std::ofstream(file) << previous; }
+        open_test_file_seen = false;
+        bool threw = false, bad_alloc = false, openms_error = false;
+        std::string message;
+        IdXMLFile writer; // constructed before arming: only the allocations of store() fail
+        AllocFault::arm(n, &noteWhetherOpenTestFileExists, true); // notes whether the output exists, then fails
+        try
+        {
+          writer.store(file, prots, peps);
+        }
+        catch (const Exception::BaseException& e)
+        {
+          threw = openms_error = true;
+          message = e.what();
+        }
+        catch (const std::bad_alloc&)
+        {
+          threw = bad_alloc = true;
+        }
+        catch (...)
+        {
+          threw = true;
+        }
+        const bool fired = AllocFault::fired;
+        AllocFault::disarm();
+        const bool exists = File::exists(file);
+        const bool ok = threw ? (bad_alloc || (openms_error && saysPartialFileRemains(message, file)))
+                                  && (exists || !open_test_file_seen)
+                              : exists && slurp4b(file) == complete;
+        if (!ok && wrong++ == 0) first_wrong = n;
+        if (!fired) break; // n is past the last allocation of store()
+        ++injected;
+        if (threw) ++failed_stores;
+        if (bad_alloc) ++raised_bad_alloc;
+        if (threw && open_test_file_seen && exists) ++left_in_place;
+      }
+      STATUS("file existed before: " << existed << "; " << injected << " allocations failed one at a time, " << failed_stores
+             << " stores threw (" << raised_bad_alloc << " the std::bad_alloc), " << left_in_place
+             << " left the output in place, " << wrong
+             << " raised another error, an OpenMS error without the note, or removed the output (first at allocation "
+             << first_wrong << ")")
+      TEST_TRUE(failed_stores > 0)
+      TEST_TRUE(left_in_place > 0)
+      TEST_EQUAL(wrong, 0)
+    }
+
+#ifdef __GLIBCXX__
+    // Opening can create or truncate the file and then throw: libstdc++ allocates the stream buffer after it opened the
+    // file. That allocation is the first one at which a file that did not exist before exists. If it fails, store()
+    // raises the std::bad_alloc unchanged and leaves the empty file in place, whether it created it or the file was
+    // already empty before.
+    long n_open = 0;
+    for (long n = 1; n < 10000000 && n_open == 0; ++n)
+    {
+      std::remove(file.c_str());
+      open_test_file_seen = false;
+      AllocFault::arm(n, &noteWhetherOpenTestFileExists);
+      try
+      {
+        IdXMLFile().store(file, prots, peps);
+      }
+      catch (...)
+      {
+      }
+      const bool fired = AllocFault::fired;
+      AllocFault::disarm();
+      if (!fired) break;
+      if (open_test_file_seen) n_open = n;
+    }
+    STATUS("first allocation at which the output exists: " << n_open)
+    TEST_TRUE(n_open > 0)
+    for (const bool existed_empty : {false, true})
+    {
+      std::remove(file.c_str());
+      if (existed_empty) { std::ofstream create(file); }
+      bool bad_alloc = false;
+      AllocFault::arm(n_open);
+      try
+      {
+        IdXMLFile().store(file, prots, peps);
+      }
+      catch (const std::bad_alloc&)
+      {
+        bad_alloc = true;
+      }
+      catch (...)
+      {
+      }
+      AllocFault::disarm();
+      TEST_TRUE(bad_alloc)
+      TEST_TRUE(File::exists(file) && slurp4b(file).empty())
+    }
+#endif
+    std::remove(file.c_str());
+  }
+#else
+  STATUS(fault_injection_unavailable)
+#endif
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - a change of the working directory while store() runs does not make it touch another file)
+{
+#if FAULT_INJECTION_TESTS
+  if (!allocFaultReachesLibOpenMS())
+  {
+    STATUS(fault_injection_unreached)
+  }
+  else
+  {
+    // store("out.idXML") in directory A writes A/out.idXML. If the working directory changes to B (e.g. in another
+    // thread) before store() fails, B/out.idXML, a file this call did not write, must stay unchanged (regression guard:
+    // an earlier version removed the output of a failed store() by its name), and the partial A/out.idXML is left in
+    // place. The change happens at each allocation of the calling thread after the file was created, one after the
+    // other; store() fails in the protein section (a meta value without a value).
+    namespace fs = std::filesystem;
+    // not NEW_TMP_FILE: the directories are removed at the end of the section
+    const fs::path base = fs::absolute("IdXMLFile_test_" + File::getUniqueName(false) + "_cwd");
+    const fs::path dir_a = base / "A";
+    cwd_test_dir_b = base / "B";
+    fs::create_directories(dir_a);
+    fs::create_directories(cwd_test_dir_b);
+    cwd_test_out_a = dir_a / "out.idXML";
+    const fs::path out_b = cwd_test_dir_b / "out.idXML";
+    const std::string unrelated = "a file in B that store() does not write\n";
+
+    std::vector<ProteinIdentification> prots(1);
+    prots[0].setIdentifier("runCwd");
+    prots[0].setDateTime(DateTime::now());
+    ProteinHit protein_hit(0.0, 1, "ACC_CWD", "");
+    protein_hit.setMetaValue("fail_test_empty", DataValue()); // cannot be written
+    prots[0].insertHit(protein_hit);
+    PeptideIdentificationList peps(2);
+    for (Size l = 0; l < peps.size(); ++l)
+    {
+      peps[l].setIdentifier("runCwd");
+      peps[l].setScoreType("score");
+      PeptideHit hit(double(l), 0, 2, AASequence::fromString("PEPTIDER"));
+      peps[l].insertHit(hit);
+    }
+
+    struct RestoreWorkingDirectory
+    {
+      fs::path saved = fs::current_path();
+      ~RestoreWorkingDirectory() { std::error_code ec; fs::current_path(saved, ec); }
+    } restore_working_directory;
+    long changed = 0, b_damaged = 0, a_left = 0, first_b_damaged = 0;
+    for (long n = 1; n < 10000000; ++n)
+    {
+      { std::ofstream(out_b.string()) << unrelated; }
+      fs::remove(cwd_test_out_a);
+      fs::current_path(dir_a);
+      cwd_test_changed = false;
+      AllocFault::arm(n, &changeToDirBOnceOutputExists);
+      try
+      {
+        IdXMLFile().store("out.idXML", prots, peps);
+      }
+      catch (...)
+      {
+      }
+      const bool fired = AllocFault::fired;
+      AllocFault::disarm();
+      fs::current_path(restore_working_directory.saved);
+      if (!fired) break; // n is past the last allocation of store()
+      if (!cwd_test_changed) continue; // the change came before the file was created: B/out.idXML was the output
+      ++changed;
+      if (!fs::exists(out_b) || slurp4b(out_b.string()) != unrelated)
+      {
+        if (b_damaged++ == 0) first_b_damaged = n;
+      }
+      if (fs::exists(cwd_test_out_a)) ++a_left;
+    }
+    STATUS(changed << " stores changed the working directory after the file was created; B/out.idXML removed or changed in "
+           << b_damaged << " (first at allocation " << first_b_damaged << "), A/out.idXML left in " << a_left)
+    TEST_TRUE(changed > 0)
+    TEST_EQUAL(b_damaged, 0)
+    TEST_EQUAL(a_left, changed)
+
+    // a working directory that no longer exists: a relative name cannot be resolved, store() reports that it cannot
+    // create the file (as when opening it fails)
+    const fs::path gone = base / "gone";
+    fs::create_directories(gone);
+    fs::current_path(gone);
+    fs::remove(gone);
+    TEST_EXCEPTION(Exception::UnableToCreateFile, IdXMLFile().store("out.idXML", prots, peps))
+    fs::current_path(restore_working_directory.saved);
+    std::error_code ec;
+    fs::remove_all(base, ec);
+  }
+#else
+  STATUS(fault_injection_unavailable)
+#endif
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - a relative name is written where the working directory can be used but not its absolute path)
+{
+#ifdef __linux__
+  // Creating a file by a relative name needs permissions on the working directory only; its absolute path also needs
+  // search permission on every ancestor. Here the parent of the working directory has no permissions: store() of a
+  // relative name must write the file, as any other writer can (a privileged user is not restricted; then the case is
+  // not reached and only reported). Not NEW_TMP_FILE: the directories are removed at the end of the section.
+  namespace fs = std::filesystem;
+  const fs::path base = fs::absolute("IdXMLFile_test_" + File::getUniqueName(false) + "_ancestor");
+  const fs::path parent = base / "parent";
+  const fs::path work = parent / "work";
+  fs::create_directories(work);
+  // restores the permissions and the working directory and removes the directories, also if the section stops early
+  struct RestoreDirectories
+  {
+    fs::path saved = fs::current_path();
+    fs::path locked;
+    fs::path remove_tree;
+    ~RestoreDirectories()
+    {
+      std::error_code ec;
+      if (!locked.empty()) fs::permissions(locked, fs::perms::owner_all, ec);
+      fs::current_path(saved, ec);
+      if (!remove_tree.empty()) fs::remove_all(remove_tree, ec);
+    }
+  } restore;
+  restore.remove_tree = base;
+
+  std::vector<ProteinIdentification> prots(1);
+  prots[0].setIdentifier("runAncestor");
+  prots[0].setDateTime(DateTime::now());
+  prots[0].insertHit(ProteinHit(0.0, 1, "ACC_ANCESTOR", ""));
+  PeptideIdentificationList peps(2);
+  for (Size l = 0; l < peps.size(); ++l)
+  {
+    peps[l].setIdentifier("runAncestor");
+    peps[l].setScoreType("score");
+    PeptideHit hit(double(l), 0, 2, AASequence::fromString("PEPTIDER"));
+    hit.addPeptideEvidence(PeptideEvidence("ACC_ANCESTOR", 0, 7, '-', '-'));
+    peps[l].insertHit(hit);
+  }
+  const fs::path reference = base / "reference.idXML";
+  IdXMLFile().store(reference.string(), prots, peps);
+  const std::string complete = slurp4b(reference.string());
+
+  fs::current_path(work);
+  std::error_code lock_error; // a file system without permissions: the case is not reached
+  fs::permissions(parent, fs::perms::none, lock_error);
+  if (!lock_error) restore.locked = parent;
+  const bool reached = !lock_error && ::access((work / "control").c_str(), F_OK) != 0 && errno == EACCES;
+  { std::ofstream("control") << "x"; }
+  const bool relative_name_usable = File::exists("control");
+  STATUS("absolute path of the working directory not searchable: " << reached << "; a relative name can be created: "
+         << relative_name_usable)
+  if (reached && relative_name_usable)
+  {
+    bool stored = false;
+    try
+    {
+      IdXMLFile().store("out.idXML", prots, peps);
+      stored = true;
+    }
+    catch (const Exception::BaseException& e)
+    {
+      STATUS("store() threw: " << e.what());
+    }
+    TEST_TRUE(stored)
+    TEST_TRUE(File::exists("out.idXML") && slurp4b("out.idXML") == complete)
+  }
+
+  // a pre-existing empty file that cannot be opened for writing stays (opening it changed nothing)
+  std::error_code ec;
+  fs::permissions(parent, fs::perms::owner_all, ec);
+  restore.locked.clear();
+  fs::current_path(restore.saved);
+  const fs::path read_only = work / "read_only_empty.idXML";
+  { std::ofstream create(read_only.string()); }
+  std::error_code read_only_error;
+  fs::permissions(read_only, fs::perms::owner_read, read_only_error);
+  if (!read_only_error && ::access(read_only.c_str(), W_OK) != 0)
+  {
+    TEST_EXCEPTION(Exception::UnableToCreateFile, IdXMLFile().store(read_only.string(), prots, peps))
+    TEST_TRUE(fs::exists(read_only))
+  }
+  fs::permissions(read_only, fs::perms::owner_all, ec);
+#else
+  STATUS("SKIPPED (Linux only): POSIX permissions on the ancestors of the working directory")
+#endif
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - a file renamed into the place of the output while store() runs is not removed)
+{
+#if FAULT_INJECTION_TESTS
+  if (!allocFaultReachesLibOpenMS())
+  {
+    STATUS(fault_injection_unreached)
+  }
+  else
+  {
+    // store() fails in the protein section (a meta value without a value), after the proteins before it have overflowed
+    // the stream buffer, so the output has been written to. At each allocation of the calling thread after that, one
+    // after the other, the output is moved aside and another file is renamed into its place, as another process could.
+    // store() removes nothing: that file must stay, with its content, and the output moved aside is left in place
+    // (regression guard: an earlier version removed the output of a failed store() by its name). Not NEW_TMP_FILE: the
+    // directory is removed at the end of the section.
+    namespace fs = std::filesystem;
+    struct RemoveTree
+    {
+      fs::path tree;
+      ~RemoveTree() { std::error_code ec; fs::remove_all(tree, ec); }
+    } remove_tree{fs::absolute("IdXMLFile_test_" + File::getUniqueName(false) + "_replaced")};
+    fs::create_directories(remove_tree.tree);
+    swap_test_out = remove_tree.tree / "out.idXML";
+    swap_test_aside = remove_tree.tree / "aside.idXML";
+    swap_test_sentinel = remove_tree.tree / "sentinel.idXML";
+    const std::string sentinel = "a file that was renamed into the place of the output\n";
+
+    std::vector<ProteinIdentification> prots(1);
+    prots[0].setIdentifier("runReplaced");
+    prots[0].setDateTime(DateTime::now());
+    for (Size i = 0; i < 120; ++i)
+    {
+      ProteinHit hit(0.0, 1, "ACC_REPLACED_" + StringUtils::toStr(i), "");
+      hit.setMetaValue("replaced_test", std::string(64, 'x'));
+      prots[0].insertHit(hit);
+    }
+    ProteinHit bad_hit(0.0, 1, "ACC_REPLACED_BAD", "");
+    bad_hit.setMetaValue("fail_test_empty", DataValue()); // cannot be written
+    prots[0].insertHit(bad_hit);
+    PeptideIdentificationList peps(2);
+    for (Size l = 0; l < peps.size(); ++l)
+    {
+      peps[l].setIdentifier("runReplaced");
+      peps[l].setScoreType("score");
+      PeptideHit hit(double(l), 0, 2, AASequence::fromString("PEPTIDER"));
+      peps[l].insertHit(hit);
+    }
+
+    long swapped = 0, sentinel_lost = 0, first_lost = 0, other_outcome = 0, aside_lost = 0;
+    for (long n = 1; n < 10000000; ++n)
+    {
+      std::error_code ec;
+      fs::remove(swap_test_out, ec);
+      fs::remove(swap_test_aside, ec);
+      { std::ofstream(swap_test_sentinel.string()) << sentinel; }
+      swap_test_swapped = false;
+      bool conversion_error = false;
+      AllocFault::arm(n, &swapInSentinelOnceOutputWritten);
+      try
+      {
+        IdXMLFile().store(swap_test_out.string(), prots, peps);
+      }
+      catch (const Exception::ConversionError&)
+      {
+        conversion_error = true;
+      }
+      catch (...)
+      {
+      }
+      const bool fired = AllocFault::fired;
+      AllocFault::disarm();
+      if (!fired) break; // n is past the last allocation of store()
+      if (!swap_test_swapped) continue; // the output had not been written to yet
+      ++swapped;
+      if (!conversion_error) ++other_outcome;
+      if (!fs::exists(swap_test_out) || slurp4b(swap_test_out.string()) != sentinel)
+      {
+        if (sentinel_lost++ == 0) first_lost = n;
+      }
+      if (!fs::exists(swap_test_aside)) ++aside_lost;
+    }
+    STATUS(swapped << " stores had another file renamed into the place of their output; it was removed or changed in "
+           << sentinel_lost << " (first at allocation " << first_lost << "); stores that did not fail as expected: "
+           << other_outcome << "; the output moved aside was removed in " << aside_lost)
+    TEST_TRUE(swapped > 0)
+    TEST_EQUAL(sentinel_lost, 0)
+    TEST_EQUAL(other_outcome, 0)
+    TEST_EQUAL(aside_lost, 0)
+  }
+#else
+  STATUS(fault_injection_unavailable)
+#endif
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - a file renamed into the place of the output while store() opens it is not removed)
+{
+#if FAULT_INJECTION_TESTS
+  if (!allocFaultReachesLibOpenMS())
+  {
+    STATUS(fault_injection_unreached)
+  }
+  else
+  {
+    // As in the section above, but the output is moved aside and another file is renamed into its place while the
+    // output exists and is still empty: at each such allocation of the calling thread, one after the other. With
+    // libstdc++, the first is the allocation of the stream buffer within opening the file. Two cases:
+    // - a file with content is renamed into place and store() continues; it fails in the protein section (a meta
+    //   value without a value);
+    // - an empty file is renamed into place and the allocation fails (std::bad_alloc); within opening, opening fails.
+    //   The data have no other error here: an allocation that fails while an OpenMS exception is constructed
+    //   terminates the program (the constructors are noexcept).
+    // store() removes nothing: the file renamed into place must stay, the same file with its content, and the output
+    // moved aside is left in place. Not NEW_TMP_FILE: the directory is removed at the end of the section.
+    namespace fs = std::filesystem;
+    struct RemoveTree
+    {
+      fs::path tree;
+      ~RemoveTree() { std::error_code ec; fs::remove_all(tree, ec); }
+    } remove_tree{fs::absolute("IdXMLFile_test_" + File::getUniqueName(false) + "_replaced_open")};
+    fs::create_directories(remove_tree.tree);
+    swap_test_out = remove_tree.tree / "out.idXML";
+    swap_test_aside = remove_tree.tree / "aside.idXML";
+    swap_test_sentinel = remove_tree.tree / "sentinel.idXML";
+
+    std::vector<ProteinIdentification> prots(1);
+    prots[0].setIdentifier("runReplacedOpen");
+    prots[0].setDateTime(DateTime::now());
+    prots[0].insertHit(ProteinHit(0.0, 1, "ACC_REPLACED_OPEN", ""));
+    const std::vector<ProteinIdentification> prots_valid = prots;
+    ProteinHit bad_hit(0.0, 1, "ACC_REPLACED_OPEN_BAD", "");
+    bad_hit.setMetaValue("fail_test_empty", DataValue()); // cannot be written
+    prots[0].insertHit(bad_hit);
+    PeptideIdentificationList peps(2);
+    for (Size l = 0; l < peps.size(); ++l)
+    {
+      peps[l].setIdentifier("runReplacedOpen");
+      peps[l].setScoreType("score");
+      PeptideHit hit(double(l), 0, 2, AASequence::fromString("PEPTIDER"));
+      peps[l].insertHit(hit);
+    }
+
+    for (const bool empty_and_fail : {false, true})
+    {
+      const std::string sentinel = empty_and_fail ? std::string()
+                                                  : std::string("a file that was renamed into the place of the output\n");
+      long swapped = 0, sentinel_lost = 0, first_lost = 0, other_outcome = 0, aside_lost = 0;
+      for (long n = 1; n < 10000000; ++n)
+      {
+        std::error_code ec;
+        fs::remove(swap_test_out, ec);
+        fs::remove(swap_test_aside, ec);
+        { std::ofstream(swap_test_sentinel.string()) << sentinel; }
+        struct stat sentinel_stat;
+        ABORT_IF(::lstat(swap_test_sentinel.c_str(), &sentinel_stat) != 0)
+        swap_test_swapped = false;
+        // with content: store() must fail in the protein section; empty: it fails or, after a failed allocation that it
+        // handled (a nothrow allocation), completes into the output moved aside
+        bool expected_error = empty_and_fail;
+        AllocFault::arm(n, &swapInSentinelWhileOutputEmpty, empty_and_fail);
+        try
+        {
+          IdXMLFile().store(swap_test_out.string(), empty_and_fail ? prots_valid : prots, peps);
+        }
+        catch (const Exception::ConversionError&)
+        {
+          expected_error = !empty_and_fail;
+        }
+        catch (...)
+        {
+          expected_error = empty_and_fail; // the std::bad_alloc, or UnableToCreateFile if opening failed
+        }
+        const bool fired = AllocFault::fired;
+        AllocFault::disarm();
+        if (!fired) break; // n is past the last allocation of store()
+        if (!swap_test_swapped) continue; // the output did not exist yet, or had been written to
+        ++swapped;
+        if (!expected_error) ++other_outcome;
+        struct stat out_stat;
+        const bool same_file = ::lstat(swap_test_out.c_str(), &out_stat) == 0 && out_stat.st_dev == sentinel_stat.st_dev
+                               && out_stat.st_ino == sentinel_stat.st_ino;
+        if (!same_file || slurp4b(swap_test_out.string()) != sentinel)
+        {
+          if (sentinel_lost++ == 0) first_lost = n;
+        }
+        if (!fs::exists(swap_test_aside)) ++aside_lost;
+      }
+      STATUS((empty_and_fail ? "an empty file renamed into place, then the allocation fails: "
+                             : "a file with content renamed into place: ")
+             << swapped << " stores; the file renamed into place was removed or changed in " << sentinel_lost
+             << " (first at allocation " << first_lost << "); stores that did not fail as expected: " << other_outcome
+             << "; the output moved aside was removed in " << aside_lost)
+      TEST_TRUE(swapped > 0)
+      TEST_EQUAL(sentinel_lost, 0)
+      TEST_EQUAL(other_outcome, 0)
+      TEST_EQUAL(aside_lost, 0)
+    }
+  }
+#else
+  STATUS(fault_injection_unavailable)
+#endif
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - an exception from closing the file does not replace the error that store() reports)
+{
+#ifdef __GLIBCXX__
+  // A code conversion facet whose unshift() throws makes closing a written file stream throw. The stream of store() is
+  // closed when store() fails (here: a meta value of a peptide hit that cannot be written, in a block of the parallel
+  // writer); that must not replace the error, nor its note on the partial file. Without another error, the exception
+  // of close() (not a std::exception) is raised unchanged, and the file stays. libstdc++ closes the file and then
+  // rethrows from close(); other standard libraries leave a stream whose close() threw in a state that its destructor
+  // cannot handle, so the section is libstdc++-only.
+  struct CloseError
+  {
+  };
+  struct ThrowOnUnshift : public std::codecvt<char, char, std::mbstate_t>
+  {
+  protected:
+    bool do_always_noconv() const noexcept override { return false; }
+    result do_out(state_type&, const char* from, const char* from_end, const char*& from_next, char* to, char* to_end,
+                  char*& to_next) const override
+    {
+      const std::ptrdiff_t n = std::min(from_end - from, to_end - to);
+      std::copy(from, from + n, to);
+      from_next = from + n;
+      to_next = to + n;
+      return from_next == from_end ? ok : partial;
+    }
+    result do_unshift(state_type&, char*, char*, char*&) const override { throw CloseError(); }
+  };
+  struct RestoreGlobalLocale
+  {
+    std::locale saved;
+    ~RestoreGlobalLocale() { std::locale::global(saved); }
+  };
+
+  std::vector<ProteinIdentification> prots(1);
+  prots[0].setIdentifier("runClose");
+  prots[0].setDateTime(DateTime::now());
+  prots[0].insertHit(ProteinHit(0.0, 1, "ACC_CLOSE", ""));
+  PeptideIdentificationList peps_valid(100);
+  for (Size l = 0; l < peps_valid.size(); ++l)
+  {
+    peps_valid[l].setIdentifier("runClose");
+    peps_valid[l].setScoreType("score");
+    PeptideHit hit(double(l), 0, 2, AASequence::fromString("PEPTIDER"));
+    hit.addPeptideEvidence(PeptideEvidence("ACC_CLOSE", 0, 7, '-', '-'));
+    peps_valid[l].insertHit(hit);
+  }
+  PeptideIdentificationList peps = peps_valid;
+  for (PeptideHit& hit : peps[40].getHits()) hit.setMetaValue("fail_test_empty", DataValue()); // cannot be written
+  std::string file;
+  NEW_TMP_FILE(file)
+  {
+    // the facet throws as intended: closing a written stream throws CloseError
+    RestoreGlobalLocale restore{std::locale::global(std::locale(std::locale(), new ThrowOnUnshift))};
+    std::ofstream probe(file);
+    probe << "x";
+    bool close_threw = false;
+    try
+    {
+      probe.close();
+    }
+    catch (const CloseError&)
+    {
+      close_threw = true;
+    }
+    TEST_TRUE(close_threw)
+  }
+  std::remove(file.c_str());
+  {
+    RestoreGlobalLocale restore{std::locale::global(std::locale(std::locale(), new ThrowOnUnshift))};
+    const std::string message = messageOf<Exception::ConversionError>([&] { IdXMLFile().store(file, prots, peps); });
+    TEST_TRUE(saysPartialFileRemains(message, file))
+  }
+  TEST_TRUE(isPartialIdXML(file))
+  std::remove(file.c_str()); // partial, not to be validated
+  {
+    // only close() fails
+    RestoreGlobalLocale restore{std::locale::global(std::locale(std::locale(), new ThrowOnUnshift))};
+    bool close_error = false;
+    try
+    {
+      IdXMLFile().store(file, prots, peps_valid);
+    }
+    catch (const CloseError&)
+    {
+      close_error = true;
+    }
+    catch (...)
+    {
+    }
+    TEST_TRUE(close_error)
+  }
+  TEST_TRUE(File::exists(file))
+  std::remove(file.c_str());
+#else
+  STATUS("SKIPPED (libstdc++ only): a stream whose close() threw")
+#endif
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - an error keeps its type even if memory runs out while store() reports it)
+{
+#if FAULT_INJECTION_TESTS && defined(__GLIBCXX__)
+  if (!allocFaultReachesLibOpenMS())
+  {
+    STATUS(fault_injection_unreached)
+  }
+  else
+  {
+    // The final close() of store() throws (see closeTestChild()): an OpenMS exception, a std::bad_alloc, or an exception
+    // that is not a std::exception. Then every allocation after the throw fails once, one after the other, each in a
+    // child process: an allocation failure while an OpenMS exception is constructed ends the program (the constructors
+    // are noexcept). store() must raise the error with its type (an OpenMS exception with the note, unless the failed
+    // allocation was one of the note's; the others unchanged), and the output stays.
+    std::vector<ProteinIdentification> prots(1);
+    prots[0].setIdentifier("runReport");
+    prots[0].setDateTime(DateTime::now());
+    prots[0].insertHit(ProteinHit(0.0, 1, "ACC_REPORT", ""));
+    PeptideIdentificationList peps(3); // one block, formatted by the calling thread
+    for (Size l = 0; l < peps.size(); ++l)
+    {
+      peps[l].setIdentifier("runReport");
+      peps[l].setScoreType("score");
+      PeptideHit hit(double(l), 0, 2, AASequence::fromString("PEPTIDER"));
+      hit.addPeptideEvidence(PeptideEvidence("ACC_REPORT", 0, 7, '-', '-'));
+      peps[l].insertHit(hit);
+    }
+    // longer than any short-string buffer, so that copying the name allocates; not a NEW_TMP_FILE (removed below)
+    const std::string file = "IdXMLFile_test_" + File::getUniqueName(false) + "_" + std::string(100, 'r') + ".idXML";
+    for (const int kind : {0, 1, 2})
+    {
+      long runs = 0, ended = 0, wrong = 0, first_wrong = -1;
+      for (long n = 0; n < 10000; ++n)
+      {
+        std::remove(file.c_str());
+        std::cout.flush();
+        std::cerr.flush();
+        const pid_t pid = ::fork();
+        ABORT_IF(pid < 0)
+        if (pid == 0) ::_exit(closeTestChild(kind, n, file, prots, peps));
+        int status = 0;
+        while (::waitpid(pid, &status, 0) < 0 && errno == EINTR) {}
+        ++runs;
+        const bool exited = WIFEXITED(status);
+        if (!exited) ++ended;
+        const bool ok = exited && (WEXITSTATUS(status) & 1) == 0 && File::exists(file);
+        if (!ok && wrong++ == 0) first_wrong = n;
+        if (n > 0 && exited && (WEXITSTATUS(status) & 16) == 0) break; // n is past the last allocation after the throw
+      }
+      STATUS((kind == 0 ? "Exception::ConversionError" : kind == 1 ? "std::bad_alloc" : "not a std::exception")
+             << " from close(): " << runs << " runs (the first without a failed allocation); ended by a signal: " << ended
+             << "; raised another error, an OpenMS error without the note, or removed the output: " << wrong
+             << " (first at allocation " << first_wrong << ")")
+      TEST_EQUAL(wrong, 0)
+    }
+    std::remove(file.c_str());
+  }
+#elif FAULT_INJECTION_TESTS
+  STATUS("SKIPPED (libstdc++ only): a stream whose close() throws")
+#else
+  STATUS(fault_injection_unavailable)
+#endif
 }
 END_SECTION
 

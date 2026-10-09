@@ -15,6 +15,8 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
+#include <functional>
+#include <iosfwd>
 #include <vector>
 
 namespace OpenMS
@@ -79,7 +81,13 @@ public:
         The data is read in and stored in the file 'filename'. PeptideHits are sorted by score.
         Note that ranks are not stored and need to be reassigned after loading.
 
-        @exception Exception::UnableToCreateFile is thrown if the file could not be created
+        @exception Exception::UnableToCreateFile is thrown if the file could not be created, or if writing it failed
+                   (e.g. disk full or an I/O error).
+
+        If store() fails, the file is not removed: a partial file may remain. An exception of OpenMS (e.g.
+        Exception::ConversionError for a meta value that cannot be written) keeps its type, and its message names the
+        file and says so (unless memory runs out while the note is added). Any other exception (e.g. std::bad_alloc) is
+        raised unchanged.
     */
     void store(const std::string& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id = "");
 
@@ -123,7 +131,19 @@ protected:
       * Helper function to parse fragment annotations from string
       */  
     static void parseFragmentAnnotation_(const std::string& s, std::vector<PeptideHit::PeakAnnotation> & annotations);
-    
+
+    /**
+      @brief Formats one block of the parallel peptide identification writer of store(): calls @p write on @p block_os.
+
+      Exceptions are enabled on @p block_os (badbit and failbit) first. A failure of its stream buffer, such as a
+      std::bad_alloc while a std::stringbuf grows, then propagates (the original exception is rethrown) instead of only
+      setting badbit and leaving a silently truncated block that would be written as if it were complete.
+
+      @exception std::exception whatever @p write or the stream buffer throws; std::ios_base::failure if the stream
+                 fails without an exception of its own
+    */
+    static void formatBlock_(std::ostream& block_os, const std::function<void(std::ostream&)>& write);
+
 
     /// @name members for loading data
     //@{

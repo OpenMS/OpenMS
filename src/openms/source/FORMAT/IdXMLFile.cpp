@@ -41,6 +41,15 @@ using namespace std;
 namespace OpenMS
 {
 
+  namespace
+  {
+    /// Appended to the message of an error of IdXMLFile::store(): store() does not remove what it has written.
+    std::string partialFileNote(const std::string& filename)
+    {
+      return "(writing '" + filename + "' did not complete: a partial file may remain)";
+    }
+  } // namespace
+
   IdXMLFile::IdXMLFile() :
     XMLHandler("", "1.5"),
     XMLFile("/SCHEMAS/IdXML_1_5.xsd", "1.5"),
@@ -89,6 +98,7 @@ namespace OpenMS
   }
 
   void IdXMLFile::store(const std::string& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id)
+  try
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
     {
@@ -503,6 +513,7 @@ namespace OpenMS
       const SignedSize num_blocks = static_cast<SignedSize>((to_write.size() + block_size - 1) / block_size);
       const std::streamsize precision = os.precision();
       std::exception_ptr error;
+      bool write_failed = false; // writing into the file failed; the exception is constructed after the parallel region
       std::atomic<bool> failed(false);
 
       // at most one thread per block and at most 16: with more, the formatting outruns the serial write into the file and
@@ -528,10 +539,12 @@ namespace OpenMS
             {
               std::ostringstream block_os;
               block_os.precision(precision);
-              for (Size k = begin; k < end; ++k)
-              {
-                write_peptide_identification(block_os, peptide_ids[to_write[k]], scratch);
-              }
+              formatBlock_(block_os, [&](std::ostream& out) {
+                for (Size k = begin; k < end; ++k)
+                {
+                  write_peptide_identification(out, peptide_ids[to_write[k]], scratch);
+                }
+              });
               text = block_os.str();
             }
             catch (...)
@@ -551,13 +564,26 @@ namespace OpenMS
               else
               {
                 os.write(text.data(), static_cast<std::streamsize>(text.size()));
-                setProgress(to_write[end - 1]);
+                if (!os)
+                {
+                  write_failed = true;
+                  failed.store(true, std::memory_order_relaxed);
+                }
+                else
+                {
+                  setProgress(to_write[end - 1]);
+                }
               }
             }
           }
         }
       }
       if (error) std::rethrow_exception(error);
+      if (write_failed)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                            "writing the file failed (e.g. disk full or I/O error)");
+      }
 
       os << "\t</IdentificationRun>\n";
 
@@ -579,8 +605,14 @@ namespace OpenMS
     // write footer
     os << "</IdXML>\n";
 
-    // close stream
+    // close stream; a failed write anywhere above (the stream state is sticky) or a failed final flush must not leave a
+    // truncated file behind a successful return
     os.close();
+    if (os.fail())
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                          "writing the file failed (e.g. disk full or I/O error)");
+    }
 
     endProgress();
 
@@ -596,6 +628,29 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
+  }
+  // Every failure of store() is raised, and the output is never removed: if writing fails (opening, a block, a write, the
+  // final flush or close, an allocation), a partial file may remain. An OpenMS exception keeps its type, and its message
+  // gets a note that names the file and says so, if there is memory for it (otherwise the error is raised as it is). Any
+  // other exception (e.g. std::bad_alloc) is raised unchanged: wrapping it would need memory, and an allocation failure
+  // inside the (noexcept) constructor of an OpenMS exception ends the program.
+  catch (Exception::BaseException& e)
+  {
+    try
+    {
+      if (FileHandler::hasValidExtension(filename, FileTypes::IDXML)) // an invalid extension is reported before any file is opened
+      {
+        std::string message = e.what();
+        if (!message.empty() && message.back() != ' ') message += ' ';
+        message += partialFileNote(filename);
+        static_cast<std::runtime_error&>(e) = std::runtime_error(message);
+      }
+    }
+    catch (...)
+    {
+      // no memory for the note: the error is raised without it
+    }
+    throw;
   }
 
   void IdXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
@@ -1216,6 +1271,12 @@ namespace OpenMS
       }
     }
     return os;
+  }
+
+  void IdXMLFile::formatBlock_(std::ostream& block_os, const std::function<void(std::ostream&)>& write)
+  {
+    block_os.exceptions(std::ios::badbit | std::ios::failbit);
+    write(block_os);
   }
 
   void IdXMLFile::writeFragmentAnnotations_(const std::string & tag_name, std::ostream & os,

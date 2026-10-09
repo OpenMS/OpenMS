@@ -4,7 +4,7 @@ set(concept_executables_list
   Colorizer_test
   Exception_Base_test
   FuzzyStringComparator_test
-  #GlobalExceptionHandler_test
+  GlobalExceptionHandler_test
   PrecisionWrapper_test
   ProgressLogger_test
   RAIICleanup_test
@@ -624,6 +624,7 @@ set(analysis_executables_list
   PeakGroup_test
   PScore_test
   FragmentIndex_test
+  FragmentIonLikelihoodModel_test
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
