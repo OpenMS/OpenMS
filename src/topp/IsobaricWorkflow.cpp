@@ -33,6 +33,8 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <string>
 #include <vector>
@@ -884,6 +886,15 @@ protected:
     std::cout << "Merged " << merged_prot_ids[0].getHits().size() << " proteins." << std::endl;
     cmap.setProteinIdentifications(merged_prot_ids);
 
+    // From here on, the identifications are identification data: inference, FDR, filtering and quantification work
+    // on it, and it is exported once for the output formats.
+    IdentificationDataConverter::moveToIdentificationData(cmap);
+    IdentificationData& data = cmap.getIdentificationData();
+    // The protein run of the inference result over all identifications, which the protein-level steps work on
+    const auto editProteins = [&data](const std::function<void(ProteinIdentification&)>& edit) {
+      IdentificationDataAdapter::editPooledProteins(data, edit);
+    };
+
     // Only fall back to deriving a design from the map when none was supplied. Calling
     // fromConsensusMap() unconditionally logged "No fractions annotated in consensusXML.
     // Assuming unfractionated." once per column header even when -exp_design says otherwise.
@@ -912,7 +923,7 @@ protected:
       bpi_param.setValue("greedy_group_resolution", greedy_group_resolution ? "true" : "false");
       writeDebug_("Parameters passed to BasicProteinInference algorithm", bpi_param, 3);
       prot_inference.setParameters(bpi_param);
-      prot_inference.run(cmap, cmap.getProteinIdentifications()[0], false);
+      prot_inference.run(cmap, false);
     }
     else {
       BayesianProteinInferenceAlgorithm bayes;
@@ -927,21 +938,27 @@ protected:
       
       bayes.inferPosteriorProbabilities(cmap, greedy_group_resolution);
       if (!groups) {
-        cmap.getProteinIdentifications()[0].getIndistinguishableProteins().clear();
+        editProteins([](ProteinIdentification& proteins) { proteins.getIndistinguishableProteins().clear(); });
       }
     }
 
     FalseDiscoveryRate fdr;
-    auto& proteins = cmap.getProteinIdentifications()[0];
+    const auto updateGroups = [](ProteinIdentification& proteins) {
+      IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
+      IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+    };
+    const auto noProteins = [&data]() { return IdentificationDataAdapter::pooledInferenceResult(data)->proteins.getHits().empty(); };
 
-    if (getStringOption_("picked_fdr") == "true") 
-    {
-      fdr.applyPickedProteinFDR(proteins, getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
-    }
-    else 
-    {
-      fdr.applyBasic(proteins);
-    }
+    editProteins([&](ProteinIdentification& proteins) {
+      if (getStringOption_("picked_fdr") == "true")
+      {
+        fdr.applyPickedProteinFDR(proteins, getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+      }
+      else
+      {
+        fdr.applyBasic(proteins);
+      }
+    });
     
     if (getStringOption_("FDR_type") == "PSM+peptide")
     { 
@@ -961,25 +978,20 @@ protected:
 
     IDFilter::removeDanglingProteinReferences(cmap, rm_pep);
     IDFilter::removeUnreferencedProteins(cmap, true);
-    IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
-    IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+    editProteins(updateGroups);
 
     const double max_pro_fdr = getDoubleOption_("proteinFDR");
     const double max_psm_fdr = getDoubleOption_("psmFDR");
 
     // FDR filtering
-    if (max_psm_fdr < 1.0) 
-    { 
-      for (auto& f : cmap) 
-      {
-        IDFilter::filterHitsByScore(f.getPeptideIdentifications(), max_psm_fdr);
-      }
-      IDFilter::filterHitsByScore(cmap.getUnassignedPeptideIdentifications(), max_psm_fdr);
+    if (max_psm_fdr < 1.0) // of the identifications of the features and the unassigned ones
+    {
+      IDFilter::filterHitsByScore(cmap, max_psm_fdr);
     }
 
     if (max_pro_fdr < 1.0)
     {
-      IDFilter::filterHitsByScore(proteins, max_pro_fdr);
+      editProteins([&](ProteinIdentification& proteins) { IDFilter::filterHitsByScore(proteins, max_pro_fdr); });
       IDFilter::removeDanglingProteinReferences(cmap, rm_pep);
     }
 
@@ -990,11 +1002,10 @@ protected:
 
     if (max_pro_fdr < 1.0 || max_psm_fdr < 1.0)
     {
-      IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
-      IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+      editProteins(updateGroups);
     }
 
-    if (proteins.getHits().empty())
+    if (noProteins())
     {
       throw Exception::MissingInformation(
         __FILE__, 
@@ -1008,16 +1019,12 @@ protected:
       // Filters for the theoretical uniqueness annotated as the 'protein_references' meta value during
       // peptide indexing. This tool does not index (it has no '-fasta'), so the identifications passed
       // to '-in_id' have to come from an indexed search (e.g. through PeptideIndexer).
-      for (auto& f : cmap)
-      {
-        IDFilter::keepUniquePeptidesPerProtein(f.getPeptideIdentifications());
-      }
-      IDFilter::keepUniquePeptidesPerProtein(cmap.getUnassignedPeptideIdentifications());
+      IDFilter::keepUniquePeptidesPerProtein(cmap);
 
       // Proteins whose peptides were all shared have no evidence left; drop them before grouping.
       IDFilter::removeUnreferencedProteins(cmap, true);
 
-      if (proteins.getHits().empty())
+      if (noProteins())
       {
         throw Exception::MissingInformation(
           __FILE__,
@@ -1032,7 +1039,7 @@ protected:
       // quantification and every exporter report abundances on protein groups. Give each remaining
       // protein its own singleton group so a protein quantified from its strictly unique peptides is
       // actually reported instead of failing the "no indistinguishable protein groups" check below.
-      proteins.fillIndistinguishableGroupsWithSingletons();
+      editProteins([](ProteinIdentification& proteins) { proteins.fillIndistinguishableGroupsWithSingletons(); });
     }
 
 
@@ -1042,28 +1049,34 @@ protected:
        cmap,
        design);
     prot_quantifier.quantifyPeptides();
-    ProteinIdentification& inferred_proteins = cmap.getProteinIdentifications()[0];
-    if (inferred_proteins.getIndistinguishableProteins().empty())
-    {
-      throw Exception::MissingInformation(
-       __FILE__,
-       __LINE__,
-       OPENMS_PRETTY_FUNCTION,
-       "No information on indistinguishable protein groups found.");
-    }
+    // The protein run of the inference result
+    editProteins([&](ProteinIdentification& inferred_proteins) {
+      if (inferred_proteins.getIndistinguishableProteins().empty())
+      {
+        throw Exception::MissingInformation(
+         __FILE__,
+         __LINE__,
+         OPENMS_PRETTY_FUNCTION,
+         "No information on indistinguishable protein groups found.");
+      }
 
-    prot_quantifier.quantifyProteins(inferred_proteins);
+      prot_quantifier.quantifyProteins(inferred_proteins);
 
-    auto const & protein_quants = prot_quantifier.getProteinResults();
-    if (protein_quants.empty())
-    {
-     OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl;
-    }
+      auto const & protein_quants = prot_quantifier.getProteinResults();
+      if (protein_quants.empty())
+      {
+       OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl;
+      }
 
-    // Annotate quants to protein(groups) for easier export in mzTab
-    // Note: we keep protein groups that have not been quantified
-    prot_quantifier.annotateQuantificationsToProteins(
-      protein_quants, inferred_proteins, true);
+      // Annotate quants to protein(groups) for easier export in mzTab
+      // Note: we keep protein groups that have not been quantified
+      prot_quantifier.annotateQuantificationsToProteins(
+        protein_quants, inferred_proteins, true);
+    });
+
+    // The output formats (QPX, consensusXML, mzTab) hold peptide identifications: export the identifications once
+    // rather than in a copy of the map per output.
+    IdentificationDataConverter::exportConsensusIDs(cmap);
 
     {
       if (!out_qpx.empty())
@@ -1101,29 +1114,11 @@ protected:
           return CANNOT_WRITE_OUTPUT_FILE;
         }
 
-        // PSM-level export: collect non-owning pointers to all peptide IDs in the
-        // consensus map (assigned per feature, then unassigned). Avoids deep-copying
-        // millions of PeptideIdentifications; pointers reference into `cmap`, which
-        // outlives the streaming export below.
-        std::vector<const PeptideIdentification*> all_pepid_ptrs;
-        size_t n_pep = cmap.getUnassignedPeptideIdentifications().size();
-        for (const auto& feature : cmap) { n_pep += feature.getPeptideIdentifications().size(); }
-        all_pepid_ptrs.reserve(n_pep);
-        for (const auto& feature : cmap)
-        {
-          for (const auto& pepid : feature.getPeptideIdentifications())
-          {
-            all_pepid_ptrs.push_back(&pepid);
-          }
-        }
-        for (const auto& pepid : cmap.getUnassignedPeptideIdentifications())
-        {
-          all_pepid_ptrs.push_back(&pepid);
-        }
-
+        // PSM-level export of all peptide IDs in the consensus map (assigned per feature, then
+        // unassigned), without deep-copying millions of PeptideIdentifications.
         // Streaming/batched write keeps peak memory bounded for very large PSM counts;
         // n_threads=0 builds each batch's partitions in parallel across all available cores.
-        if (!QPXFile::exportToParquetStreaming(cmap.getProteinIdentifications(), all_pepid_ptrs,
+        if (!QPXFile::exportToParquetStreaming(cmap,
                                                out_qpx + "/quantms.psm.parquet",
                                                /*export_all_psms=*/false,
                                                /*batch_size=*/1000000,

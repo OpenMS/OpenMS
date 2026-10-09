@@ -145,19 +145,19 @@ OpenMS Library:
     precursor without identification once instead of repeating it.
     OpenPepXL pairs spectra and MultiplexResolverAlgorithm resolves multiplets through these links
     (outputs unchanged); OpenPepXLAlgorithm::run() no longer adds identifications to its input map.
-  - ProteomicsLFQ works on identification data: it converts the identifications of each run once
-    (after feature detection, or after loading for spectral counting), every later step (conflict
-    resolution, alignment, linking, inference, FDR, filtering, quantification) works on them, and
-    they are exported once for the output formats; feature checkpoints store them as identification
-    data (older checkpoints are converted on load). The unassigned identifications in its
-    consensusXML and its mzTab PSM rows now follow the runs, then the identifications in their
-    original order (values unchanged). New for this: IDFilter::filterHitsByScore() and
-    keepUniquePeptidesPerProtein() for maps, FeatureMap/ConsensusMap::eraseFeatures() (erases
-    features with the identifications only they link), PeptideAndProteinQuant::readQuantData() for
-    identification data (spectral counting), IdentificationDataAdapter::editPooledProteins()
-    (protein-level steps on the protein run of the inference result),
-    IdentificationDataConverter::proteinIdentifications(), QPXFile::exportToParquet() and
-    exportToParquetStreaming() for consensus maps, and
+  - ProteomicsLFQ and IsobaricWorkflow work on identification data: they convert the identifications
+    of each run once (ProteomicsLFQ after feature detection, or after loading for spectral
+    counting), every later step (conflict resolution, alignment, linking, inference, FDR, filtering,
+    quantification) works on them, and they are exported once for the output formats;
+    ProteomicsLFQ's feature checkpoints store them as identification data (older checkpoints are
+    converted on load). The unassigned identifications in ProteomicsLFQ's consensusXML and its mzTab
+    PSM rows now follow the runs, then the identifications in their original order (values
+    unchanged). New for this: IDFilter::filterHitsByScore() and keepUniquePeptidesPerProtein() for
+    maps, FeatureMap/ConsensusMap::eraseFeatures() (erases features with the identifications only
+    they link), PeptideAndProteinQuant::readQuantData() for identification data (spectral counting),
+    IdentificationDataAdapter::editPooledProteins() (protein-level steps on the protein run of the
+    inference result), IdentificationDataConverter::proteinIdentifications(),
+    QPXFile::exportToParquet() and exportToParquetStreaming() for consensus maps, and
     ProteinIdentification::computeCoverage()/computeModifications() read maps with identification
     data. Linked identifications of runs that share query IDs (e.g. of linked maps) are resolved in
     the order export writes them (by run, then ID).
