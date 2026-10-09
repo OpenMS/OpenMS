@@ -7,11 +7,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
-#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -26,11 +27,12 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 
+#include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -72,6 +74,7 @@ It lacks behind in speed and/or quality of results when compared to state-of-the
 @note Decoy handling is controlled by '-Search:decoys'. The default 'auto' ensures decoys are available for target-decoy FDR: it reuses decoys already present in the FASTA (the marker is auto-detected, prefix or suffix, e.g. from DecoyDatabase) or generates them internally (prefixing accessions with '-Search:decoy_prefix', default "DECOY_") if none are found. Use 'generate' to always (re)build decoys from the targets, or 'ignore' to search the targets only.
 @note Decoy reporting is tied to protein-level FDR, not to PSM-level FDR. Setting '-Search:FDR:protein' > 0 signals "finalize this result": picked-protein FDR is applied and decoys are removed. PSM-level FDR ('-Search:FDR:PSM') filters target and decoy PSMs alike by the q-value threshold; it does no decoy-specific stripping, so decoys that pass the threshold are kept. With '-Search:FDR:protein' = 0 (the default), decoys are retained in every output (target+decoy evidence with scores). To obtain a clean, decoy-free result without protein FDR, run @ref TOPP_IDFilter with '-remove_decoys' downstream.
 @note Protein-level FDR scope: picked-protein FDR does not compose across runs, so it is applied (and decoys removed) only on a @em complete protein set — a single input file, or the pooled '-out_merged' set of a multi-file run. For a multi-file run with '-Search:FDR:protein' > 0 but no '-out_merged', protein FDR is NOT applied (no output represents a complete experiment); ProSE warns and leaves the per-file outputs as intermediates (decoys retained).
+@note Percolator rescoring: with '-rescore', the PSMs of each input file are rescored separately with OpenMS' built-in (in-process) Percolator implementation, the same backend PercolatorAdapter uses by default. No percolator executable is needed (the former '-percolator_executable' parameter was removed). Training uses the standard Percolator feature set plus ProSE's search engine features, '-train_best_positive' and target-decoy competition ('-post_processing_tdc'); Percolator q-values become the main score (the SVM score and PEP are kept as meta values MS:1001492/MS:1001493, the HyperScore as meta value 'ln(hyperscore)'), only the best hit per spectrum is kept, and the runs report 'Percolator' as search engine. The PSM and protein FDR thresholds are then applied on the rescored PSMs. A file with fewer than 100 PSMs or without decoys, or for which Percolator fails, is @em not rescored: ProSE prints a warning, keeps its HyperScores (FDR is then computed from them) and continues; the end-of-search report states how many files were rescored.
 @note `Search:peptide:clip_nterm_methionine=true` also searches the mature N-terminal
 peptide after loss of exactly the initial methionine of an M-leading protein.
 Both forms are searched with the configured length, mass and missed-cleavage limits.
@@ -97,11 +100,11 @@ the full quota. This changes high-resolution preprocessing, not the scoring form
 /// @cond TOPPCLASSES
 
 class ProSE :
-    public TOPPExternalToolBase
+    public TOPPBase
 {
   public:
     ProSE() :
-      TOPPExternalToolBase("ProSE",
+      TOPPBase("ProSE",
         "Annotates bottom-up MS/MS spectra using ProSE.")
     {
     }
@@ -132,7 +135,7 @@ class ProSE :
       registerOutputFile_("out_merged", "<file>", "", "Optional merged output file containing all PSMs pooled across input files with cross-file protein inference (BasicProteinInferenceAlgorithm) and optional picked-protein FDR (FDR:protein). Per-file outputs (-out_idxml / -out_qpx / -out_parquet) retain run-level information. Only useful with multiple -in files.", false);
       setValidFormats_("out_merged", ListUtils::create<std::string>("idXML"));
 
-      registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. Written independently of -percolator_executable (i.e. you can produce .pin files without running Percolator).", false, true);
+      registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. Written independently of -rescore (i.e. you can produce .pin files without rescoring). With -rescore, the .pin is written from the rescored PSMs.", false, true);
       setValidFormats_("out_pin", ListUtils::create<std::string>("tsv"));
 
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. Has no effect in closed-search mode.", false, true);
@@ -142,18 +145,130 @@ class ProSE :
 
       registerFlag_("no_summary", "Suppress the end-of-search report printed to the command line. The -summary_out YAML file (if requested) is still written.", true);
 
-      registerInputFile_("percolator_executable", "<executable>",
-#ifdef OPENMS_WINDOWSPLATFORM
-        "",
-#else
-        "",
-#endif
-        "Path to the Percolator executable. If set, per-file PSMs are rescored with Percolator (via PercolatorAdapter) before output. Leave empty to skip rescoring.", false, true, ListUtils::create<std::string>("skipexists"));
+      registerFlag_("rescore", "Rescore the PSMs of each input file with Percolator before output, in-process (OpenMS' built-in Percolator implementation; no external executable needed). "
+        "Rescored PSMs get Percolator q-values as main score. The PSM and protein FDR thresholds ('Search:FDR:*') are applied afterwards, on the rescored scores. "
+        "A file with fewer than 100 PSMs or without decoys is not rescored and keeps its search engine scores (a warning is printed).");
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
       search_algo_params_with_subsection.insert("Search:", ProSEAlgorithm().getDefaults());
       registerFullParam_(search_algo_params_with_subsection);
+    }
+
+    /// Name of @p enzyme as PercolatorInfile computes the enzN/enzC/enzInt .pin features ("no_enzyme" if unknown).
+    static std::string pinEnzymeName_(const std::string& enzyme)
+    {
+      std::string name;
+      for (const char c : enzyme)
+      {
+        if (c != ' ') name += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+      }
+      if (name == "trypsin/p") return "trypsinp";
+      if (name == "pepsina") return "pepsin";
+      static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
+                                                        "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
+      return pin_enzymes.contains(name) ? name : "no_enzyme";
+    }
+
+    /**
+      @brief Rescores the PSMs of one input file in-process with Percolator (see Percolator::rescorePSMs).
+
+      Uses the settings ProSE used to run PercolatorAdapter with: PIN feature set with the
+      search engine's 'extra_features', -train_best_positive, -post_processing_tdc, q-values as
+      main score, PercolatorAdapter's defaults for everything else. Only the best hit per spectrum
+      is kept afterwards.
+
+      @return false (with a warning) if the file is not rescored: fewer than 100 PSMs, no decoys,
+              or Percolator failed. The PSMs are left unchanged in that case.
+    */
+    bool rescoreWithPercolator_(const std::string& in_file,
+                                std::vector<ProteinIdentification>& protein_ids,
+                                PeptideIdentificationList& peptide_ids) const
+    {
+      if (protein_ids.empty() || peptide_ids.size() < 100)
+      {
+        OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_file
+                        << " (only " << peptide_ids.size() << " PSMs, need >= 100). Keeping the search engine scores." << endl;
+        return false;
+      }
+
+      bool has_decoys = false;
+      int min_charge = 10;
+      int max_charge = 0;
+      for (const PeptideIdentification& pid : peptide_ids)
+      {
+        for (const PeptideHit& hit : pid.getHits())
+        {
+          has_decoys = has_decoys || hit.isDecoy();
+          min_charge = std::min(min_charge, hit.getCharge());
+          max_charge = std::max(max_charge, hit.getCharge());
+        }
+      }
+      if (!has_decoys)
+      {
+        OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_file << ": no decoy PSMs for target/decoy competition. "
+                        << "Use '-Search:decoys auto' / 'generate' or provide a FASTA with decoy proteins. Keeping the search engine scores." << endl;
+        return false;
+      }
+
+      const ProteinIdentification::SearchParameters& sp = protein_ids.front().getSearchParameters();
+      StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
+      if (sp.metaValueExists("extra_features"))
+      {
+        StringList extra = ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString());
+        feature_set.insert(feature_set.end(), extra.begin(), extra.end());
+      }
+      else
+      {
+        feature_set.push_back("score");
+      }
+      feature_set.push_back("Peptide");
+      feature_set.push_back("Proteins");
+
+      Percolator perc;
+      Param pp = perc.getDefaults();
+      pp.setValue("train_best_positive", "true");
+      pp.setValue("post_processing_tdc", "true");
+      pp.setValue("subset_max_train", 0);  // train on all PSMs
+      pp.setValue("pep_method", "nonparametric");  // as the percolator executable
+      // one model per cross-validation fold: more than 3 threads do not help
+      const int threads = getIntOption_("threads");
+      pp.setValue("num_threads", threads <= 0 ? 3 : std::min(threads, 3));
+      perc.setParameters(pp);
+
+      OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_file << " with Percolator..." << endl;
+      try
+      {
+        perc.rescorePSMs(peptide_ids, feature_set, pinEnzymeName_(sp.digestion_enzyme.getName()),
+                         min_charge, max_charge, "q-value");
+      }
+      catch (const Exception::BaseException& e)
+      {
+        OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_file << " (" << e.what()
+                        << "). Keeping the search engine scores." << endl;
+        return false;
+      }
+      IDFilter::keepNBestHits(peptide_ids, 1);
+
+      // Mark the runs as post-processed by Percolator, as PercolatorAdapter does.
+      for (ProteinIdentification& run : protein_ids)
+      {
+        run.setSearchEngine("Percolator");
+        run.setSearchEngineVersion("3.08-vendored");
+        run.setMetaValue("percolator", "ProSE");
+        ProteinIdentification::SearchParameters run_sp = run.getSearchParameters();
+        run_sp.setMetaValue("Percolator:peptide_level_fdrs", "false");
+        run_sp.setMetaValue("Percolator:protein_level_fdrs", "false");
+        run_sp.setMetaValue("Percolator:testFDR", static_cast<double>(pp.getValue("test_fdr")));
+        run_sp.setMetaValue("Percolator:trainFDR", static_cast<double>(pp.getValue("train_fdr")));
+        run_sp.setMetaValue("Percolator:maxiter", static_cast<int>(pp.getValue("num_iterations")));
+        run_sp.setMetaValue("Percolator:subset_max_train", static_cast<int>(pp.getValue("subset_max_train")));
+        run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
+        run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
+        run_sp.setMetaValue("Percolator:train_best_positive", "true");
+        run.setSearchParameters(run_sp);
+      }
+      return true;
     }
 
     ExitCodes main_(int, const char**) override
@@ -217,7 +332,7 @@ class ProSE :
       progresslogger.setLogType(log_type_);
 
       Param search_params = getParam_().copy("Search:", true);
-      const std::string percolator_executable = getStringOption_("percolator_executable");
+      const bool rescore = getFlag_("rescore");
       const double user_protein_fdr = static_cast<double>(search_params.getValue("FDR:protein"));
       const double user_psm_fdr = static_cast<double>(search_params.getValue("FDR:PSM"));
 
@@ -226,7 +341,7 @@ class ProSE :
       // would (a) filter on the wrong score (raw HyperScore q-values, not
       // Percolator q-values) and (b) strip decoys, leaving Percolator with
       // nothing for target/decoy competition ("No decoys found").
-      if (!percolator_executable.empty() && (user_protein_fdr > 0.0 || user_psm_fdr > 0.0))
+      if (rescore && (user_protein_fdr > 0.0 || user_psm_fdr > 0.0))
       {
         OPENMS_LOG_INFO << "[ProSE] Percolator rescoring enabled: deferring PSM/protein FDR to post-rescoring." << endl;
         search_params.setValue("FDR:PSM", 0.0);
@@ -299,7 +414,7 @@ class ProSE :
       // Timer spans search + Percolator + FDR + output writing (stopped at report time).
       StopWatch sw_total; sw_total.start();
       // Keep the algorithm's pooled aggregate only where the -out_merged block below consumes it verbatim; with Percolator that block re-merges the rescored per-file results, so the pre-rescoring pool would be waste.
-      const bool build_pooled_aggregate = !out_merged.empty() && in_list.size() > 1 && percolator_executable.empty();
+      const bool build_pooled_aggregate = !out_merged.empty() && in_list.size() > 1 && !rescore;
       ProSEAlgorithm::MultiFileSearchResult mfres =
         sse.searchWithModificationAnalysis(in_list, database, mod_analysis_base_names, aggregate_base_name,
                                            build_pooled_aggregate);
@@ -329,103 +444,24 @@ class ProSE :
       // Tracks whether PSM-level FDR filtering was actually applied per file in
       // this (Percolator) branch — false for files skipped for lack of decoys.
       std::vector<bool> psm_fdr_applied(in_list.size(), false);
-      if (!percolator_executable.empty())
+      if (rescore)
       {
-        // Percolator requires decoys for target/decoy competition.
-        // Check per-file results for target_decoy annotations.
-        bool has_decoys_for_percolator = false;
-        for (const auto& pf : mfres.per_file)
-        {
-          if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
-          for (const auto& ph : pf.protein_ids[0].getHits())
-          {
-            if (ph.metaValueExists("target_decoy") && ph.getMetaValue("target_decoy").toString() == "decoy")
-            {
-              has_decoys_for_percolator = true;
-              break;
-            }
-          }
-          if (has_decoys_for_percolator) break;
-        }
-
-        if (!has_decoys_for_percolator)
-        {
-          OPENMS_LOG_WARN << "Percolator rescoring requires decoys but none found in results. "
-                          << "Use '-Search:decoys auto' / 'generate' or provide a FASTA with decoy "
-                          << "proteins. Skipping rescoring." << endl;
-        }
-        else
-        {
-          // Resolve the sibling PercolatorAdapter binary. runExternalProcess_ hands the
-          // executable to boost::process, which only searches PATH for bare names — in a
-          // dev build the OpenMS bin/ directory is typically not on PATH, so invoking
-          // "PercolatorAdapter" by name silently falls back to HyperScore. findSibling
-          // looks relative to the current (ProSE) executable.
-          std::string perc_adapter;
-          try
-          {
-            perc_adapter = File::findSiblingTOPPExecutable("PercolatorAdapter");
-          }
-          catch (const Exception::FileNotFound& e)
-          {
-            OPENMS_LOG_WARN << "Could not locate PercolatorAdapter (" << e.what()
-                            << "). Skipping Percolator rescoring — using original HyperScore results." << endl;
-          }
-          if (!perc_adapter.empty())
-          for (Size i = 0; i < in_list.size(); ++i)
+        Size n_rescorable = 0;
+        for (Size i = 0; i < in_list.size(); ++i)
         {
           auto& result = mfres.per_file[i];
           if (result.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
-          if (result.peptide_ids.size() < 100)
-          {
-            OPENMS_LOG_WARN << "Skipping Percolator rescoring for " << in_list[i]
-                            << " (only " << result.peptide_ids.size() << " PSMs, need >= 100)." << endl;
-            continue;
-          }
-
-          // Write intermediate idXML for PercolatorAdapter input
-          std::string tmp_in = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_in.idXML";
-          std::string tmp_out = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc_out.idXML";
-          std::string tmp_weights = SystemSettings::getTempDirectory() + "/" + File::stemName(in_list[i]) + "_perc.weights";
-          FileHandler().storeIdentifications(tmp_in, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
-
-          std::vector<std::string> perc_params = {
-            "-in", tmp_in,
-            "-out", tmp_out,
-            "-percolator_executable", percolator_executable,
-            "-train_best_positive",
-            "-score_type", "q-value",
-            "-post_processing_tdc",
-            "-weights", tmp_weights
-          };
-
-          OPENMS_LOG_INFO << "[ProSE] Rescoring " << in_list[i] << " with Percolator..." << endl;
-          TOPPBase::ExitCodes perc_ec = runExternalProcess_(perc_adapter, perc_params);
-
-          if (perc_ec != EXECUTION_OK)
-          {
-            OPENMS_LOG_WARN << "Percolator rescoring failed for " << in_list[i]
-                            << ". Using original HyperScore results." << endl;
-          }
-          else
-          {
-            result.protein_ids.clear();
-            result.peptide_ids.clear();
-            FileHandler().loadIdentifications(tmp_out, result.protein_ids, result.peptide_ids, {FileTypes::IDXML});
-            IDFilter::keepNBestHits(result.peptide_ids, 1);
-            percolator_succeeded[i] = true;
-          }
-
-          // Clean up temp files
-          File::remove(tmp_in);
-          File::remove(tmp_out);
-          File::remove(tmp_weights);
+          ++n_rescorable;
+          percolator_succeeded[i] = rescoreWithPercolator_(in_list[i], result.protein_ids, result.peptide_ids);
         }
+        if (n_rescorable > 0 && std::none_of(percolator_succeeded.begin(), percolator_succeeded.end(), [](bool b) { return b; }))
+        {
+          OPENMS_LOG_WARN << "Percolator rescoring was requested (-rescore) but no input file could be rescored; "
+                          << "all outputs carry the search engine scores." << endl;
         }
 
         // Apply deferred PSM-level FDR filtering. For files rescored by Percolator,
-        // scores are already q-values (PercolatorAdapter was invoked with
-        // -score_type q-value). For files that fell back to HyperScores (Percolator
+        // scores are already q-values (see rescoreWithPercolator_). For files that fell back to HyperScores (Percolator
         // skipped/failed), compute q-values via FalseDiscoveryRate first.
         // PSM-level FDR filters target+decoy PSMs alike by q-value; no decoy-specific stripping
         // here (categorical decoy removal is a protein-FDR finalization step, see below).
@@ -868,7 +904,7 @@ class ProSE :
           // 'file://<basename>' rewrite -test applies to the per-file runs above, because it maps
           // the -in paths one-to-one -- unless two -in files in different directories share a
           // basename, which only -test could ever collapse and which no ProSE test does.
-          if (percolator_executable.empty() && !mfres.aggregate.protein_ids.empty())
+          if (!rescore && !mfres.aggregate.protein_ids.empty())
           {
             merged_protein_ids.emplace_back(std::move(mfres.aggregate.protein_ids[0]));
             merged_peptides = std::move(mfres.aggregate.peptide_ids);
@@ -1077,7 +1113,7 @@ class ProSE :
           }
 
           // -- Percolator rescoring status. --
-          if (!percolator_executable.empty())
+          if (rescore)
           {
             Size n_ok = 0;
             for (bool b : percolator_succeeded) { if (b) { ++n_ok; } }

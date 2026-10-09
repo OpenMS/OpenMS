@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <memory>
 #include <vector>
@@ -133,6 +134,55 @@ namespace OpenMS
     RescoreOutput rescore(const RescoreInput& input);
 
     /**
+      @brief Rescore search engine PSMs in place on the standard Percolator (.pin) feature set.
+
+      This is the in-process equivalent of writing a .pin file, running the percolator executable
+      and reading its results back. PercolatorAdapter's in-process backend and ProSE ('-rescore')
+      use it. Steps:
+      1. stamp the PIN feature meta values on every hit (PercolatorInfile::stampPinFeaturesOnHits)
+      2. build a RescoreInput from the numeric columns of @p feature_set. Bookkeeping columns
+         (SpecId, Label, ScanNr, ExpMass, Peptide, Proteins) are not used as training features.
+         Scan numbers, spectrum file numbers and experimental/calculated masses are filled the
+         way the executable reads them from a .pin file, so CV folds and target-decoy
+         competition match the external binary.
+      3. call rescore(const RescoreInput&) with the parameters of this instance
+      4. write the results back onto the hits:
+         - the original main score is kept as a meta value named after the old score type
+         - MS:1001492 holds the SVM score, MS:1001491 the q-value, MS:1001493 the PEP
+         - the main score becomes the one selected by @p score_type, and every
+           PeptideIdentification gets the matching score type and orientation
+      5. remove the PIN meta values that step 1 added. Input meta values with the same names
+         (e.g. CalcMass) are kept.
+
+      Hits without peptide evidences, without target/decoy information or with a missing
+      feature are not rescored (see stampPinFeaturesOnHits). Like PSMs missing from the
+      executable's output, they get q-value = PEP = 1 and SVM score = -100 (meta values and main
+      score), so that they rank last under the new score type; their original score is kept as
+      a meta value as well.
+
+      @param[in,out] peptide_ids  Target and decoy PSMs (annotated with 'target_decoy' and peptide evidences)
+      @param[in] feature_set      PIN feature columns, e.g. PercolatorInfile::getStandardFeatureSet()
+                                  plus the search engine's extra features plus "Peptide" and "Proteins"
+      @param[in] enzyme           Enzyme name used for the enzN/enzC/enzInt features (as for PercolatorInfile::store)
+      @param[in] min_charge       Lowest charge of the charge{N} one-hot features
+      @param[in] max_charge       Highest charge of the charge{N} one-hot features
+      @param[in] score_type       New main score: "q-value", "pep" or "svm"
+
+      @return The number of rescored hits
+
+      @throws Exception::MissingInformation if there are no PSMs, no usable feature, or no hit
+              could be turned into a feature row
+      @throws Exception::InvalidValue if @p score_type is unknown or Percolator's sanity checks
+              fail (e.g. too few decoys)
+    */
+    Size rescorePSMs(PeptideIdentificationList& peptide_ids,
+                     const StringList& feature_set,
+                     const std::string& enzyme,
+                     int min_charge,
+                     int max_charge,
+                     const std::string& score_type = "q-value");
+
+    /**
       @brief SVM weights trained in the last rescore()/train() call.
 
       A single fold-averaged weight vector in raw feature space, with the
@@ -247,8 +297,10 @@ namespace OpenMS
       - scan: parsed via SpectrumLookup::extractScanNumber from the
         PeptideIdentification's spectrum_reference (or `spectrum_id`
         meta value, or fallback to 1-based index).
-      - spec_file: hashes `file_origin` + `id_merge_index` (same as the
-        PIN SpecId prefix). Zero when single-file / unset.
+      - spec_file: numbers the spectrum files (PercolatorInfile::getFileIdentifier:
+        `file_origin` and `id_merge_index`, the PIN SpecId prefix) in order of
+        appearance, as Percolator numbers the FileName column of a .pin file.
+        Zero when single-file / unset.
       - exp_mass: `pid.getMZ()` (kept as m/z — Percolator doesn't convert
         to neutral for the sort hash).
       - calc_mass: from `hit.metaValueExists("CalcMass")` if present,

@@ -175,7 +175,7 @@
 				<pt x="4725.73804" y="1739.57822422519" />
 				<pt x="4725.71804" y="1739.57822422519" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="1027.73181152344" RT="2540.07139999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5134" >				
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="1027.73181152344" RT="2540.07139999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5134" >				
 				<PeptideHit score="0.0476190476190476" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_0">
 					<UserParam type="float" name="OMSSA_score" value="1.01892240818698"/>
 					<UserParam type="string" name="target_decoy" value="target"/>

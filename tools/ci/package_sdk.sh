@@ -268,10 +268,13 @@ if [[ -z "$package_version" ]]; then
   echo >&2 "ERROR: OpenMSConfigVersion.cmake records no package version"
   exit 1
 fi
-awk -v boost="$boost_requirement" -v msvc="$msvc_requirement" -v build_type="$build_type" \
+# The requirements span several lines, which BSD awk (macOS) rejects in a -v
+# assignment, so they travel through the environment.
+BOOST_REQUIREMENT="$boost_requirement" MSVC_REQUIREMENT="$msvc_requirement" \
+awk -v build_type="$build_type" \
     -v major_minor="${package_version%.*}" -v macos_minimum="$macos_minimum" '
-  index($0, "@BOOST_REQUIREMENT@") { sub(/@BOOST_REQUIREMENT@/, boost) }
-  index($0, "@MSVC_REQUIREMENT@") { sub(/@MSVC_REQUIREMENT@/, msvc) }
+  index($0, "@BOOST_REQUIREMENT@") { sub(/@BOOST_REQUIREMENT@/, ENVIRON["BOOST_REQUIREMENT"]) }
+  index($0, "@MSVC_REQUIREMENT@") { sub(/@MSVC_REQUIREMENT@/, ENVIRON["MSVC_REQUIREMENT"]) }
   { gsub(/@OPENMS_VERSION_MAJOR_MINOR@/, major_minor); gsub(/@MACOS_MINIMUM@/, macos_minimum)
     gsub(/@BUILD_TYPE@/, build_type); print }
 ' "$source_dir/cmake/OpenMSSDKReadme.txt" > "$stage/README.txt"

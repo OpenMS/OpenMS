@@ -14,6 +14,8 @@
 #include <unordered_set>
 
 #include <cmath>
+#include <algorithm>
+#include <tuple>
 
 namespace OpenMS
 {
@@ -524,6 +526,80 @@ namespace OpenMS
     {
       feature_map.push_back(std::move(f));
     }
+  }
+
+  Size FeatureOverlapFilter::mergeCoincidentFeatures(FeatureMap& feature_map)
+  {
+    // Copies of one extracted signal agree up to floating-point noise only: the theoretical m/z of
+    // isomers may be summed in a different order or from rounded modification mass deltas.
+    // 1e-8 (0.01 ppm) covers that and is far below any instrument resolution.
+    constexpr double rel_tol = 1e-8;
+    auto close = [](double a, double b) { return std::fabs(a - b) <= rel_tol * std::max(std::fabs(a), std::fabs(b)); };
+
+    std::vector<Size> order;
+    order.reserve(feature_map.size());
+    for (Size i = 0; i < feature_map.size(); ++i)
+    {
+      if (std::isfinite(feature_map[i].getRT()) && std::isfinite(feature_map[i].getMZ())) { order.push_back(i); }
+    }
+    std::sort(order.begin(), order.end(), [&feature_map](Size a, Size b) {
+      const Feature& fa = feature_map[a];
+      const Feature& fb = feature_map[b];
+      return std::make_tuple(fa.getCharge(), fa.getRT(), fa.getMZ(), a) < std::make_tuple(fb.getCharge(), fb.getRT(), fb.getMZ(), b);
+    });
+
+    std::vector<bool> grouped(feature_map.size(), false);
+    std::vector<bool> remove(feature_map.size(), false);
+    Size n_removed = 0;
+    for (Size p = 0; p < order.size(); ++p)
+    {
+      const Size anchor = order[p];
+      if (grouped[anchor]) { continue; }
+      const Feature& fa = feature_map[anchor];
+
+      // features within the RT window of the anchor follow it in the sort order; their m/z is unsorted
+      std::vector<Size> group{anchor};
+      for (Size q = p + 1; q < order.size(); ++q)
+      {
+        const Feature& fb = feature_map[order[q]];
+        if (fb.getCharge() != fa.getCharge() || !close(fb.getRT(), fa.getRT())) { break; }
+        if (!grouped[order[q]] && close(fb.getMZ(), fa.getMZ())) { group.push_back(order[q]); }
+      }
+      if (group.size() < 2) { continue; }
+
+      std::sort(group.begin(), group.end()); // original order: ties keep the first feature
+      Size keep = group.front();
+      for (Size i : group)
+      {
+        grouped[i] = true;
+        if (feature_map[i].getIntensity() > feature_map[keep].getIntensity()) { keep = i; }
+      }
+      auto& kept_ids = feature_map[keep].getPeptideIdentifications();
+      for (Size i : group)
+      {
+        if (i == keep) { continue; }
+        for (auto& pep_id : feature_map[i].getPeptideIdentifications())
+        {
+          kept_ids.push_back(std::move(pep_id));
+        }
+        feature_map[i].getPeptideIdentifications().clear();
+        remove[i] = true;
+        ++n_removed;
+      }
+    }
+
+    if (n_removed == 0) { return 0; }
+
+    // compact in place, keeping the survivors in their original order
+    Size out = 0;
+    for (Size i = 0; i < feature_map.size(); ++i)
+    {
+      if (remove[i]) { continue; }
+      if (out != i) { feature_map[out] = std::move(feature_map[i]); }
+      ++out;
+    }
+    feature_map.resize(out);
+    return n_removed;
   }
 
 }

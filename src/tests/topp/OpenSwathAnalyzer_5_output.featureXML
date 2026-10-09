@@ -58,7 +58,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-21995.0545715172" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -165,7 +165,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-21551.890455241" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -272,7 +272,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-22000.5220700374" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -379,7 +379,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-22208.3901796671" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
