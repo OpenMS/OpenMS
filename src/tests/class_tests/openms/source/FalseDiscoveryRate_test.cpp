@@ -326,6 +326,26 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
       TEST_REAL_SIMILAR(qs[5], 0.5)
     }
   }
+
+  // (5) Mixed target/decoy group, one vote, independent of accession order. Higher score = better.
+  // Pairs: Z, W have no decoy; Y ties with DECOY_Y (0.8) -> the target wins; DECOY_X (0.8) beats X (0.5).
+  // {DECOY_X, Y} holds a winning decoy AND a winning target: it votes once, as target.
+  // Votes: 0.9 T, 0.8 T, 0.7 T. FDR: 1/2, 1/3, 1/4; q: 1/4 for all. {DECOY_Y} (0.8) and {X} (0.5)
+  // do not vote and get q = 1/4. Before the fix, the decoy-first order added a second (decoy) vote
+  // at 0.8, giving q = 1/2 for every group, while the target-first order gave 1/4.
+  {
+    for (const vector<string>& mixed : {vector<string>{"DECOY_X", "Y"}, vector<string>{"Y", "DECOY_X"}})
+    {
+      ProteinIdentification run = picked_run(true,
+        {{"Z", 0.9}, {"Y", 0.8}, {"DECOY_Y", 0.8}, {"X", 0.5}, {"DECOY_X", 0.8}, {"W", 0.7}},
+        {{0.9, {"Z"}}, {0.8, mixed}, {0.8, {"DECOY_Y"}}, {0.5, {"X"}}, {0.7, {"W"}}});
+      fdr.applyPickedProteinFDR(run, "DECOY_", true);
+      for (double q : group_qvalues(run))
+      {
+        TEST_REAL_SIMILAR(q, 0.25)
+      }
+    }
+  }
 }
 END_SECTION
 

@@ -226,6 +226,10 @@ OpenMS Library:
     q-value or FDR of the next worse calibrated score. It gets the one of the closest equal or
     better score now, as protein hits do. IDScoreGetterSetter::setScores_ for protein groups takes
     the direction of the group scores as a new last argument (default: higher is better).
+  - FIX: Picked protein-group FDR (FalseDiscoveryRate::applyPickedProteinFDR) counted a group twice,
+    as decoy and as target, if a member whose decoy won its pair was listed before a member whose
+    target won its pair (DECOY_ accessions sort first). A group counts once now, as target, as
+    documented. The extra decoys made group q-values too high, depending on accession order.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

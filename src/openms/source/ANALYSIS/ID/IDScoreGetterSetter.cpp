@@ -128,6 +128,7 @@ namespace OpenMS
         //  a single 0
         if (!isDecoy && tgt_proportion > 0.) // target was picked on single protein level
         {
+          decoy_picked = false; // one vote per group, also if a picked decoy came first
           scores_labels.emplace_back(grp.probability, 1.0);
           break;
         }
