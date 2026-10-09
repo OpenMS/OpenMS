@@ -19,8 +19,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 OpenMS Library:
   - BrukerTimsFile applies the ModelType 2 correction of the MzCalibration table (columns C5..C14:
     a polynomial in m/z subtracted inside the calibrant range, as in Bruker's high precision
-    calibration). Inside that range m/z now matches the Bruker SDK (before: up to 1.3-7.8 ppm off);
-    within about 4 m/z units outside its limits deviations of a few ppm remain.
+    calibration). When these columns are present and usable, m/z now matches the Bruker SDK inside
+    that range (before: up to 1.3-7.8 ppm off); within about 4 m/z units outside its limits
+    deviations of a few ppm remain. Without them the base curve is used, with a warning.
   - FIX: PeptideAndProteinQuant (ProteinQuantifier, IsobaricWorkflow) reported file/channel-level
     protein abundances of 0 for run files whose name stem contains a dot (e.g. sample.v1.mzML).
   - BrukerTimsFile computes m/z from the MzCalibration table of analysis.tdf, with the per-frame

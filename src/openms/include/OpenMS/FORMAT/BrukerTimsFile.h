@@ -198,8 +198,9 @@ namespace OpenMS
 
         m/z — every strategy except LINEAR uses the MzCalibration table of analysis.tdf with the
         per-frame temperature correction (MzCalibrationTof2MzConverter): exact for ModelType 1;
-        for ModelType 2 exact inside the calibrant range (C5..C6) and within a few ppm of the
-        Bruker SDK just outside it. If the table is missing or
+        for ModelType 2 with usable correction columns (C5..C14) exact inside the calibrant range
+        and within a few ppm of the Bruker SDK just outside it (without them, the base curve is
+        used, which is within a few ppm everywhere). If the table is missing or
         unsupported, and always with LINEAR, m/z comes from the linear approximation in
         sqrt(m/z) over the acquisition range (GlobalMetadata), which can be off by tens of ppm.
       */

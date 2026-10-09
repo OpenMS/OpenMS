@@ -540,6 +540,23 @@ START_SECTION(MzCalibrationTof2MzConverter round-trip via inverse_convert)
     }
   }
 
+  // ModelType 2 at the lower limit of the calibrant range: a base m/z just inside the range moves
+  // below the limit after a positive correction; the inverse must still find the original TOF
+  {
+    MzCal cal = mzCalModelType2();
+    cal.correction.n = 1;
+    cal.correction.coefficients = {0.05, 0, 0, 0, 0, 0, 0}; // constant 50 mDa correction
+    auto m_edge = MzCalibrationTof2MzConverter::makeFrameModel(cal, MT2_FRAME_T1, MT2_FRAME_T2);
+    const uint32_t tof_edge = 64000;
+    m_edge.correction.n = 0;
+    const double base_edge = MzCalibrationTof2MzConverter::tofToMz(m_edge, tof_edge);
+    m_edge.correction.n = 1;
+    m_edge.correction.low = base_edge - 0.01; // base just inside the range
+    const double mz_edge = MzCalibrationTof2MzConverter::tofToMz(m_edge, tof_edge); // base - 0.05
+    TEST_EQUAL(mz_edge < m_edge.correction.low, true)
+    TEST_EQUAL(MzCalibrationTof2MzConverter::mzToTof(m_edge, mz_edge), tof_edge)
+  }
+
   // Cubic term (ModelType 1 with C3 != 0) is solved iteratively
   MzCal cubic = mzCalModelType1();
   cubic.c3 = 1e-4;

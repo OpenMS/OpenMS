@@ -19,16 +19,22 @@ namespace OpenMS
 
   namespace
   {
-    /// ModelType 2 correction at base-curve m/z @p m: polynomial inside [low, high], 0 outside
-    double correctionAt(const MzCalibrationTof2MzConverter::Correction& c, double m)
+    /// Correction polynomial at @p m, ignoring the calibrant range
+    double polynomial(const MzCalibrationTof2MzConverter::Correction& c, double m)
     {
-      if (c.n <= 0 || m < c.low || m > c.high) return 0.0;
       double value = 0.0;
       for (int k = c.n - 1; k >= 0; --k)
       {
         value = value * m + c.coefficients[k];
       }
       return value;
+    }
+
+    /// ModelType 2 correction at base-curve m/z @p m: polynomial inside [low, high], 0 outside
+    double correctionAt(const MzCalibrationTof2MzConverter::Correction& c, double m)
+    {
+      if (c.n <= 0 || m < c.low || m > c.high) return 0.0;
+      return polynomial(c, m);
     }
   }
 
@@ -109,12 +115,22 @@ namespace OpenMS
 
   uint32_t MzCalibrationTof2MzConverter::mzToTof(const FrameModel& m, double mz)
   {
-    // Undo the ModelType 2 correction: solve base - correction(base) = mz. The correction is a few
-    // mDa and changes by far less than 1 per m/z unit, so the fixed-point iteration converges fast.
+    // Undo the ModelType 2 correction: the base m/z is either mz itself (outside the calibrant range)
+    // or the solution of base - polynomial(base) = mz inside it. The correction is a few mDa and changes
+    // by far less than 1 per m/z unit, so the fixed-point iteration converges fast. Near the range limits
+    // mz and base can lie on different sides of a limit, so the range is checked on the solved base.
     double base = mz;
-    for (int i = 0; i < 4; ++i)
+    if (m.correction.n > 0)
     {
-      base = mz + correctionAt(m.correction, base);
+      double inside = mz;
+      for (int i = 0; i < 4; ++i)
+      {
+        inside = mz + polynomial(m.correction, inside);
+      }
+      if (inside >= m.correction.low && inside <= m.correction.high)
+      {
+        base = inside;
+      }
     }
     const double s = std::sqrt(std::max(base + m.c4, 0.0));
     const double t = m.c0 + s * (m.b + s * (m.c2 + s * m.c3));
@@ -237,11 +253,12 @@ namespace OpenMS
             corr.low = q.getColumn(0).getDouble();
             corr.high = q.getColumn(1).getDouble();
             corr.n = q.getColumn(2).getInt();
-            usable = corr.low < corr.high && corr.n >= 1 && corr.n <= static_cast<int>(corr.coefficients.size());
+            usable = std::isfinite(corr.low) && std::isfinite(corr.high) && corr.low < corr.high
+                     && corr.n >= 1 && corr.n <= static_cast<int>(corr.coefficients.size());
           }
           for (int k = 0; usable && k < corr.n; ++k)
           {
-            usable = !q.getColumn(3 + k).isNull();
+            usable = !q.getColumn(3 + k).isNull() && std::isfinite(q.getColumn(3 + k).getDouble());
             if (usable) corr.coefficients[k] = q.getColumn(3 + k).getDouble();
           }
           if (usable)
