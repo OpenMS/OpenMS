@@ -13,17 +13,27 @@
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <algorithm>
+#include <cmath>
 #include <map>
 #include <string>
 
 using namespace OpenMS;
 using namespace std;
+
+// exposes the protected static preprocessSpectra_
+class SimpleSearchEngineAlgorithm_test : public SimpleSearchEngineAlgorithm
+{
+public:
+  using SimpleSearchEngineAlgorithm::preprocessSpectra_;
+};
 
 START_TEST(SimpleSearchEngineAlgorithm, "$Id$")
 
@@ -134,6 +144,46 @@ START_SECTION(([EXTRA] Stop codons in the database: a trailing one is removed, a
   ABORT_IF(evidences.size() != 1)
   TEST_STRING_EQUAL(evidences[0].getProteinAccession(), "P03")
   TEST_EQUAL(evidences[0].getAAAfter(), PeptideEvidence::C_TERMINAL_AA)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] preprocessSpectra_ keeps a fragment ion that has a small peak one isotope spacing below it))
+{
+  // b2 of TMTpro-YMATQLLAK-TMTpro (see the same section in ProSEAlgorithm_test): the TMTpro label's
+  // isotope impurity puts a 5% peak 1.00335 Da below the ion. That peak must not become the
+  // monoisotopic peak of the envelope; previously the ion and its +1 isotope were removed as its
+  // isotopes. Regular envelopes are still deisotoped: a 1+ envelope keeps its monoisotopic peak
+  // only, and a 2+ envelope is converted to its singly charged m/z.
+  PeakMap exp;
+  MSSpectrum s;
+  s.setMSLevel(2);
+  s.setRT(1.0);
+  Precursor prec;
+  prec.setMZ(600.0);
+  prec.setCharge(3);
+  s.getPrecursors().push_back(prec);
+  // Intensities are scaled to realistic values: preprocessSpectra_ removes peaks below an absolute
+  // intensity of 0.05 before normalizing. The peaks above 1200 keep the tested peaks out of the
+  // window mower's last, partial window.
+  const std::vector<std::pair<double, float>> peaks = {
+    {450.2500, 0.50f}, {450.7517, 0.20f}, {451.2534, 0.05f},     // 2+ envelope
+    {598.3157, 0.04f}, {599.3193, 0.74f}, {600.3250, 0.10f},     // shadow peak, ion, +1 isotope
+    {700.4000, 1.00f}, {701.4034, 0.35f}, {702.4067, 0.08f},     // 1+ envelope
+    {1200.0000, 0.30f}, {1250.0000, 0.30f}, {1299.0000, 0.30f}};
+  for (const auto& [mz, intensity] : peaks) s.emplace_back(mz, intensity * 1.0e4f);
+  exp.addSpectrum(s);
+  SimpleSearchEngineAlgorithm_test::preprocessSpectra_(exp, 20.0, true);
+
+  auto has_peak = [&exp](double mz)
+  {
+    return std::any_of(exp[0].begin(), exp[0].end(), [mz](const Peak1D& p) { return std::fabs(p.getMZ() - mz) <= 20e-6 * mz; });
+  };
+  TEST_EQUAL(has_peak(599.3193), true)   // the fragment ion survives
+  TEST_EQUAL(has_peak(700.4000), true)   // 1+ envelope: monoisotopic peak kept ...
+  TEST_EQUAL(has_peak(701.4034), false)  // ... isotopes removed
+  TEST_EQUAL(has_peak(702.4067), false)
+  TEST_EQUAL(has_peak(450.2500), false)  // 2+ envelope converted ...
+  TEST_EQUAL(has_peak(450.2500 * 2.0 - Constants::PROTON_MASS_U), true)  // ... to its 1+ m/z
 }
 END_SECTION
 

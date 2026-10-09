@@ -29,13 +29,22 @@ namespace OpenMS
     bool flatHierarchy{};
 
     /**
+       @brief Whether this build can write CWL files.
+
+       Writing CWL needs the TDL library, which is only linked when OpenMS is configured with
+       ENABLE_TDL=ON (the default is OFF). Without it, store() and writeCWLToStream() throw.
+     */
+    static bool isSupported();
+
+    /**
        @brief Write CWL file
 
        @param[out] filename The name of the file the param data structure should be stored in.
        @param[in] param The param data structure that should be stored.
        @param[out] tool_info Additional information about the Tool for which the param data should be stored.
 
-       @exception std::ios::failure is thrown if the file could not be created
+       @exception Exception::NotImplemented is thrown if this build has no CWL support (see isSupported()); no file is created then
+       @exception Exception::UnableToCreateFile is thrown if the file could not be created
      */
     void store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const;
 
@@ -45,6 +54,8 @@ namespace OpenMS
        @param[out] os_ptr The stream to which the param data should be written.
        @param[out] param The param data structure that should be writte to stream.
        @param[out] tool_info Additional information about the Tool for which the param data should be written.
+
+       @exception Exception::NotImplemented is thrown if this build has no CWL support (see isSupported())
      */
     void writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const;
   };
