@@ -181,6 +181,11 @@ OpenMS Library:
     previously ignored. New for this: FeatureMap/ConsensusMap::eraseUnassignedIdentifications() and
     IdentificationDataConverter::moveToPeptideIdentifications() (the converse of
     moveToIdentificationData()).
+  - MetaProSIP works on identification data: it converts the identifications of its feature map once
+    after loading. A pseudo feature for an unassigned identification (-use_unassigned_ids) links
+    that identification instead of a copy, and a pseudo feature for an MS2 spectrum without
+    identification (-use_averagine_ids) carries the precursor charge itself instead of a placeholder
+    identification without sequence and score. Outputs unchanged; new tests cover both options.
   - Writers of formats that hold peptide identifications accept maps with identification data:
     IdentificationDataConverter::withPeptideIdentifications() (the converse of
     withIdentificationData()) gives them a view with the identifications exported. mzTab map

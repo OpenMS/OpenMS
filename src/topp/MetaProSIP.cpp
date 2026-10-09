@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -3055,6 +3055,9 @@ protected:
     OPENMS_LOG_INFO << "loading feature map..." << endl;
     FeatureMap feature_map;
     FileHandler().loadFeatures(in_features, feature_map, {FileTypes::FEATUREXML});
+    // From here on, the identifications are identification data.
+    IdentificationDataConverter::moveToIdentificationData(feature_map);
+    const IdentificationData& identifications = feature_map.getIdentificationData();
 
     // annotate as features found using feature finding (to distinguish them from averagine features oder id based features ... see below)
     for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
@@ -3065,31 +3068,36 @@ protected:
     // if also unassigned ids are used create a pseudo feature
     if (use_unassigned_ids)
     {
-      const PeptideIdentificationList unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
       Size unassigned_id_features = 0;
-      for (PeptideIdentificationList::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+      vector<Feature> pseudo_features;
+      for (const auto& unassigned : feature_map.getUnassignedIdentifications())
       {
-        vector<PeptideHit> hits = it->getHits();
-        if (!hits.empty())
+        if (!unassigned.matches.empty())
         {
           Feature f;
           f.setMetaValue("feature_type", UNASSIGNED_ID_STRING);
-          f.setRT(it->getRT());
-          // take sequence of first hit to calculate ground truth mz
-          Int charge = hits[0].getCharge();
+          f.setRT(unassigned.query->rt.value_or(0.0));
+          // take sequence of first match to calculate ground truth mz
+          const IdentificationData::Match& first = *unassigned.matches[0];
+          Int charge = first.charge;
           if (charge == 0)
           {
             continue;
           }
-          double mz =  hits[0].getSequence().getMZ(charge);
+          double mz = AASequence::fromString(first.representation).getMZ(charge);
           f.setMZ(mz);
-          // add id to pseudo feature
-          PeptideIdentificationList id;
-          id.push_back(*it);
-          f.setPeptideIdentifications(id);
-          feature_map.push_back(f);
+          // the pseudo feature links the identification (with its matches)
+          for (const auto* match : unassigned.matches)
+          {
+            f.addIDMatch({unassigned.run->getUuid(), match->getId()});
+          }
+          pseudo_features.push_back(f);
           unassigned_id_features++;
         }
+      }
+      for (auto& f : pseudo_features)
+      {
+        feature_map.push_back(std::move(f));
       }
       feature_map.updateRanges();
       OPENMS_LOG_INFO << "Evaluating " << unassigned_id_features << " unassigned identifications." << endl;
@@ -3109,35 +3117,30 @@ protected:
 
       // extract rt and mz of all identified precursors and store them in blacklist
       vector<Peak2D> blacklisted_precursors;
-      // in features
-      for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
+      const auto blacklist = [&blacklisted_precursors](const IdentificationData::QueryMatches& identification)
       {
-        const PeptideIdentificationList& f_ids = feature_it->getPeptideIdentifications();
-        for (PeptideIdentificationList::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
+        if (identification.matches.empty())
         {
-          if (!id_it->getHits().empty())
-          {
-            // Feature with id found so we don't need to generate averagine id. Find MS2 in experiment and blacklist it.
-            Peak2D p;
-            p.setRT(id_it->getRT());
-            p.setMZ(id_it->getMZ());
-            blacklisted_precursors.push_back(p);
-          }
+          return;
+        }
+        // Feature with id found so we don't need to generate averagine id. Find MS2 in experiment and blacklist it.
+        Peak2D p;
+        p.setRT(identification.query->rt.value_or(0.0));
+        p.setMZ(identification.query->mz.value_or(0.0));
+        blacklisted_precursors.push_back(p);
+      };
+      // in features
+      for (const Feature& feature : feature_map) // for each peptide feature
+      {
+        for (const auto& identification : feature.getLinkedIdentifications(identifications))
+        {
+          blacklist(identification);
         }
       }
-
       // and in unassigned ids
-      const PeptideIdentificationList unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
-      for (PeptideIdentificationList::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+      for (const auto& identification : feature_map.getUnassignedIdentifications())
       {
-        const vector<PeptideHit> hits = it->getHits();
-        if (!hits.empty())
-        {
-          Peak2D p;
-          p.setRT(it->getRT());
-          p.setMZ(it->getMZ());
-          blacklisted_precursors.push_back(p);
-        }
+        blacklist(identification);
       }
 
       // find index of all precursors that have been blacklisted
@@ -3156,26 +3159,15 @@ protected:
         // precursor not blacklisted?
         if (find(blacklist_idx.begin(), blacklist_idx.end(), i) == blacklist_idx.end() && !peak_map[i].getPrecursors().empty())
         {
-          // store feature with id generated from averagine peptide (pseudo id)
+          // a pseudo feature for the unidentified spectrum, modelled as an averagine peptide
           Feature f;
 
           double precursor_mz = peak_map[i].getPrecursors()[0].getMZ();
           int precursor_charge = peak_map[i].getPrecursors()[0].getCharge();
           //double precursor_mass = (double)precursor_charge * precursor_mz - (double)precursor_charge * Constants::PROTON_MASS_U;
 
-          // add averagine id to pseudo feature
-          PeptideHit pseudo_hit;
-
-          // set peptide with lowest deviation from averagine
-          pseudo_hit.setSequence(AASequence()); // set empty sequence
-          pseudo_hit.setCharge(precursor_charge);
-          PeptideIdentification pseudo_id;
-          vector<PeptideHit> pseudo_hits;
-          pseudo_hits.push_back(pseudo_hit);
-          pseudo_id.setHits(pseudo_hits);
-          PeptideIdentificationList id;
-          id.push_back(pseudo_id);
-          f.setPeptideIdentifications(id);
+          // the averagine model takes the place of an identified peptide: no sequence, the precursor's charge
+          f.setCharge(precursor_charge);
           f.setRT(peak_map[i].getRT());
           f.setMZ(precursor_mz);
           f.setMetaValue("feature_type", UNIDENTIFIED_STRING);
@@ -3223,44 +3215,47 @@ protected:
         continue;
       }
 
-      // Extract 1 or more MS/MS with identifications assigned to the feature by IDMapper
-      PeptideIdentificationList pep_ids = feature_it->getPeptideIdentifications();
+      SIPPeptide sip_peptide;
+      sip_peptide.feature_type = StringUtils::toStr(feature_it->getMetaValue("feature_type")); // used to annotate feature type in reporting
+      const bool unidentified = sip_peptide.feature_type == UNIDENTIFIED_STRING;
 
-      nPSMs += pep_ids.size();
+      // Extract 1 or more MS/MS with identifications assigned to the feature by IDMapper (a pseudo feature for an
+      // unidentified spectrum counts as one, with the averagine model in place of an identified peptide)
+      const auto linked = feature_it->getLinkedIdentifications(identifications);
+
+      nPSMs += unidentified ? 1 : linked.size();
 
       // Skip features without peptide identifications
-      if (pep_ids.empty())
+      if (linked.empty() && !unidentified)
       {
         continue;
       }
 
-      // add best scoring PeptideHit of all PeptideIdentifications mapping to the current feature to tmp_pepid
-      PeptideIdentification tmp_pepid;
-      tmp_pepid.setHigherScoreBetter(pep_ids[0].isHigherScoreBetter());
-      for (Size i = 0; i != pep_ids.size(); ++i)
+      // the best scoring match of all identifications mapping to the current feature (none for the averagine model)
+      double feature_hit_score = 0.0;
+      Int feature_hit_charge = feature_it->getCharge();
+      AASequence feature_hit_sequence;
+      set<std::string> protein_accessions;
+      if (!unidentified)
       {
-        pep_ids[i].sort();
-        const vector<PeptideHit>& hits = pep_ids[i].getHits();
-        if (!hits.empty())
-        {
-          tmp_pepid.insertHit(hits[0]);
-        }
-        else
+        const auto best = feature_it->getBestLinkedMatch(identifications);
+        if (!best)
         {
           OPENMS_LOG_WARN << "Empty peptide hit encountered on feature. Ignoring." << endl;
+          continue;
+        }
+        const IdentificationData::Match& match = *best->matches[0];
+        feature_hit_score = *best->run->getScore(match.getId(), *best->run->getPrimaryScore());
+        feature_hit_charge = match.charge;
+        feature_hit_sequence = AASequence::fromString(match.representation);
+        for (const auto& evidence : match.sequence_evidence)
+        {
+          protein_accessions.insert(evidence.accession);
         }
       }
 
-      tmp_pepid.sort();
-
-      SIPPeptide sip_peptide;
-      sip_peptide.feature_type = StringUtils::toStr(feature_it->getMetaValue("feature_type")); // used to annotate feature type in reporting
-
       // retrieve identification information
-      const PeptideHit& feature_hit = tmp_pepid.getHits()[0];
-      const double feature_hit_score = feature_hit.getScore();
       const double feature_hit_center_mz = feature_it->getMZ();
-      const Int feature_hit_charge = feature_hit.getCharge();
 
       std::string feature_hit_seq;
       double feature_hit_theoretical_mz = 0;
@@ -3271,9 +3266,9 @@ protected:
       //   mz of precursor (stored in feature mz) if no sequence identified
       if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
-        feature_hit_aaseq = feature_hit.getSequence();
+        feature_hit_aaseq = feature_hit_sequence;
         feature_hit_seq = feature_hit_aaseq.toString();
-        feature_hit_theoretical_mz = feature_hit_aaseq.getMZ(feature_hit.getCharge());
+        feature_hit_theoretical_mz = feature_hit_aaseq.getMZ(feature_hit_charge);
       }
       else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
@@ -3287,7 +3282,6 @@ protected:
         OPENMS_LOG_DEBUG << "Feature type: (" << sip_peptide.feature_type << ") Seq.: " << feature_hit_seq << " m/z: " << feature_hit_theoretical_mz << endl;
       }
 
-      const set<std::string> protein_accessions = feature_hit.extractProteinAccessionsSet();
       sip_peptide.accessions = vector<std::string>(protein_accessions.begin(), protein_accessions.end());
       sip_peptide.sequence = feature_hit_aaseq;
       sip_peptide.mz_theo = feature_hit_theoretical_mz;
@@ -3439,7 +3433,7 @@ protected:
         cout << "Isotopic intensities found / total: " << non_zero_isotopic_intensities << "/" << isotopic_intensities.size() << endl;
       }
 
-      OPENMS_LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
+      OPENMS_LOG_INFO << feature_hit_aaseq.toString() << "\trt: " << max_trace_int_rt << endl;
 
       // correlation filtering
       MapRateToScoreType map_rate_to_correlation_score;
