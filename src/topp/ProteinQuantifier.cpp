@@ -1083,21 +1083,8 @@ protected:
                                             out_qpx, "failed to write the features Parquet file");
       }
 
-      // PSM-level export
-      PeptideIdentificationList all_pepids;
-      for (const auto& feature : consensus)
-      {
-        for (const auto& pepid : feature.getPeptideIdentifications())
-        {
-          all_pepids.push_back(pepid);
-        }
-      }
-      for (const auto& pepid : consensus.getUnassignedPeptideIdentifications())
-      {
-        all_pepids.push_back(pepid);
-      }
-      if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids,
-                                    out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
+      // PSM-level export: the identifications of the consensus features and the unassigned ones
+      if (!QPXFile::exportToParquet(consensus, out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
                                     ParquetWriteConfig{}, &feature_links))
       {
         // Abort rather than log and continue: a partial QPX collection written with a zero
