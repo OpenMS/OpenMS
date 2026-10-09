@@ -266,6 +266,8 @@ protected:
     Measure measure_;
     /// Ignore charge states during matching?
     bool ignore_charge_;
+    /// Meta value that a feature and an identification must agree on to match (none if empty)
+    std::string match_meta_value_;
 
     /// compute absolute Da tolerance, for a given m/z,
     /// when @p measure is MEASURE_DA, the value is unchanged,
@@ -274,6 +276,10 @@ protected:
 
     /// check if distance constraint is fulfilled (using @p rt_tolerance_, @p mz_tolerance_ and @p measure_)
     bool isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const;
+
+    /// check that @p feature and @p identification have the same value of the meta value @p match_meta_value_, or both
+    /// none (always true without one)
+    bool sameMetaValue_(const MetaInfoInterface& feature, const MetaInfoInterface& identification) const;
 
     /// helper function that checks if all peptide hits are annotated with RT and MZ meta values
     void checkHits_(const PeptideIdentificationList& ids) const;

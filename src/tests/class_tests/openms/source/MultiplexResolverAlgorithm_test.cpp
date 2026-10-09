@@ -8,6 +8,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <set>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -140,7 +141,7 @@ START_SECTION(MultiplexResolverAlgorithm())
   delete ptr;
 END_SECTION
 
-START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts, const MSExperiment& blacklist = MSExperiment()) const))
+START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts, const MSExperiment& blacklist = MSExperiment(), bool keep_conflicting_identifications = false) const))
 {
   MultiplexResolverAlgorithm resolver;
 
@@ -289,6 +290,47 @@ START_SECTION(([EXTRA] resolve() on identification data))
   TEST_EQUAL(unchanged[0].matches[0]->metaValueExists("map_index"), false)
   // the input is not changed
   TEST_EQUAL(in[1].getLinkedIdentifications(in.getIdentificationData())[0].matches[0]->metaValueExists("map_index"), false)
+
+  // with keep_conflicting_identifications, the resolved output keeps those of the conflicting multiplets as unassigned ones
+  ConsensusMap kept_out, kept_conflicts;
+  resolver.resolve(in, kept_out, kept_conflicts, MSExperiment(), true);
+  TEST_EQUAL(kept_out.size(), 3)
+  TEST_EQUAL(kept_out.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 5)
+  TEST_EQUAL(kept_out.getUnassignedIdentifications().size(), 2)
+  TEST_EQUAL(kept_conflicts.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 2)
+  // the identifications of the conflicting multiplets are those that the conflict output links
+  std::set<IdentificationData::QueryReference> conflicting;
+  for (const auto& cf : kept_conflicts)
+  {
+    for (const auto& entry : cf.getLinkedIdentifications(kept_conflicts.getIdentificationData()))
+    {
+      conflicting.insert({entry.run->getUuid(), entry.query->getId()});
+    }
+  }
+  TEST_EQUAL(conflicting.size(), 1)
+  Size found = 0;
+  for (const auto& entry : kept_out.getUnassignedIdentifications())
+  {
+    found += conflicting.count({entry.run->getUuid(), entry.query->getId()});
+  }
+  TEST_EQUAL(found, 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolve() keeps the identifications of conflicting multiplets on request (peptide identifications)))
+{
+  ConsensusMap in = makeDuplexMap();
+  Internal::ClassTest::addSearchRun(in);
+  MultiplexResolverAlgorithm resolver;
+  ConsensusMap out, conflicts;
+  resolver.resolve(in, out, conflicts);
+  const Size unassigned = out.getUnassignedPeptideIdentifications().size();
+  Size conflicting = 0;
+  for (const auto& cf : conflicts) { conflicting += cf.getPeptideIdentifications().size(); }
+  TEST_EQUAL(conflicting > 0, true)
+  resolver.resolve(in, out, conflicts, MSExperiment(), true);
+  TEST_EQUAL(out.getUnassignedPeptideIdentifications().size(), unassigned + conflicting)
+  TEST_EQUAL(out.size(), 3)
 }
 END_SECTION
 

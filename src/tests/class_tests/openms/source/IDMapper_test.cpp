@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <optional>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
@@ -854,6 +856,73 @@ START_SECTION((void annotate(ConsensusMap& map, const IdentificationData& ids, b
     TEST_REAL_SIMILAR(*linked[0].run->getScore(linked[0].matches[0]->getId(), *linked[0].run->getPrimaryScore()), 1.0)
   }
   TEST_EQUAL(map.getUnassignedIdentifications().size(), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] parameter 'match_meta_value'))
+{
+  // three consensus features at the identification: at two FAIMS CVs and without one
+  ConsensusMap map;
+  for (const std::optional<double> cv : {std::optional<double>(-45.0), std::optional<double>(-65.0), std::optional<double>()})
+  {
+    ConsensusFeature feature;
+    feature.setRT(100.0);
+    feature.setMZ(500.0);
+    if (cv) feature.setMetaValue(Constants::UserParam::FAIMS_CV, *cv);
+    map.push_back(feature);
+  }
+  std::vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("search");
+  PeptideIdentificationList peptides;
+  for (const std::optional<double> cv : {std::optional<double>(-45.0), std::optional<double>()})
+  {
+    PeptideIdentification peptide;
+    peptide.setIdentifier("search");
+    peptide.setScoreType("score");
+    peptide.setRT(100.0);
+    peptide.setMZ(500.0);
+    peptide.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE")));
+    if (cv) peptide.setMetaValue(Constants::UserParam::FAIMS_CV, *cv);
+    peptides.push_back(peptide);
+  }
+
+  // without it, every identification maps onto every consensus feature
+  ConsensusMap all = map;
+  centroidMapper().annotate(all, IdentificationDataAdapter::fromLegacy(proteins, peptides));
+  for (const auto& feature : all)
+  {
+    TEST_EQUAL(feature.getLinkedIdentifications(all.getIdentificationData()).size(), 2)
+  }
+
+  // with it, only onto those with the same value (or both without one)
+  IDMapper mapper = centroidMapper();
+  Param p = mapper.getParameters();
+  p.setValue("match_meta_value", Constants::UserParam::FAIMS_CV);
+  mapper.setParameters(p);
+  mapper.annotate(map, IdentificationDataAdapter::fromLegacy(proteins, peptides));
+  const auto& data = map.getIdentificationData();
+  const auto first = map[0].getLinkedIdentifications(data);
+  ABORT_IF(first.size() != 1)
+  TEST_REAL_SIMILAR((double)first[0].query->getMetaValue(Constants::UserParam::FAIMS_CV), -45.0)
+  TEST_EQUAL(map[1].getLinkedIdentifications(data).empty(), true)
+  const auto third = map[2].getLinkedIdentifications(data);
+  ABORT_IF(third.size() != 1)
+  TEST_EQUAL(third[0].query->metaValueExists(Constants::UserParam::FAIMS_CV), false)
+
+  // feature maps as well
+  FeatureMap features;
+  for (const std::optional<double> cv : {std::optional<double>(-45.0), std::optional<double>(-65.0)})
+  {
+    Feature feature;
+    feature.setRT(100.0);
+    feature.setMZ(500.0);
+    if (cv) feature.setMetaValue(Constants::UserParam::FAIMS_CV, *cv);
+    features.push_back(feature);
+  }
+  mapper.annotate(features, IdentificationDataAdapter::fromLegacy(proteins, peptides), true, true);
+  TEST_EQUAL(features[0].getLinkedIdentifications(features.getIdentificationData()).size(), 1)
+  TEST_EQUAL(features[1].getLinkedIdentifications(features.getIdentificationData()).empty(), true)
+  TEST_EQUAL(features.getUnassignedIdentifications().size(), 1)
 }
 END_SECTION
 

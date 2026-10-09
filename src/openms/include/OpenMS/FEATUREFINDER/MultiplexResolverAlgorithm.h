@@ -77,12 +77,16 @@ namespace OpenMS
       @param[out] map_conflicts Multiplets without identification or with conflicting quant/ID information; cleared first
       @param[in] blacklist Spectral peaks blacklisted during feature detection (FeatureFinderMultiplexAlgorithm::getBlacklist()).
                  Used to decide whether a dummy feature is absent (intensity 0) or not quantifiable (NaN). May be empty.
+      @param[in] keep_conflicting_identifications Whether @p map_out keeps the identifications of the consensus features
+                 of @p map_conflicts, as unassigned ones (e.g. as evidence for protein inference, without quantification).
+                 By default, an output keeps only the identifications of its own consensus features and the unassigned
+                 ones of @p map_in.
 
       @throws Exception::MissingInformation if an identified feature lacks the @c map_index meta value
       @throws Exception::InvalidValue if the @c map_index does not name a feature handle of the consensus feature
     */
     void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts,
-                 const MSExperiment& blacklist = MSExperiment()) const;
+                 const MSExperiment& blacklist = MSExperiment(), bool keep_conflicting_identifications = false) const;
 
   protected:
     /// Relative delta mass between the first feature handle and the handle with map index @p idx (NaN if absent)

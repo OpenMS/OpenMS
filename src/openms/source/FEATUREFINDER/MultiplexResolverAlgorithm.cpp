@@ -362,7 +362,7 @@ namespace OpenMS
   } // namespace
 
   void MultiplexResolverAlgorithm::resolve(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts,
-                                           const MSExperiment& blacklist) const
+                                           const MSExperiment& blacklist, bool keep_conflicting_identifications) const
   {
     // mass shift of every label, as configured in section 'labels'
     std::map<std::string, double> label_mass_shift;
@@ -428,8 +428,9 @@ namespace OpenMS
       }
     }
 
-    // the identifications of the consensus features of the other output are not unassigned ones
-    removeOtherFeatureIdentifications(map_out, in);
+    // the identifications of the consensus features of the other output are not unassigned ones (unless those of the
+    // conflicting ones are to be kept)
+    if (!keep_conflicting_identifications) removeOtherFeatureIdentifications(map_out, in);
     removeOtherFeatureIdentifications(map_conflicts, in);
 
     // update map sizes

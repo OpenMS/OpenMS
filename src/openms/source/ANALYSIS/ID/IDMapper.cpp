@@ -43,6 +43,9 @@ namespace OpenMS
 
     defaults_.setValue("ignore_charge", "false", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.");
     defaults_.setValidStrings("ignore_charge", {"true","false"});
+    defaults_.setValue("match_meta_value", "", "For feature/consensus maps mapped by position (not TMT/iTRAQ data mapped by spectrum reference): "
+                       "Assign an ID only to (consensus) features with the same value of this meta value, e.g. 'FAIMS_CV' to keep the "
+                       "compensation voltages of FAIMS data apart. A missing value matches only a missing value. Empty: no restriction.", {"advanced"});
 
     defaultsToParam_();
   }
@@ -52,7 +55,8 @@ namespace OpenMS
     rt_tolerance_(cp.rt_tolerance_),
     mz_tolerance_(cp.mz_tolerance_),
     measure_(cp.measure_),
-    ignore_charge_(cp.ignore_charge_)
+    ignore_charge_(cp.ignore_charge_),
+    match_meta_value_(cp.match_meta_value_)
   {
     updateMembers_();
   }
@@ -67,6 +71,7 @@ namespace OpenMS
     mz_tolerance_ = rhs.mz_tolerance_;
     measure_ = rhs.measure_;
     ignore_charge_ = rhs.ignore_charge_;
+    match_meta_value_ = rhs.match_meta_value_;
     updateMembers_();
 
     return *this;
@@ -78,6 +83,7 @@ namespace OpenMS
     mz_tolerance_ = param_.getValue("mz_tolerance");
     measure_ = param_.getValue("mz_measure") == "ppm" ? MEASURE_PPM : MEASURE_DA;
     ignore_charge_ = param_.getValue("ignore_charge") == "true";
+    match_meta_value_ = param_.getValue("match_meta_value").toString();
   }
 
   void IDMapper::addIdentificationDataProcessing_(std::vector<DataProcessing>& data_processing, const std::vector<ProteinIdentification>& protein_ids)
@@ -696,6 +702,8 @@ namespace OpenMS
         // iterate over the features
         for (Size cm_index = 0; cm_index < map.size(); ++cm_index)
         {
+          if (!sameMetaValue_(map[cm_index], *entries[i].query)) continue;
+
           // if set to TRUE, we leave the i_mz-loop as we added the whole ID with all hits
           bool was_added = false; // was current pep-m/z matched?!
 
@@ -1100,6 +1108,7 @@ namespace OpenMS
       for (SignedSize& hash_it : hash_table[index])
       {
         Feature & feat = map[hash_it];
+        if (!sameMetaValue_(feat, *entry.query)) continue;
 
         // need to check the charge state?
         bool check_charge = !ignore_charge_;
@@ -1341,6 +1350,14 @@ namespace OpenMS
       return (fabs(rt_distance) <= rt_tolerance_) && (fabs(mz_theoretical - mz_observed) <= mz_tolerance_);
     }
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!",StringUtils::toStr(measure_));
+  }
+
+  bool IDMapper::sameMetaValue_(const MetaInfoInterface& feature, const MetaInfoInterface& identification) const
+  {
+    if (match_meta_value_.empty()) return true;
+    const bool feature_has = feature.metaValueExists(match_meta_value_);
+    if (feature_has != identification.metaValueExists(match_meta_value_)) return false;
+    return ! feature_has || feature.getMetaValue(match_meta_value_) == identification.getMetaValue(match_meta_value_);
   }
 
   void IDMapper::checkHits_(const PeptideIdentificationList& ids) const
