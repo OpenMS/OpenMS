@@ -16,7 +16,8 @@ namespace OpenMS::Internal
 
     MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, const std::string& filename, map<std::string, vector<AASequence> >& modified_peptides, const SpectrumMetaDataLookup& lookup):
       XMLHandler(filename, ""), protein_identification_(protein_identification),
-      id_data_(id_data), peptide_identification_index_(0), actual_title_(""),
+      id_data_(id_data), peptide_identification_index_(0), actual_query_(0),
+      actual_title_(""),
       modified_peptides_(modified_peptides), lookup_(lookup),
       no_rt_error_(false)
     {
@@ -54,12 +55,16 @@ namespace OpenMS::Internal
       else if (tag_ == "peptide" || tag_ == "u_peptide" || tag_ == "q_peptide")
       {
         Int attribute_value = attributeAsInt_(attributes, s_peptide_query);
-        peptide_identification_index_ = attribute_value - 1;
-
-        if (peptide_identification_index_ > id_data_.size())
+        // Check the 1-based value before subtracting: peptide_identification_index_ is
+        // an unsigned Size, so subtracting first and then comparing with "> size()"
+        // accepts attribute_value == size() + 1 (the comparison that should have
+        // rejected it never runs on the right value) and lets a non-positive
+        // attribute_value wrap to a huge index instead of being rejected here.
+        if (attribute_value <= 0 || static_cast<Size>(attribute_value) > id_data_.size())
         {
           fatalError(LOAD, "No or conflicting header information present (make sure to use the 'show_header=1' option in the ./export_dat.pl script)");
         }
+        peptide_identification_index_ = attribute_value - 1;
       }
     }
 
@@ -332,6 +337,14 @@ namespace OpenMS::Internal
       }
       else if (tag_ == "StringTitle")
       {
+        // actual_query_ is set from <query number="..."> and is only valid once such
+        // a tag has been seen; a <StringTitle> outside any <query> (or one whose
+        // number is out of range) must not index id_data_ with it (CPP-164).
+        if (actual_query_ == 0 || actual_query_ > id_data_.size())
+        {
+          fatalError(LOAD, "StringTitle outside a <query> element, or with an invalid query number (make sure to use the 'show_header=1' option in the ./export_dat.pl script)");
+        }
+
         std::string title = StringUtils::trim(character_buffer_);
         vector<std::string> parts;
 
@@ -373,6 +386,11 @@ namespace OpenMS::Internal
       }
       else if (tag_ == "RTINSECONDS")
       {
+        // See the matching check on <StringTitle> above.
+        if (actual_query_ == 0 || actual_query_ > id_data_.size())
+        {
+          fatalError(LOAD, "RTINSECONDS outside a <query> element, or with an invalid query number (make sure to use the 'show_header=1' option in the ./export_dat.pl script)");
+        }
         id_data_[actual_query_ - 1].setRT(StringUtils::toDouble(StringUtils::trimmed(character_buffer_)));
       }
       else if (tag_ == "MascotVer")

@@ -23,6 +23,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
+#include <fstream>
 
 ///////////////////////////
 
@@ -231,6 +232,40 @@ START_SECTION((void load(const std::string& filename, ProteinIdentification& pro
     bool result = fuzzy.compareFiles(filename, OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_out_3.idXML"));
     TEST_EQUAL(result, true);
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA] load rejects a <peptide query="..."> one past <NumQueries> instead of writing past id_data_ (CPP-164))
+{
+  // Regression test: a <peptide query="N+1"> where NumQueries is N used to pass the
+  // guard (it compared the already-decremented 0-based index with "> size()", which
+  // accepts index == size(), i.e. query == NumQueries + 1) and wrote a whole
+  // PeptideIdentification one past the end of id_data_'s allocation.
+  std::string mascotxml =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    "<mascot_search_results majorVersion=\"1\" minorVersion=\"0\">\n"
+    " <header><NumQueries>1</NumQueries></header>\n"
+    " <search_parameters></search_parameters>\n"
+    " <hits><hit number=\"1\"><protein accession=\"P1\">\n"
+    "  <peptide query=\"2\">\n"
+    "   <pep_exp_mz>500.0</pep_exp_mz><pep_exp_z>1</pep_exp_z><pep_miss>0</pep_miss>\n"
+    "   <pep_score>10</pep_score><pep_homol>0</pep_homol><pep_ident>0</pep_ident>\n"
+    "   <pep_res_before>K</pep_res_before><pep_seq>PEPTIDE</pep_seq><pep_res_after>R</pep_res_after>\n"
+    "   <pep_var_mod/>\n"
+    "  </peptide>\n"
+    " </protein></hit></hits>\n"
+    "</mascot_search_results>\n";
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream of(tmp_filename.c_str());
+  of << mascotxml;
+  of.close();
+
+  MascotXMLFile file2;
+  ProteinIdentification prot_id;
+  PeptideIdentificationList pep_ids;
+  SpectrumMetaDataLookup lookup2;
+  TEST_EXCEPTION(Exception::ParseError, file2.load(tmp_filename, prot_id, pep_ids, lookup2))
 }
 END_SECTION
 
