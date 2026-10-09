@@ -871,6 +871,11 @@ protected:
     /// Lets the candidate walks of querySpectrumSNES_() test the kind without reading the mother.
     std::vector<uint64_t> snes_single_c_bits_;
 
+    /// querySpectrumSNES_() records the candidates of its walks (and walks each window once) if the walks visit at
+    /// most this many fragments and mothers, else it keeps their state per mother and walks again. 0 (the default):
+    /// max(mothers / 8, 65536), i.e. recorded in closed searches. Not a parameter: tests set it to choose the path.
+    size_t snes_record_limit_{0};
+
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz
     size_t min_ion_index_{0}; ///< skip ions below this index (0=all, 2=skip b1/b2/y1/y2)
@@ -903,9 +908,11 @@ private:
      *
      *  2. **Byte-count pass**: for every experimental peak, walk the fragment-m/z
      *     buckets within fragment tolerance and count the matched peaks of the
-     *     candidates. Each window is walked once per query, and the per-thread
-     *     working memory is sized by the candidates of a spectrum (plus one bit per
-     *     mother), not by the index.
+     *     candidates. When the walks of phase 1 visit few fragments (always in a
+     *     closed search), they record their candidates, each window is walked once,
+     *     and the per-thread working memory is sized by the candidates of a spectrum
+     *     (plus one bit per mother); the wide windows of an open search keep the
+     *     counts per mother instead and are walked again for the emission.
      *
      *  3. **Emission**: the recorded candidates whose byte score meets
      *     @c fragment:min_matched_ions are emitted in walk order, once per

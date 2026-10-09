@@ -3210,11 +3210,25 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       int shift_{63};
     };
 
+    /// One walk of a SNES query: the fragments around a precursor-derived target (the b ions of Single-N or the
+    /// y ions of Single-C mothers), or the mothers whose full length matches the precursor
+    struct SnesWalk
+    {
+      size_t begin;                       ///< first fragment (fragment walk) or mother (precursor walk) of the walk
+      size_t end;                         ///< end of that range
+      float mz_lo;                        ///< fragment walk: the window the fragments are matched against
+      float mz_hi;
+      bool fragments;                     ///< a fragment walk, else a precursor walk
+      bool expect_single_c;               ///< fragment walk: the kind of the mothers whose ions are walked
+      FragmentIndex::SnesAnchor anchor;   ///< the protein terminus the mothers must be anchored at
+    };
+
     /// The walks of one (precursor charge, isotope error, Σ) combination of a SNES query: a mother is emitted
     /// at most once per group
     struct SnesWalkGroup
     {
-      size_t end;               ///< end of the group's entries in SnesQueryScratch::entries (they begin where the previous group's end)
+      size_t walks_end;         ///< end of the group's walks in SnesQueryScratch::walks (they begin where the previous group's end)
+      size_t entries_end;       ///< recorded walks: end of the group's entries in SnesQueryScratch::entries
       float sigma;              ///< Σ of the group, the sigma_delta_ of its hits
       int16_t isotope_error;
       uint16_t charge;
@@ -3225,11 +3239,18 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     struct SnesQueryScratch
     {
       std::vector<uint16_t> charges;
+      std::vector<SnesWalk> walks;
+      std::vector<SnesWalkGroup> groups;
       std::vector<uint64_t> viable_words;      ///< one bit per mother of the index: a candidate of the current query
+      // recorded walks
       SnesSlotTable candidates;                ///< the candidates (every set bit of viable_words is one of them), with
                                                ///< their matched peaks (count) and the group that emitted them last (mark)
       std::vector<UInt32> entries;             ///< the candidates found by the walks, in walk order: mother ids, then their slots
-      std::vector<SnesWalkGroup> groups;
+      // walks that are not recorded
+      std::vector<uint16_t> mother_counts;     ///< per mother: matched peaks of the byte scan (saturating)
+      std::vector<uint8_t> mother_marks;       ///< per mother: the group (counted from 1, modulo 255) that emitted it last
+      bool mother_tables_dirty{false};         ///< a query left values in the per-mother tables and bits (it threw)
+      // subset expansion
       std::vector<FragmentIndex::SpectrumMatch> expanded; ///< the hits expanded into modification subsets
       SnesSlotTable subset_mothers;            ///< the mothers of the hits expanded into modification subsets, with the
                                                ///< subsets emitted so far (count, capped at 16)
@@ -3284,13 +3305,23 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     const size_t n_words = (n_mothers + 63) / 64;
     std::vector<uint64_t>& viable_words = scratch.viable_words;
     SnesSlotTable& candidates = scratch.candidates;
-    if (viable_words.size() != n_words || n_words <= candidates.capacity())
+    std::vector<uint16_t>& mother_counts = scratch.mother_counts;
+    std::vector<uint8_t>& mother_marks = scratch.mother_marks;
+    if (scratch.mother_tables_dirty)
+    {
+      std::fill(mother_counts.begin(), mother_counts.end(), 0);
+      std::fill(mother_marks.begin(), mother_marks.end(), 0);
+      viable_words.assign(n_words, 0);
+      scratch.mother_tables_dirty = false;
+    }
+    else if (viable_words.size() != n_words || n_words <= candidates.capacity())
     {
       viable_words.assign(n_words, 0);   // a new size, or no more words than the previous table had slots
     }
     else
     {
-      // every set bit belongs to a candidate of the previous query, so its words can be zeroed as a whole
+      // every set bit belongs to a candidate of the previous query (recorded walks: the per-mother path clears
+      // its bits itself), so its words can be zeroed as a whole
       for (size_t slot = 0; slot < candidates.capacity(); ++slot)
       {
         const UInt32 id = candidates[slot].key;
@@ -3318,27 +3349,28 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     // these targets, plus those whose full length matches it (v1 indexes b_1..b_{L-1} and y_1..y_{L-1} only;
     // this matters for sub-peptides of length == max_length and for proteins shorter than it).
     //
-    // For each (charge, isotope error, Σ) group, the walks record the mothers that pass every test of the
-    // candidate except its byte score, in the order of the walk: the bucket walks for the kind (Single-N or
-    // Single-C) and protein anchor of the walk, the precursor walk for its anchor. Phase 3 emits from these
-    // records in the same order, so each window is walked once, and Phase 2 counts the peaks of the recorded
-    // mothers only (a candidate that is not recorded is never emitted, so its count is never read).
+    // A walk visits the mothers that pass every test of a candidate except its byte score: the fragment walks
+    // those of their kind (Single-N or Single-C) and protein anchor, the precursor walks those of their anchor.
+    // Phase 2 counts the peaks of these candidates only (a mother that no walk visits is never emitted, so its
+    // count is never read), and Phase 3 emits them in walk order, once per (charge, isotope error, Σ) group.
     //
     // Σ: the baseline values walk every mother regardless of protein anchor; the values that only occur with
     // PROTEIN_N_TERM / PROTEIN_C_TERM variable mods (snes_sigma_prot_*term_extra_, empty without such mods)
     // walk the mothers at that protein terminus. Each (charge, iso_err, Σ) group is independent: the same
     // mother can be emitted once per group (each Σ represents a distinct variable-mod assignment).
-    std::vector<UInt32>& entries = scratch.entries;
+    //
+    // The walks are planned first: their fragment and mother ranges bound the number of candidates.
+    std::vector<SnesWalk>& walks = scratch.walks;
     std::vector<SnesWalkGroup>& groups = scratch.groups;
-    entries.clear();
+    walks.clear();
     groups.clear();
+    size_t walk_volume = 0;   // fragments and mothers the walks visit
 
     // Asymmetric tolerance: tol_lo <= 0 (low-side magnitude, sign-flipped), tol_hi >= 0. A match requires
     // fragment_mz ∈ [target_mz + tol_lo, target_mz + tol_hi], the bounds that also select the buckets.
     // Preserves calibrated windows like [100 ppm, 5 ppm] where the symmetric max-collapse over-admitted ~20×
     // on the tighter side.
-    const uint64_t* const single_c_bits = snes_single_c_bits_.data();
-    auto walk_fragments = [&](float target_mz, float tol_lo, float tol_hi, bool expect_single_c, SnesAnchor require_anchor)
+    auto plan_fragments = [&](float target_mz, float tol_lo, float tol_hi, bool expect_single_c, SnesAnchor require_anchor)
     {
       const float mz_lo = target_mz + tol_lo;
       const float mz_hi = target_mz + tol_hi;
@@ -3348,41 +3380,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
       const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
       const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
-
-      for (size_t j = bucket_begin; j < bucket_end; ++j)
-      {
-        const auto slice_begin = fi_fragments_.begin() + (j * bucketsize_);
-        const auto slice_end = ((j + 1) * bucketsize_) >= fi_fragments_.size()
-          ? fi_fragments_.end()
-          : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
-
-        for (auto it = slice_begin; it != slice_end; ++it)
-        {
-          if (it->fragment_mz_ < mz_lo || it->fragment_mz_ > mz_hi) continue;
-
-          const UInt32 id = it->peptide_idx_;
-          const bool is_single_c = (single_c_bits[id >> 6] >> (id & 63)) & uint64_t{1};
-          if (is_single_c != expect_single_c) continue;
-
-          // SNES v1.1: anchor-specific filter for PROTEIN_N/C_TERM mod walks.
-          if (require_anchor == SnesAnchor::PROT_NTERM)
-          {
-            const auto& mother = fi_peptides_[id];
-            if (!isProteinNTerminal_(fasta_entries[mother.protein_idx].sequence, mother.sequence_.first)) continue;
-          }
-          if (require_anchor == SnesAnchor::PROT_CTERM)
-          {
-            const auto& mother = fi_peptides_[id];
-            const uint32_t prot_len = protein_lengths_[mother.protein_idx];
-            if (static_cast<uint32_t>(mother.sequence_.first) + mother.sequence_.second != prot_len) continue;
-          }
-          entries.push_back(id);
-        }
-      }
+      const size_t begin = std::min(bucket_begin * bucketsize_, fi_fragments_.size());
+      const size_t end = std::min(bucket_end * bucketsize_, fi_fragments_.size());
+      walks.push_back({begin, end, mz_lo, mz_hi, true, expect_single_c, require_anchor});
+      walk_volume += end - begin;
     };
 
     // Full-length realization: mothers whose precursor_mz_ equals the target within the precursor tolerance.
-    auto walk_precursors = [&](float target, float tol_lo, float tol_hi, SnesAnchor require_anchor)
+    auto plan_precursors = [&](float target, float tol_lo, float tol_hi, SnesAnchor require_anchor)
     {
       auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
                                   target + tol_lo,
@@ -3390,21 +3395,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
                                   target + tol_hi,
                                   [](float b, const Peptide& a) { return b < a.precursor_mz_; });
-      for (auto it = lb; it != ub; ++it)
-      {
-        if (require_anchor == SnesAnchor::PROT_NTERM)
-        {
-          if (!isProteinNTerminal_(fasta_entries[it->protein_idx].sequence, it->sequence_.first)) continue; // PROT_NTERM anchor
-          if (isSingleCMother(it->mod_bitmask_)) continue; // Single-N only
-        }
-        if (require_anchor == SnesAnchor::PROT_CTERM)
-        {
-          if (!isSingleCMother(it->mod_bitmask_)) continue; // Single-C only
-          const uint32_t prot_len = protein_lengths_[it->protein_idx];
-          if (static_cast<uint32_t>(it->sequence_.first) + it->sequence_.second != prot_len) continue;
-        }
-        entries.push_back(static_cast<UInt32>(std::distance(fi_peptides_.begin(), it)));
-      }
+      const size_t begin = std::distance(fi_peptides_.begin(), lb);
+      const size_t end = std::max(begin, static_cast<size_t>(std::distance(fi_peptides_.begin(), ub)));
+      walks.push_back({begin, end, 0.0f, 0.0f, false, false, require_anchor});
+      walk_volume += end - begin;
     };
 
     // Open-search mode (very wide precursor tolerance auto-detected in isOpenSearchMode_()) collapses the
@@ -3430,43 +3424,85 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         const auto prec_window = computeMassWindow_(shifted_mh);
         const float prec_tol_lo = prec_window.first;   // <= 0
         const float prec_tol_hi = prec_window.second;  // >= 0
-        auto end_group = [&](float s) { groups.push_back({entries.size(), s, iso_err, charge}); };
+        auto end_group = [&](float s) { groups.push_back({walks.size(), 0, s, iso_err, charge}); };
 
         for (double sigma : snes_sigma_delta_set_)
         {
           const float s = static_cast<float>(sigma);
-          walk_fragments(target_single_n(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, SnesAnchor::NONE);
-          walk_fragments(target_single_c(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, SnesAnchor::NONE);
-          walk_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::NONE);
+          plan_fragments(target_single_n(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, SnesAnchor::NONE);
+          plan_fragments(target_single_c(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, SnesAnchor::NONE);
+          plan_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::NONE);
           end_group(s);
         }
         // PROTEIN_N_TERM-only Σ values (Single-N mothers at protein position 0, or 1 after enabled Met clipping)
         for (double sigma : snes_sigma_prot_nterm_extra_)
         {
           const float s = static_cast<float>(sigma);
-          walk_fragments(target_single_n(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, SnesAnchor::PROT_NTERM);
-          walk_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::PROT_NTERM);
+          plan_fragments(target_single_n(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, SnesAnchor::PROT_NTERM);
+          plan_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::PROT_NTERM);
           end_group(s);
         }
         // PROTEIN_C_TERM-only Σ values
         for (double sigma : snes_sigma_prot_cterm_extra_)
         {
           const float s = static_cast<float>(sigma);
-          walk_fragments(target_single_c(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, SnesAnchor::PROT_CTERM);
-          walk_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::PROT_CTERM);
+          plan_fragments(target_single_c(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, SnesAnchor::PROT_CTERM);
+          plan_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::PROT_CTERM);
           end_group(s);
         }
       }
     }
 
-    // The recorded mothers become the candidates: each gets a slot (the entries now hold the slots) and its bit.
-    candidates.reset(entries.size());
-    for (UInt32& entry : entries)
+    // Calls visit(id) for every mother the walk admits, in walk order.
+    const uint64_t* const single_c_bits = snes_single_c_bits_.data();
+    auto run_walk = [&](const SnesWalk& walk, auto&& visit)
     {
-      const UInt32 id = entry;
-      entry = static_cast<UInt32>(candidates.insert(id));
-      viable_words[id >> 6] |= uint64_t{1} << (id & 63);
-    }
+      if (walk.fragments)
+      {
+        for (size_t f = walk.begin; f < walk.end; ++f)
+        {
+          const Fragment& fragment = fi_fragments_[f];
+          if (fragment.fragment_mz_ < walk.mz_lo || fragment.fragment_mz_ > walk.mz_hi) continue;
+
+          const UInt32 id = fragment.peptide_idx_;
+          const bool is_single_c = (single_c_bits[id >> 6] >> (id & 63)) & uint64_t{1};
+          if (is_single_c != walk.expect_single_c) continue;
+
+          // SNES v1.1: anchor-specific filter for PROTEIN_N/C_TERM mod walks.
+          if (walk.anchor == SnesAnchor::PROT_NTERM)
+          {
+            const auto& mother = fi_peptides_[id];
+            if (!isProteinNTerminal_(fasta_entries[mother.protein_idx].sequence, mother.sequence_.first)) continue;
+          }
+          if (walk.anchor == SnesAnchor::PROT_CTERM)
+          {
+            const auto& mother = fi_peptides_[id];
+            const uint32_t prot_len = protein_lengths_[mother.protein_idx];
+            if (static_cast<uint32_t>(mother.sequence_.first) + mother.sequence_.second != prot_len) continue;
+          }
+          visit(id);
+        }
+      }
+      else
+      {
+        for (size_t m = walk.begin; m < walk.end; ++m)
+        {
+          const Peptide& mother = fi_peptides_[m];
+          if (walk.anchor == SnesAnchor::PROT_NTERM)
+          {
+            if (!isProteinNTerminal_(fasta_entries[mother.protein_idx].sequence, mother.sequence_.first)) continue; // PROT_NTERM anchor
+            if (isSingleCMother(mother.mod_bitmask_)) continue; // Single-N only
+          }
+          if (walk.anchor == SnesAnchor::PROT_CTERM)
+          {
+            if (!isSingleCMother(mother.mod_bitmask_)) continue; // Single-C only
+            const uint32_t prot_len = protein_lengths_[mother.protein_idx];
+            if (static_cast<uint32_t>(mother.sequence_.first) + mother.sequence_.second != prot_len) continue;
+          }
+          visit(static_cast<UInt32>(m));
+        }
+      }
+    };
 
     // ===================== Phase 2: byte-count scoring of the candidates =====================
     //
@@ -3479,100 +3515,202 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     for (uint16_t c : charges) byte_scan_max_frag_charge = std::max(byte_scan_max_frag_charge, c);
     byte_scan_max_frag_charge = std::min(byte_scan_max_frag_charge, max_fragment_charge_);
 
+    // Calls count(id) for every match of a peak and a fragment of a candidate (whose bit is set).
     // The bitset word a fragment needs is known from the fragment itself: the word of the fragment PREFETCH_DISTANCE
     // places further on is requested while this one is tested. Most fragments of the visited buckets lie in the
     // peak's window, and the bitset (one bit per mother, a few MB) does not fit the core's fastest caches.
-    constexpr size_t PREFETCH_DISTANCE = 64;
-    const Fragment* const fragments_begin = fi_fragments_.data();
-    const Fragment* const fragments_end = fragments_begin + fi_fragments_.size();
-    const Fragment* const prefetch_end = fragments_end - std::min(fi_fragments_.size(), PREFETCH_DISTANCE);
-    const uint64_t* const viable = viable_words.data();
-    // The matched candidates are counted in batches, whose slots are requested first (the order of the increments
-    // does not matter).
-    constexpr size_t BATCH = 64;
-    UInt32 matched[BATCH];
-    size_t num_matched = 0;
-    auto count_matched = [&]()
+    auto byte_scan = [&](auto&& count)
     {
-      for (size_t k = 0; k < num_matched; ++k) candidates.prefetch(matched[k]);
-      for (size_t k = 0; k < num_matched; ++k)
+      constexpr size_t PREFETCH_DISTANCE = 64;
+      const Fragment* const fragments_begin = fi_fragments_.data();
+      const Fragment* const fragments_end = fragments_begin + fi_fragments_.size();
+      const Fragment* const prefetch_end = fragments_end - std::min(fi_fragments_.size(), PREFETCH_DISTANCE);
+      const uint64_t* const viable = viable_words.data();
+      for (const Peak1D& peak : spectrum)
       {
-        uint16_t& count = candidates[candidates.find(matched[k])].count;
-        if (count < std::numeric_limits<uint16_t>::max()) ++count;   // saturates far above any realistic count
-      }
-      num_matched = 0;
-    };
-    for (const Peak1D& peak : spectrum)
-    {
-      for (uint16_t frag_charge = 1; frag_charge <= byte_scan_max_frag_charge; ++frag_charge)
-      {
-        const float adjusted_mass = static_cast<float>(peak.getMZ()) * frag_charge
-          - (frag_charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
-        const float frag_tol = fragment_mz_tolerance_unit_ppm_
-          ? Math::ppmToMass<float>(static_cast<float>(fragment_mz_tolerance_), adjusted_mass)
-          : static_cast<float>(fragment_mz_tolerance_);
-
-        // Bucket-range lookup mirrors query(): bucket_min_mz_ holds the smallest
-        // fragment_mz of each bucket, so a peak with mz ∈ [bucket_min, next_bucket_min)
-        // falls inside the bucket starting at bucket_min. The fragments are matched
-        // against the same bounds.
-        const float mz_lo = adjusted_mass - frag_tol;
-        const float mz_hi = adjusted_mass + frag_tol;
-        auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
-        auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
-        if (left_it != bucket_min_mz_.begin()) --left_it;
-
-        const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
-        const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
-
-        // No peptide_idx pre-filter: every peptide in the buckets is a potential match regardless of its
-        // mother mass; only the candidates of Phase 1 are counted.
-        const Fragment* const scan_begin = fragments_begin + std::min(bucket_begin * bucketsize_, fi_fragments_.size());
-        const Fragment* const scan_end = fragments_begin + std::min(bucket_end * bucketsize_, fi_fragments_.size());
-        for (const Fragment* it = scan_begin; it < scan_end; ++it)
+        for (uint16_t frag_charge = 1; frag_charge <= byte_scan_max_frag_charge; ++frag_charge)
         {
-          if (it < prefetch_end) prefetchForRead(viable + ((it + PREFETCH_DISTANCE)->peptide_idx_ >> 6), 0);
-          // One branch on (in the window AND a candidate), which is rarely true: the window test alone would be
-          // mispredicted often (a bucket is sorted by mother id, so the m/z of consecutive fragments is random).
-          const UInt32 id = it->peptide_idx_;
-          const uint64_t in_window = static_cast<uint64_t>(it->fragment_mz_ >= mz_lo) & static_cast<uint64_t>(it->fragment_mz_ <= mz_hi);
-          if (!((viable[id >> 6] >> (id & 63)) & in_window)) continue;   // outside the window or not a candidate
-          matched[num_matched++] = id;
-          if (num_matched == BATCH) count_matched();
+          const float adjusted_mass = static_cast<float>(peak.getMZ()) * frag_charge
+            - (frag_charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
+          const float frag_tol = fragment_mz_tolerance_unit_ppm_
+            ? Math::ppmToMass<float>(static_cast<float>(fragment_mz_tolerance_), adjusted_mass)
+            : static_cast<float>(fragment_mz_tolerance_);
+
+          // Bucket-range lookup mirrors query(): bucket_min_mz_ holds the smallest
+          // fragment_mz of each bucket, so a peak with mz ∈ [bucket_min, next_bucket_min)
+          // falls inside the bucket starting at bucket_min. The fragments are matched
+          // against the same bounds.
+          const float mz_lo = adjusted_mass - frag_tol;
+          const float mz_hi = adjusted_mass + frag_tol;
+          auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
+          auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
+          if (left_it != bucket_min_mz_.begin()) --left_it;
+
+          const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
+          const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
+
+          // No peptide_idx pre-filter: every peptide in the buckets is a potential match regardless of its
+          // mother mass; only the candidates of Phase 1 are counted.
+          const Fragment* const scan_begin = fragments_begin + std::min(bucket_begin * bucketsize_, fi_fragments_.size());
+          const Fragment* const scan_end = fragments_begin + std::min(bucket_end * bucketsize_, fi_fragments_.size());
+          for (const Fragment* it = scan_begin; it < scan_end; ++it)
+          {
+            if (it < prefetch_end) prefetchForRead(viable + ((it + PREFETCH_DISTANCE)->peptide_idx_ >> 6), 0);
+            // One branch on (in the window AND a candidate), which is rarely true: the window test alone would be
+            // mispredicted often (a bucket is sorted by mother id, so the m/z of consecutive fragments is random).
+            const UInt32 id = it->peptide_idx_;
+            const uint64_t in_window = static_cast<uint64_t>(it->fragment_mz_ >= mz_lo) & static_cast<uint64_t>(it->fragment_mz_ <= mz_hi);
+            if (!((viable[id >> 6] >> (id & 63)) & in_window)) continue;   // outside the window or not a candidate
+            count(id);
+          }
         }
       }
-    }
-    count_matched();
+    };
 
     // ===================== Phase 3: candidate emission =====================
     //
-    // In walk order, every recorded mother whose byte score meets the minimum-matched-peaks threshold is
-    // emitted once per (charge, iso_err, Σ) group.
-    uint16_t group_mark = 0;   // the mark of the current group: groups counted from 1, restarted after 65535
-    size_t group_begin = 0;
-    for (const SnesWalkGroup& group : groups)
+    // In walk order, every candidate whose byte score meets the minimum-matched-peaks threshold is emitted once
+    // per (charge, iso_err, Σ) group.
+    auto emit = [&](UInt32 id, uint16_t count, const SnesWalkGroup& group)
     {
-      if (group_mark == std::numeric_limits<uint16_t>::max())
+      SpectrumMatch sm;
+      sm.peptide_idx_ = id;
+      sm.num_matched_ = count;
+      sm.isotope_error_ = group.isotope_error;
+      sm.precursor_charge_ = group.charge;
+      sm.sigma_delta_ = group.sigma;
+      sms.hits_.push_back(sm);
+    };
+
+    // The walks record their candidates in walk order if that takes little memory: if they visit few fragments and
+    // mothers (an upper bound of the candidates), as always in a closed search. Then each window is walked once,
+    // and the state of the candidates is kept in a table of the candidates. The wide windows of an open search
+    // visit large parts of the index, and a mother can have several ions in one of them: then the counts and marks
+    // are kept per mother (a fixed 3 bytes per mother and thread), and Phase 3 walks the windows again.
+    const size_t record_limit = snes_record_limit_ != 0 ? snes_record_limit_ : std::max<size_t>(n_mothers / 8, size_t{1} << 16);
+    if (walk_volume <= record_limit)
+    {
+      std::vector<UInt32>& entries = scratch.entries;
+      entries.clear();
+      size_t walk_begin = 0;
+      for (SnesWalkGroup& group : groups)
       {
-        candidates.clearMarks();
-        group_mark = 0;
+        for (size_t w = walk_begin; w < group.walks_end; ++w)
+        {
+          run_walk(walks[w], [&](UInt32 id) { entries.push_back(id); });
+        }
+        group.entries_end = entries.size();
+        walk_begin = group.walks_end;
       }
-      ++group_mark;
-      for (size_t k = group_begin; k < group.end; ++k)
+
+      // The recorded mothers become the candidates: each gets a slot (the entries now hold the slots) and its bit.
+      candidates.reset(entries.size());
+      for (UInt32& entry : entries)
       {
-        SnesSlotTable::Slot& candidate = candidates[entries[k]];
-        if (candidate.mark == group_mark) continue;   // already emitted for this (charge, iso_err, Σ)
-        if (candidate.count < min_matched_peaks_) continue;
-        candidate.mark = group_mark;
-        SpectrumMatch sm;
-        sm.peptide_idx_ = candidate.key;
-        sm.num_matched_ = candidate.count;
-        sm.isotope_error_ = group.isotope_error;
-        sm.precursor_charge_ = group.charge;
-        sm.sigma_delta_ = group.sigma;
-        sms.hits_.push_back(sm);
+        const UInt32 id = entry;
+        entry = static_cast<UInt32>(candidates.insert(id));
+        viable_words[id >> 6] |= uint64_t{1} << (id & 63);
       }
-      group_begin = group.end;
+
+      // The matched candidates are counted in batches, whose slots are requested first (the order of the increments
+      // does not matter).
+      constexpr size_t BATCH = 64;
+      UInt32 matched[BATCH];
+      size_t num_matched = 0;
+      auto count_matched = [&]()
+      {
+        for (size_t k = 0; k < num_matched; ++k) candidates.prefetch(matched[k]);
+        for (size_t k = 0; k < num_matched; ++k)
+        {
+          uint16_t& count = candidates[candidates.find(matched[k])].count;
+          if (count < std::numeric_limits<uint16_t>::max()) ++count;   // saturates far above any realistic count
+        }
+        num_matched = 0;
+      };
+      byte_scan([&](UInt32 id)
+      {
+        matched[num_matched++] = id;
+        if (num_matched == BATCH) count_matched();
+      });
+      count_matched();
+
+      uint16_t group_mark = 0;   // the mark of the current group: groups counted from 1, restarted after 65535
+      size_t entry_begin = 0;
+      for (const SnesWalkGroup& group : groups)
+      {
+        if (group_mark == std::numeric_limits<uint16_t>::max())
+        {
+          candidates.clearMarks();
+          group_mark = 0;
+        }
+        ++group_mark;
+        for (size_t k = entry_begin; k < group.entries_end; ++k)
+        {
+          SnesSlotTable::Slot& candidate = candidates[entries[k]];
+          if (candidate.mark == group_mark) continue;   // already emitted for this (charge, iso_err, Σ)
+          if (candidate.count < min_matched_peaks_) continue;
+          candidate.mark = group_mark;
+          emit(candidate.key, candidate.count, group);
+        }
+        entry_begin = group.entries_end;
+      }
+    }
+    else
+    {
+      scratch.mother_tables_dirty = true;   // until the per-mother tables and bits are cleared again below
+      if (mother_counts.size() != n_mothers)
+      {
+        mother_counts.assign(n_mothers, 0);
+        mother_marks.assign(n_mothers, 0);
+      }
+      for (const SnesWalk& walk : walks)
+      {
+        run_walk(walk, [&](UInt32 id) { viable_words[id >> 6] |= uint64_t{1} << (id & 63); });
+      }
+
+      byte_scan([&](UInt32 id)
+      {
+        uint16_t& count = mother_counts[id];
+        if (count < std::numeric_limits<uint16_t>::max()) ++count;   // saturates far above any realistic count
+      });
+
+      uint8_t group_mark = 0;   // the mark of the current group: groups counted from 1, restarted after 255
+      size_t walk_begin = 0;
+      for (const SnesWalkGroup& group : groups)
+      {
+        if (group_mark == std::numeric_limits<uint8_t>::max())
+        {
+          std::fill(mother_marks.begin(), mother_marks.end(), 0);
+          group_mark = 0;
+        }
+        ++group_mark;
+        for (size_t w = walk_begin; w < group.walks_end; ++w)
+        {
+          run_walk(walks[w], [&](UInt32 id)
+          {
+            if (mother_marks[id] == group_mark) return;   // already emitted for this (charge, iso_err, Σ)
+            if (mother_counts[id] < min_matched_peaks_) return;
+            mother_marks[id] = group_mark;
+            emit(id, mother_counts[id], group);
+          });
+        }
+        walk_begin = group.walks_end;
+      }
+
+      // Only the candidates (the set bits) have counts or marks: clear them with their bits.
+      for (size_t w = 0; w < n_words; ++w)
+      {
+        uint64_t bits = viable_words[w];
+        if (bits == 0) continue;
+        viable_words[w] = 0;
+        for (; bits != 0; bits &= bits - 1)
+        {
+          const size_t id = w * 64 + static_cast<size_t>(std::countr_zero(bits));
+          mother_counts[id] = 0;
+          mother_marks[id] = 0;
+        }
+      }
+      scratch.mother_tables_dirty = false;
     }
 
     // Helper: compute the iso-shifted observed (M+H)+ for a given (charge, iso_err), as the walks do.

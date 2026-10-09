@@ -59,6 +59,9 @@ using namespace std;
 class FragmentIndex_test : public FragmentIndex
 {
 public:
+  // querySpectrumSNES_ records the candidates of its walks up to this walk volume (0: automatic)
+  void setSnesRecordLimit(size_t limit) { snes_record_limit_ = limit; }
+
   Size modificationSlotCount(const std::string& sequence, bool protein_nterm, bool protein_cterm) const
   {
     ModSlot slots[MAX_MOD_SLOTS];
@@ -2021,6 +2024,101 @@ START_SECTION(([EXTRA] SNES query results do not depend on the earlier queries o
   TEST_EQUAL(same_hits(query(spec_a), reference), true)   // after a query with candidates
   TEST_EQUAL(query(spec_unknown).empty(), false)
   TEST_EQUAL(same_hits(query(spec_a), reference), true)   // after a query with an unknown charge
+}
+END_SECTION
+
+START_SECTION(([EXTRA] SNES query results do not depend on whether the walks record their candidates))
+{
+  // querySpectrumSNES_ records the candidates of its walks when they visit few fragments (closed searches) and keeps
+  // per-mother tables otherwise (wide open-search windows, which can hold several ions of one mother). Both must
+  // return the same hits, in closed and open searches, with protein-terminal modifications (walks of their own),
+  // and in any order on one thread (each path clears what it leaves for the other).
+  std::string protein;
+  const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
+  uint32_t state = 4242;
+  for (int i = 0; i < 1500; ++i)
+  {
+    state = state * 1103515245u + 12345u;
+    protein += residues[(state >> 16) % residues.size()];
+  }
+  const std::vector<FASTAFile::FASTAEntry> entries{{"P", "P", protein}, {"Q", "Q", protein.substr(0, 60)}};
+
+  auto make_spectrum = [](const AASequence& target, int charge)
+  {
+    TheoreticalSpectrumGenerator tsg;
+    PeakSpectrum theo;
+    tsg.getSpectrum(theo, target, 1, 1);
+    MSSpectrum spec;
+    for (const auto& peak : theo) spec.push_back(peak);
+    spec.sortByPosition();
+    Precursor prec;
+    prec.setMZ(target.getMZ(charge == 0 ? 2 : charge));
+    prec.setCharge(charge);
+    spec.getPrecursors().push_back(prec);
+    spec.setMSLevel(2);
+    return spec;
+  };
+  AASequence internal = AASequence::fromString(protein.substr(400, 16));
+  AASequence nterm = AASequence::fromString(protein.substr(0, 12));
+  nterm.setNTerminalModification("Acetyl");
+  const std::vector<MSSpectrum> spectra{make_spectrum(internal, 2), make_spectrum(internal, 0), make_spectrum(nterm, 2)};
+
+  auto same_hits = [](const std::vector<FragmentIndex::SpectrumMatch>& a, const std::vector<FragmentIndex::SpectrumMatch>& b)
+  {
+    if (a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i)
+    {
+      if (a[i].peptide_idx_ != b[i].peptide_idx_ || a[i].num_matched_ != b[i].num_matched_
+          || a[i].isotope_error_ != b[i].isotope_error_ || a[i].precursor_charge_ != b[i].precursor_charge_
+          || a[i].sigma_delta_ != b[i].sigma_delta_ || a[i].subset_bitmask_ != b[i].subset_bitmask_) return false;
+    }
+    return true;
+  };
+
+  for (const double precursor_tolerance : {20.0, 150.0}) // ppm (closed search), Da (open search)
+  {
+    FragmentIndex_test fi;
+    Param p = fi.getParameters();
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 7);
+    p.setValue("peptide:max_size", 25);
+    p.setValue("peptide:min_mass", 0);
+    p.setValue("peptide:max_mass", 50000);
+    p.setValue("precursor:mass_tolerance_lower", precursor_tolerance);
+    p.setValue("precursor:mass_tolerance_upper", precursor_tolerance);
+    p.setValue("precursor:mass_tolerance_unit", precursor_tolerance == 20.0 ? "ppm" : "Da");
+    p.setValue("fragment:mass_tolerance", 0.5);
+    p.setValue("fragment:mass_tolerance_unit", "Da");
+    p.setValue("precursor:isotope_error_min", -1);
+    p.setValue("precursor:isotope_error_max", 1);
+    p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    p.setValue("snes_enabled", "true");
+    p.setValue("fragment:min_matched_ions", 3);
+    p.setValue("scoring:max_candidates_per_spectrum", 1000000);
+    fi.setParameters(p);
+    fi.build(entries);
+    TEST_EQUAL(fi.isSnesMode(), true)
+
+    auto query = [&](const MSSpectrum& spec, size_t record_limit)
+    {
+      fi.setSnesRecordLimit(record_limit);
+      FragmentIndex::SpectrumMatchesTopN sms;
+      fi.querySpectrum(spec, entries, sms);
+      return sms.hits_;
+    };
+    constexpr size_t RECORDED = std::numeric_limits<size_t>::max();
+    constexpr size_t PER_MOTHER = 1;
+    for (const MSSpectrum& spec : spectra)
+    {
+      const auto recorded = query(spec, RECORDED);
+      TEST_EQUAL(recorded.empty(), false)
+      TEST_EQUAL(same_hits(query(spec, PER_MOTHER), recorded), true)
+      TEST_EQUAL(same_hits(query(spec, RECORDED), recorded), true)
+      TEST_EQUAL(same_hits(query(spec, PER_MOTHER), recorded), true)
+      TEST_EQUAL(same_hits(query(spec, 0), recorded), true)   // automatic choice
+    }
+  }
 }
 END_SECTION
 
