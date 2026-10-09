@@ -256,6 +256,7 @@ void MS1LabeledFAIMS::group(FeatureGroupingAlgorithmQT& linker, const std::vecto
 {
   auto partitions = split_(maps);
   result.clear(true);
+  bool first = true;
   for (auto& [cv, parts] : partitions)
   {
     for (auto& part : parts)
@@ -264,7 +265,6 @@ void MS1LabeledFAIMS::group(FeatureGroupingAlgorithmQT& linker, const std::vecto
     }
     ConsensusMap linked;
     linker.group(parts, linked);
-    linker.transferSubelements(parts, linked);
     if (cv)
     {
       for (auto& feature : linked)
@@ -272,7 +272,47 @@ void MS1LabeledFAIMS::group(FeatureGroupingAlgorithmQT& linker, const std::vecto
         feature.setMetaValue(Constants::UserParam::FAIMS_CV, *cv);
       }
     }
-    append_(result, std::move(linked));
+    // The partitions share protein runs; the columns follow from the input maps below.
+    if (first)
+    {
+      result = std::move(linked);
+      first = false;
+      continue;
+    }
+    for (auto& feature : linked)
+    {
+      result.push_back(std::move(feature));
+    }
+    for (auto& id : linked.getUnassignedPeptideIdentifications())
+    {
+      result.getUnassignedPeptideIdentifications().push_back(std::move(id));
+    }
+  }
+  // Every partition of maps with identification data has all of their identifications (only the features are split), and
+  // linking a partition drops those that only its features left out link. The identifications come from the input maps
+  // instead, for the features of all partitions.
+  if (std::any_of(maps.begin(), maps.end(), [](const ConsensusMap& map) { return ! map.getIdentificationData().empty(); }))
+  {
+    FeatureGroupingAlgorithm::groupIdentifications(maps, result);
+  }
+  // the partitions have the features and columns of the input maps: their channels are the subelements of those
+  linker.transferSubelements(maps, result);
+  // as in the partitions, a column has the size of its channel values
+  Size column = 0;
+  for (const auto& map : maps)
+  {
+    std::map<UInt64, Size> sizes;
+    for (const auto& feature : map)
+    {
+      for (const auto& handle : feature.getFeatures())
+      {
+        ++sizes[handle.getMapIndex()];
+      }
+    }
+    for (const auto& [index, header] : map.getColumnHeaders())
+    {
+      result.getColumnHeaders().at(column++).size = sizes[index];
+    }
   }
   result.updateRanges();
 }

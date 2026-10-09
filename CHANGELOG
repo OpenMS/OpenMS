@@ -161,6 +161,14 @@ OpenMS Library:
     ProteinIdentification::computeCoverage()/computeModifications() read maps with identification
     data. Linked identifications of runs that share query IDs (e.g. of linked maps) are resolved in
     the order export writes them (by run, then ID).
+  - MS1LabeledWorkflow works on identification data from the end of each run's quantification:
+    alignment, linking (within each FAIMS compensation voltage), inference, FDR, filtering,
+    quantification and the channel ratios (MS1LabeledRatioQuantifier) work on it, and the
+    identifications are exported once for the output formats. Mapping the identifications onto the
+    multiplets and resolving them still works on peptide identifications. The unassigned
+    identifications in its consensusXML and its mzTab PSM rows now follow the runs, then the
+    identifications in their original order (values unchanged). Linking within FAIMS compensation
+    voltages takes the identifications from the input maps once, for the multiplets of all voltages.
   - Writers of formats that hold peptide identifications accept maps with identification data:
     IdentificationDataConverter::withPeptideIdentifications() (the converse of
     withIdentificationData()) gives them a view with the identifications exported. mzTab map

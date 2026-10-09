@@ -58,30 +58,6 @@
 			<UserParam type="string" name="indistinguishable_proteins_2" value="0.25,PH_2"/>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="833.779044601" RT="1789.361369" spectrum_reference="controllerType=0 controllerNumber=1 scan=11851" >
-		<PeptideHit score="0.1" sequence="NYTIEHIFSQVLLLYFYGIR" charge="3" protein_refs="PH_0">
-			<UserParam type="string" name="target_decoy" value="target"/>
-			<UserParam type="string" name="MS1Label:labeled_sequence" value="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))"/>
-			<UserParam type="string" name="MS1Label:removed_labels" value="Arg10"/>
-			<UserParam type="int" name="MS1Label:channel" value="2"/>
-			<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
-		</PeptideHit>
-		<UserParam type="int" name="map_index" value="3"/>
-		<UserParam type="string" name="feature_id" value="17447818880105247092"/>
-		<UserParam type="int" name="id_merge_index" value="1"/>
-	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="815.907842857" RT="1791.33681" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
-		<PeptideHit score="0.1" sequence="TALGYYWALTEASGK" charge="2" protein_refs="PH_1">
-			<UserParam type="string" name="target_decoy" value="target"/>
-			<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK"/>
-			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
-			<UserParam type="int" name="MS1Label:channel" value="1"/>
-			<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
-		</PeptideHit>
-		<UserParam type="int" name="map_index" value="2"/>
-		<UserParam type="string" name="feature_id" value="1003624456647096845"/>
-		<UserParam type="int" name="id_merge_index" value="1"/>
-	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="819.915254362" RT="1791.139488" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
 		<PeptideHit score="0.1" sequence="TALGYYWALTEASGK" charge="2" protein_refs="PH_1">
 			<UserParam type="string" name="target_decoy" value="target"/>
@@ -108,6 +84,30 @@
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 		<UserParam type="int" name="id_merge_index" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="833.779044601" RT="1789.361369" spectrum_reference="controllerType=0 controllerNumber=1 scan=11851" >
+		<PeptideHit score="0.1" sequence="NYTIEHIFSQVLLLYFYGIR" charge="3" protein_refs="PH_0">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="NYTIEHIFSQVLLLYFYGIR(Label:13C(6)15N(4))"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="Arg10"/>
+			<UserParam type="int" name="MS1Label:channel" value="2"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="1.0e-03"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="3"/>
+		<UserParam type="string" name="feature_id" value="17447818880105247092"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="815.907842857" RT="1791.33681" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
+		<PeptideHit score="0.1" sequence="TALGYYWALTEASGK" charge="2" protein_refs="PH_1">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="string" name="MS1Label:labeled_sequence" value="TALGYYWALTEASGK"/>
+			<UserParam type="string" name="MS1Label:removed_labels" value="none"/>
+			<UserParam type="int" name="MS1Label:channel" value="1"/>
+			<UserParam type="float" name="Posterior Error Probability_score" value="3.0e-03"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="1003624456647096845"/>
+		<UserParam type="int" name="id_merge_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="819.915254362" RT="1791.139488" spectrum_reference="controllerType=0 controllerNumber=1 scan=11873" >
 		<PeptideHit score="0.1" sequence="TALGYYWALTEASGK" charge="2" protein_refs="PH_1">

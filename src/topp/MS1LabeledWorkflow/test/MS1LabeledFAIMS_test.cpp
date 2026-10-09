@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace OpenMS;
 
@@ -232,6 +233,41 @@ START_SECTION((static void group(FeatureGroupingAlgorithmQT&, const std::vector<
   TEST_EQUAL(result.getUnassignedPeptideIdentifications().size(), 1)
   TEST_EQUAL(result.getUnassignedPeptideIdentifications()[0].getSpectrumReference(), "scan=999")
   TEST_EQUAL(result.getProteinIdentifications().size(), 2)
+
+  // Maps with identification data: the result has the identifications of the input maps, linked within their CV.
+  std::vector<ConsensusMap> native {makeMap(0), makeMap(1)};
+  for (auto& feature : native[0])
+  {
+    auto id = makeId("scan=" + std::to_string(feature.getUniqueId()), (double)feature.getMetaValue(Constants::UserParam::FAIMS_CV));
+    id.setMetaValue("map_index", 1);
+    id.setMetaValue("old_map_index", 1);
+    feature.getPeptideIdentifications().push_back(id);
+  }
+  native[0].getUnassignedPeptideIdentifications().push_back(makeId("scan=999", -85.0));
+  for (auto& map : native) { IdentificationDataConverter::moveToIdentificationData(map); }
+  MS1LabeledFAIMS::group(linker, native, result);
+  TEST_EQUAL(result.size(), 2)
+  TEST_EQUAL(result.getColumnHeaders().size(), 4)
+  TEST_EQUAL(result.getColumnHeaders().at(0).size, 2)
+  TEST_EQUAL(result.getColumnHeaders().at(3).size, 2)
+  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(result), false)
+  const auto& data = result.getIdentificationData();
+  for (const auto& feature : result)
+  {
+    const double cv = feature.getMetaValue(Constants::UserParam::FAIMS_CV);
+    TEST_EQUAL(feature.size(), 4)
+    const auto identifications = feature.getLinkedIdentifications(data);
+    TEST_EQUAL(identifications.size(), 1)
+    ABORT_IF(identifications.size() != 1)
+    TEST_REAL_SIMILAR((double)identifications[0].query->getMetaValue(Constants::UserParam::FAIMS_CV), cv)
+    // the channel of the identification in its run's map, as column of the result
+    TEST_EQUAL((Size)identifications[0].query->getMetaValue("map_index"), 1)
+    TEST_EQUAL(identifications[0].query->metaValueExists("old_map_index"), false)
+  }
+  const auto unassigned = result.getUnassignedIdentifications();
+  TEST_EQUAL(unassigned.size(), 1)
+  ABORT_IF(unassigned.size() != 1)
+  TEST_EQUAL(unassigned[0].query->data_id, "scan=999")
 }
 END_SECTION
 

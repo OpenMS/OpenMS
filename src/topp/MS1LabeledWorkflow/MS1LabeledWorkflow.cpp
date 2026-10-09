@@ -51,6 +51,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -58,6 +60,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <map>
 #include <set>
@@ -1006,6 +1009,10 @@ protected:
     resolved.setExperimentType("labeled_MS1");
     resolved.updateRanges();
 
+    // From here on, the identifications of the run are identification data: alignment, linking, inference and
+    // quantification work on it, and the outputs are written from it.
+    IdentificationDataConverter::moveToIdentificationData(resolved);
+
     return EXECUTION_OK;
   }
 
@@ -1086,12 +1093,21 @@ protected:
     // the linker re-indexes the identifications by input map; remember the channel so that it can be restored below
     for (auto& map : maps)
     {
-      map.applyFunctionOnPeptideIDs(
-        [](PeptideIdentification& p)
+      auto& data = map.getIdentificationData();
+      for (const auto& current : data.getRuns())
+      {
+        auto& run = data.getRun(current.getIdentifier());
+        for (const auto& source : run.getSources())
         {
-          if (p.metaValueExists("map_index")) { p.setMetaValue("old_map_index", p.getMetaValue("map_index")); }
-        },
-        true);
+          for (const auto& query : source.identifications)
+          {
+            if (!query.metaValueExists("map_index")) { continue; }
+            IdentificationData::Observation observation = query;
+            observation.setMetaValue("old_map_index", query.getMetaValue("map_index"));
+            run.replaceObservation(query.getId(), observation);
+          }
+        }
+      }
       map.updateRanges();
     }
 
@@ -1102,7 +1118,7 @@ protected:
     MS1LabeledFAIMS::group(linker, maps, consensus_fraction);
 
     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    consensus_fraction.sortPeptideIdentificationsByMapIndex();
+    // (The identifications of a consensus multiplet are in the order of their runs, as the linked maps' runs are.)
     OPENMS_LOG_INFO << "Linked " << maps.size() << " run(s) into " << consensus_fraction.size() << " consensus multiplet(s)." << endl;
   }
 
@@ -1142,9 +1158,19 @@ protected:
     const bool bayesian = getStringOption_("protein_inference") == "bayesian";
     const bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
 
-    // study-wide inference operates on a single merged ID run
+    // study-wide inference operates on all identification runs at once, in a single inference result (protein run)
     ConsensusMapMergerAlgorithm cmerge;
     cmerge.mergeAllIDRuns(consensus);
+    IdentificationData& data = consensus.getIdentificationData();
+    // The protein run of that inference result, which the protein-level steps below work on
+    const auto editProteins = [&data](const std::function<void(ProteinIdentification&)>& edit) {
+      IdentificationDataAdapter::editPooledProteins(data, edit);
+    };
+    const auto updateGroups = [](ProteinIdentification& proteins) {
+      IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
+      IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+    };
+    const auto noProteins = [&data]() { return IdentificationDataAdapter::pooledInferenceResult(data)->proteins.getHits().empty(); };
 
     if (!bayesian)
     {
@@ -1153,7 +1179,7 @@ protected:
       bpiaparams.setValue("annotate_indistinguishable_groups", groups ? "true" : "false");
       bpiaparams.setValue("greedy_group_resolution", greedy_group_resolution ? "true" : "false");
       bpia.setParameters(bpiaparams);
-      bpia.run(consensus, consensus.getProteinIdentifications()[0], true);
+      bpia.run(consensus, true);
     }
     else
     {
@@ -1164,7 +1190,7 @@ protected:
       bayes.inferPosteriorProbabilities(consensus, greedy_group_resolution);
       if (!groups)
       {
-        consensus.getProteinIdentifications()[0].getIndistinguishableProteins().clear();
+        editProteins([](ProteinIdentification& proteins) { proteins.getIndistinguishableProteins().clear(); });
       }
     }
 
@@ -1173,9 +1199,10 @@ protected:
     const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
 
-    auto& overall_proteins = consensus.getProteinIdentifications()[0];
-    if (!picked) { fdr.applyBasic(overall_proteins); }
-    else { fdr.applyPickedProteinFDR(overall_proteins, picked_decoy_string_, picked_decoy_prefix_); }
+    editProteins([&](ProteinIdentification& overall_proteins) {
+      if (!picked) { fdr.applyBasic(overall_proteins); }
+      else { fdr.applyPickedProteinFDR(overall_proteins, picked_decoy_string_, picked_decoy_prefix_); }
+    });
 
     const bool pepFDR = getStringOption_("FDR_type") == "PSM+peptide";
     if (pepFDR) { fdr.applyBasicPeptideLevel(consensus, true); }
@@ -1184,27 +1211,21 @@ protected:
     // FDR filtering removed all decoy proteins -> update references and remove all unreferenced (decoy) PSMs
     IDFilter::removeDanglingProteinReferences(consensus, true);
     IDFilter::removeUnreferencedProteins(consensus, true);
-    IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(), overall_proteins.getHits());
-    IDFilter::updateProteinGroups(overall_proteins.getProteinGroups(), overall_proteins.getHits());
+    editProteins(updateGroups);
 
-    if (max_psm_fdr < 1.0)
+    if (max_psm_fdr < 1.0) // of the identifications of the multiplets and the unassigned ones
     {
-      for (auto& f : consensus)
-      {
-        IDFilter::filterHitsByScore(f.getPeptideIdentifications(), max_psm_fdr);
-      }
-      IDFilter::filterHitsByScore(consensus.getUnassignedPeptideIdentifications(), max_psm_fdr);
+      IDFilter::filterHitsByScore(consensus, max_psm_fdr);
     }
     if (max_fdr < 1.0)
     {
-      IDFilter::filterHitsByScore(overall_proteins, max_fdr);
+      editProteins([&](ProteinIdentification& overall_proteins) { IDFilter::filterHitsByScore(overall_proteins, max_fdr); });
     }
     IDFilter::removeDanglingProteinReferences(consensus, true);
     if (max_psm_fdr < 1.0) { IDFilter::removeUnreferencedProteins(consensus, true); }
-    IDFilter::updateProteinGroups(overall_proteins.getIndistinguishableProteins(), overall_proteins.getHits());
-    IDFilter::updateProteinGroups(overall_proteins.getProteinGroups(), overall_proteins.getHits());
+    editProteins(updateGroups);
 
-    if (overall_proteins.getHits().empty())
+    if (noProteins())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "No proteins left after FDR filtering. Please check the log and adjust your settings.");
@@ -1213,14 +1234,10 @@ protected:
     // strictly unique peptides: filter for the theoretical uniqueness annotated during peptide indexing
     if (!greedy_group_resolution && !groups)
     {
-      for (auto& f : consensus)
-      {
-        IDFilter::keepUniquePeptidesPerProtein(f.getPeptideIdentifications());
-      }
-      IDFilter::keepUniquePeptidesPerProtein(consensus.getUnassignedPeptideIdentifications());
+      IDFilter::keepUniquePeptidesPerProtein(consensus);
       IDFilter::removeUnreferencedProteins(consensus, true);
 
-      if (overall_proteins.getHits().empty())
+      if (noProteins())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             "No protein is supported by a strictly unique peptide. Note that "
@@ -1228,23 +1245,25 @@ protected:
                                             "theoretical uniqueness annotated during peptide indexing (see '-fasta').");
       }
       // quantification and every exporter report abundances on protein groups
-      overall_proteins.fillIndistinguishableGroupsWithSingletons();
+      editProteins([](ProteinIdentification& overall_proteins) { overall_proteins.fillIndistinguishableGroupsWithSingletons(); });
     }
 
-    // coverage needs the protein sequences, which only peptide indexing ('-fasta') or an indexed input provides
-    const bool sequences_known = std::all_of(overall_proteins.getHits().begin(), overall_proteins.getHits().end(),
-                                             [](const ProteinHit& h) { return !h.getSequence().empty(); });
-    if (sequences_known)
-    {
-      overall_proteins.computeCoverage(consensus, true);
-    }
-    else
-    {
-      OPENMS_LOG_INFO << "Protein sequences are not available (no '-fasta'), skipping the coverage computation." << endl;
-    }
+    editProteins([&](ProteinIdentification& overall_proteins) {
+      // coverage needs the protein sequences, which only peptide indexing ('-fasta') or an indexed input provides
+      const bool sequences_known = std::all_of(overall_proteins.getHits().begin(), overall_proteins.getHits().end(),
+                                               [](const ProteinHit& h) { return !h.getSequence().empty(); });
+      if (sequences_known)
+      {
+        overall_proteins.computeCoverage(consensus, true);
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "Protein sequences are not available (no '-fasta'), skipping the coverage computation." << endl;
+      }
 
-    // determine observed modifications (exclude fixed mods)
-    overall_proteins.computeModifications(consensus, StringList(fixed_modifications.begin(), fixed_modifications.end()), true);
+      // determine observed modifications (exclude fixed mods)
+      overall_proteins.computeModifications(consensus, StringList(fixed_modifications.begin(), fixed_modifications.end()), true);
+    });
 
     return EXECUTION_OK;
   }
@@ -1664,7 +1683,6 @@ protected:
       consensus.setPrimaryMSRunPath(ms_runs);
     }
     consensus.sortByPosition();
-    consensus.sortPeptideIdentificationsByMapIndex();
 
     // the fraction structure lives in the design; put it on the columns for the exporters
     if (const Size unannotated = design_.annotateColumnHeaders(consensus); unannotated > 0)
@@ -1694,8 +1712,10 @@ protected:
     // the PSM. After linking this identification may come from another run (match between runs).
     for (auto& cf : consensus)
     {
-      if (cf.getPeptideIdentifications().empty() || cf.getPeptideIdentifications()[0].getHits().empty()) { continue; }
-      const PeptideHit& hit = cf.getPeptideIdentifications()[0].getHits()[0];
+      // the first match of the first identification, as the first hit of the first peptide identification
+      const auto identifications = cf.getLinkedIdentifications(consensus.getIdentificationData());
+      if (identifications.empty() || identifications[0].matches.empty()) { continue; }
+      const MetaInfoInterface& hit = identifications[0].matches[0]->getData();
       for (const std::string& key : MS1LabelState::keys())
       {
         if (hit.metaValueExists(key)) { cf.setMetaValue(key, hit.getMetaValue(key)); }
@@ -1709,27 +1729,27 @@ protected:
     quantifier.readQuantData(consensus, design_);
     quantifier.quantifyPeptides();
 
-    ProteinIdentification& inferred_proteins = consensus.getProteinIdentifications()[0];
-    if (inferred_proteins.getIndistinguishableProteins().empty())
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information on indistinguishable protein groups found.");
-    }
-    quantifier.quantifyProteins(inferred_proteins);
-    const auto& protein_quants = quantifier.getProteinResults();
-    if (protein_quants.empty()) { OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl; }
-    // keep protein groups that have not been quantified, as the sibling workflows do
-    quantifier.annotateQuantificationsToProteins(protein_quants, inferred_proteins, false);
+    // The protein run of the inference result (see inferProteinGroups_())
+    IdentificationDataAdapter::editPooledProteins(consensus.getIdentificationData(), [&](ProteinIdentification& inferred_proteins) {
+      if (inferred_proteins.getIndistinguishableProteins().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information on indistinguishable protein groups found.");
+      }
+      quantifier.quantifyProteins(inferred_proteins);
+      const auto& protein_quants = quantifier.getProteinResults();
+      if (protein_quants.empty()) { OPENMS_LOG_WARN << "Warning: No proteins were quantified." << endl; }
+      // keep protein groups that have not been quantified, as the sibling workflows do
+      quantifier.annotateQuantificationsToProteins(protein_quants, inferred_proteins, false);
 
-    // The quantity of a labeled experiment is the channel ratio, aggregated as a median of ratios
-    // rather than as a ratio of aggregated intensities (see MS1LabeledRatioQuantifier). Runs after
-    // the abundances above, so that both sit next to each other on the same protein groups.
-    {
+      // The quantity of a labeled experiment is the channel ratio, aggregated as a median of ratios
+      // rather than as a ratio of aggregated intensities (see MS1LabeledRatioQuantifier). Runs after
+      // the abundances above, so that both sit next to each other on the same protein groups.
       MS1LabeledRatioQuantifier ratio_quantifier;
       Param ratio_param = getParam_().copy("ratios:", true);
       writeDebug_("Parameters passed to MS1LabeledRatioQuantifier", ratio_param, 3);
       ratio_quantifier.setParameters(ratio_param);
       ratio_quantifier.run(consensus, design_, inferred_proteins);
-    }
+    });
 
     consensus.resolveUniqueIdConflicts();
     consensus.ensureUniqueId(); // the map's own id is reset when the fractions are combined
@@ -1738,6 +1758,10 @@ protected:
     //-------------------------------------------------------------
     // output
     //-------------------------------------------------------------
+    // The output formats (QPX, consensusXML, mzTab) hold peptide identifications: export the identifications once
+    // rather than in a copy of the map per output.
+    IdentificationDataConverter::exportConsensusIDs(consensus);
+
     if (!out_qpx.empty())
     {
       OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << endl;
@@ -1757,14 +1781,8 @@ protected:
         return CANNOT_WRITE_OUTPUT_FILE;
       }
 
-      PeptideIdentificationList all_pepids;
-      for (const auto& feature : consensus)
-      {
-        for (const auto& pepid : feature.getPeptideIdentifications()) { all_pepids.push_back(pepid); }
-      }
-      for (const auto& pepid : consensus.getUnassignedPeptideIdentifications()) { all_pepids.push_back(pepid); }
-
-      if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids, out_qpx + "/quantms.psm.parquet",
+      // PSM-level export: the identifications of the multiplets and the unassigned ones
+      if (!QPXFile::exportToParquet(consensus, out_qpx + "/quantms.psm.parquet",
                                     /*export_all_psms=*/false, ParquetWriteConfig{}, &feature_links))
       {
         OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << endl;

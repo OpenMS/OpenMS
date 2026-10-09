@@ -10,13 +10,14 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <iterator>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <set>
 #include <tuple>
 
@@ -80,14 +81,27 @@ namespace OpenMS
       run_to_fraction_group[File::basename(entry.path)] = entry.fraction_group;
     }
 
+    // The identifications of the features (read as identification data; features keep their order)
+    std::optional<ConsensusMap> converted;
+    const ConsensusMap& identified = IdentificationDataConverter::withIdentificationData(consensus, converted);
+    const IdentificationData& data = identified.getIdentificationData();
+    // The peptide identity of a feature: its first match of its first identification, as the first hit of its first
+    // peptide identification
+    const auto featurePeptide = [&](Size feature) -> std::optional<AASequence> {
+      const auto identifications = identified[feature].getLinkedIdentifications(data);
+      if (identifications.empty() || identifications[0].matches.empty()) { return std::nullopt; }
+      return AASequence::fromString(identifications[0].matches[0]->representation);
+    };
+
     // -- evidence ratios: one per (feature, run, channel) --
     // Collected per peptide identity as well, so that the peptide medians below need no second pass.
     std::map<std::tuple<AASequence, unsigned, unsigned>, std::vector<double>> peptide_evidence_ratios;
     Size features_with_ratio = 0;
     Size features_without_reference = 0;
 
-    for (ConsensusFeature& feature : consensus)
+    for (Size f = 0; f < consensus.size(); ++f)
     {
+      ConsensusFeature& feature = consensus[f];
       // intensity of every (run, channel) of this feature
       std::map<std::string, std::map<unsigned, double>> intensities;
       for (const FeatureHandle& handle : feature.getFeatures())
@@ -149,9 +163,9 @@ namespace OpenMS
       feature.setMetaValue("MS1Label:evidence_ratio", ratio_values);
 
       // the peptide identity this evidence belongs to (unlabeled; see MS1LabelState)
-      const auto& ids = feature.getPeptideIdentifications();
-      if (ids.empty() || ids[0].getHits().empty()) { continue; }
-      const AASequence& sequence = ids[0].getHits()[0].getSequence();
+      const auto peptide = featurePeptide(f);
+      if (!peptide) { continue; }
+      const AASequence& sequence = *peptide;
       for (Size i = 0; i < ratio_values.size(); ++i)
       {
         const auto fraction_group = run_to_fraction_group.find(ratio_runs[i]);
@@ -195,11 +209,12 @@ namespace OpenMS
     // A feature is one evidence, but the peptide ratio is the quantity MaxQuant reports at peptide
     // level, so it travels with every feature the peptide was measured in (and reaches the mzTab
     // peptide rows, which are per feature).
-    for (ConsensusFeature& feature : consensus)
+    for (Size f = 0; f < consensus.size(); ++f)
     {
-      const auto& ids = feature.getPeptideIdentifications();
-      if (ids.empty() || ids[0].getHits().empty()) { continue; }
-      const auto ratios = peptide_ratios_.find(ids[0].getHits()[0].getSequence());
+      ConsensusFeature& feature = consensus[f];
+      const auto peptide = featurePeptide(f);
+      if (!peptide) { continue; }
+      const auto ratios = peptide_ratios_.find(*peptide);
       if (ratios == peptide_ratios_.end()) { continue; }
 
       IntList fraction_groups, channels, counts;
@@ -223,19 +238,22 @@ namespace OpenMS
     // A peptide belongs to a group when every protein it references is in that group: peptides
     // shared between groups are not evidence for either of them (a razor assignment, if wanted, has
     // already rewritten the references during inference).
+    // (of the first match of every identification, of the features and unassigned, as of the first hit of every peptide
+    // identification)
     std::map<AASequence, std::set<std::string>> peptide_accessions;
-    const auto collect = [&peptide_accessions](const PeptideIdentificationList& ids)
+    for (const auto& run : data.getRuns())
     {
-      for (const PeptideIdentification& id : ids)
+      for (const auto& source : run.getSources())
       {
-        if (id.getHits().empty()) { continue; }
-        const PeptideHit& hit = id.getHits()[0];
-        const auto accessions = hit.extractProteinAccessionsSet();
-        peptide_accessions[hit.getSequence()].insert(accessions.begin(), accessions.end());
+        for (const auto& identification : source.identifications)
+        {
+          if (identification.getMatches().empty()) { continue; }
+          const auto& match = identification.getMatches().front().getData();
+          auto& accessions = peptide_accessions[AASequence::fromString(match.representation)];
+          for (const auto& evidence : match.sequence_evidence) { accessions.insert(evidence.accession); }
+        }
       }
-    };
-    for (const ConsensusFeature& feature : consensus) { collect(feature.getPeptideIdentifications()); }
-    collect(consensus.getUnassignedPeptideIdentifications());
+    }
 
     // Each peptide is assigned once, through the group of its first accession, and only if that group
     // covers every accession it references -- rather than testing every (group, peptide) pair.
