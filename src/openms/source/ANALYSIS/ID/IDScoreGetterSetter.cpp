@@ -150,7 +150,7 @@ namespace OpenMS
     {
       return {true ,StringUtils::suffix(acc, acc.size() - decoy_string.size())};
     }
-    else if (StringUtils::hasSuffix(acc, decoy_string))
+    else if (!decoy_prefix && StringUtils::hasSuffix(acc, decoy_string))
     {
       return {true, StringUtils::prefix(acc, acc.size() - decoy_string.size())};
     }

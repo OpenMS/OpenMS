@@ -400,6 +400,17 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
       TEST_REAL_SIMILAR(group_qvalues(run)[1], 2.0 / 3.0)
     }
   }
+
+  // (8) Prefix mode: a target accession that ends with the decoy string is still a target.
+  // {XDECOY_} 0.9 T, {C} 0.5 T: q = 1/3 for both. Before the fix the decoy string was also removed
+  // as a suffix, and the lookup of "X" threw std::out_of_range.
+  {
+    ProteinIdentification run = picked_run(true, {{"XDECOY_", 0.9}, {"C", 0.5}}, {{0.9, {"XDECOY_"}}, {0.5, {"C"}}});
+    fdr.applyPickedProteinFDR(run, "DECOY_", true);
+    vector<double> qs = group_qvalues(run);
+    TEST_REAL_SIMILAR(qs[0], 1.0 / 3.0)
+    TEST_REAL_SIMILAR(qs[1], 1.0 / 3.0)
+  }
 }
 END_SECTION
 

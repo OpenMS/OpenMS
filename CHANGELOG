@@ -233,6 +233,9 @@ OpenMS Library:
     as decoy and as target, if a member whose decoy won its pair was listed before a member whose
     target won its pair (DECOY_ accessions sort first). A group counts once now, as target, as
     documented. The extra decoys made group q-values too high, depending on accession order.
+  - FIX: Picked protein-group FDR in prefix mode also removed the decoy string from the end of an
+    accession, so a target such as "XDECOY_" was taken as a decoy and the FDR threw
+    std::out_of_range. The decoy string is removed only at the configured end now.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
