@@ -17,6 +17,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - FIX: PeptideAndProteinQuant (ProteinQuantifier, IsobaricWorkflow) reported file/channel-level
+    protein abundances of 0 for run files whose name stem contains a dot (e.g. sample.v1.mzML).
   - BrukerTimsFile computes m/z from the MzCalibration table of analysis.tdf, with the per-frame
     temperature correction (new MzCalibrationTof2MzConverter; formula as in rustims). Before, m/z
     came from a linear approximation in sqrt(m/z) over the acquisition range, which was off from the
