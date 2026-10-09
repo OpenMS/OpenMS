@@ -416,6 +416,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-and-test
+      - build-windows-debug-sdk
     steps:
       - uses: actions/checkout@v6
         with:
