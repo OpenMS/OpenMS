@@ -712,6 +712,7 @@ Computes a SHA-1 hash of the file content
         .value("XMASS", OpenMS::FileTypes::Type::XMASS)
         .value("TSV", OpenMS::FileTypes::Type::TSV)
         .value("MZTAB", OpenMS::FileTypes::Type::MZTAB)
+        .value("BEDRMOD", OpenMS::FileTypes::Type::BEDRMOD)
         .value("PEPLIST", OpenMS::FileTypes::Type::PEPLIST)
         .value("HARDKLOER", OpenMS::FileTypes::Type::HARDKLOER)
         .value("KROENIK", OpenMS::FileTypes::Type::KROENIK)

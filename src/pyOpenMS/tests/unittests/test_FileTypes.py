@@ -8,7 +8,7 @@ def test_enum_values_accessible():
         "CONSENSUSXML", "MGF", "INI", "TOPPAS", "TRANSFORMATIONXML", "MZML",
         "CACHEDMZML", "IMZML", "MS2", "PEPXML", "PROTXML", "MZIDENTML", "QCML", "MZQC",
         "GELML", "TRAML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "XMASS",
-        "TSV", "MZTAB", "PEPLIST", "HARDKLOER", "KROENIK", "FASTA", "EDTA",
+        "TSV", "MZTAB", "BEDRMOD", "PEPLIST", "HARDKLOER", "KROENIK", "FASTA", "EDTA",
         "CSV", "TXT", "OBO", "HTML", "ANALYSISXML", "XSD", "PSQ", "MRM",
         "SQMASS", "PQP", "MS", "OSW", "PSMS", "PIN", "PARAMXML", "SPLIB",
         "NOVOR", "XQUESTXML", "SPECXML", "JSON", "RAW", "OMS", "EXE", "XML",
