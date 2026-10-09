@@ -772,6 +772,27 @@ START_SECTION(DDA loading integration test)
 }
 END_SECTION
 
+START_SECTION([EXTRA] Bruker SDK is optional in AUTO and required only by BRUKER_SDK)
+{
+  BrukerTimsFile f;
+  BrukerTimsFile::Config cfg;
+  cfg.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg.frame_id_min = 1;
+  cfg.frame_id_max = 2;
+  cfg.bruker_sdk_path = "/nonexistent/libtimsdata.so";
+
+  // AUTO: an unusable SDK only produces a warning; m/z and 1/K0 come from analysis.tdf
+  MSExperiment exp_auto;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_auto, cfg);
+  TEST_EQUAL(exp_auto.size(), 2);
+
+  // BRUKER_SDK explicitly requests the SDK
+  cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK;
+  MSExperiment exp_sdk;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(OPENTIMS_DDA_TEST_DATA, exp_sdk, cfg));
+}
+END_SECTION
+
 START_SECTION(DDA native ID format test)
 {
   // Contract: DDA MS2 native IDs are "frame=<F> scan=<S> precursor=<P>".

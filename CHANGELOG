@@ -32,6 +32,10 @@ OpenMS Library:
     ModelType 1 (ModelType 2: see the entry above). tims_calibration_strategy LINEAR keeps the
     old m/z; bruker:calibrate (OLS) only applies to it. DDA MS2 spectra convert TOF to m/z with a
     real frame id instead of 0.
+  - BrukerTimsFile: when an optional Bruker SDK is configured (OPENMS_BRUKER_SDK_PATH or
+    Config::bruker_sdk_path) it is used for m/z as well as 1/K0 ("TIMS calibration: Bruker SDK
+    (m/z + 1/K0)"). The SDK is never required; one that cannot be loaded is reported as a warning
+    (before: debug message) unless tims_calibration_strategy is BRUKER_SDK.
   - Added FileHandler::loadImagingExperiment(), which loads mass spectrometry imaging files (imzML and
     Bruker timsTOF MALDI imaging .d) into an MSImagingExperiment; exposed through pyOpenMS.
     FileHandler::loadExperiment() now rejects Bruker MALDI imaging .d folders with InvalidFileType, as
