@@ -76,7 +76,9 @@ namespace OpenMS::Internal
   IndexedMzMLHandler::IndexedMzMLHandler(const IndexedMzMLHandler& source) :
     filename_(source.filename_),
     spectra_offsets_(source.spectra_offsets_),
+    spectra_native_ids_(source.spectra_native_ids_),
     chromatograms_offsets_(source.chromatograms_offsets_),
+    chromatograms_native_ids_(source.chromatograms_native_ids_),
     index_offset_(source.index_offset_),
     spectra_before_chroms_(source.spectra_before_chroms_),
     // do not copy the filestream itself but open a new filestream using the same file
@@ -89,12 +91,19 @@ namespace OpenMS::Internal
 
   IndexedMzMLHandler::~IndexedMzMLHandler() = default;
 
-  void IndexedMzMLHandler::openFile(const std::string& filename) 
+  void IndexedMzMLHandler::openFile(const std::string& filename)
   {
     if (filestream_.is_open()) // important; otherwise opening again will fail
     {
       filestream_.close();
     }
+    // parseFooter_() only appends; reopening on the same instance must start
+    // from a clean slate, or the previous file's offsets and native ids stay
+    // mixed in with the new file's.
+    spectra_offsets_.clear();
+    spectra_native_ids_.clear();
+    chromatograms_offsets_.clear();
+    chromatograms_native_ids_.clear();
     filename_ = filename;
     filestream_.open(filename);
     parseFooter_();

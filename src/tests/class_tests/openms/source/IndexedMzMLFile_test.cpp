@@ -65,6 +65,15 @@ START_SECTION((IndexedMzMLHandler(const IndexedMzMLHandler &source)))
   ABORT_IF(file.getNrChromatograms() != 1)
   TEST_EQUAL(file.getChromatogramById(0)->getTimeArray()->data == file2.getChromatogramById(0)->getTimeArray()->data, true)
   TEST_EQUAL(file.getChromatogramById(0)->getIntensityArray()->data == file2.getChromatogramById(0)->getIntensityArray()->data, true)
+
+  // CPP-105: the copy constructor used to drop both native-id maps, so a copy
+  // could not resolve any native id the original could.
+  MSSpectrum s;
+  file2.getMSSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=1", s);
+  TEST_EQUAL(s.empty(), false)
+  MSChromatogram c;
+  file2.getMSChromatogramByNativeId("TIC", c);
+  TEST_EQUAL(c.empty(), false)
   /*
   TEST_EQUAL(file.getChromatogramById(0) == file2.getChromatogramById(0), true)
   TEST_EQUAL(file.getSpectrumById(1), file2.getSpectrumById(1))
@@ -104,6 +113,16 @@ START_SECTION(( void openFile(std::string filename) ))
   TEST_EQUAL(file.getParsingSuccess(), false)
   file.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(file.getParsingSuccess(), true)
+
+  // CPP-106: parseFooter_() only appends; reopening on the same instance used
+  // to leave the previous file's offsets and native ids in place, so a
+  // second open on the very same (2-spectrum) file reported 4 spectra.
+  file.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_EQUAL(file.getNrSpectra(), 2)
+  TEST_EQUAL(file.getNrChromatograms(), 1)
+  MSSpectrum s;
+  file.getMSSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=1", s);
+  TEST_EQUAL(s.empty(), false)
 }
 END_SECTION
 
