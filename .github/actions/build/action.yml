@@ -282,7 +282,7 @@ runs:
         fi
 
     - name: Verify public headers
-      if: ${{ runner.os == 'Linux' && runner.arch == 'X64' }}
+      if: ${{ runner.os == 'Linux' && runner.arch == 'X64' && inputs.configure_only != 'true' }}
       shell: bash
       run: cmake --build --preset "${{ steps.preset.outputs.name }}" --target all_verify_interface_header_sets --parallel 2
 
