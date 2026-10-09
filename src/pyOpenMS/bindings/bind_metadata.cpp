@@ -358,6 +358,10 @@ loaders enforce this; the checks raise an error naming the first peptide identif
             "Raises if a peptide identification of a feature (or subordinate) or an unassigned one names no protein identification run")
         .def_static("check", [](const OpenMS::ConsensusMap& map) { OpenMS::ProteinRunReferences::check(map); }, "map"_a,
             "Raises if a peptide identification of a consensus feature or an unassigned one names no protein identification run")
+        .def_static("checkProteinAccessions", [](const OpenMS::FeatureMap& map) { OpenMS::ProteinRunReferences::checkProteinAccessions(map); }, "map"_a,
+            "Raises if a peptide evidence names a protein that is no protein hit of the peptide identification's run (featureXML references them there)")
+        .def_static("checkProteinAccessions", [](const OpenMS::ConsensusMap& map) { OpenMS::ProteinRunReferences::checkProteinAccessions(map); }, "map"_a,
+            "Raises if a peptide evidence names a protein that is no protein hit of the peptide identification's run (consensusXML references them there)")
         ;
 
     // -----------------------------------------------------------------------

@@ -11,6 +11,10 @@
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="ProteinA" score="0" sequence="">
 			</ProteinHit>
+			<ProteinHit id="PH_1" accession="ProteinB" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="ProteinC" score="0" sequence="">
+			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<featureList count="3">
@@ -285,7 +289,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.81915844531826" sequence="PEPTIDEB" charge="2" protein_refs="PH_0">
+				<PeptideHit score="4.81915844531826" sequence="PEPTIDEB" charge="2" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="5"/>
@@ -453,7 +457,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="4.81915844531826" sequence="PEPTIDEC" charge="2" protein_refs="PH_0">
+				<PeptideHit score="4.81915844531826" sequence="PEPTIDEC" charge="2" protein_refs="PH_2">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="10"/>

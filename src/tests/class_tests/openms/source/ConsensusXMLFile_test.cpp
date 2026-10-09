@@ -14,6 +14,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 #include <iterator>
 ///////////////////////////
@@ -723,6 +724,16 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
     std::string bad_file;
     NEW_TMP_FILE_EXT(bad_file, ".consensusXML")
     TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ConsensusXMLFile().store(bad_file, bad), message)
+    TEST_FALSE(File::exists(bad_file))
+  }
+
+  // a protein that is no protein hit of the run cannot be referenced (it was written as "PH_0", i.e. another protein)
+  {
+    ConsensusMap bad = map;
+    bad.getUnassignedPeptideIdentifications()[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_X", 0, 6, '-', '-'));
+    std::string bad_file;
+    NEW_TMP_FILE_EXT(bad_file, ".consensusXML")
+    TEST_EXCEPTION(Exception::ElementNotFound, ConsensusXMLFile().store(bad_file, bad))
     TEST_FALSE(File::exists(bad_file))
   }
 

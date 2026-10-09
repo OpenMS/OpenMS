@@ -895,8 +895,15 @@ namespace OpenMS::Internal
         // empty accessions are not written out (legacy code)
         if (!protein_accession.empty())
         {
+          const auto protein = accession_to_id_.find(id.getIdentifier() + "_" + protein_accession);
+          if (protein == accession_to_id_.end())
+          {
+            // a reference to no protein hit cannot be read back (see ProteinRunReferences::checkProteinAccessions())
+            throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "No accession " + protein_accession + " found in run '" + id.getIdentifier() + "' (while writing '" + filename + "')");
+          }
           accs += "PH_";
-          accs +=StringUtils::toStr(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
+          accs += StringUtils::toStr(protein->second);
         }
       }
 

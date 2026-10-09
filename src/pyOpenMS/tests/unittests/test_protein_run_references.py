@@ -76,3 +76,28 @@ def test_featurexml_store_does_not_omit(tmp_path):
     with pytest.raises(Exception, match=MESSAGE):
         oms.FeatureXMLFile().store(str(bad), fmap)
     assert not bad.exists()
+
+
+def test_featurexml_store_needs_the_proteins_in_the_run(tmp_path):
+    run = _run("search")
+    fmap = oms.FeatureMap()
+    fmap.setProteinIdentifications([run])
+    peptides = _peptides("search")
+    hit = peptides[0].getHits()[0]
+    hit.setPeptideEvidences([oms.PeptideEvidence("PROT_X", 0, 6, "-", "-")])
+    pid = peptides[0]
+    pid.setHits([hit])
+    fmap.setUnassignedPeptideIdentifications(_list(pid))
+    with pytest.raises(Exception, match="No accession PROT_X found in run 'search'"):
+        oms.ProteinRunReferences.checkProteinAccessions(fmap)
+    bad = tmp_path / "bad.featureXML"
+    with pytest.raises(Exception, match="No accession PROT_X"):
+        oms.FeatureXMLFile().store(str(bad), fmap)
+    assert not bad.exists()
+
+
+def _list(*pids):
+    peptides = oms.PeptideIdentificationList()
+    for pid in pids:
+        peptides.push_back(pid)
+    return peptides

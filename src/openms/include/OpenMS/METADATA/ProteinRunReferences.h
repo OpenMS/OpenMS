@@ -55,5 +55,17 @@ namespace OpenMS
 
     /// Same as above, for the peptide identifications of all consensus features and the unassigned ones
     static void check(const ConsensusMap& map);
+
+    /**
+      @brief Throws Exception::ElementNotFound if a peptide evidence names a protein that is no protein hit of its run
+
+      featureXML and consensusXML reference the proteins of a peptide hit's evidences among the protein hits of the
+      peptide identification's run (empty accessions are not written). Checks the peptide identifications of all
+      features (including subordinates) and the unassigned ones; their runs must exist (see check()).
+    */
+    static void checkProteinAccessions(const FeatureMap& map);
+
+    /// Same as above, for the peptide identifications of all consensus features and the unassigned ones
+    static void checkProteinAccessions(const ConsensusMap& map);
   };
 } // namespace OpenMS

@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <iterator>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
@@ -634,6 +635,16 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
     std::string bad_file;
     NEW_TMP_FILE_EXT(bad_file, ".featureXML")
     TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, FeatureXMLFile().store(bad_file, bad), message)
+    TEST_FALSE(File::exists(bad_file))
+  }
+
+  // a protein that is no protein hit of the run cannot be referenced (it was written as "PH_0", i.e. another protein)
+  {
+    FeatureMap bad = map;
+    bad.getUnassignedPeptideIdentifications()[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_X", 0, 6, '-', '-'));
+    std::string bad_file;
+    NEW_TMP_FILE_EXT(bad_file, ".featureXML")
+    TEST_EXCEPTION(Exception::ElementNotFound, FeatureXMLFile().store(bad_file, bad))
     TEST_FALSE(File::exists(bad_file))
   }
 

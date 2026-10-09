@@ -47,6 +47,8 @@ namespace OpenMS
 
     // every peptide identification needs its protein identification run: fail before the file is opened
     ProteinRunReferences::check(consensus_map);
+    // ... and the proteins of its peptide evidences need to be protein hits of the run (they are referenced there)
+    ProteinRunReferences::checkProteinAccessions(consensus_map);
 
     if (!consensus_map.isMapConsistent(&getGlobalLogWarn()))
     {

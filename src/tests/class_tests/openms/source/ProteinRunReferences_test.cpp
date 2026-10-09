@@ -16,6 +16,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 ///////////////////////////
 
@@ -131,6 +133,55 @@ START_SECTION(static void check(const ConsensusMap& map))
   ConsensusMap unassigned = map;
   unassigned.getUnassignedPeptideIdentifications().push_back(peptide("other"));
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ProteinRunReferences::check(unassigned), missing_message)
+}
+END_SECTION
+
+START_SECTION(static void checkProteinAccessions(const FeatureMap& map))
+{
+  auto with_protein = [](const std::string& identifier, const std::string& accession)
+  {
+    PeptideIdentification p;
+    p.setIdentifier(identifier);
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("PEPTIDE"));
+    hit.setCharge(2);
+    hit.addPeptideEvidence(PeptideEvidence(accession, 0, 6, '-', '-'));
+    hit.addPeptideEvidence(PeptideEvidence("", 0, 6, '-', '-')); // empty accessions are not written
+    p.insertHit(hit);
+    return p;
+  };
+  ProteinIdentification search = run("search"), other = run("other");
+  search.insertHit(ProteinHit(0.0, 1, "PROT_A", ""));
+  other.insertHit(ProteinHit(0.0, 1, "PROT_B", ""));
+  FeatureMap map;
+  map.setProteinIdentifications({search, other});
+  Feature feature;
+  feature.getPeptideIdentifications().push_back(with_protein("search", "PROT_A"));
+  map.push_back(feature);
+  map.getUnassignedPeptideIdentifications().push_back(with_protein("other", "PROT_B"));
+  ProteinRunReferences::checkProteinAccessions(map);
+
+  // a protein of another run
+  FeatureMap cross_run = map;
+  cross_run.getUnassignedPeptideIdentifications().push_back(with_protein("search", "PROT_B"));
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ElementNotFound, ProteinRunReferences::checkProteinAccessions(cross_run),
+    "the element 'No accession PROT_B found in run 'search' for PSM PEPTIDE_2. Every protein of a peptide evidence needs to be a protein hit of the peptide identification's run.' could not be found")
+
+  // in a subordinate
+  FeatureMap subordinate = map;
+  Feature sub;
+  sub.getPeptideIdentifications().push_back(with_protein("search", "PROT_C"));
+  subordinate[0].getSubordinates().push_back(sub);
+  TEST_EXCEPTION(Exception::ElementNotFound, ProteinRunReferences::checkProteinAccessions(subordinate))
+
+  ConsensusMap consensus;
+  consensus.setProteinIdentifications({search});
+  ConsensusFeature cf;
+  cf.getPeptideIdentifications().push_back(with_protein("search", "PROT_A"));
+  consensus.push_back(cf);
+  ProteinRunReferences::checkProteinAccessions(consensus);
+  consensus[0].getPeptideIdentifications().push_back(with_protein("search", "PROT_B"));
+  TEST_EXCEPTION(Exception::ElementNotFound, ProteinRunReferences::checkProteinAccessions(consensus))
 }
 END_SECTION
 

@@ -1157,13 +1157,28 @@ namespace OpenMS
 
   void OpenSwathWorkflow::addProteinIdentificationRuns_(const FeatureMap& featureFile, FeatureMap& out_featureFile)
   {
+    auto& out_runs = out_featureFile.getProteinIdentifications();
     for (const ProteinIdentification& run : featureFile.getProteinIdentifications())
     {
-      auto& out_runs = out_featureFile.getProteinIdentifications();
-      if (std::none_of(out_runs.begin(), out_runs.end(),
-                       [&run](const ProteinIdentification& out_run) { return out_run.getIdentifier() == run.getIdentifier(); }))
+      auto out_run = std::find_if(out_runs.begin(), out_runs.end(),
+                                  [&run](const ProteinIdentification& r) { return r.getIdentifier() == run.getIdentifier(); });
+      if (out_run == out_runs.end())
       {
         out_runs.push_back(run);
+        continue;
+      }
+      // the same run of another batch: add the proteins of its transitions
+      std::unordered_set<std::string> accessions;
+      for (const ProteinHit& hit : out_run->getHits())
+      {
+        accessions.insert(hit.getAccession());
+      }
+      for (const ProteinHit& hit : run.getHits())
+      {
+        if (accessions.insert(hit.getAccession()).second)
+        {
+          out_run->insertHit(hit);
+        }
       }
     }
   }

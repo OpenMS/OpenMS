@@ -40,6 +40,11 @@ OpenMS Library:
     took the run only from the first FAIMS group; ConsensusMap::split (not isobaric) copied no runs;
     IDMerger -add_to kept a peptide without its run when none of its proteins was found there; the
     OMSSA XML loader of FileHandler overwrote the first run and added an empty one.
+  - FIX: featureXML and consensusXML wrote a protein reference to a protein that is no protein hit of
+    the peptide identification's run as 'PH_0', i.e. as another protein (the file could not be read back
+    or named the wrong protein). Storing now throws Exception::ElementNotFound before the file is opened
+    (ProteinRunReferences::checkProteinAccessions, also in pyOpenMS), as idXML does. OpenSwathWorkflow
+    adds the proteins of every batch to its run.
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
