@@ -21,6 +21,7 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -1238,6 +1239,8 @@ bool FeatureMapArrowIO::exportToParquet(
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .featureparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(feature_map.getProteinIdentifications());
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(feature_map);
 
   // 1. Create output directory
   try
@@ -1885,6 +1888,8 @@ bool FeatureMapArrowIO::importFromParquet(
   {
     return false;
   }
+  // every peptide identification needs its protein identification run (checked on the stored identifiers)
+  ProteinRunReferences::check(feature_map);
 
   // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
   //    we own (per-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the stored
@@ -1894,10 +1899,18 @@ bool FeatureMapArrowIO::importFromParquet(
     auto& prot_ids = feature_map.getProteinIdentifications();
     auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
 
+    // features and their subordinates (which can carry peptide identifications, too)
+    std::function<void(Feature&)> renameFeature = [&](Feature& f)
+    {
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, f.getPeptideIdentifications());
+      for (auto& sub : f.getSubordinates())
+      {
+        renameFeature(sub);
+      }
+    };
     for (auto& feature : feature_map)
     {
-      ProteinIdentificationArrowIO::applyRunIdentifierRename(
-          rename, feature.getPeptideIdentifications());
+      renameFeature(feature);
     }
     ProteinIdentificationArrowIO::applyRunIdentifierRename(
         rename, feature_map.getUnassignedPeptideIdentifications());

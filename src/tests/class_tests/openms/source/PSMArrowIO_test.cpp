@@ -420,6 +420,52 @@ START_SECTION(([EXTRA] exportToParquet rejects duplicate ProteinIdentification i
 }
 END_SECTION
 
+START_SECTION(([EXTRA] every peptide identification needs its protein identification run))
+{
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  buildMinimalIds(prot_ids, pep_ids);   // one ProteinIdentification with identifier "run_1"
+
+  // export: refused before anything is written
+  {
+    PeptideIdentificationList orphan = pep_ids;
+    orphan[0].setIdentifier("run_unknown");
+    std::string dir;
+    NEW_TMP_FILE(dir)
+    dir += ".idparquet";
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, PSMArrowIO::exportToParquet(prot_ids, orphan, dir),
+      "Peptide identification has no matching protein run: 'run_unknown'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.")
+    TEST_FALSE(File::exists(dir))
+  }
+
+  // import: PSMs referencing a run the run tables do not have (here: the run tables of another export)
+  {
+    std::string dir, other;
+    NEW_TMP_FILE(dir)
+    dir += ".idparquet";
+    NEW_TMP_FILE(other)
+    other += ".idparquet";
+    TEST_TRUE(PSMArrowIO::exportToParquet(prot_ids, pep_ids, dir));
+    std::vector<ProteinIdentification> other_prot_ids = prot_ids;
+    other_prot_ids[0].setIdentifier("run_2");
+    PeptideIdentificationList other_pep_ids = pep_ids;
+    for (auto& pep : other_pep_ids) pep.setIdentifier("run_2");
+    TEST_TRUE(PSMArrowIO::exportToParquet(other_prot_ids, other_pep_ids, other));
+    for (const std::string table : {"proteins.parquet", "protein_groups.parquet", "search_params.parquet"})
+    {
+      File::remove(dir + "/" + table);
+      TEST_TRUE(File::copy(other + "/" + table, dir + "/" + table))
+    }
+    std::vector<ProteinIdentification> prot_ids_in;
+    PeptideIdentificationList pep_ids_in;
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, PSMArrowIO::importFromParquet(dir, prot_ids_in, pep_ids_in),
+      "Peptide identification has no matching protein run: 'run_1'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.")
+    File::removeDirRecursively(dir);
+    File::removeDirRecursively(other);
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] export/import - the peptidoform column carries the chemistry and the definition restores the name)
 {
   TEST_TRUE(defineMod4b("TestPSM:Adduct", 'K', "C9H11N2O8P") != nullptr)

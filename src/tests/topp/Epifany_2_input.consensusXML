@@ -653,7 +653,7 @@
 				<element map="2" id="11778419696830806" rt="3578.44634453285" mz="631.327314293929" it="3.98143e+06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="631.326599121094" RT="3585.0573" spectrum_reference="controllerType=0 controllerNumber=1 scan=6120" >
-				<PeptideHit score="0.00239377618192699" sequence="DNDLGVNITTAK" charge="2" aa_before="R R" aa_after="Q Q" start="534 534" end="545 545" protein_refs="PH_0 PH_1">
+				<PeptideHit score="0.00239377618192699" sequence="DNDLGVNITTAK" charge="2" aa_before="R R" aa_after="Q Q" start="534 534" end="545 545" protein_refs="PH_9 PH_10">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="27.4"/>
 					<UserParam type="float" name="nextscore" value="22.2"/>
@@ -841,7 +841,7 @@
 				<UserParam type="int" name="feature_leader" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="736.860900878906" RT="3293.44520404101" spectrum_reference="controllerType=0 controllerNumber=1 scan=5236" >
-				<PeptideHit score="0" sequence="GGIEAVPAGQMEASR" charge="2" aa_before="R" aa_after="S" start="617" end="631" protein_refs="PH_13">
+				<PeptideHit score="0" sequence="GGIEAVPAGQMEASR" charge="2" aa_before="R" aa_after="S" start="617" end="631" protein_refs="PH_32">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="69.9"/>
 					<UserParam type="float" name="nextscore" value="14.6"/>

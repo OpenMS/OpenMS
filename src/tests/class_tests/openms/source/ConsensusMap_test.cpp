@@ -704,7 +704,14 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   cf1.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
   cf1.insert(FeatureHandle(1, Peak2D({ 11, 434.33 }, 200000), 0));
 
+  ProteinIdentification run0, run1, unused;
+  run0.setIdentifier("run_0");
+  run1.setIdentifier("run_1");
+  unused.setIdentifier("unused");
+  cm.setProteinIdentifications({run0, run1, unused});
+
   PeptideIdentification id1, id2;
+  id1.setIdentifier("run_0");
   id1.setRT(10);
   id1.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("AAA")));
   id1.setMetaValue("map_index", 0);
@@ -714,6 +721,7 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
 
   cf2.insert(FeatureHandle(0, Peak2D({ 20, 433.33 }, 300000), 0));
   cf2.insert(FeatureHandle(1, Peak2D({ 21, 433.33 }, 400000), 0));
+  id2.setIdentifier("run_1");
   id2.setRT(20);
   id2.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("WWW")));
   id2.setMetaValue("map_index", 1);
@@ -722,6 +730,8 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   cm.push_back(cf2);
 
   PeptideIdentification uid1, uid2;
+  uid1.setIdentifier("run_0");
+  uid2.setIdentifier("run_1");
   uid1.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("LLL")));
   uid1.setMetaValue("map_index", 0);
   uid2.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("KKK")));
@@ -753,6 +763,12 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   TEST_EQUAL(fmaps[1][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "WWW");
   TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LLL");
   TEST_EQUAL(fmaps[1].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "KKK");
+  // every peptide identification keeps its protein identification run (search run)
+  for (const FeatureMap& fmap : fmaps)
+  {
+    TEST_EQUAL(fmap.getProteinIdentifications().size(), 1)
+    TEST_EQUAL(fmap.getProteinIdentifications()[0].getIdentifier(), "run_" + std::to_string(&fmap - fmaps.data()))
+  }
 
   // test with iso analyze data
   DataProcessing p;

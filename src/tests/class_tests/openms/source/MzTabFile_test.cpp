@@ -13,6 +13,11 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -156,6 +161,28 @@ START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const v
   TEST_EQUAL(substrings[substrings.size() - 2],"NDYKAPPQPAPGK")
   TEST_EQUAL(substrings[substrings.size() - 3],"0.0420992")
   TEST_EQUAL(substrings[substrings.size() - 4],"null")
+}
+END_SECTION
+
+START_SECTION([EXTRA] store - every peptide identification needs its protein identification run)
+{
+  std::vector<ProteinIdentification> runs(1);
+  runs[0].setIdentifier("search");
+  PeptideIdentificationList peptides(1);
+  peptides[0].setIdentifier("other");
+  peptides[0].insertHit(PeptideHit(0.1, 1, 2, AASequence::fromString("PEPTIDE")));
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".mzTab")
+  // fails before the file is opened, i.e. without leaving a truncated file
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, MzTabFile().store(file, runs, peptides, false, false),
+    "Peptide identification has no matching protein run: 'other'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.")
+  TEST_FALSE(File::exists(file))
+
+  ConsensusMap cmap;
+  cmap.setProteinIdentifications(runs);
+  cmap.getUnassignedPeptideIdentifications() = peptides;
+  TEST_EXCEPTION(Exception::InvalidParameter, MzTabFile().store(file, cmap, false, false, true, false))
+  TEST_FALSE(File::exists(file))
 }
 END_SECTION
 

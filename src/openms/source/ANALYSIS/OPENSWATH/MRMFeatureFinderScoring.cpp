@@ -9,6 +9,8 @@
 #include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
+#include <unordered_set>
+
 // data access
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -230,19 +232,7 @@ namespace OpenMS
     prepareProteinPeptideMaps_(transition_exp);
 
     // Store the proteins from the input in the output feature map
-    std::vector<ProteinHit> protein_hits;
-    for (const ProteinType& prot : transition_exp.getProteins())
-    {
-      ProteinHit prot_hit = ProteinHit();
-      prot_hit.setSequence(prot.sequence);
-      prot_hit.setAccession(prot.id);
-      protein_hits.push_back(prot_hit);
-    }
-
-    ProteinIdentification prot_id = ProteinIdentification();
-    prot_id.setHits(protein_hits);
-    prot_id.setIdentifier(run_identifier);
-    output.getProteinIdentifications().push_back(prot_id);
+    addProteinIdentificationRun(transition_exp, output);
 
     //
     // Step 2
@@ -288,6 +278,35 @@ namespace OpenMS
 
     //output.sortByPosition(); // if the exact same order is needed
     return;
+  }
+
+  void MRMFeatureFinderScoring::addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output)
+  {
+    auto& runs = output.getProteinIdentifications();
+    auto run = std::find_if(runs.begin(), runs.end(),
+                            [](const ProteinIdentification& r) { return r.getIdentifier() == run_identifier; });
+    if (run == runs.end())
+    {
+      runs.emplace_back();
+      run = std::prev(runs.end());
+      run->setIdentifier(run_identifier);
+    }
+    // add the proteins the run does not have yet, in the order of the transition list
+    std::unordered_set<std::string> accessions;
+    for (const ProteinHit& hit : run->getHits())
+    {
+      accessions.insert(hit.getAccession());
+    }
+    for (const ProteinType& prot : transition_exp.getProteins())
+    {
+      if (accessions.insert(prot.id).second)
+      {
+        ProteinHit prot_hit;
+        prot_hit.setSequence(prot.sequence);
+        prot_hit.setAccession(prot.id);
+        run->insertHit(prot_hit);
+      }
+    }
   }
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)

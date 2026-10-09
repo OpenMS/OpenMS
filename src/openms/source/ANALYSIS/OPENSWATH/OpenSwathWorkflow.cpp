@@ -303,6 +303,14 @@ namespace OpenMS
     // only, so embedded use does not affect later resampling in the process.
     Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
 
+    // The peptide identifications of the features reference the protein identification run (search run) of the
+    // transition list, which scorePeakgroups() does not add: add it (with all proteins, in the order of the transition
+    // list) once here instead of for every scoring batch.
+    if (store_features)
+    {
+      MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, out_featureFile);
+    }
+
     // user-controllable overrides for inner batching and outer concurrency
     const int user_inner_batch_size = innerBatchSize;
     const int user_max_concurrent_swaths = maxConcurrentSwaths;
