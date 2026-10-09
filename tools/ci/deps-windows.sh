@@ -24,7 +24,7 @@ choco install -y --no-progress \
 
 # Use a custom NSIS, which provides 8-k string support and has
 # UltraModernUI integrated already:
-curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
+curl --no-progress-meter --fail --retry 3 --retry-all-errors -L -o NSIS.tar.gz https://raw.githubusercontent.com/OpenMS/NSIS/main/NSIS.tar.gz
 7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
 
 # These are only needed in CI:
