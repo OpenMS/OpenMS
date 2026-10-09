@@ -181,6 +181,8 @@ TOPP tools:
     exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 Build System:
+  - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX
+    Runtime release and ship libonnxruntime and the PeptDeep models (amd64 and arm64).
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
     64-bit time_t transition, Depends also accepts the package under its old name.
     dpkg-shlibdeps names the packages of the build host (libqt6gui6t64 (>= 6.4.0)); a
