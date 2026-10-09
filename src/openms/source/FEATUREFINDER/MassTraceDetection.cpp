@@ -84,6 +84,16 @@ namespace OpenMS
       int& im_fwhm_idx, bool& has_fwhm_im
     ) const
     {
+      // These are the object's own members, carried over from a previous run() call on the same
+      // instance; reset them here so a dataset without a given meta array is detected as such
+      // instead of keeping a stale index (and 'has' flag) from whatever the last run() saw.
+      fwhm_meta_idx = -1;
+      has_fwhm_mz = false;
+      im_idx = -1;
+      has_centroid_im = false;
+      im_fwhm_idx = -1;
+      has_fwhm_im = false;
+
       for (const auto& spec : spectra)
       {
         const auto& fda = spec.getFloatDataArrays();

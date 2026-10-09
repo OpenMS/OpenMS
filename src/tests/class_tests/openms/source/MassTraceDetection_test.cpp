@@ -220,6 +220,55 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
 }
 END_SECTION
 
+START_SECTION([EXTRA] getIMIndices_ state does not leak between run() calls on the same object)
+{
+  // CPP-011: fwhm_meta_idx_/im_idx_/im_fwhm_idx_ and their has_* flags are members, set by
+  // getIMIndices_ only inside the "found this array" branch, never reset otherwise. A
+  // MassTraceDetection object reused for a dataset without a given meta array (e.g. the
+  // run(ConstAreaIterator&, ConstAreaIterator&, ...) overload, which copies bare peaks with no
+  // float data arrays at all) kept the previous run's stale index and "has" flag, indexing the
+  // new, empty getFloatDataArrays() with it.
+  PeakMap with_im;
+  {
+    MSSpectrum s;
+    s.setRT(1.0);
+    s.setMSLevel(1);
+    s.push_back(Peak1D(100.0, 1000.0f));
+    s.push_back(Peak1D(100.001, 1000.0f));
+    MSSpectrum::FloatDataArray fda;
+    fda.setName("IM Peak FWHM");
+    fda.push_back(0.01f);
+    fda.push_back(0.01f);
+    s.getFloatDataArrays().push_back(fda);
+    with_im.addSpectrum(s);
+  }
+  for (Size i = 1; i < 4; ++i)
+  {
+    MSSpectrum s;
+    s.setRT(1.0 + i);
+    s.setMSLevel(1);
+    s.push_back(Peak1D(100.0, 1000.0f));
+    s.push_back(Peak1D(100.001, 1000.0f));
+    MSSpectrum::FloatDataArray fda;
+    fda.setName("IM Peak FWHM");
+    fda.push_back(0.01f);
+    fda.push_back(0.01f);
+    s.getFloatDataArrays().push_back(fda);
+    with_im.addSpectrum(s);
+  }
+
+  MassTraceDetection reused_mtd;
+  std::vector<MassTrace> traces_with_im;
+  reused_mtd.run(with_im, traces_with_im);
+
+  // 'input' (loaded above) has no float data arrays at all -- reusing the same object on it
+  // must not index its (empty) getFloatDataArrays() with a stale index from the run above.
+  std::vector<MassTrace> traces_without_im;
+  reused_mtd.run(input, traces_without_im);
+  TEST_EQUAL(traces_without_im.size(), 2)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
