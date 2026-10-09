@@ -322,6 +322,11 @@ jobs:
   build-windows-debug-deps:
     name: "Build the Windows Debug SDK dependencies"
     runs-on: windows-2025
+    # the suffix of this build's cache keys, static so that the post step that
+    # uploads the vcpkg cache sees it (an input would evaluate to its default
+    # there; see .github/actions/build/action.yml)
+    env:
+      OPENMS_CACHE_KEY_SUFFIX: -windows-x64-debug-ci
     steps:
       - uses: actions/checkout@v6
         with:
@@ -347,6 +352,11 @@ jobs:
   build-windows-debug-sdk:
     name: "Build the Windows Debug SDK"
     runs-on: windows-2025
+    # the suffix of this build's cache keys, static so that the post step that
+    # uploads the vcpkg cache sees it (an input would evaluate to its default
+    # there; see .github/actions/build/action.yml)
+    env:
+      OPENMS_CACHE_KEY_SUFFIX: -windows-x64-debug-ci
     needs: build-windows-debug-deps
     steps:
       - uses: actions/checkout@v6

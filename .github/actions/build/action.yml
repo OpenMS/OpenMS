@@ -62,12 +62,30 @@ runs:
       with: { arch: x64 }
 
     ############################################################################
+    # A build with a preset of its own gets caches of its own (see the preset
+    # input): the suffix goes into the compiler cache keys below and, through the
+    # job environment, into the vcpkg cache key of the dependencies action. The
+    # environment rather than an input because the vcpkg cache is uploaded by the
+    # post step of the cache action, and in a post step an input of a composite
+    # action evaluates to its default: the first Debug SDK job uploaded its
+    # dependencies into the default build's cache. A job that sets the variable
+    # itself (release.yml does for the Debug SDK jobs) keeps its value.
+    - name: Compute the Cache Key Suffix
+      id: cache-suffix
+      env:
+        preset: ${{ inputs.preset }}
+      shell: bash
+      run: |
+        suffix=${OPENMS_CACHE_KEY_SUFFIX:-${preset:+-$preset}}
+        echo "suffix=$suffix" >> "$GITHUB_OUTPUT"
+        echo "OPENMS_CACHE_KEY_SUFFIX=$suffix" >> "$GITHUB_ENV"
+
+    ############################################################################
     - name: Install Dependencies
       id: deps
       uses: ./.github/actions/dependencies
       with:
         compiler: ${{ inputs.compiler }}
-        cache_key_suffix: ${{ inputs.preset && format('-{0}', inputs.preset) || '' }}
         ssh_key: ${{ inputs.ssh_key }}
         ssh_host: ${{ inputs.ssh_host }}
         ssh_port: ${{ inputs.ssh_port }}
@@ -148,19 +166,6 @@ runs:
       id: pr
       shell: bash
       run: echo "name=${{ github.event.pull_request && github.event.number || github.ref_name }}" >>$GITHUB_OUTPUT
-
-    ############################################################################
-    # A build with a preset other than the runner's default one keeps its own
-    # compiler cache: its objects differ in flags from the default build's, and
-    # the two together exceed the cache size, so sharing one cache would make
-    # each build evict the other's objects.  The default build's keys stay as
-    # they are, so its existing caches remain reachable.
-    - name: Compute the Cache Key Suffix
-      id: cache-suffix
-      shell: bash
-      env:
-        preset: ${{ inputs.preset }}
-      run: echo "suffix=${preset:+-$preset}" >>"$GITHUB_OUTPUT"
 
     ############################################################################
     # NOTE: restore/save are deliberately split instead of using the combined

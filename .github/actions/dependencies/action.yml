@@ -4,13 +4,6 @@ inputs:
   compiler:
     description: "The name of the compiler to use"
     required: true
-  cache_key_suffix:
-    description: >-
-      Appended to the key of the vcpkg binary cache. A build whose dependencies
-      differ from the default build's (another triplet) uses its own cache
-      instead of racing the default build for one key.
-    required: false
-    default: ""
   ssh_key:
     description: "SSH private key for the rsync cache archive"
     required: false
@@ -137,11 +130,17 @@ runs:
 
         echo "cmake_prefix=${cmake_prefix_s}" >> "$GITHUB_OUTPUT"
 
+    # The key takes a suffix from the environment variable OPENMS_CACHE_KEY_SUFFIX
+    # (the build action sets it from its preset): a build whose dependencies differ
+    # from the default build's (another triplet) uses a cache of its own instead of
+    # overwriting the default build's. Not an input: the cache is uploaded by the
+    # post step of this action, and there an input of a composite action evaluates
+    # to its default, while the job environment keeps its value.
     - uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
       with:
         name: vcpkg-cache
         path: ${{ github.workspace }}/.vcpkg-cache
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}${{ inputs.cache_key_suffix }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}${{ env.OPENMS_CACHE_KEY_SUFFIX }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
         ssh_key: ${{ inputs.ssh_key }}
         ssh_host: ${{ inputs.ssh_host }}
         ssh_port: ${{ inputs.ssh_port }}
