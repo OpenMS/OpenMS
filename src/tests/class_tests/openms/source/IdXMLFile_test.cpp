@@ -943,6 +943,7 @@ START_SECTION([EXTRA] store - many peptide identifications are written in input 
       message = e.what();
     }
     TEST_EQUAL(message.find("No accession ACC1 found in run 'runPar2'") != std::string::npos, true)
+    File::remove(file_other_run); // the partial file (see store())
   }
 
   // a peptide hit may only reference the protein hits of its run
