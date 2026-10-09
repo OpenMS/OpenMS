@@ -161,6 +161,14 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+    QualityControl:
+      - FIX: The identifications of a feature are sorted best first according to their score
+        direction. Lower-is-better scores (q-value, PEP, E-value) put the worst identification
+        first, which the MaxQuant-compatible evidence.txt and msms.txt took as the feature's best
+        hit (wrong Type, MS/MS Count and best-hit columns), and -out_feat listed it first.
+        Identifications without hits are sorted last instead of being read past their end. The
+        identifications that ID conflict resolution removes from a consensus feature are now
+        listed best first among the unassigned ones (-out_cm, PSM section of -out).
   - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
     CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
     ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
