@@ -25,6 +25,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -61,6 +63,7 @@
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
 #endif
 
 #ifdef WITH_THERMO_RAW
@@ -913,10 +916,9 @@ namespace OpenMS
       case FileTypes::IMZML:
       {
         // imzML is a mass spectrometry imaging format; it is not loadable into a flat
-        // MSExperiment via the generic FileHandler. Use ImzMLFile to load it into an
-        // MSImagingExperiment (cf. BrukerTimsImagingFile, which is likewise imaging-only).
+        // MSExperiment. Use loadImagingExperiment() to load it into an MSImagingExperiment.
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-          "imzML is a mass spectrometry imaging format; load it via ImzMLFile into an MSImagingExperiment");
+          "imzML is a mass spectrometry imaging format; load it via FileHandler::loadImagingExperiment into an MSImagingExperiment");
       }
 
       case FileTypes::MGF:
@@ -959,6 +961,15 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
       case FileTypes::BRUKER_TDF:
       {
+        // MALDI imaging .d: like imzML, not loadable into a flat MSExperiment
+        // (AUTO export mode would otherwise misread it as DDA).
+        if (BrukerTimsImagingFile::isImagingDataset(filename))
+        {
+          throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                           "Bruker MALDI imaging .d is a mass spectrometry imaging format; load it via "
+                                           "FileHandler::loadImagingExperiment into an MSImagingExperiment");
+        }
+
         // BrukerTimsFile unpacks a .d.zip archive itself.
         BrukerTimsFile f;
         f.setLogType(log);
@@ -1027,6 +1038,50 @@ namespace OpenMS
 
       exp.getSourceFiles().clear();
       exp.getSourceFiles().push_back(src_file);
+    }
+  }
+
+  void FileHandler::loadImagingExperiment(const std::string& filename,
+                                          MSImagingExperiment& exp,
+                                          const std::vector<FileTypes::Type> allowed_types,
+                                          ProgressLogger::LogType log)
+  {
+    FileTypes::Type type = getType(filename);
+    if (!allowed_types.empty() && !FileTypeList(allowed_types).contains(type))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                  "type: " + FileTypes::typeToName(type)
+                                    + " is not allowed for loading an imaging experiment. Allowed types are: " + allowedToString_(allowed_types));
+    }
+
+    switch (type)
+    {
+      case FileTypes::IMZML:
+      {
+        ImzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
+
+#ifdef WITH_OPENTIMS
+      case FileTypes::BRUKER_TDF:
+      {
+        // Throws InvalidValue if the .d folder is not MALDI imaging.(MaldiApplicationType = "Imaging" in Metadata)
+        // PeakFileOptions are not applied: filtering spectra post-load would invalidate the pixel geometry.
+        BrukerTimsImagingFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
+#endif
+
+      default:
+      {
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                         "type " + FileTypes::typeToName(type) + " is not a mass spectrometry imaging format; use loadExperiment");
+      }
     }
   }
 

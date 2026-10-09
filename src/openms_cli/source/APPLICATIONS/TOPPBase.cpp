@@ -2828,7 +2828,14 @@ namespace OpenMS
         return EXECUTION_OK;
       }
 
-      // '-write_cwl' given
+      // CWL needs TDL, which is not part of a default build: report it instead of writing anything
+      if ((param_cmdline_.exists("write_nested_cwl") || param_cmdline_.exists("write_cwl")) && !ParamCWLFile::isSupported())
+      {
+        writeLogError_("Error: Writing CWL files is not supported by this build of OpenMS. Rebuild OpenMS with -DENABLE_TDL=ON to enable '-write_cwl' and '-write_nested_cwl'.");
+        return ILLEGAL_PARAMETERS;
+      }
+
+      // '-write_nested_cwl' given
       if (param_cmdline_.exists("write_nested_cwl"))
       {
         ParamCWLFile paramFile{};
@@ -2836,7 +2843,7 @@ namespace OpenMS
         return EXECUTION_OK;
       }
 
-      // '-write_flat_cwl' given
+      // '-write_cwl' (flat) given
       if (param_cmdline_.exists("write_cwl"))
       {
         ParamCWLFile paramFile{};

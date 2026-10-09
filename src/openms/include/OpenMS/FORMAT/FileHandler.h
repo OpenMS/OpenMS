@@ -24,6 +24,7 @@ namespace OpenMS
   class PeakFileOptions;
   class MSSpectrum;
   class MSExperiment;
+  class MSImagingExperiment;
   class FeatureMap;
   class ConsensusMap;
   class TargetedExperiment;
@@ -179,6 +180,27 @@ public:
     void loadExperiment(const std::string& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
+
+    /**
+      @brief Loads a mass spectrometry imaging file into an MSImagingExperiment
+
+      Imaging data is always loaded into an MSImagingExperiment.
+      Supported here are imzML (via ImzMLFile) and Bruker
+      timsTOF MALDI imaging .d folders (via BrukerTimsImagingFile, OpenMS built with WITH_OPENTIMS).
+
+      @param[in] filename The file name of the file to load.
+      @param[out] exp The imaging experiment to load the data into; replaced (not appended).
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any imaging type that we have a handler for.
+      @param[in] log Progress logging mode
+
+      @exception Exception::InvalidFileType is thrown if the file is not an imaging format
+      @exception Exception::ParseError is thrown if the type is not in @p allowed_types
+      @exception Exception::InvalidValue is thrown for a .d folder that is not MALDI imaging
+    */
+    void loadImagingExperiment(const std::string& filename,
+                               MSImagingExperiment& exp,
+                               const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+                               ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Stores an MSExperiment to a file

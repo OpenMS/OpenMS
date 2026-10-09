@@ -47,7 +47,7 @@ static double maxLambda = 0.5;
 bool PosteriorEstimator::reversed = false;
 bool PosteriorEstimator::pvalInput = false;
 bool PosteriorEstimator::competition = false;
-bool PosteriorEstimator::includeNegativesInResult = false;
+std::atomic<bool> PosteriorEstimator::includeNegativesInResult{false};
 bool PosteriorEstimator::usePi0_ = true;
 
 pair<double, bool> make_my_pair(double d, bool b) {

@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/ParamTags.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>
 #include <fstream>
@@ -15,8 +16,6 @@
 
 #if defined(ENABLE_TDL)
 #include <tdl/tdl.h>
-#else
-#include <stdexcept>
 #endif
 
 using json = nlohmann::json;
@@ -36,8 +35,23 @@ static std::string replaceAll(std::string str, const std::string& pattern, const
 
 namespace OpenMS
 {
+  bool ParamCWLFile::isSupported()
+  {
+#if defined(ENABLE_TDL)
+    return true;
+#else
+    return false;
+#endif
+  }
+
   void ParamCWLFile::store(const std::string& filename, const Param& param, const ToolInfo& tool_info) const
   {
+    // Fail before opening the file, so that a build without CWL support leaves no empty file behind.
+    if (!isSupported())
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
     std::ofstream os;
     std::ostream* os_ptr;
     if (filename != "-")
@@ -45,9 +59,7 @@ namespace OpenMS
       os.open(filename.c_str(), std::ofstream::out);
       if (!os)
       {
-        // Replace the OpenMS specific exception with a std exception
-        // Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-        throw std::ios::failure("Unable to create file: " + filename);
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
       os_ptr = &os;
     }
@@ -332,7 +344,8 @@ namespace OpenMS
     (void)os_ptr;
     (void)param;
     (void)tool_info;
-    throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
+    // An OpenMS exception, not a std one: callers such as TOPPBase only catch Exception::BaseException.
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #endif
   }
 } // namespace OpenMS
