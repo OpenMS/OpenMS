@@ -219,13 +219,16 @@ OpenMS Library:
   - FIX: FalseDiscoveryRate::applyPickedProteinFDR read past the end of its score map for a protein
     group that took no part in the target-decoy competition (all its members lost their pairs) and
     whose score lay beyond every calibrated group score. The group got an arbitrary value (in our
-    builds a number close to 0, i.e. the best q-value); it gets the q-value of the last calibrated
-    score now. If no group takes part, Exception::MissingInformation is thrown.
+    builds a number close to 0, i.e. the best q-value). A group score better than every calibrated
+    one gets the best q-value now (with no_qvalues: FDR 1), a worse one the q-value or FDR of the
+    worst calibrated score. If there are groups but none takes part in the competition,
+    Exception::MissingInformation is thrown.
   - FIX: For lower-is-better scores, FalseDiscoveryRate gave a protein group whose score is not a
     calibrated score (in picked protein FDR: a group that takes no part in the competition) the
     q-value or FDR of the next worse calibrated score. It gets the one of the closest equal or
-    better score now, as protein hits do. IDScoreGetterSetter::setScores_ for protein groups takes
-    the direction of the group scores as a new last argument (default: higher is better).
+    better calibrated score now. IDScoreGetterSetter::setScores_ for protein groups takes the
+    direction of the group scores and whether the map holds q-values as new arguments (defaults:
+    higher is better, q-values).
   - FIX: Picked protein-group FDR (FalseDiscoveryRate::applyPickedProteinFDR) counted a group twice,
     as decoy and as target, if a member whose decoy won its pair was listed before a member whose
     target won its pair (DECOY_ accessions sort first). A group counts once now, as target, as

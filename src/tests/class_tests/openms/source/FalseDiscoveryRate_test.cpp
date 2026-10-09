@@ -346,6 +346,44 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
       }
     }
   }
+
+  // (6) Raw FDR (no_qvalues). Fixture (2): {A} (0.9) is better than every calibrated score, so no
+  // voting group is accepted at its score: FDR (0+1)/(0+1) = 1 (a q-value takes the minimum, 1/2).
+  // {C}: 1/2. Fixture (1), lower = better: conservative FDR 0.01 -> 1/2, 0.02 -> 1/3, 0.04 -> 2/3;
+  // with conservative = false (D+1)/(D+T+1), 0.04 -> 2/4. {B} (0.05) gets the value of 0.04.
+  {
+    FalseDiscoveryRate raw;
+    Param p = raw.getParameters();
+    p.setValue("no_qvalues", "true");
+    raw.setParameters(p);
+    for (bool higher_better : {true, false})
+    {
+      const double s = higher_better ? 1.0 : -1.0;
+      ProteinIdentification run = picked_run(higher_better,
+        {{"A", s * 0.9}, {"DECOY_A", s * 0.95}, {"C", s * 0.5}},
+        {{s * 0.9, {"A"}}, {s * 0.5, {"C"}}});
+      raw.applyPickedProteinFDR(run, "DECOY_", true);
+      vector<double> fdrs = group_qvalues(run);
+      TEST_REAL_SIMILAR(fdrs[0], 1.0)
+      TEST_REAL_SIMILAR(fdrs[1], 0.5)
+    }
+    for (bool conservative : {true, false})
+    {
+      p.setValue("conservative", conservative ? "true" : "false");
+      raw.setParameters(p);
+      ProteinIdentification run = picked_run(false,
+        {{"A", 0.01}, {"DECOY_A", 0.02}, {"B", 0.05}, {"DECOY_B", 0.04}, {"C", 0.02}},
+        {{0.01, {"A"}}, {0.02, {"DECOY_A"}}, {0.05, {"B"}}, {0.04, {"DECOY_B"}}, {0.02, {"C"}}});
+      raw.applyPickedProteinFDR(run, "DECOY_", true);
+      vector<double> fdrs = group_qvalues(run);
+      const double last = conservative ? 2.0 / 3.0 : 0.5;
+      TEST_REAL_SIMILAR(fdrs[0], 0.5)
+      TEST_REAL_SIMILAR(fdrs[1], 1.0 / 3.0)
+      TEST_REAL_SIMILAR(fdrs[2], last)
+      TEST_REAL_SIMILAR(fdrs[3], last)
+      TEST_REAL_SIMILAR(fdrs[4], 1.0 / 3.0)
+    }
+  }
 }
 END_SECTION
 
