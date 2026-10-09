@@ -103,14 +103,19 @@ OpenMS Library:
     monoisotopic peak).
   - FIX: FragmentIndex applies a residue-specific terminal variable modification (e.g. Gln->pyro-Glu
     (N-term Q)) as a terminal modification; set as a residue modification, it failed ResidueDB's
-    precondition and aborted the parallel search. A variable modification is not applied to a residue
-    that carries a fixed one (as in ModifiedPeptideGenerator; the index held both masses while the
-    reconstructed sequence kept one). SNES also enumerates nonempty modification subsets whose shifts
-    cancel (e.g. Deamidated (N) with Amidated (C-term)); it returned the unmodified sequence only.
-  - FIX: ProSE rejects scoring:method=mass_accuracy without a finite, positive fragment:mass_tolerance
-    when the parameters are set ('auto' then uses HyperScore), and an exception on a worker thread of
-    the parallel scoring and calibration loops is rethrown after the loop instead of terminating the
-    process.
+    precondition and aborted the parallel search. A variable residue modification is not applied to a
+    residue that carries a fixed one (as in ModifiedPeptideGenerator; the index held both masses while
+    the reconstructed sequence kept one); a residue-specific terminal one is, e.g. Ammonia-loss (N-term
+    C) next to a fixed Carbamidomethyl (C). SNES also enumerates nonempty modification subsets whose
+    shifts cancel (e.g. Deamidated (N) with Amidated (C-term)); it returned the unmodified sequence only.
+  - FIX: FragmentIndex tests the fragments against the same float bounds of a peak's tolerance
+    window that select the fragment buckets. The two tests rounded differently, so whether a
+    fragment on or next to a bound was counted depended on the bucket layout. Search results can
+    change only for spectra with a candidate fragment on or next to such a bound.
+  - FIX: ProSE rejects a fragment:mass_tolerance that is not finite and positive, for every
+    scoring:method, when the parameters are set; such searches ended without hits or with inflated
+    scores. An exception on a worker thread of the parallel preprocessing, scoring and calibration
+    loops is rethrown after the loop instead of terminating the process.
   - FIX: GlobalExceptionHandler records the last exception per thread (the fields were shared strings
     that exceptions constructed on several threads at once wrote concurrently), and its singleton is
     initialised thread-safely. Xerces initialisation and termination are serialised
@@ -257,7 +262,8 @@ TOPP tools:
         precursor:isotope_error_min/max); ini files that still set it are rejected as outdated: remove
         the item or update them with INIUpdater.
       - Fixed terminal modifications: see FragmentIndex above (an invalid one stops ProSE when the
-        parameters are set). A warning names variable terminal modifications that a fixed one excludes.
+        parameters are set). A warning names the variable modifications that a fixed one excludes (on
+        the terminus or on the residue).
       - A warning when decoys=auto reuses the database's decoys with peptide:clip_nterm_methionine and
         they start with M much less often than the targets (e.g. fully reversed decoys), because
         clipping then enlarges the target search space only.
@@ -306,7 +312,7 @@ TOPP tools:
         spectrum before). Only high-resolution (deisotoped) searches change; 3 / none / false restores
         the earlier output. It gave more PSMs after Percolator on high-resolution Orbitrap data, but fewer
         PSMs after native-score FDR pooled over precursor charges (FDR:PSM, FalseDiscoveryRate) on
-        timsTOF data (-3.6% on two files, although each precursor charge on its own gained). The search
+        timsTOF data (on two files, although each precursor charge on its own gained). The search
         parameters of the idXML output record the three settings.
       - New fragment:query_spectrum (auto, raw, processed). 'raw' retrieves candidates from the fragment
         index with all positive-intensity peaks, before deisotoping and local/top-N peak filtering, also
@@ -318,15 +324,14 @@ TOPP tools:
         peak-density surprise of the matched fragments) and mass_competition_evidence (matches
         discounted by alternative intact and neutral-loss assignments) as annotations and Percolator
         features. Computed on the peak list before local/top-N filtering; candidates and native scores
-        do not change. Requires a finite, positive fragment:mass_tolerance; set it to false to search
-        with other tolerances.
-      - PERF: about 4.5x faster searches with unchanged output (20 searches of #10364 at 4 threads:
-        431 s -> 96 s): the fragment index bins fragments by m/z instead of sorting them globally and
-        writes them straight into their bins; regex-free digestion; a multi-threaded peptide sort that
-        reproduces std::sort exactly; one bucket walk for all precursor isotope errors, with skip tables
-        and prefetching; PSM meta value keys resolved once; flat-storage Da alignment for the peak
-        annotation; the mzML is read while the fragment index is built; parallel FASTA reading and index
-        release, no database copy. peptide:deduplicate is evaluated inside the index build.
+        do not change.
+      - PERF: faster searches with unchanged output: the fragment index bins fragments by m/z instead
+        of sorting them globally and writes them straight into their bins; regex-free digestion; a
+        multi-threaded peptide sort that reproduces std::sort exactly; one bucket walk for all precursor
+        isotope errors, with skip tables and prefetching; PSM meta value keys resolved once; flat-storage
+        Da alignment for the peak annotation; the mzML is read while the fragment index is built; parallel
+        FASTA reading and index release, no database copy. peptide:deduplicate is evaluated inside the
+        index build.
       - New annotate:self_trained_ion_priors (on by default) learns per-run fragment ion likelihoods from
         the confident target PSMs of each file (target-decoy competition q <= annotate:ion_prior_train_fdr
         of the native score), with their reversed sequences on the same spectra as noise model: presence,
@@ -349,9 +354,8 @@ TOPP tools:
         PeptideIndexer:* search parameters are the same; PeptideIndexing still runs where the index cannot reproduce it
         exactly (SNES, a specificity other than full, protein-terminal modifications, a chunked database, and databases
         with symbols other than letters, with stretches of X, or with more spans over ambiguous residues than a lookup
-        budget allows, which is decided by counting them before any lookup). With the post-processing below, a search
-        of 8,000 spectra takes 0.2-0.7 s less (11% over the 20 files of OpenMS#10364 at 4 threads, 11-18% at 16 and 64
-        threads), one of 48,000 spectra about 2 s less.
+        budget allows, which is decided by counting them before any lookup). Together with the post-processing below,
+        this shortens the search.
       - The PSMs are annotated in per-spectrum slots (no lock, no sort afterwards), and the decoy marker of large
         databases is detected with up to 8 threads. Results are unchanged.
     SimpleSearchEngine:
