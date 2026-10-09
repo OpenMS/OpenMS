@@ -78,9 +78,8 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::FEATUREXML) + "'");
     }
 
-    // every peptide identification needs its protein identification run: fail before the file is opened
-    ProteinRunReferences::check(feature_map);
-    // ... and the proteins of its peptide evidences need to be protein hits of the run (they are referenced there)
+    // every peptide identification needs its protein identification run, and the proteins of its peptide evidences need
+    // to be protein hits of that run (they are referenced there): fail before the file is opened (one pass for both)
     ProteinRunReferences::checkProteinAccessions(feature_map);
 
     if (Size invalid_unique_ids = feature_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId))

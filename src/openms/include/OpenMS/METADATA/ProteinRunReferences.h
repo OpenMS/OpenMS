@@ -61,7 +61,8 @@ namespace OpenMS
 
       featureXML and consensusXML reference the proteins of a peptide hit's evidences among the protein hits of the
       peptide identification's run (empty accessions are not written). Checks the peptide identifications of all
-      features (including subordinates) and the unassigned ones; their runs must exist (see check()).
+      features (including subordinates) and the unassigned ones, and includes check(): a peptide identification
+      without its run throws Exception::InvalidParameter (with missingRunMessage()).
     */
     static void checkProteinAccessions(const FeatureMap& map);
 

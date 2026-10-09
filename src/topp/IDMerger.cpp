@@ -468,9 +468,10 @@ protected:
             auto hit_it = protein.findHit(acc);
             if (hit_it == protein.getHits().end())
             {
-              writeLogError_("Error: accession '" + acc + "' not found in "
-                                                          "protein identification '" + id + "'. Skipping.");
-              continue;
+              // the peptide could not be written without its protein in its run (loaded files always have it)
+              throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "No accession " + acc + " found in run '" + id + "' for PSM " + hit.getSequence().toString() + "_" +
+                StringUtils::toStr(hit.getCharge()) + ". Every protein of a peptide evidence needs to be a protein hit of the peptide identification's run.");
             }
             selected_proteins[id].insertHit(*hit_it);
             accessions.insert({id, acc});

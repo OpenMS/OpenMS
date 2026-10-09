@@ -1390,11 +1390,11 @@ namespace OpenMS::Internal
                   xl_val_set.insert("0");
                   xl_val_map.insert(make_pair("0", 0));
                 }
+                // (each identification of a cross-link spectrum match gets the run there)
                 for (set<std::string>::const_iterator set_it = xl_val_set.begin(); set_it != xl_val_set.end(); ++set_it)
                 {
                   parseSpectrumIdentificationItemSetXLMS(set_it, xl_val_map, element_res, spectrumID);
                 }
-                pep_id_->back().setIdentifier(runOfList_(id).getIdentifier());
               }
               else // general case
               {

@@ -737,11 +737,12 @@ namespace OpenMS
 
     // Every peptide identification needs its protein identification run, including the pseudo IDs of seeds and
     // offset peptides (they are written with the feature candidates): they use the first run, which is added if
-    // there is none.
+    // there is none (and removed again with the pseudo IDs).
     vector<ProteinIdentification> runs = proteins;
+    const bool pseudo_ID_run_added = runs.empty() && peptides.size() > n_real_peptides;
     if (peptides.size() > n_real_peptides)
     {
-      if (runs.empty())
+      if (pseudo_ID_run_added)
       {
         runs.emplace_back();
         runs.back().setIdentifier("FeatureFinderIdentification_pseudo_IDs");
@@ -872,8 +873,12 @@ namespace OpenMS
     postProcess_(features);
     statistics_(features);
 
-    // remove all hits with pseudo ids (seeds)
+    // remove all hits with pseudo ids (seeds), and the run added for them
     removeSeedPseudoIDs_(features);
+    if (pseudo_ID_run_added)
+    {
+      features.getProteinIdentifications().clear();
+    }
 
     // add back ignored PSMs
     features.getUnassignedPeptideIdentifications().insert(features.getUnassignedPeptideIdentifications().end(),

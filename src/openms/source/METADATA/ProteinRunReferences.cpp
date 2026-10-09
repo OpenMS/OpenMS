@@ -77,13 +77,18 @@ namespace OpenMS
       for (const auto& peptide : peptides)
       {
         const auto run = runs.find(peptide.getIdentifier());
+        if (run == runs.end())
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            ProteinRunReferences::missingRunMessage(peptide.getIdentifier()));
+        }
         for (const auto& hit : peptide.getHits())
         {
           for (const auto& evidence : hit.getPeptideEvidences())
           {
             const std::string& accession = evidence.getProteinAccession();
             if (accession.empty()) continue; // not written
-            if (run == runs.end() || !run->second.contains(accession))
+            if (!run->second.contains(accession))
             {
               throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "No accession " + accession + " found in run '" + peptide.getIdentifier() + "' for PSM " +

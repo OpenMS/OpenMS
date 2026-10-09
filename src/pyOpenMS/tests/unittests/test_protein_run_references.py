@@ -4,9 +4,13 @@
 # --------------------------------------------------------------------------
 """Every PeptideIdentification needs the ProteinIdentification run (search run) its identifier names."""
 
+from pathlib import Path
+
 import pytest
 
 import pyopenms as oms
+
+TOPP_DATA = Path(__file__).resolve().parents[3] / "tests" / "topp"
 
 MESSAGE = "Peptide identification has no matching protein run: 'other'"
 
@@ -101,3 +105,28 @@ def _list(*pids):
     for pid in pids:
         peptides.push_back(pid)
     return peptides
+
+
+@pytest.mark.skipif(not (TOPP_DATA / "FeatureFinderIdentification_1_input.mzML").exists(), reason="needs the TOPP test data")
+def test_feature_finder_identification_seeds_without_runs(tmp_path):
+    # The pseudo IDs of seeds need a protein identification run; without any (no peptide identifications), one is
+    # added for them and removed again with them: the features neither keep pseudo IDs nor an empty placeholder run.
+    exp = oms.MSExperiment()
+    oms.MzMLFile().load(str(TOPP_DATA / "FeatureFinderIdentification_1_input.mzML"), exp)
+    seeds = oms.FeatureMap()
+    oms.FeatureXMLFile().load(str(TOPP_DATA / "FeatureFinderIdentification_1_output.featureXML"), seeds)
+    algo = oms.FeatureFinderIdentificationAlgorithm()
+    params = algo.getParameters()
+    params.setValue("extract:mz_window", 0.1)
+    params.setValue("extract:batch_size", 10)
+    params.setValue("detect:peak_width", 60.0)
+    params.setValue("model:type", "none")
+    algo.setParameters(params)
+    algo.setMSData(exp)
+    features = oms.FeatureMap()
+    algo.run(oms.PeptideIdentificationList(), [], features, seeds, "")
+    assert features.size() > 0
+    assert features.getProteinIdentifications() == []
+    assert all(len(f.getPeptideIdentifications()) == 0 for f in features)
+    assert features.getUnassignedPeptideIdentifications().size() == 0
+    oms.FeatureXMLFile().store(str(tmp_path / "seeds.featureXML"), features)
