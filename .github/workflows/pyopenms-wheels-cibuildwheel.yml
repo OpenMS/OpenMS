@@ -853,7 +853,7 @@ jobs:
 
       - name: Install test dependencies
         shell: bash
-        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow
+        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow scipy
 
       - name: Run the pyOpenMS test suite against the installed wheel
         shell: bash
