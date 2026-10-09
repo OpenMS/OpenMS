@@ -14,6 +14,8 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+
+#include <limits>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -384,6 +386,50 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
       TEST_REAL_SIMILAR(fdrs[4], 1.0 / 3.0)
     }
   }
+
+  // (7) A group without a score (NaN) that takes no part in the competition gets the worst
+  // calibrated q-value, in both score directions. Fixture (1) with {B}'s group score NaN: 2/3.
+  {
+    for (bool higher_better : {false, true})
+    {
+      const double s = higher_better ? -1.0 : 1.0;
+      ProteinIdentification run = picked_run(higher_better,
+        {{"A", s * 0.01}, {"DECOY_A", s * 0.02}, {"B", s * 0.05}, {"DECOY_B", s * 0.04}, {"C", s * 0.02}},
+        {{s * 0.01, {"A"}}, {std::numeric_limits<double>::quiet_NaN(), {"B"}}, {s * 0.02, {"C"}}, {s * 0.04, {"DECOY_B"}}});
+      fdr.applyPickedProteinFDR(run, "DECOY_", true);
+      TEST_REAL_SIMILAR(group_qvalues(run)[1], 2.0 / 3.0)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION((void applyBasic(ProteinIdentification & id, bool groups_too = true)))
+{
+  // Protein-group q-values for lower-is-better scores. Scores within 1e-12 count as one score; its
+  // key is the best one. Groups: {T1} 0.01 T, {T2} 0.01 + 5e-13 T, {DECOY_D} 0.02 D, {T3} 0.03 T.
+  // FDR (D+1)/(T+1): 0.01 -> 1/3, 0.02 -> 2/3, 0.03 -> 2/4; q: 1/3, 1/2, 1/2. {T2} gets the q-value of
+  // its own score 0.01, 1/3; before the fix it got the one of the next worse score 0.02 (1/2).
+  ProteinIdentification run;
+  run.setScoreType("score");
+  run.setHigherScoreBetter(false);
+  for (const auto& [acc, score] : vector<pair<string, double>>{{"T1", 0.01}, {"T2", 0.01 + 5e-13}, {"DECOY_D", 0.02}, {"T3", 0.03}})
+  {
+    ProteinHit hit(score, 1, acc, "");
+    hit.setMetaValue("target_decoy", acc.rfind("DECOY_", 0) == 0 ? "decoy" : "target");
+    run.getHits().push_back(hit);
+    ProteinIdentification::ProteinGroup grp;
+    grp.probability = score;
+    grp.accessions = {acc};
+    run.getIndistinguishableProteins().push_back(grp);
+  }
+  FalseDiscoveryRate fdr;
+  fdr.applyBasic(run, true);
+  TOLERANCE_ABSOLUTE(1e-6)
+  const auto& grps = run.getIndistinguishableProteins();
+  TEST_REAL_SIMILAR(grps[0].probability, 1.0 / 3.0)
+  TEST_REAL_SIMILAR(grps[1].probability, 1.0 / 3.0)
+  TEST_REAL_SIMILAR(grps[2].probability, 0.5)
+  TEST_REAL_SIMILAR(grps[3].probability, 0.5)
 }
 END_SECTION
 
