@@ -163,23 +163,37 @@ if [[ "$(uname -s)" == Darwin ]]; then
   done < <(find "$stage/$lib_dir" -type f -print0)
 fi
 
+# The file a library was installed as, relative to the prefix, read off its
+# export file: the name of a configuration's library is known there and nowhere
+# else (a Debug build on Windows installs OpenMSd.dll, the CMAKE_DEBUG_POSTFIX of
+# CMakeLists.txt, which is no cache entry). Per-configuration export file names
+# are lowercase, the property suffix uppercase.
+config_lower=$(printf '%s' "$build_type" | tr '[:upper:]' '[:lower:]')
+config_upper=$(printf '%s' "$build_type" | tr '[:lower:]' '[:upper:]')
+installed_library() { # <target name> <export set: OpenMSTargets or OpenMSCLITargets>
+  awk -v target="OpenMS::$1" -v property="IMPORTED_LOCATION_${config_upper} " '
+    index($0, "set_target_properties(" target " PROPERTIES") == 1 { inside = 1; next }
+    inside && index($0, property) {
+      prefix = "_IMPORT_PREFIX}/"
+      rest = substr($0, index($0, prefix) + length(prefix))
+      print substr(rest, 1, index(rest, "\"") - 1)
+      exit
+    }
+    inside && /^ *\)/ { inside = 0 }
+  ' "$stage/$cmake_dir/$2-${config_lower}.cmake"
+}
+
 # Keep only the bundled libraries the SDK libraries load (no Qt, nothing only the
 # GUI library or the applications need). The loader environment of this job must
 # not decide where a dependency resolves to.
-case "$(uname -s)" in
-  Linux)  lib_pattern='lib%s.so' ;;
-  Darwin) lib_pattern='lib%s.dylib' ;;
-  *)      lib_pattern='%s.dll' ;;
-esac
 roots=()
-for library in OpenMS OpenSwathAlgo OpenMS_CLI; do
-  # shellcheck disable=SC2059 # the pattern is chosen above
-  root="$stage/$lib_dir/$(printf "$lib_pattern" "$library")"
-  if [[ ! -e "$root" ]]; then
-    echo >&2 "ERROR: the SDK misses $root"
+for library in OpenMS:OpenMSTargets OpenSwathAlgo:OpenMSTargets OpenMS_CLI:OpenMSCLITargets; do
+  root=$(installed_library "${library%%:*}" "${library#*:}")
+  if [[ -z "$root" || ! -e "$stage/$root" ]]; then
+    echo >&2 "ERROR: the SDK misses the library ${library%%:*} (${library#*:}-${config_lower}.cmake names '$root')"
     exit 1
   fi
-  roots+=("$(cmake_path "$root")")
+  roots+=("$(cmake_path "$stage/$root")")
 done
 echo "--- pruning the bundled dependencies"
 env -u LD_LIBRARY_PATH -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH \
@@ -209,9 +223,10 @@ if [[ "$(uname -s)" == Darwin ]]; then
       exit 1
     }'
   }
-  openms_minimum=$(macho_minos "$stage/$lib_dir/libOpenMS.dylib")
+  openms_library=$(installed_library OpenMS OpenMSTargets)
+  openms_minimum=$(macho_minos "$stage/$openms_library")
   if [[ -z "$openms_minimum" ]]; then
-    echo >&2 "ERROR: libOpenMS.dylib records no minimum macOS version"
+    echo >&2 "ERROR: $openms_library records no minimum macOS version"
     exit 1
   fi
   newer=()
@@ -224,7 +239,7 @@ if [[ "$(uname -s)" == Darwin ]]; then
     fi
   done < <(find "$stage/$lib_dir" -type f -print0)
   if [[ ${#newer[@]} -gt 0 ]]; then
-    echo >&2 "ERROR: libOpenMS is built for macOS $openms_minimum, but these bundled libraries need a newer macOS:"
+    echo >&2 "ERROR: $openms_library is built for macOS $openms_minimum, but these bundled libraries need a newer macOS:"
     printf >&2 '  %s\n' "${newer[@]}"
     exit 1
   fi
@@ -254,9 +269,10 @@ case "$build_type" in
         cannot link this SDK: find_package(OpenMS) refuses a single-configuration
         build of any other configuration, and under a multi-configuration generator
         (Visual Studio) every configuration but Debug fails to compile with an error
-        that says so; use OpenMS-SDK-<version>-Windows-x64.zip for those. The .pdb
-        files of the OpenMS libraries are next to the DLLs in bin/, so a debugger
-        can step into OpenMS code." ;;
+        that says so; use OpenMS-SDK-<version>-Windows-x64.zip for those. The
+        libraries carry the Debug postfix d (OpenMSd.dll, OpenMSd.lib), which the
+        imported targets know, and their .pdb files are next to the DLLs in bin/,
+        so a debugger can step into OpenMS code." ;;
   *)
     msvc_requirement="Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Release configuration
         with the dynamic runtime (/MD). A Debug build of your code (/MDd) cannot
@@ -341,7 +357,7 @@ esac
 # libomp in the same process aborts with "OMP: Error #15". (grep reads all of otool's
 # output: grep -q would exit early and fail the pipeline.)
 if [[ "$(uname -s)" == Darwin ]] &&
-   otool -L "$sdk_prefix/$lib_dir/libOpenMS.dylib" | grep '/libomp\.dylib ' >/dev/null; then
+   otool -L "$sdk_prefix/$(installed_library OpenMS OpenMSTargets)" | grep '/libomp\.dylib ' >/dev/null; then
   for required in "$lib_dir/libomp.dylib" "$include_dir/omp.h"; do
     if [[ ! -e "$sdk_prefix/$required" ]]; then
       echo >&2 "ERROR: libOpenMS uses OpenMP, but the SDK misses $required"
