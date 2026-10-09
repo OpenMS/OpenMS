@@ -15,6 +15,8 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/METADATA/Precursor.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -1214,6 +1216,42 @@ START_SECTION((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
   TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+3)==exp.end(),true)
   TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.end(),true)
   TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
+}
+END_SECTION
+
+START_SECTION((FAIMS precursor spectra must have a matching compensation voltage))
+{
+  PeakMap exp;
+  exp.resize(3);
+  exp[0].setMSLevel(1);
+  exp[0].setNativeID("ms1_cv45");
+  exp[0].setDriftTime(-45.0);
+  exp[0].setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  exp[1].setMSLevel(1);
+  exp[1].setNativeID("ms1_cv65");
+  exp[1].setDriftTime(-65.0);
+  exp[1].setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  exp[2].setMSLevel(2);
+  exp[2].setDriftTime(-45.0);
+  exp[2].setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  exp[2].getPrecursors().resize(1);
+
+  // An unresolved reference falls back only to an MS1 spectrum at the same CV.
+  exp[2].getPrecursors()[0].setMetaValue("spectrum_ref", "missing");
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin() + 2) == exp.begin(), true)
+
+  // Missing FAIMS CV metadata cannot establish a compatible parent.
+  exp[2].setDriftTime(IMTypes::DRIFTTIME_NOT_SET);
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin() + 2) == exp.end(), true)
+  exp[2].setDriftTime(-45.0);
+
+  // A reference that resolves to another CV is inconsistent and must not fall back.
+  exp[2].getPrecursors()[0].setMetaValue("spectrum_ref", "ms1_cv65");
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin() + 2) == exp.end(), true)
+
+  // A valid reference to the matching CV remains authoritative.
+  exp[2].getPrecursors()[0].setMetaValue("spectrum_ref", "ms1_cv45");
+  TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin() + 2) == exp.begin(), true)
 }
 END_SECTION
 

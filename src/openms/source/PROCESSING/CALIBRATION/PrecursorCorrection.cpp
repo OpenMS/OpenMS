@@ -62,6 +62,26 @@ namespace
     return FeatureBox{bb.minPosition()[0], bb.maxPosition()[0],
                       bb.minPosition()[1], bb.maxPosition()[1]};
   }
+
+  // Keep both indices aligned with the flattened precursor list, even at equal RTs.
+  void collectPrecursors(const OpenMS::MSExperiment& exp,
+                         std::vector<OpenMS::Precursor>& precursors,
+                         std::vector<double>& precursors_rt,
+                         std::vector<OpenMS::Size>& precursor_scan_index,
+                         std::vector<OpenMS::Size>& precursor_index)
+  {
+    for (OpenMS::Size i = 0; i != exp.size(); ++i)
+    {
+      const auto& spectrum_precursors = exp[i].getPrecursors();
+      for (OpenMS::Size j = 0; j < spectrum_precursors.size(); ++j)
+      {
+        precursors.push_back(spectrum_precursors[j]);
+        precursors_rt.push_back(exp[i].getRT());
+        precursor_scan_index.push_back(i);
+        precursor_index.push_back(j);
+      }
+    }
+  }
 } // namespace
 
 namespace OpenMS
@@ -75,15 +95,8 @@ namespace OpenMS
                                            vector<double> & precursors_rt,
                                            vector<Size> & precursor_scan_index)
     {
-      for (Size i = 0; i != exp.size(); ++i)
-      {
-        const vector<Precursor>& pcs = exp[i].getPrecursors();
-        if (pcs.empty()) { continue; }
-        vector<double> pcs_rt(pcs.size(), exp[i].getRT());
-        copy(pcs.begin(), pcs.end(), back_inserter(precursors));
-        copy(pcs_rt.begin(), pcs_rt.end(), back_inserter(precursors_rt));
-        precursor_scan_index.push_back(i);
-      }
+      vector<Size> precursor_index;
+      collectPrecursors(exp, precursors, precursors_rt, precursor_scan_index, precursor_index);
     }
 
     void PrecursorCorrection::writeHist(const std::string& out_csv,
@@ -119,11 +132,12 @@ namespace OpenMS
       vector<Precursor> precursors;  // precursor
       vector<double> precursors_rt;  // RT of precursor MS2 spectrum
       vector<Size> precursor_scan_index;
-      getPrecursors(exp, precursors, precursors_rt, precursor_scan_index);
+      vector<Size> precursor_index;
+      collectPrecursors(exp, precursors, precursors_rt, precursor_scan_index, precursor_index);
 
       for (Size i = 0; i != precursors_rt.size(); ++i)
       {
-        // get precursor rt
+        const Size precursor_spectrum_idx = precursor_scan_index[i];
         double rt = precursors_rt[i];
 
         // get precursor MZ
@@ -132,10 +146,7 @@ namespace OpenMS
         //cout << rt << " " << mz << endl;
 
         // get precursor spectrum
-        MSExperiment::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
-
-        // store index of MS2 spectrum
-        UInt precursor_spectrum_idx = rt_it - exp.begin();
+        MSExperiment::ConstIterator rt_it = exp.begin() + precursor_spectrum_idx;
 
         // get parent (MS1) of precursor spectrum
         rt_it = exp.getPrecursorSpectrum(rt_it);
@@ -162,7 +173,7 @@ namespace OpenMS
         if (nearestPeakError < mz_tolerance)
         {
           // sanity check: do we really have the same precursor in the original and the picked spectrum
-          if (fabs(exp[precursor_spectrum_idx].getPrecursors()[0].getMZ() - mz) > 0.0001)
+          if (fabs(exp[precursor_spectrum_idx].getPrecursors()[precursor_index[i]].getMZ() - mz) > 0.0001)
           {
             OPENMS_LOG_WARN << "Error: index is referencing different precursors in original and picked spectrum." << endl;
           }
@@ -175,7 +186,7 @@ namespace OpenMS
           // correct entries
           Precursor corrected_prec = precursors[i];
           corrected_prec.setMZ(nearest_peak_mz);
-          exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
+          exp[precursor_spectrum_idx].getPrecursors()[precursor_index[i]] = corrected_prec;
           corrected_precursors.insert(precursor_spectrum_idx);
         }
       }
@@ -195,7 +206,8 @@ namespace OpenMS
       vector<Precursor> precursors;  // precursor
       vector<double> precursors_rt;  // RT of precursor MS2 spectrum
       vector<Size> precursor_scan_index;
-      getPrecursors(exp, precursors, precursors_rt, precursor_scan_index);
+      vector<Size> precursor_index;
+      collectPrecursors(exp, precursors, precursors_rt, precursor_scan_index, precursor_index);
       int count_error_highest_intenstiy = 0;
 
       for (Size i = 0; i != precursors_rt.size(); ++i)
@@ -204,10 +216,8 @@ namespace OpenMS
         double mz = precursors[i].getMZ(); // get precursor MZ
 
         // retrieves iterator of the MS2 fragment spectrum
-        MSExperiment::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
-
-        // store index of MS2 spectrum
-        UInt precursor_spectrum_idx = rt_it - exp.begin();
+        const Size precursor_spectrum_idx = precursor_scan_index[i];
+        MSExperiment::ConstIterator rt_it = exp.begin() + precursor_spectrum_idx;
 
         // get parent (MS1) of precursor spectrum
         rt_it = exp.getPrecursorSpectrum(rt_it);
@@ -243,7 +253,7 @@ namespace OpenMS
         Precursor corrected_prec = precursors[i];
         corrected_prec.setMZ(highest_peak_mz);
         corrected_prec.setIntensity(highest_peak_int);
-        exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
+        exp[precursor_spectrum_idx].getPrecursors()[precursor_index[i]] = corrected_prec;
         corrected_precursors.insert(precursor_spectrum_idx);
       }
 
