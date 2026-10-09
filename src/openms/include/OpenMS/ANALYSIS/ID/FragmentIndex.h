@@ -755,9 +755,17 @@ protected:
     /// SNES v1.1: Σ values including PROTEIN_C_TERM-only variable mods.
     /// Used only for Single-C mothers anchored at the protein C-terminus.
     std::vector<double> snes_sigma_delta_set_with_prot_cterm_;
+    /// SNES v1.1: the values of snes_sigma_delta_set_with_prot_nterm_ that are not in snes_sigma_delta_set_
+    /// (they need a PROTEIN_N_TERM-only variable mod); empty when no such mod is configured.
+    std::vector<double> snes_sigma_prot_nterm_extra_;
+    /// SNES v1.1: the values of snes_sigma_delta_set_with_prot_cterm_ that are not in snes_sigma_delta_set_.
+    std::vector<double> snes_sigma_prot_cterm_extra_;
     /// A nonempty subset of at most max_variable_mods_per_peptide_ variable modifications sums to Σ = 0 (within
     /// the Σ tolerance of the subset enumeration), so Σ = 0 hits are expanded into subsets too
     bool snes_zero_sigma_subsets_{false};
+    /// Every residue that can be indexed has a positive mass with its fixed modification: a longer realization
+    /// of a SNES mother is always heavier (realizeSNESLength() stops past the precursor window then)
+    bool residue_masses_positive_{false};
 
     /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).
     /// Indexed by single-letter amino acid code (e.g., 'A'=65). Entries for non-AA chars are 0.
@@ -859,6 +867,10 @@ protected:
     /// Used by SNES v1.1 to gate PROTEIN_C_TERM variable-mod bin walks.
     std::vector<uint32_t> protein_lengths_;
 
+    /// SNES mode: one bit per entry of fi_peptides_, set for a Single-C mother (see isSingleCMother()).
+    /// Lets the candidate walks of querySpectrumSNES_() test the kind without reading the mother.
+    std::vector<uint64_t> snes_single_c_bits_;
+
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz
     size_t min_ion_index_{0}; ///< skip ions below this index (0=all, 2=skip b1/b2/y1/y2)
@@ -876,32 +888,33 @@ private:
      * @brief SNES-mode spectrum query (MetaMorpheus-style: byte-count + b-ion filter).
      *
      * Implements the Rolfs/Smith 2020 inverted-index search strategy as executed in
-     * MetaMorpheus's @c NonSpecificEnzymeSearchEngine. Replaces the pre-SNES
-     * @c searchDifferentPrecursorRanges flow with a two-phase design:
+     * MetaMorpheus's @c NonSpecificEnzymeSearchEngine, in three phases:
      *
-     *  1. **Byte-count pass**: for every experimental peak, walk the fragment-mz
-     *     buckets within fragment tolerance and increment a per-thread byte score
-     *     table indexed by @em global mother peptide id. No precursor-mass filter
-     *     at this stage — every mother that has a fragment matching any peak is
-     *     counted. This is the critical departure from the v1 design, which
-     *     pre-filtered mothers by @c mother_mass >= P - tol and admitted the top
-     *     half of the index as candidates.
-     *
-     *  2. **Candidate collection**: for each (precursor charge, isotope error),
-     *     walk fragment buckets at the target m/z that a realized sub-peptide's
-     *     terminal ion would occupy:
-     *       - Single-N mother / b-ion index: target m/z = (M+H)+ − water
+     *  1. **Candidate walks**: for each (precursor charge, isotope error, Σ),
+     *     walk the fragment buckets at the target m/z that a realized sub-peptide's
+     *     terminal ion would occupy, and the mothers whose full length matches:
+     *       - Single-N mother / b-ion index: target m/z = (M+H)+ − water − Σ
      *         (relation @c M_sub+H+ = b_k + water, so the mother's b_k ion falls
      *         at @c M_obs+H+ − water when the realized length matches).
-     *       - Single-C mother / y-ion index: target m/z = (M+H)+ directly
+     *       - Single-C mother / y-ion index: target m/z = (M+H)+ − Σ
      *         (@c M_sub+H+ = y_k exactly).
-     *     Every mother with a fragment in the target bin that has the correct
-     *     kind (Single-N vs Single-C) and whose byte-score meets
-     *     @c fragment:min_matched_ions is emitted as a candidate.
+     *     The mothers of the right kind (Single-N vs Single-C) and protein anchor are
+     *     recorded in walk order; they are the candidates of the spectrum.
+     *
+     *  2. **Byte-count pass**: for every experimental peak, walk the fragment-m/z
+     *     buckets within fragment tolerance and count the matched peaks of the
+     *     candidates. Each window is walked once per query, and the per-thread
+     *     working memory is sized by the candidates of a spectrum (plus one bit per
+     *     mother), not by the index.
+     *
+     *  3. **Emission**: the recorded candidates whose byte score meets
+     *     @c fragment:min_matched_ions are emitted in walk order, once per
+     *     (charge, isotope error, Σ), then expanded into the variable-modification
+     *     subsets of their realized sub-peptides and cut to the top hits (trimHits()).
      *
      * This design produces a candidate set sized like a single fragment-bin
      * lookup (dozens, not thousands), matching MetaMorpheus's algorithmic
-     * scalability. The byte table is reused across calls via @c thread_local.
+     * scalability.
      *
      * Only called when @ref isSnesMode is true; otherwise the pre-SNES
      * @c searchDifferentPrecursorRanges path is used.

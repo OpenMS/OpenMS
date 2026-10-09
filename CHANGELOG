@@ -139,6 +139,12 @@ OpenMS Library:
     including the occurrences that peptide:deduplicate removed from getPeptides() (recorded by the deduplication);
     hasProteinOccurrences() tells whether the list is complete (not in SNES mode or with protein-terminal
     modifications).
+  - FragmentIndex in SNES mode (ProSE snes_enabled) walks each precursor window of a spectrum once and
+    counts the matched peaks of its candidates only; its per-thread working memory follows the
+    candidates of a spectrum (plus one bit per mother) instead of three tables over all mothers.
+    Search results are unchanged. On 8,000-spectrum Q Exactive HF-X and LTQ Orbitrap Velos files
+    against a yeast target-decoy database, the SNES search took 34-59% less time, and peak memory was
+    4-6% lower at 4 threads and 17% lower at 16 threads.
   - FIX: RNaseDigestion::digest returns no fragments for a sequence shorter than min_length, or
     when min_length exceeds max_length. Unsigned arithmetic wrapped around there, so unspecific
     cleavage asked reserve() for a huge capacity and could index far past the end of the sequence

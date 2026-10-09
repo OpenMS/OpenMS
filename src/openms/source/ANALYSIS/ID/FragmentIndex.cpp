@@ -678,6 +678,7 @@ namespace OpenMS
     std::vector<UInt32>().swap(bucket_skip_);
     std::vector<UInt32>().swap(electron_bucket_skip_);
     std::vector<uint32_t>().swap(protein_lengths_);
+    std::vector<uint64_t>().swap(snes_single_c_bits_);
     is_build_ = false;
     mod_tables_initialized_ = false;
   }
@@ -803,7 +804,12 @@ namespace OpenMS
 
       const double realized_mass = base + cumulative;
       const double delta = realized_mass - target_mh_plus;        // signed
-      if (delta < -tol_lo_da || delta > tol_hi_da) continue;
+      if (delta > tol_hi_da)
+      {
+        if (residue_masses_positive_) break;   // every longer realization is heavier still
+        continue;
+      }
+      if (delta < -tol_lo_da) continue;
       const double abs_delta = std::abs(delta);
       if (abs_delta < best_abs_delta)
       {
@@ -1167,18 +1173,38 @@ namespace OpenMS
       }
     }
 
-    // Merge per-thread buckets (same shape as generatePeptides).
-    size_t total = 0;
-    for (int t = 0; t < num_threads; ++t) total += thread_peptides[t].size();
-    fi_peptides_.reserve(total);
+    // Merge the per-thread vectors in thread order, as generatePeptides() does: Peptide() writes nothing, so the
+    // resize only allocates, and each thread copies (and first touches) the part that it generated.
+    std::vector<size_t> merge_offsets(num_threads + 1, fi_peptides_.size());
+    for (int t = 0; t < num_threads; ++t) merge_offsets[t + 1] = merge_offsets[t] + thread_peptides[t].size();
+    fi_peptides_.resize(merge_offsets[num_threads]);
+    #pragma omp parallel for schedule(static, 1)
     for (int t = 0; t < num_threads; ++t)
     {
-      fi_peptides_.insert(fi_peptides_.end(), thread_peptides[t].begin(), thread_peptides[t].end());
+      std::copy(thread_peptides[t].begin(), thread_peptides[t].end(), fi_peptides_.begin() + merge_offsets[t]);
       vector<Peptide>().swap(thread_peptides[t]);
     }
 
     OPENMS_LOG_INFO << "Sorting SNES mother peptides..." << std::endl;
     sortPeptides_(fi_peptides_);
+
+    // One bit per mother, its kind (bit SNES_KIND_BIT_MASK of mod_bitmask_): the candidate walks of
+    // querySpectrumSNES_() test it for every fragment in their windows, which would otherwise be a random read of
+    // the mother. fi_peptides_ is final here (SNES indices are neither deduplicated nor restricted to precursor
+    // windows).
+    snes_single_c_bits_.assign((fi_peptides_.size() + 63) / 64, 0);
+    #pragma omp parallel for
+    for (SignedSize w = 0; w < (SignedSize)snes_single_c_bits_.size(); ++w)
+    {
+      const size_t first = static_cast<size_t>(w) * 64;
+      const size_t last = std::min<size_t>(first + 64, fi_peptides_.size());
+      uint64_t bits = 0;
+      for (size_t i = first; i < last; ++i)
+      {
+        if (isSingleCMother(fi_peptides_[i].mod_bitmask_)) bits |= uint64_t{1} << (i - first);
+      }
+      snes_single_c_bits_[w] = bits;
+    }
 
     OPENMS_LOG_INFO << "Generated " << fi_peptides_.size() << " SNES mothers ("
                     << skipped_peptides.load() << " spans skipped — shorter than peptide:min_size)." << std::endl;
@@ -2245,7 +2271,8 @@ namespace OpenMS
       sortAndBucketFragments_(fi_fragments_, bucket_min_mz_, num_threads);
       // ions:electron_ions: the c and z+1 ions get buckets of their own, walked only on request
       sortAndBucketFragments_(electron_fragments_, electron_bucket_min_mz_, num_threads);
-      buildSkipTables_();
+      // the skip tables steer queryPeaks(), which SNES queries do not use
+      if (!is_snes_mode_) buildSkipTables_();
 
       is_build_ = true;
       OPENMS_LOG_INFO << "Fragment index built!" << endl;
@@ -3116,14 +3143,123 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     queryPeaks(sms, spectrum, blocks, charge, with_electron_ions);
   }
 
+  namespace
+  {
+    /// The candidate mothers of one SNES query, each with a dense slot: an open-addressing hash set of mother ids
+    /// (linear probing, power-of-two capacity of at least twice the number of keys). querySpectrumSNES_() keeps the
+    /// state of a candidate in its slot, so its working memory follows the number of candidates of a spectrum
+    /// instead of the number of mothers in the index, and a lookup touches one cache line.
+    class SnesSlotTable
+    {
+    public:
+      static constexpr UInt32 EMPTY = std::numeric_limits<UInt32>::max();
+
+      struct Slot
+      {
+        UInt32 key;       ///< the mother id, or EMPTY
+        uint16_t count;   ///< a counter of the caller (matched peaks of the byte scan, subsets emitted for a mother)
+        uint16_t mark;    ///< a mark of the caller (the group that emitted the candidate last)
+      };
+
+      /// Empties the table and makes room for @p max_keys keys (keeps the allocation of earlier calls)
+      void reset(size_t max_keys)
+      {
+        const size_t capacity = std::bit_ceil(std::max<size_t>(16, 2 * max_keys));
+        slots_.assign(capacity, Slot{EMPTY, 0, 0});
+        mask_ = capacity - 1;
+        shift_ = 64 - std::countr_zero(capacity);
+      }
+
+      /// The slot of @p id, which is added if it is not in the table yet
+      size_t insert(UInt32 id)
+      {
+        size_t slot = home_(id);
+        while (slots_[slot].key != EMPTY && slots_[slot].key != id) slot = (slot + 1) & mask_;
+        slots_[slot].key = id;
+        return slot;
+      }
+
+      /// The slot of @p id, which must be in the table
+      size_t find(UInt32 id) const
+      {
+        size_t slot = home_(id);
+        while (slots_[slot].key != id) slot = (slot + 1) & mask_;
+        return slot;
+      }
+
+      size_t capacity() const { return slots_.size(); }
+
+      /// Requests the cache line of the first slot that @p id can occupy
+      void prefetch(UInt32 id) const { prefetchForRead(slots_.data() + home_(id), 0); }
+
+      Slot& operator[](size_t slot) { return slots_[slot]; }
+      const Slot& operator[](size_t slot) const { return slots_[slot]; }
+
+      /// Sets the mark of every slot to 0
+      void clearMarks()
+      {
+        for (Slot& slot : slots_) slot.mark = 0;
+      }
+
+    private:
+      /// Fibonacci hashing: the top bits of the id times 2^64 / golden ratio
+      size_t home_(UInt32 id) const { return static_cast<size_t>((uint64_t{id} * 0x9E3779B97F4A7C15ull) >> shift_); }
+
+      std::vector<Slot> slots_;
+      size_t mask_{0};
+      int shift_{63};
+    };
+
+    /// The walks of one (precursor charge, isotope error, Σ) combination of a SNES query: a mother is emitted
+    /// at most once per group
+    struct SnesWalkGroup
+    {
+      size_t end;               ///< end of the group's entries in SnesQueryScratch::entries (they begin where the previous group's end)
+      float sigma;              ///< Σ of the group, the sigma_delta_ of its hits
+      int16_t isotope_error;
+      uint16_t charge;
+    };
+
+    /// Working memory of querySpectrumSNES_(), one per thread and kept across queries (and FragmentIndex instances),
+    /// so that a query allocates nothing once the buffers have grown to the size it needs
+    struct SnesQueryScratch
+    {
+      std::vector<uint16_t> charges;
+      std::vector<uint64_t> viable_words;      ///< one bit per mother of the index: a candidate of the current query
+      SnesSlotTable candidates;                ///< the candidates (every set bit of viable_words is one of them), with
+                                               ///< their matched peaks (count) and the group that emitted them last (mark)
+      std::vector<UInt32> entries;             ///< the candidates found by the walks, in walk order: mother ids, then their slots
+      std::vector<SnesWalkGroup> groups;
+      std::vector<FragmentIndex::SpectrumMatch> expanded; ///< the hits expanded into modification subsets
+      SnesSlotTable subset_mothers;            ///< the mothers of the hits expanded into modification subsets, with the
+                                               ///< subsets emitted so far (count, capped at 16)
+    };
+
+    /// The SnesQueryScratch of the calling thread. Not inlined: GCC recomputes the address of a thread_local object
+    /// at each use (a call of __tls_get_addr in a shared library) instead of keeping it, but keeps a reference that
+    /// a call returned.
+#if defined(__GNUC__) || defined(__clang__)
+    __attribute__((noinline))
+#elif defined(_MSC_VER)
+    __declspec(noinline)
+#endif
+    SnesQueryScratch& snesQueryScratch()
+    {
+      thread_local SnesQueryScratch scratch;
+      return scratch;
+    }
+  } // namespace
+
   void FragmentIndex::querySpectrumSNES_(const MSSpectrum& spectrum,
                                           const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                           SpectrumMatchesTopN& sms)
   {
     // Preconditions checked by the public entry point querySpectrum.
+    SnesQueryScratch& scratch = snesQueryScratch();
 
     const auto& precursor = spectrum.getPrecursors()[0];
-    vector<uint16_t> charges;
+    std::vector<uint16_t>& charges = scratch.charges;
+    charges.clear();
     // Precursor::getCharge() returns signed Int; treat non-positive (0 = unset,
     // rare negative-mode encodings) as "unknown" and fall back to the
     // configured min..max range. Without this guard, static_cast<uint16_t>(-1)
@@ -3140,145 +3276,232 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       }
     }
 
-    // Phase 1 — byte-count scoring across ALL mothers.
-    //
-    // Thread-local buffer reused across calls; sized to fi_peptides_.size() and
-    // zeroed via .assign. Avoids per-spectrum allocation and keeps the table hot
-    // in cache for large indices. Saturates at UINT16_MAX (far above any realistic
-    // matched-peak count) to protect against pathological inputs without branch-on-overflow.
+    // The candidate bits of the previous query on this thread are cleared first. The buffers persist across
+    // queries AND across different / rebuilt FragmentIndex instances on the same thread, so the index size can
+    // change between calls (e.g. a later, smaller chunk in a chunked search): then the bitset is reallocated,
+    // and the ids of the previous query (which index the previous size) are not used.
     const size_t n_mothers = fi_peptides_.size();
     const size_t n_words = (n_mothers + 63) / 64;
-
-    // Persistent thread-local buffers, sized once. Between spectra they are
-    // restored to all-zero by O(touched) resets (touched_ids / emitted_touched),
-    // avoiding a full-index memset per spectrum (the score_table.assign + the
-    // per-(charge,iso,sigma) std::fill(emitted) were the dominant non-scan cost
-    // at proteome scale).
-    thread_local std::vector<uint16_t> score_table;     // matched-peak count per viable mother
-    thread_local std::vector<uint64_t> viable_words;    // precursor-viability bitset, 1 bit / mother
-    thread_local std::vector<uint8_t> emitted;          // Phase-2 per-(charge,iso,sigma) dedup guard
-    thread_local std::vector<UInt32> touched_ids;       // mothers marked viable (== only ids ever written)
-    thread_local std::vector<UInt32> emitted_touched;   // ids set in emitted since its last reset
-
-    // Restore the buffers to all-zero for this spectrum. They persist across queries
-    // AND across different / rebuilt FragmentIndex instances on the same thread, so the
-    // index size can change between calls (e.g. a later, smaller chunk in a chunked
-    // search). On a size change we must NOT walk the stale touched lists — their ids
-    // index the previous (possibly larger) size, so they would read/write out of bounds.
-    if (score_table.size() != n_mothers || viable_words.size() != n_words || emitted.size() != n_mothers)
+    std::vector<uint64_t>& viable_words = scratch.viable_words;
+    SnesSlotTable& candidates = scratch.candidates;
+    if (viable_words.size() != n_words || n_words <= candidates.capacity())
     {
-      score_table.assign(n_mothers, 0);   // full zero-fill makes the touched lists redundant
-      viable_words.assign(n_words, 0);
-      emitted.assign(n_mothers, 0);
-      touched_ids.clear();
-      emitted_touched.clear();
+      viable_words.assign(n_words, 0);   // a new size, or no more words than the previous table had slots
     }
     else
     {
-      // Same index as the previous query: restore only the touched entries (O(touched)
-      // instead of a full-index memset — the whole point of the optimization).
-      for (UInt32 id : touched_ids) { score_table[id] = 0; viable_words[id >> 6] &= ~(uint64_t{1} << (id & 63)); }
-      touched_ids.clear();
-      for (UInt32 id : emitted_touched) emitted[id] = 0;
-      emitted_touched.clear();
+      // every set bit belongs to a candidate of the previous query, so its words can be zeroed as a whole
+      for (size_t slot = 0; slot < candidates.capacity(); ++slot)
+      {
+        const UInt32 id = candidates[slot].key;
+        if (id != SnesSlotTable::EMPTY) viable_words[id >> 6] = 0;
+      }
     }
 
-    auto viable_test = [&](UInt32 id) -> bool { return (viable_words[id >> 6] >> (id & 63)) & uint64_t{1}; };
-    auto viable_set  = [&](UInt32 id) { uint64_t& w = viable_words[id >> 6]; const uint64_t b = uint64_t{1} << (id & 63);
-                                        if (!(w & b)) { w |= b; touched_ids.push_back(id); } };
-    auto emit_mark   = [&](UInt32 id) { emitted[id] = 1; emitted_touched.push_back(id); };
-    auto reset_emitted_touched = [&]() { for (UInt32 id : emitted_touched) emitted[id] = 0; emitted_touched.clear(); };
-
-    // Single source of truth for the SNES precursor-derived bin-walk targets, shared by
-    // the viability pre-pass AND Phase-2 so the two cannot drift (the superset guarantee
-    // depends on byte-identical target m/z). SNES build() emits Single-N b-ions with
-    // c_term_mod=0 and Single-C y-ions with n_term_mod=0, so for a realized (M+H)+:
-    //   b_k (Single-N) = (M+H)+ - water - fixed_cterm - Sigma ; y_k (Single-C) = (M+H)+ - fixed_nterm - Sigma
+    // Single source of truth for the SNES precursor-derived bin-walk targets. SNES build() emits Single-N
+    // b-ions with c_term_mod=0 and Single-C y-ions with n_term_mod=0, so for a realized (M+H)+:
+    //   Realized (M+H)+ = water + proton + fixed_nterm + fixed_cterm + Σ_internal
+    //   b_k (Single-N)  = proton + fixed_nterm + Σ_internal  => (M+H)+ − water − fixed_cterm − Σ
+    //   y_k (Single-C)  = water + proton + fixed_cterm + Σ_internal  => (M+H)+ − fixed_nterm − Σ
+    // Missing the fixed-term offsets would shift the lookup target by the corresponding delta and silently miss
+    // all candidates when a user configures Acetyl (N-term) / Amidated (C-term) / similar.
     const float snes_water = static_cast<float>(Residue::getInternalToFull().getMonoWeight());
     auto target_single_n = [&](float shifted_mh, float s) { return shifted_mh - snes_water - static_cast<float>(fixed_cterm_delta_) - s; };
     auto target_single_c = [&](float shifted_mh, float s) { return shifted_mh - static_cast<float>(fixed_nterm_delta_) - s; };
     auto target_full     = [&](float shifted_mh, float s) { return shifted_mh - s; };
 
-    // Fragment-charge upper bound for the byte scan. Use the max charge in the
-    // `charges` list (the spectrum's known charge, or max_precursor_charge_ when
-    // unknown), capped by max_fragment_charge_. This matches the per-iteration
-    // `std::min(precursor_charge, max_fragment_charge_)` policy of non-SNES
-    // queryPeaks — using the static max_precursor_charge_ would inflate byte
-    // counts with matches at fragment charges above the actual precursor charge.
-    uint16_t byte_scan_max_frag_charge = 0;
-    for (uint16_t c : charges) byte_scan_max_frag_charge = std::max(byte_scan_max_frag_charge, c);
-    byte_scan_max_frag_charge = std::min(byte_scan_max_frag_charge, max_fragment_charge_);
+    // ===================== Phase 1: candidate walks =====================
+    //
+    // The fragment index doubles as a precursor filter. A Single-N mother of any realized length k has
+    // b_k m/z = (M_sub)+H+ − water, a Single-C mother y_k m/z = (M_sub)+H+: the mothers that can realize the
+    // observed precursor mass are those with an indexed fragment of their kind in a narrow m/z window around
+    // these targets, plus those whose full length matches it (v1 indexes b_1..b_{L-1} and y_1..y_{L-1} only;
+    // this matters for sub-peptides of length == max_length and for proteins shorter than it).
+    //
+    // For each (charge, isotope error, Σ) group, the walks record the mothers that pass every test of the
+    // candidate except its byte score, in the order of the walk: the bucket walks for the kind (Single-N or
+    // Single-C) and protein anchor of the walk, the precursor walk for its anchor. Phase 3 emits from these
+    // records in the same order, so each window is walked once, and Phase 2 counts the peaks of the recorded
+    // mothers only (a candidate that is not recorded is never emitted, so its count is never read).
+    //
+    // Σ: the baseline values walk every mother regardless of protein anchor; the values that only occur with
+    // PROTEIN_N_TERM / PROTEIN_C_TERM variable mods (snes_sigma_prot_*term_extra_, empty without such mods)
+    // walk the mothers at that protein terminus. Each (charge, iso_err, Σ) group is independent: the same
+    // mother can be emitted once per group (each Σ represents a distinct variable-mod assignment).
+    std::vector<UInt32>& entries = scratch.entries;
+    std::vector<SnesWalkGroup>& groups = scratch.groups;
+    entries.clear();
+    groups.clear();
 
-    // ===================== Pre-pass: mark precursor-viable mothers =====================
-    // The Phase-1 byte scan below only writes a count for a mother that this pre-pass
-    // marked viable. The marked set is a strict SUPERSET of the mothers Phase-2 can
-    // emit: we walk the SAME precursor-derived fragment targets (Single-N b_k,
-    // Single-C y_k) and the SAME full-length precursor_mz_ ranges, but drop the
-    // single_c / protein-anchor / score-threshold filters (over-approximation). So no
-    // mother that Phase-2 emits is ever missing its count, while the non-viable mothers
-    // no longer take a (cache-missing) random write per matched fragment. The bin-walk
-    // targets come from the shared target_single_n / target_single_c / target_full
-    // helpers used by Phase-2 too, so the two paths cannot drift out of sync.
+    // Asymmetric tolerance: tol_lo <= 0 (low-side magnitude, sign-flipped), tol_hi >= 0. A match requires
+    // fragment_mz ∈ [target_mz + tol_lo, target_mz + tol_hi], the bounds that also select the buckets.
+    // Preserves calibrated windows like [100 ppm, 5 ppm] where the symmetric max-collapse over-admitted ~20×
+    // on the tighter side.
+    const uint64_t* const single_c_bits = snes_single_c_bits_.data();
+    auto walk_fragments = [&](float target_mz, float tol_lo, float tol_hi, bool expect_single_c, SnesAnchor require_anchor)
     {
-      const bool open_mode_pp = isOpenSearchMode_();
-      const int16_t iso_lo_pp = open_mode_pp ? 0 : min_isotope_error_;
-      const int16_t iso_hi_pp = open_mode_pp ? 0 : max_isotope_error_;
+      const float mz_lo = target_mz + tol_lo;
+      const float mz_hi = target_mz + tol_hi;
+      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
+      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
+      if (left_it != bucket_min_mz_.begin()) --left_it;
 
-      std::vector<double> sigma_union = snes_sigma_delta_set_;
-      sigma_union.insert(sigma_union.end(), snes_sigma_delta_set_with_prot_nterm_.begin(), snes_sigma_delta_set_with_prot_nterm_.end());
-      sigma_union.insert(sigma_union.end(), snes_sigma_delta_set_with_prot_cterm_.begin(), snes_sigma_delta_set_with_prot_cterm_.end());
+      const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
+      const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
 
-      auto mark_bucket_range = [&](float target, float tol_lo, float tol_hi) {
-        // same bounds for the bucket selection and the fragment test (see query())
-        const float mz_lo = target + tol_lo;
-        const float mz_hi = target + tol_hi;
-        auto lb = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
-        auto rb = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
-        if (lb != bucket_min_mz_.begin()) --lb;
-        const size_t jb = std::distance(bucket_min_mz_.begin(), lb);
-        const size_t je = std::distance(bucket_min_mz_.begin(), rb);
-        for (size_t j = jb; j < je; ++j)
-        {
-          const auto sb = fi_fragments_.begin() + (j * bucketsize_);
-          const auto se = ((j + 1) * bucketsize_) >= fi_fragments_.size()
-            ? fi_fragments_.end() : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
-          for (auto it = sb; it != se; ++it)
-          {
-            if (it->fragment_mz_ >= mz_lo && it->fragment_mz_ <= mz_hi) viable_set(it->peptide_idx_);
-          }
-        }
-      };
-      auto mark_precursor_range = [&](float target, float tol_lo, float tol_hi) {
-        auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(), target + tol_lo,
-                                   [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
-        auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(), target + tol_hi,
-                                   [](float b, const Peptide& a) { return b < a.precursor_mz_; });
-        for (auto it = lb; it != ub; ++it)
-          viable_set(static_cast<UInt32>(std::distance(fi_peptides_.begin(), it)));
-      };
-
-      for (uint16_t charge : charges)
+      for (size_t j = bucket_begin; j < bucket_end; ++j)
       {
-        const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
-          - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
-        for (int16_t iso_err = iso_lo_pp; iso_err <= iso_hi_pp; ++iso_err)
+        const auto slice_begin = fi_fragments_.begin() + (j * bucketsize_);
+        const auto slice_end = ((j + 1) * bucketsize_) >= fi_fragments_.size()
+          ? fi_fragments_.end()
+          : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
+
+        for (auto it = slice_begin; it != slice_end; ++it)
         {
-          const float shifted_mh = mh_plus
-            + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
-          const auto prec_window = computeMassWindow_(shifted_mh);
-          const float tlo = prec_window.first;   // <= 0
-          const float thi = prec_window.second;  // >= 0
-          for (double sigma : sigma_union)
+          if (it->fragment_mz_ < mz_lo || it->fragment_mz_ > mz_hi) continue;
+
+          const UInt32 id = it->peptide_idx_;
+          const bool is_single_c = (single_c_bits[id >> 6] >> (id & 63)) & uint64_t{1};
+          if (is_single_c != expect_single_c) continue;
+
+          // SNES v1.1: anchor-specific filter for PROTEIN_N/C_TERM mod walks.
+          if (require_anchor == SnesAnchor::PROT_NTERM)
           {
-            const float s = static_cast<float>(sigma);
-            mark_bucket_range(target_single_n(shifted_mh, s), tlo, thi); // Single-N b_k
-            mark_bucket_range(target_single_c(shifted_mh, s), tlo, thi); // Single-C y_k
-            mark_precursor_range(target_full(shifted_mh, s), tlo, thi);  // full-length
+            const auto& mother = fi_peptides_[id];
+            if (!isProteinNTerminal_(fasta_entries[mother.protein_idx].sequence, mother.sequence_.first)) continue;
           }
+          if (require_anchor == SnesAnchor::PROT_CTERM)
+          {
+            const auto& mother = fi_peptides_[id];
+            const uint32_t prot_len = protein_lengths_[mother.protein_idx];
+            if (static_cast<uint32_t>(mother.sequence_.first) + mother.sequence_.second != prot_len) continue;
+          }
+          entries.push_back(id);
+        }
+      }
+    };
+
+    // Full-length realization: mothers whose precursor_mz_ equals the target within the precursor tolerance.
+    auto walk_precursors = [&](float target, float tol_lo, float tol_hi, SnesAnchor require_anchor)
+    {
+      auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                  target + tol_lo,
+                                  [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
+      auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
+                                  target + tol_hi,
+                                  [](float b, const Peptide& a) { return b < a.precursor_mz_; });
+      for (auto it = lb; it != ub; ++it)
+      {
+        if (require_anchor == SnesAnchor::PROT_NTERM)
+        {
+          if (!isProteinNTerminal_(fasta_entries[it->protein_idx].sequence, it->sequence_.first)) continue; // PROT_NTERM anchor
+          if (isSingleCMother(it->mod_bitmask_)) continue; // Single-N only
+        }
+        if (require_anchor == SnesAnchor::PROT_CTERM)
+        {
+          if (!isSingleCMother(it->mod_bitmask_)) continue; // Single-C only
+          const uint32_t prot_len = protein_lengths_[it->protein_idx];
+          if (static_cast<uint32_t>(it->sequence_.first) + it->sequence_.second != prot_len) continue;
+        }
+        entries.push_back(static_cast<UInt32>(std::distance(fi_peptides_.begin(), it)));
+      }
+    };
+
+    // Open-search mode (very wide precursor tolerance auto-detected in isOpenSearchMode_()) collapses the
+    // isotope-error iteration to a single iso_err == 0 pass — at open-search windows, adding multiples of
+    // C13C12_MASSDIFF_U to the target is a no-op on candidate admission (the window already spans many isotope
+    // peaks) and just inflates the hit list with duplicate-labelled candidates. Mirrors the non-SNES
+    // searchDifferentPrecursorRanges().
+    const bool open_mode = isOpenSearchMode_();
+    const int16_t iso_lo = open_mode ? 0 : min_isotope_error_;
+    const int16_t iso_hi = open_mode ? 0 : max_isotope_error_;
+    for (uint16_t charge : charges)
+    {
+      const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
+        - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
+      for (int16_t iso_err = iso_lo; iso_err <= iso_hi; ++iso_err)
+      {
+        const float shifted_mh = mh_plus
+          + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
+
+        // Asymmetric precursor tolerance for the bin walk: computeMassWindow_ gives signed (lo <= 0, hi >= 0)
+        // Da bounds that respect calibrated asymmetric windows. Same reference m/z (shifted_mh) for all
+        // targets within this (charge, iso_err) iteration.
+        const auto prec_window = computeMassWindow_(shifted_mh);
+        const float prec_tol_lo = prec_window.first;   // <= 0
+        const float prec_tol_hi = prec_window.second;  // >= 0
+        auto end_group = [&](float s) { groups.push_back({entries.size(), s, iso_err, charge}); };
+
+        for (double sigma : snes_sigma_delta_set_)
+        {
+          const float s = static_cast<float>(sigma);
+          walk_fragments(target_single_n(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, SnesAnchor::NONE);
+          walk_fragments(target_single_c(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, SnesAnchor::NONE);
+          walk_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::NONE);
+          end_group(s);
+        }
+        // PROTEIN_N_TERM-only Σ values (Single-N mothers at protein position 0, or 1 after enabled Met clipping)
+        for (double sigma : snes_sigma_prot_nterm_extra_)
+        {
+          const float s = static_cast<float>(sigma);
+          walk_fragments(target_single_n(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, SnesAnchor::PROT_NTERM);
+          walk_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::PROT_NTERM);
+          end_group(s);
+        }
+        // PROTEIN_C_TERM-only Σ values
+        for (double sigma : snes_sigma_prot_cterm_extra_)
+        {
+          const float s = static_cast<float>(sigma);
+          walk_fragments(target_single_c(shifted_mh, s), prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, SnesAnchor::PROT_CTERM);
+          walk_precursors(target_full(shifted_mh, s), prec_tol_lo, prec_tol_hi, SnesAnchor::PROT_CTERM);
+          end_group(s);
         }
       }
     }
 
+    // The recorded mothers become the candidates: each gets a slot (the entries now hold the slots) and its bit.
+    candidates.reset(entries.size());
+    for (UInt32& entry : entries)
+    {
+      const UInt32 id = entry;
+      entry = static_cast<UInt32>(candidates.insert(id));
+      viable_words[id >> 6] |= uint64_t{1} << (id & 63);
+    }
+
+    // ===================== Phase 2: byte-count scoring of the candidates =====================
+    //
+    // Fragment-charge upper bound for the byte scan. Use the max charge in the `charges` list (the spectrum's
+    // known charge, or max_precursor_charge_ when unknown), capped by max_fragment_charge_. This matches the
+    // per-iteration `std::min(precursor_charge, max_fragment_charge_)` policy of non-SNES queryPeaks — using the
+    // static max_precursor_charge_ would inflate byte counts with matches at fragment charges above the actual
+    // precursor charge.
+    uint16_t byte_scan_max_frag_charge = 0;
+    for (uint16_t c : charges) byte_scan_max_frag_charge = std::max(byte_scan_max_frag_charge, c);
+    byte_scan_max_frag_charge = std::min(byte_scan_max_frag_charge, max_fragment_charge_);
+
+    // The bitset word a fragment needs is known from the fragment itself: the word of the fragment PREFETCH_DISTANCE
+    // places further on is requested while this one is tested. Most fragments of the visited buckets lie in the
+    // peak's window, and the bitset (one bit per mother, a few MB) does not fit the core's fastest caches.
+    constexpr size_t PREFETCH_DISTANCE = 64;
+    const Fragment* const fragments_begin = fi_fragments_.data();
+    const Fragment* const fragments_end = fragments_begin + fi_fragments_.size();
+    const Fragment* const prefetch_end = fragments_end - std::min(fi_fragments_.size(), PREFETCH_DISTANCE);
+    const uint64_t* const viable = viable_words.data();
+    // The matched candidates are counted in batches, whose slots are requested first (the order of the increments
+    // does not matter).
+    constexpr size_t BATCH = 64;
+    UInt32 matched[BATCH];
+    size_t num_matched = 0;
+    auto count_matched = [&]()
+    {
+      for (size_t k = 0; k < num_matched; ++k) candidates.prefetch(matched[k]);
+      for (size_t k = 0; k < num_matched; ++k)
+      {
+        uint16_t& count = candidates[candidates.find(matched[k])].count;
+        if (count < std::numeric_limits<uint16_t>::max()) ++count;   // saturates far above any realistic count
+      }
+      num_matched = 0;
+    };
     for (const Peak1D& peak : spectrum)
     {
       for (uint16_t frag_charge = 1; frag_charge <= byte_scan_max_frag_charge; ++frag_charge)
@@ -3302,47 +3525,57 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
         const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
 
-        for (size_t j = bucket_begin; j < bucket_end; ++j)
+        // No peptide_idx pre-filter: every peptide in the buckets is a potential match regardless of its
+        // mother mass; only the candidates of Phase 1 are counted.
+        const Fragment* const scan_begin = fragments_begin + std::min(bucket_begin * bucketsize_, fi_fragments_.size());
+        const Fragment* const scan_end = fragments_begin + std::min(bucket_end * bucketsize_, fi_fragments_.size());
+        for (const Fragment* it = scan_begin; it < scan_end; ++it)
         {
-          const auto slice_begin = fi_fragments_.begin() + (j * bucketsize_);
-          const auto slice_end = ((j + 1) * bucketsize_) >= fi_fragments_.size()
-            ? fi_fragments_.end()
-            : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
-
-          // No peptide_idx pre-filter: every peptide in the bucket is a potential
-          // match regardless of its mother mass. The precursor filter is applied
-          // downstream via the fragment-bin-as-precursor trick.
-          for (auto it = slice_begin; it != slice_end; ++it)
-          {
-            if (it->fragment_mz_ >= mz_lo && it->fragment_mz_ <= mz_hi)
-            {
-              const UInt32 id = it->peptide_idx_;
-              if (!viable_test(id)) continue;   // precursor-prefilter: skip the non-viable mothers
-              auto& cell = score_table[id];
-              if (cell < std::numeric_limits<uint16_t>::max()) ++cell;
-            }
-          }
+          if (it < prefetch_end) prefetchForRead(viable + ((it + PREFETCH_DISTANCE)->peptide_idx_ >> 6), 0);
+          // One branch on (in the window AND a candidate), which is rarely true: the window test alone would be
+          // mispredicted often (a bucket is sorted by mother id, so the m/z of consecutive fragments is random).
+          const UInt32 id = it->peptide_idx_;
+          const uint64_t in_window = static_cast<uint64_t>(it->fragment_mz_ >= mz_lo) & static_cast<uint64_t>(it->fragment_mz_ <= mz_hi);
+          if (!((viable[id >> 6] >> (id & 63)) & in_window)) continue;   // outside the window or not a candidate
+          matched[num_matched++] = id;
+          if (num_matched == BATCH) count_matched();
         }
       }
     }
+    count_matched();
 
-    // Phase 2 — candidate collection via the fragment-index-as-precursor-filter trick.
+    // ===================== Phase 3: candidate emission =====================
     //
-    // A Single-N mother of any realized length k has b_k m/z = (M_sub)+H+ − water.
-    // A Single-C mother of any realized length k has y_k m/z = (M_sub)+H+ directly.
-    // So mothers that could realize the observed precursor mass are exactly the
-    // ones with an indexed fragment in a narrow m/z window around those targets.
-    //
-    // We walk the fragment buckets at each target once per (charge, iso_err) and
-    // emit the dedup'd set of matching mother ids whose phase-1 byte score meets
-    // the minimum-matched-peaks threshold. The target m/z are computed via the
-    // shared target_single_n / target_single_c / target_full helpers (setup block).
+    // In walk order, every recorded mother whose byte score meets the minimum-matched-peaks threshold is
+    // emitted once per (charge, iso_err, Σ) group.
+    uint16_t group_mark = 0;   // the mark of the current group: groups counted from 1, restarted after 65535
+    size_t group_begin = 0;
+    for (const SnesWalkGroup& group : groups)
+    {
+      if (group_mark == std::numeric_limits<uint16_t>::max())
+      {
+        candidates.clearMarks();
+        group_mark = 0;
+      }
+      ++group_mark;
+      for (size_t k = group_begin; k < group.end; ++k)
+      {
+        SnesSlotTable::Slot& candidate = candidates[entries[k]];
+        if (candidate.mark == group_mark) continue;   // already emitted for this (charge, iso_err, Σ)
+        if (candidate.count < min_matched_peaks_) continue;
+        candidate.mark = group_mark;
+        SpectrumMatch sm;
+        sm.peptide_idx_ = candidate.key;
+        sm.num_matched_ = candidate.count;
+        sm.isotope_error_ = group.isotope_error;
+        sm.precursor_charge_ = group.charge;
+        sm.sigma_delta_ = group.sigma;
+        sms.hits_.push_back(sm);
+      }
+      group_begin = group.end;
+    }
 
-    // Dedup guard `emitted` is declared and reset (O(touched), via emitted_touched)
-    // in the setup block above. The per-(charge, iso_err, sigma) reset below is also
-    // O(touched) rather than a full-index std::fill.
-
-    // Helper: compute the iso-shifted observed (M+H)+ for a given (charge, iso_err).
+    // Helper: compute the iso-shifted observed (M+H)+ for a given (charge, iso_err), as the walks do.
     // Used by the subset-enumeration post-pass to reconstruct the realization target.
     auto shifted_mh_for = [&](uint16_t charge, int16_t iso_err) -> float {
       const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
@@ -3350,274 +3583,20 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       return mh_plus + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
     };
 
-    // Asymmetric tolerance: tol_lo <= 0 (low-side magnitude, sign-flipped),
-    // tol_hi >= 0. A match requires fragment_mz ∈ [target_mz + tol_lo, target_mz + tol_hi],
-    // the bounds that also select the buckets.
-    // Preserves calibrated windows like [100 ppm, 5 ppm] where the symmetric
-    // max-collapse over-admitted ~20× on the tighter side.
-    auto collect_candidates =
-      [&](float target_mz, float tol_lo, float tol_hi, bool expect_single_c,
-          int16_t iso_err, uint16_t charge,
-          SnesAnchor require_anchor, float sigma_tag)
-    {
-      const float mz_lo = target_mz + tol_lo;
-      const float mz_hi = target_mz + tol_hi;
-      auto left_it = std::lower_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_lo);
-      auto right_it = std::upper_bound(bucket_min_mz_.begin(), bucket_min_mz_.end(), mz_hi);
-      if (left_it != bucket_min_mz_.begin()) --left_it;
-
-      const size_t bucket_begin = std::distance(bucket_min_mz_.begin(), left_it);
-      const size_t bucket_end = std::distance(bucket_min_mz_.begin(), right_it);
-
-      for (size_t j = bucket_begin; j < bucket_end; ++j)
-      {
-        const auto slice_begin = fi_fragments_.begin() + (j * bucketsize_);
-        const auto slice_end = ((j + 1) * bucketsize_) >= fi_fragments_.size()
-          ? fi_fragments_.end()
-          : (fi_fragments_.begin() + ((j + 1) * bucketsize_));
-
-        for (auto it = slice_begin; it != slice_end; ++it)
-        {
-          if (it->fragment_mz_ < mz_lo || it->fragment_mz_ > mz_hi) continue;
-
-          const UInt32 id = it->peptide_idx_;
-          if (emitted[id]) continue;
-
-          const auto& mother = fi_peptides_[id];
-          if (isSingleCMother(mother.mod_bitmask_) != expect_single_c) continue;
-
-          // SNES v1.1: anchor-specific filter for PROTEIN_N/C_TERM mod walks.
-          if (require_anchor == SnesAnchor::PROT_NTERM && !isProteinNTerminal_(fasta_entries[mother.protein_idx].sequence, mother.sequence_.first))
-          {
-            continue;
-          }
-          if (require_anchor == SnesAnchor::PROT_CTERM)
-          {
-            const uint32_t prot_len = protein_lengths_[mother.protein_idx];
-            if (static_cast<uint32_t>(mother.sequence_.first) + mother.sequence_.second != prot_len) continue;
-          }
-
-          if (score_table[id] < min_matched_peaks_) continue;
-
-          emit_mark(id);
-          SpectrumMatch sm;
-          sm.peptide_idx_ = id;
-          sm.num_matched_ = score_table[id];
-          sm.isotope_error_ = iso_err;
-          sm.precursor_charge_ = charge;
-          sm.sigma_delta_ = sigma_tag;
-          sms.hits_.push_back(sm);
-        }
-      }
-    };
-
-    // SNES v1.1: precompute the set-difference Σ values that only appear in
-    // the protein-anchored-only sets. These drive extra bin walks gated by
-    // the SnesAnchor filter in collect_candidates. When no protein-term
-    // variable mods are configured, these vectors are empty and the extra
-    // walks are skipped entirely.
-    auto set_difference_tol = [](const std::vector<double>& A, const std::vector<double>& B) {
-      std::vector<double> out;
-      out.reserve(A.size());
-      for (double a : A)
-      {
-        bool found = false;
-        for (double b : B)
-        {
-          if (std::abs(a - b) < 1e-6) { found = true; break; }
-        }
-        if (!found) out.push_back(a);
-      }
-      return out;
-    };
-    const std::vector<double> prot_nterm_extra = set_difference_tol(
-        snes_sigma_delta_set_with_prot_nterm_, snes_sigma_delta_set_);
-    const std::vector<double> prot_cterm_extra = set_difference_tol(
-        snes_sigma_delta_set_with_prot_cterm_, snes_sigma_delta_set_);
-
-    for (uint16_t charge : charges)
-    {
-      const float mh_plus = static_cast<float>(precursor.getMZ()) * charge
-        - (charge - 1) * static_cast<float>(Constants::PROTON_MASS_U);
-
-      // Open-search mode (very wide precursor tolerance auto-detected in
-      // isOpenSearchMode_()) collapses the isotope-error iteration to a
-      // single iso_err == 0 pass — at open-search windows, adding multiples
-      // of C13C12_MASSDIFF_U to the target is a no-op on candidate admission
-      // (the window already spans many isotope peaks) and just inflates the
-      // hit list with duplicate-labelled candidates. Mirrors the non-SNES
-      // `queryPeaks` path (FragmentIndex.cpp:1478-1480).
-      const bool open_mode = isOpenSearchMode_();
-      const int16_t iso_lo = open_mode ? 0 : min_isotope_error_;
-      const int16_t iso_hi = open_mode ? 0 : max_isotope_error_;
-      for (int16_t iso_err = iso_lo; iso_err <= iso_hi; ++iso_err)
-      {
-        const float shifted_mh = mh_plus
-          + static_cast<float>(iso_err) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
-
-        // Asymmetric precursor tolerance for the bin walk — use computeMassWindow_
-        // to get signed (lo <= 0, hi >= 0) Da bounds that respect calibrated
-        // asymmetric windows. Previously collapsed to max(lower, upper), which
-        // over-admitted by ~20× on the tighter side for calibrated configs
-        // like [100 ppm, 5 ppm]. Same reference m/z (shifted_mh) for all
-        // targets within this (charge, iso_err) iteration.
-        const auto prec_window = computeMassWindow_(shifted_mh);
-        const float prec_tol_lo = prec_window.first;   // <= 0
-        const float prec_tol_hi = prec_window.second;  // >= 0
-
-        // Baseline Σ loop: walks every mother regardless of protein anchor.
-        // Each (charge, iso_err, sigma) triple is independent — reset the dedup
-        // guard per iteration so the same mother can emit distinct matches at
-        // different Σ values (each represents a distinct variable-mod assignment).
-        for (double sigma : snes_sigma_delta_set_)
-        {
-          // Reset dedup per (charge, iso_err, sigma) combo so the same mother
-          // can re-emit at distinct sigma values (each is a distinct match).
-          reset_emitted_touched();
-
-          const float s = static_cast<float>(sigma);
-
-          // Target m/z derivation, accounting for the fact that SNES fragment
-          // generation (build()) emits Single-N b-ions with c_term_mod = 0 and
-          // Single-C y-ions with n_term_mod = 0:
-          //   Realized (M+H)+ = water + proton + fixed_nterm + fixed_cterm + Σ_internal
-          //   b_k (Single-N)  = proton + fixed_nterm + Σ_internal
-          //                   => (M+H)+ − water − fixed_cterm − Σ
-          //   y_k (Single-C)  = water + proton + fixed_cterm + Σ_internal
-          //                   => (M+H)+ − fixed_nterm − Σ
-          // Missing the fixed-term offsets would shift the lookup target by the
-          // corresponding delta and silently miss all candidates when a user
-          // configures Acetyl (N-term) / Amidated (C-term) / similar.
-          collect_candidates(target_single_n(shifted_mh, s),
-                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge,
-                             SnesAnchor::NONE, s);
-          collect_candidates(target_single_c(shifted_mh, s),
-                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
-                             SnesAnchor::NONE, s);
-
-          // Supplementary full-length realization at this Σ — recover b_L and y_L
-          // cases that aren't in the fragment index (v1 indexes b_1..b_{L-1}
-          // and y_1..y_{L-1} only). Match mothers whose precursor_mz_ equals
-          // shifted_mh - s within the asymmetric prec tolerance.
-          //
-          // This matters especially for (a) sub-peptides of length == max_length,
-          // which have no "longer-mother" partial-realization alternative, and
-          // (b) proteins shorter than max_length, where every mother is at full
-          // protein length.
-          {
-            const float target = target_full(shifted_mh, s);
-            auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol_lo,
-                                        [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
-            auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol_hi,
-                                        [](float b, const Peptide& a) { return b < a.precursor_mz_; });
-            for (auto it = lb; it != ub; ++it)
-            {
-              const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
-              if (emitted[id]) continue;
-              if (score_table[id] < min_matched_peaks_) continue;
-              emit_mark(id);
-              SpectrumMatch sm;
-              sm.peptide_idx_ = id;
-              sm.num_matched_ = score_table[id];
-              sm.isotope_error_ = iso_err;
-              sm.precursor_charge_ = charge;
-              sm.sigma_delta_ = s;
-              sms.hits_.push_back(sm);
-            }
-          }
-        }
-
-        // Extra walks for PROTEIN_N_TERM-only Σ values (Single-N mothers at
-        // protein position 0, or 1 after enabled Met clipping). Empty when no PROTEIN_N_TERM variable mods
-        // are configured.
-        for (double sigma : prot_nterm_extra)
-        {
-          reset_emitted_touched();
-          const float s = static_cast<float>(sigma);
-          collect_candidates(target_single_n(shifted_mh, s),
-                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/false, iso_err, charge,
-                             SnesAnchor::PROT_NTERM, s);
-          // Supplementary full-length at this Σ, PROT_NTERM-gated.
-          {
-            const float target = target_full(shifted_mh, s);
-            auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol_lo,
-                                        [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
-            auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol_hi,
-                                        [](float b, const Peptide& a) { return b < a.precursor_mz_; });
-            for (auto it = lb; it != ub; ++it)
-            {
-              const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
-              if (emitted[id]) continue;
-              if (!isProteinNTerminal_(fasta_entries[fi_peptides_[id].protein_idx].sequence, fi_peptides_[id].sequence_.first))
-              {
-                continue; // PROT_NTERM anchor
-              }
-              if (isSingleCMother(fi_peptides_[id].mod_bitmask_)) continue; // Single-N only
-              if (score_table[id] < min_matched_peaks_) continue;
-              emit_mark(id);
-              SpectrumMatch sm;
-              sm.peptide_idx_ = id;
-              sm.num_matched_ = score_table[id];
-              sm.isotope_error_ = iso_err;
-              sm.precursor_charge_ = charge;
-              sm.sigma_delta_ = s;
-              sms.hits_.push_back(sm);
-            }
-          }
-        }
-
-        // Extra walks for PROTEIN_C_TERM-only Σ values.
-        for (double sigma : prot_cterm_extra)
-        {
-          reset_emitted_touched();
-          const float s = static_cast<float>(sigma);
-          collect_candidates(target_single_c(shifted_mh, s),
-                             prec_tol_lo, prec_tol_hi, /*expect_single_c=*/true, iso_err, charge,
-                             SnesAnchor::PROT_CTERM, s);
-          // Supplementary full-length at this Σ, PROT_CTERM-gated.
-          {
-            const float target = target_full(shifted_mh, s);
-            auto lb = std::lower_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol_lo,
-                                        [](const Peptide& a, float b) { return a.precursor_mz_ < b; });
-            auto ub = std::upper_bound(fi_peptides_.begin(), fi_peptides_.end(),
-                                        target + prec_tol_hi,
-                                        [](float b, const Peptide& a) { return b < a.precursor_mz_; });
-            for (auto it = lb; it != ub; ++it)
-            {
-              const UInt32 id = static_cast<UInt32>(std::distance(fi_peptides_.begin(), it));
-              if (emitted[id]) continue;
-              if (!isSingleCMother(fi_peptides_[id].mod_bitmask_)) continue; // Single-C only
-              const uint32_t prot_len = protein_lengths_[fi_peptides_[id].protein_idx];
-              if (static_cast<uint32_t>(fi_peptides_[id].sequence_.first)
-                  + fi_peptides_[id].sequence_.second != prot_len) continue;
-              if (score_table[id] < min_matched_peaks_) continue;
-              emit_mark(id);
-              SpectrumMatch sm;
-              sm.peptide_idx_ = id;
-              sm.num_matched_ = score_table[id];
-              sm.isotope_error_ = iso_err;
-              sm.precursor_charge_ = charge;
-              sm.sigma_delta_ = s;
-              sms.hits_.push_back(sm);
-            }
-          }
-        }
-      }
-    }
-
     // SNES v1.1 subset enumeration: expand each (mother, Σ) hit in sms.hits_
     // into one SpectrumMatch per valid variable-mod subset on the realized
     // sub-peptide. Σ=0 hits pass through unchanged (bitmask=0). Per-mother
     // cap of 16 subsets across all (k, Σ) tuples prevents degenerate blowup.
+    // Without a Σ != 0 hit (and no zero-sum subsets) the expansion is the identity and is skipped.
+    bool expand = snes_zero_sigma_subsets_;
+    for (size_t i = 0; !expand && i < sms.hits_.size(); ++i) expand = (sms.hits_[i].sigma_delta_ != 0.0f);
+    if (expand)
     {
-      std::vector<SpectrumMatch> expanded;
+      std::vector<SpectrumMatch>& expanded = scratch.expanded;
+      expanded.clear();
       expanded.reserve(sms.hits_.size());
-      std::unordered_map<size_t, size_t> subsets_per_mother;
+      SnesSlotTable& subset_mothers = scratch.subset_mothers;
+      subset_mothers.reset(sms.hits_.size());
 
       const auto& fasta_entries_ref = fasta_entries;
 
@@ -3707,7 +3686,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
               >= 1e-4 + std::abs(stored_sigma) * static_cast<double>(std::numeric_limits<float>::epsilon()) / 2) continue;
 
           // Per-mother cap.
-          size_t& count = subsets_per_mother[sm_raw.peptide_idx_];
+          uint16_t& count = subset_mothers[subset_mothers.insert(static_cast<UInt32>(sm_raw.peptide_idx_))].count;
           if (count >= 16)
           {
             OPENMS_LOG_DEBUG << "[FragmentIndex] SNES per-mother subset cap "
@@ -3725,7 +3704,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           ++count;
         }
       }
-      sms.hits_ = std::move(expanded);
+      // The buffer of the raw hits is kept for the next query on this thread.
+      sms.hits_.swap(expanded);
     }
 
     // Cap the candidate set at `max_processed_hits_` (same policy as the
@@ -4095,6 +4075,34 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     snes_sigma_delta_set_with_prot_nterm_ = computeSnesSigmaDeltaSet_(true, false);
     snes_sigma_delta_set_with_prot_cterm_ = computeSnesSigmaDeltaSet_(false, true);
     snes_zero_sigma_subsets_ = nonemptyZeroSigmaSubsetExists_();
+    // The Σ values that only occur with PROTEIN_N_TERM / PROTEIN_C_TERM variable mods drive extra bin walks of
+    // querySpectrumSNES_() (gated by the SnesAnchor filter); empty when no such mods are configured.
+    auto set_difference_tol = [](const std::vector<double>& A, const std::vector<double>& B) {
+      std::vector<double> out;
+      out.reserve(A.size());
+      for (double a : A)
+      {
+        bool found = false;
+        for (double b : B)
+        {
+          if (std::abs(a - b) < 1e-6) { found = true; break; }
+        }
+        if (!found) out.push_back(a);
+      }
+      return out;
+    };
+    snes_sigma_prot_nterm_extra_ = set_difference_tol(snes_sigma_delta_set_with_prot_nterm_, snes_sigma_delta_set_);
+    snes_sigma_prot_cterm_extra_ = set_difference_tol(snes_sigma_delta_set_with_prot_cterm_, snes_sigma_delta_set_);
+
+    // realizeSNESLength() stops at the first length past the precursor window if every residue a mother can
+    // contain adds mass (with its fixed modification), i.e. if longer realizations are always heavier.
+    initResidueMassTable_();
+    residue_masses_positive_ = true;
+    const std::array<bool, 256>& indexable = indexableResidues();
+    for (size_t aa = 0; aa < residue_mass_table_.size(); ++aa)
+    {
+      if (indexable[aa] && !(residue_mass_table_[aa] + fixed_mod_deltas_[aa] > 0.0)) residue_masses_positive_ = false;
+    }
 
     const size_t largest_set = std::max({snes_sigma_delta_set_.size(),
                                           snes_sigma_delta_set_with_prot_nterm_.size(),

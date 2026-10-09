@@ -1848,10 +1848,10 @@ END_SECTION
 START_SECTION((SNES query is safe and correct when a smaller index is queried after a larger one on the same thread))
 {
   // Regression for an out-of-bounds access in querySpectrumSNES_'s touched-only reset.
-  // Its score_table / viable_words / emitted scratch buffers are thread_local and persist
-  // across queries AND across different / rebuilt FragmentIndex instances on the same
-  // thread (e.g. the smaller final chunk of a chunked search). The reset must NOT walk the
-  // previous query's touched-id list after the buffers were resized to a SMALLER index, or
+  // Its scratch buffers (one candidate bit per mother, the candidate table) are thread_local
+  // and persist across queries AND across different / rebuilt FragmentIndex instances on the
+  // same thread (e.g. the smaller final chunk of a chunked search). The reset must NOT walk the
+  // previous query's candidate ids after the buffers were resized to a SMALLER index, or
   // it indexes past the new size. The defect is silent in a release build (std::vector
   // keeps capacity on assign), but aborts under _GLIBCXX_DEBUG / _GLIBCXX_ASSERTIONS / ASan
   // — which is where this test has teeth (run the suite under one of those to catch a
@@ -1929,6 +1929,98 @@ START_SECTION((SNES query is safe and correct when a smaller index is queried af
   bool any_matched = false;
   for (const auto& hit : sms_small.hits_) { if (hit.num_matched_ >= 3u) { any_matched = true; break; } }
   TEST_EQUAL(any_matched, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] SNES query results do not depend on the earlier queries of the thread))
+{
+  // querySpectrumSNES_ keeps its working memory per thread and clears the candidate bits of the previous query
+  // first: all at once when the bitset is no larger than the previous candidate table, else bit by bit from that
+  // table. A spectrum must get the same hits after any earlier query: here after queries with many candidates
+  // (whole-bitset clear next), with none (the table is smaller than the bitset of the ~2400 mothers: bit-by-bit
+  // clear next) and with an unknown charge.
+  std::string protein;
+  const std::string residues = "ACDEFGHIKLMNPQRSTVWY";
+  uint32_t state = 12345;
+  for (int i = 0; i < 1200; ++i)
+  {
+    state = state * 1103515245u + 12345u;
+    protein += residues[(state >> 16) % residues.size()];
+  }
+  const std::vector<FASTAFile::FASTAEntry> entries{{"P", "P", protein}};
+
+  FragmentIndex_test fi;
+  Param p = fi.getParameters();
+  p.setValue("peptide:enzyme_specificity", "none");
+  p.setValue("peptide:min_size", 7);
+  p.setValue("peptide:max_size", 30);
+  p.setValue("peptide:min_mass", 0);
+  p.setValue("peptide:max_mass", 50000);
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 0.5);
+  p.setValue("fragment:mass_tolerance_unit", "Da");
+  p.setValue("precursor:isotope_error_min", -1);
+  p.setValue("precursor:isotope_error_max", 1);
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("snes_enabled", "true");
+  p.setValue("fragment:min_matched_ions", 3);
+  fi.setParameters(p);
+  fi.build(entries);
+  TEST_EQUAL(fi.isSnesMode(), true)
+  TEST_EQUAL(fi.getPeptides().size() > 64 * 16, true) // more bitset words than the smallest candidate table
+
+  auto make_spectrum = [](const std::string& seq, double precursor_mz, int charge)
+  {
+    TheoreticalSpectrumGenerator tsg;
+    PeakSpectrum theo;
+    tsg.getSpectrum(theo, AASequence::fromString(seq), 1, 1);
+    MSSpectrum spec;
+    for (const auto& peak : theo) spec.push_back(peak);
+    spec.sortByPosition();
+    Precursor prec;
+    prec.setMZ(precursor_mz);
+    prec.setCharge(charge);
+    spec.getPrecursors().push_back(prec);
+    spec.setMSLevel(2);
+    return spec;
+  };
+  // a sub-peptide of the protein, with an oxidized methionine if it has one
+  std::string sub = protein.substr(300, 14);
+  AASequence target = AASequence::fromString(sub);
+  const size_t met = sub.find('M');
+  if (met != std::string::npos) target.setModification(met, "Oxidation");
+  const MSSpectrum spec_a = make_spectrum(target.toString(), target.getMZ(2), 2);
+  const MSSpectrum spec_none = make_spectrum(target.toString(), 40000.0, 1);    // no mother reaches this precursor
+  const MSSpectrum spec_unknown = make_spectrum(target.toString(), target.getMZ(2), 0); // charges 2..5
+
+  auto query = [&](const MSSpectrum& spec)
+  {
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spec, entries, sms);
+    return sms.hits_;
+  };
+  auto same_hits = [](const std::vector<FragmentIndex::SpectrumMatch>& a, const std::vector<FragmentIndex::SpectrumMatch>& b)
+  {
+    if (a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i)
+    {
+      if (a[i].peptide_idx_ != b[i].peptide_idx_ || a[i].num_matched_ != b[i].num_matched_
+          || a[i].isotope_error_ != b[i].isotope_error_ || a[i].precursor_charge_ != b[i].precursor_charge_
+          || a[i].sigma_delta_ != b[i].sigma_delta_ || a[i].subset_bitmask_ != b[i].subset_bitmask_) return false;
+    }
+    return true;
+  };
+
+  const auto reference = query(spec_a);
+  TEST_EQUAL(reference.empty(), false)
+  TEST_EQUAL(query(spec_none).empty(), true)
+  TEST_EQUAL(same_hits(query(spec_a), reference), true)   // after a query without candidates
+  TEST_EQUAL(same_hits(query(spec_a), reference), true)   // after a query with candidates
+  TEST_EQUAL(query(spec_unknown).empty(), false)
+  TEST_EQUAL(same_hits(query(spec_a), reference), true)   // after a query with an unknown charge
 }
 END_SECTION
 

@@ -2407,11 +2407,21 @@ namespace OpenMS
     const Size keep = std::max(report_top_hits_, Size(2)); // keep ≥2 for delta score
     const bool deduplicate_chunks = param_.getValue("peptide:deduplicate").toBool() && database_chunk_size_ > 0 && ! fi.isSnesMode();
 
+    // Per-thread buffers of the candidates of a spectrum (and of the SNES realizations seen), reused by the spectra
+    // of a thread: no allocation per spectrum once they have grown.
+#ifdef _OPENMP
+    const Size num_threads = static_cast<Size>(omp_get_max_threads());
+#else
+    const Size num_threads = 1;
+#endif
+    std::vector<FragmentIndex::SpectrumMatchesTopN> thread_candidates(num_threads);
+    std::vector<std::vector<std::tuple<UInt32, uint16_t, uint16_t, uint32_t>>> thread_realizations(num_threads);
+
     // An exception on a worker thread (a modification AASequence rejects, a scorer's parameter check, ...) must not
     // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
     std::exception_ptr scoring_error;
     std::atomic<bool> scoring_failed{false};
-#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks, scoring_error, scoring_failed)
+#pragma omp parallel for schedule(dynamic) default(none) shared(annotated_hits, pool_stats, query_spectra, count_spectra, fi, generators, db, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode, proton_mass_u, c13c12_massdiff_u, effective_fragment_tol, keep, deduplicate_chunks, scoring_error, scoring_failed, thread_candidates, thread_realizations)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
       if (scoring_failed.load(std::memory_order_relaxed)) continue;
@@ -2422,7 +2432,13 @@ namespace OpenMS
 
       const MSSpectrum& exp_spectrum = spectra[scan_index];
       const TheoreticalSpectrumGenerator& spectrum_generator = generators.forSpectrum(exp_spectrum);
-      FragmentIndex::SpectrumMatchesTopN top_sms;
+#ifdef _OPENMP
+      const Size thread = static_cast<Size>(omp_get_thread_num());
+#else
+      const Size thread = 0;
+#endif
+      FragmentIndex::SpectrumMatchesTopN& top_sms = thread_candidates[thread];
+      top_sms.clear();
       // ions:by_activation: only electron-activated spectra are matched against the c and z+1 ions,
       // so that these ions do not change which candidates the other spectra keep
       const MSSpectrum& query = query_spectra != nullptr ? (*query_spectra)[scan_index] : exp_spectrum;
@@ -2448,10 +2464,13 @@ namespace OpenMS
       // Both realize to the same AASequence (same protein, start, length,
       // variable-mod subset). Without this guard, both are scored and land
       // in annotated_hits, inflating the candidate list and biasing delta
-      // scores / Percolator features. Per-spectrum state — cheap, bounded
-      // by max_candidates_per_spectrum. Empty for non-SNES queries.
+      // scores / Percolator features. Per-spectrum state, bounded by
+      // max_candidates_per_spectrum: a linear search in a vector that the
+      // spectra of this thread reuse (no allocation per candidate). Empty for
+      // non-SNES queries.
       // Key: (protein_idx, realized_start, realized_length, subset_bitmask).
-      std::set<std::tuple<UInt32, uint16_t, uint16_t, uint32_t>> seen_realizations;
+      std::vector<std::tuple<UInt32, uint16_t, uint16_t, uint32_t>>& seen_realizations = thread_realizations[thread];
+      seen_realizations.clear();
 
       for (const auto& sms : top_sms.hits_)
       {
@@ -2486,7 +2505,8 @@ namespace OpenMS
           const auto key = std::make_tuple(sms_pep.protein_idx, realized_start,
                                             static_cast<uint16_t>(realized_len),
                                             sms.subset_bitmask_);
-          if (!seen_realizations.insert(key).second) continue;
+          if (std::find(seen_realizations.begin(), seen_realizations.end(), key) != seen_realizations.end()) continue;
+          seen_realizations.push_back(key);
 
           mod_candidate = fi.reconstructRealizedSubSequence(
               sms_pep, db, static_cast<size_t>(realized_len), sms.subset_bitmask_);
