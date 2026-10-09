@@ -2536,9 +2536,13 @@ START_SECTION((SearchResult searchWithModificationAnalysis(const std::string &, 
   const auto accessions = [](const std::vector<ProteinIdentification>& runs)
   {
     std::vector<std::string> acc;
-    for (const ProteinHit& hit : runs.at(0).getHits()) { acc.push_back(hit.getAccession()); }
+    for (const ProteinHit& hit : runs.at(0).getHits()) { acc.push_back(hit.getAccession() + "=" + std::to_string(hit.getScore())); }
     std::sort(acc.begin(), acc.end());
-    return ListUtils::concatenate(acc, ",");
+    return runs.at(0).getScoreType() + ":" + ListUtils::concatenate(acc, ",");
+  };
+  const auto matched = [](const PeptideIdentificationList& peptide_ids)
+  {
+    return static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(), [](const auto& pid) { return !pid.getHits().empty(); }));
   };
   const auto decoy_psms = [](const PeptideIdentificationList& peptide_ids)
   {
@@ -2550,17 +2554,23 @@ START_SECTION((SearchResult searchWithModificationAnalysis(const std::string &, 
   PeptideIdentificationList pep_ids;
   TEST_EQUAL(algo.search(tmp_mzml, tmp_fasta, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(decoy_psms(pep_ids), 0)
+  TEST_EQUAL(prot_ids.at(0).getHits().size(), 10) // P01-P10
 
   ProSEAlgorithm::SearchResult from_file = algo.searchWithModificationAnalysis(tmp_mzml, tmp_fasta);
   TEST_EQUAL(from_file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(from_file.is_open_search, true)
   TEST_EQUAL(accessions(from_file.protein_ids), accessions(prot_ids))
   TEST_EQUAL(decoy_psms(from_file.peptide_ids), 0)
+  // the statistics describe the returned identifications (after protein FDR)
+  TEST_EQUAL(from_file.stats.decoy_psms, 0)
+  TEST_EQUAL(from_file.stats.matched_spectra, matched(from_file.peptide_ids))
 
   ProSEAlgorithm::SearchResult in_memory = algo.searchWithModificationAnalysis(spectra, fasta_db);
   TEST_EQUAL(in_memory.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(accessions(in_memory.protein_ids), accessions(prot_ids))
   TEST_EQUAL(decoy_psms(in_memory.peptide_ids), 0)
+  TEST_EQUAL(in_memory.stats.decoy_psms, 0)
+  TEST_EQUAL(in_memory.stats.matched_spectra, matched(in_memory.peptide_ids))
 }
 END_SECTION
 

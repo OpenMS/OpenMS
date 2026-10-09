@@ -4639,12 +4639,13 @@ namespace OpenMS
     }
 
     // A single input is a complete experiment: protein FDR as in search(file).
-    if (fdr_protein_ > 0.0)
+    if (fdr_protein_ > 0.0 && !result.protein_ids.empty() && !result.peptide_ids.empty())
     {
       const DecoyStrategy_ strategy = resolveDecoyStrategy_(fasta_db);
       if (strategy.have_decoys)
       {
         applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids, strategy.decoy_string, strategy.is_prefix, fdr_protein_);
+        updateFinalStats(result.stats, result.peptide_ids, enzyme_, result.stats.fdr_applied);
       }
     }
 
@@ -5450,6 +5451,7 @@ namespace OpenMS
         && !result.protein_ids.empty() && !result.peptide_ids.empty())
     {
       applyCompleteSetProteinFDR(result.protein_ids, result.peptide_ids, mfres.decoy_string, mfres.decoy_is_prefix, fdr_protein_);
+      updateFinalStats(result.stats, result.peptide_ids, enzyme_, result.stats.fdr_applied);
     }
     return std::move(result);
   }
