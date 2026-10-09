@@ -251,14 +251,17 @@ case "$build_type" in
   Debug)
     msvc_requirement="Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Debug configuration
         with the dynamic debug runtime (/MDd). A Release build of your code (/MD)
-        must not be linked against this SDK; use OpenMS-SDK-<version>-Windows-x64.zip
-        for that. The .pdb files of the OpenMS libraries are next to the DLLs in
-        bin/, so a debugger can step into OpenMS code." ;;
+        cannot link this SDK: find_package(OpenMS) refuses any configuration but
+        Debug (with a Visual Studio generator, set CMAKE_CONFIGURATION_TYPES=Debug);
+        use OpenMS-SDK-<version>-Windows-x64.zip for that. The .pdb files of the
+        OpenMS libraries are next to the DLLs in bin/, so a debugger can step into
+        OpenMS code." ;;
   *)
     msvc_requirement="Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Release configuration
-        with the dynamic runtime (/MD). A Debug build of your code (/MDd) must not
-        be linked against this SDK; use OpenMS-SDK-<version>-Windows-x64-Debug.zip
-        for that." ;;
+        with the dynamic runtime (/MD). A Debug build of your code (/MDd) cannot
+        link this SDK: find_package(OpenMS) refuses the Debug configuration (with a
+        Visual Studio generator, set CMAKE_CONFIGURATION_TYPES to the others, e.g.
+        Release); use OpenMS-SDK-<version>-Windows-x64-Debug.zip for that." ;;
 esac
 # The version the README's find_package() example names is the one the package
 # file answers to (OpenMSConfigVersion.cmake, e.g. 3.6.0), not the <version> of
@@ -307,9 +310,7 @@ fi
 
 configure_args=(
   -S "$(cmake_path "$source_dir/src/tests/external")"
-  -B "$(cmake_path "$consumer_build")"
   -G "$(cache_var CMAKE_GENERATOR)"
-  "-DCMAKE_BUILD_TYPE=$build_type"
   "-DCMAKE_PREFIX_PATH=$prefix_path"
 )
 # the toolchain of the OpenMS build, as the installed-consumer tests forward it
@@ -324,7 +325,7 @@ for var in CMAKE_TOOLCHAIN_FILE VCPKG_INSTALLED_DIR VCPKG_TARGET_TRIPLET VCPKG_H
 done
 
 echo "--- building src/tests/external against the SDK"
-cmake "${configure_args[@]}"
+cmake "${configure_args[@]}" -B "$(cmake_path "$consumer_build")" "-DCMAKE_BUILD_TYPE=$build_type"
 
 # the consumer has to have picked up the SDK, not some other OpenMS
 found_dir=$(sed -n 's/^OpenMS_DIR:PATH=//p' "$consumer_build/CMakeCache.txt")
@@ -357,6 +358,34 @@ cmake --build "$(cmake_path "$consumer_build")" --config "$build_type"
 OPENMS_DATA_PATH="$(cmake_path "$sdk_prefix/$(cache_var INSTALL_SHARE_DIR)")"
 export OPENMS_DATA_PATH
 ctest --test-dir "$(cmake_path "$consumer_build")" -C "$build_type" --output-on-failure --no-tests=error
+
+# Windows: MSVC's debug and release runtimes cannot be mixed, so OpenMSConfig.cmake
+# refuses a project configuration whose runtime is not the one the installation was
+# built against (cmake/OpenMSConfig.cmake.in). The README promises that the archive
+# of one configuration is not linked by the other; make sure the refusal works on
+# the archive, and that it is this check that refuses, not some other configure error.
+case "$(uname -s)" in
+  Linux|Darwin) ;;
+  *)
+    other_type=Debug
+    if [[ "$build_type" == Debug ]]; then
+      other_type=Release
+    fi
+    mismatch_build="$work_dir/consumer-$other_type"
+    echo "--- checking that the SDK refuses a $other_type consumer"
+    if cmake "${configure_args[@]}" -B "$(cmake_path "$mismatch_build")" \
+             "-DCMAKE_BUILD_TYPE=$other_type" > "$mismatch_build.log" 2>&1; then
+      cat "$mismatch_build.log"
+      echo >&2 "ERROR: a $other_type consumer configured against the $build_type SDK; OpenMSConfig.cmake should have refused it"
+      exit 1
+    fi
+    if ! grep -q OPENMS_SKIP_MSVC_RUNTIME_CHECK "$mismatch_build.log"; then
+      cat "$mismatch_build.log"
+      echo >&2 "ERROR: the $other_type consumer failed for another reason than the MSVC runtime check"
+      exit 1
+    fi
+    ;;
+esac
 
 rm -rf "$work_dir"
 echo "SDK archive: $archive"
