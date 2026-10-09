@@ -58,7 +58,10 @@ hand-editing sources and committing them, to keep sync self-healing.
 ### Regenerating the patch
 
 Whenever you hand-fix a downstream issue in the vendored tree, capture it in
-this patch rather than leaving it only in the source commit. To regenerate:
+this patch rather than leaving it only in the source commit. The later patches
+(`02-*.patch`, ...) are applied on top of patch 01 by `sync-from-upstream.sh`, so
+they are reverse-applied on a staged copy of the tree first and stay out of
+patch 01. To regenerate, run from this directory:
 
 ```bash
 mkdir -p /tmp/perc-eb157f7
@@ -67,11 +70,17 @@ for f in $whitelist; do
   gh api "repos/percolator/percolator/contents/src/$f?ref=$(cat UPSTREAM_COMMIT)" \
     --jq '.content' 2>/dev/null | base64 -d > "/tmp/perc-eb157f7/$f" 2>/dev/null
 done
+stage=$(mktemp -d)
+mkdir -p "$stage/src/openms/thirdparty/percolator"
+cp ./*.h ./*.cpp "$stage/src/openms/thirdparty/percolator/"
+for p in $(ls -r patches/*.patch | grep -v '/01-'); do
+  patch -s -R -p0 -d "$stage" < "$p"
+done
 : > patches/01-namespace-wrap.patch
-for f in $(ls /tmp/perc-eb157f7/ | sort); do
+for f in $(ls /tmp/perc-eb157f7/ | LC_ALL=C sort); do
   [ -s "/tmp/perc-eb157f7/$f" ] || continue
   diff -urN --label "/tmp/percolator-preserved/$f" --label "src/openms/thirdparty/percolator/$f" \
-    "/tmp/perc-eb157f7/$f" "src/openms/thirdparty/percolator/$f" \
+    "/tmp/perc-eb157f7/$f" "$stage/src/openms/thirdparty/percolator/$f" \
     >> patches/01-namespace-wrap.patch || true
 done
 ```
