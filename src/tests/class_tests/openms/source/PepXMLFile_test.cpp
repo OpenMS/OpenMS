@@ -558,6 +558,35 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
 
 END_SECTION
 
+START_SECTION(([EXTRA] optional no_cut attribute in specificity))
+{
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  std::string tmp_pepxml;
+  NEW_TMP_FILE(tmp_pepxml);
+  std::ofstream os(tmp_pepxml.c_str());
+  os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+     << "<msms_pipeline_analysis date=\"2026-10-04T12:00:00\" summary_xml=\"test.pep.xml\">\n"
+     << "  <msms_run_summary base_name=\"test_no_cut\" raw_data_type=\"raw\" raw_data=\".mzXML\">\n"
+     << "    <sample_enzyme name=\"custom_lys_c\">\n"
+     << "      <specificity cut=\"K\" sense=\"C\"/>\n"
+     << "    </sample_enzyme>\n"
+     << "    <search_summary base_name=\"test_no_cut\" search_engine=\"Comet\" precursor_mass_type=\"monoisotopic\" fragment_mass_type=\"monoisotopic\" search_id=\"1\">\n"
+     << "      <search_database local_path=\"test.fasta\" type=\"AA\"/>\n"
+     << "    </search_summary>\n"
+     << "  </msms_run_summary>\n"
+     << "</msms_pipeline_analysis>\n";
+  os.close();
+
+  TEST_NOT_THROW(PepXMLFile().load(tmp_pepxml, proteins, peptides))
+  TEST_EQUAL(proteins.empty(), false)
+  if (!proteins.empty())
+  {
+    TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName().find("custom_lys_c") != std::string::npos, true)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
