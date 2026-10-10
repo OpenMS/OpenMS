@@ -176,15 +176,15 @@ public:
   static void sortPeptides(std::vector<Peptide>& peptides) { sortPeptides_(peptides); }
   static void sortPeptides(std::vector<Peptide>& peptides, size_t min_task_size) { sortPeptides_(peptides, min_task_size); }
 
-  std::vector<double> exposeComputeSnesSigmaDeltaSet(bool include_prot_nterm_mods,
-                                                      bool include_prot_cterm_mods) const
+  std::vector<double> exposeComputeSigmaDeltaSet(bool include_prot_nterm_mods,
+                                                bool include_prot_cterm_mods) const
   {
-    return computeSnesSigmaDeltaSet_(include_prot_nterm_mods, include_prot_cterm_mods);
+    return computeSigmaDeltaSet_(include_prot_nterm_mods, include_prot_cterm_mods);
   }
 
-  const std::vector<double>& getSnesSigmaDeltaSet() const { return snes_sigma_delta_set_; }
-  const std::vector<double>& getSnesSigmaDeltaSetProtNterm() const { return snes_sigma_delta_set_with_prot_nterm_; }
-  const std::vector<double>& getSnesSigmaDeltaSetProtCterm() const { return snes_sigma_delta_set_with_prot_cterm_; }
+  const std::vector<double>& getSigmaDeltaSet() const { return sigma_delta_set_; }
+  const std::vector<double>& getSigmaDeltaSetProtNterm() const { return sigma_delta_set_with_prot_nterm_; }
+  const std::vector<double>& getSigmaDeltaSetProtCterm() const { return sigma_delta_set_with_prot_cterm_; }
 
   bool testQuery(const UInt32 charge, const bool precursor_mz_known, const std::vector<FASTAFile::FASTAEntry>& entries)
   {
@@ -1503,13 +1503,13 @@ START_SECTION((FragmentIndex does not score the peptide at range.second (closed-
 END_SECTION
 
 // ============================================================================
-// SNES (Speedy Non-specific Enzyme Search) — mother-peptide indexing
+// Peptide-mass mode (index:mode peptide_masses) — mother-peptide indexing
 // ============================================================================
 
-START_SECTION((SNES mother enumeration on a small protein))
+START_SECTION((mother enumeration on a small protein))
 {
   // 19-aa protein, length window [8, 12]. Naive SPEC_NONE enumeration produces 50
-  // sub-peptides (see "peptide:enzyme_specificity" section above). SNES replaces
+  // sub-peptides (see "peptide:enzyme_specificity" section above). The peptide-mass mode replaces
   // that with one mother per start position i in [0, L - min_length] = [0, 11]:
   // 12 mothers of length min(12, L - i). Every sub-peptide is a prefix of the mother
   // at its start; the index holds one entry (prefix mass) per sub-peptide.
@@ -1524,11 +1524,11 @@ START_SECTION((SNES mother enumeration on a small protein))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
-  TEST_EQUAL(fi.isSnesMode(), true)
+  TEST_EQUAL(fi.isPeptideMassMode(), true)
   TEST_EQUAL(fi.getPeptides().size(), 12u)
 
   std::set<size_t> starts;
@@ -1545,9 +1545,9 @@ START_SECTION((SNES mother enumeration on a small protein))
 }
 END_SECTION
 
-START_SECTION((SNES is skipped when enzyme_specificity != none))
+START_SECTION((Peptide-mass mode: is skipped when enzyme_specificity != none))
 {
-  // snes_enabled=true only takes effect under SPEC_NONE. For SPEC_FULL the flag is
+  // index:mode peptide_masses only takes effect under SPEC_NONE. For SPEC_FULL the mode is
   // ignored and the standard tryptic digestion path runs.
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
   FragmentIndex_test fi;
@@ -1561,19 +1561,19 @@ START_SECTION((SNES is skipped when enzyme_specificity != none))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
-  TEST_EQUAL(fi.isSnesMode(), false)
+  TEST_EQUAL(fi.isPeptideMassMode(), false)
   // 3 fully-tryptic products (same result as the specificity=full test above).
   TEST_EQUAL(fi.getPeptides().size(), 3u)
 }
 END_SECTION
 
-START_SECTION((realizeSNESLength locates the correct sub-peptide length))
+START_SECTION((realizePrefixLength locates the correct sub-peptide length))
 {
-  // Build a SNES index on a 19-aa protein, compute the exact mass of a known
+  // Build a peptide-mass index on a 19-aa protein, compute the exact mass of a known
   // sub-peptide (first 10 residues, N-anchored), and verify the realization step
   // picks up that length when given the exact target mass.
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
@@ -1586,7 +1586,7 @@ START_SECTION((realizeSNESLength locates the correct sub-peptide length))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -1609,7 +1609,7 @@ START_SECTION((realizeSNESLength locates the correct sub-peptide length))
   TEST_NOT_EQUAL(mother_idx, peptides.size())
 
   // 10 ppm symmetric tolerance is ample for an exact-mass lookup.
-  const int realized = fi.realizeSNESLength(peptides[mother_idx], entries,
+  const int realized = fi.realizePrefixLength(peptides[mother_idx], entries,
                                             target_mh_plus, 10.0, 10.0, /*ppm=*/true);
   TEST_EQUAL(realized, 10)
 
@@ -1619,7 +1619,7 @@ START_SECTION((realizeSNESLength locates the correct sub-peptide length))
 }
 END_SECTION
 
-START_SECTION((realizeSNESLength realizes the whole mother and honors an asymmetric tolerance))
+START_SECTION((realizePrefixLength realizes the whole mother and honors an asymmetric tolerance))
 {
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
   FragmentIndex_test fi;
@@ -1631,7 +1631,7 @@ START_SECTION((realizeSNESLength realizes the whole mother and honors an asymmet
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -1653,7 +1653,7 @@ START_SECTION((realizeSNESLength realizes the whole mother and honors an asymmet
   TEST_NOT_EQUAL(mother_idx, peptides.size())
   TEST_EQUAL(peptides[mother_idx].sequence_.second, 9u)
 
-  const int realized = fi.realizeSNESLength(peptides[mother_idx], entries,
+  const int realized = fi.realizePrefixLength(peptides[mother_idx], entries,
                                             target_mh_plus, 10.0, 10.0, /*ppm=*/true);
   TEST_EQUAL(realized, 9)
 
@@ -1664,12 +1664,12 @@ START_SECTION((realizeSNESLength realizes the whole mother and honors an asymmet
   // below; the asymmetric implementation rejects the tight-lower config.
   const double shifted_high = target_mh_plus + 0.05; // ~50 mDa ≈ 50 ppm at mass 1000
   // Loose lower (500 ppm ≈ 500 mDa), tight upper (10 ppm ≈ 10 mDa): accept.
-  TEST_EQUAL(fi.realizeSNESLength(peptides[mother_idx], entries,
+  TEST_EQUAL(fi.realizePrefixLength(peptides[mother_idx], entries,
                                    shifted_high,
                                    /*lower=*/500.0, /*upper=*/10.0, /*ppm=*/true), 9)
   // Tight lower (10 ppm), loose upper (500 ppm): reject (negative delta
   // exceeds the tight lower bound; upper bound irrelevant here).
-  TEST_EQUAL(fi.realizeSNESLength(peptides[mother_idx], entries,
+  TEST_EQUAL(fi.realizePrefixLength(peptides[mother_idx], entries,
                                    shifted_high,
                                    /*lower=*/10.0, /*upper=*/500.0, /*ppm=*/true), -1)
 
@@ -1679,9 +1679,9 @@ START_SECTION((realizeSNESLength realizes the whole mother and honors an asymmet
 }
 END_SECTION
 
-START_SECTION((SNES fragment-index size is smaller than naive SPEC_NONE))
+START_SECTION((Peptide-mass mode: fragment-index size is smaller than naive SPEC_NONE))
 {
-  // The whole point of SNES is the memory win: one mother per protein position and one
+  // The whole point of the peptide-mass mode is the memory win: one mother per protein position and one
   // index entry (its mass) per sub-peptide, while the naive SPEC_NONE path holds an entry
   // per sub-peptide and all of its fragments.
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
@@ -1700,32 +1700,32 @@ START_SECTION((SNES fragment-index size is smaller than naive SPEC_NONE))
   FragmentIndex_test fi_naive;
   Param p_naive = fi_naive.getParameters();
   p_naive.update(base_params());
-  p_naive.setValue("snes_enabled", "false");
+  p_naive.setValue("index:mode", "fragments");
   fi_naive.setParameters(p_naive);
   fi_naive.build(entries);
 
-  FragmentIndex_test fi_snes;
-  Param p_snes = fi_snes.getParameters();
-  p_snes.update(base_params());
-  p_snes.setValue("snes_enabled", "true");
-  fi_snes.setParameters(p_snes);
-  fi_snes.build(entries);
+  FragmentIndex_test fi_masses;
+  Param p_masses = fi_masses.getParameters();
+  p_masses.update(base_params());
+  p_masses.setValue("index:mode", "peptide_masses");
+  fi_masses.setParameters(p_masses);
+  fi_masses.build(entries);
 
-  TEST_EQUAL(fi_naive.isSnesMode(), false)
-  TEST_EQUAL(fi_snes.isSnesMode(), true)
+  TEST_EQUAL(fi_naive.isPeptideMassMode(), false)
+  TEST_EQUAL(fi_masses.isPeptideMassMode(), true)
 
-  // SNES has fewer peptides (12 mothers vs 50 subpeptides).
-  TEST_EQUAL(fi_snes.getPeptides().size(), 12u)
+  // The peptide-mass index has fewer peptides (12 mothers vs 50 subpeptides).
+  TEST_EQUAL(fi_masses.getPeptides().size(), 12u)
   TEST_EQUAL(fi_naive.getPeptides().size(), 50u)
   // and an entry per sub-peptide instead of its fragments
-  TEST_EQUAL(fi_snes.getNumFragments(), 50u)
-  TEST_EQUAL(fi_naive.getNumFragments() > 5 * fi_snes.getNumFragments(), true)
+  TEST_EQUAL(fi_masses.getNumFragments(), 50u)
+  TEST_EQUAL(fi_naive.getNumFragments() > 5 * fi_masses.getNumFragments(), true)
 }
 END_SECTION
 
 START_SECTION((reconstructRealizedSubSequence applies fixed modifications))
 {
-  // Configure Carbamidomethyl on cysteine. Build SNES index. For a mother whose
+  // Configure Carbamidomethyl on cysteine. Build peptide-mass index. For a mother whose
   // realized sub-peptide contains a C, reconstructRealizedSubSequence must apply
   // the fixed mod (not just return the raw substring). This exercises the
   // fixed-mod pathway in the realization reconstruction, which was not covered
@@ -1741,7 +1741,7 @@ START_SECTION((reconstructRealizedSubSequence applies fixed modifications))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -1769,9 +1769,9 @@ START_SECTION((reconstructRealizedSubSequence applies fixed modifications))
 }
 END_SECTION
 
-START_SECTION((SNES index admits a candidate whose sub-peptide matches an observed precursor))
+START_SECTION((peptide-mass index admits a candidate whose sub-peptide matches an observed precursor))
 {
-  // End-to-end sanity: build a SNES index, synthesize a spectrum from a known
+  // End-to-end sanity: build a peptide-mass index, synthesize a spectrum from a known
   // sub-peptide's b/y ions, query it, and verify at least one candidate hits the
   // mother containing that sub-peptide.
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
@@ -1792,7 +1792,7 @@ START_SECTION((SNES index admits a candidate whose sub-peptide matches an observ
   p.setValue("precursor:isotope_error_max", 0);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -1837,14 +1837,14 @@ START_SECTION((SNES index admits a candidate whose sub-peptide matches an observ
 }
 END_SECTION
 
-START_SECTION((SNES query is safe and correct when a smaller index is queried after a larger one on the same thread))
+START_SECTION((peptide-mass query is safe and correct when a smaller index is queried after a larger one on the same thread))
 {
-  // querySpectrumSNES_'s scratch buffers are thread_local and persist across queries AND
+  // querySpectrumPeptideMasses_'s scratch buffers are thread_local and persist across queries AND
   // across different / rebuilt FragmentIndex instances on the same thread (e.g. the smaller
   // final chunk of a chunked search). Nothing may carry over from the larger index: run
   // under _GLIBCXX_ASSERTIONS / ASan for full teeth; the assertions below cover the result
   // staying correct after the shrink.
-  auto make_snes = [](FragmentIndex_test& fi) {
+  auto make_masses = [](FragmentIndex_test& fi) {
     Param p = fi.getParameters();
     p.setValue("peptide:enzyme_specificity", "none");
     p.setValue("peptide:min_size", 8);
@@ -1860,7 +1860,7 @@ START_SECTION((SNES query is safe and correct when a smaller index is queried af
     p.setValue("precursor:isotope_error_max", 0);
     p.setValue("modifications:variable", std::vector<std::string>{});
     p.setValue("modifications:fixed", std::vector<std::string>{});
-    p.setValue("snes_enabled", "true");
+    p.setValue("index:mode", "peptide_masses");
     p.setValue("fragment:min_matched_ions", 3);
     fi.setParameters(p);
   };
@@ -1890,9 +1890,9 @@ START_SECTION((SNES query is safe and correct when a smaller index is queried af
     {"L2", "L2", "GASTCVLIMPFWYHKRDENQ"}, {"L3", "L3", "MKVLAGDESTPNQRIHFYWC"},
     {"L4", "L4", "PQRSTVWYACDEFGHIKLMN"}, {"L5", "L5", "HRKDENQSTGAVLIMPFWYC"}};
   FragmentIndex_test fi_large;
-  make_snes(fi_large);
+  make_masses(fi_large);
   fi_large.build(large_entries);
-  TEST_EQUAL(fi_large.isSnesMode(), true)
+  TEST_EQUAL(fi_large.isPeptideMassMode(), true)
   const size_t large_mothers = fi_large.getPeptides().size();
   {
     MSSpectrum spec = make_spectrum("ACDEFGHIKL"); // 10-mer present in L0
@@ -1903,7 +1903,7 @@ START_SECTION((SNES query is safe and correct when a smaller index is queried af
   // (2) Small index: one short protein -> far fewer mothers.
   std::vector<FASTAFile::FASTAEntry> small_entries{{"S", "S", "ACDEFGHIKLM"}}; // 11 aa
   FragmentIndex_test fi_small;
-  make_snes(fi_small);
+  make_masses(fi_small);
   fi_small.build(small_entries);
   const size_t small_mothers = fi_small.getPeptides().size();
   TEST_EQUAL(small_mothers < large_mothers, true) // the index genuinely shrank
@@ -1919,7 +1919,7 @@ START_SECTION((SNES query is safe and correct when a smaller index is queried af
 }
 END_SECTION
 
-START_SECTION((non-SNES query is deterministic across repeated queries and safe when a smaller index is queried after a larger one on the same thread))
+START_SECTION((fragment-mode query is deterministic across repeated queries and safe when a smaller index is queried after a larger one on the same thread))
 {
   // Regression guard for queryPeaks' thread_local window-relative counting buffers
   // (match_counts / touched_ids). They persist across queries AND across different /
@@ -2005,9 +2005,9 @@ START_SECTION((non-SNES query is deterministic across repeated queries and safe 
 }
 END_SECTION
 
-START_SECTION((SNES matches candidates when a fixed N-terminal modification is configured))
+START_SECTION((Peptide-mass mode: matches candidates when a fixed N-terminal modification is configured))
 {
-  // Build a SNES index with Acetyl (N-term) as a fixed modification and verify
+  // Build a peptide-mass index with Acetyl (N-term) as a fixed modification and verify
   // that a spectrum synthesized from a sub-peptide with the N-term acetyl applied
   // is correctly matched. Exercises fixed_nterm_delta_ != 0 paths in both
   // build-time fragment generation and query-time precursor-target derivation.
@@ -2036,7 +2036,7 @@ START_SECTION((SNES matches candidates when a fixed N-terminal modification is c
   p.setValue("precursor:isotope_error_max", 0);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{"Acetyl (N-term)"});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2077,9 +2077,9 @@ START_SECTION((SNES matches candidates when a fixed N-terminal modification is c
 }
 END_SECTION
 
-START_SECTION((SNES counts the ion series of the configuration, as the non-SNES index))
+START_SECTION((Peptide-mass mode: counts the ion series of the configuration, as the fragment-mode index))
 {
-  // SNES generates the fragments of its candidates as the non-SNES index does, so any ion
+  // The peptide-mass mode generates the fragments of its candidates as the fragment mode does, so any ion
   // series configuration is supported: with ions:add_b_ions=false only the y-ions count.
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
   AASequence target = AASequence::fromString("ACDEFGRHIL");
@@ -2094,8 +2094,8 @@ START_SECTION((SNES counts the ion series of the configuration, as the non-SNES 
   spec.getPrecursors().push_back(prec);
   spec.setMSLevel(2);
 
-  std::map<std::string, std::set<std::pair<std::string, uint32_t>>> candidates; // by snes_enabled
-  for (const std::string snes : {"false", "true"})
+  std::map<std::string, std::set<std::pair<std::string, uint32_t>>> candidates; // by index:mode
+  for (const std::string mode : {"fragments", "peptide_masses"})
   {
     FragmentIndex_test fi;
     auto p = fi.getParameters();
@@ -2110,24 +2110,24 @@ START_SECTION((SNES counts the ion series of the configuration, as the non-SNES 
     p.setValue("modifications:fixed", std::vector<std::string>{});
     p.setValue("fragment:min_matched_ions", 3);
     p.setValue("ions:add_b_ions", "false");
-    p.setValue("snes_enabled", snes);
-    fi.setParameters(p); // accepted in SNES mode too
+    p.setValue("index:mode", mode);
+    fi.setParameters(p); // accepted in peptide-mass mode too
     fi.build(entries);
-    TEST_EQUAL(fi.isSnesMode(), snes == "true")
+    TEST_EQUAL(fi.isPeptideMassMode(), mode == "peptide_masses")
     FragmentIndex::SpectrumMatchesTopN sms;
     fi.querySpectrum(spec, entries, sms);
     for (const auto& hit : sms.hits_)
     {
       const auto& peptide = fi.getPeptides()[hit.peptide_idx_];
-      const AASequence seq = fi.isSnesMode()
+      const AASequence seq = fi.isPeptideMassMode()
         ? fi.reconstructRealizedSubSequence(peptide, entries, hit.realized_length_, hit.subset_bitmask_)
         : fi.reconstructModifiedSequence(peptide, entries);
-      candidates[snes].insert({seq.toString(), hit.num_matched_});
+      candidates[mode].insert({seq.toString(), hit.num_matched_});
     }
   }
   // y3..y9 of the target
-  TEST_EQUAL(candidates["true"].count({"ACDEFGRHIL", 7u}), 1u)
-  TEST_EQUAL(candidates["true"] == candidates["false"], true)
+  TEST_EQUAL(candidates["peptide_masses"].count({"ACDEFGRHIL", 7u}), 1u)
+  TEST_EQUAL(candidates["peptide_masses"] == candidates["fragments"], true)
 }
 END_SECTION
 
@@ -2144,9 +2144,9 @@ START_SECTION((SpectrumMatch default-initializes subset_bitmask_ and sigma_delta
 }
 END_SECTION
 
-START_SECTION((reconstructModifiedSequence of a SNES mother returns its residues))
+START_SECTION((reconstructModifiedSequence of a mother returns its residues))
 {
-  // A SNES mother carries no variable modification slots (mod_bitmask_ 0).
+  // A mother carries no variable modification slots (mod_bitmask_ 0).
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "ACDEFGHIK"}};
 
   FragmentIndex_test fi;
@@ -2158,7 +2158,7 @@ START_SECTION((reconstructModifiedSequence of a SNES mother returns its residues
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2173,7 +2173,7 @@ START_SECTION((reconstructModifiedSequence of a SNES mother returns its residues
 }
 END_SECTION
 
-START_SECTION((computeSnesSigmaDeltaSet_ returns sorted distinct values for typical config))
+START_SECTION((computeSigmaDeltaSet_ returns sorted distinct values for typical config))
 {
   // Config: Oxidation (M) + Deamidated (N) + Deamidated (Q), max_per_peptide = 2.
   // Both deamidation variants share the same delta (+0.984016 Da); deduplication
@@ -2193,7 +2193,7 @@ START_SECTION((computeSnesSigmaDeltaSet_ returns sorted distinct values for typi
   p.setValue("modifications:fixed", std::vector<std::string>{});
   fi.setParameters(p);
 
-  auto deltas = fi.exposeComputeSnesSigmaDeltaSet(false, false);
+  auto deltas = fi.exposeComputeSigmaDeltaSet(false, false);
 
   TEST_EQUAL(deltas.size(), 6u)
   TEST_REAL_SIMILAR(deltas[0], 0.0)
@@ -2205,7 +2205,7 @@ START_SECTION((computeSnesSigmaDeltaSet_ returns sorted distinct values for typi
 }
 END_SECTION
 
-START_SECTION((computeSnesSigmaDeltaSet_ honors include_prot_nterm_mods flag))
+START_SECTION((computeSigmaDeltaSet_ honors include_prot_nterm_mods flag))
 {
   // Config: Acetyl (Protein N-term) only. Without the flag, Σ_set should
   // contain just {0}; with the flag, should contain {0, +42.010565}.
@@ -2217,18 +2217,18 @@ START_SECTION((computeSnesSigmaDeltaSet_ honors include_prot_nterm_mods flag))
   p.setValue("modifications:fixed", std::vector<std::string>{});
   fi.setParameters(p);
 
-  auto deltas_without = fi.exposeComputeSnesSigmaDeltaSet(false, false);
+  auto deltas_without = fi.exposeComputeSigmaDeltaSet(false, false);
   TEST_EQUAL(deltas_without.size(), 1u)
   TEST_REAL_SIMILAR(deltas_without[0], 0.0)
 
-  auto deltas_with = fi.exposeComputeSnesSigmaDeltaSet(true, false);
+  auto deltas_with = fi.exposeComputeSigmaDeltaSet(true, false);
   TEST_EQUAL(deltas_with.size(), 2u)
   TEST_REAL_SIMILAR(deltas_with[0], 0.0)
   TEST_REAL_SIMILAR(deltas_with[1], 42.010565)
 }
 END_SECTION
 
-START_SECTION((updateMembers_ populates the three SNES sigma_delta sets))
+START_SECTION((updateMembers_ populates the three sigma_delta sets))
 {
   FragmentIndex_test fi;
   auto p = fi.getParameters();
@@ -2237,12 +2237,12 @@ START_SECTION((updateMembers_ populates the three SNES sigma_delta sets))
              std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
 
-  const auto& baseline = fi.getSnesSigmaDeltaSet();
-  const auto& with_nterm = fi.getSnesSigmaDeltaSetProtNterm();
-  const auto& with_cterm = fi.getSnesSigmaDeltaSetProtCterm();
+  const auto& baseline = fi.getSigmaDeltaSet();
+  const auto& with_nterm = fi.getSigmaDeltaSetProtNterm();
+  const auto& with_cterm = fi.getSigmaDeltaSetProtCterm();
 
   // Baseline has {0, +15.995} — excludes Acetyl (Protein N-term).
   TEST_EQUAL(baseline.size(), 2u)
@@ -2262,7 +2262,7 @@ END_SECTION
 
 START_SECTION((reconstructRealizedSubSequence applies mods from subset_bitmask))
 {
-  // Build SNES index with Oxidation (M) variable mod. For a mother whose
+  // Build peptide-mass index with Oxidation (M) variable mod. For a mother whose
   // realized 5-mer contains M at position 2, subset_bitmask = 1 (slot 0
   // active → the M slot) must produce AASequence with Oxidation applied.
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKAMCDEFGR"}};
@@ -2277,7 +2277,7 @@ START_SECTION((reconstructRealizedSubSequence applies mods from subset_bitmask))
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2310,9 +2310,9 @@ START_SECTION((reconstructRealizedSubSequence applies mods from subset_bitmask))
 }
 END_SECTION
 
-START_SECTION((SNES query returns candidate with subset_bitmask for variable-mod spectrum))
+START_SECTION((peptide-mass query returns candidate with subset_bitmask for variable-mod spectrum))
 {
-  // Build SNES index with Oxidation (M) variable mod. Synthesize a spectrum
+  // Build peptide-mass index with Oxidation (M) variable mod. Synthesize a spectrum
   // from "ACDEFMGR" with Oxidation applied at the M residue (sub-peptide
   // position 5, 0-based). Query → expect at least one hit with
   // subset_bitmask_ != 0 and sigma_delta_ ≈ 15.995.
@@ -2335,7 +2335,7 @@ START_SECTION((SNES query returns candidate with subset_bitmask for variable-mod
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2375,7 +2375,7 @@ START_SECTION((SNES query returns candidate with subset_bitmask for variable-mod
 }
 END_SECTION
 
-START_SECTION((SNES emits one SpectrumMatch per valid subset at the same Σ (emit-both)))
+START_SECTION((Peptide-mass mode: emits one SpectrumMatch per valid subset at the same Σ (emit-both)))
 {
   // Peptide "ACDEFMGMR" has two M residues at positions 5 and 7 (0-indexed).
   // With Oxidation (M) and max=1, Σ=15.995 is reachable by activating either
@@ -2403,7 +2403,7 @@ START_SECTION((SNES emits one SpectrumMatch per valid subset at the same Σ (emi
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2449,7 +2449,7 @@ START_SECTION((SNES emits one SpectrumMatch per valid subset at the same Σ (emi
 }
 END_SECTION
 
-START_SECTION((SNES subset enumeration rejects position conflicts))
+START_SECTION((Peptide-mass mode: subset enumeration rejects position conflicts))
 {
   // Configure two variable mods that both claim the N-terminal residue
   // (e.g., Acetyl (N-term) + Carbamyl (N-term) — both N-term ANYWHERE).
@@ -2465,13 +2465,13 @@ START_SECTION((SNES subset enumeration rejects position conflicts))
              std::vector<std::string>{"Acetyl (N-term)", "Carbamyl (N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 2);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
 
   // Σ_delta set should contain 0, +42.011 (Acetyl), +43.006 (Carbamyl),
   // and the SUM +85.017 (activating both — but at query time this subset
   // is rejected by position conflict).
-  const auto& deltas = fi.getSnesSigmaDeltaSet();
+  const auto& deltas = fi.getSigmaDeltaSet();
   TEST_EQUAL(deltas.size() >= 3u, true)
 
   // The conflict is evaluated at query-time subset enumeration. A direct
@@ -2485,7 +2485,7 @@ START_SECTION((SNES subset enumeration rejects position conflicts))
 }
 END_SECTION
 
-START_SECTION((SNES respects max_variable_mods_per_peptide cap in subset enumeration))
+START_SECTION((Peptide-mass mode: respects max_variable_mods_per_peptide cap in subset enumeration))
 {
   // Three eligible Oxidation (M) sites; max_per_peptide = 1 means no subset
   // with popcount > 1 can be emitted. Σ_delta set should include values up
@@ -2496,10 +2496,10 @@ START_SECTION((SNES respects max_variable_mods_per_peptide cap in subset enumera
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
 
-  const auto& deltas = fi.getSnesSigmaDeltaSet();
+  const auto& deltas = fi.getSigmaDeltaSet();
   TEST_EQUAL(deltas.size(), 2u)
   TEST_REAL_SIMILAR(deltas[0], 0.0)
   TEST_REAL_SIMILAR(deltas[1], 15.994915)
@@ -2507,13 +2507,13 @@ START_SECTION((SNES respects max_variable_mods_per_peptide cap in subset enumera
   // Now max=2 → set grows.
   p.setValue("modifications:variable_max_per_peptide", 2);
   fi.setParameters(p);
-  const auto& deltas2 = fi.getSnesSigmaDeltaSet();
+  const auto& deltas2 = fi.getSigmaDeltaSet();
   TEST_EQUAL(deltas2.size(), 3u)
   TEST_REAL_SIMILAR(deltas2[2], 31.989830)
 }
 END_SECTION
 
-START_SECTION((SNES handles identical-delta variable mods without collapsing subsets))
+START_SECTION((Peptide-mass mode: handles identical-delta variable mods without collapsing subsets))
 {
   // Two variable mods with identical Δ (Oxidation on M and Oxidation on W,
   // both +15.995) on a peptide containing one M and one W → subsets
@@ -2544,7 +2544,7 @@ START_SECTION((SNES handles identical-delta variable mods without collapsing sub
              std::vector<std::string>{"Oxidation (M)", "Oxidation (W)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2588,9 +2588,9 @@ START_SECTION((SNES handles identical-delta variable mods without collapsing sub
 }
 END_SECTION
 
-START_SECTION((SNES query admits PROTEIN_N_TERM variable mod only for anchor-0 mothers))
+START_SECTION((peptide-mass query admits PROTEIN_N_TERM variable mod only for anchor-0 mothers))
 {
-  // Build SNES index with Acetyl (Protein N-term). Two proteins: one where
+  // Build peptide-mass index with Acetyl (Protein N-term). Two proteins: one where
   // the sub-peptide ACDEFGHI starts the protein; another where ACDEFGHI sits
   // mid-protein.
   //
@@ -2621,7 +2621,7 @@ START_SECTION((SNES query admits PROTEIN_N_TERM variable mod only for anchor-0 m
              std::vector<std::string>{"Acetyl (Protein N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2667,7 +2667,7 @@ START_SECTION((SNES query admits PROTEIN_N_TERM variable mod only for anchor-0 m
 }
 END_SECTION
 
-START_SECTION((SNES query admits PROTEIN_C_TERM variable mod only for anchor-end mothers))
+START_SECTION((peptide-mass query admits PROTEIN_C_TERM variable mod only for anchor-end mothers))
 {
   // Symmetric to the N-term test: Amidated (Protein C-term) variable mod.
   // Sub-peptides that end the protein admit; mid-protein sub-peptides
@@ -2700,7 +2700,7 @@ START_SECTION((SNES query admits PROTEIN_C_TERM variable mod only for anchor-end
              std::vector<std::string>{"Amidated (Protein C-term)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2747,7 +2747,7 @@ START_SECTION((SNES query admits PROTEIN_C_TERM variable mod only for anchor-end
 }
 END_SECTION
 
-START_SECTION((SNES query-path rejects position-conflicting subsets))
+START_SECTION((peptide-mass query-path rejects position-conflicting subsets))
 {
   // Two N-term variable mods (Acetyl + Carbamyl, both N_TERM ANYWHERE) claim
   // the peptide N-terminus. A subset that activates both has Σ=85.017 Da but
@@ -2775,7 +2775,7 @@ START_SECTION((SNES query-path rejects position-conflicting subsets))
              std::vector<std::string>{"Acetyl (N-term)", "Carbamyl (N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 2);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2821,7 +2821,7 @@ START_SECTION((SNES query-path rejects position-conflicting subsets))
 }
 END_SECTION
 
-START_SECTION((SNES mother generation rejects ambiguous residue spans (X/B/Z)))
+START_SECTION((mother generation rejects ambiguous residue spans (X/B/Z)))
 {
   // Protein contains an X in the middle. Mothers whose span covers the X must
   // be skipped (AASequence::fromString would fail at realization). Mothers in
@@ -2838,7 +2838,7 @@ START_SECTION((SNES mother generation rejects ambiguous residue spans (X/B/Z)))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2864,7 +2864,7 @@ START_SECTION((SNES mother generation rejects ambiguous residue spans (X/B/Z)))
 }
 END_SECTION
 
-START_SECTION((SNES mother generation rejects spans with a stop codon))
+START_SECTION((mother generation rejects spans with a stop codon))
 {
   // As above, with a stop codon ('*') instead of the X: it has no residue mass either.
   const std::vector<FASTAFile::FASTAEntry> entries{
@@ -2879,7 +2879,7 @@ START_SECTION((SNES mother generation rejects spans with a stop codon))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2895,7 +2895,7 @@ START_SECTION((SNES mother generation rejects spans with a stop codon))
 }
 END_SECTION
 
-START_SECTION((SNES mother generation truncates Single-N mother to unambiguous prefix on X/B/Z))
+START_SECTION((mother generation truncates Single-N mother to unambiguous prefix on X/B/Z))
 {
   // Issue #9192 item 2: a mother at position 0 with proposed length 12 spans the
   // X at position 8. The whole mother used to be dropped; now the unambiguous
@@ -2912,7 +2912,7 @@ START_SECTION((SNES mother generation truncates Single-N mother to unambiguous p
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2939,7 +2939,7 @@ START_SECTION((SNES mother generation truncates Single-N mother to unambiguous p
 }
 END_SECTION
 
-START_SECTION((SNES mother generation starts the mothers after an X/B/Z at the following position))
+START_SECTION((mother generation starts the mothers after an X/B/Z at the following position))
 {
   // Issue #9192 item 2: the sub-peptides after the X at position 8 are the prefixes of the mothers
   // at positions 9..12; the one at 9 spans the unambiguous suffix [9, 20) of length 11 (length capped
@@ -2956,7 +2956,7 @@ START_SECTION((SNES mother generation starts the mothers after an X/B/Z at the f
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2983,7 +2983,7 @@ START_SECTION((SNES mother generation starts the mothers after an X/B/Z at the f
 }
 END_SECTION
 
-START_SECTION((SNES realizes a whole mother))
+START_SECTION((Peptide-mass mode: realizes a whole mother))
 {
   // When the observed precursor equals the full mother mass, the realized
   // length == mother length. Construct a protein of length equal to min=max,
@@ -3006,7 +3006,7 @@ START_SECTION((SNES realizes a whole mother))
   p.setValue("precursor:isotope_error_max", 0);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 1);
   fi.setParameters(p);
   fi.build(entries);
@@ -3034,7 +3034,7 @@ START_SECTION((SNES realizes a whole mother))
   TEST_EQUAL(sms.hits_.size(), 1u)
   TEST_EQUAL(sms.hits_[0].realized_length_, 9u)
 
-  // The SNES query reads the residues of the mothers: without the FASTA entries of build() it returns nothing
+  // The peptide-mass query reads the residues of the mothers: without the FASTA entries of build() it returns nothing
   // (instead of reading out of bounds)
   FragmentIndex::SpectrumMatchesTopN without_fasta;
   fi.querySpectrum(spec, without_fasta);
@@ -3046,11 +3046,11 @@ START_SECTION((SNES realizes a whole mother))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the same numbers of matched fragments))
+START_SECTION(([EXTRA] Peptide-mass mode: finds the candidates of the fragment-mode index, with the same numbers of matched fragments))
 {
-  // The SNES index holds the masses of the prefixes of its mothers and generates the fragments of the
+  // The peptide-mass index holds the masses of the prefixes of its mothers and generates the fragments of the
   // peptidoforms in the precursor window at query time; the candidates (peptidoform, charge, isotope error) and
-  // their numbers of matched fragments must be those of the non-SNES index. This covers what the former SNES query
+  // their numbers of matched fragments must be those of the fragment-mode index. This covers what the former peptide-mass query
   // missed: modified peptidoforms (their shifted fragments), short peptides with few ions of each series, and
   // peptides heavier than fragment:max_mz. The open search (a precursor window of -100/+500 Da) has to give the same
   // candidates too.
@@ -3067,7 +3067,7 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
   targets.emplace_back(AASequence::fromString("GSAMTNPEDLRKVEAC(Carbamidomethyl)DEFM(Oxidation)"), 3); // M+H above fragment:max_mz
   targets.emplace_back(AASequence::fromString("NPQSTVWY"), 1);                       // 8-mer, 5 ions per series
 
-  auto make_index = [&db](FragmentIndex& fi, bool snes, bool deduplicate, bool open)
+  auto make_index = [&db](FragmentIndex& fi, bool peptide_masses, bool deduplicate, bool open)
   {
     Param p = fi.getParameters();
     p.setValue("peptide:enzyme_specificity", "none");
@@ -3092,7 +3092,7 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
     p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Deamidated (N)", "Acetyl (Protein N-term)",
                                                                   "Amidated (Protein C-term)"});
     p.setValue("modifications:variable_max_per_peptide", 2);
-    p.setValue("snes_enabled", snes ? "true" : "false");
+    p.setValue("index:mode", peptide_masses ? "peptide_masses" : "fragments");
     fi.setParameters(p);
     fi.build(db);
   };
@@ -3101,12 +3101,12 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
   for (const bool open : {false, true})
   for (const bool deduplicate : {false, true})
   {
-    FragmentIndex conventional, snes;
+    FragmentIndex conventional, masses;
     make_index(conventional, false, deduplicate, open);
-    make_index(snes, true, deduplicate, open);
-    TEST_EQUAL(conventional.isSnesMode(), false)
-    TEST_EQUAL(snes.isSnesMode(), true)
-    TEST_EQUAL(snes.getNumFragments() < conventional.getNumFragments(), true)
+    make_index(masses, true, deduplicate, open);
+    TEST_EQUAL(conventional.isPeptideMassMode(), false)
+    TEST_EQUAL(masses.isPeptideMassMode(), true)
+    TEST_EQUAL(masses.getNumFragments() < conventional.getNumFragments(), true)
 
     for (size_t t = 0; t < targets.size(); ++t)
     {
@@ -3124,7 +3124,7 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
 
       // (peptidoform, charge, isotope error, matched fragments) of every candidate
       using Candidate = std::tuple<std::string, uint16_t, int16_t, uint32_t>;
-      std::multiset<Candidate> from_conventional, from_snes;
+      std::multiset<Candidate> from_conventional, from_masses;
       FragmentIndex::SpectrumMatchesTopN sms;
       conventional.querySpectrum(spectrum, db, sms);
       for (const auto& hit : sms.hits_)
@@ -3133,29 +3133,29 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
         from_conventional.emplace(seq.toString(), hit.precursor_charge_, hit.isotope_error_, hit.num_matched_);
       }
       sms.clear();
-      snes.querySpectrum(spectrum, db, sms);
+      masses.querySpectrum(spectrum, db, sms);
       for (const auto& hit : sms.hits_)
       {
-        const AASequence seq = snes.reconstructRealizedSubSequence(snes.getPeptides()[hit.peptide_idx_], db,
+        const AASequence seq = masses.reconstructRealizedSubSequence(masses.getPeptides()[hit.peptide_idx_], db,
                                                                    hit.realized_length_, hit.subset_bitmask_);
-        from_snes.emplace(seq.toString(), hit.precursor_charge_, hit.isotope_error_, hit.num_matched_);
+        from_masses.emplace(seq.toString(), hit.precursor_charge_, hit.isotope_error_, hit.num_matched_);
       }
       TEST_EQUAL(from_conventional.empty(), false)
-      TEST_EQUAL(from_snes.size(), from_conventional.size())
-      TEST_EQUAL(from_snes == from_conventional, true)
+      TEST_EQUAL(from_masses.size(), from_conventional.size())
+      TEST_EQUAL(from_masses == from_conventional, true)
       // the target itself is a candidate
       bool found = false;
-      for (const auto& candidate : from_snes) found |= (std::get<0>(candidate) == target.toString() && std::get<2>(candidate) == 0);
+      for (const auto& candidate : from_masses) found |= (std::get<0>(candidate) == target.toString() && std::get<2>(candidate) == 0);
       TEST_EQUAL(found, true)
       // the open window reaches candidates outside the closed one
-      if (!deduplicate && !open) num_closed_candidates[t] = from_snes.size();
-      if (!deduplicate && open) TEST_EQUAL(from_snes.size() > num_closed_candidates[t], true)
+      if (!deduplicate && !open) num_closed_candidates[t] = from_masses.size();
+      if (!deduplicate && open) TEST_EQUAL(from_masses.size() > num_closed_candidates[t], true)
     }
   }
 }
 END_SECTION
 
-START_SECTION((SNES query honors multi-charge precursor when charge is unset))
+START_SECTION((peptide-mass query honors multi-charge precursor when charge is unset))
 {
   // A spectrum whose precursor has charge == 0 should trigger iteration
   // across [min_precursor_charge_, max_precursor_charge_]. Synthesize a
@@ -3181,7 +3181,7 @@ START_SECTION((SNES query honors multi-charge precursor when charge is unset))
   p.setValue("precursor:max_charge", 3);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -3414,7 +3414,7 @@ START_SECTION(([EXTRA] clipped methionine peptides retain protein N - terminal v
 }
 END_SECTION
 
-START_SECTION(([EXTRA] SNES recognizes the mature protein N - terminus after initial methionine loss))
+START_SECTION(([EXTRA] Peptide-mass mode: recognizes the mature protein N - terminus after initial methionine loss))
 {
   const vector<FASTAFile::FASTAEntry> entries {{"mature", "", "MACDEFGHILNPQR"}, {"internal", "", "KMACDEFGHILNPQR"}};
   FragmentIndex_test fi;
@@ -3425,7 +3425,7 @@ START_SECTION(([EXTRA] SNES recognizes the mature protein N - terminus after ini
   p.setValue("modifications:fixed", StringList {});
   p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("fragment:min_matched_ions", 3);
   p.setValue("precursor:isotope_error_min", 0);
   p.setValue("precursor:isotope_error_max", 0);
@@ -4066,14 +4066,14 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
   p.setValue("modifications:fixed", vector<string> {"Acetyl (Protein N-term)"});
   p.setValue("modifications:variable", vector<string> {});
   TEST_EXCEPTION(Exception::InvalidParameter, fi.setParameters(p))
-  // SNES: the entries are mother peptides
+  // Peptide-mass mode: the entries are mother peptides
   p.setValue("modifications:fixed", vector<string> {});
   p.setValue("modifications:variable", vector<string> {});
   p.setValue("peptide:enzyme_specificity", "none");
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(db);
-  TEST_TRUE(fi.isSnesMode())
+  TEST_TRUE(fi.isPeptideMassMode())
   TEST_FALSE(fi.hasProteinOccurrences(db))
 }
 END_SECTION
@@ -4383,7 +4383,7 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification is foun
 }
 END_SECTION
 
-START_SECTION(([EXTRA] SNES enumerates nonempty modification subsets whose mass shifts cancel))
+START_SECTION(([EXTRA] Peptide-mass mode: enumerates nonempty modification subsets whose mass shifts cancel))
 {
   // AN(Deamidated)PEPTIDER.(Amidated): +0.984016 and -0.984016 Da sum to zero. A Σ = 0 hit used to pass through
   // as the unmodified realization only, so the modified candidate was never produced (conventional indexing
@@ -4400,7 +4400,7 @@ START_SECTION(([EXTRA] SNES enumerates nonempty modification subsets whose mass 
   spectrum.setMSLevel(2);
   const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
 
-  for (const string snes : {"false", "true"})
+  for (const string mode : {"fragments", "peptide_masses"})
   {
     FragmentIndex fi;
     Param p = fi.getParameters();
@@ -4417,16 +4417,15 @@ START_SECTION(([EXTRA] SNES enumerates nonempty modification subsets whose mass 
     p.setValue("precursor:isotope_error_max", 0);
     p.setValue("fragment:mass_tolerance", 20.0);
     p.setValue("fragment:mass_tolerance_unit", "ppm");
-    // SNES retrieves the mother by its unshifted fragments only: here b1 (before the deamidation) and y9 (with both
-    // shifts, which cancel), so the gate must admit a single matched ion
+    // the test is about the subset enumeration, not the matched-ion gate
     p.setValue("fragment:min_matched_ions", 1);
     p.setValue("modifications:fixed", vector<string>{});
     p.setValue("modifications:variable", vector<string>{"Deamidated (N)", "Amidated (C-term)"});
     p.setValue("modifications:variable_max_per_peptide", 2);
-    p.setValue("snes_enabled", snes);
+    p.setValue("index:mode", mode);
     fi.setParameters(p);
     fi.build(db);
-    TEST_EQUAL(fi.isSnesMode(), snes == "true")
+    TEST_EQUAL(fi.isPeptideMassMode(), mode == "peptide_masses")
     FragmentIndex::SpectrumMatchesTopN sms;
     fi.querySpectrum(spectrum, db, sms);
     bool found = false;
@@ -4434,9 +4433,9 @@ START_SECTION(([EXTRA] SNES enumerates nonempty modification subsets whose mass 
     {
       const FragmentIndex::Peptide& entry = fi.getPeptides()[hit.peptide_idx_];
       AASequence seq;
-      if (fi.isSnesMode())
+      if (fi.isPeptideMassMode())
       {
-        const int realized = fi.realizeSNESLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
+        const int realized = fi.realizePrefixLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
         if (realized < 0) continue;
         seq = fi.reconstructRealizedSubSequence(entry, db, static_cast<size_t>(realized), hit.subset_bitmask_);
       }
@@ -4695,7 +4694,7 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
                ListUtils::concatenate(vector<string>(expected.begin(), expected.end()), " "))
   }
 
-  // its spectrum is found, conventionally and with SNES
+  // its spectrum is found, in fragment and in peptide-mass mode
   const vector<FASTAFile::FASTAEntry> search_db{{"P1", "", "CPEPTIDEK"}, {"P2", "", "KPEPTIDEK"}};
   const AASequence target = AASequence::fromString(".(Ammonia-loss)C(Carbamidomethyl)PEPTIDEK");
   TheoreticalSpectrumGenerator tsg;
@@ -4707,7 +4706,7 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
   spectrum.setPrecursors({precursor});
   spectrum.setMSLevel(2);
   const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
-  for (const string snes : {"false", "true"})
+  for (const string mode : {"fragments", "peptide_masses"})
   {
     FragmentIndex fi;
     Param p = fi.getParameters();
@@ -4727,10 +4726,10 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
     p.setValue("fragment:min_matched_ions", 3);
     p.setValue("modifications:fixed", fixed);
     p.setValue("modifications:variable", variable);
-    p.setValue("snes_enabled", snes);
+    p.setValue("index:mode", mode);
     fi.setParameters(p);
     fi.build(search_db);
-    TEST_EQUAL(fi.isSnesMode(), snes == "true")
+    TEST_EQUAL(fi.isPeptideMassMode(), mode == "peptide_masses")
     FragmentIndex::SpectrumMatchesTopN sms;
     fi.querySpectrum(spectrum, search_db, sms);
     bool found = false;
@@ -4738,9 +4737,9 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
     {
       const FragmentIndex::Peptide& entry = fi.getPeptides()[hit.peptide_idx_];
       AASequence seq;
-      if (fi.isSnesMode())
+      if (fi.isPeptideMassMode())
       {
-        const int realized = fi.realizeSNESLength(entry, search_db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
+        const int realized = fi.realizePrefixLength(entry, search_db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
         if (realized < 0) continue;
         seq = fi.reconstructRealizedSubSequence(entry, search_db, static_cast<size_t>(realized), hit.subset_bitmask_);
       }
@@ -4755,7 +4754,7 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
 }
 END_SECTION
 
-START_SECTION(([EXTRA] SNES expands a hit into the modification subsets within variable_max_per_peptide only))
+START_SECTION(([EXTRA] Peptide-mass mode: expands a hit into the modification subsets within variable_max_per_peptide only))
 {
   // A Σ hit is expanded into the variable-modification subsets of the realized peptide whose shifts sum to Σ; with a
   // cancelling pair (Deamidated (N) and Amidated (C-term)) every Σ = 0 hit is expanded as well. The expansion visited
@@ -4794,10 +4793,10 @@ START_SECTION(([EXTRA] SNES expands a hit into the modification subsets within v
   p.setValue("modifications:fixed", vector<string>{});
   p.setValue("modifications:variable", vector<string>{"Oxidation (M)", "Deamidated (N)", "Amidated (C-term)"});
   p.setValue("modifications:variable_max_per_peptide", 2);
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   fi.setParameters(p);
   fi.build(db);
-  TEST_EQUAL(fi.isSnesMode(), true)
+  TEST_EQUAL(fi.isPeptideMassMode(), true)
   FragmentIndex::SpectrumMatchesTopN sms;
   const auto start = std::chrono::steady_clock::now();
   fi.querySpectrum(spectrum, db, sms);
@@ -4806,7 +4805,7 @@ START_SECTION(([EXTRA] SNES expands a hit into the modification subsets within v
   for (const auto& hit : sms.hits_)
   {
     const FragmentIndex::Peptide& entry = fi.getPeptides()[hit.peptide_idx_];
-    const int realized = fi.realizeSNESLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
+    const int realized = fi.realizePrefixLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
     if (realized < 0) continue;
     const AASequence seq = fi.reconstructRealizedSubSequence(entry, db, static_cast<size_t>(realized), hit.subset_bitmask_);
     found_unmodified |= (seq == target);
@@ -4814,16 +4813,16 @@ START_SECTION(([EXTRA] SNES expands a hit into the modification subsets within v
   }
   TEST_EQUAL(found_unmodified, true)
   TEST_EQUAL(found_cancelling, true)
-  STATUS("SNES query with 31 modification slots: " << seconds << " s")
+  STATUS("peptide-mass query with 31 modification slots: " << seconds << " s")
   TEST_EQUAL(seconds < 5.0, true) // milliseconds with the bounded enumeration, seconds per hit without
 }
 END_SECTION
 
-START_SECTION(([EXTRA] SNES realizes modification subsets whose total shift is large))
+START_SECTION(([EXTRA] Peptide-mass mode: realizes modification subsets whose total shift is large))
 {
   // The Σ of a hit is stored as float: above 2048 Da its rounding (up to 1.2e-4 Da) exceeded the 1e-4 Da tolerance of
   // the subset match, so e.g. two Hex(5)HexNAc(4) (N) glycans (Σ = 3245.163 Da, stored 1.1e-4 Da off) were never
-  // realized by SNES, while the conventional index finds the peptidoform.
+  // realized in peptide-mass mode, while the conventional index finds the peptidoform.
   const vector<FASTAFile::FASTAEntry> db{{"P1", "", "GGGANGTPEPNESIDERGGG"}};
   const ResidueModification* glycan = ModificationsDB::getInstance()->getModification("Hex(5)HexNAc(4) (N)");
   AASequence target = AASequence::fromString("ANGTPEPNESIDER");
@@ -4838,7 +4837,7 @@ START_SECTION(([EXTRA] SNES realizes modification subsets whose total shift is l
   spectrum.setPrecursors({precursor});
   spectrum.setMSLevel(2);
   const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
-  for (const string snes : {"false", "true"})
+  for (const string mode : {"fragments", "peptide_masses"})
   {
     FragmentIndex fi;
     Param p = fi.getParameters();
@@ -4862,10 +4861,10 @@ START_SECTION(([EXTRA] SNES realizes modification subsets whose total shift is l
     p.setValue("modifications:fixed", vector<string>{});
     p.setValue("modifications:variable", vector<string>{"Hex(5)HexNAc(4) (N)"});
     p.setValue("modifications:variable_max_per_peptide", 2);
-    p.setValue("snes_enabled", snes);
+    p.setValue("index:mode", mode);
     fi.setParameters(p);
     fi.build(db);
-    TEST_EQUAL(fi.isSnesMode(), snes == "true")
+    TEST_EQUAL(fi.isPeptideMassMode(), mode == "peptide_masses")
     FragmentIndex::SpectrumMatchesTopN sms;
     fi.querySpectrum(spectrum, db, sms);
     bool found = false;
@@ -4873,9 +4872,9 @@ START_SECTION(([EXTRA] SNES realizes modification subsets whose total shift is l
     {
       const FragmentIndex::Peptide& entry = fi.getPeptides()[hit.peptide_idx_];
       AASequence seq;
-      if (fi.isSnesMode())
+      if (fi.isPeptideMassMode())
       {
-        const int realized = fi.realizeSNESLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
+        const int realized = fi.realizePrefixLength(entry, db, target_mh_plus - hit.sigma_delta_, 10.0, 10.0, true);
         if (realized < 0) continue;
         seq = fi.reconstructRealizedSubSequence(entry, db, static_cast<size_t>(realized), hit.subset_bitmask_);
       }
@@ -4885,7 +4884,7 @@ START_SECTION(([EXTRA] SNES realizes modification subsets whose total shift is l
       }
       found |= (seq == target);
     }
-    TEST_EQUAL(std::string(found ? "found" : "not found") + " with snes_enabled=" + snes, "found with snes_enabled=" + snes)
+    TEST_EQUAL(std::string(found ? "found" : "not found") + " with index:mode=" + mode, "found with index:mode=" + mode)
   }
 }
 END_SECTION
@@ -4992,14 +4991,14 @@ START_SECTION(([EXTRA] residue-specific terminal modifications occupy the termin
   TEST_EQUAL(fi.modificationSlotCount("FPEPTIDEQ", false, true), 1)
   TEST_EQUAL(fi.modificationSlotCount("AFPEPTIDEQA", true, true), 0)
 
-  // SNES realizes a residue-specific terminal modification on the terminus too.
+  // The peptide-mass mode realizes a residue-specific terminal modification on the terminus too.
   p.setValue("peptide:enzyme_specificity", "none");
-  p.setValue("snes_enabled", "true");
+  p.setValue("index:mode", "peptide_masses");
   p.setValue("peptide:min_size", 9);
   p.setValue("peptide:max_size", 9);
   p.setValue("modifications:variable", StringList{"Gln->pyro-Glu (N-term Q)"});
   fi.setParameters(p);
-  const std::vector<FASTAFile::FASTAEntry> db{{"P", "SNES terminal fixture", "QPEPTIDER"}};
+  const std::vector<FASTAFile::FASTAEntry> db{{"P", "peptide-mass terminal fixture", "QPEPTIDER"}};
   fi.build(db);
   TEST_FALSE(fi.getPeptides().empty())
   AASequence target = AASequence::fromString("QPEPTIDER");

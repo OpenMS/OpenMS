@@ -86,11 +86,11 @@ namespace OpenMS
     struct SpectrumMatch
     {
       uint32_t num_matched_{};       ///< Number of peaks-fragment hits
-      uint32_t subset_bitmask_{};    ///< SNES: active slots in the slot list returned by buildModSlots_ for the realized sub-peptide. 0 = unmodified. Ignored in non-SNES mode.
-      float    sigma_delta_{};       ///< SNES: Σ of the variable-mod deltas of subset_bitmask_. 0 in non-SNES / unmodified SNES.
+      uint32_t subset_bitmask_{};    ///< Peptide-mass mode: active slots in the slot list returned by buildModSlots_ for the realized sub-peptide. 0 = unmodified. Ignored in fragment mode.
+      float    sigma_delta_{};       ///< Peptide-mass mode: Σ of the variable-mod deltas of subset_bitmask_. 0 in fragment mode or unmodified.
       uint16_t precursor_charge_{};  ///< The precursor_charge used for the performed search
       int16_t  isotope_error_{};     ///< The isotope_error used for the performed search
-      uint16_t realized_length_{};   ///< SNES: length of the realized sub-peptide, a prefix of the mother peptide_idx_. 0 in non-SNES mode.
+      uint16_t realized_length_{};   ///< Peptide-mass mode: length of the realized sub-peptide, a prefix of the mother peptide_idx_. 0 in fragment mode.
       size_t   peptide_idx_{};       ///< The idx this struct belongs to
     };
 
@@ -167,7 +167,7 @@ namespace OpenMS
      *
      * Provides read-only access to all peptides currently held by the index,
      * typically populated during build().
-     * With peptide:deduplicate=true, non-SNES entries retain one representative
+     * With peptide:deduplicate=true, fragment-mode entries retain one representative
      * protein coordinate per exact peptidoform, not every protein occurrence
      * (getProteinOccurrences() lists them all).
      *
@@ -198,7 +198,7 @@ namespace OpenMS
      *
      * A kept entry's protein occurrences are its own coordinate plus its removed occurrences, so a caller can map
      * the indexed peptides to proteins without searching the database again. Empty without deduplication (and for
-     * SNES indices, which are not deduplicated); released by clear(). In chunked searches every chunk has its own
+     * peptide-mass indices, which are not deduplicated); released by clear(). In chunked searches every chunk has its own
      * index, and a peptidoform that occurs in several chunks is listed in each of them.
      */
     const std::vector<RemovedOccurrence>& getRemovedOccurrences() const noexcept { return removed_occurrences_; }
@@ -209,7 +209,7 @@ namespace OpenMS
      * build() gives every span of its digest one entry per combination of variable modification slots
      * (mod_bitmask_). If the slots and masses of a span depend on its residues only, every span with the residues of
      * an entry holds an entry with the same mod_bitmask_ and the same precursor_mz_ (the masses are added in the same
-     * order), i.e. one in the same run of equal precursor_mz_. That holds unless the index is in SNES mode (its
+     * order), i.e. one in the same run of equal precursor_mz_. That holds unless the index is in peptide-mass mode (its
      * entries are mother peptides) or a protein-terminal modification is configured (its sites depend on where a span
      * lies in its protein).
      *
@@ -236,7 +236,7 @@ namespace OpenMS
                                std::vector<std::pair<UInt32, UInt32>>& occurrences) const;
 
     /// Number of theoretical fragments stored in the index (0 before build()), including the c and
-    /// z+1 ions of ions:electron_ions. In SNES mode: the number of prefix masses (one per unmodified sub-peptide).
+    /// z+1 ions of ions:electron_ions. In peptide-mass mode: the number of prefix masses (one per unmodified sub-peptide).
     Size getNumFragments() const noexcept { return fi_fragments_.size() + electron_fragments_.size(); }
 
 #ifdef DEBUG_FRAGMENT_INDEX
@@ -284,7 +284,7 @@ namespace OpenMS
      * among all of its entries). The others keep their order, so querySpectrum() returns the same candidates for these
      * spectra as with the full index, from an index that is built faster and takes less memory. Search the index only with
      * these spectra and the current parameters.
-     * The full index is built if @p searched_spectra is empty or returns nullptr, and in SNES and open search mode.
+     * The full index is built if @p searched_spectra is empty or returns nullptr, and in peptide-mass and open search mode.
      *
      * @param[in] fasta_entries The FASTA entries used to build the index.
      * @param[in] searched_spectra Called with the number of peptides; returns the spectra the index will be searched with, or nullptr.
@@ -366,30 +366,27 @@ namespace OpenMS
     static StringList shadowedVariableResidueModifications(const StringList& fixed_modifications,
                                                            const StringList& variable_modifications);
 
-    /// @name SNES (Speedy Non-specific Enzyme Search)
+    /// @name Peptide-mass mode (index:mode peptide_masses)
     ///
-    /// When the index is built in SNES mode (@ref isSnesMode), a @ref Peptide entry
+    /// When the index is built in peptide-mass mode (@ref isPeptideMassMode), a @ref Peptide entry
     /// represents a *mother peptide*: the longest peptide (at most peptide:max_size residues)
     /// that starts at a position of a protein. Every sub-peptide of the non-specific digest is a
     /// prefix of the mother at its start, so the mothers hold the digest in one entry per protein
-    /// position instead of one per (start, length, variable modifications) as the non-SNES index.
+    /// position instead of one per (start, length, variable modifications) as the fragment-mode index.
     /// @c mod_bitmask_ of a mother is 0, @c precursor_mz_ its own (M+H)+.
     ///
     /// The index holds no fragments of the mothers. Instead, its entries are the (M+H)+ of every
     /// unmodified prefix of a mother with a length in [peptide:min_size, peptide:max_size], sorted
     /// by mass. A query looks up the prefixes whose mass, shifted by any sum of variable
     /// modification deltas, lies in a precursor window, generates the fragments of each such
-    /// peptidoform as the non-SNES index would (same ion series, fragment:min_ion_index and m/z
+    /// peptidoform as the fragment-mode index would (same ion series, fragment:min_ion_index and m/z
     /// range) and counts the peaks they match. The candidates and their numbers of matched
-    /// fragments are therefore those of the non-SNES index, which needs far more memory for a
+    /// fragments are therefore those of the fragment-mode index, which needs far more memory for a
     /// non-specific digest.
 
-    /// @return true if the index was built in SNES mode.
-    /// SNES activates when @em both @c snes_enabled is set to true and
-    /// @c peptide:enzyme_specificity is @c none. @c snes_enabled defaults to false
-    /// in v1 (opt-in), so specific/semi-specific searches and non-specific searches
-    /// without the flag produce the same fragment index as the pre-SNES code path.
-    bool isSnesMode() const noexcept { return is_snes_mode_; }
+    /// @return true if the index was built in peptide-mass mode, i.e. with index:mode peptide_masses and
+    /// peptide:enzyme_specificity none (index:mode is ignored for specific and semi-specific searches).
+    bool isPeptideMassMode() const noexcept { return is_peptide_mass_mode_; }
 
 
     /**
@@ -419,7 +416,7 @@ namespace OpenMS
     /**
      * @brief: queries one complete experimental spectra against the Database. Loops over all precursor charges
      * Starts at min_precursor_charge and iteratively goes to max_precursor_charge. We query all peaks multiple times with all the
-     * different precursor charges and corresponding precursor masses. Returns no matches in SNES mode, which needs
+     * different precursor charges and corresponding precursor masses. Returns no matches in peptide-mass mode, which needs
      * the FASTA entries (see the overload that takes them).
      * @param[in] spectrum experimental spectrum
      * @param[out] sms The n best Spectrum matches
@@ -430,11 +427,11 @@ namespace OpenMS
     /**
      * @brief Query a spectrum against the fragment index with FASTA context.
      *
-     * Required in SNES mode: the FASTA is needed to realize the sub-peptides of the mothers. The caller must pass
+     * Required in peptide-mass mode: the FASTA is needed to realize the sub-peptides of the mothers. The caller must pass
      * the entries passed to build(), in the same order: the index holds only prefix masses and reads the residues,
      * termini and modification sites of the candidates from @p fasta_entries. Only a different number of entries is
      * detected (no matches are returned then); different entries of the same number give candidates that do not
-     * belong to the index. The non-SNES path ignores the @p fasta_entries argument.
+     * belong to the index. The fragment-mode path ignores the @p fasta_entries argument.
      *
      * @param[in]  spectrum      Experimental spectrum with a single precursor.
      * @param[in]  fasta_entries The FASTA entries passed to build(), in the same order.
@@ -477,7 +474,7 @@ namespace OpenMS
     AASequence reconstructModifiedSequence(const Peptide& peptide,
                                            const std::vector<FASTAFile::FASTAEntry>& fasta_entries) const;
 
-    /** @brief Find the realized sub-peptide length of a SNES mother that best matches
+    /** @brief Find the realized sub-peptide length of a mother that best matches
      * the observed precursor mass.
      *
      * Scans realizable lengths k in [peptide_min_length_, mother.sequence_.second] from the
@@ -485,9 +482,9 @@ namespace OpenMS
      * Returns the length whose realized (M+H)+ mass is closest to @p target_mh_plus
      * within the given tolerance, or -1 if no length satisfies the tolerance.
      *
-     * Must only be called in SNES mode; returns -1 immediately otherwise.
+     * Must only be called in peptide-mass mode; returns -1 immediately otherwise.
      *
-     * @param[in] mother A SNES mother peptide.
+     * @param[in] mother A mother peptide.
      * @param[in] fasta_entries Source database (same one passed to build()).
      * @param[in] target_mh_plus Observed (M+H)+ mass after isotope-error correction.
      * @param[in] tolerance_lower_magnitude Positive tolerance magnitude on the low side
@@ -497,15 +494,15 @@ namespace OpenMS
      * @param[in] tolerance_ppm True if the magnitudes are in ppm.
      * @return Realized length, or -1 on failure.
      */
-    int realizeSNESLength(const Peptide& mother,
-                          const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-                          double target_mh_plus,
-                          double tolerance_lower_magnitude,
-                          double tolerance_upper_magnitude,
-                          bool tolerance_ppm) const;
+    int realizePrefixLength(const Peptide& mother,
+                            const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                            double target_mh_plus,
+                            double tolerance_lower_magnitude,
+                            double tolerance_upper_magnitude,
+                            bool tolerance_ppm) const;
 
-    /// Reconstruct a realized SNES sub-peptide (the first @p realized_length residues of the mother) as an AASequence.
-    /// @param mother the SNES mother Peptide entry
+    /// Reconstruct a realized sub-peptide (the first @p realized_length residues of the mother) as an AASequence.
+    /// @param mother the mother Peptide entry
     /// @param fasta_entries the FASTA entries used to build the index
     /// @param realized_length the length of the realized sub-peptide (SpectrumMatch::realized_length_)
     /// @param subset_bitmask active slots from buildModSlots_(seq_ptr, realized_length, ...)
@@ -546,9 +543,9 @@ protected:
      */
     void generatePeptides(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
-    /**@brief SNES-mode peptide enumeration: emit the mother peptides.
+    /**@brief Peptide-mass mode peptide enumeration: emit the mother peptides.
      *
-     * Called instead of the usual enzymatic-digestion path when @c is_snes_mode_ is
+     * Called instead of the usual enzymatic-digestion path when @c is_peptide_mass_mode_ is
      * true. For each span of indexable residues [s, e) of a protein (split at X/B/Z, stop
      * codons and other symbols), emits one mother at every position i in [s, e - min_length],
      * spanning residues [i, i + min(max_length, e - i)). Every sub-peptide of the span with a
@@ -557,7 +554,7 @@ protected:
      *
      * @param[in] fasta_entries  Protein database (same semantics as generatePeptides).
      */
-    void generateSNESMothers_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
+    void generateMothers_(const std::vector<FASTAFile::FASTAEntry>& fasta_entries);
 
     /**@brief Sorts @p peptides by (precursor_mz_, protein_idx), exactly as std::sort does with that comparator.
      *
@@ -675,21 +672,21 @@ protected:
     /// @param include_prot_nterm_mods include mods with PROTEIN_N_TERM specificity
     /// @param include_prot_cterm_mods include mods with PROTEIN_C_TERM specificity
     /// @return sorted ascending distinct Σ values; always includes 0.0
-    std::vector<double> computeSnesSigmaDeltaSet_(bool include_prot_nterm_mods,
-                                                   bool include_prot_cterm_mods) const;
+    std::vector<double> computeSigmaDeltaSet_(bool include_prot_nterm_mods,
+                                              bool include_prot_cterm_mods) const;
 
     /// The sums of exactly m deltas of the configured variable mods (with repetition), distinct within 1e-6 Da, for
     /// m = 0..max_variable_mods_per_peptide_ (level 0: {0}; only level 0 without variable mods). Flags as in
-    /// computeSnesSigmaDeltaSet_().
-    std::vector<std::vector<double>> snesShiftLevels_(bool include_prot_nterm_mods,
-                                                      bool include_prot_cterm_mods) const;
+    /// computeSigmaDeltaSet_().
+    std::vector<std::vector<double>> modShiftLevels_(bool include_prot_nterm_mods,
+                                                     bool include_prot_cterm_mods) const;
 
-    /// Whether a nonempty subset of at most max_variable_mods_per_peptide_ variable modifications has Σ = 0 (snes_zero_sigma_subsets_)
+    /// Whether a nonempty subset of at most max_variable_mods_per_peptide_ variable modifications has Σ = 0 (zero_sigma_subsets_)
     bool nonemptyZeroSigmaSubsetExists_() const;
 
     /**@brief Generates the fragments of a peptidoform, as the index holds them.
      *
-     * The one implementation of the fragments of an index entry: build() uses it for the non-SNES entries, the SNES
+     * The one implementation of the fragments of an index entry: build() uses it for the fragment-mode entries, the peptide-mass
      * query for the peptidoforms it realizes, so that both count the same fragments.
      *
      * @param[out] fragments  Receives the fragments of the ion series of ions:add_*_ions (see generateFragmentsLightweight_)
@@ -735,52 +732,45 @@ protected:
     /// an entry without variable modifications are computed from them.
     std::array<double, 128> fixed_residue_masses_{};
 
-    /// SNES mode state. Set in @c updateMembers_ from the @c snes_enabled parameter.
-    /// When true, @ref generatePeptides dispatches to @ref generateSNESMothers_, build() indexes
-    /// the prefix masses of the mothers and querySpectrum() runs querySpectrumSNES_(). When false,
-    /// no SNES code path is active.
-    bool is_snes_mode_{false};
+    /// Peptide-mass mode state. Set in @c updateMembers_ from index:mode and peptide:enzyme_specificity.
+    /// When true, @ref generatePeptides dispatches to @ref generateMothers_, build() indexes
+    /// the prefix masses of the mothers and querySpectrum() runs querySpectrumPeptideMasses_(). When false,
+    /// no peptide-mass code path is active.
+    bool is_peptide_mass_mode_{false};
 
-    /// User-facing SNES opt-in switch (parameter "snes_enabled"). Only takes effect
-    /// when the configured enzyme specificity is @c SPEC_NONE — specific / semi-
-    /// specific searches ignore it. Exposed as a separate member so the parameter
-    /// can be set/queried independently of the derived @c is_snes_mode_ state
-    /// (which captures the combined decision specificity && snes_enabled).
-    bool snes_enabled_{false};
-
-    /// SNES: distinct sums Σ of the deltas of at most variable_max_per_peptide variable modifications, i.e. the
+    /// Peptide-mass mode: distinct sums Σ of the deltas of at most variable_max_per_peptide variable modifications, i.e. the
     /// shifts between the mass of a peptidoform and that of its unmodified peptide; always includes 0.
     /// Excludes protein-terminal variable modifications.
-    std::vector<double> snes_sigma_delta_set_;
-    /// SNES: as snes_sigma_delta_set_, with the PROTEIN_N_TERM variable modifications
-    std::vector<double> snes_sigma_delta_set_with_prot_nterm_;
-    /// SNES: as snes_sigma_delta_set_, with the PROTEIN_C_TERM variable modifications
-    std::vector<double> snes_sigma_delta_set_with_prot_cterm_;
+    std::vector<double> sigma_delta_set_;
+    /// Peptide-mass mode: as sigma_delta_set_, with the PROTEIN_N_TERM variable modifications
+    std::vector<double> sigma_delta_set_with_prot_nterm_;
+    /// Peptide-mass mode: as sigma_delta_set_, with the PROTEIN_C_TERM variable modifications
+    std::vector<double> sigma_delta_set_with_prot_cterm_;
     /// A nonempty subset of at most max_variable_mods_per_peptide_ variable modifications sums to Σ = 0 (within
     /// the Σ tolerance of the subset enumeration), so the prefixes found at Σ = 0 are expanded into subsets too
-    bool snes_zero_sigma_subsets_{false};
+    bool zero_sigma_subsets_{false};
 
-    /// SNES: a shift Σ at which querySpectrumSNES_() looks up prefixes. A peptidoform belongs to the shift
+    /// Peptide-mass mode: a shift Σ at which querySpectrumPeptideMasses_() looks up prefixes. A peptidoform belongs to the shift
     /// closest to the sum of its modification deltas.
-    struct SnesShift_
+    struct ModShift_
     {
       double sigma;            ///< the shift
       bool protein_terminal;   ///< only reached with a protein-terminal modification: the prefix must start or end a protein
       size_t min_mods;         ///< the fewest variable modifications that sum to it (within the matching tolerance)
     };
-    /// SNES: the sums of at most variable_max_per_peptide variable modification deltas (with protein-terminal
+    /// Peptide-mass mode: the sums of at most variable_max_per_peptide variable modification deltas (with protein-terminal
     /// ones), ascending, with 0 (set by updateMembers_())
-    std::vector<SnesShift_> snes_shifts_;
-    /// SNES: smallest and largest shift (0 if no variable modification is configured)
-    double snes_min_shift_{0.0};
-    double snes_max_shift_{0.0};
+    std::vector<ModShift_> mod_shifts_;
+    /// Peptide-mass mode: smallest and largest shift (0 if no variable modification is configured)
+    double min_mod_shift_{0.0};
+    double max_mod_shift_{0.0};
 
-    /// SNES: the index entries carry an upper bound of the variable modification sites of their prefix in the
-    /// bits above SNES_SITES_SHIFT_ of Fragment::peptide_idx_ (if the mothers leave them free, see build())
-    static constexpr uint32_t SNES_SITES_SHIFT_ = 28;
-    static constexpr uint32_t SNES_MOTHER_MASK_ = (1u << SNES_SITES_SHIFT_) - 1;
-    static constexpr uint32_t SNES_MAX_SITES_ = (1u << (32 - SNES_SITES_SHIFT_)) - 1;
-    bool snes_entry_sites_{false}; ///< whether the entries carry the bound
+    /// Peptide-mass mode: the index entries carry an upper bound of the variable modification sites of their prefix in the
+    /// bits above ENTRY_SITES_SHIFT_ of Fragment::peptide_idx_ (if the mothers leave them free, see build())
+    static constexpr uint32_t ENTRY_SITES_SHIFT_ = 28;
+    static constexpr uint32_t ENTRY_MOTHER_MASK_ = (1u << ENTRY_SITES_SHIFT_) - 1;
+    static constexpr uint32_t ENTRY_MAX_SITES_ = (1u << (32 - ENTRY_SITES_SHIFT_)) - 1;
+    bool entry_sites_{false}; ///< whether the entries carry the bound
 
     /// Precomputed residue mass lookup table: ASCII char -> internal monoisotopic mass (Da).
     /// Indexed by single-letter amino acid code (e.g., 'A'=65). Entries for non-AA chars are 0.
@@ -893,20 +883,20 @@ private:
 
 
     /**
-     * @brief SNES-mode spectrum query: the candidates and matched-fragment counts of the non-SNES index.
+     * @brief Peptide-mass mode spectrum query: the candidates and matched-fragment counts of the fragment-mode index.
      *
-     * For each precursor charge and isotope error, and each shift Σ of snes_shifts_, the index entries
+     * For each precursor charge and isotope error, and each shift Σ of mod_shifts_, the index entries
      * (unmodified prefixes of the mothers, sorted by (M+H)+) whose mass plus Σ can lie in the precursor
      * window are looked up and realized: their peptidoforms that belong to Σ (the unmodified one at Σ = 0,
      * combinations of at most variable_max_per_peptide variable modifications) and whose (M+H)+ lies in the
      * precursor window and in [peptide:min_mass, peptide:max_mass] are the candidates, exactly those that the
-     * non-SNES index holds in the window. The fragments of each candidate are generated as the non-SNES index
+     * fragment-mode index holds in the window. The fragments of each candidate are generated as the fragment-mode index
      * generates them and matched against the peaks with the windows of queryPeaks(); candidates with at least
      * fragment:min_matched_ions matches are kept (with peptide:deduplicate, one per peptidoform) and cut to
      * scoring:max_candidates_per_spectrum in the order of trimHits(), ties broken in the order of the
-     * non-SNES index.
+     * fragment-mode index.
      *
-     * Only called when @ref isSnesMode is true.
+     * Only called when @ref isPeptideMassMode is true.
      *
      * @param[in]  spectrum Experimental spectrum with a single precursor.
      * @param[in]  fasta_entries Source database passed to build().
@@ -914,10 +904,10 @@ private:
      *             name the realized peptidoform.
      * @param[in]  with_electron_ions Also count matches to the c and z+1 ions of ions:electron_ions
      */
-    void querySpectrumSNES_(const MSSpectrum& spectrum,
-                            const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-                            SpectrumMatchesTopN& sms,
-                            bool with_electron_ions);
+    void querySpectrumPeptideMasses_(const MSSpectrum& spectrum,
+                                     const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                     SpectrumMatchesTopN& sms,
+                                     bool with_electron_ions);
 
     /// One (precursor charge, isotope error) block of a queryPeaks() call
     struct CandidateBlock_

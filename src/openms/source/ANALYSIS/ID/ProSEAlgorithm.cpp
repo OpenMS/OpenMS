@@ -277,14 +277,14 @@ namespace OpenMS
     defaults_.setValue("peptide:deduplicate", "true",
                        "Index each exact peptidoform once before candidate selection. Protein mappings still list every protein occurrence. "
                        "Across database chunks, count each peptide/charge/isotope hypothesis once; retaining queried keys adds memory per spectrum. "
-                       "With SNES, the repeated peptidoforms among the candidates of a spectrum are dropped instead. "
+                       "With index:mode peptide_masses, the repeated peptidoforms among the candidates of a spectrum are dropped instead. "
                        "Set false for occurrence-based legacy candidates.",
                        {"advanced"});
     defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
     defaults_.setValue("peptide:protein_mapping", "index",
                        "How the hits are mapped to their proteins (peptide evidences, target_decoy, protein_references, protein hits). "
                        "'index': from the digest of the fragment index, which holds every protein occurrence of a candidate; the result is "
-                       "that of PeptideIndexing, which runs instead wherever the index cannot reproduce it exactly (e.g. SNES, a specificity "
+                       "that of PeptideIndexing, which runs instead wherever the index cannot reproduce it exactly (e.g. index:mode peptide_masses, a specificity "
                        "other than full, protein-terminal modifications, a chunked database, symbols other than letters or long stretches "
                        "of ambiguous residues in the database). 'PeptideIndexing': always search every hit in the whole database "
                        "(Aho-Corasick), as before.",
@@ -302,16 +302,15 @@ namespace OpenMS
     defaults_.setValue("peptide:motif", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.");
     defaults_.setSectionDescription("peptide", "Peptide Options");
 
-    // SNES (Speedy Non-specific Enzyme Search): forwarded to FragmentIndex. Only
-    // takes effect when peptide:enzyme_specificity=none. Opt-in (default false).
-    defaults_.setValue("snes_enabled", "false",
-      "[experimental, opt-in] When peptide:enzyme_specificity=none, index mother peptides (one per protein position) "
-      "and the masses of their prefixes instead of the fragments of every sub-peptide and modified form. The index "
-      "needs a fraction of the memory (e.g. for immunopeptidomics against a human database); a query generates the "
-      "fragments of the sub-peptides in the precursor window and matches them, so it finds the same candidates as "
-      "without SNES, but takes more time per spectrum, the more the larger the precursor window. Ignored for "
-      "specific/semi-specific enzymes.");
-    defaults_.setValidStrings("snes_enabled", {"true", "false"});
+    // forwarded to FragmentIndex
+    defaults_.setValue("index:mode", "fragments",
+      "What the index holds. 'fragments': the fragments of every peptidoform. 'peptide_masses' (only with "
+      "peptide:enzyme_specificity=none, ignored otherwise): the masses of the peptides, stored as the prefixes of one "
+      "mother peptide per protein position; a query generates the fragments of the peptidoforms in the precursor "
+      "window. It finds the same candidates as 'fragments' with a fraction of the memory (e.g. for immunopeptidomics "
+      "against a human database), but takes more time per spectrum, the more the wider the precursor window.");
+    defaults_.setValidStrings("index:mode", {"fragments", "peptide_masses"});
+    defaults_.setSectionDescription("index", "Index Options");
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
@@ -2426,7 +2425,7 @@ namespace OpenMS
       const MSSpectrum& query = query_spectra != nullptr ? (*query_spectra)[scan_index] : exp_spectrum;
       fi.querySpectrum(query, db, top_sms, generators.electronIons(exp_spectrum));
 
-      const bool snes_mode = fi.isSnesMode();
+      const bool peptide_mass_mode = fi.isPeptideMassMode();
 
       // Reused across candidates of this spectrum. Avoids per-candidate heap
       // churn of a fresh PeakSpectrum + its DataArrays (TSG's add_metainfo fills
@@ -2438,9 +2437,9 @@ namespace OpenMS
       {
         const FragmentIndex::Peptide& sms_pep = fi.getPeptides()[sms.peptide_idx_];
 
-        // SNES: the candidate is the prefix of the mother, with the variable modifications, that the index
+        // Peptide-mass mode: the candidate is the prefix of the mother, with the variable modifications, that the index
         // matched to the precursor
-        AASequence mod_candidate = snes_mode
+        AASequence mod_candidate = peptide_mass_mode
           ? fi.reconstructRealizedSubSequence(sms_pep, db, sms.realized_length_, sms.subset_bitmask_)
           : fi.reconstructModifiedSequence(sms_pep, db);
 
@@ -3012,7 +3011,7 @@ namespace OpenMS
     if (!index.hasProteinOccurrences(db))
     {
       mapping.fallback_reason = "the fragment index does not list every protein occurrence of its peptides "
-                                "(SNES, protein-terminal modifications, or not built from this database)";
+                                "(index:mode peptide_masses, protein-terminal modifications, or not built from this database)";
       return mapping;
     }
     const Size aaa_max = static_cast<Size>(static_cast<Int>(indexer_parameters.getValue("aaa_max")));
@@ -4881,7 +4880,7 @@ namespace OpenMS
         mfres.shared.seconds_index_build += sw_chunk.getClockTime();
         mfres.shared.indexed_peptides += chunk_fi.getPeptides().size();
         mfres.shared.indexed_fragments += chunk_fi.getNumFragments();
-        if (chunk_fi.isSnesMode()) { mfres.shared.snes_mode = true; }
+        if (chunk_fi.isPeptideMassMode()) { mfres.shared.peptide_mass_mode = true; }
 
         // Score ALL files against this chunk's index.
         // Each file may have different calibrated tolerances — apply per-file
@@ -5100,7 +5099,7 @@ namespace OpenMS
         if (ctx_built) { return; } // a rebuild: same database and peptides
         ctx_built = true;
         mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
-        mfres.shared.snes_mode = ctx.fragment_index.isSnesMode();
+        mfres.shared.peptide_mass_mode = ctx.fragment_index.isPeptideMassMode();
         for (const auto& e : ctx.db)
         {
           // Count by the RESOLVED decoy marker (prefix OR suffix), not the hardcoded
@@ -5895,7 +5894,7 @@ namespace OpenMS
       for (const auto& sms : top_sms.hits_)
       {
         const FragmentIndex::Peptide& peptide = fragment_index.getPeptides()[sms.peptide_idx_];
-        AASequence seq = fragment_index.isSnesMode()
+        AASequence seq = fragment_index.isPeptideMassMode()
           ? fragment_index.reconstructRealizedSubSequence(peptide, db, sms.realized_length_, sms.subset_bitmask_)
           : fragment_index.reconstructModifiedSequence(peptide, db);
         // Clear peaks + data arrays before refilling; getSpectrum appends to
@@ -6157,7 +6156,7 @@ namespace OpenMS
     str_list("ion_series", std::vector<std::string>(sh.ion_series.begin(), sh.ion_series.end()));
     y << "  open_search: " << bol(sh.open_search) << "\n";
     y << "  calibration_enabled: " << bol(sh.calibration_enabled) << "\n";
-    y << "  snes_mode: " << bol(sh.snes_mode) << "\n";
+    y << "  peptide_mass_mode: " << bol(sh.peptide_mass_mode) << "\n";
     y << "  chunked: " << bol(sh.chunked) << "\n";
     y << "  decoy_mode: " << q(sh.decoy_mode) << "\n";
     y << "  psm_fdr_threshold: " << num(sh.psm_fdr_threshold) << "\n";
@@ -6329,7 +6328,7 @@ namespace OpenMS
     os << "[ProSE]                ions: " << join_int(sh.ion_series)
        << " | calibration: " << (sh.calibration_enabled ? "on" : "off")
        << " | mode: " << (sh.open_search ? "open" : "closed")
-       << (sh.snes_mode ? " | SNES" : "")
+       << (sh.peptide_mass_mode ? " | index: peptide masses" : "")
        << (sh.chunked ? " | chunked" : "") << "\n";
 
     // -- Database / fragment index --
