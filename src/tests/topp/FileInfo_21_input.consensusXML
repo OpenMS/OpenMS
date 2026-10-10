@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<consensusXML version="1.7" document_id="FileInfo_21" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2024-01-01T00:00:00" search_engine="TestEngine" search_engine_version="1">
+		<SearchParameters db="test.fasta" db_version="1" taxonomy="0" mass_type="monoisotopic" charges="+2" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="10" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="PROT" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="2">
+		<map id="1" name="map_1.featureXML" label="label_1" size="7">
+		</map>
+		<map id="2" name="map_2.featureXML" label="label_2" size="7">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="0.0">
+			<centroid rt="10.0" mz="500.0" it="100.0"/>
+			<groupedElementList>
+				<element map="1" id="1" rt="10.1" mz="500.1" it="90.0" charge="2"/>
+				<element map="2" id="2" rt="9.9" mz="499.9" it="110.0" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="500.0" RT="10.0" >
+				<PeptideHit score="1" sequence="PEPTIDEK" charge="2" >
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_1" quality="0.1">
+			<centroid rt="20.0" mz="600.0" it="200.0"/>
+			<groupedElementList>
+				<element map="1" id="3" rt="20.1" mz="600.1" it="190.0" charge="2"/>
+				<element map="2" id="4" rt="19.9" mz="599.9" it="210.0" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="score" higher_score_better="true" significance_threshold="0" MZ="600.0" RT="20.0" >
+				<PeptideHit score="1" sequence="OTHERPEPK" charge="2" >
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

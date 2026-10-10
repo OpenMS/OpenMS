@@ -294,6 +294,10 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+    FileInfo:
+      - FIX: the consensusXML peptide-per-map counts indexed a vector of map positions with map ids,
+        which wrote out of bounds (or crashed) and miscounted when map ids are not 0..n-1; the
+        counts are now kept per map id.
   - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
     CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
     ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
