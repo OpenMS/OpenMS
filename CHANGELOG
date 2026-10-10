@@ -17,6 +17,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - FIX: IMDataConverter::splitByFAIMSCV updates the ranges of each FAIMS CV group, so
+    FeatureFinderCentroided no longer fails with "No ranges for this MS level" on FAIMS input.
   - FIX: IsobaricAnalyzer and IsobaricWorkflow precursor purity now count the precursor's own
     isotope peaks using 13C/12C mass spacing and a bounded nearest-peak search on both sides of
     each expected isotope position. Clean envelopes no longer receive artificially low purity
