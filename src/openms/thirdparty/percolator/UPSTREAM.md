@@ -33,23 +33,23 @@ Run `./sync-from-upstream.sh <tag-or-sha>`. The script copies files listed in
 SHA in this file. Review the resulting diff and commit as
 `chore(percolator): sync from upstream <ref>`.
 
-A clean re-sync of the currently-pinned SHA reproduces the committed tree
-bit-identically (verified 2026-04-24). If a re-sync produces a non-empty diff
-(beyond `UPSTREAM_COMMIT` timestamp churn), it means either the pinned SHA
-moved or a new downstream adaptation is needed — regenerate
+A clean re-sync of the currently-pinned SHA reproduces the committed sources
+bit-identically (verified 2026-10-09). If it does not, a downstream adaptation
+was made by hand or a patch no longer applies — regenerate
 `patches/01-namespace-wrap.patch` from the post-adaptation tree rather than
 hand-editing sources and committing them, to keep sync self-healing.
 
 ## Patches
 
-- `patches/01-namespace-wrap.patch` — single comprehensive patch covering all
-  OpenMS adaptations: namespace wrap in `OpenMS::Internal::Percolator`,
+- `patches/01-namespace-wrap.patch` — covers all OpenMS adaptations except
+  those in the later patches: namespace wrap in `OpenMS::Internal::Percolator`,
   `using namespace std;` placement, `std::` qualifications, additional
   includes (TabReader, Version.h), `::min/::max → std::min/std::max`,
   `parseOptions` body removal, enzyme / protein-inference / SQT feature
   drops, `#pragma once` on the new header-only regressors, etc.
   Regenerated 2026-04-24 (commit 9f227d7c03) from the current-tree-vs-upstream
   diff — replaces the former 01-06 chain which had accumulated drift.
+  Regenerated again 2026-10-09: a hand edit had made it unparseable.
 - `patches/02-atomic-include-negatives.patch` — makes the static
   `PosteriorEstimator::includeNegativesInResult` a `std::atomic<bool>`:
   `Scores::calcQvals` sets it from the OpenMP cross-validation loops, a data race
@@ -58,23 +58,43 @@ hand-editing sources and committing them, to keep sync self-healing.
 ### Regenerating the patch
 
 Whenever you hand-fix a downstream issue in the vendored tree, capture it in
-this patch rather than leaving it only in the source commit. To regenerate:
+this patch rather than leaving it only in the source commit. The later patches
+(`02-*.patch`, ...) are applied on top of patch 01 by `sync-from-upstream.sh`, so
+they are reverse-applied on a staged copy of the tree first and stay out of
+patch 01. To regenerate, run from this directory (it stops at the first error and
+replaces patch 01 only when every step succeeded):
 
 ```bash
-mkdir -p /tmp/perc-eb157f7
-whitelist=$(grep -v '^#' whitelist.txt | grep -v '^$')
+(
+set -euo pipefail
+up=; stage=; new=; trap 'rm -rf "$up" "$stage" "$new"' EXIT
+up=$(mktemp -d); stage=$(mktemp -d); new=$(mktemp -d patches/.regen.XXXXXX)
+whitelist=$(grep -v '^#' whitelist.txt | grep -v '^$' | LC_ALL=C sort)
 for f in $whitelist; do
   gh api "repos/percolator/percolator/contents/src/$f?ref=$(cat UPSTREAM_COMMIT)" \
-    --jq '.content' 2>/dev/null | base64 -d > "/tmp/perc-eb157f7/$f" 2>/dev/null
+    --jq '.content' | base64 -d > "$up/$f"
+  test -s "$up/$f"
 done
-: > patches/01-namespace-wrap.patch
-for f in $(ls /tmp/perc-eb157f7/ | sort); do
-  [ -s "/tmp/perc-eb157f7/$f" ] || continue
+mkdir -p "$stage/src/openms/thirdparty/percolator"
+cp ./*.h ./*.cpp "$stage/src/openms/thirdparty/percolator/"
+patches=$(ls -r patches/*.patch)  # an assignment, so set -e stops here if listing fails
+for p in $patches; do
+  [[ $p == patches/01-* ]] && continue
+  pl=0; [[ $(head -1 "$p") == 'diff --git a/'* ]] && pl=1
+  patch -s -R -p$pl -d "$stage" < "$p"
+done
+for f in $whitelist; do
   diff -urN --label "/tmp/percolator-preserved/$f" --label "src/openms/thirdparty/percolator/$f" \
-    "/tmp/perc-eb157f7/$f" "src/openms/thirdparty/percolator/$f" \
-    >> patches/01-namespace-wrap.patch || true
+    "$up/$f" "$stage/src/openms/thirdparty/percolator/$f" >> "$stage/01.patch" || [ $? -eq 1 ]
 done
+cp "$stage/01.patch" "$new/01.patch"
+mv "$new/01.patch" patches/01-namespace-wrap.patch
+)
 ```
+
+Then check it: `./sync-from-upstream.sh "$(cat UPSTREAM_COMMIT)"` must exit 0 and
+leave no change to the vendored `*.h`/`*.cpp` files. Pass the SHA: without an
+argument the script syncs to its built-in default, which is not updated by a sync.
 
 The `--label` flags are important — without them, `diff -urN` embeds
 filesystem timestamps that make `git diff` noisy on every regeneration even
