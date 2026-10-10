@@ -751,6 +751,58 @@ START_SECTION([EXTRA] store - runs with equal parameters share one block that ca
 }
 END_SECTION
 
+START_SECTION([EXTRA] store/load - runs that differ only in their search parameter meta values keep them)
+{
+  // Several engines run with the same database and tolerances have identical SearchParameters, but
+  // their per-engine provenance (SE:<engine>, <engine>:db, ...) lives in the meta values. Sharing
+  // one block gave every run the meta values of the first, so a run searched with MSGF+ reported
+  // Comet as its original search engine after reading the file back.
+  std::vector<ProteinIdentification> prots(2);
+  const char* engines[2] = {"Comet", "MSGFPlus"};
+  for (Size i = 0; i < 2; ++i)
+  {
+    ProteinIdentification::SearchParameters sp;
+    sp.db = "human.fasta";
+    sp.precursor_mass_tolerance = 10.0;
+    sp.precursor_mass_tolerance_ppm = true;
+    sp.fragment_mass_tolerance = 0.02;
+    sp.missed_cleavages = 2;
+    sp.setMetaValue(std::string("SE:") + engines[i], "1.0");
+    sp.setMetaValue(std::string(engines[i]) + ":db", "human.fasta");
+    prots[i].setSearchParameters(sp);
+    prots[i].setSearchEngine("Percolator"); // the engine that ran last, as in a rescored run
+    prots[i].setIdentifier(std::string("run_") + engines[i]);
+    prots[i].setDateTime(DateTime::now()); // idXML requires a real date
+  }
+  PeptideIdentificationList peps;
+
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  IdXMLFile().store(filename, prots, peps);
+
+  std::vector<ProteinIdentification> prots_in;
+  PeptideIdentificationList peps_in;
+  IdXMLFile().load(filename, prots_in, peps_in);
+  ABORT_IF(prots_in.size() != 2)
+  TEST_EQUAL(prots_in[0].getSearchParameters().metaValueExists("SE:Comet"), true)
+  TEST_EQUAL(prots_in[0].getSearchParameters().metaValueExists("SE:MSGFPlus"), false)
+  TEST_EQUAL(prots_in[1].getSearchParameters().metaValueExists("SE:MSGFPlus"), true)
+  TEST_EQUAL(prots_in[1].getSearchParameters().metaValueExists("SE:Comet"), false)
+  TEST_STRING_EQUAL(prots_in[0].getOriginalSearchEngineName(), "Comet")
+  TEST_STRING_EQUAL(prots_in[1].getOriginalSearchEngineName(), "MSGFPlus")
+
+  // runs with the same settings AND the same meta values still share one block
+  prots[1].setSearchParameters(prots[0].getSearchParameters());
+  std::string shared;
+  NEW_TMP_FILE(shared)
+  IdXMLFile().store(shared, prots, peps);
+  const std::string text = slurp4b(shared);
+  Size blocks = 0;
+  for (std::size_t pos = text.find("<SearchParameters "); pos != std::string::npos; pos = text.find("<SearchParameters ", pos + 1)) ++blocks;
+  TEST_EQUAL(blocks, 1)
+}
+END_SECTION
+
 START_SECTION([EXTRA] store - a defined variable modification on no hit keeps its definition)
 {
   TEST_TRUE(defineMod4b("TestIdXML:VarOnly", 'S', "HPO3") != nullptr)
