@@ -114,6 +114,26 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
 }
 END_SECTION
 
+START_SECTION(([EXTRA] mzIdentML peptide positions are 1-based, OpenMS positions are 0-based))
+{
+  // <PeptideEvidence ... start="115" end="152"> for a 38 residue peptide: mzIdentML counts the first
+  // residue of the protein as 1, PeptideEvidence counts it as 0, so the positions must be shifted.
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
+
+  ABORT_IF(peptide_ids.empty())
+  ABORT_IF(peptide_ids[0].getHits().empty())
+  const PeptideHit& hit = peptide_ids[0].getHits()[0];
+  ABORT_IF(hit.getPeptideEvidences().empty())
+  const PeptideEvidence& pe = hit.getPeptideEvidences()[0];
+  TEST_EQUAL(pe.getStart(), 114)
+  TEST_EQUAL(pe.getEnd(), 151)
+  // end is inclusive, so the positions have to span the peptide
+  TEST_EQUAL(pe.getEnd() - pe.getStart() + 1, (Int)hit.getSequence().size())
+}
+END_SECTION
+
 START_SECTION(([EXTRA] read mzIdentML Modification without the optional location attribute (issue #5443)))
 {
   // The 'location' attribute of <Modification> is optional in mzIdentML; some search engines omit it for
