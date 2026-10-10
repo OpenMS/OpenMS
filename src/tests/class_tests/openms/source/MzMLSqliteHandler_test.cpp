@@ -710,6 +710,48 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
 }
 END_SECTION
 
+START_SECTION([EXTRA] prepareSpectra_/prepareChroms_ reject an ACTIVATION_METHOD below -1)
+{
+  // Regression test for CPP-199: the writer only ever stores -1 (no method) or a
+  // valid ActivationMethod enum value, but the reader accepted any value below
+  // SIZE_OF_ACTIVATIONMETHOD with no lower bound, so a corrupted (or hand-edited)
+  // sqMass file with ACTIVATION_METHOD = -2 or lower produced an out-of-range enum
+  // value. Later code (e.g. Precursor::getActivationMethodsAsString()) indexes a
+  // static name table with that enum and reads out of bounds.
+  MSExperiment exp_orig;
+  MSSpectrum spec;
+  spec.setMSLevel(2);
+  spec.setRT(1.0);
+  Precursor prec;
+  prec.setMZ(500.0);
+  spec.setPrecursors({prec});
+  exp_orig.addSpectrum(spec);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::filesystem::remove(tmp_filename);
+
+  MzMLSqliteHandler handler(tmp_filename, 12345);
+  handler.createTables();
+  handler.writeSpectra(exp_orig.getSpectra());
+
+  // Hand-corrupt the stored activation method the way a damaged or maliciously
+  // edited file would -- the writer itself never stores anything below -1.
+  SqliteConnector conn(tmp_filename);
+  conn.executeStatement("UPDATE PRECURSOR SET ACTIVATION_METHOD = -2");
+
+  std::vector<MSSpectrum> read_back;
+  std::vector<int> indices = {0};
+  handler.readSpectra(read_back, indices, false);
+  TEST_EQUAL(read_back.size(), 1)
+  TEST_EQUAL(read_back[0].getPrecursors().size(), 1)
+  // The invalid value must be skipped, not stored as an out-of-range enum.
+  TEST_EQUAL(read_back[0].getPrecursors()[0].getActivationMethods().empty(), true)
+  // Must not read out of bounds / crash converting the (now empty) method set.
+  TEST_EQUAL(read_back[0].getPrecursors()[0].getActivationMethodsAsString().empty(), true)
+}
+END_SECTION
+
 // reset error tolerances to default values
 TOLERANCE_ABSOLUTE(1e-5)
 TOLERANCE_RELATIVE(1+1e-5)

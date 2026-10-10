@@ -220,6 +220,9 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - FIX: MzMLSqliteHandler no longer accepts a sqMass PRECURSOR.ACTIVATION_METHOD value below -1.
+    Such a value cast straight to an out-of-range Precursor::ActivationMethod enum, which later
+    code (e.g. getActivationMethodsAsString()) used to index a static name table out of bounds.
   - FIX: FalseDiscoveryRate::applyPickedProteinFDR read past the end of its score map for a protein
     group that took no part in the target-decoy competition (all its members lost their pairs) and
     whose score lay beyond every calibrated group score. The group got an arbitrary value (in our
