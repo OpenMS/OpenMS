@@ -67,7 +67,8 @@ replaces patch 01 only when every step succeeded):
 ```bash
 (
 set -euo pipefail
-up=$(mktemp -d); stage=$(mktemp -d); trap 'rm -rf "$up" "$stage"' EXIT
+new=patches/.01-namespace-wrap.patch.new
+up=$(mktemp -d); stage=$(mktemp -d); trap 'rm -rf "$up" "$stage" "$new"' EXIT
 whitelist=$(grep -v '^#' whitelist.txt | grep -v '^$' | LC_ALL=C sort)
 for f in $whitelist; do
   gh api "repos/percolator/percolator/contents/src/$f?ref=$(cat UPSTREAM_COMMIT)" \
@@ -76,7 +77,9 @@ for f in $whitelist; do
 done
 mkdir -p "$stage/src/openms/thirdparty/percolator"
 cp ./*.h ./*.cpp "$stage/src/openms/thirdparty/percolator/"
-for p in $(ls -r patches/*.patch | grep -v '/01-'); do
+patches=$(ls -r patches/*.patch)  # an assignment, so set -e stops here if listing fails
+for p in $patches; do
+  [[ $p == patches/01-* ]] && continue
   pl=0; [[ $(head -1 "$p") == 'diff --git a/'* ]] && pl=1
   patch -s -R -p$pl -d "$stage" < "$p"
 done
@@ -84,12 +87,14 @@ for f in $whitelist; do
   diff -urN --label "/tmp/percolator-preserved/$f" --label "src/openms/thirdparty/percolator/$f" \
     "$up/$f" "$stage/src/openms/thirdparty/percolator/$f" >> "$stage/01.patch" || [ $? -eq 1 ]
 done
-cp "$stage/01.patch" patches/01-namespace-wrap.patch
+cp "$stage/01.patch" "$new"
+mv "$new" patches/01-namespace-wrap.patch
 )
 ```
 
-Then check it: `./sync-from-upstream.sh` must exit 0 and leave no change to the
-vendored `*.h`/`*.cpp` files.
+Then check it: `./sync-from-upstream.sh "$(cat UPSTREAM_COMMIT)"` must exit 0 and
+leave no change to the vendored `*.h`/`*.cpp` files. Pass the SHA: without an
+argument the script syncs to its built-in default, which is not updated by a sync.
 
 The `--label` flags are important — without them, `diff -urN` embeds
 filesystem timestamps that make `git diff` noisy on every regeneration even
