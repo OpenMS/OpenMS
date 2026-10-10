@@ -768,10 +768,8 @@ The LogConfigHandler provides the functionality to configure the
 internal logging of OpenMS algorithms that use the global instances of
 LogStream
 )doc")
-        .def("parse", [](OpenMS::LogConfigHandler& self, const std::vector<std::string>& setting) { return self.parse(setting); }, "setting"_a)
-        .def("configure", [](OpenMS::LogConfigHandler& self, const OpenMS::Param& param) { return self.configure(param); }, "param"_a,
+        .def("parse", [](OpenMS::LogConfigHandler& self, const std::vector<std::string>& setting) { return self.parse(setting); }, "setting"_a,
             R"doc(
-Translates the given list of parameter settings into a LogStream configuration
 Translates the given list of parameter settings into a LogStream configuration.
 Usually this list stems from a command line call.
 Each element in the stringlist should follow this naming convention
@@ -787,7 +785,7 @@ This function will **not** apply to settings to the log handlers. Use configure(
 :raises ParseError: In case of an invalid configuration.
 :return: Param object containing all settings, that can be applied using the LogConfigHandler.configure() method
 )doc")
-        .def("setLogLevel", [](OpenMS::LogConfigHandler& self, const std::string& log_level) { return self.setLogLevel(log_level); }, "log_level"_a,
+        .def("configure", [](OpenMS::LogConfigHandler& self, const OpenMS::Param& param) { return self.configure(param); }, "param"_a,
             R"doc(
 Applies the given parameters (@p param) to the current configuration
 <LOG_NAME> <ACTION> <PARAMETER> <STREAMTYPE>
@@ -804,6 +802,17 @@ A classical configuration would contain a list of settings e.g.
 :raises ElementNotFound: If the LogStream (first argument) does not exist.
 :raises FileNotWritable: If a file (or stream) should be opened as log file (or stream) that is not accessible.
 :raises IllegalArgument: If a stream should be registered, that was already registered with a different type.
+)doc")
+        .def("setLogLevel", [](OpenMS::LogConfigHandler& self, const std::string& log_level) { return self.setLogLevel(log_level); }, "log_level"_a,
+            R"doc(
+Sets a minimum log level by removing all streams from loggers lower than that level,
+and restoring configured streams for loggers at or above that level.
+Order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR", "NONE"
+Special value "NONE" disables all logging by removing streams from all levels.
+The default configuration writes debug and info messages to stdout, and warnings and errors to
+stderr. Debug messages are written from setLogLevel("DEBUG") on.
+:param log_level: The minimum log level to enable. Levels below this will have their streams removed.
+:raises IllegalArgument: If log_level is not one of the levels above.
 )doc")
         .def_static("getInstance", []() -> OpenMS::LogConfigHandler* { return OpenMS::LogConfigHandler::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;

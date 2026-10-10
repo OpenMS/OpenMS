@@ -259,6 +259,11 @@ OpenMS Library:
     suppress OpenSWATH's status output again. They detached std::cout from the global info stream,
     which the calling thread's stream had already copied (#10478). FeatureFinderAlgorithmMetaboIdent
     now shows it at debug level 1 and above, like FeatureFinderIdentificationAlgorithm.
+  - FIX: LogConfigHandler::setLogLevel("DEBUG") (also in pyOpenMS) writes debug messages to
+    std::cout; the default configuration had no destination for them. Warnings stay on std::cerr:
+    setLogLevel() moved them to std::cout, as the default configuration did not match the initial
+    destinations of the global streams. The pyOpenMS docstrings of LogConfigHandler.parse(),
+    configure() and setLogLevel() were shifted by one method.
   - FIX: FalseDiscoveryRate::applyPickedProteinFDR read past the end of its score map for a protein
     group that took no part in the target-decoy competition (all its members lost their pairs) and
     whose score lay beyond every calibrated group score. The group got an arbitrary value (in our

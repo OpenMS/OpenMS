@@ -57,6 +57,26 @@ START_SECTION((Param parse(const StringList &setting)))
 }
 END_SECTION
 
+START_SECTION((void setLogLevel(const std::string &log_level) - default configuration))
+{
+  // Runs before the other sections change the configuration of the singleton.
+  LogConfigHandler::getInstance()->setLogLevel("DEBUG");
+  TEST_TRUE(getGlobalLogDebug().hasStream(cout))
+  TEST_TRUE(getGlobalLogInfo().hasStream(cout))
+  // warnings stay on std::cerr, where the global stream writes them initially
+  TEST_TRUE(getGlobalLogWarn().hasStream(cerr))
+  TEST_FALSE(getGlobalLogWarn().hasStream(cout))
+  TEST_TRUE(getGlobalLogError().hasStream(cerr))
+  TEST_TRUE(getGlobalLogFatal().hasStream(cerr))
+
+  LogConfigHandler::getInstance()->setLogLevel("INFO");
+  TEST_FALSE(getGlobalLogDebug().hasStream(cout))
+  TEST_TRUE(getGlobalLogInfo().hasStream(cout))
+  TEST_TRUE(getGlobalLogWarn().hasStream(cerr))
+  TEST_FALSE(getGlobalLogWarn().hasStream(cout))
+}
+END_SECTION
+
 START_SECTION((void configure(const Param &param)))
 {
   // Note: LogConfigHandler configures the GLOBAL log streams, not thread-local streams.
