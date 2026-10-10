@@ -67,8 +67,8 @@ replaces patch 01 only when every step succeeded):
 ```bash
 (
 set -euo pipefail
-new=patches/.01-namespace-wrap.patch.new
-up=$(mktemp -d); stage=$(mktemp -d); trap 'rm -rf "$up" "$stage" "$new"' EXIT
+up=; stage=; new=; trap 'rm -rf "$up" "$stage" "$new"' EXIT
+up=$(mktemp -d); stage=$(mktemp -d); new=$(mktemp -d patches/.regen.XXXXXX)
 whitelist=$(grep -v '^#' whitelist.txt | grep -v '^$' | LC_ALL=C sort)
 for f in $whitelist; do
   gh api "repos/percolator/percolator/contents/src/$f?ref=$(cat UPSTREAM_COMMIT)" \
@@ -87,8 +87,8 @@ for f in $whitelist; do
   diff -urN --label "/tmp/percolator-preserved/$f" --label "src/openms/thirdparty/percolator/$f" \
     "$up/$f" "$stage/src/openms/thirdparty/percolator/$f" >> "$stage/01.patch" || [ $? -eq 1 ]
 done
-cp "$stage/01.patch" "$new"
-mv "$new" patches/01-namespace-wrap.patch
+cp "$stage/01.patch" "$new/01.patch"
+mv "$new/01.patch" patches/01-namespace-wrap.patch
 )
 ```
 
