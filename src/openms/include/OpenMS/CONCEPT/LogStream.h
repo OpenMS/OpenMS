@@ -169,9 +169,12 @@ public:
       {
         std::ostream * stream;
         std::string         prefix;
+        /// Unique for each insertion: a stream inserted again, or a new stream at the address of a destroyed one, is a new destination
+        Size id;
 
         StreamStruct() :
-          stream(nullptr)
+          stream(nullptr),
+          id(0)
         {}
       };
 
@@ -203,8 +206,8 @@ protected:
       /// Rebuilds stream_list_ from parent_'s destinations and this buffer's own changes. The caller holds the sink mutex.
       void rebuildStreamList_();
 
-      /// Is @p stream one of parent_'s destinations? The caller holds the sink mutex.
-      bool parentHasStream_(const std::ostream& stream) const;
+      /// Is @p stream suppressed by a LogSinkGuard on this following buffer (see guarded_streams_)?
+      bool guarded_(const std::ostream* stream) const;
 
       /// Entries whose prefix may be changed: stream_list_, or own_streams_ for a following buffer (the prefix of parent_'s destinations is set on parent_)
       std::list<StreamStruct>& prefixableStreams_();
@@ -214,7 +217,7 @@ protected:
 
       char * pbuf_ = nullptr;
       std::string             level_;
-      std::list<StreamStruct> stream_list_;  ///< Destinations of this buffer (for a following buffer: derived from parent_, own_streams_ and hidden_streams_)
+      std::list<StreamStruct> stream_list_;  ///< Destinations of this buffer (for a following buffer: derived from parent_, own_streams_ and hidden_ids_)
       std::string             incomplete_line_;
       /// Buffer whose destinations this buffer follows (the global buffer of a thread-local one), or nullptr
       LogStreamBuf* parent_ = nullptr;
@@ -224,8 +227,11 @@ protected:
       Size parent_version_ = 0;
       /// Destinations inserted into this following buffer; they replace parent_'s entry for the same stream
       std::list<StreamStruct> own_streams_;
-      /// Destinations of parent_ removed from this following buffer
-      std::vector<const std::ostream*> hidden_streams_;
+      /// Destinations of parent_ (their StreamStruct::id) removed from this following buffer. Kept when parent_ removes them:
+      /// a LogSinkGuard on parent_ restores a destination with its id, and ids are never reused.
+      std::vector<Size> hidden_ids_;
+      /// Streams that a LogSinkGuard suppresses on this following buffer (one entry per guard), however they are inserted
+      std::vector<const std::ostream*> guarded_streams_;
       Colorizer* colorizer_ = nullptr; ///< optional Colorizer to color the output to stdout/stdcerr (if attached)
       /// @name Caching
       //@{
@@ -277,11 +283,11 @@ protected:
         counts to the destinations that remain and clears the cache, so that a new destination gets every message.
         The caller holds the sink mutex.
       */
-      void forgetRepeatsAfterChange_(const std::vector<const std::ostream*>& previous);
+      void forgetRepeatsAfterChange_(const std::vector<Size>& previous);
       //@}
 
-      /// The destinations in stream_list_, sorted
-      std::vector<const std::ostream*> destinations_() const;
+      /// The destinations in stream_list_ (their StreamStruct::id), sorted
+      std::vector<Size> destinations_() const;
 
       /// Writes @p line to the destination @p s, with its prefix and color. The caller holds the sink mutex.
       void write_(StreamStruct& s, const std::string& line);
@@ -380,8 +386,13 @@ public:
         corresponding global LogStream, including later changes to them. Its own changes apply on
         top of these, to the calling thread only: a stream inserted into it belongs to it and is not
         affected by later changes to the global LogStream; a global destination removed from it stays
-        hidden until it is inserted again. setPrefix() on it applies to its own destinations only;
-        the prefix of a global destination is set on the global LogStream.
+        hidden until it is inserted into it again. A destination that the global LogStream inserts later,
+        also the same stream again, is not hidden; a LogSinkGuard on the global LogStream restores its
+        destination as it was, so it stays hidden.
+        setPrefix() on it applies to its own destinations only; the prefix of a global destination is
+        set on the global LogStream.
+
+        Do not insert a LogStream as a destination of another one: writing to it would block.
 
         When the destinations change, pending repeat counts ("<message> occurred N times") are written to the
         destinations that got the repeated messages and remain (with insert(), remove() and removeAllStreams() on
@@ -477,6 +488,38 @@ private:
       /// Lets the thread-local accessors (getThreadLocalLog*()) call followParent_() on each use
       friend struct ThreadLocalLogAccess;
 
+      friend class LogSinkGuard;
+
+      /// A destination that LogSinkGuard removed from a global stream (see removeForGuard_()), restored with its prefix and id
+      struct GuardedRemoval
+      {
+        bool reinsert = false;
+        std::string prefix;
+        Size id = 0;
+      };
+
+      /**
+        For LogSinkGuard: on a thread-local stream, suppresses @p s until restoreForGuard_(); on a global stream, removes it.
+        Pending text and repeat counts go to the current destinations first; for a global stream also those of the calling
+        thread's thread-local stream of the same level, which follows it.
+      */
+      GuardedRemoval removeForGuard_(std::ostream& s);
+
+      /**
+        Undoes removeForGuard_(). Text pending since then goes to the destinations without @p s first. A thread-local stream
+        then has the destinations it would have without the guard; a global stream gets @p s back unless it was inserted again.
+      */
+      void restoreForGuard_(std::ostream& s, const GuardedRemoval& removal);
+
+      /// Removes @p s from the destinations (for a thread-local stream: hides inherited ones) and returns what it removed. The caller holds the sink mutex.
+      GuardedRemoval detachLocked_(std::ostream& s);
+
+      /// For a global stream: the calling thread's thread-local stream of the same level, or nullptr
+      LogStream* threadLocalFollower_();
+
+      /// Writes pending text (also an incomplete line) and repeat counts to the current destinations
+      void drain_();
+
       /// For a thread-local stream: applies changes of the global destinations made since the last call, see updateState_()
       void followParent_();
 
@@ -503,11 +546,18 @@ private:
       during operations that may throw exceptions.
 
       @note The guard acts only on a stream that is attached when it is constructed; for an
-            unattached stream it does nothing (will not insert on scope exit).
+            unattached stream it does nothing (will not insert on scope exit). On a thread-local stream,
+            it suppresses the stream for the calling thread until it ends, also if the global stream
+            inserts it again meanwhile; then the thread-local stream has the destinations it would have
+            without the guard (e.g. not a destination that the global stream removed meanwhile). On a
+            global stream, it removes the destination and inserts it again, with its prefix, at the end
+            (unless it was inserted again meanwhile); the stream must outlive the guard.
 
       @note The OPENMS_LOG_* macros write to thread-local streams that follow the destinations of
             the global ones. Guarding a global stream (getGlobalLog*()) suppresses the sink for all
             threads; guarding a thread-local stream (getThreadLocalLog*()) only for the calling thread.
+            Text pending before and inside the guarded scope goes to the destinations it was written
+            for: for a global stream, this holds for the calling thread, not for other threads.
 
       Example usage:
       @code
@@ -535,21 +585,18 @@ private:
         {
           return;
         }
-        // Drain pending output so pre-guard text reaches this sink before it is detached.
-        log_stream_.flushIncomplete();
-        log_stream_.remove(stream_);
+        // Drains pending output first, so that pre-guard text reaches this sink before it is detached.
+        removal_ = log_stream_.removeForGuard_(stream_);
       }
 
-      /// Destructor discards any suppressed output, then re-inserts the sink.
+      /// Destructor writes output pending inside the scope to the other destinations, then restores the sink.
       ~LogSinkGuard()
       {
         if (!was_attached_)
         {
           return;
         }
-        // Drain buffered output while the sink is still detached so it does not leak through.
-        log_stream_.flushIncomplete();
-        log_stream_.insert(stream_);
+        log_stream_.restoreForGuard_(stream_, removal_);
       }
 
       // Non-copyable and non-movable
@@ -563,6 +610,8 @@ private:
       std::ostream& stream_;
       /// was the sink attached when the guard was constructed? if not, the guard does nothing
       const bool was_attached_;
+      /// what the guard removed, restored on destruction
+      LogStream::GuardedRemoval removal_;
     };
 
   } // namespace Logger

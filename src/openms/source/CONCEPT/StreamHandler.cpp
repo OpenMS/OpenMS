@@ -38,6 +38,12 @@ namespace OpenMS
     for (map<std::string, ostream *>::iterator iter = name_to_stream_map_.begin(); iter != name_to_stream_map_.end(); ++iter)
     {
       ostream * stream_pointer = iter->second;
+      // Remove it from the global log streams first (e.g. added by LogConfigHandler): they are never destroyed, and
+      // threads that still log, e.g. while STREAM_HANDLER is destroyed at exit, must not write to the deleted stream.
+      for (Logger::LogStream* log : {&getGlobalLogFatal(), &getGlobalLogError(), &getGlobalLogWarn(), &getGlobalLogInfo(), &getGlobalLogDebug()})
+      {
+        log->remove(*stream_pointer);
+      }
       // file streams need to be closed before
       if (name_to_type_map_[iter->first] == FILE)
       {

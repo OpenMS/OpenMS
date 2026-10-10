@@ -39,6 +39,21 @@ using namespace OpenMS;
 using namespace Logger;
 using namespace std;
 
+namespace
+{
+  /// The text of a destination of a colored stream (debug, warning), without the color codes
+  std::string withoutColor(const ostringstream& s)
+  {
+    return boost::regex_replace(s.str(), boost::regex("\x1b\\[[0-9;]*m"), "");
+  }
+
+  /// Logs from a static destructor, after the main thread's thread_local log streams are destroyed (crashed before)
+  struct LogsAtExit
+  {
+    ~LogsAtExit() { OPENMS_LOG_INFO << "LogStream_test: message from a static destructor at exit" << std::endl; }
+  } logs_at_exit;
+}
+
 START_TEST(LogStream, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -931,6 +946,231 @@ START_SECTION(([EXTRA] repeated messages after a change of the destinations))
   getThreadLocalLogDebug().remove(local);
   TEST_EQUAL(plain(local), "local message\n<local message> occurred 2 times\nlocal message\n")
   TEST_EQUAL(plain(later), "local message\n")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] LogSinkGuard restores only what it removed))
+{
+  // A global destination removed while the guard hid it on this thread stays removed (it may be destroyed).
+  ostringstream console;
+  getGlobalLogDebug().insert(console);
+  {
+    LogSinkGuard quiet(getThreadLocalLogDebug(), console);
+    getGlobalLogDebug().remove(console);
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "after the guard" << endl;
+  TEST_FALSE(getThreadLocalLogDebug().hasStream(console))
+  TEST_TRUE(console.str().find("after the guard") == std::string::npos)
+
+  // A destination of the thread-local stream itself is inserted again, with its prefix.
+  ostringstream own;
+  getThreadLocalLogDebug().insert(own);
+  getThreadLocalLogDebug().setPrefix(own, "own: ");
+  {
+    LogSinkGuard quiet(getThreadLocalLogDebug(), own);
+    OPENMS_LOG_DEBUG_NOFILE << "guarded" << endl;
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "restored" << endl;
+  getThreadLocalLogDebug().remove(own);
+  TEST_EQUAL(withoutColor(own), "own: restored\n")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a LogSinkGuard on a thread-local stream suppresses the stream for its whole scope))
+{
+  ostringstream sink;
+  getGlobalLogDebug().insert(sink);
+  {
+    LogSinkGuard outer(getThreadLocalLogDebug(), sink);
+    getGlobalLogDebug().remove(sink);
+    getGlobalLogDebug().insert(sink); // inserted again: still suppressed on this thread
+    OPENMS_LOG_DEBUG_NOFILE << "1: inside, after the global insertion" << endl;
+    {
+      LogSinkGuard inner(getThreadLocalLogDebug(), sink); // does nothing: suppressed already
+    }
+    OPENMS_LOG_DEBUG_NOFILE << "2: inside, after an inner guard" << endl;
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "3: after the guard" << endl;
+
+  // a removal in the guarded scope lasts beyond it
+  {
+    LogSinkGuard quiet(getThreadLocalLogDebug(), sink);
+    getThreadLocalLogDebug().remove(sink);
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "4: removed in the guarded scope" << endl;
+  getThreadLocalLogDebug().insert(sink);
+  getGlobalLogDebug().remove(sink);
+  TEST_EQUAL(withoutColor(sink), "3: after the guard\n")
+
+  // an own destination inserted again in the guarded scope stays a single destination
+  ostringstream own;
+  getThreadLocalLogDebug().insert(own);
+  {
+    LogSinkGuard quiet(getThreadLocalLogDebug(), own);
+    getThreadLocalLogDebug().insert(own);
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "once" << endl;
+  getThreadLocalLogDebug().remove(own);
+  TEST_EQUAL(withoutColor(own), "once\n")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a LogSinkGuard on a global stream keeps a destination hidden on a thread))
+{
+  ostringstream sink;
+  getGlobalLogDebug().insert(sink);
+  getThreadLocalLogDebug().remove(sink); // hidden on this thread
+  {
+    LogSinkGuard quiet(getGlobalLogDebug(), sink); // e.g. in a library function
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "1: after a global guard" << endl;
+  getThreadLocalLogDebug().insert(sink); // shown again
+  {
+    LogSinkGuard outer(getThreadLocalLogDebug(), sink);
+    {
+      LogSinkGuard inner(getGlobalLogDebug(), sink);
+    }
+    OPENMS_LOG_DEBUG_NOFILE << "2: inside the outer guard" << endl;
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "3: after the outer guard" << endl;
+  getGlobalLogDebug().remove(sink);
+  TEST_EQUAL(withoutColor(sink), "3: after the outer guard\n")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a stream inserted again is a new destination))
+{
+  // also a new stream at the address of a destroyed one, which this simulates deterministically
+  ostringstream s;
+  getGlobalLogDebug().insert(s);
+  OPENMS_LOG_DEBUG_NOFILE << "x" << endl;
+  getGlobalLogDebug().remove(s);
+  s.str("");
+  getGlobalLogDebug().insert(s);
+  OPENMS_LOG_DEBUG_NOFILE << "x" << endl; // not a repeat for the new destination
+
+  getThreadLocalLogDebug().removeAllStreams(); // hides the current destinations from this thread
+  getGlobalLogDebug().remove(s);
+  getGlobalLogDebug().insert(s);
+  OPENMS_LOG_DEBUG_NOFILE << "y" << endl; // the new destination is not hidden
+  getGlobalLogDebug().remove(s);
+  TEST_EQUAL(withoutColor(s), "x\ny\n")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] LogSinkGuard on a global stream drains the stream of the calling thread))
+{
+  ostringstream other, sink;
+  getGlobalLogDebug().insert(other);
+  getGlobalLogDebug().insert(sink);
+  OPENMS_LOG_DEBUG_NOFILE << "before the guard\n"; // "\n" without endl: still buffered
+  {
+    LogSinkGuard quiet(getGlobalLogDebug(), sink);
+    OPENMS_LOG_DEBUG_NOFILE << "inside 1" << endl;
+    OPENMS_LOG_DEBUG_NOFILE << "inside 2\n";
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "after" << endl;
+  OPENMS_LOG_DEBUG_NOFILE << "partial before the guard: " << flush;
+  {
+    LogSinkGuard quiet(getGlobalLogDebug(), sink);
+    OPENMS_LOG_DEBUG_NOFILE << "inside 3" << endl;
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "rep" << endl;
+  OPENMS_LOG_DEBUG_NOFILE << "rep" << endl;
+  {
+    LogSinkGuard quiet(getGlobalLogDebug(), sink);
+    OPENMS_LOG_DEBUG_NOFILE << "inside 4" << endl;
+  }
+  OPENMS_LOG_DEBUG_NOFILE << "after 3" << endl;
+  getGlobalLogDebug().remove(sink);
+  getGlobalLogDebug().remove(other);
+  TEST_EQUAL(withoutColor(sink), "before the guard\nafter\npartial before the guard: \nrep\n<rep> occurred 2 times\nafter 3\n")
+  TEST_TRUE(withoutColor(other).find("inside 2") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a failing destination with exceptions enabled does not stop logging))
+{
+  struct FailingBuf : std::streambuf
+  {
+    int overflow(int) override { return traits_type::eof(); }
+    std::streamsize xsputn(const char*, std::streamsize) override { return 0; }
+  } failing_buf;
+  std::ostream failing(&failing_buf);
+  failing.exceptions(std::ios::badbit);
+  ostringstream good, third;
+  getGlobalLogDebug().insert(failing);
+  getGlobalLogDebug().insert(good);
+  getGlobalLogDebug().insert(third);
+  bool threw = false;
+  try
+  {
+    OPENMS_LOG_DEBUG_NOFILE << "a" << endl;
+    OPENMS_LOG_DEBUG_NOFILE << "a" << endl;
+    getGlobalLogDebug().remove(third);
+    OPENMS_LOG_DEBUG_NOFILE << "b" << endl; // the accessor writes the pending count of "a" first
+    OPENMS_LOG_DEBUG_NOFILE << "b" << endl;
+    {
+      LogSinkGuard quiet(getThreadLocalLogDebug(), good); // writes the pending count of "b"
+    }
+    OPENMS_LOG_DEBUG_NOFILE << "c" << endl;
+  }
+  catch (...)
+  {
+    threw = true;
+  }
+  getGlobalLogDebug().remove(failing);
+  getGlobalLogDebug().remove(good);
+  TEST_FALSE(threw)
+  TEST_EQUAL(withoutColor(good), "a\n<a> occurred 2 times\nb\n<b> occurred 2 times\nc\n")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] pending lines and repeat counts stay with the destinations before a change))
+{
+  // insert()
+  ostringstream a, b;
+  getGlobalLogDebug().insert(a);
+  OPENMS_LOG_DEBUG_NOFILE << "x" << endl;
+  OPENMS_LOG_DEBUG_NOFILE << "x\n" << "before insert\n"; // not flushed yet
+  getThreadLocalLogDebug().insert(b);
+  OPENMS_LOG_DEBUG_NOFILE << "after insert" << endl;
+  getThreadLocalLogDebug().remove(b);
+  getGlobalLogDebug().remove(a);
+  TEST_EQUAL(withoutColor(a), "x\nbefore insert\n<x> occurred 2 times\nafter insert\n")
+  TEST_EQUAL(withoutColor(b), "after insert\n")
+
+  // setPrefix() through a kept reference applies a pending global change first, so the pending repeat count
+  // keeps the prefix of the lines it counts
+  ostringstream own, other;
+  Logger::LogStream& log = getThreadLocalLogDebug();
+  log.insert(own);
+  OPENMS_LOG_DEBUG_NOFILE << "p" << endl;
+  OPENMS_LOG_DEBUG_NOFILE << "p" << endl;
+  getGlobalLogDebug().insert(other);
+  log.setPrefix(std::string("NEW: "));
+  log.remove(own);
+  getGlobalLogDebug().remove(other);
+  TEST_EQUAL(withoutColor(own), "p\n<p> occurred 2 times\n")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] messages from the destructor of a thread_local object reach their destinations))
+{
+  ostringstream dest;
+  getGlobalLogDebug().insert(dest);
+  std::thread([] {
+    struct LogsInDestructor
+    {
+      ~LogsInDestructor() { OPENMS_LOG_DEBUG_NOFILE << "from a thread_local destructor" << endl; }
+    };
+    thread_local LogsInDestructor object; // constructed before the thread's log stream, so destroyed after it
+    (void)object;
+    OPENMS_LOG_DEBUG_NOFILE << "worker" << endl;
+  }).join();
+  getGlobalLogDebug().remove(dest);
+  TEST_TRUE(dest.str().find("worker") != std::string::npos)
+  TEST_TRUE(dest.str().find("from a thread_local destructor") != std::string::npos)
 }
 END_SECTION
 

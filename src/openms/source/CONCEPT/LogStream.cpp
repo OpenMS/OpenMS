@@ -23,6 +23,9 @@
 #include <mutex>
 #include <vector>
 #include <algorithm>    // std::min
+#ifdef __GLIBCXX__
+#include <cxxabi.h>     // abi::__forced_unwind
+#endif
 #include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
@@ -50,6 +53,13 @@ namespace
   {
     static std::mutex* instance = new std::mutex();
     return *instance;
+  }
+
+  /// A new StreamStruct::id, unique for the process
+  OpenMS::Size nextDestinationId_()
+  {
+    static std::atomic<OpenMS::Size> next_id{1};
+    return next_id.fetch_add(1, std::memory_order_relaxed);
   }
 
   /// Thread-safe local-time conversion. std::localtime returns a pointer to a
@@ -130,28 +140,33 @@ namespace OpenMS
     void LogStreamBuf::rebuildStreamList_()
     {
       // The sink mutex, held by the caller, also guards parent_->stream_list_ against concurrent changes.
-      const std::vector<const std::ostream*> previous = destinations_();
+      const std::vector<Size> previous = destinations_();
       parent_version_ = parent_->version_.load(std::memory_order_relaxed);
       stream_list_.clear();
       for (const StreamStruct& s : parent_->stream_list_)
       {
-        const bool hidden = std::find(hidden_streams_.begin(), hidden_streams_.end(), s.stream) != hidden_streams_.end();
+        const bool hidden = std::find(hidden_ids_.begin(), hidden_ids_.end(), s.id) != hidden_ids_.end();
         const bool own = std::any_of(own_streams_.begin(), own_streams_.end(),
                                      [&s](const StreamStruct& o) { return o.stream == s.stream; });
-        if (!hidden && !own)
+        if (!hidden && !own && !guarded_(s.stream))
         {
           stream_list_.push_back(s);
         }
       }
-      stream_list_.insert(stream_list_.end(), own_streams_.begin(), own_streams_.end());
+      for (const StreamStruct& s : own_streams_)
+      {
+        if (!guarded_(s.stream))
+        {
+          stream_list_.push_back(s);
+        }
+      }
       version_.fetch_add(1, std::memory_order_release);
       forgetRepeatsAfterChange_(previous);
     }
 
-    bool LogStreamBuf::parentHasStream_(const std::ostream& stream) const
+    bool LogStreamBuf::guarded_(const std::ostream* stream) const
     {
-      return std::any_of(parent_->stream_list_.begin(), parent_->stream_list_.end(),
-                         [&stream](const StreamStruct& s) { return s.stream == &stream; });
+      return std::find(guarded_streams_.begin(), guarded_streams_.end(), stream) != guarded_streams_.end();
     }
 
     std::list<LogStreamBuf::StreamStruct>& LogStreamBuf::prefixableStreams_()
@@ -171,18 +186,18 @@ namespace OpenMS
       }
     }
 
-    std::vector<const std::ostream*> LogStreamBuf::destinations_() const
+    std::vector<Size> LogStreamBuf::destinations_() const
     {
-      std::vector<const std::ostream*> streams;
+      std::vector<Size> ids;
       for (const StreamStruct& s : stream_list_)
       {
-        streams.push_back(s.stream);
+        ids.push_back(s.id);
       }
-      std::sort(streams.begin(), streams.end());
-      return streams;
+      std::sort(ids.begin(), ids.end());
+      return ids;
     }
 
-    void LogStreamBuf::forgetRepeatsAfterChange_(const std::vector<const std::ostream*>& previous)
+    void LogStreamBuf::forgetRepeatsAfterChange_(const std::vector<Size>& previous)
     {
       if (log_cache_.empty() || previous == destinations_())
       {
@@ -194,7 +209,7 @@ namespace OpenMS
       {
         for (StreamStruct& s : stream_list_)
         {
-          if (std::binary_search(previous.begin(), previous.end(), s.stream))
+          if (std::binary_search(previous.begin(), previous.end(), s.id))
           {
             write_(s, summary);
           }
@@ -380,18 +395,32 @@ namespace OpenMS
 
     void LogStreamBuf::write_(StreamStruct& s, const std::string& line)
     {
-      if (colorizer_)
+      try
       {
-        *(s.stream) << (*colorizer_)(); // enable color
+        if (colorizer_)
+        {
+          *(s.stream) << (*colorizer_)(); // enable color
+        }
+
+        *(s.stream) << expandPrefix_(s.prefix, time(nullptr)) << line;
+
+        if (colorizer_)
+        {
+          *(s.stream) << (*colorizer_).undo(); // disable color
+        }
+        *(s.stream) << std::endl;
       }
-
-      *(s.stream) << expandPrefix_(s.prefix, time(nullptr)) << line;
-
-      if (colorizer_)
+#ifdef __GLIBCXX__
+      catch (abi::__forced_unwind&)
       {
-        *(s.stream) << (*colorizer_).undo(); // disable color
+        throw; // thread cancellation, as std::ostream itself does
       }
-      *(s.stream) << std::endl;
+#endif
+      catch (...)
+      {
+        // A destination with exceptions enabled failed (e.g. std::ios_base::failure). It must not keep the line from
+        // the other destinations, nor make logging (or a change of the destinations, which writes repeat counts) throw.
+      }
     }
 
     int LogStreamBuf::syncLF_()
@@ -570,8 +599,7 @@ namespace OpenMS
       {
         // delete the stream buffer
         delete rdbuf();
-        // set it to 0
-        std::ios(nullptr);
+        std::ios::rdbuf(nullptr);
       }
     }
 
@@ -590,21 +618,33 @@ namespace OpenMS
         return;
       }
       LogStreamBuf* buf = rdbuf();
-      // repeat counts pending from before belong to the current destinations, not to the new one
+      // lines and repeat counts pending from before belong to the current destinations, not to the new one
+      buf->sync();
       buf->clearCache();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
-      auto hidden = std::find(buf->hidden_streams_.begin(), buf->hidden_streams_.end(), &stream);
-      if (hidden != buf->hidden_streams_.end())
+      bool inherited = false;
+      if (buf->parent_ != nullptr)
       {
-        // undo the removal of a parent destination
-        buf->hidden_streams_.erase(hidden);
+        // undo the removal of a destination that the parent still has
+        for (const LogStreamBuf::StreamStruct& s : buf->parent_->stream_list_)
+        {
+          if (s.stream == &stream)
+          {
+            buf->hidden_ids_.erase(std::remove(buf->hidden_ids_.begin(), buf->hidden_ids_.end(), s.id), buf->hidden_ids_.end());
+            inherited = true;
+          }
+        }
       }
-      if (buf->parent_ == nullptr || !buf->parentHasStream_(stream))
+      std::list<LogStreamBuf::StreamStruct>& entries = buf->parent_ == nullptr ? buf->stream_list_ : buf->own_streams_;
+      // an own destination may be there already, suppressed by a LogSinkGuard
+      const bool present = std::any_of(entries.begin(), entries.end(),
+                                       [&stream](const LogStreamBuf::StreamStruct& s) { return s.stream == &stream; });
+      if (!inherited && !present)
       {
-        // a new destination, or a hidden one that the parent no longer has
         LogStreamBuf::StreamStruct s_struct;
         s_struct.stream = &stream;
-        (buf->parent_ == nullptr ? buf->stream_list_ : buf->own_streams_).push_back(s_struct);
+        s_struct.id = nextDestinationId_();
+        entries.push_back(s_struct);
       }
       buf->destinationsChanged_();
       updateState_();
@@ -616,31 +656,137 @@ namespace OpenMS
         return;
 
       followParent_();
-      if (!hasStream_(stream))
+      LogStreamBuf* buf = rdbuf();
+      if (!hasStream_(stream) && !buf->guarded_(&stream)) // a removal in a guarded scope lasts beyond it
       {
         return;
       }
-      LogStreamBuf* buf = rdbuf();
       buf->sync();
       // pending repeat counts also go to the stream that is removed; an incomplete line stays for the remaining ones
       buf->clearCache();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
-      auto is_stream = [&stream](const LogStreamBuf::StreamStruct& s) { return s.stream == &stream; };
+      detachLocked_(stream);
+      buf->destinationsChanged_();
+      updateState_();
+    }
+
+    LogStream::GuardedRemoval LogStream::detachLocked_(std::ostream& stream)
+    {
+      GuardedRemoval removal;
+      LogStreamBuf* buf = rdbuf();
+      std::list<LogStreamBuf::StreamStruct>& entries = buf->parent_ == nullptr ? buf->stream_list_ : buf->own_streams_;
+      for (const LogStreamBuf::StreamStruct& s : entries)
+      {
+        if (s.stream == &stream)
+        {
+          removal.reinsert = true;
+          removal.prefix = s.prefix;
+          removal.id = s.id;
+        }
+      }
+      entries.remove_if([&stream](const LogStreamBuf::StreamStruct& s) { return s.stream == &stream; });
+      if (buf->parent_ != nullptr)
+      {
+        // hide the parent's destination from this buffer
+        for (const LogStreamBuf::StreamStruct& s : buf->parent_->stream_list_)
+        {
+          if (s.stream == &stream && std::find(buf->hidden_ids_.begin(), buf->hidden_ids_.end(), s.id) == buf->hidden_ids_.end())
+          {
+            buf->hidden_ids_.push_back(s.id);
+          }
+        }
+      }
+      return removal;
+    }
+
+    LogStream::GuardedRemoval LogStream::removeForGuard_(std::ostream& stream)
+    {
+      if (!bound_())
+      {
+        return {};
+      }
+      followParent_();
+      drain_();
+      if (LogStream* follower = threadLocalFollower_())
+      {
+        follower->drain_();
+      }
+      LogStreamBuf* buf = rdbuf();
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      buf->updateFromParentLocked_();
+      GuardedRemoval removal;
       if (buf->parent_ == nullptr)
       {
-        buf->stream_list_.remove_if(is_stream);
+        removal = detachLocked_(stream);
       }
       else
       {
-        buf->own_streams_.remove_if(is_stream);
-        // hide a parent destination from this buffer
-        if (buf->parentHasStream_(stream))
-        {
-          buf->hidden_streams_.push_back(&stream);
-        }
+        // suppressed on this thread until the guard ends, also if the global stream inserts it again meanwhile
+        buf->guarded_streams_.push_back(&stream);
       }
       buf->destinationsChanged_();
       updateState_();
+      return removal;
+    }
+
+    void LogStream::restoreForGuard_(std::ostream& stream, const GuardedRemoval& removal)
+    {
+      if (!bound_())
+      {
+        return;
+      }
+      followParent_();
+      // text written in the guarded scope goes to the destinations without the stream
+      drain_();
+      if (LogStream* follower = threadLocalFollower_())
+      {
+        follower->drain_();
+      }
+      LogStreamBuf* buf = rdbuf();
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      buf->updateFromParentLocked_();
+      if (buf->parent_ != nullptr)
+      {
+        auto guarded = std::find(buf->guarded_streams_.begin(), buf->guarded_streams_.end(), &stream);
+        if (guarded != buf->guarded_streams_.end())
+        {
+          buf->guarded_streams_.erase(guarded); // one entry: an enclosing guard on the same stream keeps it suppressed
+        }
+      }
+      std::list<LogStreamBuf::StreamStruct>& entries = buf->stream_list_;
+      const bool present = std::any_of(entries.begin(), entries.end(),
+                                       [&stream](const LogStreamBuf::StreamStruct& s) { return s.stream == &stream; });
+      if (buf->parent_ == nullptr && removal.reinsert && !present)
+      {
+        LogStreamBuf::StreamStruct s_struct;
+        s_struct.stream = &stream;
+        s_struct.prefix = removal.prefix;
+        // the same destination as before, so that threads that hid it on their thread-local stream keep it hidden
+        s_struct.id = removal.id;
+        entries.push_back(s_struct);
+      }
+      buf->destinationsChanged_();
+      updateState_();
+    }
+
+    void LogStream::drain_()
+    {
+      flushIncomplete();
+      rdbuf()->clearCache();
+    }
+
+    LogStream* LogStream::threadLocalFollower_()
+    {
+      if (rdbuf()->parent_ != nullptr)
+      {
+        return nullptr;
+      }
+      if (this == &getGlobalLogFatal()) return &getThreadLocalLogFatal();
+      if (this == &getGlobalLogError()) return &getThreadLocalLogError();
+      if (this == &getGlobalLogWarn()) return &getThreadLocalLogWarn();
+      if (this == &getGlobalLogInfo()) return &getThreadLocalLogInfo();
+      if (this == &getGlobalLogDebug()) return &getThreadLocalLogDebug();
+      return nullptr;
     }
 
     void LogStream::removeAllStreams()
@@ -673,10 +819,12 @@ namespace OpenMS
       {
         // hide the parent's current destinations from this buffer
         buf->own_streams_.clear();
-        buf->hidden_streams_.clear();
         for (const LogStreamBuf::StreamStruct& s : buf->parent_->stream_list_)
         {
-          buf->hidden_streams_.push_back(s.stream);
+          if (std::find(buf->hidden_ids_.begin(), buf->hidden_ids_.end(), s.id) == buf->hidden_ids_.end())
+          {
+            buf->hidden_ids_.push_back(s.id);
+          }
         }
       }
       buf->destinationsChanged_();
@@ -714,6 +862,7 @@ namespace OpenMS
       }
       LogStreamBuf* buf = rdbuf();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
+      buf->updateFromParentLocked_(); // pending repeat counts keep the prefix of the lines they count
       std::list<LogStreamBuf::StreamStruct>& entries = buf->prefixableStreams_();
       auto entry = std::find_if(entries.begin(), entries.end(),
                                 [&s](const LogStreamBuf::StreamStruct& e) { return e.stream == &s; });
@@ -732,6 +881,7 @@ namespace OpenMS
       }
       LogStreamBuf* buf = rdbuf();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
+      buf->updateFromParentLocked_(); // pending repeat counts keep the prefix of the lines they count
       for (LogStreamBuf::StreamStruct& entry : buf->prefixableStreams_())
       {
         entry.prefix = prefix;
@@ -818,28 +968,54 @@ namespace OpenMS
   // global StreamHandler
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;
 
-  // Internal (static) global log streams - not directly accessible from outside this file.
-  // Use getGlobalLog*() accessor functions for configuration purposes.
+  //
+  // Global log stream accessor functions (for configuration purposes)
+  // WARNING: Direct logging to these streams is NOT thread-safe.
   // Use OPENMS_LOG_* macros (which use thread-local streams) for actual logging.
   //
-  // The global streams are never destroyed: thread-local streams follow them and may still log, or flush
-  // when they are destroyed, after static destruction has begun (e.g. the main thread's thread_local
-  // objects on macOS, or threads still running at exit). Their own pending output is flushed at exit instead.
+  // Each global stream is created on its first use, so that static initializers of other files can log, and is never
+  // destroyed: thread-local streams follow them and may still log, or flush when they are destroyed, after static
+  // destruction has begun. Their own pending output is flushed at exit instead (see GlobalLogStreamsFlusher).
+  //
+  Logger::LogStream& getGlobalLogFatal()
+  {
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
+    return stream;
+  }
+
+  Logger::LogStream& getGlobalLogError()
+  {
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
+    return stream;
+  }
+
+  Logger::LogStream& getGlobalLogWarn()
+  {
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("WARNING", &yellow), true, &cerr);
+    return stream;
+  }
+
+  Logger::LogStream& getGlobalLogInfo()
+  {
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
+    return stream;
+  }
+
+  Logger::LogStream& getGlobalLogDebug()
+  {
+    // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("DEBUG", &magenta), true);
+    return stream;
+  }
+
   namespace
   {
-    Logger::LogStream& g_log_fatal = *new Logger::LogStream(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
-    Logger::LogStream& g_log_error = *new Logger::LogStream(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
-    Logger::LogStream& g_log_warn = *new Logger::LogStream(new Logger::LogStreamBuf("WARNING", &yellow), true, &cerr);
-    Logger::LogStream& g_log_info = *new Logger::LogStream(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
-    // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
-    Logger::LogStream& g_log_debug = *new Logger::LogStream(new Logger::LogStreamBuf("DEBUG", &magenta), true);
-
     /// Flushes the global streams at exit, as their destructors would (see above)
     struct GlobalLogStreamsFlusher
     {
       ~GlobalLogStreamsFlusher()
       {
-        for (Logger::LogStream* log : {&g_log_fatal, &g_log_error, &g_log_warn, &g_log_info, &g_log_debug})
+        for (Logger::LogStream* log : {&getGlobalLogFatal(), &getGlobalLogError(), &getGlobalLogWarn(), &getGlobalLogInfo(), &getGlobalLogDebug()})
         {
           log->flushIncomplete();
           log->rdbuf()->clearCache();
@@ -847,17 +1023,6 @@ namespace OpenMS
       }
     } global_log_streams_flusher;
   }
-
-  //
-  // Global log stream accessor functions (for configuration purposes)
-  // WARNING: Direct logging to these streams is NOT thread-safe.
-  // Use OPENMS_LOG_* macros for actual logging.
-  //
-  Logger::LogStream& getGlobalLogFatal() { return g_log_fatal; }
-  Logger::LogStream& getGlobalLogError() { return g_log_error; }
-  Logger::LogStream& getGlobalLogWarn() { return g_log_warn; }
-  Logger::LogStream& getGlobalLogInfo() { return g_log_info; }
-  Logger::LogStream& getGlobalLogDebug() { return g_log_debug; }
 
   //
   // Thread-local log stream accessors
@@ -868,35 +1033,44 @@ namespace OpenMS
   // so that a stream without destinations is in a failed state and does not format messages (see
   // LogStream::updateState_()).
   //
-  Logger::LogStream& getThreadLocalLogFatal()
+  namespace
   {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_fatal.rdbuf(), &red), true);
-    return Logger::ThreadLocalLogAccess::use(tls);
+    /**
+      The calling thread's stream that follows @p global. A thread destroys its thread_local objects when it ends; the
+      main thread does so before static destructors and atexit handlers run. A message logged after that, e.g. from such
+      a destructor or from the destructor of another thread_local object, goes to a stream that is created then and never
+      destroyed, instead of the destroyed one. Lines written to it reach the destinations; repeat counts and an incomplete
+      line pending at the end are not written.
+    */
+    template<int level>
+    Logger::LogStream& threadLocalStream_(Logger::LogStream& global, Colorizer* color)
+    {
+      thread_local bool destroyed = false; // trivially destructible, so it stays valid while the thread ends
+      struct Owner
+      {
+        Logger::LogStream stream;
+        Owner(Logger::LogStream& g, Colorizer* c) : stream(new Logger::LogStreamBuf(g.rdbuf(), c), true) {}
+        ~Owner() { destroyed = true; }
+      };
+      if (destroyed)
+      {
+        thread_local Logger::LogStream* late = nullptr;
+        if (late == nullptr)
+        {
+          late = new Logger::LogStream(new Logger::LogStreamBuf(global.rdbuf(), color), true);
+        }
+        return Logger::ThreadLocalLogAccess::use(*late);
+      }
+      thread_local Owner owner(global, color);
+      return Logger::ThreadLocalLogAccess::use(owner.stream);
+    }
   }
 
-  Logger::LogStream& getThreadLocalLogError()
-  {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_error.rdbuf(), &red), true);
-    return Logger::ThreadLocalLogAccess::use(tls);
-  }
-
-  Logger::LogStream& getThreadLocalLogWarn()
-  {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_warn.rdbuf(), &yellow), true);
-    return Logger::ThreadLocalLogAccess::use(tls);
-  }
-
-  Logger::LogStream& getThreadLocalLogInfo()
-  {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_info.rdbuf(), nullptr), true);
-    return Logger::ThreadLocalLogAccess::use(tls);
-  }
-
-  Logger::LogStream& getThreadLocalLogDebug()
-  {
-    thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_debug.rdbuf(), &magenta), true);
-    return Logger::ThreadLocalLogAccess::use(tls);
-  }
+  Logger::LogStream& getThreadLocalLogFatal() { return threadLocalStream_<0>(getGlobalLogFatal(), &red); }
+  Logger::LogStream& getThreadLocalLogError() { return threadLocalStream_<1>(getGlobalLogError(), &red); }
+  Logger::LogStream& getThreadLocalLogWarn() { return threadLocalStream_<2>(getGlobalLogWarn(), &yellow); }
+  Logger::LogStream& getThreadLocalLogInfo() { return threadLocalStream_<3>(getGlobalLogInfo(), nullptr); }
+  Logger::LogStream& getThreadLocalLogDebug() { return threadLocalStream_<4>(getGlobalLogDebug(), &magenta); }
 
   void setConsoleDebugLogging(bool enabled)
   {
@@ -906,12 +1080,12 @@ namespace OpenMS
     local_debug.rdbuf()->clearCache();
     if (enabled)
     {
-      g_log_debug.insert(cout);
+      getGlobalLogDebug().insert(cout);
       local_debug.insert(cout);
     }
     else
     {
-      g_log_debug.remove(cout);
+      getGlobalLogDebug().remove(cout);
       local_debug.remove(cout);
     }
   }

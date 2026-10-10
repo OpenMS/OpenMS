@@ -230,6 +230,18 @@ OpenMS Library:
     only, on top of the global destinations (#10478). When the destinations of a stream change, a
     message repeated afterwards is no longer suppressed for a new destination; pending repeat counts
     ("<message> occurred N times") go to the destinations that got the message.
+  - FIX: Logging from a static destructor, an atexit handler or the destructor of a thread_local
+    object crashed: the thread's log streams were already destroyed. Such messages now reach their
+    destinations. The global log streams are created on first use, so static initializers can log
+    too. StreamHandler (LogConfigHandler's files and string streams) removes a stream from the global
+    log streams before deleting it, also at exit (#10478).
+  - FIX: LogSinkGuard restores exactly what it removed: it no longer re-adds a destination that the
+    global stream removed in its scope (which could then be written to after its deletion), and a
+    guard on a global stream no longer undoes the hiding of that destination on a thread. A guard on
+    a global stream writes the calling thread's pending text to the destinations it was logged for.
+    Log destinations are identified per insertion, not by address, so a new log file at the address
+    of a deleted one is a new destination. A destination with exceptions enabled that fails no
+    longer makes logging calls throw (#10478).
   - API: LogStreamNotifier and LogStream::insertNotification() were removed; nothing in OpenMS or
     pyOpenMS used them. setPrefix() on a thread-local stream (getThreadLocalLog*()) only changes the
     destinations inserted into that stream; set the prefix of a global destination on the global
