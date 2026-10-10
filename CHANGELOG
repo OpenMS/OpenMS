@@ -220,6 +220,11 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - FIX: LogConfigHandler::setLogLevel("DEBUG") (also in pyOpenMS) writes debug messages to
+    std::cout; the default configuration had no destination for them. Warnings stay on std::cerr:
+    setLogLevel() moved them to std::cout, as the default configuration did not match the initial
+    destinations of the global streams. The pyOpenMS docstrings of LogConfigHandler.parse(),
+    configure() and setLogLevel() were shifted by one method.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
