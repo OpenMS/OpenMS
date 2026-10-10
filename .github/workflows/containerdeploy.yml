@@ -6,6 +6,11 @@ on:
         description: "Name to publish the containers under in ghcr.io (e.g. 3.6.0-rc1, my-test). Run the workflow from the branch/commit you want to package. Leave empty to auto-derive (develop/nightly -> latest)."
         required: false
         default: ""
+      run_tests:
+        description: "Build the 'test' stage and run ctest before publishing. Disable only for test images."
+        type: boolean
+        required: false
+        default: true
   push:
     branches:
       - nightly
@@ -101,6 +106,8 @@ jobs:
           # and push Docker images. Avoid leaving the token in the workspace.
           persist-credentials: false
       - name: Test docker build in runtime base
+        # Always on for pushes; manual runs may skip it (inputs.run_tests is empty on push events)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_tests }}
         uses: docker/build-push-action@v7
         with:
           load: true # so other build steps can make use of cache layers from this build

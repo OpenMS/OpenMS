@@ -220,6 +220,45 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - FIX: The thread-local log streams behind OPENMS_LOG_* follow the destinations of the global
+    streams (getGlobalLog*(), LogConfigHandler, also in pyOpenMS) instead of copying them on their
+    first message. Changes did not reach threads that had logged before, including the calling
+    thread: e.g. LogConfigHandler 'add' and setLogLevel() had no effect there, and TOPP tools lost
+    their -debug output. Worse, threads that had logged while a stream was attached kept writing to
+    it after LogConfigHandler 'remove' or 'clear' deleted it (use-after-free, could crash). Changes
+    of a thread-local stream itself (insert(), remove(), LogSinkGuard) still apply to its thread
+    only, on top of the global destinations (#10478). When the destinations of a stream change, a
+    message repeated afterwards is no longer suppressed for a new destination; repeat counts
+    ("<message> occurred N times") go only to the destinations that got the message.
+  - FIX: Logging from a static destructor, an atexit handler or the destructor of a thread_local
+    object crashed: the thread's log streams were already destroyed. Such messages now reach their
+    destinations. The global log streams and the colors of warnings, errors and debug messages are
+    created on first use, so static initializers can log too. StreamHandler (LogConfigHandler's
+    files and string streams) removes a stream from the global log streams before deleting it, also
+    at exit (#10478).
+  - FIX: LogSinkGuard restores exactly what it removed: it no longer re-adds a destination that the
+    global stream removed in its scope (which could then be written to after its deletion), and a
+    guard on a global stream no longer undoes the hiding of that destination on a thread. A guard on
+    a global stream writes the calling thread's pending text to the destinations it was logged for.
+    Log destinations are identified per insertion, not by address, so a new log file at the address
+    of a deleted one is a new destination. A destination with exceptions enabled that fails no
+    longer makes logging calls throw (#10478).
+  - API: LogStreamNotifier and LogStream::insertNotification() were removed; nothing in OpenMS or
+    pyOpenMS used them. setPrefix() on a thread-local stream (getThreadLocalLog*()) only changes the
+    destinations inserted into that stream; set the prefix of a global destination on the global
+    stream, as LogConfigHandler does (#10478).
+  - setConsoleDebugLogging() attaches std::cout to, or detaches it from, the global debug stream,
+    which all threads follow. TOPPBase (-debug) and TOPPAS (-debug) use it (#10478).
+  - Disabled debug output costs about 30 instead of 350 ns per message: without a debug destination
+    (the default, e.g. a TOPP tool without -debug), OPENMS_LOG_DEBUG and OPENMS_LOG_DEBUG_NOFILE skip
+    the whole message and no longer evaluate its arguments. Both are now void expressions; use
+    getThreadLocalLogDebug() to use the stream otherwise. A thread-local stream of the other levels
+    without destinations (e.g. after setLogLevel()) is in a failed state (badbit), so that it does not
+    format messages, until it has a destination again (#10478).
+  - FIX: Below debug level 1, FeatureFinderAlgorithmMetaboIdent and FeatureFinderIdentificationAlgorithm
+    suppress OpenSWATH's status output again. They detached std::cout from the global info stream,
+    which the calling thread's stream had already copied (#10478). FeatureFinderAlgorithmMetaboIdent
+    now shows it at debug level 1 and above, like FeatureFinderIdentificationAlgorithm.
   - FIX: LogConfigHandler::setLogLevel("DEBUG") (also in pyOpenMS) writes debug messages to
     std::cout; the default configuration had no destination for them. Warnings stay on std::cerr:
     setLogLevel() moved them to std::cout, as the default configuration did not match the initial
@@ -272,6 +311,12 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    All tools:
+      - FIX: -debug activates console debug logging in the main thread even when its
+        thread-local logger was initialized before parameter parsing. Debug levels from INI
+        files also take effect. A subsequent run in the same process removes the console
+        destination from both the global configuration and the current thread before it parses
+        its command line, and adds it again only if its debug level is above 0 (#10478).
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
@@ -305,6 +350,8 @@ TOPP tools:
     exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 Build System:
+  - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX
+    Runtime release and ship libonnxruntime and the PeptDeep models (amd64 and arm64).
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
     64-bit time_t transition, Depends also accepts the package under its old name.
     dpkg-shlibdeps names the packages of the build host (libqt6gui6t64 (>= 6.4.0)); a
@@ -336,6 +383,17 @@ Build System:
     configuration fail instead of falling back. The package and the SDK install omp.h with
     the headers, and find_package(OpenMS) points FindOpenMP at the bundled runtime, so that
     a program built against them does not load a second libomp (#10326).
+  - Third-party licenses: the packages now ship the license texts of every library they
+    bundle.
+    - macOS: share/OpenMS/LICENSES/homebrew lacked glib, harfbuzz and pcre2, and in some
+      nightlies libpng, whose libraries the package bundles with Qt. 'brew deps --installed'
+      left out the dependencies that 'brew install qtbase' had upgraded in the same run; the
+      formulae that Qt and libomp declare as dependencies are now collected as well.
+    - DEB: libgfortran, which vcpkg's LAPACK needs, comes from the build machine's
+      libgfortran5 and had no license. Libraries the package takes from the build machine's
+      distribution now come with the copyright file of their Debian package and the
+      /usr/share/common-licenses texts it refers to, in share/OpenMS/LICENSES/system, with an
+      INDEX.txt that names the package, version and source package of each (#10442).
 
 TOPP tools:
     IDFileConverter:

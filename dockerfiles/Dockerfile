@@ -8,6 +8,12 @@ ARG INSTALL_DIR="/opt/OpenMS"
 ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
+# ONNX Runtime (MIT) for the PeptDeep prediction models (WITH_ONNX=ON). Prebuilt
+# Microsoft release, pinned by version and SHA256 per architecture.
+ARG ONNXRUNTIME_VERSION=1.30.0
+ARG ONNXRUNTIME_SHA256_AMD64=a5ed5a3cac51fbb2e90da632ae43d19212faaa20e76484e62bcb7c23ddb3b3fd
+ARG ONNXRUNTIME_SHA256_ARM64=e16a27a8ed330bbc698df7330b0cf56e722f354e3bcc92118682c74ef3c3e3da
+ARG ONNXRUNTIME_DIR="/opt/onnxruntime"
 
 
 ### OpenMS base ###
@@ -82,6 +88,28 @@ RUN <<-EOF
     rm -rf /tmp/*
 EOF
 
+# installing ONNX Runtime (headers + shared library) for WITH_ONNX=ON
+ARG ONNXRUNTIME_VERSION
+ARG ONNXRUNTIME_SHA256_AMD64
+ARG ONNXRUNTIME_SHA256_ARM64
+ARG ONNXRUNTIME_DIR
+RUN <<-EOF
+    set -eux
+    case "${TARGETARCH}" in
+        amd64) ORT_ARCH="x64"; ORT_SHA256="${ONNXRUNTIME_SHA256_AMD64}" ;;
+        arm64) ORT_ARCH="aarch64"; ORT_SHA256="${ONNXRUNTIME_SHA256_ARM64}" ;;
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
+    esac
+    ORT_NAME="onnxruntime-linux-${ORT_ARCH}-${ONNXRUNTIME_VERSION}"
+    wget "https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/${ORT_NAME}.tgz" -O ort.tgz
+    echo "${ORT_SHA256}  ort.tgz" | sha256sum -c -
+    mkdir -p "${ONNXRUNTIME_DIR}"
+    tar xzf ort.tgz --strip-components=1 -C "${ONNXRUNTIME_DIR}"
+    test -f "${ONNXRUNTIME_DIR}/include/onnxruntime_cxx_api.h"
+    test -e "${ONNXRUNTIME_DIR}/lib/libonnxruntime.so"
+    rm -f ort.tgz
+EOF
+
 # Install the .NET 8 SDK for the openms-thermo-bridge build (WITH_THERMO_RAW).
 # The bridge's FindDotNetHost.cmake requires the nethost headers/library from
 # the official .NET SDK host pack under /usr/share/dotnet/packs/..., and runs
@@ -115,6 +143,7 @@ ARG BUILD_DIR
 ARG INSTALL_DIR
 ARG THIRDPARTY_DIR
 ARG MAKEFLAGS
+ARG ONNXRUNTIME_DIR
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
 COPY . ${SOURCE_DIR}
@@ -170,7 +199,8 @@ RUN <<-EOF
         -DOPENMS_USE_VCPKG=OFF \
         -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
         -DCMAKE_BUILD_TYPE='Release' \
-        -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \
+        -DCMAKE_PREFIX_PATH="/usr/;/usr/local;${ONNXRUNTIME_DIR}" \
+        -DWITH_ONNX=ON \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
         -S ${SOURCE_DIR} \
         -B ${BUILD_DIR}
@@ -179,6 +209,33 @@ EOF
 WORKDIR ${BUILD_DIR}
 RUN make all
 RUN make install/strip
+
+# ONNX Runtime: add its MIT licence and third-party notices (the library and its
+# SONAME symlinks are installed by `make install`), and check that the PeptDeep
+# models were installed.
+RUN <<-EOF
+    set -eux
+    mkdir -p "${INSTALL_DIR}/share/OpenMS/LICENSES/onnxruntime"
+    cp "${ONNXRUNTIME_DIR}/LICENSE" "${ONNXRUNTIME_DIR}/ThirdPartyNotices.txt" "${ONNXRUNTIME_DIR}/VERSION_NUMBER" \
+       "${INSTALL_DIR}/share/OpenMS/LICENSES/onnxruntime/"
+    for m in peptdeep_ms2_dynamic.onnx peptdeep_rt_dynamic.onnx peptdeep_ccs_dynamic.onnx; do
+      test -s "${INSTALL_DIR}/share/OpenMS/models/${m}"
+    done
+    mkdir -p "${INSTALL_DIR}/share/OpenMS/LICENSES/peptdeep_models"
+    printf '%s\n' \
+      "share/OpenMS/models/peptdeep_*_dynamic.onnx are ONNX exports of the pretrained" \
+      "AlphaPeptDeep models (https://github.com/MannLabs/alphapeptdeep)," \
+      "Copyright (c) Mann Labs, licensed under the Apache License 2.0" \
+      "(https://www.apache.org/licenses/LICENSE-2.0)." \
+      > "${INSTALL_DIR}/share/OpenMS/LICENSES/peptdeep_models/NOTICE.txt"
+    # the runtime images have no ${ONNXRUNTIME_DIR}: libOpenMS must find ONNX Runtime without it
+    mv "${ONNXRUNTIME_DIR}" "${ONNXRUNTIME_DIR}.hidden"
+    ldd "${INSTALL_DIR}/lib/libOpenMS.so" | grep onnxruntime
+    if ! ldd "${INSTALL_DIR}/lib/libOpenMS.so" | grep -q "libonnxruntime.so.1 => ${INSTALL_DIR}/lib/"; then
+      echo "libOpenMS does not resolve ONNX Runtime from ${INSTALL_DIR}/lib"; exit 1
+    fi
+    mv "${ONNXRUNTIME_DIR}.hidden" "${ONNXRUNTIME_DIR}"
+EOF
 
 
 ### OpenMS library ###
@@ -241,6 +298,7 @@ COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include
 COPY --from=build ${INSTALL_DIR}/share ${INSTALL_DIR}/share
 
 LABEL software="OpenMS (library)"
+LABEL org.openms.onnxruntime="ONNX Runtime (MIT) in lib/, PeptDeep models (Apache-2.0) in share/OpenMS/models"
 
 
 ### OpenMS tools runtime ###
@@ -326,6 +384,9 @@ EOF
 
 COPY --from=build ${SOURCE_DIR} ${SOURCE_DIR}
 COPY --from=build ${BUILD_DIR} ${BUILD_DIR}
+# the build-tree binaries link ONNX Runtime from its build location
+ARG ONNXRUNTIME_DIR
+COPY --from=build ${ONNXRUNTIME_DIR} ${ONNXRUNTIME_DIR}
 
 WORKDIR ${BUILD_DIR}
 RUN xvfb-run -a ctest --output-on-failure -j${NUM_BUILD_CORES}

@@ -296,6 +296,10 @@ namespace OpenMS
     registerFlag_("-help", "Shows options");
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
 
+    // The parser logs debug messages; keep them out of the console until '-debug' is known,
+    // even if an earlier tool in this process enabled debug output.
+    setConsoleDebugLogging(false);
+
     // parse command line parameters:
     try
     {
@@ -317,6 +321,7 @@ namespace OpenMS
 
     // set debug level
     debug_level_ = getParamAsInt_("debug", 0);
+    setConsoleDebugLogging(debug_level_ > 0);
     writeDebug_("Debug level: " + StringUtils::toStr(debug_level_), 1);
 
     // print command line to console
@@ -512,8 +517,8 @@ namespace OpenMS
       // debug level
       //-------------------------------------------------------------
       debug_level_ = getParamAsInt_("debug", 0);
+      setConsoleDebugLogging(debug_level_ > 0);
       writeDebug_("Debug level (after ini file): " + StringUtils::toStr(debug_level_), 1);
-      if (debug_level_ > 0) getGlobalLogDebug().insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
       //-------------------------------------------------------------
       //progress logging
