@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4799557..398bcb5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -466,6 +466,10 @@ set_target_properties(onnx PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
+ 
+ target_link_libraries(onnx PUBLIC onnx_proto)
+ add_onnx_global_defines(onnx)
++if(ONNX_DISABLE_STATIC_REGISTRATION)
++  # The option exists but nothing acts on it; the sources test this definition.
++  target_compile_definitions(onnx PRIVATE __ONNX_DISABLE_STATIC_REGISTRATION)
++endif()
+ 
+ if(ONNX_BUILD_PYTHON)
+   # find system pybind11
