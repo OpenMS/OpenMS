@@ -294,6 +294,9 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+    FileInfo:
+      - FIX: a duplicate FASTA header or sequence was not reported when an entry in between had the
+        same std::hash value; each hash now keeps all of its entries.
   - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
     CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
     ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
