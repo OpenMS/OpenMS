@@ -840,14 +840,31 @@ namespace OpenMS
   // Internal (static) global log streams - not directly accessible from outside this file.
   // Use getGlobalLog*() accessor functions for configuration purposes.
   // Use OPENMS_LOG_* macros (which use thread-local streams) for actual logging.
+  //
+  // The global streams are never destroyed: thread-local streams follow them and may still log, or flush
+  // when they are destroyed, after static destruction has begun (e.g. the main thread's thread_local
+  // objects on macOS, or threads still running at exit). Their own pending output is flushed at exit instead.
   namespace
   {
-    Logger::LogStream g_log_fatal(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
-    Logger::LogStream g_log_error(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
-    Logger::LogStream g_log_warn(new Logger::LogStreamBuf("WARNING", &yellow), true, &cerr);
-    Logger::LogStream g_log_info(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
+    Logger::LogStream& g_log_fatal = *new Logger::LogStream(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
+    Logger::LogStream& g_log_error = *new Logger::LogStream(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
+    Logger::LogStream& g_log_warn = *new Logger::LogStream(new Logger::LogStreamBuf("WARNING", &yellow), true, &cerr);
+    Logger::LogStream& g_log_info = *new Logger::LogStream(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
     // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
-    Logger::LogStream g_log_debug(new Logger::LogStreamBuf("DEBUG", &magenta), false); // last param should be 'true', but segfaults...
+    Logger::LogStream& g_log_debug = *new Logger::LogStream(new Logger::LogStreamBuf("DEBUG", &magenta), true);
+
+    /// Flushes the global streams at exit, as their destructors would (see above)
+    struct GlobalLogStreamsFlusher
+    {
+      ~GlobalLogStreamsFlusher()
+      {
+        for (Logger::LogStream* log : {&g_log_fatal, &g_log_error, &g_log_warn, &g_log_info, &g_log_debug})
+        {
+          log->flushIncomplete();
+          log->rdbuf()->clearCache();
+        }
+      }
+    } global_log_streams_flusher;
   }
 
   //
