@@ -509,7 +509,7 @@ namespace OpenMS
 
     map<unsigned int, double> iridium_abundance = {{191u, 0.3723}, {193u, 0.6277}};
     map<unsigned int, double> iridium_mass = {{191u, 190.960591}, {193u, 192.962924}};
-    buildElement_("Iridium", "Ir", 77u, rhenium_abundance, rhenium_mass);
+    buildElement_("Iridium", "Ir", 77u, iridium_abundance, iridium_mass);
 
 
     // Pt-190 is radioactive but with a very long half-life. Since its natural occurence is very low, we neglect it by default (m=189.959930 abund.frac.=0.00014)
