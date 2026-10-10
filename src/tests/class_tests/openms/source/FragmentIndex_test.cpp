@@ -3033,6 +3033,16 @@ START_SECTION((SNES realizes a whole mother))
 
   TEST_EQUAL(sms.hits_.size(), 1u)
   TEST_EQUAL(sms.hits_[0].realized_length_, 9u)
+
+  // The SNES query reads the residues of the mothers: without the FASTA entries of build() it returns nothing
+  // (instead of reading out of bounds)
+  FragmentIndex::SpectrumMatchesTopN without_fasta;
+  fi.querySpectrum(spec, without_fasta);
+  TEST_EQUAL(without_fasta.hits_.empty(), true)
+  const std::vector<FASTAFile::FASTAEntry> other_entries{{"p", "p", "ACDEFGHIK"}, {"q", "q", "ACDEFGHIK"}};
+  FragmentIndex::SpectrumMatchesTopN with_other_fasta;
+  fi.querySpectrum(spec, other_entries, with_other_fasta);
+  TEST_EQUAL(with_other_fasta.hits_.empty(), true)
 }
 END_SECTION
 

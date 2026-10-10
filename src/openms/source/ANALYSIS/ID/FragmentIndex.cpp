@@ -3535,16 +3535,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                     OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
   {
     // Backward-compatible 2-arg overload. Delegates to the 3-arg overload
-    // with an empty FASTA. Safe for non-SNES and SNES-without-var-mods
-    // callers — the subset-enumeration block in querySpectrumSNES_ only
-    // dereferences fasta_entries when sm.sigma_delta_ != 0, which cannot
-    // occur when modifications_variable_ is empty. SNES + var-mods callers
-    // must use the 3-arg overload; this guard rejects them explicitly
-    // rather than producing undefined behavior.
-    if (is_snes_mode_ && !modifications_variable_.empty())
+    // with an empty FASTA, which only the non-SNES query ignores: querySpectrumSNES_()
+    // reads the residues of every candidate from the FASTA entries.
+    if (is_snes_mode_)
     {
-      OPENMS_LOG_ERROR << "[FragmentIndex] querySpectrum called without FASTA in SNES mode "
-                          "with variable modifications — results would be undefined. "
+      OPENMS_LOG_ERROR << "[FragmentIndex] querySpectrum called without FASTA in SNES mode; "
+                          "the SNES query needs the FASTA entries the index was built from. "
                           "Use querySpectrum(spectrum, fasta_entries, sms) instead.\n";
       return;
     }
@@ -3584,6 +3580,13 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
       if (is_snes_mode_)
       {
+        // querySpectrumSNES_() reads the residues of the mothers from the entries build() was given
+        if (fasta_entries.size() != protein_lengths_.size())
+        {
+          OPENMS_LOG_ERROR << "[FragmentIndex] The SNES query needs the FASTA entries the index was built from ("
+                           << protein_lengths_.size() << " entries, got " << fasta_entries.size() << ").\n";
+          return;
+        }
         querySpectrumSNES_(spectrum, fasta_entries, sms, with_electron_ions);
         return;
       }

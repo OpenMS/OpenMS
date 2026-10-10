@@ -419,7 +419,8 @@ namespace OpenMS
     /**
      * @brief: queries one complete experimental spectra against the Database. Loops over all precursor charges
      * Starts at min_precursor_charge and iteratively goes to max_precursor_charge. We query all peaks multiple times with all the
-     * different precursor charges and corresponding precursor masses
+     * different precursor charges and corresponding precursor masses. Returns no matches in SNES mode, which needs
+     * the FASTA entries (see the overload that takes them).
      * @param[in] spectrum experimental spectrum
      * @param[out] sms The n best Spectrum matches
      */
@@ -429,9 +430,9 @@ namespace OpenMS
     /**
      * @brief Query a spectrum against the fragment index with FASTA context.
      *
-     * Required when FragmentIndex is in SNES mode with variable modifications;
-     * the FASTA is needed to realize sub-peptide sequences and apply variable mods.
-     * Non-SNES and SNES-without-var-mods paths ignore the @p fasta_entries argument.
+     * Required in SNES mode: the FASTA is needed to realize the sub-peptides of the mothers; with other
+     * entries than those passed to build() (a different number of them), no matches are returned.
+     * The non-SNES path ignores the @p fasta_entries argument.
      *
      * @param[in]  spectrum      Experimental spectrum with a single precursor.
      * @param[in]  fasta_entries The FASTA database passed to build().
