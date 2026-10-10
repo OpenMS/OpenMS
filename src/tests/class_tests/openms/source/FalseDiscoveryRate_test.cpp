@@ -424,7 +424,7 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
     TEST_REAL_SIMILAR(qs[1], 1.0)
     // The tie also decides the protein hits' FDR (same picked scores, decoys removed by default):
     // C gets q = 1. Before the fix A counted as a target winner at 0.9 and C got 1/3.
-    TEST_EQUAL(run.getHits().size(), 1)
+    ABORT_IF(run.getHits().size() != 1)
     TEST_STRING_EQUAL(run.getHits()[0].getAccession(), "C")
     TEST_REAL_SIMILAR(run.getHits()[0].getScore(), 1.0)
   }
