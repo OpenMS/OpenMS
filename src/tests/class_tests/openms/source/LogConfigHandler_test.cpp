@@ -14,6 +14,9 @@
 ///////////////////////////
 
 #include <boost/regex.hpp>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 using namespace OpenMS;
 using namespace std;
@@ -267,6 +270,59 @@ START_SECTION((void setLogLevel(const std::string &log_level) - NONE level))
   TEST_TRUE(StringUtils::hasSubstring(error_content, "before_none_error"))
   TEST_FALSE(StringUtils::hasSubstring(error_content, "during_none_error"))
   TEST_TRUE(StringUtils::hasSubstring(error_content, "after_none_error"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] configuration reaches threads that logged before it))
+{
+  // OPENMS_LOG_* write through thread-local streams. They follow the global configuration even if they
+  // existed before it changed, and do not write to a stream after its removal, which deletes it.
+  OPENMS_LOG_DEBUG_NOFILE << "calling thread before the configuration" << std::endl;
+
+  // a worker that logged before the configuration, like a thread of an OpenMP pool
+  std::mutex m;
+  std::condition_variable cv;
+  int step = 0;
+  auto advance = [&](int to) { { std::lock_guard<std::mutex> lock(m); step = to; } cv.notify_all(); };
+  auto await = [&](int at) { std::unique_lock<std::mutex> lock(m); cv.wait(lock, [&] { return step >= at; }); };
+  std::thread worker([&] {
+    OPENMS_LOG_DEBUG_NOFILE << "worker before the configuration" << std::endl;
+    advance(1);
+    await(2);
+    OPENMS_LOG_DEBUG_NOFILE << "worker while attached" << std::endl;
+    advance(3);
+    await(5);
+    OPENMS_LOG_DEBUG_NOFILE << "worker after removal" << std::endl;
+  });
+  await(1);
+
+  Param p;
+  p.setValue(LogConfigHandler::PARAM_NAME, std::vector<std::string>{"DEBUG add test_follow_stream STRING"}, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p);
+  OPENMS_LOG_DEBUG_NOFILE << "calling thread while attached" << std::endl;
+  advance(2);
+  await(3);
+  // a worker whose first message comes while the stream is attached
+  std::thread late_worker([&] {
+    OPENMS_LOG_DEBUG_NOFILE << "late worker while attached" << std::endl;
+    advance(4);
+    await(5);
+    OPENMS_LOG_DEBUG_NOFILE << "late worker after removal" << std::endl; // wrote to the deleted stream before
+  });
+  await(4);
+
+  const std::string content = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("test_follow_stream")).str();
+  TEST_TRUE(StringUtils::hasSubstring(content, "calling thread while attached"))
+  TEST_TRUE(StringUtils::hasSubstring(content, "worker while attached"))
+  TEST_TRUE(StringUtils::hasSubstring(content, "late worker while attached"))
+  TEST_FALSE(StringUtils::hasSubstring(content, "before the configuration"))
+
+  p.setValue(LogConfigHandler::PARAM_NAME, std::vector<std::string>{"DEBUG remove test_follow_stream STRING"}, "List of all settings that should be applied to the current Logging Configuration");
+  LogConfigHandler::getInstance()->configure(p); // deletes the stream
+  OPENMS_LOG_DEBUG_NOFILE << "calling thread after removal" << std::endl;
+  advance(5);
+  worker.join();
+  late_worker.join();
 }
 END_SECTION
 
