@@ -87,6 +87,7 @@ namespace OpenMS
     result.reserve(split_peakmap.size());
     for (auto& kv : split_peakmap)
     {
+      kv.second.updateRanges();
       result.emplace_back(kv.first, std::move(kv.second));
     }
     return result;
