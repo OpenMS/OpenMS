@@ -17,6 +17,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <utility>
 
@@ -143,6 +144,28 @@ START_SECTION(([EXTRA] isotopic_pattern:mz_tolerance and mass_trace:mz_tolerance
     TOLERANCE_ABSOLUTE(20.0);
     TEST_REAL_SIMILAR(out1[0].getIntensity(), 18467.8)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] write_debug writes the debug files and finds the same features))
+{
+  // writeFeatureDebugInfo_ must read the declared parameter advanced:pseudo_rt_shift (it read debug:pseudo_rt_shift,
+  // which is not declared, and threw out of the OpenMP region). Debug output must not change the result (8 features, see run()).
+  PeakMap input;
+  MzMLFile mzml_file;
+  mzml_file.getOptions().addMSLevel(1);
+  mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzML"), input);
+  input.updateRanges();
+  Param param;
+  ParamXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"), param);
+  param = param.copy("FeatureFinder:1:algorithm:", true);
+  param.setValue("write_debug", "true");
+  FeatureMap output;
+  FFPP ffpp;
+  ffpp.run(std::move(input), output, param, FeatureMap());
+  TEST_EQUAL(output.size(), 8)
+  TEST_EQUAL(File::exists("debug/log.txt"), true)
+  File::removeDirRecursively("debug");
 }
 END_SECTION
 
