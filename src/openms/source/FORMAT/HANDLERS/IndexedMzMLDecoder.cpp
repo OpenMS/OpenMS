@@ -277,21 +277,15 @@ namespace OpenMS
       {
         std::vector<std::pair<std::string, std::streampos> > result;
 
-        xercesc::DOMNode* firstChild = currentNode->getFirstChild();
-        xercesc::DOMNode* lastChild = currentNode->getLastChild();
-        xercesc::DOMNode* iter = firstChild;
-
         // Iterate through children
         // NOTE: Using xercesc::DOMNodeList and "item" is a very bad idea since
         //       each "item" call has complexity of O(n), see the
         //       implementation in DOMNodeListImpl.cpp :
         //       https://svn.apache.org/repos/asf/xerces/c/trunk/src/xercesc/dom/impl/DOMNodeListImpl.cpp
         //
-        while (iter != lastChild)
+        for (xercesc::DOMNode* currentONode = currentNode->getFirstChild(); currentONode != nullptr;
+             currentONode = currentONode->getNextSibling())
         {
-          iter = iter->getNextSibling();
-          xercesc::DOMNode* currentONode = iter;
-
           if (currentONode->getNodeType() && // true is not NULL
               currentONode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
           {

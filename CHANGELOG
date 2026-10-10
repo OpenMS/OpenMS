@@ -17,6 +17,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - FIX: IndexedMzMLDecoder no longer drops the first offset of an <index> whose first child is an
+    <offset> element (no whitespace after the opening tag).
   - FIX: IsobaricAnalyzer and IsobaricWorkflow precursor purity now count the precursor's own
     isotope peaks using 13C/12C mass spacing and a bounded nearest-peak search on both sides of
     each expected isotope position. Clean envelopes no longer receive artificially low purity
