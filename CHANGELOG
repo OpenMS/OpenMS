@@ -340,8 +340,8 @@ TOPP tools:
         mother per protein position (prefixes only) and the mass of each sub-peptide; a query generates
         the fragments of the peptidoforms in the precursor window as the conventional index holds them
         and counts their matches. The identifications equal those of the conventional index (HepG2
-        immunopeptidome, every spectrum) at 1/3 to 1/14 of its peak memory, with a 4-14 times faster
-        search than the former SNES, but still 13-18 times the search time of the conventional index.
+        immunopeptidome, every spectrum) at 1/3 to 1/14 of its peak memory, with a 4-12 times faster
+        search than the former SNES, but still 6-30 times the search time of the conventional index.
         SNES now also supports calibration, ions:electron_ions, any ion series and peptide:deduplicate.
       - The PSM meta value isotope_error is observed minus theoretical precursor mass in 13C spacings
         (+1: the first 13C isotope peak was selected), as in MS-GF+, pepXML and Sage and as
