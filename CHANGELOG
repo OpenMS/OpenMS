@@ -220,6 +220,28 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - FIX: FalseDiscoveryRate::applyPickedProteinFDR read past the end of its score map for a protein
+    group that took no part in the target-decoy competition (all its members lost their pairs) and
+    whose score lay beyond every calibrated group score. The group got an arbitrary value (in our
+    builds a number close to 0, i.e. the best q-value). A group score better than every calibrated
+    one gets the best q-value now (with no_qvalues: FDR 1), a worse one the q-value or FDR of the
+    worst calibrated score. If there are groups but none takes part in the competition,
+    Exception::MissingInformation is thrown.
+  - FIX: For lower-is-better scores, FalseDiscoveryRate gave a protein group whose score is not a
+    calibrated score (in picked protein FDR: a group that takes no part in the competition) the
+    q-value or FDR of the next worse calibrated score. It gets the one of the closest equal or
+    better calibrated score now. IDScoreGetterSetter::setScores_ for protein groups takes the
+    direction of the group scores and whether the map holds q-values as new arguments (defaults:
+    higher is better, q-values).
+  - FIX: Picked protein-group FDR (FalseDiscoveryRate::applyPickedProteinFDR) counted a group twice,
+    as decoy and as target, if a member whose decoy won its pair was listed before a member whose
+    target won its pair (DECOY_ accessions sort first). A group counts once now, as target, as
+    documented. The extra decoys made group q-values too high, depending on accession order.
+  - FIX: Picked protein-group FDR in prefix mode also removed the decoy string from the end of an
+    accession, so a target such as "XDECOY_" was taken as a decoy and the FDR threw
+    std::out_of_range. The decoy string is removed only at the configured end now.
+  - FIX: Picked protein FDR made a pair's winner a target when two hits of the same decoy tied.
+    A tie prefers a target only if one of the tied hits is a target now.
   - FIX: FalseDiscoveryRate::applyBasic() and applyPickedProteinFDR() skip the protein-group FDR
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
