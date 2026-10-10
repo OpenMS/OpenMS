@@ -1,0 +1,22 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 836c056..c14cc5b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -38,7 +38,7 @@ macro(opentims_compile_options _target)
+     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+         target_compile_options(${_target} PRIVATE -O3 -g -Wall -Wextra)
+     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+-        target_compile_options(${_target} PRIVATE /O2)
++        target_compile_options(${_target} PRIVATE $<$<NOT:$<CONFIG:Debug>>:/O2>)
+         target_compile_definitions(${_target} PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+     endif()
+ endmacro()
+@@ -226,7 +226,7 @@ if(OPENTIMS_BUILD_PYTHON)
+     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+         target_compile_options(opentimspy_cpp PRIVATE -O3 -g -Wall -Wextra)
+     elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+-        target_compile_options(opentimspy_cpp PRIVATE /O2)
++        target_compile_options(opentimspy_cpp PRIVATE $<$<NOT:$<CONFIG:Debug>>:/O2>)
+     endif()
+ 
+     target_include_directories(opentimspy_cpp

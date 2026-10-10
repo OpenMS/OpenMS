@@ -6,6 +6,9 @@ vcpkg_from_github(
     HEAD_REF master
     PATCHES
         fix-static-sqlite-include.patch
+        # upstream adds /O2 to every MSVC configuration; cl.exe refuses it next to
+        # the /RTC1 of a Debug build, which a triplet that builds both halves needs
+        msvc-optimize-release-only.patch
 )
 
 # Map vcpkg linkage onto upstream's BUILD_SHARED_LIBS switch. Static opentims

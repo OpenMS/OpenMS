@@ -19,7 +19,10 @@
 # with a PACKAGE_TYPE, as for the installers, reduced by sdk_prune_dependencies.cmake
 # to what the SDK loads). The GUI layer is left out, so the SDK needs no Qt. It is written
 # as <output dir>/OpenMS-SDK-<version>-<platform>.tar.gz (.zip on Windows) with a
-# single top-level directory of the same name.
+# single top-level directory of the same name. A tree built in a configuration
+# other than Release names the archive after it, OpenMS-SDK-<version>-<platform>-Debug:
+# MSVC's debug CRT is not compatible with the release one, so the Windows Debug SDK
+# is a separate archive, with the .pdb files of the libraries next to the DLLs.
 #
 # Before the archive is accepted, it is extracted to a different location and
 # src/tests/external is configured against it through CMAKE_PREFIX_PATH (the way
@@ -65,7 +68,14 @@ case "$(uname -s)" in
   *) echo >&2 "ERROR: unsupported system $(uname -s)"; exit 1 ;;
 esac
 
-sdk_name="OpenMS-SDK-${version}-${platform}"
+build_type=$(cache_var CMAKE_BUILD_TYPE)
+build_type=${build_type:-Release}
+config_suffix=""
+if [[ "$build_type" != Release ]]; then
+  config_suffix="-$build_type"
+fi
+
+sdk_name="OpenMS-SDK-${version}-${platform}${config_suffix}"
 work_dir="$out_dir/.sdk-work"
 stage_root="$work_dir/stage"
 stage="$stage_root/$sdk_name"
@@ -88,11 +98,15 @@ components=(
 # component's own install code does not work in this layout
 components+=(Dependencies)
 
-build_type=$(cache_var CMAKE_BUILD_TYPE)
+# a Debug SDK keeps its symbols; that is what it is for
+strip_args=(--strip)
+if [[ "$build_type" == Debug ]]; then
+  strip_args=()
+fi
 for component in "${components[@]}"; do
   echo "--- installing component $component"
-  cmake --install "$(cmake_path "$build_dir")" --config "${build_type:-Release}" \
-        --prefix "$(cmake_path "$stage")" --component "$component" --strip
+  cmake --install "$(cmake_path "$build_dir")" --config "$build_type" \
+        --prefix "$(cmake_path "$stage")" --component "$component" "${strip_args[@]}"
 done
 
 cmake_dir=$(cache_var INSTALL_CMAKE_DIR)
@@ -149,23 +163,37 @@ if [[ "$(uname -s)" == Darwin ]]; then
   done < <(find "$stage/$lib_dir" -type f -print0)
 fi
 
+# The file a library was installed as, relative to the prefix, read off its
+# export file: the name of a configuration's library is known there and nowhere
+# else (a Debug build on Windows installs OpenMSd.dll, the CMAKE_DEBUG_POSTFIX of
+# CMakeLists.txt, which is no cache entry). Per-configuration export file names
+# are lowercase, the property suffix uppercase.
+config_lower=$(printf '%s' "$build_type" | tr '[:upper:]' '[:lower:]')
+config_upper=$(printf '%s' "$build_type" | tr '[:lower:]' '[:upper:]')
+installed_library() { # <target name> <export set: OpenMSTargets or OpenMSCLITargets>
+  awk -v target="OpenMS::$1" -v property="IMPORTED_LOCATION_${config_upper} " '
+    index($0, "set_target_properties(" target " PROPERTIES") == 1 { inside = 1; next }
+    inside && index($0, property) {
+      prefix = "_IMPORT_PREFIX}/"
+      rest = substr($0, index($0, prefix) + length(prefix))
+      print substr(rest, 1, index(rest, "\"") - 1)
+      exit
+    }
+    inside && /^ *\)/ { inside = 0 }
+  ' "$stage/$cmake_dir/$2-${config_lower}.cmake"
+}
+
 # Keep only the bundled libraries the SDK libraries load (no Qt, nothing only the
 # GUI library or the applications need). The loader environment of this job must
 # not decide where a dependency resolves to.
-case "$(uname -s)" in
-  Linux)  lib_pattern='lib%s.so' ;;
-  Darwin) lib_pattern='lib%s.dylib' ;;
-  *)      lib_pattern='%s.dll' ;;
-esac
 roots=()
-for library in OpenMS OpenSwathAlgo OpenMS_CLI; do
-  # shellcheck disable=SC2059 # the pattern is chosen above
-  root="$stage/$lib_dir/$(printf "$lib_pattern" "$library")"
-  if [[ ! -e "$root" ]]; then
-    echo >&2 "ERROR: the SDK misses $root"
+for library in OpenMS:OpenMSTargets OpenSwathAlgo:OpenMSTargets OpenMS_CLI:OpenMSCLITargets; do
+  root=$(installed_library "${library%%:*}" "${library#*:}")
+  if [[ -z "$root" || ! -e "$stage/$root" ]]; then
+    echo >&2 "ERROR: the SDK misses the library ${library%%:*} (${library#*:}-${config_lower}.cmake names '$root')"
     exit 1
   fi
-  roots+=("$(cmake_path "$root")")
+  roots+=("$(cmake_path "$stage/$root")")
 done
 echo "--- pruning the bundled dependencies"
 env -u LD_LIBRARY_PATH -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH \
@@ -195,9 +223,10 @@ if [[ "$(uname -s)" == Darwin ]]; then
       exit 1
     }'
   }
-  openms_minimum=$(macho_minos "$stage/$lib_dir/libOpenMS.dylib")
+  openms_library=$(installed_library OpenMS OpenMSTargets)
+  openms_minimum=$(macho_minos "$stage/$openms_library")
   if [[ -z "$openms_minimum" ]]; then
-    echo >&2 "ERROR: libOpenMS.dylib records no minimum macOS version"
+    echo >&2 "ERROR: $openms_library records no minimum macOS version"
     exit 1
   fi
   newer=()
@@ -210,7 +239,7 @@ if [[ "$(uname -s)" == Darwin ]]; then
     fi
   done < <(find "$stage/$lib_dir" -type f -print0)
   if [[ ${#newer[@]} -gt 0 ]]; then
-    echo >&2 "ERROR: libOpenMS is built for macOS $openms_minimum, but these bundled libraries need a newer macOS:"
+    echo >&2 "ERROR: $openms_library is built for macOS $openms_minimum, but these bundled libraries need a newer macOS:"
     printf >&2 '  %s\n' "${newer[@]}"
     exit 1
   fi
@@ -230,6 +259,28 @@ if grep -Eq '^(set\(_openms_boost_version |find_dependency\(Boost)' "$config_fil
 fi
 boost_requirement="No Boost: the OpenMS headers do not include it, and find_package(OpenMS)
     does not look for it."
+# MSVC's debug and release C++ runtimes are not compatible, so the Windows SDK of
+# one configuration cannot be linked by a consumer built in the other; the README
+# names the configuration this archive is for and the archive of the other one.
+case "$build_type" in
+  Debug)
+    msvc_requirement="Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Debug configuration
+        with the dynamic debug runtime (/MDd). A Release build of your code (/MD)
+        cannot link this SDK: find_package(OpenMS) refuses a single-configuration
+        build of any other configuration, and under a multi-configuration generator
+        (Visual Studio) every configuration but Debug fails to compile with an error
+        that says so; use OpenMS-SDK-<version>-Windows-x64.zip for those. The
+        libraries carry the Debug postfix d (OpenMSd.dll, OpenMSd.lib), which the
+        imported targets know, and their .pdb files are next to the DLLs in bin/,
+        so a debugger can step into OpenMS code." ;;
+  *)
+    msvc_requirement="Windows: MSVC (Visual Studio 2022 17.14 or newer), x64, Release configuration
+        with the dynamic runtime (/MD). A Debug build of your code (/MDd) cannot
+        link this SDK: find_package(OpenMS) refuses a single-configuration Debug
+        build, and under a multi-configuration generator (Visual Studio) the Debug
+        configuration fails to compile with an error that says so; use
+        OpenMS-SDK-<version>-Windows-x64-Debug.zip for it." ;;
+esac
 # The version the README's find_package() example names is the one the package
 # file answers to (OpenMSConfigVersion.cmake, e.g. 3.6.0), not the <version> of
 # the archive name: the release workflow names a nightly after its date.
@@ -238,11 +289,15 @@ if [[ -z "$package_version" ]]; then
   echo >&2 "ERROR: OpenMSConfigVersion.cmake records no package version"
   exit 1
 fi
-# The requirement spans two lines, which BSD awk (macOS) rejects in a -v assignment, so it
-# travels through the environment.
-BOOST_REQUIREMENT="$boost_requirement" awk -v major_minor="${package_version%.*}" -v macos_minimum="$macos_minimum" '
+# The requirements span several lines, which BSD awk (macOS) rejects in a -v
+# assignment, so they travel through the environment.
+BOOST_REQUIREMENT="$boost_requirement" MSVC_REQUIREMENT="$msvc_requirement" \
+awk -v build_type="$build_type" -v sdk_suffix="$config_suffix" \
+    -v major_minor="${package_version%.*}" -v macos_minimum="$macos_minimum" '
   index($0, "@BOOST_REQUIREMENT@") { sub(/@BOOST_REQUIREMENT@/, ENVIRON["BOOST_REQUIREMENT"]) }
-  { gsub(/@OPENMS_VERSION_MAJOR_MINOR@/, major_minor); gsub(/@MACOS_MINIMUM@/, macos_minimum); print }
+  index($0, "@MSVC_REQUIREMENT@") { sub(/@MSVC_REQUIREMENT@/, ENVIRON["MSVC_REQUIREMENT"]) }
+  { gsub(/@OPENMS_VERSION_MAJOR_MINOR@/, major_minor); gsub(/@MACOS_MINIMUM@/, macos_minimum)
+    gsub(/@BUILD_TYPE@/, build_type); gsub(/@SDK_SUFFIX@/, sdk_suffix); print }
 ' "$source_dir/cmake/OpenMSSDKReadme.txt" > "$stage/README.txt"
 cp "$source_dir/License.txt" "$stage/License.txt"
 
@@ -273,9 +328,7 @@ fi
 
 configure_args=(
   -S "$(cmake_path "$source_dir/src/tests/external")"
-  -B "$(cmake_path "$consumer_build")"
   -G "$(cache_var CMAKE_GENERATOR)"
-  "-DCMAKE_BUILD_TYPE=${build_type:-Release}"
   "-DCMAKE_PREFIX_PATH=$prefix_path"
 )
 # the toolchain of the OpenMS build, as the installed-consumer tests forward it
@@ -290,7 +343,7 @@ for var in CMAKE_TOOLCHAIN_FILE VCPKG_INSTALLED_DIR VCPKG_TARGET_TRIPLET VCPKG_H
 done
 
 echo "--- building src/tests/external against the SDK"
-cmake "${configure_args[@]}"
+cmake "${configure_args[@]}" -B "$(cmake_path "$consumer_build")" "-DCMAKE_BUILD_TYPE=$build_type"
 
 # the consumer has to have picked up the SDK, not some other OpenMS
 found_dir=$(sed -n 's/^OpenMS_DIR:PATH=//p' "$consumer_build/CMakeCache.txt")
@@ -304,7 +357,7 @@ esac
 # libomp in the same process aborts with "OMP: Error #15". (grep reads all of otool's
 # output: grep -q would exit early and fail the pipeline.)
 if [[ "$(uname -s)" == Darwin ]] &&
-   otool -L "$sdk_prefix/$lib_dir/libOpenMS.dylib" | grep '/libomp\.dylib ' >/dev/null; then
+   otool -L "$sdk_prefix/$(installed_library OpenMS OpenMSTargets)" | grep '/libomp\.dylib ' >/dev/null; then
   for required in "$lib_dir/libomp.dylib" "$include_dir/omp.h"; do
     if [[ ! -e "$sdk_prefix/$required" ]]; then
       echo >&2 "ERROR: libOpenMS uses OpenMP, but the SDK misses $required"
@@ -318,11 +371,39 @@ if [[ "$(uname -s)" == Darwin ]] &&
   fi
 fi
 
-cmake --build "$(cmake_path "$consumer_build")" --config "${build_type:-Release}"
+cmake --build "$(cmake_path "$consumer_build")" --config "$build_type"
 # as the README tells users to run their programs
 OPENMS_DATA_PATH="$(cmake_path "$sdk_prefix/$(cache_var INSTALL_SHARE_DIR)")"
 export OPENMS_DATA_PATH
-ctest --test-dir "$(cmake_path "$consumer_build")" -C "${build_type:-Release}" --output-on-failure --no-tests=error
+ctest --test-dir "$(cmake_path "$consumer_build")" -C "$build_type" --output-on-failure --no-tests=error
+
+# Windows: MSVC's debug and release runtimes cannot be mixed, so OpenMSConfig.cmake
+# refuses a project configuration whose runtime is not the one the installation was
+# built against (cmake/OpenMSConfig.cmake.in). The README promises that the archive
+# of one configuration is not linked by the other; make sure the refusal works on
+# the archive, and that it is this check that refuses, not some other configure error.
+case "$(uname -s)" in
+  Linux|Darwin) ;;
+  *)
+    other_type=Debug
+    if [[ "$build_type" == Debug ]]; then
+      other_type=Release
+    fi
+    mismatch_build="$work_dir/consumer-$other_type"
+    echo "--- checking that the SDK refuses a $other_type consumer"
+    if cmake "${configure_args[@]}" -B "$(cmake_path "$mismatch_build")" \
+             "-DCMAKE_BUILD_TYPE=$other_type" > "$mismatch_build.log" 2>&1; then
+      cat "$mismatch_build.log"
+      echo >&2 "ERROR: a $other_type consumer configured against the $build_type SDK; OpenMSConfig.cmake should have refused it"
+      exit 1
+    fi
+    if ! grep -q OPENMS_SKIP_MSVC_RUNTIME_CHECK "$mismatch_build.log"; then
+      cat "$mismatch_build.log"
+      echo >&2 "ERROR: the $other_type consumer failed for another reason than the MSVC runtime check"
+      exit 1
+    fi
+    ;;
+esac
 
 rm -rf "$work_dir"
 echo "SDK archive: $archive"
