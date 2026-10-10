@@ -2623,6 +2623,29 @@ START_SECTION((void setKeepPreFdrPsms(bool keep)))
   TEST_EQUAL(kept.per_file[0].peptide_ids.size(), plain.per_file[0].peptide_ids.size())
   TEST_EQUAL(kept.per_file[0].pre_fdr_peptide_ids.size() >= kept.per_file[0].peptide_ids.size(), true)
   TEST_EQUAL(decoy_psms(kept.per_file[0].pre_fdr_peptide_ids) > 0, true)
+  // oracle: the same file searched without FDR:PSM (search scores, not q-values; nothing filtered)
+  const auto psms = [](const PeptideIdentificationList& peptide_ids)
+  {
+    std::vector<std::string> out;
+    for (const auto& pid : peptide_ids)
+    {
+      for (const auto& hit : pid.getHits())
+      {
+        out.push_back(pid.getSpectrumReference() + " " + hit.getSequence().toString() + " " + std::to_string(hit.getScore()) + (hit.isDecoy() ? " decoy" : ""));
+      }
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+  };
+  ProSEAlgorithm no_fdr;
+  Param p0 = p;
+  p0.setValue("FDR:PSM", 0.0);
+  no_fdr.setParameters(p0);
+  std::vector<ProteinIdentification> prot_0;
+  PeptideIdentificationList pep_0;
+  TEST_EQUAL(no_fdr.search(tmp_mzml, tmp_fasta, prot_0, pep_0) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(psms(kept.per_file[0].pre_fdr_peptide_ids) == psms(pep_0), true)
+  TEST_EQUAL(psms(kept.per_file[0].peptide_ids) == psms(pep_0), false) // FDR:PSM did change the result
 
   // a search of the same object with the copy on, then the copy off: the next result has no copy
   std::vector<ProteinIdentification> prot_ids;
