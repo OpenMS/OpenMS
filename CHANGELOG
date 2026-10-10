@@ -233,8 +233,9 @@ OpenMS Library:
   - FIX: Logging from a static destructor, an atexit handler or the destructor of a thread_local
     object crashed: the thread's log streams were already destroyed. Such messages now reach their
     destinations. The global log streams and the colors of warnings, errors and debug messages are
-    created on first use, so static initializers can log too. StreamHandler (LogConfigHandler's files and string streams) removes a stream from the global
-    log streams before deleting it, also at exit (#10478).
+    created on first use, so static initializers can log too. StreamHandler (LogConfigHandler's
+    files and string streams) removes a stream from the global log streams before deleting it, also
+    at exit (#10478).
   - FIX: LogSinkGuard restores exactly what it removed: it no longer re-adds a destination that the
     global stream removed in its scope (which could then be written to after its deletion), and a
     guard on a global stream no longer undoes the hiding of that destination on a thread. A guard on
