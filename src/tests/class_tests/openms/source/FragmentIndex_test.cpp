@@ -1503,7 +1503,7 @@ START_SECTION((FragmentIndex does not score the peptide at range.second (closed-
 END_SECTION
 
 // ============================================================================
-// Peptide-mass mode (index:mode peptide_masses) — mother-peptide indexing
+// Peptide-mass mode (low_memory) — mother-peptide indexing
 // ============================================================================
 
 START_SECTION((mother enumeration on a small protein))
@@ -1524,7 +1524,7 @@ START_SECTION((mother enumeration on a small protein))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -1547,7 +1547,7 @@ END_SECTION
 
 START_SECTION((Peptide-mass mode: is skipped when enzyme_specificity != none))
 {
-  // index:mode peptide_masses only takes effect under SPEC_NONE. For SPEC_FULL the mode is
+  // low_memory only takes effect under SPEC_NONE. For SPEC_FULL the flag is
   // ignored and the standard tryptic digestion path runs.
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
   FragmentIndex_test fi;
@@ -1561,7 +1561,7 @@ START_SECTION((Peptide-mass mode: is skipped when enzyme_specificity != none))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -1586,7 +1586,7 @@ START_SECTION((realizePrefixLength locates the correct sub-peptide length))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -1631,7 +1631,7 @@ START_SECTION((realizePrefixLength realizes the whole mother and honors an asymm
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -1700,14 +1700,14 @@ START_SECTION((Peptide-mass mode: fragment-index size is smaller than naive SPEC
   FragmentIndex_test fi_naive;
   Param p_naive = fi_naive.getParameters();
   p_naive.update(base_params());
-  p_naive.setValue("index:mode", "fragments");
+  p_naive.setValue("low_memory", "false");
   fi_naive.setParameters(p_naive);
   fi_naive.build(entries);
 
   FragmentIndex_test fi_masses;
   Param p_masses = fi_masses.getParameters();
   p_masses.update(base_params());
-  p_masses.setValue("index:mode", "peptide_masses");
+  p_masses.setValue("low_memory", "true");
   fi_masses.setParameters(p_masses);
   fi_masses.build(entries);
 
@@ -1741,7 +1741,7 @@ START_SECTION((reconstructRealizedSubSequence applies fixed modifications))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -1792,7 +1792,7 @@ START_SECTION((peptide-mass index admits a candidate whose sub-peptide matches a
   p.setValue("precursor:isotope_error_max", 0);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -1860,7 +1860,7 @@ START_SECTION((peptide-mass query is safe and correct when a smaller index is qu
     p.setValue("precursor:isotope_error_max", 0);
     p.setValue("modifications:variable", std::vector<std::string>{});
     p.setValue("modifications:fixed", std::vector<std::string>{});
-    p.setValue("index:mode", "peptide_masses");
+    p.setValue("low_memory", "true");
     p.setValue("fragment:min_matched_ions", 3);
     fi.setParameters(p);
   };
@@ -1919,7 +1919,7 @@ START_SECTION((peptide-mass query is safe and correct when a smaller index is qu
 }
 END_SECTION
 
-START_SECTION((fragment-mode query is deterministic across repeated queries and safe when a smaller index is queried after a larger one on the same thread))
+START_SECTION((fragment-index query is deterministic across repeated queries and safe when a smaller index is queried after a larger one on the same thread))
 {
   // Regression guard for queryPeaks' thread_local window-relative counting buffers
   // (match_counts / touched_ids). They persist across queries AND across different /
@@ -2036,7 +2036,7 @@ START_SECTION((Peptide-mass mode: matches candidates when a fixed N-terminal mod
   p.setValue("precursor:isotope_error_max", 0);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{"Acetyl (N-term)"});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2077,9 +2077,9 @@ START_SECTION((Peptide-mass mode: matches candidates when a fixed N-terminal mod
 }
 END_SECTION
 
-START_SECTION((Peptide-mass mode: counts the ion series of the configuration, as the fragment-mode index))
+START_SECTION((Peptide-mass mode: counts the ion series of the configuration, as the fragment index))
 {
-  // The peptide-mass mode generates the fragments of its candidates as the fragment mode does, so any ion
+  // The peptide-mass mode generates the fragments of its candidates as the fragment index does, so any ion
   // series configuration is supported: with ions:add_b_ions=false only the y-ions count.
   const std::vector<FASTAFile::FASTAEntry> entries{{"p", "p", "AKACDEFGRHILMNPQSTV"}};
   AASequence target = AASequence::fromString("ACDEFGRHIL");
@@ -2094,8 +2094,8 @@ START_SECTION((Peptide-mass mode: counts the ion series of the configuration, as
   spec.getPrecursors().push_back(prec);
   spec.setMSLevel(2);
 
-  std::map<std::string, std::set<std::pair<std::string, uint32_t>>> candidates; // by index:mode
-  for (const std::string mode : {"fragments", "peptide_masses"})
+  std::map<std::string, std::set<std::pair<std::string, uint32_t>>> candidates; // by low_memory
+  for (const std::string low_memory : {"false", "true"})
   {
     FragmentIndex_test fi;
     auto p = fi.getParameters();
@@ -2110,10 +2110,10 @@ START_SECTION((Peptide-mass mode: counts the ion series of the configuration, as
     p.setValue("modifications:fixed", std::vector<std::string>{});
     p.setValue("fragment:min_matched_ions", 3);
     p.setValue("ions:add_b_ions", "false");
-    p.setValue("index:mode", mode);
+    p.setValue("low_memory", low_memory);
     fi.setParameters(p); // accepted in peptide-mass mode too
     fi.build(entries);
-    TEST_EQUAL(fi.isPeptideMassMode(), mode == "peptide_masses")
+    TEST_EQUAL(fi.isPeptideMassMode(), low_memory == "true")
     FragmentIndex::SpectrumMatchesTopN sms;
     fi.querySpectrum(spec, entries, sms);
     for (const auto& hit : sms.hits_)
@@ -2122,12 +2122,12 @@ START_SECTION((Peptide-mass mode: counts the ion series of the configuration, as
       const AASequence seq = fi.isPeptideMassMode()
         ? fi.reconstructRealizedSubSequence(peptide, entries, hit.realized_length_, hit.subset_bitmask_)
         : fi.reconstructModifiedSequence(peptide, entries);
-      candidates[mode].insert({seq.toString(), hit.num_matched_});
+      candidates[low_memory].insert({seq.toString(), hit.num_matched_});
     }
   }
   // y3..y9 of the target
-  TEST_EQUAL(candidates["peptide_masses"].count({"ACDEFGRHIL", 7u}), 1u)
-  TEST_EQUAL(candidates["peptide_masses"] == candidates["fragments"], true)
+  TEST_EQUAL(candidates["true"].count({"ACDEFGRHIL", 7u}), 1u)
+  TEST_EQUAL(candidates["true"] == candidates["false"], true)
 }
 END_SECTION
 
@@ -2158,7 +2158,7 @@ START_SECTION((reconstructModifiedSequence of a mother returns its residues))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2237,7 +2237,7 @@ START_SECTION((updateMembers_ populates the three sigma_delta sets))
              std::vector<std::string>{"Oxidation (M)", "Acetyl (Protein N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
 
   const auto& baseline = fi.getSigmaDeltaSet();
@@ -2277,7 +2277,7 @@ START_SECTION((reconstructRealizedSubSequence applies mods from subset_bitmask))
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2335,7 +2335,7 @@ START_SECTION((peptide-mass query returns candidate with subset_bitmask for vari
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2403,7 +2403,7 @@ START_SECTION((Peptide-mass mode: emits one SpectrumMatch per valid subset at th
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2465,7 +2465,7 @@ START_SECTION((Peptide-mass mode: subset enumeration rejects position conflicts)
              std::vector<std::string>{"Acetyl (N-term)", "Carbamyl (N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 2);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
 
   // Σ_delta set should contain 0, +42.011 (Acetyl), +43.006 (Carbamyl),
@@ -2496,7 +2496,7 @@ START_SECTION((Peptide-mass mode: respects max_variable_mods_per_peptide cap in 
   p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
 
   const auto& deltas = fi.getSigmaDeltaSet();
@@ -2544,7 +2544,7 @@ START_SECTION((Peptide-mass mode: handles identical-delta variable mods without 
              std::vector<std::string>{"Oxidation (M)", "Oxidation (W)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2621,7 +2621,7 @@ START_SECTION((peptide-mass query admits PROTEIN_N_TERM variable mod only for an
              std::vector<std::string>{"Acetyl (Protein N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2700,7 +2700,7 @@ START_SECTION((peptide-mass query admits PROTEIN_C_TERM variable mod only for an
              std::vector<std::string>{"Amidated (Protein C-term)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2775,7 +2775,7 @@ START_SECTION((peptide-mass query-path rejects position-conflicting subsets))
              std::vector<std::string>{"Acetyl (N-term)", "Carbamyl (N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 2);
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -2838,7 +2838,7 @@ START_SECTION((mother generation rejects ambiguous residue spans (X/B/Z)))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2879,7 +2879,7 @@ START_SECTION((mother generation rejects spans with a stop codon))
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2912,7 +2912,7 @@ START_SECTION((mother generation truncates Single-N mother to unambiguous prefix
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -2956,7 +2956,7 @@ START_SECTION((mother generation starts the mothers after an X/B/Z at the follow
   p.setValue("peptide:max_mass", 50000);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(entries);
 
@@ -3006,7 +3006,7 @@ START_SECTION((Peptide-mass mode: realizes a whole mother))
   p.setValue("precursor:isotope_error_max", 0);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 1);
   fi.setParameters(p);
   fi.build(entries);
@@ -3046,11 +3046,11 @@ START_SECTION((Peptide-mass mode: realizes a whole mother))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Peptide-mass mode: finds the candidates of the fragment-mode index, with the same numbers of matched fragments))
+START_SECTION(([EXTRA] Peptide-mass mode: finds the candidates of the fragment index, with the same numbers of matched fragments))
 {
   // The peptide-mass index holds the masses of the prefixes of its mothers and generates the fragments of the
   // peptidoforms in the precursor window at query time; the candidates (peptidoform, charge, isotope error) and
-  // their numbers of matched fragments must be those of the fragment-mode index. This covers what the former peptide-mass query
+  // their numbers of matched fragments must be those of the fragment index. This covers what the former SNES query
   // missed: modified peptidoforms (their shifted fragments), short peptides with few ions of each series, and
   // peptides heavier than fragment:max_mz. The open search (a precursor window of -100/+500 Da) has to give the same
   // candidates too.
@@ -3067,7 +3067,7 @@ START_SECTION(([EXTRA] Peptide-mass mode: finds the candidates of the fragment-m
   targets.emplace_back(AASequence::fromString("GSAMTNPEDLRKVEAC(Carbamidomethyl)DEFM(Oxidation)"), 3); // M+H above fragment:max_mz
   targets.emplace_back(AASequence::fromString("NPQSTVWY"), 1);                       // 8-mer, 5 ions per series
 
-  auto make_index = [&db](FragmentIndex& fi, bool peptide_masses, bool deduplicate, bool open)
+  auto make_index = [&db](FragmentIndex& fi, bool low_memory, bool deduplicate, bool open)
   {
     Param p = fi.getParameters();
     p.setValue("peptide:enzyme_specificity", "none");
@@ -3092,7 +3092,7 @@ START_SECTION(([EXTRA] Peptide-mass mode: finds the candidates of the fragment-m
     p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)", "Deamidated (N)", "Acetyl (Protein N-term)",
                                                                   "Amidated (Protein C-term)"});
     p.setValue("modifications:variable_max_per_peptide", 2);
-    p.setValue("index:mode", peptide_masses ? "peptide_masses" : "fragments");
+    p.setValue("low_memory", low_memory ? "true" : "false");
     fi.setParameters(p);
     fi.build(db);
   };
@@ -3181,7 +3181,7 @@ START_SECTION((peptide-mass query honors multi-charge precursor when charge is u
   p.setValue("precursor:max_charge", 3);
   p.setValue("modifications:variable", std::vector<std::string>{});
   p.setValue("modifications:fixed", std::vector<std::string>{});
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   fi.setParameters(p);
   fi.build(entries);
@@ -3425,7 +3425,7 @@ START_SECTION(([EXTRA] Peptide-mass mode: recognizes the mature protein N - term
   p.setValue("modifications:fixed", StringList {});
   p.setValue("modifications:variable", StringList {"Acetyl (Protein N-term)"});
   p.setValue("modifications:variable_max_per_peptide", 1);
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("fragment:min_matched_ions", 3);
   p.setValue("precursor:isotope_error_min", 0);
   p.setValue("precursor:isotope_error_max", 0);
@@ -4070,7 +4070,7 @@ START_SECTION((bool hasProteinOccurrences(const std::vector<FASTAFile::FASTAEntr
   p.setValue("modifications:fixed", vector<string> {});
   p.setValue("modifications:variable", vector<string> {});
   p.setValue("peptide:enzyme_specificity", "none");
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(db);
   TEST_TRUE(fi.isPeptideMassMode())
@@ -4400,7 +4400,7 @@ START_SECTION(([EXTRA] Peptide-mass mode: enumerates nonempty modification subse
   spectrum.setMSLevel(2);
   const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
 
-  for (const string mode : {"fragments", "peptide_masses"})
+  for (const string low_memory : {"false", "true"})
   {
     FragmentIndex fi;
     Param p = fi.getParameters();
@@ -4422,10 +4422,10 @@ START_SECTION(([EXTRA] Peptide-mass mode: enumerates nonempty modification subse
     p.setValue("modifications:fixed", vector<string>{});
     p.setValue("modifications:variable", vector<string>{"Deamidated (N)", "Amidated (C-term)"});
     p.setValue("modifications:variable_max_per_peptide", 2);
-    p.setValue("index:mode", mode);
+    p.setValue("low_memory", low_memory);
     fi.setParameters(p);
     fi.build(db);
-    TEST_EQUAL(fi.isPeptideMassMode(), mode == "peptide_masses")
+    TEST_EQUAL(fi.isPeptideMassMode(), low_memory == "true")
     FragmentIndex::SpectrumMatchesTopN sms;
     fi.querySpectrum(spectrum, db, sms);
     bool found = false;
@@ -4694,7 +4694,7 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
                ListUtils::concatenate(vector<string>(expected.begin(), expected.end()), " "))
   }
 
-  // its spectrum is found, in fragment and in peptide-mass mode
+  // its spectrum is found, with and without low_memory
   const vector<FASTAFile::FASTAEntry> search_db{{"P1", "", "CPEPTIDEK"}, {"P2", "", "KPEPTIDEK"}};
   const AASequence target = AASequence::fromString(".(Ammonia-loss)C(Carbamidomethyl)PEPTIDEK");
   TheoreticalSpectrumGenerator tsg;
@@ -4706,7 +4706,7 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
   spectrum.setPrecursors({precursor});
   spectrum.setMSLevel(2);
   const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
-  for (const string mode : {"fragments", "peptide_masses"})
+  for (const string low_memory : {"false", "true"})
   {
     FragmentIndex fi;
     Param p = fi.getParameters();
@@ -4726,10 +4726,10 @@ START_SECTION(([EXTRA] a residue-specific terminal variable modification applies
     p.setValue("fragment:min_matched_ions", 3);
     p.setValue("modifications:fixed", fixed);
     p.setValue("modifications:variable", variable);
-    p.setValue("index:mode", mode);
+    p.setValue("low_memory", low_memory);
     fi.setParameters(p);
     fi.build(search_db);
-    TEST_EQUAL(fi.isPeptideMassMode(), mode == "peptide_masses")
+    TEST_EQUAL(fi.isPeptideMassMode(), low_memory == "true")
     FragmentIndex::SpectrumMatchesTopN sms;
     fi.querySpectrum(spectrum, search_db, sms);
     bool found = false;
@@ -4793,7 +4793,7 @@ START_SECTION(([EXTRA] Peptide-mass mode: expands a hit into the modification su
   p.setValue("modifications:fixed", vector<string>{});
   p.setValue("modifications:variable", vector<string>{"Oxidation (M)", "Deamidated (N)", "Amidated (C-term)"});
   p.setValue("modifications:variable_max_per_peptide", 2);
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   fi.setParameters(p);
   fi.build(db);
   TEST_EQUAL(fi.isPeptideMassMode(), true)
@@ -4837,7 +4837,7 @@ START_SECTION(([EXTRA] Peptide-mass mode: realizes modification subsets whose to
   spectrum.setPrecursors({precursor});
   spectrum.setMSLevel(2);
   const double target_mh_plus = target.getMonoWeight() + Constants::PROTON_MASS_U;
-  for (const string mode : {"fragments", "peptide_masses"})
+  for (const string low_memory : {"false", "true"})
   {
     FragmentIndex fi;
     Param p = fi.getParameters();
@@ -4861,10 +4861,10 @@ START_SECTION(([EXTRA] Peptide-mass mode: realizes modification subsets whose to
     p.setValue("modifications:fixed", vector<string>{});
     p.setValue("modifications:variable", vector<string>{"Hex(5)HexNAc(4) (N)"});
     p.setValue("modifications:variable_max_per_peptide", 2);
-    p.setValue("index:mode", mode);
+    p.setValue("low_memory", low_memory);
     fi.setParameters(p);
     fi.build(db);
-    TEST_EQUAL(fi.isPeptideMassMode(), mode == "peptide_masses")
+    TEST_EQUAL(fi.isPeptideMassMode(), low_memory == "true")
     FragmentIndex::SpectrumMatchesTopN sms;
     fi.querySpectrum(spectrum, db, sms);
     bool found = false;
@@ -4884,7 +4884,7 @@ START_SECTION(([EXTRA] Peptide-mass mode: realizes modification subsets whose to
       }
       found |= (seq == target);
     }
-    TEST_EQUAL(std::string(found ? "found" : "not found") + " with index:mode=" + mode, "found with index:mode=" + mode)
+    TEST_EQUAL(std::string(found ? "found" : "not found") + " with low_memory=" + low_memory, "found with low_memory=" + low_memory)
   }
 }
 END_SECTION
@@ -4993,7 +4993,7 @@ START_SECTION(([EXTRA] residue-specific terminal modifications occupy the termin
 
   // The peptide-mass mode realizes a residue-specific terminal modification on the terminus too.
   p.setValue("peptide:enzyme_specificity", "none");
-  p.setValue("index:mode", "peptide_masses");
+  p.setValue("low_memory", "true");
   p.setValue("peptide:min_size", 9);
   p.setValue("peptide:max_size", 9);
   p.setValue("modifications:variable", StringList{"Gln->pyro-Glu (N-term Q)"});

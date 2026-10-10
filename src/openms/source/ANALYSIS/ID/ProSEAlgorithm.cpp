@@ -277,14 +277,14 @@ namespace OpenMS
     defaults_.setValue("peptide:deduplicate", "true",
                        "Index each exact peptidoform once before candidate selection. Protein mappings still list every protein occurrence. "
                        "Across database chunks, count each peptide/charge/isotope hypothesis once; retaining queried keys adds memory per spectrum. "
-                       "With index:mode peptide_masses, the repeated peptidoforms among the candidates of a spectrum are dropped instead. "
+                       "With low_memory, the repeated peptidoforms among the candidates of a spectrum are dropped instead. "
                        "Set false for occurrence-based legacy candidates.",
                        {"advanced"});
     defaults_.setValidStrings("peptide:deduplicate", {"true", "false"});
     defaults_.setValue("peptide:protein_mapping", "index",
                        "How the hits are mapped to their proteins (peptide evidences, target_decoy, protein_references, protein hits). "
                        "'index': from the digest of the fragment index, which holds every protein occurrence of a candidate; the result is "
-                       "that of PeptideIndexing, which runs instead wherever the index cannot reproduce it exactly (e.g. index:mode peptide_masses, a specificity "
+                       "that of PeptideIndexing, which runs instead wherever the index cannot reproduce it exactly (e.g. low_memory, a specificity "
                        "other than full, protein-terminal modifications, a chunked database, symbols other than letters or long stretches "
                        "of ambiguous residues in the database). 'PeptideIndexing': always search every hit in the whole database "
                        "(Aho-Corasick), as before.",
@@ -303,14 +303,13 @@ namespace OpenMS
     defaults_.setSectionDescription("peptide", "Peptide Options");
 
     // forwarded to FragmentIndex
-    defaults_.setValue("index:mode", "fragments",
-      "What the index holds. 'fragments': the fragments of every peptidoform. 'peptide_masses' (only with "
-      "peptide:enzyme_specificity=none, ignored otherwise): the masses of the peptides, stored as the prefixes of one "
-      "mother peptide per protein position; a query generates the fragments of the peptidoforms in the precursor "
-      "window. It finds the same candidates as 'fragments' with a fraction of the memory (e.g. for immunopeptidomics "
-      "against a human database), but takes more time per spectrum, the more the wider the precursor window.");
-    defaults_.setValidStrings("index:mode", {"fragments", "peptide_masses"});
-    defaults_.setSectionDescription("index", "Index Options");
+    defaults_.setValue("low_memory", "false",
+      "Non-specific searches (peptide:enzyme_specificity=none; ignored otherwise): index the peptide masses, as the "
+      "prefixes of one mother peptide per protein position, instead of the fragments of every peptidoform, and "
+      "generate the fragments of the peptidoforms in the precursor window at query time. Finds the same candidates "
+      "with a fraction of the memory (e.g. for immunopeptidomics against a human database), but takes more time per "
+      "spectrum, the more the wider the precursor window.");
+    defaults_.setValidStrings("low_memory", {"true", "false"});
 
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setValue("report:isotope_error_convention", "observed_minus_theoretical",
@@ -3011,7 +3010,7 @@ namespace OpenMS
     if (!index.hasProteinOccurrences(db))
     {
       mapping.fallback_reason = "the fragment index does not list every protein occurrence of its peptides "
-                                "(index:mode peptide_masses, protein-terminal modifications, or not built from this database)";
+                                "(low_memory, protein-terminal modifications, or not built from this database)";
       return mapping;
     }
     const Size aaa_max = static_cast<Size>(static_cast<Int>(indexer_parameters.getValue("aaa_max")));
@@ -6328,7 +6327,7 @@ namespace OpenMS
     os << "[ProSE]                ions: " << join_int(sh.ion_series)
        << " | calibration: " << (sh.calibration_enabled ? "on" : "off")
        << " | mode: " << (sh.open_search ? "open" : "closed")
-       << (sh.peptide_mass_mode ? " | index: peptide masses" : "")
+       << (sh.peptide_mass_mode ? " | low_memory" : "")
        << (sh.chunked ? " | chunked" : "") << "\n";
 
     // -- Database / fragment index --

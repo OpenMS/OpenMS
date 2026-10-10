@@ -1096,7 +1096,7 @@ namespace OpenMS
       };
 
       // Honor peptide:max_size=0 as "no maximum" (the documented semantics of
-      // the fragment-mode path). Using raw peptide_max_length_ in std::min would give
+      // the fragment-index path). Using raw peptide_max_length_ in std::min would give
       // length 0 and an empty peptide-mass index.
       const size_t effective_max_length = (peptide_max_length_ == 0) ? L : peptide_max_length_;
 
@@ -1282,7 +1282,7 @@ namespace OpenMS
   {
       initResidueMassTable_();
 
-      // Peptide-mass mode dispatch: for non-specific searches with index:mode peptide_masses, switch to
+      // Peptide-mass mode dispatch: for non-specific searches with low_memory, switch to
       // mother-peptide indexing instead of the O(L^2) sub-peptide enumeration below.
       // The peptide-mass path has its own mod-table init; everything else (fragment emission,
       // query layer, build-level bucketing) reads the populated fi_peptides_ uniformly.
@@ -3023,7 +3023,7 @@ namespace OpenMS
       //   5. peptide_idx_      ascending  — added so that neither std::sort nor
       //      std::partial_sort (both unstable) can let the arrangement of the input decide
       //      which of several equally scored candidates survives the top-N cut. On the
-      //      fragment-mode path this makes the comparator a strict total order: two hits sharing
+      //      fragment-index path this makes the comparator a strict total order: two hits sharing
       //      all five keys would have to be the same peptide at the same isotope error and
       //      charge, i.e. the same (charge, iso) block, and queryPeaks emits each peptide at
       //      most once per block.
@@ -3097,7 +3097,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     const int16_t iso_hi = open_mode ? 0 : max_isotope_error_;
 
     // The peptide-mass mode uses querySpectrumPeptideMasses_ directly (dispatched in querySpectrum);
-    // this function is only reached for fragment-mode searches.
+    // this function is only reached for fragment-index searches.
     //
     // The isotope-error blocks of this charge are collected and handed to queryPeaks together,
     // which walks the fragment buckets once for all of them and appends its (already compacted
@@ -3298,7 +3298,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       const float mz = (float)precursor.getMZ() * charge - ((charge - 1) * Constants::PROTON_MASS_U);
       for (int16_t isotope_error = iso_lo; isotope_error <= iso_hi; ++isotope_error)
       {
-        // The window of the fragment-mode index (searchDifferentPrecursorRanges(), getPeptidesInMassWindow()): a
+        // The window of the fragment index (searchDifferentPrecursorRanges(), getPeptidesInMassWindow()): a
         // peptidoform is a candidate if its precursor_mz_ lies in [lo, hi]
         const float shifted_mass = mz + static_cast<float>(isotope_error) * static_cast<float>(Constants::C13C12_MASSDIFF_U);
         const auto window = computeMassWindow_(shifted_mass);
@@ -3348,7 +3348,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
           size_t n_slots = 0;
           const auto consider = [&](uint32_t subset, double peptidoform_mass)
           {
-            // the precursor window and the mass range of the fragment-mode index (generatePeptides())
+            // the precursor window and the mass range of the fragment index (generatePeptides())
             const float precursor_mz = static_cast<float>(peptidoform_mass);
             if (precursor_mz < lo || precursor_mz > hi) return;
             if (precursor_mz < peptide_min_mass_ || precursor_mz > peptide_max_mass_) return;
@@ -3440,7 +3440,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       }
     }
 
-    // peptide:deduplicate: as the fragment-mode index holds every peptidoform once (the first of its entries, i.e. of
+    // peptide:deduplicate: as the fragment index holds every peptidoform once (the first of its entries, i.e. of
     // its occurrences the one in the protein that comes first), keep one candidate per peptidoform, charge and
     // isotope error (its occurrences in other proteins or positions have the same matched fragments)
     if (deduplicate_ && sms.hits_.size() > first_hit + 1)
@@ -3483,7 +3483,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         }
         else
         {
-          // the occurrence that comes first in the fragment-mode index represents the peptidoform
+          // the occurrence that comes first in the fragment index represents the peptidoform
           TieKey& representative = tie_keys[it->second - first_hit];
           if (std::tie(tie.protein_idx, tie.start) < std::tie(representative.protein_idx, representative.start))
           {
@@ -3497,11 +3497,11 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     }
 
     // Cap the candidate set at `max_processed_hits_`, ranked by the number of matched fragments (same policy as
-    // the fragment-mode path via queryPeaks→trimHits). trimHits() breaks ties by the index of the peptide, which in peptide-mass mode
+    // the fragment-index path via queryPeaks→trimHits). trimHits() breaks ties by the index of the peptide, which in peptide-mass mode
     // hits is that of the mother. Order them by precursor m/z and protein instead, as sortPeptides_() orders the
-    // peptides of the fragment-mode index, then by start, length and modification subset. sortPeptides_() leaves the
+    // peptides of the fragment index, then by start, length and modification subset. sortPeptides_() leaves the
     // order within a protein to the sort algorithm, so a cut through equally ranked candidates of one protein (e.g.
-    // site isomers) can keep other candidates than the fragment-mode index.
+    // site isomers) can keep other candidates than the fragment index.
     if (first_hit > 0)
     {
       trimHits(sms); // hits of earlier queries: no keys for them
@@ -3536,7 +3536,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                                     OpenMS::FragmentIndex::SpectrumMatchesTopN& sms)
   {
     // Backward-compatible 2-arg overload. Delegates to the 3-arg overload
-    // with an empty FASTA, which only the fragment-mode query ignores: querySpectrumPeptideMasses_()
+    // with an empty FASTA, which only the fragment-index query ignores: querySpectrumPeptideMasses_()
     // reads the residues of every candidate from the FASTA entries.
     if (is_peptide_mass_mode_)
     {
@@ -3592,7 +3592,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
         return;
       }
 
-      // Fragment-mode path: fasta_entries not needed.
+      // Fragment-index path: fasta_entries not needed.
       // two posible modes. Precursor has a charge or we test all possible charges
       vector<size_t> charges;
       if (precursor[0].getCharge())
@@ -3736,14 +3736,13 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
                        "Maximum precursor isotope error searched, with the sign of precursor:isotope_error_min: +1 finds "
                        "a peptide whose precursor was selected one 13C spacing below its monoisotopic peak.");
 
-    defaults_.setValue("index:mode", "fragments",
-      "What the index holds. 'fragments': the fragments of every peptidoform. 'peptide_masses' (only with "
-      "peptide:enzyme_specificity=none, ignored otherwise): the masses of the peptides, stored as the prefixes of one "
-      "mother peptide per protein position; a query generates the fragments of the peptidoforms in the precursor "
-      "window. It finds the same candidates with the same numbers of matched fragments as 'fragments' with a "
-      "fraction of the memory, but takes more time per spectrum, the more the wider the precursor window.");
-    defaults_.setValidStrings("index:mode", {"fragments", "peptide_masses"});
-    defaults_.setSectionDescription("index", "Index Options");
+    defaults_.setValue("low_memory", "false",
+      "Non-specific searches (peptide:enzyme_specificity=none; ignored otherwise): index the peptide masses, as the "
+      "prefixes of one mother peptide per protein position, instead of the fragments of every peptidoform, and "
+      "generate the fragments of the peptidoforms in the precursor window at query time. Finds the same candidates "
+      "with the same numbers of matched fragments with a fraction of the memory, but takes more time per spectrum, "
+      "the more the wider the precursor window.");
+    defaults_.setValidStrings("low_memory", {"true", "false"});
     
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
@@ -3838,9 +3837,8 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     max_processed_hits_ = param_.getValue("scoring:max_candidates_per_spectrum");
     deduplicate_ = param_.getValue("peptide:deduplicate").toBool();
 
-    // index:mode peptide_masses applies to non-specific searches only
-    is_peptide_mass_mode_ = param_.getValue("index:mode").toString() == "peptide_masses"
-                            && enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE;
+    // low_memory applies to non-specific searches only
+    is_peptide_mass_mode_ = param_.getValue("low_memory").toBool() && enzyme_specificity_ == EnzymaticDigestion::SPEC_NONE;
 
     if (isOpenSearchMode_())
     {
@@ -3863,7 +3861,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     //   with_prot_nterm:     baseline + PROTEIN_N_TERM variable mods
     //   with_prot_cterm:     baseline + PROTEIN_C_TERM variable mods
     // Fragment-mode queries never consult these; populated unconditionally (cheap)
-    // so that switching index:mode at runtime does not require a rebuild.
+    // so that switching low_memory at runtime does not require a rebuild.
     sigma_delta_set_ = computeSigmaDeltaSet_(false, false);
     sigma_delta_set_with_prot_nterm_ = computeSigmaDeltaSet_(true, false);
     sigma_delta_set_with_prot_cterm_ = computeSigmaDeltaSet_(false, true);

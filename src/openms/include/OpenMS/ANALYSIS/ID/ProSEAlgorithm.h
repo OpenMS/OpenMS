@@ -569,7 +569,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * before pruning and before zero-scoring candidates are dropped -- so the
      * summary reflects the full pool. Instances accumulate across chunks in the
      * chunked search paths, where each chunk contributes its own candidates for
-     * the same spectrum. With peptide:deduplicate enabled for a fragment-mode index,
+     * the same spectrum. With peptide:deduplicate enabled for a fragment index,
      * repeated peptidoform/charge/isotope hypotheses in later chunks are skipped
      * before add(). The per-chunk candidate cap still determines which distinct
      * hypotheses enter the pool; chunked and unchunked pools can therefore differ.

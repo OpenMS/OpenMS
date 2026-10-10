@@ -86,11 +86,11 @@ namespace OpenMS
     struct SpectrumMatch
     {
       uint32_t num_matched_{};       ///< Number of peaks-fragment hits
-      uint32_t subset_bitmask_{};    ///< Peptide-mass mode: active slots in the slot list returned by buildModSlots_ for the realized sub-peptide. 0 = unmodified. Ignored in fragment mode.
-      float    sigma_delta_{};       ///< Peptide-mass mode: Σ of the variable-mod deltas of subset_bitmask_. 0 in fragment mode or unmodified.
+      uint32_t subset_bitmask_{};    ///< Peptide-mass mode: active slots in the slot list returned by buildModSlots_ for the realized sub-peptide. 0 = unmodified. Ignored without low_memory.
+      float    sigma_delta_{};       ///< Peptide-mass mode: Σ of the variable-mod deltas of subset_bitmask_. 0 without low_memory or unmodified.
       uint16_t precursor_charge_{};  ///< The precursor_charge used for the performed search
       int16_t  isotope_error_{};     ///< The isotope_error used for the performed search
-      uint16_t realized_length_{};   ///< Peptide-mass mode: length of the realized sub-peptide, a prefix of the mother peptide_idx_. 0 in fragment mode.
+      uint16_t realized_length_{};   ///< Peptide-mass mode: length of the realized sub-peptide, a prefix of the mother peptide_idx_. 0 without low_memory.
       size_t   peptide_idx_{};       ///< The idx this struct belongs to
     };
 
@@ -167,7 +167,7 @@ namespace OpenMS
      *
      * Provides read-only access to all peptides currently held by the index,
      * typically populated during build().
-     * With peptide:deduplicate=true, fragment-mode entries retain one representative
+     * With peptide:deduplicate=true, fragment-index entries retain one representative
      * protein coordinate per exact peptidoform, not every protein occurrence
      * (getProteinOccurrences() lists them all).
      *
@@ -366,26 +366,26 @@ namespace OpenMS
     static StringList shadowedVariableResidueModifications(const StringList& fixed_modifications,
                                                            const StringList& variable_modifications);
 
-    /// @name Peptide-mass mode (index:mode peptide_masses)
+    /// @name Peptide-mass mode (low_memory)
     ///
     /// When the index is built in peptide-mass mode (@ref isPeptideMassMode), a @ref Peptide entry
     /// represents a *mother peptide*: the longest peptide (at most peptide:max_size residues)
     /// that starts at a position of a protein. Every sub-peptide of the non-specific digest is a
     /// prefix of the mother at its start, so the mothers hold the digest in one entry per protein
-    /// position instead of one per (start, length, variable modifications) as the fragment-mode index.
+    /// position instead of one per (start, length, variable modifications) as the fragment index.
     /// @c mod_bitmask_ of a mother is 0, @c precursor_mz_ its own (M+H)+.
     ///
     /// The index holds no fragments of the mothers. Instead, its entries are the (M+H)+ of every
     /// unmodified prefix of a mother with a length in [peptide:min_size, peptide:max_size], sorted
     /// by mass. A query looks up the prefixes whose mass, shifted by any sum of variable
     /// modification deltas, lies in a precursor window, generates the fragments of each such
-    /// peptidoform as the fragment-mode index would (same ion series, fragment:min_ion_index and m/z
+    /// peptidoform as the fragment index would (same ion series, fragment:min_ion_index and m/z
     /// range) and counts the peaks they match. The candidates and their numbers of matched
-    /// fragments are therefore those of the fragment-mode index, which needs far more memory for a
+    /// fragments are therefore those of the fragment index, which needs far more memory for a
     /// non-specific digest.
 
-    /// @return true if the index was built in peptide-mass mode, i.e. with index:mode peptide_masses and
-    /// peptide:enzyme_specificity none (index:mode is ignored for specific and semi-specific searches).
+    /// @return true if the index was built in peptide-mass mode, i.e. with low_memory and
+    /// peptide:enzyme_specificity none (low_memory is ignored for specific and semi-specific searches).
     bool isPeptideMassMode() const noexcept { return is_peptide_mass_mode_; }
 
 
@@ -431,7 +431,7 @@ namespace OpenMS
      * the entries passed to build(), in the same order: the index holds only prefix masses and reads the residues,
      * termini and modification sites of the candidates from @p fasta_entries. Only a different number of entries is
      * detected (no matches are returned then); different entries of the same number give candidates that do not
-     * belong to the index. The fragment-mode path ignores the @p fasta_entries argument.
+     * belong to the index. The fragment-index path ignores the @p fasta_entries argument.
      *
      * @param[in]  spectrum      Experimental spectrum with a single precursor.
      * @param[in]  fasta_entries The FASTA entries passed to build(), in the same order.
@@ -686,7 +686,7 @@ protected:
 
     /**@brief Generates the fragments of a peptidoform, as the index holds them.
      *
-     * The one implementation of the fragments of an index entry: build() uses it for the fragment-mode entries, the peptide-mass
+     * The one implementation of the fragments of an index entry: build() uses it for the fragment-index entries, the peptide-mass
      * query for the peptidoforms it realizes, so that both count the same fragments.
      *
      * @param[out] fragments  Receives the fragments of the ion series of ions:add_*_ions (see generateFragmentsLightweight_)
@@ -732,7 +732,7 @@ protected:
     /// an entry without variable modifications are computed from them.
     std::array<double, 128> fixed_residue_masses_{};
 
-    /// Peptide-mass mode state. Set in @c updateMembers_ from index:mode and peptide:enzyme_specificity.
+    /// Peptide-mass mode state. Set in @c updateMembers_ from low_memory and peptide:enzyme_specificity.
     /// When true, @ref generatePeptides dispatches to @ref generateMothers_, build() indexes
     /// the prefix masses of the mothers and querySpectrum() runs querySpectrumPeptideMasses_(). When false,
     /// no peptide-mass code path is active.
@@ -883,18 +883,18 @@ private:
 
 
     /**
-     * @brief Peptide-mass mode spectrum query: the candidates and matched-fragment counts of the fragment-mode index.
+     * @brief Peptide-mass mode spectrum query: the candidates and matched-fragment counts of the fragment index.
      *
      * For each precursor charge and isotope error, and each shift Σ of mod_shifts_, the index entries
      * (unmodified prefixes of the mothers, sorted by (M+H)+) whose mass plus Σ can lie in the precursor
      * window are looked up and realized: their peptidoforms that belong to Σ (the unmodified one at Σ = 0,
      * combinations of at most variable_max_per_peptide variable modifications) and whose (M+H)+ lies in the
      * precursor window and in [peptide:min_mass, peptide:max_mass] are the candidates, exactly those that the
-     * fragment-mode index holds in the window. The fragments of each candidate are generated as the fragment-mode index
+     * fragment index holds in the window. The fragments of each candidate are generated as the fragment index
      * generates them and matched against the peaks with the windows of queryPeaks(); candidates with at least
      * fragment:min_matched_ions matches are kept (with peptide:deduplicate, one per peptidoform) and cut to
      * scoring:max_candidates_per_spectrum in the order of trimHits(), ties broken in the order of the
-     * fragment-mode index.
+     * fragment index.
      *
      * Only called when @ref isPeptideMassMode is true.
      *
