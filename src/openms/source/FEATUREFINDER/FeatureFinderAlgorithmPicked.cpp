@@ -194,7 +194,7 @@ namespace OpenMS
     double user_seed_score = param_.getValue("user-seed:min_score");
 
     //reserve space for calculated scores
-    UInt charge_count = charge_high - charge_low + 1;
+    Size charge_count = charge_high - charge_low + 1;
     for (auto& s : map_)
     {
       Size scan_size = s.size();
@@ -622,7 +622,7 @@ namespace OpenMS
         IsotopePattern best_pattern(0);
         double isotope_fit_quality = findBestIsotopeFit_(seeds[i], c, best_pattern);
 
-        if (isotope_fit_quality < min_isotope_fit_)
+        if (best_pattern.peak.empty() || isotope_fit_quality < min_isotope_fit_) // empty: no placement found (score 0)
         {
           abort_(seeds[i], "Could not find good enough isotope pattern containing the seed");
           continue;
@@ -1107,6 +1107,10 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmPicked::updateMembers_()
   {
+    if ((Int)param_.getValue("isotopic_pattern:charge_low") > (Int)param_.getValue("isotopic_pattern:charge_high"))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "isotopic_pattern:charge_low must not be larger than isotopic_pattern:charge_high.");
+    }
     pattern_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
     trace_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
     min_spectra_ = (UInt) std::floor((double)param_.getValue("mass_trace:min_spectra") * 0.5);
