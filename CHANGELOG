@@ -220,6 +220,45 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - FIX: The thread-local log streams behind OPENMS_LOG_* follow the destinations of the global
+    streams (getGlobalLog*(), LogConfigHandler, also in pyOpenMS) instead of copying them on their
+    first message. Changes did not reach threads that had logged before, including the calling
+    thread: e.g. LogConfigHandler 'add' and setLogLevel() had no effect there, and TOPP tools lost
+    their -debug output. Worse, threads that had logged while a stream was attached kept writing to
+    it after LogConfigHandler 'remove' or 'clear' deleted it (use-after-free, could crash). Changes
+    of a thread-local stream itself (insert(), remove(), LogSinkGuard) still apply to its thread
+    only, on top of the global destinations (#10478). When the destinations of a stream change, a
+    message repeated afterwards is no longer suppressed for a new destination; repeat counts
+    ("<message> occurred N times") go only to the destinations that got the message.
+  - FIX: Logging from a static destructor, an atexit handler or the destructor of a thread_local
+    object crashed: the thread's log streams were already destroyed. Such messages now reach their
+    destinations. The global log streams and the colors of warnings, errors and debug messages are
+    created on first use, so static initializers can log too. StreamHandler (LogConfigHandler's
+    files and string streams) removes a stream from the global log streams before deleting it, also
+    at exit (#10478).
+  - FIX: LogSinkGuard restores exactly what it removed: it no longer re-adds a destination that the
+    global stream removed in its scope (which could then be written to after its deletion), and a
+    guard on a global stream no longer undoes the hiding of that destination on a thread. A guard on
+    a global stream writes the calling thread's pending text to the destinations it was logged for.
+    Log destinations are identified per insertion, not by address, so a new log file at the address
+    of a deleted one is a new destination. A destination with exceptions enabled that fails no
+    longer makes logging calls throw (#10478).
+  - API: LogStreamNotifier and LogStream::insertNotification() were removed; nothing in OpenMS or
+    pyOpenMS used them. setPrefix() on a thread-local stream (getThreadLocalLog*()) only changes the
+    destinations inserted into that stream; set the prefix of a global destination on the global
+    stream, as LogConfigHandler does (#10478).
+  - setConsoleDebugLogging() attaches std::cout to, or detaches it from, the global debug stream,
+    which all threads follow. TOPPBase (-debug) and TOPPAS (-debug) use it (#10478).
+  - Disabled debug output costs about 30 instead of 350 ns per message: without a debug destination
+    (the default, e.g. a TOPP tool without -debug), OPENMS_LOG_DEBUG and OPENMS_LOG_DEBUG_NOFILE skip
+    the whole message and no longer evaluate its arguments. Both are now void expressions; use
+    getThreadLocalLogDebug() to use the stream otherwise. A thread-local stream of the other levels
+    without destinations (e.g. after setLogLevel()) is in a failed state (badbit), so that it does not
+    format messages, until it has a destination again (#10478).
+  - FIX: Below debug level 1, FeatureFinderAlgorithmMetaboIdent and FeatureFinderIdentificationAlgorithm
+    suppress OpenSWATH's status output again. They detached std::cout from the global info stream,
+    which the calling thread's stream had already copied (#10478). FeatureFinderAlgorithmMetaboIdent
+    now shows it at debug level 1 and above, like FeatureFinderIdentificationAlgorithm.
   - FIX: FalseDiscoveryRate::applyPickedProteinFDR read past the end of its score map for a protein
     group that took no part in the target-decoy competition (all its members lost their pairs) and
     whose score lay beyond every calibrated group score. The group got an arbitrary value (in our
@@ -267,6 +306,12 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    All tools:
+      - FIX: -debug activates console debug logging in the main thread even when its
+        thread-local logger was initialized before parameter parsing. Debug levels from INI
+        files also take effect. A subsequent run in the same process removes the console
+        destination from both the global configuration and the current thread before it parses
+        its command line, and adds it again only if its debug level is above 0 (#10478).
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
