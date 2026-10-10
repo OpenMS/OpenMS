@@ -536,12 +536,12 @@ namespace OpenMS
       {
         return;
       }
-      LogStreamBuf* buf = rdbuf();
-      buf->updateFromParent_();
+      followParent_();
       if (hasStream_(stream))
       {
         return;
       }
+      LogStreamBuf* buf = rdbuf();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
       auto hidden = std::find(buf->hidden_streams_.begin(), buf->hidden_streams_.end(), &stream);
       if (hidden != buf->hidden_streams_.end())
@@ -557,6 +557,7 @@ namespace OpenMS
         (buf->parent_ == nullptr ? buf->stream_list_ : buf->own_streams_).push_back(s_struct);
       }
       buf->destinationsChanged_();
+      updateState_();
     }
 
     void LogStream::remove(std::ostream & stream)
@@ -564,12 +565,12 @@ namespace OpenMS
       if (!bound_())
         return;
 
-      LogStreamBuf* buf = rdbuf();
-      buf->updateFromParent_();
+      followParent_();
       if (!hasStream_(stream))
       {
         return;
       }
+      LogStreamBuf* buf = rdbuf();
       buf->sync();
       // HINT: we do NOT clear the cache (because we cannot access it from here)
       //       and we do not flush incomplete_line_!!!
@@ -589,6 +590,7 @@ namespace OpenMS
         }
       }
       buf->destinationsChanged_();
+      updateState_();
     }
 
     void LogStream::removeAllStreams()
@@ -627,6 +629,7 @@ namespace OpenMS
         }
       }
       buf->destinationsChanged_();
+      updateState_();
     }
 
     LogStream::StreamIterator LogStream::findStream_(const std::ostream & s)
@@ -691,6 +694,43 @@ namespace OpenMS
 
       return non_const_this->rdbuf() != nullptr;
     }
+
+    void LogStream::followParent_()
+    {
+      if (!bound_())
+      {
+        return;
+      }
+      rdbuf()->updateFromParent_();
+      updateState_();
+    }
+
+    void LogStream::updateState_()
+    {
+      const LogStreamBuf* buf = rdbuf();
+      if (buf->parent_ == nullptr)
+      {
+        return;
+      }
+      if (buf->stream_list_.empty())
+      {
+        setstate(std::ios_base::badbit);
+      }
+      else if (rdstate() != std::ios_base::goodbit)
+      {
+        clear();
+      }
+    }
+
+    /// Lets the thread-local accessors update their stream on each use
+    struct ThreadLocalLogAccess
+    {
+      static LogStream& use(LogStream& stream)
+      {
+        stream.followParent_();
+        return stream;
+      }
+    };
 
     void LogStream::flush()
     {
@@ -773,36 +813,38 @@ namespace OpenMS
   // Each thread gets its own LogStream instance with a private buffer that follows the output
   // destinations of the global instance, including later changes (see LogStreamBuf::updateFromParent_()).
   // Reconfigure the global stream to redirect or suppress output of all threads, the thread-local
-  // stream returned here for the calling thread only.
+  // stream returned here for the calling thread only. Each call applies changes of the global destinations,
+  // so that a stream without destinations is in a failed state and does not format messages (see
+  // LogStream::updateState_()).
   //
   Logger::LogStream& getThreadLocalLogFatal()
   {
     thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_fatal.rdbuf(), &red), true);
-    return tls;
+    return Logger::ThreadLocalLogAccess::use(tls);
   }
 
   Logger::LogStream& getThreadLocalLogError()
   {
     thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_error.rdbuf(), &red), true);
-    return tls;
+    return Logger::ThreadLocalLogAccess::use(tls);
   }
 
   Logger::LogStream& getThreadLocalLogWarn()
   {
     thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_warn.rdbuf(), &yellow), true);
-    return tls;
+    return Logger::ThreadLocalLogAccess::use(tls);
   }
 
   Logger::LogStream& getThreadLocalLogInfo()
   {
     thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_info.rdbuf(), nullptr), true);
-    return tls;
+    return Logger::ThreadLocalLogAccess::use(tls);
   }
 
   Logger::LogStream& getThreadLocalLogDebug()
   {
     thread_local Logger::LogStream tls(new Logger::LogStreamBuf(g_log_debug.rdbuf(), &magenta), true);
-    return tls;
+    return Logger::ThreadLocalLogAccess::use(tls);
   }
 
   void setConsoleDebugLogging(bool enabled)

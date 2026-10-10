@@ -453,6 +453,19 @@ private:
       bool hasStream_(std::ostream & stream);
       bool bound_() const;
 
+      /// Lets the thread-local accessors (getThreadLocalLog*()) call followParent_() on each use
+      friend struct ThreadLocalLogAccess;
+
+      /// For a thread-local stream: applies changes of the global destinations made since the last call, see updateState_()
+      void followParent_();
+
+      /**
+        For a thread-local stream: sets badbit while it has no destination, so that operator<< does not format
+        messages that would be discarded anyway, and clears the state once it has a destination again.
+        Global streams are left as they are; a thread-local stream is used by its own thread only.
+      */
+      void updateState_();
+
       /// flag needed by the destructor to decide whether the streambuf
       /// has to be deleted. If the default ctor is used to create
       /// the LogStreamBuf, delete_buffer_ is set to true and the ctor
@@ -547,6 +560,13 @@ private:
   // destroyed. Changes of a thread-local stream itself apply on top, to its thread only
   // (see LogStream::insert()).
   //
+  // A thread-local stream without destinations (e.g. the debug stream, unless debug output is enabled) does
+  // not format messages: it is in a failed state (badbit) until it has a destination again. The arguments of
+  // a message are still evaluated, except with OPENMS_LOG_DEBUG, which skips the whole message then.
+  // Each call of these accessors (as in the OPENMS_LOG_* macros) applies changes
+  // of the global destinations to the calling thread's stream; a reference kept across such a change picks it up
+  // with the next call on that thread, or with insert() or remove() on it.
+  //
   // RESTRICTIONS:
   // - Change the global configuration from one thread at a time.
   // - OpenMP thread pools reuse threads, so thread_local state (e.g. local changes) persists across parallel regions.
@@ -598,13 +618,29 @@ private:
 #define OPENMS_LOG_INFO \
   OpenMS::getThreadLocalLogInfo()
 
-  /// Macro for debug information - includes file and line info
+  namespace Logger
+  {
+    /// Turns a whole message into a void expression, which OPENMS_LOG_DEBUG skips when debug output is disabled
+    struct LogVoidify
+    {
+      void operator&(std::ostream&) const {}
+    };
+  }
+
+  /**
+    Macro for debug information - includes file and line info.
+
+    Without a destination for debug output on the calling thread (the default, unless e.g. a TOPP tool runs
+    with -debug), the whole message is skipped: its arguments are not evaluated. As it is a void expression,
+    use getThreadLocalLogDebug() for anything else than writing a message.
+  */
 #define OPENMS_LOG_DEBUG \
+  !OpenMS::getThreadLocalLogDebug().good() ? (void)0 : OpenMS::Logger::LogVoidify() & \
   OpenMS::getThreadLocalLogDebug() << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
 
-  /// Macro for debug information (without file info)
+  /// Macro for debug information (without file info), see OPENMS_LOG_DEBUG
 #define OPENMS_LOG_DEBUG_NOFILE \
-  OpenMS::getThreadLocalLogDebug()
+  !OpenMS::getThreadLocalLogDebug().good() ? (void)0 : OpenMS::Logger::LogVoidify() & OpenMS::getThreadLocalLogDebug()
 
   /**
     @name Global LogStream accessor functions

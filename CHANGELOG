@@ -234,6 +234,12 @@ OpenMS Library:
     stream, as LogConfigHandler does (#10478).
   - setConsoleDebugLogging() attaches std::cout to, or detaches it from, the global debug stream,
     which all threads follow. TOPPBase (-debug) and TOPPAS (-debug) use it (#10478).
+  - Disabled debug output costs about 4 instead of 350 ns per message: without a debug destination
+    (the default, e.g. a TOPP tool without -debug), OPENMS_LOG_DEBUG and OPENMS_LOG_DEBUG_NOFILE skip
+    the whole message and no longer evaluate its arguments. Both are now void expressions; use
+    getThreadLocalLogDebug() to use the stream otherwise. A thread-local stream of the other levels
+    without destinations (e.g. after setLogLevel()) is in a failed state (badbit), so that it does not
+    format messages, until it has a destination again (#10478).
   - FIX: Below debug level 1, FeatureFinderAlgorithmMetaboIdent and FeatureFinderIdentificationAlgorithm
     suppress OpenSWATH's status output again. They detached std::cout from the global info stream,
     which the calling thread's stream had already copied (#10478). FeatureFinderAlgorithmMetaboIdent

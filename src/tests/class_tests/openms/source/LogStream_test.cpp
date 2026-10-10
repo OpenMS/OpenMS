@@ -817,6 +817,74 @@ START_SECTION(([EXTRA] setPrefix on a thread-local stream applies to its own des
 }
 END_SECTION
 
+START_SECTION(([EXTRA] without a debug destination, OPENMS_LOG_DEBUG skips the whole message))
+{
+  int evaluated = 0;
+  auto argument = [&evaluated] { ++evaluated; return "argument"; };
+  // The global debug stream has no destinations by default.
+  OPENMS_LOG_DEBUG << argument() << endl;
+  OPENMS_LOG_DEBUG_NOFILE << argument() << endl;
+  TEST_EQUAL(evaluated, 0)
+
+  ostringstream captured;
+  getGlobalLogDebug().insert(captured);
+  OPENMS_LOG_DEBUG << argument() << " with file" << endl;
+  OPENMS_LOG_DEBUG_NOFILE << argument() << " without file" << endl;
+  TEST_EQUAL(evaluated, 2)
+  getGlobalLogDebug().remove(captured);
+  OPENMS_LOG_DEBUG << argument() << " after remove" << endl;
+  TEST_EQUAL(evaluated, 2)
+
+  TEST_TRUE(captured.str().find("argument with file") != std::string::npos)
+  TEST_TRUE(captured.str().find("argument without file") != std::string::npos)
+  TEST_TRUE(captured.str().find("after remove") == std::string::npos)
+
+  // an else after the macro belongs to the enclosing if
+  bool else_taken = false;
+  if (evaluated == 0) OPENMS_LOG_DEBUG << "not reached" << endl; else else_taken = true;
+  TEST_TRUE(else_taken)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a thread-local stream without destinations is failed, so that it does not format messages))
+{
+  ostringstream dest;
+  bool failed_without = false, good_after_global_insert = false, failed_after_global_remove = false;
+  bool good_after_local_insert = false, failed_after_local_remove = false;
+  std::thread([&] {
+    Logger::LogStream& warn = getThreadLocalLogWarn();
+    warn.removeAllStreams(); // for this thread only
+    failed_without = warn.bad();
+    OPENMS_LOG_WARN << "not shown " << 1.5 << endl;
+
+    getGlobalLogWarn().insert(dest);
+    OPENMS_LOG_WARN << "after global insert " << 2.5 << endl; // the accessor applies the global change
+    good_after_global_insert = warn.good();
+    getGlobalLogWarn().remove(dest);
+    OPENMS_LOG_WARN << "after global remove" << endl;
+    failed_after_global_remove = warn.bad();
+
+    warn.insert(dest);
+    good_after_local_insert = warn.good();
+    warn << "after local insert " << 3.5 << endl;
+    warn.remove(dest);
+    failed_after_local_remove = warn.bad();
+  }).join();
+
+  TEST_TRUE(failed_without)
+  TEST_TRUE(good_after_global_insert)
+  TEST_TRUE(failed_after_global_remove)
+  TEST_TRUE(good_after_local_insert)
+  TEST_TRUE(failed_after_local_remove)
+  TEST_TRUE(dest.str().find("not shown") == std::string::npos)
+  TEST_TRUE(dest.str().find("after global insert 2.5") != std::string::npos)
+  TEST_TRUE(dest.str().find("after global remove") == std::string::npos)
+  TEST_TRUE(dest.str().find("after local insert 3.5") != std::string::npos)
+  // global streams keep their state
+  TEST_TRUE(getGlobalLogDebug().good())
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Test caching of empty lines))
 {
   ostringstream stream_by_logger;
