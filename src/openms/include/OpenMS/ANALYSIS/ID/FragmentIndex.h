@@ -382,7 +382,8 @@ namespace OpenMS
     /// peptidoform as the fragment index would (same ion series, fragment:min_ion_index and m/z
     /// range) and counts the peaks they match. The candidates and their numbers of matched
     /// fragments are therefore those of the fragment index, which needs far more memory for a
-    /// non-specific digest.
+    /// non-specific digest. Only which of equally ranked candidates of one protein survive the cut to
+    /// scoring:max_candidates_per_spectrum can differ (see querySpectrumPeptideMasses_()).
 
     /// @return true if the index was built in peptide-mass mode, i.e. with low_memory and
     /// peptide:enzyme_specificity none (low_memory is ignored for specific and semi-specific searches).
@@ -893,8 +894,10 @@ private:
      * fragment index holds in the window. The fragments of each candidate are generated as the fragment index
      * generates them and matched against the peaks with the windows of queryPeaks(); candidates with at least
      * fragment:min_matched_ions matches are kept (with peptide:deduplicate, one per peptidoform) and cut to
-     * scoring:max_candidates_per_spectrum in the order of trimHits(), ties broken in the order of the
-     * fragment index.
+     * scoring:max_candidates_per_spectrum in the order of trimHits(). Ties are broken by (precursor m/z, protein,
+     * start, length, modification subset). The fragment index orders its peptides by precursor m/z and protein
+     * only and leaves the order within a protein to the sort algorithm, so a cut through equally ranked candidates
+     * of one protein can keep other candidates than the fragment index.
      *
      * Only called when @ref isPeptideMassMode is true.
      *
