@@ -220,6 +220,13 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - setConsoleDebugLogging() attaches std::cout to, or detaches it from, the global debug stream
+    and the calling thread's debug stream. Inserting std::cout into getGlobalLogDebug() alone
+    misses threads that have already logged a debug message. TOPPBase (-debug) and TOPPAS
+    (-debug) use it (#10478).
+  - FIX: FeatureFinderAlgorithmMetaboIdent and FeatureFinderIdentificationAlgorithm (below debug
+    level 1) suppress OpenSWATH's status output again. They detached std::cout from the global
+    info stream, which the calling thread's stream had already copied (#10478).
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -248,8 +255,9 @@ TOPP tools:
     All tools:
       - FIX: -debug activates console debug logging in the main thread even when its
         thread-local logger was initialized before parameter parsing. Debug levels from INI
-        files also take effect, and a subsequent run with debug disabled removes the console
-        destination from both the global configuration and the current thread (#10478).
+        files also take effect. A subsequent run in the same process removes the console
+        destination from both the global configuration and the current thread before it parses
+        its command line, and adds it again only if its debug level is above 0 (#10478).
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The

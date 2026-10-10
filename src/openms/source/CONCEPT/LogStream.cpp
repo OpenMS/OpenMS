@@ -721,4 +721,22 @@ namespace OpenMS
     return tls;
   }
 
+  void setConsoleDebugLogging(bool enabled)
+  {
+    Logger::LogStream& local_debug = getThreadLocalLogDebug();
+    // Flush to the previous destinations so pending or cached messages do not cross the switch.
+    local_debug.flushIncomplete();
+    local_debug.rdbuf()->clearCache();
+    if (enabled)
+    {
+      g_log_debug.insert(cout);
+      local_debug.insert(cout);
+    }
+    else
+    {
+      g_log_debug.remove(cout);
+      local_debug.remove(cout);
+    }
+  }
+
 } // namespace OpenMS

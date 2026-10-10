@@ -1228,7 +1228,7 @@ END_SECTION
 
 START_SECTION(([EXTRA] debug logging honors command line and INI settings))
 {
-  // Initialize the local logger before '-debug' is parsed, as library code may do at startup.
+  // Initialize this thread's debug logger before '-debug' is known, as the command line parser does.
   getGlobalLogDebug().remove(cout);
   getThreadLocalLogDebug().remove(cout);
 
@@ -1257,10 +1257,12 @@ START_SECTION(([EXTRA] debug logging honors command line and INI settings))
   TEST_TRUE(enabled.second.find("worker-thread debug marker") != std::string::npos)
   TEST_TRUE(enabled.second.find("Debug level: 10") != std::string::npos)
 
-  // A second tool in the same process must not inherit the first tool's console debug output.
+  // A second tool in the same process must not inherit the first tool's console debug output,
+  // including the parser's debug messages that precede the '-debug' evaluation.
   disabled = runAndCapture(2, plain);
   TEST_EQUAL(disabled.first, TOPPBase::EXECUTION_OK)
   TEST_TRUE(disabled.second.find("debug marker") == std::string::npos)
+  TEST_TRUE(disabled.second.find("Command line: setting parameter value") == std::string::npos)
 
   std::string ini_filename;
   NEW_TMP_FILE(ini_filename)

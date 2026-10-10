@@ -21,6 +21,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>
+#include <sstream>
+#include <thread>
 #include <boost/regex.hpp>
 
 // OpenMP support
@@ -718,6 +720,29 @@ START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
   {
     TEST_TRUE(regex_search(to_validate_list[i], rx))
   }
+}
+END_SECTION
+
+START_SECTION((void setConsoleDebugLogging(bool enabled)))
+{
+  // This thread's debug stream already exists, so a change to the global stream alone would not reach it.
+  setConsoleDebugLogging(false);
+
+  ostringstream captured;
+  streambuf* cout_buf = cout.rdbuf(captured.rdbuf());
+  setConsoleDebugLogging(true);
+  OPENMS_LOG_DEBUG << "main thread enabled" << endl;
+  std::thread([] { OPENMS_LOG_DEBUG << "new thread enabled" << endl; }).join();
+  setConsoleDebugLogging(false);
+  OPENMS_LOG_DEBUG << "main thread disabled" << endl;
+  std::thread([] { OPENMS_LOG_DEBUG << "new thread disabled" << endl; }).join();
+  cout.rdbuf(cout_buf);
+
+  TEST_TRUE(captured.str().find("main thread enabled") != std::string::npos)
+  TEST_TRUE(captured.str().find("new thread enabled") != std::string::npos)
+  TEST_TRUE(captured.str().find("main thread disabled") == std::string::npos)
+  TEST_TRUE(captured.str().find("new thread disabled") == std::string::npos)
+  TEST_FALSE(getGlobalLogDebug().hasStream(cout))
 }
 END_SECTION
 

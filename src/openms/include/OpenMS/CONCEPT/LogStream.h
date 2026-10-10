@@ -592,6 +592,20 @@ private:
   /// @brief Get thread-local debug log stream
   OPENMS_DLLAPI Logger::LogStream& getThreadLocalLogDebug();
 
+  /**
+    @brief Enables or disables writing OPENMS_LOG_DEBUG messages to std::cout.
+
+    Updates the global debug stream, which threads copy on their first debug message, and the
+    calling thread's debug stream, which may already exist. Threads that have already logged a
+    debug message keep their previous destinations. Pending and cached messages of the calling
+    thread are flushed to the previous destinations first.
+
+    Call this before starting worker threads (see the restrictions above).
+
+    @param enabled Attach std::cout if true, detach it otherwise
+  */
+  OPENMS_DLLAPI void setConsoleDebugLogging(bool enabled);
+
   //
   // Logging Macros (thread-safe via thread-local streams)
   //
@@ -697,8 +711,9 @@ private:
     Returns a reference to the global debug LogStream instance. Use this function
     to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
 
-    @note The debug stream is disabled by default. It is enabled in TOPPBase when
-          running with --debug flag.
+    @note The debug stream is disabled by default. Use setConsoleDebugLogging() to enable it,
+          as TOPPBase does for '-debug'; inserting std::cout here does not reach threads
+          that have already logged a debug message, including the calling thread.
 
     @warning Do NOT use this for logging messages directly - it is not thread-safe.
              Use the OPENMS_LOG_DEBUG macro instead.
