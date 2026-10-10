@@ -42,8 +42,8 @@ namespace
   /// Global mutex that serializes the final sink writes in
   /// OpenMS::Logger::LogStreamBuf::distribute_(). Multiple thread-local
   /// LogStreamBuf instances legitimately share the same destination ostream
-  /// (e.g. std::cerr/std::cout) AND the same global Colorizer
-  /// (yellow/red/magenta), so both the stream writes and the Colorizer's
+  /// (e.g. std::cerr/std::cout) AND the same Colorizer of their level
+  /// (see logColorizer_()), so both the stream writes and the Colorizer's
   /// internal state mutation must be serialized across threads (issue #9515).
   /// Intentionally heap-allocated and never freed so it stays valid even while
   /// the global LogStream objects are destroyed during static teardown; unlike
@@ -53,6 +53,16 @@ namespace
   {
     static std::mutex* instance = new std::mutex();
     return *instance;
+  }
+
+  /// The Colorizer of the log levels in @p color, created on first use and never destroyed, like the global log
+  /// streams. Not the public OpenMS::red, yellow or magenta: static initializers and destructors of other files may log
+  /// before those are constructed or after they are destroyed. Used under logSinkMutex_() only.
+  template<OpenMS::ConsoleColor color>
+  OpenMS::Colorizer* logColorizer_()
+  {
+    static OpenMS::Colorizer* const instance = new OpenMS::Colorizer(color);
+    return instance;
   }
 
   /// A new StreamStruct::id, unique for the process
@@ -378,8 +388,8 @@ namespace OpenMS
     {
       // Serialize the final writes across threads. Multiple thread-local
       // LogStreamBuf instances legitimately share the same destination ostream
-      // (e.g. std::cerr/std::cout) AND the same global Colorizer
-      // (yellow/red/magenta), so both the stream writes and the Colorizer's
+      // (e.g. std::cerr/std::cout) AND the same Colorizer of their level,
+      // so both the stream writes and the Colorizer's
       // internal state mutation must be serialized (issue #9515).
       std::lock_guard<std::mutex> lock(logSinkMutex_());
 
@@ -390,6 +400,28 @@ namespace OpenMS
       for (StreamStruct& s : stream_list_)
       {
         write_(s, outstring);
+      }
+    }
+
+    void LogStreamBuf::distributeNew_(const std::string& line)
+    {
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      // Apply changes of the parent's destinations before evicting. If the destinations changed, the pending repeat
+      // counts went to the destinations that got the repeated messages, and the cache is empty now (see
+      // forgetRepeatsAfterChange_()). So the count of a message evicted here belongs to the current destinations:
+      // a destination inserted since the message was logged never gets it.
+      updateFromParentLocked_();
+      const std::string extra_message = addToCache_(line);
+      if (!extra_message.empty())
+      {
+        for (StreamStruct& s : stream_list_)
+        {
+          write_(s, extra_message);
+        }
+      }
+      for (StreamStruct& s : stream_list_)
+      {
+        write_(s, line);
       }
     }
 
@@ -471,15 +503,8 @@ namespace OpenMS
                 // check if we have already seen this log message
               else if (!isInCache_(outstring))
               {
-                // add line to the log cache
-                std::string extra_message = addToCache_(outstring);
-
-                // send outline (and extra_message) to attached streams
-                if (!extra_message.empty())
-                {
-                  distribute_(extra_message);
-                }
-                distribute_(outstring);
+                // add line to the log cache and send it (after the repeat count of an evicted message) to attached streams
+                distributeNew_(outstring);
               }
 
               // update the line pointers (increment both)
@@ -979,19 +1004,19 @@ namespace OpenMS
   //
   Logger::LogStream& getGlobalLogFatal()
   {
-    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("FATAL_ERROR", logColorizer_<ConsoleColor::RED>()), true, &cerr);
     return stream;
   }
 
   Logger::LogStream& getGlobalLogError()
   {
-    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("ERROR", logColorizer_<ConsoleColor::RED>()), true, &cerr);
     return stream;
   }
 
   Logger::LogStream& getGlobalLogWarn()
   {
-    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("WARNING", &yellow), true, &cerr);
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("WARNING", logColorizer_<ConsoleColor::YELLOW>()), true, &cerr);
     return stream;
   }
 
@@ -1004,7 +1029,7 @@ namespace OpenMS
   Logger::LogStream& getGlobalLogDebug()
   {
     // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
-    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("DEBUG", &magenta), true);
+    static Logger::LogStream& stream = *new Logger::LogStream(new Logger::LogStreamBuf("DEBUG", logColorizer_<ConsoleColor::MAGENTA>()), true);
     return stream;
   }
 
@@ -1066,11 +1091,11 @@ namespace OpenMS
     }
   }
 
-  Logger::LogStream& getThreadLocalLogFatal() { return threadLocalStream_<0>(getGlobalLogFatal(), &red); }
-  Logger::LogStream& getThreadLocalLogError() { return threadLocalStream_<1>(getGlobalLogError(), &red); }
-  Logger::LogStream& getThreadLocalLogWarn() { return threadLocalStream_<2>(getGlobalLogWarn(), &yellow); }
+  Logger::LogStream& getThreadLocalLogFatal() { return threadLocalStream_<0>(getGlobalLogFatal(), logColorizer_<ConsoleColor::RED>()); }
+  Logger::LogStream& getThreadLocalLogError() { return threadLocalStream_<1>(getGlobalLogError(), logColorizer_<ConsoleColor::RED>()); }
+  Logger::LogStream& getThreadLocalLogWarn() { return threadLocalStream_<2>(getGlobalLogWarn(), logColorizer_<ConsoleColor::YELLOW>()); }
   Logger::LogStream& getThreadLocalLogInfo() { return threadLocalStream_<3>(getGlobalLogInfo(), nullptr); }
-  Logger::LogStream& getThreadLocalLogDebug() { return threadLocalStream_<4>(getGlobalLogDebug(), &magenta); }
+  Logger::LogStream& getThreadLocalLogDebug() { return threadLocalStream_<4>(getGlobalLogDebug(), logColorizer_<ConsoleColor::MAGENTA>()); }
 
   void setConsoleDebugLogging(bool enabled)
   {

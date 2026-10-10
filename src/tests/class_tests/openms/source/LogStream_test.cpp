@@ -18,6 +18,7 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <condition_variable>
@@ -1171,6 +1172,22 @@ START_SECTION(([EXTRA] messages from the destructor of a thread_local object rea
   getGlobalLogDebug().remove(dest);
   TEST_TRUE(dest.str().find("worker") != std::string::npos)
   TEST_TRUE(dest.str().find("from a thread_local destructor") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the log levels use their own Colorizers, not the public ones))
+{
+  // The public Colorizers are static objects of another file: static initializers and destructors may log before they
+  // are constructed or after they are destroyed. Logging leaves them alone.
+  yellow("prepared");
+  ostringstream dest;
+  getGlobalLogWarn().insert(dest);
+  OPENMS_LOG_WARN << "warning" << endl;
+  getGlobalLogWarn().remove(dest);
+  TEST_EQUAL(withoutColor(dest), "warning\n")
+  ostringstream colored;
+  colored << yellow;
+  TEST_TRUE(colored.str().find("prepared") != std::string::npos)
 }
 END_SECTION
 

@@ -228,12 +228,12 @@ OpenMS Library:
     it after LogConfigHandler 'remove' or 'clear' deleted it (use-after-free, could crash). Changes
     of a thread-local stream itself (insert(), remove(), LogSinkGuard) still apply to its thread
     only, on top of the global destinations (#10478). When the destinations of a stream change, a
-    message repeated afterwards is no longer suppressed for a new destination; pending repeat counts
-    ("<message> occurred N times") go to the destinations that got the message.
+    message repeated afterwards is no longer suppressed for a new destination; repeat counts
+    ("<message> occurred N times") go only to the destinations that got the message.
   - FIX: Logging from a static destructor, an atexit handler or the destructor of a thread_local
     object crashed: the thread's log streams were already destroyed. Such messages now reach their
-    destinations. The global log streams are created on first use, so static initializers can log
-    too. StreamHandler (LogConfigHandler's files and string streams) removes a stream from the global
+    destinations. The global log streams and the colors of warnings, errors and debug messages are
+    created on first use, so static initializers can log too. StreamHandler (LogConfigHandler's files and string streams) removes a stream from the global
     log streams before deleting it, also at exit (#10478).
   - FIX: LogSinkGuard restores exactly what it removed: it no longer re-adds a destination that the
     global stream removed in its scope (which could then be written to after its deletion), and a
@@ -248,7 +248,7 @@ OpenMS Library:
     stream, as LogConfigHandler does (#10478).
   - setConsoleDebugLogging() attaches std::cout to, or detaches it from, the global debug stream,
     which all threads follow. TOPPBase (-debug) and TOPPAS (-debug) use it (#10478).
-  - Disabled debug output costs about 4 instead of 350 ns per message: without a debug destination
+  - Disabled debug output costs about 30 instead of 350 ns per message: without a debug destination
     (the default, e.g. a TOPP tool without -debug), OPENMS_LOG_DEBUG and OPENMS_LOG_DEBUG_NOFILE skip
     the whole message and no longer evaluate its arguments. Both are now void expressions; use
     getThreadLocalLogDebug() to use the stream otherwise. A thread-local stream of the other levels

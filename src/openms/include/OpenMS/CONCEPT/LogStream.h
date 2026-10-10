@@ -190,6 +190,13 @@ protected:
       /// Distribute a new message to connected streams.
       void distribute_(const std::string& outstring);
 
+      /**
+        Adds @p line, which is not in the cache, to the cache and distributes it, after the repeat count of a message it
+        evicts. Under the sink mutex and after applying changes of parent_'s destinations, so that the count goes only
+        to destinations that got the repeated message.
+      */
+      void distributeNew_(const std::string& line);
+
       /// Interpret the prefix format string and return the expanded prefix.
       std::string expandPrefix_(const std::string & prefix, time_t time) const;
 
