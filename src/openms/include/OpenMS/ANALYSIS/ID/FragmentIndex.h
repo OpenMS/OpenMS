@@ -430,12 +430,14 @@ namespace OpenMS
     /**
      * @brief Query a spectrum against the fragment index with FASTA context.
      *
-     * Required in SNES mode: the FASTA is needed to realize the sub-peptides of the mothers; with other
-     * entries than those passed to build() (a different number of them), no matches are returned.
-     * The non-SNES path ignores the @p fasta_entries argument.
+     * Required in SNES mode: the FASTA is needed to realize the sub-peptides of the mothers. The caller must pass
+     * the entries passed to build(), in the same order: the index holds only prefix masses and reads the residues,
+     * termini and modification sites of the candidates from @p fasta_entries. Only a different number of entries is
+     * detected (no matches are returned then); different entries of the same number give candidates that do not
+     * belong to the index. The non-SNES path ignores the @p fasta_entries argument.
      *
      * @param[in]  spectrum      Experimental spectrum with a single precursor.
-     * @param[in]  fasta_entries The FASTA database passed to build().
+     * @param[in]  fasta_entries The FASTA entries passed to build(), in the same order.
      * @param[out] sms           Accumulated candidate matches.
      */
     void querySpectrum(const MSSpectrum& spectrum,

@@ -3263,8 +3263,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     thread_local std::vector<double> mod_masses;
 
     const size_t first_hit = sms.hits_.size();
-    // Per emitted hit: what orders it among equally ranked candidates as the non-SNES index orders its peptides
-    // (sortPeptides_(): by precursor_mz_, then protein)
+    // Per emitted hit: what orders it among equally ranked candidates (see the cut at the end)
     struct TieKey
     {
       float precursor_mz;
@@ -3499,8 +3498,10 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     // Cap the candidate set at `max_processed_hits_`, ranked by the number of matched fragments (same policy as
     // the non-SNES path via queryPeaks→trimHits). trimHits() breaks ties by the index of the peptide, which for SNES
-    // hits is that of the mother: order them as the non-SNES index orders its peptides instead, so that the same
-    // candidates survive the cut.
+    // hits is that of the mother. Order them by precursor m/z and protein instead, as sortPeptides_() orders the
+    // peptides of the non-SNES index, then by start, length and modification subset. sortPeptides_() leaves the
+    // order within a protein to the sort algorithm, so a cut through equally ranked candidates of one protein (e.g.
+    // site isomers) can keep other candidates than the non-SNES index.
     if (first_hit > 0)
     {
       trimHits(sms); // hits of earlier queries: no keys for them

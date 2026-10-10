@@ -3052,7 +3052,8 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
   // peptidoforms in the precursor window at query time; the candidates (peptidoform, charge, isotope error) and
   // their numbers of matched fragments must be those of the non-SNES index. This covers what the former SNES query
   // missed: modified peptidoforms (their shifted fragments), short peptides with few ions of each series, and
-  // peptides heavier than fragment:max_mz.
+  // peptides heavier than fragment:max_mz. The open search (a precursor window of -100/+500 Da) has to give the same
+  // candidates too.
   const std::vector<FASTAFile::FASTAEntry> db{
     {"P1", "", "MKACDEFMGNRHILNPQSTVWYAKMLDENQRT"},
     {"P2", "", "GSAMTNPEDLRKVEACDEFMGNRHYSQLKDWM"},
@@ -3066,7 +3067,7 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
   targets.emplace_back(AASequence::fromString("GSAMTNPEDLRKVEAC(Carbamidomethyl)DEFM(Oxidation)"), 3); // M+H above fragment:max_mz
   targets.emplace_back(AASequence::fromString("NPQSTVWY"), 1);                       // 8-mer, 5 ions per series
 
-  auto make_index = [&db](FragmentIndex& fi, bool snes, bool deduplicate)
+  auto make_index = [&db](FragmentIndex& fi, bool snes, bool deduplicate, bool open)
   {
     Param p = fi.getParameters();
     p.setValue("peptide:enzyme_specificity", "none");
@@ -3076,8 +3077,9 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
     p.setValue("peptide:max_mass", 5000);
     p.setValue("peptide:clip_nterm_methionine", "true");
     p.setValue("peptide:deduplicate", deduplicate ? "true" : "false");
-    p.setValue("precursor:mass_tolerance_lower", 20.0);
-    p.setValue("precursor:mass_tolerance_upper", 20.0);
+    p.setValue("precursor:mass_tolerance_lower", open ? 100.0 : 20.0);
+    p.setValue("precursor:mass_tolerance_upper", open ? 500.0 : 20.0);
+    p.setValue("precursor:mass_tolerance_unit", open ? "Da" : "ppm");
     p.setValue("precursor:isotope_error_min", -1);
     p.setValue("precursor:isotope_error_max", 1);
     p.setValue("precursor:min_charge", 1);
@@ -3095,17 +3097,20 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
     fi.build(db);
   };
 
+  std::vector<size_t> num_closed_candidates(targets.size());
+  for (const bool open : {false, true})
   for (const bool deduplicate : {false, true})
   {
     FragmentIndex conventional, snes;
-    make_index(conventional, false, deduplicate);
-    make_index(snes, true, deduplicate);
+    make_index(conventional, false, deduplicate, open);
+    make_index(snes, true, deduplicate, open);
     TEST_EQUAL(conventional.isSnesMode(), false)
     TEST_EQUAL(snes.isSnesMode(), true)
     TEST_EQUAL(snes.getNumFragments() < conventional.getNumFragments(), true)
 
-    for (const auto& [target, charge] : targets)
+    for (size_t t = 0; t < targets.size(); ++t)
     {
+      const auto& [target, charge] = targets[t];
       TheoreticalSpectrumGenerator tsg;
       PeakSpectrum theo;
       tsg.getSpectrum(theo, target, 1, 2);
@@ -3142,6 +3147,9 @@ START_SECTION(([EXTRA] SNES finds the candidates of the non-SNES index, with the
       bool found = false;
       for (const auto& candidate : from_snes) found |= (std::get<0>(candidate) == target.toString() && std::get<2>(candidate) == 0);
       TEST_EQUAL(found, true)
+      // the open window reaches candidates outside the closed one
+      if (!deduplicate && !open) num_closed_candidates[t] = from_snes.size();
+      if (!deduplicate && open) TEST_EQUAL(from_snes.size() > num_closed_candidates[t], true)
     }
   }
 }
