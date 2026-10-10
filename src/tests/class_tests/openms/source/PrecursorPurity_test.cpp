@@ -56,6 +56,54 @@ START_SECTION(static PurityScores computePrecursorPurity(const PeakSpectrum& ms1
 
 END_SECTION
 
+START_SECTION(([EXTRA] carbon isotope envelopes and interpolated purity (regression for 10467)))
+{
+  // Use a 1 ppm tolerance to distinguish carbon isotope spacing from neutron mass.
+  // Offsets on either side of the expected positions exercise both nearest neighbours.
+  for (int charge : {1, 2, 3})
+  {
+    for (double error : {-0.0002, 0.0, 0.0002})
+    {
+      const double spacing = 1.0033548378 / charge;
+      MSSpectrum ms1;
+      ms1.setMSLevel(1);
+      ms1.setRT(100.0);
+      ms1.emplace_back(500.25 - spacing + error, 200.0f);
+      ms1.emplace_back(500.25, 1000.0f);
+      ms1.emplace_back(500.25 + spacing + error, 600.0f);
+
+      Precursor precursor;
+      precursor.setMZ(500.25);
+      precursor.setCharge(charge);
+      precursor.setIsolationWindowLowerOffset(1.1);
+      precursor.setIsolationWindowUpperOffset(1.1);
+      MSSpectrum ms2;
+      ms2.setMSLevel(2);
+      ms2.setRT(100.25);
+      ms2.setPrecursors({precursor});
+
+      MSExperiment exp;
+      exp.addSpectrum(ms1);
+      exp.addSpectrum(ms2);
+      auto purity = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 1.0);
+      TEST_EQUAL(purity.size(), 1)
+      ABORT_IF(purity.size() != 1)
+      TEST_REAL_SIMILAR(purity[0], 1.0)
+
+      // The later scan contains equal target and interfering intensity: purity 0.5.
+      ms1.emplace_back(500.45, 1800.0f);
+      ms1.sortByPosition();
+      ms1.setRT(101.0);
+      exp.addSpectrum(ms1);
+      purity = PrecursorPurity::computeSingleScanPrecursorPurities(1, 2, exp, 1.0);
+      TEST_REAL_SIMILAR(purity[0], 0.5)
+      purity = PrecursorPurity::computeInterpolatedPrecursorPurity(1, 0, 2, exp, 1.0);
+      TEST_REAL_SIMILAR(purity[0], 0.875)
+    }
+  }
+}
+END_SECTION
+
 START_SECTION(static computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
 
   unordered_map<std::string, PrecursorPurity::PurityScores> purityscores = PrecursorPurity::computePrecursorPurities(spectra, 0.1, false);

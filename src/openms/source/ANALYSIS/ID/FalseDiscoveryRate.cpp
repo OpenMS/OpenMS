@@ -1090,7 +1090,7 @@ namespace OpenMS
       IDScoreGetterSetter::getScores_(scores_labels, id.getIndistinguishableProteins(), decoy_accs);
       calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
       if (!scores_labels.empty())
-        IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+        IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false, higher_score_better, q_value);
     }
 
     scores_to_FDR.clear();
@@ -1456,7 +1456,7 @@ namespace OpenMS
     {
       IDScoreGetterSetter::getPickedProteinGroupScores_(picked_scores, scores_labels, id.getIndistinguishableProteins(), decoy_string, prefix);
       calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
-      IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+      IDScoreGetterSetter::setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false, higher_score_better, q_value);
       scores_to_FDR.clear();
       scores_labels.clear();
     }
