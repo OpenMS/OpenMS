@@ -1,0 +1,11 @@
+source,method,parameters,point_count,repeat_count,median_filter_ms,p95_filter_ms,working_set_before_mb,working_set_after_mb,peak_working_set_mb,private_bytes_before_mb,private_bytes_after_mb,peak_private_bytes_mb
+NoiseFilterSGolay_2_input.chrom.mzML,modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 19}",59,40,0.003100023604929447,0.0034500262700021237,73.796875,73.8203125,73.8203125,793.78515625,793.78515625,793.78515625
+NoiseFilterSGolay_2_input.chrom.mzML,savitzky_golay,"{""frame_length"": 15, ""polynomial_order"": 2}",59,40,0.001800013706088066,0.0021300162188708765,74.0703125,74.0859375,74.0859375,794.32421875,794.32421875,794.32421875
+OpenSwathWorkflow_17_output.chrom.mzML,modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 19}",50,40,0.0029999646358191967,0.004004975198768079,74.01171875,74.02734375,74.02734375,793.95703125,793.95703125,793.95703125
+OpenSwathWorkflow_17_output.chrom.mzML,savitzky_golay,"{""frame_length"": 15, ""polynomial_order"": 2}",50,40,0.002200016751885414,0.002635020064190028,74.32421875,74.33984375,74.33984375,794.375,794.375,794.375
+OpenSwathWorkflow_22_output.chrom.mzML,modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 19}",50,40,0.002700020559132099,0.0031200208468362676,74.01171875,74.02734375,74.02734375,794.0625,794.0625,794.08203125
+OpenSwathWorkflow_22_output.chrom.mzML,savitzky_golay,"{""frame_length"": 15, ""polynomial_order"": 2}",50,40,0.002049986505880952,0.0023399596102535703,74.0078125,74.0234375,74.0234375,793.890625,793.890625,793.890625
+OpenSwathWorkflow_23_output.chrom.mzML,modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 19}",50,40,0.002700020559132099,0.003035023109987376,74.15625,74.171875,74.171875,794.1328125,794.1328125,794.1328125
+OpenSwathWorkflow_23_output.chrom.mzML,savitzky_golay,"{""frame_length"": 15, ""polynomial_order"": 2}",50,40,0.0018999562598764896,0.0021349580492824294,74.25,74.265625,74.265625,794.15625,794.15625,794.15625
+large_synthetic_100k,modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 19}",100000,6,2.175150002585724,2.572599987615831,61.0546875,62.58984375,67.16796875,779.6484375,781.16796875,785.88671875
+large_synthetic_100k,savitzky_golay,"{""frame_length"": 15, ""polynomial_order"": 2}",100000,6,0.9176000312436372,0.9617500036256388,61.2890625,62.8359375,64.3515625,779.83203125,781.36328125,782.953125

@@ -1,0 +1,95 @@
+method,parameters,training_mean_normalized_rmse,selected
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 4}",0.06667324694536032,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 5}",0.06049779228222371,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 7}",0.052420994562967824,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 9}",0.04710569226277339,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 11}",0.043062171461614576,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 13}",0.03971418163491259,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 15}",0.03702403599501222,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 19}",0.033736855335219876,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 23}",0.03244745998716979,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": false, ""m"": 27}",0.032203102256905196,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 5}",0.06899141736010089,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 7}",0.0592966594758358,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 9}",0.05311474631836738,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 11}",0.04874654461355505,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 13}",0.045326917290079746,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 15}",0.042363795622686176,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 19}",0.03756511960971133,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 23}",0.034640497519115424,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": false, ""m"": 27}",0.033242659674674206,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": false, ""m"": 7}",0.0658220856445258,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": false, ""m"": 9}",0.058564823336914665,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": false, ""m"": 11}",0.053550661427651254,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": false, ""m"": 13}",0.04980854287789508,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": false, ""m"": 15}",0.04686312924092949,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": false, ""m"": 19}",0.04190817335010888,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": false, ""m"": 23}",0.037921039418682884,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": false, ""m"": 27}",0.035310971378813866,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": false, ""m"": 7}",0.07185053872928679,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": false, ""m"": 9}",0.06390655100907541,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": false, ""m"": 11}",0.05814781199391988,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": false, ""m"": 13}",0.053896388797935915,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": false, ""m"": 15}",0.05060443652626176,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": false, ""m"": 19}",0.04571863402612276,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": false, ""m"": 23}",0.04164580525410815,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": false, ""m"": 27}",0.03821845361426058,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 3}",0.06334940903114705,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 4}",0.05642630647087917,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 5}",0.05153694809967739,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 7}",0.044781642228800995,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 9}",0.039991983862515706,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 11}",0.0364576409419136,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 13}",0.0341246221740664,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 15}",0.032793197934709487,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 19}",0.0319607498119915,True
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 23}",0.03253694400279979,False
+modified_sinc,"{""degree"": 4, ""is_ms1"": true, ""m"": 27}",0.03404958051746368,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 4}",0.06698238018099414,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 5}",0.060893867495347066,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 7}",0.052747240929529246,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 9}",0.047455156653086826,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 11}",0.043416414134535765,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 13}",0.04001980693201058,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 15}",0.0372864351239904,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 19}",0.03398962283286165,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 23}",0.032781161780927826,False
+modified_sinc,"{""degree"": 6, ""is_ms1"": true, ""m"": 27}",0.03257435451603258,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 5}",0.06934332704066097,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 7}",0.0596292888104041,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 9}",0.05341419192924269,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 11}",0.049042314340528935,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 13}",0.04566302200216618,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 15}",0.04270461554796663,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 19}",0.03781585949345061,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 23}",0.034890978811798076,False
+modified_sinc,"{""degree"": 8, ""is_ms1"": true, ""m"": 27}",0.03353545114552016,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": true, ""m"": 7}",0.0662010708138682,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": true, ""m"": 9}",0.058880677238105486,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": true, ""m"": 11}",0.05383323685849924,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": true, ""m"": 13}",0.050081695318399025,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": true, ""m"": 15}",0.0471600107124565,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": true, ""m"": 19}",0.042246635053903234,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": true, ""m"": 23}",0.0381727902269899,False
+modified_sinc,"{""degree"": 10, ""is_ms1"": true, ""m"": 27}",0.035578956844197415,False
+savitzky_golay,"{""frame_length"": 5, ""polynomial_order"": 2}",0.05519533847771368,False
+savitzky_golay,"{""frame_length"": 5, ""polynomial_order"": 3}",0.05535547364053247,False
+savitzky_golay,"{""frame_length"": 5, ""polynomial_order"": 4}",0.07903803457668479,False
+savitzky_golay,"{""frame_length"": 7, ""polynomial_order"": 2}",0.04603672592962806,False
+savitzky_golay,"{""frame_length"": 7, ""polynomial_order"": 3}",0.04619828892801211,False
+savitzky_golay,"{""frame_length"": 7, ""polynomial_order"": 4}",0.05976593914856318,False
+savitzky_golay,"{""frame_length"": 9, ""polynomial_order"": 2}",0.040191758244103586,False
+savitzky_golay,"{""frame_length"": 9, ""polynomial_order"": 3}",0.04035022672305677,False
+savitzky_golay,"{""frame_length"": 9, ""polynomial_order"": 4}",0.051519115021739996,False
+savitzky_golay,"{""frame_length"": 11, ""polynomial_order"": 2}",0.03629090972511477,False
+savitzky_golay,"{""frame_length"": 11, ""polynomial_order"": 3}",0.03642218598693614,False
+savitzky_golay,"{""frame_length"": 11, ""polynomial_order"": 4}",0.04614187529443836,False
+savitzky_golay,"{""frame_length"": 15, ""polynomial_order"": 2}",0.03319574111152043,True
+savitzky_golay,"{""frame_length"": 15, ""polynomial_order"": 3}",0.033359412180658674,False
+savitzky_golay,"{""frame_length"": 15, ""polynomial_order"": 4}",0.038935411292375086,False
+savitzky_golay,"{""frame_length"": 21, ""polynomial_order"": 2}",0.03405191643508819,False
+savitzky_golay,"{""frame_length"": 21, ""polynomial_order"": 3}",0.03463679574862891,False
+savitzky_golay,"{""frame_length"": 21, ""polynomial_order"": 4}",0.03412167633476532,False
+savitzky_golay,"{""frame_length"": 31, ""polynomial_order"": 2}",0.0408923086588754,False
+savitzky_golay,"{""frame_length"": 31, ""polynomial_order"": 3}",0.0416897767682657,False
+savitzky_golay,"{""frame_length"": 31, ""polynomial_order"": 4}",0.03469296385040671,False
