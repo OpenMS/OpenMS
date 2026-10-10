@@ -625,8 +625,8 @@ namespace OpenMS
 
       try
       {
+        sequences.push_back(AASequence::fromString(variant_seq)); // may throw: push the description after it
         descriptions.push_back(desc);
-        sequences.push_back(AASequence::fromString(variant_seq));
       }
       catch (const Exception::BaseException&)
       {
@@ -659,8 +659,8 @@ namespace OpenMS
 
         try
         {
+          sequences.push_back(AASequence::fromString(variant_seq)); // may throw: push the description after it
           descriptions.push_back(desc);
-          sequences.push_back(AASequence::fromString(variant_seq));
         }
         catch (const Exception::BaseException&)
         {
@@ -806,8 +806,8 @@ namespace OpenMS
       {
         try
         {
+          sequences.push_back(AASequence::fromString(ref_peptide)); // may throw: push the description after it
           descriptions.push_back("");
-          sequences.push_back(AASequence::fromString(ref_peptide));
         }
         catch (const Exception::BaseException&)
         {
