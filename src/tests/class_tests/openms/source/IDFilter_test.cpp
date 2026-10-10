@@ -227,6 +227,20 @@ START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
 END_SECTION
 
 
+START_SECTION((class DigestionFilter::operator()(const PeptideEvidence& evidence)))
+{
+  // PeptideEvidence start and end are 0-based and both inclusive. In this BSA N-terminus,
+  // WVTFISLLLLFSSAYSR spans residues 2..18 (K1 before, G19 after): a fully tryptic product.
+  std::vector<FASTAFile::FASTAEntry> proteins(1, FASTAFile::FASTAEntry("P02769", "", "MKWVTFISLLLLFSSAYSRGVFRR"));
+  ProteaseDigestion digestion;
+  digestion.setEnzyme("Trypsin");
+  IDFilter::DigestionFilter filter(proteins, digestion, true, false);
+  TEST_EQUAL(filter(PeptideEvidence("P02769", 2, 18, 'K', 'G')), true)
+  // 2..19 (WVTFISLLLLFSSAYSRG) ends after G19, not after K/R: no tryptic product
+  TEST_EQUAL(filter(PeptideEvidence("P02769", 2, 19, 'K', 'V')), false)
+}
+END_SECTION
+
 START_SECTION((static void removeUnreferencedProteins(vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)))
 {
   vector<ProteinIdentification> proteins;

@@ -456,7 +456,7 @@ namespace OpenMS
 
         if (accession_resolver_.exists(evidence))
         {
-          return digestion_.isValidProduct(AASequence::fromString(accession_resolver_.getValue(evidence).sequence), evidence.getStart(), evidence.getEnd() - evidence.getStart(),
+          return digestion_.isValidProduct(AASequence::fromString(accession_resolver_.getValue(evidence).sequence), evidence.getStart(), evidence.getEnd() - evidence.getStart() + 1, // end is inclusive
                                            ignore_missed_cleavages_, methionine_cleavage_);
         }
         else
