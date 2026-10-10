@@ -1172,7 +1172,11 @@ namespace OpenMS::Internal
         }
         spectrum_data.char_rest_ = "";
         PeakType peak;
-        assert(data.size() == 2 * spectrum_data.peak_count_);
+        if (data.size() != 2 * spectrum_data.peak_count_)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_,
+              "peaksCount does not match the number of decoded values");
+        }
         //push_back the peaks into the container
         for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
         {
@@ -1199,7 +1203,11 @@ namespace OpenMS::Internal
         }
         spectrum_data.char_rest_ = "";
         PeakType peak;
-        assert(data.size() == 2 * spectrum_data.peak_count_);
+        if (data.size() != 2 * spectrum_data.peak_count_)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_,
+              "peaksCount does not match the number of decoded values");
+        }
         //push_back the peaks into the container
         for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
         {

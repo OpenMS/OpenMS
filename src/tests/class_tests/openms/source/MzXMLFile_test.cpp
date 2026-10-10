@@ -17,6 +17,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <cstdio>
+#include <fstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -346,6 +349,40 @@ START_SECTION((template<typename MapType> void load(const std::string& filename,
   file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),none);
   file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1_compressed.mzXML"),zlib);
   TEST_EQUAL(zlib==none,true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] load rejects a peaksCount that does not match the decoded data))
+{
+  // CPP-173: peak_count_ (straight from the attacker-controlled peaksCount
+  // attribute) is only ever checked against the decoded data size with
+  // assert(), which is compiled out in a default Release build; the
+  // following loop then indexes the decoded array for 2*peak_count_
+  // elements regardless of how many values were actually decoded.
+  std::ifstream in(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_2_minimal.mzXML"));
+  std::string content(
+    (std::istreambuf_iterator<char>(in)),
+    std::istreambuf_iterator<char>()
+  );
+  in.close();
+
+  std::string::size_type pos = content.find("peaksCount=\"1\"");
+  TEST_NOT_EQUAL(pos, std::string::npos)
+  content.replace(pos, std::string("peaksCount=\"1\"").size(), "peaksCount=\"100\"");
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream out(tmp_filename);
+  out << content;
+  out.close();
+
+  MzXMLFile file;
+  PeakMap exp;
+  TEST_EXCEPTION(Exception::ParseError, file.load(tmp_filename, exp))
+
+  // deliberately not valid mzXML (mismatched peaksCount); keep it out of the
+  // VALIDATE_TMP_FILES sweep at the end of this test file
+  std::remove(tmp_filename.c_str());
 }
 END_SECTION
 
