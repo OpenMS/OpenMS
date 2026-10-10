@@ -228,6 +228,10 @@ OpenMS Library:
     it after LogConfigHandler 'remove' or 'clear' deleted it (use-after-free, could crash). Changes
     of a thread-local stream itself (insert(), remove(), LogSinkGuard) still apply to its thread
     only, on top of the global destinations (#10478).
+  - API: LogStreamNotifier and LogStream::insertNotification() were removed; nothing in OpenMS or
+    pyOpenMS used them. setPrefix() on a thread-local stream (getThreadLocalLog*()) only changes the
+    destinations inserted into that stream; set the prefix of a global destination on the global
+    stream, as LogConfigHandler does (#10478).
   - setConsoleDebugLogging() attaches std::cout to, or detaches it from, the global debug stream,
     which all threads follow. TOPPBase (-debug) and TOPPAS (-debug) use it (#10478).
   - FIX: Below debug level 1, FeatureFinderAlgorithmMetaboIdent and FeatureFinderIdentificationAlgorithm

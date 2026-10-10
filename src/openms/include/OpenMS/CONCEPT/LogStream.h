@@ -53,7 +53,6 @@ namespace OpenMS
   {
     // forward declarations
     class LogStream;
-    class LogStreamNotifier;
 
     /**
       @brief Stream buffer used by LogStream.
@@ -170,19 +169,10 @@ public:
       {
         std::ostream * stream;
         std::string         prefix;
-        LogStreamNotifier * target;
-        Size                id; ///< Identifies this insertion of @p stream; inserting it again (after a removal) gives a new id
 
         StreamStruct() :
-          stream(nullptr),
-          target(nullptr),
-          id(0)
+          stream(nullptr)
         {}
-
-        /// Delete the notification target.
-        ~StreamStruct()
-        {}
-
       };
 
       /**
@@ -216,13 +206,8 @@ protected:
       /// Is @p stream one of parent_'s destinations? The caller holds the sink mutex.
       bool parentHasStream_(const std::ostream& stream) const;
 
-      /**
-        Returns the entry of @p stream whose prefix or notification target may be changed, or nullptr if
-        @p stream is not a destination. For a following buffer, this is an own entry or an override of
-        parent_'s entry (created if needed). The caller holds the sink mutex and calls destinationsChanged_()
-        after the change.
-      */
-      StreamStruct* configurableEntry_(const std::ostream& stream);
+      /// Entries whose prefix may be changed: stream_list_, or own_streams_ for a following buffer (the prefix of parent_'s destinations is set on parent_)
+      std::list<StreamStruct>& prefixableStreams_();
 
       /// Publishes a change of the destinations to following buffers (or rebuilds stream_list_). The caller holds the sink mutex.
       void destinationsChanged_();
@@ -239,9 +224,6 @@ protected:
       Size parent_version_ = 0;
       /// Destinations inserted into this following buffer; they replace parent_'s entry for the same stream
       std::list<StreamStruct> own_streams_;
-      /// Entries of parent_'s destinations whose prefix or notification target was changed on this following buffer.
-      /// Dropped when parent_ removes the destination (identified by StreamStruct::id), which may then be destroyed.
-      std::list<StreamStruct> overridden_streams_;
       /// Destinations of parent_ removed from this following buffer
       std::vector<const std::ostream*> hidden_streams_;
       Colorizer* colorizer_ = nullptr; ///< optional Colorizer to color the output to stdout/stdcerr (if attached)
@@ -288,64 +270,6 @@ protected:
       int syncLF_();
       //@}
     };
-
-    /**
-      @brief Sink-side hook that is notified whenever a @ref LogStream flushes a complete message.
-
-      Subclass this and override @ref logNotify to react to log events programmatically.
-      Register the notifier at a @ref LogStream via @ref registerAt — the log stream then
-      treats the notifier's internal @c stream_ as one of its output sinks, writes each
-      flushed line into it, and invokes the override at the end of every message. Use
-      @ref stream_ inside @ref logNotify to read the formatted message body.
-
-      Lifecycle: @ref unregister is called automatically by the destructor (RAII); calling
-      @ref registerAt while already registered first detaches from the previous stream.
-
-      @ingroup Concept
-    */
-    class OPENMS_DLLAPI LogStreamNotifier
-    {
-public:
-
-      /// Construct a detached notifier; @c registered_at_ starts at @c nullptr.
-      LogStreamNotifier();
-
-      /// Destructor; calls @ref unregister so the @ref LogStream stops dispatching to this notifier.
-      virtual ~LogStreamNotifier();
-
-      /**
-        @brief Hook called by the registered @ref LogStream after each complete message has been flushed.
-
-        The default implementation is a no-op. Override in a subclass to react to log events
-        (read @ref stream_ to get the formatted message body).
-      */
-      virtual void logNotify();
-
-      /**
-        @brief Attach this notifier to @p log_stream so its @ref logNotify is invoked after every flushed message.
-
-        If this notifier is already registered at another stream, the prior registration is
-        released first (via @ref unregister). After the call, the @ref stream_ buffer is
-        added to @p log_stream's output list and tagged as the notification target.
-
-        @param[in,out] log_stream LogStream that will dispatch notifications to this notifier.
-      */
-      void registerAt(LogStream & log_stream);
-
-      /**
-        @brief Detach from the currently registered @ref LogStream, if any.
-
-        Removes @ref stream_ from the log stream's output list and resets @c registered_at_
-        to @c nullptr. No-op when the notifier is not currently registered.
-      */
-      void unregister();
-
-protected:
-      std::stringstream stream_;   ///< Buffer that receives the formatted log line from the registered @ref LogStream; read inside @ref logNotify.
-
-      LogStream * registered_at_;  ///< The @ref LogStream this notifier is currently attached to, or @c nullptr if detached. Managed by @ref registerAt / @ref unregister.
-    };
-
 
     /**
       @brief Log Stream Class.
@@ -439,9 +363,9 @@ public:
         A thread-local LogStream (see getThreadLocalLog*()) writes to the destinations of the
         corresponding global LogStream, including later changes to them. Its own changes apply on
         top of these, to the calling thread only: a stream inserted into it belongs to it and is not
-        affected by later changes to the global LogStream; a prefix or notification set on it for a
-        global destination applies until the global LogStream removes that destination; a global
-        destination removed from it stays hidden until it is inserted again.
+        affected by later changes to the global LogStream; a global destination removed from it stays
+        hidden until it is inserted again. setPrefix() on it applies to its own destinations only;
+        the prefix of a global destination is set on the global LogStream.
       */
       //@{
 
@@ -480,10 +404,6 @@ public:
         respective streams before they are removed.
       */
       void removeAllStreams();
-
-      /// Add a notification target
-      void insertNotification(std::ostream & s,
-                              LogStreamNotifier & target);
 
       /**
         Set prefix for output to this stream.

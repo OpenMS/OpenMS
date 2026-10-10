@@ -52,9 +52,6 @@ namespace
     return *instance;
   }
 
-  /// Id of the last insertion of a destination (see LogStreamBuf::StreamStruct::id). Guarded by logSinkMutex_().
-  OpenMS::Size last_stream_id_ = 0;
-
   /// Thread-safe local-time conversion. std::localtime returns a pointer to a
   /// single process-wide static std::tm, which races across threads; the
   /// reentrant localtime_r/localtime_s write into a caller-provided struct.
@@ -134,24 +131,16 @@ namespace OpenMS
     {
       // The sink mutex, held by the caller, also guards parent_->stream_list_ against concurrent changes.
       parent_version_ = parent_->version_.load(std::memory_order_relaxed);
-      // An override ends with the parent's destination, which may be destroyed after its removal. Compare
-      // the insertion id, not only the address: the destination may have been removed and inserted again.
-      overridden_streams_.remove_if([this](const StreamStruct& o)
-      {
-        return std::none_of(parent_->stream_list_.begin(), parent_->stream_list_.end(),
-                            [&o](const StreamStruct& p) { return p.stream == o.stream && p.id == o.id; });
-      });
       stream_list_.clear();
       for (const StreamStruct& s : parent_->stream_list_)
       {
-        auto is_stream = [&s](const StreamStruct& o) { return o.stream == s.stream; };
         const bool hidden = std::find(hidden_streams_.begin(), hidden_streams_.end(), s.stream) != hidden_streams_.end();
-        if (hidden || std::any_of(own_streams_.begin(), own_streams_.end(), is_stream))
+        const bool own = std::any_of(own_streams_.begin(), own_streams_.end(),
+                                     [&s](const StreamStruct& o) { return o.stream == s.stream; });
+        if (!hidden && !own)
         {
-          continue;
+          stream_list_.push_back(s);
         }
-        auto overridden = std::find_if(overridden_streams_.begin(), overridden_streams_.end(), is_stream);
-        stream_list_.push_back(overridden == overridden_streams_.end() ? s : *overridden);
       }
       stream_list_.insert(stream_list_.end(), own_streams_.begin(), own_streams_.end());
       version_.fetch_add(1, std::memory_order_release);
@@ -163,35 +152,9 @@ namespace OpenMS
                          [&stream](const StreamStruct& s) { return s.stream == &stream; });
     }
 
-    LogStreamBuf::StreamStruct* LogStreamBuf::configurableEntry_(const std::ostream& stream)
+    std::list<LogStreamBuf::StreamStruct>& LogStreamBuf::prefixableStreams_()
     {
-      auto is_stream = [&stream](const StreamStruct& s) { return s.stream == &stream; };
-      if (parent_ == nullptr)
-      {
-        auto it = std::find_if(stream_list_.begin(), stream_list_.end(), is_stream);
-        return it == stream_list_.end() ? nullptr : &*it;
-      }
-      auto own = std::find_if(own_streams_.begin(), own_streams_.end(), is_stream);
-      if (own != own_streams_.end())
-      {
-        return &*own;
-      }
-      if (std::find(hidden_streams_.begin(), hidden_streams_.end(), &stream) != hidden_streams_.end())
-      {
-        return nullptr;
-      }
-      auto inherited = std::find_if(parent_->stream_list_.begin(), parent_->stream_list_.end(), is_stream);
-      if (inherited == parent_->stream_list_.end())
-      {
-        return nullptr;
-      }
-      auto overridden = std::find_if(overridden_streams_.begin(), overridden_streams_.end(), is_stream);
-      if (overridden != overridden_streams_.end())
-      {
-        return &*overridden;
-      }
-      overridden_streams_.push_back(*inherited);
-      return &overridden_streams_.back();
+      return parent_ == nullptr ? stream_list_ : own_streams_;
     }
 
     void LogStreamBuf::destinationsChanged_()
@@ -357,44 +320,29 @@ namespace OpenMS
       // LogStreamBuf instances legitimately share the same destination ostream
       // (e.g. std::cerr/std::cout) AND the same global Colorizer
       // (yellow/red/magenta), so both the stream writes and the Colorizer's
-      // internal state mutation must be serialized (issue #9515). Notifier
-      // callbacks are collected and invoked AFTER releasing the lock so that a
-      // notifier which itself logs cannot deadlock on this non-recursive mutex.
-      std::vector<LogStreamNotifier*> to_notify;
+      // internal state mutation must be serialized (issue #9515).
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+
+      // Pick up changes of the parent's destinations while holding the lock, so that a stream removed
+      // there (and possibly destroyed afterwards, e.g. by StreamHandler) is never written to.
+      updateFromParentLocked_();
+
+      // if there are any streams in our list, we
+      // copy the line into that streams, too and flush them
+      for (StreamStruct& s : stream_list_)
       {
-        std::lock_guard<std::mutex> lock(logSinkMutex_());
-
-        // Pick up changes of the parent's destinations while holding the lock, so that a stream removed
-        // there (and possibly destroyed afterwards, e.g. by StreamHandler) is never written to.
-        updateFromParentLocked_();
-
-        // if there are any streams in our list, we
-        // copy the line into that streams, too and flush them
-        for (StreamStruct& s : stream_list_)
+        if (colorizer_)
         {
-          if (colorizer_)
-          {
-            *(s.stream) << (*colorizer_)(); // enable color
-          }
-
-          *(s.stream) << expandPrefix_(s.prefix, time(nullptr)) << outstring;
-
-          if (colorizer_)
-          {
-            *(s.stream) << (*colorizer_).undo(); // disable color
-          }
-          *(s.stream) << std::endl;
-
-          if (s.target != nullptr)
-          {
-            to_notify.push_back(s.target);
-          }
+          *(s.stream) << (*colorizer_)(); // enable color
         }
-      }
 
-      for (LogStreamNotifier* target : to_notify)
-      {
-        target->logNotify();
+        *(s.stream) << expandPrefix_(s.prefix, time(nullptr)) << outstring;
+
+        if (colorizer_)
+        {
+          *(s.stream) << (*colorizer_).undo(); // disable color
+        }
+        *(s.stream) << std::endl;
       }
     }
 
@@ -556,38 +504,6 @@ namespace OpenMS
       return result;
     }
 
-    LogStreamNotifier::LogStreamNotifier() :
-      registered_at_(nullptr)
-    {
-    }
-
-    LogStreamNotifier::~LogStreamNotifier()
-    {
-      unregister();
-    }
-
-    void LogStreamNotifier::logNotify()
-    {
-    }
-
-    void LogStreamNotifier::unregister()
-    {
-
-      if (registered_at_ == nullptr)
-      {
-        return;
-      }
-      registered_at_->remove(stream_);
-      registered_at_ = nullptr;
-    }
-
-    void LogStreamNotifier::registerAt(LogStream & log)
-    {
-      unregister();
-      registered_at_ = &log;
-      log.insertNotification(stream_, *this);
-    }
-
     // keep the given buffer
     LogStream::LogStream(LogStreamBuf * buf, bool delete_buf, std::ostream * stream) :
       std::ios(buf),
@@ -638,7 +554,6 @@ namespace OpenMS
         // we didn't find it - create a new entry in the list
         LogStreamBuf::StreamStruct s_struct;
         s_struct.stream = &stream;
-        s_struct.id = ++last_stream_id_;
         (buf->parent_ == nullptr ? buf->stream_list_ : buf->own_streams_).push_back(s_struct);
       }
       buf->destinationsChanged_();
@@ -667,7 +582,6 @@ namespace OpenMS
       else
       {
         buf->own_streams_.remove_if(is_stream);
-        buf->overridden_streams_.remove_if(is_stream);
         // hide a parent destination from this buffer
         if (buf->parentHasStream_(stream))
         {
@@ -706,7 +620,6 @@ namespace OpenMS
       {
         // hide the parent's current destinations from this buffer
         buf->own_streams_.clear();
-        buf->overridden_streams_.clear();
         buf->hidden_streams_.clear();
         for (const LogStreamBuf::StreamStruct& s : buf->parent_->stream_list_)
         {
@@ -714,23 +627,6 @@ namespace OpenMS
         }
       }
       buf->destinationsChanged_();
-    }
-
-    void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
-    {
-      if (!bound_())
-      {
-        return;
-      }
-      insert(s);
-
-      LogStreamBuf* buf = rdbuf();
-      std::lock_guard<std::mutex> lock(logSinkMutex_());
-      if (LogStreamBuf::StreamStruct* entry = buf->configurableEntry_(s))
-      {
-        entry->target = &target;
-        buf->destinationsChanged_();
-      }
     }
 
     LogStream::StreamIterator LogStream::findStream_(const std::ostream & s)
@@ -764,7 +660,10 @@ namespace OpenMS
       }
       LogStreamBuf* buf = rdbuf();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
-      if (LogStreamBuf::StreamStruct* entry = buf->configurableEntry_(s))
+      std::list<LogStreamBuf::StreamStruct>& entries = buf->prefixableStreams_();
+      auto entry = std::find_if(entries.begin(), entries.end(),
+                                [&s](const LogStreamBuf::StreamStruct& e) { return e.stream == &s; });
+      if (entry != entries.end())
       {
         entry->prefix = prefix;
         buf->destinationsChanged_();
@@ -779,18 +678,9 @@ namespace OpenMS
       }
       LogStreamBuf* buf = rdbuf();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
-      buf->updateFromParentLocked_();
-      std::vector<const std::ostream*> streams;
-      for (const LogStreamBuf::StreamStruct& s : buf->stream_list_)
+      for (LogStreamBuf::StreamStruct& entry : buf->prefixableStreams_())
       {
-        streams.push_back(s.stream);
-      }
-      for (const std::ostream* s : streams)
-      {
-        if (LogStreamBuf::StreamStruct* entry = buf->configurableEntry_(*s))
-        {
-          entry->prefix = prefix;
-        }
+        entry.prefix = prefix;
       }
       buf->destinationsChanged_();
     }

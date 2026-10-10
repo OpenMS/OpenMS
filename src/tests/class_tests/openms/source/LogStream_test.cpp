@@ -39,18 +39,6 @@ using namespace OpenMS;
 using namespace Logger;
 using namespace std;
 
-class TestTarget
-  :  public LogStreamNotifier
-{
-  public:
-  void logNotify() override
-  {
-    notified = true;
-    return;
-  }
-  bool notified;
-};
-
 START_TEST(LogStream, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -414,37 +402,6 @@ START_SECTION(([EXTRA] LogSinkGuard - RAII removal and re-insertion))
     TEST_EQUAL(never_attached.str(), "")
     TEST_EQUAL(attached.str(), "while_guarded\nafter_guard\n") // unrelated sink unaffected
   }
-}
-END_SECTION
-
-START_SECTION((void insertNotification(std::ostream &s, LogStreamNotifier &target)))
-{
-  LogStream l1(new LogStreamBuf());
-  TestTarget target;
-  ofstream os;
-  target.registerAt(l1);
-  target.notified = false;
-  TEST_EQUAL(target.notified, false)
-  l1 << "test" << std::endl;
-  TEST_EQUAL(target.notified, true)
-}
-END_SECTION
-
-START_SECTION(([EXTRA]removeNotification))
-{
-  LogStream l1(new LogStreamBuf());
-  TestTarget target;
-  ofstream os;
-  target.registerAt(l1);
-  target.unregister();
-  target.notified = false;
-  TEST_EQUAL(target.notified, false)
-  l1 << "test" << endl;
-  TEST_EQUAL(target.notified, false)
-  // make sure we can remove it twice
-  target.unregister();
-  l1 << "test" << endl;
-  TEST_EQUAL(target.notified, false)
 }
 END_SECTION
 
@@ -836,39 +793,27 @@ START_SECTION(([EXTRA] changes of a thread-local stream apply to its thread only
 }
 END_SECTION
 
-START_SECTION(([EXTRA] a prefix set on a thread-local stream ends with the global destination))
+START_SECTION(([EXTRA] setPrefix on a thread-local stream applies to its own destinations only))
 {
-  ostringstream dest;
-  getGlobalLogDebug().insert(dest);
-  getThreadLocalLogDebug().setPrefix(dest, "local ");
-  OPENMS_LOG_DEBUG_NOFILE << "with prefix" << endl;
+  ostringstream global_dest, local_dest;
+  getGlobalLogDebug().insert(global_dest);
+  getThreadLocalLogDebug().insert(local_dest);
+  getThreadLocalLogDebug().setPrefix(global_dest, "ignored "); // a global destination's prefix is set on the global stream
+  getThreadLocalLogDebug().setPrefix(local_dest, "local ");
+  OPENMS_LOG_DEBUG_NOFILE << "first" << endl;
+  getThreadLocalLogDebug().setPrefix("all local ");
+  getGlobalLogDebug().setPrefix(global_dest, "global ");
+  OPENMS_LOG_DEBUG_NOFILE << "second" << endl;
   std::thread([] { OPENMS_LOG_DEBUG_NOFILE << "other thread" << endl; }).join();
-  // the global stream may destroy a destination after removing it, so this thread must not keep it
-  getGlobalLogDebug().remove(dest);
-  OPENMS_LOG_DEBUG_NOFILE << "after global removal" << endl;
-  getGlobalLogDebug().insert(dest);
-  OPENMS_LOG_DEBUG_NOFILE << "inserted again" << endl;
-  getGlobalLogDebug().remove(dest);
+  getThreadLocalLogDebug().remove(local_dest);
+  getGlobalLogDebug().remove(global_dest);
 
-  TEST_TRUE(dest.str().find("local with prefix") != std::string::npos)
-  TEST_TRUE(dest.str().find("other thread") != std::string::npos)
-  TEST_TRUE(dest.str().find("local other thread") == std::string::npos) // the prefix applies to this thread only
-  TEST_TRUE(dest.str().find("after global removal") == std::string::npos)
-  TEST_TRUE(dest.str().find("inserted again") != std::string::npos)
-  TEST_TRUE(dest.str().find("local inserted again") == std::string::npos) // the override ended with the removal
-
-  // the same, but without a message of this thread between the removal and the new insertion
-  ostringstream dest2;
-  getGlobalLogDebug().insert(dest2);
-  getThreadLocalLogDebug().setPrefix(dest2, "local ");
-  OPENMS_LOG_DEBUG_NOFILE << "second with prefix" << endl;
-  getGlobalLogDebug().remove(dest2);
-  getGlobalLogDebug().insert(dest2);
-  OPENMS_LOG_DEBUG_NOFILE << "second inserted again" << endl;
-  getGlobalLogDebug().remove(dest2);
-  TEST_TRUE(dest2.str().find("local second with prefix") != std::string::npos)
-  TEST_TRUE(dest2.str().find("second inserted again") != std::string::npos)
-  TEST_TRUE(dest2.str().find("local second inserted again") == std::string::npos)
+  TEST_TRUE(local_dest.str().find("local first") != std::string::npos)
+  TEST_TRUE(local_dest.str().find("all local second") != std::string::npos)
+  TEST_TRUE(global_dest.str().find("ignored") == std::string::npos)
+  TEST_TRUE(global_dest.str().find("all local") == std::string::npos)
+  TEST_TRUE(global_dest.str().find("global second") != std::string::npos)
+  TEST_TRUE(global_dest.str().find("global other thread") != std::string::npos)
 }
 END_SECTION
 
