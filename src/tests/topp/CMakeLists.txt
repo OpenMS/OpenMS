@@ -1013,6 +1013,10 @@ set_tests_properties("TOPP_FileInfo_19_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_20" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_20_input.fasta -out ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt)
 add_test("TOPP_FileInfo_20_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_20_output.txt )
 set_tests_properties("TOPP_FileInfo_20_out1" PROPERTIES DEPENDS "TOPP_FileInfo_20")
+# entry 2 shares the libstdc++ std::hash of its header with entry 1; entry 3 duplicates the header of entry 1
+add_test("TOPP_FileInfo_23" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_23_input.fasta -out ${TESTS_TEMP_DIR}/FileInfo_23_output.tmp.txt)
+add_test("TOPP_FileInfo_23_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_23_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_23_output.txt )
+set_tests_properties("TOPP_FileInfo_23_out1" PROPERTIES DEPENDS "TOPP_FileInfo_23")
 
 
 
