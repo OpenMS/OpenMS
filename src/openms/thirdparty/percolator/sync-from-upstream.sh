@@ -21,6 +21,15 @@ if [ "$cloned_sha" != "$UPSTREAM_REF" ]; then
   git -C "$tmpdir" checkout FETCH_HEAD 2>&1 | tail -1
 fi
 
+# Copy and patch in a staging tree; the vendored files are only replaced once
+# every patch has applied, so a failing patch leaves them untouched.
+rel=$(git -C "$here" rev-parse --show-prefix)
+stagedir=$(mktemp -d)
+trap 'rm -rf "$tmpdir" "$stagedir"' EXIT
+stage="$stagedir/$rel"
+mkdir -p "$stage"
+git init -q "$stagedir"
+
 echo ">>> Copying whitelisted files..."
 while IFS= read -r f; do
   [ -z "$f" ] && continue
@@ -29,7 +38,7 @@ while IFS= read -r f; do
     echo "  WARN: $f not found in upstream; skipping"
     continue
   fi
-  cp "$tmpdir/src/$f" "$here/$f"
+  cp "$tmpdir/src/$f" "$stage/$f"
 done < whitelist.txt
 
 echo ">>> Applying local patches..."
@@ -40,8 +49,6 @@ echo ">>> Applying local patches..."
 # Patch format varies: 01-namespace-wrap.patch uses `diff -urN` with full
 # paths (apply with -p0); 02-06 use `git format-patch` style with a/b/
 # prefixes (apply with -p1). Auto-detect per-patch by inspecting first line.
-repo_root=$(git -C "$here" rev-parse --show-toplevel)
-failed=""
 for p in "$here/patches/"*.patch; do
   [ -e "$p" ] || continue
   echo "  applying $p"
@@ -50,25 +57,18 @@ for p in "$here/patches/"*.patch; do
   else
     p_level=0
   fi
-  # --reject leaves partial failures visible in *.rej files; continue on fail.
-  git -C "$repo_root" apply --reject --whitespace=nowarn "-p$p_level" "$p" 2>&1 || failed+=" $(basename "$p")"
+  if ! git -C "$stagedir" apply --whitespace=nowarn "-p$p_level" "$p" 2>&1; then
+    echo "ERROR: patch $(basename "$p") did not apply; vendored files unchanged, upstream commit not recorded" >&2
+    exit 1
+  fi
 done
 
 echo ">>> Normalizing line endings (CRLF -> LF) post-patch..."
-find "$here" -maxdepth 1 -type f \( -name "*.h" -o -name "*.cpp" \) \
+find "$stage" -maxdepth 1 -type f \( -name "*.h" -o -name "*.cpp" \) \
   -exec sed -i 's/\r$//' {} +
 
-# Clean *.rej files; report any that remain.
-rej_count=$(find "$here" -maxdepth 1 -name "*.rej" 2>/dev/null | wc -l)
-if [ "$rej_count" -gt 0 ]; then
-  echo "  WARN: $rej_count files had hunks that failed — see *.rej files"
-  find "$here" -maxdepth 1 -name "*.rej" -printf "    %f\n"
-fi
-
-if [ -n "$failed" ]; then
-  echo "ERROR: patches did not apply:$failed; upstream commit not recorded" >&2
-  exit 1
-fi
+echo ">>> Installing patched files..."
+cp "$stage"/* "$here/"
 
 echo ">>> Recording upstream commit..."
 commit_sha=$(git -C "$tmpdir" rev-parse HEAD)
