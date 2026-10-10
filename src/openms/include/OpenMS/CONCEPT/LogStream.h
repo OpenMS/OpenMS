@@ -216,8 +216,9 @@ protected:
 
       /**
         Returns the entry of @p stream whose prefix or notification target may be changed, or nullptr if
-        @p stream is not a destination. For a following buffer, this is an own entry, copied from parent_'s
-        if needed. The caller holds the sink mutex and calls destinationsChanged_() after the change.
+        @p stream is not a destination. For a following buffer, this is an own entry or an override of
+        parent_'s entry (created if needed). The caller holds the sink mutex and calls destinationsChanged_()
+        after the change.
       */
       StreamStruct* configurableEntry_(const std::ostream& stream);
 
@@ -234,8 +235,11 @@ protected:
       std::atomic<Size> version_{0};
       /// version_ of parent_ that stream_list_ reflects
       Size parent_version_ = 0;
-      /// Destinations inserted into or configured on this following buffer; they replace parent_'s entry for the same stream
+      /// Destinations inserted into this following buffer; they replace parent_'s entry for the same stream
       std::list<StreamStruct> own_streams_;
+      /// Entries of parent_'s destinations whose prefix or notification target was changed on this following buffer.
+      /// Dropped when parent_ removes the destination, which may then be destroyed.
+      std::list<StreamStruct> overridden_streams_;
       /// Destinations of parent_ removed from this following buffer
       std::vector<const std::ostream*> hidden_streams_;
       Colorizer* colorizer_ = nullptr; ///< optional Colorizer to color the output to stdout/stdcerr (if attached)
@@ -432,9 +436,10 @@ public:
 
         A thread-local LogStream (see getThreadLocalLog*()) writes to the destinations of the
         corresponding global LogStream, including later changes to them. Its own changes apply on
-        top of these, to the calling thread only: a stream inserted into it, or whose prefix or
-        notification is set on it, belongs to it and is not affected by later changes to the global
-        LogStream; a global destination removed from it stays hidden until it is inserted again.
+        top of these, to the calling thread only: a stream inserted into it belongs to it and is not
+        affected by later changes to the global LogStream; a prefix or notification set on it for a
+        global destination applies until the global LogStream removes that destination; a global
+        destination removed from it stays hidden until it is inserted again.
       */
       //@{
 

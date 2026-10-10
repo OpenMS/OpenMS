@@ -131,16 +131,19 @@ namespace OpenMS
     {
       // The sink mutex, held by the caller, also guards parent_->stream_list_ against concurrent changes.
       parent_version_ = parent_->version_.load(std::memory_order_relaxed);
+      // An override ends with the parent's destination, which may be destroyed after its removal.
+      overridden_streams_.remove_if([this](const StreamStruct& o) { return !parentHasStream_(*o.stream); });
       stream_list_.clear();
       for (const StreamStruct& s : parent_->stream_list_)
       {
+        auto is_stream = [&s](const StreamStruct& o) { return o.stream == s.stream; };
         const bool hidden = std::find(hidden_streams_.begin(), hidden_streams_.end(), s.stream) != hidden_streams_.end();
-        const bool own = std::any_of(own_streams_.begin(), own_streams_.end(),
-                                     [&s](const StreamStruct& o) { return o.stream == s.stream; });
-        if (!hidden && !own)
+        if (hidden || std::any_of(own_streams_.begin(), own_streams_.end(), is_stream))
         {
-          stream_list_.push_back(s);
+          continue;
         }
+        auto overridden = std::find_if(overridden_streams_.begin(), overridden_streams_.end(), is_stream);
+        stream_list_.push_back(overridden == overridden_streams_.end() ? s : *overridden);
       }
       stream_list_.insert(stream_list_.end(), own_streams_.begin(), own_streams_.end());
       version_.fetch_add(1, std::memory_order_release);
@@ -174,8 +177,13 @@ namespace OpenMS
       {
         return nullptr;
       }
-      own_streams_.push_back(*inherited);
-      return &own_streams_.back();
+      auto overridden = std::find_if(overridden_streams_.begin(), overridden_streams_.end(), is_stream);
+      if (overridden != overridden_streams_.end())
+      {
+        return &*overridden;
+      }
+      overridden_streams_.push_back(*inherited);
+      return &overridden_streams_.back();
     }
 
     void LogStreamBuf::destinationsChanged_()
@@ -650,6 +658,7 @@ namespace OpenMS
       else
       {
         buf->own_streams_.remove_if(is_stream);
+        buf->overridden_streams_.remove_if(is_stream);
         // hide a parent destination from this buffer
         if (buf->parentHasStream_(stream))
         {
@@ -688,6 +697,7 @@ namespace OpenMS
       {
         // hide the parent's current destinations from this buffer
         buf->own_streams_.clear();
+        buf->overridden_streams_.clear();
         buf->hidden_streams_.clear();
         for (const LogStreamBuf::StreamStruct& s : buf->parent_->stream_list_)
         {

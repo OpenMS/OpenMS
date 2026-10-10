@@ -836,6 +836,29 @@ START_SECTION(([EXTRA] changes of a thread-local stream apply to its thread only
 }
 END_SECTION
 
+START_SECTION(([EXTRA] a prefix set on a thread-local stream ends with the global destination))
+{
+  ostringstream dest;
+  getGlobalLogDebug().insert(dest);
+  getThreadLocalLogDebug().setPrefix(dest, "local ");
+  OPENMS_LOG_DEBUG_NOFILE << "with prefix" << endl;
+  std::thread([] { OPENMS_LOG_DEBUG_NOFILE << "other thread" << endl; }).join();
+  // the global stream may destroy a destination after removing it, so this thread must not keep it
+  getGlobalLogDebug().remove(dest);
+  OPENMS_LOG_DEBUG_NOFILE << "after global removal" << endl;
+  getGlobalLogDebug().insert(dest);
+  OPENMS_LOG_DEBUG_NOFILE << "inserted again" << endl;
+  getGlobalLogDebug().remove(dest);
+
+  TEST_TRUE(dest.str().find("local with prefix") != std::string::npos)
+  TEST_TRUE(dest.str().find("other thread") != std::string::npos)
+  TEST_TRUE(dest.str().find("local other thread") == std::string::npos) // the prefix applies to this thread only
+  TEST_TRUE(dest.str().find("after global removal") == std::string::npos)
+  TEST_TRUE(dest.str().find("inserted again") != std::string::npos)
+  TEST_TRUE(dest.str().find("local inserted again") == std::string::npos) // the override ended with the removal
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Test caching of empty lines))
 {
   ostringstream stream_by_logger;
