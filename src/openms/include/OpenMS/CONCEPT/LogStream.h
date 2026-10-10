@@ -171,10 +171,12 @@ public:
         std::ostream * stream;
         std::string         prefix;
         LogStreamNotifier * target;
+        Size                id; ///< Identifies this insertion of @p stream; inserting it again (after a removal) gives a new id
 
         StreamStruct() :
           stream(nullptr),
-          target(nullptr)
+          target(nullptr),
+          id(0)
         {}
 
         /// Delete the notification target.
@@ -238,7 +240,7 @@ protected:
       /// Destinations inserted into this following buffer; they replace parent_'s entry for the same stream
       std::list<StreamStruct> own_streams_;
       /// Entries of parent_'s destinations whose prefix or notification target was changed on this following buffer.
-      /// Dropped when parent_ removes the destination, which may then be destroyed.
+      /// Dropped when parent_ removes the destination (identified by StreamStruct::id), which may then be destroyed.
       std::list<StreamStruct> overridden_streams_;
       /// Destinations of parent_ removed from this following buffer
       std::vector<const std::ostream*> hidden_streams_;

@@ -856,6 +856,19 @@ START_SECTION(([EXTRA] a prefix set on a thread-local stream ends with the globa
   TEST_TRUE(dest.str().find("after global removal") == std::string::npos)
   TEST_TRUE(dest.str().find("inserted again") != std::string::npos)
   TEST_TRUE(dest.str().find("local inserted again") == std::string::npos) // the override ended with the removal
+
+  // the same, but without a message of this thread between the removal and the new insertion
+  ostringstream dest2;
+  getGlobalLogDebug().insert(dest2);
+  getThreadLocalLogDebug().setPrefix(dest2, "local ");
+  OPENMS_LOG_DEBUG_NOFILE << "second with prefix" << endl;
+  getGlobalLogDebug().remove(dest2);
+  getGlobalLogDebug().insert(dest2);
+  OPENMS_LOG_DEBUG_NOFILE << "second inserted again" << endl;
+  getGlobalLogDebug().remove(dest2);
+  TEST_TRUE(dest2.str().find("local second with prefix") != std::string::npos)
+  TEST_TRUE(dest2.str().find("second inserted again") != std::string::npos)
+  TEST_TRUE(dest2.str().find("local second inserted again") == std::string::npos)
 }
 END_SECTION
 

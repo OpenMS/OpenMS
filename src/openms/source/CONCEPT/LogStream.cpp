@@ -52,6 +52,9 @@ namespace
     return *instance;
   }
 
+  /// Id of the last insertion of a destination (see LogStreamBuf::StreamStruct::id). Guarded by logSinkMutex_().
+  OpenMS::Size last_stream_id_ = 0;
+
   /// Thread-safe local-time conversion. std::localtime returns a pointer to a
   /// single process-wide static std::tm, which races across threads; the
   /// reentrant localtime_r/localtime_s write into a caller-provided struct.
@@ -131,8 +134,13 @@ namespace OpenMS
     {
       // The sink mutex, held by the caller, also guards parent_->stream_list_ against concurrent changes.
       parent_version_ = parent_->version_.load(std::memory_order_relaxed);
-      // An override ends with the parent's destination, which may be destroyed after its removal.
-      overridden_streams_.remove_if([this](const StreamStruct& o) { return !parentHasStream_(*o.stream); });
+      // An override ends with the parent's destination, which may be destroyed after its removal. Compare
+      // the insertion id, not only the address: the destination may have been removed and inserted again.
+      overridden_streams_.remove_if([this](const StreamStruct& o)
+      {
+        return std::none_of(parent_->stream_list_.begin(), parent_->stream_list_.end(),
+                            [&o](const StreamStruct& p) { return p.stream == o.stream && p.id == o.id; });
+      });
       stream_list_.clear();
       for (const StreamStruct& s : parent_->stream_list_)
       {
@@ -630,6 +638,7 @@ namespace OpenMS
         // we didn't find it - create a new entry in the list
         LogStreamBuf::StreamStruct s_struct;
         s_struct.stream = &stream;
+        s_struct.id = ++last_stream_id_;
         (buf->parent_ == nullptr ? buf->stream_list_ : buf->own_streams_).push_back(s_struct);
       }
       buf->destinationsChanged_();
