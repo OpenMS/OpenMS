@@ -188,6 +188,9 @@ OpenMS Library:
     scoring:method, when the parameters are set; such searches ended without hits or with inflated
     scores. An exception on a worker thread of the parallel preprocessing, scoring and calibration
     loops is rethrown after the loop instead of terminating the process.
+  - FIX: ProSEAlgorithm::searchWithModificationAnalysis() for a single input (spectrum file or
+    in-memory spectra) ignored FDR:protein and returned the decoys; like search(), it now applies
+    protein inference and picked-protein FDR and removes the decoys.
   - FIX: GlobalExceptionHandler records the last exception per thread (the fields were shared strings
     that exceptions constructed on several threads at once wrote concurrently), and its singleton is
     initialised thread-safely. Xerces initialisation and termination are serialised
@@ -280,6 +283,12 @@ TOPP tools:
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
         HyperScores with a warning.
+      - FIX: -out_pin holds the PSMs before any FDR filter. With Search:FDR:PSM, the .pin had only the
+        PSMs that passed, with q-values as score; with one input and Search:FDR:protein, it had no
+        decoys, so Percolator could not use it. The search now also hands back the PSMs before
+        FDR:PSM (ProSEAlgorithm::setKeepPreFdrPsms), and the .pin is written from them before the
+        protein FDR; with -rescore it still holds the rescored PSMs before the FDR filters. The other
+        outputs do not change.
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
