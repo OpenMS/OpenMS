@@ -433,7 +433,7 @@ class ProSE :
           else
           {
             const auto& sp = result.protein_ids.front().getSearchParameters();
-            const std::string enz_str = sp.digestion_enzyme.getName();
+            const std::string enz_str = ProSEAlgorithm::pinEnzymeName(sp.digestion_enzyme.getName());
             const auto colon = sp.charges.find(':');
             const int min_charge = (colon != std::string::npos)
                                      ? StringUtils::toInt32(sp.charges.substr(0, colon))
