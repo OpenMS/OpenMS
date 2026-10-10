@@ -1721,6 +1721,10 @@ Fixes:
       unit's index as a digit instead, so 20 ppm reached MaRaCluster as '-p 20.00' and 0.05 Da
       as '-p 0.051', which MaRaCluster reads as 0.051 ppm: a tolerance in Da was never applied.
   Quantification and numerical correctness:
+    - ProteomicsLFQ ignored its Seeding:charge and Seeding:traceRTTolerance settings: since the
+      seeding code moved to DDAWorkflowCommons the call passed a fixed charge range of 2:5 and the
+      helper used a fixed RT band of 3 s. Both settings take effect again; the defaults are
+      unchanged, so results with default parameters stay the same (#10148).
     - IsobaricWorkflow wrote every consensus feature with the same id ("e_0"), which is invalid
       consensusXML (consensusElement/@id is xs:ID); each feature now gets its own unique ID
       (#10201).

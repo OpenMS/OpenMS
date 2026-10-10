@@ -1721,7 +1721,8 @@ protected:
       }
       else
       {
-        DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm, 2, 5);
+        DDAWorkflowCommons::calculateSeeds(ms_centroided, getDoubleOption_("Seeding:intThreshold"), seeds, median_fwhm,
+          getStringOption_("Seeding:charge"), getDoubleOption_("Seeding:traceRTTolerance"));
       }
 
       if (debug_level_ > 666)
