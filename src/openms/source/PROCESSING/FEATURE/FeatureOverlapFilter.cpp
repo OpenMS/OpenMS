@@ -199,10 +199,11 @@ namespace OpenMS
       fbm = getFeatureBounds(fmap);
     }
 
-    std::unordered_set<Size> removed_uids;
+    // mark removals by address, not by unique id: ids may be unset (0) or shared
+    std::unordered_set<const Feature*> removed;
     for (auto& f : fmap)
     {
-      if (!removed_uids.contains(f.getUniqueId()))
+      if (!removed.contains(&f))
       {
         for (auto& overlap : quadtree.query(getBox(&f)))
         {
@@ -268,7 +269,7 @@ namespace OpenMS
               // if the callback returns false, overlap will not be removed (at least not because of an overlap with f)
               if (FeatureOverlapCallback(f, *overlap)) 
               {
-                removed_uids.insert(overlap->getUniqueId());
+                removed.insert(overlap);
               }                            
             }
           }
@@ -276,11 +277,14 @@ namespace OpenMS
       }
     }
 
-    const auto filtered = [&removed_uids](const Feature& f)
+    Size kept = 0;
+    for (Size i = 0; i < fmap.size(); ++i)
     {
-      return removed_uids.count(f.getUniqueId()) == 1;
-    };
-    fmap.erase(std::remove_if(fmap.begin(), fmap.end(), filtered), fmap.end());
+      if (removed.contains(&fmap[i])) continue;
+      if (kept != i) fmap[kept] = std::move(fmap[i]);
+      ++kept;
+    }
+    fmap.erase(fmap.begin() + kept, fmap.end());
   }
 
   std::function<bool(Feature&, Feature&)> FeatureOverlapFilter::createFAIMSMergeCallback(
