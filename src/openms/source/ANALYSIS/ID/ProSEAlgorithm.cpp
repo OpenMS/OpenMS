@@ -3556,8 +3556,10 @@ namespace OpenMS
       PeptideIdentificationList& peptide_ids) const
   {
     // Reset the per-run statistics bridge for this file. Callers copy it into
-    // their SearchResult::stats after search() returns OK.
+    // their SearchResult::stats after search() returns OK. The same for the pre-FDR PSMs: a copy
+    // left by an earlier search must not end up in this file's result.
     last_run_stats_ = RunStatistics{};
+    pre_fdr_peptide_ids_ = PeptideIdentificationList();
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
@@ -5251,7 +5253,7 @@ namespace OpenMS
 
         result.stats = last_run_stats_;
         result.stats.input_file = File::basename(in_spectra);
-        result.pre_fdr_peptide_ids = std::move(pre_fdr_peptide_ids_);
+        if (keep_pre_fdr_psms_) { result.pre_fdr_peptide_ids = std::move(pre_fdr_peptide_ids_); }
         pre_fdr_peptide_ids_ = PeptideIdentificationList();
 
         if (!result.protein_ids.empty())

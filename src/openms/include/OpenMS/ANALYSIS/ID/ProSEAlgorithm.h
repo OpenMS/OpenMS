@@ -529,7 +529,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
 
     /// With @p keep = true, the multi-file searchWithModificationAnalysis() overloads also return the PSMs of each
     /// file before FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a Percolator .pin). Default: false (no copy).
-    void setKeepPreFdrPsms(bool keep) { keep_pre_fdr_psms_ = keep; }
+    void setKeepPreFdrPsms(bool keep)
+    {
+      keep_pre_fdr_psms_ = keep;
+      if (!keep) { pre_fdr_peptide_ids_ = PeptideIdentificationList(); }
+    }
 
   protected:
     void updateMembers_() override;
