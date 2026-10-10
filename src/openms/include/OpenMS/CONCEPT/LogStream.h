@@ -268,7 +268,23 @@ protected:
 
       /// Non-lock acquiring sync function called in the d'tor
       int syncLF_();
+
+      /// "<message> occurred N times" for each cached message that was repeated
+      std::vector<std::string> repeatSummaries_() const;
+
+      /**
+        After stream_list_ changed from the destinations @p previous (see destinations_()): writes the pending repeat
+        counts to the destinations that remain and clears the cache, so that a new destination gets every message.
+        The caller holds the sink mutex.
+      */
+      void forgetRepeatsAfterChange_(const std::vector<const std::ostream*>& previous);
       //@}
+
+      /// The destinations in stream_list_, sorted
+      std::vector<const std::ostream*> destinations_() const;
+
+      /// Writes @p line to the destination @p s, with its prefix and color. The caller holds the sink mutex.
+      void write_(StreamStruct& s, const std::string& line);
     };
 
     /**
@@ -366,6 +382,11 @@ public:
         affected by later changes to the global LogStream; a global destination removed from it stays
         hidden until it is inserted again. setPrefix() on it applies to its own destinations only;
         the prefix of a global destination is set on the global LogStream.
+
+        When the destinations change, pending repeat counts ("<message> occurred N times") are written to the
+        destinations that got the repeated messages and remain (with insert(), remove() and removeAllStreams() on
+        this stream: to all destinations before the change), and the earlier messages no longer count as repeated:
+        a new destination gets every message from then on.
       */
       //@{
 

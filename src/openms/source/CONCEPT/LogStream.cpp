@@ -130,6 +130,7 @@ namespace OpenMS
     void LogStreamBuf::rebuildStreamList_()
     {
       // The sink mutex, held by the caller, also guards parent_->stream_list_ against concurrent changes.
+      const std::vector<const std::ostream*> previous = destinations_();
       parent_version_ = parent_->version_.load(std::memory_order_relaxed);
       stream_list_.clear();
       for (const StreamStruct& s : parent_->stream_list_)
@@ -144,6 +145,7 @@ namespace OpenMS
       }
       stream_list_.insert(stream_list_.end(), own_streams_.begin(), own_streams_.end());
       version_.fetch_add(1, std::memory_order_release);
+      forgetRepeatsAfterChange_(previous);
     }
 
     bool LogStreamBuf::parentHasStream_(const std::ostream& stream) const
@@ -167,6 +169,52 @@ namespace OpenMS
       {
         version_.fetch_add(1, std::memory_order_release);
       }
+    }
+
+    std::vector<const std::ostream*> LogStreamBuf::destinations_() const
+    {
+      std::vector<const std::ostream*> streams;
+      for (const StreamStruct& s : stream_list_)
+      {
+        streams.push_back(s.stream);
+      }
+      std::sort(streams.begin(), streams.end());
+      return streams;
+    }
+
+    void LogStreamBuf::forgetRepeatsAfterChange_(const std::vector<const std::ostream*>& previous)
+    {
+      if (log_cache_.empty() || previous == destinations_())
+      {
+        return;
+      }
+      // The cache stands for the messages that the previous destinations got. Their pending repeat counts go to
+      // those that remain (a removed one may be destroyed already); a new one gets every message from now on.
+      for (const std::string& summary : repeatSummaries_())
+      {
+        for (StreamStruct& s : stream_list_)
+        {
+          if (std::binary_search(previous.begin(), previous.end(), s.stream))
+          {
+            write_(s, summary);
+          }
+        }
+      }
+      log_cache_.clear();
+      log_time_cache_.clear();
+    }
+
+    std::vector<std::string> LogStreamBuf::repeatSummaries_() const
+    {
+      std::vector<std::string> summaries;
+      for (const auto& [line, entry] : log_cache_)
+      {
+        if (entry.counter != 0)
+        {
+          summaries.push_back("<" + line + "> occurred " + std::to_string(entry.counter + 1) + " times");
+        }
+      }
+      return summaries;
     }
 
     LogStreamBuf::~LogStreamBuf()
@@ -296,20 +344,17 @@ namespace OpenMS
 
     void LogStreamBuf::clearCache()
     {
-      // if there are any streams in our list, we
-      // copy the line into that streams, too and flush them
-      map<std::string, LogCacheStruct>::iterator it = log_cache_.begin();
-
-      for (; it != log_cache_.end(); ++it)
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      // Apply changes of the parent's destinations first: the repeat counts pending from before go to the
+      // destinations that got the repeated messages (see forgetRepeatsAfterChange_()).
+      updateFromParentLocked_();
+      for (const std::string& summary : repeatSummaries_())
       {
-        if ((it->second).counter != 0)
+        for (StreamStruct& s : stream_list_)
         {
-          std::stringstream stream;
-          stream << "<" << it->first << "> occurred " << ++(it->second).counter << " times";
-          distribute_(stream.str());
+          write_(s, summary);
         }
       }
-      // remove all entries from cache
       log_cache_.clear();
       log_time_cache_.clear();
     }
@@ -327,23 +372,26 @@ namespace OpenMS
       // there (and possibly destroyed afterwards, e.g. by StreamHandler) is never written to.
       updateFromParentLocked_();
 
-      // if there are any streams in our list, we
-      // copy the line into that streams, too and flush them
       for (StreamStruct& s : stream_list_)
       {
-        if (colorizer_)
-        {
-          *(s.stream) << (*colorizer_)(); // enable color
-        }
-
-        *(s.stream) << expandPrefix_(s.prefix, time(nullptr)) << outstring;
-
-        if (colorizer_)
-        {
-          *(s.stream) << (*colorizer_).undo(); // disable color
-        }
-        *(s.stream) << std::endl;
+        write_(s, outstring);
       }
+    }
+
+    void LogStreamBuf::write_(StreamStruct& s, const std::string& line)
+    {
+      if (colorizer_)
+      {
+        *(s.stream) << (*colorizer_)(); // enable color
+      }
+
+      *(s.stream) << expandPrefix_(s.prefix, time(nullptr)) << line;
+
+      if (colorizer_)
+      {
+        *(s.stream) << (*colorizer_).undo(); // disable color
+      }
+      *(s.stream) << std::endl;
     }
 
     int LogStreamBuf::syncLF_()
@@ -542,6 +590,8 @@ namespace OpenMS
         return;
       }
       LogStreamBuf* buf = rdbuf();
+      // repeat counts pending from before belong to the current destinations, not to the new one
+      buf->clearCache();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
       auto hidden = std::find(buf->hidden_streams_.begin(), buf->hidden_streams_.end(), &stream);
       if (hidden != buf->hidden_streams_.end())
@@ -549,9 +599,9 @@ namespace OpenMS
         // undo the removal of a parent destination
         buf->hidden_streams_.erase(hidden);
       }
-      else
+      if (buf->parent_ == nullptr || !buf->parentHasStream_(stream))
       {
-        // we didn't find it - create a new entry in the list
+        // a new destination, or a hidden one that the parent no longer has
         LogStreamBuf::StreamStruct s_struct;
         s_struct.stream = &stream;
         (buf->parent_ == nullptr ? buf->stream_list_ : buf->own_streams_).push_back(s_struct);
@@ -572,8 +622,8 @@ namespace OpenMS
       }
       LogStreamBuf* buf = rdbuf();
       buf->sync();
-      // HINT: we do NOT clear the cache (because we cannot access it from here)
-      //       and we do not flush incomplete_line_!!!
+      // pending repeat counts also go to the stream that is removed; an incomplete line stays for the remaining ones
+      buf->clearCache();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
       auto is_stream = [&stream](const LogStreamBuf::StreamStruct& s) { return s.stream == &stream; };
       if (buf->parent_ == nullptr)
@@ -606,6 +656,7 @@ namespace OpenMS
         buf->distribute_(buf->incomplete_line_);
         buf->incomplete_line_.clear();
       }
+      buf->clearCache();
       std::lock_guard<std::mutex> lock(logSinkMutex_());
       // Flush all streams before clearing the list. Under the lock, like the writes in distribute_(),
       // and after updating from the parent, which may have removed (and destroyed) a stream.

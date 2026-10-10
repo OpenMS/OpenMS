@@ -227,7 +227,9 @@ OpenMS Library:
     their -debug output. Worse, threads that had logged while a stream was attached kept writing to
     it after LogConfigHandler 'remove' or 'clear' deleted it (use-after-free, could crash). Changes
     of a thread-local stream itself (insert(), remove(), LogSinkGuard) still apply to its thread
-    only, on top of the global destinations (#10478).
+    only, on top of the global destinations (#10478). When the destinations of a stream change, a
+    message repeated afterwards is no longer suppressed for a new destination; pending repeat counts
+    ("<message> occurred N times") go to the destinations that got the message.
   - API: LogStreamNotifier and LogStream::insertNotification() were removed; nothing in OpenMS or
     pyOpenMS used them. setPrefix() on a thread-local stream (getThreadLocalLog*()) only changes the
     destinations inserted into that stream; set the prefix of a global destination on the global

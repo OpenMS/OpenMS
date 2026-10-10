@@ -885,6 +885,55 @@ START_SECTION(([EXTRA] a thread-local stream without destinations is failed, so 
 }
 END_SECTION
 
+START_SECTION(([EXTRA] a local insert adds a destination that the global stream removed in the meantime))
+{
+  ostringstream sink;
+  getGlobalLogDebug().insert(sink);
+  getThreadLocalLogDebug().remove(sink);
+  getGlobalLogDebug().remove(sink);
+  getThreadLocalLogDebug().insert(sink);
+  TEST_TRUE(getThreadLocalLogDebug().hasStream(sink))
+  OPENMS_LOG_DEBUG_NOFILE << "after local insert" << endl;
+  getThreadLocalLogDebug().remove(sink);
+  TEST_TRUE(sink.str().find("after local insert") != std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] repeated messages after a change of the destinations))
+{
+  // the debug stream is colored
+  auto plain = [](const ostringstream& s) { return boost::regex_replace(s.str(), boost::regex("\x1b\\[[0-9;]*m"), ""); };
+
+  // A destination attached after a message gets its repetitions; it gets no repeat count of messages it did not
+  // get. A remaining destination gets its pending repeat count. A removed one does not: it may be destroyed already.
+  ostringstream first, second, kept;
+  getGlobalLogDebug().insert(first);
+  getGlobalLogDebug().insert(kept);
+  OPENMS_LOG_DEBUG_NOFILE << "same message" << endl;
+  OPENMS_LOG_DEBUG_NOFILE << "same message" << endl;
+  getGlobalLogDebug().remove(first);
+  getGlobalLogDebug().insert(second);
+  OPENMS_LOG_DEBUG_NOFILE << "same message" << endl;
+  getGlobalLogDebug().remove(second);
+  getGlobalLogDebug().remove(kept);
+  TEST_EQUAL(plain(first), "same message\n")
+  TEST_EQUAL(plain(second), "same message\n")
+  TEST_EQUAL(plain(kept), "same message\n<same message> occurred 2 times\nsame message\n")
+
+  // changes of the thread-local stream: pending repeat counts go to the destinations before the change
+  ostringstream local, later;
+  getThreadLocalLogDebug().insert(local);
+  OPENMS_LOG_DEBUG_NOFILE << "local message" << endl;
+  OPENMS_LOG_DEBUG_NOFILE << "local message" << endl;
+  getThreadLocalLogDebug().insert(later);
+  OPENMS_LOG_DEBUG_NOFILE << "local message" << endl;
+  getThreadLocalLogDebug().remove(later);
+  getThreadLocalLogDebug().remove(local);
+  TEST_EQUAL(plain(local), "local message\n<local message> occurred 2 times\nlocal message\n")
+  TEST_EQUAL(plain(later), "local message\n")
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Test caching of empty lines))
 {
   ostringstream stream_by_logger;
