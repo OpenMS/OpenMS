@@ -2565,12 +2565,54 @@ START_SECTION((SearchResult searchWithModificationAnalysis(const std::string &, 
   TEST_EQUAL(from_file.stats.decoy_psms, 0)
   TEST_EQUAL(from_file.stats.matched_spectra, matched(from_file.peptide_ids))
 
+  PeakMap spectra_baseline = spectra; // the in-memory overload takes its spectra by non-const reference
   ProSEAlgorithm::SearchResult in_memory = algo.searchWithModificationAnalysis(spectra, fasta_db);
   TEST_EQUAL(in_memory.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
   TEST_EQUAL(accessions(in_memory.protein_ids), accessions(prot_ids))
   TEST_EQUAL(decoy_psms(in_memory.peptide_ids), 0)
   TEST_EQUAL(in_memory.stats.decoy_psms, 0)
   TEST_EQUAL(in_memory.stats.matched_spectra, matched(in_memory.peptide_ids))
+
+  // The modification analysis runs before protein FDR, so its tables equal those of the same search
+  // without FDR:protein, although the identifications differ (the baseline keeps the decoy PSMs).
+  const auto tables = [](const ProSEAlgorithm::SearchResult& r)
+  {
+    const auto& dm = r.modification_analysis.delta_mass_stats;
+    const auto& ptm = r.modification_analysis.ptm_stats;
+    std::vector<std::string> rows;
+    for (const auto& e : dm.entries)
+    {
+      std::ostringstream row;
+      row << std::setprecision(10) << "dm " << e.delta_mass << ' ' << e.count << ' ' << e.unique_peptides << ' '
+          << e.num_charge_states << ' ' << e.percentage << ' ' << e.mapped_modification;
+      rows.push_back(row.str());
+    }
+    for (const auto& e : ptm.entries)
+    {
+      std::ostringstream row;
+      row << std::setprecision(10) << "ptm " << e.name << ' ' << e.theoretical_mass << ' ' << e.observed_mass << ' '
+          << e.count << ' ' << e.unique_peptides << ' ' << e.num_charge_states << ' ' << e.percentage << ' ' << e.target_residues;
+      for (const auto& rc : e.residue_counts) { row << ' ' << rc.first << '=' << rc.second; }
+      rows.push_back(row.str());
+    }
+    std::sort(rows.begin(), rows.end());
+    std::ostringstream totals;
+    totals << std::setprecision(10) << dm.total_psms << ' ' << dm.modified_psms << ' ' << dm.unmodified_psms << ' '
+           << dm.mean_delta_mass << ' ' << dm.median_delta_mass << ' ' << ptm.total_modified_psms << ' '
+           << ptm.unknown_modification_psms << ' ' << ptm.num_unique_modifications << '|';
+    return totals.str() + ListUtils::concatenate(rows, ";");
+  };
+  p.setValue("FDR:protein", 0.0);
+  ProSEAlgorithm baseline_algo;
+  baseline_algo.setParameters(p);
+  ProSEAlgorithm::SearchResult baseline_file = baseline_algo.searchWithModificationAnalysis(tmp_mzml, tmp_fasta);
+  TEST_EQUAL(baseline_file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_TRUE(decoy_psms(baseline_file.peptide_ids) > 0)
+  TEST_EQUAL(tables(from_file), tables(baseline_file))
+  ProSEAlgorithm::SearchResult baseline_memory = baseline_algo.searchWithModificationAnalysis(spectra_baseline, fasta_db);
+  TEST_EQUAL(baseline_memory.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_TRUE(decoy_psms(baseline_memory.peptide_ids) > 0)
+  TEST_EQUAL(tables(in_memory), tables(baseline_memory))
 }
 END_SECTION
 
