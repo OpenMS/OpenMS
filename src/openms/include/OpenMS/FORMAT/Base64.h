@@ -143,6 +143,26 @@ private:
 
     static const char encoder_[];
     static const char decoder_[];
+
+    /// Decodes a single Base64 character via decoder_, throwing if it is not part of the alphabet
+    static inline UInt decodeIntegerChar_(char c)
+    {
+      // '=' is the padding character; it can end up at a position that is still read (not every
+      // caller strips it beforehand), and is never itself a data value.
+      if (c == '=')
+      {
+        return 0;
+      }
+      unsigned char uc = static_cast<unsigned char>(c);
+      // decoder_ covers ASCII 43 ('+') to 122 ('z'); positions inside that range that are not
+      // themselves part of the Base64 alphabet hold '$' as a sentinel.
+      if (uc < 43 || uc > 122 || decoder_[uc - 43] == '$')
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid character in Base64 input.");
+      }
+      return static_cast<UInt>(decoder_[uc - 43]) - 62;
+    }
+
     /// Decodes a Base64 string to a vector of floating point numbers
     template <typename ToType>
     static void decodeUncompressed_(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out);
@@ -514,6 +534,10 @@ private:
     {
       return;
     }
+    if (in.size() % 4 != 0)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Malformed base64 input, length is not a multiple of 4.");
+    }
 
     Size src_size = in.size();
     // last one or two '=' are skipped if contained
@@ -558,11 +582,14 @@ private:
       // -------------------------------
 
       // decode the first two chars
-      a = decoder_[(int)in[i] - 43] - 62;
-      b = decoder_[(int)in[i + 1] - 43] - 62;
+      a = decodeIntegerChar_(in[i]);
       if (i + 1 >= src_size)
       {
         b = 0;
+      }
+      else
+      {
+        b = decodeIntegerChar_(in[i + 1]);
       }
       // write first byte (6 bits from a and 2 highest bits from b)
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
@@ -587,10 +614,13 @@ private:
       }
 
       // decode the third char
-      a = decoder_[(int)in[i + 2] - 43] - 62;
       if (i + 2 >= src_size)
       {
         a = 0;
+      }
+      else
+      {
+        a = decodeIntegerChar_(in[i + 2]);
       }
       // write second byte (4 lowest bits from b and 4 highest bits from a)
       element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
@@ -615,10 +645,13 @@ private:
       }
 
       // decode the fourth char
-      b = decoder_[(int)in[i + 3] - 43] - 62;
       if (i + 3 >= src_size)
       {
         b = 0;
+      }
+      else
+      {
+        b = decodeIntegerChar_(in[i + 3]);
       }
       // write third byte (2 lowest bits from a and 6 bits from b)
       element[offset] = (unsigned char) (((a & 3) << 6) | b);
