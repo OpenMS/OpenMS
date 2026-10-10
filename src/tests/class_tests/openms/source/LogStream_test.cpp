@@ -20,7 +20,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <condition_variable>
 #include <fstream>
+#include <mutex>
 #include <sstream>
 #include <thread>
 #include <boost/regex.hpp>
@@ -57,9 +59,7 @@ START_TEST(LogStream, "$Id$")
 START_SECTION(([EXTRA] OpenMP - test))
 {
   // Test thread-local logging with OpenMP.
-  // Note: Thread-local streams COPY the stream_list_ from global at initialization,
-  // so we can't easily add a capture stream and expect thread-local loggers to use it.
-  // Instead, we just verify that parallel logging doesn't crash or corrupt data.
+  // We just verify that parallel logging doesn't crash or corrupt data.
 
   // Test 1: Basic parallel logging to cout (default stream)
   {
@@ -743,6 +743,96 @@ START_SECTION((void setConsoleDebugLogging(bool enabled)))
   TEST_TRUE(captured.str().find("main thread disabled") == std::string::npos)
   TEST_TRUE(captured.str().find("new thread disabled") == std::string::npos)
   TEST_FALSE(getGlobalLogDebug().hasStream(cout))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] thread-local streams follow changes of the global stream))
+{
+  // The global debug stream has no destinations by default, so these first messages go nowhere.
+  OPENMS_LOG_DEBUG_NOFILE << "main thread before the change" << endl;
+
+  // a worker that logged before the change, like a thread of an OpenMP pool
+  std::mutex m;
+  std::condition_variable cv;
+  int step = 0;
+  auto advance = [&](int to) { { std::lock_guard<std::mutex> lock(m); step = to; } cv.notify_all(); };
+  auto await = [&](int at) { std::unique_lock<std::mutex> lock(m); cv.wait(lock, [&] { return step >= at; }); };
+  std::thread worker([&] {
+    OPENMS_LOG_DEBUG_NOFILE << "worker before the change" << endl;
+    advance(1);
+    await(2);
+    OPENMS_LOG_DEBUG_NOFILE << "worker after insert" << endl;
+    advance(3);
+    await(5);
+    OPENMS_LOG_DEBUG_NOFILE << "worker after remove" << endl;
+  });
+  await(1);
+
+  ostringstream captured;
+  getGlobalLogDebug().insert(captured);
+  OPENMS_LOG_DEBUG_NOFILE << "main thread after insert" << endl;
+  advance(2);
+  await(3);
+  // a worker whose first message comes while the destination is attached
+  std::thread late_worker([&] {
+    OPENMS_LOG_DEBUG_NOFILE << "late worker after insert" << endl;
+    advance(4);
+    await(5);
+    OPENMS_LOG_DEBUG_NOFILE << "late worker after remove" << endl;
+  });
+  await(4);
+  getGlobalLogDebug().remove(captured);
+  OPENMS_LOG_DEBUG_NOFILE << "main thread after remove" << endl;
+  advance(5);
+  worker.join();
+  late_worker.join();
+
+  TEST_TRUE(captured.str().find("main thread after insert") != std::string::npos)
+  TEST_TRUE(captured.str().find("worker after insert") != std::string::npos)
+  TEST_TRUE(captured.str().find("late worker after insert") != std::string::npos)
+  TEST_TRUE(captured.str().find("before the change") == std::string::npos)
+  // a removed destination may be destroyed right away, so no thread may write to it anymore
+  TEST_TRUE(captured.str().find("after remove") == std::string::npos)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] changes of a thread-local stream apply to its thread only))
+{
+  ostringstream global_dest, local_dest, later_dest;
+  getGlobalLogDebug().insert(global_dest);
+  getThreadLocalLogDebug().remove(global_dest); // hide a global destination from this thread
+  getThreadLocalLogDebug().insert(local_dest);  // add an own destination
+  OPENMS_LOG_DEBUG_NOFILE << "main thread with local changes" << endl;
+  std::thread([] { OPENMS_LOG_DEBUG_NOFILE << "other thread" << endl; }).join();
+
+  getGlobalLogDebug().insert(later_dest); // later global changes still apply
+  OPENMS_LOG_DEBUG_NOFILE << "main thread after global insert" << endl;
+  {
+    LogSinkGuard guard(getThreadLocalLogDebug(), later_dest);
+    OPENMS_LOG_DEBUG_NOFILE << "main thread guarded" << endl;
+    std::thread([] { OPENMS_LOG_DEBUG_NOFILE << "other thread while guarded" << endl; }).join();
+  }
+  getThreadLocalLogDebug().insert(global_dest); // undoes the local removal
+  OPENMS_LOG_DEBUG_NOFILE << "main thread shown again" << endl;
+
+  getThreadLocalLogDebug().remove(local_dest);
+  getGlobalLogDebug().remove(global_dest);
+  getGlobalLogDebug().remove(later_dest);
+  OPENMS_LOG_DEBUG_NOFILE << "main thread after cleanup" << endl;
+
+  auto has = [](const ostringstream& s, const std::string& text) { return s.str().find(text) != std::string::npos; };
+  TEST_FALSE(has(global_dest, "main thread with local changes"))
+  TEST_TRUE(has(global_dest, "other thread"))
+  TEST_FALSE(has(global_dest, "main thread after global insert"))
+  TEST_TRUE(has(global_dest, "main thread shown again"))
+  TEST_TRUE(has(local_dest, "main thread with local changes"))
+  TEST_FALSE(has(local_dest, "other thread"))
+  TEST_TRUE(has(local_dest, "main thread shown again"))
+  TEST_TRUE(has(later_dest, "main thread after global insert"))
+  TEST_FALSE(has(later_dest, "main thread guarded"))
+  TEST_TRUE(has(later_dest, "other thread while guarded"))
+  TEST_TRUE(has(later_dest, "main thread shown again"))
+  TEST_FALSE(has(global_dest, "after cleanup") || has(local_dest, "after cleanup") || has(later_dest, "after cleanup"))
 }
 END_SECTION
 

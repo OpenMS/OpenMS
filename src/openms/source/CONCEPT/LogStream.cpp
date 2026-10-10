@@ -91,10 +91,12 @@ namespace OpenMS
     {
       pbuf_ = new char[BUFFER_LENGTH];
       std::streambuf::setp(pbuf_, pbuf_ + BUFFER_LENGTH - 1);
-      // Copy the stream_list_ from the source buffer
+      // Follow the source buffer's destinations, including later changes (see updateFromParent_())
       if (source_buf)
       {
-        stream_list_ = source_buf->stream_list_;
+        parent_ = source_buf;
+        std::lock_guard<std::mutex> lock(logSinkMutex_());
+        rebuildStreamList_();
       }
     }
 
@@ -106,6 +108,86 @@ namespace OpenMS
     const std::list<LogStreamBuf::StreamStruct>& LogStreamBuf::getStreamList_() const
     {
       return stream_list_;
+    }
+
+    void LogStreamBuf::updateFromParent_()
+    {
+      if (parent_ != nullptr && parent_->version_.load(std::memory_order_acquire) != parent_version_)
+      {
+        std::lock_guard<std::mutex> lock(logSinkMutex_());
+        updateFromParentLocked_();
+      }
+    }
+
+    void LogStreamBuf::updateFromParentLocked_()
+    {
+      if (parent_ != nullptr && parent_->version_.load(std::memory_order_acquire) != parent_version_)
+      {
+        rebuildStreamList_();
+      }
+    }
+
+    void LogStreamBuf::rebuildStreamList_()
+    {
+      // The sink mutex, held by the caller, also guards parent_->stream_list_ against concurrent changes.
+      parent_version_ = parent_->version_.load(std::memory_order_relaxed);
+      stream_list_.clear();
+      for (const StreamStruct& s : parent_->stream_list_)
+      {
+        const bool hidden = std::find(hidden_streams_.begin(), hidden_streams_.end(), s.stream) != hidden_streams_.end();
+        const bool own = std::any_of(own_streams_.begin(), own_streams_.end(),
+                                     [&s](const StreamStruct& o) { return o.stream == s.stream; });
+        if (!hidden && !own)
+        {
+          stream_list_.push_back(s);
+        }
+      }
+      stream_list_.insert(stream_list_.end(), own_streams_.begin(), own_streams_.end());
+      version_.fetch_add(1, std::memory_order_release);
+    }
+
+    bool LogStreamBuf::parentHasStream_(const std::ostream& stream) const
+    {
+      return std::any_of(parent_->stream_list_.begin(), parent_->stream_list_.end(),
+                         [&stream](const StreamStruct& s) { return s.stream == &stream; });
+    }
+
+    LogStreamBuf::StreamStruct* LogStreamBuf::configurableEntry_(const std::ostream& stream)
+    {
+      auto is_stream = [&stream](const StreamStruct& s) { return s.stream == &stream; };
+      if (parent_ == nullptr)
+      {
+        auto it = std::find_if(stream_list_.begin(), stream_list_.end(), is_stream);
+        return it == stream_list_.end() ? nullptr : &*it;
+      }
+      auto own = std::find_if(own_streams_.begin(), own_streams_.end(), is_stream);
+      if (own != own_streams_.end())
+      {
+        return &*own;
+      }
+      if (std::find(hidden_streams_.begin(), hidden_streams_.end(), &stream) != hidden_streams_.end())
+      {
+        return nullptr;
+      }
+      auto inherited = std::find_if(parent_->stream_list_.begin(), parent_->stream_list_.end(), is_stream);
+      if (inherited == parent_->stream_list_.end())
+      {
+        return nullptr;
+      }
+      own_streams_.push_back(*inherited);
+      return &own_streams_.back();
+    }
+
+    void LogStreamBuf::destinationsChanged_()
+    {
+      if (parent_ != nullptr)
+      {
+        rebuildStreamList_();
+      }
+      else
+      {
+        version_.fetch_add(1, std::memory_order_release);
+      }
     }
 
     LogStreamBuf::~LogStreamBuf()
@@ -266,6 +348,10 @@ namespace OpenMS
       {
         std::lock_guard<std::mutex> lock(logSinkMutex_());
 
+        // Pick up changes of the parent's destinations while holding the lock, so that a stream removed
+        // there (and possibly destroyed afterwards, e.g. by StreamHandler) is never written to.
+        updateFromParentLocked_();
+
         // if there are any streams in our list, we
         // copy the line into that streams, too and flush them
         for (StreamStruct& s : stream_list_)
@@ -301,6 +387,7 @@ namespace OpenMS
       // sync our stream buffer...
       if (pptr() != pbase())
       {
+        updateFromParent_();
         // check if we have attached streams, so we don't waste time to
         // prepare the output
         if (!stream_list_.empty())
@@ -508,16 +595,36 @@ namespace OpenMS
       }
     }
 
+    // Changes of the destinations hold the sink mutex: following (thread-local) buffers read their
+    // parent's list under it, and distribute_() writes to the destinations under it.
+
     void LogStream::insert(std::ostream & stream)
     {
-      if (!bound_() || hasStream_(stream))
+      if (!bound_())
       {
         return;
       }
-      // we didn't find it - create a new entry in the list
-      LogStreamBuf::StreamStruct s_struct;
-      s_struct.stream = &stream;
-      rdbuf()->stream_list_.push_back(s_struct);
+      LogStreamBuf* buf = rdbuf();
+      buf->updateFromParent_();
+      if (hasStream_(stream))
+      {
+        return;
+      }
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      auto hidden = std::find(buf->hidden_streams_.begin(), buf->hidden_streams_.end(), &stream);
+      if (hidden != buf->hidden_streams_.end())
+      {
+        // undo the removal of a parent destination
+        buf->hidden_streams_.erase(hidden);
+      }
+      else
+      {
+        // we didn't find it - create a new entry in the list
+        LogStreamBuf::StreamStruct s_struct;
+        s_struct.stream = &stream;
+        (buf->parent_ == nullptr ? buf->stream_list_ : buf->own_streams_).push_back(s_struct);
+      }
+      buf->destinationsChanged_();
     }
 
     void LogStream::remove(std::ostream & stream)
@@ -525,14 +632,31 @@ namespace OpenMS
       if (!bound_())
         return;
 
-      StreamIterator it = findStream_(stream);
-      if (it != rdbuf()->stream_list_.end())
+      LogStreamBuf* buf = rdbuf();
+      buf->updateFromParent_();
+      if (!hasStream_(stream))
       {
-        rdbuf()->sync();
-        // HINT: we do NOT clear the cache (because we cannot access it from here)
-        //       and we do not flush incomplete_line_!!!
-        rdbuf()->stream_list_.erase(it);
+        return;
       }
+      buf->sync();
+      // HINT: we do NOT clear the cache (because we cannot access it from here)
+      //       and we do not flush incomplete_line_!!!
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      auto is_stream = [&stream](const LogStreamBuf::StreamStruct& s) { return s.stream == &stream; };
+      if (buf->parent_ == nullptr)
+      {
+        buf->stream_list_.remove_if(is_stream);
+      }
+      else
+      {
+        buf->own_streams_.remove_if(is_stream);
+        // hide a parent destination from this buffer
+        if (buf->parentHasStream_(stream))
+        {
+          buf->hidden_streams_.push_back(&stream);
+        }
+      }
+      buf->destinationsChanged_();
     }
 
     void LogStream::removeAllStreams()
@@ -540,22 +664,37 @@ namespace OpenMS
       if (!bound_())
         return;
 
-      rdbuf()->sync();
+      LogStreamBuf* buf = rdbuf();
+      buf->sync();
       // Distribute any incomplete line before clearing streams
-      if (!rdbuf()->incomplete_line_.empty())
+      if (!buf->incomplete_line_.empty())
       {
-        rdbuf()->distribute_(rdbuf()->incomplete_line_);
-        rdbuf()->incomplete_line_.clear();
+        buf->distribute_(buf->incomplete_line_);
+        buf->incomplete_line_.clear();
       }
-      // Flush all streams before clearing the list
-      for (auto& stream_struct : rdbuf()->stream_list_)
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      // Flush all streams before clearing the list. Under the lock, like the writes in distribute_(),
+      // and after updating from the parent, which may have removed (and destroyed) a stream.
+      buf->updateFromParentLocked_();
+      for (auto& stream_struct : buf->stream_list_)
       {
         if (stream_struct.stream != nullptr)
         {
           stream_struct.stream->flush();
         }
       }
-      rdbuf()->stream_list_.clear();
+      buf->stream_list_.clear();
+      if (buf->parent_ != nullptr)
+      {
+        // hide the parent's current destinations from this buffer
+        buf->own_streams_.clear();
+        buf->hidden_streams_.clear();
+        for (const LogStreamBuf::StreamStruct& s : buf->parent_->stream_list_)
+        {
+          buf->hidden_streams_.push_back(s.stream);
+        }
+      }
+      buf->destinationsChanged_();
     }
 
     void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
@@ -566,8 +705,13 @@ namespace OpenMS
       }
       insert(s);
 
-      StreamIterator it = findStream_(s);
-      (*it).target = &target;
+      LogStreamBuf* buf = rdbuf();
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      if (LogStreamBuf::StreamStruct* entry = buf->configurableEntry_(s))
+      {
+        entry->target = &target;
+        buf->destinationsChanged_();
+      }
     }
 
     LogStream::StreamIterator LogStream::findStream_(const std::ostream & s)
@@ -599,10 +743,12 @@ namespace OpenMS
       {
         return;
       }
-      StreamIterator it = findStream_(s);
-      if (it != rdbuf()->stream_list_.end())
+      LogStreamBuf* buf = rdbuf();
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      if (LogStreamBuf::StreamStruct* entry = buf->configurableEntry_(s))
       {
-        (*it).prefix = prefix;
+        entry->prefix = prefix;
+        buf->destinationsChanged_();
       }
     }
 
@@ -612,10 +758,22 @@ namespace OpenMS
       {
         return;
       }
-      for (StreamIterator it = rdbuf()->stream_list_.begin(); it != rdbuf()->stream_list_.end(); ++it)
+      LogStreamBuf* buf = rdbuf();
+      std::lock_guard<std::mutex> lock(logSinkMutex_());
+      buf->updateFromParentLocked_();
+      std::vector<const std::ostream*> streams;
+      for (const LogStreamBuf::StreamStruct& s : buf->stream_list_)
       {
-        (*it).prefix = prefix;
+        streams.push_back(s.stream);
       }
+      for (const std::ostream* s : streams)
+      {
+        if (LogStreamBuf::StreamStruct* entry = buf->configurableEntry_(*s))
+        {
+          entry->prefix = prefix;
+        }
+      }
+      buf->destinationsChanged_();
     }
 
     bool LogStream::bound_() const
@@ -636,6 +794,7 @@ namespace OpenMS
       {
         return false;
       }
+      rdbuf()->updateFromParent_();
       return hasStream_(stream);
     }
 
@@ -685,11 +844,10 @@ namespace OpenMS
 
   //
   // Thread-local log stream accessors
-  // Each thread gets its own LogStream instance with a private buffer. The list of output
-  // destinations is *copied* from the global instance on first access, not shared with it:
-  // reconfiguring a global stream afterwards (insert()/remove()/LogSinkGuard) leaves already
-  // created thread-local streams untouched, so configure the thread-local stream returned here
-  // when the goal is to redirect or suppress what OPENMS_LOG_* actually writes.
+  // Each thread gets its own LogStream instance with a private buffer that follows the output
+  // destinations of the global instance, including later changes (see LogStreamBuf::updateFromParent_()).
+  // Reconfigure the global stream to redirect or suppress output of all threads, the thread-local
+  // stream returned here for the calling thread only.
   //
   Logger::LogStream& getThreadLocalLogFatal()
   {

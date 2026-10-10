@@ -220,13 +220,20 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
-  - setConsoleDebugLogging() attaches std::cout to, or detaches it from, the global debug stream
-    and the calling thread's debug stream. Inserting std::cout into getGlobalLogDebug() alone
-    misses threads that have already logged a debug message. TOPPBase (-debug) and TOPPAS
-    (-debug) use it (#10478).
-  - FIX: FeatureFinderAlgorithmMetaboIdent and FeatureFinderIdentificationAlgorithm (below debug
-    level 1) suppress OpenSWATH's status output again. They detached std::cout from the global
-    info stream, which the calling thread's stream had already copied (#10478).
+  - FIX: The thread-local log streams behind OPENMS_LOG_* follow the destinations of the global
+    streams (getGlobalLog*(), LogConfigHandler, also in pyOpenMS) instead of copying them on their
+    first message. Changes did not reach threads that had logged before, including the calling
+    thread: e.g. LogConfigHandler 'add' and setLogLevel() had no effect there, and TOPP tools lost
+    their -debug output. Worse, threads that had logged while a stream was attached kept writing to
+    it after LogConfigHandler 'remove' or 'clear' deleted it (use-after-free, could crash). Changes
+    of a thread-local stream itself (insert(), remove(), LogSinkGuard) still apply to its thread
+    only, on top of the global destinations (#10478).
+  - setConsoleDebugLogging() attaches std::cout to, or detaches it from, the global debug stream,
+    which all threads follow. TOPPBase (-debug) and TOPPAS (-debug) use it (#10478).
+  - FIX: Below debug level 1, FeatureFinderAlgorithmMetaboIdent and FeatureFinderIdentificationAlgorithm
+    suppress OpenSWATH's status output again. They detached std::cout from the global info stream,
+    which the calling thread's stream had already copied (#10478). FeatureFinderAlgorithmMetaboIdent
+    now shows it at debug level 1 and above, like FeatureFinderIdentificationAlgorithm.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
