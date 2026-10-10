@@ -169,7 +169,7 @@ namespace OpenMS
       }
       catch (boost::bad_lexical_cast &)
       {
-        static const EmpiricalFormula nl_formula(best_annotation_loss[1]);
+        const EmpiricalFormula nl_formula(best_annotation_loss[1]);
         fragment_loss = -1 * nl_formula.getMonoWeight();
       }
     }
