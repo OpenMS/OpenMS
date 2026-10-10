@@ -291,6 +291,10 @@ OpenMS Library:
     std::out_of_range. The decoy string is removed only at the configured end now.
   - FIX: Picked protein FDR made a pair's winner a target when two hits of the same decoy tied.
     A tie prefers a target only if one of the tied hits is a target now.
+  - FIX: FalseDiscoveryRate::applyBasic() and applyPickedProteinFDR() skip the protein-group FDR
+    when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
+    calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
+    run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -349,6 +353,12 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+      - FIX: -feat_dir checkpoints record -protein_quantification. Detection keeps the peptide
+        uniqueness annotation that strictly_unique_peptides filters on only in that mode, so a
+        strict combine accepted checkpoints detected in another mode and then dropped the peptide
+        hits lacking it (all of them, ending in "No protein is supported by a strictly unique
+        peptide"). Such a combine is now refused and names the setting; detecting and combining
+        runs have to use the same -protein_quantification (#10481).
     FileInfo:
       - FIX: the consensusXML statistics (-s) for qualities were computed over twice the number of
         consensus features, half of the values zero; they now cover each feature once.
