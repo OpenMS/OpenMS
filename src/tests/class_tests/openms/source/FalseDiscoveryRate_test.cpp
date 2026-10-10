@@ -692,10 +692,24 @@ START_SECTION([EXTRA] protein FDR without indistinguishable groups skips the gro
   for (bool picked : {false, true})
   {
     ProteinIdentification run = make_run();
+    // Start from a clean log: lines written with '\n' wait in the buffer until the next sync (which
+    // remove() does into the streams still attached), and a line repeating a cached one is not passed
+    // on at all. An earlier section emits this very warning (a group FDR finding no competing group),
+    // so without flushing and clearing the cache the capture would see its line, or miss ours.
+    OPENMS_LOG_WARN.flush();
+    OPENMS_LOG_WARN.rdbuf()->clearCache();
     std::ostringstream captured;
     OPENMS_LOG_WARN.insert(captured);
-    if (picked) { fdr.applyPickedProteinFDR(run, "decoy_", true); }
-    else { fdr.applyBasic(run); }
+    try
+    {
+      if (picked) { fdr.applyPickedProteinFDR(run, "decoy_", true); }
+      else { fdr.applyBasic(run); }
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN.remove(captured);
+      throw;
+    }
     OPENMS_LOG_WARN.remove(captured);
 
     TEST_TRUE(captured.str().find("No scores extracted") == std::string::npos)
