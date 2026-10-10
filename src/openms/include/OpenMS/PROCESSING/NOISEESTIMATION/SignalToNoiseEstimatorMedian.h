@@ -202,18 +202,22 @@ protected:
                                         s);
         }
 
+        if (c.empty())
+        {
+          return;
+        }
         std::vector<int> histogram_auto(100, 0);
 
         // find maximum of current scan
-        auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() > b.getIntensity();});
+        auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() < b.getIntensity();});
         typename PeakType::IntensityType maxInt = maxIt->getIntensity();
 
-        double bin_size = maxInt / 100;
+        double bin_size = maxInt > 0 ? maxInt / 100 : 1.0; // no division by zero if no intensity is positive
 
         // fill histogram
         for(const auto& peak : c)
         {
-            ++histogram_auto[(int) ((peak.getIntensity() - 1) / bin_size)];
+            ++histogram_auto[(int) std::max(0.0, std::min((peak.getIntensity() - 1) / bin_size, 99.0))];
         }
 
         // add up element counts in histogram until ?th percentile is reached
@@ -294,7 +298,7 @@ protected:
         // erase all elements from histogram that will leave the window on the LEFT side
         while ((*window_pos_borderleft).getPos() < (*window_pos_center).getPos() - window_half_size)
         {
-          to_bin = std::max(std::min<int>((int)((*window_pos_borderleft).getIntensity() / bin_size), bin_count_minus_1), 0);
+          to_bin = (int) std::max(std::min((*window_pos_borderleft).getIntensity() / bin_size, (double) bin_count_minus_1), 0.0); // clamp before converting to int
           --histogram[to_bin];
           --elements_in_window;
           ++window_pos_borderleft;
@@ -305,7 +309,7 @@ protected:
               && ((*window_pos_borderright).getPos() <= (*window_pos_center).getPos() + window_half_size))
         {
           //std::cerr << (*window_pos_borderright).getIntensity() << " " << bin_size << " " << bin_count_minus_1 << std::endl;
-          to_bin = std::max(std::min<int>((int)((*window_pos_borderright).getIntensity() / bin_size), bin_count_minus_1), 0);
+          to_bin = (int) std::max(std::min((*window_pos_borderright).getIntensity() / bin_size, (double) bin_count_minus_1), 0.0); // clamp before converting to int
           ++histogram[to_bin];
           ++elements_in_window;
           ++window_pos_borderright;
