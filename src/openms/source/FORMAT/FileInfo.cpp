@@ -2260,9 +2260,9 @@ namespace OpenMS
 
         vector<double> intensities;
         intensities.reserve(size);
-        vector<double> qualities(size);
+        vector<double> qualities;
         qualities.reserve(size);
-        vector<double> widths(size);
+        vector<double> widths;
         widths.reserve(size);
 
         vector<double> rt_delta_by_elems;
