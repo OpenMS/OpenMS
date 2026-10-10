@@ -294,6 +294,9 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+    FileInfo:
+      - FIX: crashed on an idXML or mzIdentML with a peptide identification without hits; such
+        spectra are now skipped as unidentified.
   - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
     CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
     ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
