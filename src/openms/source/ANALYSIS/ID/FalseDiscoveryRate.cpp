@@ -1073,8 +1073,10 @@ namespace OpenMS
     // TODO this could be a separate function.. And it could actually be sped up.
     //  We could store the number of decoys/targets in the group, or we only update the
     //  scores of proteins that are actually in groups (rest stays the same)
-    // do groups first, if keep_decoy is false, we would otherwise miss those proteins
-    if (groups_too)
+    // do groups first, if keep_decoy is false, we would otherwise miss those proteins.
+    // Without groups (e.g. inference run without group annotation) there is nothing to score, and
+    // calculateFDRBasic_ would only warn about missing target-decoy annotation.
+    if (groups_too && !id.getIndistinguishableProteins().empty())
     {
       // Prepare lookup map for decoy proteins (since there is no direct way back from group to protein)
       // TODO we could also require the decoy affix to be specified
@@ -1452,7 +1454,7 @@ namespace OpenMS
     IDScoreGetterSetter::getPickedProteinScores_(picked_scores, id, decoy_string, prefix);
     scores_labels.reserve(picked_scores.size());
 
-    if (groups_too)
+    if (groups_too && !id.getIndistinguishableProteins().empty()) // nothing to score without groups
     {
       IDScoreGetterSetter::getPickedProteinGroupScores_(picked_scores, scores_labels, id.getIndistinguishableProteins(), decoy_string, prefix);
       calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
