@@ -280,6 +280,10 @@ TOPP tools:
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
         HyperScores with a warning.
+      - Search:peptdeep:enable fails (instead of warning and continuing) when OpenMS was
+        built without ONNX, a model is missing or cannot be loaded, or no PSM received
+        predicted features. On success it logs '[PeptDeepRescoring] Predicted features
+        added: N / M PSMs (<features>), NCE=<nce>'.
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.

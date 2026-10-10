@@ -4900,6 +4900,46 @@ add_test("TOPP_ProSE_11_rescore_skip_info" ${TOPP_BIN_PATH}/FileInfo -test
 set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_skip"
   PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
 
+# PeptDeep prediction features: 'peptdeep:enable' is an explicit request, so it must either report
+# how many PSMs received predicted features or fail -- never continue silently without them.
+if(WITH_ONNX)
+  add_test("TOPP_ProSE_peptdeep" ${TOPP_BIN_PATH}/ProSE -test
+    -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -Search:peptdeep:enable true
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep" PROPERTIES PASS_REGULAR_EXPRESSION
+    "\\[PeptDeepRescoring\\] Predicted features added: [1-9][0-9]* / [0-9]+ PSMs")
+  # Without fragment annotations no PSM can get MS2 features: hard error.
+  add_test("TOPP_ProSE_peptdeep_no_annotation_fails" ${TOPP_BIN_PATH}/ProSE -test
+    -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -Search:peptdeep:enable true
+    -Search:annotate:PSM num_matched_peaks
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_no_annotation_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep_no_annotation_fails" PROPERTIES WILL_FAIL TRUE)
+  # A missing model is a hard error, not a fallback to search-engine features only.
+  add_test("TOPP_ProSE_peptdeep_missing_model_fails" ${TOPP_BIN_PATH}/ProSE -test
+    -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -Search:peptdeep:enable true
+    -Search:peptdeep:ms2_model ${TESTS_TEMP_DIR}/does_not_exist_peptdeep_ms2.onnx
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_missing_model_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep_missing_model_fails" PROPERTIES WILL_FAIL TRUE)
+else()
+  # Without ONNX the request cannot be honoured: hard error instead of a warning.
+  add_test("TOPP_ProSE_peptdeep_requires_onnx" ${TOPP_BIN_PATH}/ProSE -test
+    -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+    -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+    -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+    -Search:peptdeep:enable true
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_requires_onnx_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep_requires_onnx" PROPERTIES WILL_FAIL TRUE)
+endif()
+
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # Create a symlink with .d suffix so FileHandler recognizes the format
