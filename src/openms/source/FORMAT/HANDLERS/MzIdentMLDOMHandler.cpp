@@ -2536,11 +2536,30 @@ namespace OpenMS::Internal
 
             std::string location = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("location")));
             char originalResidue = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("originalResidue")))[0];
-            char replacementResidue = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("replacementResidue")))[0];
+            std::string replacementResidueStr = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("replacementResidue")));
+            if (replacementResidueStr.empty())
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          StringManager::convert(peptide->getAttribute(CONST_XMLCH("id"))),
+                                          "SubstitutionModification is missing the replacementResidue attribute.");
+            }
+            char replacementResidue = replacementResidueStr[0];
 
             if (!location.empty())
             {
-              as[StringUtils::toInt32(location) - 1] = replacementResidue;
+              // location is a 1-based residue position. A location of 0 (or any
+              // value below 1) makes "toInt32(location) - 1" negative, which wraps
+              // to a huge size_type and writes one byte before as's character
+              // buffer; a location past as.size() writes beyond it. Both are
+              // undefined behaviour on std::string::operator[] (CPP-169).
+              SignedSize pos = StringUtils::toInt32(location);
+              if (pos < 1 || static_cast<Size>(pos) > as.size())
+              {
+                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            StringManager::convert(peptide->getAttribute(CONST_XMLCH("id"))),
+                                            "SubstitutionModification location '" + location + "' is out of range for a " + StringUtils::toStr(as.size()) + "-residue sequence.");
+              }
+              as[pos - 1] = replacementResidue;
             }
             else if (StringUtils::hasSubstring(as, originalResidue)) //no location - every occurrence will be replaced
             {

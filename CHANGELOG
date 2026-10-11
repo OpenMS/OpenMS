@@ -234,6 +234,8 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
+  - FIX: MzIdentMLDOMHandler now rejects a SubstitutionModification whose location is 0 or past
+    the peptide sequence's length, instead of writing one byte outside the sequence string.
   - FIX: The thread-local log streams behind OPENMS_LOG_* follow the destinations of the global
     streams (getGlobalLog*(), LogConfigHandler, also in pyOpenMS) instead of copying them on their
     first message. Changes did not reach threads that had logged before, including the calling
