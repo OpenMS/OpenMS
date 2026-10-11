@@ -1739,7 +1739,7 @@ namespace OpenMS
     use_psm_cutoff_ = param_.getValue("min_psm_cutoff") != "none";
     if (use_psm_cutoff_)
     {
-      psm_score_cutoff_ = double(param_.getValue("min_psm_cutoff"));
+      psm_score_cutoff_ = StringUtils::toDouble(param_.getValue("min_psm_cutoff").toString()); // string parameter ("none" or a number)
     }
 
     add_mass_offset_peptides_ = double(param_.getValue("add_mass_offset_peptides"));
