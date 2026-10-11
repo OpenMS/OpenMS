@@ -719,6 +719,10 @@ namespace OpenMS
         const NASequence& seq = molecule_var.getIdentifiedOligoRef()->sequence;
         double calc_mass = seq.getMonoWeight(NASequence::Full,
                                              obs_match.charge);
+        if (obs_match.adduct_opt)
+        {
+          calc_mass += (*obs_match.adduct_opt)->getMassShift();
+        }
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
                                        osms, osm_scores, file_map);
       }
