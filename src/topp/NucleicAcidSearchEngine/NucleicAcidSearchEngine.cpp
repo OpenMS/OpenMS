@@ -95,6 +95,8 @@ Optionally, an idXML file suitable for visualizing search results in TOPPView (p
 
 Modified ribonucleotides can either be specified in the FASTA input file if they are expected at a specific site. As globally replacing the unmodified base (as @e fixed modifications), or set as @e variable modifications in the tool options.
 Information on available modifications is taken from the Modomics database (http://modomics.genesilico.pl/).
+Modifications that block the cleavage of the chosen RNase (e.g. m2G or I for RNase T1, as derived from the cleavage regular expressions of the enzyme) are enumerated during digestion, up to @p modifications:variable_max_per_oligo per candidate; @e fixed internal modifications are applied before cleavage.
+Candidates keep their coordinates and neighboring residues in the parent sequence.
 In addition to these "standard" modifications, OpenMS defines "generic" and "ambiguous" ones:
 <br>
 A generic modification represents a group of modifications that cannot be distinguished by tandem mass spectrometry.

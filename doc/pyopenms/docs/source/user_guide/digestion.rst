@@ -192,3 +192,17 @@ We can now use it to cut an oligo:
     for ribo in result[0]:
         print(ribo.getCode(), ribo.getMonoMass(), ribo.isModified())
 
+Digestion products with their zero-based position in the parent (start, length) are available through
+``digestProducts``. Modifications that block cleavage (e.g. m2G or I for RNase T1) can be enumerated during
+digestion with ``inferCleavageSensitiveMods`` and ``digestWithCleavageSensitiveMods``:
+
+.. code-block:: python
+
+    for product in dig.digestProducts(oligo):
+        print(product.fragment, product.position)
+
+    mod = oms.RibonucleotideDB().getRibonucleotide("m2G")  # a variable modification
+    groups = dig.inferCleavageSensitiveMods({mod})
+    # allow up to one cleavage-blocking modification per fragment
+    products = dig.digestWithCleavageSensitiveMods(oligo, groups, 1)
+
