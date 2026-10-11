@@ -351,10 +351,7 @@ START_SECTION((static double computeHyperScore(double, bool, const MSSpectrum&, 
 }
 END_SECTION
 
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-START_SECTION(HyperScore rejects invalid tolerances and accepts exact matching)
+START_SECTION(([EXTRA] computeHyperScore rejects invalid tolerances and accepts exact matching))
 {
   MSSpectrum spectrum;
   for (double mz : {100.0, 200.0, 300.0})
@@ -388,5 +385,8 @@ START_SECTION(HyperScore rejects invalid tolerances and accepts exact matching)
   }
 }
 END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 END_TEST
