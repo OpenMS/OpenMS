@@ -753,6 +753,17 @@ namespace OpenMS
     id_data.removeObservationMatchesIf(has_worse_score);
   }
 
+  /**
+    @brief Filter observation matches by score, rejecting missing or invalid values.
+
+    Scores must be finite; PSM-level and peptide-level q-values must also lie in
+    [0, 1]. Other score types may retain negative values. The cutoff comparison
+    follows the score type's higher/lower-better ordering.
+
+    @param[in,out] id_data Data to filter and clean up after removing matches
+    @param[in] score_ref Score type used for validation and filtering
+    @param[in] cutoff Inclusive score cutoff
+  */
   void IDFilter::filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff)
   {
     const auto& accession = score_ref->cv_term.getAccession();
