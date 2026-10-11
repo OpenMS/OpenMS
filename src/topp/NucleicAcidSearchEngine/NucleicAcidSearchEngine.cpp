@@ -238,6 +238,10 @@ protected:
     setValidStrings_("scoring:single_peak_credit", ListUtils::create<std::string>("true,false"));
     registerFlag_("scoring:use_mass_accuracy", "Apply mass accuracy-based distance weighting to scores (applies to both 'hyperscore' and 'mvh' methods)", true);
 
+    registerDoubleList_("scoring:blacklist_mz", "<values>", DoubleList(), "List of m/z values to exclude from theoretical spectra during scoring (e.g., uninformative c1/d1 ions from unmodified bases). Peaks matching these values within the blacklist tolerance will be removed before scoring.", false, true);
+    registerDoubleOption_("scoring:blacklist_tolerance", "<ppm>", 10.0, "Tolerance (in ppm) for matching peaks to blacklisted m/z values", false, true);
+    setMinFloat_("scoring:blacklist_tolerance", 0.0);
+
     registerTOPPSubsection_("modifications", "Modification options");
 
     // add modified ribos from database
@@ -273,6 +277,10 @@ protected:
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
 
+    registerDoubleOption_("report:require_coverage", "<fraction>", 0.0, "Minimum fraction of internal oligonucleotide positions that must be covered by fragment ions (0.0 = no requirement, 1.0 = full coverage required). Coverage requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position.", false, true);
+    setMinFloat_("report:require_coverage", 0.0);
+    setMaxFloat_("report:require_coverage", 1.0);
+
     registerTOPPSubsection_("fdr", "False Discovery Rate options");
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "std::string used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
     registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed", false);
@@ -295,6 +303,39 @@ protected:
     {
     }
   };
+
+  // Helper function to filter blacklisted m/z values from theoretical spectrum
+  void filterBlacklistedIons_(MSSpectrum& theo_spectrum,
+                               const vector<double>& blacklist_mz,
+                               double tolerance_ppm) const
+  {
+    if (blacklist_mz.empty()) return;
+
+    vector<Size> indices_to_remove;
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+      double mz = theo_spectrum[i].getMZ();
+      for (double blacklisted_mz : blacklist_mz)
+      {
+        double tolerance_da = blacklisted_mz * tolerance_ppm * 1e-6;
+        if (abs(mz - blacklisted_mz) <= tolerance_da)
+        {
+          indices_to_remove.push_back(i);
+          break;
+        }
+      }
+    }
+
+    vector<Size> retained;
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+      if (!std::binary_search(indices_to_remove.begin(), indices_to_remove.end(), i))
+      {
+        retained.push_back(i);
+      }
+    }
+    theo_spectrum.select(retained);
+  }
 
   // slimmer structure to store basic hit information
   struct AnnotatedHit
@@ -902,6 +943,101 @@ protected:
       }
     }
     id_data.cleanup();
+  }
+
+
+  /// Check if all internal positions of an oligonucleotide have fragment coverage
+  double calculateFragmentCoverage_(const NASequence& oligo,
+                                     const vector<PeptideHit::PeakAnnotation>& annotations)
+  {
+    Size length = oligo.size();
+    if (length <= 1) return 1.0; // No internal positions to check - full coverage
+
+    // Track which positions have coverage (positions 1 through length-1)
+    set<Size> covered_positions;
+
+    for (const auto& annotation : annotations)
+    {
+      std::string ann = annotation.annotation;
+      if (ann.empty())
+      {
+        OPENMS_LOG_WARN << "Empty fragment annotation found in coverage check" << endl;
+        continue;
+      }
+
+      // Check for a-B ions (e.g., "a1-B", "a2-B")
+      if (ann.find("-B") != std::string::npos)
+      {
+        // Extract position from "a1-B" -> "1"
+        std::string prefix = ann.substr(0, ann.find('-'));
+        if (prefix.starts_with("a"))
+        {
+          std::string pos_str = prefix.substr(1); // Remove 'a'
+          try
+          {
+            Size pos = static_cast<Size>(StringUtils::toInt64(pos_str));
+            if (pos >= 1 && pos < length)
+            {
+              covered_positions.insert(pos);
+            }
+          }
+          catch (Exception::ConversionError&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Malformed a-B fragment annotation: '" + ann + "' - expected format 'aN-B' where N is a position number",
+              ann);
+          }
+        }
+      }
+      else
+      {
+        // Regular ions: extract ion type and position
+        // Format: "a1", "b2", "w9", "y3", etc.
+        char ion_type = ann[0];
+        std::string ion_type_str(1, ion_type);
+
+        // Check if this is a valid fragment ion type (using class member)
+        if (std::find(fragment_ion_codes_.begin(), fragment_ion_codes_.end(),
+                      ion_type_str) != fragment_ion_codes_.end())
+        {
+          // Extract numeric position
+          std::string pos_str = ann.substr(1);
+          // Handle annotations like "y3+" by removing non-digits
+          pos_str.erase(std::remove(pos_str.begin(), pos_str.end(), '+'), pos_str.end());
+          pos_str.erase(std::remove(pos_str.begin(), pos_str.end(), '-'), pos_str.end());
+
+          try
+          {
+            Size pos = static_cast<Size>(StringUtils::toInt64(pos_str));
+
+            // w/x/y/z ions count from 3' end, need to convert to 5' end position
+            // For a 10-mer: w9 = position 1, w8 = position 2, ..., w1 = position 9
+            Size actual_pos = pos;
+            if (ion_type == 'w' || ion_type == 'x' || ion_type == 'y' || ion_type == 'z')
+            {
+              actual_pos = length - pos;
+            }
+
+            if (actual_pos >= 1 && actual_pos < length)
+            {
+              covered_positions.insert(actual_pos);
+            }
+          }
+          catch (Exception::ConversionError&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Malformed fragment annotation: '" + ann + "' - expected format like 'a1', 'b2', 'y3', etc.",
+              ann);
+          }
+        }
+      }
+    }
+
+    // Calculate coverage fraction: number of covered positions / total internal positions
+    Size total_internal_positions = length - 1;
+    double coverage = static_cast<double>(covered_positions.size()) / static_cast<double>(total_internal_positions);
+
+    return coverage;
   }
 
 
@@ -1529,6 +1665,15 @@ protected:
                                                 candidate, precursor_charges,
                                                 base_charge);
 
+          const auto blacklist_mz = getDoubleList_("scoring:blacklist_mz");
+          if (!blacklist_mz.empty())
+          {
+            for (auto& [charge, spectrum] : theo_spectra_by_charge)
+            {
+              filterBlacklistedIons_(spectrum, blacklist_mz, getDoubleOption_("scoring:blacklist_tolerance"));
+            }
+          }
+
           for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
           {
             OPENMS_LOG_DEBUG << "Matching precursor mass: "
@@ -1578,6 +1723,20 @@ protected:
             }
 
             if (!std::isfinite(score) || score < 1e-16) continue; // no finite hit
+
+            // Check fragment coverage if required
+            double min_coverage = getDoubleOption_("report:require_coverage");
+            if (min_coverage > 0.0)
+            {
+              double actual_coverage = calculateFragmentCoverage_(candidate, annotations);
+              if (actual_coverage < min_coverage)
+              {
+                OPENMS_LOG_DEBUG << "Skipping hit due to insufficient fragment coverage: "
+                                 << candidate.toString() << " (coverage: " << actual_coverage
+                                 << ", required: " << min_coverage << ")" << endl;
+                continue; // Insufficient fragment coverage
+              }
+            }
 
 #pragma omp atomic
             ++hit_counter;
