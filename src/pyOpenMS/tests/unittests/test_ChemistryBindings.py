@@ -6,6 +6,7 @@ Tests for newly bound CHEMISTRY methods in the nanobind build:
 - Residue.getHydrophobicity(HydrophobicityScaleMethod) + the enum
 - TheoreticalSpectrumGenerator.getPrefixAndSuffixIonsMZ(peptide, charge)
 - NucleicAcidSpectrumGenerator a1-B masses with a 5-prime modification
+- NASequence decoy reversal and seeded shuffling
 """
 import math
 import numpy as np
@@ -71,6 +72,32 @@ def test_nasg_five_prime_a1_base_loss(charge):
               if label == "a1-B"]
     expected = sequence.getPrefix(1).getMonoWeight(poms.NASequence.NASFragmentType.AminusB, charge)
     assert masses == pytest.approx([expected])
+
+
+def test_rna_decoy_reversal_and_identity():
+    """RNA reversal retains terminal chemistry and validates sequence lengths."""
+    sequence = poms.NASequence.fromString("pAUGCp")
+    assert sequence.getReversed().toString() == "pCGUAp"
+    assert sequence.getReversed(True, True).toString() == "pAGUCp"
+    assert sequence.getSequenceIdentity(sequence) == 1
+    assert poms.NASequence().getReversed().empty()
+    with pytest.raises(ValueError):
+        sequence.getSequenceIdentity(poms.NASequence.fromString("A"))
+
+
+def test_rna_decoy_shuffle_is_seeded_and_bounded():
+    """Seeded RNA shuffling respects its identity bound and terminal residues."""
+    sequence = poms.NASequence.fromString("pAUGCAUGCAUGCAUGCp")
+    first = sequence.getShuffled(42, 0.5, 30, True, True)
+    second = sequence.getShuffled(42, 0.5, 30, True, True)
+    assert first.toString() == second.toString()
+    assert first.size() == sequence.size()
+    assert first.getSequenceIdentity(sequence) <= 0.5
+    assert first.getFivePrimeMod().getCode() == sequence.getFivePrimeMod().getCode()
+    assert first.getThreePrimeMod().getCode() == sequence.getThreePrimeMod().getCode()
+    assert first[0].getCode() == sequence[0].getCode()
+    assert first[first.size() - 1].getCode() == sequence[sequence.size() - 1].getCode()
+    assert poms.NASequence.fromString("AU").getShuffled(42).toString() == "AU"
 
 
 def test_proteomics_pka_scale_enum():
