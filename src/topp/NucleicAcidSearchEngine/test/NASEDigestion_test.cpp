@@ -128,4 +128,109 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
 }
 END_SECTION
 
+START_SECTION(([EXTRA] imported digests use only their recorded enzyme for modification inference and budgets))
+{
+  std::string mzml, digest, output;
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(digest)
+  NEW_TMP_FILE(output)
+  mzml += ".mzML";
+  digest += ".oms";
+  output += ".idXML";
+  NucleicAcidSpectrumGenerator generator;
+  Param parameters = generator.getParameters();
+  parameters.setValue("add_first_prefix_ion", "true");
+  parameters.setValue("add_a-B_ions", "true");
+  parameters.setValue("add_metainfo", "true");
+  generator.setParameters(parameters);
+  const auto fixture = [&](const std::string& oligo_sequence, const std::string& hit,
+                           const DigestionEnzyme* enzyme)
+  {
+    IdentificationData data;
+    data.registerScoreType(IdentificationData::ScoreType("hyperscore", true));
+    IdentificationData::DBSearchParam search_param;
+    search_param.molecule_type = IdentificationData::MoleculeType::RNA;
+    search_param.digestion_enzyme = enzyme;
+    const auto search_ref = data.registerDBSearchParam(search_param);
+    const auto software_ref = data.registerProcessingSoftware(
+      IdentificationData::ProcessingSoftware("RNADigestor", "test"));
+    const auto step_ref = data.registerProcessingStep(
+      IdentificationData::ProcessingStep(software_ref), search_ref);
+    data.setCurrentProcessingStep(step_ref);
+    const auto parent_ref = data.registerParentSequence(
+      IdentificationData::ParentSequence("TARGET", IdentificationData::MoleculeType::RNA, "ACGUAC"));
+    IdentificationData::IdentifiedOligo oligo(NASequence::fromString(oligo_sequence));
+    oligo.parent_matches[parent_ref].insert(IdentificationData::ParentMatch(0, oligo.sequence.size() - 1));
+    data.registerIdentifiedOligo(oligo);
+    OMSFile().store(digest, data);
+
+    // Exercise the serialized metadata, including a genuinely absent enzyme.
+    IdentificationData imported;
+    OMSFile().load(digest, imported);
+    const auto imported_enzyme = imported.getDBSearchParams().begin()->digestion_enzyme;
+    TEST_TRUE((imported_enzyme == nullptr) == (enzyme == nullptr))
+    if (enzyme && imported_enzyme)
+    {
+      TEST_EQUAL(imported_enzyme->getName(), enzyme->getName())
+    }
+
+    const auto sequence = NASequence::fromString(hit);
+    MSSpectrum spectrum;
+    generator.getSpectrum(spectrum, sequence, -1, -2);
+    spectrum.setMSLevel(2);
+    spectrum.setNativeID("scan=1");
+    spectrum.setRT(20);
+    Precursor precursor;
+    precursor.setMZ(sequence.getMonoWeight(NASequence::Full, -2) / 2);
+    precursor.setCharge(2);
+    spectrum.setPrecursors({precursor});
+    MSExperiment exp;
+    exp.addSpectrum(spectrum);
+    FileHandler().storeExperiment(mzml, exp, {FileTypes::MZML});
+  };
+  const auto arguments = [&](const std::string& cli_enzyme, const std::string& budget)
+  {
+    return std::vector<std::string>{"-in", mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
+      "-oligo:enzyme", cli_enzyme, "-threads", "1", "-oligo:min_size", "1",
+      "-modifications:variable", "m22G", "5'-p", "-modifications:variable_max_per_oligo", budget};
+  };
+  const auto hit_labels = [&]()
+  {
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(output, proteins, peptides);
+    StringList labels;
+    for (const auto& peptide : peptides)
+    {
+      for (const auto& hit : peptide.getHits())
+      {
+        labels.push_back(hit.getMetaValue("label").toString());
+      }
+    }
+    return labels;
+  };
+
+  // An unknown digest enzyme must not suppress a modification inferred from the CLI enzyme.
+  fixture("ACGUAC", "AC[m2,2G]UAC", nullptr);
+  TEST_EQUAL(runSearch(arguments("RNase_T1", "1")), 0)
+  TEST_TRUE(hit_labels() == StringList{"AC[m2,2G]UAC"})
+
+  // Existing modified residues do not consume the budget without enzyme metadata.
+  fixture("AC[m2,2G]UAC", "pAC[m2,2G]UAC", nullptr);
+  TEST_EQUAL(runSearch(arguments("RNase_T1", "1")), 0)
+  TEST_TRUE(hit_labels() == StringList{"pAC[m2,2G]UAC"})
+
+  // A recorded enzyme still governs the budget even when the CLI enzyme differs.
+  fixture("AC[m2,2G]UAC", "pAC[m2,2G]UAC", RNaseDB::getInstance()->getEnzyme("RNase_T1"));
+  TEST_EQUAL(runSearch(arguments("no cleavage", "1")), 0)
+  TEST_EQUAL(hit_labels().size(), 0)
+  TEST_EQUAL(runSearch(arguments("no cleavage", "2")), 0)
+  TEST_TRUE(hit_labels() == StringList{"pAC[m2,2G]UAC"})
+
+  fixture("ACGUAC", "AC[m2,2G]UAC", RNaseDB::getInstance()->getEnzyme("no cleavage"));
+  TEST_EQUAL(runSearch(arguments("RNase_T1", "1")), 0)
+  TEST_TRUE(hit_labels() == StringList{"AC[m2,2G]UAC"})
+}
+END_SECTION
+
 END_TEST

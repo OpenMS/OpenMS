@@ -1172,6 +1172,7 @@ protected:
 
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
+      search_param.digestion_enzyme = search_ref->digestion_enzyme;
       cleavage_sensitive_groups = {};
       cleavage_sensitive_modifications.clear();
       cleavage_sensitive_mod_codes.clear();
@@ -1353,8 +1354,10 @@ protected:
       IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
-      Size consumed_cleavage_sensitive_mods =
-        countCleavageSensitiveMods_(ns, cleavage_sensitive_mod_codes);
+      // Only a known digest enzyme can classify existing modifications as
+      // cleavage-sensitive placements that consume the variable-modification budget.
+      Size consumed_cleavage_sensitive_mods = search_param.digestion_enzyme ?
+        countCleavageSensitiveMods_(ns, cleavage_sensitive_mod_codes) : 0;
       if (consumed_cleavage_sensitive_mods > max_variable_mods_per_oligo)
       {
         continue;
