@@ -37,6 +37,7 @@
 
 #include <vector>
 #include <numeric>
+#include <optional>
 #include <fstream>
 #include <algorithm>
 #include <random>
@@ -399,9 +400,16 @@ namespace OpenMS
               << " chromatogram(s)." << endl;
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    Logger::LogSinkGuard log_guard(getGlobalLogInfo(), cout); // suppress status output from OpenSWATH (exception-safe)
-    feat_finder_.pickExperiment(chrom_data_, features, library_,
-                                TransformationDescription(), ms_data_);
+    {
+      // suppress status output from OpenSWATH, unless in debug mode:
+      std::optional<Logger::LogSinkGuard> log_guard; // RAII: re-inserts cout on scope exit (exception-safe)
+      if (debug_level_ < 1)
+      {
+        log_guard.emplace(getThreadLocalLogInfo(), cout);
+      }
+      feat_finder_.pickExperiment(chrom_data_, features, library_,
+                                  TransformationDescription(), ms_data_);
+    }
     OPENMS_LOG_INFO << "Found " << features.size()
                     << " feature candidates in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
