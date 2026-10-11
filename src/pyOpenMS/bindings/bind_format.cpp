@@ -4,6 +4,8 @@
 #include "all_casters.h"
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/BedRModFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -101,6 +103,21 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_format, m) {
     m.doc() = "pyOpenMS format bindings";
+    nb::class_<OpenMS::OMSFile>(m, "OMSFile", "Load and store identification data in OMS format")
+        .def(nb::init<>())
+        .def("load", nb::overload_cast<const std::string&, OpenMS::IdentificationData&>(&OpenMS::OMSFile::load),
+             "filename"_a, "id_data"_a, nb::call_guard<nb::gil_scoped_release>())
+        .def("store", nb::overload_cast<const std::string&, const OpenMS::IdentificationData&>(&OpenMS::OMSFile::store),
+             "filename"_a, "id_data"_a, nb::call_guard<nb::gil_scoped_release>());
+
+    nb::class_<OpenMS::BedRModFile>(m, "BedRModFile", "Export RNA modifications with explicit bedRMod reference metadata")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::BedRModFile&>())
+        .def("store", &OpenMS::BedRModFile::store, "out_file"_a, "id_data"_a,
+             "chebi_mapping_file"_a = "", "reference_metadata"_a = std::map<std::string, std::string>{},
+             "Write a bedRMod file; unspecified reference metadata is NA.");
+
+
 
 #ifdef WITH_THERMO_RAW
     // -----------------------------------------------------------------------
@@ -725,6 +742,7 @@ Computes a SHA-1 hash of the file content
         .value("PEPLIST", OpenMS::FileTypes::Type::PEPLIST)
         .value("HARDKLOER", OpenMS::FileTypes::Type::HARDKLOER)
         .value("KROENIK", OpenMS::FileTypes::Type::KROENIK)
+        .value("BEDRMOD", OpenMS::FileTypes::Type::BEDRMOD)
         .value("FASTA", OpenMS::FileTypes::Type::FASTA)
         .value("EDTA", OpenMS::FileTypes::Type::EDTA)
         .value("CSV", OpenMS::FileTypes::Type::CSV)
