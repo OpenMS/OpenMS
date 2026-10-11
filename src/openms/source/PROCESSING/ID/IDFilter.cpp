@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <regex>
 #include <cmath>
@@ -754,28 +756,43 @@ namespace OpenMS
   }
 
   /**
-    @brief Filter observation matches by score, rejecting missing or invalid values.
+    @brief Validate stored scores and filter observation matches by an inclusive cutoff.
 
-    Scores must be finite; PSM-level and peptide-level q-values must also lie in
-    [0, 1]. Other score types may retain negative values. The cutoff comparison
-    follows the score type's higher/lower-better ordering.
+    Stored scores must be finite; PSM-level and distinct peptide-level q-values
+    must also lie in [0, 1]. Validation precedes filtering so an invalid score
+    leaves the data unchanged. Missing scores are removed, and other score types
+    may retain negative values according to their higher/lower-better ordering.
 
     @param[in,out] id_data Data to filter and clean up after removing matches
     @param[in] score_ref Score type used for validation and filtering
     @param[in] cutoff Inclusive score cutoff
+    @throws Exception::InvalidValue A stored score is non-finite or a q-value lies outside [0, 1]
   */
   void IDFilter::filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff)
   {
     const auto& accession = score_ref->cv_term.getAccession();
-    const bool is_q_value = accession == "MS:1002354" || accession == "MS:1002355";
+    const bool is_q_value = accession == "MS:1002354" || accession == "MS:1001868";
+    // Validate before removing matches to preserve the data if a producer stored an invalid score.
+    for (const auto& match : id_data.getObservationMatches())
+    {
+      const auto score = match.getScore(score_ref);
+      if (score.second && (!std::isfinite(score.first) ||
+                          (is_q_value && (score.first < 0.0 || score.first > 1.0))))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Invalid score of type '" + score_ref->cv_term.getName() + "' for observation '" +
+          match.observation_ref->data_id + "': expected " +
+          (is_q_value ? "a finite q-value in [0, 1]." : "a finite score."),
+          StringUtils::toStr(score.first));
+      }
+    }
+
     // predicate to compare the score of observation matches to a cutoff
     // returns true if the current score is worse than the cutoff
     // returns false otherwise
     auto is_worse_than_cutoff = [&](IdentificationData::ObservationMatchRef it) -> bool {
       pair<double, bool> score = it->getScore(score_ref);
-      return !score.second || !std::isfinite(score.first) ||
-        (is_q_value && (score.first < 0.0 || score.first > 1.0)) ||
-        score_ref->isBetterScore(cutoff, score.first);
+      return !score.second || score_ref->isBetterScore(cutoff, score.first);
     };
 
     id_data.removeObservationMatchesIf(is_worse_than_cutoff);
