@@ -1172,6 +1172,10 @@ protected:
 
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
+      cleavage_sensitive_groups = {};
+      cleavage_sensitive_modifications.clear();
+      cleavage_sensitive_mod_codes.clear();
+      post_digest_variable_modifications = variable_modifications;
       if (search_ref->digestion_enzyme)
       {
         RNaseDigestion cleavage_sensitive_digestor;
