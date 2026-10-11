@@ -9,18 +9,19 @@
 #include "NeighborSeq.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-
-#include <regex>
 
 
 using namespace OpenMS;
@@ -65,6 +66,11 @@ See www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/ and NeighborSeq for details.
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_DecoyDatabase.cli
 <B>INI file documentation of this tool:</B>
+For RNA, terminal chain modifications remain at their original ends.
+The optional @p keep_terminal_nucleotides flag also fixes the first and last residues.
+With @p rnase, each original RNase product is reversed or shuffled within the parent;
+this does not guarantee that the resulting decoy has identical cleavage boundaries.
+
 @htmlinclude TOPP_DecoyDatabase.html
 
 */
@@ -96,10 +102,12 @@ protected:
     registerStringOption_("type", "<choice>", "protein", "Type of sequence. RNA sequences may contain modification codes, which will be handled correctly if this is set to 'RNA'.", false);
     setValidStrings_("type", {"protein", "RNA"});
 
+    registerFlag_("keep_terminal_nucleotides", "For RNA sequences: preserve 5' and 3' terminal nucleotides when reversing/shuffling. Terminal chain modifications are always retained; this option additionally keeps the first and last nucleotide in place.", false);
+
     registerStringOption_("method", "<choice>", "reverse", "Method by which decoy sequences are generated from target sequences. Note that all sequences are shuffled using the same random seed, ensuring that identical sequences produce the same shuffled decoy sequences. Shuffled sequences that produce highly similar output sequences are shuffled again (see shuffle_sequence_identity_threshold).", false);
     setValidStrings_("method", {"reverse", "shuffle"});
-    registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
-    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. In case of repeated failure, individual amino acids are 'mutated' to produce a different amino acid sequence.", false, true);
+    registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false, true);
+    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. In case of repeated failure, individual residues are 'mutated' to produce a different sequence.", false, true);
     registerIntOption_("shuffle_decoy_ratio", "<int>", 1, "shuffle: target-decoy database size ratio. The resulting size between target and decoy databases is 1 to this integer value.", false, true);
     setMinInt_("shuffle_decoy_ratio", 1);
 
@@ -107,8 +115,13 @@ protected:
 
     StringList all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
-    registerStringOption_("enzyme", "<enzyme>", "Trypsin", "Enzyme used for the digestion of the sample. Only applicable if parameter 'type' is 'protein'.",false);
+    registerStringOption_("enzyme", "<enzyme>", "Trypsin", "Enzyme used for the digestion of the sample. Only applicable if parameter 'type' is 'protein'.", false);
     setValidStrings_("enzyme", all_enzymes);
+
+    StringList all_rnases;
+    RNaseDB::getInstance()->getAllNames(all_rnases);
+    registerStringOption_("rnase", "<enzyme>", "no cleavage", "RNase used for the digestion of the RNA. Only applicable if parameter 'type' is 'RNA'. Per-fragment reversal/shuffling (analogous to protein mode with an enzyme) is performed when an RNase other than 'no cleavage' is specified.", false);
+    setValidStrings_("rnase", all_rnases);
 
     registerSubsection_("Decoy", "Decoy parameters section");
 
@@ -202,6 +215,14 @@ protected:
     }
 
     const SeqType input_type = getStringOption_("type") == "RNA" ? SeqType::RNA : SeqType::protein;
+    bool keep_terminal_nucleotides = getFlag_("keep_terminal_nucleotides");
+
+    // Warn if keep_terminal_nucleotides is used with protein mode
+    if (keep_terminal_nucleotides && input_type == SeqType::protein)
+    {
+      OPENMS_LOG_WARN << "Warning: 'keep_terminal_nucleotides' flag is intended for RNA mode and will be ignored for protein sequences.\n";
+      keep_terminal_nucleotides = false;
+    }
 
     Param decoy_param = getParam_().copy("Decoy:", true);
     bool keepN = decoy_param.getValue("keepPeptideNTerm").toBool();
@@ -221,10 +242,20 @@ protected:
     const int seed = (seed_option == "time") ? time(nullptr) : StringUtils::toInt32(seed_option);
         
     // Configure Enzymatic digestion
-    // TODO: allow user-specified regex
     ProteaseDigestion digestion;
     std::string enzyme = StringUtils::trimmed(getStringOption_("enzyme"));
-    if ((input_type == SeqType::protein) && ! enzyme.empty()) { digestion.setEnzyme(enzyme); }
+    if ((input_type == SeqType::protein) && !enzyme.empty())
+    {
+      digestion.setEnzyme(enzyme);
+    }
+
+    // Configure RNA enzymatic digestion
+    RNaseDigestion rnase_digestion;
+    std::string rnase = StringUtils::trimmed(getStringOption_("rnase"));
+    if (input_type == SeqType::RNA && !rnase.empty() && rnase != "no cleavage")
+    {
+      rnase_digestion.setEnzyme(rnase);
+    }
 
     //-------------------------------------------------------------
     // reading input
@@ -414,44 +445,75 @@ protected:
           // new decoy sequence
           if (input_type == SeqType::RNA)
           {
-            string quick_seq = decoy_entry.sequence;
-            bool five_p = (decoy_entry.sequence.front() == 'p');
-            bool three_p = (decoy_entry.sequence.back() == 'p');
-            if (five_p) // we don't want to reverse terminal phosphates
-            {
-              quick_seq.erase(0, 1);
-            }
-            if (three_p) { quick_seq.pop_back(); }
+            NASequence na_seq = NASequence::fromString(decoy_entry.sequence);
 
-            vector<std::string> tokenized;
-            std::smatch m;
-            std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
-            std::regex re(pattern);
+            if (!rnase.empty() && rnase != "no cleavage")
+            {
+              // Digest to find fragment boundaries, then reverse/shuffle
+              // each fragment's nucleotides within the full sequence.
+              // We work on the original NASequence's nucleotide vector to
+              // avoid invalid strings from concatenating fragment toString()
+              // results (which would embed 3'-phosphate 'p' characters).
+              vector<NASequence> fragments;
+              rnase_digestion.digest(na_seq, fragments);
 
-            while (std::regex_search(quick_seq, m, re))
+              NASequence result = na_seq; // preserves 5'/3' terminal mods
+              const auto& orig_seq = na_seq.getSequence();
+              Size pos = 0;
+              for (const auto& fragment : fragments)
+              {
+                Size frag_len = fragment.size();
+                if (frag_len <= 1)
+                {
+                  pos += frag_len;
+                  continue;
+                }
+
+                // Extract this fragment's nucleotides (without terminal mods)
+                auto it_begin = orig_seq.begin() + pos;
+                NASequence frag_copy({it_begin, it_begin + frag_len}, nullptr, nullptr);
+
+                // Only preserve terminal nucleotides at full-sequence boundaries
+                bool keep5 = keep_terminal_nucleotides && (pos == 0);
+                bool keep3 = keep_terminal_nucleotides && (pos + frag_len == result.size());
+
+                NASequence decoy_frag;
+                if (shuffle)
+                {
+                  shuffler.seed(repeat_seed);
+                  decoy_frag = frag_copy.getShuffled(shuffler, identity_threshold, max_attempts, keep5, keep3);
+                }
+                else // reverse
+                {
+                  decoy_frag = frag_copy.getReversed(keep5, keep3);
+                }
+
+                // Write reversed/shuffled nucleotides back into result
+                for (Size i = 0; i < frag_len; ++i)
+                {
+                  result[pos + i] = decoy_frag[i];
+                }
+                pos += frag_len;
+              }
+              decoy_entry.sequence = result.toString();
+            }
+            else
             {
-              tokenized.emplace_back(m.str(0));
-              quick_seq = m.suffix();
+              // No digestion: reverse/shuffle the whole sequence
+              if (shuffle)
+              {
+                shuffler.seed(repeat_seed);
+                NASequence decoy_seq = na_seq.getShuffled(shuffler, identity_threshold, max_attempts,
+                                                         keep_terminal_nucleotides, keep_terminal_nucleotides);
+                decoy_entry.sequence = decoy_seq.toString();
+              }
+              else // reverse
+              {
+                NASequence decoy_seq = na_seq.getReversed(keep_terminal_nucleotides, keep_terminal_nucleotides);
+                decoy_entry.sequence = decoy_seq.toString();
+              }
             }
 
-            if (shuffle)
-            {
-              shuffler.seed(repeat_seed);
-              shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
-            }
-            else // reverse
-            {
-              reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
-            }
-            if (five_p) // add back 5'
-            {
-              tokenized.insert(tokenized.begin(),std::string("p"));
-            }
-            if (three_p) // add back 3'
-            {
-              tokenized.emplace_back("p");
-            }
-            decoy_entry.sequence = ListUtils::concatenate(tokenized, "");
           }
           else // protein input
           {

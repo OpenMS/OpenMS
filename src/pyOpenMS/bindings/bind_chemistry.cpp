@@ -2244,6 +2244,15 @@ the fixed and variable modifications given to the constructor
         .def("getPrefix", [](const OpenMS::NASequence& self, size_t length) { return self.getPrefix(length); }, "length"_a, "Returns the prefix of the given length")
         .def("getSuffix", [](const OpenMS::NASequence& self, size_t length) { return self.getSuffix(length); }, "length"_a, "Returns the suffix of the given length")
         .def("getSubsequence", [](const OpenMS::NASequence& self, size_t start, size_t length) { return self.getSubsequence(start, length); }, "start"_a, "length"_a, "Returns a subsequence starting at start with the given length")
+        .def("getReversed", &OpenMS::NASequence::getReversed, "keep_five_prime"_a = false, "keep_three_prime"_a = false, "Reverse residues while preserving terminal chain modifications; optionally fix terminal residues.")
+        .def("getSequenceIdentity", [](const OpenMS::NASequence& self, const OpenMS::NASequence& other) {
+            if (self.size() != other.size()) { throw nb::value_error("Sequence lengths must match"); }
+            return self.getSequenceIdentity(other);
+        }, "other"_a, "Return positional residue identity for equal-length sequences, ignoring terminal modifications.")
+        .def("getShuffled", [](const OpenMS::NASequence& self, OpenMS::UInt seed, double threshold, int attempts, bool keep_five, bool keep_three) {
+            OpenMS::Math::RandomShuffler shuffler(seed);
+            return self.getShuffled(shuffler, threshold, attempts, keep_five, keep_three);
+        }, "seed"_a = 1, "identity_threshold"_a = 0.5, "max_attempts"_a = 30, "keep_five_prime"_a = false, "keep_three_prime"_a = false, "Shuffle with a reproducible seed and bounded identity retries, then mutate matching free residues if necessary. Terminal chain modifications are retained.")
         .def("set", [](OpenMS::NASequence& self, size_t index, const OpenMS::Ribonucleotide* r) {
             if (index >= self.size()) throw nb::index_error(); // NASequence::set is an unchecked seq_[index]
             self.set(index, resolveDBRibonucleotide_(r));
