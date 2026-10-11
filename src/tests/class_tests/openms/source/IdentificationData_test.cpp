@@ -604,7 +604,7 @@ START_SECTION((IdentificationData(const IdentificationData& other)))
 }
 END_SECTION
 
-START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const))
+START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref, bool require_score = false) const))
 {
   // add a second observation and match (without score):
   ID::Observation obs("spectrum_2", file_ref, 200.0, 2000.0);
@@ -629,11 +629,8 @@ START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeR
     TEST_EQUAL(results[0] == match_ref4, true);
     TEST_EQUAL(results[1] == match_ref2, true);
   }
-}
-END_SECTION
 
-START_SECTION(([EXTRA] Best tied RNA match is independent of allocation order))
-{
+  // Exact ties must select the same molecule regardless of registration order.
   for (bool reverse : {false, true})
   {
     for (bool higher_better : {false, true})
@@ -655,9 +652,9 @@ START_SECTION(([EXTRA] Best tied RNA match is independent of allocation order))
         ids.registerObservationMatch(hit);
       }
       auto best = ids.getBestMatchPerObservation(score, true);
-      TEST_EQUAL(best.size(), 1)
-      ABORT_IF(best.size() != 1)
-      TEST_EQUAL(best[0]->identified_molecule_var.toString(), "AAG")
+      TEST_EQUAL(best.size(), 1);
+      ABORT_IF(best.size() != 1);
+      TEST_EQUAL(best[0]->identified_molecule_var.toString(), "AAG");
       // A genuinely better score must win over the lexical tie-breaker.
       for (auto hit = ids.getObservationMatches().begin(); hit != ids.getObservationMatches().end(); ++hit)
       {
@@ -667,7 +664,7 @@ START_SECTION(([EXTRA] Best tied RNA match is independent of allocation order))
         }
       }
       best = ids.getBestMatchPerObservation(score, true);
-      TEST_EQUAL(best[0]->identified_molecule_var.toString(), "AGG")
+      TEST_EQUAL(best[0]->identified_molecule_var.toString(), "AGG");
     }
   }
 }

@@ -6,6 +6,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <fstream>
+#include <limits>
 
 class TestNASE : public NucleicAcidSearchEngine
 {
@@ -14,6 +15,10 @@ public:
   using NucleicAcidSearchEngine::resolveAmbiguousMods_;
   using NucleicAcidSearchEngine::HitsByScore;
   using NucleicAcidSearchEngine::AnnotatedHit;
+  using NucleicAcidSearchEngine::PrecursorInfo;
+  using NucleicAcidSearchEngine::retainTopHit_;
+  using NucleicAcidSearchEngine::sortHitsByValue_;
+  using NucleicAcidSearchEngine::generateLFQInput_;
   void enableAmbiguities() { resolve_ambiguous_mods_ = true; }
   bool ambiguitiesEnabled() const { return resolve_ambiguous_mods_; }
 };
@@ -66,15 +71,17 @@ START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypothes
 }
 END_SECTION
 
-START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA candidates))
+START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
 {
-  std::string mzml, fasta, output;
+  std::string mzml, fasta, output, digest;
   NEW_TMP_FILE(mzml)
   NEW_TMP_FILE(fasta)
   NEW_TMP_FILE(output)
+  NEW_TMP_FILE(digest)
   mzml += ".mzML";
   fasta += ".fasta";
   output += ".idXML";
+  digest += ".oms";
   NucleicAcidSpectrumGenerator generator;
   Param parameters = generator.getParameters();
   parameters.setValue("add_first_prefix_ion", "true");
@@ -105,11 +112,40 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
       "-threads", "1", "-oligo:min_size", "1", "-oligo:missed_cleavages", "0"};
   };
   fixture("ACGUAC", "ACGUAC", 2);
-  TEST_EQUAL(runSearch(arguments()), 0)
+  auto args = arguments();
+  args.insert(args.end(), {"-digest_out", digest});
+  TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
 
+  // Reuse the digest with different search tolerances while preserving its database.
+  args = {"-in", mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
+    "-precursor:mass_tolerance", "20", "-fragment:mass_tolerance", "25", "-threads", "1",
+    "-db_out", output + ".oms"};
+  TEST_EQUAL(runSearch(args), 0)
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  IdXMLFile().load(output, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  ABORT_IF(proteins.size() != 1)
+  TEST_REAL_SIMILAR(proteins[0].getSearchParameters().precursor_mass_tolerance, 20)
+  TEST_REAL_SIMILAR(proteins[0].getSearchParameters().fragment_mass_tolerance, 25)
+  TEST_TRUE(proteins[0].getSearchParameters().db == fasta)
+  IdentificationData result;
+  OMSFile().load(output + ".oms", result);
+  bool current_identification = false;
+  for (const auto& mapping : result.getDBSearchSteps())
+  {
+    if (mapping.first->actions.count(DataProcessing::IDENTIFICATION))
+    {
+      current_identification = true;
+      TEST_REAL_SIMILAR(mapping.second->precursor_mass_tolerance, 20)
+      TEST_REAL_SIMILAR(mapping.second->fragment_mass_tolerance, 25)
+    }
+  }
+  TEST_TRUE(current_identification)
+
   fixture("ACGUAC", "AC[m2,2G]UAC", 2);
-  auto args = arguments("RNase_T1");
+  args = arguments("RNase_T1");
   args.insert(args.end(), {"-modifications:fixed", "m22G"});
   TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
@@ -233,4 +269,83 @@ START_SECTION(([EXTRA] imported digests use only their recorded enzyme for modif
 }
 END_SECTION
 
+START_SECTION(([EXTRA] complete cutoff ties are retained for every arrival order))
+{
+  TestNASE tool;
+  IdentificationData data;
+  auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("ACGU")));
+  TestNASE::PrecursorInfo precursor{0, -2, 0, nullopt};
+  std::vector<std::string> sequences{"AAA", "AAC", "AAG", "AAU"};
+  std::vector<double> scores{12.0, 10.0, 10.0, 9.0};
+  std::vector<Size> order{0, 1, 2, 3};
+  do
+  {
+    TestNASE::HitsByScore hits;
+    for (Size index : order)
+    {
+      TestNASE::AnnotatedHit hit;
+      hit.oligo_ref = oligo;
+      hit.sequence = NASequence::fromString(sequences[index]);
+      hit.precursor_error_ppm = 0;
+      hit.precursor_ref = &precursor;
+      tool.retainTopHit_(hits, scores[index], hit, 2);
+    }
+    tool.sortHitsByValue_(hits);
+    TEST_EQUAL(hits.size(), 3)
+    std::vector<std::string> retained;
+    for (const auto& hit : hits)
+    {
+      retained.push_back(hit.second.sequence.toString());
+    }
+    TEST_TRUE(retained == std::vector<std::string>({"AAA", "AAC", "AAG"}))
+  }
+  while (std::next_permutation(order.begin(), order.end()));
+}
+END_SECTION
+
+START_SECTION(([EXTRA] LFQ uses finite weights or the median of finite observations))
+{
+  TestNASE tool;
+  IdentificationData data;
+  auto input = data.registerInputFile(IdentificationData::InputFile("lfq.mzML"));
+  Size index = 0;
+  const auto add = [&](const std::string& sequence, double rt, double weight)
+  {
+    auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString(sequence)));
+    IdentificationData::Observation obs("scan=" + std::to_string(++index), input, rt);
+    obs.setMetaValue("precursor_intensity", weight);
+    auto observation = data.registerObservation(obs);
+    data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, observation, -2));
+  };
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  add("ACGU", 10, 0);
+  add("ACGU", 20, -1);
+  add("ACGU", 30, nan);
+  add("ACGU", nan, 100);
+  add("AGGU", 10, 1);
+  add("AGGU", 30, 3);
+  add("AGGU", 100, nan);
+  add("AGGU", nan, 100);
+  add("AUUU", nan, 1);
+  std::string path;
+  NEW_TMP_FILE(path)
+  tool.generateLFQInput_(data, path);
+  TextFile file(path);
+  const std::vector<std::string> table(file.begin(), file.end());
+  TEST_EQUAL(table.size(), 3)
+  std::map<std::string, double> rts;
+  for (Size row = 1; row < table.size(); ++row)
+  {
+    std::vector<std::string> fields;
+    StringUtils::split(table[row], '\t', fields);
+    rts[fields[0]] = StringUtils::toDouble(fields[4]);
+  }
+  TEST_REAL_SIMILAR(rts.at("ACGU"), 20)
+  TEST_REAL_SIMILAR(rts.at("AGGU"), 25)
+  TEST_EQUAL(rts.count("AUUU"), 0)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 END_TEST

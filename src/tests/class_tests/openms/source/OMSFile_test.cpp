@@ -100,11 +100,8 @@ START_SECTION(void load(const std::string& filename, IdentificationData& id_data
   TEST_EQUAL(adduct_it->identified_molecule_var.toString(),
              ids.getObservationMatches().begin()->identified_molecule_var.toString());
   TEST_EQUAL((*adduct_it->adduct_opt)->getName(), "Cl-");
-}
-END_SECTION
 
-START_SECTION(([EXTRA] same-second processing actions and search parameters survive round-trip))
-{
+  // Same-second steps with different actions must retain both search-parameter mappings.
   IdentificationData input;
   auto file = input.registerInputFile(IdentificationData::InputFile("same-second.mzML"));
   auto software = input.registerProcessingSoftware(IdentificationData::ProcessingSoftware("NASE", "test"));
