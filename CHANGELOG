@@ -36,6 +36,8 @@ OpenMS Library:
   - FIX: IDFilter -in_silico_digestion (IDFilter::DigestionFilter) dropped the last residue of each
     peptide evidence (inclusive end) and so rejected valid digestion products and accepted invalid ones.
   - FIX: ElementDB built iridium (Ir) from rhenium's isotope masses and abundances.
+  - FIX: FileInfo no longer crashes on a peptide identification without hits (#10497), and its consensusXML
+    quality statistics count each consensus feature once instead of twice with zero entries (#10498).
   - FIX: IMDataConverter::splitByFAIMSCV updates the ranges of each FAIMS CV group, so
     FeatureFinderCentroided no longer fails with "No ranges for this MS level" on FAIMS input.
   - FIX: IsobaricAnalyzer and IsobaricWorkflow precursor purity now count the precursor's own
