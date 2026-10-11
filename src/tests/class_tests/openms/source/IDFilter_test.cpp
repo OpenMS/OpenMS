@@ -1093,12 +1093,9 @@ START_SECTION((static void keepNBestSpectra(PeptideIdentificationList& peptides,
 }
 END_SECTION
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-
-START_SECTION(q-value cutoffs reject sentinel and invalid values)
+START_SECTION((static void filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff)))
 {
+  // Q-value cutoffs reject sentinel and invalid values.
   for (const std::string& accession : {"MS:1002354", "MS:1002355"})
   {
     for (double cutoff : {0.05, 1.0})
@@ -1124,19 +1121,19 @@ START_SECTION(q-value cutoffs reject sentinel and invalid values)
       const auto missing = data.registerObservation(IdentificationData::Observation("missing", file));
       data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, missing, -2));
       IDFilter::filterObservationMatchesByScore(data, q, cutoff);
-      TEST_EQUAL(data.getObservationMatches().size(), cutoff == 0.05 ? 3 : 5)
+      TEST_EQUAL(data.getObservationMatches().size(), cutoff == 0.05 ? 3 : 5);
       for (const auto& match : data.getObservationMatches())
       {
         const auto score = match.getScore(q);
-        TEST_TRUE(score.second)
-        TEST_TRUE(score.first >= 0.0 && score.first <= cutoff)
+        TEST_TRUE(score.second);
+        TEST_TRUE(score.first >= 0.0 && score.first <= cutoff);
       }
     }
   }
 }
 END_SECTION
 
-START_SECTION(non-q-value scores may be negative)
+START_SECTION(([EXTRA] filterObservationMatchesByScore permits negative non-q-value scores))
 {
   IdentificationData data;
   const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
@@ -1155,9 +1152,12 @@ START_SECTION(non-q-value scores may be negative)
     data.registerObservationMatch(match);
   }
   IDFilter::filterObservationMatchesByScore(data, score_type, -1.0);
-  TEST_EQUAL(data.getObservationMatches().size(), 2)
+  TEST_EQUAL(data.getObservationMatches().size(), 2);
 }
 END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 END_TEST
 
