@@ -454,6 +454,11 @@ namespace OpenMS
     /*!
       @brief Return the best match for each observation, according to a given score type
 
+      Exact score ties are resolved lexicographically by molecule type, sequence or
+      compound identifier, charge, and adduct values, not allocation/registration
+      order. Target/decoy status is not used to prefer a tied match. This policy
+      selects a reproducible representative; it does not establish unique localization.
+
       @param[in] score_ref Score type to use
       @param[in] require_score Exclude matches without score of this type, even if they are the only matches for their observations?
     */

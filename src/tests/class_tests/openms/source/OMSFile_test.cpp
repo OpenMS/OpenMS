@@ -103,6 +103,47 @@ START_SECTION(void load(const std::string& filename, IdentificationData& id_data
 }
 END_SECTION
 
+START_SECTION(([EXTRA] same-second processing actions and search parameters survive round-trip))
+{
+  IdentificationData input;
+  auto file = input.registerInputFile(IdentificationData::InputFile("same-second.mzML"));
+  auto software = input.registerProcessingSoftware(IdentificationData::ProcessingSoftware("NASE", "test"));
+  IdentificationData::DBSearchParam original;
+  original.precursor_mass_tolerance = 10;
+  auto original_ref = input.registerDBSearchParam(original);
+  IdentificationData::DBSearchParam current = original;
+  current.precursor_mass_tolerance = 20;
+  auto current_ref = input.registerDBSearchParam(current);
+  DateTime time;
+  time.set("2026-10-10 12:00:00");
+  input.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}, time), original_ref);
+  input.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}, time,
+    {DataProcessing::IDENTIFICATION, DataProcessing::FILTERING}), current_ref);
+  std::string path;
+  NEW_TMP_FILE(path);
+  OMSFile().store(path, input);
+  IdentificationData output;
+  OMSFile().load(path, output);
+  TEST_EQUAL(output.getProcessingSteps().size(), 2);
+  TEST_EQUAL(output.getDBSearchSteps().size(), 2);
+  for (const auto& mapping : output.getDBSearchSteps())
+  {
+    TEST_EQUAL(mapping.first->date_time, time);
+    if (mapping.first->actions.empty())
+    {
+      TEST_REAL_SIMILAR(mapping.second->precursor_mass_tolerance, 10);
+    }
+    else
+    {
+      TEST_EQUAL(mapping.first->actions.size(), 2);
+      TEST_EQUAL(mapping.first->actions.count(DataProcessing::IDENTIFICATION), 1);
+      TEST_EQUAL(mapping.first->actions.count(DataProcessing::FILTERING), 1);
+      TEST_REAL_SIMILAR(mapping.second->precursor_mass_tolerance, 20);
+    }
+  }
+}
+END_SECTION
+
 START_SECTION(void store(const std::string& filename, const FeatureMap& features))
 {
   FeatureMap features;

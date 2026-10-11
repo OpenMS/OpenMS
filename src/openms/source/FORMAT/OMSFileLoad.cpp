@@ -358,6 +358,15 @@ namespace OpenMS::Internal
       ID::ProcessingStep step(processing_software_refs_[software_id]);
       std::string date_time = query.getColumn("date_time").getString();
       if (!date_time.empty()) step.date_time.set(date_time);
+      // Older schemas did not persist actions; leave their sets empty.
+      if (version_number_ >= 6)
+      {
+        const auto actions = ListUtils::create<std::string>(query.getColumn("processing_actions").getString());
+        for (const auto& action : actions)
+        {
+          step.actions.insert(DataProcessing::toProcessingAction(action));
+        }
+      }
       if (have_input_files)
       {
         subquery_file.bind(":id", id);
