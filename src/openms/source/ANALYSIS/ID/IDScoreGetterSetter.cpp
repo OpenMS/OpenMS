@@ -128,6 +128,7 @@ namespace OpenMS
         //  a single 0
         if (!isDecoy && tgt_proportion > 0.) // target was picked on single protein level
         {
+          decoy_picked = false; // one vote per group, also if a picked decoy came first
           scores_labels.emplace_back(grp.probability, 1.0);
           break;
         }
@@ -149,7 +150,7 @@ namespace OpenMS
     {
       return {true ,StringUtils::suffix(acc, acc.size() - decoy_string.size())};
     }
-    else if (StringUtils::hasSuffix(acc, decoy_string))
+    else if (!decoy_prefix && StringUtils::hasSuffix(acc, decoy_string))
     {
       return {true, StringUtils::prefix(acc, acc.size() - decoy_string.size())};
     }
@@ -191,7 +192,7 @@ namespace OpenMS
         }
         else if (hit.getScore() == it->second.first)
         {
-          it->second = {hit.getScore(), true}; //prefer targets. Alternative: put 0.5
+          if (target) it->second.second = 1.0; //prefer targets (a tie of two decoys stays a decoy). Alternative: put 0.5
         }
       }
     }
@@ -252,15 +253,33 @@ namespace OpenMS
   * @brief For protein groups. Unaffected by keep_decoy_proteins. Always keeps all for now @todo.
   * score_type and higher_better unused since ProteinGroups do not carry that information.
   * You have to assume that groups will always have the same scores as the ProteinHits
+  * Like a hit, a group gets the value of the closest calibrated score that is equal or better
+  * (in the direction old_higher_better of its current score). A score better than every calibrated one
+  * gets the best q-value, or the FDR of accepting no group (1) if @p q_value is false.
   */
   void IDScoreGetterSetter::setScores_(const map<double, double> &scores_to_FDR,
                                       vector <ProteinIdentification::ProteinGroup> &grps,
                                       const string & /*score_type*/,
-                                      bool /*higher_better*/)
+                                      bool /*higher_better*/,
+                                      bool old_higher_better,
+                                      bool q_value)
   {
+    if (grps.empty()) return;
+    if (scores_to_FDR.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No protein group took part in the target-decoy competition, so no group FDR can be calculated.");
+    }
     for (auto &grp : grps)
     {
-      grp.probability = (scores_to_FDR.lower_bound(grp.probability)->second);
+      auto it = old_higher_better ? scores_to_FDR.lower_bound(grp.probability) : scores_to_FDR.upper_bound(grp.probability);
+      if (it == (old_higher_better ? scores_to_FDR.end() : scores_to_FDR.begin())) // better than every calibrated score
+      {
+        grp.probability = q_value ? (old_higher_better ? scores_to_FDR.rbegin()->second : scores_to_FDR.begin()->second) : 1.0;
+        continue;
+      }
+      if (!old_higher_better) --it; // lower is better: the closest lower (or equal) calibrated score
+      grp.probability = it->second;
     }
   }
   void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<std::string, ScoreToTgtDecLabelPair> const& seq_to_fdr,
