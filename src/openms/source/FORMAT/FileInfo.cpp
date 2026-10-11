@@ -1339,7 +1339,7 @@ namespace OpenMS
       Size average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
       for (Size i = 0; i < id_data.peptides.size(); ++i)
       {
-        if (!id_data.peptides[i].empty())
+        if (!id_data.peptides[i].getHits().empty())
         {
           ++spectrum_count;
           average_peptide_hits += id_data.peptides[i].getHits().size();
@@ -2255,9 +2255,9 @@ namespace OpenMS
 
         vector<double> intensities;
         intensities.reserve(size);
-        vector<double> qualities(size);
+        vector<double> qualities;
         qualities.reserve(size);
-        vector<double> widths(size);
+        vector<double> widths;
         widths.reserve(size);
 
         vector<double> rt_delta_by_elems;
