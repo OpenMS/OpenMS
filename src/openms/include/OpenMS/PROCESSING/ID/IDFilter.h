@@ -1450,7 +1450,10 @@ namespace OpenMS
       @brief Filter observation matches (e.g. PSMs) in IdentificationData by score
 
       Matches with scores of the required type that are worse than the cut-off are removed.
-      Matches without a score of the required type are also removed.
+      Matches without a score of the required type or with a non-finite score are also removed.
+      PSM-level and peptide-level q-values (MS:1002354 and MS:1002355) outside [0, 1]
+      are removed, including unevaluated negative sentinel values. Other score types
+      may have valid negative scores.
       The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
       @param[in] id_data Data to be filtered

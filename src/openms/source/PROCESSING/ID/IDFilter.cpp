@@ -9,6 +9,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <regex>
+#include <cmath>
 
 using namespace std;
 
@@ -754,12 +755,16 @@ namespace OpenMS
 
   void IDFilter::filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff)
   {
+    const auto& accession = score_ref->cv_term.getAccession();
+    const bool is_q_value = accession == "MS:1002354" || accession == "MS:1002355";
     // predicate to compare the score of observation matches to a cutoff
     // returns true if the current score is worse than the cutoff
     // returns false otherwise
     auto is_worse_than_cutoff = [&](IdentificationData::ObservationMatchRef it) -> bool {
       pair<double, bool> score = it->getScore(score_ref);
-      return !score.second || score_ref->isBetterScore(cutoff, score.first);
+      return !score.second || !std::isfinite(score.first) ||
+        (is_q_value && (score.first < 0.0 || score.first > 1.0)) ||
+        score_ref->isBetterScore(cutoff, score.first);
     };
 
     id_data.removeObservationMatchesIf(is_worse_than_cutoff);

@@ -6,6 +6,8 @@
 // $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <limits>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -1093,6 +1095,69 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+
+START_SECTION(q-value cutoffs reject sentinel and invalid values)
+{
+  for (const std::string& accession : {"MS:1002354", "MS:1002355"})
+  {
+    for (double cutoff : {0.05, 1.0})
+    {
+      IdentificationData data;
+      const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+      const auto q = data.registerScoreType(IdentificationData::ScoreType(CVTerm(accession, "q-value", "MS"), false));
+      const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
+      IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
+      candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
+      const auto oligo = data.registerIdentifiedOligo(candidate);
+      const std::vector<double> values{-1.0, 0.0, 0.01, 0.05, 0.1, 1.0, 2.0,
+        std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity(),
+        -std::numeric_limits<double>::infinity()};
+      for (Size i = 0; i < values.size(); ++i)
+      {
+        const auto observation = data.registerObservation(IdentificationData::Observation(std::to_string(i), file));
+        IdentificationData::ObservationMatch match(oligo, observation, -2);
+        match.addScore(q, values[i]);
+        data.registerObservationMatch(match);
+      }
+      // A match lacking the requested score must also be removed.
+      const auto missing = data.registerObservation(IdentificationData::Observation("missing", file));
+      data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, missing, -2));
+      IDFilter::filterObservationMatchesByScore(data, q, cutoff);
+      TEST_EQUAL(data.getObservationMatches().size(), cutoff == 0.05 ? 3 : 5)
+      for (const auto& match : data.getObservationMatches())
+      {
+        const auto score = match.getScore(q);
+        TEST_TRUE(score.second)
+        TEST_TRUE(score.first >= 0.0 && score.first <= cutoff)
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(non-q-value scores may be negative)
+{
+  IdentificationData data;
+  const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+  const auto score_type = data.registerScoreType(IdentificationData::ScoreType("custom score", false));
+  const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
+  IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
+  candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
+  const auto oligo = data.registerIdentifiedOligo(candidate);
+  const std::vector<double> values{-2.0, -1.0, 0.0, std::numeric_limits<double>::quiet_NaN(),
+    std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()};
+  for (Size i = 0; i < values.size(); ++i)
+  {
+    const auto observation = data.registerObservation(IdentificationData::Observation(std::to_string(i), file));
+    IdentificationData::ObservationMatch match(oligo, observation, -2);
+    match.addScore(score_type, values[i]);
+    data.registerObservationMatch(match);
+  }
+  IDFilter::filterObservationMatchesByScore(data, score_type, -1.0);
+  TEST_EQUAL(data.getObservationMatches().size(), 2)
+}
+END_SECTION
 
 END_TEST
 
