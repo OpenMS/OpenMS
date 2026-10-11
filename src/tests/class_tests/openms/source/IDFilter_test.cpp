@@ -1104,6 +1104,9 @@ START_SECTION((static void filterObservationMatchesByScore(IdentificationData& i
       IdentificationData data;
       const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
       const auto q = data.registerScoreType(IdentificationData::ScoreType(CVTerm(accession, "q-value", "MS"), false));
+      const auto other = data.registerScoreType(IdentificationData::ScoreType("unrelated score", false));
+      const auto software = data.registerProcessingSoftware(IdentificationData::ProcessingSoftware("q-value recalculation", "1", {q}));
+      const auto step = data.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}));
       const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
       IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
       candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
@@ -1113,7 +1116,10 @@ START_SECTION((static void filterObservationMatchesByScore(IdentificationData& i
       {
         const auto observation = data.registerObservation(IdentificationData::Observation(std::to_string(i), file));
         IdentificationData::ObservationMatch match(oligo, observation, -2);
-        match.addScore(q, values[i]);
+        // Filter using the most recent requested score, ignoring other score types.
+        match.addScore(q, 1.0);
+        match.addScore(q, values[i], step);
+        match.addScore(other, std::numeric_limits<double>::quiet_NaN(), step);
         data.registerObservationMatch(match);
       }
       // A match lacking the requested score must also be removed.
@@ -1199,6 +1205,16 @@ START_SECTION(([EXTRA] filterObservationMatchesByScore throws on invalid stored 
       TEST_EQUAL(data.getParentSequences().size(), 1);
       TEST_REAL_SIMILAR(worse_ref->getScore(score_type).first, 0.1);
       TEST_FALSE(missing_ref->getScore(score_type).second);
+
+      // A later valid score must not hide an invalid score from an earlier step.
+      const auto software = data.registerProcessingSoftware(IdentificationData::ProcessingSoftware("score recalculation", "1", {score_type}));
+      const auto step = data.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}));
+      invalid_match.addScore(score_type, 0.01, step);
+      const auto invalid_ref = data.registerObservationMatch(invalid_match);
+      TEST_REAL_SIMILAR(invalid_ref->getScore(score_type).first, 0.01);
+      TEST_EXCEPTION(Exception::InvalidValue, IDFilter::filterObservationMatchesByScore(data, score_type, 0.05));
+      TEST_EQUAL(data.getObservationMatches().size(), 3);
+      TEST_EQUAL(data.getObservations().size(), 3);
     }
   }
 }

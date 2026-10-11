@@ -1453,8 +1453,8 @@ namespace OpenMS
       Matches without a score of the required type are also removed.
       Stored scores must be finite. PSM-level and distinct peptide-level q-values
       (MS:1002354 and MS:1001868) must additionally lie in [0, 1]. Other score types
-      may have valid negative scores. All stored scores of the required type are
-      validated before filtering; invalid scores cause an exception and leave the data unchanged.
+      may have valid negative scores. All stored scores of the required type across
+      every processing step are validated before filtering; invalid scores cause an exception and leave the data unchanged.
       The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
       @param[in,out] id_data Data to be filtered
