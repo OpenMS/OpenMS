@@ -386,13 +386,7 @@ START_SECTION((void getMultipleSpectra(std::map<Int, MSSpectrum>& spectra, const
 }
 END_SECTION
 
-delete ptr;
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-
-START_SECTION(terminal a1-B mass and final precursor charges)
+START_SECTION(([EXTRA] getSpectrum and getMultipleSpectra preserve terminal masses and precursor charges))
 {
   NucleicAcidSpectrumGenerator generator;
   auto parameters = generator.getParameters();
@@ -413,10 +407,10 @@ START_SECTION(terminal a1-B mass and final precursor charges)
       if (spectrum.getStringDataArrays()[0][i] == "a1-B")
       {
         found = true;
-        TEST_REAL_SIMILAR(spectrum[i].getMZ(), sequence.getPrefix(1).getMonoWeight(NASequence::AminusB, charge))
+        TEST_REAL_SIMILAR(spectrum[i].getMZ(), sequence.getPrefix(1).getMonoWeight(NASequence::AminusB, charge));
       }
     }
-    TEST_TRUE(found)
+    TEST_TRUE(found);
     std::map<Int, MSSpectrum> multiple;
     generator.getMultipleSpectra(multiple, sequence, {2 * charge, 3 * charge}, charge);
     for (const auto& [requested, spectrum] : multiple)
@@ -429,13 +423,18 @@ START_SECTION(terminal a1-B mass and final precursor charges)
           continue;
         }
         ++precursors;
-        TEST_EQUAL(spectrum.getIntegerDataArrays()[0][i], requested)
-        TEST_REAL_SIMILAR(spectrum[i].getMZ(), sequence.getMonoWeight(NASequence::Full, requested) / abs(requested))
+        TEST_EQUAL(spectrum.getIntegerDataArrays()[0][i], requested);
+        TEST_REAL_SIMILAR(spectrum[i].getMZ(), sequence.getMonoWeight(NASequence::Full, requested) / abs(requested));
       }
-      TEST_EQUAL(precursors, 1)
+      TEST_EQUAL(precursors, 1);
     }
   }
 }
 END_SECTION
+
+delete ptr;
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 END_TEST
