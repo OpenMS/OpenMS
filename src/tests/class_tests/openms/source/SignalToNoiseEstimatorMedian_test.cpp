@@ -89,6 +89,62 @@ START_SECTION([EXTRA](virtual void init(const Container& c)))
 END_SECTION
 
 
+START_SECTION([EXTRA] auto_mode 1 (AUTOMAXBYPERCENT) with a zero intensity and on an empty spectrum)
+{
+  // 10 peaks: one at intensity 0, eight at 1, one at 100; the window covers all of them.
+  // Percentile histogram: maximum 100 -> bin size 1; intensities 0 and 1 fall into bin 0 (9 peaks),
+  // 9 = int(95% of 10) peaks are reached in bin 0 -> max_intensity = 0.5 -> histogram bin size 1 (minimum).
+  // Median histogram (30 bins): bin 0 holds 1, bin 1 holds 8, bin 29 holds 1; the 5th element lies in bin 1:
+  // noise = 1 + (5 - 1) / 8 = 1.5.
+  MSSpectrum s;
+  for (Size i = 0; i < 10; ++i)
+  {
+    s.push_back(Peak1D(100.0 + i, i == 0 ? 0.0f : (i == 9 ? 100.0f : 1.0f)));
+  }
+  SignalToNoiseEstimatorMedian<MSSpectrum> sne;
+  Param p = sne.getParameters();
+  p.setValue("auto_mode", 1);
+  p.setValue("win_len", 1000.0);
+  p.setValue("min_required_elements", 1);
+  p.setValue("write_log_messages", "false");
+  sne.setParameters(p);
+  sne.init(s);
+  TEST_REAL_SIMILAR(sne.getSignalToNoise(0), 0.0)
+  TEST_REAL_SIMILAR(sne.getSignalToNoise(1), 1.0 / 1.5)
+  TEST_REAL_SIMILAR(sne.getSignalToNoise(9), 100.0 / 1.5)
+
+  MSSpectrum empty;
+  sne.init(empty); // must not dereference end()
+  TEST_EQUAL(empty.size(), 0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] intensities far above max_intensity land in the last histogram bin)
+{
+  // max_intensity 1 -> bin size 1 (minimum); 3e9 / 1 exceeds INT_MAX and must be clamped to the last bin (29),
+  // not converted to int first. Bin 0 holds the 0.5 peak, bin 29 the nine 3e9 peaks; the 5th element lies in
+  // bin 29: noise = 29 + (5 - 1) / 9.
+  MSSpectrum s;
+  s.push_back(Peak1D(100.0, 0.5f));
+  for (Size i = 1; i < 10; ++i)
+  {
+    s.push_back(Peak1D(100.0 + i, 3.0e9f));
+  }
+  SignalToNoiseEstimatorMedian<MSSpectrum> sne;
+  Param p = sne.getParameters();
+  p.setValue("auto_mode", -1);
+  p.setValue("max_intensity", 1);
+  p.setValue("win_len", 1000.0);
+  p.setValue("min_required_elements", 1);
+  p.setValue("write_log_messages", "false");
+  sne.setParameters(p);
+  sne.init(s);
+  const double noise = 29.0 + 4.0 / 9.0;
+  TEST_REAL_SIMILAR(sne.getSignalToNoise(0), 0.5 / noise)
+  TEST_REAL_SIMILAR(sne.getSignalToNoise(1), 3.0e9 / noise)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
