@@ -18,6 +18,8 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <cmath>
+#include <limits>
 
 using namespace OpenMS;
 using namespace std;
@@ -352,4 +354,39 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(HyperScore rejects invalid tolerances and accepts exact matching)
+{
+  MSSpectrum spectrum;
+  for (double mz : {100.0, 200.0, 300.0})
+  {
+    spectrum.push_back(Peak1D(mz, 10.0));
+  }
+  const MSSpectrum empty;
+  const MSSpectrum* experimental_spectra[] = {&spectrum, &empty};
+  for (bool ppm : {false, true})
+  {
+    for (const MSSpectrum* experimental : experimental_spectra)
+    {
+      for (double tolerance : {-1.0, std::numeric_limits<double>::quiet_NaN(),
+                               std::numeric_limits<double>::infinity(),
+                               -std::numeric_limits<double>::infinity()})
+      {
+        std::vector<PeptideHit::PeakAnnotation> annotations(1);
+        TEST_EXCEPTION(Exception::InvalidParameter,
+          MetaboliteSpectralMatching::computeHyperScore(tolerance, ppm, *experimental, spectrum))
+        TEST_EXCEPTION(Exception::InvalidParameter,
+          MetaboliteSpectralMatching::computeHyperScore(tolerance, ppm, *experimental, spectrum, annotations))
+        TEST_EQUAL(annotations.size(), 1)
+      }
+    }
+    for (double tolerance : {0.0, 0.5})
+    {
+      TEST_REAL_SIMILAR(MetaboliteSpectralMatching::computeHyperScore(tolerance, ppm, spectrum, spectrum),
+        std::log(300.0) + std::log(6.0))
+      TEST_REAL_SIMILAR(MetaboliteSpectralMatching::computeHyperScore(tolerance, ppm, empty, spectrum), 0.0)
+    }
+  }
+}
+END_SECTION
+
 END_TEST
