@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 ///////////////////////////
 
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
@@ -543,6 +544,93 @@ START_SECTION(([EXTRA] purity computation without interpolation))
   TEST_REAL_SIMILAR(cm_filtered[0].getMetaValue("precursor_purity"), 1.0)
   TEST_REAL_SIMILAR(cm_filtered[1].getMetaValue("precursor_purity"), 0.775739)
   TEST_REAL_SIMILAR(cm_filtered[2].getMetaValue("precursor_purity"), 1.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] precursor isotope matching and isolation window boundaries (regression for 10467)))
+{
+  IsobaricChannelExtractor ice(q_method);
+  Param parameters = ice.getParameters();
+  parameters.setValue("select_activation", "any");
+  parameters.setValue("purity_interpolation", "false");
+  parameters.setValue("min_precursor_purity", 0.0);
+  ice.setParameters(parameters);
+
+  auto check_purity = [&](const std::vector<Peak1D>& peaks, double expected_purity, double window_offset = 1.0) {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    ms1.setRT(100.0);
+    for (const auto& peak : peaks)
+    {
+      ms1.push_back(peak);
+    }
+
+    Precursor precursor;
+    precursor.setMZ(500.25);
+    precursor.setCharge(2);
+    precursor.setIsolationWindowLowerOffset(window_offset);
+    precursor.setIsolationWindowUpperOffset(window_offset);
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    ms2.setRT(100.5);
+    ms2.setNativeID("scan=2");
+    ms2.setPrecursors({precursor});
+    for (const auto& channel : q_method->getChannelInformation())
+    {
+      ms2.emplace_back(channel.center, 10000.0f);
+    }
+
+    PeakMap exp;
+    exp.addSpectrum(ms1);
+    exp.addSpectrum(ms2);
+    ConsensusMap result;
+    ice.extractChannels(exp, result);
+    TEST_EQUAL(result.size(), 1)
+    if (result.size() != 1) { return; }
+    TEST_REAL_SIMILAR(result[0].getMetaValue("precursor_purity"), expected_purity)
+
+    // IsobaricWorkflow uses this separate implementation: check the same expectations.
+    const auto purities = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 10.0);
+    TEST_EQUAL(purities.size(), 1)
+    if (purities.size() != 1) { return; }
+    TEST_REAL_SIMILAR(purities[0], expected_purity)
+
+    // The original bug discarded even clean envelopes at the usual purity threshold.
+    Param filtered_parameters = parameters;
+    filtered_parameters.setValue("min_precursor_purity", 0.75);
+    ice.setParameters(filtered_parameters);
+    ice.extractChannels(exp, result);
+    TEST_EQUAL(result.size(), expected_purity >= 0.75 ? 1 : 0)
+    ice.setParameters(parameters);
+  };
+
+  // Reproduction from the issue: M+2 is in the fuzzy border and contributes half intensity.
+  check_purity({{500.25, 1.0e6f}, {500.7516774189, 6.0e5f}, {501.2533548378, 2.0e5f}}, 1.0);
+  // Also count the lower ladder, including the fuzzy border, when M+2 was selected.
+  check_purity({{499.2466451622, 2.0e5f}, {499.7483225811, 6.0e5f}, {500.25, 1.0e6f}}, 1.0);
+
+  // Choose the nearer peak on either side of the expected M+1 or M-1 position.
+  // Only the 600-intensity peak belongs to the target: (1000 + 600) / 1800.
+  check_purity({{500.25, 1000.0f}, {500.7514, 600.0f}, {500.7520, 200.0f}}, 8.0 / 9.0);
+  check_purity({{500.25, 1000.0f}, {500.7514, 200.0f}, {500.7518, 600.0f}}, 8.0 / 9.0);
+  check_purity({{499.7482, 600.0f}, {499.7486, 200.0f}, {500.25, 1000.0f}}, 8.0 / 9.0);
+  check_purity({{499.7480, 200.0f}, {499.7485, 600.0f}, {500.25, 1000.0f}}, 8.0 / 9.0);
+  check_purity({{500.25, 1000.0f}, {500.77, 1000.0f}}, 0.5);
+
+  // Missing isotopes can place MZBegin at end(), or leave either search range empty
+  // if the measured precursor is slightly above/below its reported m/z.
+  check_purity({{500.25, 1000.0f}}, 1.0);
+  check_purity({{500.2502, 1000.0f}}, 1.0);
+  check_purity({{500.2498, 1000.0f}}, 1.0);
+
+  // Peaks outside the fuzzy window must not contribute even if within isotope tolerance.
+  check_purity({{500.25, 1000.0f}, {500.74, 1000.0f}, {500.7551, 500.0f}}, 0.5, 0.5);
+  check_purity({{499.7449, 500.0f}, {499.76, 1000.0f}, {500.25, 1000.0f}}, 0.5, 0.5);
+
+  // At 1 ppm even a two-sided search with neutron spacing misses these carbon isotopes.
+  parameters.setValue("precursor_isotope_deviation", 1.0);
+  ice.setParameters(parameters);
+  check_purity({{500.25, 1000.0f}, {500.7516774189, 600.0f}, {501.2533548378, 200.0f}}, 1.0, 1.1);
 }
 END_SECTION
 

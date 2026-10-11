@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <atomic>
 #include <sstream>
 #include <iostream>
 #include <list>
@@ -52,7 +53,6 @@ namespace OpenMS
   {
     // forward declarations
     class LogStream;
-    class LogStreamNotifier;
 
     /**
       @brief Stream buffer used by LogStream.
@@ -102,13 +102,14 @@ public:
       LogStreamBuf(const std::string& log_level = UNKNOWN_LOG_LEVEL, Colorizer* col = nullptr);
 
       /**
-        Create a LogStreamBuf that copies the stream_list_ configuration from another LogStreamBuf.
+        Create a LogStreamBuf that writes to the destinations of another LogStreamBuf.
 
-        This constructor is used for thread-local logging where each thread has its own
-        buffer and stream configuration (for thread safety), but starts with the same
-        initial configuration as the global LogStream instances.
+        This constructor is used for thread-local logging: each thread has its own buffer (for
+        thread safety) that follows the destinations of the global LogStream instance, including
+        changes made after this buffer was created. Destinations inserted into or removed from the
+        LogStream of this buffer only affect this buffer (see LogStream::insert()).
 
-        @param[in] source_buf The LogStreamBuf whose stream_list_ should be copied
+        @param[in] source_buf The LogStreamBuf whose destinations should be followed
         @param[in] col If messages should be colored, provide a colorizer here
       */
       LogStreamBuf(LogStreamBuf* source_buf, Colorizer* col = nullptr);
@@ -168,17 +169,13 @@ public:
       {
         std::ostream * stream;
         std::string         prefix;
-        LogStreamNotifier * target;
+        /// Unique for each insertion: a stream inserted again, or a new stream at the address of a destroyed one, is a new destination
+        Size id;
 
         StreamStruct() :
           stream(nullptr),
-          target(nullptr)
+          id(0)
         {}
-
-        /// Delete the notification target.
-        ~StreamStruct()
-        {}
-
       };
 
       /**
@@ -193,6 +190,13 @@ protected:
       /// Distribute a new message to connected streams.
       void distribute_(const std::string& outstring);
 
+      /**
+        Adds @p line, which is not in the cache, to the cache and distributes it, after the repeat count of a message it
+        evicts. Under the sink mutex and after applying changes of parent_'s destinations, so that the count goes only
+        to destinations that got the repeated message.
+      */
+      void distributeNew_(const std::string& line);
+
       /// Interpret the prefix format string and return the expanded prefix.
       std::string expandPrefix_(const std::string & prefix, time_t time) const;
 
@@ -200,10 +204,41 @@ protected:
       std::list<StreamStruct>& getStreamList_();
       const std::list<StreamStruct>& getStreamList_() const;
 
+      /// Updates stream_list_ if parent_ changed its destinations since the last update. Locks the sink mutex.
+      void updateFromParent_();
+
+      /// Same as updateFromParent_(), but the caller holds the sink mutex.
+      void updateFromParentLocked_();
+
+      /// Rebuilds stream_list_ from parent_'s destinations and this buffer's own changes. The caller holds the sink mutex.
+      void rebuildStreamList_();
+
+      /// Is @p stream suppressed by a LogSinkGuard on this following buffer (see guarded_streams_)?
+      bool guarded_(const std::ostream* stream) const;
+
+      /// Entries whose prefix may be changed: stream_list_, or own_streams_ for a following buffer (the prefix of parent_'s destinations is set on parent_)
+      std::list<StreamStruct>& prefixableStreams_();
+
+      /// Publishes a change of the destinations to following buffers (or rebuilds stream_list_). The caller holds the sink mutex.
+      void destinationsChanged_();
+
       char * pbuf_ = nullptr;
       std::string             level_;
-      std::list<StreamStruct> stream_list_;  ///< Stream list for this buffer
+      std::list<StreamStruct> stream_list_;  ///< Destinations of this buffer (for a following buffer: derived from parent_, own_streams_ and hidden_ids_)
       std::string             incomplete_line_;
+      /// Buffer whose destinations this buffer follows (the global buffer of a thread-local one), or nullptr
+      LogStreamBuf* parent_ = nullptr;
+      /// Incremented whenever stream_list_ changes, so that following buffers know when to update
+      std::atomic<Size> version_{0};
+      /// version_ of parent_ that stream_list_ reflects
+      Size parent_version_ = 0;
+      /// Destinations inserted into this following buffer; they replace parent_'s entry for the same stream
+      std::list<StreamStruct> own_streams_;
+      /// Destinations of parent_ (their StreamStruct::id) removed from this following buffer. Kept when parent_ removes them:
+      /// a LogSinkGuard on parent_ restores a destination with its id, and ids are never reused.
+      std::vector<Size> hidden_ids_;
+      /// Streams that a LogSinkGuard suppresses on this following buffer (one entry per guard), however they are inserted
+      std::vector<const std::ostream*> guarded_streams_;
       Colorizer* colorizer_ = nullptr; ///< optional Colorizer to color the output to stdout/stdcerr (if attached)
       /// @name Caching
       //@{
@@ -246,66 +281,24 @@ protected:
 
       /// Non-lock acquiring sync function called in the d'tor
       int syncLF_();
+
+      /// "<message> occurred N times" for each cached message that was repeated
+      std::vector<std::string> repeatSummaries_() const;
+
+      /**
+        After stream_list_ changed from the destinations @p previous (see destinations_()): writes the pending repeat
+        counts to the destinations that remain and clears the cache, so that a new destination gets every message.
+        The caller holds the sink mutex.
+      */
+      void forgetRepeatsAfterChange_(const std::vector<Size>& previous);
       //@}
+
+      /// The destinations in stream_list_ (their StreamStruct::id), sorted
+      std::vector<Size> destinations_() const;
+
+      /// Writes @p line to the destination @p s, with its prefix and color. The caller holds the sink mutex.
+      void write_(StreamStruct& s, const std::string& line);
     };
-
-    /**
-      @brief Sink-side hook that is notified whenever a @ref LogStream flushes a complete message.
-
-      Subclass this and override @ref logNotify to react to log events programmatically.
-      Register the notifier at a @ref LogStream via @ref registerAt — the log stream then
-      treats the notifier's internal @c stream_ as one of its output sinks, writes each
-      flushed line into it, and invokes the override at the end of every message. Use
-      @ref stream_ inside @ref logNotify to read the formatted message body.
-
-      Lifecycle: @ref unregister is called automatically by the destructor (RAII); calling
-      @ref registerAt while already registered first detaches from the previous stream.
-
-      @ingroup Concept
-    */
-    class OPENMS_DLLAPI LogStreamNotifier
-    {
-public:
-
-      /// Construct a detached notifier; @c registered_at_ starts at @c nullptr.
-      LogStreamNotifier();
-
-      /// Destructor; calls @ref unregister so the @ref LogStream stops dispatching to this notifier.
-      virtual ~LogStreamNotifier();
-
-      /**
-        @brief Hook called by the registered @ref LogStream after each complete message has been flushed.
-
-        The default implementation is a no-op. Override in a subclass to react to log events
-        (read @ref stream_ to get the formatted message body).
-      */
-      virtual void logNotify();
-
-      /**
-        @brief Attach this notifier to @p log_stream so its @ref logNotify is invoked after every flushed message.
-
-        If this notifier is already registered at another stream, the prior registration is
-        released first (via @ref unregister). After the call, the @ref stream_ buffer is
-        added to @p log_stream's output list and tagged as the notification target.
-
-        @param[in,out] log_stream LogStream that will dispatch notifications to this notifier.
-      */
-      void registerAt(LogStream & log_stream);
-
-      /**
-        @brief Detach from the currently registered @ref LogStream, if any.
-
-        Removes @ref stream_ from the log stream's output list and resets @c registered_at_
-        to @c nullptr. No-op when the notifier is not currently registered.
-      */
-      void unregister();
-
-protected:
-      std::stringstream stream_;   ///< Buffer that receives the formatted log line from the registered @ref LogStream; read inside @ref logNotify.
-
-      LogStream * registered_at_;  ///< The @ref LogStream this notifier is currently attached to, or @c nullptr if detached. Managed by @ref registerAt / @ref unregister.
-    };
-
 
     /**
       @brief Log Stream Class.
@@ -333,7 +326,8 @@ protected:
       shared sink(s) (e.g. @c std::cerr / @c std::cout) and to the shared Colorizer
       are serialized by a global mutex inside LogStreamBuf::distribute_(). The global
       LogStream objects returned by getGlobalLog*() are NOT thread-safe for direct
-      logging and should only be (re)configured before threads are started.
+      logging. Configure them from one thread at a time; every thread-local stream
+      follows their destinations from its next message on.
 
     */
     class OPENMS_DLLAPI LogStream :
@@ -392,7 +386,26 @@ public:
       std::string getLevel();
       //@}
 
-      /// @name Associating Streams
+      /**
+        @name Associating Streams
+
+        A thread-local LogStream (see getThreadLocalLog*()) writes to the destinations of the
+        corresponding global LogStream, including later changes to them. Its own changes apply on
+        top of these, to the calling thread only: a stream inserted into it belongs to it and is not
+        affected by later changes to the global LogStream; a global destination removed from it stays
+        hidden until it is inserted into it again. A destination that the global LogStream inserts later,
+        also the same stream again, is not hidden; a LogSinkGuard on the global LogStream restores its
+        destination as it was, so it stays hidden.
+        setPrefix() on it applies to its own destinations only; the prefix of a global destination is
+        set on the global LogStream.
+
+        Do not insert a LogStream as a destination of another one: writing to it would block.
+
+        When the destinations change, pending repeat counts ("<message> occurred N times") are written to the
+        destinations that got the repeated messages and remain (with insert(), remove() and removeAllStreams() on
+        this stream: to all destinations before the change), and the earlier messages no longer count as repeated:
+        a new destination gets every message from then on.
+      */
       //@{
 
       /**
@@ -430,10 +443,6 @@ public:
         respective streams before they are removed.
       */
       void removeAllStreams();
-
-      /// Add a notification target
-      void insertNotification(std::ostream & s,
-                              LogStreamNotifier & target);
 
       /**
         Set prefix for output to this stream.
@@ -483,6 +492,51 @@ private:
       bool hasStream_(std::ostream & stream);
       bool bound_() const;
 
+      /// Lets the thread-local accessors (getThreadLocalLog*()) call followParent_() on each use
+      friend struct ThreadLocalLogAccess;
+
+      friend class LogSinkGuard;
+
+      /// A destination that LogSinkGuard removed from a global stream (see removeForGuard_()), restored with its prefix and id
+      struct GuardedRemoval
+      {
+        bool reinsert = false;
+        std::string prefix;
+        Size id = 0;
+      };
+
+      /**
+        For LogSinkGuard: on a thread-local stream, suppresses @p s until restoreForGuard_(); on a global stream, removes it.
+        Pending text and repeat counts go to the current destinations first; for a global stream also those of the calling
+        thread's thread-local stream of the same level, which follows it.
+      */
+      GuardedRemoval removeForGuard_(std::ostream& s);
+
+      /**
+        Undoes removeForGuard_(). Text pending since then goes to the destinations without @p s first. A thread-local stream
+        then has the destinations it would have without the guard; a global stream gets @p s back unless it was inserted again.
+      */
+      void restoreForGuard_(std::ostream& s, const GuardedRemoval& removal);
+
+      /// Removes @p s from the destinations (for a thread-local stream: hides inherited ones) and returns what it removed. The caller holds the sink mutex.
+      GuardedRemoval detachLocked_(std::ostream& s);
+
+      /// For a global stream: the calling thread's thread-local stream of the same level, or nullptr
+      LogStream* threadLocalFollower_();
+
+      /// Writes pending text (also an incomplete line) and repeat counts to the current destinations
+      void drain_();
+
+      /// For a thread-local stream: applies changes of the global destinations made since the last call, see updateState_()
+      void followParent_();
+
+      /**
+        For a thread-local stream: sets badbit while it has no destination, so that operator<< does not format
+        messages that would be discarded anyway, and clears the state once it has a destination again.
+        Global streams are left as they are; a thread-local stream is used by its own thread only.
+      */
+      void updateState_();
+
       /// flag needed by the destructor to decide whether the streambuf
       /// has to be deleted. If the default ctor is used to create
       /// the LogStreamBuf, delete_buffer_ is set to true and the ctor
@@ -499,11 +553,18 @@ private:
       during operations that may throw exceptions.
 
       @note The guard acts only on a stream that is attached when it is constructed; for an
-            unattached stream it does nothing (will not insert on scope exit).
+            unattached stream it does nothing (will not insert on scope exit). On a thread-local stream,
+            it suppresses the stream for the calling thread until it ends, also if the global stream
+            inserts it again meanwhile; then the thread-local stream has the destinations it would have
+            without the guard (e.g. not a destination that the global stream removed meanwhile). On a
+            global stream, it removes the destination and inserts it again, with its prefix, at the end
+            (unless it was inserted again meanwhile); the stream must outlive the guard.
 
-      @note The OPENMS_LOG_* macros write to thread-local streams whose sink list is copied from
-            the global one on first access. Guard the thread-local stream (getThreadLocalLog*()),
-            not the global one, to suppress output reliably.
+      @note The OPENMS_LOG_* macros write to thread-local streams that follow the destinations of
+            the global ones. Guarding a global stream (getGlobalLog*()) suppresses the sink for all
+            threads; guarding a thread-local stream (getThreadLocalLog*()) only for the calling thread.
+            Text pending before and inside the guarded scope goes to the destinations it was written
+            for: for a global stream, this holds for the calling thread, not for other threads.
 
       Example usage:
       @code
@@ -531,21 +592,18 @@ private:
         {
           return;
         }
-        // Drain pending output so pre-guard text reaches this sink before it is detached.
-        log_stream_.flushIncomplete();
-        log_stream_.remove(stream_);
+        // Drains pending output first, so that pre-guard text reaches this sink before it is detached.
+        removal_ = log_stream_.removeForGuard_(stream_);
       }
 
-      /// Destructor discards any suppressed output, then re-inserts the sink.
+      /// Destructor writes output pending inside the scope to the other destinations, then restores the sink.
       ~LogSinkGuard()
       {
         if (!was_attached_)
         {
           return;
         }
-        // Drain buffered output while the sink is still detached so it does not leak through.
-        log_stream_.flushIncomplete();
-        log_stream_.insert(stream_);
+        log_stream_.restoreForGuard_(stream_, removal_);
       }
 
       // Non-copyable and non-movable
@@ -559,6 +617,8 @@ private:
       std::ostream& stream_;
       /// was the sink attached when the guard was constructed? if not, the guard does nothing
       const bool was_attached_;
+      /// what the guard removed, restored on destruction
+      LogStream::GuardedRemoval removal_;
     };
 
   } // namespace Logger
@@ -570,11 +630,23 @@ private:
   // in the logging system. Each thread gets its own buffers and state.
   // See GitHub Issue #8596 for details on the race conditions this fixes.
   //
-  // RESTRICTIONS (document these clearly):
-  // - Log configuration (via LogConfigHandler) should be done ONCE at program start,
-  //   BEFORE spawning threads. Thread-local streams copy config from globals on first access.
-  // - OpenMP thread pools reuse threads, so thread_local state persists across parallel regions.
-  // - Do not reconfigure logging while threads are actively logging.
+  // Each thread-local stream writes to the destinations of the corresponding global stream
+  // (getGlobalLog*()). A change of the global destinations (e.g. via LogConfigHandler) takes
+  // effect in every thread at its next message, including threads that have logged before;
+  // a destination removed from the global stream is not written to afterwards, so it may be
+  // destroyed. Changes of a thread-local stream itself apply on top, to its thread only
+  // (see LogStream::insert()).
+  //
+  // A thread-local stream without destinations (e.g. the debug stream, unless debug output is enabled) does
+  // not format messages: it is in a failed state (badbit) until it has a destination again. The arguments of
+  // a message are still evaluated, except with OPENMS_LOG_DEBUG, which skips the whole message then.
+  // Each call of these accessors (as in the OPENMS_LOG_* macros) applies changes
+  // of the global destinations to the calling thread's stream; a reference kept across such a change picks it up
+  // with the next call on that thread, or with insert() or remove() on it.
+  //
+  // RESTRICTIONS:
+  // - Change the global configuration from one thread at a time.
+  // - OpenMP thread pools reuse threads, so thread_local state (e.g. local changes) persists across parallel regions.
   //
 
   /// @brief Get thread-local fatal error log stream
@@ -591,6 +663,17 @@ private:
 
   /// @brief Get thread-local debug log stream
   OPENMS_DLLAPI Logger::LogStream& getThreadLocalLogDebug();
+
+  /**
+    @brief Enables or disables writing OPENMS_LOG_DEBUG messages to std::cout.
+
+    Attaches std::cout to, or detaches it from, the global debug stream, which all threads follow.
+    It also undoes a local removal (or insertion) of std::cout on the calling thread's debug stream.
+    Pending and cached messages of the calling thread are flushed to the previous destinations first.
+
+    @param enabled Attach std::cout if true, detach it otherwise
+  */
+  OPENMS_DLLAPI void setConsoleDebugLogging(bool enabled);
 
   //
   // Logging Macros (thread-safe via thread-local streams)
@@ -612,13 +695,29 @@ private:
 #define OPENMS_LOG_INFO \
   OpenMS::getThreadLocalLogInfo()
 
-  /// Macro for debug information - includes file and line info
+  namespace Logger
+  {
+    /// Turns a whole message into a void expression, which OPENMS_LOG_DEBUG skips when debug output is disabled
+    struct LogVoidify
+    {
+      void operator&(std::ostream&) const {}
+    };
+  }
+
+  /**
+    Macro for debug information - includes file and line info.
+
+    Without a destination for debug output on the calling thread (the default, unless e.g. a TOPP tool runs
+    with -debug), the whole message is skipped: its arguments are not evaluated. As it is a void expression,
+    use getThreadLocalLogDebug() for anything else than writing a message.
+  */
 #define OPENMS_LOG_DEBUG \
+  !OpenMS::getThreadLocalLogDebug().good() ? (void)0 : OpenMS::Logger::LogVoidify() & \
   OpenMS::getThreadLocalLogDebug() << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
 
-  /// Macro for debug information (without file info)
+  /// Macro for debug information (without file info), see OPENMS_LOG_DEBUG
 #define OPENMS_LOG_DEBUG_NOFILE \
-  OpenMS::getThreadLocalLogDebug()
+  !OpenMS::getThreadLocalLogDebug().good() ? (void)0 : OpenMS::Logger::LogVoidify() & OpenMS::getThreadLocalLogDebug()
 
   /**
     @name Global LogStream accessor functions
@@ -697,8 +796,8 @@ private:
     Returns a reference to the global debug LogStream instance. Use this function
     to configure the stream (e.g., adding/removing output destinations with insert()/remove()).
 
-    @note The debug stream is disabled by default. It is enabled in TOPPBase when
-          running with --debug flag.
+    @note The debug stream is disabled by default. It is enabled in TOPPBase when running
+          with '-debug' (see setConsoleDebugLogging()).
 
     @warning Do NOT use this for logging messages directly - it is not thread-safe.
              Use the OPENMS_LOG_DEBUG macro instead.
