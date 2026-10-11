@@ -926,6 +926,28 @@ START_SECTION([EXTRA] split() throws Exception::ElementNotFound for a map index 
 }
 END_SECTION
 
+START_SECTION((void setPrimaryMSRunPath(const StringList& s)))
+{
+  // CPP-113: column_description_ is keyed by map index, and the keys need not be contiguous
+  // (e.g. after 'FileFilter -consensus:map 0 3'). column_description_[i] for a sequential i
+  // used to silently create a new entry at key i instead of updating the real i-th column by
+  // key order, growing the map and leaving the intended column's filename unset.
+  ConsensusMap cm;
+  cm.getColumnHeaders()[0].filename = "";
+  cm.getColumnHeaders()[3].filename = "";
+
+  StringList s;
+  s.push_back("first.mzML");
+  s.push_back("second.mzML");
+  cm.setPrimaryMSRunPath(s);
+
+  TEST_EQUAL(cm.getColumnHeaders().size(), 2)
+  TEST_EQUAL(cm.getColumnHeaders().contains(1), false)
+  TEST_EQUAL(cm.getColumnHeaders()[0].filename, "first.mzML")
+  TEST_EQUAL(cm.getColumnHeaders()[3].filename, "second.mzML")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
