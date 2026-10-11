@@ -200,6 +200,19 @@ protected:
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
+    registerTOPPSubsection_("scoring", "Scoring Options");
+    registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
+    setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh"));
+    registerIntOption_("scoring:num_intensity_classes", "<num>", 3, "Number of intensity classes for peak stratification in MVH scoring (only used if scoring:method is 'mvh')", false, true);
+    setMinInt_("scoring:num_intensity_classes", 1);
+    setMaxInt_("scoring:num_intensity_classes", 7);
+    registerDoubleOption_("scoring:tic_fraction", "<fraction>", 0.98, "Fraction of total ion current to retain for MVH scoring (only used if scoring:method is 'mvh')", false, true);
+    setMinFloat_("scoring:tic_fraction", 0.5);
+    setMaxFloat_("scoring:tic_fraction", 1.0);
+    registerStringOption_("scoring:single_peak_credit", "<choice>", "true", "MVH: count at most one match per retained observed peak, using the best mass-accuracy weight. Set false for the previous per-theoretical-ion counting and weighting; all matching annotations are retained in either mode.", false, true);
+    setValidStrings_("scoring:single_peak_credit", ListUtils::create<std::string>("true,false"));
+    registerFlag_("scoring:use_mass_accuracy", "Apply mass accuracy-based distance weighting to scores (applies to both 'hyperscore' and 'mvh' methods)", true);
+
     registerTOPPSubsection_("modifications", "Modification options");
 
     // add modified ribos from database
@@ -826,7 +839,8 @@ protected:
 
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
+    const std::string scoring_method = getStringOption_("scoring:method");
+    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType(scoring_method == "mvh" ? "MVH score" : "hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
@@ -978,6 +992,14 @@ protected:
       getDoubleOption_("fragment:mass_tolerance");
     search_param.fragment_tolerance_ppm =
       (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
+    if (!std::isfinite(search_param.precursor_mass_tolerance) || search_param.precursor_mass_tolerance < 0.0 ||
+        !std::isfinite(search_param.fragment_mass_tolerance) || search_param.fragment_mass_tolerance < 0.0 ||
+        (search_param.fragment_mass_tolerance == 0.0 &&
+         (getStringOption_("scoring:method") == "mvh" || getFlag_("scoring:use_mass_accuracy"))))
+    {
+      OPENMS_LOG_ERROR << "Mass tolerances must be finite and nonnegative; MVH and mass-accuracy weighting require positive fragment tolerance." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
     search_param.min_length = getIntOption_("oligo:min_size");
     search_param.max_length = getIntOption_("oligo:max_size");
     StringList fixed_mod_names = getStringList_("modifications:fixed");
@@ -1079,7 +1101,8 @@ protected:
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(input);
     // processing software meta data:
-    IdentificationData::ScoreType score("hyperscore", true);
+    const std::string scoring_method = getStringOption_("scoring:method");
+    IdentificationData::ScoreType score(scoring_method == "mvh" ? "MVH score" : "hyperscore", true);
     IdentificationData::ScoreTypeRef hyperscore_ref =
       id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
@@ -1429,10 +1452,27 @@ protected:
             Size scan_index = prec_it->second.scan_index;
             const MSSpectrum& exp_spectrum = spectra[scan_index];
             vector<PeptideHit::PeakAnnotation> annotations;
-            double score = MetaboliteSpectralMatching::computeHyperScore(
-              search_param.fragment_mass_tolerance,
-              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-              annotations);
+            // Compute score using selected method
+            double score;
+            if (scoring_method == "mvh")
+            {
+              Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
+              double tic_fraction = getDoubleOption_("scoring:tic_fraction");
+              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+              bool single_peak_credit = getStringOption_("scoring:single_peak_credit") == "true";
+              score = MetaboliteSpectralMatching::computeMVHScore(
+                search_param.fragment_mass_tolerance,
+                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+                annotations, num_intensity_classes, tic_fraction, 0.0, use_mass_accuracy, single_peak_credit);
+            }
+            else // hyperscore
+            {
+              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+              score = MetaboliteSpectralMatching::computeHyperScore(
+                search_param.fragment_mass_tolerance,
+                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+                annotations, 0.0, use_mass_accuracy);
+            }
 
             if (!exp_ms2_out.empty())
             {
@@ -1447,7 +1487,7 @@ protected:
               theo_ms2_spectra.addSpectrum(theo_spectrum);
             }
 
-            if (score < 1e-16) continue; // no hit
+            if (!std::isfinite(score) || score < 1e-16) continue; // no finite hit
 
 #pragma omp atomic
             ++hit_counter;

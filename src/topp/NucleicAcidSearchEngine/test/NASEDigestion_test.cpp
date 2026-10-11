@@ -108,6 +108,18 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
   TEST_EQUAL(runSearch(arguments()), 0)
   TEST_EQUAL(hitCount(output), 1)
 
+  for (const std::string credit : {"true", "false"})
+  {
+    auto scoring_args = arguments();
+    scoring_args.insert(scoring_args.end(), {"-scoring:method", "mvh", "-scoring:single_peak_credit", credit});
+    TEST_EQUAL(runSearch(scoring_args), 0)
+    TEST_EQUAL(hitCount(output), 1)
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(output, proteins, peptides);
+    TEST_STRING_EQUAL(peptides[0].getScoreType(), "MVH score")
+  }
+
   fixture("ACGUAC", "AC[m2,2G]UAC", 2);
   auto args = arguments("RNase_T1");
   args.insert(args.end(), {"-modifications:fixed", "m22G"});
