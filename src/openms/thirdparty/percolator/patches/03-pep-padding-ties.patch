@@ -1,0 +1,46 @@
+--- src/openms/thirdparty/percolator/PosteriorEstimator.cpp
++++ src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+@@ -154,6 +154,14 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
+     }
+   }
+ 
++  // the IRLS implementation requires the medians to be in ascending order
++  // (OpenMS: done before padding to 4 bins below, which appends larger values)
++  if (medians.size() > 0 && medians.front() > medians.back()) {
++    reverse(medians.begin(), medians.end());
++    reverse(negatives.begin(), negatives.end());
++    reverse(sizes.begin(), sizes.end());
++  }
++
+   if (medians.size() < 4) {
+     ostringstream oss;
+     oss << "ERROR: Fewer than 4 bins available for PEP estimation, "
+@@ -168,7 +176,13 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
+         return;
+       }
+ 
+-      double random_offset = PseudoRandom::lcg_uniform_rand() * 1e-20;
++      // OpenMS: the padded medians must be strictly increasing, or the spline
++      // divides by zero (BaseSpline::initiateQR). Upstream adds
++      // lcg_uniform_rand() * 1e-20, which is lost to rounding unless the
++      // median is ~0 (and is 0 when the draw is 0), so scale the offset to the
++      // median and keep it away from 0.
++      double random_offset = (1.0 + PseudoRandom::lcg_uniform_rand()) * 1e-10
++                             * max(1.0, fabs(medians.back()));
+       for (int i = medians.size(); i < 4; ++i) {
+         medians.push_back(medians.back() + i*random_offset);
+         negatives.push_back(negatives.back());
+@@ -179,13 +193,6 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
+     }
+   }
+   
+-  // the IRLS implementation requires the medians to be in ascending order
+-  if (medians.size() > 0 && medians.front() > medians.back()) {
+-    reverse(medians.begin(), medians.end());
+-    reverse(negatives.begin(), negatives.end());
+-    reverse(sizes.begin(), sizes.end());
+-  }
+-  
+   lr.setData(medians, negatives, sizes);
+   lr.roughnessPenaltyIRLS();
+   // restore sorting order
