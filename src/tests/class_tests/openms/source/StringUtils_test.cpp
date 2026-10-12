@@ -322,6 +322,11 @@ START_SECTION((static float toFloat(const std::string &this_s)))
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat(" abc "))
   // subnormal value: underflows below the smallest *normal* float but is still representable --> must parse (no out-of-range)
   TEST_TRUE(StringUtils::toFloat("1e-40") > 0.0f)
+  // Smaller magnitudes may round to zero; the sign is preserved.
+  TEST_EQUAL(StringUtils::toFloat("1e-50"), 0.0f)
+  TEST_FALSE(std::signbit(StringUtils::toFloat("1e-50")))
+  TEST_EQUAL(StringUtils::toFloat("-1e-50"), 0.0f)
+  TEST_TRUE(std::signbit(StringUtils::toFloat("-1e-50")))
   // overflow above FLT_MAX --> error
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat("1e40"))
 }
@@ -343,6 +348,11 @@ START_SECTION((static double toDouble(const std::string &this_s)))
   // subnormal value: underflows below the smallest *normal* double but is still representable --> must parse (no out-of-range)
   TEST_EQUAL(StringUtils::toDouble("2.17388884170148e-321"), 2.17388884170148e-321)
   TEST_TRUE(StringUtils::toDouble("4.9e-324") > 0.0) // ~smallest positive subnormal double
+  // Values too small to round to a nonzero subnormal are signed zero.
+  TEST_EQUAL(StringUtils::toDouble("1e-400"), 0.0)
+  TEST_FALSE(std::signbit(StringUtils::toDouble("1e-400")))
+  TEST_EQUAL(StringUtils::toDouble("-1e-400"), 0.0)
+  TEST_TRUE(std::signbit(StringUtils::toDouble("-1e-400")))
   // overflow above DBL_MAX --> error
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble("1e400"))
 }
@@ -422,6 +432,22 @@ START_SECTION((template <typename IteratorT> static bool extractDouble(IteratorT
     TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
     TEST_EQUAL(d, 2.17388884170148e-321);
     TEST_EQUAL((int)std::distance(ss.begin(), it), 21); // was the iterator advanced past the full number?
+  }
+  {
+    std::string ss("-1e-400 x");
+    auto it = ss.begin();
+    TEST_TRUE(StringUtils::extractDouble(it, ss.end(), d))
+    TEST_EQUAL(d, 0.0)
+    TEST_TRUE(std::signbit(d))
+    TEST_EQUAL(std::distance(ss.begin(), it), 7)
+  }
+  {
+    // The pointer overload follows the same policy and consumes the full token.
+    std::string ss("1e-400 x");
+    const char* begin = ss.data();
+    TEST_TRUE(StringUtils::extractDouble(begin, ss.data() + ss.size(), d))
+    TEST_EQUAL(d, 0.0)
+    TEST_EQUAL(begin - ss.data(), 6)
   }
 }
 END_SECTION
@@ -648,6 +674,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

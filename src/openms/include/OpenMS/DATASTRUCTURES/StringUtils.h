@@ -167,9 +167,33 @@ namespace OpenMS
 
     inline Int32  toInt32(const std::string& s) { return StringUtilsHelper::toInt32(s); }
     inline Int64  toInt64(const std::string& s) { return StringUtilsHelper::toInt64(s); }
+
+    /**
+      @brief Convert a string to float, accepting representable subnormals.
+
+      Values too small to round to a nonzero subnormal become signed zero.
+      @param[in] s Numeric string, optionally surrounded by whitespace.
+      @throws Exception::ConversionError for invalid input or overflow.
+    */
     inline float  toFloat(const std::string& s) { return StringUtilsHelper::toFloat(s); }
+
+    /**
+      @brief Convert a string to double, accepting representable subnormals.
+
+      Values too small to round to a nonzero subnormal become signed zero.
+      @param[in] s Numeric string, optionally surrounded by whitespace.
+      @throws Exception::ConversionError for invalid input or overflow.
+    */
     inline double toDouble(const std::string& s) { return StringUtilsHelper::toDouble(s); }
 
+    /**
+      @brief Extract a double token, accepting subnormals and underflow to signed zero.
+
+      @param[in,out] begin Start of the token; advanced past it on success.
+      @param[in] end End of the character range.
+      @param[out] target Parsed value.
+      @return Whether a numeric token was parsed without overflow.
+    */
     inline bool extractDouble(const char*& begin, const char* end, double& target)
     { return StringUtilsHelper::extractDouble(begin, end, target); }
 

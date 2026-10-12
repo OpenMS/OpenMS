@@ -433,6 +433,22 @@ END_SECTION
 
 //------------------------------------------------------------
 
+START_SECTION(([EXTRA] subnormals and underflow tokens match StringUtils parsing))
+{
+  std::ostringstream log;
+  FuzzyStringComparator fsc;
+  fsc.setLogDestination(log);
+  fsc.setAcceptableRelative(1.0);
+  fsc.setAcceptableAbsolute(0.0);
+  TEST_TRUE(fsc.compareStrings("x 2.17388884170148e-321", "x 2173.88884170148e-324"))
+  TEST_TRUE(fsc.compareStrings("x 4.9e-324", "x 5e-324"))
+  TEST_TRUE(fsc.compareStrings("x 1e-400 tail", "x 0 tail"))
+  TEST_TRUE(fsc.compareStrings("x -1e-400 tail", "x -0 tail"))
+  TEST_FALSE(fsc.compareStrings("x 1e400", "x 0"))
+  TEST_FALSE(fsc.compareStrings("x -1e400", "x 0"))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] non-finite numbers are compared by category, not by arithmetic))
 {
   // Every comparison against NaN is false, so the absolute-difference and ratio tests could not

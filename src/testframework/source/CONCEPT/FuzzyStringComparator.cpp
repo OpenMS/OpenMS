@@ -14,7 +14,7 @@
 #include <cerrno>       // errno in the strtod fallback
 #include <charconv>     // std::from_chars
 #include <cmath>
-#include <cstdlib>      // std::strtod/strtof in the libc++ fallback
+#include <cstdlib>      // strtod/strtof fallback
 #include <cstring>      // std::memcpy
 #include <filesystem>
 #include <fstream>
@@ -22,10 +22,17 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>       // std::numeric_limits
-#include <memory>       // std::unique_ptr in the libc++ fallback
+#include <memory>       // std::unique_ptr in the floating-point fallback
 #include <streambuf>    // std::streambuf in getLine
 #include <string>
-#include <type_traits>  // std::is_same_v in the libc++ from_chars fallback
+#include <type_traits>  // std::is_same_v in the from_chars fallback
+
+// Locale headers for the locale-independent strtod_l/strtof_l fallback.
+#include <clocale>
+#include <locale.h>
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+  #include <xlocale.h>
+#endif
 
 // #define DEBUG_FUZZY
 
@@ -124,7 +131,7 @@ namespace
 
   // ---------------------------------------------------------------------------
   // Number parsing: VERBATIM copies of the std::from_chars-based helpers in
-  // src/openms/source/DATASTRUCTURES/StringUtils.cpp (tryParseNaN, the libc++
+  // src/openms/source/DATASTRUCTURES/StringUtils.cpp (tryParseNaN, the C-locale
   // fallback, parseFloat, StringUtilsHelper::extractDouble). The fuzzy comparison
   // must accept exactly the same number tokens as the library writes/reads.
   // Keep the two in sync; do not "improve" this copy.
@@ -156,14 +163,34 @@ namespace
     return false;
   }
 
-  // libc++ (e.g. Apple Clang) does not implement the floating-point overloads of
-  // std::from_chars -- only the integer ones. Provide a strtod/strtof based
-  // fallback with matching semantics (general format, no leading whitespace/'+').
+  // libc++ builds use a strtod/strtof fallback for floating-point parsing.
+  // Other standard libraries use std::from_chars first, with the same fallback
+  // for out-of-range results to accept subnormals and underflow to zero.
 #if defined(_LIBCPP_VERSION)
   #define OPENMS_TESTFRAMEWORK_NO_FLOAT_FROM_CHARS 1
 #endif
 
-#ifdef OPENMS_TESTFRAMEWORK_NO_FLOAT_FROM_CHARS
+  // std::strtod/strtof honour the decimal separator of the global C locale (LC_NUMERIC).
+  // QApplication calls setlocale(LC_ALL, ""), so in e.g. a de_DE locale "60.5" would parse
+  // as 60. std::from_chars is locale-independent, so parse with an explicit "C" locale.
+#if defined(_WIN32)
+  inline _locale_t cLocale()
+  {
+    static const _locale_t c_loc = _create_locale(LC_ALL, "C");
+    return c_loc;
+  }
+  inline double strtodC(const char* s, char** end) { return _strtod_l(s, end, cLocale()); }
+  inline float strtofC(const char* s, char** end) { return _strtof_l(s, end, cLocale()); }
+#else
+  inline locale_t cLocale()
+  {
+    static const locale_t c_loc = newlocale(LC_ALL_MASK, "C", (locale_t)0);
+    return c_loc;
+  }
+  inline double strtodC(const char* s, char** end) { return strtod_l(s, end, cLocale()); }
+  inline float strtofC(const char* s, char** end) { return strtof_l(s, end, cLocale()); }
+#endif
+
   template <typename T>
   std::from_chars_result fromCharsFloat(const char* first, const char* last, T& value)
   {
@@ -193,9 +220,9 @@ namespace
     errno = 0;
     char* parse_end = nullptr;
     if constexpr (std::is_same_v<T, float>)
-      value = std::strtof(buf, &parse_end);
+      value = strtofC(buf, &parse_end);
     else
-      value = std::strtod(buf, &parse_end);
+      value = strtodC(buf, &parse_end);
 
     if (parse_end == buf) // nothing consumed
     {
@@ -203,21 +230,27 @@ namespace
     }
     res.ptr = first + (parse_end - buf);
     // strtod/strtof set errno==ERANGE on both overflow (returns +/-HUGE_VAL) and
-    // underflow (returns a representable subnormal or 0). std::from_chars only reports
-    // result_out_of_range on overflow, so match that: accept underflow as success.
+    // underflow (returns a representable subnormal or signed zero). Accept
+    // both forms of underflow consistently; overflow remains an error.
     res.ec = (errno == ERANGE && std::isinf(value)) ? std::errc::result_out_of_range : std::errc{};
     return res;
   }
-#endif
 
-  /// Thin wrapper dispatching to std::from_chars or the libc++ fallback above.
+  /// Parse with std::from_chars when available, retrying out-of-range results in the C locale.
   template <typename T>
   inline std::from_chars_result parseFloat(const char* first, const char* last, T& value)
   {
 #ifdef OPENMS_TESTFRAMEWORK_NO_FLOAT_FROM_CHARS
     return fromCharsFloat(first, last, value);
 #else
-    return std::from_chars(first, last, value);
+    auto result = std::from_chars(first, last, value);
+    // Some standard libraries reject representable subnormals. The C-locale
+    // parser accepts them and rounds smaller magnitudes to signed zero.
+    if (result.ec == std::errc::result_out_of_range)
+    {
+      return fromCharsFloat(first, last, value);
+    }
+    return result;
 #endif
   }
 

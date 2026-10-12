@@ -176,10 +176,9 @@ namespace OpenMS
       }
     }
 
-    // libc++ (e.g. Apple Clang) does not implement the floating-point overloads of
-    // std::from_chars — only the integer ones. Detect this and provide a strtod/strtof
-    // based fallback with matching semantics (general format, no leading whitespace/'+').
-    // All other standard libraries (libstdc++ >= 11, MSVC) use std::from_chars directly.
+    // libc++ builds use a strtod/strtof fallback for floating-point parsing.
+    // Other standard libraries use std::from_chars first, with the same fallback
+    // for out-of-range results to accept subnormals and underflow to zero.
 #if defined(_LIBCPP_VERSION)
   #define OPENMS_NO_FLOAT_FROM_CHARS 1
 #endif
@@ -244,13 +243,13 @@ namespace OpenMS
       }
       res.ptr = first + (parse_end - buf);
       // strtod/strtof set errno==ERANGE on both overflow (returns +/-HUGE_VAL) and
-      // underflow (returns a representable subnormal or 0). std::from_chars only reports
-      // result_out_of_range on overflow, so match that: accept underflow as success.
+      // underflow (returns a representable subnormal or signed zero). Accept
+      // both forms of underflow consistently; overflow remains an error.
       res.ec = (errno == ERANGE && std::isinf(value)) ? std::errc::result_out_of_range : std::errc{};
       return res;
     }
 
-    /// Thin wrapper dispatching to std::from_chars or the libc++ fallback above.
+    /// Parse with std::from_chars when available, retrying out-of-range results in the C locale.
     template <typename T>
     inline std::from_chars_result parseFloat(const char* first, const char* last, T& value)
     {
@@ -258,10 +257,12 @@ namespace OpenMS
       return fromCharsFloat(first, last, value);
 #else
       auto result = std::from_chars(first, last, value);
-      // Some standard libraries report result_out_of_range for representable
-      // subnormals. The C-locale parser distinguishes those from overflow.
+      // Some standard libraries reject representable subnormals. The C-locale
+      // parser accepts them and rounds smaller magnitudes to signed zero.
       if (result.ec == std::errc::result_out_of_range)
+      {
         return fromCharsFloat(first, last, value);
+      }
       return result;
 #endif
     }
