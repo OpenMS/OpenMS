@@ -111,6 +111,9 @@ OpenMS Library:
     Bruker timsTOF MALDI imaging .d) into an MSImagingExperiment; exposed through pyOpenMS.
     FileHandler::loadExperiment() now rejects Bruker MALDI imaging .d folders with InvalidFileType, as
     it already did for imzML. Before, it read them as DDA-PASEF and failed on the missing Precursors table.
+  - pyOpenMS: BrukerTimsFile.Config has every field of the C++ struct. New are the frame and retention
+    time range (frame_id_min, frame_id_max, rt_min_sec, rt_max_sec), ms1_centroid_algo, the HillBased
+    centroiding options and the isotopic prefilter options.
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
