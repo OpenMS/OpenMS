@@ -26,12 +26,11 @@ namespace OpenMS
   invalid unique id. Random values can still collide; map-level uniqueness
   must be checked separately.
 
-  Each thread caches 1024 engine outputs, acquiring a shared mutex only when
-  refilling its cache. Generation is thread-safe with or without OpenMP.
-  Calls made by one thread preserve the seeded sequence, except for skipped
-  zeros. With multiple generating threads, values are reserved in batches;
-  unused values are discarded when a thread terminates or setSeed() is called.
-  Parallel output therefore depends on scheduling and thread lifetime.
+  A mutex guards every draw, so generation is thread-safe with or without
+  OpenMP. The ids are the consecutive outputs of the shared engine, except for
+  skipped zeros: for a given seed, the ids drawn up to any point are the same
+  set however many threads drew them. Only which thread receives which id
+  depends on scheduling.
 
   @ingroup Concept
 */
@@ -51,11 +50,9 @@ public:
   static std::string getUUID();
 
   /**
-    @brief Reseed the shared generator and invalidate every thread's cached ids.
+    @brief Reseed the shared generator.
 
     @param[in] seed Seed for the Mersenne Twister engine.
-
-    @pre No other thread may be generating ids or UUIDs during reseeding.
   */
   static void setSeed(UInt64 seed);
 

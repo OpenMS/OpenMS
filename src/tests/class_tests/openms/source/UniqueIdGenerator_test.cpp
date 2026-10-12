@@ -13,7 +13,6 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <algorithm> // for std::sort and std::adjacent_find
 #include <array>
-#include <barrier>
 #include <ctime>
 #include <limits>
 #include <random>
@@ -114,7 +113,7 @@ START_SECTION((static void setSeed(UInt64 seed)))
     TEST_EQUAL(uid, unique_ids[i]);
   }
 
-  // Reseeding must reproduce the sequence, including a partially consumed cache.
+  // Reseeding must reproduce the sequence.
   std::vector<OpenMS::UInt64> ids;
   ids.reserve(nofIdsToGenerate);
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
@@ -133,18 +132,30 @@ END_SECTION
 
 START_SECTION([EXTRA] multithreaded example)
 {
-  // Cross many cache boundaries, with a partially consumed final batch per worker.
-  constexpr Size count = 1048589;
-  UniqueIdGenerator::setSeed(12345);
-  std::vector<UInt64> ids(count);
+  // All threads draw from one shared stream: however the draws are scheduled,
+  // the ids are the first outputs of the seeded engine and the next id follows them.
+  constexpr UInt64 seed = 12345;
+  UniqueIdGenerator::setSeed(seed);
+  std::vector<UInt64> ids(nofIdsToGenerate);
 #pragma omp parallel for num_threads(8)
-  for (SignedSize i = 0; i < static_cast<SignedSize>(count); ++i)
+  for (SignedSize i = 0; i < static_cast<SignedSize>(ids.size()); ++i)
   {
     ids[i] = UniqueIdGenerator::getUniqueId();
   }
+  std::mt19937_64 reference(seed);
+  std::vector<UInt64> expected(ids.size());
+  for (UInt64& id : expected)
+  {
+    id = reference();
+  }
   std::sort(ids.begin(), ids.end());
+  std::sort(expected.begin(), expected.end());
   TEST_NOT_EQUAL(ids.front(), 0)
   TEST_TRUE(std::adjacent_find(ids.begin(), ids.end()) == ids.end())
+  TEST_TRUE(ids == expected)
+  const UInt64 next_id = UniqueIdGenerator::getUniqueId();
+  const UInt64 next_expected = reference();
+  TEST_EQUAL(next_id, next_expected)
 }
 END_SECTION
 
@@ -160,14 +171,14 @@ START_SECTION((static UInt64 getSeed()))
 }
 END_SECTION
 
-START_SECTION([EXTRA] seeded sequence over more than one million ids)
+START_SECTION([EXTRA] seeded sequence matches std::mt19937_64)
 {
   for (UInt64 seed : {UInt64(0), UInt64(546666321), std::numeric_limits<UInt64>::max()})
   {
     UniqueIdGenerator::setSeed(seed);
     std::mt19937_64 reference(seed);
     Size mismatches = 0;
-    for (Size i = 0; i < 1000017; ++i)
+    for (unsigned i = 0; i < nofIdsToGenerate; ++i)
     {
       UInt64 expected;
       do
@@ -186,31 +197,22 @@ START_SECTION([EXTRA] UUID and integer ids share the seeded sequence)
   constexpr UInt64 seed = 546666321;
   UniqueIdGenerator::setSeed(seed);
   std::mt19937_64 reference(seed);
-  // A UUID spans two batches when requested after these integer ids.
-  for (Size i = 0; i < 1023; ++i)
-  {
-    UniqueIdGenerator::getUniqueId();
-    reference();
-  }
   const std::string uuid = UniqueIdGenerator::getUUID();
   reference();
   reference();
   TEST_EQUAL(UniqueIdGenerator::getUniqueId(), reference())
 
   UniqueIdGenerator::setSeed(seed);
-  for (Size i = 0; i < 1023; ++i)
-  {
-    UniqueIdGenerator::getUniqueId();
-  }
   TEST_EQUAL(UniqueIdGenerator::getUUID(), uuid)
 }
 END_SECTION
 
-START_SECTION([EXTRA] standard threads generate more than one million ids)
+START_SECTION([EXTRA] standard threads share the seeded sequence)
 {
   constexpr Size worker_count = 8;
-  constexpr Size per_worker = 131073;
-  UniqueIdGenerator::setSeed(654321);
+  const Size per_worker = nofIdsToGenerate / worker_count;
+  constexpr UInt64 seed = 654321;
+  UniqueIdGenerator::setSeed(seed);
   std::vector<UInt64> ids(worker_count * per_worker);
   std::vector<std::thread> workers;
   for (Size worker = 0; worker < worker_count; ++worker)
@@ -226,59 +228,20 @@ START_SECTION([EXTRA] standard threads generate more than one million ids)
   {
     worker.join();
   }
+  std::mt19937_64 reference(seed);
+  std::vector<UInt64> expected(ids.size());
+  for (UInt64& id : expected)
+  {
+    id = reference();
+  }
   std::sort(ids.begin(), ids.end());
+  std::sort(expected.begin(), expected.end());
   TEST_NOT_EQUAL(ids.front(), 0)
   TEST_TRUE(std::adjacent_find(ids.begin(), ids.end()) == ids.end())
-}
-END_SECTION
-
-START_SECTION([EXTRA] reseeding invalidates caches of persistent standard threads)
-{
-  constexpr Size worker_count = 8;
-  constexpr Size per_worker = 3;
-  const std::array<UInt64, 4> seeds {12345, 12345, 98765, 98765};
-  std::array<std::vector<UInt64>, seeds.size()> ids;
-  for (auto& epoch_ids : ids)
-  {
-    epoch_ids.resize(worker_count * per_worker);
-  }
-  std::barrier phase(static_cast<std::ptrdiff_t>(worker_count + 1));
-  std::vector<std::thread> workers;
-  for (Size worker = 0; worker < worker_count; ++worker)
-  {
-    workers.emplace_back([&, worker]() {
-      for (Size epoch = 0; epoch < seeds.size(); ++epoch)
-      {
-        phase.arrive_and_wait();
-        for (Size i = 0; i < per_worker; ++i)
-        {
-          ids[epoch][worker * per_worker + i] = UniqueIdGenerator::getUniqueId();
-        }
-        phase.arrive_and_wait();
-      }
-    });
-  }
-  for (UInt64 seed : seeds)
-  {
-    // Both barriers ensure reseeding never overlaps worker calls. The worker
-    // threads survive each reset and retain any partially consumed TLS cache.
-    UniqueIdGenerator::setSeed(seed);
-    phase.arrive_and_wait();
-    phase.arrive_and_wait();
-  }
-  for (auto& worker : workers)
-  {
-    worker.join();
-  }
-  for (auto& epoch_ids : ids)
-  {
-    std::sort(epoch_ids.begin(), epoch_ids.end());
-    TEST_NOT_EQUAL(epoch_ids.front(), 0)
-    TEST_TRUE(std::adjacent_find(epoch_ids.begin(), epoch_ids.end()) == epoch_ids.end())
-  }
-  TEST_TRUE(ids[0] == ids[1])
-  TEST_TRUE(ids[2] == ids[3])
-  TEST_TRUE(ids[0] != ids[2])
+  TEST_TRUE(ids == expected)
+  const UInt64 next_id = UniqueIdGenerator::getUniqueId();
+  const UInt64 next_expected = reference();
+  TEST_EQUAL(next_id, next_expected)
 }
 END_SECTION
 

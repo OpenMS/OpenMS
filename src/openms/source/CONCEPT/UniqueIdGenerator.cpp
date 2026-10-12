@@ -8,8 +8,6 @@
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
-#include <array>
-#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
@@ -20,8 +18,6 @@ namespace OpenMS
 {
 namespace
 {
-  constexpr Size ID_BUFFER_SIZE = 1024;
-
   UInt64 initialSeed()
   {
     // Microsecond time and the process ID distinguish tools started close together.
@@ -32,9 +28,7 @@ namespace
 
   struct GeneratorState
   {
-    // Cached reads of the generation should not share the mutex's cache line.
-    alignas(64) std::atomic<UInt64> generation {1};
-    alignas(64) std::mutex mutex;
+    std::mutex mutex;
     UInt64 seed {initialSeed()};
     std::mt19937_64 rng {seed};
   };
@@ -45,36 +39,20 @@ namespace
     static auto* const state = new GeneratorState;
     return *state;
   }
-
-  struct IdBuffer
-  {
-    UInt64 generation {0};
-    Size next {ID_BUFFER_SIZE};
-    std::array<UInt64, ID_BUFFER_SIZE> values {};
-  };
 } // namespace
 
 UInt64 UniqueIdGenerator::getUniqueId()
 {
   auto& state = generatorState();
-  static thread_local IdBuffer buffer;
-  const UInt64 generation = state.generation.load(std::memory_order_acquire);
-  if (buffer.generation != generation || buffer.next == ID_BUFFER_SIZE)
+  // Every draw advances the one shared engine, for both OpenMP and standard
+  // threads, so the ids drawn for a seed do not depend on thread count or scheduling.
+  const std::lock_guard lock(state.mutex);
+  UInt64 value;
+  do
   {
-    // Reserve disjoint batches from the shared engine. Cached calls need no
-    // mutex; refills are protected for both OpenMP and standard threads.
-    const std::lock_guard lock(state.mutex);
-    for (auto& value : buffer.values)
-    {
-      do
-      {
-        value = state.rng();
-      } while (value == 0); // UniqueIdInterface reserves zero for an invalid ID.
-    }
-    buffer.generation = generation;
-    buffer.next = 0;
-  }
-  return buffer.values[buffer.next++];
+    value = state.rng();
+  } while (value == 0); // UniqueIdInterface reserves zero for an invalid ID.
+  return value;
 }
 
 std::string UniqueIdGenerator::getUUID()
@@ -108,9 +86,6 @@ void UniqueIdGenerator::setSeed(UInt64 seed)
   const std::lock_guard lock(state.mutex);
   state.seed = seed;
   state.rng.seed(seed);
-  // Invalidate caches even when reseeding with the same value. Workers must
-  // be quiescent so no cached ID from the previous generation is in flight.
-  state.generation.fetch_add(1, std::memory_order_release);
 }
 
 UniqueIdGenerator::UniqueIdGenerator() = default;
