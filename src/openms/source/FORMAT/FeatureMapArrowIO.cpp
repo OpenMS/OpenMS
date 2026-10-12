@@ -22,6 +22,7 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -1254,6 +1255,8 @@ bool FeatureMapArrowIO::exportToParquet(
   // Native identification links must resolve before anything is written (throws InvalidValue).
   const auto rows = linkedFeatures_(feature_map);
   MapIdentificationParquet::validateLinks(feature_map.getIdentificationData(), rows);
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(feature_map);
 
   // 1. Write into a private sibling directory; publish only after every table is complete,
   //    so a failed export never leaves a partial bundle behind.
@@ -1925,6 +1928,8 @@ bool FeatureMapArrowIO::importFromParquet(
   {
     return false;
   }
+  // every peptide identification needs its protein identification run (checked on the stored identifiers)
+  ProteinRunReferences::check(feature_map);
 
   // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
   //    we own (per-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the stored
@@ -1934,10 +1939,18 @@ bool FeatureMapArrowIO::importFromParquet(
     auto& prot_ids = feature_map.getProteinIdentifications();
     auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
 
+    // features and their subordinates (which can carry peptide identifications, too)
+    std::function<void(Feature&)> renameFeature = [&](Feature& f)
+    {
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, f.getPeptideIdentifications());
+      for (auto& sub : f.getSubordinates())
+      {
+        renameFeature(sub);
+      }
+    };
     for (auto& feature : feature_map)
     {
-      ProteinIdentificationArrowIO::applyRunIdentifierRename(
-          rename, feature.getPeptideIdentifications());
+      renameFeature(feature);
     }
     ProteinIdentificationArrowIO::applyRunIdentifierRename(
         rename, feature_map.getUnassignedPeptideIdentifications());

@@ -6,12 +6,14 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <tuple>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
+#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -76,12 +78,20 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[2].toString(), "CAG");
   out.clear();
 
-  // RNase T1 should cut after G and m1G, but not after Gm:
-  rd.digest(NASequence::fromString("G[m1G][Gm]A"), out);
-  TEST_EQUAL(out.size(), 3);
+  // RNase T1 should cut after G, m2G and I, but not after m1G, m7G or Gm:
+  rd.digest(NASequence::fromString("GI[m2G][m1G][m7G][Gm]A"), out);
+  TEST_EQUAL(out.size(), 4);
   TEST_STRING_EQUAL(out[0].toString(), "Gp");
-  TEST_STRING_EQUAL(out[1].toString(), "[m1G]p");
-  TEST_STRING_EQUAL(out[2].toString(), "[Gm]A");
+  TEST_STRING_EQUAL(out[1].toString(), "Ip");
+  TEST_STRING_EQUAL(out[2].toString(), "[m2G]p");
+  TEST_STRING_EQUAL(out[3].toString(), "[m1G][m7G][Gm]A");
+  out.clear();
+
+  // RNase T1 should not cut after m22G:
+  rd.digest(NASequence::fromString("G[m2,2G]A"), out);
+  TEST_EQUAL(out.size(), 2);
+  TEST_STRING_EQUAL(out[0].toString(), "Gp");
+  TEST_STRING_EQUAL(out[1].toString(), "[m2,2G]A");
   out.clear();
 
   rd.setMissedCleavages(2);
@@ -202,9 +212,135 @@ START_SECTION((owning digestion retains repeated evidence and target / decoy mem
   output = rd.digest(run, 2);
   TEST_EQUAL(output[0].sequence_evidence.size(), 4);
   TEST_EQUAL(output[0].target_decoy == IdentificationData::TargetDecoy::BOTH, true);
+
+  // cleavage behavior with m2,2G should match sequence-level digest:
+  parent.sequence = "G[m2,2G]A";
+  run.setDatabaseSequences(std::vector {parent});
+  output = rd.digest(run);
+  TEST_EQUAL(output.size(), 2);
+}
+END_SECTION
+
+START_SECTION((std::vector<std::pair<Size, Size>> getFragmentPositions(const NASequence& rna, Size min_length = 0, Size max_length = 0) const))
+{
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1");
+
+  vector<pair<Size, Size>> pos =
+    rd.getFragmentPositions(NASequence::fromString("G[m2,2G]A"));
+  TEST_EQUAL(pos.size(), 2);
+  ABORT_IF(pos.size() < 2);
+  TEST_EQUAL(pos[0].first, 0);
+  TEST_EQUAL(pos[0].second, 1);
+  TEST_EQUAL(pos[1].first, 1);
+  TEST_EQUAL(pos[1].second, 2);
+}
+END_SECTION
+
+START_SECTION((void digest(const NASequence& rna, std::vector<DigestionProduct>& output,
+                Size min_length = 0, Size max_length = 0) const))
+{
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1");
+
+  vector<RNaseDigestion::DigestionProduct> out;
+  rd.digest(NASequence::fromString("AGUC"), out);
+
+  TEST_EQUAL(out.size(), 2);
+  ABORT_IF(out.size() < 2);
+  TEST_STRING_EQUAL(out[0].fragment.toString(), "AGp");
+  TEST_EQUAL(out[0].position.first, 0);
+  TEST_EQUAL(out[0].position.second, 2);
+  TEST_STRING_EQUAL(out[1].fragment.toString(), "UC");
+  TEST_EQUAL(out[1].position.first, 2);
+  TEST_EQUAL(out[1].position.second, 2);
+}
+END_SECTION
+
+START_SECTION((void digestWithCleavageSensitiveMods(const NASequence& rna,
+                const CleavageSensitiveModGroups& cleavage_sensitive_mods,
+                Size max_sensitive_mods_per_fragment,
+                std::vector<DigestionProduct>& output,
+                Size min_length = 0,
+                Size max_length = 0) const))
+{
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1");
+
+  set<const Ribonucleotide*> variable_mods;
+  variable_mods.insert(RibonucleotideDB::getInstance()->getRibonucleotide("m2,2G"));
+  RNaseDigestion::CleavageSensitiveModGroups groups =
+    rd.inferCleavageSensitiveMods(variable_mods);
+
+  vector<RNaseDigestion::DigestionProduct> out;
+  rd.digestWithCleavageSensitiveMods(NASequence::fromString("GGA"), groups, 1,
+                                     out);
+
+  set<string> sequences;
+  for (const auto& product : out)
+  {
+    sequences.insert(product.fragment.toString());
+  }
+
+  TEST_EQUAL(sequences.count("Gp"), 1);
+  TEST_EQUAL(sequences.count("A"), 1);
+  TEST_EQUAL(sequences.count("[m2,2G]Gp"), 1);
+  TEST_EQUAL(sequences.count("[m2,2G]A"), 1);
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] digestWithCleavageSensitiveMods agrees with explicit modified-parent digestion))
+{
+  RNaseDigestion digestion;
+  digestion.setEnzyme("RNase_T1");
+  const auto* mod = RibonucleotideDB::getInstance()->getRibonucleotide("m2,2G");
+  const auto groups = digestion.inferCleavageSensitiveMods({mod});
+  using Product = std::tuple<std::string, Size, Size>;
+  for (const std::string parent_text : {"AG", "GGA", "AAGGAA", "GGGG", "AG[m2,2G]GAA"})
+  {
+    const auto original = NASequence::fromString(parent_text);
+    for (Size missed = 0; missed <= 2; ++missed)
+    {
+      digestion.setMissedCleavages(missed);
+      for (Size budget = 0; budget <= 2; ++budget)
+      {
+        for (Size maximum : {Size(0), Size(4)})
+        {
+          std::set<Product> expected, actual;
+          const auto enumerate = [&](auto&& self, NASequence& parent, Size position, Size used) -> void
+          {
+            if (position == parent.size())
+            {
+              std::vector<RNaseDigestion::DigestionProduct> products;
+              digestion.digest(parent, products, 1, maximum);
+              for (const auto& p : products) expected.emplace(p.fragment.toString(), p.position.first, p.position.second);
+              return;
+            }
+            self(self, parent, position + 1, used);
+            if (used < budget && !parent[position]->isModified() && parent[position]->getCode() == "G")
+            {
+              const auto* residue = parent[position];
+              parent.set(position, mod);
+              self(self, parent, position + 1, used + 1);
+              parent.set(position, residue);
+            }
+          };
+          NASequence parent = original;
+          enumerate(enumerate, parent, 0, 0);
+          std::vector<RNaseDigestion::DigestionProduct> products;
+          digestion.digestWithCleavageSensitiveMods(original, groups, budget, products, 1, maximum);
+          for (const auto& p : products) actual.emplace(p.fragment.toString(), p.position.first, p.position.second);
+          TEST_EQUAL(actual.size(), products.size())
+          TEST_TRUE(actual == expected)
+        }
+      }
+    }
+  }
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 END_TEST

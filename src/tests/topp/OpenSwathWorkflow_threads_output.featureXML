@@ -10,8 +10,16 @@
 		<processingAction name="Data filtering" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="ProteinA" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
 	<featureList count="6">
-		<feature id="f_17749660155506638460">
+		<feature id="f_4835329514588776807">
 			<position dim="0">100.999999701976776</position>
 			<position dim="1">412.5</position>
 			<intensity>2.5944434e04</intensity>
@@ -20,7 +28,7 @@
 			<overallquality>2.304473</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_17749660155506638460_15004869347769368353">
+				<feature id="f_4835329514588776807_16907355690727166316">
 					<position dim="0">100.999999701976776</position>
 					<position dim="1">500.009999999999991</position>
 					<intensity>1.4151509e04</intensity>
@@ -36,7 +44,7 @@
 					<UserParam type="float" name="logSN" value="0.702714551462054"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_17749660155506638460_13440783915218733453">
+				<feature id="f_4835329514588776807_10306100746905639127">
 					<position dim="0">100.999999701976776</position>
 					<position dim="1">500.149999999999977</position>
 					<intensity>7075.754395</intensity>
@@ -52,7 +60,7 @@
 					<UserParam type="float" name="logSN" value="0.702714551462054"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_17749660155506638460_15916652588957785155">
+				<feature id="f_4835329514588776807_12524258085768770586">
 					<position dim="0">100.999999701976776</position>
 					<position dim="1">500.25</position>
 					<intensity>4717.169922</intensity>
@@ -69,6 +77,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.54700865245211" sequence="PEPTIDEA" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2.5944433181762695e04"/>
 			<UserParam type="string" name="PeptideRef" value="0"/>
 			<UserParam type="float" name="leftWidth" value="11.0"/>
@@ -114,7 +126,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
-		<feature id="f_6408859317243173796">
+		<feature id="f_17749660155506638460">
 			<position dim="0">112.007107555866241</position>
 			<position dim="1">437.5</position>
 			<intensity>2.5850637e04</intensity>
@@ -123,7 +135,7 @@
 			<overallquality>2.29699</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_6408859317243173796_474525871221756682">
+				<feature id="f_17749660155506638460_7804704400743266335">
 					<position dim="0">112.007107555866241</position>
 					<position dim="1">501.009999999999991</position>
 					<intensity>1.4100348e04</intensity>
@@ -139,7 +151,7 @@
 					<UserParam type="float" name="logSN" value="0.698652454389163"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_6408859317243173796_12999979801269632061">
+				<feature id="f_17749660155506638460_15004869347769368353">
 					<position dim="0">112.007107555866241</position>
 					<position dim="1">501.149999999999977</position>
 					<intensity>7050.173828</intensity>
@@ -155,7 +167,7 @@
 					<UserParam type="float" name="logSN" value="0.698652454389163"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_6408859317243173796_17413765565443951891">
+				<feature id="f_17749660155506638460_3332699010107892018">
 					<position dim="0">112.007107555866241</position>
 					<position dim="1">501.25</position>
 					<intensity>4700.116211</intensity>
@@ -172,6 +184,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.54157701444142" sequence="PEPTIDEB" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2.5850638261795044e04"/>
 			<UserParam type="string" name="PeptideRef" value="2"/>
 			<UserParam type="float" name="leftWidth" value="12.0"/>
@@ -217,7 +233,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
-		<feature id="f_4835329514588776807">
+		<feature id="f_13440783915218733453">
 			<position dim="0">122.985871613025665</position>
 			<position dim="1">462.5</position>
 			<intensity>2.5378611e04</intensity>
@@ -226,7 +242,7 @@
 			<overallquality>2.287154</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_4835329514588776807_7804704400743266335">
+				<feature id="f_13440783915218733453_15157403601844400700">
 					<position dim="0">122.985871613025665</position>
 					<position dim="1">502.009999999999991</position>
 					<intensity>1.3842879e04</intensity>
@@ -242,7 +258,7 @@
 					<UserParam type="float" name="logSN" value="0.686949302467958"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_4835329514588776807_3332699010107892018">
+				<feature id="f_13440783915218733453_6408859317243173796">
 					<position dim="0">122.985871613025665</position>
 					<position dim="1">502.149999999999977</position>
 					<intensity>6921.439453</intensity>
@@ -258,7 +274,7 @@
 					<UserParam type="float" name="logSN" value="0.686949302467958"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_4835329514588776807_15157403601844400700">
+				<feature id="f_13440783915218733453_474525871221756682">
 					<position dim="0">122.985871613025665</position>
 					<position dim="1">502.25</position>
 					<intensity>4614.292969</intensity>
@@ -275,6 +291,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.52985272885923" sequence="PEPTIDEC" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2.5554315395355225e04"/>
 			<UserParam type="string" name="PeptideRef" value="3"/>
 			<UserParam type="float" name="leftWidth" value="33.0"/>
@@ -320,7 +340,7 @@
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 		</feature>
-		<feature id="f_2927519776102075938">
+		<feature id="f_15916652588957785155">
 			<position dim="0">133.991621077060699</position>
 			<position dim="1">487.5</position>
 			<intensity>2.480918e04</intensity>
@@ -329,7 +349,7 @@
 			<overallquality>2.338777</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_2927519776102075938_16907355690727166316">
+				<feature id="f_15916652588957785155_12999979801269632061">
 					<position dim="0">133.991621077060699</position>
 					<position dim="1">503.009999999999991</position>
 					<intensity>1.353228e04</intensity>
@@ -345,7 +365,7 @@
 					<UserParam type="float" name="logSN" value="0.774823504249255"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_2927519776102075938_10306100746905639127">
+				<feature id="f_15916652588957785155_17413765565443951891">
 					<position dim="0">133.991621077060699</position>
 					<position dim="1">503.149999999999977</position>
 					<intensity>6766.140137</intensity>
@@ -361,7 +381,7 @@
 					<UserParam type="float" name="logSN" value="0.774823504249255"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_2927519776102075938_12524258085768770586">
+				<feature id="f_15916652588957785155_2927519776102075938">
 					<position dim="0">133.991621077060699</position>
 					<position dim="1">503.25</position>
 					<intensity>4510.760254</intensity>
@@ -378,6 +398,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.59081902490366" sequence="PEPTIDED" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2.5014135274887085e04"/>
 			<UserParam type="string" name="PeptideRef" value="4"/>
 			<UserParam type="float" name="leftWidth" value="44.0"/>
@@ -481,6 +505,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.58078211442609" sequence="PEPTIDEF" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2.4172710875749588e04"/>
 			<UserParam type="string" name="PeptideRef" value="6"/>
 			<UserParam type="float" name="leftWidth" value="55.0"/>
@@ -584,6 +612,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.58078211442609" sequence="PEPTIDEE" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2.4172710875749588e04"/>
 			<UserParam type="string" name="PeptideRef" value="5"/>
 			<UserParam type="float" name="leftWidth" value="55.0"/>

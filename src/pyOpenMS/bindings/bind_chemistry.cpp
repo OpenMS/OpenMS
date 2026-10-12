@@ -54,6 +54,7 @@
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/set.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
@@ -1653,6 +1654,17 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
     // -----------------------------------------------------------------------
     // RNaseDigestion
     // -----------------------------------------------------------------------
+    nb::class_<OpenMS::RNaseDigestion::DigestionProduct>(m, "RNaseDigestionProduct", "Digested RNA sequence and zero-based parent coordinates (start, length)")
+      .def(nb::init<>())
+      .def(nb::init<const OpenMS::RNaseDigestion::DigestionProduct&>())
+      .def_rw("fragment", &OpenMS::RNaseDigestion::DigestionProduct::fragment)
+      .def_rw("position", &OpenMS::RNaseDigestion::DigestionProduct::position);
+    nb::class_<OpenMS::RNaseDigestion::CleavageSensitiveModGroups>(m, "RNaseCleavageSensitiveModGroups", "Cleavage-blocking nucleotide modifications inferred for an RNase; input modifications are retained for this object\'s lifetime")
+      .def(nb::init<>())
+      .def(nb::init<const OpenMS::RNaseDigestion::CleavageSensitiveModGroups&>(), nb::keep_alive<1, 2>())
+      .def_ro("cuts_before_sensitive", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::cuts_before_sensitive)
+      .def_ro("cuts_after_sensitive", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::cuts_after_sensitive)
+      .def("combined", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::combined);
     nb::class_<OpenMS::RNaseDigestion::DigestedOligo>(m, "DigestedOligo")
       .def(nb::init<>())
       .def(nb::init<const OpenMS::RNaseDigestion::DigestedOligo&>())
@@ -1722,6 +1734,19 @@ By returning only references into the original string this is very fast
         "countInternalCleavageSites",
         [](const OpenMS::RNaseDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a,
         "Returns the number of internal cleavage sites for this sequence.")
+      .def("getFragmentPositions", &OpenMS::RNaseDigestion::getFragmentPositions,
+           "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Return zero-based (start, length) coordinates for digestion products.")
+      .def("inferCleavageSensitiveMods", &OpenMS::RNaseDigestion::inferCleavageSensitiveMods, "variable_modifications"_a, nb::keep_alive<0, 2>(), "Infer variable modifications that block the configured RNase; retain their owners.")
+      .def("digestWithCleavageSensitiveMods", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& groups, OpenMS::Size budget, OpenMS::Size minimum, OpenMS::Size maximum) {
+          std::vector<OpenMS::RNaseDigestion::DigestionProduct> products;
+          self.digestWithCleavageSensitiveMods(rna, groups, budget, products, minimum, maximum);
+          return products;
+      }, "rna"_a, "cleavage_sensitive_mods"_a, "max_sensitive_mods_per_fragment"_a, "min_length"_a = 0, "max_length"_a = 0, "Return coordinate-bearing products while enumerating cleavage-blocking modifications within the budget.")
+      .def("digestProducts", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, OpenMS::Size minimum, OpenMS::Size maximum) {
+          std::vector<OpenMS::RNaseDigestion::DigestionProduct> products;
+          self.digest(rna, products, minimum, maximum);
+          return products;
+      }, "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Return RNA digestion products with their zero-based parent coordinates.")
       .def(
         "digest",
         [](const OpenMS::RNaseDigestion& self, const OpenMS::IdentificationData::Run& run, OpenMS::Size min_length, OpenMS::Size max_length) {

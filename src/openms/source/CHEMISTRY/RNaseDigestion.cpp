@@ -10,6 +10,10 @@
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 
+#include <algorithm>
+#include <functional>
+#include <set>
+
 using namespace std;
 
 namespace OpenMS
@@ -175,25 +179,258 @@ namespace OpenMS
                               Size min_length, Size max_length) const
   {
     output.clear();
+    vector<DigestionProduct> products;
+    digest(rna, products, min_length, max_length);
+    output.reserve(products.size());
+    for (const auto& product : products)
+    {
+      output.push_back(product.fragment);
+    }
+  }
+
+
+  void RNaseDigestion::digest(const NASequence& rna,
+                              vector<DigestionProduct>& output,
+                              Size min_length, Size max_length) const
+  {
+    output.clear();
     if (rna.empty())
+    {
       return;
+    }
 
     vector<pair<Size, Size>> positions = getFragmentPositions_(rna, min_length,
                                                                max_length);
-
+    output.reserve(positions.size());
     for (const auto& pos : positions)
     {
       NASequence fragment = rna.getSubsequence(pos.first, pos.second);
-      if (pos.first > 0)
-      {
-        fragment.setFivePrimeMod(five_prime_gain_);
-      }
-      if (pos.first + pos.second < rna.size())
-      {
-        fragment.setThreePrimeMod(three_prime_gain_);
-      }
-      output.push_back(fragment);
+      applyTerminalGains_(fragment, pos, rna.size());
+      output.push_back({fragment, pos});
     }
+  }
+
+
+  vector<pair<Size, Size>> RNaseDigestion::getFragmentPositions(
+    const NASequence& rna, Size min_length, Size max_length) const
+  {
+    return getFragmentPositions_(rna, min_length, max_length);
+  }
+
+
+  RNaseDigestion::CleavageSensitiveModGroups
+  RNaseDigestion::inferCleavageSensitiveMods(
+    const set<ConstRibonucleotidePtr>& variable_modifications) const
+  {
+    CleavageSensitiveModGroups groups;
+
+    for (ConstRibonucleotidePtr mod : variable_modifications)
+    {
+      if (mod->getTermSpecificity() != Ribonucleotide::ANYWHERE)
+      {
+        continue;
+      }
+
+      std::string origin_code(1, mod->getOrigin());
+      const std::string& modified_code = mod->getCode();
+
+      for (const auto& pattern : cuts_after_regexes_)
+      {
+        bool origin_matches = pattern.search(origin_code);
+        bool modified_matches = pattern.search(modified_code);
+        if (origin_matches && !modified_matches)
+        {
+          groups.cuts_after_sensitive.insert(mod);
+          break;
+        }
+      }
+
+      for (const auto& pattern : cuts_before_regexes_)
+      {
+        bool origin_matches = pattern.search(origin_code);
+        bool modified_matches = pattern.search(modified_code);
+        if (origin_matches && !modified_matches)
+        {
+          groups.cuts_before_sensitive.insert(mod);
+          break;
+        }
+      }
+    }
+
+    return groups;
+  }
+
+
+  void RNaseDigestion::digestWithCleavageSensitiveMods(
+    const NASequence& rna,
+    const CleavageSensitiveModGroups& cleavage_sensitive_mods,
+    Size max_sensitive_mods_per_fragment,
+    vector<DigestionProduct>& output,
+    Size min_length,
+    Size max_length) const
+  {
+    output.clear();
+    if (rna.empty())
+    {
+      return;
+    }
+    if (cleavage_sensitive_mods.combined().empty())
+    {
+      digest(rna, output, min_length, max_length);
+      return;
+    }
+
+    RNaseDigestion no_missed = *this;
+    no_missed.setMissedCleavages(0);
+    const auto pieces = no_missed.getFragmentPositions_(rna, 1, 0);
+    vector<Size> cuts{0};
+    for (const auto& piece : pieces)
+    {
+      cuts.push_back(piece.first + piece.second);
+    }
+
+    vector<vector<ConstRibonucleotidePtr>> mods_by_pos(rna.size());
+    const auto sensitive = cleavage_sensitive_mods.combined();
+    for (Size i = 0; i < rna.size(); ++i)
+    {
+      if (rna[i]->isModified())
+      {
+        continue;
+      }
+      const auto& code = rna[i]->getCode();
+      for (auto* mod : sensitive)
+      {
+        if (mod->getTermSpecificity() == Ribonucleotide::ANYWHERE &&
+            code.size() == 1 && code[0] == mod->getOrigin())
+        {
+          mods_by_pos[i].push_back(mod);
+        }
+      }
+    }
+
+    NASequence parent = rna;
+    // Test actual cleavage, including multi-residue enzyme patterns. Sensitive
+    // modifications can remove cuts, but cannot create new cuts by definition.
+    const auto is_cut = [&](Size position)
+    {
+      if (position == 0 || position == parent.size())
+      {
+        return true;
+      }
+      if (position < cuts_after_regexes_.size() ||
+          parent.size() - position < cuts_before_regexes_.size()) return false;
+      for (Size i = 0; i < cuts_after_regexes_.size(); ++i)
+      {
+        if (!cuts_after_regexes_[i].search(parent[position - cuts_after_regexes_.size() + i]->getCode()))
+        {
+          return false;
+        }
+      }
+      for (Size i = 0; i < cuts_before_regexes_.size(); ++i)
+      {
+        if (!cuts_before_regexes_[i].search(parent[position + i]->getCode()))
+        {
+          return false;
+        }
+      }
+      return true;
+    };
+    // A single substituted residue can block at most this many original cuts.
+    const Size pattern_width = std::max<Size>(1, cuts_after_regexes_.size() + cuts_before_regexes_.size());
+    const Size extra_cuts = std::min(rna.size(), max_sensitive_mods_per_fragment) * pattern_width;
+    for (Size left = 0; left + 1 < cuts.size(); ++left)
+    {
+      for (Size right = left + 1; right < cuts.size(); ++right)
+      {
+        if (right - left - 1 > missed_cleavages_ &&
+            right - left - 1 - missed_cleavages_ > extra_cuts)
+        {
+          break;
+        }
+        const Size start = cuts[left], end = cuts[right], length = end - start;
+        if (length < std::max<Size>(1, min_length))
+        {
+          continue;
+        }
+        if (max_length != 0 && length > max_length)
+        {
+          break;
+        }
+        std::function<void(Size, Size)> enumerate = [&](Size next, Size used)
+        {
+          // A blocked boundary cannot be restored by another blocking mod.
+          if (!is_cut(start) || !is_cut(end))
+          {
+            return;
+          }
+          Size missed = 0;
+          for (Size cut = left + 1; cut < right; ++cut)
+          {
+            missed += is_cut(cuts[cut]);
+          }
+          if (missed <= missed_cleavages_)
+          {
+            NASequence fragment = parent.getSubsequence(start, length);
+            applyTerminalGains_(fragment, {start, length}, rna.size());
+            output.push_back({fragment, {start, length}});
+          }
+          if (used >= max_sensitive_mods_per_fragment)
+          {
+            return;
+          }
+          for (Size position = next; position < end; ++position)
+          {
+            const auto* original = parent[position];
+            for (auto* mod : mods_by_pos[position])
+            {
+              parent.set(position, mod);
+              enumerate(position + 1, used + 1);
+            }
+            parent.set(position, original);
+          }
+        };
+        enumerate(start, 0);
+      }
+    }
+  }
+
+
+  void RNaseDigestion::applyTerminalGains_(NASequence& fragment,
+                                           const pair<Size, Size>& pos,
+                                           Size parent_size) const
+  {
+    if ((pos.first > 0) && (five_prime_gain_ != nullptr))
+    {
+      fragment.setFivePrimeMod(five_prime_gain_);
+    }
+    if ((pos.first + pos.second < parent_size) &&
+        (three_prime_gain_ != nullptr))
+    {
+      fragment.setThreePrimeMod(three_prime_gain_);
+    }
+  }
+
+
+  void RNaseDigestion::DigestedOligo::addEvidence(const IdentificationData::DatabaseSequence& entry, const NASequence& rna,
+                                                 const pair<Size, Size>& position)
+  {
+    using ID = IdentificationData;
+    if (sequence_evidence.empty())
+      target_decoy = entry.target_decoy;
+    else if (target_decoy == ID::TargetDecoy::UNKNOWN || entry.target_decoy == ID::TargetDecoy::UNKNOWN)
+      target_decoy = ID::TargetDecoy::UNKNOWN;
+    else if (target_decoy != entry.target_decoy)
+      target_decoy = ID::TargetDecoy::BOTH;
+    const Size end = position.first + position.second;
+    ID::SequenceEvidence evidence;
+    evidence.database = entry.database;
+    evidence.accession = entry.accession;
+    evidence.start = position.first;
+    evidence.end = end - 1;
+    evidence.before = std::string(1, position.first ? rna[position.first - 1]->getCode()[0] : '[');
+    evidence.after = std::string(1, end < rna.size() ? rna[end]->getCode()[0] : ']');
+    if (std::find(sequence_evidence.begin(), sequence_evidence.end(), evidence) == sequence_evidence.end())
+      sequence_evidence.push_back(std::move(evidence));
   }
 
 
@@ -210,29 +447,10 @@ namespace OpenMS
         for (const auto& pos : getFragmentPositions_(rna, min_length, max_length))
         {
           NASequence fragment = rna.getSubsequence(pos.first, pos.second);
-          if (pos.first > 0) fragment.setFivePrimeMod(five_prime_gain_);
-          const Size end = pos.first + pos.second;
-          if (end < rna.size()) fragment.setThreePrimeMod(three_prime_gain_);
+          applyTerminalGains_(fragment, pos, rna.size());
           auto [it, inserted] = candidates.try_emplace(fragment);
-          auto& candidate = it->second;
-          if (inserted)
-          {
-            candidate.sequence = fragment;
-            candidate.target_decoy = entry.target_decoy;
-          }
-          else if (candidate.target_decoy == ID::TargetDecoy::UNKNOWN || entry.target_decoy == ID::TargetDecoy::UNKNOWN)
-            candidate.target_decoy = ID::TargetDecoy::UNKNOWN;
-          else if (candidate.target_decoy != entry.target_decoy)
-            candidate.target_decoy = ID::TargetDecoy::BOTH;
-          ID::SequenceEvidence evidence;
-          evidence.database = entry.database;
-          evidence.accession = entry.accession;
-          evidence.start = pos.first;
-          evidence.end = end - 1;
-          evidence.before = std::string(1, pos.first ? rna[pos.first - 1]->getCode()[0] : '[');
-          evidence.after = std::string(1, end < rna.size() ? rna[end]->getCode()[0] : ']');
-          if (std::find(candidate.sequence_evidence.begin(), candidate.sequence_evidence.end(), evidence) == candidate.sequence_evidence.end())
-            candidate.sequence_evidence.push_back(std::move(evidence));
+          if (inserted) it->second.sequence = fragment;
+          it->second.addEvidence(entry, rna, pos);
         }
       }
     std::vector<DigestedOligo> result;

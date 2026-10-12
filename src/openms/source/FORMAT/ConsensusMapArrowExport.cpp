@@ -24,6 +24,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -1493,6 +1494,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const Conse
                                                                      QPXIdentity::FeatureLinks* out_links)
 {
   requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
+  ProteinRunReferences::check(cmap);    // every peptide identification needs its protein identification run
   const auto id_lut = buildFeatureIdLookups(cmap);
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper);
   // A channel QPX cannot name would be written into intensities[].label, a documented join
@@ -1601,6 +1603,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   // Preflight before the writer is opened and before the OpenMP batch build: a throw from
   // inside that region would be captured by the worker's catch-all and flattened to a bool.
   requireUnambiguousIdentities(cmap);
+  ProteinRunReferences::check(cmap); // every peptide identification needs its protein identification run
 
   const auto id_lut = buildFeatureIdLookups(cmap);
   requireResolvableIdRunsWith(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below

@@ -208,6 +208,11 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
   exp = MSExperiment();
   if (! File::exists(path)) { throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path); }
   const std::filesystem::path raw_path(path);
+  // Thermo's RawFileReader cannot open a file through a symbolic link (as staged by Nextflow/Galaxy),
+  // so hand it the resolved target. The source file metadata below keeps the path given by the user.
+  std::error_code canonical_error;
+  std::filesystem::path open_path = std::filesystem::canonical(raw_path, canonical_error);
+  if (canonical_error) { open_path = raw_path; }
   using Json = nlohmann::json;
   using Metadata = Internal::ThermoRawFileMetadata;
   auto text = [](const Json& object, const std::string& key) -> std::string {
@@ -240,8 +245,8 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
   {
     const std::optional<std::filesystem::path> managed_dir = resolveManagedDirectory();
     openms::thermo_bridge::RawFile raw = managed_dir
-      ? openms::thermo_bridge::RawFile(raw_path, *managed_dir)
-      : openms::thermo_bridge::RawFile(raw_path);
+      ? openms::thermo_bridge::RawFile(open_path, *managed_dir)
+      : openms::thermo_bridge::RawFile(open_path);
     const Json metadata = Json::parse(raw.file_metadata_json(options_.instrument_methods, options_.checksum));
     if (metadata.at("schema_version") != 1) { throw std::runtime_error("Unsupported Thermo metadata schema"); }
     const auto& file = metadata.at("file");

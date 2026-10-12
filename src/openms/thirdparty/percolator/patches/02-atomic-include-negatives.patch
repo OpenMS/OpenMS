@@ -1,0 +1,32 @@
+--- src/openms/thirdparty/percolator/PosteriorEstimator.cpp
++++ src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+@@ -47,7 +47,7 @@
+ bool PosteriorEstimator::reversed = false;
+ bool PosteriorEstimator::pvalInput = false;
+ bool PosteriorEstimator::competition = false;
+-bool PosteriorEstimator::includeNegativesInResult = false;
++std::atomic<bool> PosteriorEstimator::includeNegativesInResult{false};
+ bool PosteriorEstimator::usePi0_ = true;
+ 
+ pair<double, bool> make_my_pair(double d, bool b) {
+--- src/openms/thirdparty/percolator/PosteriorEstimator.h
++++ src/openms/thirdparty/percolator/PosteriorEstimator.h
+@@ -18,6 +18,7 @@
+ #ifndef POSTERIORESTIMATOR_H_
+ #define POSTERIORESTIMATOR_H_
+ 
++#include <atomic>
+ #include <vector>
+ #include <string>
+ #include <utility>
+@@ -76,7 +77,9 @@
+ 
+   // used for standalone execution
+   std::string targetFile, decoyFile;
+-  static bool reversed, pvalInput, includeNegativesInResult, competition, usePi0_;
++  static bool reversed, pvalInput, competition, usePi0_;
++  // OpenMS: atomic, because Scores::calcQvals sets it from the parallel cross-validation loops.
++  static std::atomic<bool> includeNegativesInResult;
+   std::string resultFileName;
+ };
+ 

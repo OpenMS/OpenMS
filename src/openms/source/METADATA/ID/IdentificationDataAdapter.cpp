@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -505,7 +506,7 @@ IdentificationDataAdapter::ImportResult IdentificationDataAdapter::importLegacy(
   auto create_run = [&](const Contract& contract) -> ID::Run& {
     const auto& original_id = std::get<0>(contract);
     const auto original = originals.find(original_id);
-    if (original == originals.end()) invalid("Peptide identification has no matching protein run: " + original_id);
+    if (original == originals.end()) invalid(ProteinRunReferences::missingRunMessage(original_id));
     auto found = contracts.find(contract);
     if (found != contracts.end()) return result.data.getRun(found->second);
     std::string name = original_id;

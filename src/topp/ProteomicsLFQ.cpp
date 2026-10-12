@@ -56,6 +56,7 @@
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -67,6 +68,7 @@
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <filesystem>
 #include <iomanip>
@@ -164,7 +166,10 @@ produced from, and is refused if any of those disagree with the run trying to us
 setting that differs. This is what makes reuse safe rather than merely convenient: nothing else
 would stop half a study being detected with one setting and half with another. There is no way to
 combine checkpoints that disagree: @p -force_recompute detects the affected runs again and rewrites
-their checkpoints.
+their checkpoints. The settings of alignment, linking, PIP-ECHO, protein inference and quantification
+and FDR filtering are not recorded and may differ between the invocations. The exception is
+@p -protein_quantification: detection keeps the peptide-uniqueness annotation that
+@p strictly_unique_peptides needs only in that mode, so it is recorded and has to match.
 
 @p -feat_dir requires an explicit @p -design (a generated one would label every separately detected
 run as the first) and @p -fasta (a checkpoint has to carry the peptide-indexing results, which a
@@ -956,6 +961,7 @@ protected:
     // input) and is the only source of the theoretical uniqueness information that
     // IDFilter::keepUniquePeptidesPerProtein() needs in inferProteinGroups_(). Stripping it here
     // silently removed every peptide hit for '-protein_quantification strictly_unique_peptides'.
+    // Kept in that mode only, which is why 'protein_quantification' is in the checkpoint fingerprint.
     const bool keep_protein_references = getStringOption_("protein_quantification") == "strictly_unique_peptides";
 
     // delete meta info to free some space
@@ -1030,7 +1036,7 @@ protected:
     for (PeptideIdentification& p : peptide_ids)
     {
       if (p.getIdentifier() == old_identifier) { p.setIdentifier(new_identifier); }
-      else { OPENMS_LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl; }
+      else { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(p.getIdentifier())); }
     }
 
     bool missing_spec_ref(false);
@@ -1249,12 +1255,17 @@ protected:
       "feat_dir", "detect_only", "force_recompute",
       "threads", "debug", "log", "no_progress", "test", "force", "version", "write_ini", "ini",
       "proteinFDR", "psmFDR", "picked_proteinFDR", "FDR_type", "protein_inference",
-      "protein_quantification", "alignment_order"};
+      "alignment_order"};
     // Every entry above names a parameter this tool actually registers, except the command-line-only
     // ones ('version', 'write_ini', 'ini') and the two prefixes not yet registered as subsections
     // ('Protein Inference:', 'Posterior Error Probability:', both read by the combining half only).
     // Keep it that way: an entry matching nothing looks like it excludes something and does not, so
     // correcting its spelling later would drop a live setting out of the fingerprint without a word.
+    //
+    // 'protein_quantification' is deliberately not excluded, although only the combining half applies
+    // it: detection keeps the 'protein_references' annotation that 'strictly_unique_peptides' filters
+    // on only in that mode (see loadAndCleanupIDFile_), so a checkpoint detected in any other mode
+    // cannot serve it.
 
     std::vector<std::string> lines;
     for (auto it = getParam_().begin(); it != getParam_().end(); ++it)
@@ -1903,6 +1914,21 @@ protected:
       }
       f.setSubordinates({});
       f.setConvexHulls({});
+    }
+
+    // FFId reports one feature per targeted peptidoform. Positional isomers (e.g. phosphosites
+    // localized differently in the HCD and ETD spectra of one precursor) share m/z and RT, so the
+    // same signal comes back once per isomer at the same position (up to floating-point noise).
+    // Keep it once, with all identifications attached, and let the conflict resolution below pick
+    // the best one. Otherwise the signal is quantified several times, and copies whose IDs fail FDR
+    // filtering later become identical unidentified features (refused e.g. by the QPX feature view
+    // as duplicate rows).
+    const Size n_coincident = FeatureOverlapFilter::mergeCoincidentFeatures(fm);
+    if (n_coincident > 0)
+    {
+      OPENMS_LOG_INFO << "Merged " << n_coincident
+                      << " feature(s) reporting the same signal (same charge, RT and m/z) as another feature, "
+                         "e.g. for positional isomers. Their identifications were kept on the merged feature.\n";
     }
 
     IDConflictResolverAlgorithm::resolve(fm, getStringOption_("keep_feature_top_psm_only") == "false");

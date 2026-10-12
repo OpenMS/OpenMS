@@ -42,6 +42,7 @@ ProteinHit.cpp
 ProteinIdentification.cpp
 SearchParameters.cpp
 ProteinModificationSummary.cpp
+ProteinRunReferences.cpp
 Sample.cpp
 ScanWindow.cpp
 Software.cpp

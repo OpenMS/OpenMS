@@ -1,5 +1,6 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -143,6 +144,25 @@ START_SECTION((RNA idXML convention and mzTab export retain molecular identity))
   const auto tab = IdentificationDataConverter::exportMzTab(data);
   TEST_EQUAL(tab.getOSMSectionRows().size(), 1);
   TEST_EQUAL(tab.getOSMSectionRows()[0].sequence.get(), "ACUGp");
+}
+END_SECTION
+START_SECTION(([EXTRA] RNA mzTab calculated m/z includes the assigned adduct))
+{
+  auto data = fixture(ID::MoleculeKind::OLIGONUCLEOTIDE);
+  auto& run = data.getRun("search");
+  const auto& match = run.getSources()[0].identifications[0].getMatches()[0];
+  ID::MatchData sodium = match.getData();
+  sodium.charge = -2;
+  // the adduct of the ion, as NucleicAcidSearchEngine stores "Na:+" for charge -2: [M+Na-3H]2-
+  sodium.adduct = AdductInfo("Na:+", EmpiricalFormula("Na") + EmpiricalFormula("H") * -3, -2);
+  run.replaceMatch(match.getId(), sodium, match.getScores());
+  const auto rows = IdentificationDataConverter::exportMzTab(data).getOSMSectionRows();
+  TEST_EQUAL(rows.size(), 1);
+  TEST_REAL_SIMILAR(rows[0].calc_mass_to_charge.get(),
+                    (NASequence::fromString("ACUGp").getMonoWeight(NASequence::Full, -2) + sodium.adduct->getMassShift()) / 2);
+  // sodium in place of a proton
+  TEST_REAL_SIMILAR(rows[0].calc_mass_to_charge.get(), (NASequence::fromString("ACUGp").getMonoWeight(NASequence::Full, -2)
+                                                        + EmpiricalFormula("Na").getMonoWeight() - EmpiricalFormula("H").getMonoWeight()) / 2);
 }
 END_SECTION
 START_SECTION((feature ownership survives copies and reduced - data export including empty queries))

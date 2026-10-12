@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ImzMLFile.h>
+
+#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLWriter.h>
@@ -200,7 +202,7 @@ namespace
   {
     XercesPlatformGuard()
     {
-      xercesc::XMLPlatformUtils::Initialize();
+      Internal::xercesInitialize();
     }
   };
 } // namespace

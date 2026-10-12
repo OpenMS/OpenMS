@@ -21,6 +21,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <algorithm>
 #include <fstream>
@@ -368,6 +369,9 @@ namespace OpenMS
 
   void PepXMLFile::store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& mz_file, const std::string& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
+    // every peptide identification needs its protein identification run: fail before the file is opened
+    ProteinRunReferences::check(protein_ids, peptide_ids);
+
     ofstream f(filename.c_str());
     if (!f)
     {

@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 
@@ -58,6 +59,8 @@ bool PSMArrowIO::exportToParquet(
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .idparquet behind.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(protein_identifications);
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(protein_identifications, peptide_identifications);
 
   if (!ensureDirectory_(dir)) { return false; }
 
@@ -136,10 +139,19 @@ bool PSMArrowIO::importFromParquet(
     return false;
   }
 
+  const Size stored_runs = tmp_proteins.size();
   if (!QPXFile::importFromArrow(psm_table, tmp_proteins, tmp_peptides))
   {
     return false;
   }
+  // every peptide identification needs its protein identification run: the PSM table import appends a shell run
+  // for each run identifier the stored runs lack, which is a dangling reference in this file
+  if (tmp_proteins.size() > stored_runs)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProteinRunReferences::missingRunMessage(tmp_proteins[stored_runs].getIdentifier()));
+  }
+  ProteinRunReferences::check(tmp_proteins, tmp_peptides);
 
   // Mirror IdXMLFile.cpp:530 — synthesize fresh ProtID identifiers on every load
   // and re-stamp pep_ids in lock-step. Synthesis runs only after all 4 tables have
