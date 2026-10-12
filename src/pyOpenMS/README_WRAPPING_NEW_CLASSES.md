@@ -303,15 +303,6 @@ holes cannot be plugged one at a time. Use one of these instead:
   database and stores the database's copy (what the `ResidueModification` setters do).
 * Reserve `keep_alive<1, N>` for receivers that genuinely cannot be copied from Python.
 
-The Python `NASequence` setters and `RNaseDigestion.inferCleavageSensitiveMods` resolve
-input ribonucleotides to stable `RibonucleotideDB` entries. Python-owned copies with the
-same complete definition are accepted; unknown codes and edited definitions raise
-`ValueError`. Groups, group copies and generated digestion products borrow those DB
-entries and therefore do not depend on the lifetime or later mutation of the input
-objects or containers. `RNaseCleavageSensitiveModGroups.combined()` uses
-`rv_policy::reference`, including for the pointer elements of its returned set, so
-Python never takes ownership of the database's ribonucleotides.
-
 Remember that nanobind counts `self` as index 1, so the first real argument is 2. When auditing,
 grep `nb::init<` as well as `.def("name", [](...)`: constructors take retained pointers too.
 
