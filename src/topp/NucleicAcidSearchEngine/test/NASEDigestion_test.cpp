@@ -11,6 +11,8 @@ class TestNASE : public NucleicAcidSearchEngine
 {
 public:
   using NucleicAcidSearchEngine::getModifications_;
+  using NucleicAcidSearchEngine::filterBlacklistedIons_;
+  using NucleicAcidSearchEngine::calculateFragmentCoverage_;
   void preprocess(MSExperiment& exp, bool remove, const std::string& method)
   {
     preprocessSpectra_(exp, 10.0, true, true, true, -1, -5, true,
@@ -307,5 +309,37 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] theoretical blacklist preserves arrays and coverage counts distinct internal positions))
+{
+  TestNASE tool;
+  MSSpectrum spectrum;
+  spectrum.push_back(Peak1D(100.0, 1.0));
+  spectrum.push_back(Peak1D(200.0, 2.0));
+  MSSpectrum::FloatDataArray floats;
+  floats.assign({10.0, 20.0});
+  spectrum.getFloatDataArrays().push_back(floats);
+  MSSpectrum::StringDataArray names;
+  names.assign({"c1", "y1"});
+  spectrum.getStringDataArrays().push_back(names);
+  MSSpectrum::IntegerDataArray charges;
+  charges.assign({1, 2});
+  spectrum.getIntegerDataArrays().push_back(charges);
+  tool.filterBlacklistedIons_(spectrum, {100.0005}, 10.0);
+  TEST_EQUAL(spectrum.size(), 1)
+  TEST_EQUAL(spectrum.getFloatDataArrays()[0].size(), 1)
+  TEST_REAL_SIMILAR(spectrum.getFloatDataArrays()[0][0], 20.0)
+  TEST_STRING_EQUAL(spectrum.getStringDataArrays()[0][0], "y1")
+  TEST_EQUAL(spectrum.getIntegerDataArrays()[0][0], 2)
+
+  vector<PeptideHit::PeakAnnotation> annotations(4);
+  annotations[0].annotation = "c1";
+  annotations[1].annotation = "a1-B";
+  annotations[2].annotation = "y1";
+  annotations[3].annotation = "c5";
+  TEST_REAL_SIMILAR(tool.calculateFragmentCoverage_(NASequence::fromString("ACGU"), annotations), 2.0 / 3.0)
+  TEST_REAL_SIMILAR(tool.calculateFragmentCoverage_(NASequence::fromString("A"), {}), 1.0)
+}
+END_SECTION
 
 END_TEST
