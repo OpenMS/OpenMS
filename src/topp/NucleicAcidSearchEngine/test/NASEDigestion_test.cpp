@@ -13,6 +13,13 @@ public:
   using NucleicAcidSearchEngine::getModifications_;
   using NucleicAcidSearchEngine::reshuffleDecoyIfCollision_;
   using NucleicAcidSearchEngine::registerDigestedOligo_;
+  using NucleicAcidSearchEngine::filterBlacklistedIons_;
+  using NucleicAcidSearchEngine::calculateFragmentCoverage_;
+  void preprocess(MSExperiment& exp, bool remove, const std::string& method)
+  {
+    preprocessSpectra_(exp, 10.0, true, true, true, -1, -5, true,
+      false, 100, 50, "slide", false, 1000, remove, 0.01, false, 2, method);
+  }
   using NucleicAcidSearchEngine::resolveAmbiguousMods_;
   using NucleicAcidSearchEngine::HitsByScore;
   using NucleicAcidSearchEngine::AnnotatedHit;
@@ -43,6 +50,23 @@ static Size hitCount(const std::string& path)
     count += peptide.getHits().size();
   }
   return count;
+}
+
+static MSSpectrum isotopeSpectrum(Int charge)
+{
+  MSSpectrum spectrum;
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  spectrum.setRT(20);
+  Precursor precursor;
+  precursor.setMZ(500);
+  precursor.setCharge(charge);
+  spectrum.setPrecursors({precursor});
+  for (Size isotope = 0; isotope < 3; ++isotope)
+  {
+    spectrum.push_back(Peak1D(500 + isotope * Constants::C13C12_MASSDIFF_U / 2, 100 - isotope * 20));
+  }
+  return spectrum;
 }
 
 START_TEST(NASEDigestion, "$Id$")
@@ -180,6 +204,22 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
   TEST_EQUAL(runSearch(arguments()), 0)
   TEST_EQUAL(hitCount(output), 1)
 
+  for (const std::string credit : {"true", "false"})
+  {
+    auto scoring_args = arguments();
+    scoring_args.insert(scoring_args.end(), {"-scoring:method", "mvh", "-scoring:single_peak_credit", credit});
+    TEST_EQUAL(runSearch(scoring_args), 0)
+    TEST_EQUAL(hitCount(output), 1)
+    vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(output, proteins, peptides);
+    TEST_STRING_EQUAL(peptides[0].getScoreType(), "MVH score")
+  }
+
+  fixture("ACGUAC", "ACGUAC", -2);
+  TEST_EQUAL(runSearch(arguments()), 0)
+  TEST_EQUAL(hitCount(output), 1)
+
   fixture("ACGUAC", "AC[m2,2G]UAC", 2);
   auto args = arguments("RNase_T1");
   args.insert(args.end(), {"-modifications:fixed", "m22G"});
@@ -305,6 +345,73 @@ START_SECTION(([EXTRA] imported digests use only their recorded enzyme for modif
 }
 END_SECTION
 
+START_SECTION(([EXTRA] inferred and signed charges, array-aware removal before decharging))
+{
+  TestNASE tool;
+  for (Int charge : {2, -2, 0})
+  {
+    MSExperiment exp;
+    auto spectrum = isotopeSpectrum(charge);
+    if (charge == 0)
+    {
+      Precursor second;
+      second.setMZ(1000 + Constants::PROTON_MASS_U);
+      spectrum.getPrecursors().push_back(second);
+    }
+    exp.addSpectrum(spectrum);
+    tool.preprocess(exp, false, "legacy");
+    TEST_EQUAL(exp[0].size(), 1)
+    TEST_REAL_SIMILAR(exp[0][0].getMZ(), 1000 + Constants::PROTON_MASS_U)
+  }
+  for (const std::string method : {"none", "legacy"})
+  {
+    MSExperiment exp;
+    auto spectrum = isotopeSpectrum(2);
+    MSSpectrum::IntegerDataArray array;
+    array.setName("peak_index");
+    array.assign({0, 1, 2});
+    spectrum.getIntegerDataArrays().push_back(array);
+    exp.addSpectrum(spectrum);
+    tool.preprocess(exp, true, method);
+    TEST_EQUAL(exp[0].size(), 0)
+    TEST_EQUAL(exp[0].getIntegerDataArrays()[0].size(), 0)
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] theoretical blacklist preserves arrays and coverage counts distinct internal positions))
+{
+  TestNASE tool;
+  MSSpectrum spectrum;
+  spectrum.push_back(Peak1D(100.0, 1.0));
+  spectrum.push_back(Peak1D(200.0, 2.0));
+  MSSpectrum::FloatDataArray floats;
+  floats.assign({10.0, 20.0});
+  spectrum.getFloatDataArrays().push_back(floats);
+  MSSpectrum::StringDataArray names;
+  names.assign({"c1", "y1"});
+  spectrum.getStringDataArrays().push_back(names);
+  MSSpectrum::IntegerDataArray charges;
+  charges.assign({1, 2});
+  spectrum.getIntegerDataArrays().push_back(charges);
+  tool.filterBlacklistedIons_(spectrum, {100.0005}, 10.0);
+  TEST_EQUAL(spectrum.size(), 1)
+  TEST_EQUAL(spectrum.getFloatDataArrays()[0].size(), 1)
+  TEST_REAL_SIMILAR(spectrum.getFloatDataArrays()[0][0], 20.0)
+  TEST_STRING_EQUAL(spectrum.getStringDataArrays()[0][0], "y1")
+  TEST_EQUAL(spectrum.getIntegerDataArrays()[0][0], 2)
+
+  vector<PeptideHit::PeakAnnotation> annotations(4);
+  annotations[0].annotation = "c1";
+  annotations[1].annotation = "a1-B";
+  annotations[2].annotation = "y1";
+  annotations[3].annotation = "c5";
+  TEST_REAL_SIMILAR(tool.calculateFragmentCoverage_(NASequence::fromString("ACGU"), annotations), 2.0 / 3.0)
+  TEST_REAL_SIMILAR(tool.calculateFragmentCoverage_(NASequence::fromString("A"), {}), 1.0)
+}
+END_SECTION
+
 END_TEST
