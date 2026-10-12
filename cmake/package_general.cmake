@@ -179,6 +179,18 @@ endif()
 openms_install_third_party_licenses(QT_VERSION "${_openms_bundled_qt_version}"
                                     HOMEBREW_PREFIX "${_openms_homebrew_prefix}"
                                     HOMEBREW_FORMULAE ${_openms_homebrew_formulae})
+## On Linux, the runtime dependency set also bundles the libraries of the build machine that
+## vcpkg's libraries need and the exclusions above keep (libgfortran, which vcpkg's LAPACK
+## needs). Their licenses come from the Debian packages that installed them, so only the DEB
+## does this.
+if("${PACKAGE_TYPE}" STREQUAL "deb"
+   AND OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+  file(GLOB _openms_vcpkg_shared_libraries LIST_DIRECTORIES false
+       "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/*.so"
+       "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/*.so.*")
+  openms_install_system_library_licenses(ROOTS ${_openms_vcpkg_shared_libraries}
+                                         EXCLUDE_REGEXES ${POST_EXCLUDE})
+endif()
 
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)
