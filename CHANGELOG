@@ -123,6 +123,9 @@ OpenMS Library:
     read, as the precursor intensity is taken from them. For direct use of the readers there are
     BrukerTimsFile::Config::load_ms2 and ThermoRawFile::Options::ms_levels, rt_min_sec and rt_max_sec
     (also in pyOpenMS).
+  - FIX: BrukerTimsFile no longer warns "ms1_centroid_mz_ppm and ms1_centroid_im_pct must both be > 0 to
+    enable MS1 centroiding" on every load with the default configuration (ms1_centroid_mz_ppm has been
+    10 by default since HillBased centroiding uses it; on its own it selects nothing).
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).

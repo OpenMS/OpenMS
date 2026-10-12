@@ -38,7 +38,6 @@
 #include <cstdlib>
 #include <limits>
 #include <map>
-#include <set>
 #include <unordered_map>
 #include <optional>
 #include <stdexcept>
@@ -54,49 +53,9 @@ namespace OpenMS
   // --------------------------------------------------------------------------
   // TOF-domain spectrum processing (ported from timsrust)
   //
-  // Pipeline: raw peaks → group_and_sum → smooth → centroid
+  // Pipeline: raw peaks → sum per TOF bin → smooth → centroid
   // All processing in sparse TOF-index space (integers), before m/z conversion.
   // --------------------------------------------------------------------------
-
-  /// Sort TOF indices and sum intensities at identical TOF bins.
-  /// Merges duplicate detections across scans/frames into single entries.
-  /// Input arrays are modified in-place; returns the new size.
-  static size_t groupAndSum(std::vector<uint32_t>& tofs, std::vector<uint64_t>& intensities)
-  {
-    if (tofs.empty()) return 0;
-    // Sort by TOF index (co-sort intensities)
-    std::vector<size_t> order(tofs.size());
-    std::iota(order.begin(), order.end(), size_t(0));
-    std::sort(order.begin(), order.end(),
-              [&tofs](size_t a, size_t b) { return tofs[a] < tofs[b]; });
-
-    std::vector<uint32_t> sorted_tofs(tofs.size());
-    std::vector<uint64_t> sorted_int(intensities.size());
-    for (size_t i = 0; i < order.size(); ++i)
-    {
-      sorted_tofs[i] = tofs[order[i]];
-      sorted_int[i] = intensities[order[i]];
-    }
-
-    // Merge consecutive entries with same TOF index
-    size_t write = 0;
-    for (size_t read = 0; read < sorted_tofs.size(); ++read)
-    {
-      if (write > 0 && sorted_tofs[read] == tofs[write - 1])
-      {
-        intensities[write - 1] += sorted_int[read];
-      }
-      else
-      {
-        tofs[write] = sorted_tofs[read];
-        intensities[write] = sorted_int[read];
-        ++write;
-      }
-    }
-    tofs.resize(write);
-    intensities.resize(write);
-    return write;
-  }
 
   /// Sparse symmetric neighbor intensity sharing.
   /// For each pair within `window` TOF units, add each other's original intensity.
@@ -330,38 +289,9 @@ namespace OpenMS
       agg_buff.clear();
     }
 
-    // Load already-converted frame data into the buffer.
-    // mz_values: converted m/z (double, from save_to_buffs)
-    // intensities: corrected uint32_t from save_to_buffs (cast to float internally)
-    // im_values: converted per-peak inv_ion_mobility (double, from save_to_buffs)
-    void loadFrame(const double* mz_values, const uint32_t* intensities,
-                   const double* im_values, uint32_t count)
-    {
-      clear();
-      peaks.reserve(count);
-      for (uint32_t i = 0; i < count; ++i)
-      {
-        peaks.push_back({static_cast<float>(mz_values[i]),
-                         static_cast<float>(intensities[i]),
-                         static_cast<float>(im_values[i])});
-      }
-
-      // Sort by m/z for binary-search neighbor finding
-      std::sort(peaks.begin(), peaks.end(),
-                [](const ImsPeak& a, const ImsPeak& b) { return a.mz < b.mz; });
-
-      // Build intensity-descending index
-      order.resize(count);
-      std::iota(order.begin(), order.end(), size_t(0));
-      std::sort(order.begin(), order.end(),
-                [this](size_t a, size_t b)
-                {
-                  return peaks[b].intensity < peaks[a].intensity; // descending
-                });
-    }
-
-    // Overload: accepts double* intensities (from FrameAggregator::finalize() output,
-    // where summed intensities across aggregated frames can exceed uint32_t range).
+    // Load already-converted frame data into the buffer: m/z, intensity and inverse ion
+    // mobility per peak. Intensities are doubles, as sums across aggregated frames
+    // (FrameAggregator::finalize()) can exceed the uint32_t range.
     void loadFrame(const double* mz_values, const double* intensities,
                    const double* im_values, uint32_t count)
     {
@@ -526,14 +456,14 @@ namespace OpenMS
       return config.ms1_centroid_algo;
     }
     // Back-compat: legacy auto-enable when both mz/im fields are set > 0.
+    // ms1_centroid_mz_ppm alone (its default is > 0, as HillBased uses it) selects nothing.
     const bool has_mz = config.ms1_centroid_mz_ppm > 0.0f;
     const bool has_im = config.ms1_centroid_im_pct > 0.0f;
-    if (has_mz != has_im)
+    if (has_im && !has_mz)
     {
       if (emit_warnings)
-        OPENMS_LOG_WARN << "Warning: ms1_centroid_mz_ppm and "
-                        << "ms1_centroid_im_pct must both be > 0 to enable "
-                        << "MS1 centroiding. Centroiding disabled."
+        OPENMS_LOG_WARN << "Warning: ms1_centroid_im_pct > 0 but "
+                        << "ms1_centroid_mz_ppm <= 0; MS1 centroiding disabled."
                         << std::endl;
       return CA::OFF;
     }
@@ -1885,23 +1815,6 @@ namespace OpenMS
     const auto algo = effectiveMS1Algo(config, /*emit_warnings=*/false);
     if (algo != BrukerTimsFile::Config::CentroidAlgo::OFF)
     {
-      // Unpack aggregator output into parallel arrays for the centroider,
-      // including per-peak scan_id so HillBased can do gap detection.
-      std::vector<double> cent_mzs(peaks.size());
-      std::vector<double> cent_intensities(peaks.size());
-      std::vector<double> cent_ims(peaks.size());
-      std::vector<uint32_t> cent_scan_ids(peaks.size());
-      for (size_t i = 0; i < peaks.size(); ++i)
-      {
-        cent_mzs[i] = peaks[i].mz;
-        cent_intensities[i] = peaks[i].intensity;
-        double im_val = 0.0;
-        handle.scan2inv_ion_mobility_converter->convert(
-          center_frame.id, &im_val, &peaks[i].scan_id, 1);
-        cent_ims[i] = im_val;
-        cent_scan_ids[i] = peaks[i].scan_id;
-      }
-
       std::vector<double> out_mz, out_intensity;
       std::vector<float> out_im;
       std::vector<float> b_im_lo, b_im_hi, b_mz_lo, b_mz_hi;
@@ -2454,9 +2367,8 @@ namespace OpenMS
     std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    // Collect frame IDs by MS level
+    // Collect the MS1 frame IDs (the MS2 frames are referenced by the precursors below)
     std::vector<uint32_t> ms1_frame_ids;
-    std::vector<uint32_t> ms2_frame_ids;
 
     for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
     {
@@ -2465,16 +2377,13 @@ namespace OpenMS
       TimsFrame& frame = handle.get_frame(fid);
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
-      else
-        ms2_frame_ids.push_back(fid);
     }
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // Read DDA precursors from SQL. Drop entries whose MS2 frame is outside
-    // the active range so the per-precursor MS2 spectra match what the
-    // ms2_frame_ids filter selected above; the existing has_frame() safety
-    // checks in the loops downstream silently skip any orphans, but stripping
-    // them here keeps progress counts and the precursor_groups loop honest.
+    // the active range; the existing has_frame() safety checks in the loops
+    // downstream silently skip any orphans, but stripping them here keeps
+    // progress counts and the precursor_groups loop honest.
     std::vector<DDAPrecursorInfo> precursor_entries;
     if (config.load_ms2) precursor_entries = readDDAPrecursors(db);
     const bool range_active =
@@ -2587,13 +2496,6 @@ namespace OpenMS
         return {scan_offsets[scan_begin], scan_offsets[scan_end]};
       }
     };
-
-    // Determine which frames are needed
-    std::set<uint32_t> needed_frames;
-    for (const auto& entry : precursor_entries)
-    {
-      needed_frames.insert(entry.frame_id);
-    }
 
     // Extract data for needed frames (lazy, on demand per precursor group)
     // We cache extracted frame data to avoid re-extraction when multiple
