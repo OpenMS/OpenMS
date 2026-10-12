@@ -94,7 +94,7 @@ namespace
         if (!(*db_entry == *r))
         {
           throw nb::value_error(("Ribonucleotide '" + r->getCode() + "' differs from the RibonucleotideDB "
-                                 "entry with the same code. NASequence stores database entries, so the edits "
+                                 "entry with the same code. OpenMS stores database entries, so the edits "
                                  "on this copy would be silently lost. Register the modified ribonucleotide "
                                  "in RibonucleotideDB under its own code instead.").c_str());
         }
@@ -1659,12 +1659,13 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
         .def(nb::init<const OpenMS::RNaseDigestion::DigestionProduct&>())
         .def_rw("fragment", &OpenMS::RNaseDigestion::DigestionProduct::fragment)
         .def_rw("position", &OpenMS::RNaseDigestion::DigestionProduct::position);
-    nb::class_<OpenMS::RNaseDigestion::CleavageSensitiveModGroups>(m, "RNaseCleavageSensitiveModGroups", "Cleavage-blocking nucleotide modifications inferred for an RNase; input modifications are retained for this object\'s lifetime")
+    nb::class_<OpenMS::RNaseDigestion::CleavageSensitiveModGroups>(m, "RNaseCleavageSensitiveModGroups", "Cleavage-blocking nucleotide modifications inferred for an RNase; groups and copies borrow stable RibonucleotideDB entries")
         .def(nb::init<>())
-        .def(nb::init<const OpenMS::RNaseDigestion::CleavageSensitiveModGroups&>(), nb::keep_alive<1, 2>())
+        .def(nb::init<const OpenMS::RNaseDigestion::CleavageSensitiveModGroups&>())
         .def_ro("cuts_before_sensitive", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::cuts_before_sensitive)
         .def_ro("cuts_after_sensitive", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::cuts_after_sensitive)
-        .def("combined", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::combined);
+        .def("combined", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::combined, nb::rv_policy::reference,
+             "Return the combined modification set, borrowing its RibonucleotideDB entries.");
     nb::class_<OpenMS::RNaseDigestion, OpenMS::EnzymaticDigestion>(m, "RNaseDigestion", 
         R"doc(
 Class for the enzymatic digestion of RNA
@@ -1704,7 +1705,15 @@ By returning only references into the original string this is very fast
         .def("countInternalCleavageSites", [](const OpenMS::RNaseDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
         .def("getFragmentPositions", &OpenMS::RNaseDigestion::getFragmentPositions,
              "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Return zero-based (start, length) coordinates for digestion products.")
-        .def("inferCleavageSensitiveMods", &OpenMS::RNaseDigestion::inferCleavageSensitiveMods, "variable_modifications"_a, nb::keep_alive<0, 2>(), "Infer variable modifications that block the configured RNase; retain their owners.")
+        .def("inferCleavageSensitiveMods", [](const OpenMS::RNaseDigestion& self, const std::set<const OpenMS::Ribonucleotide*>& modifications) {
+            std::set<const OpenMS::Ribonucleotide*> checked;
+            for (const auto* modification : modifications)
+            {
+                // Inferred groups and products may outlive or be copied independently of the Python inputs.
+                checked.insert(resolveDBRibonucleotide_(modification));
+            }
+            return self.inferCleavageSensitiveMods(checked);
+        }, "variable_modifications"_a, "Infer variable modifications that block the configured RNase. Each definition must match a registered RibonucleotideDB entry; equivalent copies are resolved to that stable entry. Unknown codes or edited definitions raise ValueError.")
         .def("digestWithCleavageSensitiveMods", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& groups, OpenMS::Size budget, OpenMS::Size minimum, OpenMS::Size maximum) {
             std::vector<OpenMS::RNaseDigestion::DigestionProduct> products;
             self.digestWithCleavageSensitiveMods(rna, groups, budget, products, minimum, maximum);
