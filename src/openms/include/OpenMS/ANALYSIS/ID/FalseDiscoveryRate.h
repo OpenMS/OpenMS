@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+#include <map>
 #include <unordered_map>
 
 #include <vector>
@@ -71,6 +72,24 @@ public:
     @param[in] annotate_peptide_fdr adds the peptide q-value or peptide fdr meta value to each PSM. Calculation uses best PSM per peptide.
     */
     void apply(PeptideIdentificationList& id, bool annotate_peptide_fdr = false) const;
+
+    /**
+      @brief Calculates peptide-level FDR using PSM-then-peptide target-decoy competition.
+
+      Peptides are identified by unmodified sequence. Peptide scores are the best scores among the top PSM hits
+      per spectrum; ties are resolved reproducibly using the peptide_tie_seed algorithm parameter. Paired peptide scores compete
+      head-to-head, and FDR is estimated as min(1, (decoy wins + 1) / target wins). Charge variants and runs
+      are pooled by default and can be separated with the existing split_charge_variants and
+      treat_runs_separately parameters. Peptides matching both target and decoy databases are excluded
+      because they have no unambiguous competition label. A mapped partner with no surviving PSM is compared
+      at the worst possible score.
+
+      @param[in,out] ids Peptide identifications from a concatenated target-decoy search
+      @param[in] target_decoy_peptide_pairs Map from each unmodified target peptide sequence to its paired decoy sequence
+      @throws Exception::MissingInformation if a non-ambiguous peptide hit has no pair in @p target_decoy_peptide_pairs
+      @throws Exception::InvalidValue if @p target_decoy_peptide_pairs is not one-to-one
+    */
+    void applyPeptideDoubleCompetition(PeptideIdentificationList& ids, const std::map<std::string, std::string>& target_decoy_peptide_pairs) const;
 
     /**
     @brief Calculates the FDR of two runs, a forward run and decoy run on protein level

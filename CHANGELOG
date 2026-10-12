@@ -161,6 +161,9 @@ OpenMS Library:
     so; other exceptions (e.g. std::bad_alloc) are raised unchanged.
     The block writer accepted the text of a failed block stream, and the state of the file stream
     was never checked, so a truncated idXML could be left behind a successful return.
+  - FEATURE: FalseDiscoveryRate now offers an explicit peptide-level double-competition method. It applies
+    PSM competition followed by paired target/decoy peptide competition, while leaving the legacy method as default
+    (#10490).
   - FIX: OpenDIA builds without private Arrow headers. OSWPQ result storage now uses
     the public OSWParquetFile API, including staged archive commits (#10414).
   - TransitionPQPFile can write a PQP library incrementally in batches (new batch writer API), so

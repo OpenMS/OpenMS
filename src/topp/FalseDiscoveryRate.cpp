@@ -14,8 +14,12 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <fstream>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -42,6 +46,8 @@ using namespace std;
 </CENTER>
 
 This TOPP tool calculates the false discovery rate (FDR) for results of target-decoy searches. The FDR calculation can be performed for proteins and/or for peptides (more exactly, peptide spectrum matches).
+
+For peptide-level double competition, select `-peptide true -peptide_method PSM_and_peptide` and provide `-peptide_pairs` as a two-column TSV mapping each unmodified target peptide sequence to its paired decoy sequence. The file may start with the header `target_sequence\tdecoy_sequence`; each sequence must occur on only one side of the mapping. The method first keeps the best-scoring hit per spectrum, then keeps the best-scoring PSM per unmodified peptide, and finally compares each paired target and decoy peptide head-to-head. Equal scores are resolved with the `peptide_tie_seed` algorithm parameter. Peptides assigned to both target and decoy databases are excluded because their competition label is ambiguous. Charge variants are pooled by default and separated by `split_charge_variants`; runs are pooled by default and separated by `treat_runs_separately`.
 
 The false discovery rate is defined as the number of false discoveries (decoy hits) divided by the number of false and correct discoveries (both target and decoy hits) with a score better than a given threshold.
 
@@ -93,6 +99,10 @@ protected:
     setValidStrings_("PSM", ListUtils::create<std::string>("true,false"));
     registerStringOption_("peptide", "<FDR level>", "false", "Perform FDR calculation on peptide level and annotates it as meta value\n(Note: if set, also calculates FDR/q-value on PSM level.)", false);
     setValidStrings_("peptide", ListUtils::create<std::string>("true,false"));
+    registerStringOption_("peptide_method", "<method>", "PSM_only", "Peptide-level FDR method. PSM_and_peptide requires an explicit target/decoy peptide-pair TSV.", false);
+    setValidStrings_("peptide_method", ListUtils::create<std::string>("PSM_only,PSM_and_peptide"));
+    registerInputFile_("peptide_pairs", "<file>", "", "Two-column TSV mapping each unmodified target peptide sequence to its paired decoy sequence (required by PSM_and_peptide).", false);
+    setValidFormats_("peptide_pairs", ListUtils::create<std::string>("tsv"));
     registerStringOption_("PSM_peptide_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for PSM or peptide level.", false);
     registerStringOption_("PSM_peptide_base_score_orientation", "<higher/lower>", "", "In case the score orientation cannot be inferred.", false, true);
     setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<std::string>("higher_better, lower_better"));
@@ -234,10 +244,53 @@ protected:
 
       bool peptide_level_fdr = getStringOption_("peptide") == "true";
       bool psm_level_fdr = getStringOption_("PSM") == "true";
+      const bool use_double_competition = getStringOption_("peptide_method") == "PSM_and_peptide";
+
+      if (use_double_competition && !peptide_level_fdr)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "-peptide_method PSM_and_peptide requires -peptide true.");
+      }
 
       if (psm_level_fdr || peptide_level_fdr)
       {
-        fdr.apply(pep_ids, peptide_level_fdr);
+        if (use_double_competition)
+        {
+          const string pair_file = getStringOption_("peptide_pairs");
+          if (pair_file.empty())
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "-peptide_pairs is required for -peptide_method PSM_and_peptide.");
+          }
+          ifstream input(pair_file);
+          if (!input)
+          {
+            throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pair_file);
+          }
+          map<string, string> peptide_pairs;
+          string line;
+          Size line_number = 0;
+          while (getline(input, line))
+          {
+            ++line_number;
+            istringstream fields(line);
+            string target_sequence, decoy_sequence, extra;
+            fields >> ws;
+            if (fields.peek() == char_traits<char>::eof() || fields.peek() == '#') continue;
+            if (!(fields >> target_sequence >> decoy_sequence) || (fields >> extra))
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected exactly two whitespace-separated peptide sequences", pair_file + ":" + StringUtils::toStr(line_number));
+            }
+            if (target_sequence == "target_sequence" && decoy_sequence == "decoy_sequence") continue;
+            if (!peptide_pairs.emplace(target_sequence, decoy_sequence).second)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate target peptide in pair file", target_sequence);
+            }
+          }
+          fdr.applyPeptideDoubleCompetition(pep_ids, peptide_pairs);
+        }
+        else
+        {
+          fdr.apply(pep_ids, peptide_level_fdr);
+        }
         // TODO If no decoys are removed in the param settings, we shouldn't need cleanups
         //  but then all tests need to be changed since cleanup sorts.
         //if (alg_param.getValue("add_decoy_peptides").toBool())

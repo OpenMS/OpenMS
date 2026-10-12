@@ -625,6 +625,7 @@ DefaultParamHandler
         .def(nb::init<>())
         .def("apply", [](const OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& fwd_ids, OpenMS::PeptideIdentificationList& rev_ids) { return self.apply(fwd_ids, rev_ids); }, "fwd_ids"_a, "rev_ids"_a)
         .def("apply", [](const OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& id, bool annotate_peptide_fdr) { return self.apply(id, annotate_peptide_fdr); }, "id"_a, "annotate_peptide_fdr"_a = false)
+        .def("applyPeptideDoubleCompetition", [](const OpenMS::FalseDiscoveryRate& self, OpenMS::PeptideIdentificationList& ids, const std::map<std::string, std::string>& target_decoy_peptide_pairs) { self.applyPeptideDoubleCompetition(ids, target_decoy_peptide_pairs); }, "ids"_a, "target_decoy_peptide_pairs"_a)
         .def("apply", [](const OpenMS::FalseDiscoveryRate& self, std::vector<OpenMS::ProteinIdentification> fwd_ids, std::vector<OpenMS::ProteinIdentification> rev_ids) {
             self.apply(fwd_ids, rev_ids);
             return nb::make_tuple(fwd_ids, rev_ids);
