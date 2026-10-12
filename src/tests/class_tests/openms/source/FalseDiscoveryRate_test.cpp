@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -661,6 +662,60 @@ START_SECTION((void applyBasicPeptideLevel(PeptideIdentificationList & ids)))
   TEST_NOT_EQUAL(q_tie_decoy_first, -1.0)
   TEST_NOT_EQUAL(q_tie_target_first, -1.0)
   TEST_REAL_SIMILAR(q_tie_decoy_first, q_tie_target_first)
+}
+END_SECTION
+
+START_SECTION([EXTRA] protein FDR without indistinguishable groups skips the group pass)
+{
+  // Inference without group annotation (e.g. for '-protein_quantification strictly_unique_peptides')
+  // leaves no groups. The group-level FDR then has nothing to score: it must be skipped, not warn about
+  // missing target-decoy annotation, while the protein-level FDR still runs.
+  auto make_run = []()
+  {
+    ProteinIdentification run;
+    run.setScoreType("score");
+    run.setHigherScoreBetter(true);
+    const std::vector<std::pair<std::string, double>> proteins = {
+      {"P1", 0.9}, {"P2", 0.8}, {"decoy_P3", 0.7}, {"P3", 0.6}, {"decoy_P1", 0.5}};
+    for (const auto& [accession, score] : proteins)
+    {
+      ProteinHit hit;
+      hit.setAccession(accession);
+      hit.setScore(score);
+      hit.setMetaValue("target_decoy", accession.rfind("decoy_", 0) == 0 ? "decoy" : "target");
+      run.getHits().push_back(hit);
+    }
+    return run;
+  };
+
+  FalseDiscoveryRate fdr;
+  for (bool picked : {false, true})
+  {
+    ProteinIdentification run = make_run();
+    // Start from a clean log: lines written with '\n' wait in the buffer until the next sync (which
+    // remove() does into the streams still attached), and a line repeating a cached one is not passed
+    // on at all. An earlier section emits this very warning (a group FDR finding no competing group),
+    // so without flushing and clearing the cache the capture would see its line, or miss ours.
+    OPENMS_LOG_WARN.flush();
+    OPENMS_LOG_WARN.rdbuf()->clearCache();
+    std::ostringstream captured;
+    OPENMS_LOG_WARN.insert(captured);
+    try
+    {
+      if (picked) { fdr.applyPickedProteinFDR(run, "decoy_", true); }
+      else { fdr.applyBasic(run); }
+    }
+    catch (...)
+    {
+      OPENMS_LOG_WARN.remove(captured);
+      throw;
+    }
+    OPENMS_LOG_WARN.remove(captured);
+
+    TEST_TRUE(captured.str().find("No scores extracted") == std::string::npos)
+    TEST_TRUE(run.getIndistinguishableProteins().empty())
+    TEST_EQUAL(run.getScoreType(), "q-value")
+  }
 }
 END_SECTION
 

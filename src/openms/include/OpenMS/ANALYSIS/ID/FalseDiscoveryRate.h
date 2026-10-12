@@ -140,6 +140,7 @@ public:
     /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for proteins.
+    /// @p groups_too also calculates an FDR for the indistinguishable protein groups, if there are any.
     void applyBasic(ProteinIdentification & id, bool groups_too = true);
 
     /**
@@ -148,8 +149,8 @@ public:
      * target-decoy pair is used. A pair is calculated by checking accession equality after removing the decoy string.
      * If @p decoy_string is empty, we try to guess it. If you set @p decoy_string you should also set @p prefix and
      * say if the string is a prefix (true) or suffix (false).
-     * @p groups_too decides if also a (indistinguishable) group-level FDR will be calculated. Here a group score
-     * will be taken if not ALL proteins in the group were picked already. Targets preferred.
+     * @p groups_too decides if also a (indistinguishable) group-level FDR will be calculated, if there are any groups.
+     * Here a group score will be taken if not ALL proteins in the group were picked already. Targets preferred.
      */
     void applyPickedProteinFDR(ProteinIdentification& id, std::string decoy_string = "", bool prefix = true, bool groups_too = true);
 

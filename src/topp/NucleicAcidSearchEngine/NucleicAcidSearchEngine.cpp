@@ -263,9 +263,9 @@ protected:
   {
     IdentificationData::IdentifiedOligoRef oligo_ref;
     NASequence sequence;
-    double precursor_error_ppm; // precursor mass error in ppm
+    double precursor_error_ppm = 0.0; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
-    const PrecursorInfo* precursor_ref; // precursor information
+    const PrecursorInfo* precursor_ref = nullptr; // precursor information
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
@@ -305,12 +305,47 @@ protected:
         modifications.insert(mod);
       }
     }
-    if (ambiguous_mods_.empty()) // no ambiguous mods to resolve
-    {
-      resolve_ambiguous_mods_ = false;
-    }
     return modifications;
   }
+
+  /// @brief Count cleavage-sensitive placements already included in a digested candidate.
+  Size countCleavageSensitiveMods_(const NASequence& sequence,
+                                   const set<std::string>& sensitive_codes) const
+  {
+    if (sensitive_codes.empty())
+    {
+      return 0;
+    }
+
+    Size count = 0;
+    for (const auto& residue : sequence)
+    {
+      if (sensitive_codes.count(residue.getCode()))
+      {
+        ++count;
+      }
+    }
+    return count;
+  }
+
+  /// @brief Register a digestion product with its original parent coordinates and neighbors.
+  void registerDigestedOligo_(IdentificationData& id_data,
+                             IdentificationData::ParentSequenceRef parent_ref,
+                             const NASequence& parent,
+                             const RNaseDigestion::DigestionProduct& product) const
+  {
+    IdentificationData::IdentifiedOligo oligo(product.fragment);
+    const Size start = product.position.first;
+    const Size end = start + product.position.second;
+    IdentificationData::ParentMatch match(start, end - 1);
+    match.left_neighbor = start > 0 ? parent[start - 1]->getCode() :
+      std::string(1, IdentificationData::ParentMatch::LEFT_TERMINUS);
+    match.right_neighbor = end < parent.size() ? parent[end]->getCode() :
+      std::string(1, IdentificationData::ParentMatch::RIGHT_TERMINUS);
+    oligo.parent_matches[parent_ref].insert(match);
+    id_data.registerIdentifiedOligo(oligo);
+  }
+
 
   // check for minimum and maximum size
   class HasInvalidLength
@@ -671,7 +706,11 @@ protected:
       NASequence& previous_seq = previous_it->second.sequence;
       const NASequence& current_seq = hit_it->second.sequence;
       if ((hit_it->first != previous_score) ||
-          (current_seq.size() != previous_seq.size())) // different hits
+          (current_seq.size() != previous_seq.size()) ||
+          (current_seq.getFivePrimeMod() != previous_seq.getFivePrimeMod()) ||
+          (current_seq.getThreePrimeMod() != previous_seq.getThreePrimeMod()) ||
+          (hit_it->second.oligo_ref != previous_it->second.oligo_ref) ||
+          (hit_it->second.precursor_ref != previous_it->second.precursor_ref)) // different hypotheses
       {
         previous_it = hit_it;
         ++hit_it;
@@ -955,6 +994,13 @@ protected:
       getModifications_(search_param.fixed_mods);
     set<ConstRibonucleotidePtr> variable_modifications =
       getModifications_(search_param.variable_mods);
+    resolve_ambiguous_mods_ = resolve_ambiguous_mods_ && !ambiguous_mods_.empty();
+    RNaseDigestion::CleavageSensitiveModGroups cleavage_sensitive_groups;
+    set<ConstRibonucleotidePtr> cleavage_sensitive_modifications;
+    set<std::string> cleavage_sensitive_mod_codes;
+    set<ConstRibonucleotidePtr> post_digest_variable_modifications =
+      variable_modifications;
+
 
     // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
     IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
@@ -962,6 +1008,36 @@ protected:
     Size max_variable_mods_per_oligo =
       getIntOption_("modifications:variable_max_per_oligo");
     Size report_top_hits = getIntOption_("report:top_hits");
+
+    std::string enzyme_name = getStringOption_("oligo:enzyme");
+    const DigestionEnzyme* configured_enzyme =
+      RNaseDB::getInstance()->getEnzyme(enzyme_name);
+    RNaseDigestion cleavage_sensitive_digestor;
+    cleavage_sensitive_digestor.setEnzyme(configured_enzyme);
+    cleavage_sensitive_groups =
+      cleavage_sensitive_digestor.inferCleavageSensitiveMods(
+        variable_modifications);
+    cleavage_sensitive_modifications = cleavage_sensitive_groups.combined();
+    for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
+    {
+      cleavage_sensitive_mod_codes.insert(mod->getCode());
+    }
+    post_digest_variable_modifications = variable_modifications;
+    for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
+    {
+      post_digest_variable_modifications.erase(mod);
+    }
+    if (!cleavage_sensitive_modifications.empty())
+    {
+      OPENMS_LOG_INFO
+        << "Detected " << cleavage_sensitive_modifications.size()
+        << " cleavage-sensitive variable modification(s) from enzyme cleavage regexes "
+        << "(" << cleavage_sensitive_groups.cuts_before_sensitive.size()
+        << " cuts-before-sensitive, "
+        << cleavage_sensitive_groups.cuts_after_sensitive.size()
+        << " cuts-after-sensitive)."
+        << endl;
+    }
 
     StringList potential_adducts =
       getStringList_("precursor:potential_adducts");
@@ -1028,9 +1104,7 @@ protected:
     {
       search_param.database = in_db;
       search_param.missed_cleavages = getIntOption_("oligo:missed_cleavages");
-      std::string enzyme_name = getStringOption_("oligo:enzyme");
-      search_param.digestion_enzyme =
-        RNaseDB::getInstance()->getEnzyme(enzyme_name);
+      search_param.digestion_enzyme = configured_enzyme;
       IdentificationData::SearchParamRef search_ref =
         id_data.registerDBSearchParam(search_param);
       step_ref = id_data.registerProcessingStep(step, search_ref);
@@ -1052,7 +1126,33 @@ protected:
       OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
       IdentificationDataConverter::importSequences(
         id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
-      digestor.digest(id_data, min_oligo_length, max_oligo_length);
+      // Fixed internal modifications affect RNase cleavage. Terminal fixed
+      // modifications are applied to each resulting oligo during candidate expansion.
+      set<ConstRibonucleotidePtr> internal_fixed;
+      for (auto* mod : fixed_modifications)
+      {
+        if (mod->getTermSpecificity() == Ribonucleotide::ANYWHERE)
+        {
+          internal_fixed.insert(mod);
+        }
+      }
+      for (auto parent_ref = id_data.getParentSequences().begin();
+           parent_ref != id_data.getParentSequences().end(); ++parent_ref)
+      {
+        if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
+        {
+          continue;
+        }
+        NASequence parent = NASequence::fromString(parent_ref->sequence);
+        ModifiedNASequenceGenerator::applyFixedModifications(internal_fixed, parent);
+        vector<RNaseDigestion::DigestionProduct> products;
+        digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups,
+          max_variable_mods_per_oligo, products, min_oligo_length, max_oligo_length);
+        for (const auto& product : products)
+        {
+          registerDigestedOligo_(id_data, parent_ref, parent, product);
+        }
+      }
 
       std::string digest_out = getStringOption_("digest_out");
       if (!digest_out.empty())
@@ -1066,13 +1166,37 @@ protected:
       OMSFile(log_type_).load(in_digest, id_data);
       if (id_data.getDBSearchParams().empty())
       {
-        OPENMS_LOG_WARN
-          << "Warning: no search parameter information found in 'digest' input"
-          << endl;
+        OPENMS_LOG_ERROR << "No search parameter information found in 'digest' input" << endl;
+        return ILLEGAL_PARAMETERS;
       }
 
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
+      search_param.digestion_enzyme = search_ref->digestion_enzyme;
+      cleavage_sensitive_groups = {};
+      cleavage_sensitive_modifications.clear();
+      cleavage_sensitive_mod_codes.clear();
+      post_digest_variable_modifications = variable_modifications;
+      if (search_ref->digestion_enzyme)
+      {
+        RNaseDigestion cleavage_sensitive_digestor;
+        cleavage_sensitive_digestor.setEnzyme(search_ref->digestion_enzyme);
+        cleavage_sensitive_groups =
+          cleavage_sensitive_digestor.inferCleavageSensitiveMods(
+            variable_modifications);
+        cleavage_sensitive_modifications = cleavage_sensitive_groups.combined();
+        cleavage_sensitive_mod_codes.clear();
+        for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
+        {
+          cleavage_sensitive_mod_codes.insert(mod->getCode());
+        }
+        post_digest_variable_modifications = variable_modifications;
+        for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
+        {
+          post_digest_variable_modifications.erase(mod);
+        }
+      }
+
       step_ref = id_data.registerProcessingStep(step, search_ref);
       // reference this step in all following ID data items:
       id_data.setCurrentProcessingStep(step_ref);
@@ -1230,10 +1354,20 @@ protected:
       IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
+      // Only a known digest enzyme can classify existing modifications as
+      // cleavage-sensitive placements that consume the variable-modification budget.
+      Size consumed_cleavage_sensitive_mods = search_param.digestion_enzyme ?
+        countCleavageSensitiveMods_(ns, cleavage_sensitive_mod_codes) : 0;
+      if (consumed_cleavage_sensitive_mods > max_variable_mods_per_oligo)
+      {
+        continue;
+      }
+      Size remaining_variable_mods =
+        max_variable_mods_per_oligo - consumed_cleavage_sensitive_mods;
       ModifiedNASequenceGenerator::applyFixedModifications(
         fixed_modifications, ns);
       ModifiedNASequenceGenerator::applyVariableModifications(
-        variable_modifications, ns, max_variable_mods_per_oligo,
+        post_digest_variable_modifications, ns, remaining_variable_mods,
         all_modified_oligos, true);
       OPENMS_LOG_DEBUG << "Oligo: " << ns.toString() << endl;
 
@@ -1440,8 +1574,10 @@ protected:
 
 };
 
+#ifndef OPENMS_NASE_CLASS_TEST
 int main(int argc, const char** argv)
 {
   NucleicAcidSearchEngine tool;
   return tool.main(argc, argv);
 }
+#endif
