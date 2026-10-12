@@ -114,6 +114,15 @@ OpenMS Library:
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
+  - ThermoRawFile reads .raw files faster: trailer values are looked up by a per-file label index,
+    numbers and scan filters are parsed without locale streams and regular expressions, and the TIC
+    is built from the scan headers. New ThermoRawFile::Options select scans by scan number, RT, MS
+    level and precursor m/z, and load metadata only or skip chromatograms; scans that are not
+    selected are not decoded, and selected MSn scans keep the precursors of a full load (#10522).
+    FileHandler::loadExperiment() passes the PeakFileOptions MS levels, RT and precursor m/z ranges,
+    metadata-only, fill-data and skip-chromatograms to the reader (MS2-only tools no longer decode
+    MS1 scans; fill-data off now loads spectra without peaks) and no longer computes the SHA-1 of the
+    RAW file. Instrument configuration ids no longer depend on which scans are loaded.
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
@@ -363,6 +372,10 @@ TOPP tools:
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
         HyperScores with a warning.
+    FileConverter:
+      - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
+        default, which cost a second read of the whole file (5-15% of the conversion time); the new
+        flag -raw_checksum restores it. Without it the mzML sourceFile has an empty SHA-1 (#10522).
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.

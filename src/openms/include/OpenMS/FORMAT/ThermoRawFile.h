@@ -15,6 +15,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <limits>
+#include <vector>
+
 namespace OpenMS
 {
   /**
@@ -57,7 +60,33 @@ namespace OpenMS
       bool all_detectors = false; ///< UV/PDA/Analog/MSAnalog traces and PDA spectra.
       bool preserve_trailers = true; ///< Retain all original scan trailer label/value pairs.
       bool instrument_methods = true; ///< Retain embedded method text once per run.
-      bool checksum = true; ///< Compute source SHA-1 for mzML provenance.
+      bool checksum = true; ///< Compute source SHA-1 for mzML provenance (reads the whole file once more).
+
+      /** @name Selection of MS scans
+          Scans that are not selected are not decoded. Precursors of the selected scans
+          (including the precursor intensity estimated from the parent scan) are the same as
+          in a full load, also if the parent scan itself is not selected.
+      */
+      //@{
+      int first_scan = 0; ///< First scan number to load (0: from the first scan).
+      int last_scan = 0; ///< Last scan number to load (0: up to the last scan).
+      double rt_min = -std::numeric_limits<double>::infinity(); ///< Load scans with rt_min <= RT (seconds) ...
+      double rt_max = std::numeric_limits<double>::infinity(); ///< ... and RT < rt_max.
+      std::vector<int> ms_levels; ///< MS levels to load (empty: all). PDA spectra (all_detectors) have level 0.
+      /// Skip MSn scans whose first precursor m/z lies outside [precursor_mz_min, precursor_mz_max) (MS1 is kept).
+      double precursor_mz_min = -std::numeric_limits<double>::infinity();
+      double precursor_mz_max = std::numeric_limits<double>::infinity(); ///< see precursor_mz_min
+      //@}
+
+      /**
+        @brief Load only spectrum metadata: no peaks, charge or noise arrays are read.
+
+        Values that are derived from the peaks are not available then: the precursor intensity,
+        "lowest/highest observed m/z" and, for centroided data, the base peak of the centroids
+        (the vendor scan statistics base peak is reported instead).
+      */
+      bool metadata_only = false;
+      bool skip_chromatograms = false; ///< Do not load the TIC and detector chromatograms.
     };
 
     /// Returns current loading options.

@@ -27,8 +27,40 @@ set `centroid = true` on both conversion paths. `FileHandler::loadExperiment()`,
 through which most TOPP tools read `.raw` input, sets `centroid = true`, as
 FileConverter does unless `-RawToMzML:no_peak_picking` is given. Optional
 charge/noise/detector exports are disabled by default. Trailer preservation,
-methods and SHA-1 are on; each can be disabled separately to control output size
-or hashing cost.
+methods and SHA-1 are on in `Options`; each can be disabled separately to control
+output size or hashing cost. The SHA-1 reads the whole file once more (5-15% of the
+load time), so FileConverter computes it only with `-raw_checksum`; otherwise the
+mzML `sourceFile` carries an empty SHA-1.
+
+## Loading part of a file
+
+`Options` also selects which scans are read. Scans that are not selected are
+not decoded:
+
+| Option | Selection |
+| --- | --- |
+| `first_scan`, `last_scan` | Scan number range (inclusive; 0 = unbounded) |
+| `rt_min`, `rt_max` | Retention time range in seconds, `rt_min <= RT < rt_max` |
+| `ms_levels` | MS levels to load (empty = all; PDA spectra have level 0) |
+| `precursor_mz_min`, `precursor_mz_max` | MSn scans whose first precursor m/z is in `[min, max)`; MS1 is kept |
+| `metadata_only` | Spectra without peaks, charge or noise arrays |
+| `skip_chromatograms` | No TIC or detector chromatograms |
+
+A selected MSn scan is the same as in a full load: its precursors, including the
+precursor intensity that is estimated from the parent scan, do not depend on
+whether the parent scan is selected (the reader decodes the parent internally if
+needed). With `metadata_only`, values derived from the peaks are absent: the
+precursor intensity, `lowest observed m/z` / `highest observed m/z`, and the base
+peak of centroided data (the vendor scan statistics base peak is reported
+instead). The TIC chromatogram always covers the whole run.
+
+`FileHandler::loadExperiment()` passes the `PeakFileOptions` MS levels, RT and
+precursor m/z ranges, metadata-only, fill-data (off = no peaks) and
+skip-chromatograms settings on to the reader, so for example a search engine that
+loads MS2 spectra only never decodes the MS1 scans. The m/z and intensity ranges
+are applied after loading. `FileHandler` does not compute the SHA-1 of the RAW
+file. Instrument configuration ids (`thermo_ic_N`) are assigned in acquisition
+order over all scans read, so they are the same whichever scans are selected.
 
 | Metadata | OpenMS representation |
 | --- | --- |
