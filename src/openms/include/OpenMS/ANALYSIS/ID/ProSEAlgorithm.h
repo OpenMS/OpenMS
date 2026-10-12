@@ -123,7 +123,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       std::vector<std::string> fixed_mods, variable_mods, ion_series;
       bool open_search = false;
       bool calibration_enabled = false;
-      bool snes_mode = false;
+      bool peptide_mass_mode = false;
       bool chunked = false;
       std::string decoy_mode;                  ///< "generated" | "external" | "none (target-only)"
       double psm_fdr_threshold = 0.0, protein_fdr_threshold = 0.0;
@@ -569,7 +569,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * before pruning and before zero-scoring candidates are dropped -- so the
      * summary reflects the full pool. Instances accumulate across chunks in the
      * chunked search paths, where each chunk contributes its own candidates for
-     * the same spectrum. With peptide:deduplicate enabled for a non-SNES index,
+     * the same spectrum. With peptide:deduplicate enabled for a fragment index,
      * repeated peptidoform/charge/isotope hypotheses in later chunks are skipped
      * before add(). The per-chunk candidate cap still determines which distinct
      * hypotheses enter the pool; chunked and unchunked pools can therefore differ.

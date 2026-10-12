@@ -257,9 +257,25 @@ namespace OpenMS
       all_modified_seqs.push_back(seq);
     }
 
-    // we want the same behavior as for the slower function... we would need a reverse iterator here that NASequence doesn't provide
-    for (NASequence::ConstIterator ribo_it = seq.cend() - 1; ribo_it != seq.cbegin() - 1; --ribo_it)
+    for (const auto* mod : var_mods)
     {
+      if (mod->getTermSpecificity() == Ribonucleotide::FIVE_PRIME && !seq.hasFivePrimeMod())
+      {
+        NASequence modified = seq;
+        modified.setFivePrimeMod(mod);
+        all_modified_seqs.push_back(modified);
+      }
+      else if (mod->getTermSpecificity() == Ribonucleotide::THREE_PRIME && !seq.hasThreePrimeMod())
+      {
+        NASequence modified = seq;
+        modified.setThreePrimeMod(mod);
+        all_modified_seqs.push_back(modified);
+      }
+    }
+    // Walk backwards without constructing an iterator before begin().
+    for (Size remaining = seq.size(); remaining > 0; --remaining)
+    {
+      const auto ribo_it = seq.cbegin() + (remaining - 1);
       // skip already modified residues
       if (ribo_it->isModified())
       { 
@@ -273,7 +289,7 @@ namespace OpenMS
       {
         // check if modification and current ribo match
         const std::string& code = ribo_it->getCode();
-        if (code.size() == 1 && code[0] == v->getOrigin())
+        if (v->getTermSpecificity() == Ribonucleotide::ANYWHERE && code.size() == 1 && code[0] == v->getOrigin())
         {
           NASequence new_seq = seq;
           new_seq.set(residue_index, v);
@@ -283,4 +299,3 @@ namespace OpenMS
     }
   }
 }
-

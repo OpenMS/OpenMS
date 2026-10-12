@@ -408,6 +408,11 @@ namespace OpenMS
     vector<PeptideHit::PeakAnnotation>* annotations,
     double mz_lower_bound)
   {
+    if (!std::isfinite(fragment_mass_error) || fragment_mass_error < 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "HyperScore requires a finite nonnegative fragment tolerance");
+    }
     if (exp_spectrum.empty()) return 0;
 
     // define m/z range to consider:
