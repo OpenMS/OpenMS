@@ -2138,7 +2138,7 @@ namespace OpenMS
                                                             const std::string& path)
   {
 
-    double pseudo_rt_shift = param_.getValue("debug:pseudo_rt_shift");
+    double pseudo_rt_shift = param_.getValue("advanced:pseudo_rt_shift");
     std::string script;
     {
       TextFile tf;
