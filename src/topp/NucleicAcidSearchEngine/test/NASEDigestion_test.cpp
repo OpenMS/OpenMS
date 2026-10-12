@@ -303,6 +303,116 @@ START_SECTION(([EXTRA] complete cutoff ties are retained for every arrival order
 }
 END_SECTION
 
+START_SECTION(([EXTRA] ambiguity variants merge within each precursor across tied-hit permutations))
+{
+  TestNASE tool;
+  tool.enableAmbiguities();
+  TEST_EQUAL(tool.getModifications_({"mA?"}).size(), 2)
+  IdentificationData data;
+  const auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("AUCAGp")));
+  const auto sodium = data.registerAdduct(AdductInfo("Na+", EmpiricalFormula("Na"), 1));
+  TestNASE::PrecursorInfo first{0, -2, 0, nullopt};
+  TestNASE::PrecursorInfo second{0, -3, 1, sodium};
+  const std::vector<std::string> sequences{"AUC[Am]Gp", "AUC[Am]Gp", "AUC[mA]Gp", "AUC[mA]Gp", "AUC[m6A]Gp"};
+  const std::vector<const TestNASE::PrecursorInfo*> precursors{&first, &second, &first, &second, &first};
+  std::vector<Size> order{0, 1, 2, 3, 4};
+  do
+  {
+    TestNASE::HitsByScore hits;
+    for (const Size index : order)
+    {
+      TestNASE::AnnotatedHit hit;
+      hit.oligo_ref = oligo;
+      hit.sequence = NASequence::fromString(sequences[index]);
+      hit.precursor_ref = precursors[index];
+      hit.precursor_error_ppm = index;
+      tool.retainTopHit_(hits, 10.0, hit, 1);
+    }
+    // Before the fix, value sorting interleaves the two precursor groups and
+    // places the unrelated m6A hit between the variants of the first precursor.
+    tool.sortHitsByValue_(hits);
+    tool.resolveAmbiguousMods_(hits);
+    tool.sortHitsByValue_(hits);
+    TEST_EQUAL(hits.size(), 3)
+    std::vector<std::string> retained;
+    Size ambiguous_count = 0;
+    for (const auto& hit : hits)
+    {
+      retained.push_back(hit.second.sequence.toString());
+      TEST_EQUAL(hit.first, 10.0)
+      TEST_TRUE(hit.second.oligo_ref == oligo)
+      if (hit.second.sequence.toString() == "AUC[mA?]Gp")
+      {
+        ++ambiguous_count;
+        TEST_TRUE(hit.second.precursor_ref == &first || hit.second.precursor_ref == &second)
+        // Preserve the deterministically first specific variant's metadata.
+        TEST_REAL_SIMILAR(hit.second.precursor_error_ppm, hit.second.precursor_ref == &first ? 0.0 : 1.0)
+      }
+      else
+      {
+        TEST_TRUE(hit.second.precursor_ref == &first)
+        TEST_REAL_SIMILAR(hit.second.precursor_error_ppm, 4.0)
+      }
+    }
+    TEST_EQUAL(ambiguous_count, 2)
+    TEST_TRUE(retained == std::vector<std::string>({"AUC[m6A]Gp", "AUC[mA?]Gp", "AUC[mA?]Gp"}))
+  }
+  while (std::next_permutation(order.begin(), order.end()));
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ambiguity resolution preserves score source terminal and precursor identities))
+{
+  TestNASE tool;
+  tool.enableAmbiguities();
+  tool.getModifications_({"mA?"});
+  IdentificationData data;
+  const auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("AUCAGp")));
+  const auto other_oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("AAUAGp")));
+  const auto sodium = data.registerAdduct(AdductInfo("Na+", EmpiricalFormula("Na"), 1));
+  TestNASE::PrecursorInfo precursor{0, -2, 0, nullopt};
+  TestNASE::PrecursorInfo equal_values{0, -2, 0, nullopt};
+  TestNASE::PrecursorInfo other_charge{0, -3, 0, nullopt};
+  TestNASE::PrecursorInfo other_isotope{0, -2, 1, nullopt};
+  TestNASE::PrecursorInfo other_adduct{0, -2, 0, sodium};
+  TestNASE::AnnotatedHit first, second;
+  first.oligo_ref = second.oligo_ref = oligo;
+  first.precursor_ref = second.precursor_ref = &precursor;
+  first.sequence = NASequence::fromString("AUC[Am]Gp");
+  second.sequence = NASequence::fromString("AUC[mA]Gp");
+  const auto check_distinct = [&](const TestNASE::AnnotatedHit& other, double other_score = 10.0)
+  {
+    TestNASE::HitsByScore hits;
+    hits.emplace(10.0, first);
+    hits.emplace(other_score, other);
+    tool.sortHitsByValue_(hits);
+    tool.resolveAmbiguousMods_(hits);
+    TEST_EQUAL(hits.size(), 2)
+    for (const auto& hit : hits)
+    {
+      TEST_TRUE(hit.second.sequence == first.sequence || hit.second.sequence == other.sequence)
+    }
+  };
+  check_distinct(second, 9.0);
+  auto different = second;
+  different.oligo_ref = other_oligo;
+  check_distinct(different);
+  different = second;
+  different.sequence = NASequence::fromString("pAUC[mA]Gp");
+  check_distinct(different);
+  different.sequence = NASequence::fromString("AUC[mA]G");
+  check_distinct(different);
+  different.sequence = NASequence::fromString("AUCC[mA]Gp");
+  check_distinct(different);
+  for (const auto* other_precursor : {&equal_values, &other_charge, &other_isotope, &other_adduct})
+  {
+    different = second;
+    different.precursor_ref = other_precursor;
+    check_distinct(different);
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] LFQ uses finite weights or the median of finite observations))
 {
   TestNASE tool;

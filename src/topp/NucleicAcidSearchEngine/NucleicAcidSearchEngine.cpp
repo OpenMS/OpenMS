@@ -705,26 +705,21 @@ protected:
   void resolveAmbiguousMods_(HitsByScore& hits)
   {
     OPENMS_PRECONDITION(hits.size() > 1, "more than one hit expected");
-    auto previous_it = hits.begin();
-    // If the current hit is an ambiguity variant of the previous one, combine
-    // both into one hit. For example, if we have two hits with these sequences:
+    // If the current hit is an ambiguity variant of an earlier hit in the same
+    // hypothesis, combine both into one hit. For example, these sequences:
     // 1. "AUC[mA]Gp", 2. "AUC[Am]Gp"
     // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
-    for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    const auto merge_variants = [&](AnnotatedHit& previous_hit, const AnnotatedHit& current_hit)
     {
-      double previous_score = previous_it->first;
-      NASequence& previous_seq = previous_it->second.sequence;
-      const NASequence& current_seq = hit_it->second.sequence;
-      if ((hit_it->first != previous_score) ||
-          (current_seq.size() != previous_seq.size()) ||
+      NASequence& previous_seq = previous_hit.sequence;
+      const NASequence& current_seq = current_hit.sequence;
+      if ((current_seq.size() != previous_seq.size()) ||
           (current_seq.getFivePrimeMod() != previous_seq.getFivePrimeMod()) ||
           (current_seq.getThreePrimeMod() != previous_seq.getThreePrimeMod()) ||
-          (hit_it->second.oligo_ref != previous_it->second.oligo_ref) ||
-          (hit_it->second.precursor_ref != previous_it->second.precursor_ref)) // different hypotheses
+          (current_hit.oligo_ref != previous_hit.oligo_ref) ||
+          (current_hit.precursor_ref != previous_hit.precursor_ref)) // different hypotheses
       {
-        previous_it = hit_it;
-        ++hit_it;
-        continue;
+        return false;
       }
       bool remove_current = true;
       NASequence replacement; // potential replacement sequence for previous hit
@@ -758,11 +753,35 @@ protected:
       if (remove_current) // current hit is redundant -> remove it
       {
         if (!replacement.empty()) previous_seq = replacement;
+        return true;
+      }
+      return false;
+    };
+
+    // Sequence sorting can interleave different precursors and unrelated tied
+    // sequences. Keep all earlier representatives for each exact-score hypothesis.
+    map<IdentificationData::IdentifiedOligoRef,
+        map<const PrecursorInfo*, vector<HitsByScore::iterator>>> representatives;
+    double score = hits.begin()->first;
+    for (auto hit_it = hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    {
+      if (hit_it->first != score)
+      {
+        representatives.clear();
+        score = hit_it->first;
+      }
+      auto& earlier_hits = representatives[hit_it->second.oligo_ref][hit_it->second.precursor_ref];
+      const bool merged = any_of(earlier_hits.begin(), earlier_hits.end(), [&](const auto& previous_it)
+      {
+        return merge_variants(previous_it->second, hit_it->second);
+      });
+      if (merged)
+      {
         hit_it = hits.erase(hit_it);
       }
       else
       {
-        previous_it = hit_it;
+        earlier_hits.push_back(hit_it);
         ++hit_it;
       }
     }
@@ -843,6 +862,8 @@ protected:
       if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
         resolveAmbiguousMods_(annotated_hits[scan_index]);
+        // Merged ambiguity codes can change the value order of the surviving hits.
+        sortHitsByValue_(annotated_hits[scan_index]);
       }
 
       // create full oligo hit structure from annotated hits
