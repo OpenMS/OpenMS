@@ -4598,6 +4598,21 @@ set_tests_properties("TOPP_DecoyDatabase_10_out" PROPERTIES DEPENDS "TOPP_DecoyD
 add_test("TOPP_DecoyDatabase_11" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_11.tmp.fasta -decoy_string "DECOY_SEQ_" -decoy_string_position "prefix" -method reverse -seed 42 -rnase RNase_T1)
 add_test("TOPP_DecoyDatabase_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_11.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_11_out.fasta )
 set_tests_properties("TOPP_DecoyDatabase_11_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_11")
+# ... overlapping RNase products must fail cleanly before an output is created.
+foreach(method reverse shuffle)
+  add_test(NAME "TOPP_DecoyDatabase_12_${method}" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/DecoyDatabase;-test;-type;RNA;-in;${DATA_DIR_TOPP}/DecoyDatabase_4.fasta;-out;${TESTS_TEMP_DIR}/DecoyDatabase_12_${method}.tmp.fasta;-rnase;unspecific cleavage;-method;${method}"
+    -DEXPECTED_CODE=6
+    "-DEXPECTED_OUTPUT_REGEX=overlapping products"
+    "-DABSENT_FILE=${TESTS_TEMP_DIR}/DecoyDatabase_12_${method}.tmp.fasta"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  # ... an RNase that cuts at every site must report that its decoy is unchanged.
+  add_test(NAME "TOPP_DecoyDatabase_13_${method}" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/DecoyDatabase;-test;-type;RNA;-in;${DATA_DIR_TOPP}/DecoyDatabase_4.fasta;-out;${TESTS_TEMP_DIR}/DecoyDatabase_13_${method}.tmp.fasta;-rnase;RNase_H;-method;${method}"
+    -DEXPECTED_CODE=0
+    "-DEXPECTED_OUTPUT_REGEX=single-nucleotide fragments.*the decoy is identical to the target"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+endforeach()
 
 # SimpleSearchEngine:
 add_test("TOPP_SimpleSearchEngine_1" ${TOPP_BIN_PATH}/SimpleSearchEngine -test

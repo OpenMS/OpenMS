@@ -16,7 +16,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.7.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
-- DecoyDatabase/NucleicAcidSearchEngine: preserve RNA termini during decoy generation and deterministically resolve or skip post-digestion target-decoy collisions.
+- DecoyDatabase/NucleicAcidSearchEngine: preserve RNA termini during decoy generation and deterministically resolve or skip post-digestion target-decoy collisions. DecoyDatabase rejects overlapping unspecific RNase products, validates fragment coordinates, and warns when single-nucleotide products leave the decoy unchanged.
 - NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
 
 OpenMS Library:

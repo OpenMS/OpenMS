@@ -70,6 +70,9 @@ For RNA, terminal chain modifications remain at their original ends.
 The optional @p keep_terminal_nucleotides flag also fixes the first and last residues.
 With @p rnase, each original RNase product is reversed or shuffled within the parent;
 this does not guarantee that the resulting decoy has identical cleavage boundaries.
+Unspecific cleavage is unsupported because its overlapping products do not partition
+the parent. If an RNase produces only single-nucleotide fragments, a warning reports
+that the decoy remains identical to the target.
 
 @htmlinclude TOPP_DecoyDatabase.html
 
@@ -120,7 +123,7 @@ protected:
 
     StringList all_rnases;
     RNaseDB::getInstance()->getAllNames(all_rnases);
-    registerStringOption_("rnase", "<enzyme>", "no cleavage", "RNase used for the digestion of the RNA. Only applicable if parameter 'type' is 'RNA'. Per-fragment reversal/shuffling (analogous to protein mode with an enzyme) is performed when an RNase other than 'no cleavage' is specified.", false);
+    registerStringOption_("rnase", "<enzyme>", "no cleavage", "RNase used for the digestion of the RNA. Only applicable if parameter 'type' is 'RNA'. Per-fragment reversal/shuffling (analogous to protein mode with an enzyme) is performed when an RNase other than 'no cleavage' is specified. Unspecific cleavage is unsupported because its products overlap; a warning is issued if all products are single nucleotides and the decoy is unchanged.", false);
     setValidStrings_("rnase", all_rnases);
 
     registerSubsection_("Decoy", "Decoy parameters section");
@@ -254,6 +257,11 @@ protected:
     std::string rnase = StringUtils::trimmed(getStringOption_("rnase"));
     if (input_type == SeqType::RNA && !rnase.empty() && rnase != "no cleavage")
     {
+      if (rnase == "unspecific cleavage")
+      {
+        OPENMS_LOG_ERROR << "The RNase 'unspecific cleavage' returns overlapping products and cannot be used for per-fragment RNA decoy generation.\n";
+        return ILLEGAL_PARAMETERS;
+      }
       rnase_digestion.setEnzyme(rnase);
     }
 
@@ -454,18 +462,40 @@ protected:
               // We work on the original NASequence's nucleotide vector to
               // avoid invalid strings from concatenating fragment toString()
               // results (which would embed 3'-phosphate 'p' characters).
-              vector<NASequence> fragments;
-              rnase_digestion.digest(na_seq, fragments);
+              const auto fragment_positions = rnase_digestion.getFragmentPositions(na_seq);
+              Size covered_length = 0;
+              bool has_multiple_nucleotides = false;
+              for (const auto& [start, length] : fragment_positions)
+              {
+                // Validate all coordinates before using iterators or unchecked sequence indexing.
+                if (start != covered_length || start > na_seq.size() ||
+                    length == 0 || length > na_seq.size() - start)
+                {
+                  OPENMS_LOG_ERROR << "RNase '" << rnase << "' products do not partition RNA sequence '"
+                                   << entry.identifier << "' into contiguous, non-overlapping fragments.\n";
+                  return ILLEGAL_PARAMETERS;
+                }
+                covered_length += length;
+                has_multiple_nucleotides = has_multiple_nucleotides || length > 1;
+              }
+              if (covered_length != na_seq.size())
+              {
+                OPENMS_LOG_ERROR << "RNase '" << rnase << "' products do not cover RNA sequence '"
+                                 << entry.identifier << "'.\n";
+                return ILLEGAL_PARAMETERS;
+              }
+              if (!has_multiple_nucleotides && !na_seq.empty())
+              {
+                OPENMS_LOG_WARN << "RNase '" << rnase << "' produces only single-nucleotide fragments for RNA sequence '"
+                                << entry.identifier << "'; the decoy is identical to the target.\n";
+              }
 
               NASequence result = na_seq; // preserves 5'/3' terminal mods
               const auto& orig_seq = na_seq.getSequence();
-              Size pos = 0;
-              for (const auto& fragment : fragments)
+              for (const auto& [pos, frag_len] : fragment_positions)
               {
-                Size frag_len = fragment.size();
                 if (frag_len <= 1)
                 {
-                  pos += frag_len;
                   continue;
                 }
 
@@ -493,7 +523,6 @@ protected:
                 {
                   result[pos + i] = decoy_frag[i];
                 }
-                pos += frag_len;
               }
               decoy_entry.sequence = result.toString();
             }
