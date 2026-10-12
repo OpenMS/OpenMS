@@ -69,6 +69,11 @@ namespace OpenMS
                                            ///< (peptide database search) where MS1 surveys are not needed —
                                            ///< cuts memory and time substantially. Affects all export modes.
 
+      bool load_ms2 = true;                ///< Load MS2 spectra. Disable (false) for MS1-only workflows
+                                           ///< (feature detection, quantification): the MS2 frames are then
+                                           ///< not decoded and, for DDA, the precursor table is not read.
+                                           ///< Affects all export modes.
+
       /// Frame ID range filter (inclusive). Only frames with
       /// frame_id_min <= Id <= frame_id_max are read; all peak data for frames
       /// outside the range is skipped, so memory and I/O scale with the range,

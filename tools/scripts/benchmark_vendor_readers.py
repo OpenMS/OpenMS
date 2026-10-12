@@ -136,10 +136,14 @@ BRUKER_COMMON = [
      "per frame and isolation window with a per-peak 1/K0 array"),
     ("no_ms1", {"load_ms1": False}, FULL,
      "MS2-only load (database search): MS1 frames are not read"),
+    ("no_ms2", {"load_ms2": False}, FULL,
+     "MS1-only load (feature detection): MS2 frames are not read, for DDA the precursor table neither"),
     ("frame", {"export_mode": "FRAME"}, FULL,
      "loadFrames_: raw 4D frames for MS1 and MS2, no precursor grouping and no window splitting"),
     ("frame_no_ms1", {"export_mode": "FRAME", "load_ms1": False}, QUICK,
      "FRAME mode restricted to MS2 frames"),
+    ("frame_no_ms2", {"export_mode": "FRAME", "load_ms2": False}, QUICK,
+     "FRAME mode restricted to MS1 frames"),
     ("ms1_greedy2d", dict(GREEDY2D), FULL,
      "implicit Greedy2D MS1 centroiding: ms1_centroid_algo stays OFF, both legacy tolerances > 0 "
      "(FrameCentroider; ties of equal intensities decide which apex wins)"),
@@ -254,6 +258,12 @@ THERMO = [
      "the cheapest configuration: centroids only"),
     ("everything", {"centroid": True, "charge_data": True, "noise_data": True, "all_detectors": True},
      "all optional exports on"),
+    ("ms1_only", {"centroid": True, "ms_levels": [1]},
+     "scan selection: MS1 only; the peak data of the MSn scans is not read"),
+    ("ms2_only", {"centroid": True, "ms_levels": [2]},
+     "scan selection: MS2 only; the parent MS1 scans are read for the precursor intensity but not returned"),
+    ("rt_window", {"centroid": True, "rt_min_sec": 100.0, "rt_max_sec": 200.0},
+     "scan selection: retention time range (inclusive)"),
 ]
 
 # FileHandler::loadExperiment with PeakFileOptions. Today the vendor readers load everything and FileHandler

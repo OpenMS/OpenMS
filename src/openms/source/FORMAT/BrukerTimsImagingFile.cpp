@@ -188,6 +188,7 @@ namespace OpenMS
     BrukerTimsFile::Config inner_config = config.inner_config;
     inner_config.export_mode = BrukerTimsFile::Config::ExportMode::FRAME;
     inner_config.load_ms1 = true;
+    inner_config.load_ms2 = true;
 
     MSExperiment ms_exp;
     BrukerTimsFile inner;

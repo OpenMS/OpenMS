@@ -89,7 +89,8 @@ The acquisition type is detected from the file:
 
 FileConverter, CometAdapter and PeakPickerIM have `bruker:` options to change this, for
 example `-bruker:export_mode` to force the per-precursor layout (`spectrum`) or raw frames
-(`frame`). FileConverter can also skip the MS1 spectra (`-bruker:load_ms1 false`),
+(`frame`). FileConverter can also skip the MS1 or the MS2 spectra (`-bruker:load_ms1 false`,
+`-bruker:load_ms2 false`),
 recalibrate m/z, aggregate neighbouring frames and centroid along the ion mobility axis; see
 its documentation. ProteomicsLFQ
 centroids the MS1 frames along the ion mobility axis before feature detection. The other

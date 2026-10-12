@@ -11,6 +11,7 @@ When the variable is set the tests must pass. A wheel that was built without
 Thermo support, or that lacks the managed assemblies, is exactly what they are
 meant to catch, so there is no feature-detection fallback here.
 """
+import math
 import os
 
 import pytest
@@ -89,6 +90,45 @@ def test_load_experiment_from_raw():
 
 
 @needs_raw_file
+def test_scan_selection_does_not_change_the_selected_scans():
+    """ThermoRawFileOptions.ms_levels / rt_min_sec / rt_max_sec, and the PeakFileOptions that
+    FileHandler passes on to them, return the spectra of a full load for the selected scans."""
+    reader = pyopenms.ThermoRawFile()
+    options = reader.getOptions()
+    options.centroid = True
+    reader.setOptions(options)
+    full = pyopenms.MSExperiment()
+    reader.load(RAW_FILE, full)
+    rt_lo, rt_hi = full[full.getNrSpectra() // 3].getRT(), full[2 * full.getNrSpectra() // 3].getRT()
+
+    options.ms_levels = [2]
+    options.rt_min_sec, options.rt_max_sec = rt_lo, rt_hi
+    reader.setOptions(options)
+    selected = pyopenms.MSExperiment()
+    reader.load(RAW_FILE, selected)
+    expected = [s for s in full if s.getMSLevel() == 2 and rt_lo <= s.getRT() <= rt_hi]
+    assert 0 < len(expected) < full.getNrSpectra()
+    assert selected.getNrSpectra() == len(expected)
+    assert all(a == b for a, b in zip(selected, expected))
+    # the precursor intensity comes from the peaks of the parent MS1 scans, which were not loaded
+    assert any(p.getIntensity() > 0 for s in selected for p in s.getPrecursors())
+    assert selected.getNrChromatograms() == full.getNrChromatograms() == 1
+
+    # FileHandler: MS1 only, with the half-open retention time range of PeakFileOptions
+    handler = pyopenms.FileHandler()
+    file_options = handler.getOptions()
+    file_options.setMSLevels([1])
+    file_options.setRTRange(pyopenms.DRange1(rt_lo, rt_hi))
+    handler.setOptions(file_options)
+    filtered = pyopenms.MSExperiment()
+    handler.loadExperiment(RAW_FILE, filtered)
+    expected = [s for s in full if s.getMSLevel() == 1 and rt_lo <= s.getRT() < rt_hi]
+    assert 0 < len(expected) < full.getNrSpectra()
+    assert filtered.getNrSpectra() == len(expected)
+    assert all(a == b for a, b in zip(filtered, expected))
+
+
+@needs_raw_file
 def test_load_experiment_from_raw_applies_vendor_peak_picking():
     """FileHandler applies Thermo's peak picking, like FileConverter; ThermoRawFile
     keeps the scans as acquired unless its centroid option is set."""
@@ -134,6 +174,15 @@ def test_thermo_options():
     options = reader.getOptions()
     assert options.preserve_trailers and options.instrument_methods and options.checksum
     assert not options.centroid
+    # scan selection: by default all MS levels and retention times
+    assert options.ms_levels == [] and options.rt_min_sec == 0.0 and options.rt_max_sec == math.inf
+    options.ms_levels = [2]
+    options.rt_min_sec, options.rt_max_sec = 10.0, 20.0
+    reader.setOptions(options)
+    selected = reader.getOptions()
+    assert selected.ms_levels == [2] and selected.rt_min_sec == 10.0 and selected.rt_max_sec == 20.0
+    options.ms_levels = []
+    options.rt_min_sec, options.rt_max_sec = 0.0, math.inf
     options.centroid = options.charge_data = options.noise_data = options.all_detectors = True
     reader.setOptions(options)
     assert reader.getOptions().centroid

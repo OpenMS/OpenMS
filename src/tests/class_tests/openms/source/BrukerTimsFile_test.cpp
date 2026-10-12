@@ -26,6 +26,7 @@
 #include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -1597,6 +1598,140 @@ START_SECTION(Bruker load_ms1=false test)
   }
   TEST_EQUAL(frame_ms1, 0);
 #endif
+}
+END_SECTION
+
+START_SECTION(Bruker load_ms2=false test)
+{
+  // MS1 only: the MS1 spectra are those of a load of both levels, and the MS2 frames are not read (for DDA
+  // the precursor table neither). On the first frames of the runs, to keep the section short.
+  using Config = BrukerTimsFile::Config;
+  BrukerTimsFile f;
+  std::vector<std::pair<std::string, Config::ExportMode>> runs = {{OPENTIMS_DDA_TEST_DATA, Config::AUTO},
+                                                                   {OPENTIMS_DDA_TEST_DATA, Config::FRAME}};
+#ifdef OPENTIMS_DIA_TEST_DATA
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA, Config::AUTO);
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA, Config::FRAME);
+#endif
+  for (const auto& [path, mode] : runs)
+  {
+    Config cfg;
+    cfg.export_mode = mode;
+    cfg.frame_id_min = 1;
+    cfg.frame_id_max = 60;
+    MSExperiment both;
+    f.load(path, both, cfg);
+    const SpectraCounts all = countSpectra(spectrumPointers(both));
+    TEST_EQUAL(all.ms1 > 0 && all.ms2 > 0, true)
+
+    cfg.load_ms2 = false;
+    MSExperiment ms1_only;
+    f.load(path, ms1_only, cfg);
+    TEST_EQUAL(ms1_only.size(), all.ms1)
+    TEST_STRING_EQUAL(spectraDifference(spectrumPointers(both, 1), spectrumPointers(ms1_only)), "")
+
+    // transform() delivers the same spectra and announces their number
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.spectra, all.ms1)
+    TEST_EQUAL(r.loaded.ms2, 0)
+    TEST_EQUAL(r.expected_size, all.ms1)
+
+    // neither level: no spectra, but the run is still described
+    cfg.load_ms1 = false;
+    MSExperiment none;
+    f.load(path, none, cfg);
+    TEST_EQUAL(none.size(), 0)
+    TEST_EQUAL(none.getSourceFiles().size(), 1)
+  }
+
+#ifdef OPENTIMS_DIA_TEST_DATA
+  // DIA streaming: readDIAMetadata() announces no MS2 spectra and loadDIAStreaming() delivers none
+  {
+    Config cfg;
+    cfg.frame_id_min = 1;
+    cfg.frame_id_max = 60;
+    cfg.load_ms2 = false;
+    ExperimentalSettings settings;
+    const auto meta = f.readDIAMetadata(OPENTIMS_DIA_TEST_DATA, settings, cfg);
+    TEST_EQUAL(meta.nr_ms1_spectra > 0, true)
+    TEST_EQUAL(meta.boundaries.empty(), false)
+    Size announced_ms2 = 0;
+    for (const int n : meta.nr_ms2_spectra) announced_ms2 += n;
+    TEST_EQUAL(announced_ms2, 0)
+
+    InspectableSwathConsumer consumer(meta.boundaries);
+    f.loadDIAStreaming(OPENTIMS_DIA_TEST_DATA, consumer, cfg);
+    TEST_EQUAL(consumer.ms1Map() != nullptr, true)
+    if (consumer.ms1Map() != nullptr) TEST_EQUAL(consumer.ms1Map()->size(), static_cast<Size>(meta.nr_ms1_spectra))
+    Size streamed_ms2 = 0;
+    for (Size w = 0; w < meta.boundaries.size(); ++w)
+    {
+      if (consumer.swathMap(w) != nullptr) streamed_ms2 += consumer.swathMap(w)->size();
+    }
+    TEST_EQUAL(streamed_ms2, 0)
+  }
+#endif
+}
+END_SECTION
+
+START_SECTION([FileHandler] the reader skips what the PeakFileOptions exclude)
+{
+  // FileHandler::loadExperiment() passes the MS levels of its PeakFileOptions on to the reader, and the
+  // retention time range if only MS1 is asked for, so that the excluded frames are not decoded. The result
+  // has to be that of loading everything and filtering afterwards: in particular a DDA MS2 spectrum at the
+  // end of a retention time range is built from all of its frames. FileHandler takes Bruker data by the
+  // '.d' suffix of the path, which the fixture directories do not have.
+  TempDir tmp;
+  std::vector<std::pair<std::string, std::string>> runs = {{OPENTIMS_DDA_TEST_DATA, tmp.getPath() + "/dda.d"}};
+#ifdef OPENTIMS_DIA_TEST_DATA
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA, tmp.getPath() + "/dia.d");
+#endif
+  for (const auto& [fixture, d_path] : runs)
+  {
+    std::error_code link_error;
+    std::filesystem::create_directory_symlink(fixture, d_path, link_error);
+    if (link_error)
+    {
+      STATUS("no symbolic link to " << fixture << " (" << link_error.message() << "): not tested")
+      continue;
+    }
+    TEST_EQUAL(FileHandler::getType(d_path), FileTypes::BRUKER_TDF)
+
+    MSExperiment full; // what the reader returns without any options
+    BrukerTimsFile().load(d_path, full);
+    const std::vector<const MSSpectrum*> full_ms1 = spectrumPointers(full, 1);
+    const std::vector<const MSSpectrum*> full_ms2 = spectrumPointers(full, 2);
+    TEST_EQUAL(full_ms1.size() > 20 && full_ms2.size() > 20, true)
+    // a retention time range that begins and ends at MS1 spectra: PeakFileOptions excludes the upper limit
+    const double rt_lo = full_ms1[full_ms1.size() / 2]->getRT();
+    const double rt_hi = full_ms1[full_ms1.size() / 2 + 10]->getRT();
+
+    struct Filter
+    {
+      std::vector<Int> ms_levels;
+      bool rt_range;
+    };
+    for (const Filter& filter : {Filter{{2}, false}, Filter{{1}, true}, Filter{{2}, true}, Filter{{1, 2}, true}, Filter{{3}, false}})
+    {
+      FileHandler handler;
+      handler.getOptions().setMSLevels(filter.ms_levels);
+      if (filter.rt_range) handler.getOptions().setRTRange(DRange<1>(rt_lo, rt_hi));
+      MSExperiment filtered;
+      handler.loadExperiment(d_path, filtered, {FileTypes::BRUKER_TDF});
+
+      std::vector<const MSSpectrum*> expected;
+      for (const MSSpectrum& s : full)
+      {
+        if (std::find(filter.ms_levels.begin(), filter.ms_levels.end(), static_cast<Int>(s.getMSLevel())) == filter.ms_levels.end()) continue;
+        if (filter.rt_range && (s.getRT() < rt_lo || s.getRT() >= rt_hi)) continue;
+        expected.push_back(&s);
+      }
+      TEST_EQUAL(expected.empty(), filter.ms_levels == std::vector<Int>{3})
+      TEST_EQUAL(expected.size() < full.size(), true)
+      TEST_STRING_EQUAL(spectraDifference(expected, spectrumPointers(filtered)), "")
+      TEST_TRUE(filtered.getExperimentalSettings() == full.getExperimentalSettings())
+    }
+  }
 }
 END_SECTION
 

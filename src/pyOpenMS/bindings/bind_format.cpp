@@ -116,7 +116,10 @@ NB_MODULE(_pyopenms_format, m) {
         .def_rw("all_detectors", &OpenMS::ThermoRawFile::Options::all_detectors, "Export UV/PDA/analog detector traces and PDA spectra")
         .def_rw("preserve_trailers", &OpenMS::ThermoRawFile::Options::preserve_trailers, "Retain all scan trailer label/value pairs")
         .def_rw("instrument_methods", &OpenMS::ThermoRawFile::Options::instrument_methods, "Retain the embedded instrument method texts")
-        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance");
+        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance")
+        .def_rw("ms_levels", &OpenMS::ThermoRawFile::Options::ms_levels, "MS levels to load (empty = all). The peak data of other scans is not read; the loaded spectra are the same as in a full load.")
+        .def_rw("rt_min_sec", &OpenMS::ThermoRawFile::Options::rt_min_sec, "Lower retention time limit in seconds (inclusive; default 0.0). The peak data of scans outside the range is not read.")
+        .def_rw("rt_max_sec", &OpenMS::ThermoRawFile::Options::rt_max_sec, "Upper retention time limit in seconds (inclusive; default +inf = no limit). The peak data of scans outside the range is not read.");
     // ProgressLogger lives in another extension module, so its methods are added
     // explicitly instead of declaring it as a nanobind base class.
     auto thermorawfile_class = nb::class_<OpenMS::ThermoRawFile>(m, "ThermoRawFile", "Load Thermo RAW spectra and metadata for mzML export");
@@ -237,6 +240,7 @@ runtime.
         .def_rw("calibration_tolerance", &OpenMS::BrukerTimsFile::Config::calibration_tolerance, "m/z recalibration tolerance in Da (0 = default 0.1 Da)")
         .def_rw("calibrate", &OpenMS::BrukerTimsFile::Config::calibrate, "Enable m/z recalibration (off by default; may fail on some datasets)")
         .def_rw("load_ms1", &OpenMS::BrukerTimsFile::Config::load_ms1, "Load MS1 spectra. Disable for MS2-only workflows.")
+        .def_rw("load_ms2", &OpenMS::BrukerTimsFile::Config::load_ms2, "Load MS2 spectra. Disable for MS1-only workflows: the MS2 frames are then not read.")
         .def_rw("frame_id_min", &OpenMS::BrukerTimsFile::Config::frame_id_min, "Lowest frame ID to read (inclusive; frame IDs are 1-based; default 0 = from the first frame)")
         .def_rw("frame_id_max", &OpenMS::BrukerTimsFile::Config::frame_id_max, "Highest frame ID to read (inclusive; default 4294967295 = to the last frame). Frames outside the range are not read.")
         .def_rw("rt_min_sec", &OpenMS::BrukerTimsFile::Config::rt_min_sec, "Lower retention time limit in seconds (inclusive; default 0.0). Resolved to a frame ID range and intersected with frame_id_min/frame_id_max.")

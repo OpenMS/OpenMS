@@ -18,9 +18,12 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <set>
+#include <vector>
 
 using namespace OpenMS;
 using namespace std;
@@ -239,6 +242,132 @@ START_SECTION(FileHandler::loadExperiment applies the vendor peak picking)
   TEST_EQUAL(centroid_type, centroided.size())
   TEST_EQUAL(ms1_profile > 0, true)
   TEST_EQUAL(picked_peaks < profile_peaks, true)
+}
+END_SECTION
+
+START_SECTION(Options::ms_levels and rt_min_sec/rt_max_sec select scans without changing them)
+{
+  // A selective load returns the spectra of a full load for the selected scans, each one unchanged. The scans
+  // that are not loaded still contribute what the loaded ones depend on: their metadata (precursor
+  // reconstruction, instrument configurations) and, as parent scans, their peaks (precursor intensity).
+  ThermoRawFile file;
+  ThermoRawFile::Options options = file.getOptions();
+  TEST_EQUAL(options.ms_levels.empty(), true)
+  TEST_EQUAL(options.rt_min_sec, 0.0)
+  TEST_EQUAL(options.rt_max_sec, std::numeric_limits<double>::infinity())
+  options.centroid = true;
+  file.setOptions(options);
+  MSExperiment full;
+  file.load(THERMO_RAW_TEST_DATA, full);
+  TEST_EQUAL(full.getNrChromatograms(), 1)
+
+  // the two RT limits are retention times of scans, to test that both ends of the range are inclusive
+  const double rt_lo = full[full.size() / 3].getRT();
+  const double rt_hi = full[2 * full.size() / 3].getRT();
+  const double no_limit = std::numeric_limits<double>::infinity();
+
+  struct Selection
+  {
+    std::vector<int> ms_levels;
+    double rt_min;
+    double rt_max;
+  };
+  const std::vector<Selection> selections = {{{1}, 0.0, no_limit},     {{2}, 0.0, no_limit},  {{2, 1}, 0.0, no_limit}, {{}, rt_lo, rt_hi},
+                                             {{1}, rt_lo, rt_hi},      {{2}, rt_lo, rt_hi},   {{}, rt_hi, rt_hi},      {{3}, 0.0, no_limit},
+                                             {{}, rt_hi, rt_lo}};
+  std::vector<Size> selected_sizes;
+  Size with_precursor_intensity = 0;
+  for (const Selection& selection : selections)
+  {
+    options.ms_levels = selection.ms_levels;
+    options.rt_min_sec = selection.rt_min;
+    options.rt_max_sec = selection.rt_max;
+    file.setOptions(options);
+    MSExperiment selected;
+    file.load(THERMO_RAW_TEST_DATA, selected);
+
+    std::vector<const MSSpectrum*> expected;
+    for (const MSSpectrum& s : full)
+    {
+      const auto& levels = selection.ms_levels;
+      if (!levels.empty() && std::find(levels.begin(), levels.end(), static_cast<int>(s.getMSLevel())) == levels.end()) { continue; }
+      if (s.getRT() < selection.rt_min || s.getRT() > selection.rt_max) { continue; }
+      expected.push_back(&s);
+    }
+    TEST_EQUAL(selected.size(), expected.size())
+    Size different = 0;
+    for (Size i = 0; i < selected.size() && i < expected.size(); ++i)
+    {
+      if (!(selected[i] == *expected[i])) { ++different; }
+      for (const Precursor& precursor : selected[i].getPrecursors())
+      {
+        if (precursor.getIntensity() > 0) { ++with_precursor_intensity; }
+      }
+    }
+    TEST_EQUAL(different, 0)
+    // The run as a whole is described as in the full load: the TIC covers all scans, and the instrument
+    // and its configurations do not depend on which scans were loaded.
+    TEST_TRUE(selected.getChromatograms() == full.getChromatograms())
+    TEST_TRUE(selected.getExperimentalSettings() == full.getExperimentalSettings())
+    selected_sizes.push_back(selected.size());
+  }
+  // the selections are not trivial: MS1 only, MS2 only, both, an RT range, ..., one scan, nothing
+  TEST_EQUAL(selected_sizes[0] > 0 && selected_sizes[1] > 0, true)
+  TEST_EQUAL(selected_sizes[0] + selected_sizes[1], full.size())
+  TEST_EQUAL(selected_sizes[2], full.size())
+  TEST_EQUAL(selected_sizes[3] > 0 && selected_sizes[3] < full.size(), true)
+  TEST_EQUAL(selected_sizes[4] > 0 && selected_sizes[5] > 0, true)
+  TEST_EQUAL(selected_sizes[4] + selected_sizes[5], selected_sizes[3])
+  TEST_EQUAL(selected_sizes[6], 1)
+  TEST_EQUAL(selected_sizes[7], 0)
+  TEST_EQUAL(selected_sizes[8], 0)
+  // MS2 scans were loaded without their parent MS1 scans, whose peaks give the precursor intensity
+  TEST_EQUAL(with_precursor_intensity > 0, true)
+}
+END_SECTION
+
+START_SECTION(FileHandler::loadExperiment has the reader skip what the PeakFileOptions exclude)
+{
+  // The MS levels and the retention time range of the PeakFileOptions reach the reader, which then does not
+  // read the peak data of the excluded scans. The result is that of loading everything and filtering afterwards.
+  MSExperiment full;
+  FileHandler().loadExperiment(THERMO_RAW_TEST_DATA, full, {FileTypes::RAW});
+  const double rt_lo = full[full.size() / 3].getRT();
+  const double rt_hi = full[2 * full.size() / 3].getRT(); // a scan at the upper limit is not in the half-open range
+
+  struct Filter
+  {
+    std::vector<Int> ms_levels;
+    bool rt_range;
+  };
+  for (const Filter& filter : {Filter{{1}, false}, Filter{{2}, false}, Filter{{}, true}, Filter{{2}, true}})
+  {
+    FileHandler handler;
+    if (!filter.ms_levels.empty()) { handler.getOptions().setMSLevels(filter.ms_levels); }
+    if (filter.rt_range) { handler.getOptions().setRTRange(DRange<1>(rt_lo, rt_hi)); }
+    MSExperiment filtered;
+    handler.loadExperiment(THERMO_RAW_TEST_DATA, filtered, {FileTypes::RAW});
+
+    std::vector<const MSSpectrum*> expected;
+    for (const MSSpectrum& s : full)
+    {
+      const auto& levels = filter.ms_levels;
+      if (!levels.empty() && std::find(levels.begin(), levels.end(), static_cast<Int>(s.getMSLevel())) == levels.end()) { continue; }
+      if (filter.rt_range && (s.getRT() < rt_lo || s.getRT() >= rt_hi)) { continue; }
+      expected.push_back(&s);
+    }
+    TEST_EQUAL(expected.empty(), false)
+    TEST_EQUAL(expected.size() < full.size(), true)
+    TEST_EQUAL(filtered.size(), expected.size())
+    Size different = 0;
+    for (Size i = 0; i < filtered.size() && i < expected.size(); ++i)
+    {
+      if (!(filtered[i] == *expected[i])) { ++different; }
+    }
+    TEST_EQUAL(different, 0)
+    TEST_TRUE(filtered.getChromatograms() == full.getChromatograms())
+    TEST_TRUE(filtered.getExperimentalSettings() == full.getExperimentalSettings())
+  }
 }
 END_SECTION
 #endif

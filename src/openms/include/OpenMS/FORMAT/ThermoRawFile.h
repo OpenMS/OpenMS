@@ -15,6 +15,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <limits>
+#include <vector>
+
 namespace OpenMS
 {
   /**
@@ -58,6 +61,16 @@ namespace OpenMS
       bool preserve_trailers = true; ///< Retain all original scan trailer label/value pairs.
       bool instrument_methods = true; ///< Retain embedded method text once per run.
       bool checksum = true; ///< Compute source SHA-1 for mzML provenance.
+
+      /// MS levels to load (empty = all). The peak data of other scans is not read. Their scan
+      /// metadata still is, as the precursors and instrument configurations of the loaded scans
+      /// depend on it, so the loaded spectra are the same as in a full load.
+      std::vector<int> ms_levels;
+
+      /// Retention time range to load (inclusive, in seconds). Defaults (0.0, +inf) impose no
+      /// filter. Scans outside the range are handled like those excluded by @p ms_levels.
+      double rt_min_sec = 0.0;
+      double rt_max_sec = std::numeric_limits<double>::infinity();
     };
 
     /// Returns current loading options.
@@ -67,9 +80,10 @@ namespace OpenMS
     /**
       @brief Load a Thermo RAW file into an MSExperiment.
 
-      Reads all scans from the RAW file and populates the experiment with
-      spectra, retention times, MS levels, precursor information (for MSn),
-      and source file metadata.
+      Reads the scans selected by the options (by default all) from the RAW file and
+      populates the experiment with spectra, retention times, MS levels, precursor
+      information (for MSn), and source file metadata. The TIC chromatogram always
+      covers the whole run.
 
       @param[in] path Path to the .raw file
       @param[out] exp The experiment to populate

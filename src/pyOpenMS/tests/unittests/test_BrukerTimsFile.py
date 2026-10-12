@@ -118,6 +118,7 @@ def _header_defaults():
         "calibration_tolerance": 0.0,
         "calibrate": False,
         "load_ms1": True,
+        "load_ms2": True,
         "frame_id_min": 0,
         "frame_id_max": 2**32 - 1,  # std::numeric_limits<uint32_t>::max()
         "rt_min_sec": 0.0,
@@ -260,6 +261,24 @@ def test_load_dda_ms2_only():
     # MS2-only: no MS1 spectra
     ms1_count = sum(1 for s in exp if s.getMSLevel() == 1)
     assert ms1_count == 0
+
+
+@needs_dda_data
+def test_load_ms1_only():
+    path = os.environ["OPENTIMS_DDA_TEST_DATA"]
+    f = pyopenms.BrukerTimsFile()
+    cfg = pyopenms.BrukerTimsFile.Config()
+    cfg.frame_id_min, cfg.frame_id_max = 1, 40
+    both = f.load(path, cfg)
+    cfg.load_ms2 = False
+    ms1_only = f.load(path, cfg)
+    # MS1-only: no MS2 spectra, and the MS1 spectra are those of the load with both levels
+    assert {s.getMSLevel() for s in both} == {1, 2}
+    assert {s.getMSLevel() for s in ms1_only} == {1}
+    expected = [s for s in both if s.getMSLevel() == 1]
+    assert ms1_only.getNrSpectra() == len(expected)
+    assert all(a == b for a, b in zip(ms1_only, expected))
+
 
 @pytest.mark.skipif(
     not os.environ.get("OPENTIMS_DIA_TEST_DATA"),

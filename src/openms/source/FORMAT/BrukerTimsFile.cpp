@@ -2126,7 +2126,7 @@ namespace OpenMS
     {
       auto it = group_to_frames.find(w.window_group);
       meta.nr_ms2_spectra.push_back(
-        it != group_to_frames.end() ? static_cast<int>(it->second.size()) : 0);
+        (eff.load_ms2 && it != group_to_frames.end()) ? static_cast<int>(it->second.size()) : 0);
     }
 
     return meta;
@@ -2194,6 +2194,8 @@ namespace OpenMS
     }
     endProgress();
     centroider.reportCapSummary(static_cast<size_t>(eff.ms1_centroid_max_peaks));
+
+    if (!eff.load_ms2) return; // MS1 only: no MS2 frame is decoded
 
     // --- MS2 frames: raw per-WindowGroup iteration (no aggregation) ---
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
@@ -2372,11 +2374,15 @@ namespace OpenMS
     Config::ExportMode mode = eff.export_mode;
 
     // Compute expected size for consumer. Must mirror what loadFrames_/loadDIA_/
-    // loadDDA_ actually emit under the active frame_id range and load_ms1 knob.
+    // loadDDA_ actually emit under the active frame_id range and the load_ms1/load_ms2 knobs.
     FrameCounts counts = readFrameCounts(db, eff);
     const size_t ms1_emitted = eff.load_ms1 ? counts.ms1 : 0;
     size_t expected = 0;
-    if (mode == Config::FRAME)
+    if (!eff.load_ms2)
+    {
+      expected = ms1_emitted;
+    }
+    else if (mode == Config::FRAME)
     {
       expected = ms1_emitted + counts.ms2;
     }
@@ -2469,7 +2475,8 @@ namespace OpenMS
     // ms2_frame_ids filter selected above; the existing has_frame() safety
     // checks in the loops downstream silently skip any orphans, but stripping
     // them here keeps progress counts and the precursor_groups loop honest.
-    std::vector<DDAPrecursorInfo> precursor_entries = readDDAPrecursors(db);
+    std::vector<DDAPrecursorInfo> precursor_entries;
+    if (config.load_ms2) precursor_entries = readDDAPrecursors(db);
     const bool range_active =
       (config.frame_id_min != 0) ||
       (config.frame_id_max != std::numeric_limits<uint32_t>::max());
@@ -2548,6 +2555,15 @@ namespace OpenMS
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
+    }
+
+    if (!config.load_ms2)
+    {
+      // MS1 only: no MS2 frame is decoded. The OLS recalibration below is fitted on MS2
+      // frames and applied after the MS1 frames were read, so it would not change the result.
+      endProgress();
+      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+      return;
     }
 
     // --- MS2 spectra (one per precursor, reconstructed from frames) ---
@@ -3103,6 +3119,8 @@ namespace OpenMS
     if (config.load_ms1)
       centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
 
+    if (!config.load_ms2) return; // MS1 only: no MS2 frame is decoded
+
     // --- SWATH windows ---
     std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
 
@@ -3450,8 +3468,9 @@ namespace OpenMS
     // Iterate all frames at each MS level
     for (int level = 1; level <= 2; ++level)
     {
-      // Honor load_ms1: skip level==1 entirely when the user opts out of MS1.
+      // Honor load_ms1 / load_ms2: skip the level entirely when the user opts out of it.
       if (level == 1 && !config.load_ms1) continue;
+      if (level == 2 && !config.load_ms2) continue;
 
       // Collect frame IDs at this level
       std::vector<uint32_t> frame_ids;

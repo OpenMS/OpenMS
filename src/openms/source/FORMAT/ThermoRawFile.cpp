@@ -308,7 +308,37 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
 
     std::map<std::string, std::string> configurations;
     Metadata precursor_parser;
-    std::map<int, Size> spectrum_by_scan;
+    // Scans the options exclude are not loaded: their peak data is not read, unless a loaded scan
+    // needs it as its parent (precursor intensity estimate). Their metadata is always read.
+    auto selected = [this](const MSSpectrum& spectrum) {
+      const auto& levels = options_.ms_levels;
+      if (! levels.empty() && std::find(levels.begin(), levels.end(), static_cast<int>(spectrum.getMSLevel())) == levels.end()) { return false; }
+      return spectrum.getRT() >= options_.rt_min_sec && spectrum.getRT() <= options_.rt_max_sec;
+    };
+    const Size not_loaded = std::numeric_limits<Size>::max();
+    std::map<int, Size> spectrum_by_scan;  // scan number -> index in exp, or not_loaded
+    std::map<int, MSSpectrum> parent_peaks; // m/z-sorted peaks of the most recent parents that are not loaded
+    auto parentSpectrum = [&](int parent_scan) -> const MSSpectrum* {
+      const auto parent = spectrum_by_scan.find(parent_scan);
+      if (parent == spectrum_by_scan.end()) { return nullptr; }
+      if (parent->second != not_loaded) { return &exp[parent->second]; }
+      auto cached = parent_peaks.find(parent_scan);
+      if (cached == parent_peaks.end())
+      {
+        const auto data = raw.spectrum_data(parent_scan, options_.centroid);
+        MSSpectrum peaks;
+        peaks.resize(data.mz.size());
+        for (Size i = 0; i < data.mz.size(); ++i)
+        {
+          peaks[i].setMZ(data.mz[i]);
+          peaks[i].setIntensity(data.intensities[i]);
+        }
+        if (! peaks.isSorted()) { peaks.sortByPosition(); }
+        if (parent_peaks.size() >= 8) { parent_peaks.erase(parent_peaks.begin()); } // parents are looked up in scan order
+        cached = parent_peaks.emplace(parent_scan, std::move(peaks)).first;
+      }
+      return &cached->second;
+    };
     auto activation = [&](Precursor& precursor, const Internal::ThermoReaction& reaction, bool supplemental) {
       const std::string& type = reaction.activation;
       if (reaction.collision_energy_valid && reaction.collision_energy)
@@ -462,6 +492,8 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
           }
           spectrum.getProducts().push_back(product);
         }
+        const bool load_scan = selected(spectrum);
+        // the precursor parser needs every scan in acquisition order, also those that are not loaded
         for (const auto& descriptor : neutral ? std::vector<Internal::ThermoPrecursor>() : precursor_parser.precursors(parsed))
         {
           Precursor precursor;
@@ -480,12 +512,12 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
           if (! descriptor.spectrum_ref.empty()) { precursor.setMetaValue("spectrum_ref", descriptor.spectrum_ref); }
           activation(precursor, descriptor.activation, false);
           if (descriptor.supplemental) { activation(precursor, *descriptor.supplemental, true); }
-          auto parent = spectrum_by_scan.find(descriptor.parent_scan);
-          if (descriptor.estimate_intensity && parent != spectrum_by_scan.end() && precursor.getMZ() > 0)
+          const MSSpectrum* parent = load_scan && descriptor.estimate_intensity && precursor.getMZ() > 0 ? parentSpectrum(descriptor.parent_scan) : nullptr;
+          if (parent != nullptr)
           {
             // TRFP's precursor-intensity estimate sums the target +/- 1.5 m/z.
             double intensity = 0;
-            const auto& parent_spectrum = exp[parent->second];
+            const auto& parent_spectrum = *parent;
             const double target = descriptor.target_mz;
             const double half_width = descriptor.width.value_or(0.0) > 0 ? 1.5 : 0.0;
             for (auto peak = parent_spectrum.MZBegin(target - half_width); peak != parent_spectrum.end() && peak->getMZ() < target + half_width;
@@ -498,6 +530,11 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
             precursor.setMetaValue("peak intensity unit accession", "MS:1000131");
           }
           spectrum.getPrecursors().push_back(precursor);
+        }
+        if (! load_scan)
+        {
+          spectrum_by_scan[scan] = not_loaded;
+          continue;
         }
         auto data = raw.spectrum_data(scan, options_.centroid);
         spectrum.resize(data.mz.size());
@@ -625,6 +662,7 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
           {
             spectrum.getInstrumentSettings().getScanWindows().push_back(window);
           }
+          if (! selected(spectrum)) { continue; }
           const auto data = raw.spectrum_data(scan, false);
           for (Size i = 0; i < data.mz.size(); ++i)
           {

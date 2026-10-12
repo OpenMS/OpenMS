@@ -438,11 +438,12 @@ private:
     /**
       @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
 
-      Used by vendor-format paths (Thermo .raw, Bruker .d) whose loaders read all
-      scans/peaks regardless of PeakFileOptions. Filters MS level, RT range, precursor
-      m/z range, per-peak m/z and intensity ranges, and strips peak data when
-      metadata-only is requested. Calls updateRanges() at the end. Until these filters
-      are pushed into the respective loader classes, both vendor paths share this.
+      Used by the vendor-format paths (Thermo .raw, Bruker .d), whose loaders do not take
+      PeakFileOptions. Filters MS level, RT range, precursor m/z range, per-peak m/z and
+      intensity ranges, and strips peak data when metadata-only is requested. Calls
+      updateRanges() at the end. loadExperiment() already has the loaders skip the MS levels
+      and, where that gives the same spectra, the retention times the options exclude, so
+      that this data is not decoded at all; the filters here make the result exact.
     */
     void applyPostLoadOptions_(MSExperiment& exp) const;
 
