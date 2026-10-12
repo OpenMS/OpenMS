@@ -234,6 +234,13 @@ namespace OpenMS
       // optional columns for isotope offset:
       // @TODO: find a way of passing in the names of relevant meta values
       // (e.g. from NucleicAcidSearchEngine), instead of hard-coding them here
+      if (match.metaValueExists("precursor_percentage"))
+      {
+        MzTabOptionalColumnEntry opt_meta;
+        opt_meta.first = "opt_precursor_percentage";
+        opt_meta.second.set(StringUtils::toStr(match.getMetaValue("precursor_percentage")));
+        xsm.opt_.push_back(opt_meta);
+      }
       if (match.metaValueExists("isotope_offset"))
       {
         MzTabOptionalColumnEntry opt_meta;

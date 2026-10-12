@@ -3,8 +3,9 @@
 #define OPENMS_NASE_CLASS_TEST
 #include "../NucleicAcidSearchEngine.cpp"
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <fstream>
 #include <limits>
 
@@ -12,6 +13,7 @@ class TestNASE : public NucleicAcidSearchEngine
 {
 public:
   using NucleicAcidSearchEngine::getModifications_;
+  using NucleicAcidSearchEngine::calculatePrecursorPercentage_;
   using NucleicAcidSearchEngine::filterBlacklistedIons_;
   using NucleicAcidSearchEngine::calculateFragmentCoverage_;
   void preprocess(MSExperiment& exp, bool remove, const std::string& method)
@@ -188,6 +190,37 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   fixture("ACGUAC", "ACGUAC", -2);
   TEST_EQUAL(runSearch(arguments()), 0)
   TEST_EQUAL(hitCount(output), 1)
+
+  MSExperiment raw;
+  MzMLFile().load(mzml, raw);
+  raw[0].push_back(Peak1D(raw[0].getPrecursors()[0].getMZ(), 10000.0));
+  for (auto& array : raw[0].getStringDataArrays()) array.push_back("precursor");
+  for (auto& array : raw[0].getIntegerDataArrays()) array.push_back(0);
+  for (auto& array : raw[0].getFloatDataArrays()) array.push_back(0.0f);
+  raw[0].sortByPosition();
+  MzMLFile().store(mzml, raw);
+  std::string oms_output;
+  NEW_TMP_FILE(oms_output)
+  oms_output += ".oms";
+  auto report_args = arguments();
+  report_args.insert(report_args.end(), {"-report:precursor_percentage", "-preprocessing:remove_precursor_peak", "-db_out", oms_output});
+  TEST_EQUAL(runSearch(report_args), 0)
+  vector<ProteinIdentification> report_proteins;
+  PeptideIdentificationList report_peptides;
+  IdXMLFile().load(output, report_proteins, report_peptides);
+  TEST_TRUE(!report_peptides.empty())
+  ABORT_IF(report_peptides.empty())
+  TEST_TRUE(!report_peptides[0].getHits().empty())
+  ABORT_IF(report_peptides[0].getHits().empty())
+  TEST_REAL_SIMILAR(double(report_peptides[0].getHits()[0].getMetaValue("precursor_percentage")), 100.0)
+  IdentificationData report_data;
+  OMSFile().load(oms_output, report_data);
+  TEST_FALSE(report_data.getObservationMatches().empty())
+  ABORT_IF(report_data.getObservationMatches().empty())
+  TEST_REAL_SIMILAR(double(report_data.getObservationMatches().begin()->getMetaValue("precursor_percentage")), 100.0)
+  TextFile mztab_output(output + ".mzTab");
+  TEST_TRUE(std::any_of(mztab_output.begin(), mztab_output.end(), [](const std::string& line)
+    { return line.find("opt_precursor_percentage") != std::string::npos; }))
 
   fixture("ACGUAC", "AC[m2,2G]UAC", 2);
   args = arguments("RNase_T1");
@@ -569,6 +602,25 @@ START_SECTION(([EXTRA] theoretical blacklist preserves arrays and coverage count
   annotations[3].annotation = "c5";
   TEST_REAL_SIMILAR(tool.calculateFragmentCoverage_(NASequence::fromString("ACGU"), annotations), 2.0 / 3.0)
   TEST_REAL_SIMILAR(tool.calculateFragmentCoverage_(NASequence::fromString("A"), {}), 1.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] residual precursor percentage uses raw intensity and strongest matching peak))
+{
+  MSSpectrum spectrum;
+  Precursor precursor;
+  precursor.setMZ(500.0);
+  spectrum.setPrecursors({precursor});
+  spectrum.push_back(Peak1D(100.0, 1000.0));
+  spectrum.push_back(Peak1D(499.999, 100.0));
+  spectrum.push_back(Peak1D(500.001, 250.0));
+  const auto percentage = TestNASE::calculatePrecursorPercentage_(spectrum, 10.0, true);
+  TEST_TRUE(percentage.has_value())
+  ABORT_IF(!percentage.has_value())
+  TEST_REAL_SIMILAR(*percentage, 25.0)
+  TEST_REAL_SIMILAR(*TestNASE::calculatePrecursorPercentage_(spectrum, 0.0, false), 0.0)
+  spectrum.setPrecursors({});
+  TEST_FALSE(TestNASE::calculatePrecursorPercentage_(spectrum, 0.1, false).has_value())
 }
 END_SECTION
 
