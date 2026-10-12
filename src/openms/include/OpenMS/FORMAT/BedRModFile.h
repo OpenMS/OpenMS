@@ -37,6 +37,11 @@ namespace OpenMS
     /**
       @brief Store RNA modification sites as bedRMod v2.
 
+      Canonical residues contribute to the frequency denominator but do not
+      produce modification rows. Frequencies count distinct observations at each
+      site, including alternative hypotheses and overlapping parent mappings.
+      MODOMICS short names identify modifications without a positive ChEBI mapping.
+
       @param[in] out_file Output path for the bedRMod file.
       @param[in] id_data Identification data containing RNA observation matches.
       @param[in] chebi_mapping_file Optional CSV mapping file with columns

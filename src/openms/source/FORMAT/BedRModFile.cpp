@@ -35,7 +35,7 @@ namespace OpenMS
       Int chrom_start{0};
       Int chrom_end{0};
       const Ribonucleotide* ribonucleotide{nullptr};
-      Int chebi_id{0};
+      std::string modification_name;
       double score{0.0};
       Int coverage{1};
       Int target_mapping_count{0};
@@ -274,9 +274,8 @@ namespace OpenMS
 
     std::vector<BedRow> rows;
     std::set<std::string> missing_mods;
-    std::map<std::pair<std::string, Int>, std::set<Size>> obs_per_position;
-    std::map<std::tuple<std::string, Int, std::string>, std::set<Size>> obs_per_mod_at_position;
-    Size obs_id = 0;
+    std::map<std::pair<std::string, Int>, std::set<IdentificationData::ObservationRef>> obs_per_position;
+    std::map<std::tuple<std::string, Int, std::string>, std::set<IdentificationData::ObservationRef>> obs_per_mod_at_position;
 
     for (const IdentificationData::ObservationMatch& match : id_data.getObservationMatches())
     {
@@ -325,11 +324,11 @@ namespace OpenMS
           {
             continue;
           }
-          const Size current_obs_id = obs_id++;
-
+          // Alternative hypotheses and overlapping parent mappings share an
+          // observation and must contribute only once at each covered site.
           for (Size pos = parent_match.start_pos; pos <= parent_match.end_pos; ++pos)
           {
-            obs_per_position[{chrom, Int(pos)}].insert(current_obs_id);
+            obs_per_position[{chrom, Int(pos)}].insert(match.observation_ref);
           }
 
           for (Size i = 0; i < sequence.size(); ++i)
@@ -340,8 +339,9 @@ namespace OpenMS
               continue;
             }
 
-            // Skip terminal modifications (5' and 3' terminal groups)
-            if (ribo->getTermSpecificity() != Ribonucleotide::ANYWHERE)
+            // Canonical residues contribute coverage above, but do not describe
+            // positive modification calls. Terminal groups are also excluded.
+            if (!ribo->isModified() || ribo->getTermSpecificity() != Ribonucleotide::ANYWHERE)
             {
               continue;
             }
@@ -358,16 +358,17 @@ namespace OpenMS
             row.frag_end = unique_mapping ? all_frag_ends : std::to_string(parent_match.end_pos + 1);
 
             const std::string mod_code = ribo->getCode();
-            obs_per_mod_at_position[{row.chrom, row.chrom_start, mod_code}].insert(current_obs_id);
+            obs_per_mod_at_position[{row.chrom, row.chrom_start, mod_code}].insert(match.observation_ref);
 
             auto pos = chebi_mapping.find(mod_code);
-            if (pos != chebi_mapping.end())
+            if (pos != chebi_mapping.end() && pos->second > 0)
             {
-              row.chebi_id = pos->second;
+              row.modification_name = std::to_string(pos->second);
             }
             else
             {
-              row.chebi_id = 0;
+              // bedRMod v2 permits MODOMICS short names without ChEBI IDs.
+              row.modification_name = mod_code;
               missing_mods.insert(mod_code);
             }
 
@@ -382,7 +383,7 @@ namespace OpenMS
 
     if (!missing_mods.empty())
     {
-      OPENMS_LOG_WARN << "Warning: Missing ChEBI ids for modifications (using 0): ";
+      OPENMS_LOG_WARN << "Warning: Missing ChEBI ids for modifications (using MODOMICS codes): ";
       bool first = true;
       for (const auto& mod : missing_mods)
       {
@@ -405,7 +406,7 @@ namespace OpenMS
       }
       // Use actual origin from ribonucleotide instead of inferring from mod code
       const std::string base_origin(1, row.ribonucleotide->getOrigin());
-      std::string mod_name = std::to_string(row.chebi_id) + ":" + row.ribonucleotide->getCode() + ":" + base_origin;
+      std::string mod_name = row.modification_name + ":" + row.ribonucleotide->getCode() + ":" + base_origin;
       if (seen_mod_names.insert(mod_name).second)
       {
         modification_names.push_back(mod_name);
@@ -467,7 +468,7 @@ namespace OpenMS
       out << row.chrom << '\t'
           << row.chrom_start << '\t'
           << row.chrom_end << '\t'
-          << row.chebi_id << '\t'
+          << row.modification_name << '\t'
           << row.score << '\t'
           << "+" << '\t'
           << row.chrom_start << '\t'

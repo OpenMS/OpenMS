@@ -18,6 +18,8 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <algorithm>
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -101,8 +103,7 @@ START_SECTION((void store(const std::string& out_file, const IdentificationData&
     }
     if (line.starts_with("#modification_names="))
     {
-      // Should list all 4 bases including the modified one (m5C)
-      found_mod_names_header = (line.find("m5C") != std::string::npos);
+      found_mod_names_header = (line == "#modification_names=m5C:m5C:C");
     }
     if (line[0] == '#')
     {
@@ -111,9 +112,78 @@ START_SECTION((void store(const std::string& out_file, const IdentificationData&
     data_lines++;
   }
 
-  // With the new behavior, we should have 4 data lines (A, U, G, m5C)
-  TEST_EQUAL(data_lines, 4)
+  // Only the modified residue produces a row.
+  TEST_EQUAL(data_lines, 1)
   TEST_TRUE(found_mod_names_header) // Should list m5C in modification_names header
+}
+END_SECTION
+
+START_SECTION(([EXTRA] distinct observations determine modification frequency and identity))
+{
+  IdentificationData data;
+  const auto parent = data.registerParentSequence(ID::ParentSequence("rna", ID::MoleculeType::RNA, "ACGA"));
+  const auto input = data.registerInputFile(ID::InputFile("test.mzML"));
+  const auto qvalue = data.registerScoreType(ID::ScoreType("PSM-level q-value", false));
+  const auto modified = data.registerObservation(ID::Observation("modified", input));
+  const auto unmodified = data.registerObservation(ID::Observation("unmodified", input));
+  const auto add_match = [&](const std::string& sequence, ID::ObservationRef observation, Size start)
+  {
+    ID::IdentifiedOligo oligo(NASequence::fromString(sequence));
+    oligo.parent_matches[parent].insert(ID::ParentMatch(start, start + 2));
+    const auto oligo_ref = data.registerIdentifiedOligo(oligo);
+    ID::ObservationMatch match(oligo_ref, observation, 2);
+    match.addScore(qvalue, 0.01);
+    data.registerObservationMatch(match);
+  };
+  // Both hypotheses from one spectrum put m5C at the same parent position.
+  add_match("A[m5C]G", modified, 0);
+  add_match("[m5C]GA", modified, 1);
+  add_match("ACG", unmodified, 0);
+
+  std::string output_file;
+  NEW_TMP_FILE(output_file)
+  BedRModFile().store(output_file, data);
+  TextFile output(output_file);
+  TEST_TRUE(std::find(output.begin(), output.end(), "#modification_names=m5C:m5C:C") != output.end())
+  Size row_count = 0;
+  for (const auto& line : output)
+  {
+    if (line.empty() || line[0] == '#') continue;
+    std::vector<std::string> fields;
+    StringUtils::split(line, '\t', fields);
+    TEST_EQUAL(fields.size(), 14)
+    if (fields.size() == 14)
+    {
+      TEST_EQUAL(fields[1], "1")
+      TEST_EQUAL(fields[2], "2")
+      TEST_EQUAL(fields[3], "m5C")
+      TEST_EQUAL(fields[10], "50")
+    }
+    ++row_count;
+  }
+  TEST_EQUAL(row_count, 2)
+
+  // A supplied ChEBI mapping uses the same identifier in row and dictionary.
+  std::string mapping_file;
+  NEW_TMP_FILE(mapping_file)
+  {
+    std::ofstream mapping(mapping_file);
+    mapping << "mod,chebi_id\nm5C,20607\n";
+  }
+  BedRModFile().store(output_file, data, mapping_file);
+  TextFile mapped(output_file);
+  TEST_TRUE(std::find(mapped.begin(), mapped.end(), "#modification_names=20607:m5C:C") != mapped.end())
+  for (const auto& line : mapped)
+  {
+    if (line.empty() || line[0] == '#') continue;
+    std::vector<std::string> fields;
+    StringUtils::split(line, '\t', fields);
+    TEST_EQUAL(fields.size(), 14)
+    if (fields.size() == 14)
+    {
+      TEST_EQUAL(fields[3], "20607")
+    }
+  }
 }
 END_SECTION
 
@@ -126,8 +196,8 @@ START_SECTION(([EXTRA] terminal modifications excluded))
   ID::ParentSequence parent("test_rna_terminal", ID::MoleculeType::RNA, "AUGCAUGC");
   auto parent_ref = id_data.registerParentSequence(parent);
 
-  // Create a sequence with terminal modifications: pAUp (5'-p + AU + 3'-p)
-  NASequence na_seq = NASequence::fromString("pAUp");
+  // Only the internal modification produces a row, not either terminal group.
+  NASequence na_seq = NASequence::fromString("pA[Um]p");
 
   // Create identified oligo with parent match
   ID::IdentifiedOligo oligo(na_seq);
@@ -160,7 +230,7 @@ START_SECTION(([EXTRA] terminal modifications excluded))
   output.load(test_file);
   vector<std::string> lines(output.begin(), output.end());
 
-  // Count data lines - should only have the 2 non-terminal bases (A and U)
+  // Count data lines for the internal Um modification.
   int data_lines = 0;
   for (const auto& line : lines)
   {
@@ -171,8 +241,7 @@ START_SECTION(([EXTRA] terminal modifications excluded))
     data_lines++;
   }
 
-  // Should have 2 data lines (A and U), terminal modifications excluded
-  TEST_EQUAL(data_lines, 2)
+  TEST_EQUAL(data_lines, 1)
 }
 END_SECTION
 
@@ -186,7 +255,7 @@ START_SECTION(([EXTRA] matches without q-value are skipped))
   auto parent_ref = id_data.registerParentSequence(parent);
 
   // Create sequence
-  NASequence na_seq = NASequence::fromString("AUG");
+  NASequence na_seq = NASequence::fromString("AU[Gm]");
 
   // Create identified oligo
   ID::IdentifiedOligo oligo(na_seq);
@@ -239,11 +308,11 @@ START_SECTION(([EXTRA] sentinel q-values do not produce rows or affect frequency
   auto parent_ref = id_data.registerParentSequence(
     ID::ParentSequence("test_rna_sentinel", ID::MoleculeType::RNA, "ACG"));
 
-  ID::IdentifiedOligo valid_oligo(NASequence::fromString("ACG"));
+  ID::IdentifiedOligo valid_oligo(NASequence::fromString("A[m5C]G"));
   valid_oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 2));
   auto valid_ref = id_data.registerIdentifiedOligo(valid_oligo);
 
-  ID::IdentifiedOligo sentinel_oligo(NASequence::fromString("A[m5C]G"));
+  ID::IdentifiedOligo sentinel_oligo(NASequence::fromString("ACG"));
   sentinel_oligo.parent_matches[parent_ref].insert(ID::ParentMatch(0, 2));
   auto sentinel_ref = id_data.registerIdentifiedOligo(sentinel_oligo);
 
@@ -286,7 +355,7 @@ START_SECTION(([EXTRA] sentinel q-values do not produce rows or affect frequency
     }
     ++data_lines;
   }
-  TEST_EQUAL(data_lines, 3)
+  TEST_EQUAL(data_lines, 1)
 }
 END_SECTION
 
@@ -306,7 +375,7 @@ START_SECTION(([EXTRA] target_mapping_count reflects target occurrences))
   auto parent_decoy_ref = id_data.registerParentSequence(parent_decoy);
 
   // Create sequence that maps to multiple locations
-  NASequence na_seq = NASequence::fromString("AUG");
+  NASequence na_seq = NASequence::fromString("AU[Gm]");
 
   // Create identified oligo with matches to all three parents
   ID::IdentifiedOligo oligo(na_seq);
@@ -386,7 +455,7 @@ START_SECTION(([EXTRA] target_mapping_count equals 1 for unique mapping))
   auto parent_ref = id_data.registerParentSequence(parent);
 
   // Create sequence
-  NASequence na_seq = NASequence::fromString("AUG");
+  NASequence na_seq = NASequence::fromString("AU[Gm]");
 
   // Create identified oligo with single match to one parent
   ID::IdentifiedOligo oligo(na_seq);
@@ -458,7 +527,7 @@ START_SECTION(([EXTRA] decoy-only mappings have target_mapping_count of 0))
   auto parent_decoy2_ref = id_data.registerParentSequence(parent_decoy2);
 
   // Create sequence
-  NASequence na_seq = NASequence::fromString("AUG");
+  NASequence na_seq = NASequence::fromString("AU[Gm]");
 
   // Create identified oligo with matches only to decoys
   ID::IdentifiedOligo oligo(na_seq);
