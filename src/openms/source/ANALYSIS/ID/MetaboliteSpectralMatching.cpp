@@ -840,6 +840,12 @@ namespace OpenMS
 
     Size total_matched = 0;
     for (Size m : matches_per_class) total_matched += m;
+    // A nonzero probability of observing no matches is not fragment evidence.
+    // Keep unsupported candidates out of NASE's positive-score acceptance path.
+    if (total_matched == 0)
+    {
+      return 0.0;
+    }
 
     Size unmatched_theoretical = total_theoretical_peaks - total_matched;
     Size empty_locations = total_locations - total_peaks;

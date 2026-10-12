@@ -533,6 +533,29 @@ START_SECTION((static double computeMVHScore(double, bool, const MSSpectrum&, co
     0.1, false, exp_spec, db_spec, 1, 1.0, 0.0, true, false);
   TEST_REAL_SIMILAR(legacy_annotated, legacy_plain)
   TEST_TRUE(legacy_annotations == annotations)
+
+  // Theoretical ions in the mass range, but with no fragment matches, must
+  // not produce a positive identification score or matching annotations.
+  MSSpectrum no_match = db_spec;
+  no_match[0].setMZ(100.5);
+  no_match[1].setMZ(101.5);
+  for (bool ppm : {false, true})
+  {
+    const double tolerance = ppm ? 100.0 : 0.1;
+    for (bool accuracy : {false, true})
+    {
+      for (bool single_credit : {false, true})
+      {
+        vector<PeptideHit::PeakAnnotation> no_annotations;
+        const double no_match_score = MetaboliteSpectralMatching::computeMVHScore(
+          tolerance, ppm, exp_spec, no_match, no_annotations, 3, 1.0, 0.0, accuracy, single_credit);
+        TEST_EQUAL(no_match_score, 0.0)
+        TEST_TRUE(no_annotations.empty())
+        TEST_EQUAL(MetaboliteSpectralMatching::computeMVHScore(
+          tolerance, ppm, exp_spec, no_match, 3, 1.0, 0.0, accuracy, single_credit), 0.0)
+      }
+    }
+  }
 }
 END_SECTION
 
