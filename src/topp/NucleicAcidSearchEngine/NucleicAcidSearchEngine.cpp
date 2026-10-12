@@ -200,6 +200,31 @@ protected:
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
+    registerOutputFile_("out_preprocessed", "<file>", "", "Optional MS2 spectra after preprocessing", false, true);
+    setValidFormats_("out_preprocessed", {"mzML"});
+    registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
+    registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector or none", false, true);
+    setValidStrings_("preprocessing:deisotoping", {"legacy", "none"});
+    registerFlag_("preprocessing:filter_window_mower", "Apply WindowMower filter to remove noise peaks by m/z windows", true);
+    registerTOPPSubsection_("preprocessing:window_mower", "WindowMower filter parameters");
+    registerDoubleOption_("preprocessing:window_mower:windowsize", "<size>", 100.0, "Size of the sliding window along the m/z axis for WindowMower", false, true);
+    setMinFloat_("preprocessing:window_mower:windowsize", 1.0);
+    registerIntOption_("preprocessing:window_mower:peakcount", "<num>", 50, "Number of peaks that should be kept per window", false, true);
+    setMinInt_("preprocessing:window_mower:peakcount", 1);
+    registerStringOption_("preprocessing:window_mower:movetype", "<type>", "slide", "Window movement for noise filtering; use jump to reproduce historical NASE preprocessing", false, true);
+    setValidStrings_("preprocessing:window_mower:movetype", ListUtils::create<std::string>("slide,jump"));
+    registerFlag_("preprocessing:filter_nlargest", "Apply NLargest filter to keep only the top N most intense peaks", true);
+    registerTOPPSubsection_("preprocessing:nlargest", "NLargest filter parameters");
+    registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
+    setMinInt_("preprocessing:nlargest:n", 1);
+    registerFlag_("preprocessing:remove_precursor_peak", "Remove the precursor peak (and isotopic peaks) from the MS2 spectrum", false);
+    registerDoubleOption_("preprocessing:precursor_mass_tolerance", "<tolerance>", 1.5, "Tolerance for precursor peak removal (applied to both sides of the peak)", false, true);
+    setMinFloat_("preprocessing:precursor_mass_tolerance", 0.0);
+    registerStringOption_("preprocessing:precursor_mass_tolerance_unit", "<unit>", "Da", "Unit for precursor peak removal tolerance", false, true);
+    setValidStrings_("preprocessing:precursor_mass_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
+    registerIntOption_("preprocessing:precursor_peak_isotopes", "<num>", 2, "Number of isotopic peaks to remove around the precursor (0 = monoisotopic only)", false, true);
+    setMinInt_("preprocessing:precursor_peak_isotopes", 0);
+
     registerTOPPSubsection_("scoring", "Scoring Options");
     registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
     setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh"));
@@ -559,7 +584,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -574,20 +599,23 @@ protected:
 
     // filter settings
     WindowMower window_mower_filter;
-    Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    if (use_window_mower)
+    {
+      Param filter_param = window_mower_filter.getParameters();
+      filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
+      filter_param.setValue("peakcount", window_peakcount, "The number of peaks that should be kept.");
+      filter_param.setValue("movetype", window_movetype, "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+      window_mower_filter.setParameters(filter_param);
+    }
 
     // Note: we expect a higher number for NA than e.g., for peptides
-    filter_param.setValue("peakcount", 50, "The number of peaks that should be kept.");
-    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    window_mower_filter.setParameters(filter_param);
-
-    // Note: we expect a higher number for NA than e.g., for peptides
-    NLargest nlargest_filter = NLargest(1000);
+    NLargest nlargest_filter = NLargest(nlargest_n);
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
-#pragma omp parallel for
+#pragma omp parallel reduction(+: n_zero_charge, n_inferred_charge)
+    {
+#pragma omp for
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
          ++exp_index)
     {
@@ -597,7 +625,7 @@ protected:
       spec.sortByPosition();
 
       if (spec.getPrecursors().empty()) continue; // this shouldn't happen
-      Int precursor_charge = spec.getPrecursors()[0].getCharge();
+      Int precursor_charge = abs(spec.getPrecursors()[0].getCharge());
       if (precursor_charge == 0) // no charge information
       {
         n_zero_charge++;
@@ -612,56 +640,96 @@ protected:
           {
             precursors[spec.getPrecursors()[i].getMZ()] = i;
           }
-          double mz1 = precursors.begin()->first;
-          double mz2 = (++precursors.begin())->first;
-          double mz_ratio = mz1 / mz2;
-
-          Int step = negative_mode ? -1 : 1;
-          Int inferred_charge = 0;
-          for (Int charge = max_charge; abs(charge) > abs(min_charge);
-               charge -= step)
+          if (precursors.size() >= 2)
           {
-            double charge_ratio = (abs(charge) - 1.0) / abs(charge);
-            double ratios_ratio = mz_ratio / charge_ratio;
-            if ((ratios_ratio > 0.99) && (ratios_ratio < 1.01))
+            double mz1 = precursors.begin()->first;
+            double mz2 = (++precursors.begin())->first;
+            double mz_ratio = mz1 / mz2;
+
+            Int step = negative_mode ? -1 : 1;
+            Int inferred_charge = 0;
+            for (Int charge = max_charge; abs(charge) > abs(min_charge);
+                 charge -= step)
             {
-              inferred_charge = charge;
+              double charge_ratio = (abs(charge) - 1.0) / abs(charge);
+              double ratios_ratio = mz_ratio / charge_ratio;
+              if ((ratios_ratio > 0.99) && (ratios_ratio < 1.01))
+              {
+                inferred_charge = charge;
+                break;
+              }
+            }
+            if (inferred_charge == 0)
+            {
+              OPENMS_LOG_ERROR
+                << "Error: unable to determine charge state for spectrum '"
+                << spec.getNativeID() << "' based on precursor m/z values "
+                << mz1 << " and " << mz2 << endl;
+            }
+            else
+            {
+              ++n_inferred_charge;
+              OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge
+                               << " for spectrum '" << spec.getNativeID() << "'"
+                               << endl;
+              // keep only precursor with highest charge, set inferred charge:
+              Precursor prec = spec.getPrecursors()[precursors.begin()->second];
+              prec.setCharge(abs(inferred_charge));
+              spec.setPrecursors(vector<Precursor>(1, prec));
+            }
+          }
+        }
+      }
+
+      precursor_charge = abs(spec.getPrecursors()[0].getCharge());
+
+      // Remove in the original charge/mass space, before decharging or filtering.
+      if (remove_precursor)
+      {
+        const double precursor_mz = spec.getPrecursors()[0].getMZ();
+        const Int charge = std::max(1, precursor_charge);
+        const double tolerance = precursor_tolerance_ppm ?
+          precursor_mz * precursor_mass_tolerance * 1e-6 : precursor_mass_tolerance;
+        vector<Size> retained;
+        for (Size i = 0; i < spec.size(); ++i)
+        {
+          bool remove = false;
+          for (Int isotope = 0; isotope <= precursor_peak_isotopes; ++isotope)
+          {
+            const double isotope_mz = precursor_mz + isotope * Constants::C13C12_MASSDIFF_U / charge;
+            if (abs(spec[i].getMZ() - isotope_mz) <= tolerance)
+            {
+              remove = true;
               break;
             }
           }
-          if (inferred_charge == 0)
-          {
-            OPENMS_LOG_ERROR
-              << "Error: unable to determine charge state for spectrum '"
-              << spec.getNativeID() << "' based on precursor m/z values "
-              << mz1 << " and " << mz2 << endl;
-          }
-          else
-          {
-            ++n_inferred_charge;
-            OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge
-                             << " for spectrum '" << spec.getNativeID() << "'"
-                             << endl;
-            // keep only precursor with highest charge, set inferred charge:
-            Precursor prec = spec.getPrecursors()[precursors.begin()->second];
-            prec.setCharge(abs(inferred_charge));
-            spec.setPrecursors(vector<Precursor>(1, prec));
-          }
+          if (!remove) retained.push_back(i);
         }
+        spec.select(retained);
       }
 
       // deisotope
       Int coef = negative_mode ? -1 : 1;
       // @TODO: what happens here if "precursor_charge" is zero?
-      deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
-
+      if (deisotoping == "legacy")
+      {
+        deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
+      }
       // remove noise
-      window_mower_filter.filterPeakSpectrum(spec);
-      nlargest_filter.filterPeakSpectrum(spec);
+      if (use_window_mower)
+      {
+        window_mower_filter.filterPeakSpectrum(spec);
+      }
+      if (use_nlargest)
+      {
+        nlargest_filter.filterPeakSpectrum(spec);
+      }
 
       // sort (nlargest changes order)
       spec.sortByPosition();
     }
+
+    } // parallel region
 
     if (n_zero_charge)
     {
@@ -1241,10 +1309,32 @@ protected:
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
+    const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
+    bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
+    double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
+    int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
+    std::string window_movetype = getStringOption_("preprocessing:window_mower:movetype");
+    bool use_nlargest = getFlag_("preprocessing:filter_nlargest");
+    int nlargest_n = getIntOption_("preprocessing:nlargest:n");
+    bool remove_precursor = getFlag_("preprocessing:remove_precursor_peak");
+    double precursor_mass_tolerance = getDoubleOption_("preprocessing:precursor_mass_tolerance");
+    std::string precursor_tolerance_unit = getStringOption_("preprocessing:precursor_mass_tolerance_unit");
+    bool precursor_tolerance_ppm = (precursor_tolerance_unit == "ppm");
+    int precursor_peak_isotopes = getIntOption_("preprocessing:precursor_peak_isotopes");
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
-                       max_charge, include_unknown_charge);
+                       max_charge, include_unknown_charge,
+                       use_window_mower, window_size, window_peakcount, window_movetype,
+                       use_nlargest, nlargest_n,
+                       remove_precursor, precursor_mass_tolerance,
+                       precursor_tolerance_ppm, precursor_peak_isotopes,
+                       deisotoping);
+    const std::string out_preprocessed = getStringOption_("out_preprocessed");
+    if (!out_preprocessed.empty())
+    {
+      FileHandler().storeExperiment(out_preprocessed, spectra, {FileTypes::MZML}, log_type_);
+    }
     progresslogger.endProgress();
     OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
                      << endl;
@@ -1265,7 +1355,7 @@ protected:
       }
 
       set<Int> possible_charges;
-      Int precursor_charge = precursors[0].getCharge();
+      Int precursor_charge = abs(precursors[0].getCharge());
       if (precursor_charge == 0) // charge information missing
       {
         if (include_unknown_charge)
