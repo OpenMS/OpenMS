@@ -200,6 +200,48 @@ protected:
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
+    registerOutputFile_("out_preprocessed", "<file>", "", "Optional MS2 spectra after preprocessing", false, true);
+    setValidFormats_("out_preprocessed", {"mzML"});
+    registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
+    registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector or none", false, true);
+    setValidStrings_("preprocessing:deisotoping", {"legacy", "none"});
+    registerFlag_("preprocessing:filter_window_mower", "Apply WindowMower filter to remove noise peaks by m/z windows", true);
+    registerTOPPSubsection_("preprocessing:window_mower", "WindowMower filter parameters");
+    registerDoubleOption_("preprocessing:window_mower:windowsize", "<size>", 100.0, "Size of the sliding window along the m/z axis for WindowMower", false, true);
+    setMinFloat_("preprocessing:window_mower:windowsize", 1.0);
+    registerIntOption_("preprocessing:window_mower:peakcount", "<num>", 50, "Number of peaks that should be kept per window", false, true);
+    setMinInt_("preprocessing:window_mower:peakcount", 1);
+    registerStringOption_("preprocessing:window_mower:movetype", "<type>", "slide", "Window movement for noise filtering; use jump to reproduce historical NASE preprocessing", false, true);
+    setValidStrings_("preprocessing:window_mower:movetype", ListUtils::create<std::string>("slide,jump"));
+    registerFlag_("preprocessing:filter_nlargest", "Apply NLargest filter to keep only the top N most intense peaks", true);
+    registerTOPPSubsection_("preprocessing:nlargest", "NLargest filter parameters");
+    registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
+    setMinInt_("preprocessing:nlargest:n", 1);
+    registerFlag_("preprocessing:remove_precursor_peak", "Remove the precursor peak (and isotopic peaks) from the MS2 spectrum", false);
+    registerDoubleOption_("preprocessing:precursor_mass_tolerance", "<tolerance>", 1.5, "Tolerance for precursor peak removal (applied to both sides of the peak)", false, true);
+    setMinFloat_("preprocessing:precursor_mass_tolerance", 0.0);
+    registerStringOption_("preprocessing:precursor_mass_tolerance_unit", "<unit>", "Da", "Unit for precursor peak removal tolerance", false, true);
+    setValidStrings_("preprocessing:precursor_mass_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
+    registerIntOption_("preprocessing:precursor_peak_isotopes", "<num>", 2, "Number of isotopic peaks to remove around the precursor (0 = monoisotopic only)", false, true);
+    setMinInt_("preprocessing:precursor_peak_isotopes", 0);
+
+    registerTOPPSubsection_("scoring", "Scoring Options");
+    registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
+    setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh"));
+    registerIntOption_("scoring:num_intensity_classes", "<num>", 3, "Number of intensity classes for peak stratification in MVH scoring (only used if scoring:method is 'mvh')", false, true);
+    setMinInt_("scoring:num_intensity_classes", 1);
+    setMaxInt_("scoring:num_intensity_classes", 7);
+    registerDoubleOption_("scoring:tic_fraction", "<fraction>", 0.98, "Fraction of total ion current to retain for MVH scoring (only used if scoring:method is 'mvh')", false, true);
+    setMinFloat_("scoring:tic_fraction", 0.5);
+    setMaxFloat_("scoring:tic_fraction", 1.0);
+    registerStringOption_("scoring:single_peak_credit", "<choice>", "true", "MVH: count at most one match per retained observed peak, using the best mass-accuracy weight. Set false for the previous per-theoretical-ion counting and weighting; all matching annotations are retained in either mode.", false, true);
+    setValidStrings_("scoring:single_peak_credit", ListUtils::create<std::string>("true,false"));
+    registerFlag_("scoring:use_mass_accuracy", "Apply mass accuracy-based distance weighting to scores (applies to both 'hyperscore' and 'mvh' methods)", true);
+
+    registerDoubleList_("scoring:blacklist_mz", "<values>", DoubleList(), "List of m/z values to exclude from theoretical spectra during scoring (e.g., uninformative c1/d1 ions from unmodified bases). Peaks matching these values within the blacklist tolerance will be removed before scoring.", false, true);
+    registerDoubleOption_("scoring:blacklist_tolerance", "<ppm>", 10.0, "Tolerance (in ppm) for matching peaks to blacklisted m/z values", false, true);
+    setMinFloat_("scoring:blacklist_tolerance", 0.0);
+
     registerTOPPSubsection_("modifications", "Modification options");
 
     // add modified ribos from database
@@ -235,6 +277,10 @@ protected:
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
 
+    registerDoubleOption_("report:require_coverage", "<fraction>", 0.0, "Minimum fraction of internal oligonucleotide positions that must be covered by fragment ions (0.0 = no requirement, 1.0 = full coverage required). Coverage requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position.", false, true);
+    setMinFloat_("report:require_coverage", 0.0);
+    setMaxFloat_("report:require_coverage", 1.0);
+
     registerTOPPSubsection_("fdr", "False Discovery Rate options");
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "std::string used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
     registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed", false);
@@ -257,6 +303,39 @@ protected:
     {
     }
   };
+
+  // Helper function to filter blacklisted m/z values from theoretical spectrum
+  void filterBlacklistedIons_(MSSpectrum& theo_spectrum,
+                               const vector<double>& blacklist_mz,
+                               double tolerance_ppm) const
+  {
+    if (blacklist_mz.empty()) return;
+
+    vector<Size> indices_to_remove;
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+      double mz = theo_spectrum[i].getMZ();
+      for (double blacklisted_mz : blacklist_mz)
+      {
+        double tolerance_da = blacklisted_mz * tolerance_ppm * 1e-6;
+        if (abs(mz - blacklisted_mz) <= tolerance_da)
+        {
+          indices_to_remove.push_back(i);
+          break;
+        }
+      }
+    }
+
+    vector<Size> retained;
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+      if (!std::binary_search(indices_to_remove.begin(), indices_to_remove.end(), i))
+      {
+        retained.push_back(i);
+      }
+    }
+    theo_spectrum.select(retained);
+  }
 
   // slimmer structure to store basic hit information
   struct AnnotatedHit
@@ -546,7 +625,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -561,20 +640,23 @@ protected:
 
     // filter settings
     WindowMower window_mower_filter;
-    Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    if (use_window_mower)
+    {
+      Param filter_param = window_mower_filter.getParameters();
+      filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
+      filter_param.setValue("peakcount", window_peakcount, "The number of peaks that should be kept.");
+      filter_param.setValue("movetype", window_movetype, "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+      window_mower_filter.setParameters(filter_param);
+    }
 
     // Note: we expect a higher number for NA than e.g., for peptides
-    filter_param.setValue("peakcount", 50, "The number of peaks that should be kept.");
-    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    window_mower_filter.setParameters(filter_param);
-
-    // Note: we expect a higher number for NA than e.g., for peptides
-    NLargest nlargest_filter = NLargest(1000);
+    NLargest nlargest_filter = NLargest(nlargest_n);
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
-#pragma omp parallel for
+#pragma omp parallel reduction(+: n_zero_charge, n_inferred_charge)
+    {
+#pragma omp for
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
          ++exp_index)
     {
@@ -584,7 +666,7 @@ protected:
       spec.sortByPosition();
 
       if (spec.getPrecursors().empty()) continue; // this shouldn't happen
-      Int precursor_charge = spec.getPrecursors()[0].getCharge();
+      Int precursor_charge = abs(spec.getPrecursors()[0].getCharge());
       if (precursor_charge == 0) // no charge information
       {
         n_zero_charge++;
@@ -599,56 +681,96 @@ protected:
           {
             precursors[spec.getPrecursors()[i].getMZ()] = i;
           }
-          double mz1 = precursors.begin()->first;
-          double mz2 = (++precursors.begin())->first;
-          double mz_ratio = mz1 / mz2;
-
-          Int step = negative_mode ? -1 : 1;
-          Int inferred_charge = 0;
-          for (Int charge = max_charge; abs(charge) > abs(min_charge);
-               charge -= step)
+          if (precursors.size() >= 2)
           {
-            double charge_ratio = (abs(charge) - 1.0) / abs(charge);
-            double ratios_ratio = mz_ratio / charge_ratio;
-            if ((ratios_ratio > 0.99) && (ratios_ratio < 1.01))
+            double mz1 = precursors.begin()->first;
+            double mz2 = (++precursors.begin())->first;
+            double mz_ratio = mz1 / mz2;
+
+            Int step = negative_mode ? -1 : 1;
+            Int inferred_charge = 0;
+            for (Int charge = max_charge; abs(charge) > abs(min_charge);
+                 charge -= step)
             {
-              inferred_charge = charge;
+              double charge_ratio = (abs(charge) - 1.0) / abs(charge);
+              double ratios_ratio = mz_ratio / charge_ratio;
+              if ((ratios_ratio > 0.99) && (ratios_ratio < 1.01))
+              {
+                inferred_charge = charge;
+                break;
+              }
+            }
+            if (inferred_charge == 0)
+            {
+              OPENMS_LOG_ERROR
+                << "Error: unable to determine charge state for spectrum '"
+                << spec.getNativeID() << "' based on precursor m/z values "
+                << mz1 << " and " << mz2 << endl;
+            }
+            else
+            {
+              ++n_inferred_charge;
+              OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge
+                               << " for spectrum '" << spec.getNativeID() << "'"
+                               << endl;
+              // keep only precursor with highest charge, set inferred charge:
+              Precursor prec = spec.getPrecursors()[precursors.begin()->second];
+              prec.setCharge(abs(inferred_charge));
+              spec.setPrecursors(vector<Precursor>(1, prec));
+            }
+          }
+        }
+      }
+
+      precursor_charge = abs(spec.getPrecursors()[0].getCharge());
+
+      // Remove in the original charge/mass space, before decharging or filtering.
+      if (remove_precursor)
+      {
+        const double precursor_mz = spec.getPrecursors()[0].getMZ();
+        const Int charge = std::max(1, precursor_charge);
+        const double tolerance = precursor_tolerance_ppm ?
+          precursor_mz * precursor_mass_tolerance * 1e-6 : precursor_mass_tolerance;
+        vector<Size> retained;
+        for (Size i = 0; i < spec.size(); ++i)
+        {
+          bool remove = false;
+          for (Int isotope = 0; isotope <= precursor_peak_isotopes; ++isotope)
+          {
+            const double isotope_mz = precursor_mz + isotope * Constants::C13C12_MASSDIFF_U / charge;
+            if (abs(spec[i].getMZ() - isotope_mz) <= tolerance)
+            {
+              remove = true;
               break;
             }
           }
-          if (inferred_charge == 0)
-          {
-            OPENMS_LOG_ERROR
-              << "Error: unable to determine charge state for spectrum '"
-              << spec.getNativeID() << "' based on precursor m/z values "
-              << mz1 << " and " << mz2 << endl;
-          }
-          else
-          {
-            ++n_inferred_charge;
-            OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge
-                             << " for spectrum '" << spec.getNativeID() << "'"
-                             << endl;
-            // keep only precursor with highest charge, set inferred charge:
-            Precursor prec = spec.getPrecursors()[precursors.begin()->second];
-            prec.setCharge(abs(inferred_charge));
-            spec.setPrecursors(vector<Precursor>(1, prec));
-          }
+          if (!remove) retained.push_back(i);
         }
+        spec.select(retained);
       }
 
       // deisotope
       Int coef = negative_mode ? -1 : 1;
       // @TODO: what happens here if "precursor_charge" is zero?
-      deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
-
+      if (deisotoping == "legacy")
+      {
+        deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
+      }
       // remove noise
-      window_mower_filter.filterPeakSpectrum(spec);
-      nlargest_filter.filterPeakSpectrum(spec);
+      if (use_window_mower)
+      {
+        window_mower_filter.filterPeakSpectrum(spec);
+      }
+      if (use_nlargest)
+      {
+        nlargest_filter.filterPeakSpectrum(spec);
+      }
 
       // sort (nlargest changes order)
       spec.sortByPosition();
     }
+
+    } // parallel region
 
     if (n_zero_charge)
     {
@@ -824,9 +946,105 @@ protected:
   }
 
 
+  /// Check if all internal positions of an oligonucleotide have fragment coverage
+  double calculateFragmentCoverage_(const NASequence& oligo,
+                                     const vector<PeptideHit::PeakAnnotation>& annotations)
+  {
+    Size length = oligo.size();
+    if (length <= 1) return 1.0; // No internal positions to check - full coverage
+
+    // Track which positions have coverage (positions 1 through length-1)
+    set<Size> covered_positions;
+
+    for (const auto& annotation : annotations)
+    {
+      std::string ann = annotation.annotation;
+      if (ann.empty())
+      {
+        OPENMS_LOG_WARN << "Empty fragment annotation found in coverage check" << endl;
+        continue;
+      }
+
+      // Check for a-B ions (e.g., "a1-B", "a2-B")
+      if (ann.find("-B") != std::string::npos)
+      {
+        // Extract position from "a1-B" -> "1"
+        std::string prefix = ann.substr(0, ann.find('-'));
+        if (prefix.starts_with("a"))
+        {
+          std::string pos_str = prefix.substr(1); // Remove 'a'
+          try
+          {
+            Size pos = static_cast<Size>(StringUtils::toInt64(pos_str));
+            if (pos >= 1 && pos < length)
+            {
+              covered_positions.insert(pos);
+            }
+          }
+          catch (Exception::ConversionError&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Malformed a-B fragment annotation: '" + ann + "' - expected format 'aN-B' where N is a position number",
+              ann);
+          }
+        }
+      }
+      else
+      {
+        // Regular ions: extract ion type and position
+        // Format: "a1", "b2", "w9", "y3", etc.
+        char ion_type = ann[0];
+        std::string ion_type_str(1, ion_type);
+
+        // Check if this is a valid fragment ion type (using class member)
+        if (std::find(fragment_ion_codes_.begin(), fragment_ion_codes_.end(),
+                      ion_type_str) != fragment_ion_codes_.end())
+        {
+          // Extract numeric position
+          std::string pos_str = ann.substr(1);
+          // Handle annotations like "y3+" by removing non-digits
+          pos_str.erase(std::remove(pos_str.begin(), pos_str.end(), '+'), pos_str.end());
+          pos_str.erase(std::remove(pos_str.begin(), pos_str.end(), '-'), pos_str.end());
+
+          try
+          {
+            Size pos = static_cast<Size>(StringUtils::toInt64(pos_str));
+
+            // w/x/y/z ions count from 3' end, need to convert to 5' end position
+            // For a 10-mer: w9 = position 1, w8 = position 2, ..., w1 = position 9
+            Size actual_pos = pos;
+            if (ion_type == 'w' || ion_type == 'x' || ion_type == 'y' || ion_type == 'z')
+            {
+              actual_pos = length - pos;
+            }
+
+            if (actual_pos >= 1 && actual_pos < length)
+            {
+              covered_positions.insert(actual_pos);
+            }
+          }
+          catch (Exception::ConversionError&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Malformed fragment annotation: '" + ann + "' - expected format like 'a1', 'b2', 'y3', etc.",
+              ann);
+          }
+        }
+      }
+    }
+
+    // Calculate coverage fraction: number of covered positions / total internal positions
+    Size total_internal_positions = length - 1;
+    double coverage = static_cast<double>(covered_positions.size()) / static_cast<double>(total_internal_positions);
+
+    return coverage;
+  }
+
+
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
+    const std::string scoring_method = getStringOption_("scoring:method");
+    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType(scoring_method == "mvh" ? "MVH score" : "hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
@@ -978,6 +1196,14 @@ protected:
       getDoubleOption_("fragment:mass_tolerance");
     search_param.fragment_tolerance_ppm =
       (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
+    if (!std::isfinite(search_param.precursor_mass_tolerance) || search_param.precursor_mass_tolerance < 0.0 ||
+        !std::isfinite(search_param.fragment_mass_tolerance) || search_param.fragment_mass_tolerance < 0.0 ||
+        (search_param.fragment_mass_tolerance == 0.0 &&
+         (getStringOption_("scoring:method") == "mvh" || getFlag_("scoring:use_mass_accuracy"))))
+    {
+      OPENMS_LOG_ERROR << "Mass tolerances must be finite and nonnegative; MVH and mass-accuracy weighting require positive fragment tolerance." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
     search_param.min_length = getIntOption_("oligo:min_size");
     search_param.max_length = getIntOption_("oligo:max_size");
     StringList fixed_mod_names = getStringList_("modifications:fixed");
@@ -1079,7 +1305,8 @@ protected:
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(input);
     // processing software meta data:
-    IdentificationData::ScoreType score("hyperscore", true);
+    const std::string scoring_method = getStringOption_("scoring:method");
+    IdentificationData::ScoreType score(scoring_method == "mvh" ? "MVH score" : "hyperscore", true);
     IdentificationData::ScoreTypeRef hyperscore_ref =
       id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
@@ -1218,10 +1445,32 @@ protected:
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
+    const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
+    bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
+    double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
+    int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
+    std::string window_movetype = getStringOption_("preprocessing:window_mower:movetype");
+    bool use_nlargest = getFlag_("preprocessing:filter_nlargest");
+    int nlargest_n = getIntOption_("preprocessing:nlargest:n");
+    bool remove_precursor = getFlag_("preprocessing:remove_precursor_peak");
+    double precursor_mass_tolerance = getDoubleOption_("preprocessing:precursor_mass_tolerance");
+    std::string precursor_tolerance_unit = getStringOption_("preprocessing:precursor_mass_tolerance_unit");
+    bool precursor_tolerance_ppm = (precursor_tolerance_unit == "ppm");
+    int precursor_peak_isotopes = getIntOption_("preprocessing:precursor_peak_isotopes");
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
-                       max_charge, include_unknown_charge);
+                       max_charge, include_unknown_charge,
+                       use_window_mower, window_size, window_peakcount, window_movetype,
+                       use_nlargest, nlargest_n,
+                       remove_precursor, precursor_mass_tolerance,
+                       precursor_tolerance_ppm, precursor_peak_isotopes,
+                       deisotoping);
+    const std::string out_preprocessed = getStringOption_("out_preprocessed");
+    if (!out_preprocessed.empty())
+    {
+      FileHandler().storeExperiment(out_preprocessed, spectra, {FileTypes::MZML}, log_type_);
+    }
     progresslogger.endProgress();
     OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
                      << endl;
@@ -1242,7 +1491,7 @@ protected:
       }
 
       set<Int> possible_charges;
-      Int precursor_charge = precursors[0].getCharge();
+      Int precursor_charge = abs(precursors[0].getCharge());
       if (precursor_charge == 0) // charge information missing
       {
         if (include_unknown_charge)
@@ -1416,6 +1665,15 @@ protected:
                                                 candidate, precursor_charges,
                                                 base_charge);
 
+          const auto blacklist_mz = getDoubleList_("scoring:blacklist_mz");
+          if (!blacklist_mz.empty())
+          {
+            for (auto& [charge, spectrum] : theo_spectra_by_charge)
+            {
+              filterBlacklistedIons_(spectrum, blacklist_mz, getDoubleOption_("scoring:blacklist_tolerance"));
+            }
+          }
+
           for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
           {
             OPENMS_LOG_DEBUG << "Matching precursor mass: "
@@ -1429,10 +1687,27 @@ protected:
             Size scan_index = prec_it->second.scan_index;
             const MSSpectrum& exp_spectrum = spectra[scan_index];
             vector<PeptideHit::PeakAnnotation> annotations;
-            double score = MetaboliteSpectralMatching::computeHyperScore(
-              search_param.fragment_mass_tolerance,
-              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-              annotations);
+            // Compute score using selected method
+            double score;
+            if (scoring_method == "mvh")
+            {
+              Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
+              double tic_fraction = getDoubleOption_("scoring:tic_fraction");
+              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+              bool single_peak_credit = getStringOption_("scoring:single_peak_credit") == "true";
+              score = MetaboliteSpectralMatching::computeMVHScore(
+                search_param.fragment_mass_tolerance,
+                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+                annotations, num_intensity_classes, tic_fraction, 0.0, use_mass_accuracy, single_peak_credit);
+            }
+            else // hyperscore
+            {
+              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+              score = MetaboliteSpectralMatching::computeHyperScore(
+                search_param.fragment_mass_tolerance,
+                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+                annotations, 0.0, use_mass_accuracy);
+            }
 
             if (!exp_ms2_out.empty())
             {
@@ -1447,7 +1722,21 @@ protected:
               theo_ms2_spectra.addSpectrum(theo_spectrum);
             }
 
-            if (score < 1e-16) continue; // no hit
+            if (!std::isfinite(score) || score < 1e-16) continue; // no finite hit
+
+            // Check fragment coverage if required
+            double min_coverage = getDoubleOption_("report:require_coverage");
+            if (min_coverage > 0.0)
+            {
+              double actual_coverage = calculateFragmentCoverage_(candidate, annotations);
+              if (actual_coverage < min_coverage)
+              {
+                OPENMS_LOG_DEBUG << "Skipping hit due to insufficient fragment coverage: "
+                                 << candidate.toString() << " (coverage: " << actual_coverage
+                                 << ", required: " << min_coverage << ")" << endl;
+                continue; // Insufficient fragment coverage
+              }
+            }
 
 #pragma omp atomic
             ++hit_counter;
