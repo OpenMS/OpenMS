@@ -126,6 +126,9 @@ OpenMS Library:
   - FIX: BrukerTimsFile no longer warns "ms1_centroid_mz_ppm and ms1_centroid_im_pct must both be > 0 to
     enable MS1 centroiding" on every load with the default configuration (ms1_centroid_mz_ppm has been
     10 by default since HillBased centroiding uses it; on its own it selects nothing).
+  - BrukerTimsFile reads raw frames (MS1 without centroiding, FRAME export mode) more than twice as fast:
+    the peaks of a frame are put in m/z order while they are read, by their TOF index, instead of sorting
+    every spectrum by m/z at the end of the load, which took most of the time. The output is unchanged.
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).

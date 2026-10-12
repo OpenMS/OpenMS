@@ -31,6 +31,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <numeric>
 #include <vector>
@@ -1576,7 +1577,82 @@ namespace OpenMS
   // =====================================================================
   // Helper: convert a single opentims frame to MSSpectrum
   // =====================================================================
-  static void frameToSpectrum(TimsFrame& frame, MSSpectrum& spec, int ms_level)
+  // Fills @p order with the indices 0..n-1 sorted by @p keys, equal keys in index order (LSD radix sort)
+  static void stableOrderByKey(const uint32_t* keys, uint32_t n, std::vector<uint32_t>& order, std::vector<uint32_t>& scratch)
+  {
+    constexpr unsigned BITS = 11;
+    constexpr uint32_t BUCKETS = 1u << BITS;
+    order.resize(n);
+    scratch.resize(n);
+    std::iota(order.begin(), order.end(), 0u);
+    uint32_t max_key = 0;
+    for (uint32_t i = 0; i < n; ++i) max_key = std::max(max_key, keys[i]);
+    std::array<uint32_t, BUCKETS + 1> first; // first[b]: position of the first index whose digit is b
+    for (unsigned shift = 0; shift < 32 && (max_key >> shift) != 0; shift += BITS)
+    {
+      first.fill(0);
+      for (uint32_t i = 0; i < n; ++i) ++first[((keys[i] >> shift) & (BUCKETS - 1)) + 1];
+      for (uint32_t b = 0; b < BUCKETS; ++b) first[b + 1] += first[b];
+      for (uint32_t i = 0; i < n; ++i)
+      {
+        const uint32_t index = order[i];
+        scratch[first[(keys[index] >> shift) & (BUCKETS - 1)]++] = index;
+      }
+      order.swap(scratch);
+    }
+  }
+
+  // The peaks of one frame. A loader keeps one object and decodes frame after frame into it, so that
+  // the buffers are not allocated for every frame.
+  struct DecodedFrame
+  {
+    // per peak, in the order of the frame (scan by scan, ascending TOF index within a scan)
+    std::vector<uint32_t> scan_ids;
+    std::vector<uint32_t> tofs;
+    std::vector<uint32_t> intensities;
+    std::vector<double> mzs;
+    /// Inverse ion mobility of each scan: it is the same for all peaks of a scan
+    std::vector<double> scan_im;
+    /// The peak indices in the order to emit them: ascending m/z, peaks of equal m/z in scan order. That
+    /// is the order a stable sort of the spectrum by m/z gives, which every spectrum needs in the end.
+    std::vector<uint32_t> mz_order;
+
+    /// Decodes @p frame (which must have peaks). @p order_by_mz: also fill mz_order
+    void decode(TimsDataHandle& handle, TimsFrame& frame, bool order_by_mz)
+    {
+      const uint32_t n = frame.num_peaks;
+      scan_ids.resize(n);
+      tofs.resize(n);
+      intensities.resize(n);
+      mzs.resize(n);
+      frame.save_to_buffs(nullptr, scan_ids.data(), tofs.data(), intensities.data(), mzs.data(), nullptr, nullptr);
+
+      const uint32_t n_scans = std::max(frame.num_scans, *std::max_element(scan_ids.begin(), scan_ids.end()) + 1);
+      for (uint32_t scan = static_cast<uint32_t>(scan_numbers_.size()); scan < n_scans; ++scan) scan_numbers_.push_back(scan);
+      scan_im.resize(n_scans);
+      handle.scan2inv_ion_mobility_converter->convert(frame.id, scan_im.data(), scan_numbers_.data(), n_scans);
+
+      if (!order_by_mz) return;
+      // m/z grows with the TOF index, so the order by m/z is the order by (TOF index, scan)
+      stableOrderByKey(tofs.data(), n, mz_order, scratch_);
+      for (uint32_t i = 1; i < n; ++i)
+      {
+        const uint32_t before = mz_order[i - 1], peak = mz_order[i];
+        if (mzs[before] < mzs[peak] || tofs[before] == tofs[peak]) continue;
+        // m/z does not grow strictly with the TOF index here (a calibration with a step): keep the order of
+        // the frame. The spectrum is then sorted with all others at the end of the load.
+        std::iota(mz_order.begin(), mz_order.end(), 0u);
+        break;
+      }
+    }
+
+  private:
+    std::vector<uint32_t> scan_numbers_; // 0, 1, 2, ...
+    std::vector<uint32_t> scratch_;
+  };
+
+  static void frameToSpectrum(TimsDataHandle& handle, TimsFrame& frame, MSSpectrum& spec, int ms_level,
+                              DecodedFrame& decoded)
   {
     spec.clear(true);
     spec.setRT(frame.time);
@@ -1589,32 +1665,20 @@ namespace OpenMS
 
     if (frame.num_peaks == 0) return;
 
-    // Allocate output buffers
-    std::vector<uint32_t> scan_ids(frame.num_peaks);
-    std::vector<uint32_t> intensities(frame.num_peaks);
-    std::vector<double> mzs(frame.num_peaks);
-    std::vector<double> inv_ion_mobilities(frame.num_peaks);
+    decoded.decode(handle, frame, /*order_by_mz=*/true);
 
-    frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                        mzs.data(), inv_ion_mobilities.data(), nullptr);
-
-    // Fill spectrum peaks
-    spec.reserve(frame.num_peaks);
-    for (uint32_t i = 0; i < frame.num_peaks; ++i)
-    {
-      Peak1D peak;
-      peak.setMZ(mzs[i]);
-      peak.setIntensity(static_cast<double>(intensities[i]));
-      spec.push_back(peak);
-    }
-
-    // Set IM float data array with correct CV term
+    // Fill spectrum peaks and the IM float data array, in m/z order
+    spec.resize(frame.num_peaks);
     DataArrays::FloatDataArray im_array;
     im_array.resize(frame.num_peaks);
     for (uint32_t i = 0; i < frame.num_peaks; ++i)
     {
-      im_array[i] = static_cast<float>(inv_ion_mobilities[i]);
+      const uint32_t peak = decoded.mz_order[i];
+      spec[i].setMZ(decoded.mzs[peak]);
+      spec[i].setIntensity(static_cast<double>(decoded.intensities[peak]));
+      im_array[i] = static_cast<float>(decoded.scan_im[decoded.scan_ids[peak]]);
     }
+    // Set IM float data array with correct CV term
     IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
     spec.getFloatDataArrays().push_back(std::move(im_array));
     spec.setIMPeakType(IMPeakType::IM_PROFILE);
@@ -1699,14 +1763,14 @@ namespace OpenMS
   // =====================================================================
   // Helper: build one MS1 spectrum from a frame, with optional IM centroiding
   // =====================================================================
-  static void loadMS1Spectrum(TimsFrame& frame, MSSpectrum& spec,
+  static void loadMS1Spectrum(TimsDataHandle& handle, TimsFrame& frame, MSSpectrum& spec,
                               const BrukerTimsFile::Config& config,
-                              FrameCentroider& centroider)
+                              FrameCentroider& centroider, DecodedFrame& decoded)
   {
     if (isCentroidingEnabled(config))
       centroidMS1Frame(frame, spec, config, centroider);
     else
-      frameToSpectrum(frame, spec, 1);
+      frameToSpectrum(handle, frame, spec, 1, decoded);
   }
 
   // =====================================================================
@@ -2068,6 +2132,7 @@ namespace OpenMS
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);
+    DecodedFrame decoded;
 
     std::vector<uint32_t> ms1_frame_ids;
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
@@ -2092,7 +2157,7 @@ namespace OpenMS
       else
       {
         TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(frame, spec, eff, centroider);
+        loadMS1Spectrum(*handle, frame, spec, eff, centroider, decoded);
       }
       // Sort peaks by m/z (and the associated IM float data array alongside).
       // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
@@ -2448,6 +2513,7 @@ namespace OpenMS
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);
+    DecodedFrame decoded;
     if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
     for (size_t i = 0; i < ms1_to_emit; ++i)
     {
@@ -2460,7 +2526,7 @@ namespace OpenMS
       else
       {
         TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(frame, spec, config, centroider);
+        loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
@@ -2998,6 +3064,7 @@ namespace OpenMS
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);  // finer bin for MS1 (see design spec)
+    DecodedFrame decoded;
     const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
     if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
     startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
@@ -3012,7 +3079,7 @@ namespace OpenMS
       else
       {
         TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(frame, spec, config, centroider);
+        loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
       }
       exp.addSpectrum(std::move(spec));
       setProgress(i);
@@ -3396,15 +3463,16 @@ namespace OpenMS
       }
 
       FrameCentroider centroider;
+      DecodedFrame decoded;
       startProgress(0, frame_ids.size(),"Loading MS" + StringUtils::toStr(level) + " frames");
       for (size_t i = 0; i < frame_ids.size(); ++i)
       {
         TimsFrame& frame = handle.get_frame(frame_ids[i]);
         MSSpectrum spec;
         if (level == 1)
-          loadMS1Spectrum(frame, spec, config, centroider);
+          loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
         else
-          frameToSpectrum(frame, spec, level);
+          frameToSpectrum(handle, frame, spec, level, decoded);
         exp.addSpectrum(std::move(spec));
         setProgress(i);
       }
