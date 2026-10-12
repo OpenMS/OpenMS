@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: OpenMS Team $
-// $Authors: OpenMS Team $
+// $Maintainer: Sam Wein $
+// $Authors: Sam Wein $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TextFile.h>
