@@ -9,63 +9,65 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-
-#include <random>
 #include <string>
 
 
 namespace OpenMS
 {
 
-  class DateTime;
+/**
+  @brief  A generator for unique ids.
 
-  /**
-    @brief  A generator for unique ids.
+  The unique ids are nonzero 64-bit random unsigned integers.
+  All callers share one generator with process lifetime.
+  The random generator is std::mt19937_64 (MT19937-64), whose output sequence is
+  fully specified by the algorithm and therefore identical on every platform and
+  standard library. Zero engine outputs are skipped because they represent an
+  invalid unique id. Random values can still collide; map-level uniqueness
+  must be checked separately.
 
-    The unique ids are 64-bit random unsigned random integers.
-    The class is implemented as a singleton.
-    The random generator is std::mt19937_64 (MT19937-64), whose output sequence is
-    fully specified by the algorithm and therefore identical on every platform and
-    standard library. Ids are the raw 64-bit engine output: drawing them through a
-    uniform distribution over the complete UInt64 range would be the identity.
+  Each thread caches 1024 engine outputs, acquiring a shared mutex only when
+  refilling its cache. Generation is thread-safe with or without OpenMP.
+  Calls made by one thread preserve the seeded sequence, except for skipped
+  zeros. With multiple generating threads, values are reserved in batches;
+  unused values are discarded when a thread terminates or setSeed() is called.
+  Parallel output therefore depends on scheduling and thread lifetime.
 
-    @ingroup Concept
-  */
-  class OPENMS_DLLAPI UniqueIdGenerator
-  {
+  @ingroup Concept
+*/
+class OPENMS_DLLAPI UniqueIdGenerator
+{
 
 public:
+  /// Returns a new, nonzero unique id.
+  static UInt64 getUniqueId();
 
-    /// Returns a new unique id
-    static UInt64 getUniqueId();
+  /**
+    @brief Returns a new random UUID (version 4)
 
-    /**
-      @brief Returns a new random UUID (version 4)
+    Formatted as the standard 36-character string
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".
+  */
+  static std::string getUUID();
 
-      Formatted as the standard 36-character string
-      "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".
-    */
-    static std::string getUUID();
+  /**
+    @brief Reseed the shared generator and invalidate every thread's cached ids.
 
-    /// Initializes random generator using the given value.
-    static void setSeed(const UInt64);
+    @param[in] seed Seed for the Mersenne Twister engine.
 
-    /// Get the seed
-    static UInt64 getSeed();
+    @pre No other thread may be generating ids or UUIDs during reseeding.
+  */
+  static void setSeed(UInt64 seed);
+
+  /// Get the seed
+  static UInt64 getSeed();
 
 protected:
-    UniqueIdGenerator();
-    ~UniqueIdGenerator();
+  UniqueIdGenerator();
+  ~UniqueIdGenerator();
 
 private:
-    static UInt64 seed_;
-    static UniqueIdGenerator* instance_;
-    static std::mt19937_64* rng_;
-
-    static UniqueIdGenerator& getInstance_();
-    void init_();
-    UniqueIdGenerator(const UniqueIdGenerator& );//protect from c++ auto-generation
-  };
+  UniqueIdGenerator(const UniqueIdGenerator&); // protect from c++ auto-generation
+};
 
 } // namespace OpenMS
-

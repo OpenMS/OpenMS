@@ -7,120 +7,113 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-
 #include <OpenMS/SYSTEM/SysInfo.h>
-
+#include <array>
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <mutex>
+#include <random>
 
 namespace OpenMS
 {
-  UInt64 UniqueIdGenerator::seed_ = 0;
-  UniqueIdGenerator* UniqueIdGenerator::instance_ = nullptr;
-  std::mt19937_64* UniqueIdGenerator::rng_ = nullptr;
+namespace
+{
+  constexpr Size ID_BUFFER_SIZE = 1024;
 
-  UInt64 UniqueIdGenerator::getUniqueId()
+  UInt64 initialSeed()
   {
-    UniqueIdGenerator& instance = getInstance_();
-#ifdef _OPENMP
-    UInt64 val;
-#pragma omp critical (OPENMS_UniqueIdGenerator_getUniqueId)
+    // Microsecond time and the process ID distinguish tools started close together.
+    const auto now = std::chrono::system_clock::now().time_since_epoch();
+    return static_cast<UInt64>(std::chrono::duration_cast<std::chrono::microseconds>(now).count())
+           ^ (static_cast<UInt64>(SysInfo::getProcessId()) << 32);
+  }
+
+  struct GeneratorState
+  {
+    // Cached reads of the generation should not share the mutex's cache line.
+    alignas(64) std::atomic<UInt64> generation {1};
+    alignas(64) std::mutex mutex;
+    UInt64 seed {initialSeed()};
+    std::mt19937_64 rng {seed};
+  };
+
+  GeneratorState& generatorState()
+  {
+    // Preserve the original singleton's process lifetime for shutdown callers.
+    static auto* const state = new GeneratorState;
+    return *state;
+  }
+
+  struct IdBuffer
+  {
+    UInt64 generation {0};
+    Size next {ID_BUFFER_SIZE};
+    std::array<UInt64, ID_BUFFER_SIZE> values {};
+  };
+} // namespace
+
+UInt64 UniqueIdGenerator::getUniqueId()
+{
+  auto& state = generatorState();
+  static thread_local IdBuffer buffer;
+  const UInt64 generation = state.generation.load(std::memory_order_acquire);
+  if (buffer.generation != generation || buffer.next == ID_BUFFER_SIZE)
+  {
+    // Reserve disjoint batches from the shared engine. Cached calls need no
+    // mutex; refills are protected for both OpenMP and standard threads.
+    const std::lock_guard lock(state.mutex);
+    for (auto& value : buffer.values)
     {
-      val = (*instance.rng_)();
-    }
-    // note: OpenMP can only work on a structured block, return needs to be outside that block
-    return val; 
-#else
-    return (*instance.rng_)();
-#endif
-  }
-
-  std::string UniqueIdGenerator::getUUID()
-  {
-    // Two independent 64-bit draws from the shared, once-seeded generator give us
-    // the 128 bits of a UUID without reseeding a fresh RNG per call (which would
-    // depend on std::random_device's entropy quality on every single call).
-    UInt64 hi = getUniqueId();
-    UInt64 lo = getUniqueId();
-    Byte bytes[16];
-    std::memcpy(bytes, &hi, 8);
-    std::memcpy(bytes + 8, &lo, 8);
-    bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
-    bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
-    char buf[37];
-    std::snprintf(buf, sizeof(buf),
-      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-      bytes[0], bytes[1], bytes[2], bytes[3],
-      bytes[4], bytes[5], bytes[6], bytes[7],
-      bytes[8], bytes[9], bytes[10], bytes[11],
-      bytes[12], bytes[13], bytes[14], bytes[15]);
-    return std::string(buf);
-  }
-
-  UInt64 UniqueIdGenerator::getSeed()
-  {
-    return getInstance_().seed_;
-  }
-
-  void UniqueIdGenerator::setSeed(UInt64 seed)
-  {
-  // modifies static members
-#ifdef _OPENMP
-#pragma omp critical (OPENMS_UniqueIdGenerator_setSeed)
-#endif
-    {
-      UniqueIdGenerator& instance = getInstance_();
-      instance.seed_ = seed;
-      instance.rng_->seed( instance.seed_ );
-    }
-  }
-
-  UniqueIdGenerator::UniqueIdGenerator() = default;
-
-  UniqueIdGenerator & UniqueIdGenerator::getInstance_()
-  {
-  // modifies static members
-#ifdef _OPENMP
-#pragma omp critical (OPENMS_UniqueIdGenerator_getInstance_)
-#endif
-    {
-      if (!instance_)
+      do
       {
-        instance_ = new UniqueIdGenerator();
-        instance_->init_();
-      }
+        value = state.rng();
+      } while (value == 0); // UniqueIdInterface reserves zero for an invalid ID.
     }
-    return *instance_;
+    buffer.generation = generation;
+    buffer.next = 0;
   }
-
-  void UniqueIdGenerator::init_()
-  {
-  // modifies static members
-#ifdef _OPENMP
-#pragma omp critical (OPENMS_UniqueIdGenerator_init_)
-#endif
-    {
-      // find a seed:
-      // get something with high resolution (around microseconds) -- its hard to do better on Windows --
-      // which has absolute system time (there is higher resolution available for the time since program startup, but
-      // we do not want this here since this seed usually gets initialized at the same program uptime).
-      // Reason for high-res: in pipelines, instances of TOPP tools can get initialized almost simultaneously (i.e., resolution in seconds is not enough),
-      // leading to identical random numbers (e.g. feature-IDs) in two or more distinct files.
-      const auto now = std::chrono::system_clock::now().time_since_epoch();
-      seed_ = static_cast<UInt64>(std::chrono::duration_cast<std::chrono::microseconds>(now).count());
-
-      // Mix in process ID to ensure different seeds for parallel processes started at the same microsecond.
-      // This prevents duplicate UniqueIds when multiple TOPP tools run simultaneously in a pipeline.
-      seed_ ^= static_cast<UInt64>(SysInfo::getProcessId()) << 32;
-
-      rng_ = new std::mt19937_64 (seed_);
-    }
-  }
-
-  UniqueIdGenerator::~UniqueIdGenerator()
-  {
-    delete rng_;
-  }
-
+  return buffer.values[buffer.next++];
 }
+
+std::string UniqueIdGenerator::getUUID()
+{
+  // Two independent 64-bit draws from the shared, once-seeded generator give us
+  // the 128 bits of a UUID without reseeding a fresh RNG per call (which would
+  // depend on std::random_device's entropy quality on every single call).
+  UInt64 hi = getUniqueId();
+  UInt64 lo = getUniqueId();
+  Byte bytes[16];
+  std::memcpy(bytes, &hi, 8);
+  std::memcpy(bytes + 8, &lo, 8);
+  bytes[6] = (bytes[6] & 0x0F) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3F) | 0x80; // variant 1
+  char buf[37];
+  std::snprintf(buf, sizeof(buf), "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", bytes[0], bytes[1], bytes[2], bytes[3],
+                bytes[4], bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]);
+  return std::string(buf);
+}
+
+UInt64 UniqueIdGenerator::getSeed()
+{
+  auto& state = generatorState();
+  const std::lock_guard lock(state.mutex);
+  return state.seed;
+}
+
+void UniqueIdGenerator::setSeed(UInt64 seed)
+{
+  auto& state = generatorState();
+  const std::lock_guard lock(state.mutex);
+  state.seed = seed;
+  state.rng.seed(seed);
+  // Invalidate caches even when reseeding with the same value. Workers must
+  // be quiescent so no cached ID from the previous generation is in flight.
+  state.generation.fetch_add(1, std::memory_order_release);
+}
+
+UniqueIdGenerator::UniqueIdGenerator() = default;
+UniqueIdGenerator::~UniqueIdGenerator() = default;
+
+} // namespace OpenMS
