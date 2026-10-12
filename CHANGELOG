@@ -346,6 +346,11 @@ Dependencies:
     package and the pyOpenMS wheels bundle it. 3.6.5 fixes the 13 advisories of 2026-09-29
     listed under 3.6.0's known issues, among them the High-severity CVE-2026-84782 (DTLS,
     which OpenMS does not use).
+  - WITH_THERMO_RAW requires openms-thermo-bridge 1.0.0 (FetchContent, vcpkg overlay and
+    find_package). ThermoRawFile reads each scan through its typed single-pass API (header,
+    m/z-sorted peaks, charges and noise in one call) instead of per-scan JSON and separate
+    peak and auxiliary-array calls; system or vcpkg installations of 0.x are no longer
+    accepted (#10522).
 
 TOPP tools:
   Changes:

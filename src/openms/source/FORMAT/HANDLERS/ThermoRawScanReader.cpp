@@ -207,46 +207,82 @@ namespace
     }
   }
 
-  /**
-    Typed view of one scan's bridge metadata (schema version 1) for the precursor parser.
-    Trailer entries whose label or value is not a string are dropped; numeric reaction
-    fields the bridge reports as null stay unset.
-  */
-  ThermoScan toThermoScan(const Json& meta)
+  namespace tb = openms::thermo_bridge;
+
+  /// The vendor value, or unset if it is not finite (the bridge keeps NaN for missing values).
+  std::optional<double> finite(double value)
   {
-    auto number_or_unset = [](const Json& object, const char* key) -> std::optional<double> {
-      if (isNumber(object, key)) { return object[key].get<double>(); }
-      return std::nullopt;
-    };
-    ThermoScan scan;
-    scan.scan_number = meta.at("scan_number").get<int>();
-    scan.ms_level = meta.at("ms_level").get<int>();
-    scan.filter = text(meta, "filter");
-    scan.native_id = text(meta, "native_id");
-    const auto& trailer = meta.at("trailer");
-    scan.trailer.reserve(trailer.size());
-    for (const auto& entry : trailer)
+    return std::isfinite(value) ? std::optional<double>(value) : std::nullopt;
+  }
+
+  /**
+    Typed view of one scan header for the precursor parser. Trailer values are the
+    vendor-formatted strings (ReadOptions::trailer_text) paired with the labels of the
+    file's trailer layout; reaction values that are not finite stay unset.
+  */
+  void toThermoScan(const tb::ScanHeader& header, const tb::TrailerLayout& layout, ThermoScan& scan)
+  {
+    scan.scan_number = header.scan_number;
+    scan.ms_level = header.ms_level();
+    scan.filter = header.filter;
+    scan.native_id = header.native_id();
+    const Size entries = std::min(layout.labels.size(), header.trailer_text.size());
+    scan.trailer.resize(entries);
+    for (Size i = 0; i < entries; ++i)
     {
-      const auto& label = entry.at("label");
-      const auto& value = entry.at("value");
-      if (label.is_string() && value.is_string())
-      {
-        scan.trailer.push_back({label.get<std::string>(), value.get<std::string>()});
-      }
+      scan.trailer[i].label = layout.labels[i].label;
+      scan.trailer[i].value = header.trailer_text[i];
     }
-    for (const auto& reaction : meta.at("reactions"))
+    scan.reactions.clear();
+    for (const auto& reaction : header.reactions)
     {
       ThermoReaction converted;
-      converted.precursor_mass = number_or_unset(reaction, "precursor_mass");
-      converted.isolation_width = number_or_unset(reaction, "isolation_width");
-      converted.isolation_offset = number_or_unset(reaction, "isolation_offset");
-      converted.activation = text(reaction, "activation");
-      converted.collision_energy = number_or_unset(reaction, "collision_energy");
-      const auto valid = reaction.find("collision_energy_valid");
-      converted.collision_energy_valid = valid != reaction.end() && valid->is_boolean() && valid->get<bool>();
+      converted.precursor_mass = finite(reaction.precursor_mass);
+      converted.isolation_width = finite(reaction.isolation_width);
+      converted.isolation_offset = finite(reaction.isolation_offset);
+      converted.activation = tb::activation_type_name(reaction.activation);
+      converted.collision_energy = finite(reaction.collision_energy);
+      converted.collision_energy_valid = reaction.collision_energy_valid;
       scan.reactions.push_back(std::move(converted));
     }
-    return scan;
+  }
+
+  /// Append @p value as a JSON string literal, exactly as nlohmann::json::dump() writes it.
+  void appendJsonString(std::string& out, const std::string& value)
+  {
+    const bool plain = std::all_of(value.begin(), value.end(), [](char c) {
+      return c >= 0x20 && c < 0x7F && c != '"' && c != '\\';
+    });
+    if (plain)
+    {
+      out += '"';
+      out += value;
+      out += '"';
+    }
+    else
+    {
+      out += Json(value).dump(); // escapes and validates UTF-8
+    }
+  }
+
+  /**
+    The trailer as the JSON array of {label, value} objects that 'Thermo trailer extra' holds;
+    same text as dumping the equivalent nlohmann::json array, without building it per scan.
+  */
+  std::string trailerJson(const ThermoScan& scan)
+  {
+    std::string out = "[";
+    for (const auto& entry : scan.trailer)
+    {
+      if (out.size() > 1) { out += ','; }
+      out += "{\"label\":";
+      appendJsonString(out, entry.label);
+      out += ",\"value\":";
+      appendJsonString(out, entry.value);
+      out += '}';
+    }
+    out += ']';
+    return out;
   }
 
   /// Annotate @p precursor with the activation of @p reaction.
@@ -310,6 +346,7 @@ struct ThermoRawScanReader::Impl
   std::filesystem::path raw_path;
   std::optional<openms::thermo_bridge::RawFile> raw;
   Json metadata;
+  std::string sha1; ///< of the RAW file, only with Options::checksum
   Instrument instrument;
   std::string model;
   DataProcessingPtr processing;
@@ -328,7 +365,20 @@ struct ThermoRawScanReader::Impl
 
   // State of the scan whose header was read last.
   ScanInfo info;
-  Json meta;
+  tb::Spectrum header_read; ///< header (trailer text, peaks if requested) of the last header() call
+  bool header_has_peaks = false; ///< header_read also holds the peaks
+  tb::Spectrum peak_read;   ///< peaks read by convert() (buffers reused)
+
+  /// What convert() reads for the peaks and auxiliary arrays.
+  tb::ReadOptions peakReadOptions() const
+  {
+    tb::ReadOptions read;
+    read.centroid = options.centroid;
+    read.trailers = false;
+    read.charges = options.charge_data && options.centroid;
+    read.noise = options.noise_data;
+    return read;
+  }
   ThermoScan scan;
   std::string order;
   bool neutral = false;
@@ -372,7 +422,8 @@ ThermoRawScanReader::ThermoRawScanReader(const std::string& path, const Options&
   const std::optional<std::filesystem::path> managed_dir = resolveManagedDirectory();
   if (managed_dir) { d.raw.emplace(open_path, *managed_dir); }
   else { d.raw.emplace(open_path); }
-  d.metadata = Json::parse(d.raw->file_metadata_json(options.instrument_methods, options.checksum));
+  d.metadata = Json::parse(d.raw->file_metadata_json(options.instrument_methods));
+  if (options.checksum) { d.sha1 = d.raw->file_sha1(); }
   if (d.metadata.at("schema_version") != 1) { throw std::runtime_error("Unsupported Thermo metadata schema"); }
 
   if (d.metadata.at("instrument").is_object())
@@ -423,7 +474,7 @@ void ThermoRawScanReader::fillSettings(ExperimentalSettings& settings) const
   source.setFileType("Thermo RAW format");
   source.setNativeIDType("Thermo nativeID format");
   source.setNativeIDTypeAccession("MS:1000768");
-  if (! text(file, "sha1").empty()) { source.setChecksum(text(file, "sha1"), SourceFile::ChecksumType::SHA1); }
+  if (! d.sha1.empty()) { source.setChecksum(d.sha1, SourceFile::ChecksumType::SHA1); }
   source.setMetaValue("RAW file revision", file.at("revision").get<int>());
   source.setMetaValue("file description", text(file, "description"));
   settings.getSourceFiles().push_back(source);
@@ -453,19 +504,25 @@ void ThermoRawScanReader::fillSettings(ExperimentalSettings& settings) const
   settings.setInstrument(d.instrument);
 }
 
-const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan)
+const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan, bool with_peaks)
 {
   Impl& d = *impl_;
   if (d.first_seen == 0) { d.first_seen = scan; }
   else if (scan != d.info.scan + 1) { throw std::logic_error("ThermoRawScanReader::header() must visit scans in order"); }
-  d.meta = Json::parse(d.raw->scan_metadata_json(scan));
-  if (d.meta.at("schema_version") != 1) { throw std::runtime_error("Unsupported Thermo scan metadata schema"); }
-  d.scan = toThermoScan(d.meta);
-  d.order = text(d.meta, "ms_order_name");
-  d.neutral = d.order == "Nl" || d.order == "Ng";
+  tb::ReadOptions read = d.peakReadOptions();
+  read.peaks = with_peaks;
+  read.noise = with_peaks && read.noise;
+  read.trailer_text = true;
+  d.raw->read_scan(scan, d.header_read, read);
+  d.header_has_peaks = with_peaks;
+  const tb::ScanHeader& h = d.header_read.header;
+  toThermoScan(h, d.raw->trailer_layout(), d.scan);
+  d.order = tb::ms_order_name(h.ms_order);
+  d.neutral = h.ms_order == tb::MsOrder::Nl || h.ms_order == tb::MsOrder::Ng;
   // The precursor parser has to see every scan in acquisition order, also those that are not converted.
-  d.precursors = d.neutral ? std::vector<ThermoPrecursor>() : d.precursor_parser.precursors(d.scan);
-  const std::string analyzer = text(d.meta, "analyzer"), ionization = text(d.meta, "ionization");
+  if (d.neutral) { d.precursors.clear(); }
+  else { d.precursors = d.precursor_parser.precursors(d.scan); }
+  const std::string analyzer = tb::mass_analyzer_name(h.analyzer), ionization = tb::ionization_mode_name(h.ionization);
   const std::string configuration_key = analyzer + ":" + ionization;
   auto configuration = d.configurations.find(configuration_key);
   if (configuration == d.configurations.end())
@@ -491,12 +548,12 @@ const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan)
     d.new_configurations.emplace_back(id, std::move(config));
   }
   d.configuration_id = configuration->second;
-  const int level = d.meta.at("ms_level").get<int>();
+  const int level = h.ms_level();
   d.info.scan = scan;
   d.info.ms_level = level > 0 ? level : 0;
-  d.info.rt = d.meta.at("retention_time").get<double>() * 60.0;
+  d.info.rt = h.retention_time * 60.0;
   d.info.precursor_mz = d.precursors.empty() ? std::numeric_limits<double>::quiet_NaN() : d.precursors.front().selected_mz;
-  d.info.tic = isNumber(d.meta, "tic") ? d.meta["tic"].get<double>() : std::numeric_limits<double>::quiet_NaN();
+  d.info.tic = std::isfinite(h.tic) ? h.tic : std::numeric_limits<double>::quiet_NaN();
   return d.info;
 }
 
@@ -513,7 +570,7 @@ void ThermoRawScanReader::addInstrumentConfigurations(ExperimentalSettings& sett
 void ThermoRawScanReader::convert(MSSpectrum& spectrum, ExperimentalSettings& settings, const ParentLookup& parent, bool peaks)
 {
   Impl& d = *impl_;
-  const Json& meta = d.meta;
+  const tb::ScanHeader& h = d.header_read.header;
   const ThermoScan& parsed = d.scan;
   const int scan = d.info.scan;
   spectrum = MSSpectrum();
@@ -525,16 +582,16 @@ void ThermoRawScanReader::convert(MSSpectrum& spectrum, ExperimentalSettings& se
   spectrum.getInstrumentSettings().setScanMode(mode);
   spectrum.setRT(d.info.rt);
   spectrum.setNativeID(parsed.native_id);
-  const bool centroid = d.options.centroid || meta.at("centroid").get<bool>();
+  const bool centroid = d.options.centroid || h.centroid;
   spectrum.setType(centroid ? SpectrumSettings::SpectrumType::CENTROID : SpectrumSettings::SpectrumType::PROFILE);
-  const int polarity = meta.at("polarity").get<int>();
+  const int polarity = static_cast<int>(h.polarity);
   if (polarity == 1) { spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE); }
   else if (polarity == 0) { spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE); }
   Acquisition acquisition;
   acquisition.setMetaValue("filter string", parsed.filter);
   // Keep the historical spectrum-level accessor as well as the mzML scan-level term.
   spectrum.setMetaValue("filter string", parsed.filter);
-  if (d.options.preserve_trailers) { acquisition.setMetaValue("Thermo trailer extra", meta.at("trailer").dump()); }
+  if (d.options.preserve_trailers) { acquisition.setMetaValue("Thermo trailer extra", trailerJson(parsed)); }
   const auto injection = ThermoRawFileMetadata::number(d.trailer.value(parsed, d.injection_key));
   if (injection) { acquisition.setMetaValue("ion injection time", unitValue(*injection, 28)); }
   const auto mono = ThermoRawFileMetadata::number(d.trailer.value(parsed, d.mono_key));
@@ -559,25 +616,25 @@ void ThermoRawScanReader::convert(MSSpectrum& spectrum, ExperimentalSettings& se
   if (d.configuration_id != "ic_0") { acquisition.setMetaValue("instrument_configuration_ref", d.configuration_id); }
   spectrum.getAcquisitionInfo().push_back(acquisition);
   ScanWindow window;
-  window.begin = numeric(meta, "low_mass");
-  window.end = numeric(meta, "high_mass");
-  if (isNumber(meta, "low_mass") && isNumber(meta, "high_mass") && window.end >= window.begin)
+  window.begin = h.low_mass;
+  window.end = h.high_mass;
+  if (std::isfinite(h.low_mass) && std::isfinite(h.high_mass) && window.end >= window.begin)
   {
     spectrum.getInstrumentSettings().getScanWindows().push_back(window);
   }
-  if (isNumber(meta, "tic")) { spectrum.setMetaValue("total ion current", d.info.tic); }
-  if (isNumber(meta, "base_peak_mass")) { spectrum.setMetaValue("base peak m/z", msUnitValue(numeric(meta, "base_peak_mass"), 1000040)); }
-  if (isNumber(meta, "base_peak_intensity"))
+  if (std::isfinite(h.tic)) { spectrum.setMetaValue("total ion current", d.info.tic); }
+  if (std::isfinite(h.base_peak_mass)) { spectrum.setMetaValue("base peak m/z", msUnitValue(h.base_peak_mass, 1000040)); }
+  if (std::isfinite(h.base_peak_intensity))
   {
-    spectrum.setMetaValue("base peak intensity", msUnitValue(numeric(meta, "base_peak_intensity"), 1000131));
+    spectrum.setMetaValue("base peak intensity", msUnitValue(h.base_peak_intensity, 1000131));
   }
-  if (d.neutral && ! meta.at("reactions").empty())
+  if (d.neutral && ! parsed.reactions.empty())
   {
-    const auto& reaction = meta.at("reactions").front();
-    spectrum.setMetaValue(d.order == "Nl" ? "neutral loss" : "neutral gain", numeric(reaction, "precursor_mass"));
+    const ThermoReaction& reaction = parsed.reactions.front();
+    spectrum.setMetaValue(d.order == "Nl" ? "neutral loss" : "neutral gain", reaction.precursor_mass.value_or(0.0));
     Product product;
-    const double width = numeric(reaction, "isolation_width", -1);
-    const double offset = numeric(reaction, "isolation_offset");
+    const double width = reaction.isolation_width.value_or(-1.0);
+    const double offset = reaction.isolation_offset.value_or(0.0);
     if (width >= 0 && width / 2 >= std::abs(offset))
     {
       product.setIsolationWindowLowerOffset(width / 2 - offset);
@@ -625,7 +682,13 @@ void ThermoRawScanReader::convert(MSSpectrum& spectrum, ExperimentalSettings& se
   spectrum.getDataProcessing().push_back(d.processing);
   if (! peaks) { return; }
 
-  const auto data = d.raw->spectrum_data(scan, d.options.centroid);
+  const tb::Spectrum* read = &d.header_read;
+  if (! d.header_has_peaks)
+  {
+    d.raw->read_scan(scan, d.peak_read, d.peakReadOptions());
+    read = &d.peak_read;
+  }
+  const tb::Spectrum& data = *read;
   if (! data.mz.empty())
   {
     if (centroid)
@@ -634,45 +697,35 @@ void ThermoRawScanReader::convert(MSSpectrum& spectrum, ExperimentalSettings& se
       spectrum.setMetaValue("base peak m/z", msUnitValue(data.mz[basepeak], 1000040));
       spectrum.setMetaValue("base peak intensity", msUnitValue(data.intensities[basepeak], 1000131));
     }
-    const auto [lo, hi] = std::minmax_element(data.mz.begin(), data.mz.end());
-    spectrum.setMetaValue("lowest observed m/z", msUnitValue(*lo, 1000040));
-    spectrum.setMetaValue("highest observed m/z", msUnitValue(*hi, 1000040));
+    // The bridge returns peaks sorted by m/z.
+    spectrum.setMetaValue("lowest observed m/z", msUnitValue(data.mz.front(), 1000040));
+    spectrum.setMetaValue("highest observed m/z", msUnitValue(data.mz.back(), 1000040));
   }
-  const bool sorted = std::is_sorted(data.mz.begin(), data.mz.end());
   spectrum.resize(data.mz.size());
   for (Size i = 0; i < data.mz.size(); ++i)
   {
     spectrum[i].setMZ(data.mz[i]);
     spectrum[i].setIntensity(data.intensities[i]);
   }
-  if (d.options.charge_data && d.options.centroid)
+  if (! data.charges.empty() && data.charges.size() == spectrum.size())
   {
-    auto charges = d.raw->spectrum_auxiliary_array(scan, 0);
-    if (! charges.empty() && charges.size() == spectrum.size())
+    MSSpectrum::IntegerDataArray array;
+    array.setName("charge array");
+    array.reserve(data.charges.size());
+    for (double charge : data.charges)
     {
-      MSSpectrum::IntegerDataArray array;
-      array.setName("charge array");
-      array.reserve(charges.size());
-      for (double charge : charges)
-      {
-        array.push_back(static_cast<Int64>(charge));
-      }
-      spectrum.getIntegerDataArrays().push_back(std::move(array));
+      array.push_back(static_cast<Int64>(charge));
     }
+    spectrum.getIntegerDataArrays().push_back(std::move(array));
   }
-  // The independently sampled noise grid must not be sorted/filtered with
-  // peaks. Store double lists; MzMLHandler serializes these as 64-bit
-  // binary arrays.
+  // The independently sampled noise grid is not a peak annotation; store double lists,
+  // which MzMLHandler serializes as 64-bit binary arrays.
   if (d.options.noise_data)
   {
-    const char* names[] = {"", "sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array"};
-    for (int kind = 1; kind <= 3; ++kind)
-    {
-      auto values = d.raw->spectrum_auxiliary_array(scan, kind);
-      if (! values.empty()) { spectrum.setMetaValue(names[kind], values); }
-    }
+    if (! data.noise_mz.empty()) { spectrum.setMetaValue("sampled noise m/z array", data.noise_mz); }
+    if (! data.noise_intensities.empty()) { spectrum.setMetaValue("sampled noise intensity array", data.noise_intensities); }
+    if (! data.noise_baselines.empty()) { spectrum.setMetaValue("sampled noise baseline array", data.noise_baselines); }
   }
-  if (! sorted) { spectrum.sortByPosition(); }
 }
 
 std::shared_ptr<DataProcessing> ThermoRawScanReader::dataProcessing() const

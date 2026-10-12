@@ -35,7 +35,8 @@ namespace Internal
          processing).
       2. header() must be called for every MS scan in acquisition order, from firstScan() on,
          because the precursor of an MSn scan is reconstructed from the scans before it.
-         It reads only the scan header, never peaks.
+         It reads only the scan header, unless the caller asks for the peaks as well because
+         it will convert the scan anyway (one vendor read instead of two).
       3. convert() turns the scan whose header was read last into an MSSpectrum. Scans that
          are not needed can simply be skipped (no peaks are read for them).
 
@@ -86,8 +87,14 @@ namespace Internal
     /// Write run-level settings into @p settings (instrument configurations are added by convert() and addInstrumentConfigurations()).
     void fillSettings(ExperimentalSettings& settings) const;
 
-    /// Read the header of @p scan; must be called for every scan in increasing order.
-    const ScanInfo& header(int scan);
+    /**
+      @brief Read the header of @p scan; must be called for every scan in increasing order.
+
+      @param[in] scan Scan number, the successor of the previous call's scan
+      @param[in] with_peaks Also read the peaks for a following convert() call. Saves a second
+                 vendor read of the scan when the caller already knows it will convert it.
+    */
+    const ScanInfo& header(int scan, bool with_peaks = false);
 
     /**
       @brief Convert the scan of the last header() call.
