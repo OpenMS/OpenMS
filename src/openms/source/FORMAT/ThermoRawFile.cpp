@@ -53,6 +53,9 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
                                    || options_.rt_max < std::numeric_limits<double>::infinity();
       MSChromatogram tic;
       bool complete = true; // all headers read, so the TIC can be built from them
+      const bool prefetch_peaks = ! header_filtered && ! options_.metadata_only;
+      reader.readAhead(options_.last_scan > 0 ? std::min(last, options_.last_scan) : last,
+                       prefetch_peaks ? options_.first_scan : std::numeric_limits<int>::max());
       startProgress(first, last, "Loading Thermo RAW file");
       for (int scan = first; scan <= last; ++scan)
       {
@@ -65,7 +68,7 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
         setProgress(scan);
         // Without header-based filters every scan from first_scan on is converted, so its peaks
         // are read together with the header.
-        const bool prefetch = ! header_filtered && ! options_.metadata_only && scan >= options_.first_scan;
+        const bool prefetch = prefetch_peaks && scan >= options_.first_scan;
         const auto& info = reader.header(scan, prefetch);
         if (! options_.skip_chromatograms) { tic.push_back(ChromatogramPeak(info.rt, info.tic)); }
         if (info.rt >= options_.rt_max)

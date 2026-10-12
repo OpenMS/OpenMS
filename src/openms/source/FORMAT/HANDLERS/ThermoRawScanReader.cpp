@@ -32,18 +32,26 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <condition_variable>
 #include <cstdlib>
 #include <deque>
+#include <exception>
 #include <filesystem>
 #include <limits>
 #include <map>
+#include <mutex>
 #include <nlohmann/json.hpp>
 #include <openms_thermo_bridge/cv_mapping.hpp>
 #include <openms_thermo_bridge/thermo_bridge.hpp>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <utility>
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 namespace OpenMS::Internal
 {
@@ -385,6 +393,97 @@ struct ThermoRawScanReader::Impl
   std::vector<ThermoPrecursor> precursors;
   int first_seen = 0; ///< first scan whose header was read (all later ones up to info.scan were read too)
 
+  /**
+    @brief Reads scans ahead on worker threads, so vendor decoding overlaps with the conversion.
+
+    Workers claim chunks of consecutive scans and read each scan with its own bridge accessor;
+    the consumer takes them in scan order. At most @p window chunks are read ahead of the one
+    being consumed. Errors are rethrown when the consumer reaches the failed chunk.
+  */
+  struct ReadAhead
+  {
+    static constexpr int chunk = 128;
+    int first = 0, last = 0, peaks_from = 0;
+    tb::ReadOptions header_options, full_options;
+    std::vector<std::thread> workers;
+    std::mutex mutex;
+    std::condition_variable produced, consumed;
+    std::map<int, std::pair<std::vector<tb::Spectrum>, std::exception_ptr>> ready; ///< chunk -> scans
+    int next_chunk = 0, current_chunk = -1, window = 0;
+    bool stop = false;
+    std::vector<tb::Spectrum> current;
+
+    void run(tb::RawFile accessor)
+    {
+      for (;;)
+      {
+        int c;
+        {
+          std::unique_lock<std::mutex> lock(mutex);
+          consumed.wait(lock, [&] { return stop || next_chunk < std::max(current_chunk, 0) + window; });
+          if (stop) { return; }
+          c = next_chunk++;
+        }
+        const int begin = first + c * chunk;
+        if (begin > last) { return; }
+        const int end = std::min(last, begin + chunk - 1);
+        std::vector<tb::Spectrum> scans(end - begin + 1);
+        std::exception_ptr error;
+        try
+        {
+          for (int scan = begin; scan <= end; ++scan)
+          {
+            accessor.read_scan(scan, scans[scan - begin], scan >= peaks_from ? full_options : header_options);
+          }
+        }
+        catch (...) { error = std::current_exception(); }
+        {
+          std::lock_guard<std::mutex> lock(mutex);
+          ready.emplace(c, std::make_pair(std::move(scans), error));
+        }
+        produced.notify_all();
+      }
+    }
+
+    /// Swap the read-ahead data of @p scan into @p out; false if @p scan is not covered.
+    bool take(int scan, tb::Spectrum& out)
+    {
+      if (scan < first || scan > last) { return false; }
+      const int c = (scan - first) / chunk;
+      if (c != current_chunk)
+      {
+        std::exception_ptr error;
+        {
+          std::unique_lock<std::mutex> lock(mutex);
+          produced.wait(lock, [&] { return ready.count(c) > 0; });
+          auto it = ready.find(c);
+          current = std::move(it->second.first);
+          error = it->second.second;
+          ready.erase(it);
+          current_chunk = c;
+        }
+        consumed.notify_all();
+        if (error) { std::rethrow_exception(error); }
+      }
+      std::swap(out, current[scan - first - c * chunk]);
+      return true;
+    }
+
+    void shutdown()
+    {
+      {
+        std::lock_guard<std::mutex> lock(mutex);
+        stop = true;
+      }
+      consumed.notify_all();
+      for (auto& worker : workers) { worker.join(); }
+      workers.clear();
+    }
+
+    ~ReadAhead() { shutdown(); }
+  };
+  std::unique_ptr<ReadAhead> read_ahead;
+
   /// Parent spectra decoded on demand (when the caller does not have them), most recent last.
   std::deque<std::pair<int, MSSpectrum>> parent_cache;
 
@@ -504,17 +603,56 @@ void ThermoRawScanReader::fillSettings(ExperimentalSettings& settings) const
   settings.setInstrument(d.instrument);
 }
 
+void ThermoRawScanReader::readAhead(int last_scan, int peaks_from)
+{
+  Impl& d = *impl_;
+  if (d.read_ahead) { d.read_ahead->shutdown(); d.read_ahead.reset(); }
+  int threads = 1;
+#ifdef _OPENMP
+  if (! omp_in_parallel()) { threads = omp_get_max_threads(); }
+#endif
+  // The vendor reader scales up to about three concurrent accessors; one thread stays for the conversion.
+  const int workers = std::min(3, threads - 1);
+  const int first = d.first_seen == 0 ? firstScan() : d.info.scan + 1;
+  last_scan = std::min(last_scan, lastScan());
+  if (workers < 1 || first > last_scan) { return; }
+  auto ahead = std::make_unique<Impl::ReadAhead>();
+  ahead->first = first;
+  ahead->last = last_scan;
+  ahead->peaks_from = peaks_from;
+  ahead->window = 4 * workers;
+  ahead->full_options = d.peakReadOptions();
+  ahead->full_options.trailer_text = true;
+  ahead->header_options = ahead->full_options;
+  ahead->header_options.peaks = false;
+  ahead->header_options.noise = false;
+  std::vector<tb::RawFile> accessors;
+  for (int i = 0; i < workers; ++i) { accessors.push_back(d.raw->thread_accessor()); }
+  for (auto& accessor : accessors)
+  {
+    ahead->workers.emplace_back([state = ahead.get(), accessor = std::move(accessor)]() mutable { state->run(std::move(accessor)); });
+  }
+  d.read_ahead = std::move(ahead);
+}
+
 const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan, bool with_peaks)
 {
   Impl& d = *impl_;
   if (d.first_seen == 0) { d.first_seen = scan; }
   else if (scan != d.info.scan + 1) { throw std::logic_error("ThermoRawScanReader::header() must visit scans in order"); }
-  tb::ReadOptions read = d.peakReadOptions();
-  read.peaks = with_peaks;
-  read.noise = with_peaks && read.noise;
-  read.trailer_text = true;
-  d.raw->read_scan(scan, d.header_read, read);
-  d.header_has_peaks = with_peaks;
+  if (d.read_ahead && d.read_ahead->take(scan, d.header_read))
+  {
+    d.header_has_peaks = scan >= d.read_ahead->peaks_from;
+  }
+  else
+  {
+    tb::ReadOptions read = d.peakReadOptions();
+    read.peaks = with_peaks;
+    read.noise = with_peaks && read.noise;
+    read.trailer_text = true;
+    d.raw->read_scan(scan, d.header_read, read);
+    d.header_has_peaks = with_peaks;
+  }
   const tb::ScanHeader& h = d.header_read.header;
   toThermoScan(h, d.raw->trailer_layout(), d.scan);
   d.order = tb::ms_order_name(h.ms_order);

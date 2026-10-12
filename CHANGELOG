@@ -115,8 +115,9 @@ OpenMS Library:
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
   - ThermoRawFile reads .raw files faster: trailer values are looked up by a per-file label index,
-    numbers and scan filters are parsed without locale streams and regular expressions, and the TIC
-    is built from the scan headers. New ThermoRawFile::Options select scans by scan number, RT, MS
+    numbers and scan filters are parsed without locale streams and regular expressions, the TIC
+    is built from the scan headers, and with more than one thread up to three worker threads read
+    scans ahead while the calling thread converts them (output independent of the thread count). New ThermoRawFile::Options select scans by scan number, RT, MS
     level and precursor m/z, and load metadata only or skip chromatograms; scans that are not
     selected are not decoded, and selected MSn scans keep the precursors of a full load (#10522).
     FileHandler::loadExperiment() passes the PeakFileOptions MS levels, RT and precursor m/z ranges,

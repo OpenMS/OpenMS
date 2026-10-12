@@ -26,6 +26,10 @@
 #include <string>
 #include <utility>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
@@ -333,6 +337,35 @@ START_SECTION([EXTRA] ThermoRawFile::Options scan selection - metadata_only - sk
   TEST_EQUAL(empty, headers.size())
   TEST_EQUAL(same_id, headers.size())
   TEST_EQUAL(same_precursor, headers.size())
+}
+END_SECTION
+
+START_SECTION([EXTRA] read-ahead on worker threads gives the single-threaded result)
+{
+#ifdef _OPENMP
+  const int threads = omp_get_max_threads();
+  auto load = [](int n, const ThermoRawFile::Options& options) {
+    omp_set_num_threads(n);
+    ThermoRawFile file;
+    file.setOptions(options);
+    MSExperiment exp;
+    file.load(THERMO_RAW_TEST_DATA, exp);
+    return exp;
+  };
+  ThermoRawFile::Options options;
+  options.checksum = false;
+  const MSExperiment single = load(1, options);
+  const MSExperiment ahead = load(4, options);
+  TEST_TRUE(single.size() > 0)
+  TEST_TRUE(single == ahead)
+  // Stopping early (last_scan) and header-only scans (MS-level filter) on the read-ahead path.
+  options.last_scan = 150;
+  TEST_TRUE(load(1, options) == load(4, options))
+  options.last_scan = 0;
+  options.ms_levels = {2};
+  TEST_TRUE(load(1, options) == load(4, options))
+  omp_set_num_threads(threads);
+#endif
 }
 END_SECTION
 

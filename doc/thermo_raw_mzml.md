@@ -3,8 +3,11 @@
 `ThermoRawFile` requires openms-thermo-bridge 1.0.0, the revision pinned in
 `cmake/cmake_findExternalLibs.cmake` (native and managed components from the same
 revision). It reads every scan with the bridge's typed single-pass API: one call per
-scan returns the header (with the vendor-formatted trailer values) and a second one the
-m/z-sorted peaks with their charges and noise arrays; no per-scan JSON is parsed. It loads source SHA-1, the complete creation timestamp,
+scan returns the header (with the vendor-formatted trailer values) and, for scans that are
+converted, the m/z-sorted peaks with their charges and noise arrays; no per-scan JSON is
+parsed. With more than one OpenMP thread (TOPP `-threads`), up to three worker threads
+read the following scans ahead on their own bridge accessors while the calling thread
+converts them; the output does not depend on the thread count. It loads source SHA-1, the complete creation timestamp,
 sample fields, user sample fields, embedded method texts and the full scan trailer.
 Vendor values without a confirmed standardized unit are kept under `Thermo ...`
 metadata keys; they are not assigned guessed units.

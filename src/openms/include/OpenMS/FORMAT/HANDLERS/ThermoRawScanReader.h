@@ -97,6 +97,18 @@ namespace Internal
     const ScanInfo& header(int scan, bool with_peaks = false);
 
     /**
+      @brief Read the following scans up to @p last_scan on worker threads ahead of header().
+
+      Uses up to three threads besides the calling one, limited by the OpenMP thread count
+      (none if it is 1). Output is unchanged; header() takes the scans from the read-ahead
+      buffer, which holds a bounded number of scans.
+
+      @param[in] last_scan Last scan to read ahead
+      @param[in] peaks_from Scans from this number on are read with peaks (as header(scan, true))
+    */
+    void readAhead(int last_scan, int peaks_from);
+
+    /**
       @brief Convert the scan of the last header() call.
 
       @param[out] spectrum The converted spectrum (peaks sorted by m/z)
