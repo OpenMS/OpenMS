@@ -77,7 +77,7 @@ namespace OpenMS
     }
 
 #ifdef __EMSCRIPTEN__
-    ss << "  Cannot run Python ('" << python_executable << "'): WebAssembly does not support running external programs.\n";
+    ss << "  Python found at '" << python_executable << "' but failed to run: WebAssembly does not support running external programs.\n";
     error_msg = ss.str();
     return false;
 #else

@@ -178,8 +178,9 @@ and open `http://localhost:8000/examples/browser/`.
 
 `cmake/emscripten.cmake` holds the settings of the WebAssembly build: static libraries;
 no GUI, TOPP tools, OpenMP, curl, Thermo RAW or Bruker support; C++ exceptions as
-WebAssembly exceptions (`-fwasm-exceptions`, also in the triplet: all code of a module
-has to use the same); WebAssembly SIMD (`OPENMS_WASM_SIMD`); an 8 MB stack
+WebAssembly exceptions (`-fwasm-exceptions`; all code of a module has to use the same, so
+the triplet compiles every dependency with it through its chainloaded toolchain
+`vcpkg-overlays/toolchains/wasm32-emscripten.cmake`); WebAssembly SIMD (`OPENMS_WASM_SIMD`); an 8 MB stack
 (`OPENMS_WASM_STACK_SIZE`). Options of `src/openms_wasm/CMakeLists.txt` choose the shared
 data that is packaged (`OPENMS_WASM_SHARE_DIRECTORIES`, `OPENMS_WASM_SHARE_EXCLUDE`) and
 how: inside `openms.wasm` (`OPENMS_WASM_SHARE=EMBED`, the default), as separate

@@ -76,9 +76,15 @@ set(OPENMS_DEP_LIBRARIES)
 ## Note: Evergreen is PRIVATE because it's only used internally by BayesianProteinInferenceAlgorithm
 ## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
+## libcurl is optional (WITH_CURL). Named as plain target, not as generator expression:
+## the -rpath-link hints below only consider the entries that name a target.
+set(OPENMS_CURL_TARGET)
+if(WITH_CURL)
+  set(OPENMS_CURL_TARGET CURL::libcurl)
+endif()
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::boost
-  $<$<BOOL:${WITH_CURL}>:CURL::libcurl>
+  ${OPENMS_CURL_TARGET}
   XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}

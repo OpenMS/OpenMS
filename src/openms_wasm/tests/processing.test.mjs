@@ -37,8 +37,31 @@ test("Param", () => {
     p.setValue("double", 2);
     assert.equal(p.getEntry("double").type, "double");
     assert.throws(() => p.setValue("int", 2.5), /Integer parameter value expected/);
+    assert.throws(() => p.setValue("int", 2 ** 31), /Integer parameter value expected/);
+    // a new integral value beyond 32 bits is stored as double, not truncated
+    p.setValue("big", 2 ** 40);
+    assert.equal(p.getEntry("big").type, "double");
+    assert.equal(p.getValue("big"), 2 ** 40);
     assert.throws(() => p.getValue("missing"), /ElementNotFound/);
     assert.throws(() => p.update({ missing: 1 }), /Unknown parameter/);
+  });
+});
+
+test("meta values keep 64-bit integers", () => {
+  using([new OpenMS.MSSpectrum()], (s) => {
+    s.setMetaValue("id", 2 ** 53);
+    s.setMetaValue("negative", -(2 ** 40) - 1);
+    s.setMetaValue("small", 7);
+    s.setMetaValue("fraction", 0.25);
+    s.setMetaValue("name", "x");
+    s.setMetaValue("ints", [1, 2, 3]);
+    assert.equal(s.getMetaValue("id"), 2 ** 53);
+    assert.equal(s.getMetaValue("negative"), -(2 ** 40) - 1);
+    assert.equal(s.getMetaValue("small"), 7);
+    assert.equal(s.getMetaValue("fraction"), 0.25);
+    assert.equal(s.getMetaValue("name"), "x");
+    assert.deepEqual(s.getMetaValue("ints"), [1, 2, 3]);
+    assert.equal(s.getMetaValue("missing"), undefined);
   });
 });
 

@@ -38,7 +38,10 @@ set(VCPKG_LIBRARY_LINKAGE static)
 ## OpenMS builds only Release for WebAssembly; skip the debug half of every port.
 set(VCPKG_BUILD_TYPE release)
 set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)
-set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${EMSCRIPTEN_ROOT}/cmake/Modules/Platform/Emscripten.cmake")
+## Emscripten.cmake plus the flags below: vcpkg applies VCPKG_*_FLAGS only through its
+## own platform toolchains, not through a chainloaded one (see the toolchain file).
+get_filename_component(VCPKG_CHAINLOAD_TOOLCHAIN_FILE
+  "${CMAKE_CURRENT_LIST_DIR}/../toolchains/wasm32-emscripten.cmake" ABSOLUTE)
 
 ## C as well: setjmp/longjmp support follows the exception handling mode, and the
 ## two must agree between the objects linked into one module.

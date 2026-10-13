@@ -466,6 +466,10 @@ endif()
 # Enable usage statistics
 #------------------------------------------------------------------------------
 option(ENABLE_UPDATE_CHECK "Enable update check." ON)
+if(ENABLE_UPDATE_CHECK AND NOT WITH_CURL AND NOT EMSCRIPTEN)
+  message(STATUS "The update check needs libcurl (WITH_CURL=OFF): disabled.")
+  set(ENABLE_UPDATE_CHECK OFF)
+endif()
 if(ENABLE_UPDATE_CHECK)
   message(STATUS "Collection of usage statistics and update notifications enabled.")
   message(STATUS "  If you don't want this information to be transmitted to our update sever, you can:")

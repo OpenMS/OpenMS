@@ -9,14 +9,16 @@
 #include "binding_utils.h"
 
 #include <cmath>
+#include <limits>
 
 namespace OpenMS::WASM
 {
   namespace
   {
-    bool isIntegral(const val& v)
+    /// Whether the number @p d is integral and fits into an int (the integers of a Param)
+    bool fitsInt(double d)
     {
-      return val::global("Number").call<bool>("isInteger", v);
+      return d == std::floor(d) && d >= std::numeric_limits<int>::min() && d <= std::numeric_limits<int>::max();
     }
 
     /// The element type of a non-empty JavaScript array: a list of strings, ints or doubles.
@@ -31,7 +33,7 @@ namespace OpenMS::WASM
         {
           return ParamValue::STRING_LIST;
         }
-        all_integral = all_integral && isIntegral(element);
+        all_integral = all_integral && element.isNumber() && fitsInt(element.as<double>());
       }
       return all_integral ? ParamValue::INT_LIST : ParamValue::DOUBLE_LIST;
     }
@@ -101,7 +103,7 @@ namespace OpenMS::WASM
       }
       else if (v.isNumber())
       {
-        type = isIntegral(v) ? ParamValue::INT_VALUE : ParamValue::DOUBLE_VALUE;
+        type = fitsInt(v.as<double>()) ? ParamValue::INT_VALUE : ParamValue::DOUBLE_VALUE;
       }
       else if (val::global("Array").call<bool>("isArray", v))
       {
@@ -128,9 +130,9 @@ namespace OpenMS::WASM
       case ParamValue::INT_VALUE:
       {
         const double d = v.as<double>();
-        if (!std::isfinite(d) || d != std::floor(d))
+        if (!fitsInt(d))
         {
-          throwJSError("Integer parameter value expected, got " + val::global("String")(v).as<std::string>());
+          throwJSError("Integer parameter value expected (32 bit), got " + val::global("String")(v).as<std::string>());
         }
         return ParamValue(static_cast<int>(d));
       }
@@ -149,6 +151,16 @@ namespace OpenMS::WASM
 
   DataValue dataValueFromJS(const val& v)
   {
+    // A meta value holds 64-bit integers, a parameter only 32-bit ones: take integral numbers
+    // up to 2^53 (exact in JavaScript) directly
+    if (v.isNumber())
+    {
+      const double d = v.as<double>();
+      if (d == std::floor(d) && std::fabs(d) <= 9007199254740992.0)
+      {
+        return DataValue(static_cast<long long>(d));
+      }
+    }
     return DataValue(paramValueFromJS(v));
   }
 

@@ -25,6 +25,7 @@ on:
       - "src/openms_wasm/**"
       - "vcpkg-overlays/emscripten/**"
       - "vcpkg-overlays/triplets/wasm32-emscripten.cmake"
+      - "vcpkg-overlays/toolchains/wasm32-emscripten.cmake"
       - "vcpkg.json"
       - "CMakePresets.json"
 
@@ -73,7 +74,7 @@ jobs:
         with:
           name: vcpkg-cache
           path: ${{ github.workspace }}/.vcpkg-cache
-          key: wasm32-emscripten-${{ env.EMSDK_VERSION }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/emscripten/**', 'vcpkg-overlays/triplets/wasm32-emscripten.cmake') }}
+          key: wasm32-emscripten-${{ env.EMSDK_VERSION }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/emscripten/**', 'vcpkg-overlays/triplets/wasm32-emscripten.cmake', 'vcpkg-overlays/toolchains/wasm32-emscripten.cmake') }}
           ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
