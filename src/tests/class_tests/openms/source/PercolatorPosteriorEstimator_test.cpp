@@ -109,6 +109,28 @@ START_SECTION([EXTRA] estimatePEP with bin medians closer than the spline resolv
 }
 END_SECTION
 
+START_SECTION([EXTRA] estimatePEP with scores between 0 and 1)
+{
+  // Scores in [0, 1] are logit-transformed for the spline. Ties are judged and
+  // padding is added in these coordinates: scores 1e-13 apart are far apart
+  // after the logit transform and must stay separate bins (with a different
+  // PEP each), and padding a few bins must not push scores out of [0, 1].
+  for (bool use_pi0 : {false, true})
+  {
+    vector<pair<double, bool>> combined = makePSMs({{4e-13, 20, 0}, {3e-13, 12, 8}, {2e-13, 8, 12}, {1e-13, 2, 18}});
+    vector<double> peps;
+    PosteriorEstimator::estimatePEP(combined, use_pi0, 1.0, peps, true);
+    TEST_TRUE(validPEPs(combined, peps))
+    TEST_TRUE(peps.front() < peps.back())
+
+    combined = makePSMs({{0.9, 20, 0}, {0.8, 10, 10}});
+    PosteriorEstimator::estimatePEP(combined, use_pi0, 1.0, peps, true);
+    TEST_TRUE(validPEPs(combined, peps))
+    TEST_TRUE(peps.front() < peps.back())
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

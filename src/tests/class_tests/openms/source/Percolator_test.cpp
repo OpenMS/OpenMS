@@ -678,8 +678,8 @@ END_SECTION
 START_SECTION([EXTRA] nonparametric PEP with fewer than 4 distinct scores)
 {
   // A feature that does not separate targets from decoys and takes only two
-  // values yields fewer than 4 PEP bins. PosteriorEstimator then pads the bins
-  // to 4; it used to pad with tied scores, so the PEP spline asserted
+  // values yields fewer than 4 PEP bins, which are padded to 4 for the PEP
+  // spline. They used to be padded with tied scores, so the spline asserted
   // (BaseSpline::initiateQR: dx > 0) in Debug builds and divided by zero in
   // Release builds. Seen with ProSE -rescore, which uses these settings.
   RescoreInput input;
