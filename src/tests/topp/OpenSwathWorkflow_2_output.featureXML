@@ -5,6 +5,14 @@
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="ProteinA" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
 	<featureList count="4">
 		<feature id="f_4835329514588776807">
 			<position dim="0">100.999999701976776</position>
@@ -64,6 +72,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.54700865245211" sequence="PEPTIDEA" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.249999999999999"/>
 			<UserParam type="float" name="total_xic" value="2.5944433181762695e04"/>
@@ -165,6 +177,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.54157701444142" sequence="PEPTIDEB" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.249999999999999"/>
 			<UserParam type="float" name="total_xic" value="2.5850638261795044e04"/>
@@ -266,6 +282,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.52985272885923" sequence="PEPTIDEC" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.249999999999999"/>
 			<UserParam type="float" name="total_xic" value="2.5554315395355225e04"/>
@@ -367,6 +387,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.59081902490366" sequence="PEPTIDED" charge="2" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.249999999999999"/>
 			<UserParam type="float" name="total_xic" value="2.5014135274887085e04"/>

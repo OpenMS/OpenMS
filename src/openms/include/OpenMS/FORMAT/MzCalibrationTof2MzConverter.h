@@ -9,6 +9,7 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <opentims++/tof2mz_converter.h>
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -37,10 +38,19 @@ namespace OpenMS
    * - ModelType 1: c3 = C3 and c4 = C4. Matches the Bruker SDK to better than
    *   1e-4 ppm on the data checked (27 runs, 2017-2026).
    * - ModelType 2: the C3/C4 columns repeat C0/C2 and are ignored (c3 = c4 = 0).
-   *   ModelType 2 also has a correction (columns C5..C14) between about m/z 222 and
-   *   1320-1525 that is not modelled here, so m/z deviates from the Bruker SDK by up
-   *   to a few ppm there (max 1.3-7.8 ppm on the four runs checked). Elsewhere the
-   *   result matches the SDK.
+   *   In addition, a polynomial in m/z is subtracted inside the calibrant range:
+   *
+   *     m/z = m - sum_{k=0}^{C7-1} C(8+k) * m^k   for C5 <= m <= C6 (m: m/z from above)
+   *
+   *   C5/C6 are the lower/upper limit of the calibrant range, C7 the number of
+   *   coefficients and C8..C14 the coefficients. This is the high precision calibration
+   *   (HPC) correction as implemented for Bruker flex data by readBrukerFlexData
+   *   (R/hpc-functions.R, GPL-3; HPC principle: Gobom et al., Anal. Chem. 74 (2002)
+   *   3915-3923), with the column mapping used by mzPeakConverter
+   *   (src/bruker_native.rs, MIT licence); reimplemented here. Inside the calibrant
+   *   range the result matches the Bruker SDK; within about 4 m/z units outside its
+   *   limits, m/z can deviate by up to a few ppm (max 1.3-7.8 ppm on the four runs
+   *   checked).
    *
    * Thread safety: immutable after construction. convert() and inverse_convert()
    * are safe for concurrent calls.
@@ -48,6 +58,15 @@ namespace OpenMS
   class OPENMS_DLLAPI MzCalibrationTof2MzConverter : public Tof2MzConverter
   {
   public:
+    /// ModelType 2 correction: polynomial in m/z subtracted inside [low, high] (columns C5..C14)
+    struct Correction
+    {
+      double low = 0.0;  ///< C5: lower limit of the calibrant range
+      double high = 0.0; ///< C6: upper limit of the calibrant range
+      int n = 0;         ///< C7: number of coefficients (0 = no correction)
+      std::array<double, 7> coefficients{}; ///< C8..C14, coefficient of m^0 first
+    };
+
     /// One row of the MzCalibration table.
     struct Calibration
     {
@@ -59,6 +78,7 @@ namespace OpenMS
       double dc1 = 0.0; ///< temperature coefficient for T1 (ppm per degree)
       double dc2 = 0.0; ///< temperature coefficient for T2 (ppm per degree)
       double c0 = 0.0, c1 = 0.0, c2 = 0.0, c3 = 0.0, c4 = 0.0;
+      Correction correction; ///< ModelType 2 only
     };
 
     /// Calibration of one frame after the temperature correction.
@@ -71,6 +91,7 @@ namespace OpenMS
       double c2 = 0.0; ///< C2 / tc
       double c3 = 0.0;
       double c4 = 0.0;
+      Correction correction; ///< ModelType 2 only
     };
 
     /// Applies the temperature correction for a frame with temperatures @p frame_t1 and @p frame_t2.
@@ -104,6 +125,8 @@ namespace OpenMS
   /// the given .d directory. Returns nullptr (and logs why) if the tables or columns are missing,
   /// a frame references an unknown or unsupported (not ModelType 1 or 2) calibration, or the
   /// coefficients are unusable. Frames without temperatures use the reference temperatures.
+  /// ModelType 2 calibrations without usable correction columns (C5..C14) use the base curve only
+  /// (a warning is logged).
   OPENMS_DLLAPI std::unique_ptr<Tof2MzConverter> tryCreateMzCalibrationConverter(
     const std::string& tims_dir_path);
 

@@ -14,6 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/MATH/StatisticFunctions.h> // for "median"
 
+#include <tuple>
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -105,6 +107,14 @@ In contrast, an ambiguous modification represents two isobaric modifications (or
 For example, "mA?" stands for methyladenosine ("mA", see above) or 2'-O-methyladenosine ("Am").
 When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
 
+
+Exact score ties at @p report:top_hits remain a complete group. Exported ties use
+the library's deterministic molecule, charge and adduct value order. A representative selected downstream
+is reproducible but does not establish unique modification localization.
+When using @p digest, search tolerances and modifications in the output describe
+the current run while database and digestion provenance remain from the cache.
+LFQ targets use a finite intensity-weighted retention time, falling back to the
+median of finite observations when no valid positive intensity weights exist.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
@@ -200,6 +210,48 @@ protected:
     registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
+    registerOutputFile_("out_preprocessed", "<file>", "", "Optional MS2 spectra after preprocessing", false, true);
+    setValidFormats_("out_preprocessed", {"mzML"});
+    registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
+    registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector or none", false, true);
+    setValidStrings_("preprocessing:deisotoping", {"legacy", "none"});
+    registerFlag_("preprocessing:filter_window_mower", "Apply WindowMower filter to remove noise peaks by m/z windows", true);
+    registerTOPPSubsection_("preprocessing:window_mower", "WindowMower filter parameters");
+    registerDoubleOption_("preprocessing:window_mower:windowsize", "<size>", 100.0, "Size of the sliding window along the m/z axis for WindowMower", false, true);
+    setMinFloat_("preprocessing:window_mower:windowsize", 1.0);
+    registerIntOption_("preprocessing:window_mower:peakcount", "<num>", 50, "Number of peaks that should be kept per window", false, true);
+    setMinInt_("preprocessing:window_mower:peakcount", 1);
+    registerStringOption_("preprocessing:window_mower:movetype", "<type>", "slide", "Window movement for noise filtering; use jump to reproduce historical NASE preprocessing", false, true);
+    setValidStrings_("preprocessing:window_mower:movetype", ListUtils::create<std::string>("slide,jump"));
+    registerFlag_("preprocessing:filter_nlargest", "Apply NLargest filter to keep only the top N most intense peaks", true);
+    registerTOPPSubsection_("preprocessing:nlargest", "NLargest filter parameters");
+    registerIntOption_("preprocessing:nlargest:n", "<num>", 1000, "Number of largest (most intense) peaks to keep per spectrum", false, true);
+    setMinInt_("preprocessing:nlargest:n", 1);
+    registerFlag_("preprocessing:remove_precursor_peak", "Remove the precursor peak (and isotopic peaks) from the MS2 spectrum", false);
+    registerDoubleOption_("preprocessing:precursor_mass_tolerance", "<tolerance>", 1.5, "Tolerance for precursor peak removal (applied to both sides of the peak)", false, true);
+    setMinFloat_("preprocessing:precursor_mass_tolerance", 0.0);
+    registerStringOption_("preprocessing:precursor_mass_tolerance_unit", "<unit>", "Da", "Unit for precursor peak removal tolerance", false, true);
+    setValidStrings_("preprocessing:precursor_mass_tolerance_unit", ListUtils::create<std::string>("Da,ppm"));
+    registerIntOption_("preprocessing:precursor_peak_isotopes", "<num>", 2, "Number of isotopic peaks to remove around the precursor (0 = monoisotopic only)", false, true);
+    setMinInt_("preprocessing:precursor_peak_isotopes", 0);
+
+    registerTOPPSubsection_("scoring", "Scoring Options");
+    registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
+    setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh"));
+    registerIntOption_("scoring:num_intensity_classes", "<num>", 3, "Number of intensity classes for peak stratification in MVH scoring (only used if scoring:method is 'mvh')", false, true);
+    setMinInt_("scoring:num_intensity_classes", 1);
+    setMaxInt_("scoring:num_intensity_classes", 7);
+    registerDoubleOption_("scoring:tic_fraction", "<fraction>", 0.98, "Fraction of total ion current to retain for MVH scoring (only used if scoring:method is 'mvh')", false, true);
+    setMinFloat_("scoring:tic_fraction", 0.5);
+    setMaxFloat_("scoring:tic_fraction", 1.0);
+    registerStringOption_("scoring:single_peak_credit", "<choice>", "true", "MVH: count at most one match per retained observed peak, using the best mass-accuracy weight. Set false for the previous per-theoretical-ion counting and weighting; all matching annotations are retained in either mode.", false, true);
+    setValidStrings_("scoring:single_peak_credit", ListUtils::create<std::string>("true,false"));
+    registerFlag_("scoring:use_mass_accuracy", "Apply mass accuracy-based distance weighting to scores (applies to both 'hyperscore' and 'mvh' methods)", true);
+
+    registerDoubleList_("scoring:blacklist_mz", "<values>", DoubleList(), "List of m/z values to exclude from theoretical spectra during scoring (e.g., uninformative c1/d1 ions from unmodified bases). Peaks matching these values within the blacklist tolerance will be removed before scoring.", false, true);
+    registerDoubleOption_("scoring:blacklist_tolerance", "<ppm>", 10.0, "Tolerance (in ppm) for matching peaks to blacklisted m/z values", false, true);
+    setMinFloat_("scoring:blacklist_tolerance", 0.0);
+
     registerTOPPSubsection_("modifications", "Modification options");
 
     // add modified ribos from database
@@ -232,8 +284,12 @@ protected:
     setValidStrings_("oligo:enzyme", all_enzymes);
 
     registerTOPPSubsection_("report", "Reporting Options");
-    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
+    registerIntOption_("report:top_hits", "<num>", 1, "Number of top-scoring hits per spectrum to retain; all exact ties at the cutoff are included (0 for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
+
+    registerDoubleOption_("report:require_coverage", "<fraction>", 0.0, "Minimum fraction of internal oligonucleotide positions that must be covered by fragment ions (0.0 = no requirement, 1.0 = full coverage required). Coverage requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position.", false, true);
+    setMinFloat_("report:require_coverage", 0.0);
+    setMaxFloat_("report:require_coverage", 1.0);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate options");
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "std::string used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
@@ -258,14 +314,47 @@ protected:
     }
   };
 
+  // Helper function to filter blacklisted m/z values from theoretical spectrum
+  void filterBlacklistedIons_(MSSpectrum& theo_spectrum,
+                               const vector<double>& blacklist_mz,
+                               double tolerance_ppm) const
+  {
+    if (blacklist_mz.empty()) return;
+
+    vector<Size> indices_to_remove;
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+      double mz = theo_spectrum[i].getMZ();
+      for (double blacklisted_mz : blacklist_mz)
+      {
+        double tolerance_da = blacklisted_mz * tolerance_ppm * 1e-6;
+        if (abs(mz - blacklisted_mz) <= tolerance_da)
+        {
+          indices_to_remove.push_back(i);
+          break;
+        }
+      }
+    }
+
+    vector<Size> retained;
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+      if (!std::binary_search(indices_to_remove.begin(), indices_to_remove.end(), i))
+      {
+        retained.push_back(i);
+      }
+    }
+    theo_spectrum.select(retained);
+  }
+
   // slimmer structure to store basic hit information
   struct AnnotatedHit
   {
     IdentificationData::IdentifiedOligoRef oligo_ref;
     NASequence sequence;
-    double precursor_error_ppm; // precursor mass error in ppm
+    double precursor_error_ppm = 0.0; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
-    const PrecursorInfo* precursor_ref; // precursor information
+    const PrecursorInfo* precursor_ref = nullptr; // precursor information
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
@@ -305,12 +394,47 @@ protected:
         modifications.insert(mod);
       }
     }
-    if (ambiguous_mods_.empty()) // no ambiguous mods to resolve
-    {
-      resolve_ambiguous_mods_ = false;
-    }
     return modifications;
   }
+
+  /// @brief Count cleavage-sensitive placements already included in a digested candidate.
+  Size countCleavageSensitiveMods_(const NASequence& sequence,
+                                   const set<std::string>& sensitive_codes) const
+  {
+    if (sensitive_codes.empty())
+    {
+      return 0;
+    }
+
+    Size count = 0;
+    for (const auto& residue : sequence)
+    {
+      if (sensitive_codes.count(residue.getCode()))
+      {
+        ++count;
+      }
+    }
+    return count;
+  }
+
+  /// @brief Register a digestion product with its original parent coordinates and neighbors.
+  void registerDigestedOligo_(IdentificationData& id_data,
+                             IdentificationData::ParentSequenceRef parent_ref,
+                             const NASequence& parent,
+                             const RNaseDigestion::DigestionProduct& product) const
+  {
+    IdentificationData::IdentifiedOligo oligo(product.fragment);
+    const Size start = product.position.first;
+    const Size end = start + product.position.second;
+    IdentificationData::ParentMatch match(start, end - 1);
+    match.left_neighbor = start > 0 ? parent[start - 1]->getCode() :
+      std::string(1, IdentificationData::ParentMatch::LEFT_TERMINUS);
+    match.right_neighbor = end < parent.size() ? parent[end]->getCode() :
+      std::string(1, IdentificationData::ParentMatch::RIGHT_TERMINUS);
+    oligo.parent_matches[parent_ref].insert(match);
+    id_data.registerIdentifiedOligo(oligo);
+  }
+
 
   // check for minimum and maximum size
   class HasInvalidLength
@@ -511,7 +635,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -526,20 +650,23 @@ protected:
 
     // filter settings
     WindowMower window_mower_filter;
-    Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    if (use_window_mower)
+    {
+      Param filter_param = window_mower_filter.getParameters();
+      filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
+      filter_param.setValue("peakcount", window_peakcount, "The number of peaks that should be kept.");
+      filter_param.setValue("movetype", window_movetype, "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+      window_mower_filter.setParameters(filter_param);
+    }
 
     // Note: we expect a higher number for NA than e.g., for peptides
-    filter_param.setValue("peakcount", 50, "The number of peaks that should be kept.");
-    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    window_mower_filter.setParameters(filter_param);
-
-    // Note: we expect a higher number for NA than e.g., for peptides
-    NLargest nlargest_filter = NLargest(1000);
+    NLargest nlargest_filter = NLargest(nlargest_n);
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
-#pragma omp parallel for
+#pragma omp parallel reduction(+: n_zero_charge, n_inferred_charge)
+    {
+#pragma omp for
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
          ++exp_index)
     {
@@ -549,7 +676,7 @@ protected:
       spec.sortByPosition();
 
       if (spec.getPrecursors().empty()) continue; // this shouldn't happen
-      Int precursor_charge = spec.getPrecursors()[0].getCharge();
+      Int precursor_charge = abs(spec.getPrecursors()[0].getCharge());
       if (precursor_charge == 0) // no charge information
       {
         n_zero_charge++;
@@ -564,56 +691,96 @@ protected:
           {
             precursors[spec.getPrecursors()[i].getMZ()] = i;
           }
-          double mz1 = precursors.begin()->first;
-          double mz2 = (++precursors.begin())->first;
-          double mz_ratio = mz1 / mz2;
-
-          Int step = negative_mode ? -1 : 1;
-          Int inferred_charge = 0;
-          for (Int charge = max_charge; abs(charge) > abs(min_charge);
-               charge -= step)
+          if (precursors.size() >= 2)
           {
-            double charge_ratio = (abs(charge) - 1.0) / abs(charge);
-            double ratios_ratio = mz_ratio / charge_ratio;
-            if ((ratios_ratio > 0.99) && (ratios_ratio < 1.01))
+            double mz1 = precursors.begin()->first;
+            double mz2 = (++precursors.begin())->first;
+            double mz_ratio = mz1 / mz2;
+
+            Int step = negative_mode ? -1 : 1;
+            Int inferred_charge = 0;
+            for (Int charge = max_charge; abs(charge) > abs(min_charge);
+                 charge -= step)
             {
-              inferred_charge = charge;
+              double charge_ratio = (abs(charge) - 1.0) / abs(charge);
+              double ratios_ratio = mz_ratio / charge_ratio;
+              if ((ratios_ratio > 0.99) && (ratios_ratio < 1.01))
+              {
+                inferred_charge = charge;
+                break;
+              }
+            }
+            if (inferred_charge == 0)
+            {
+              OPENMS_LOG_ERROR
+                << "Error: unable to determine charge state for spectrum '"
+                << spec.getNativeID() << "' based on precursor m/z values "
+                << mz1 << " and " << mz2 << endl;
+            }
+            else
+            {
+              ++n_inferred_charge;
+              OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge
+                               << " for spectrum '" << spec.getNativeID() << "'"
+                               << endl;
+              // keep only precursor with highest charge, set inferred charge:
+              Precursor prec = spec.getPrecursors()[precursors.begin()->second];
+              prec.setCharge(abs(inferred_charge));
+              spec.setPrecursors(vector<Precursor>(1, prec));
+            }
+          }
+        }
+      }
+
+      precursor_charge = abs(spec.getPrecursors()[0].getCharge());
+
+      // Remove in the original charge/mass space, before decharging or filtering.
+      if (remove_precursor)
+      {
+        const double precursor_mz = spec.getPrecursors()[0].getMZ();
+        const Int charge = std::max(1, precursor_charge);
+        const double tolerance = precursor_tolerance_ppm ?
+          precursor_mz * precursor_mass_tolerance * 1e-6 : precursor_mass_tolerance;
+        vector<Size> retained;
+        for (Size i = 0; i < spec.size(); ++i)
+        {
+          bool remove = false;
+          for (Int isotope = 0; isotope <= precursor_peak_isotopes; ++isotope)
+          {
+            const double isotope_mz = precursor_mz + isotope * Constants::C13C12_MASSDIFF_U / charge;
+            if (abs(spec[i].getMZ() - isotope_mz) <= tolerance)
+            {
+              remove = true;
               break;
             }
           }
-          if (inferred_charge == 0)
-          {
-            OPENMS_LOG_ERROR
-              << "Error: unable to determine charge state for spectrum '"
-              << spec.getNativeID() << "' based on precursor m/z values "
-              << mz1 << " and " << mz2 << endl;
-          }
-          else
-          {
-            ++n_inferred_charge;
-            OPENMS_LOG_DEBUG << "Inferred charge state " << inferred_charge
-                             << " for spectrum '" << spec.getNativeID() << "'"
-                             << endl;
-            // keep only precursor with highest charge, set inferred charge:
-            Precursor prec = spec.getPrecursors()[precursors.begin()->second];
-            prec.setCharge(abs(inferred_charge));
-            spec.setPrecursors(vector<Precursor>(1, prec));
-          }
+          if (!remove) retained.push_back(i);
         }
+        spec.select(retained);
       }
 
       // deisotope
       Int coef = negative_mode ? -1 : 1;
       // @TODO: what happens here if "precursor_charge" is zero?
-      deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
-
+      if (deisotoping == "legacy")
+      {
+        deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
+      }
       // remove noise
-      window_mower_filter.filterPeakSpectrum(spec);
-      nlargest_filter.filterPeakSpectrum(spec);
+      if (use_window_mower)
+      {
+        window_mower_filter.filterPeakSpectrum(spec);
+      }
+      if (use_nlargest)
+      {
+        nlargest_filter.filterPeakSpectrum(spec);
+      }
 
       // sort (nlargest changes order)
       spec.sortByPosition();
     }
+
+    } // parallel region
 
     if (n_zero_charge)
     {
@@ -660,22 +827,21 @@ protected:
   void resolveAmbiguousMods_(HitsByScore& hits)
   {
     OPENMS_PRECONDITION(hits.size() > 1, "more than one hit expected");
-    auto previous_it = hits.begin();
-    // If the current hit is an ambiguity variant of the previous one, combine
-    // both into one hit. For example, if we have two hits with these sequences:
+    // If the current hit is an ambiguity variant of an earlier hit in the same
+    // hypothesis, combine both into one hit. For example, these sequences:
     // 1. "AUC[mA]Gp", 2. "AUC[Am]Gp"
     // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
-    for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    const auto merge_variants = [&](AnnotatedHit& previous_hit, const AnnotatedHit& current_hit)
     {
-      double previous_score = previous_it->first;
-      NASequence& previous_seq = previous_it->second.sequence;
-      const NASequence& current_seq = hit_it->second.sequence;
-      if ((hit_it->first != previous_score) ||
-          (current_seq.size() != previous_seq.size())) // different hits
+      NASequence& previous_seq = previous_hit.sequence;
+      const NASequence& current_seq = current_hit.sequence;
+      if ((current_seq.size() != previous_seq.size()) ||
+          (current_seq.getFivePrimeMod() != previous_seq.getFivePrimeMod()) ||
+          (current_seq.getThreePrimeMod() != previous_seq.getThreePrimeMod()) ||
+          (current_hit.oligo_ref != previous_hit.oligo_ref) ||
+          (current_hit.precursor_ref != previous_hit.precursor_ref)) // different hypotheses
       {
-        previous_it = hit_it;
-        ++hit_it;
-        continue;
+        return false;
       }
       bool remove_current = true;
       NASequence replacement; // potential replacement sequence for previous hit
@@ -709,16 +875,82 @@ protected:
       if (remove_current) // current hit is redundant -> remove it
       {
         if (!replacement.empty()) previous_seq = replacement;
+        return true;
+      }
+      return false;
+    };
+
+    // Sequence sorting can interleave different precursors and unrelated tied
+    // sequences. Keep all earlier representatives for each exact-score hypothesis.
+    map<IdentificationData::IdentifiedOligoRef,
+        map<const PrecursorInfo*, vector<HitsByScore::iterator>>> representatives;
+    double score = hits.begin()->first;
+    for (auto hit_it = hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    {
+      if (hit_it->first != score)
+      {
+        representatives.clear();
+        score = hit_it->first;
+      }
+      auto& earlier_hits = representatives[hit_it->second.oligo_ref][hit_it->second.precursor_ref];
+      const bool merged = any_of(earlier_hits.begin(), earlier_hits.end(), [&](const auto& previous_it)
+      {
+        return merge_variants(previous_it->second, hit_it->second);
+      });
+      if (merged)
+      {
         hit_it = hits.erase(hit_it);
       }
       else
       {
-        previous_it = hit_it;
+        earlier_hits.push_back(hit_it);
         ++hit_it;
       }
     }
   }
 
+
+  /// @brief Sort tied hits by molecule, precursor, and adduct values before registration.
+  void sortHitsByValue_(HitsByScore& hits) const
+  {
+    vector<pair<double, AnnotatedHit>> ordered_hits(hits.begin(), hits.end());
+    auto hit_key = [](const AnnotatedHit& hit)
+    {
+      const auto& precursor = *hit.precursor_ref;
+      const std::string adduct = precursor.adduct ? (*precursor.adduct)->getName() : std::string();
+      return make_tuple(hit.sequence.toString(), hit.oligo_ref->sequence.toString(),
+                        precursor.charge, precursor.isotope, adduct,
+                        precursor.adduct ? (*precursor.adduct)->getEmpiricalFormula().toString() : std::string(),
+                        precursor.adduct ? (*precursor.adduct)->getCharge() : 0,
+                        precursor.adduct ? (*precursor.adduct)->getMolMultiplier() : UInt(0),
+                        hit.precursor_error_ppm);
+    };
+    sort(ordered_hits.begin(), ordered_hits.end(), [&](const auto& lhs, const auto& rhs)
+    {
+      if (lhs.first != rhs.first)
+      {
+        return lhs.first > rhs.first;
+      }
+      return hit_key(lhs.second) < hit_key(rhs.second);
+    });
+    hits.clear();
+    hits.insert(ordered_hits.begin(), ordered_hits.end());
+  }
+
+  /// @brief Retain complete score groups at the report cutoff, independent of arrival order.
+  void retainTopHit_(HitsByScore& hits, double score, AnnotatedHit hit, Size top_hits) const
+  {
+    if ((top_hits == 0) || (hits.size() < top_hits) || (score >= hits.rbegin()->first))
+    {
+      hits.emplace(score, std::move(hit));
+      if (top_hits > 0)
+      {
+        auto cutoff = hits.begin();
+        std::advance(cutoff, std::min<Size>(top_hits, hits.size()) - 1);
+        hits.erase(hits.upper_bound(cutoff->first), hits.end());
+      }
+    }
+  }
 
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
@@ -747,9 +979,13 @@ protected:
 #pragma omp critical (id_data_access)
       obs_ref = id_data.registerObservation(obs);
 
+      sortHitsByValue_(annotated_hits[scan_index]);
+
       if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
         resolveAmbiguousMods_(annotated_hits[scan_index]);
+        // Merged ambiguity codes can change the value order of the surviving hits.
+        sortHitsByValue_(annotated_hits[scan_index]);
       }
 
       // create full oligo hit structure from annotated hits
@@ -785,9 +1021,105 @@ protected:
   }
 
 
+  /// Check if all internal positions of an oligonucleotide have fragment coverage
+  double calculateFragmentCoverage_(const NASequence& oligo,
+                                     const vector<PeptideHit::PeakAnnotation>& annotations)
+  {
+    Size length = oligo.size();
+    if (length <= 1) return 1.0; // No internal positions to check - full coverage
+
+    // Track which positions have coverage (positions 1 through length-1)
+    set<Size> covered_positions;
+
+    for (const auto& annotation : annotations)
+    {
+      std::string ann = annotation.annotation;
+      if (ann.empty())
+      {
+        OPENMS_LOG_WARN << "Empty fragment annotation found in coverage check" << endl;
+        continue;
+      }
+
+      // Check for a-B ions (e.g., "a1-B", "a2-B")
+      if (ann.find("-B") != std::string::npos)
+      {
+        // Extract position from "a1-B" -> "1"
+        std::string prefix = ann.substr(0, ann.find('-'));
+        if (prefix.starts_with("a"))
+        {
+          std::string pos_str = prefix.substr(1); // Remove 'a'
+          try
+          {
+            Size pos = static_cast<Size>(StringUtils::toInt64(pos_str));
+            if (pos >= 1 && pos < length)
+            {
+              covered_positions.insert(pos);
+            }
+          }
+          catch (Exception::ConversionError&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Malformed a-B fragment annotation: '" + ann + "' - expected format 'aN-B' where N is a position number",
+              ann);
+          }
+        }
+      }
+      else
+      {
+        // Regular ions: extract ion type and position
+        // Format: "a1", "b2", "w9", "y3", etc.
+        char ion_type = ann[0];
+        std::string ion_type_str(1, ion_type);
+
+        // Check if this is a valid fragment ion type (using class member)
+        if (std::find(fragment_ion_codes_.begin(), fragment_ion_codes_.end(),
+                      ion_type_str) != fragment_ion_codes_.end())
+        {
+          // Extract numeric position
+          std::string pos_str = ann.substr(1);
+          // Handle annotations like "y3+" by removing non-digits
+          pos_str.erase(std::remove(pos_str.begin(), pos_str.end(), '+'), pos_str.end());
+          pos_str.erase(std::remove(pos_str.begin(), pos_str.end(), '-'), pos_str.end());
+
+          try
+          {
+            Size pos = static_cast<Size>(StringUtils::toInt64(pos_str));
+
+            // w/x/y/z ions count from 3' end, need to convert to 5' end position
+            // For a 10-mer: w9 = position 1, w8 = position 2, ..., w1 = position 9
+            Size actual_pos = pos;
+            if (ion_type == 'w' || ion_type == 'x' || ion_type == 'y' || ion_type == 'z')
+            {
+              actual_pos = length - pos;
+            }
+
+            if (actual_pos >= 1 && actual_pos < length)
+            {
+              covered_positions.insert(actual_pos);
+            }
+          }
+          catch (Exception::ConversionError&)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Malformed fragment annotation: '" + ann + "' - expected format like 'a1', 'b2', 'y3', etc.",
+              ann);
+          }
+        }
+      }
+    }
+
+    // Calculate coverage fraction: number of covered positions / total internal positions
+    Size total_internal_positions = length - 1;
+    double coverage = static_cast<double>(covered_positions.size()) / static_cast<double>(total_internal_positions);
+
+    return coverage;
+  }
+
+
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
+    const std::string scoring_method = getStringOption_("scoring:method");
+    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType(scoring_method == "mvh" ? "MVH score" : "hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
@@ -850,15 +1182,42 @@ protected:
       vector<double> rts;
       for (const auto& charge_pair : entry.second)
       {
-        charges.push_back(charge_pair.first);
         // use intensity-weighted mean of precursor RTs as "apex" RT:
         double weighted_rt = 0.0, total_weight = 0.0;
         for (const auto& rt_pair : charge_pair.second)
         {
-          weighted_rt += rt_pair.first * rt_pair.second;
-          total_weight += rt_pair.first;
+          if (std::isfinite(rt_pair.first) && rt_pair.first > 0.0 && std::isfinite(rt_pair.second))
+          {
+            weighted_rt += rt_pair.first * rt_pair.second;
+            total_weight += rt_pair.first;
+          }
         }
-        rts.push_back(weighted_rt / total_weight);
+        if (total_weight > 0.0 && std::isfinite(total_weight) && std::isfinite(weighted_rt))
+        {
+          rts.push_back(weighted_rt / total_weight);
+          charges.push_back(charge_pair.first);
+        }
+        else
+        {
+          vector<double> observed_rts;
+          for (const auto& rt_pair : charge_pair.second)
+          {
+            if (std::isfinite(rt_pair.second))
+            {
+              observed_rts.push_back(rt_pair.second);
+            }
+          }
+          if (!observed_rts.empty())
+          {
+            rts.push_back(Math::median(observed_rts.begin(), observed_rts.end(), false));
+            charges.push_back(charge_pair.first);
+          }
+        }
+      }
+      if (rts.empty())
+      {
+        OPENMS_LOG_WARN << "Skipping LFQ target with no finite retention time: " << name << endl;
+        continue;
       }
       tsv << name << ef << 0 << ListUtils::concatenate(charges, ",");
       // overall target RT is median over all charge states:
@@ -939,6 +1298,14 @@ protected:
       getDoubleOption_("fragment:mass_tolerance");
     search_param.fragment_tolerance_ppm =
       (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
+    if (!std::isfinite(search_param.precursor_mass_tolerance) || search_param.precursor_mass_tolerance < 0.0 ||
+        !std::isfinite(search_param.fragment_mass_tolerance) || search_param.fragment_mass_tolerance < 0.0 ||
+        (search_param.fragment_mass_tolerance == 0.0 &&
+         (getStringOption_("scoring:method") == "mvh" || getFlag_("scoring:use_mass_accuracy"))))
+    {
+      OPENMS_LOG_ERROR << "Mass tolerances must be finite and nonnegative; MVH and mass-accuracy weighting require positive fragment tolerance." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
     search_param.min_length = getIntOption_("oligo:min_size");
     search_param.max_length = getIntOption_("oligo:max_size");
     StringList fixed_mod_names = getStringList_("modifications:fixed");
@@ -955,6 +1322,13 @@ protected:
       getModifications_(search_param.fixed_mods);
     set<ConstRibonucleotidePtr> variable_modifications =
       getModifications_(search_param.variable_mods);
+    resolve_ambiguous_mods_ = resolve_ambiguous_mods_ && !ambiguous_mods_.empty();
+    RNaseDigestion::CleavageSensitiveModGroups cleavage_sensitive_groups;
+    set<ConstRibonucleotidePtr> cleavage_sensitive_modifications;
+    set<std::string> cleavage_sensitive_mod_codes;
+    set<ConstRibonucleotidePtr> post_digest_variable_modifications =
+      variable_modifications;
+
 
     // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
     IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
@@ -962,6 +1336,36 @@ protected:
     Size max_variable_mods_per_oligo =
       getIntOption_("modifications:variable_max_per_oligo");
     Size report_top_hits = getIntOption_("report:top_hits");
+
+    std::string enzyme_name = getStringOption_("oligo:enzyme");
+    const DigestionEnzyme* configured_enzyme =
+      RNaseDB::getInstance()->getEnzyme(enzyme_name);
+    RNaseDigestion cleavage_sensitive_digestor;
+    cleavage_sensitive_digestor.setEnzyme(configured_enzyme);
+    cleavage_sensitive_groups =
+      cleavage_sensitive_digestor.inferCleavageSensitiveMods(
+        variable_modifications);
+    cleavage_sensitive_modifications = cleavage_sensitive_groups.combined();
+    for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
+    {
+      cleavage_sensitive_mod_codes.insert(mod->getCode());
+    }
+    post_digest_variable_modifications = variable_modifications;
+    for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
+    {
+      post_digest_variable_modifications.erase(mod);
+    }
+    if (!cleavage_sensitive_modifications.empty())
+    {
+      OPENMS_LOG_INFO
+        << "Detected " << cleavage_sensitive_modifications.size()
+        << " cleavage-sensitive variable modification(s) from enzyme cleavage regexes "
+        << "(" << cleavage_sensitive_groups.cuts_before_sensitive.size()
+        << " cuts-before-sensitive, "
+        << cleavage_sensitive_groups.cuts_after_sensitive.size()
+        << " cuts-after-sensitive)."
+        << endl;
+    }
 
     StringList potential_adducts =
       getStringList_("precursor:potential_adducts");
@@ -1003,7 +1407,8 @@ protected:
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(input);
     // processing software meta data:
-    IdentificationData::ScoreType score("hyperscore", true);
+    const std::string scoring_method = getStringOption_("scoring:method");
+    IdentificationData::ScoreType score(scoring_method == "mvh" ? "MVH score" : "hyperscore", true);
     IdentificationData::ScoreTypeRef hyperscore_ref =
       id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
@@ -1020,6 +1425,7 @@ protected:
       id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
     IdentificationData::ProcessingStep step(software_ref, {file_ref});
+    step.actions.insert(DataProcessing::IDENTIFICATION);
     IdentificationData::ProcessingStepRef step_ref;
 
     // get digested sequences:
@@ -1028,9 +1434,9 @@ protected:
     {
       search_param.database = in_db;
       search_param.missed_cleavages = getIntOption_("oligo:missed_cleavages");
-      std::string enzyme_name = getStringOption_("oligo:enzyme");
-      search_param.digestion_enzyme =
-        RNaseDB::getInstance()->getEnzyme(enzyme_name);
+      search_param.digestion_enzyme = configured_enzyme;
+      search_param.min_length = getIntOption_("oligo:min_size");
+      search_param.max_length = getIntOption_("oligo:max_size");
       IdentificationData::SearchParamRef search_ref =
         id_data.registerDBSearchParam(search_param);
       step_ref = id_data.registerProcessingStep(step, search_ref);
@@ -1052,7 +1458,33 @@ protected:
       OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
       IdentificationDataConverter::importSequences(
         id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
-      digestor.digest(id_data, min_oligo_length, max_oligo_length);
+      // Fixed internal modifications affect RNase cleavage. Terminal fixed
+      // modifications are applied to each resulting oligo during candidate expansion.
+      set<ConstRibonucleotidePtr> internal_fixed;
+      for (auto* mod : fixed_modifications)
+      {
+        if (mod->getTermSpecificity() == Ribonucleotide::ANYWHERE)
+        {
+          internal_fixed.insert(mod);
+        }
+      }
+      for (auto parent_ref = id_data.getParentSequences().begin();
+           parent_ref != id_data.getParentSequences().end(); ++parent_ref)
+      {
+        if (parent_ref->molecule_type != IdentificationData::MoleculeType::RNA)
+        {
+          continue;
+        }
+        NASequence parent = NASequence::fromString(parent_ref->sequence);
+        ModifiedNASequenceGenerator::applyFixedModifications(internal_fixed, parent);
+        vector<RNaseDigestion::DigestionProduct> products;
+        digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups,
+          max_variable_mods_per_oligo, products, min_oligo_length, max_oligo_length);
+        for (const auto& product : products)
+        {
+          registerDigestedOligo_(id_data, parent_ref, parent, product);
+        }
+      }
 
       std::string digest_out = getStringOption_("digest_out");
       if (!digest_out.empty())
@@ -1066,13 +1498,56 @@ protected:
       OMSFile(log_type_).load(in_digest, id_data);
       if (id_data.getDBSearchParams().empty())
       {
-        OPENMS_LOG_WARN
-          << "Warning: no search parameter information found in 'digest' input"
-          << endl;
+        OPENMS_LOG_ERROR << "No search parameter information found in 'digest' input" << endl;
+        return ILLEGAL_PARAMETERS;
       }
 
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
+      search_param.digestion_enzyme = search_ref->digestion_enzyme;
+      cleavage_sensitive_groups = {};
+      cleavage_sensitive_modifications.clear();
+      cleavage_sensitive_mod_codes.clear();
+      post_digest_variable_modifications = variable_modifications;
+      if (search_ref->digestion_enzyme)
+      {
+        RNaseDigestion cleavage_sensitive_digestor;
+        cleavage_sensitive_digestor.setEnzyme(search_ref->digestion_enzyme);
+        cleavage_sensitive_groups =
+          cleavage_sensitive_digestor.inferCleavageSensitiveMods(
+            variable_modifications);
+        cleavage_sensitive_modifications = cleavage_sensitive_groups.combined();
+        cleavage_sensitive_mod_codes.clear();
+        for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
+        {
+          cleavage_sensitive_mod_codes.insert(mod->getCode());
+        }
+        post_digest_variable_modifications = variable_modifications;
+        for (ConstRibonucleotidePtr mod : cleavage_sensitive_modifications)
+        {
+          post_digest_variable_modifications.erase(mod);
+        }
+      }
+
+      // Preserve digestion/database provenance, but record the parameters used
+      // by this search rather than the tolerances of the cached digest producer.
+      IdentificationData::DBSearchParam current_search = search_param;
+      current_search.database = search_ref->database;
+      current_search.database_version = search_ref->database_version;
+      current_search.taxonomy = search_ref->taxonomy;
+      current_search.digestion_enzyme = search_ref->digestion_enzyme;
+      current_search.enzyme_term_specificity = search_ref->enzyme_term_specificity;
+      current_search.missed_cleavages = search_ref->missed_cleavages;
+      current_search.min_length = search_ref->min_length;
+      current_search.max_length = search_ref->max_length;
+      std::vector<std::string> cached_keys;
+      search_ref->getKeys(cached_keys);
+      for (const auto& key : cached_keys)
+      {
+        if (key.starts_with("digestion:")) current_search.setMetaValue(key, search_ref->getMetaValue(key));
+      }
+      search_ref = id_data.registerDBSearchParam(current_search);
+      // Fresh and cached searches both record the identification action.
       step_ref = id_data.registerProcessingStep(step, search_ref);
       // reference this step in all following ID data items:
       id_data.setCurrentProcessingStep(step_ref);
@@ -1094,10 +1569,32 @@ protected:
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
+    const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
+    bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
+    double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
+    int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
+    std::string window_movetype = getStringOption_("preprocessing:window_mower:movetype");
+    bool use_nlargest = getFlag_("preprocessing:filter_nlargest");
+    int nlargest_n = getIntOption_("preprocessing:nlargest:n");
+    bool remove_precursor = getFlag_("preprocessing:remove_precursor_peak");
+    double precursor_mass_tolerance = getDoubleOption_("preprocessing:precursor_mass_tolerance");
+    std::string precursor_tolerance_unit = getStringOption_("preprocessing:precursor_mass_tolerance_unit");
+    bool precursor_tolerance_ppm = (precursor_tolerance_unit == "ppm");
+    int precursor_peak_isotopes = getIntOption_("preprocessing:precursor_peak_isotopes");
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
-                       max_charge, include_unknown_charge);
+                       max_charge, include_unknown_charge,
+                       use_window_mower, window_size, window_peakcount, window_movetype,
+                       use_nlargest, nlargest_n,
+                       remove_precursor, precursor_mass_tolerance,
+                       precursor_tolerance_ppm, precursor_peak_isotopes,
+                       deisotoping);
+    const std::string out_preprocessed = getStringOption_("out_preprocessed");
+    if (!out_preprocessed.empty())
+    {
+      FileHandler().storeExperiment(out_preprocessed, spectra, {FileTypes::MZML}, log_type_);
+    }
     progresslogger.endProgress();
     OPENMS_LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra()
                      << endl;
@@ -1118,7 +1615,7 @@ protected:
       }
 
       set<Int> possible_charges;
-      Int precursor_charge = precursors[0].getCharge();
+      Int precursor_charge = abs(precursors[0].getCharge());
       if (precursor_charge == 0) // charge information missing
       {
         if (include_unknown_charge)
@@ -1230,10 +1727,20 @@ protected:
       IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
+      // Only a known digest enzyme can classify existing modifications as
+      // cleavage-sensitive placements that consume the variable-modification budget.
+      Size consumed_cleavage_sensitive_mods = search_param.digestion_enzyme ?
+        countCleavageSensitiveMods_(ns, cleavage_sensitive_mod_codes) : 0;
+      if (consumed_cleavage_sensitive_mods > max_variable_mods_per_oligo)
+      {
+        continue;
+      }
+      Size remaining_variable_mods =
+        max_variable_mods_per_oligo - consumed_cleavage_sensitive_mods;
       ModifiedNASequenceGenerator::applyFixedModifications(
         fixed_modifications, ns);
       ModifiedNASequenceGenerator::applyVariableModifications(
-        variable_modifications, ns, max_variable_mods_per_oligo,
+        post_digest_variable_modifications, ns, remaining_variable_mods,
         all_modified_oligos, true);
       OPENMS_LOG_DEBUG << "Oligo: " << ns.toString() << endl;
 
@@ -1282,6 +1789,15 @@ protected:
                                                 candidate, precursor_charges,
                                                 base_charge);
 
+          const auto blacklist_mz = getDoubleList_("scoring:blacklist_mz");
+          if (!blacklist_mz.empty())
+          {
+            for (auto& [charge, spectrum] : theo_spectra_by_charge)
+            {
+              filterBlacklistedIons_(spectrum, blacklist_mz, getDoubleOption_("scoring:blacklist_tolerance"));
+            }
+          }
+
           for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
           {
             OPENMS_LOG_DEBUG << "Matching precursor mass: "
@@ -1295,10 +1811,27 @@ protected:
             Size scan_index = prec_it->second.scan_index;
             const MSSpectrum& exp_spectrum = spectra[scan_index];
             vector<PeptideHit::PeakAnnotation> annotations;
-            double score = MetaboliteSpectralMatching::computeHyperScore(
-              search_param.fragment_mass_tolerance,
-              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-              annotations);
+            // Compute score using selected method
+            double score;
+            if (scoring_method == "mvh")
+            {
+              Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
+              double tic_fraction = getDoubleOption_("scoring:tic_fraction");
+              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+              bool single_peak_credit = getStringOption_("scoring:single_peak_credit") == "true";
+              score = MetaboliteSpectralMatching::computeMVHScore(
+                search_param.fragment_mass_tolerance,
+                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+                annotations, num_intensity_classes, tic_fraction, 0.0, use_mass_accuracy, single_peak_credit);
+            }
+            else // hyperscore
+            {
+              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+              score = MetaboliteSpectralMatching::computeHyperScore(
+                search_param.fragment_mass_tolerance,
+                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+                annotations, 0.0, use_mass_accuracy);
+            }
 
             if (!exp_ms2_out.empty())
             {
@@ -1313,7 +1846,24 @@ protected:
               theo_ms2_spectra.addSpectrum(theo_spectrum);
             }
 
-            if (score < 1e-16) continue; // no hit
+            if (!std::isfinite(score) || score < 1e-16)
+            {
+              continue; // no finite hit
+            }
+
+            // Check fragment coverage if required
+            double min_coverage = getDoubleOption_("report:require_coverage");
+            if (min_coverage > 0.0)
+            {
+              double actual_coverage = calculateFragmentCoverage_(candidate, annotations);
+              if (actual_coverage < min_coverage)
+              {
+                OPENMS_LOG_DEBUG << "Skipping hit due to insufficient fragment coverage: "
+                                 << candidate.toString() << " (coverage: " << actual_coverage
+                                 << ", required: " << min_coverage << ")" << endl;
+                continue; // Insufficient fragment coverage
+              }
+            }
 
 #pragma omp atomic
             ++hit_counter;
@@ -1323,37 +1873,16 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              HitsByScore::iterator pos = scan_hits.end();
-              if ((report_top_hits == 0) ||
-                  (scan_hits.size() < report_top_hits))
+              if (report_top_hits == 0 || scan_hits.size() < report_top_hits || score >= scan_hits.rbegin()->first)
               {
-                pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-              }
-              else // already have enough hits for this spectrum - replace one?
-              {
-                double worst_score = (--scan_hits.end())->first;
-                if (score >= worst_score)
-                {
-                  pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-                  // prune list of hits if possible (careful about tied scores):
-                  Size n_worst = scan_hits.count(worst_score);
-                  if (scan_hits.size() - n_worst >= report_top_hits)
-                  {
-                    scan_hits.erase(worst_score);
-                  }
-                }
-              }
-              // add oligo hit data only if necessary (good enough score):
-              if (pos != scan_hits.end())
-              {
-                AnnotatedHit& ah = pos->second;
-                ah.oligo_ref = oligo_ref;
-                ah.sequence = candidate;
-                // @TODO: is "observed - calculated" the right way around?
-                ah.precursor_error_ppm =
+                AnnotatedHit new_hit;
+                new_hit.oligo_ref = oligo_ref;
+                new_hit.sequence = candidate;
+                new_hit.precursor_error_ppm =
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
-                ah.annotations = annotations;
-                ah.precursor_ref = &(prec_it->second);
+                new_hit.annotations = annotations;
+                new_hit.precursor_ref = &(prec_it->second);
+                retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
               }
             }
           }
@@ -1410,7 +1939,7 @@ protected:
     // dummy "peptide" results:
     if (!id_out.empty())
     {
-      if (!digest.empty())
+      if (!in_digest.empty())
       {
         // RNA seqs. were imported from a previous search run - need to "tag"
         // them with the current processing step so they get exported properly:
@@ -1440,8 +1969,10 @@ protected:
 
 };
 
+#ifndef OPENMS_NASE_CLASS_TEST
 int main(int argc, const char** argv)
 {
   NucleicAcidSearchEngine tool;
   return tool.main(argc, argv);
 }
+#endif

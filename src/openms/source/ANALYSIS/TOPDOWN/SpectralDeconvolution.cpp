@@ -1307,7 +1307,11 @@ namespace OpenMS
 
   float SpectralDeconvolution::getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_len)
   {
-    float n = .0, a_norm = .0, b_norm = 1.0f;
+    // Trimming and floating-point normalization can leave both RNA and peptide
+    // averagine patterns with a norm that is not exactly one.
+    // A cosine above one produces negative noise power in PeakGroup::updateSNR_.
+    double n = 0.0, a_norm = 0.0, b_norm = 0.0;
+    for (const auto& peak : b) b_norm += double(peak.getIntensity()) * peak.getIntensity();
     a_start = std::max(0, a_start);
     a_end = std::min((int)a.size(), a_end);
 
@@ -1318,17 +1322,17 @@ namespace OpenMS
     for (int j = a_start; j < a_end; j++)
     {
       int i = j - offset;
-      a_norm += a[j] * a[j];
+      a_norm += double(a[j]) * a[j];
 
       if (max_intensity < a[j]) { max_intensity = a[j]; }
 
       if (i >= (int)b.size() || i < 0 || b[i].getIntensity() <= 0) { continue; }
-      else { n += a[j] * b[i].getIntensity(); }
+      else { n += double(a[j]) * b[i].getIntensity(); }
     }
 
-    if (a_norm <= 0) { return 0; }
+    if (a_norm <= 0 || b_norm <= 0) { return 0; }
 
-    return n / sqrt(a_norm * b_norm);
+    return float(std::clamp(n / sqrt(a_norm * b_norm), 0.0, 1.0));
   }
 
   void SpectralDeconvolution::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec, const PeakGroup::TargetDecoyType& target_decoy_type) const

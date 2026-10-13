@@ -241,6 +241,8 @@ namespace OpenMS
       @param[in] exp_spectrum                  Experimental MS2 spectrum (sorted by m/z).
       @param[in] db_spectrum                   DB MS2 spectrum (sorted by m/z).
       @param[in] mz_lower_bound                Minimum m/z to consider; peaks below this are ignored. Default 0.0.
+      @param[in] use_mass_accuracy             Weight matched peaks by mass error within the fragment tolerance.
+      @throws Exception::InvalidParameter if the tolerance is not finite/nonnegative, or is zero with mass-accuracy weighting.
       @return Hyperscore (>= 0; 0 if fewer than three matched peaks).
     */
     static double computeHyperScore(
@@ -248,7 +250,8 @@ namespace OpenMS
       bool fragment_mass_tolerance_unit_ppm,
       const MSSpectrum& exp_spectrum,
       const MSSpectrum& db_spectrum,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = false);
 
     /**
       @brief Same as the other overload, but also fills @p annotations with per-peak match metadata.
@@ -263,6 +266,8 @@ namespace OpenMS
       @param[in]  db_spectrum                   DB MS2 spectrum (sorted by m/z).
       @param[out] annotations                   Per-matched-peak annotations (annotation string, charge, m/z, intensity); appended to.
       @param[in]  mz_lower_bound                Minimum m/z to consider; peaks below this are ignored.
+      @param[in]  use_mass_accuracy             Weight matched peaks by mass error within the fragment tolerance.
+      @throws Exception::InvalidParameter if the tolerance is not finite/nonnegative, or is zero with mass-accuracy weighting.
       @return Hyperscore (>= 0; 0 if fewer than three matched peaks).
     */
     static double computeHyperScore(
@@ -271,7 +276,65 @@ namespace OpenMS
       const MSSpectrum& exp_spectrum,
       const MSSpectrum& db_spectrum,
       std::vector<PeptideHit::PeakAnnotation>& annotations,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = false);
+
+    /**
+      @brief Compute an intensity-stratified multivariate hypergeometric score.
+
+      Retained peaks are ranked by intensity and divided in the ratio 1:2:4:... .
+      Single peak credit is enabled by default.
+
+      @param[in] fragment_mass_error Finite positive fragment tolerance.
+      @param[in] fragment_mass_tolerance_unit_ppm Use ppm instead of Th.
+      @param[in] exp_spectrum Experimental spectrum sorted by m/z.
+      @param[in] db_spectrum Theoretical spectrum sorted by m/z.
+      @param[in] num_intensity_classes Number of intensity classes (1 to 7).
+      @param[in] tic_fraction Fraction of experimental TIC to retain (0.5 to 1).
+      @param[in] mz_lower_bound Minimum theoretical m/z considered.
+      @param[in] use_mass_accuracy Add Gaussian mass-accuracy weighting.
+      @param[in] single_peak_credit Count each observed peak once; false restores per-ion counting.
+      @return Nonnegative MVH score, or zero for insufficient peaks or an invalid per-ion class count.
+      @throws Exception::InvalidParameter for an invalid tolerance, class count or TIC fraction.
+    */
+    static double computeMVHScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      Size num_intensity_classes = 3,
+      double tic_fraction = 0.98,
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true,
+      bool single_peak_credit = true);
+
+    /**
+      @brief Compute MVH and append all matching ion annotations, including shared peaks.
+
+      @param[in] fragment_mass_error Finite positive fragment tolerance.
+      @param[in] fragment_mass_tolerance_unit_ppm Use ppm instead of Th.
+      @param[in] exp_spectrum Experimental spectrum sorted by m/z.
+      @param[in] db_spectrum Theoretical spectrum sorted by m/z.
+      @param[in] num_intensity_classes Number of intensity classes (1 to 7).
+      @param[in] tic_fraction Fraction of experimental TIC to retain (0.5 to 1).
+      @param[in] mz_lower_bound Minimum theoretical m/z considered.
+      @param[in] use_mass_accuracy Add Gaussian mass-accuracy weighting.
+      @param[in] single_peak_credit Count each observed peak once; false restores per-ion counting.
+      @return Nonnegative MVH score, or zero for insufficient peaks or an invalid per-ion class count.
+      @throws Exception::InvalidParameter for an invalid tolerance, class count or TIC fraction.
+      @param[out] annotations Matching ion annotations appended to the vector.
+    */
+    static double computeMVHScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      std::vector<PeptideHit::PeakAnnotation>& annotations,
+      Size num_intensity_classes = 3,
+      double tic_fraction = 0.98,
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true,
+      bool single_peak_credit = true);
 
     /**
       @brief Run the metabolomics spectral-library search and populate the MzTab output.
@@ -297,7 +360,21 @@ namespace OpenMS
       const MSSpectrum& exp_spectrum,
       const MSSpectrum& db_spectrum,
       std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
-      double mz_lower_bound = 0.0);
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = false);
+
+    /// Shared implementation of the MVH overloads.
+    static double computeMVHScore_(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      Size num_intensity_classes,
+      double tic_fraction,
+      std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
+      double mz_lower_bound = 0.0,
+      bool use_mass_accuracy = true,
+      bool single_peak_credit = true);
 
   private:
     /// Convert the accumulated @ref SpectralMatch records into an MzTab table.
@@ -316,4 +393,3 @@ namespace OpenMS
   };
 
 }
-

@@ -6,6 +6,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/test_config.h>
@@ -214,6 +215,45 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
 }
 END_SECTION
 
+START_SECTION(([EXTRA] exported exact-score ties share the library best-match value order))
+{
+  std::vector<std::string> labels{"AAA", "AAC", "AAU"};
+  std::vector<Size> order{0, 1, 2};
+  do
+  {
+    IdentificationData data;
+    auto file = data.registerInputFile(IdentificationData::InputFile("ties.mzML"));
+    auto score = data.registerScoreType(IdentificationData::ScoreType("score", true));
+    auto software = data.registerProcessingSoftware(IdentificationData::ProcessingSoftware("NASE", "test"));
+    auto step = data.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}));
+    auto observation = data.registerObservation(IdentificationData::Observation("scan=1", file, 1.0, 500.0));
+    for (const auto index : order)
+    {
+      auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString(labels[index])));
+      IdentificationData::ObservationMatch match(oligo, observation, -2);
+      match.addScore(score, 10.0, step);
+      data.registerObservationMatch(match);
+    }
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdentificationDataConverter::exportIDs(data, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    ABORT_IF(peptides.size() != 1)
+    std::vector<std::string> exported;
+    for (const auto& hit : peptides[0].getHits())
+    {
+      exported.push_back(hit.getMetaValue("label").toString());
+    }
+    TEST_TRUE(exported == labels)
+    const auto best = data.getBestMatchPerObservation(score);
+    TEST_EQUAL(best.size(), 1)
+    ABORT_IF(best.size() != 1)
+    TEST_EQUAL(best[0]->identified_molecule_var.toString(), exported[0])
+  }
+  while (std::next_permutation(order.begin(), order.end()));
+}
+END_SECTION
+
 START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
 {
   vector<ProteinIdentification> proteins_in;
@@ -366,6 +406,28 @@ START_SECTION((void exportConsensusIDs(ConsensusMap& consensus, bool clear_origi
 }
 END_SECTION
 
+START_SECTION(([[EXTRA]] MzTab exportMzTab(const IdentificationData& id_data)))
+{
+  // RNA calculated m/z includes the assigned sodium adduct.
+  IdentificationData data;
+  const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+  const auto observation = data.registerObservation(IdentificationData::Observation("scan=1", file, 20, 621.589));
+  const auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("ACGU")));
+  const auto adduct = data.registerAdduct(AdductInfo("Na:+", EmpiricalFormula("Na"), 1));
+  const auto score = data.registerScoreType(IdentificationData::ScoreType("hyperscore", true));
+  IdentificationData::ObservationMatch match(oligo, observation, -2);
+  match.adduct_opt = adduct;
+  match.addScore(score, 10);
+  data.registerObservationMatch(match);
+  auto table = IdentificationDataConverter::exportMzTab(data);
+  const auto rows = table.getOSMSectionRows();
+  TEST_EQUAL(rows.size(), 1);
+  TEST_REAL_SIMILAR(rows[0].calc_mass_to_charge.get(),
+    (oligo->sequence.getMonoWeight(NASequence::Full, -2) + adduct->getMassShift()) / 2);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 END_TEST

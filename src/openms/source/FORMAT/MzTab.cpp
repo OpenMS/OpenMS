@@ -26,6 +26,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 
 #include <tuple>
@@ -701,6 +702,8 @@ namespace OpenMS
     const std::string & filename)
   {
     OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
+    // every peptide identification needs its protein identification run
+    ProteinRunReferences::check(feature_map);
     MzTab mztab;
     MzTabMetaData meta_data;
 
@@ -2205,6 +2208,14 @@ Not sure how to handle these:
     ////////////////////////////////////////////////
     // create some lookup structures and precalculate some values
     idrunid_2_idrunindex_ = MzTab::mapIDRunIdentifier2IDRunIndex_(prot_ids_);
+    // every peptide identification needs its protein identification run
+    for (const PeptideIdentification* pep : peptide_ids_)
+    {
+      if (!idrunid_2_idrunindex_.contains(pep->getIdentifier()))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(pep->getIdentifier()));
+      }
+    }
 
     bool has_inference_data = prot_ids_.empty() ? false : prot_ids_[0]->hasInferenceData();
 
@@ -2783,6 +2794,9 @@ state0:
     export_empty_pep_ids_(export_empty_pep_ids),
     export_all_psms_(export_all_psms)
   {
+    // every peptide identification needs its protein identification run
+    ProteinRunReferences::check(consensus_map);
+
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
     prot_ids_.reserve(prot_id.size());

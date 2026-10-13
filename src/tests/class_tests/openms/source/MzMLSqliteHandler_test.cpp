@@ -15,6 +15,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <filesystem>
@@ -533,6 +534,48 @@ START_SECTION([EXTRA] writeRunLevelInformation is safe against SQL injection via
   // injected "DROP TABLE RUN" had executed, countTableRows() would instead throw.
   SqliteConnector conn(tmp_filename);
   TEST_EQUAL(conn.countTableRows("RUN"), 1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] readExperiment rejects a spectrum whose paired data arrays have different lengths)
+{
+  // CPP-191: a spectrum's mz and intensity arrays with different lengths used to
+  // silently truncate or read past the shorter array, depending on row order.
+  MSExperiment exp_orig;
+  exp_orig.resize(1);
+  for (Size i = 0; i < 5; ++i)
+  {
+    Peak1D p;
+    p.setMZ(100.0 + i);
+    p.setIntensity(10.0 + i);
+    exp_orig[0].push_back(p);
+  }
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::filesystem::remove(tmp_filename);
+  std::filesystem::remove(tmp_filename + "-wal");
+  std::filesystem::remove(tmp_filename + "-shm");
+  std::filesystem::remove(tmp_filename + "-journal");
+
+  MzMLSqliteHandler handler(tmp_filename, 12345);
+  handler.createTables();
+  handler.writeSpectra(exp_orig.getSpectra());
+  handler.writeRunLevelInformation(exp_orig, false);
+
+  // shorten the intensity array only, so it no longer matches the mz array's length
+  std::vector<double> short_intensity{11.0, 22.0};
+  std::string raw(reinterpret_cast<const char*>(short_intensity.data()), short_intensity.size() * sizeof(double));
+  std::string compressed;
+  OpenMS::ZlibCompression::compressString(raw, compressed);
+
+  SqliteConnector conn(tmp_filename);
+  conn.executeBindStatement(
+    "UPDATE DATA SET DATA = ?1 WHERE DATA_TYPE = 1 AND SPECTRUM_ID = (SELECT ID FROM SPECTRUM LIMIT 1)",
+    std::vector<std::string>{compressed});
+
+  MSExperiment tmp;
+  TEST_EXCEPTION(Exception::IllegalArgument, handler.readExperiment(tmp, false))
 }
 END_SECTION
 

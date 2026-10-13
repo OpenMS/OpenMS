@@ -3,6 +3,7 @@
 
 #include "all_casters.h"
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
@@ -11,6 +12,7 @@
 #include <OpenMS/METADATA/Gradient.h>
 #include <OpenMS/METADATA/HPLC.h>
 #include <OpenMS/METADATA/IdentifierMSRunMapper.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -333,6 +335,33 @@ Get the MS run paths associated with the given identifier.
 :return: List of MS run file paths associated with this identifier
 )doc")
         .def("__len__", [](OpenMS::IdentifierMSRunMapper& self) { return self.size(); })
+        ;
+
+    // -----------------------------------------------------------------------
+    // ProteinRunReferences
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::ProteinRunReferences>(m, "ProteinRunReferences",
+        R"doc(
+Checks that every peptide identification references an existing protein identification run.
+
+Every PeptideIdentification needs the ProteinIdentification run (the search run) whose identifier
+it names. The run may have no protein hits (e.g. peptidomics or de novo results). File writers and
+loaders enforce this; the checks raise an error naming the first peptide identification without its run.
+)doc")
+        .def_static("missingRunMessage", [](const std::string& identifier) { return OpenMS::ProteinRunReferences::missingRunMessage(identifier); }, "identifier"_a,
+            "The error message for a peptide identification whose identifier names no protein identification run")
+        .def_static("check", [](const std::vector<OpenMS::ProteinIdentification>& runs, const std::string& identifier) { OpenMS::ProteinRunReferences::check(runs, identifier); },
+            "runs"_a, "identifier"_a, "Raises if the identifier names none of the runs")
+        .def_static("check", [](const std::vector<OpenMS::ProteinIdentification>& runs, const OpenMS::PeptideIdentificationList& peptides) { OpenMS::ProteinRunReferences::check(runs, peptides); },
+            "runs"_a, "peptides"_a, "Raises if a peptide identification names no protein identification run")
+        .def_static("check", [](const OpenMS::FeatureMap& map) { OpenMS::ProteinRunReferences::check(map); }, "map"_a,
+            "Raises if a peptide identification of a feature (or subordinate) or an unassigned one names no protein identification run")
+        .def_static("check", [](const OpenMS::ConsensusMap& map) { OpenMS::ProteinRunReferences::check(map); }, "map"_a,
+            "Raises if a peptide identification of a consensus feature or an unassigned one names no protein identification run")
+        .def_static("checkProteinAccessions", [](const OpenMS::FeatureMap& map) { OpenMS::ProteinRunReferences::checkProteinAccessions(map); }, "map"_a,
+            "Raises if a peptide evidence names a protein that is no protein hit of the peptide identification's run (featureXML references them there)")
+        .def_static("checkProteinAccessions", [](const OpenMS::ConsensusMap& map) { OpenMS::ProteinRunReferences::checkProteinAccessions(map); }, "map"_a,
+            "Raises if a peptide evidence names a protein that is no protein hit of the peptide identification's run (consensusXML references them there)")
         ;
 
     // -----------------------------------------------------------------------

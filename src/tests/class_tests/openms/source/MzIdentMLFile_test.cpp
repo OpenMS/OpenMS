@@ -18,6 +18,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <set>
+#include <fstream>
+#include <sstream>
 
 
 using namespace OpenMS;
@@ -732,6 +734,63 @@ START_SECTION(([EXTRA] Peptide with an empty PeptideSequence element))
     TEST_EQUAL(sequences == expected[i], true)
     TEST_EQUAL(n_empty, 1)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Peptide with an out-of-range SubstitutionModification location (CPP-169)))
+{
+  // A SubstitutionModification's "location" is a 1-based residue position;
+  // location="0" (or one past the sequence length) used to write one byte
+  // before (or past) the sequence's character buffer via
+  // as[toInt32(location) - 1] with no bounds check. Reuse the empty-sequence
+  // fixture and inject one into the "PEPTIDERR" peptide.
+  std::ifstream orig_in(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_empty_peptide_sequence.mzid"));
+  std::stringstream orig_buf;
+  orig_buf << orig_in.rdbuf();
+  std::string content = orig_buf.str();
+
+  std::string from = "<PeptideSequence>PEPTIDERR</PeptideSequence>";
+  std::string to = "<PeptideSequence>PEPTIDERR</PeptideSequence>"
+                    // A huge location (rather than "0") makes the pre-fix write land far
+                    // outside any mapped memory, so this reliably crashes without the fix
+                    // instead of landing one byte before the string's own small-object
+                    // buffer, which in practice can go unnoticed in a non-sanitized build.
+                    "<SubstitutionModification location=\"100000000\" originalResidue=\"P\" replacementResidue=\"A\"/>";
+  Size pos = content.find(from);
+  TEST_NOT_EQUAL(pos, std::string::npos)
+  content.replace(pos, from.size(), to);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::ofstream of(tmp_filename.c_str());
+  of << content;
+  of.close();
+
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  MzIdentMLFile().load(tmp_filename, protein_ids, peptide_ids);
+
+  // Must not crash, and must come back with the same identification/hit
+  // structure as the unmodified fixture (see the empty-PeptideSequence test
+  // above: 3 identifications, each with one empty-sequence PSM and one real
+  // one -- the identification carrying "PEPTIDERR" is spectrumID 17, with
+  // hits {"", "PEPTIDERR"}). The out-of-range SubstitutionModification is
+  // rejected (caught by the same fallback as an unreadable Peptide), so that
+  // identification's "PEPTIDERR" hit now also comes back empty -- {"", ""}
+  // -- instead of either applying a one-byte-out-of-bounds write or silently
+  // keeping "PEPTIDERR" unmodified.
+  ABORT_IF(peptide_ids.size() != 3)
+  Size n_empty = 0, n_hits = 0;
+  for (const auto& pep_id : peptide_ids)
+  {
+    for (const PeptideHit& hit : pep_id.getHits())
+    {
+      ++n_hits;
+      if (hit.getSequence().empty()) ++n_empty;
+    }
+  }
+  TEST_EQUAL(n_hits, 6)
+  TEST_EQUAL(n_empty, 4)
 }
 END_SECTION
 

@@ -22,6 +22,7 @@ FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
 FragmentIndex.h
+FragmentIonLikelihoodModel.h
 HyperScore.h
 IDDecoyProbability.h
 IDConflictResolverAlgorithm.h
@@ -47,6 +48,12 @@ SimpleSearchEngineAlgorithm.h
 SiriusExportAlgorithm.h
 SiriusMSConverter.h
 )
+
+if (WITH_ONNX)
+    list(APPEND sources_list_h
+        PeptDeepRescoring.h
+    )
+endif()
 
 ### add path to the filenames
 set(sources_h)
