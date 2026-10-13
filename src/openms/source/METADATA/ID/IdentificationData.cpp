@@ -16,6 +16,25 @@ using namespace std;
 namespace OpenMS
 {
 
+  /// Reject explicit metadata mismatches; omitted keys reuse the recorded values.
+  static void checkDBSearchParamMetadata_(const IdentificationData::DBSearchParams& registered,
+                                        const IdentificationData::DBSearchParam& param)
+  {
+    const auto existing = registered.find(param);
+    if (existing == registered.end()) return;
+    vector<std::string> keys;
+    param.getKeys(keys);
+    for (const auto& key : keys)
+    {
+      if (!existing->metaValueExists(key) || existing->getMetaValue(key) != param.getMetaValue(key))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Explicit database-search metadata conflicts with the recorded search identity. Omitted metadata reuses recorded values; metadata-only differences do not define a distinct search.",
+          key);
+      }
+    }
+  }
+
   /// Check whether a reference points to an element in a container
   template <typename RefType, typename ContainerType>
   static bool isValidReference_(RefType ref, ContainerType& container)
@@ -248,6 +267,7 @@ namespace OpenMS
   IdentificationData::registerDBSearchParam(const DBSearchParam& param)
   {
     // @TODO: any required information that should be checked?
+    checkDBSearchParamMetadata_(db_search_params_, param);
     return db_search_params_.insert(param).first;
   }
 
@@ -1046,6 +1066,8 @@ namespace OpenMS
   IdentificationData::RefTranslator
   IdentificationData::merge(const IdentificationData& other)
   {
+    // Detect conflicting search provenance before mutating any data or disabling checks.
+    for (const auto& param : other.getDBSearchParams()) checkDBSearchParamMetadata_(db_search_params_, param);
     RefTranslator trans;
     // incoming data (stored in IdentificationData) is guaranteed to be consistent,
     // so no need to check for consistency again:

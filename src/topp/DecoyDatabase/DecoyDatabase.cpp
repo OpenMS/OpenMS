@@ -9,18 +9,20 @@
 #include "NeighborSeq.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-
-#include <regex>
 
 
 using namespace OpenMS;
@@ -65,6 +67,14 @@ See www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/ and NeighborSeq for details.
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_DecoyDatabase.cli
 <B>INI file documentation of this tool:</B>
+For RNA, terminal chain modifications remain at their original ends.
+The optional @p keep_terminal_nucleotides flag also fixes the first and last residues.
+With @p rnase, each original RNase product is reversed or shuffled within the parent;
+the library transformation preserves the original RNase cleavage boundaries and composition.
+Unspecific cleavage is unsupported because its overlapping products do not partition
+the parent. If an RNase produces only single-nucleotide fragments, a warning reports
+that the decoy remains identical to the target.
+
 @htmlinclude TOPP_DecoyDatabase.html
 
 */
@@ -96,10 +106,12 @@ protected:
     registerStringOption_("type", "<choice>", "protein", "Type of sequence. RNA sequences may contain modification codes, which will be handled correctly if this is set to 'RNA'.", false);
     setValidStrings_("type", {"protein", "RNA"});
 
+    registerFlag_("keep_terminal_nucleotides", "For RNA sequences: preserve 5' and 3' terminal nucleotides when reversing/shuffling. Terminal chain modifications are always retained; this option additionally keeps the first and last nucleotide in place.", false);
+
     registerStringOption_("method", "<choice>", "reverse", "Method by which decoy sequences are generated from target sequences. Note that all sequences are shuffled using the same random seed, ensuring that identical sequences produce the same shuffled decoy sequences. Shuffled sequences that produce highly similar output sequences are shuffled again (see shuffle_sequence_identity_threshold).", false);
     setValidStrings_("method", {"reverse", "shuffle"});
-    registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
-    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. In case of repeated failure, individual amino acids are 'mutated' to produce a different amino acid sequence.", false, true);
+    registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false, true);
+    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. For proteins, repeated failure may mutate residues. For RNA, this is a best-effort identity target: composition and modifications are retained and an unattained target is reported.", false, true);
     registerIntOption_("shuffle_decoy_ratio", "<int>", 1, "shuffle: target-decoy database size ratio. The resulting size between target and decoy databases is 1 to this integer value.", false, true);
     setMinInt_("shuffle_decoy_ratio", 1);
 
@@ -107,8 +119,13 @@ protected:
 
     StringList all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
-    registerStringOption_("enzyme", "<enzyme>", "Trypsin", "Enzyme used for the digestion of the sample. Only applicable if parameter 'type' is 'protein'.",false);
+    registerStringOption_("enzyme", "<enzyme>", "Trypsin", "Enzyme used for the digestion of the sample. Only applicable if parameter 'type' is 'protein'.", false);
     setValidStrings_("enzyme", all_enzymes);
+
+    StringList all_rnases;
+    RNaseDB::getInstance()->getAllNames(all_rnases);
+    registerStringOption_("rnase", "<enzyme>", "no cleavage", "RNase used for the digestion of the RNA. Only applicable if parameter 'type' is 'RNA'. Per-fragment reversal/shuffling (analogous to protein mode with an enzyme) is performed when an RNase other than 'no cleavage' is specified. Unspecific cleavage is unsupported because its products overlap; a warning is issued if all products are single nucleotides and the decoy is unchanged.", false);
+    setValidStrings_("rnase", all_rnases);
 
     registerSubsection_("Decoy", "Decoy parameters section");
 
@@ -202,6 +219,14 @@ protected:
     }
 
     const SeqType input_type = getStringOption_("type") == "RNA" ? SeqType::RNA : SeqType::protein;
+    bool keep_terminal_nucleotides = getFlag_("keep_terminal_nucleotides");
+
+    // Warn if keep_terminal_nucleotides is used with protein mode
+    if (keep_terminal_nucleotides && input_type == SeqType::protein)
+    {
+      OPENMS_LOG_WARN << "Warning: 'keep_terminal_nucleotides' flag is intended for RNA mode and will be ignored for protein sequences.\n";
+      keep_terminal_nucleotides = false;
+    }
 
     Param decoy_param = getParam_().copy("Decoy:", true);
     bool keepN = decoy_param.getValue("keepPeptideNTerm").toBool();
@@ -221,10 +246,25 @@ protected:
     const int seed = (seed_option == "time") ? time(nullptr) : StringUtils::toInt32(seed_option);
         
     // Configure Enzymatic digestion
-    // TODO: allow user-specified regex
     ProteaseDigestion digestion;
     std::string enzyme = StringUtils::trimmed(getStringOption_("enzyme"));
-    if ((input_type == SeqType::protein) && ! enzyme.empty()) { digestion.setEnzyme(enzyme); }
+    if ((input_type == SeqType::protein) && !enzyme.empty())
+    {
+      digestion.setEnzyme(enzyme);
+    }
+
+    // Configure RNA enzymatic digestion
+    RNaseDigestion rnase_digestion;
+    std::string rnase = StringUtils::trimmed(getStringOption_("rnase"));
+    if (input_type == SeqType::RNA && !rnase.empty() && rnase != "no cleavage")
+    {
+      if (rnase == "unspecific cleavage")
+      {
+        OPENMS_LOG_ERROR << "The RNase 'unspecific cleavage' returns overlapping products and cannot be used for per-fragment RNA decoy generation.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      rnase_digestion.setEnzyme(rnase);
+    }
 
     //-------------------------------------------------------------
     // reading input
@@ -414,44 +454,69 @@ protected:
           // new decoy sequence
           if (input_type == SeqType::RNA)
           {
-            string quick_seq = decoy_entry.sequence;
-            bool five_p = (decoy_entry.sequence.front() == 'p');
-            bool three_p = (decoy_entry.sequence.back() == 'p');
-            if (five_p) // we don't want to reverse terminal phosphates
-            {
-              quick_seq.erase(0, 1);
-            }
-            if (three_p) { quick_seq.pop_back(); }
+            NASequence na_seq = NASequence::fromString(decoy_entry.sequence);
 
-            vector<std::string> tokenized;
-            std::smatch m;
-            std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
-            std::regex re(pattern);
+            if (!rnase.empty() && rnase != "no cleavage")
+            {
+              // Digest to find fragment boundaries, then reverse/shuffle
+              // each fragment's nucleotides within the full sequence.
+              // We work on the original NASequence's nucleotide vector to
+              // avoid invalid strings from concatenating fragment toString()
+              // results (which would embed 3'-phosphate 'p' characters).
+              const auto fragment_positions = rnase_digestion.getFragmentPositions(na_seq);
+              Size covered_length = 0;
+              bool has_multiple_nucleotides = false;
+              for (const auto& [start, length] : fragment_positions)
+              {
+                // Validate all coordinates before using iterators or unchecked sequence indexing.
+                if (start != covered_length || start > na_seq.size() ||
+                    length == 0 || length > na_seq.size() - start)
+                {
+                  OPENMS_LOG_ERROR << "RNase '" << rnase << "' products do not partition RNA sequence '"
+                                   << entry.identifier << "' into contiguous, non-overlapping fragments.\n";
+                  return ILLEGAL_PARAMETERS;
+                }
+                covered_length += length;
+                has_multiple_nucleotides = has_multiple_nucleotides || length > 1;
+              }
+              if (covered_length != na_seq.size())
+              {
+                OPENMS_LOG_ERROR << "RNase '" << rnase << "' products do not cover RNA sequence '"
+                                 << entry.identifier << "'.\n";
+                return ILLEGAL_PARAMETERS;
+              }
+              if (!has_multiple_nucleotides && !na_seq.empty())
+              {
+                OPENMS_LOG_WARN << "RNase '" << rnase << "' produces only single-nucleotide fragments for RNA sequence '"
+                                << entry.identifier << "'; the decoy is identical to the target.\n";
+              }
 
-            while (std::regex_search(quick_seq, m, re))
+              DecoyGenerator generator;
+              generator.setSeed(repeat_seed);
+              const auto result = shuffle ?
+                generator.shufflePeptides(na_seq, rnase, max_attempts, identity_threshold,
+                                          keep_terminal_nucleotides, keep_terminal_nucleotides) :
+                generator.reversePeptides(na_seq, rnase, keep_terminal_nucleotides, keep_terminal_nucleotides);
+              decoy_entry.sequence = result.toString();
+            }
+            else
             {
-              tokenized.emplace_back(m.str(0));
-              quick_seq = m.suffix();
+              // No digestion: reverse/shuffle the whole sequence
+              if (shuffle)
+              {
+                DecoyGenerator generator;
+                generator.setSeed(repeat_seed);
+                NASequence decoy_seq = generator.shufflePeptides(na_seq, "no cleavage", max_attempts,
+                  identity_threshold, keep_terminal_nucleotides, keep_terminal_nucleotides);
+                decoy_entry.sequence = decoy_seq.toString();
+              }
+              else // reverse
+              {
+                NASequence decoy_seq = na_seq.getReversed(keep_terminal_nucleotides, keep_terminal_nucleotides);
+                decoy_entry.sequence = decoy_seq.toString();
+              }
             }
 
-            if (shuffle)
-            {
-              shuffler.seed(repeat_seed);
-              shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
-            }
-            else // reverse
-            {
-              reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
-            }
-            if (five_p) // add back 5'
-            {
-              tokenized.insert(tokenized.begin(),std::string("p"));
-            }
-            if (three_p) // add back 3'
-            {
-              tokenized.emplace_back("p");
-            }
-            decoy_entry.sequence = ListUtils::concatenate(tokenized, "");
           }
           else // protein input
           {

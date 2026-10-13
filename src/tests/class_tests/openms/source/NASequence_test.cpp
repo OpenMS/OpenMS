@@ -841,6 +841,76 @@ START_SECTION(([EXTRA] std::hash<NASequence>))
 }
 END_SECTION
 
+START_SECTION(NASequence getReversed(bool keep_five_prime, bool keep_three_prime) const)
+{
+  // Simple reversal
+  NASequence seq = NASequence::fromString("AUGCAUGC");
+  NASequence rev = seq.getReversed();
+  TEST_EQUAL(rev.toString(), "CGUACGUA")
+
+  // Keep 5' terminal nucleotide
+  NASequence rev_keep5 = seq.getReversed(true, false);
+  TEST_EQUAL(rev_keep5.toString(), "ACGUACGU")
+
+  // Keep 3' terminal nucleotide
+  NASequence rev_keep3 = seq.getReversed(false, true);
+  TEST_EQUAL(rev_keep3.toString(), "GUACGUAC")
+
+  // Keep both terminals
+  NASequence rev_keepboth = seq.getReversed(true, true);
+  TEST_EQUAL(rev_keepboth.toString(), "AGUACGUC")
+
+  // With 5' and 3' terminal modifications - they should be preserved automatically
+  NASequence seq_mods = NASequence::fromString("pAUGCp");
+  NASequence rev_mods = seq_mods.getReversed();
+  // Internal sequence reversed, terminal mods stay in position
+  TEST_EQUAL(rev_mods.toString(), "pCGUAp")
+
+  // With modifications and keep_terminal_nucleotides
+  NASequence rev_mods_keep = seq_mods.getReversed(true, true);
+  // A and C preserved at terminals, UG reversed to GU in middle
+  TEST_EQUAL(rev_mods_keep.toString(), "pAGUCp")
+
+  // Single nucleotide - nothing to reverse
+  NASequence single = NASequence::fromString("A");
+  NASequence single_rev = single.getReversed();
+  TEST_EQUAL(single_rev.toString(), "A")
+
+  // With modified ribonucleotide
+  NASequence seq_with_mod = NASequence::fromString("AUG[Um]C");
+  NASequence rev_with_mod = seq_with_mod.getReversed();
+  TEST_EQUAL(rev_with_mod.toString(), "C[Um]GUA")
+}
+END_SECTION
+
+START_SECTION(float getSequenceIdentity(const NASequence& other) const)
+{
+  TEST_EXCEPTION(Exception::IllegalArgument, NASequence::fromString("ACGU").getSequenceIdentity(NASequence::fromString("A")))
+  TEST_EXCEPTION(Exception::IllegalArgument, NASequence::fromString("A").getSequenceIdentity(NASequence::fromString("ACGU")))
+  NASequence seq1 = NASequence::fromString("AUGCAUGC");
+  NASequence seq2 = NASequence::fromString("AUGCAUGC");
+
+  // Identical sequences
+  TEST_REAL_SIMILAR(seq1.getSequenceIdentity(seq2), 1.0)
+
+  // Completely different
+  NASequence seq3 = NASequence::fromString("CUAGCUAG");
+  float identity = seq1.getSequenceIdentity(seq3);
+  TEST_EQUAL(identity < 1.0, true)
+
+  // Reversed sequence
+  NASequence rev = seq1.getReversed();
+  float rev_identity = seq1.getSequenceIdentity(rev);
+  TEST_EQUAL(rev_identity < 1.0, true)
+
+  // Empty sequences
+  NASequence empty1, empty2;
+  TEST_REAL_SIMILAR(empty1.getSequenceIdentity(empty2), 1.0)
+}
+END_SECTION
+
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

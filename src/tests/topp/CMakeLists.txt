@@ -4594,6 +4594,30 @@ add_test("TOPP_DecoyDatabase_9" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_
 set_tests_properties("TOPP_DecoyDatabase_9" PROPERTIES WILL_FAIL 1)
 
 
+# ... RNA reverse with keep_terminal_nucleotides
+add_test("TOPP_DecoyDatabase_10" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_10.tmp.fasta -decoy_string "DECOY_SEQ_" -decoy_string_position "prefix" -method reverse -seed 42 -keep_terminal_nucleotides)
+add_test("TOPP_DecoyDatabase_10_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_10.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_10_out.fasta )
+set_tests_properties("TOPP_DecoyDatabase_10_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_10")
+# ... RNA reverse with RNase_T1 digestion
+add_test("TOPP_DecoyDatabase_11" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_11.tmp.fasta -decoy_string "DECOY_SEQ_" -decoy_string_position "prefix" -method reverse -seed 42 -rnase RNase_T1)
+add_test("TOPP_DecoyDatabase_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_11.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_11_out.fasta )
+set_tests_properties("TOPP_DecoyDatabase_11_out" PROPERTIES DEPENDS "TOPP_DecoyDatabase_11")
+# ... overlapping RNase products must fail cleanly before an output is created.
+foreach(method reverse shuffle)
+  add_test(NAME "TOPP_DecoyDatabase_12_${method}" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/DecoyDatabase;-test;-type;RNA;-in;${DATA_DIR_TOPP}/DecoyDatabase_4.fasta;-out;${TESTS_TEMP_DIR}/DecoyDatabase_12_${method}.tmp.fasta;-rnase;unspecific cleavage;-method;${method}"
+    -DEXPECTED_CODE=6
+    "-DEXPECTED_OUTPUT_REGEX=overlapping products"
+    "-DABSENT_FILE=${TESTS_TEMP_DIR}/DecoyDatabase_12_${method}.tmp.fasta"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+  # ... an RNase that cuts at every site must report that its decoy is unchanged.
+  add_test(NAME "TOPP_DecoyDatabase_13_${method}" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/DecoyDatabase;-test;-type;RNA;-in;${DATA_DIR_TOPP}/DecoyDatabase_4.fasta;-out;${TESTS_TEMP_DIR}/DecoyDatabase_13_${method}.tmp.fasta;-rnase;RNase_H;-method;${method}"
+    -DEXPECTED_CODE=0
+    "-DEXPECTED_OUTPUT_REGEX=single-nucleotide fragments.*the decoy is identical to the target"
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+endforeach()
+
 # SimpleSearchEngine:
 add_test("TOPP_SimpleSearchEngine_1" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
 -ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
@@ -6479,6 +6503,8 @@ add_test("TOPP_ProteomicsLFQ_biosaur2_seeds" ${TOPP_BIN_PATH}/ProteomicsLFQ
 
 
 #------------------------------------------------------------------------------
+
+
 # NucleicAcidSearchEngine:
 add_test("TOPP_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_12_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_13_out.tmp.oms -digest_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
 add_test("TOPP_NucleicAcidSearchEngine_11_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_11_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
@@ -6489,7 +6515,8 @@ set_tests_properties("TOPP_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "T
 # use pre-digested sequence data:
 add_test("TOPP_NucleicAcidSearchEngine_2" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_22_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_23_out.tmp.oms -digest ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_2" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
-add_test("TOPP_NucleicAcidSearchEngine_21_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+# Metadata registry order can differ after reload; allow only this pair with its expected values.
+add_test("TOPP_NucleicAcidSearchEngine_21_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" -matched_whitelist "max_decoy_reshuffle_attempts\" value=\"0\":decoy_reshuffle_protocol\" value=\"cleavage_preserving_portable_v1\"")
 add_test("TOPP_NucleicAcidSearchEngine_22_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_22_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
 # don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_23_out.oms)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_21_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_2")

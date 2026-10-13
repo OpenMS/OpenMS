@@ -474,6 +474,37 @@ namespace OpenMS
     NASequence getSubsequence(Size start = 0, Size length = Size(-1)) const;
 
     /**
+       @brief Return a reversed copy of this sequence
+
+       Reverses the internal ribonucleotide sequence while preserving 5' and 3'
+       terminal modifications in their original positions.
+
+       @param[in] keep_five_prime If true, preserve the first (5') nucleotide position
+       @param[in] keep_three_prime If true, preserve the last (3') nucleotide position
+
+       @return NASequence with reversed internal sequence
+
+       @note Terminal modifications (5' and 3' chain ends) are always preserved.
+             The keep parameters control whether the first/last nucleotides in the
+             internal sequence are kept in place (useful for preserving sequence boundary residues in decoy generation).
+    */
+    NASequence getReversed(bool keep_five_prime = false, bool keep_three_prime = false) const;
+
+    /**
+       @brief Calculate sequence identity between this and another NASequence
+
+       Compares ribonucleotide codes position-by-position. Only considers the internal
+       sequence (ignores 5' and 3' terminal modifications).
+
+       @param[in] other Sequence to compare against
+
+       @return Sequence identity as a fraction (0.0-1.0), where 1.0 means identical
+
+       @throws Exception::IllegalArgument The sequences have different lengths
+    */
+    float getSequenceIdentity(const NASequence& other) const;
+
+    /**
        @brief create NASequence object by parsing an OpenMS string
 
        @param[in] s Input string

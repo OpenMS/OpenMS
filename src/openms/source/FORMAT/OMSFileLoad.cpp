@@ -280,6 +280,8 @@ namespace OpenMS::Internal
     if (!db_->tableExists("ID_DBSearchParam")) return;
 
     SQLite::Statement query(*db_, "SELECT * FROM ID_DBSearchParam");
+    SQLite::Statement subquery_info(*db_, "");
+    const bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_DBSearchParam");
     while (query.executeStep())
     {
       Key id = query.getColumn("id").getInt64();
@@ -328,6 +330,7 @@ namespace OpenMS::Internal
       param.missed_cleavages = query.getColumn("missed_cleavages").getUInt();
       param.min_length = query.getColumn("min_length").getUInt();
       param.max_length = query.getColumn("max_length").getUInt();
+      if (have_meta_info) handleQueryMetaInfo_(subquery_info, param, id);
       ID::SearchParamRef ref = id_data.registerDBSearchParam(param);
       search_param_refs_[id] = ref;
     }

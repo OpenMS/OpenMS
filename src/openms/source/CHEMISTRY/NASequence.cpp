@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <algorithm>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -130,6 +131,51 @@ namespace OpenMS
     }
     vector<const Ribonucleotide*>::const_iterator it = seq_.begin() + start;
     return NASequence({it, it + length}, five_prime, three_prime);
+  }
+
+  NASequence NASequence::getReversed(bool keep_five_prime, bool keep_three_prime) const
+  {
+    if (seq_.size() <= 1)
+    {
+      return *this; // nothing to reverse
+    }
+
+    vector<const Ribonucleotide*> reversed_seq = seq_;
+
+    // Determine range to reverse (optionally preserving terminal nucleotides)
+    size_t start = keep_five_prime ? 1 : 0;
+    size_t end = keep_three_prime ? reversed_seq.size() - 1 : reversed_seq.size();
+
+    if (start < end)
+    {
+      reverse(reversed_seq.begin() + start, reversed_seq.begin() + end);
+    }
+
+    return NASequence(std::move(reversed_seq), five_prime_, three_prime_);
+  }
+
+  float NASequence::getSequenceIdentity(const NASequence& other) const
+  {
+    if (seq_.size() != other.seq_.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot compare two NASequences of unequal length");
+    }
+
+    if (seq_.empty())
+    {
+      return 1.0f;
+    }
+
+    int matching = 0;
+    for (size_t i = 0; i < seq_.size(); ++i)
+    {
+      if (seq_[i] == other.seq_[i])
+      {
+        ++matching;
+      }
+    }
+    return static_cast<float>(matching) / static_cast<float>(seq_.size());
   }
 
   EmpiricalFormula NASequence::getFormula(NASFragmentType type, Int charge) const

@@ -13,6 +13,10 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/RNaseDigestion.h>
+#include <limits>
+#include <map>
 
 ///////////////////////////
 
@@ -98,6 +102,60 @@ START_SECTION((std::vector<AASequence> shuffle(const AASequence& protein, const 
   TEST_EQUAL(result6.size(), 2)
   TEST_EQUAL(result6[0].toString(), "UPTECWLFREONNNORNOOEOESQEIDRGPT")
   TEST_EQUAL(result6[1].toString(), "FEIRPNEEDOROERNNCNETQGLOWOOPTUS")
+END_SECTION
+
+START_SECTION((NASequence reversePeptides(const NASequence& rna, const std::string& rnase, bool keep_five_prime, bool keep_three_prime) const))
+{
+  const auto original = NASequence::fromString("pACGU[Um]ACGp");
+  RNaseDigestion digestion;
+  digestion.setEnzyme("RNase_T1");
+  const auto reversed = dg->reversePeptides(original, "RNase_T1");
+  TEST_EQUAL(reversed.toString(), "pCAGCA[Um]UGp")
+  TEST_TRUE(digestion.getFragmentPositions(reversed) == digestion.getFragmentPositions(original))
+  TEST_TRUE(reversed.getFormula() == original.getFormula())
+  TEST_EQUAL(reversed.getFivePrimeMod(), original.getFivePrimeMod())
+  TEST_EQUAL(reversed.getThreePrimeMod(), original.getThreePrimeMod())
+  TEST_EXCEPTION(Exception::IllegalArgument, dg->reversePeptides(original, "unspecific cleavage"))
+  TEST_EQUAL(dg->reversePeptides(NASequence::fromString("pAUGCp"), "no cleavage").toString(), "pCGUAp")
+  // Also preserve before-cut and multi-nucleotide contexts, not just T1's 3' G.
+  const auto contextual = NASequence::fromString("pACAUCGACAACGUACAp");
+  for (const std::string rnase : {"RNase_MC1", "mazF", "RNase_4", "colicin_E5"})
+  {
+    digestion.setEnzyme(rnase);
+    const auto transformed = dg->reversePeptides(contextual, rnase);
+    TEST_TRUE(digestion.getFragmentPositions(transformed) == digestion.getFragmentPositions(contextual))
+    TEST_TRUE(transformed.getFormula() == contextual.getFormula())
+  }
+}
+END_SECTION
+
+START_SECTION((NASequence shufflePeptides(const NASequence& rna, const std::string& rnase, int max_attempts, double identity_threshold, bool keep_five_prime, bool keep_three_prime)))
+{
+  const auto original = NASequence::fromString("pACUU[Um]ACGACUACGp");
+  RNaseDigestion digestion;
+  digestion.setEnzyme("RNase_T1");
+  dg->setSeed(42);
+  const auto shuffled = dg->shufflePeptides(original, "RNase_T1", 30, 0.5, true, true);
+  const auto repeated = dg->shufflePeptides(original, "RNase_T1", 30, 0.5, true, true);
+  TEST_EQUAL(shuffled, repeated)
+  TEST_TRUE(shuffled.getFormula() == original.getFormula())
+  TEST_REAL_SIMILAR(shuffled.getMonoWeight(), original.getMonoWeight())
+  TEST_TRUE(digestion.getFragmentPositions(shuffled) == digestion.getFragmentPositions(original))
+  TEST_EQUAL(shuffled[0], original[0])
+  TEST_EQUAL(shuffled[shuffled.size() - 1], original[original.size() - 1])
+  std::map<std::string, Size> before, after;
+  for (Size i = 0; i < original.size(); ++i)
+  {
+    ++before[original[i]->getCode()];
+    ++after[shuffled[i]->getCode()];
+  }
+  TEST_TRUE(before == after)
+  const auto immutable = NASequence::fromString("p[Um][Um][Um]p");
+  TEST_EQUAL(dg->shufflePeptides(immutable, "no cleavage", 1, 0.0), immutable)
+  TEST_EQUAL(dg->shufflePeptides(original, "RNase_T1", 0, 0.0), original)
+  TEST_EXCEPTION(Exception::InvalidParameter, dg->shufflePeptides(original, "RNase_T1", -1))
+  TEST_EXCEPTION(Exception::InvalidParameter, dg->shufflePeptides(original, "RNase_T1", 1, std::numeric_limits<double>::quiet_NaN()))
+}
 END_SECTION
 
 delete dg;
