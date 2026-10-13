@@ -788,6 +788,22 @@ START_SECTION(importSearchParamsFromArrow - round trip)
 }
 END_SECTION
 
+START_SECTION(importSearchParamsFromArrow - an empty file list is not stored)
+{
+  // the file list column holds an empty list for a run without files; older bundles may also hold an empty raw file list
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_without_files");
+  prot_id.setMetaValue("spectra_data_raw", StringList());
+  auto table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(vector<ProteinIdentification>{prot_id});
+  TEST_NOT_EQUAL(table, nullptr)
+  vector<ProteinIdentification> imported_ids;
+  TEST_EQUAL(ProteinIdentificationArrowIO::importSearchParamsFromArrow(table, imported_ids), true)
+  TEST_EQUAL(imported_ids.size(), 1)
+  TEST_EQUAL(imported_ids[0].metaValueExists("spectra_data"), false)
+  TEST_EQUAL(imported_ids[0].metaValueExists("spectra_data_raw"), false)
+}
+END_SECTION
+
 START_SECTION(importProteinsFromArrow - round trip)
 {
   // Create test data
