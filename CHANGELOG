@@ -215,6 +215,10 @@ OpenMS Library:
     identifications first. Seeds and offset peptides are pseudo identifications without matches (meta value
     SeedFeatureID), no longer hits with a placeholder sequence, and a minimum PSM score (min_psm_cutoff) no
     longer drops them. New FAIMSHelper::filterIdentificationsByFAIMSCV(). Outputs unchanged.
+  - Decharging (FeatureDeconvolution, MetaboliteFeatureDeconvolution) keeps the identifications of features
+    as identification data: the consensus maps take the identification data of the features, their
+    consensus features link the identifications of their features (as they took their peptide
+    identifications), and identifications that none links are not part of the consensus maps.
   - IdentificationData::Run::append() appends a run built separately (e.g. by a parallel producer) and returns
     the new IDs; IdentificationDataConverter::appendFeatures() appends features with the identifications
     they link.

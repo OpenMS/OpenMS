@@ -306,6 +306,50 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
 END_SECTION
 
+START_SECTION([EXTRA] compute() with features that link identifications)
+{
+  // As with peptide identifications: a consensus feature takes the identifications of its features (once), and
+  // identifications that no feature of a consensus feature links are not part of the consensus maps.
+  MetaboliteFeatureDeconvolution fd;
+  Param p;
+  p.setValue("potential_adducts", std::vector<std::string>{"H:+:0.7","Na:+:0.3","(2)H4H-4:0:0.2:-2:heavy"}, "Ad");
+  p.setValue("mass_max_diff", 0.1);
+  p.setValue("use_minority_bound","true","enable bound");
+  fd.setParameters(p);
+
+  FeatureMap fm_in, fm_out;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_input.featureXML"), fm_in);
+  IdentificationData::Run& run = fm_in.getIdentificationData().addRun("run", IdentificationData::MoleculeKind::COMPOUND);
+  const auto source = run.addSource(IdentificationData::SourceFile());
+  for (Feature& feature : fm_in)
+  {
+    IdentificationData::Observation observation;
+    observation.rt = feature.getRT();
+    observation.mz = feature.getMZ();
+    feature.addIDQuery({run.getUuid(), run.addIdentification(source, observation)});
+  }
+  // an unassigned identification
+  run.addIdentification(source, IdentificationData::Observation());
+
+  ConsensusMap cm, cm2;
+  fd.compute(fm_in, fm_out, cm, cm2);
+
+  TEST_EQUAL(fm_out.getIdentificationData() == fm_in.getIdentificationData(), true)
+  for (const ConsensusMap* map : {&cm, &cm2})
+  {
+    set<IdentificationData::QueryReference> linked;
+    for (const ConsensusFeature& cf : *map)
+    {
+      // each feature links one identification
+      TEST_EQUAL(cf.getLinkedIdentifications(map->getIdentificationData()).size(), cf.size())
+      linked.insert(cf.getIDQueries().begin(), cf.getIDQueries().end());
+    }
+    TEST_NOT_EQUAL(linked.size(), 0)
+    TEST_EQUAL(map->getIdentificationData().getRuns()[0].getNumberOfIdentifications(), linked.size())
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] Multimer detection with max_multimer=2))
 {
   // Cross-adduct multimer detection test.

@@ -750,6 +750,9 @@ namespace OpenMS
     // prepare output consensusMaps
     cons_map.setProteinIdentifications(fm_out.getProteinIdentifications());
     cons_map_p.setProteinIdentifications(fm_out.getProteinIdentifications());
+    // the identifications that the features link: only single features keep their links (see below)
+    cons_map.getIdentificationData() = fm_out.getIdentificationData();
+    cons_map_p.getIdentificationData() = fm_out.getIdentificationData();
 
     // -------------------------- //
     // **       DEBUG          ** //
@@ -895,7 +898,10 @@ namespace OpenMS
 
 
         ConsensusFeature cf(fm_out[f0_idx]);
-        cf.setPeptideIdentifications(PeptideIdentificationList()); // delete ID's as they are added later again
+        // the consensus feature of a pair does not take the identifications of its first feature
+        cf.setPeptideIdentifications(PeptideIdentificationList());
+        cf.getIDQueries().clear();
+        cf.getIDMatches().clear();
         cf.setQuality(0.0);
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
@@ -1125,6 +1131,10 @@ namespace OpenMS
     }
 
     //see Proteomics Decharger for use of ChargeLadder for candidate missing features. Could e.g., be used to predict undetected features and look for them in mzML like FeatureFinderIdentification?!
+
+    // identifications that no consensus feature links are not part of the consensus maps
+    cons_map.eraseUnassignedIdentifications();
+    cons_map_p.eraseUnassignedIdentifications();
 
     cons_map_p.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     cons_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
