@@ -300,8 +300,7 @@ void ID::Run::renumberRows_() noexcept
 void ID::Run::setSettings(const RunSettings& settings)
 {
   checkMutation_();
-  if (settings.metaValueExists("spectra_data")
-      && ! (settings.getMetaValue("spectra_data").valueType() == DataValue::STRING_LIST && settings.getMetaValue("spectra_data").toStringList().empty()))
+  if (settings.metaValueExists("spectra_data"))
     invalid("The files of a run are its sources; its settings must not list them as 'spectra_data'");
   if (! settings.search.db.empty() || ! settings.search.db_version.empty() || ! settings.search.taxonomy.empty())
     invalid("The databases of a run are its own records (Run::addDatabase); the search settings must not name them");

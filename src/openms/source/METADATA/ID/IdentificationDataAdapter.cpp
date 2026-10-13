@@ -51,14 +51,6 @@ namespace
   ID::DatabaseId legacyDatabase(ID::Run& run)
   { return run.getDatabases().empty() ? run.addDatabase(ID::Database {}) : run.getDatabaseId(0); }
 
-  /// Whether @p metadata has an empty legacy file list ('spectra_data'), which a legacy run without files may carry.
-  bool emptyFileList(const MetaInfoInterface& metadata)
-  {
-    if (! metadata.metaValueExists("spectra_data")) return false;
-    const auto& value = metadata.getMetaValue("spectra_data");
-    return value.valueType() == DataValue::STRING_LIST && value.toStringList().empty();
-  }
-
   void loss(Adapter::LegacyResult& result, const Adapter::ExportOptions& options, const std::string& message)
   {
     if (options.loss_policy == Adapter::LossPolicy::STRICT) invalid(message);
@@ -371,9 +363,8 @@ namespace
           loss(result, options,
                "Pooled inference input run " + run->getIdentifier() + " has no primary MS file that identifies its PSMs in the merged legacy protein run");
     }
-    if (! files.empty()) merged.proteins.setPrimaryMSRunPath(files);
-    else if (! joined.empty() && emptyFileList(joined.front()->getSettings())) merged.proteins.setMetaValue("spectra_data", DataValue(StringList()));
-    else merged.proteins.removeMetaValue("spectra_data");
+    // (no files: no list, see ProteinIdentification::setPrimaryMSRunPath())
+    merged.proteins.setPrimaryMSRunPath(files);
     if (inference.protein_score) writeScoreDefinition(merged.proteins, "protein_score", *inference.protein_score);
     if (inference.group_score) writeScoreDefinition(merged.proteins, "group_score", *inference.group_score);
     // Legacy proteins are identified by accession within the protein run's database.
@@ -722,8 +713,8 @@ ID::RunSettings IdentificationDataAdapter::settingsFromLegacy(const ProteinIdent
 {
   ID::RunSettings settings;
   static_cast<MetaInfoInterface&>(settings) = proteins;
-  // The files are the sources of the run. An empty list names none and stays, so export can write it again.
-  if (! emptyFileList(settings)) settings.removeMetaValue("spectra_data");
+  // The files are the sources of the run (an empty list names none, see ProteinIdentification::setPrimaryMSRunPath()).
+  settings.removeMetaValue("spectra_data");
   settings.software = proteins.getSearchEngine();
   settings.software_version = proteins.getSearchEngineVersion();
   settings.date = proteins.getDateTime();

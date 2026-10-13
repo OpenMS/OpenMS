@@ -583,21 +583,23 @@ START_SECTION([EXTRA] the sources of a run are the files of its legacy run)
   exported = Adapter::toLegacy(imported);
   TEST_EQUAL(exported.peptides[1].metaValueExists("id_merge_index"), false)
 
-  // A legacy run with an empty file list keeps it; one without a file list gets none.
+  // An empty file list names no files, as no list does: a legacy run with one is exported without a list (see
+  // ProteinIdentification::setPrimaryMSRunPath()).
   auto no_files = protein();
   no_files.setMetaValue("spectra_data", DataValue(StringList()));
   auto empty_list = Adapter::toLegacy(Adapter::fromLegacy({no_files}, {peptide()}));
-  TEST_TRUE(empty_list.proteins[0] == no_files)
   no_files.removeMetaValue("spectra_data");
+  TEST_TRUE(empty_list.proteins[0] == no_files)
   auto no_list = Adapter::toLegacy(Adapter::fromLegacy({no_files}, {peptide()}));
   TEST_TRUE(no_list.proteins[0] == no_files)
-  // Settings may keep an empty file list, but must not list files.
+  // Settings must not list files, not even none.
   ID::RunSettings listed;
   listed.setMetaValue("spectra_data", DataValue(StringList()));
   ID with_list;
-  with_list.addRun("listed").setSettings(listed);
+  auto& listed_run = with_list.addRun("listed");
+  TEST_EXCEPTION(Exception::InvalidValue, listed_run.setSettings(listed))
   listed.setMetaValue("spectra_data", DataValue(StringList {"a.mzML"}));
-  TEST_EXCEPTION(Exception::InvalidValue, with_list.getRun("listed").setSettings(listed))
+  TEST_EXCEPTION(Exception::InvalidValue, listed_run.setSettings(listed))
 
   // Without files, the identifications have an unknown source, and the export lists no files.
   legacy_run.removeMetaValue("spectra_data");
