@@ -145,5 +145,38 @@ START_SECTION((static float getCosine(const std::vector<float>& a, int a_start, 
 }
 END_SECTION
 
+START_SECTION((void performSpectrumDeconvolution(const MSSpectrum&, int, const PeakGroup&, const std::vector<Precursor>&)))
+{
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  const auto original = fd_algo.getDeconvolvedSpectrum();
+  TEST_FALSE(original.empty())
+  std::vector<Precursor> queries;
+  for (const auto& group : original)
+  {
+    for (const auto& peak : group)
+    {
+      if (peak.isotopeIndex >= 0)
+      {
+        Precursor query;
+        query.setMZ(peak.mz);
+        query.setCharge(peak.abs_charge);
+        queries.push_back(query);
+        break;
+      }
+    }
+  }
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup(), queries);
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().getOriginalSpectrum(), input[3])
+  const auto directed = fd_algo.getDeconvolvedSpectrum();
+  TEST_EQUAL(directed.size(), original.size())
+  for (Size i = 0; i < std::min(directed.size(), original.size()); ++i)
+  {
+    TEST_EQUAL(directed[i].getMonoMass(), original[i].getMonoMass())
+    TEST_EQUAL(directed[i].size(), original[i].size())
+  }
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+}
+END_SECTION
 END_TEST
 

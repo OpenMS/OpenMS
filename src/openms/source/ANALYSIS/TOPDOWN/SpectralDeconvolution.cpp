@@ -11,7 +11,9 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <boost/dynamic_bitset.hpp>
+#include <optional>
 #ifdef _OPENMP
   #include <omp.h>
 #endif
@@ -209,6 +211,17 @@ namespace OpenMS
   // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
   void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group)
   {
+    performSpectrumDeconvolution(spec, scan_number, precursor_peak_group, {});
+  }
+
+  void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group,
+                                                           const std::vector<Precursor>& precursors)
+  {
+    if (!precursors.empty() && spec.getMSLevel() != 1)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Precursor queries require an MS1 spectrum.");
+    }
     // Every bitsets_.impl access is reached through this function, so this is the only place a
     // moved-from instance needs its bitsets recreated. Keep it that way.
     if (!bitsets_.impl) bitsets_.impl = std::make_unique<Bitsets::Impl>();
@@ -244,7 +257,7 @@ namespace OpenMS
     if (log_mz_peaks_.empty()) { return; }
 
     // This is the main FLASHDeconv function in which deconvolution is performed.
-    generatePeakGroupsFromSpectrum_();
+    generatePeakGroupsFromSpectrum_(precursors);
   }
 
   void SpectralDeconvolution::updateMembers_()
@@ -706,7 +719,7 @@ namespace OpenMS
   }
 
   // With the mass bins from updateMassBins_, select peaks from the same mass in the original input spectrum
-  void SpectralDeconvolution::getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges)
+  void SpectralDeconvolution::getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges, bool directed)
   {
     double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     double tol = tolerance_[ms_level_ - 1];
@@ -716,7 +729,11 @@ namespace OpenMS
     // this stores which peak is now being considered per charge. Per charge, peak is considered from left (lowest m/z) to right (highest m/z).
     auto current_peak_index = std::vector<int>(charge_range, 0);
     deconvolved_spectrum_.reserve(bitsets_.impl->binned_log_masses_.count());
-    Size mass_bin_index = bitsets_.impl->binned_log_masses_.find_first();
+    std::vector<Size> mass_bins;
+    for (Size bin = bitsets_.impl->binned_log_masses_.find_first(); bin != bitsets_.impl->binned_log_masses_.npos;
+         bin = bitsets_.impl->binned_log_masses_.find_next(bin)) mass_bins.push_back(bin);
+    std::vector<std::optional<PeakGroup>> groups(directed ? mass_bins.size() : 0);
+    const int threads = getThreadCount_(mass_bins.size(), directed);
     auto peak_bin_numbers = std::vector<Size>(log_mz_peak_size);
     // per peak, store the m/z bin number for fast processing
     for (int i = 0; i < log_mz_peak_size; i++)
@@ -725,8 +742,10 @@ namespace OpenMS
     }
 
     // main iteration. per_mass_abs_charge_ranges gives the range of charges for each mass bin
-    while (mass_bin_index != bitsets_.impl->binned_log_masses_.npos)
+  #pragma omp parallel for if(directed) num_threads(threads) schedule(dynamic, 16) default(none) shared(directed, groups, mass_bins, bin_mul_factor, tol, charge_range, per_mass_abs_charge_ranges, current_peak_index, peak_bin_numbers, log_mz_peak_size, mass_bin_size)
+    for (SignedSize group_index = 0; group_index < SignedSize(mass_bins.size()); ++group_index)
     {
+      const Size mass_bin_index = mass_bins[group_index];
       double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_mul_factor);
       double mass = exp(log_m);
 
@@ -749,7 +768,8 @@ namespace OpenMS
         if (mass_bin_index < (size_t)bin_offset) { continue; }
 
         Size b_index = mass_bin_index - bin_offset; // m/z bin
-        int& cpi = current_peak_index[j];           // in this charge which peak is to be considered?
+        int cpi = directed ? int(std::lower_bound(peak_bin_numbers.begin(), peak_bin_numbers.end(), b_index) - peak_bin_numbers.begin())
+                           : current_peak_index[j];           // in this charge which peak is to be considered?
         double max_intensity = -1;
 
         while (cpi < log_mz_peak_size - 1) // scan through peaks from cpi
@@ -767,6 +787,7 @@ namespace OpenMS
           cpi++;
         }
 
+        if (!directed) current_peak_index[j] = cpi;
         if (max_peak_index < 0) { continue; }
 
         // Search for local max.
@@ -871,10 +892,20 @@ namespace OpenMS
           pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
           pg.sort();
 
-          deconvolved_spectrum_.push_back(pg); //
+          if (directed) groups[group_index].emplace(std::move(pg));
+          else deconvolved_spectrum_.push_back(pg);
         }
       }
-      mass_bin_index = bitsets_.impl->binned_log_masses_.find_next(mass_bin_index);
+    }
+    if (directed)
+    {
+      // Pack in original mass-bin order independently of worker completion order.
+      std::vector<PeakGroup> ordered;
+      for (auto& group : groups)
+      {
+        if (group) ordered.emplace_back(std::move(*group));
+      }
+      deconvolved_spectrum_.setPeakGroups(ordered);
     }
   }
 
@@ -893,7 +924,7 @@ namespace OpenMS
   }
 
   // spectral deconvolution main function
-  void SpectralDeconvolution::generatePeakGroupsFromSpectrum_()
+  void SpectralDeconvolution::generatePeakGroupsFromSpectrum_(const std::vector<Precursor>& precursors)
   {
     deconvolved_spectrum_.clear();
     int current_charge_range = current_max_charge_;
@@ -980,8 +1011,15 @@ namespace OpenMS
     // main algorithm to generate mass bins
     const auto per_mass_abs_charge_ranges = updateMassBins_(binned_log_mz_peak_intensities);
     // main algorithm to generate peak groups
-    getCandidatePeakGroups_(per_mass_abs_charge_ranges);
-    scoreAndFilterPeakGroups_();
+    if (ms_level_ == 1 && !precursors.empty())
+    {
+      getPrecursorCandidatePeakGroups_(per_mass_abs_charge_ranges, precursors);
+    }
+    else
+    {
+      getCandidatePeakGroups_(per_mass_abs_charge_ranges);
+    }
+    scoreAndFilterPeakGroups_(ms_level_ == 1 && !precursors.empty());
   }
 
   bool SpectralDeconvolution::isPeakGroupInExcludedMassForDecoyRuns_(const PeakGroup& peak_group, double tol, int offset) const
@@ -1008,13 +1046,142 @@ namespace OpenMS
   }
 
 
-  void SpectralDeconvolution::scoreAndFilterPeakGroups_()
+  void SpectralDeconvolution::restrictCandidateMassBins_(std::vector<std::pair<double, double>> intervals)
+  {
+    std::sort(intervals.begin(), intervals.end());
+    std::vector<std::pair<double, double>> merged;
+    for (const auto& interval : intervals)
+    {
+      if (merged.empty() || interval.first > merged.back().second)
+      {
+        merged.push_back(interval);
+      }
+      else
+      {
+        merged.back().second = std::max(merged.back().second, interval.second);
+      }
+    }
+    Size range = 0;
+    auto& bins = bitsets_.impl->binned_log_masses_;
+    for (Size bin = bins.find_first(); bin != bins.npos;)
+    {
+      const Size next = bins.find_next(bin);
+      const double mass = exp(getBinValue_(bin, mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]));
+      while (range < merged.size() && merged[range].second < mass) ++range;
+      if (range == merged.size() || mass < merged[range].first) bins.reset(bin);
+      bin = next;
+    }
+  }
+
+  void SpectralDeconvolution::getPrecursorCandidatePeakGroups_(const Matrix<int>& charge_ranges, const std::vector<Precursor>& precursors)
+  {
+    const auto all_bins = bitsets_.impl->binned_log_masses_;
+    const double carrier = FLASHHelperClasses::getChargeMass(is_positive_);
+    // Cover initial isotope recruitment, apex reassignment, and all ten offset
+    // refinement steps. This bound is calculated from the configured averagine,
+    // rather than truncating the precursor search to a fixed isotope list.
+    const auto isotope_span = [&](double mass)
+    {
+      mass = std::min(current_max_mass_, mass + avg_.getMaxIsotopeIndex() * iso_da_distance_);
+      return int(avg_.getLeftCountFromApex(mass) + avg_.getRightCountFromApex(mass) +
+        avg_.getApexIndex(mass) + 10 * (avg_.getApexIndex(mass) / 4 + 1) + 4);
+    };
+    std::vector<std::pair<double, double>> intervals;
+    for (const auto& precursor : precursors)
+    {
+      if (!std::isfinite(precursor.getMZ()) || precursor.getMZ() <= 0) continue;
+      const int reported = std::abs(precursor.getCharge());
+      for (int z = min_abs_charge_; z <= current_max_charge_; ++z)
+      {
+        if (reported != 0 && reported != z) continue;
+        const double mass = (precursor.getMZ() - carrier) * z;
+        // Initial apex bins can shift continuously when overlapping charge
+        // states refine the mass. Restricting them to exact isotope-spaced
+        // bands can discard a competing envelope before global filtering.
+        const double delta = isotope_span(mass) * iso_da_distance_ + 4 * tolerance_[ms_level_ - 1] * mass;
+        intervals.emplace_back(mass - avg_.getLastIndex(mass) * iso_da_distance_ - delta, mass + delta);
+      }
+    }
+    restrictCandidateMassBins_(intervals);
+    const auto seed_bins = bitsets_.impl->binned_log_masses_;
+    getCandidatePeakGroups_(charge_ranges, true);
+    const auto scored = scorePeakGroups_(true);
+    // Charge-error rejection compares groups that share an observed signal peak.
+    // Include every alternative charge interpretation of the queried groups'
+    // evidence before applying the ordinary global filters. Do not mark these
+    // groups as targeted: they receive no exemption from competition.
+    std::set<double> evidence;
+    for (Size i : scored)
+    {
+      const auto& group = deconvolved_spectrum_[i];
+      bool relevant = false;
+      for (const auto& precursor : precursors)
+      {
+        const double delta = precursor.getMZ() * tolerance_[ms_level_ - 1];
+        for (const auto& peak : group)
+        {
+          if ((precursor.getCharge() == 0 || std::abs(precursor.getCharge()) == peak.abs_charge) &&
+              peak.isotopeIndex >= 0 && std::abs(peak.mz - precursor.getMZ()) <= delta)
+          {
+            relevant = true;
+            break;
+          }
+        }
+        if (relevant) break;
+      }
+      if (relevant)
+      {
+        for (const auto& peak : group) evidence.insert(peak.mz);
+      }
+    }
+    // Also retain the seed intervals for neighboring groups and isotope aliases.
+    // Merge overlapping profile-sample bands before expanding charge/isotope
+    // aliases; otherwise thousands of samples create millions of duplicate bands.
+    std::vector<std::pair<double, double>> observed_ranges;
+    for (double mz : evidence)
+    {
+      if (observed_ranges.empty() || mz - observed_ranges.back().second >
+          2 * tolerance_[ms_level_ - 1] * mz)
+      {
+        observed_ranges.emplace_back(mz, mz);
+      }
+      else observed_ranges.back().second = mz;
+    }
+    for (const auto& [low_mz, high_mz] : observed_ranges)
+    {
+      for (int z = 1; z <= current_max_charge_; ++z)
+      {
+        const double mass = ((low_mz + high_mz) / 2 - carrier) * z;
+        const double delta = isotope_span(mass) * iso_da_distance_ +
+          4 * tolerance_[ms_level_ - 1] * mass + (high_mz - low_mz) * z / 2;
+        intervals.emplace_back(mass - delta, mass + delta);
+      }
+    }
+    bitsets_.impl->binned_log_masses_ = all_bins;
+    restrictCandidateMassBins_(std::move(intervals));
+    bitsets_.impl->binned_log_masses_ |= seed_bins;
+    deconvolved_spectrum_.clear();
+    getCandidatePeakGroups_(charge_ranges, true);
+  }
+
+  int SpectralDeconvolution::getThreadCount_(Size group_count, bool directed)
+  {
+#ifdef _OPENMP
+    const int maximum = omp_get_max_threads();
+    return directed ? std::min(maximum, std::max(1, int(group_count / 256))) : maximum;
+#else
+    return 1;
+#endif
+  }
+
+  std::vector<Size> SpectralDeconvolution::scorePeakGroups_(bool directed)
   {
     double tol = tolerance_[ms_level_ - 1];
-    auto selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
+    const int threads = getThreadCount_(deconvolved_spectrum_.size(), directed);
+    std::vector<unsigned char> selected(deconvolved_spectrum_.size(), 0);
     double snr_threshold = min_snr_[ms_level_ - 1];
 
-  #pragma omp parallel for default(none) shared(tol, selected, snr_threshold, std::cout)
+  #pragma omp parallel for num_threads(threads) default(none) shared(tol, selected, snr_threshold, std::cout)
     for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
     {
       int offset = 0;
@@ -1082,10 +1249,23 @@ namespace OpenMS
         }
       }
 
-  #pragma omp critical
-      selected[i] = true;
+      selected[i] = 1;
     }
 
+    std::vector<Size> indices;
+    for (Size i = 0; i < selected.size(); ++i)
+    {
+      if (selected[i]) indices.push_back(i);
+    }
+    return indices;
+  }
+
+  void SpectralDeconvolution::scoreAndFilterPeakGroups_(bool directed)
+  {
+    double snr_threshold = min_snr_[ms_level_ - 1];
+    double tol = tolerance_[ms_level_ - 1];
+    auto selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
+    for (Size i : scorePeakGroups_(directed)) selected[i] = true;
     Size selected_count = selected.count();
     if (selected_count == 0)
     {
@@ -1118,10 +1298,11 @@ namespace OpenMS
     removeChargeErrorPeakGroups_(deconvolved_spectrum_, target_decoy_type_);
 
     // final harmonics removal
+    const int threads = getThreadCount_(deconvolved_spectrum_.size(), directed);
     selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
     filtered_peak_groups = std::vector<PeakGroup>();
 
-  #pragma omp parallel for default(none) shared(tol, selected, harmonic_charges_)
+  #pragma omp parallel for num_threads(threads) default(none) shared(tol, selected, harmonic_charges_)
     for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
     {
       const auto& peak_group = deconvolved_spectrum_[i];

@@ -62,6 +62,27 @@ namespace OpenMS
     */
     void performSpectrumDeconvolution(const MSSpectrum& spec, int scan_number, const PeakGroup& precursor_peak_group);
 
+    /** @brief Restrict MS1 envelope construction to precursor hypotheses and their competitors.
+
+      The complete spectrum remains available for isotope recruitment, noise,
+      and harmonic checks. Candidate mass bin selection retains its global
+      intensity competition. An empty list uses ordinary untargeted FLASH.
+      Unlike setTargetMasses(), this does not prioritize or protect hypotheses.
+      Queries are scoped to this call; they never persist into another spectrum.
+      Competition uses the union of the batch's query and evidence intervals.
+      Callers requiring identical context across subsets should use the same
+      query batch or ordinary untargeted FLASH.
+      @throws Exception::IllegalArgument If nonempty queries are supplied for a non-MS1 spectrum.
+      @param[in] spec Complete parent MS1 spectrum.
+      @param[in] scan_number Scan number from the input spectrum.
+      @param[in] precursor_peak_group Precursor peak group (unused for MS1).
+      @param[in] precursors Selected ions sharing this parent MS1; charge zero
+      considers every configured charge. Reported charges are interpreted by magnitude.
+    */
+    void performSpectrumDeconvolution(const MSSpectrum& spec, int scan_number,
+                                      const PeakGroup& precursor_peak_group,
+                                      const std::vector<Precursor>& precursors);
+
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
 
@@ -185,6 +206,18 @@ namespace OpenMS
     };
     Bitsets bitsets_;
 
+    /// Restrict mass bins using merged apex-mass intervals.
+    void restrictCandidateMassBins_(std::vector<std::pair<double, double>> intervals);
+
+    /// Construct queried hypotheses and retain alternative charge explanations of their evidence.
+    void getPrecursorCandidatePeakGroups_(const Matrix<int>& charge_ranges, const std::vector<Precursor>& precursors);
+
+    /// Refine and score groups independently, returning valid indices in construction order.
+    std::vector<Size> scorePeakGroups_(bool directed = false);
+
+    /// Avoid large worker teams for small precursor jobs.
+    static int getThreadCount_(Size group_count, bool directed);
+
     /// monoisotopic masses that are targeted for FLASHIda global targeting mode
     std::vector<double> target_mono_masses_;
 
@@ -258,7 +291,7 @@ namespace OpenMS
     double getMzFromMzBin_(Size mass_bin, double bin_mul_factor) const;
 
     /// Generate peak groups from the input spectrum
-    void generatePeakGroupsFromSpectrum_();
+    void generatePeakGroupsFromSpectrum_(const std::vector<Precursor>& precursors);
 
     /// filter out overlapping masses
     static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
@@ -283,14 +316,15 @@ namespace OpenMS
 
     /** @brief For selected masses in binned_log_masses_, select the peaks from the original spectrum. Also isotopic peaks are clustered in this function.
         @param[in] per_mass_abs_charge_ranges charge range per mass
+        @param[in] directed Use independent peak lookup and parallel candidate recruitment for directed deconvolution.
      */
-    void getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges);
+    void getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges, bool directed = false);
 
     /// Make the universal pattern.
     void setFilters_();
 
     /// function for peak group scoring and filtering
-    void scoreAndFilterPeakGroups_();
+    void scoreAndFilterPeakGroups_(bool directed = false);
 
     /// filter out charge error masses
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec, const PeakGroup::TargetDecoyType& target_decoy_type) const;
