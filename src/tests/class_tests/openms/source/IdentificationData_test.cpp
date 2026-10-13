@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include <thread>
@@ -247,6 +248,40 @@ START_SECTION((filtering is atomic, keeps stable IDs and clears removed selectio
   TEST_TRUE(run.findIdentification(empty) == nullptr)
   TEST_TRUE(run.findMatch(a) != nullptr)
   run.validate();
+}
+END_SECTION
+
+START_SECTION((Size Run::retainBest(ScoreId score, bool keep_ties = true, bool keep_empty_queries = false)))
+{
+  // Without ties, exact score ties keep the same match whatever the order of the matches: the first in value order
+  // (here the representation), whether it is a target or a decoy.
+  for (bool reverse : {false, true})
+  {
+    for (bool higher_better : {false, true})
+    {
+      ID::Run run("ties");
+      auto source = run.addSource({});
+      auto test_score = run.addScore(score("test", higher_better));
+      auto query = run.addIdentification(source, {});
+      std::vector<std::string> sequences {"AAG", "AGG"};
+      if (reverse) std::reverse(sequences.begin(), sequences.end());
+      for (const auto& sequence : sequences)
+      {
+        auto match = peptide(sequence);
+        match.target_decoy = sequence == "AAG" ? ID::TargetDecoy::DECOY : ID::TargetDecoy::TARGET;
+        run.addMatch(query, match, {10.0});
+      }
+      auto with_ties = run;
+      TEST_EQUAL(with_ties.retainBest(test_score), 0)
+      TEST_EQUAL(run.retainBest(test_score, false), 1)
+      ABORT_IF(run.getNumberOfMatches() != 1)
+      TEST_EQUAL(run.getIdentification(query).getMatches()[0].representation, "AAG")
+      // a better score wins over the value order
+      auto better = run.addMatch(query, peptide("AGG"), {higher_better ? 11.0 : 9.0});
+      TEST_EQUAL(run.retainBest(test_score, false), 1)
+      TEST_TRUE(run.findMatch(better) != nullptr)
+    }
+  }
 }
 END_SECTION
 

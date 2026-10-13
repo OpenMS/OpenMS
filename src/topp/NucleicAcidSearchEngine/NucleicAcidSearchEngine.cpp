@@ -10,6 +10,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+
+#include <tuple>
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -102,6 +105,14 @@ In contrast, an ambiguous modification represents two isobaric modifications (or
 For example, "mA?" stands for methyladenosine ("mA", see above) or 2'-O-methyladenosine ("Am").
 When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
 
+
+Exact score ties at @p report:top_hits remain a complete group. Exported ties use
+the library's deterministic molecule, charge and adduct value order. A representative selected downstream
+is reproducible but does not establish unique modification localization.
+When using @p digest, search tolerances and modifications in the output describe
+the current run while database and digestion provenance remain from the cache.
+LFQ targets use a finite intensity-weighted retention time, falling back to the
+median of finite observations when no valid positive intensity weights exist.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
@@ -271,7 +282,7 @@ protected:
     setValidStrings_("oligo:enzyme", all_enzymes);
 
     registerTOPPSubsection_("report", "Reporting Options");
-    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
+    registerIntOption_("report:top_hits", "<num>", 1, "Number of top-scoring hits per spectrum to retain; all exact ties at the cutoff are included (0 for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
 
     registerDoubleOption_("report:require_coverage", "<fraction>", 0.0, "Minimum fraction of internal oligonucleotide positions that must be covered by fragment ions (0.0 = no requirement, 1.0 = full coverage required). Coverage requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position.", false, true);
@@ -797,26 +808,21 @@ protected:
   void resolveAmbiguousMods_(HitsByScore& hits)
   {
     OPENMS_PRECONDITION(hits.size() > 1, "more than one hit expected");
-    auto previous_it = hits.begin();
-    // If the current hit is an ambiguity variant of the previous one, combine
-    // both into one hit. For example, if we have two hits with these sequences:
+    // If the current hit is an ambiguity variant of an earlier hit in the same
+    // hypothesis, combine both into one hit. For example, these sequences:
     // 1. "AUC[mA]Gp", 2. "AUC[Am]Gp"
     // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
-    for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    const auto merge_variants = [&](AnnotatedHit& previous_hit, const AnnotatedHit& current_hit)
     {
-      double previous_score = previous_it->first;
-      NASequence& previous_seq = previous_it->second.sequence;
-      const NASequence& current_seq = hit_it->second.sequence;
-      if ((hit_it->first != previous_score) ||
-          (current_seq.size() != previous_seq.size()) ||
+      NASequence& previous_seq = previous_hit.sequence;
+      const NASequence& current_seq = current_hit.sequence;
+      if ((current_seq.size() != previous_seq.size()) ||
           (current_seq.getFivePrimeMod() != previous_seq.getFivePrimeMod()) ||
           (current_seq.getThreePrimeMod() != previous_seq.getThreePrimeMod()) ||
-          (hit_it->second.oligo_ref != previous_it->second.oligo_ref) ||
-          (hit_it->second.precursor_ref != previous_it->second.precursor_ref)) // different hypotheses
+          (current_hit.oligo_ref != previous_hit.oligo_ref) ||
+          (current_hit.precursor_ref != previous_hit.precursor_ref)) // different hypotheses
       {
-        previous_it = hit_it;
-        ++hit_it;
-        continue;
+        return false;
       }
       bool remove_current = true;
       NASequence replacement; // potential replacement sequence for previous hit
@@ -850,16 +856,82 @@ protected:
       if (remove_current) // current hit is redundant -> remove it
       {
         if (!replacement.empty()) previous_seq = replacement;
+        return true;
+      }
+      return false;
+    };
+
+    // Sequence sorting can interleave different precursors and unrelated tied
+    // sequences. Keep all earlier representatives for each exact-score hypothesis.
+    map<const RNaseDigestion::DigestedOligo*,
+        map<const PrecursorInfo*, vector<HitsByScore::iterator>>> representatives;
+    double score = hits.begin()->first;
+    for (auto hit_it = hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    {
+      if (hit_it->first != score)
+      {
+        representatives.clear();
+        score = hit_it->first;
+      }
+      auto& earlier_hits = representatives[hit_it->second.oligo_ref][hit_it->second.precursor_ref];
+      const bool merged = any_of(earlier_hits.begin(), earlier_hits.end(), [&](const auto& previous_it)
+      {
+        return merge_variants(previous_it->second, hit_it->second);
+      });
+      if (merged)
+      {
         hit_it = hits.erase(hit_it);
       }
       else
       {
-        previous_it = hit_it;
+        earlier_hits.push_back(hit_it);
         ++hit_it;
       }
     }
   }
 
+
+  /// @brief Sort tied hits by molecule, precursor, and adduct values before registration.
+  void sortHitsByValue_(HitsByScore& hits) const
+  {
+    vector<pair<double, AnnotatedHit>> ordered_hits(hits.begin(), hits.end());
+    auto hit_key = [](const AnnotatedHit& hit)
+    {
+      const auto& precursor = *hit.precursor_ref;
+      const std::string adduct = precursor.adduct ? precursor.adduct->getName() : std::string();
+      return make_tuple(hit.sequence.toString(), hit.oligo_ref->sequence.toString(),
+                        precursor.charge, precursor.isotope, adduct,
+                        precursor.adduct ? precursor.adduct->getEmpiricalFormula().toString() : std::string(),
+                        precursor.adduct ? precursor.adduct->getCharge() : 0,
+                        precursor.adduct ? precursor.adduct->getMolMultiplier() : UInt(0),
+                        hit.precursor_error_ppm);
+    };
+    sort(ordered_hits.begin(), ordered_hits.end(), [&](const auto& lhs, const auto& rhs)
+    {
+      if (lhs.first != rhs.first)
+      {
+        return lhs.first > rhs.first;
+      }
+      return hit_key(lhs.second) < hit_key(rhs.second);
+    });
+    hits.clear();
+    hits.insert(ordered_hits.begin(), ordered_hits.end());
+  }
+
+  /// @brief Retain complete score groups at the report cutoff, independent of arrival order.
+  void retainTopHit_(HitsByScore& hits, double score, AnnotatedHit hit, Size top_hits) const
+  {
+    if ((top_hits == 0) || (hits.size() < top_hits) || (score >= hits.rbegin()->first))
+    {
+      hits.emplace(score, std::move(hit));
+      if (top_hits > 0)
+      {
+        auto cutoff = hits.begin();
+        std::advance(cutoff, std::min<Size>(top_hits, hits.size()) - 1);
+        hits.erase(hits.upper_bound(cutoff->first), hits.end());
+      }
+    }
+  }
 
   void postProcessHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits, IdentificationData& id_data, bool negative_mode)
   {
@@ -876,7 +948,13 @@ protected:
       observation.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
       observation.setMetaValue("precursor_intensity", spectrum.getPrecursors()[0].getIntensity());
       auto query = run.addIdentification(run.getSourceId(0), observation);
-      if (resolve_ambiguous_mods_ && annotated_hits[scan_index].size() > 1) resolveAmbiguousMods_(annotated_hits[scan_index]);
+      sortHitsByValue_(annotated_hits[scan_index]);
+      if (resolve_ambiguous_mods_ && annotated_hits[scan_index].size() > 1)
+      {
+        resolveAmbiguousMods_(annotated_hits[scan_index]);
+        // Merged ambiguity codes can change the value order of the surviving hits.
+        sortHitsByValue_(annotated_hits[scan_index]);
+      }
       for (const auto& [score, hit] : annotated_hits[scan_index])
       {
         IdentificationData::MatchData match;
@@ -1063,15 +1141,42 @@ protected:
       vector<double> rts;
       for (const auto& charge_pair : entry.second)
       {
-        charges.push_back(charge_pair.first);
         // use intensity-weighted mean of precursor RTs as "apex" RT:
         double weighted_rt = 0.0, total_weight = 0.0;
         for (const auto& rt_pair : charge_pair.second)
         {
-          weighted_rt += rt_pair.first * rt_pair.second;
-          total_weight += rt_pair.first;
+          if (std::isfinite(rt_pair.first) && rt_pair.first > 0.0 && std::isfinite(rt_pair.second))
+          {
+            weighted_rt += rt_pair.first * rt_pair.second;
+            total_weight += rt_pair.first;
+          }
         }
-        rts.push_back(weighted_rt / total_weight);
+        if (total_weight > 0.0 && std::isfinite(total_weight) && std::isfinite(weighted_rt))
+        {
+          rts.push_back(weighted_rt / total_weight);
+          charges.push_back(charge_pair.first);
+        }
+        else
+        {
+          vector<double> observed_rts;
+          for (const auto& rt_pair : charge_pair.second)
+          {
+            if (std::isfinite(rt_pair.second))
+            {
+              observed_rts.push_back(rt_pair.second);
+            }
+          }
+          if (!observed_rts.empty())
+          {
+            rts.push_back(Math::median(observed_rts.begin(), observed_rts.end(), false));
+            charges.push_back(charge_pair.first);
+          }
+        }
+      }
+      if (rts.empty())
+      {
+        OPENMS_LOG_WARN << "Skipping LFQ target with no finite retention time: " << name << endl;
+        continue;
       }
       tsv << name << ef << 0 << ListUtils::concatenate(charges, ",");
       // overall target RT is median over all charge states:
@@ -1409,10 +1514,13 @@ protected:
       for (const auto& database : catalog_run.getDatabases())
         result_run.addDatabase(database);
       result_run.setDatabaseSequences(catalog_run.getDatabaseSequences());
-      // the digestion settings come with the digest
+      // the digestion settings (missed cleavages, enzyme, oligo lengths) come with the digest; tolerances and
+      // modifications are those of this search
       const auto& digestion = catalog_run.getSettings().search;
       parameters.missed_cleavages = digestion.missed_cleavages;
-      if (digestion.metaValueExists("rna_enzyme")) parameters.setMetaValue("rna_enzyme", digestion.getMetaValue("rna_enzyme"));
+      parameters.enzyme_term_specificity = digestion.enzyme_term_specificity;
+      for (const char* key : {"rna_enzyme", "rna_min_length", "rna_max_length"})
+        if (digestion.metaValueExists(key)) parameters.setMetaValue(key, digestion.getMetaValue(key));
       // only the enzyme of the digest (if it names one) classifies cleavage-sensitive modifications
       search_param.digestion_enzyme = digestion.metaValueExists("rna_enzyme") ?
         RNaseDB::getInstance()->getEnzyme(digestion.getMetaValue("rna_enzyme").toString()) : nullptr;
@@ -1703,7 +1811,10 @@ protected:
               theo_ms2_spectra.addSpectrum(theo_spectrum);
             }
 
-            if (!std::isfinite(score) || score < 1e-16) continue; // no finite hit
+            if (!std::isfinite(score) || score < 1e-16)
+            {
+              continue; // no finite hit
+            }
 
             // Check fragment coverage if required
             double min_coverage = getDoubleOption_("report:require_coverage");
@@ -1727,37 +1838,16 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              HitsByScore::iterator pos = scan_hits.end();
-              if ((report_top_hits == 0) ||
-                  (scan_hits.size() < report_top_hits))
+              if (report_top_hits == 0 || scan_hits.size() < report_top_hits || score >= scan_hits.rbegin()->first)
               {
-                pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-              }
-              else // already have enough hits for this spectrum - replace one?
-              {
-                double worst_score = (--scan_hits.end())->first;
-                if (score >= worst_score)
-                {
-                  pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-                  // prune list of hits if possible (careful about tied scores):
-                  Size n_worst = scan_hits.count(worst_score);
-                  if (scan_hits.size() - n_worst >= report_top_hits)
-                  {
-                    scan_hits.erase(worst_score);
-                  }
-                }
-              }
-              // add oligo hit data only if necessary (good enough score):
-              if (pos != scan_hits.end())
-              {
-                AnnotatedHit& ah = pos->second;
-                ah.oligo_ref = oligo_ref;
-                ah.sequence = candidate;
-                // @TODO: is "observed - calculated" the right way around?
-                ah.precursor_error_ppm =
+                AnnotatedHit new_hit;
+                new_hit.oligo_ref = oligo_ref;
+                new_hit.sequence = candidate;
+                new_hit.precursor_error_ppm =
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
-                ah.annotations = annotations;
-                ah.precursor_ref = &(prec_it->second);
+                new_hit.annotations = annotations;
+                new_hit.precursor_ref = &(prec_it->second);
+                retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
               }
             }
           }
