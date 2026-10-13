@@ -120,6 +120,17 @@ namespace OpenMS
       std::string annotation;
     };
 
+    /// One encoded chromatogram: what consumeChromatogram() computes before it touches the builders.
+    /// The metadata pointers refer to the maps of the consumer that encoded the row.
+    struct EncodedRow
+    {
+      const CompoundInfo* compound = nullptr;     ///< set for precursor (MS1) traces
+      const TransitionInfo* transition = nullptr; ///< set for fragment (MS2) traces
+      std::string precursor_annotation;           ///< annotation of a precursor trace
+      std::string rt_data;                        ///< encoded RT array (empty for an empty chromatogram)
+      std::string intensity_data;                 ///< encoded intensity array
+    };
+
     int64_t parseOrAssignId_(const std::string& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
     {
       try
@@ -218,69 +229,54 @@ namespace OpenMS
 
     void consumeChromatogram(MSChromatogramParquetConsumer::ChromatogramType& c)
     {
+      EncodedRow row = encodeRow(c);
+      appendRow_(row);
+      c.clear(false);
+    }
+
+    /// Looks up the metadata of @p c and compresses its arrays. Does not modify the consumer, so it
+    /// can run concurrently with other calls; appendRow_() does the serialized part.
+    EncodedRow encodeRow(const MSChromatogramParquetConsumer::ChromatogramType& c) const
+    {
+      EncodedRow row;
       const std::string native_id = c.getNativeID();
       const bool is_precursor = StringUtils::hasSubstring(native_id, "_Precursor_i");
-      const int64_t ms_level = is_precursor ? 1 : 2;
-
-      appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
-      appendOptionalString_(source_file_builder_, source_file_, "SOURCE_FILE");
-      appendOrThrow_(ms_level_builder_.Append(ms_level), "MS_LEVEL");
       if (is_precursor)
       {
-        const std::string precursor_annotation = buildPrecursorAnnotation_(native_id);
+        row.precursor_annotation = buildPrecursorAnnotation_(native_id);
         const std::string group_id = OpenSwathHelper::computeTransitionGroupId(native_id);
         auto comp_it = compound_info_.find(group_id);
-        if (comp_it != compound_info_.end())
-        {
-          const CompoundInfo& comp = comp_it->second;
-          appendOptionalInt_(precursor_id_builder_, true, comp.precursor_id, "PRECURSOR_ID");
-          appendOptionalString_(modified_sequence_builder_, comp.modified_sequence, "MODIFIED_SEQUENCE");
-          appendOptionalInt_(precursor_charge_builder_, comp.precursor_charge > 0, comp.precursor_charge, "PRECURSOR_CHARGE");
-          appendOptionalInt_(precursor_decoy_builder_, true, comp.precursor_decoy, "PRECURSOR_DECOY");
-        }
-        else
+        if (comp_it == compound_info_.end())
         {
           // If we have an extracted ion chromatogram to write out to disk, we likely would want to know what precursor the XIC belongs to. Otherwise we could end up with a parquet file with a log of XICs but without any meta data to identify them.
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         std::string("Chromatogram native ID '") + native_id + "' looks like a precursor but no matching compound metadata entry was found. Please ensure the native ID is correct and that the transition library contains metadata for this precursor.", std::string{});
         }
-
-        appendOrThrow_(transition_id_builder_.AppendNull(), "TRANSITION_ID");
-        appendOrThrow_(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
-        appendOrThrow_(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
-        appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
-        appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
-        appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
-        appendOptionalString_(annotation_builder_, precursor_annotation, "ANNOTATION");
+        row.compound = &comp_it->second;
       }
       else
       {
         auto tr_it = transition_info_.find(native_id);
-        if (tr_it != transition_info_.end())
-        {
-          const TransitionInfo& tr = tr_it->second;
-          appendOptionalInt_(precursor_id_builder_, true, tr.precursor_id, "PRECURSOR_ID");
-          appendOptionalInt_(transition_id_builder_, true, tr.transition_id, "TRANSITION_ID");
-          appendOptionalString_(modified_sequence_builder_, tr.modified_sequence, "MODIFIED_SEQUENCE");
-          appendOptionalInt_(precursor_charge_builder_, tr.precursor_charge > 0, tr.precursor_charge, "PRECURSOR_CHARGE");
-          appendOptionalInt_(product_charge_builder_, tr.product_charge > 0, tr.product_charge, "PRODUCT_CHARGE");
-          appendOptionalInt_(detecting_transition_builder_, true, tr.detecting_transition, "DETECTING_TRANSITION");
-          appendOptionalInt_(precursor_decoy_builder_, true, tr.precursor_decoy, "PRECURSOR_DECOY");
-          appendOptionalInt_(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
-          appendOptionalInt_(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
-          appendOptionalString_(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
-          appendOptionalString_(annotation_builder_, tr.annotation, "ANNOTATION");
-        }
-        else
+        if (tr_it == transition_info_.end())
         {
           // Same comment as for the precursor case applies here: if we have a chromatogram to write out to disk, we likely would want to know what transition it belongs to. Otherwise we could end up with a parquet file with a log of chromatograms but without any meta data to identify them.
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         std::string("Chromatogram native ID '") + native_id + "' does not have a matching transition metadata entry. Please ensure the native ID is correct and that the transition library contains metadata for this transition.", std::string{});
         }
+        row.transition = &tr_it->second;
       }
+      encodeArrays_(c, row.rt_data, row.intensity_data);
+      return row;
+    }
 
-      encodeChromatogram_(c);
-      c.clear(false);
+    /// Appends the rows to the builders (flushing as needed) and leaves @p rows empty.
+    void appendRows(std::vector<EncodedRow>& rows)
+    {
+      for (EncodedRow& row : rows)
+      {
+        appendRow_(row);
+      }
+      rows.clear();
     }
 
     void setExpectedSize(Size, Size expectedChromatograms)
@@ -427,8 +423,68 @@ namespace OpenMS
       }
     }
 
-    void encodeChromatogram_(const MSChromatogramParquetConsumer::ChromatogramType& c)
+    void appendRow_(const EncodedRow& row)
     {
+      appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id_)), "RUN_ID");
+      appendOptionalString_(source_file_builder_, source_file_, "SOURCE_FILE");
+      appendOrThrow_(ms_level_builder_.Append(static_cast<int64_t>(row.compound != nullptr ? 1 : 2)), "MS_LEVEL");
+      if (row.compound != nullptr)
+      {
+        const CompoundInfo& comp = *row.compound;
+        appendOptionalInt_(precursor_id_builder_, true, comp.precursor_id, "PRECURSOR_ID");
+        appendOptionalString_(modified_sequence_builder_, comp.modified_sequence, "MODIFIED_SEQUENCE");
+        appendOptionalInt_(precursor_charge_builder_, comp.precursor_charge > 0, comp.precursor_charge, "PRECURSOR_CHARGE");
+        appendOptionalInt_(precursor_decoy_builder_, true, comp.precursor_decoy, "PRECURSOR_DECOY");
+
+        appendOrThrow_(transition_id_builder_.AppendNull(), "TRANSITION_ID");
+        appendOrThrow_(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
+        appendOrThrow_(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
+        appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
+        appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
+        appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
+        appendOptionalString_(annotation_builder_, row.precursor_annotation, "ANNOTATION");
+      }
+      else
+      {
+        const TransitionInfo& tr = *row.transition;
+        appendOptionalInt_(precursor_id_builder_, true, tr.precursor_id, "PRECURSOR_ID");
+        appendOptionalInt_(transition_id_builder_, true, tr.transition_id, "TRANSITION_ID");
+        appendOptionalString_(modified_sequence_builder_, tr.modified_sequence, "MODIFIED_SEQUENCE");
+        appendOptionalInt_(precursor_charge_builder_, tr.precursor_charge > 0, tr.precursor_charge, "PRECURSOR_CHARGE");
+        appendOptionalInt_(product_charge_builder_, tr.product_charge > 0, tr.product_charge, "PRODUCT_CHARGE");
+        appendOptionalInt_(detecting_transition_builder_, true, tr.detecting_transition, "DETECTING_TRANSITION");
+        appendOptionalInt_(precursor_decoy_builder_, true, tr.precursor_decoy, "PRECURSOR_DECOY");
+        appendOptionalInt_(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
+        appendOptionalInt_(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
+        appendOptionalString_(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
+        appendOptionalString_(annotation_builder_, tr.annotation, "ANNOTATION");
+      }
+
+      appendBinary_(rt_data_builder_, row.rt_data, "RT_DATA");
+      appendBinary_(intensity_data_builder_, row.intensity_data, "INTENSITY_DATA");
+      appendOrThrow_(rt_compression_builder_.Append(rt_compression_), "RT_COMPRESSION");
+      appendOrThrow_(intensity_compression_builder_.Append(intensity_compression_), "INTENSITY_COMPRESSION");
+
+      // Track accumulated binary size and row count for both populated and
+      // empty chromatograms so trailing empty rows are flushed as well.
+      accumulated_rows_++;
+      accumulated_binary_bytes_ += row.rt_data.size();
+      accumulated_binary_bytes_ += row.intensity_data.size();
+
+      if (accumulated_rows_ >= flush_row_limit_ || accumulated_binary_bytes_ >= flush_byte_limit_)
+      {
+        flushBuffers_();
+      }
+    }
+
+    /// Compresses the RT and intensity arrays of @p c (both stay empty for an empty chromatogram).
+    static void encodeArrays_(const MSChromatogramParquetConsumer::ChromatogramType& c,
+                              std::string& rt_encoded, std::string& int_encoded)
+    {
+      if (c.empty())
+      {
+        return;
+      }
       // Marshal chromatogram data into RT/intensity arrays for encoding.
       std::vector<double> rt_data;
       std::vector<double> intensity_data;
@@ -440,20 +496,7 @@ namespace OpenMS
         intensity_data.push_back(peak.getIntensity());
       }
 
-      const bool use_lossy_compression = true;
-      const int64_t rt_compression = use_lossy_compression ? 5 : 1;
-      const int64_t intensity_compression = use_lossy_compression ? 6 : 1;
-
-      std::string rt_encoded;
-      std::string int_encoded;
-      if (rt_data.empty())
-      {
-        appendBinary_(rt_data_builder_, rt_encoded, "RT_DATA");
-        appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
-        appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
-        appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
-      }
-      else if (use_lossy_compression)
+      if (use_lossy_compression_)
       {
         // MSNumpress encodes doubles to byte strings, then zlib compresses.
         MSNumpressCoder::NumpressConfig npconfig_mz;
@@ -482,25 +525,6 @@ namespace OpenMS
         ZlibCompression::compressString(rt_bytes, rt_encoded);
         std::string int_bytes(reinterpret_cast<const char*>(intensity_data.data()), intensity_data.size() * sizeof(double));
         ZlibCompression::compressString(int_bytes, int_encoded);
-      }
-
-      if (!rt_data.empty())
-      {
-        appendBinary_(rt_data_builder_, rt_encoded, "RT_DATA");
-        appendBinary_(intensity_data_builder_, int_encoded, "INTENSITY_DATA");
-        appendOrThrow_(rt_compression_builder_.Append(rt_compression), "RT_COMPRESSION");
-        appendOrThrow_(intensity_compression_builder_.Append(intensity_compression), "INTENSITY_COMPRESSION");
-      }
-      
-      // Track accumulated binary size and row count for both populated and
-      // empty chromatograms so trailing empty rows are flushed as well.
-      accumulated_rows_++;
-      accumulated_binary_bytes_ += rt_encoded.size();
-      accumulated_binary_bytes_ += int_encoded.size();
-
-      if (accumulated_rows_ >= flush_row_limit_ || accumulated_binary_bytes_ >= flush_byte_limit_)
-      {
-        flushBuffers_();
       }
     }
 
@@ -698,6 +722,10 @@ namespace OpenMS
     // int32 capacity limits.
     size_t accumulated_rows_ = 0;
     size_t accumulated_binary_bytes_ = 0;
+    // Array encoding and the scheme ids stored with every row
+    static constexpr bool use_lossy_compression_ = true;
+    static constexpr int64_t rt_compression_ = use_lossy_compression_ ? 5 : 1;
+    static constexpr int64_t intensity_compression_ = use_lossy_compression_ ? 6 : 1;
     // Flush when this many chromatograms are buffered
     const size_t flush_row_limit_ = 1000;
     // Flush when this many binary bytes are buffered (safety margin below 2^31)
@@ -726,6 +754,43 @@ namespace OpenMS
   void MSChromatogramParquetConsumer::consumeChromatogram(ChromatogramType& c)
   {
     impl_->consumeChromatogram(c);
+  }
+
+  struct MSChromatogramParquetConsumer::EncodedChromatograms::Rows
+  {
+    std::vector<EncodedRow> rows;
+  };
+
+  MSChromatogramParquetConsumer::EncodedChromatograms::EncodedChromatograms() :
+    rows_(std::make_unique<Rows>())
+  {
+  }
+
+  MSChromatogramParquetConsumer::EncodedChromatograms::~EncodedChromatograms() = default;
+  MSChromatogramParquetConsumer::EncodedChromatograms::EncodedChromatograms(EncodedChromatograms&&) noexcept = default;
+  MSChromatogramParquetConsumer::EncodedChromatograms& MSChromatogramParquetConsumer::EncodedChromatograms::operator=(EncodedChromatograms&&) noexcept = default;
+
+  Size MSChromatogramParquetConsumer::EncodedChromatograms::size() const
+  {
+    return rows_ ? rows_->rows.size() : 0;
+  }
+
+  void MSChromatogramParquetConsumer::encodeChromatogram(ChromatogramType& c, EncodedChromatograms& rows) const
+  {
+    if (!rows.rows_)
+    {
+      rows.rows_ = std::make_unique<EncodedChromatograms::Rows>(); // moved-from batch
+    }
+    rows.rows_->rows.push_back(impl_->encodeRow(c));
+    c.clear(false);
+  }
+
+  void MSChromatogramParquetConsumer::consumeEncodedChromatograms(EncodedChromatograms& rows)
+  {
+    if (rows.rows_)
+    {
+      impl_->appendRows(rows.rows_->rows);
+    }
   }
 
   void MSChromatogramParquetConsumer::setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
