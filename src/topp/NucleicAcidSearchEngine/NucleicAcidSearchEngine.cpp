@@ -176,9 +176,9 @@ protected:
     setValidFormats_("lfq_out", vector<std::string>(1, "tsv"));
 
     registerOutputFile_("bedrmod_out", "<file>", "", "Output file: bedRMod v2 RNA modification track", false);
-    setValidFormats_("bedrmod_out", {"bed"});
+    setValidFormats_("bedrmod_out", {"bedrmod"});
 
-    registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for bedRMod export ('mod'/'name' and 'chebi_id'/'chebi id' columns)", false, true);
+    registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for bedRMod export ('mod'/'name', 'chebi_id' and/or 'modomics_short_name' columns; required for unsupported custom modification names)", false, true);
     setValidFormats_("bedrmod_chebi_mapping", {"csv"});
     registerTOPPSubsection_("bedrmod", "Reference metadata for bedRMod export");
     for (const std::string key : {"organism", "assembly", "annotation_source", "annotation_version"})
@@ -1985,6 +1985,9 @@ protected:
       {
         reference_metadata[key] = getStringOption_("bedrmod:" + key);
       }
+      reference_metadata["sequencing_platform"] = "ddMS2";
+      reference_metadata["basecalling"] = "NASE";
+      reference_metadata["bioinformatics_workflow"] = "NASE; caller-selected FDR cutoff and report:top_hits; score=min q-value (lower is better)";
       BedRModFile().store(bedrmod_out, id_data, bedrmod_chebi_mapping, reference_metadata);
     }
 

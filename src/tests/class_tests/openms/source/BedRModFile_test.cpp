@@ -126,17 +126,18 @@ START_SECTION(([EXTRA] distinct observations determine modification frequency an
   const auto qvalue = data.registerScoreType(ID::ScoreType("PSM-level q-value", false));
   const auto modified = data.registerObservation(ID::Observation("modified", input));
   const auto unmodified = data.registerObservation(ID::Observation("unmodified", input));
-  const auto add_match = [&](const std::string& sequence, ID::ObservationRef observation, Size start)
+  data.setMetaValue(modified, "precursor_intensity", 1e12);
+  const auto add_match = [&](const std::string& sequence, ID::ObservationRef observation, Size start, double score = 0.01)
   {
     ID::IdentifiedOligo oligo(NASequence::fromString(sequence));
     oligo.parent_matches[parent].insert(ID::ParentMatch(start, start + 2));
     const auto oligo_ref = data.registerIdentifiedOligo(oligo);
     ID::ObservationMatch match(oligo_ref, observation, 2);
-    match.addScore(qvalue, 0.01);
+    match.addScore(qvalue, score);
     data.registerObservationMatch(match);
   };
   // Both hypotheses from one spectrum put m5C at the same parent position.
-  add_match("A[m5C]G", modified, 0);
+  add_match("A[m5C]G", modified, 0, 0.02);
   add_match("[m5C]GA", modified, 1);
   add_match("ACG", unmodified, 0);
 
@@ -157,11 +158,15 @@ START_SECTION(([EXTRA] distinct observations determine modification frequency an
       TEST_EQUAL(fields[1], "1")
       TEST_EQUAL(fields[2], "2")
       TEST_EQUAL(fields[3], "m5C")
+      TEST_EQUAL(fields[4], "0.01")
+      TEST_EQUAL(fields[9], "2") // observations, independent of precursor intensity
       TEST_EQUAL(fields[10], "50")
+      TEST_EQUAL(fields[12], "1,2")
+      TEST_EQUAL(fields[13], "3,4")
     }
     ++row_count;
   }
-  TEST_EQUAL(row_count, 2)
+  TEST_EQUAL(row_count, 1)
 
   // A supplied ChEBI mapping uses the same identifier in row and dictionary.
   std::string mapping_file;
@@ -421,6 +426,7 @@ START_SECTION(([EXTRA] target_mapping_count reflects target occurrences))
     {
       continue;
     }
+    TEST_FALSE(line.starts_with("DECOY_"))
     
     // Parse the line (tab-separated)
     vector<std::string> fields;
@@ -514,7 +520,7 @@ START_SECTION(([EXTRA] target_mapping_count equals 1 for unique mapping))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] decoy-only mappings have target_mapping_count of 0))
+START_SECTION(([EXTRA] decoy-only mappings do not produce modification rows))
 {
   // Test that sequences mapping only to decoys have target_mapping_count = 0
   IdentificationData id_data;
@@ -561,7 +567,7 @@ START_SECTION(([EXTRA] decoy-only mappings have target_mapping_count of 0))
   output.load(test_file);
   vector<std::string> lines(output.begin(), output.end());
 
-  // Check that target_mapping_count equals 0 for decoy-only mappings
+  // Decoy parents are not genomic modification calls.
   int data_lines_checked = 0;
   for (const auto& line : lines)
   {
@@ -583,7 +589,7 @@ START_SECTION(([EXTRA] decoy-only mappings have target_mapping_count of 0))
     }
   }
 
-  TEST_TRUE(data_lines_checked > 0)
+  TEST_EQUAL(data_lines_checked, 0)
 }
 END_SECTION
 
@@ -596,11 +602,59 @@ START_SECTION(([EXTRA] reference metadata is explicit and defaults to unknown))
   BedRModFile().store(output, data);
   TextFile unknown(output);
   TEST_EQUAL(*std::next(unknown.begin()), "#organism=NA")
+  TEST_TRUE(std::find(unknown.begin(), unknown.end(), "#basecalling=NA") != unknown.end())
+  TEST_TRUE(std::find(unknown.begin(), unknown.end(), "#sequencing_platform=NA") != unknown.end())
   BedRModFile().store(output, data, "", {{"organism", "10090"}, {"assembly", "GRCm39"}});
   TextFile explicit_reference(output);
   TEST_EQUAL(*std::next(explicit_reference.begin()), "#organism=10090")
   TEST_TRUE(std::find(explicit_reference.begin(), explicit_reference.end(), "#assembly=GRCm39") != explicit_reference.end())
   TEST_EXCEPTION(Exception::InvalidParameter, BedRModFile().store(output, data, "", {{"organism", "bad\nheader"}}))
+  BedRModFile().store(output, data, "", {{"sequencing_platform", "custom-MS"}, {"basecalling", "custom-producer"}});
+  TextFile producer(output);
+  TEST_TRUE(std::find(producer.begin(), producer.end(), "#sequencing_platform=custom-MS") != producer.end())
+  TEST_TRUE(std::find(producer.begin(), producer.end(), "#basecalling=custom-producer") != producer.end())
+  TEST_EXCEPTION(Exception::InvalidParameter, BedRModFile().store(output, data, "", {{"basecalling", "bad\nheader"}}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] custom modification names require an honest mapping without truncating output))
+{
+  IdentificationData data;
+  const auto parent = data.registerParentSequence(ID::ParentSequence("rna", ID::MoleculeType::RNA, "AG"));
+  const auto input = data.registerInputFile(ID::InputFile("test.mzML"));
+  const auto observation = data.registerObservation(ID::Observation("scan", input));
+  const auto qvalue = data.registerScoreType(ID::ScoreType("PSM-level q-value", false));
+  ID::IdentifiedOligo oligo(NASequence::fromString("[mA?]G"));
+  oligo.parent_matches[parent].insert(ID::ParentMatch(0, 1));
+  ID::ObservationMatch match(data.registerIdentifiedOligo(oligo), observation, 2);
+  match.addScore(qvalue, 0.01);
+  data.registerObservationMatch(match);
+  std::string output_file, mapping_file;
+  NEW_TMP_FILE(output_file)
+  NEW_TMP_FILE(mapping_file)
+  {
+    std::ofstream output(output_file);
+    output << "preserve this file\n";
+  }
+  TEST_EXCEPTION(Exception::InvalidParameter, BedRModFile().store(output_file, data))
+  TextFile unchanged(output_file);
+  TEST_EQUAL(unchanged.size(), 1)
+  TEST_EQUAL(*unchanged.begin(), "preserve this file")
+  {
+    std::ofstream mapping(mapping_file);
+    mapping << "mod,modomics_short_name\nmA?,m5C\n";
+  }
+  TEST_EXCEPTION(Exception::InvalidParameter, BedRModFile().store(output_file, data, mapping_file))
+  TextFile still_unchanged(output_file);
+  TEST_EQUAL(*still_unchanged.begin(), "preserve this file")
+  // An explicit user mapping can identify a compatible concrete modification.
+  {
+    std::ofstream mapping(mapping_file);
+    mapping << "mod,modomics_short_name\nmA?,m6A\n";
+  }
+  BedRModFile().store(output_file, data, mapping_file);
+  TextFile mapped(output_file);
+  TEST_TRUE(std::find(mapped.begin(), mapped.end(), "#modification_names=m6A:m6A:A") != mapped.end())
 }
 END_SECTION
 

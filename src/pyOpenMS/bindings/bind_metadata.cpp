@@ -52,9 +52,6 @@ NB_MODULE(_pyopenms_metadata, m) {
         .def("empty", &OpenMS::IdentificationData::empty)
         .def("clear", &OpenMS::IdentificationData::clear);
 
-
-
-
     // -----------------------------------------------------------------------
     // AQS_runConcentration (AbsoluteQuantitationStandards::runConcentration)
     // -----------------------------------------------------------------------

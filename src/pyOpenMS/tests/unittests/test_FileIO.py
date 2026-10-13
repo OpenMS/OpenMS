@@ -137,15 +137,22 @@ def test_reference_metadata_defaults_and_explicit_values(tmp_path):
     assert pyopenms.FileTypes.nameToType("bedrmod") == pyopenms.FileType.BEDRMOD
     assert "#organism=NA\n" in text
     assert "#assembly=NA\n" in text
+    assert "#sequencing_platform=NA\n" in text
+    assert "#basecalling=NA\n" in text
+    assert pyopenms.FileHandler.getTypeByFileName("ordinary.bed") == pyopenms.FileType.UNKNOWN
+    assert pyopenms.FileHandler.getTypeByFileName("rna.bedrmod") == pyopenms.FileType.BEDRMOD
     pyopenms.BedRModFile(writer).store(str(output), data, "", {
         "organism": "10090", "assembly": "GRCm39",
         "annotation_source": "custom", "annotation_version": "1",
+        "sequencing_platform": "custom-MS", "basecalling": "custom-producer",
     })
     text = output.read_text()
     assert "#organism=10090\n" in text
     assert "#assembly=GRCm39\n" in text
     assert "#annotation_source=custom\n" in text
     assert "#annotation_version=1\n" in text
+    assert "#sequencing_platform=custom-MS\n" in text
+    assert "#basecalling=custom-producer\n" in text
     with pytest.raises(Exception):
         writer.store(str(output), data, "", {"organism": "bad\nheader"})
 

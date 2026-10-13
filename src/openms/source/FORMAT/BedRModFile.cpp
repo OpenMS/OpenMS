@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/BedRModFile.h>
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+#include <OpenMS/CHEMISTRY/ModomicsJSONDataProvider.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -20,7 +21,6 @@
 #include <fstream>
 #include <map>
 #include <limits>
-#include <optional>
 #include <set>
 #include <tuple>
 #include <vector>
@@ -32,28 +32,57 @@ namespace OpenMS
     struct BedRow
     {
       std::string chrom;
-      Int chrom_start{0};
-      Int chrom_end{0};
+      Size chrom_start{0};
+      Size chrom_end{0};
       const Ribonucleotide* ribonucleotide{nullptr};
       std::string modification_name;
-      double score{0.0};
-      Int coverage{1};
-      Int target_mapping_count{0};
-      std::string frag_start;
-      std::string frag_end;
-
-      bool operator<(const BedRow& rhs) const
-      {
-        // Compare using ribonucleotide code for consistency
-        std::string mod_code = ribonucleotide ? ribonucleotide->getCode() : std::string("");
-        std::string rhs_mod_code = rhs.ribonucleotide ? rhs.ribonucleotide->getCode() : std::string("");
-        return std::tie(chrom, chrom_start, chrom_end, mod_code, score, coverage,
-                        target_mapping_count, frag_start, frag_end) <
-               std::tie(rhs.chrom, rhs.chrom_start, rhs.chrom_end, rhs_mod_code,
-                        rhs.score, rhs.coverage, rhs.target_mapping_count,
-                        rhs.frag_start, rhs.frag_end);
-      }
+      std::string modomics_short_name;
+      double score{std::numeric_limits<double>::infinity()};
+      Size target_mapping_count{0};
+      std::set<std::pair<Size, Size>> fragments;
+      std::set<IdentificationData::ObservationRef> observations;
     };
+
+    struct ModificationMapping
+    {
+      Int chebi_id{0};
+      std::string modomics_short_name;
+    };
+
+    const std::map<std::string, Ribonucleotide>& modomicsCodes_()
+    {
+      static const auto codes = []
+      {
+        std::map<std::string, Ribonucleotide> result;
+        ModomicsJSONDataProvider provider("CHEMISTRY/Modomics.json");
+        for (const auto& entry : provider.loadRibonucleotides())
+        {
+          result.emplace(entry.ribo->getCode(), *entry.ribo);
+        }
+        return result;
+      }();
+      return codes;
+    }
+
+    std::string modomicsName_(const Ribonucleotide& ribo, const ModificationMapping& mapping)
+    {
+      const auto& codes = modomicsCodes_();
+      const std::string name = mapping.modomics_short_name.empty() ? ribo.getCode() : mapping.modomics_short_name;
+      auto known = codes.find(name);
+      if (known == codes.end() && mapping.modomics_short_name.empty())
+      {
+        known = codes.find(ribo.getNewCode());
+      }
+      if (known == codes.end() || known->first.find_first_of(",:\t\r\n") != std::string::npos ||
+          known->second.getOrigin() != ribo.getOrigin() || known->second.getFormula() != ribo.getFormula())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Cannot represent RNA modification '" + ribo.getCode() +
+          "' as a bedRMod MODOMICS short name. Supply a chemically compatible, registered "
+          "modomics_short_name in the mapping CSV; comma-containing dictionary names are unsupported.");
+      }
+      return known->first;
+    }
 
     std::string normalizeHeader_(std::string value)
     {
@@ -75,9 +104,9 @@ namespace OpenMS
       return true;
     }
 
-    std::map<std::string, Int> readChebiMapping_(const std::string& chebi_mapping_file)
+    std::map<std::string, ModificationMapping> readChebiMapping_(const std::string& chebi_mapping_file)
     {
-      std::map<std::string, Int> mapping;
+      std::map<std::string, ModificationMapping> mapping;
       if (chebi_mapping_file.empty())
       {
         return mapping;
@@ -99,6 +128,7 @@ namespace OpenMS
 
       Size mod_col = Size(-1);
       Size chebi_col = Size(-1);
+      Size modomics_col = Size(-1);
       for (Size i = 0; i < header.size(); ++i)
       {
         std::string key = normalizeHeader_(header[i]);
@@ -110,12 +140,16 @@ namespace OpenMS
         {
           chebi_col = i;
         }
+        else if (key == "modomics_short_name")
+        {
+          modomics_col = i;
+        }
       }
 
-      if ((mod_col == Size(-1)) || (chebi_col == Size(-1)))
+      if ((mod_col == Size(-1)) || ((chebi_col == Size(-1)) && (modomics_col == Size(-1))))
       {
         OPENMS_LOG_WARN << "Warning: ChEBI mapping file '" << full_path
-                        << "' misses required columns ('mod'/'name' and 'chebi_id'/'chebi id')."
+                        << "' requires 'mod'/'name' and 'chebi_id' or 'modomics_short_name' columns."
                         << std::endl;
         return mapping;
       }
@@ -128,7 +162,7 @@ namespace OpenMS
         }
         std::vector<std::string> values;
         StringUtils::split(lines[row], ',', values, true);
-        if ((mod_col >= values.size()) || (chebi_col >= values.size()))
+        if (mod_col >= values.size())
         {
           continue;
         }
@@ -139,72 +173,19 @@ namespace OpenMS
           continue;
         }
 
-        Int chebi = 0;
-        if (!toInt_(values[chebi_col], chebi))
+        ModificationMapping entry;
+        if (chebi_col < values.size())
         {
-          continue;
+          toInt_(values[chebi_col], entry.chebi_id);
         }
-        mapping[mod] = chebi;
+        if (modomics_col < values.size())
+        {
+          entry.modomics_short_name = StringUtils::trimmed(values[modomics_col]);
+        }
+        mapping[mod] = std::move(entry);
       }
 
       return mapping;
-    }
-
-    double getScore_(const IdentificationData::ObservationMatch& match,
-                     const IdentificationData::ScoreTypeRef& score_ref,
-                     const IdentificationData::ScoreTypes& all_score_types)
-    {
-      double score = 0.0;
-      bool found = false;
-      if (score_ref != all_score_types.end())
-      {
-        std::tie(score, found) = match.getScore(score_ref);
-      }
-      if (!found)
-      {
-        std::optional<IdentificationData::ScoreTypeRef> any_ref;
-        std::tie(score, any_ref, found) = match.getMostRecentScore();
-      }
-      if (!found || !std::isfinite(score))
-      {
-        return 0.0;
-      }
-      return score;
-    }
-
-    Int getCoverage_(const IdentificationData::ObservationRef& observation_ref)
-    {
-      if (!observation_ref->metaValueExists("precursor_intensity"))
-      {
-        return 1;
-      }
-      double intensity = 1.0;
-      try
-      {
-        intensity = static_cast<double>(observation_ref->getMetaValue("precursor_intensity"));
-      }
-      catch (Exception::ConversionError&)
-      {
-        return 1;
-      }
-
-      if (!std::isfinite(intensity))
-      {
-        return 1;
-      }
-      Int cov = Int(std::lround(intensity));
-      return std::max<Int>(1, cov);
-    }
-
-    template <typename ParentMatches>
-    Size countParentMatches_(const ParentMatches& parent_matches)
-    {
-      Size total = 0;
-      for (const auto& match_pair : parent_matches)
-      {
-        total += match_pair.second.size();
-      }
-      return total;
     }
 
     template <typename ParentMatches>
@@ -222,29 +203,18 @@ namespace OpenMS
       return total;
     }
 
-    template <typename ParentMatchRange>
-    std::string joinFragmentPositions_(const ParentMatchRange& matches,
-                                  const bool use_start)
+    std::string joinFragmentPositions_(const std::set<std::pair<Size, Size>>& fragments,
+                                       const bool use_start)
     {
       std::string result;
-      bool first = true;
-      for (const auto& match : matches)
+      for (const auto& fragment : fragments)
       {
-        if (!match.hasValidPositions())
-        {
-          continue;
-        }
-
-        const Size pos = use_start ? match.start_pos : match.end_pos;
-        if (!first)
-        {
-          result += ",";
-        }
-        result += std::to_string(pos + 1);
-        first = false;
+        if (!result.empty()) result += ",";
+        result += std::to_string((use_start ? fragment.first : fragment.second) + 1);
       }
       return result;
     }
+
   }
 
   void BedRModFile::store(const std::string& out_file,
@@ -268,14 +238,21 @@ namespace OpenMS
     const std::string assembly = metadata("assembly");
     const std::string annotation_source = metadata("annotation_source");
     const std::string annotation_version = metadata("annotation_version");
+    const std::string sequencing_platform = metadata("sequencing_platform");
+    const std::string basecalling = metadata("basecalling");
+    const std::string bioinformatics_workflow = metadata("bioinformatics_workflow");
+    const std::string experiment = metadata("experiment");
+    const std::string external_source = metadata("external_source");
     const auto chebi_mapping = readChebiMapping_(chebi_mapping_file);
     const auto& score_types = id_data.getScoreTypes();
     const auto qvalue_ref = id_data.findScoreType("PSM-level q-value");
 
-    std::vector<BedRow> rows;
-    std::set<std::string> missing_mods;
-    std::map<std::pair<std::string, Int>, std::set<IdentificationData::ObservationRef>> obs_per_position;
-    std::map<std::tuple<std::string, Int, std::string>, std::set<IdentificationData::ObservationRef>> obs_per_mod_at_position;
+    // Keep aggregation private until another consumer needs this representation.
+    // Coverage counts distinct observations of the modification's canonical base.
+    using SiteKey = std::tuple<std::string, Size, std::string>;
+    std::map<SiteKey, BedRow> rows;
+    std::map<std::tuple<std::string, Size, char>, std::set<IdentificationData::ObservationRef>> obs_per_position;
+    Size missing_qvalues = 0;
 
     for (const IdentificationData::ObservationMatch& match : id_data.getObservationMatches())
     {
@@ -306,17 +283,15 @@ namespace OpenMS
       }
       if (std::isnan(score))
       {
+        ++missing_qvalues;
         continue; // no valid q-value — skip this match
       }
-      const Int coverage = getCoverage_(match.observation_ref);
-      const Int target_mapping_count = static_cast<Int>(countTargetParentMatches_(oligo.parent_matches));
-      const bool unique_mapping = (target_mapping_count == 1);
+      const Size target_mapping_count = countTargetParentMatches_(oligo.parent_matches);
 
       for (const auto& parent_pair : oligo.parent_matches)
       {
+        if (parent_pair.first->is_decoy) continue;
         const std::string& chrom = parent_pair.first->accession;
-        const std::string all_frag_starts = joinFragmentPositions_(parent_pair.second, true);
-        const std::string all_frag_ends = joinFragmentPositions_(parent_pair.second, false);
 
         for (const auto& parent_match : parent_pair.second)
         {
@@ -324,20 +299,15 @@ namespace OpenMS
           {
             continue;
           }
-          // Alternative hypotheses and overlapping parent mappings share an
-          // observation and must contribute only once at each covered site.
-          for (Size pos = parent_match.start_pos; pos <= parent_match.end_pos; ++pos)
-          {
-            obs_per_position[{chrom, Int(pos)}].insert(match.observation_ref);
-          }
-
           for (Size i = 0; i < sequence.size(); ++i)
           {
             const auto* ribo = sequence[i];
-            if (ribo == nullptr)
+            if (ribo == nullptr || i > parent_match.end_pos - parent_match.start_pos)
             {
               continue;
             }
+            const Size position = parent_match.start_pos + i;
+            obs_per_position[{chrom, position, ribo->getOrigin()}].insert(match.observation_ref);
 
             // Canonical residues contribute coverage above, but do not describe
             // positive modification calls. Terminal groups are also excluded.
@@ -346,59 +316,51 @@ namespace OpenMS
               continue;
             }
 
-            BedRow row;
+            const std::string mod_code = ribo->getCode();
+            const auto mapping = chebi_mapping.find(mod_code);
+            const ModificationMapping entry = mapping == chebi_mapping.end() ? ModificationMapping{} : mapping->second;
+            const std::string short_name = modomicsName_(*ribo, entry);
+            // Explicit aliases of the same MODOMICS modification share a site.
+            BedRow& row = rows[{chrom, position, short_name}];
             row.chrom = chrom;
-            row.chrom_start = Int(parent_match.start_pos + i);
+            row.chrom_start = position;
             row.chrom_end = row.chrom_start + 1;
             row.ribonucleotide = ribo;
-            row.score = score;
-            row.coverage = coverage;
-            row.target_mapping_count = target_mapping_count;
-            row.frag_start = unique_mapping ? all_frag_starts : std::to_string(parent_match.start_pos + 1);
-            row.frag_end = unique_mapping ? all_frag_ends : std::to_string(parent_match.end_pos + 1);
+            row.score = std::min(row.score, score); // best supporting q-value; lower is better
+            row.target_mapping_count = std::max(row.target_mapping_count, target_mapping_count);
+            row.fragments.emplace(parent_match.start_pos, parent_match.end_pos);
+            row.observations.insert(match.observation_ref);
 
-            const std::string mod_code = ribo->getCode();
-            obs_per_mod_at_position[{row.chrom, row.chrom_start, mod_code}].insert(match.observation_ref);
-
-            auto pos = chebi_mapping.find(mod_code);
-            if (pos != chebi_mapping.end() && pos->second > 0)
+            row.modomics_short_name = short_name;
+            if (entry.chebi_id > 0)
             {
-              row.modification_name = std::to_string(pos->second);
+              const std::string name = std::to_string(entry.chebi_id);
+              if (!row.modification_name.empty() && row.modification_name != short_name && row.modification_name != name)
+              {
+                throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                  "Conflicting ChEBI identifiers for MODOMICS modification '" + short_name + "'");
+              }
+              row.modification_name = name;
             }
-            else
+            else if (row.modification_name.empty())
             {
-              // bedRMod v2 permits MODOMICS short names without ChEBI IDs.
-              row.modification_name = mod_code;
-              missing_mods.insert(mod_code);
-            }
-
-            if (row.chrom_end > row.chrom_start)
-            {
-              rows.push_back(std::move(row));
+              row.modification_name = short_name;
             }
           }
         }
       }
     }
 
-    if (!missing_mods.empty())
+    if (missing_qvalues > 0)
     {
-      OPENMS_LOG_WARN << "Warning: Missing ChEBI ids for modifications (using MODOMICS codes): ";
-      bool first = true;
-      for (const auto& mod : missing_mods)
-      {
-        if (!first) OPENMS_LOG_WARN << ", ";
-        OPENMS_LOG_WARN << mod;
-        first = false;
-      }
-      OPENMS_LOG_WARN << std::endl;
+      OPENMS_LOG_WARN << "bedRMod: skipped " << missing_qvalues
+                      << " RNA matches without an assigned PSM-level q-value; run FDR before export.\n";
     }
-
-    std::sort(rows.begin(), rows.end());
 
     std::vector<std::string> modification_names;
     std::set<std::string> seen_mod_names;
-    for (const auto& row : rows)
+    std::map<std::string, std::string> dictionary;
+    for (const auto& [site, row] : rows)
     {
       if (!row.ribonucleotide)
       {
@@ -406,7 +368,13 @@ namespace OpenMS
       }
       // Use actual origin from ribonucleotide instead of inferring from mod code
       const std::string base_origin(1, row.ribonucleotide->getOrigin());
-      std::string mod_name = row.modification_name + ":" + row.ribonucleotide->getCode() + ":" + base_origin;
+      std::string mod_name = row.modification_name + ":" + row.modomics_short_name + ":" + base_origin;
+      const auto [name, inserted] = dictionary.emplace(row.modification_name, mod_name);
+      if (!inserted && name->second != mod_name)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Conflicting bedRMod dictionary entries for identifier '" + row.modification_name + "'");
+      }
       if (seen_mod_names.insert(mod_name).second)
       {
         modification_names.push_back(mod_name);
@@ -432,14 +400,17 @@ namespace OpenMS
     out << "#assembly=" << assembly << "\n";
     out << "#annotation_source=" << annotation_source << "\n";
     out << "#annotation_version=" << annotation_version << "\n";
-    out << "#sequencing_platform=ddMS2\n";
-    out << "#basecalling=NASE\n";
-    out << "#bioinformatics_workflow=NA\n";
-    out << "#experiment=NA\n";
-    out << "#external_source=NA\n";
-    out << "#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency unique_mapping frag_start frag_end\n";
+    out << "#sequencing_platform=" << sequencing_platform << '\n';
+    out << "#basecalling=" << basecalling << '\n';
+    out << "#bioinformatics_workflow=" << bioinformatics_workflow << '\n';
+    out << "#experiment=" << experiment << '\n';
+    out << "#external_source=" << external_source << '\n';
+    out << "#score=minimum supporting PSM-level q-value (lower is better)\n";
+    out << "#coverage=distinct observations of the canonical base at the site\n";
+    out << "#frequency=100 * distinct modified observations / coverage\n";
+    out << "#chrom chromStart chromEnd name score strand thickStart thickEnd itemRgb coverage frequency max_target_mapping_count frag_start frag_end\n";
 
-    for (const auto& row : rows)
+    for (const auto& [site, row] : rows)
     {
       if (!row.ribonucleotide)
       {
@@ -447,23 +418,8 @@ namespace OpenMS
       }
       
       // Calculate frequency: count of this modification / total observations at this position
-      Int frequency = 0;
-      auto pos_key = std::make_pair(row.chrom, row.chrom_start);
-      Size total = 0;
-      if (auto pos_it = obs_per_position.find(pos_key); pos_it != obs_per_position.end())
-      {
-        total = pos_it->second.size();
-      }
-      if (total > 0)
-      {
-        auto mod_key = std::make_tuple(row.chrom, row.chrom_start, row.ribonucleotide->getCode());
-        Size mod_count = 0;
-        if (auto mod_it = obs_per_mod_at_position.find(mod_key); mod_it != obs_per_mod_at_position.end())
-        {
-          mod_count = mod_it->second.size();
-        }
-        frequency = Int(std::round(100.0 * mod_count / total));
-      }
+      const Size total = obs_per_position.at({row.chrom, row.chrom_start, row.ribonucleotide->getOrigin()}).size();
+      const double frequency = 100.0 * row.observations.size() / total;
 
       out << row.chrom << '\t'
           << row.chrom_start << '\t'
@@ -474,11 +430,11 @@ namespace OpenMS
           << row.chrom_start << '\t'
           << row.chrom_end << '\t'
           << "0,0,0" << '\t'
-          << row.coverage << '\t'
+          << total << '\t'
           << frequency << '\t'
           << row.target_mapping_count << '\t'
-          << row.frag_start << '\t'
-          << row.frag_end << '\n';
+          << joinFragmentPositions_(row.fragments, true) << '\t'
+          << joinFragmentPositions_(row.fragments, false) << '\n';
     }
   }
 }

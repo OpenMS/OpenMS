@@ -84,6 +84,8 @@ TEST_EQUAL(tmp.getTypeByFileName("test.fasta"), FileTypes::FASTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
+TEST_EQUAL(tmp.getTypeByFileName("test.bedrmod"), FileTypes::BEDRMOD)
+TEST_EQUAL(tmp.getTypeByFileName("ordinary.bed"), FileTypes::UNKNOWN)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
 // new 3.6 directory-based parquet bundle types
 TEST_EQUAL(tmp.getTypeByFileName("test.idparquet"), FileTypes::IDPARQUET)

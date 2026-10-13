@@ -80,7 +80,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::PEPLIST, "peplist", "SpecArray file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::HARDKLOER, "hardkloer", "hardkloer file", {}),
     TypeNameBinding(FileTypes::KROENIK, "kroenik", "kroenik file", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::BEDRMOD, "bedrmod", "bedRMod file", {}, {"bed"}),
+    TypeNameBinding(FileTypes::BEDRMOD, "bedrmod", "bedRMod file", {}, {"bedmethyl"}),
     TypeNameBinding(FileTypes::FASTA, "fasta", "FASTA file", {PROP::READABLE, PROP::WRITEABLE}, {"fa", "faa"}),
     TypeNameBinding(FileTypes::PEFF, "peff", "PEFF protein file", {PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::EDTA, "edta", "enhanced dta file", {PROP::PROVIDES_FEATURES, PROP::PROVIDES_CONSENSUSFEATURES, PROP::READABLE, PROP::WRITEABLE}),

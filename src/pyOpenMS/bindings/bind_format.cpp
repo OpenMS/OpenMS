@@ -115,9 +115,8 @@ NB_MODULE(_pyopenms_format, m) {
         .def(nb::init<const OpenMS::BedRModFile&>())
         .def("store", &OpenMS::BedRModFile::store, "out_file"_a, "id_data"_a,
              "chebi_mapping_file"_a = "", "reference_metadata"_a = std::map<std::string, std::string>{},
-             "Write a bedRMod file; unspecified reference metadata is NA.");
-
-
+             "Write aggregated RNA modification sites; unspecified metadata is NA. Custom codes require a validated modomics_short_name CSV mapping.",
+             nb::call_guard<nb::gil_scoped_release>());
 
 #ifdef WITH_THERMO_RAW
     // -----------------------------------------------------------------------
