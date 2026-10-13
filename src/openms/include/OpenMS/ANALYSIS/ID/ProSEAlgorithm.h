@@ -963,6 +963,25 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const std::string& database_name,
       const PeakMap* evidence_spectra = nullptr) const;
 
+    /**
+     * @brief Adds PeptDeep-prediction-derived rescoring features to the PSMs.
+     *
+     * No-op unless both @p peptdeep:ms2_model and @p peptdeep:rt_model are set. Warns
+     * and does nothing when OpenMS was built without ONNX support, so an ini file that
+     * requests the models still runs (without those features) on such a build.
+     */
+    void annotatePeptDeepFeatures_(const PeakMap& spectra,
+                                   std::vector<ProteinIdentification>& protein_ids,
+                                   PeptideIdentificationList& peptide_ids) const;
+
+    bool peptdeep_enable_{false};
+    std::string peptdeep_ms2_model_;
+    std::string peptdeep_rt_model_;
+    std::string peptdeep_instrument_{"QE"};
+    double peptdeep_nce_{-1.0};
+    std::string peptdeep_rt_model_type_{"b_spline"};
+    int peptdeep_batch_size_{500};
+
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness
     /// of search(), matching the `mutable` pattern used by last_calibration_result_.

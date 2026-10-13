@@ -1013,6 +1013,10 @@ set_tests_properties("TOPP_FileInfo_19_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_20" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_20_input.fasta -out ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt)
 add_test("TOPP_FileInfo_20_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_20_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_20_output.txt )
 set_tests_properties("TOPP_FileInfo_20_out1" PROPERTIES DEPENDS "TOPP_FileInfo_20")
+# entry 2 shares the libstdc++ std::hash of its header with entry 1; entry 3 duplicates the header of entry 1
+add_test("TOPP_FileInfo_23" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_23_input.fasta -out ${TESTS_TEMP_DIR}/FileInfo_23_output.tmp.txt)
+add_test("TOPP_FileInfo_23_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_23_output.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_23_output.txt )
+set_tests_properties("TOPP_FileInfo_23_out1" PROPERTIES DEPENDS "TOPP_FileInfo_23")
 # the second peptide identification has no hits
 add_test("TOPP_FileInfo_22" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_22_input.idXML -no_progress -out ${TESTS_TEMP_DIR}/FileInfo_22.tmp.txt)
 add_test("TOPP_FileInfo_22_out1" ${DIFF} -whitelist "File name" -in1 ${TESTS_TEMP_DIR}/FileInfo_22.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_22_output.txt )
@@ -4048,6 +4052,15 @@ add_test("TOPP_QualityControl_1_out_consXML" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Qual
 add_test("TOPP_QualityControl_1_out_mzTab" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QualityControl_1_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/QualityControl_1_out.mzTab -whitelist "MS:1000752")
 set_tests_properties("TOPP_QualityControl_1_out_consXML" PROPERTIES DEPENDS "TOPP_QualityControl_1")
 set_tests_properties("TOPP_QualityControl_1_out_mzTab" PROPERTIES DEPENDS "TOPP_QualityControl_1")
+# a feature with two q-value (lower is better) identifications, the worse one stored first:
+# the better one has to be the first identification in -out_feat and the best hit of evidence.txt/msms.txt
+add_test("TOPP_QualityControl_2" ${TOPP_BIN_PATH}/QualityControl -test -in_cm ${DATA_DIR_TOPP}/QualityControl_2_in.consensusXML -in_postFDR ${DATA_DIR_TOPP}/QualityControl_2_in.featureXML -out_feat ${TESTS_TEMP_DIR}/QualityControl_2_out.tmp.featureXML -out_txt:directory ${TESTS_TEMP_DIR}/QualityControl_2_out_txt)
+add_test("TOPP_QualityControl_2_out_feat" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QualityControl_2_out.tmp.featureXML -in2 ${DATA_DIR_TOPP}/QualityControl_2_out.featureXML)
+add_test("TOPP_QualityControl_2_out_evidence" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QualityControl_2_out_txt/evidence.txt -in2 ${DATA_DIR_TOPP}/QualityControl_2_out_evidence.txt)
+add_test("TOPP_QualityControl_2_out_msms" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QualityControl_2_out_txt/msms.txt -in2 ${DATA_DIR_TOPP}/QualityControl_2_out_msms.txt)
+set_tests_properties("TOPP_QualityControl_2_out_feat" PROPERTIES DEPENDS "TOPP_QualityControl_2")
+set_tests_properties("TOPP_QualityControl_2_out_evidence" PROPERTIES DEPENDS "TOPP_QualityControl_2")
+set_tests_properties("TOPP_QualityControl_2_out_msms" PROPERTIES DEPENDS "TOPP_QualityControl_2")
 
 ## Tests for TOPPAS/ExecutePipeline are in ./src/tests/TOPPAS/...
 
@@ -4903,6 +4916,46 @@ add_test("TOPP_ProSE_11_rescore_skip_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_skip"
   PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
+
+# PeptDeep prediction features: 'peptdeep:enable' is an explicit request, so it must either report
+# how many PSMs received predicted features or fail -- never continue silently without them.
+if(WITH_ONNX)
+  add_test("TOPP_ProSE_peptdeep" ${TOPP_BIN_PATH}/ProSE -test
+    -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -Search:peptdeep:enable true
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep" PROPERTIES PASS_REGULAR_EXPRESSION
+    "\\[PeptDeepRescoring\\] Predicted features added: [1-9][0-9]* / [0-9]+ PSMs")
+  # Without fragment annotations no PSM can get MS2 features: hard error.
+  add_test("TOPP_ProSE_peptdeep_no_annotation_fails" ${TOPP_BIN_PATH}/ProSE -test
+    -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -Search:peptdeep:enable true
+    -Search:annotate:PSM num_matched_peaks
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_no_annotation_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep_no_annotation_fails" PROPERTIES WILL_FAIL TRUE)
+  # A missing model is a hard error, not a fallback to search-engine features only.
+  add_test("TOPP_ProSE_peptdeep_missing_model_fails" ${TOPP_BIN_PATH}/ProSE -test
+    -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -Search:peptdeep:enable true
+    -Search:peptdeep:ms2_model ${TESTS_TEMP_DIR}/does_not_exist_peptdeep_ms2.onnx
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_missing_model_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep_missing_model_fails" PROPERTIES WILL_FAIL TRUE)
+else()
+  # Without ONNX the request cannot be honoured: hard error instead of a warning.
+  add_test("TOPP_ProSE_peptdeep_requires_onnx" ${TOPP_BIN_PATH}/ProSE -test
+    -ini ${DATA_DIR_TOPP}/ProSE_1.ini
+    -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+    -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
+    -Search:peptdeep:enable true
+    -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_requires_onnx_out.tmp.idXML)
+  set_tests_properties("TOPP_ProSE_peptdeep_requires_onnx" PROPERTIES WILL_FAIL TRUE)
+endif()
 
 # Bruker .d input integration tests (DDA-PASEF with IM annotation)
 if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
