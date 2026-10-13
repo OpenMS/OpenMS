@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 
 namespace OpenMS
 {
@@ -17,9 +16,11 @@ namespace OpenMS
   /**
   @brief Class that stores the data for one layer of type FeatureMap
 
+  The identifications of the features (and the unassigned ones) are the identification data of the map.
+
   @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI LayerDataFeature : public virtual LayerDataBase, public IPeptideIds
+  class OPENMS_GUI_DLLAPI LayerDataFeature : public virtual LayerDataBase
   {
   public:
     /// Default constructor
@@ -67,25 +68,7 @@ namespace OpenMS
 
     bool annotate(const PeptideIdentificationList& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
 
-    const PepIds& getPeptideIds() const override
-    {
-      return getFeatureMap()->getUnassignedPeptideIdentifications();
-    }
-    PepIds& getPeptideIds() override
-    {
-      return getFeatureMap()->getUnassignedPeptideIdentifications();
-    }
 
-    void setPeptideIds(const PepIds& ids) override
-    {
-      getFeatureMap()->getUnassignedPeptideIdentifications() = ids;
-    }
-    void setPeptideIds(PepIds&& ids) override
-    {
-      getFeatureMap()->getUnassignedPeptideIdentifications() = std::move(ids);
-    }
-
-    
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType& getFeatureMap() const
     {

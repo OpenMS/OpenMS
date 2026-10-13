@@ -9,6 +9,7 @@
 
 #include <OpenMS/VISUAL/Painter2DBase.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
@@ -110,6 +111,62 @@ namespace OpenMS
           sequence += "...";
         painter->drawText(pos.x() + 10, pos.y() + 10, toQString(sequence));
       }
+    }
+  }
+
+  void Painter2DBase::paintIdentifications_(QPainter* painter, Plot2DCanvas* canvas, const std::vector<IdentificationData::QueryMatches>& ids, int layer_index)
+  {
+    painter->setPen(Qt::darkRed);
+    bool show_labels = canvas->getLayerFlag(layer_index, LayerDataBase::I_LABELS);
+
+    for (const auto& id : ids)
+    {
+      if (id.matches.empty() && !show_labels)
+      {
+        continue;
+      }
+      if (!id.query->rt || !id.query->mz)
+      {
+        continue;
+      }
+      double rt = *id.query->rt;
+      if (!canvas->visible_area_.getAreaUnit().containsRT(rt))
+      {
+        continue;
+      }
+      // as PlotCanvas::getIdentificationMZ_(): the m/z of the first peptide if requested
+      double mz = *id.query->mz;
+      if (canvas->getLayerFlag(layer_index, LayerDataBase::I_PEPTIDEMZ) && !id.matches.empty()
+          && id.matches.front()->encoding == IdentificationData::Encoding::AA_SEQUENCE)
+      {
+        mz = AASequence::fromString(id.matches.front()->representation).getMZ(id.matches.front()->charge);
+      }
+      if (!canvas->visible_area_.getAreaUnit().containsMZ(mz))
+      {
+        continue;
+      }
+      // draw dot
+      QPoint pos = canvas->dataToWidget_(canvas->unit_mapper_.map(Peak2D({rt, mz}, 0)));
+      painter->drawLine(pos.x(), pos.y() - 1.0, pos.x(), pos.y() + 1.0);
+      painter->drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
+
+      // draw sequence
+      std::string sequence;
+      if (show_labels)
+      {
+        sequence = StringUtils::toStr(id.query->getMetaValue("label"));
+      }
+      else
+      {
+        sequence = id.matches.front()->representation;
+      }
+      if (sequence.empty() && !id.matches.empty())
+      {
+        sequence = StringUtils::toStr(id.matches.front()->getMetaValue("label"));
+      }
+      if (id.matches.size() > 1)
+        sequence += "...";
+      painter->drawText(pos.x() + 10, pos.y() + 10, toQString(sequence));
     }
   }
 
@@ -566,7 +623,7 @@ namespace OpenMS
     }
     if (canvas->getLayerFlag(layer_index, LayerDataBase::F_UNASSIGNED))
     {
-      paintPeptideIDs_(painter, canvas, layer_->getPeptideIds(), layer_index);
+      paintIdentifications_(painter, canvas, layer_->getFeatureMap()->getUnassignedIdentifications(), layer_index);
     }
 
 
@@ -602,13 +659,15 @@ namespace OpenMS
             painter->setPen(Qt::darkBlue);
             painter->drawText(pos.x() + 10, pos.y() + 10, QString::number(num));
           }
-          else if ((layer_->label == LayerDataBase::L_ID || layer_->label == LayerDataBase::L_ID_ALL) && !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty())
+          else if (layer_->label == LayerDataBase::L_ID || layer_->label == LayerDataBase::L_ID_ALL)
           {
+            // the matches of the first identification of the feature
+            const auto sequences = firstIdentificationMatches_(f);
             painter->setPen(Qt::darkGreen);
-            Size maxHits = (layer_->label == LayerDataBase::L_ID_ALL) ? f.getPeptideIdentifications()[0].getHits().size() : 1;
+            Size maxHits = (layer_->label == LayerDataBase::L_ID_ALL) ? sequences.size() : std::min<Size>(1, sequences.size());
             for (Size j = 0; j < maxHits; ++j)
             {
-              painter->drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, toQString(f.getPeptideIdentifications()[0].getHits()[j].getSequence().toString()));
+              painter->drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, toQString(sequences[j]));
             }
           }
           else if (layer_->label == LayerDataBase::L_META_LABEL)
@@ -622,11 +681,26 @@ namespace OpenMS
     }
   }
 
+  std::vector<std::string> Painter2DFeature::firstIdentificationMatches_(const Feature& f) const
+  {
+    std::vector<std::string> result;
+    if (f.getIDQueries().empty() && f.getIDMatches().empty())
+    {
+      return result;
+    }
+    const auto identifications = f.getLinkedIdentifications(layer_->getFeatureMap()->getIdentificationData());
+    for (const auto* match : identifications.front().matches)
+    {
+      result.push_back(match->representation);
+    }
+    return result;
+  }
+
   void Painter2DFeature::highlightElement(QPainter* painter, Plot2DCanvas* canvas, const PeakIndex /*element*/)
   {
     painter->setPen(QPen(Qt::red, 2));
     const Feature& f = canvas->selected_peak_.getFeature(*layer_->getFeatureMap());
-    paintConvexHulls_(*painter, canvas, f.getConvexHulls(), f.getPeptideIdentifications().size() && f.getPeptideIdentifications()[0].getHits().size());
+    paintConvexHulls_(*painter, canvas, f.getConvexHulls(), !firstIdentificationMatches_(f).empty());
   }
 
   void Painter2DFeature::paintTraceConvexHulls_(QPainter* painter, Plot2DCanvas* canvas)
@@ -637,7 +711,7 @@ namespace OpenMS
     {
       if (area.containsRT(f.getRT()) && area.containsMZ(f.getMZ()) && layer_->filters.passes(f))
       {
-        bool hasIdentifications = !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty();
+        bool hasIdentifications = !firstIdentificationMatches_(f).empty();
         paintConvexHulls_(*painter, canvas, f.getConvexHulls(), hasIdentifications);
       }
     }
@@ -650,7 +724,7 @@ namespace OpenMS
     {
       if (area.containsRT(f.getRT()) && area.containsMZ(f.getMZ()) && layer_->filters.passes(f))
       {
-        paintConvexHull_(*painter, canvas, f.getConvexHull(), !f.getPeptideIdentifications().empty() && !f.getPeptideIdentifications()[0].getHits().empty());
+        paintConvexHull_(*painter, canvas, f.getConvexHull(), !firstIdentificationMatches_(f).empty());
       }
     }
   }

@@ -9,6 +9,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 #include <OpenMS/VISUAL/VISUALIZER/HPLCVisualizer.h>
@@ -141,6 +142,10 @@ namespace OpenMS
       for (int i = 0; i < ws_->count(); ++i)
       {
         dynamic_cast<BaseVisualizerGUI *>(ws_->widget(i))->store();
+      }
+      for (const auto& write_back : write_back_)
+      {
+        write_back();
       }
       if (status_list_.length() != 0)
       {
@@ -908,50 +913,89 @@ namespace OpenMS
     treeview_->expandItem(item);
   }
 
-  void MetaDataBrowser::add(Feature & feature)
+  template <class MapType>
+  MapPeptideIdentifications& MetaDataBrowser::addMapIdentifications_(MapType& map)
   {
-    //peptide ids
-    for (PeptideIdentification& pep : feature.getPeptideIdentifications())
+    auto& ids = map_identifications_.emplace_back(IdentificationDataConverter::exportMapIdentifications(map));
+    // an edited view replaces the identifications of the map; an unchanged one leaves them as they are
+    write_back_.emplace_back([&map, &ids, original = ids]
     {
-      add(pep);
-    }
-
-    add(static_cast<MetaInfoInterface &>(feature));
-
-    treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
+      if (ids.proteins != original.proteins || ids.features != original.features || ids.unassigned != original.unassigned)
+      {
+        IdentificationDataConverter::importMapIdentifications(map, ids);
+      }
+    });
+    return ids;
   }
 
-  void MetaDataBrowser::add(ConsensusFeature & feature)
-  {
-    //peptide ids
-    for (PeptideIdentification& pep : feature.getPeptideIdentifications())
-    {
-      add(pep);
-    }
-
-    add(static_cast<MetaInfoInterface &>(feature));
-
-    treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
-  }
-
-  void MetaDataBrowser::add(ConsensusMap & map)
+  void MetaDataBrowser::add(FeatureMap& map)
   {
     //identifier
     add(static_cast<DocumentIdentifier &>(map));
 
-    // protein identifications
-    for (Size i = 0; i < map.getProteinIdentifications().size(); ++i)
+    auto& ids = addMapIdentifications_(map);
+    for (auto& protein : ids.proteins)
     {
-      add(map.getProteinIdentifications()[i]);
+      add(protein);
+    }
+    // unassigned peptide ids
+    for (auto& peptide : ids.unassigned)
+    {
+      add(peptide);
     }
 
-    //unassigned peptide ids
-    for (Size i = 0; i < map.getUnassignedPeptideIdentifications().size(); ++i)
+    treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
+  }
+
+  void MetaDataBrowser::add(FeatureMap& map, Size index)
+  {
+    auto& ids = addMapIdentifications_(map);
+    if (auto it = ids.features.find({index}); it != ids.features.end())
     {
-      add(map.getUnassignedPeptideIdentifications()[i]);
+      for (auto& peptide : it->second)
+      {
+        add(peptide);
+      }
+    }
+
+    add(static_cast<MetaInfoInterface &>(map[index]));
+
+    treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
+  }
+
+  void MetaDataBrowser::add(ConsensusMap& map)
+  {
+    //identifier
+    add(static_cast<DocumentIdentifier &>(map));
+
+    auto& ids = addMapIdentifications_(map);
+    for (auto& protein : ids.proteins)
+    {
+      add(protein);
+    }
+    // unassigned peptide ids
+    for (auto& peptide : ids.unassigned)
+    {
+      add(peptide);
     }
 
     add(static_cast<MetaInfoInterface &>(map));
+
+    treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
+  }
+
+  void MetaDataBrowser::add(ConsensusMap& map, Size index)
+  {
+    auto& ids = addMapIdentifications_(map);
+    if (auto it = ids.features.find({index}); it != ids.features.end())
+    {
+      for (auto& peptide : it->second)
+      {
+        add(peptide);
+      }
+    }
+
+    add(static_cast<MetaInfoInterface &>(map[index]));
 
     treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
   }

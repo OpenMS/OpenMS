@@ -15,6 +15,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
+
+#include <functional>
+#include <list>
 
 //QT
 #include <QtWidgets/QDialog>
@@ -113,34 +117,22 @@ public:
       treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
     }
 
-    /// Adds a feature map
-    void add(FeatureMap& map)
-    {
-      //identifier
-      add(static_cast<DocumentIdentifier &>(map));
+    /**
+      @brief Adds a feature map
 
-      //protein ids
-      for (Size i = 0; i < map.getProteinIdentifications().size(); ++i)
-      {
-        add(map.getProteinIdentifications()[i]);
-      }
+      Its identifications are shown (and edited) as peptide and protein identifications (see MapPeptideIdentifications);
+      saving writes edited ones back to the map.
+    */
+    void add(FeatureMap& map);
 
-      //unassigned peptide ids
-      for (Size i = 0; i < map.getUnassignedPeptideIdentifications().size(); ++i)
-      {
-        add(map.getUnassignedPeptideIdentifications()[i]);
-      }
+    /// Adds the feature at @p index of @p map, with its identifications as in add(FeatureMap&)
+    void add(FeatureMap& map, Size index);
 
-      treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
-    }
+    /// Adds a consensus map, with its identifications as in add(FeatureMap&)
+    void add(ConsensusMap& map);
 
-    /// Adds a feature
-    void add(Feature & feature);
-    /// Adds a consensus feature
-    void add(ConsensusFeature & feature);
-
-    /// Adds a consensus map
-    void add(ConsensusMap & map);
+    /// Adds the consensus feature at @p index of @p map, with its identifications as in add(FeatureMap&)
+    void add(ConsensusMap& map, Size index);
 
     /**
         @brief A generic function to add data.
@@ -224,8 +216,17 @@ protected:
     /// Shows hits.
     void showAllHits_(int tree_item_id);
 
+    /// The peptide and protein identifications of an added map, to show and edit them (written back by saveAll_())
+    template <class MapType>
+    MapPeptideIdentifications& addMapIdentifications_(MapType& map);
+
     /// A list of setting errors due to invalid formats.
     std::string status_list_;
+
+    /// The identifications of the added maps (stable addresses: the visualizers edit them)
+    std::list<MapPeptideIdentifications> map_identifications_;
+    /// Writes the edited identifications back to their maps
+    std::vector<std::function<void()>> write_back_;
 
     /// Indicates the mode
     bool editable_;

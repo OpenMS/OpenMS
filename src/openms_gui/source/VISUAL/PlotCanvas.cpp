@@ -780,11 +780,11 @@ namespace OpenMS
       }
       else if (auto lp = dynamic_cast<LayerDataFeature*>(&layer))
       {
-        dlg.add((*lp->getFeatureMap())[index]);
+        dlg.add(*lp->getFeatureMap(), index);
       }
       else if (auto lp = dynamic_cast<LayerDataConsensus*>(&layer))
       {
-        dlg.add((*lp->getConsensusMap())[index]);
+        dlg.add(*lp->getConsensusMap(), index);
       }
       else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
       {

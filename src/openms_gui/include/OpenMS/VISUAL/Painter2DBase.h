@@ -12,9 +12,11 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 #include <OpenMS/VISUAL/PainterBase.h>
 
+#include <string>
 #include <vector>
 
 class QPainter;
@@ -24,6 +26,7 @@ class QPoint;
 namespace OpenMS
 {
   class ConsensusFeature;
+  class Feature;
   class LayerDataChrom;
   class LayerDataConsensus;
   class LayerDataFeature;
@@ -83,6 +86,9 @@ namespace OpenMS
     static void paintConvexHulls_(QPainter& painter, Plot2DCanvas* canvas, const std::vector<ConvexHull2D>& hulls, bool has_identifications);
 
     static void paintPeptideIDs_(QPainter* painter, Plot2DCanvas* canvas, const IPeptideIds::PepIds& ids, int layer_index);
+
+    /// Paints identifications with their matches (as paintPeptideIDs_() the peptide identifications with their hits)
+    static void paintIdentifications_(QPainter* painter, Plot2DCanvas* canvas, const std::vector<IdentificationData::QueryMatches>& ids, int layer_index);
   };
 
   /**
@@ -178,6 +184,9 @@ namespace OpenMS
       @brief Paints the convex hulls (one for each feature) of a features layer.
     */
     void paintFeatureConvexHulls_(QPainter* painter, Plot2DCanvas* canvas);
+
+    /// The sequences of the matches of the first identification linked to the feature @p f (empty if it links none)
+    std::vector<std::string> firstIdentificationMatches_(const Feature& f) const;
 
     const LayerDataFeature* layer_; ///< the data to paint
   };
