@@ -107,6 +107,14 @@ To convert a `.d` directory to mzML:
 FileConverter -in sample.d -out sample.mzML
 ```
 
+A whole run in memory takes a multiple of the size of the `.d` directory. With
+`-process_lowmemory` FileConverter writes the spectra as it reads them, and gives the same
+mzML file:
+
+```bash
+FileConverter -in sample.d -out sample.mzML -process_lowmemory
+```
+
 ## pyOpenMS
 
 pyOpenMS reads both formats as well; see

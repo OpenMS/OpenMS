@@ -203,7 +203,7 @@ protected:
     registerFlag_("zstd_compression", "[mzML output only] Compress binary data arrays with Zstandard (zstd) instead of zlib (lossless; can be combined with 'lossy_compression'). Attention: not all external tools can read zstd-compressed mzML files yet.", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
-    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML/Bruker .d to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
     
 #ifdef WITH_OPENTIMS
     registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
@@ -718,7 +718,7 @@ protected:
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
 
-      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
+      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML || in_type == FileTypes::BRUKER_TDF) && out_type == FileTypes::MZML)
       {
         // Prepare the consumer
         PlainMSDataWritingConsumer consumer(out);
@@ -750,6 +750,19 @@ protected:
           mzxmlfile.transform(in, &consumer, skip_full_count);
           return EXECUTION_OK;
         }
+#ifdef WITH_OPENTIMS
+        else if (in_type == FileTypes::BRUKER_TDF)
+        {
+          // the spectra are written as they are read; see BrukerTimsFile::transform() for the two
+          // configurations that need the whole run in memory all the same
+          BrukerTimsFile tims_file;
+          tims_file.setLogType(log_type_);
+          tims_file.transform(in, &consumer, getBrukerConfig_());
+          return EXECUTION_OK;
+        }
+#endif
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Process_lowmemory: OpenMS was built without support for reading Bruker .d input.");
       }
       else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
       {
@@ -772,7 +785,7 @@ protected:
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
+          "Process_lowmemory option can only be used with mzML / mzXML / Bruker .d input and mzML output data types.");
       }
     }
 #ifdef WITH_OPENTIMS

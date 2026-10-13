@@ -144,6 +144,15 @@ OpenMS Library:
     A '.d.zip' archive is typed by its list of entries: one without a .d directory is no longer taken
     for Bruker data, and nothing is extracted before the reader rejects an archive.
     New: BrukerTimsFile::detectFormat() and checkDataFormat().
+  - BrukerTimsFile::transform() hands the spectra to the consumer as they are read, in the order and form
+    load() returns them, instead of loading the whole run first; the memory it needs no longer grows with
+    the run. (Exceptions, loaded completely as before: DIA with MS2 aggregation over retention time, and
+    DDA with calibrate on the linear m/z model.) Exposed in pyOpenMS (BrukerTimsFile.transform()), as are
+    detectFormat() and checkDataFormat().
+  - MSDataWritingConsumer (the streaming mzML writer of the low-memory modes) corrects the count of its
+    spectrumList when the file is closed, if another number of spectra was written than it was told to
+    expect (a filter, or a reader that leaves empty spectra out). The tag is rewritten in place and
+    padded with blanks, so the index stays valid. Before, the count stayed at the expected number.
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
@@ -382,6 +391,10 @@ TOPP tools:
     FileConverter:
       - New option -bruker:load_ms2: 'false' skips the MS2 spectra of a Bruker .d (MS1-only conversion),
         the counterpart of -bruker:load_ms1.
+      - -process_lowmemory also works for Bruker .d input (to mzML; before: an error). The spectra are
+        written as they are read, and the mzML file is the one the conversion in memory gives. A 110 min
+        ddaPASEF run (5.6 GB .d, 1.9 billion peaks) converts in under 5 minutes with 170 MB of heap memory
+        (the resident memory, 4.8 GB at its peak, is the memory-mapped analysis.tdf_bin).
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The

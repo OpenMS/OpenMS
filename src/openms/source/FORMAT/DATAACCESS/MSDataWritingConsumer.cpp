@@ -7,11 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 // TODO move getVersion to Handler
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <string>
 #include <utility>
 
 namespace OpenMS
@@ -97,7 +99,9 @@ namespace OpenMS
     if (!writing_spectra_)
     {
       // This is the first spectrum, thus write the spectrumList header
-      ofs_ << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+      ofs_ << "\t\t<spectrumList count=\"";
+      spectra_count_pos_ = ofs_.tellp();
+      writeSpectrumCount_(spectra_expected_, 0);
       writing_spectra_ = true;
     }
     bool renew_native_ids = false;
@@ -155,6 +159,11 @@ namespace OpenMS
     add_dataprocessing_ = true;
   }
 
+   void MSDataWritingConsumer::writeSpectrumCount_(Size count, Size padding)
+  {
+    ofs_ << count << "\" defaultDataProcessingRef=\"dp_sp_0\"" << std::string(padding, ' ') << ">\n";
+  }
+
    Size MSDataWritingConsumer::getNrSpectraWritten() {return spectra_written_;}
 
    Size MSDataWritingConsumer::getNrChromatogramsWritten() {return chromatograms_written_;}
@@ -178,6 +187,27 @@ namespace OpenMS
     if (started_writing_) 
     {
       Internal::MzMLHandlerHelper::writeFooter_(ofs_, options_, spectra_offsets_, chromatograms_offsets_);
+    }
+
+    // The count of the spectrumList was written with the first spectrum, as it was expected then. Correct it
+    // in place if another number of spectra was written: blanks before the '>' of the tag make up for fewer
+    // digits, so nothing behind the tag moves and the offsets of the index stay valid.
+    // (The count of the chromatogramList stays as it was expected.)
+    if (spectra_count_pos_ >= 0 && spectra_written_ != spectra_expected_)
+    {
+      const Size expected_digits = std::to_string(spectra_expected_).size();
+      const Size written_digits = std::to_string(spectra_written_).size();
+      if (written_digits <= expected_digits)
+      {
+        ofs_.seekp(spectra_count_pos_);
+        writeSpectrumCount_(spectra_written_, expected_digits - written_digits);
+      }
+      else
+      {
+        // does not fit into the tag: the count stays as it was written, as it always did
+        OPENMS_LOG_DEBUG << spectra_written_ << " spectra were written to the mzML file, but the count of its spectrumList says "
+                         << spectra_expected_ << ", the number that was expected." << std::endl;
+      }
     }
     delete validator_;
     ofs_.close();

@@ -2007,24 +2007,6 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // isDIA_: detect DDA vs DIA by querying for SWATH window tables
-  // =====================================================================
-  bool BrukerTimsFile::isDIA_(const std::string& tdf_path) const
-  {
-    try
-    {
-      SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
-      return isDIA(db);
-    }
-    catch (const SQLite::Exception& e)
-    {
-      OPENMS_LOG_WARN << "Warning: could not query DIA status from " << tdf_path
-                      << ": " << e.what() << std::endl;
-      return false;
-    }
-  }
-
-  // =====================================================================
   // loadExperimentalSettings_: populate SourceFile, run and instrument metadata
   // =====================================================================
   void BrukerTimsFile::loadExperimentalSettings_(const std::string& path, const std::string& d_path, ExperimentalSettings& settings)
@@ -2363,6 +2345,76 @@ namespace OpenMS
     endProgress();
   }
 
+  // The number of spectra the loaders emit for a configuration (frames, precursors and frames x windows of
+  // analysis.tdf, under the active frame_id range and the load_ms1/load_ms2 knobs). An upper bound: a DDA
+  // precursor or a DIA window of a frame that ends up without peaks gives no spectrum.
+  static size_t expectedSpectra(SQLite::Database& db, TimsDataHandle& handle, const BrukerTimsFile::Config& eff, bool is_dia)
+  {
+    using Config = BrukerTimsFile::Config;
+    const Config::ExportMode mode = eff.export_mode;
+    FrameCounts counts = readFrameCounts(db, eff);
+    const size_t ms1_emitted = eff.load_ms1 ? counts.ms1 : 0;
+    size_t expected = 0;
+    if (!eff.load_ms2)
+    {
+      expected = ms1_emitted;
+    }
+    else if (mode == Config::FRAME)
+    {
+      expected = ms1_emitted + counts.ms2;
+    }
+    else if (is_dia && mode != Config::SPECTRUM)
+    {
+      // DIA: each MS2 frame belongs to exactly ONE WindowGroup and only
+      // produces spectra for that group's windows. So the emit count is
+      //   Σ_group (frames_in_group × windows_in_group)
+      // — NOT frames × all_windows. Mirrors the total_work computation in
+      // loadDIA_.
+      auto windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
+      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
+      for (auto& [group, frame_ids] : group_to_frames)
+      {
+        frame_ids.erase(
+          std::remove_if(frame_ids.begin(), frame_ids.end(),
+                         [&eff](uint32_t fid) { return !frameInRange(fid, eff); }),
+          frame_ids.end());
+      }
+      std::map<int, size_t> group_window_count;
+      for (const auto& w : windows) ++group_window_count[w.window_group];
+      size_t dia_ms2_spectra = 0;
+      for (const auto& [group, frames] : group_to_frames)
+      {
+        auto wit = group_window_count.find(group);
+        if (wit != group_window_count.end())
+          dia_ms2_spectra += frames.size() * wit->second;
+      }
+      expected = ms1_emitted + dia_ms2_spectra;
+    }
+    else
+    {
+      // DDA: MS1 frames + per-precursor MS2 spectra
+      uint32_t num_precursors = countDDAPrecursors(db, eff);
+      expected = ms1_emitted + num_precursors;
+    }
+
+    return expected;
+  }
+
+  // Whether the loader of a configuration emits its spectra in order of retention time (see transform())
+  static bool emitsInRTOrder(TimsDataHandle& handle, const BrukerTimsFile::Config& eff, bool is_dia)
+  {
+    using Config = BrukerTimsFile::Config;
+    if (eff.export_mode == Config::FRAME) return true;
+    if (is_dia && eff.export_mode != Config::SPECTRUM)
+    {
+      // MS2 frames aggregated over retention time are read window by window
+      return !(eff.load_ms2 && eff.dia_ms2_n_neighbors > 0);
+    }
+    // DDA with OLS recalibration: the MS1 frames are read with the calibration of the file, then the model
+    // is fitted to the precursors, then the MS2 spectra are read with it
+    return !(eff.load_ms2 && eff.calibrate && dynamic_cast< ::OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get()) != nullptr);
+  }
+
   // =====================================================================
   // load() overloads
   // =====================================================================
@@ -2383,32 +2435,36 @@ namespace OpenMS
     // Resolve RT range (if any) to an effective frame_id range; also
     // validates the user-supplied frame_id/rt ranges and emits warnings.
     Config eff;
+    bool is_dia = false;
     {
       SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
       eff = resolveEffectiveConfig(db, config,
                                     handle->min_frame_id(),
                                     handle->max_frame_id());
+      is_dia = isDIA(db);
+      exp.reserveSpaceSpectra(static_cast<unsigned int>(expectedSpectra(db, *handle, eff, is_dia)));
     }
 
-    bool is_dia = isDIA_(tdf_path);
+    const SpectrumSink to_experiment = [&exp](MSSpectrum& spec) { exp.addSpectrum(std::move(spec)); };
     Config::ExportMode mode = eff.export_mode;
 
     if (mode == Config::FRAME)
     {
-      loadFrames_(*handle, exp, eff);
+      loadFrames_(*handle, to_experiment, eff);
     }
     else if (mode == Config::SPECTRUM || (mode == Config::AUTO && !is_dia))
     {
-      loadDDA_(*handle, exp, eff);
+      loadDDA_(*handle, to_experiment, eff);
     }
     else // AUTO + DIA
     {
-      loadDIA_(*handle, exp, eff);
+      loadDIA_(*handle, to_experiment, eff);
     }
 
     loadExperimentalSettings_(path, d_path, exp);
 
-    // Sort by RT, interleaved across MS levels
+    // Sort by RT, interleaved across MS levels, and the peaks of every spectrum by m/z. The loaders emit
+    // in that order where they can (see transform()), so there is little left to do here.
     exp.sortSpectra(true);
     exp.updateRanges();
   }
@@ -2437,53 +2493,7 @@ namespace OpenMS
     bool is_dia = isDIA(db);
     Config::ExportMode mode = eff.export_mode;
 
-    // Compute expected size for consumer. Must mirror what loadFrames_/loadDIA_/
-    // loadDDA_ actually emit under the active frame_id range and the load_ms1/load_ms2 knobs.
-    FrameCounts counts = readFrameCounts(db, eff);
-    const size_t ms1_emitted = eff.load_ms1 ? counts.ms1 : 0;
-    size_t expected = 0;
-    if (!eff.load_ms2)
-    {
-      expected = ms1_emitted;
-    }
-    else if (mode == Config::FRAME)
-    {
-      expected = ms1_emitted + counts.ms2;
-    }
-    else if (is_dia && mode != Config::SPECTRUM)
-    {
-      // DIA: each MS2 frame belongs to exactly ONE WindowGroup and only
-      // produces spectra for that group's windows. So the emit count is
-      //   Σ_group (frames_in_group × windows_in_group)
-      // — NOT frames × all_windows. Mirrors the total_work computation in
-      // loadDIA_.
-      auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
-      auto group_to_frames = readFrameToWindowGroupMapping(db, windows);
-      for (auto& [group, frame_ids] : group_to_frames)
-      {
-        frame_ids.erase(
-          std::remove_if(frame_ids.begin(), frame_ids.end(),
-                         [&eff](uint32_t fid) { return !frameInRange(fid, eff); }),
-          frame_ids.end());
-      }
-      std::map<int, size_t> group_window_count;
-      for (const auto& w : windows) ++group_window_count[w.window_group];
-      size_t dia_ms2_spectra = 0;
-      for (const auto& [group, frames] : group_to_frames)
-      {
-        auto wit = group_window_count.find(group);
-        if (wit != group_window_count.end())
-          dia_ms2_spectra += frames.size() * wit->second;
-      }
-      expected = ms1_emitted + dia_ms2_spectra;
-    }
-    else
-    {
-      // DDA: MS1 frames + per-precursor MS2 spectra
-      uint32_t num_precursors = countDDAPrecursors(db, eff);
-      expected = ms1_emitted + num_precursors;
-    }
-
+    const size_t expected = expectedSpectra(db, *handle, eff, is_dia);
     consumer->setExpectedSize(expected, 0);
 
     // Populate source file metadata (same as load())
@@ -2491,29 +2501,50 @@ namespace OpenMS
     loadExperimentalSettings_(path, d_path, settings);
     consumer->setExperimentalSettings(settings);
 
-    // NOTE: This loads into a temporary experiment then feeds to consumer.
-    // Not truly constant-memory -- a future optimization should iterate
-    // frame-by-frame and call consumer->consumeSpectrum() inline.
-    OPENMS_LOG_INFO << "BrukerTimsFile::transform(): loading full dataset (streaming optimization pending)" << std::endl;
-    MSExperiment exp;
-    if (mode == Config::FRAME)
-      loadFrames_(*handle, exp, eff);
-    else if (is_dia && mode != Config::SPECTRUM)
-      loadDIA_(*handle, exp, eff);
-    else
-      loadDDA_(*handle, exp, eff);
-
-    exp.sortSpectra(true);
-    for (auto& spec : exp)
+    const auto run_loader = [&](const SpectrumSink& sink)
     {
-      consumer->consumeSpectrum(spec);
+      if (mode == Config::FRAME)
+        loadFrames_(*handle, sink, eff);
+      else if (is_dia && mode != Config::SPECTRUM)
+        loadDIA_(*handle, sink, eff);
+      else
+        loadDDA_(*handle, sink, eff);
+    };
+
+    if (emitsInRTOrder(*handle, eff, is_dia))
+    {
+      // The spectra go to the consumer as they are read, in the order and form load() returns them
+      double last_rt = -std::numeric_limits<double>::infinity();
+      run_loader([&](MSSpectrum& spec)
+      {
+        if (spec.getRT() < last_rt)
+        {
+          throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "BrukerTimsFile::transform(): spectra are read in order of retention time");
+        }
+        last_rt = spec.getRT();
+        spec.sortByPosition(); // by m/z; all but a few arrive sorted
+        consumer->consumeSpectrum(spec);
+      });
+    }
+    else
+    {
+      // Not read in order of retention time: the whole run is loaded and put in order first
+      OPENMS_LOG_INFO << "BrukerTimsFile::transform(): this configuration needs the whole run in memory" << std::endl;
+      MSExperiment exp;
+      run_loader([&exp](MSSpectrum& spec) { exp.addSpectrum(std::move(spec)); });
+      exp.sortSpectra(true);
+      for (auto& spec : exp)
+      {
+        consumer->consumeSpectrum(spec);
+      }
     }
   }
 
   // =====================================================================
   // loadDDA_: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
   // =====================================================================
-  void BrukerTimsFile::loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
+  void BrukerTimsFile::loadDDA_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config)
   {
     std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
@@ -2592,16 +2623,16 @@ namespace OpenMS
 
     uint32_t num_ms2 = static_cast<uint32_t>(precursor_groups.size());
     const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
-    exp.reserveSpaceSpectra(static_cast<unsigned int>(ms1_to_emit) + num_ms2);
 
     startProgress(0, ms1_to_emit + num_ms2, "Loading DDA-PASEF data");
+    Size progress_count = 0;
 
     // --- MS1 frames ---
     FrameCentroider centroider;
     FrameAggregator ms1_aggregator(0.01);
     DecodedFrame decoded;
     if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    for (size_t i = 0; i < ms1_to_emit; ++i)
+    const auto emit_ms1 = [&](size_t i)
     {
       MSSpectrum spec;
       if (config.ms1_n_neighbors > 0)
@@ -2614,8 +2645,17 @@ namespace OpenMS
         TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
         loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
       }
-      exp.addSpectrum(std::move(spec));
-      setProgress(i);
+      sink(spec);
+      setProgress(++progress_count);
+    };
+
+    // The spectra are emitted in order of retention time, MS1 frames and precursors interleaved. With OLS
+    // recalibration all MS1 frames come first instead: they are read with the calibration of the file,
+    // the MS2 spectra with the one fitted below.
+    const bool in_rt_order = emitsInRTOrder(handle, config, /*is_dia=*/false);
+    if (!config.load_ms2 || !in_rt_order)
+    {
+      for (size_t i = 0; i < ms1_to_emit; ++i) emit_ms1(i);
     }
 
     if (!config.load_ms2)
@@ -2802,8 +2842,8 @@ namespace OpenMS
     constexpr uint32_t SMOOTH_WINDOW = 1;
     constexpr uint32_t CENTROID_WINDOW = 1;
 
-    uint32_t precursor_idx = 0;
-    for (const auto& [prec_id, entries] : precursor_groups)
+    // Builds the MS2 spectrum of one precursor and emits it; nothing is emitted if no peak is left
+    const auto emit_precursor = [&](const int prec_id, const std::vector<const DDAPrecursorInfo*>& entries)
     {
       // Collect raw peaks (TOF space) from all frames for this precursor
       std::vector<uint32_t> all_tofs;
@@ -2838,9 +2878,7 @@ namespace OpenMS
 
       if (all_tofs.empty())
       {
-        ++precursor_idx;
-        setProgress(ms1_to_emit + precursor_idx);
-        continue;
+        return;
       }
 
       // Branch: HillBased DDA-MS2 centroiding bypasses the TOF-domain pipeline
@@ -2871,9 +2909,7 @@ namespace OpenMS
 
         if (centroids.empty())
         {
-          ++precursor_idx;
-          setProgress(ms1_to_emit + precursor_idx);
-          continue;
+          return;
         }
 
         std::vector<double> all_mz, all_intensity_d;
@@ -2942,10 +2978,8 @@ namespace OpenMS
         precursors.push_back(std::move(prec));
         spec.setPrecursors(std::move(precursors));
 
-        exp.addSpectrum(std::move(spec));
-        ++precursor_idx;
-        setProgress(ms1_to_emit + precursor_idx);
-        continue;
+        sink(spec);
+        return;
       }
 
       // --- TOF-domain processing pipeline (ported from timsrust) ---
@@ -3029,9 +3063,7 @@ namespace OpenMS
 
       if (all_mz.empty())
       {
-        ++precursor_idx;
-        setProgress(ms1_to_emit + precursor_idx);
-        continue;
+        return;
       }
 
       // Sort by m/z
@@ -3128,18 +3160,68 @@ namespace OpenMS
       precursors.push_back(std::move(prec));
       spec.setPrecursors(std::move(precursors));
 
-      exp.addSpectrum(std::move(spec));
-      ++precursor_idx;
-      setProgress(ms1_to_emit + precursor_idx);
+      sink(spec);
+    };
+
+    if (!in_rt_order)
+    {
+      for (const auto& [prec_id, entries] : precursor_groups)
+      {
+        emit_precursor(prec_id, entries);
+        setProgress(++progress_count);
+      }
+    }
+    else
+    {
+      // MS1 frames and precursors by retention time. A precursor spectrum gets the mean time of its frames
+      // (avg_rt above, computed here the same way). Equal times keep MS1 frames first and precursors in
+      // the order of their ids, as a stable sort of all spectra by retention time would.
+      struct Event
+      {
+        double rt;
+        size_t ms1_index;                                    // of an MS1 frame
+        const std::vector<const DDAPrecursorInfo*>* entries; // of a precursor, else nullptr
+        int prec_id;
+      };
+      std::vector<Event> events;
+      events.reserve(ms1_to_emit + precursor_groups.size());
+      for (size_t i = 0; i < ms1_to_emit; ++i)
+      {
+        events.push_back({handle.get_frame(ms1_frame_ids[i]).time, i, nullptr, 0});
+      }
+      for (const auto& [prec_id, entries] : precursor_groups)
+      {
+        double rt_sum = 0.0;
+        for (const DDAPrecursorInfo* entry : entries)
+        {
+          if (!handle.has_frame(entry->frame_id)) continue;
+          rt_sum += handle.get_frame(entry->frame_id).time;
+        }
+        events.push_back({rt_sum / static_cast<double>(entries.size()), 0, &entries, prec_id});
+      }
+      std::stable_sort(events.begin(), events.end(), [](const Event& a, const Event& b) { return a.rt < b.rt; });
+      for (const Event& event : events)
+      {
+        if (event.entries == nullptr)
+        {
+          emit_ms1(event.ms1_index); // counts progress itself
+        }
+        else
+        {
+          emit_precursor(event.prec_id, *event.entries);
+          setProgress(++progress_count);
+        }
+      }
     }
     endProgress();
     centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
   }
 
+
   // =====================================================================
   // loadDIA_: MS1 frames + MS2 frames split by SWATH window
   // =====================================================================
-  void BrukerTimsFile::loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
+  void BrukerTimsFile::loadDIA_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config)
   {
     std::string tdf_path = handle.get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
@@ -3163,8 +3245,7 @@ namespace OpenMS
     DecodedFrame decoded;
     const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
     if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
-    for (size_t i = 0; i < ms1_to_emit; ++i)
+    const auto emit_ms1 = [&](size_t i)
     {
       MSSpectrum spec;
       if (config.ms1_n_neighbors > 0)
@@ -3177,20 +3258,34 @@ namespace OpenMS
         TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
         loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
       }
-      exp.addSpectrum(std::move(spec));
-      setProgress(i);
-    }
-    endProgress();
-    if (config.load_ms1)
-      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+      sink(spec);
+    };
+    // All MS1 frames in a row, for the cases in which they are not interleaved with MS2 spectra
+    const auto emit_all_ms1 = [&]()
+    {
+      startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
+      for (size_t i = 0; i < ms1_to_emit; ++i)
+      {
+        emit_ms1(i);
+        setProgress(i);
+      }
+      endProgress();
+      if (config.load_ms1)
+        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+    };
 
-    if (!config.load_ms2) return; // MS1 only: no MS2 frame is decoded
+    if (!config.load_ms2)
+    {
+      emit_all_ms1(); // MS1 only: no MS2 frame is decoded
+      return;
+    }
 
     // --- SWATH windows ---
     std::vector<DIAWindow> windows = readDIAWindows(db, *handle.scan2inv_ion_mobility_converter);
 
     if (windows.empty())
     {
+      emit_all_ms1();
       OPENMS_LOG_WARN << "Warning: DIA dataset detected but no SWATH windows found" << std::endl;
       return;
     }
@@ -3229,6 +3324,8 @@ namespace OpenMS
     if (do_aggregate)
     {
       // === Aggregated path: per-WindowGroup iteration with RT-neighbor summing ===
+      // (window by window, so not in order of retention time: all MS1 frames come first)
+      emit_all_ms1();
       startProgress(0, total_work, "Loading DIA-PASEF MS2 frames (aggregated)");
       Size progress_count = 0;
 
@@ -3374,7 +3471,7 @@ namespace OpenMS
             spec.getFloatDataArrays().push_back(std::move(im_array));
             if (wrote_hill_bounds)
               attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
-            exp.addSpectrum(std::move(spec));
+            sink(spec);
           }
         }
       }
@@ -3388,9 +3485,9 @@ namespace OpenMS
       using CA = BrukerTimsFile::Config::CentroidAlgo;
       const auto ms2_algo_raw = effectiveMS2Algo(config, /*emit_warnings=*/false);
       const bool do_hill_raw = (ms2_algo_raw == CA::HILL_BASED);
-      startProgress(0, total_work, do_hill_raw
-                    ? "Loading DIA-PASEF MS2 frames (hill, no RT aggregation)"
-                    : "Loading DIA-PASEF MS2 frames");
+      startProgress(0, ms1_to_emit + total_work, do_hill_raw
+                    ? "Loading DIA-PASEF frames (hill, no RT aggregation)"
+                    : "Loading DIA-PASEF frames");
       Size progress_count = 0;
 
       // Without centroiding and prefilter the peaks of a window are emitted as they are, in m/z order.
@@ -3398,18 +3495,45 @@ namespace OpenMS
       const bool emit_as_is = !do_hill_raw && !config.isotopic_prefilter;
       std::vector<char> in_window; // per scan of the frame: within the ion mobility limits of the window?
 
+      // All frames by retention time: an MS1 frame gives one spectrum, an MS2 frame one per window of its
+      // group, in the order of the windows. Frames of equal time keep MS1 first, then the order of the
+      // groups, as a stable sort of all spectra by retention time would.
+      struct Event
+      {
+        double time;
+        size_t ms1_index;                            // of an MS1 frame
+        uint32_t frame_id;                           // of an MS2 frame
+        const std::vector<const DIAWindow*>* windows; // of an MS2 frame, else nullptr
+      };
+      std::vector<Event> events;
+      for (size_t i = 0; i < ms1_to_emit; ++i)
+      {
+        events.push_back({handle.get_frame(ms1_frame_ids[i]).time, i, 0, nullptr});
+      }
       for (const auto& [group, frame_ids] : group_to_frames)
       {
         auto wit = group_to_windows.find(group);
         if (wit == group_to_windows.end()) continue;
-        const auto& dia_windows = wit->second;
-
-        // Every frame is decoded once and split into the windows of its group. The spectra of a frame
-        // share its retention time and stay in the order of the windows; all others are put in order
-        // by retention time at the end of the load.
-        for (size_t i = 0; i < frame_ids.size(); ++i)
+        for (const uint32_t frame_id : frame_ids)
         {
-          TimsFrame& frame = handle.get_frame(frame_ids[i]);
+          events.push_back({handle.get_frame(frame_id).time, 0, frame_id, &wit->second});
+        }
+      }
+      std::stable_sort(events.begin(), events.end(), [](const Event& a, const Event& b) { return a.time < b.time; });
+
+      for (const Event& event : events)
+      {
+        if (event.windows == nullptr)
+        {
+          emit_ms1(event.ms1_index);
+          setProgress(progress_count++);
+          continue;
+        }
+        const auto& dia_windows = *event.windows;
+
+        // Every frame is decoded once and split into the windows of its group
+        {
+          TimsFrame& frame = handle.get_frame(event.frame_id);
           if (frame.num_peaks > 0) decoded.decode(handle, frame, /*order_by_mz=*/emit_as_is);
 
           for (const DIAWindow* win : dia_windows)
@@ -3454,7 +3578,7 @@ namespace OpenMS
               if (spec.empty()) continue;
               spec.setIMPeakType(IMPeakType::IM_PROFILE);
               spec.getFloatDataArrays().push_back(std::move(im_array));
-              exp.addSpectrum(std::move(spec));
+              sink(spec);
               continue;
             }
 
@@ -3527,19 +3651,21 @@ namespace OpenMS
               spec.getFloatDataArrays().push_back(std::move(im_array));
               if (wrote_hill_bounds)
                 attachHillBoundsArrays(spec, b_im_lo, b_im_hi, b_mz_lo, b_mz_hi);
-              exp.addSpectrum(std::move(spec));
+              sink(spec);
             }
           }
         }
       }
       endProgress();
+      if (config.load_ms1)
+        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
     }
   }
 
   // =====================================================================
   // loadFrames_: raw frames without precursor grouping or SWATH splitting
   // =====================================================================
-  void BrukerTimsFile::loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config)
+  void BrukerTimsFile::loadFrames_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config)
   {
     // FRAME mode returns raw per-frame spectra; MS1 aggregation would break that
     // contract, so warn and ignore the knob.
@@ -3551,52 +3677,53 @@ namespace OpenMS
                       << "frame aggregation." << std::endl;
     }
 
-    // Iterate all frames at each MS level
+    // The frames of the MS levels that are loaded (load_ms1 / load_ms2), by retention time. Frames of
+    // equal time keep MS1 first, as a stable sort of all spectra by retention time would.
+    struct FrameRef
+    {
+      double time;
+      int level;
+      uint32_t id;
+    };
+    std::vector<FrameRef> frames;
+    Size n_ms2 = 0;
     for (int level = 1; level <= 2; ++level)
     {
-      // Honor load_ms1 / load_ms2: skip the level entirely when the user opts out of it.
       if (level == 1 && !config.load_ms1) continue;
       if (level == 2 && !config.load_ms2) continue;
-
-      // Collect frame IDs at this level
-      std::vector<uint32_t> frame_ids;
       for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
       {
         if (!frameInRange(fid, config)) continue;
         if (!handle.has_frame(fid)) continue;
         TimsFrame& frame = handle.get_frame(fid);
-        if ((level == 1 && frame.msms_type == 0) ||
-            (level == 2 && frame.msms_type != 0))
-        {
-          frame_ids.push_back(fid);
-        }
+        if ((level == 1) != (frame.msms_type == 0)) continue;
+        frames.push_back({frame.time, level, fid});
+        if (level == 2) ++n_ms2;
       }
-
-      if (frame_ids.empty())
-      {
-        if (level == 2)
-          OPENMS_LOG_WARN << "Warning: no MS2 frames found (skipping)" << std::endl;
-        continue;
-      }
-
-      FrameCentroider centroider;
-      DecodedFrame decoded;
-      startProgress(0, frame_ids.size(),"Loading MS" + StringUtils::toStr(level) + " frames");
-      for (size_t i = 0; i < frame_ids.size(); ++i)
-      {
-        TimsFrame& frame = handle.get_frame(frame_ids[i]);
-        MSSpectrum spec;
-        if (level == 1)
-          loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
-        else
-          frameToSpectrum(handle, frame, spec, level, decoded);
-        exp.addSpectrum(std::move(spec));
-        setProgress(i);
-      }
-      endProgress();
-      if (level == 1)
-        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
     }
+    if (config.load_ms2 && n_ms2 == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: no MS2 frames found (skipping)" << std::endl;
+    }
+    std::stable_sort(frames.begin(), frames.end(), [](const FrameRef& a, const FrameRef& b) { return a.time < b.time; });
+
+    FrameCentroider centroider;
+    DecodedFrame decoded;
+    startProgress(0, frames.size(), "Loading frames");
+    for (size_t i = 0; i < frames.size(); ++i)
+    {
+      TimsFrame& frame = handle.get_frame(frames[i].id);
+      MSSpectrum spec;
+      if (frames[i].level == 1)
+        loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
+      else
+        frameToSpectrum(handle, frame, spec, frames[i].level, decoded);
+      sink(spec);
+      setProgress(i);
+    }
+    endProgress();
+    if (config.load_ms1 && frames.size() > n_ms2)
+      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
   }
 
 } // namespace OpenMS

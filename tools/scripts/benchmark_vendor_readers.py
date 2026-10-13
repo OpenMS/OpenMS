@@ -306,6 +306,17 @@ TOPP = [
      "FileConverter .d -> mzML, MS2 only"),
     ("topp/FileConverter/bruker_dia", "bruker_dia", ["{bin}/FileConverter", "-in", "{input}", "-out", "{out}"],
      "FileConverter .d -> mzML, default parameters"),
+    # BrukerTimsFile::transform(): the spectra are written as they are read. Each must hold the spectra of its
+    # in-memory twin above (compare --pair; the two differ in what the mzML writers add around the spectra)
+    ("topp/FileConverter/bruker_dda_lowmemory", "bruker_dda",
+     ["{bin}/FileConverter", "-in", "{input}", "-out", "{out}", "-process_lowmemory"],
+     "FileConverter .d -> mzML without loading the run into memory"),
+    ("topp/FileConverter/bruker_dda_no_ms1_lowmemory", "bruker_dda",
+     ["{bin}/FileConverter", "-in", "{input}", "-out", "{out}", "-process_lowmemory", "-bruker:load_ms1", "false"],
+     "FileConverter .d -> mzML without loading the run into memory, MS2 only"),
+    ("topp/FileConverter/bruker_dia_lowmemory", "bruker_dia",
+     ["{bin}/FileConverter", "-in", "{input}", "-out", "{out}", "-process_lowmemory"],
+     "FileConverter .d -> mzML without loading the run into memory"),
     ("topp/FileConverter/thermo", "thermo",
      ["{bin}/FileConverter", "-in", "{input}", "-out", "{out}", "-RawToMzML:reader", "inprocess"],
      "FileConverter .raw -> mzML with the in-process reader (vendor peak picking)"),

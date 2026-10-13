@@ -2698,6 +2698,18 @@ START_SECTION([EXTRA] transform() delivers the spectra of load() (DDA fixture))
     TEST_EQUAL(r.loaded.spectra, raw.loaded.spectra)
     TEST_EQUAL(r.loaded.peaks != raw.loaded.peaks, true) // aggregation and centroiding took place
   }
+
+  // --- OLS recalibration of the linear m/z model. The MS1 frames are read with the calibration of the
+  //     file and the MS2 spectra with the fitted one, so this is not read in order of retention time:
+  //     transform() loads the frames completely before it hands the first spectrum over. ---
+  {
+    Config cfg = many_frames;
+    cfg.calibrate = true;
+    cfg.tims_calibration_strategy = Config::TimsCalibrationStrategy::LINEAR;
+    const TransformParity r = testTransformAgainstLoad(path, cfg);
+    TEST_EQUAL(r.loaded.ms1 > 0, true)
+    TEST_EQUAL(r.loaded.ms2 > 0, true)
+  }
 }
 END_SECTION
 

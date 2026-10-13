@@ -230,8 +230,36 @@ runtime.
             auto meta = self.readDIAMetadata(path, settings, config);
             return nb::make_tuple(meta, settings);
         }, "path"_a, "config"_a, "Read DIA SWATH boundaries and spectrum counts with explicit configuration. Returns (DIAStreamingMetadata, ExperimentalSettings).")
+        .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer) {
+            // the reader does not use a spectrum again after the consumer had it, so the value
+            // need not be restored after each callback
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            self.transform(path, &wrapper);
+        }, "path"_a, "consumer"_a,
+        "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
+        "the spectra load() returns, in the same order (default configuration)")
+        .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer,
+                             const OpenMS::BrukerTimsFile::Config& config) {
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            self.transform(path, &wrapper, config);
+        }, "path"_a, "consumer"_a, "config"_a,
+        "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
+        "the spectra load() returns with this configuration, in the same order. DIA data with MS2 aggregation "
+        "over retention time, and DDA data with calibrate=True on the linear m/z model, are loaded completely first.")
+        .def_static("detectFormat", &OpenMS::BrukerTimsFile::detectFormat, "path"_a,
+        "Which Bruker data format a .d directory or '.d.zip' archive holds, told by its file names (nothing is read or extracted)")
+        .def_static("checkDataFormat", &OpenMS::BrukerTimsFile::checkDataFormat, "path"_a,
+        "Raises if the path holds Bruker data in a format that cannot be read (TSF, BAF); load() does this check itself")
         ;
     def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
+
+    nb::enum_<OpenMS::BrukerTimsFile::DataFormat>(brukertimsfile_class, "DataFormat")
+        .value("NONE", OpenMS::BrukerTimsFile::DataFormat::NONE)
+        .value("TDF", OpenMS::BrukerTimsFile::DataFormat::TDF)
+        .value("TSF", OpenMS::BrukerTimsFile::DataFormat::TSF)
+        .value("BAF", OpenMS::BrukerTimsFile::DataFormat::BAF)
+        .value("UNREADABLE_ARCHIVE", OpenMS::BrukerTimsFile::DataFormat::UNREADABLE_ARCHIVE)
+        ;
 
     // Nested Config struct
     auto brukertimsfile_config = nb::class_<OpenMS::BrukerTimsFile::Config>(brukertimsfile_class, "Config",

@@ -486,3 +486,102 @@ def test_ms2_hill_centroiding_fields_reach_the_reader():
     # the isotopic prefilter applies to DIA MS2 with and without centroiding
     assert 0 < ms2_peaks(isotopic_prefilter=True) < raw
     assert 0 < ms2_peaks(ms2_centroid_algo=HILL, isotopic_prefilter=True) < hill
+
+
+# ---------------------------------------------------------------------------
+# Format detection and transform()
+# ---------------------------------------------------------------------------
+
+def test_detect_format(tmp_path):
+    """The format is told by file names only, so empty files do."""
+    Df = pyopenms.BrukerTimsFile.DataFormat
+    assert _enum_members(Df) == [("NONE", 0), ("TDF", 1), ("TSF", 2), ("BAF", 3), ("UNREADABLE_ARCHIVE", 4)]
+
+    def make_d(name, *files):
+        d = tmp_path / name
+        d.mkdir()
+        for file in files:
+            (d / file).write_bytes(b"")
+        return str(d)
+
+    assert pyopenms.BrukerTimsFile.detectFormat(make_d("tdf.d", "analysis.tdf", "analysis.tdf_bin")) == Df.TDF
+    tsf = make_d("tsf.d", "analysis.tsf", "analysis.tsf_bin")
+    assert pyopenms.BrukerTimsFile.detectFormat(tsf) == Df.TSF
+    assert pyopenms.BrukerTimsFile.detectFormat(make_d("baf.d", "analysis.baf")) == Df.BAF
+    assert pyopenms.BrukerTimsFile.detectFormat(make_d("empty.d")) == Df.NONE
+    assert pyopenms.BrukerTimsFile.detectFormat(str(tmp_path / "missing.d")) == Df.NONE
+
+    # data that cannot be read is named when it is loaded
+    with pytest.raises(Exception, match="Bruker TSF data"):
+        pyopenms.BrukerTimsFile.checkDataFormat(tsf)
+    with pytest.raises(Exception, match="Bruker TSF data"):
+        pyopenms.BrukerTimsFile().load(tsf)
+    pyopenms.BrukerTimsFile.checkDataFormat(str(tmp_path / "tdf.d"))
+
+
+class _CollectingConsumer:
+    """What transform() tells a consumer."""
+
+    def __init__(self):
+        self.calls = []
+        self.spectra = []
+        self.expected_spectra = None
+        self.source_files = None
+
+    def setExpectedSize(self, n_spectra, n_chromatograms):
+        self.calls.append("size")
+        self.expected_spectra = n_spectra
+        assert n_chromatograms == 0
+
+    def setExperimentalSettings(self, settings):
+        self.calls.append("settings")
+        self.source_files = len(settings.getSourceFiles())
+
+    def consumeSpectrum(self, spec):
+        if not self.spectra:
+            self.calls.append("first spectrum")
+        mz, intensity = spec.get_peaks()
+        self.spectra.append((spec.getNativeID(), spec.getMSLevel(), spec.getRT(), mz.tobytes(), intensity.tobytes()))
+
+    def consumeChromatogram(self, chromatogram):
+        raise AssertionError("a .d directory has no chromatograms")
+
+
+@needs_dda_data
+def test_transform_delivers_the_spectra_of_load():
+    path = os.environ["OPENTIMS_DDA_TEST_DATA"]
+    f = pyopenms.BrukerTimsFile()
+    cfg = _config(frame_id_min=1, frame_id_max=60)
+    exp = f.load(path, cfg)
+    consumer = _CollectingConsumer()
+    f.transform(path, consumer, cfg)
+
+    # size and settings are known before the first spectrum
+    assert consumer.calls == ["size", "settings", "first spectrum"]
+    assert consumer.source_files == 1
+    loaded = [(s.getNativeID(), s.getMSLevel(), s.getRT(), s.get_peaks()[0].tobytes(), s.get_peaks()[1].tobytes())
+              for s in exp]
+    assert {level for _, level, _, _, _ in loaded} == {1, 2}
+    assert consumer.spectra == loaded
+    assert consumer.expected_spectra >= len(loaded)  # an upper bound
+    rts = [rt for _, _, rt, _, _ in consumer.spectra]
+    assert rts == sorted(rts)
+
+
+@needs_dia_data
+def test_transform_writes_mzml(tmp_path):
+    """transform() into the mzML writer: a conversion that does not hold the run in memory."""
+    path = os.environ["OPENTIMS_DIA_TEST_DATA"]
+    f = pyopenms.BrukerTimsFile()
+    cfg = _config(frame_id_min=1, frame_id_max=40)
+    exp = f.load(path, cfg)
+    out = str(tmp_path / "streamed.mzML")
+    writer = pyopenms.PlainMSDataWritingConsumer(out)
+    f.transform(path, writer, cfg)
+    del writer  # closes the file
+
+    reloaded = pyopenms.MSExperiment()
+    pyopenms.MzMLFile().load(out, reloaded)
+    assert reloaded.getNrSpectra() == exp.getNrSpectra() > 0
+    assert [s.getNativeID() for s in reloaded] == [s.getNativeID() for s in exp]
+    assert [s.size() for s in reloaded] == [s.size() for s in exp]

@@ -12,6 +12,7 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <string>
@@ -290,25 +291,39 @@ namespace OpenMS
     /// @overload with explicit configuration
     void load(const std::string& path, MSExperiment& exp, const Config& config);
 
-    /// Feed spectra from a .d directory to a consumer.
-    /// @note Currently loads the full dataset into memory before streaming to the consumer.
-    ///       A future optimization should iterate frame-by-frame for true constant-memory operation.
+    /**
+      @brief Feeds the spectra of a .d directory to a consumer, without keeping them
+
+      The consumer gets what load() returns with the same configuration: the same spectra in the same
+      order (by retention time), each with its peaks in m/z order. They are handed over as they are
+      read, so the memory needed does not grow with the run. Two configurations are an exception and
+      are loaded completely before the first spectrum is handed over, as their spectra are not read in
+      order of retention time: DIA data with MS2 aggregation over retention time (dia_ms2_n_neighbors
+      > 0), and DDA data with calibrate = true while m/z comes from the linear model.
+
+      The consumer is told the experimental settings and the expected number of spectra before the
+      first spectrum. That number is an upper bound: a DDA precursor or a DIA window of a frame that
+      ends up without peaks gives no spectrum.
+    */
     void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer);
     /// @overload with explicit configuration
     void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config);
 
   private:
+    /// Receives the spectra a loader emits, one after the other. It may move from the spectrum.
+    using SpectrumSink = std::function<void(MSSpectrum&)>;
+
+    // The loaders emit their spectra in order of retention time, spectra of equal retention time MS1
+    // first, unless the configuration is one of the two that transform() names.
+
     /// Load DDA-PASEF data: MS1 frames (IM_PEAK) + MS2 spectra (scalar IM)
-    void loadDDA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
+    void loadDDA_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config);
 
     /// Load DIA-PASEF data: MS1 frames (IM_PEAK) + MS2 frames split by SWATH window
-    void loadDIA_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
+    void loadDIA_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config);
 
     /// Load raw frames without precursor grouping or SWATH splitting
-    void loadFrames_(TimsDataHandle& handle, MSExperiment& exp, const Config& config);
-
-    /// Detect DDA vs DIA by checking for SWATH windows
-    bool isDIA_(const std::string& tdf_path) const;
+    void loadFrames_(TimsDataHandle& handle, const SpectrumSink& sink, const Config& config);
 
     /// Populate SourceFile metadata from the input @p path and the run and instrument metadata from the analysis.tdf of
     /// the .d directory @p d_path (the unpacked directory for a .d.zip; no peak data read)
