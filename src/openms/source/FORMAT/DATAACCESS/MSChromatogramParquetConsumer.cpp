@@ -15,9 +15,14 @@
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 
+#include <condition_variable>
+#include <deque>
 #include <exception>
 #include <limits>
 #include <memory>
+#include <mutex>
+#include <thread>
+#include <utility>
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
@@ -220,6 +225,7 @@ namespace OpenMS
         OPENMS_LOG_ERROR << "Failed to write chromatogram parquet file '" << filename_
                          << "': unknown exception.\n";
       }
+      stopWriterThread_(); // no-op if finalize() got that far
     }
 
     void consumeSpectrum(MSChromatogramParquetConsumer::SpectrumType& s)
@@ -534,6 +540,13 @@ namespace OpenMS
       // remaining data.
       flushBuffers_();
 
+      // All batches are handed over: wait until the writer thread has written them.
+      stopWriterThread_();
+      if (writer_error_)
+      {
+        std::rethrow_exception(std::exchange(writer_error_, nullptr));
+      }
+
       // Close writer and outfile so Parquet metadata is written.
       // Null out each pointer immediately after closing so a subsequent call
       // from the destructor (if the first call threw) cannot double-close.
@@ -574,7 +587,7 @@ namespace OpenMS
       // already exists.
       if (accumulated_rows_ == 0)
       {
-        if (outfile_ || parquet_writer_)
+        if (table_submitted_)
         {
           return;
         }
@@ -649,6 +662,84 @@ namespace OpenMS
                                       "XIC table schema validation failed: " + validation.toString(), "");
       }
 
+      submitTable_(std::move(table));
+    }
+
+    /**
+      @brief Hands a batch to the writer thread.
+
+      Writing a batch means compressing it (ZSTD), and the caller holds the lock that serializes
+      all chromatogram output. A single thread writes the batches in the order in which they are
+      submitted, so the file is the same as when every batch is written in place; the queue is
+      bounded, so a slow disk still holds the producers back.
+    */
+    void submitTable_(std::shared_ptr<arrow::Table> table)
+    {
+      std::unique_lock<std::mutex> lock(writer_mutex_);
+      writer_cv_.wait(lock, [this]() { return writer_error_ != nullptr || pending_tables_.size() < max_pending_tables_; });
+      if (writer_error_)
+      {
+        std::rethrow_exception(writer_error_); // kept, so that finalize() reports it as well
+      }
+      pending_tables_.push_back(std::move(table));
+      table_submitted_ = true;
+      if (!writer_thread_.joinable())
+      {
+        writer_stop_ = false;
+        writer_thread_ = std::thread([this]() { writerLoop_(); });
+      }
+      lock.unlock();
+      writer_cv_.notify_all();
+    }
+
+    void writerLoop_()
+    {
+      while (true)
+      {
+        std::shared_ptr<arrow::Table> table;
+        {
+          std::unique_lock<std::mutex> lock(writer_mutex_);
+          writer_cv_.wait(lock, [this]() { return writer_stop_ || !pending_tables_.empty(); });
+          if (pending_tables_.empty())
+          {
+            return; // stop requested and everything is written
+          }
+          table = std::move(pending_tables_.front());
+          pending_tables_.pop_front();
+        }
+        writer_cv_.notify_all(); // room for the next batch
+        try
+        {
+          writeTable_(*table);
+        }
+        catch (...)
+        {
+          std::lock_guard<std::mutex> lock(writer_mutex_);
+          writer_error_ = std::current_exception();
+          pending_tables_.clear();
+          writer_cv_.notify_all();
+          return;
+        }
+      }
+    }
+
+    /// Lets the writer thread finish the queued batches and joins it. Does not throw.
+    void stopWriterThread_() noexcept
+    {
+      {
+        std::lock_guard<std::mutex> lock(writer_mutex_);
+        writer_stop_ = true;
+      }
+      writer_cv_.notify_all();
+      if (writer_thread_.joinable())
+      {
+        writer_thread_.join();
+      }
+    }
+
+    /// Writes one batch as row group(s); runs on the writer thread only.
+    void writeTable_(const arrow::Table& table)
+    {
       // Open output file on first flush and prepare writer properties.
       if (!outfile_)
       {
@@ -671,7 +762,7 @@ namespace OpenMS
       if (!parquet_writer_)
       {
         // Create a FileWriter (returns arrow::Result)
-        auto writer_result = parquet::arrow::FileWriter::Open(*schema,
+        auto writer_result = parquet::arrow::FileWriter::Open(*schema_,
                              arrow::default_memory_pool(),
                              outfile_,
                              props_,
@@ -683,7 +774,7 @@ namespace OpenMS
         }
         parquet_writer_ = std::move(writer_result).ValueOrDie();
       }
-      auto status = parquet_writer_->WriteTable(*table, 1024);
+      auto status = parquet_writer_->WriteTable(table, 1024);
       if (!status.ok())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -733,6 +824,16 @@ namespace OpenMS
     std::shared_ptr<arrow::io::FileOutputStream> outfile_;
     std::shared_ptr<parquet::WriterProperties> props_;
     std::unique_ptr<parquet::arrow::FileWriter> parquet_writer_;
+    // Writer thread and its queue of finished batches (see submitTable_()). outfile_, props_ and
+    // parquet_writer_ belong to the writer thread while it runs.
+    std::thread writer_thread_;
+    std::mutex writer_mutex_;
+    std::condition_variable writer_cv_;
+    std::deque<std::shared_ptr<arrow::Table>> pending_tables_;
+    bool writer_stop_ = false;
+    bool table_submitted_ = false; ///< a batch (possibly empty) was handed over, so the file will exist
+    std::exception_ptr writer_error_;
+    static constexpr size_t max_pending_tables_ = 64;
     std::shared_ptr<arrow::Schema> schema_;
   };
 
