@@ -3,6 +3,7 @@
 #define OPENMS_NASE_CLASS_TEST
 #include "../NucleicAcidSearchEngine.cpp"
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include "RNAPrecursorCorrector.h"
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -108,6 +109,62 @@ namespace
     for (Size i = 0; i < s.size(); ++i) ids.push_back(i);
     s.getIntegerDataArrays().push_back(ids);
     return s;
+  }
+}
+
+namespace
+{
+  PeakGroup envelope(double mass = 2500, int charge = 2, bool positive = false, int first_isotope = 0)
+  {
+    PeakGroup group(charge, charge, positive);
+    group.setMonoisotopicMass(mass);
+    group.setChargeIsotopeCosine(charge, 0.95);
+    group.setChargeSNR(charge, 10);
+    const double carrier = positive ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U;
+    for (int i = first_isotope; i <= 8; ++i)
+    {
+      FLASHHelperClasses::LogMzPeak peak(Peak1D((mass + i * Constants::C13C12_MASSDIFF_U) / charge + carrier, 1000), positive);
+      peak.abs_charge = charge;
+      peak.isotopeIndex = i;
+      group.push_back(peak);
+    }
+    return group;
+  }
+
+  MSSpectrum survey(bool positive = false, const std::string& sequence = "ACGUACGU")
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(1);
+    spectrum.setNativeID("scan=1");
+    spectrum.setRT(10);
+    spectrum.setType(SpectrumSettings::SpectrumType::CENTROID);
+    const auto formula = NASequence::fromString(sequence).getFormula();
+    const auto isotopes = formula.getIsotopeDistribution(CoarseIsotopePatternGenerator(8));
+    const double carrier = positive ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U;
+    for (Size i = 0; i < isotopes.size(); ++i)
+    {
+      spectrum.emplace_back((formula.getMonoWeight() + i * Constants::C13C12_MASSDIFF_U) / 2 + carrier,
+                            isotopes[i].getIntensity() * 10000);
+    }
+    spectrum.sortByPosition();
+    return spectrum;
+  }
+
+  MSSpectrum ms2(const MSSpectrum& ms1, int isotope = 1)
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setNativeID("scan=3");
+    spectrum.setRT(12);
+    spectrum.emplace_back(100.0, 500);
+    Precursor precursor;
+    precursor.setMZ(ms1[isotope].getMZ());
+    precursor.setCharge(2);
+    precursor.setIsolationWindowLowerOffset(0.5);
+    precursor.setIsolationWindowUpperOffset(0.75);
+    precursor.setMetaValue("spectrum_ref", "scan=1");
+    spectrum.getPrecursors().push_back(precursor);
+    return spectrum;
   }
 }
 
@@ -271,6 +328,127 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   TextFile mztab_output(output + ".mzTab");
   TEST_TRUE(std::any_of(mztab_output.begin(), mztab_output.end(), [](const std::string& line)
     { return line.find("opt_global_precursor_percentage") != std::string::npos; }))
+
+  fixture("ACGUAC", "ACGUAC", 2);
+  MSExperiment correction_input;
+  MzMLFile().load(mzml, correction_input);
+  auto survey_scan = survey(false, "ACGUAC");
+  survey_scan.setNativeID("survey=1");
+  survey_scan.setRT(correction_input[0].getRT() - 1.0);
+  correction_input[0].getPrecursors()[0].setMZ(
+    correction_input[0].getPrecursors()[0].getMZ() + Constants::C13C12_MASSDIFF_U / 2);
+  correction_input[0].getPrecursors()[0].setMetaValue("spectrum_ref", "survey=1");
+  correction_input.setSpectra({survey_scan, correction_input[0]});
+  MzMLFile().store(mzml, correction_input);
+  auto correction_args = arguments();
+  correction_args.insert(correction_args.end(), {"-precursor:isotopes", "-1", "-precursor:max_charge", "-5"});
+  TEST_EQUAL(runSearch(correction_args), 0)
+  TEST_EQUAL(hitCount(output), 0)
+  std::string audit_output;
+  NEW_TMP_FILE(audit_output)
+  audit_output += ".tsv";
+  correction_args.insert(correction_args.end(), {"-precursor:correct_with_flash", "-out_precursor_corrections", audit_output});
+  TEST_EQUAL(runSearch(correction_args), 0)
+  TEST_EQUAL(hitCount(output), 1)
+  vector<ProteinIdentification> corrected_proteins;
+  PeptideIdentificationList corrected_peptides;
+  IdXMLFile().load(output, corrected_proteins, corrected_peptides);
+  TEST_FALSE(corrected_peptides.empty())
+  ABORT_IF(corrected_peptides.empty())
+  TEST_FALSE(corrected_peptides[0].getHits().empty())
+  ABORT_IF(corrected_peptides[0].getHits().empty())
+  TEST_STRING_EQUAL(corrected_peptides[0].getHits()[0].getMetaValue("flash_precursor_status").toString(), "corrected")
+  TEST_EQUAL(Int(corrected_peptides[0].getHits()[0].getMetaValue("flash_precursor_isotope")), 1)
+  TextFile correction_report(audit_output);
+  TEST_EQUAL(std::distance(correction_report.begin(), correction_report.end()), 2)
+
+  // mzML preserves earlier FLASH userParams. They must neither collapse this
+  // run's configured isotope list when disabled nor leak stale provenance.
+  const double selected_mz = correction_input[1].getPrecursors()[0].getMZ();
+  correction_input[1].setMetaValue("flash_precursor_status", "corrected");
+  correction_input[1].setMetaValue("flash_precursor_original_mz", 42.0);
+  correction_input[1].setMetaValue("flash_precursor_mz", 42.0);
+  correction_input[1].setMetaValue("flash_precursor_mono_mass", 42.0);
+  correction_input[1].setMetaValue("flash_precursor_isotope", 77);
+  correction_input[1].setMetaValue("flash_precursor_cosine", 0.99);
+  correction_input[1].setMetaValue("flash_precursor_snr", 123.0);
+  correction_input[1].setMetaValue("flash_precursor_mono_observed", "true");
+  correction_input[1].setMetaValue("flash_precursor_old_counter", 999);
+  correction_input[1].setMetaValue("sample_note", "retain");
+  MzMLFile().store(mzml, correction_input);
+  std::string stale_preprocessed, stale_oms;
+  NEW_TMP_FILE(stale_preprocessed)
+  NEW_TMP_FILE(stale_oms)
+  stale_preprocessed += ".mzML";
+  stale_oms += ".oms";
+  auto stale_args = arguments();
+  stale_args.insert(stale_args.end(), {"-precursor:isotopes", "1", "-precursor:max_charge", "-5",
+    "-out_preprocessed", stale_preprocessed, "-db_out", stale_oms});
+  TEST_EQUAL(runSearch(stale_args), 0)
+  TEST_EQUAL(hitCount(output), 1)
+  MSExperiment processed;
+  MzMLFile().load(stale_preprocessed, processed);
+  TEST_EQUAL(processed.size(), 1)
+  ABORT_IF(processed.size() != 1)
+  TEST_EQUAL(processed[0].getPrecursors()[0].getMZ(), selected_mz)
+  TEST_EQUAL(processed[0].getMetaValue("sample_note").toString(), "retain")
+  std::vector<std::string> metadata_keys;
+  processed[0].getKeys(metadata_keys);
+  for (const auto& key : metadata_keys) TEST_FALSE(key.starts_with("flash_precursor_"))
+  IdentificationData stale_data;
+  OMSFile().load(stale_oms, stale_data);
+  TEST_FALSE(stale_data.getObservationMatches().empty())
+  ABORT_IF(stale_data.getObservationMatches().empty())
+  for (const auto& match : stale_data.getObservationMatches())
+  {
+    TEST_EQUAL(Int(match.getMetaValue("isotope_offset")), 1)
+    metadata_keys.clear();
+    match.getKeys(metadata_keys);
+    for (const auto& key : metadata_keys) TEST_FALSE(key.starts_with("flash_precursor_"))
+  }
+
+  // Enabled correction derives a new decision from the actual selected ion,
+  // without restoring the unrelated old original-m/z annotation.
+  auto fresh_args = correction_args;
+  fresh_args.insert(fresh_args.end(), {"-out_preprocessed", stale_preprocessed});
+  TEST_EQUAL(runSearch(fresh_args), 0)
+  TEST_EQUAL(hitCount(output), 1)
+  MzMLFile().load(stale_preprocessed, processed);
+  TEST_EQUAL(processed[0].getMetaValue("flash_precursor_status").toString(), "corrected")
+  TEST_EQUAL(double(processed[0].getMetaValue("flash_precursor_original_mz")), selected_mz)
+  TEST_EQUAL(Int(processed[0].getMetaValue("flash_precursor_isotope")), 1)
+  TEST_FALSE(processed[0].metaValueExists("flash_precursor_old_counter"))
+  TEST_EQUAL(processed[0].getMetaValue("sample_note").toString(), "retain")
+
+  // Missing MS1 evidence makes the same annotated input unresolved. The
+  // static list still finds the hit, and accepted-only annotations disappear.
+  correction_input.setSpectra({correction_input[1]});
+  MzMLFile().store(mzml, correction_input);
+  stale_args.push_back("-precursor:correct_with_flash");
+  TEST_EQUAL(runSearch(stale_args), 0)
+  TEST_EQUAL(hitCount(output), 1)
+  MzMLFile().load(stale_preprocessed, processed);
+  TEST_EQUAL(processed[0].getMetaValue("flash_precursor_status").toString(), "no_ms1")
+  TEST_EQUAL(processed[0].getPrecursors()[0].getMZ(), selected_mz)
+  for (const auto& key : {"flash_precursor_mz", "flash_precursor_mono_mass", "flash_precursor_isotope",
+       "flash_precursor_cosine", "flash_precursor_snr", "flash_precursor_mono_observed"})
+  {
+    TEST_FALSE(processed[0].metaValueExists(key))
+  }
+  stale_data.clear();
+  OMSFile().load(stale_oms, stale_data);
+  TEST_FALSE(stale_data.getObservationMatches().empty())
+  ABORT_IF(stale_data.getObservationMatches().empty())
+  for (const auto& match : stale_data.getObservationMatches())
+  {
+    TEST_EQUAL(Int(match.getMetaValue("isotope_offset")), 1)
+    TEST_EQUAL(match.getMetaValue("flash_precursor_status").toString(), "no_ms1")
+    for (const auto& key : {"flash_precursor_mz", "flash_precursor_mono_mass", "flash_precursor_isotope",
+         "flash_precursor_cosine", "flash_precursor_snr", "flash_precursor_mono_observed"})
+    {
+      TEST_FALSE(match.metaValueExists(key))
+    }
+  }
 
   fixture("ACGUAC", "AC[m2,2G]UAC", 2);
   args = arguments("RNase_T1");
@@ -968,6 +1146,214 @@ START_SECTION(([EXTRA] FLASH MS2: profile samples belonging to monoisotopes are 
   TEST_EQUAL(profile.front(), original.front())
   TEST_EQUAL(profile.back(), original.back())
   TEST_TRUE(Int(profile.getMetaValue("flash_isotope_peaks_removed")) > 0)
+}
+END_SECTION
+START_SECTION(([EXTRA] FLASH MS1: RNAPrecursorCorrector(double tolerance_ppm, int min_abs_charge, int max_abs_charge, bool positive, double max_mass = 1000.0, double min_cos = 0.85, double min_snr = 0.25)))
+{
+  const auto parent = survey(true, "ACG");
+  MSExperiment original;
+  original.setSpectra({parent, ms2(parent)});
+  RNAPrecursorCorrector limited(10, 1, 5, true, 700);
+  auto restricted = original;
+  const auto limited_rows = limited.correct(restricted);
+  TEST_EQUAL(limited_rows.size(), 1)
+  TEST_FALSE(limited_rows[0].accepted())
+  TEST_EQUAL(restricted[1].getPrecursors()[0].getMZ(), original[1].getPrecursors()[0].getMZ())
+  RNAPrecursorCorrector default_limit(10, 1, 5, true);
+  auto unrestricted = original;
+  const auto default_rows = default_limit.correct(unrestricted);
+  TEST_EQUAL(default_rows.size(), 1)
+  TEST_TRUE(default_rows[0].accepted())
+
+  TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(0, 1, 2, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(-10, 1, 2, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(std::numeric_limits<double>::infinity(), 1, 2, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(10, 0, 2, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(10, 3, 2, true))
+  for (double invalid : {std::numeric_limits<double>::quiet_NaN(),
+                         std::numeric_limits<double>::infinity(),
+                         -std::numeric_limits<double>::infinity()})
+  {
+    TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(10, 1, 2, true, 1000, invalid, 0.25))
+    TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(10, 1, 2, true, 1000, 0.85, invalid))
+  }
+  TEST_EXCEPTION(Exception::InvalidParameter, RNAPrecursorCorrector(10, 1, 2, true, 1000, 0.49, 0.25))
+  TEST_EXCEPTION(Exception::InvalidParameter, RNAPrecursorCorrector(10, 1, 2, true, 1000, 1.01, 0.25))
+  TEST_EXCEPTION(Exception::InvalidParameter, RNAPrecursorCorrector(10, 1, 2, true, 1000, 0.85, 0.24))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(10, 1, 2, true, 49))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(10, 1, 2, true, std::numeric_limits<double>::quiet_NaN()))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNAPrecursorCorrector(10, 1, 2, true, std::numeric_limits<double>::infinity()))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FLASH MS1: Result match(const DeconvolvedSpectrum& groups, const Precursor& precursor) const))
+{
+  RNAPrecursorCorrector corrector(10, 1, 5, false, 8000);
+  DeconvolvedSpectrum groups;
+  groups.push_back(envelope());
+  Precursor precursor;
+  precursor.setCharge(2);
+  precursor.setMZ(groups[0][6].mz);
+  auto result = corrector.match(groups, precursor);
+  TEST_TRUE(result.accepted())
+  TEST_EQUAL(result.status, "corrected")
+  TEST_EQUAL(result.isotope, 6) // beyond the previous default 0..4 search hypotheses
+  TEST_REAL_SIMILAR(result.corrected_mz, 1250 - Constants::PROTON_MASS_U)
+  TEST_EQUAL(result.mono_observed, true)
+  precursor.setCharge(-2);
+  const auto signed_result = corrector.match(groups, precursor);
+  TEST_TRUE(signed_result.accepted())
+  TEST_EQUAL(signed_result.original_charge, -2)
+  TEST_EQUAL(signed_result.charge, -2)
+  TEST_EQUAL(signed_result.corrected_mz, result.corrected_mz)
+  TEST_EQUAL(signed_result.mono_mass, result.mono_mass)
+  precursor.setCharge(2);
+
+  // The aggregate envelope mass must not replace the instrument's selected-ion precision.
+  precursor.setMZ(groups[0][6].mz + 0.001);
+  result = corrector.match(groups, precursor);
+  TEST_TRUE(result.accepted())
+  TEST_EQUAL(result.isotope, 6)
+  TEST_EQUAL(result.corrected_mz, precursor.getMZ() - 6 * Constants::C13C12_MASSDIFF_U / 2)
+  TEST_EQUAL(result.mono_mass, (result.corrected_mz + Constants::PROTON_MASS_U) * 2)
+
+  precursor.setMZ(groups[0][0].mz);
+  result = corrector.match(groups, precursor);
+  TEST_EQUAL(result.status, "monoisotopic")
+  TEST_EQUAL(result.isotope, 0)
+
+  precursor.setCharge(3);
+  TEST_EQUAL(corrector.match(groups, precursor).status, "no_envelope")
+  precursor.setCharge(0);
+  TEST_EQUAL(corrector.match(groups, precursor).charge, 2)
+  precursor.setMZ(123.456);
+  TEST_EQUAL(corrector.match(groups, precursor).status, "no_envelope")
+  precursor.setMZ(0);
+  TEST_EQUAL(corrector.match(groups, precursor).status, "invalid_precursor")
+
+  groups.clear();
+  groups.push_back(envelope(2500, 2, false, 1));
+  precursor.setMZ(groups[0][5].mz);
+  precursor.setCharge(2);
+  result = corrector.match(groups, precursor);
+  TEST_TRUE(result.accepted())
+  TEST_EQUAL(result.isotope, 6)
+  TEST_EQUAL(result.mono_observed, false)
+  TEST_REAL_SIMILAR(result.corrected_mz, 1250 - Constants::PROTON_MASS_U)
+
+  groups.push_back(groups[0]);
+  TEST_TRUE(corrector.match(groups, precursor).accepted()) // duplicate detection, one mass
+  groups.push_back(envelope(2500 + Constants::C13C12_MASSDIFF_U));
+  result = corrector.match(groups, precursor);
+  TEST_EQUAL(result.status, "ambiguous")
+  TEST_REAL_SIMILAR(result.corrected_mz, precursor.getMZ())
+
+  RNAPrecursorCorrector positive(10, 1, 5, true, 8000);
+  groups.clear();
+  groups.push_back(envelope(2500, 2, true));
+  precursor.setMZ(groups[0][2].mz);
+  result = positive.match(groups, precursor);
+  TEST_REAL_SIMILAR(result.corrected_mz, 1250 + Constants::PROTON_MASS_U)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FLASH MS1: std::vector<Result> correct(MSExperiment& experiment)))
+{
+  RNAPrecursorCorrector corrector(10, 1, 5, false, 8000);
+  const auto parent = survey();
+  auto later = parent;
+  later.setNativeID("scan=2");
+  later.setRT(11);
+  later.clear(false); // an explicit reference must select the earlier, populated MS1
+  auto fragmentation = ms2(parent);
+  MSExperiment experiment;
+  experiment.addSpectrum(parent);
+  experiment.addSpectrum(later);
+  experiment.addSpectrum(fragmentation);
+  auto rows = corrector.correct(experiment);
+  TEST_EQUAL(rows.size(), 1)
+  TEST_TRUE(rows[0].accepted())
+  TEST_EQUAL(rows[0].parent, "scan=1")
+  TEST_EQUAL(rows[0].parent_source, "spectrum_ref")
+  TEST_EQUAL(rows[0].isotope, 1)
+  TEST_REAL_SIMILAR(experiment[2].getPrecursors()[0].getMZ(), parent[0].getMZ())
+  TEST_EQUAL(experiment[2][0], fragmentation[0])
+  TEST_EQUAL(experiment[2].getPrecursors()[0].getIsolationWindowLowerOffset(), 0.5)
+  TEST_REAL_SIMILAR(double(experiment[2].getPrecursors()[0].getMetaValue("isolation window target m/z")), fragmentation.getPrecursors()[0].getMZ())
+  TEST_EQUAL(experiment[0], parent)
+
+  // A previously accepted result becomes unresolved on a later run with no
+  // envelope. Keep the selected-ion m/z actually present in that input.
+  auto unresolved = experiment;
+  unresolved[0].clear(false);
+  const double rerun_mz = unresolved[2].getPrecursors()[0].getMZ();
+  const auto unresolved_rows = corrector.correct(unresolved);
+  TEST_FALSE(unresolved_rows[0].accepted())
+  TEST_EQUAL(unresolved_rows[0].status, "no_envelope")
+  TEST_EQUAL(unresolved[2].getPrecursors()[0].getMZ(), rerun_mz)
+  TEST_EQUAL(double(unresolved[2].getMetaValue("flash_precursor_original_mz")), rerun_mz)
+  for (const auto& key : {"flash_precursor_mz", "flash_precursor_mono_mass", "flash_precursor_isotope",
+       "flash_precursor_cosine", "flash_precursor_snr", "flash_precursor_mono_observed"})
+  {
+    TEST_FALSE(unresolved[2].metaValueExists(key))
+  }
+
+  // Round-trip selected-ion correction without moving the acquisition window.
+  std::string mzml;
+  NEW_TMP_FILE(mzml)
+  MzMLFile().store(mzml, experiment);
+  MSExperiment reread;
+  MzMLFile().load(mzml, reread);
+  TEST_REAL_SIMILAR(reread[2].getPrecursors()[0].getMZ(), parent[0].getMZ())
+  TEST_REAL_SIMILAR(double(reread[2].getPrecursors()[0].getMetaValue("isolation window target m/z")), fragmentation.getPrecursors()[0].getMZ())
+
+  // Signed negative charges survive correction, audit output, and mzML I/O.
+  auto signed_fragmentation = fragmentation;
+  signed_fragmentation.getPrecursors()[0].setCharge(-2);
+  MSExperiment signed_experiment;
+  signed_experiment.setSpectra({parent, signed_fragmentation});
+  const auto signed_rows = corrector.correct(signed_experiment);
+  TEST_TRUE(signed_rows[0].accepted())
+  TEST_EQUAL(signed_rows[0].charge, -2)
+  TEST_EQUAL(signed_experiment[1].getPrecursors()[0].getCharge(), -2)
+  MzMLFile().store(mzml, signed_experiment);
+  MzMLFile().load(mzml, reread);
+  TEST_EQUAL(reread[1].getPrecursors()[0].getCharge(), -2)
+  std::string signed_tsv;
+  NEW_TMP_FILE(signed_tsv)
+  RNAPrecursorCorrector::storeReport(signed_tsv, signed_rows);
+  TextFile signed_report(signed_tsv);
+  std::vector<std::string> signed_fields;
+  StringUtils::split(*std::next(signed_report.begin()), '\t', signed_fields);
+  TEST_EQUAL(signed_fields[6], "-2")
+  TEST_EQUAL(signed_fields[7], "-2")
+
+  // Some converted files incorrectly refer to the MS2 itself: document fallback.
+  fragmentation.getPrecursors()[0].setMetaValue("spectrum_ref", "scan=3");
+  experiment.setSpectra({parent, fragmentation});
+  rows = corrector.correct(experiment);
+  TEST_TRUE(rows[0].accepted())
+  TEST_EQUAL(rows[0].parent_source, "invalid_reference_fallback")
+  TEST_EQUAL(rows[0].parent, "scan=1")
+
+  fragmentation.getPrecursors()[0].removeMetaValue("spectrum_ref");
+  experiment.setSpectra({parent, fragmentation});
+  TEST_EQUAL(corrector.correct(experiment)[0].parent_source, "preceding_ms1")
+
+  experiment.setSpectra({fragmentation});
+  rows = corrector.correct(experiment);
+  TEST_EQUAL(rows[0].status, "no_ms1")
+  TEST_REAL_SIMILAR(experiment[0].getPrecursors()[0].getMZ(), fragmentation.getPrecursors()[0].getMZ())
+
+  fragmentation.getPrecursors().push_back(Precursor());
+  experiment.setSpectra({parent, fragmentation});
+  TEST_EQUAL(corrector.correct(experiment)[0].status, "invalid_precursor")
+
+  std::string tsv;
+  NEW_TMP_FILE(tsv)
+  RNAPrecursorCorrector::storeReport(tsv, rows);
+  TextFile report(tsv);
+  TEST_EQUAL(std::distance(report.begin(), report.end()), 2)
 }
 END_SECTION
 END_TEST

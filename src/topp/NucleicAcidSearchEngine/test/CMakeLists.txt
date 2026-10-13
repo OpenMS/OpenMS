@@ -23,3 +23,6 @@ target_link_libraries(NASEDigestion_test OpenMS_CLI)
 
 target_sources(NASEDigestion_test PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNADeisotoper.cpp)
+
+target_sources(NASEDigestion_test PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNAPrecursorCorrector.cpp)

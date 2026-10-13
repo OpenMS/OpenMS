@@ -44,6 +44,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include "ModifiedNASequenceGenerator.h"
 #include "RNADeisotoper.h"
+#include "RNAPrecursorCorrector.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -213,6 +214,17 @@ protected:
 
     IntList isotopes = {0, 1, 2, 3, 4};
     registerIntList_("precursor:isotopes", "<list>", isotopes, "Correct for mono-isotopic peak misassignments. E.g.: 1 = precursor may be misassigned to the first isotopic peak. Ignored if 'use_avg_mass' is set.", false, false);
+
+    registerFlag_("precursor:correct_with_flash", "Infer MS2 monoisotopic precursor m/z using FLASH RNA on the complete parent MS1. Confident corrected or monoisotopic scans search only additional isotope offset 0 around the corrected m/z. The configured 'precursor:isotopes' list is used only for unresolved or ambiguous scans. Requires monoisotopic masses and ppm precursor tolerance.", false);
+    registerTOPPSubsection_("precursor:flash", "FLASH RNA parent-MS1 precursor correction options");
+    registerDoubleOption_("precursor:flash:mass_tolerance", "<ppm>", 0.0, "MS1 isotope detection and selected-ion matching tolerance in ppm (0 = use precursor:mass_tolerance)", false, true);
+    setMinFloat_("precursor:flash:mass_tolerance", 0.0);
+    registerDoubleOption_("precursor:flash:min_cos", "<value>", 0.85, "Minimum charge-specific RNA averagine isotope cosine for an MS1 precursor envelope", false, true);
+    setMinFloat_("precursor:flash:min_cos", 0.5);
+    setMaxFloat_("precursor:flash:min_cos", 1.0);
+    registerDoubleOption_("precursor:flash:min_snr", "<value>", 0.25, "Minimum charge-specific SNR for an MS1 precursor envelope", false, true);
+    setMinFloat_("precursor:flash:min_snr", 0.25);
+    registerOutputFile_("out_precursor_corrections", "<file>", "", "Tab-delimited FLASH precursor correction audit, one row per MS2 (requires precursor:correct_with_flash)", false, true);
 
     registerTOPPSubsection_("fragment", "Fragment (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
@@ -1126,6 +1138,13 @@ protected:
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
         match.adduct_opt = hit.precursor_ref->adduct;
+        for (const auto& key : {"flash_precursor_status", "flash_precursor_original_mz",
+             "flash_precursor_original_charge", "flash_precursor_parent", "flash_precursor_parent_source",
+             "flash_precursor_mz", "flash_precursor_mono_mass", "flash_precursor_isotope",
+             "flash_precursor_cosine", "flash_precursor_snr", "flash_precursor_mono_observed"})
+        {
+          if (exp[scan_index].metaValueExists(key)) match.setMetaValue(key, exp[scan_index].getMetaValue(key));
+        }
 #pragma omp critical (id_data_access)
         id_data.registerObservationMatch(match);
       }
@@ -1517,11 +1536,30 @@ protected:
       }
     }
 
+    const bool correct_precursor = getFlag_("precursor:correct_with_flash");
+    const std::string precursor_report = getStringOption_("out_precursor_corrections");
+    if (correct_precursor && use_avg_mass)
+    {
+      OPENMS_LOG_ERROR << "FLASH precursor correction requires monoisotopic masses; disable use_avg_mass." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (correct_precursor && !search_param.precursor_tolerance_ppm)
+    {
+      OPENMS_LOG_ERROR << "FLASH precursor correction requires ppm precursor tolerance." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (!correct_precursor && !precursor_report.empty())
+    {
+      OPENMS_LOG_ERROR << "The precursor correction audit requires precursor:correct_with_flash." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
     // load MS2 map
     MSExperiment spectra;
     FileHandler f;
     PeakFileOptions options;
     options.clearMSLevels();
+    if (correct_precursor) options.addMSLevel(1);
     options.addMSLevel(2);
     f.setOptions(options);
     f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
@@ -1530,8 +1568,59 @@ protected:
     const bool report_precursor_tolerance_ppm = getStringOption_("report:precursor_percentage_mass_tolerance_unit") == "ppm";
     for (MSSpectrum& spectrum : spectra)
     {
+      if (!correct_precursor)
+      {
+        // FLASH annotations belong to the run that produced them. Disabling
+        // correction must use the configured isotope list and fresh provenance.
+        std::vector<std::string> keys;
+        spectrum.getKeys(keys);
+        for (const auto& key : keys)
+        {
+          if (key.starts_with("flash_precursor_")) spectrum.removeMetaValue(key);
+        }
+      }
       updatePrecursorPercentage_(spectrum, report_precursor_percentage,
         report_precursor_tolerance, report_precursor_tolerance_ppm);
+    }
+    if (correct_precursor)
+    {
+      double tolerance = getDoubleOption_("precursor:flash:mass_tolerance");
+      if (tolerance == 0) tolerance = search_param.precursor_mass_tolerance;
+      if (tolerance <= 0)
+      {
+        OPENMS_LOG_ERROR << "FLASH precursor correction requires a positive MS1 ppm tolerance." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      const int min_abs = std::min(std::abs(min_charge), std::abs(max_charge));
+      const int max_abs = std::max(std::abs(min_charge), std::abs(max_charge));
+      double max_mass = 0.0;
+      for (const auto& spec : spectra)
+      {
+        if (spec.getMSLevel() != 2) continue;
+        for (const auto& p : spec.getPrecursors())
+        {
+          const int z = p.getCharge() == 0 ? max_abs : std::abs(p.getCharge());
+          max_mass = std::max(max_mass, flashMassUpperBound_(p.getMZ(), z, negative_mode));
+        }
+      }
+      if (max_mass == 0.0) max_mass = 1000.0; // No precursor supplied a mass bound.
+      RNAPrecursorCorrector corrector(tolerance, min_abs, max_abs, !negative_mode, max_mass,
+        getDoubleOption_("precursor:flash:min_cos"), getDoubleOption_("precursor:flash:min_snr"));
+      const auto corrections = corrector.correct(spectra);
+      std::map<std::string, Size> counts;
+      for (const auto& row : corrections) ++counts[row.status];
+      OPENMS_LOG_INFO << "FLASH RNA precursor correction: " << corrections.size() << " MS2 scans checked";
+      for (const auto& [status, count] : counts) OPENMS_LOG_INFO << "; " << status << "=" << count;
+      OPENMS_LOG_INFO << endl;
+      if (!precursor_report.empty()) RNAPrecursorCorrector::storeReport(precursor_report, corrections);
+      // MS1 scans have served their purpose; preserve the existing MS2-only
+      // search indexing and the experiment's file metadata.
+      std::vector<MSSpectrum> ms2;
+      for (auto& spec : spectra)
+      {
+        if (spec.getMSLevel() == 2) ms2.push_back(std::move(spec));
+      }
+      spectra.setSpectra(std::move(ms2));
     }
     spectra.sortSpectra(true);
 
@@ -1780,6 +1869,11 @@ protected:
       }
 
       double precursor_mz = precursors[0].getMZ();
+      const bool flash_matched = correct_precursor && s_it->metaValueExists("flash_precursor_status") &&
+        (s_it->getMetaValue("flash_precursor_status") == "corrected" ||
+         s_it->getMetaValue("flash_precursor_status") == "monoisotopic");
+      const IntList scan_isotopes = flash_matched ? IntList{0} : precursor_isotopes;
+
 
       for (Int precursor_charge : possible_charges)
       {
@@ -1789,7 +1883,7 @@ protected:
         // misassignment) and map it to MS scan index etc.:
         for (const auto& adduct_pair : adduct_masses)
         {
-          for (Int isotope_number : precursor_isotopes)
+          for (Int isotope_number : scan_isotopes)
           {
             double precursor_mass =
               calculatePrecursorMass_(precursor_mz, precursor_charge,
