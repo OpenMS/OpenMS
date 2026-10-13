@@ -451,6 +451,17 @@ namespace OpenMS
     /// Cancel the effect of @ref setCurrentProcessingStep().
     void clearCurrentProcessingStep();
 
+    /**
+      @brief Compare molecule, charge and adduct values for reproducible exact-score ties.
+
+      The current value order gives neither target nor decoy status a preference.
+      This comparator is shared by best-match selection and ID export.
+      @param[in] left First match
+      @param[in] right Second match
+      @return Whether the first match precedes the second in value order
+    */
+    static bool observationMatchLess(const ObservationMatch& left, const ObservationMatch& right);
+
     /*!
       @brief Return the best match for each observation, according to a given score type
 

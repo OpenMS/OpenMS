@@ -621,9 +621,7 @@ namespace OpenMS
   }
 
 
-  vector<IdentificationData::ObservationMatchRef>
-  IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref,
-                                                 bool require_score) const
+  bool IdentificationData::observationMatchLess(const ObservationMatch& left, const ObservationMatch& right)
   {
     // Reference ordering uses memory addresses. Equal scores must instead be
     // resolved by stable molecule/adduct values, without preferring target status.
@@ -638,6 +636,13 @@ namespace OpenMS
                              adduct ? (*adduct)->getCharge() : 0,
                              adduct ? (*adduct)->getMolMultiplier() : UInt(0));
     };
+    return tie_key(left) < tie_key(right);
+  }
+
+  vector<IdentificationData::ObservationMatchRef>
+  IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref,
+                                                 bool require_score) const
+  {
     vector<ObservationMatchRef> results;
     pair<double, bool> best_score = make_pair(0.0, false);
     ObservationMatchRef best_ref = observation_matches_.end();
@@ -651,7 +656,7 @@ namespace OpenMS
                                    score_ref->isBetterScore(current_score.first,
                                                            best_score.first) ||
                                    ((current_score.first == best_score.first) &&
-                                    (tie_key(*ref) < tie_key(*best_ref)))))
+                                    observationMatchLess(*ref, *best_ref))))
       {
         // new best score for the current observation:
         best_score = current_score;
