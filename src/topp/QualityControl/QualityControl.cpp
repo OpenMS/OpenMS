@@ -14,17 +14,15 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include "Contaminants.h"
 #include "FragmentMassError.h"
@@ -42,7 +40,10 @@
 #include "MQExporterHelper.h"
 
 #include <algorithm>
+#include <limits>
 #include <map>
+#include <optional>
+#include <tuple>
 
 using namespace OpenMS;
 using namespace std;
@@ -167,12 +168,9 @@ protected:
     ConsensusMap cmap;
     std::string in_cm = getStringOption_("in_cm");
     FileHandler().loadConsensusFeatures(in_cm, cmap, {FileTypes::CONSENSUSXML});
-    // QualityControl works on peptide identifications (until it is moved to identification data, see #10470)
-    IdentificationDataConverter::moveToPeptideIdentifications(cmap);
-    for (ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
-    {
-      sortVectorOfPeptideIDsbyScore_(cf.getPeptideIdentifications());
-    }
+    // QualityControl works on identification data: the best identification of a feature is the one with the best score
+    // (in the direction of the score), the identifications of a feature keep their order
+    IdentificationDataConverter::moveToIdentificationData(cmap);
     std::vector<FeatureMap> fmaps;
     if (in_postFDR.empty())
     {
@@ -216,33 +214,13 @@ protected:
     IDConflictResolverAlgorithm::resolve(cmap);
 
     //-------------------------------------------------------------
-    // prot/pepID-identifier -->  ms-run-path
+    // Index the identifications of the ConsensusMap by file and spectrum reference, to annotate them later with the
+    // meta values that the metrics compute for the identifications of the FeatureMaps
     //-------------------------------------------------------------
-    ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
+    const QueryIndex cmap_queries = indexQueries_(cmap.getIdentificationData());
 
-    //-------------------------------------------------------------
-    // Build a PepID Map to later find the corresponding PepID in the CMap
-    //-------------------------------------------------------------
-    multimap<std::string, std::pair<Size, Size>> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
-
-
-    customID_to_cpepID = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
-
-    for (Size i = 0; i < cmap.size(); ++i)
-    {
-      // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
-      cmap[i].setMetaValue("cf_id", i);
-      for (auto& pep_id : cmap[i].getPeptideIdentifications())
-      {
-        pep_id.setMetaValue("cf_id", i);
-      }
-    }
-
-
-    for (auto& pep_id : cmap.getUnassignedPeptideIdentifications())
-    {
-      pep_id.setMetaValue("cf_id", -1);
-    }
+    // connect CF (stored in PEP section) with its identifications (stored in PSM section) ... they might get separated later
+    annotateConsensusFeatureIndex_(cmap);
 
     // check flags
     bool all_target_flag = getFlag_("MS2_id_rate:assume_all_target");
@@ -269,7 +247,9 @@ protected:
     QCBase::SpectraMap spec_map;
 
     // Loop through featuremaps...
-    PeptideIdentificationList all_new_upep_ids;
+    // the unidentified MS2 spectra of each FeatureMap, for identifications without matches: the run of the ConsensusMap
+    // with the file of the FeatureMap, the file and the spectra
+    std::vector<std::tuple<std::string, std::string, std::vector<IdentificationData::Observation>>> all_new_observations;
 
 
     std::string out_txt_dir = getOutputDirOption("out_txt:directory");
@@ -290,31 +270,23 @@ protected:
         spec_map.calculateMap(exp);
       }
 
-      ProteinIdentification::Mapping mp_f;
       FeatureMap fmap_local;
       if (!in_postFDR.empty())
       {
         FileHandler().loadFeatures(in_postFDR[i], fmap_local, {FileTypes::FEATUREXML}, log_type_);
-        IdentificationDataConverter::moveToPeptideIdentifications(fmap_local);
         fmap = &fmap_local;
       }
       else
       {
         fmap = &(fmaps[i]);
       }
-      for (Feature & f: *fmap) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
-      {
-        sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
-      }
-      mp_f.create(fmap->getProteinIdentifications());
+      IdentificationDataConverter::moveToIdentificationData(*fmap);
 
       TransformationDescription trafo_descr;
       if (!in_trafo.empty())
       {
         FileHandler().loadTransformations(in_trafo[i], trafo_descr, true, {FileTypes::TRANSFORMATIONXML});
       }
-      // the metrics work on identification data: convert once for all of them (and back below)
-      const bool converted = IdentificationDataConverter::moveToIdentificationData(*fmap);
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -372,42 +344,30 @@ protected:
 
       if (qc_ms2stats.isRunnable(status))
       {
-        // copies FWHM metavalue to PepIDs as well
-        PeptideIdentificationList new_upep_ids = qc_ms2stats.compute(exp, *fmap, spec_map);
-        // use identifier of CMap for just calculated pepIDs (via common MS-run-path)
-        // Get the first identifier from the feature map and its corresponding MS run paths
-        const auto f_identifiers = mp_f.getIdentifiers();
-        if (f_identifiers.empty())
+        // copies FWHM metavalue to the identifications as well
+        std::vector<IdentificationData::Observation> new_observations = qc_ms2stats.compute(exp, *fmap, spec_map);
+        // the unidentified spectra belong to the run of the ConsensusMap with the file of the FeatureMap
+        const std::string f_file = firstFile_(fmap->getIdentificationData());
+        if (f_file.empty())
         {
-          OPENMS_LOG_ERROR << "FeatureXML has no protein identifications with MS run paths.\n";
+          OPENMS_LOG_ERROR << "FeatureXML has no identification run with an MS run path.\n";
           return ILLEGAL_PARAMETERS;
         }
-        const StringList& f_runpath = mp_f.getMSRunPaths(f_identifiers[0]);
-        std::string cmap_identifier;
-        if (!mp_c.tryGetIdentifier(f_runpath, cmap_identifier))
+        const auto target = findRun_(cmap.getIdentificationData(), f_file);
+        if (!target)
         {
-          OPENMS_LOG_ERROR << "FeatureXML (MS run '" << ListUtils::concatenate(f_runpath, ", ") << "') does not correspond to ConsensusXML (run not found). Check input!\n";
+          OPENMS_LOG_ERROR << "FeatureXML (MS run '" << f_file << "') does not correspond to ConsensusXML (run not found). Check input!\n";
           return ILLEGAL_PARAMETERS;
-        }
-        for (PeptideIdentification& pep_id : new_upep_ids)
-        {
-          pep_id.setIdentifier(cmap_identifier);
         }
 
         // annotate the RT alignment
         if (qc_rt_alignment.isRunnable(status))
         {
-          qc_rt_alignment.compute(new_upep_ids, trafo_descr);
+          qc_rt_alignment.compute(new_observations, trafo_descr);
         }
 
-
-        // save the just calculated IDs for appending to Cmap later (not now, because the vector might resize and invalidate our PepID*).
-        all_new_upep_ids.insert(all_new_upep_ids.end(), new_upep_ids.begin(), new_upep_ids.end());
-      }
-
-      if (converted)
-      {
-        IdentificationDataConverter::exportFeatureIDs(*fmap);
+        // add them to the ConsensusMap after all FeatureMaps
+        all_new_observations.emplace_back(*target, f_file, std::move(new_observations));
       }
 
       StringList out_feat = getStringList_("out_feat");
@@ -418,23 +378,15 @@ protected:
       //-------------------------------------------------------------
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
       //-------------------------------------------------------------
-
-      // copy MetaValues of unassigned PepIDs
-      addPepIDMetaValues_(fmap->getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f, cmap);
-
-      // copy MetaValues of assigned PepIDs
-      for (Feature& feature : *fmap)
-      {
-        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f, cmap);
-      }
+      transferMetaValues_(fmap->getIdentificationData(), cmap_queries, cmap.getIdentificationData());
 
       if (MQExporterHelper::isValid(out_txt_dir))
       {
         //if the user provided no fastafile, we can try this as a last resort
-        const auto& cmap_prot_ids = cmap.getProteinIdentifications();
-        if(!cmap_prot_ids.empty())
+        const auto& cmap_runs = cmap.getIdentificationData().getRuns();
+        if (!cmap_runs.empty() && !cmap_runs.front().getDatabases().empty())
         {
-          const std::string& file_name = cmap_prot_ids[0].getSearchParameters().db;
+          const std::string& file_name = cmap_runs.front().getDatabases()[0].path;
           if(prot_description.empty())
           {
             fallbackFasta(file_name, prot_description);
@@ -459,26 +411,29 @@ protected:
       }
     }
 
-    // check if all PepIDs of ConsensusMap appeared in a FeatureMap
-    bool incomplete_features {false};
-    auto f =
-      [&incomplete_features](const PeptideIdentification& pep_id)
-    {
-      if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
-      {
-        OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString()
-                         << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier()
-                         << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
-        incomplete_features = true;
-      }
-    };
-    cmap.applyFunctionOnPeptideIDs(f, true);
-    if (incomplete_features)
+    // check if all identifications of ConsensusMap appeared in a FeatureMap
+    if (!allIdentificationsAnnotated_(cmap.getIdentificationData()))
     {
       return ILLEGAL_PARAMETERS;
     }
-    // add new PeptideIdentifications (for unidentified MS2 spectra)
-    cmap.getUnassignedPeptideIdentifications().insert(cmap.getUnassignedPeptideIdentifications().end(), all_new_upep_ids.begin(), all_new_upep_ids.end());
+    // add new identifications without matches (for unidentified MS2 spectra) after all others, as legacy peptide
+    // identifications without score type (IdentificationDataAdapter::unscoredRun())
+    auto& cmap_data = cmap.getIdentificationData();
+    UInt64 next_query = 1;
+    for (const auto& run : cmap_data.getRuns())
+    {
+      next_query = std::max(next_query, run.getNextQueryId());
+    }
+    for (auto& [run, file, observations] : all_new_observations)
+    {
+      auto& target = IdentificationDataAdapter::unscoredRun(cmap_data, run);
+      const auto& sources = target.getSources();
+      const auto source = std::find_if(sources.begin(), sources.end(), [&file](const auto& item) { return item.file.path == file; });
+      for (auto& observation : observations)
+      {
+        target.importIdentification(source->id, IdentificationData::QueryId {next_query++}, std::move(observation));
+      }
+    }
 
     //-------------------------------------------------------------
     // writing output
@@ -525,67 +480,180 @@ private:
     return files;
   }
 
-  void sortVectorOfPeptideIDsbyScore_(PeptideIdentificationList& pep_ids)
+  using ID = IdentificationData;
+  /// The identifications of a map by file and spectrum reference
+  using QueryIndex = std::multimap<std::pair<std::string, std::string>, ID::QueryReference>;
+
+  static QueryIndex indexQueries_(const ID& data)
   {
-    for (PeptideIdentification& pep_id : pep_ids)
+    QueryIndex index;
+    for (const auto& run : data.getRuns())
     {
-      pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
-    }
-    // the score direction is taken from the first PeptideIdentification with hits
-    // (one without hits may not carry a score type/direction)
-    const auto scored = std::find_if(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& pep_id) { return !pep_id.getHits().empty(); });
-    if (scored == pep_ids.end())
-    {
-      return;
-    }
-    // sort the PeptideIdentifications by their best PeptideHit (best first, respecting the score direction);
-    // PeptideIdentifications without hits go last
-    const auto better_hit = PeptideIdentification::getScoreComparator(scored->isHigherScoreBetter());
-    std::stable_sort(pep_ids.begin(), pep_ids.end(), [&better_hit](const PeptideIdentification& a, const PeptideIdentification& b)
-    {
-      if (a.getHits().empty() || b.getHits().empty())
+      for (const auto& source : run.getSources())
       {
-        return !a.getHits().empty() && b.getHits().empty();
+        for (const auto& query : source.identifications)
+        {
+          index.emplace(std::make_pair(source.file.path, query.data_id), ID::QueryReference {run.getUuid(), query.getId()});
+        }
       }
-      return better_hit(a.getHits()[0], b.getHits()[0]);
-    });
+    }
+    return index;
   }
 
-  void addPepIDMetaValues_(
-    const PeptideIdentificationList& f_pep_ids,
-    const multimap<std::string, pair<Size, Size>>& customID_to_cpepID,
-    const IdentifierMSRunMapper& mapping,
-    ConsensusMap& cmap) const
+  /// The match of @p query with the best primary score of @p run (the first of equal ones), or nullptr
+  static const ID::Match* bestMatch_(const ID::Run& run, const ID::Identification& query)
   {
-    for (const PeptideIdentification& f_pep_id : f_pep_ids)
+    ID::QueryMatches entry {&run, &query, {}};
+    for (const auto& match : query.getMatches())
     {
-      // for empty PIs which were created by a metric
-      if (f_pep_id.getHits().empty())
-      {
-        continue;
-      }
-      std::string UID = PeptideIdentification::buildUIDFromPepID(f_pep_id, mapping);
-      const auto range = customID_to_cpepID.equal_range(UID);
+      entry.matches.push_back(&match);
+    }
+    return entry.getBestMatch();
+  }
 
-      for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
+  /// The path of the first source of the first run of @p data, or empty
+  static std::string firstFile_(const ID& data)
+  {
+    if (data.getRuns().empty() || data.getRuns().front().getSources().empty())
+    {
+      return {};
+    }
+    return data.getRuns().front().getSources().front().file.path;
+  }
+
+  /// The identifier of the (first) run of @p data with the file @p file, or nothing
+  static std::optional<std::string> findRun_(const ID& data, const std::string& file)
+  {
+    for (const auto& run : data.getRuns())
+    {
+      for (const auto& source : run.getSources())
       {
-        // copy all MetaValues that are at PepID level
-        // copy all MetaValues that are at best Hit level
-        //TODO check if first = best assumption is met!
-        Size cf_index = it_pep->second.first;     //ConsensusFeature Index
-        Size pi_index = it_pep->second.second;    //PeptideIdentification Index
-        if (cf_index != Size(-1))
+        if (source.file.path == file)
         {
-          cmap[cf_index].getPeptideIdentifications()[pi_index].addMetaValues(f_pep_id);
-          cmap[cf_index].getPeptideIdentifications()[pi_index].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
-        }
-        else
-        {
-          cmap.getUnassignedPeptideIdentifications()[pi_index].addMetaValues(f_pep_id);
-          cmap.getUnassignedPeptideIdentifications()[pi_index].getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+          return run.getIdentifier();
         }
       }
     }
+    return std::nullopt;
+  }
+
+  /// Annotate each ConsensusFeature and the identifications it links with its index ('cf_id'), the other
+  /// identifications with -1 (an identification that several ConsensusFeatures link gets the first)
+  static void annotateConsensusFeatureIndex_(ConsensusMap& cmap)
+  {
+    auto& data = cmap.getIdentificationData();
+    std::map<ID::QueryReference, Size> feature_of;
+    for (Size i = 0; i < cmap.size(); ++i)
+    {
+      cmap[i].setMetaValue("cf_id", i);
+      for (const auto& entry : cmap[i].getLinkedIdentifications(data))
+      {
+        feature_of.try_emplace(ID::QueryReference {entry.run->getUuid(), entry.query->getId()}, i);
+      }
+    }
+    std::vector<std::string> runs;
+    for (const auto& run : data.getRuns())
+    {
+      runs.push_back(run.getIdentifier());
+    }
+    for (const auto& name : runs)
+    {
+      auto& run = data.getRun(name);
+      std::vector<std::pair<ID::QueryId, ID::Observation>> annotated;
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          ID::Observation observation = query.getObservation();
+          const auto feature = feature_of.find(ID::QueryReference {run.getUuid(), query.getId()});
+          if (feature != feature_of.end())
+          {
+            observation.setMetaValue("cf_id", feature->second);
+          }
+          else
+          {
+            observation.setMetaValue("cf_id", -1);
+          }
+          annotated.emplace_back(query.getId(), std::move(observation));
+        }
+      }
+      for (const auto& [query, observation] : annotated)
+      {
+        run.replaceObservation(query, observation);
+      }
+    }
+  }
+
+  /**
+    @brief Copy the meta values of the identifications of a FeatureMap (@p features) and of their best matches to the
+    identifications of the ConsensusMap (@p consensus, indexed in @p index) of the same file and spectrum reference
+    and to their best matches
+
+    Identifications without matches (e.g. created by a metric) are skipped.
+  */
+  static void transferMetaValues_(const ID& features, const QueryIndex& index, ID& consensus)
+  {
+    for (const auto& run : features.getRuns())
+    {
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          if (query.getMatches().empty())
+          {
+            continue;
+          }
+          const ID::Match* best = bestMatch_(run, query);
+          const auto range = index.equal_range(std::make_pair(source.file.path, query.data_id));
+          for (auto it = range.first; it != range.second; ++it)
+          {
+            auto& target = consensus.getRun(consensus.findRunByUuid(it->second.run_uuid)->getIdentifier());
+            const auto& target_query = target.getIdentification(it->second.query);
+            ID::Observation observation = target_query.getObservation();
+            observation.addMetaValues(query.getObservation());
+            std::optional<std::pair<ID::MatchId, ID::MatchData>> target_match;
+            if (const ID::Match* target_best = bestMatch_(target, target_query); best != nullptr && target_best != nullptr)
+            {
+              ID::MatchData data = *target_best;
+              data.addMetaValues(*best);
+              target_match.emplace(target_best->getId(), std::move(data));
+            }
+            target.replaceObservation(it->second.query, observation);
+            if (target_match)
+            {
+              target.replaceMatch(target_match->first, target_match->second);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /// Whether the best match of every identification of the ConsensusMap was annotated from a FeatureMap
+  /// ('missed_cleavages'); logs those that were not
+  static bool allIdentificationsAnnotated_(const ID& data)
+  {
+    bool complete = true;
+    for (const auto& run : data.getRuns())
+    {
+      for (const auto& source : run.getSources())
+      {
+        for (const auto& query : source.identifications)
+        {
+          const ID::Match* best = bestMatch_(run, query);
+          if (best != nullptr && !best->metaValueExists("missed_cleavages"))
+          {
+            OPENMS_LOG_ERROR << "An identification in the ConsensusXML with sequence " << best->representation
+                             << ", RT '" << query.rt.value_or(std::numeric_limits<double>::quiet_NaN())
+                             << "', m/z '" << query.mz.value_or(std::numeric_limits<double>::quiet_NaN())
+                             << "' and identifier '" << run.getIdentifier()
+                             << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
+            complete = false;
+          }
+        }
+      }
+    }
+    return complete;
   }
 
   void indexFasta(std::vector<FASTAFile::FASTAEntry>& prot_description, std::map<std::string, std::string>& fasta_map)

@@ -11,25 +11,24 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 
 namespace OpenMS
 {
   class FeatureMap;
   class MSExperiment;
-  class PeptideIdentification;
   class TransformationDescription;
 
   /**
     @brief  QC metric to determine the number of MS2 scans per MS1 scan over RT
 
-    Ms2SpectrumStats collects data from MS2 scans and stores the result into PeptideIdentifications,
-    which already exist in the FeatureMap, or are newly created as empty PeptideIdentifications (with no sequence).
+    Ms2SpectrumStats collects data from MS2 scans and stores the result at the identifications of the FeatureMap, or at
+    new observations for the MS2 scans without identification.
 
     The following meta-values are computed:
     "ScanEventNumber": consecutive number of each MS2 scan after the preceding MS1 scan
-    "identified": All PeptideIdentifications of the FeatureMap are marked with '+' and all unidentified MS2-Spectra with '-'.
+    "identified": All identifications of the FeatureMap are marked with 1 and all unidentified MS2-Spectra with 0.
     "ion_injection_time": from MS2 spectrum
     "activation_method": from MS2 spectrum
     "total_ion_count": summed intensity from MS2 spectrum
@@ -56,17 +55,18 @@ namespace OpenMS
     virtual ~Ms2SpectrumStats() = default;
 
     /**
-      @brief Calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications,
+      @brief Calculate the ScanEventNumber, find all unidentified MS2-Spectra and return them as observations,
              write meta values "ScanEventNumber" and "identified" in the identifications of the features and the unassigned ones
              (see QCBase::annotateIdentifications(); maps with peptide identifications are converted for this and back).
       @param[in] exp Imported calibrated MzML file as MSExperiment
       @param[in,out] features Imported featureXML file after FDR as FeatureMap
-      @param[in] map_to_spectrum Map to find index of spectrum given by meta value at PepID
-      @return unassigned peptide identifications newly generated from unidentified MS2-Spectra
+      @param[in] map_to_spectrum Map to find index of spectrum given by the spectrum reference of an identification
+      @return observations of the unidentified MS2-Spectra (retention time, precursor m/z, spectrum reference and meta values),
+              for identifications without matches
       @throws MissingInformation If exp is empty
-      @throws InvalidParameter PeptideID is missing meta value 'spectrum_reference'
+      @throws InvalidParameter An identification has no spectrum reference
     **/
-    PeptideIdentificationList compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum);
+    std::vector<IdentificationData::Observation> compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum);
 
     /// returns the name of the metric
     const std::string& getName() const override;
@@ -86,8 +86,8 @@ namespace OpenMS
     /// set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
     void setPresenceAndScanEventNumber_(QCBase::AnnotatedIdentification& id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
-    /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
-    PeptideIdentificationList getUnassignedPeptideIdentifications_(const MSExperiment& exp);
+    /// return all unidentified MS2-Scans as observations, with their RT, precursor m/z, "ScanEventNumber" and spectrum meta values
+    std::vector<IdentificationData::Observation> getUnidentifiedObservations_(const MSExperiment& exp);
 
     /// calculate highest intensity (base peak intensity)
     static MSSpectrum::PeakType::IntensityType getBPI_(const MSSpectrum& spec);

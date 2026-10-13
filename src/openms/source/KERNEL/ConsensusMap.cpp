@@ -16,6 +16,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/DataProcessingUtils.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -796,7 +797,19 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 
   std::vector<FeatureMap> ConsensusMap::split(ConsensusMap::SplitMeta mode) const
   {
-    // @TODO: handle IDs in new format (IdentificationData)
+    if (!getIdentificationData().empty())
+    {
+      // the identifications are split as peptide identifications (by map index, or all to the first map after the
+      // IsobaricAnalyzer); each part holds its share as identification data again
+      ConsensusMap legacy(*this);
+      IdentificationDataConverter::moveToPeptideIdentifications(legacy);
+      std::vector<FeatureMap> parts = legacy.split(mode);
+      for (auto& part : parts)
+      {
+        IdentificationDataConverter::moveToIdentificationData(part);
+      }
+      return parts;
+    }
 
     // Column headers are keyed by map index, and the keys need not be contiguous (e.g. after
     // 'FileFilter -consensus:map 0 3', or for a consensusXML without <map id="0">). The result

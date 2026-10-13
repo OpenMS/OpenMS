@@ -59,13 +59,13 @@ namespace OpenMS
     });
   }
 
-  void RTAlignment::compute(PeptideIdentificationList& ids, const TransformationDescription& trafo) const
+  void RTAlignment::compute(std::vector<IdentificationData::Observation>& observations, const TransformationDescription& trafo) const
   {
-    // set meta values for all unasssigned PeptideIdentifications
-    for (PeptideIdentification& id : ids)
+    for (auto& observation : observations)
     {
-      id.setMetaValue("rt_align", trafo.apply(id.getRT()));
-      id.setMetaValue("rt_raw", id.getRT());
+      if (!observation.rt) continue;
+      observation.setMetaValue("rt_align", trafo.apply(*observation.rt));
+      observation.setMetaValue("rt_raw", *observation.rt);
     }
   }
 

@@ -16,8 +16,13 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 
+#include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <limits>
+#include <numeric>
 
 using namespace OpenMS;
 
@@ -54,50 +59,68 @@ std::map<Size, Size> MQExporterHelper::makeFeatureUIDtoConsensusMapIndex_(const 
 }
 
 
-bool MQExporterHelper::hasValidPepID_(
-  const Feature& f,
-  const Size c_feature_number,
-  const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-  const ProteinIdentification::Mapping& mp_f)
+std::vector<MQExporterHelper::LinkedIdentification> MQExporterHelper::linkedIdentifications(const BaseFeature& feature, const IdentificationData& data)
 {
-  const PeptideIdentificationList& pep_ids_f = f.getPeptideIdentifications();
-  if (pep_ids_f.empty())
+  std::vector<LinkedIdentification> result;
+  std::vector<double> scores; // of the best matches, NaN without one
+  std::optional<bool> higher_better;
+  for (const auto& entry : feature.getLinkedIdentifications(data))
   {
-    return false;
-  }
-  const PeptideIdentification& best_pep_id = pep_ids_f[0]; // PeptideIdentifications are sorted
-
-  std::string best_uid;
-  try
-  {
-    best_uid = PeptideIdentification::buildUIDFromPepID(best_pep_id, mp_f);
-  }
-  catch (const Exception::MissingInformation&)
-  {
-    // Cannot build UID (missing spectrum reference or map index) - treat as invalid
-    return false;
-  }
-
-  const auto range = UIDs.equal_range(best_uid);
-  for (std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>::const_iterator it_pep = range.first;
-       it_pep != range.second; ++it_pep)
-  {
-    if (c_feature_number == it_pep->second.first)
+    LinkedIdentification item;
+    item.observation = entry.query->getObservation();
+    for (const auto& source : entry.run->getSources())
     {
-      return !pep_ids_f[0].getHits().empty(); // checks if PeptideIdentification has at least one hit
+      const auto& queries = source.identifications;
+      if (!queries.empty() && entry.query >= &queries.front() && entry.query <= &queries.back())
+      {
+        item.file = source.file.path;
+        break;
+      }
     }
+    double score = std::numeric_limits<double>::quiet_NaN();
+    if (const auto* best = entry.getBestMatch())
+    {
+      const auto primary = *entry.run->getPrimaryScore();
+      item.best = IdentificationDataAdapter::materializePeptide(*entry.run, *best, primary);
+      score = *entry.run->getScore(best->getId(), primary);
+      // the direction of the first scored identification, as for a list of peptide identifications
+      if (!higher_better) higher_better = entry.run->getScoreDefinition(primary).higher_better;
+    }
+    result.push_back(std::move(item));
+    scores.push_back(score);
   }
-  return false;
+  std::vector<Size> order(result.size());
+  std::iota(order.begin(), order.end(), 0);
+  std::stable_sort(order.begin(), order.end(), [&](Size a, Size b) {
+    if (std::isnan(scores[a]) || std::isnan(scores[b])) return !std::isnan(scores[a]) && std::isnan(scores[b]);
+    return *higher_better ? scores[a] > scores[b] : scores[a] < scores[b];
+  });
+  std::vector<LinkedIdentification> sorted;
+  sorted.reserve(result.size());
+  for (Size index : order) sorted.push_back(std::move(result[index]));
+  return sorted;
 }
 
-bool MQExporterHelper::hasPeptideIdentifications_(const ConsensusFeature& cf)
+const MQExporterHelper::LinkedIdentification* MQExporterHelper::bestIdentification(const std::vector<LinkedIdentification>& f_ids, const std::vector<LinkedIdentification>& cf_ids, std::string& type)
 {
-  const PeptideIdentificationList& pep_ids_c = cf.getPeptideIdentifications();
-  if (!pep_ids_c.empty())
+  if (!f_ids.empty() && f_ids[0].best)
   {
-    return !pep_ids_c[0].getHits().empty(); // checks if PeptideIdentification has at least one hit
+    const auto& best = f_ids[0];
+    const bool in_consensus_feature = std::any_of(cf_ids.begin(), cf_ids.end(), [&](const LinkedIdentification& id) {
+      return id.file == best.file && id.observation.data_id == best.observation.data_id;
+    });
+    if (in_consensus_feature)
+    {
+      type = "MULTI-MSMS";
+      return &best;
+    }
   }
-  return false;
+  if (!cf_ids.empty() && cf_ids[0].best)
+  {
+    type = "MULTI-MATCH";
+    return &cf_ids[0];
+  }
+  return nullptr;
 }
 
 bool MQExporterHelper::isValid(const std::string& filename)
@@ -118,28 +141,11 @@ std::string MQExporterHelper::extractGeneName(const std::string& prot_descriptio
 
 MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   const OpenMS::Feature& f,
-  const OpenMS::ConsensusMap& cmap,
-  const OpenMS::Size c_feature_number,
-  const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-  const OpenMS::ProteinIdentification::Mapping& mp_f,
+  const OpenMS::PeptideHit& best_hit,
   const OpenMS::MSExperiment& exp,
   const std::map<std::string,std::string>& prot_mapper)
 {
-  const OpenMS::PeptideHit* ptr_best_hit; // the best hit referring to score
-  const OpenMS::ConsensusFeature& cf = cmap[c_feature_number];
-  if (MQExporterHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
-  {
-    ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
-  }
-  else if (MQExporterHelper::hasPeptideIdentifications_(cf))
-  {
-    ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
-  }
-  else
-  {
-    return; // no valid PepID; nothing to export
-  }
-
+  const OpenMS::PeptideHit* ptr_best_hit = &best_hit; // the best hit referring to score
   const OpenMS::AASequence& pep_seq = ptr_best_hit->getSequence();
   if (pep_seq.empty())
   {

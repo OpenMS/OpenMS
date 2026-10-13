@@ -9,12 +9,11 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace OpenMS
 {
   class FeatureMap;
-  class PeptideIdentification;
   class TransformationDescription;
 
   /**
@@ -45,12 +44,12 @@ namespace OpenMS
 
     /**
     @brief Calculates retention time after map alignment
-    and sets meta values "rt_raw" and "rt_align" in all PepIDs
+    and sets meta values "rt_raw" and "rt_align" in all observations with a retention time
 
-    @param[in,out] ids PepIDs to receive the new metavalues
+    @param[in,out] observations Observations (e.g. of unidentified MS2 spectra) to receive the new metavalues
     @param[in] trafo Transformation information to get needed data from
     **/
-    void compute(PeptideIdentificationList& ids, const TransformationDescription& trafo) const;
+    void compute(std::vector<IdentificationData::Observation>& observations, const TransformationDescription& trafo) const;
 
     /// returns the name of the metric
     const std::string& getName() const override;

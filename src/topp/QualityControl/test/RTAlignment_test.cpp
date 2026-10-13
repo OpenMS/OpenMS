@@ -130,6 +130,22 @@ START_SECTION(const std::string& getName() const override) {TEST_EQUAL(rtA.getNa
 }
 END_SECTION
 
+START_SECTION((compute(std::vector<IdentificationData::Observation>& observations, const TransformationDescription& trafo)))
+{
+  TransformationDescription td;
+  td.setDataPoints(vector<pair<double, double>> {{0.0, 1.0}, {0.25, 1.5}, {0.5, 2.0}, {1.0, 3.0}});
+  td.fitModel("linear");
+  std::vector<IdentificationData::Observation> observations(2);
+  observations[0].rt = 0.5;
+  // an observation without retention time gets no values
+  RTAlignment().compute(observations, td);
+  TEST_REAL_SIMILAR(observations[0].getMetaValue("rt_align"), 2);
+  TEST_REAL_SIMILAR(observations[0].getMetaValue("rt_raw"), 0.5);
+  TEST_EQUAL(observations[1].metaValueExists("rt_align"), false)
+  TEST_EQUAL(observations[1].metaValueExists("rt_raw"), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -8,7 +8,6 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include "MQEvidenceExporter.h"
 #include <OpenMS/SYSTEM/File.h>
@@ -66,33 +65,25 @@ START_SECTION((void exportFeatureMap(
     PeakMap exp;
     ConsensusMap cmap_one;
     ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.consensusXML"), cmap_one);
-    IdentificationDataConverter::moveToPeptideIdentifications(cmap_one); // a legacy fixture (loading gives identification data)
     ConsensusMap cmap_two;
     ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap_two);
-    IdentificationDataConverter::moveToPeptideIdentifications(cmap_two); // a legacy fixture (loading gives identification data)
     FeatureMap fmap_one;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap_one);
-    IdentificationDataConverter::moveToPeptideIdentifications(fmap_one); // a legacy fixture (loading gives identification data)
     evd.exportFeatureMap(fmap_one, cmap_two, exp, fasta_map);
     FeatureMap fmap_two;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.featureXML"), fmap_two);
-    IdentificationDataConverter::moveToPeptideIdentifications(fmap_two); // a legacy fixture (loading gives identification data)
     evd.exportFeatureMap(fmap_two, cmap_two, exp, fasta_map);
     FeatureMap fmap_three;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), fmap_three);
-    IdentificationDataConverter::moveToPeptideIdentifications(fmap_three); // a legacy fixture (loading gives identification data)
     evd.exportFeatureMap(fmap_three, cmap_two, exp, fasta_map);
     FeatureMap fmap_four;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_4.featureXML"), fmap_four);
-    IdentificationDataConverter::moveToPeptideIdentifications(fmap_four); // a legacy fixture (loading gives identification data)
     evd.exportFeatureMap(fmap_four, cmap_one, exp, fasta_map);
     FeatureMap fmap_five;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_5.featureXML"), fmap_five);
-    IdentificationDataConverter::moveToPeptideIdentifications(fmap_five); // a legacy fixture (loading gives identification data)
     evd.exportFeatureMap(fmap_five, cmap_one, exp, fasta_map);
     FeatureMap fmap_six;
     FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_6.featureXML"), fmap_six);
-    IdentificationDataConverter::moveToPeptideIdentifications(fmap_six); // a legacy fixture (loading gives identification data)
     evd.exportFeatureMap(fmap_six, cmap_one, exp, fasta_map);
   }
   std::string filename = path + "/evidence.txt";

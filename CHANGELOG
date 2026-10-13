@@ -221,12 +221,23 @@ OpenMS Library:
     consensusparquet bundles store identifications as identification data only (a map with peptide
     identifications is converted): their runs keep their identifiers, a map has one PSM score schema, features
     with identifications need valid unique IDs, and tool-defined modifications are registered when the
-    identifications are read. Files whose peptide hits have no score type cannot be loaded. QualityControl and
-    ProteinQuantifier convert loaded maps back until they work on identification data. ProteinInference and Epifany
+    identifications are read. Files whose peptide hits have no score type cannot be loaded. ProteinQuantifier
+    converts loaded maps back until it works on identification data. ProteinInference and Epifany
     (consensusXML) infer and filter on identification data; IdentificationDataAdapter::editInferenceResults() edits
     the protein runs of all inference results. IBSpectra export and AssayGeneratorMetabo read the identifications of
     native maps; merging consensus maps sorts the modifications of native runs as it does for protein
     identifications. pyOpenMS: the FeatureMap/ConsensusMap DataFrame helpers read MapPeptideIdentifications.
+  - QualityControl works on identification data: the metrics annotate the identifications of the feature maps and
+    their best matches, which pass their meta values to the identifications of the consensus map with the same file
+    and spectrum reference; unidentified MS2 spectra are identifications without matches (and without score type,
+    see IdentificationDataAdapter::unscoredRun()) after all others. The identifications of a feature keep their
+    order instead of being sorted by score (#10470): the best match is the one with the best primary score. The
+    order of the identifications of a feature in the featureXML output and of the unassigned identifications that
+    IDConflictResolver gives changes (values unchanged); MaxQuant evidence.txt and msms.txt are those of
+    identifications sorted best first. The MaxQuant exporters read identification data
+    (MQExporterHelper::linkedIdentifications()/bestIdentification()), Ms2SpectrumStats returns observations and
+    RTAlignment annotates them. ConsensusMap::split() splits identification data too (as peptide identifications,
+    each part holding its share as identification data); it dropped them before.
   - MapPeptideIdentifications: the identifications of a feature or consensus map as peptide and protein
     identifications apart from the map (by feature path, unassigned), for formats that hold them.
     IdentificationDataConverter::exportMapIdentifications()/importMapIdentifications() convert between a

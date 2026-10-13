@@ -162,7 +162,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   QCBase::SpectraMap map_to_spectrum(exp);
 
   Ms2SpectrumStats top;
-  PeptideIdentificationList new_unassigned_pep_ids;
+  std::vector<IdentificationData::Observation> new_unassigned_pep_ids;
   Internal::ClassTest::addSearchRun(fmap);
   new_unassigned_pep_ids = top.compute(exp, fmap, map_to_spectrum);
 
@@ -180,12 +180,12 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 2);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), 1);
   TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 3);
-  TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getRT(), 20);
+  TEST_REAL_SIMILAR(*new_unassigned_pep_ids[0].rt, 20);
   TEST_EQUAL(new_unassigned_pep_ids[0].getMetaValue("ScanEventNumber"), 3);
   TEST_EQUAL(new_unassigned_pep_ids[0].getMetaValue("identified"), 0);
   TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getMetaValue("total_ion_count"), 12);
   TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getMetaValue("base_peak_intensity"), 7);
-  TEST_REAL_SIMILAR(new_unassigned_pep_ids[0].getMZ(), 5.5);
+  TEST_REAL_SIMILAR(*new_unassigned_pep_ids[0].mz, 5.5);
 
   // empty FeatureMap
   FeatureMap fmap_empty {};

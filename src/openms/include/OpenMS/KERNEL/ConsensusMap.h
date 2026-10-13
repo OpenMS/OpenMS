@@ -338,6 +338,10 @@ public:
 
      MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
 
+     The identifications of a map with identification data are split in the same way, and the FeatureMaps hold them as
+     identification data (the identifications are distributed through a converted copy, see
+     IdentificationDataConverter::moveToPeptideIdentifications()).
+
      The result holds one FeatureMap per column header (see getColumnHeaders()), ordered by map index: the k-th
      FeatureMap corresponds to the k-th column header in key order. Map indices do not have to be contiguous, e.g.
      for the column headers {0, 3} the second FeatureMap (position 1) holds the features of map index 3. For the

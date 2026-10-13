@@ -15,6 +15,10 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+
+#include <optional>
 
 class MQExporterHelper
 /**
@@ -71,15 +75,38 @@ public:
     //file_ << "id" << "\t"; ?
     //file_ << "Protein group IDs" << "\n"; trivial
 
+    /// The columns of feature @p f with its best hit @p best_hit (see bestIdentification())
     explicit MQCommonOutputs(
       const OpenMS::Feature& f,
-      const OpenMS::ConsensusMap& cmap,
-      const OpenMS::Size c_feature_number,
-      const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-      const OpenMS::ProteinIdentification::Mapping& mp_f,
+      const OpenMS::PeptideHit& best_hit,
       const OpenMS::MSExperiment& exp,
       const std::map<std::string,std::string>& prot_mapper);
   };
+
+  /// An identification that a feature links, as the MaxQuant exporters read it
+  struct LinkedIdentification
+  {
+    std::string file;                            ///< path of the file the identification was made from (its source)
+    OpenMS::IdentificationData::Observation observation; ///< spectrum reference, RT, m/z and meta values
+    std::optional<OpenMS::PeptideHit> best;      ///< the match with the best primary score; none without scored matches
+  };
+
+  /**
+    @brief The identifications that @p feature links in @p data, best first
+
+    Sorted by the primary score of their best match, in the direction of the score (of equal scores, in the order of
+    BaseFeature::getLinkedIdentifications()); identifications without a scored match go last.
+  */
+  static std::vector<LinkedIdentification> linkedIdentifications(const OpenMS::BaseFeature& feature, const OpenMS::IdentificationData& data);
+
+  /**
+    @brief The identification to export for a feature and how it was found (@p type), or nullptr
+
+    The best identification of the feature (@p f_ids, see linkedIdentifications()) if it has a hit and the consensus
+    feature links an identification of the same spectrum (@p cf_ids), as "MULTI-MSMS"; else the best identification of
+    the consensus feature if it has a hit, as "MULTI-MATCH". The result has a hit (LinkedIdentification::best).
+  */
+  static const LinkedIdentification* bestIdentification(const std::vector<LinkedIdentification>& f_ids, const std::vector<LinkedIdentification>& cf_ids, std::string& type);
 
   /**
   @brief Extract a gene name from a protein description by looking for the substring 'GN='
@@ -115,38 +142,6 @@ static std::string extractGeneName(const std::string& prot_description);
     in the vector of ConsensusMap
   */
   static std::map<OpenMS::Size, OpenMS::Size> makeFeatureUIDtoConsensusMapIndex_(const OpenMS::ConsensusMap& cmap);
-
-  /**
-    @brief Checks if Feature has valid PeptideIdentifications
-
-      If there are no PeptideIdentifications or the best hit of the Feature cannot be found in corresponding ConsensusFeature,
-      the functions returns false to show that something went wrong.
-
-    @param[in] f Feature to extract PeptideIdentifications
-    @param[in] c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
-    @param[in] UIDs UIDs of all PeptideIdentifications of the ConsensusMap
-    @param[in] mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
-
-    @return Returns true if the PeptideIdentifications exist and are valid
-  */
-  static bool hasValidPepID_(
-    const OpenMS::Feature& f,
-    const OpenMS::Size c_feature_number,
-    const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-    const OpenMS::ProteinIdentification::Mapping& mp_f);
-
-  /**
-    @brief Checks if ConsensusFeature has valid PeptideIdentifications
-
-    If there are no PeptideIdentifications,
-    the functions returns false to show that something went wrong.
-
-    @param[in] cf is used to extract PeptideIdentifications
-
-    @return Returns true if the ConsensusFeature has any PepIDs; otherwise false
-  */
-  static bool hasPeptideIdentifications_(const OpenMS::ConsensusFeature& cf);
-
 
   /**
       @brief Checks if file is writable

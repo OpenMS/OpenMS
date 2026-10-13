@@ -15,6 +15,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <filesystem>
@@ -120,39 +121,23 @@ void MQMsms::exportHeader_()
 
 void MQMsms::exportRowFromFeature_(
   const Feature& f,
-  const ConsensusMap& cmap,
-  const Size c_feature_number,
+  const std::vector<MQExporterHelper::LinkedIdentification>& f_ids,
+  const std::vector<MQExporterHelper::LinkedIdentification>& cf_ids,
   const std::string& raw_file,
-  const std::multimap<std::string, std::pair<Size, Size>>& UIDs,
-  const ProteinIdentification::Mapping& mp_f,
   const MSExperiment& exp,
   const std::map<std::string, std::string>& prot_mapper)
 {
+  std::string type;
+  const auto* best_id = MQExporterHelper::bestIdentification(f_ids, cf_ids, type);
+  if (best_id == nullptr)
+  {
+    return; // no valid identification; nothing to export
+  }
+  const PeptideHit* ptr_best_hit = &*best_id->best; // the best hit referring to score
+  const IdentificationData::Observation* ptr_best_id = &best_id->observation;
 
   // use struct common_outpots from the ExporterHelper
-  MQExporterHelper::MQCommonOutputs common_outputs{f, cmap, c_feature_number, UIDs, mp_f, exp, prot_mapper};
-
-  const PeptideHit* ptr_best_hit = nullptr; // the best hit referring to score
-  const PeptideIdentification* ptr_best_id = nullptr;
-  const ConsensusFeature& cf = cmap[c_feature_number];
-
-  std::string type;
-  if (MQExporterHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
-  {
-    type = "MULTI-MSMS";
-    ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
-    ptr_best_id = &f.getPeptideIdentifications()[0];
-  }
-  else if (MQExporterHelper::hasPeptideIdentifications_(cf))
-  {
-    type = "MULTI-MATCH";
-    ptr_best_hit = &cf.getPeptideIdentifications()[0].getHits()[0];
-    ptr_best_id = &cf.getPeptideIdentifications()[0];
-  }
-  else
-  {
-    return; // no valid PepID; nothing to export
-  }
+  MQExporterHelper::MQCommonOutputs common_outputs{f, *ptr_best_hit, exp, prot_mapper};
 
   //const double& max_score = ptr_best_hit->getScore();
   const AASequence& pep_seq = ptr_best_hit->getSequence();
@@ -254,18 +239,21 @@ void MQMsms::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap&
   feature_map.getPrimaryMSRunPath(spectra_data);
   std::string raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
 
-  ProteinIdentification::Mapping mp_f;
-  mp_f.create(feature_map.getProteinIdentifications());
+  // the identifications of the maps (maps with peptide identifications are read through a converted copy)
+  std::optional<FeatureMap> converted_features;
+  const FeatureMap& features = IdentificationDataConverter::withIdentificationData(feature_map, converted_features);
+  std::optional<ConsensusMap> converted_consensus;
+  const ConsensusMap& consensus = IdentificationDataConverter::withIdentificationData(cmap, converted_consensus);
 
-  std::multimap<std::string, std::pair<Size, Size>> UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
-
-  for (const Feature& f : feature_map)
+  for (const Feature& f : features)
   {
     const Size& f_id = f.getUniqueId();
     const auto& c_id = fTc.find(f_id);
     if (c_id != fTc.end())
     {
-      exportRowFromFeature_(f, cmap, c_id->second, raw_file, UIDs, mp_f, exp, prot_mapper);
+      exportRowFromFeature_(f, MQExporterHelper::linkedIdentifications(f, features.getIdentificationData()),
+                            MQExporterHelper::linkedIdentifications(consensus[c_id->second], consensus.getIdentificationData()),
+                            raw_file, exp, prot_mapper);
     }
     else
     {

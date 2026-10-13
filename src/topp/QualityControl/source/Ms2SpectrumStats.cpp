@@ -17,8 +17,8 @@ using namespace std;
 namespace OpenMS
 {
   // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therefor have a entry in the featureMap)
-  // MS2 spectra without mate are returned as vector of unassigned PeptideIdentifications (with empty sequence but some metavalue)
-  PeptideIdentificationList Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
+  // MS2 spectra without mate are returned as observations (for identifications without matches, with some meta values)
+  std::vector<IdentificationData::Observation> Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
     {
@@ -34,8 +34,8 @@ namespace OpenMS
       }
     });
 
-    // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT, mz and some meta values
-    return getUnassignedPeptideIdentifications_(exp);
+    // if Ms2-spectrum not identified, return an observation for it, with RT, mz and some meta values
+    return getUnidentifiedObservations_(exp);
   }
 
 
@@ -94,9 +94,9 @@ namespace OpenMS
     }
   }
 
-  PeptideIdentificationList Ms2SpectrumStats::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
+  std::vector<IdentificationData::Observation> Ms2SpectrumStats::getUnidentifiedObservations_(const MSExperiment& exp)
   {
-    PeptideIdentificationList result;
+    std::vector<IdentificationData::Observation> result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)
     {
       if (it->ms2_presence)
@@ -108,16 +108,16 @@ namespace OpenMS
       {
         continue;
       }
-      PeptideIdentification unidentified_MS2;
-      unidentified_MS2.setRT(spec.getRT());
+      IdentificationData::Observation unidentified_MS2;
+      unidentified_MS2.rt = spec.getRT();
       unidentified_MS2.setMetaValue("ScanEventNumber", (*it).scan_event_number);
       unidentified_MS2.setMetaValue("identified", 0);
-      unidentified_MS2.setMZ(spec.getPrecursors()[0].getMZ());
+      unidentified_MS2.mz = spec.getPrecursors()[0].getMZ();
       unidentified_MS2.setMetaValue("total_ion_count", spec.calculateTIC());
       unidentified_MS2.setMetaValue("base_peak_intensity", getBPI_(spec));
-      unidentified_MS2.setSpectrumReference( spec.getNativeID());
+      unidentified_MS2.data_id = spec.getNativeID();
       annotatePepIDfromSpectrum_(spec, unidentified_MS2); // ion_injection_time and activation_method
-      result.push_back(unidentified_MS2);
+      result.push_back(std::move(unidentified_MS2));
     }
     return result;
   }

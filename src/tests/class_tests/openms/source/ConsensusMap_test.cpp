@@ -849,6 +849,89 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
 }
 END_SECTION
 
+START_SECTION([EXTRA] split() of a map with identification data)
+{
+  // the identifications of the map above as identification data: the parts hold the same identifications as
+  // identification data
+  ConsensusMap cm;
+  cm.getColumnHeaders()[0].filename = "file.FeatureXML";
+  cm.getColumnHeaders()[1].filename = "file2.FeatureXML";
+  ProteinIdentification run0, run1;
+  run0.setIdentifier("run_0");
+  run1.setIdentifier("run_1");
+  cm.setProteinIdentifications({run0, run1});
+  const auto identification = [](const std::string& run, double rt, const std::string& sequence, int map_index) {
+    PeptideIdentification id;
+    id.setIdentifier(run);
+    id.setRT(rt);
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    id.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString(sequence)));
+    id.setMetaValue("map_index", map_index);
+    return id;
+  };
+  ConsensusFeature cf1, cf2;
+  cf1.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
+  cf1.insert(FeatureHandle(1, Peak2D({ 11, 434.33 }, 200000), 0));
+  cf1.getPeptideIdentifications().push_back(identification("run_0", 10, "AAA", 0));
+  cf2.insert(FeatureHandle(0, Peak2D({ 20, 433.33 }, 300000), 0));
+  cf2.insert(FeatureHandle(1, Peak2D({ 21, 433.33 }, 400000), 0));
+  cf2.getPeptideIdentifications().push_back(identification("run_1", 20, "WWW", 1));
+  cm.push_back(cf1);
+  cm.push_back(cf2);
+  cm.getUnassignedPeptideIdentifications().push_back(identification("run_0", 30, "LLL", 0));
+  cm.getUnassignedPeptideIdentifications().push_back(identification("run_1", 40, "KKK", 1));
+
+  // the sequences of the features, the unassigned identifications and the protein runs of a part
+  const auto content = [](FeatureMap part) {
+    IdentificationDataConverter::moveToPeptideIdentifications(part);
+    std::string result;
+    for (const Feature& feature : part)
+    {
+      for (const PeptideIdentification& id : feature.getPeptideIdentifications())
+      {
+        result += id.getHits()[0].getSequence().toString() + " ";
+      }
+      result += "| ";
+    }
+    for (const PeptideIdentification& id : part.getUnassignedPeptideIdentifications())
+    {
+      result += id.getHits()[0].getSequence().toString() + " ";
+    }
+    for (const ProteinIdentification& run : part.getProteinIdentifications())
+    {
+      result += "| " + run.getIdentifier();
+    }
+    return result;
+  };
+
+  ConsensusMap native(cm);
+  TEST_EQUAL(IdentificationDataConverter::moveToIdentificationData(native), true)
+  for (const bool isobaric : {false, true})
+  {
+    if (isobaric)
+    {
+      // all identifications go to the first map
+      DataProcessing p;
+      p.setProcessingActions({DataProcessing::QUANTITATION});
+      p.setSoftware(Software("IsobaricAnalyzer"));
+      cm.getDataProcessing().push_back(p);
+      native.getDataProcessing().push_back(p);
+    }
+    const vector<FeatureMap> legacy_parts = cm.split(ConsensusMap::SplitMeta::DISCARD);
+    const vector<FeatureMap> native_parts = native.split(ConsensusMap::SplitMeta::DISCARD);
+    ABORT_IF(native_parts.size() != 2);
+    for (Size i = 0; i < 2; ++i)
+    {
+      TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(native_parts[i]), false)
+      TEST_EQUAL(content(native_parts[i]), content(legacy_parts[i]))
+    }
+    TEST_EQUAL(native_parts[0].getIdentificationData().empty(), false)
+    TEST_EQUAL(content(native_parts[0]), isobaric ? "AAA | WWW | LLL KKK | run_0| run_1" : "AAA | | LLL | run_0")
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] split() with non-contiguous column keys (map indices 0 and 3))
 {
   // Column headers are keyed by map index and the keys need not be contiguous (e.g. after

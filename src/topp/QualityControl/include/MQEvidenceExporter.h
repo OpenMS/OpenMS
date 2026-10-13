@@ -50,22 +50,19 @@ private:
       no row will be exported
 
     @param[in] f Feature to extract evidence data
-    @param[in] cmap ConsensusMap to extract evidence data if Feature has no valid PeptideIdentifications
-    @param[in] c_feature_number Index of corresponding ConsensusFeature in ConsensusMap
+    @param[in] cf Corresponding ConsensusFeature, to extract evidence data if the Feature has no valid identification
+    @param[in] f_ids Identifications of the Feature, best first (MQExporterHelper::linkedIdentifications())
+    @param[in] cf_ids Identifications of the ConsensusFeature, best first
     @param[in] raw_file is specifying the raw_file the feature belongs to
-    @param[in] UIDs UIDs of all PeptideIdentifications of the ConsensusMap
-    @param[in] mp_f Mapping between the FeatureMap and ProteinIdentifications for the UID
-           from PeptideIdenfitication::buildUIDfromAllPepIds
     @param[in] exp MS Experiment holds evidence data to extract
     @param[in] prot_map Mapping a protein_accession to its description(proteinname, genename...)
   */
   void exportRowFromFeature_(
     const OpenMS::Feature& f,
-    const OpenMS::ConsensusMap& cmap,
-    const OpenMS::Size c_feature_number,
+    const OpenMS::ConsensusFeature& cf,
+    const std::vector<MQExporterHelper::LinkedIdentification>& f_ids,
+    const std::vector<MQExporterHelper::LinkedIdentification>& cf_ids,
     const std::string& raw_file,
-    const std::multimap<std::string, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
-    const OpenMS::ProteinIdentification::Mapping& mp_f,
     const OpenMS::MSExperiment& exp= {},
     const std::map<std::string,std::string>& prot_map = {});
 
