@@ -20,6 +20,7 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <algorithm>
 #include <fstream>
+#include <iterator>
 
 using namespace OpenMS;
 using namespace std;
@@ -638,7 +639,7 @@ START_SECTION(([EXTRA] custom modification names require an honest mapping witho
   }
   TEST_EXCEPTION(Exception::InvalidParameter, BedRModFile().store(output_file, data))
   TextFile unchanged(output_file);
-  TEST_EQUAL(unchanged.size(), 1)
+  TEST_EQUAL(std::distance(unchanged.begin(), unchanged.end()), 1)
   TEST_EQUAL(*unchanged.begin(), "preserve this file")
   {
     std::ofstream mapping(mapping_file);
