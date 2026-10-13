@@ -29,6 +29,14 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// Margin by which the MS1 RT extraction window exceeds the fragment window on either side:
+    /// more than the time between two MS1 scans, so that the MS1 point beyond a peak boundary
+    /// at the edge of the fragment window is still extracted.
+    constexpr double MS1_RT_WINDOW_MARGIN_SECONDS = 15.0;
+  }
+
   CalibrationWorkflow::CalibrationWorkflow() :
     DefaultParamHandler("CalibrationWorkflow"),
     ProgressLogger()
@@ -712,6 +720,16 @@ namespace OpenMS
 
       applyWindow_("RT", effective_rt_window, cp.rt_extraction_window,
                   cp.rt_extraction_window, true, true);
+      // The precursor (MS1) traces are only used inside the peak groups picked on the fragment
+      // traces, plus one point beyond each peak boundary for the resampling
+      // (MRMTransitionGroupPicker::resampleChromatogram_). They therefore need the fragment RT
+      // window and a margin of one MS1 scan, not the uncalibrated default, at which they are
+      // several times longer than the fragment traces and hold most of the chromatogram memory.
+      const double ms1_rt_window = cp.rt_extraction_window + 2.0 * MS1_RT_WINDOW_MARGIN_SECONDS;
+      if (cp_ms1.rt_extraction_window <= 0.0 || ms1_rt_window < cp_ms1.rt_extraction_window)
+      {
+        cp_ms1.rt_extraction_window = ms1_rt_window;
+      }
       if (effective_rt_window > 1000)
       {
         OPENMS_LOG_WARN << "Estimated RT extraction window is fairly large ("
