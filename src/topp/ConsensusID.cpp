@@ -19,15 +19,19 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
 #include <memory>
+#include <type_traits>
 #include <unordered_set>
 
 using namespace OpenMS;
@@ -573,18 +577,27 @@ protected:
     // different ID runs with the max. number of times we see the same ID run
     // in the annotations of a feature.
 
+    IdentificationDataConverter::moveToIdentificationData(input_map);
+    // The algorithms combine peptide identifications: a feature gives them the identifications it links as export
+    // writes them, with the hits of its linked matches, in the protein runs that export writes.
+    IdentificationDataAdapter::LegacyResult legacy = IdentificationDataAdapter::toLegacy(input_map.getIdentificationData());
+    map<IdentificationData::QueryReference, Size> exported; // identification -> its peptide identification in 'legacy'
+    for (Size i = 0; i < legacy.queries.size(); ++i)
+    {
+      exported[legacy.queries[i]] = i;
+    }
+
     map<std::string, std::string> runid_to_se;
     map<std::string, Size> id_mapping; // mapping: run ID -> index
-    Size number_of_runs = input_map.getProteinIdentifications().size();
+    Size number_of_runs = legacy.proteins.size();
     if (number_of_runs == 0)
     {
       // Unannotated maps have no identification runs to combine.
-      input_map.getUnassignedPeptideIdentifications().clear();
       return;
     }
     for (Size i = 0; i < number_of_runs; ++i)
     {
-      const auto& prot = input_map.getProteinIdentifications()[i];
+      const auto& prot = legacy.proteins[i];
       id_mapping[prot.getIdentifier()] = i;
       if (keep_old_scores_)
       {
@@ -593,10 +606,29 @@ protected:
     }
 
     // compute consensus:
-    for (typename MapType::Iterator map_it = input_map.begin();
-         map_it != input_map.end(); ++map_it)
+    PeptideIdentificationList results; // the consensus of a feature
+    vector<Size> result_features;      // parallel to 'results'
+    for (Size index = 0; index < input_map.size(); ++index)
     {
-      PeptideIdentificationList& ids = map_it->getPeptideIdentifications();
+      PeptideIdentificationList ids;
+      for (const auto& linked : input_map[index].getLinkedIdentifications(input_map.getIdentificationData()))
+      {
+        PeptideIdentification pep = legacy.peptides[exported.at({linked.run->getUuid(), linked.query->getId()})];
+        // export gives every match of an identification a hit, in their order
+        const auto& matches = linked.query->getMatches();
+        vector<PeptideHit> hits;
+        auto next = linked.matches.begin();
+        for (Size m = 0; m < matches.size() && next != linked.matches.end(); ++m)
+        {
+          if (&matches[m] != *next) continue;
+          hits.push_back(pep.getHits().at(m));
+          ++next;
+        }
+        pep.setHits(hits);
+        ids.push_back(std::move(pep));
+      }
+      if (ids.empty()) continue;
+
       vector<Size> times_seen(number_of_runs);
       for (PeptideIdentification& pep : ids)
       {
@@ -605,12 +637,41 @@ protected:
       Size n_repeats = *max_element(times_seen.begin(), times_seen.end());
 
       consensus->apply(ids, runid_to_se, number_of_runs * n_repeats);
+      results.push_back(std::move(ids[0]));
+      result_features.push_back(index);
     }
 
     // create new identification run:
-    setProteinIdentifications_(input_map.getProteinIdentifications());
-    // remove outdated information (protein references will be broken):
-    input_map.getUnassignedPeptideIdentifications().clear();
+    setProteinIdentifications_(legacy.proteins);
+    IdentificationDataAdapter::ImportResult imported = IdentificationDataAdapter::importLegacy(legacy.proteins, results);
+    // remove outdated information: the identifications of the input runs, also those that no feature links (or that
+    // subordinate features link, whose protein runs are replaced)
+    const auto unlink = [](const auto& self, auto& feature) -> void {
+      feature.getIDMatches().clear();
+      feature.getIDQueries().clear();
+      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+      {
+        for (auto& child : feature.getSubordinates())
+        {
+          self(self, child);
+        }
+      }
+    };
+    for (auto& feature : input_map)
+    {
+      unlink(unlink, feature);
+    }
+    input_map.getIdentificationData() = std::move(imported.data);
+    for (Size i = 0; i < results.size(); ++i)
+    {
+      const IdentificationData::QueryReference& query = imported.queries[i];
+      auto& feature = input_map[result_features[i]];
+      feature.addIDQuery(query);
+      for (const auto& match : input_map.getIdentificationData().findRunByUuid(query.run_uuid)->getIdentification(query.query).getMatches())
+      {
+        feature.addIDMatch({query.run_uuid, match.getId()});
+      }
+    }
   }
 
 
