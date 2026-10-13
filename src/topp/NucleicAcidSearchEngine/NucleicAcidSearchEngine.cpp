@@ -1580,8 +1580,7 @@ protected:
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
       const std::string setting = "fdr:max_decoy_reshuffle_attempts";
-      const bool explicitly_supplied = param_cmdline_.exists(setting) || param_instance_.exists(setting) ||
-        param_common_tool_.exists(setting) || param_common_.exists(setting);
+      const bool explicitly_supplied = isOptionExplicitlySet_(setting);
       const bool known_policy = search_ref->metaValueExists("digestion:max_decoy_reshuffle_attempts") &&
         search_ref->metaValueExists("digestion:decoy_reshuffle_protocol");
       if (explicitly_supplied && (!known_policy ||

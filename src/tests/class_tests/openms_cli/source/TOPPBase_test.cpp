@@ -36,6 +36,8 @@ class TOPPBaseTest
   : public TOPPBase
 {
   public:
+    using TOPPBase::isOptionExplicitlySet_;
+
     /// return value of main() for the command line given in the constructor
     ExitCodes exit_code;
 
@@ -554,6 +556,38 @@ START_SECTION(([EXTRA]std::string const& getIniLocation_() const))
 	TEST_EQUAL(tmp2.exit_code, TOPPBase::ILLEGAL_PARAMETERS)
 END_SECTION
 
+
+START_SECTION(([EXTRA] bool isOptionExplicitlySet_(const std::string& name) const))
+{
+  TOPPBaseTest defaults;
+  TEST_TRUE(defaults.getParam().exists("intoption"))
+  TEST_FALSE(defaults.isOptionExplicitlySet_("intoption"))
+
+  // Presence matters even when the supplied value equals the tool default.
+  const char* explicit_cli[4] = {a1, a14, a16, test};
+  TOPPBaseTest cli(4, explicit_cli);
+  TEST_EQUAL(cli.exit_code, TOPPBase::EXECUTION_OK)
+  TEST_TRUE(cli.isOptionExplicitlySet_("intoption"))
+  TEST_FALSE(cli.isOptionExplicitlySet_("doubleoption"))
+
+  // Distinct keys cover each raw INI provider without adding a fixture file.
+  Param supplied;
+  supplied.setValue("TOPPBaseTest:1:intoption", 4711);
+  supplied.setValue("common:TOPPBaseTest:doubleoption", 0.4711);
+  supplied.setValue("common:stringoption", "string default");
+  std::string ini;
+  NEW_TMP_FILE(ini)
+  ini += ".ini";
+  ParamXMLFile().store(ini, supplied);
+  const char* explicit_ini[4] = {a1, a3, ini.c_str(), test};
+  TOPPBaseTest configured(4, explicit_ini);
+  TEST_EQUAL(configured.exit_code, TOPPBase::EXECUTION_OK)
+  TEST_TRUE(configured.isOptionExplicitlySet_("intoption"))
+  TEST_TRUE(configured.isOptionExplicitlySet_("doubleoption"))
+  TEST_TRUE(configured.isOptionExplicitlySet_("stringoption"))
+  TEST_FALSE(configured.isOptionExplicitlySet_("intlist"))
+}
+END_SECTION
 
 START_SECTION(([EXTRA]std::string getStringOption_(const std::string& name) const))
 	//default

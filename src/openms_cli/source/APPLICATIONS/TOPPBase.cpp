@@ -2005,6 +2005,12 @@ namespace OpenMS
     return param_;
   }
 
+  bool TOPPBase::isOptionExplicitlySet_(const std::string& name) const
+  {
+    return param_cmdline_.exists(name) || param_instance_.exists(name) ||
+      param_common_tool_.exists(name) || param_common_.exists(name);
+  }
+
   std::string TOPPBase::getSubsection_(const std::string& name) const
   {
     size_t pos = name.find_last_of(':');
