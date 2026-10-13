@@ -250,6 +250,85 @@ START_SECTION(FileHandler::loadExperiment applies the vendor peak picking)
 }
 END_SECTION
 
+START_SECTION([EXTRA] sampled noise survives RAW to mzML independently of spectrum peaks)
+{
+  const vector<string> noise_names = {"sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array"};
+  for (bool centroid : {false, true})
+  {
+    ThermoRawFile file;
+    auto options = file.getOptions();
+    options.centroid = centroid;
+    options.checksum = false;
+    options.last_scan = 100;
+    options.noise_data = true;
+    file.setOptions(options);
+    MSExperiment original;
+    file.load(THERMO_RAW_TEST_DATA, original);
+
+    Size with_noise = 0;
+    for (const auto& spectrum : original)
+    {
+      const bool present = spectrum.metaValueExists(noise_names[0]);
+      for (const auto& name : noise_names)
+      {
+        TEST_EQUAL(spectrum.metaValueExists(name), present)
+        if (present)
+        {
+          TEST_EQUAL(spectrum.getMetaValue(name).toDoubleList().size(),
+                     spectrum.getMetaValue(noise_names[0]).toDoubleList().size())
+        }
+      }
+      if (present)
+      {
+        ++with_noise;
+        TEST_FALSE(spectrum.getMetaValue(noise_names[0]).toDoubleList().empty())
+      }
+    }
+    TEST_TRUE(with_noise > 0)
+
+    MzMLFile mzml;
+    string encoded;
+    mzml.storeBuffer(encoded, original);
+    for (const auto& accession : {"MS:1002743", "MS:1002744", "MS:1002745"})
+    {
+      TEST_TRUE(encoded.find(accession) != string::npos)
+    }
+    MSExperiment reloaded;
+    mzml.loadBuffer(encoded, reloaded);
+    TEST_EQUAL(reloaded.size(), original.size())
+    for (Size i = 0; i < original.size() && i < reloaded.size(); ++i)
+    {
+      for (const auto& name : noise_names)
+      {
+        TEST_EQUAL(reloaded[i].metaValueExists(name), original[i].metaValueExists(name))
+        if (original[i].metaValueExists(name))
+        {
+          TEST_EQUAL(reloaded[i].getMetaValue(name).toDoubleList(), original[i].getMetaValue(name).toDoubleList())
+        }
+      }
+    }
+
+    options.noise_data = false;
+    file.setOptions(options);
+    MSExperiment without_noise;
+    file.load(THERMO_RAW_TEST_DATA, without_noise);
+    TEST_EQUAL(without_noise.size(), original.size())
+    for (Size i = 0; i < original.size() && i < without_noise.size(); ++i)
+    {
+      TEST_EQUAL(without_noise[i].size(), original[i].size())
+      for (Size j = 0; j < original[i].size() && j < without_noise[i].size(); ++j)
+      {
+        TEST_EQUAL(without_noise[i][j], original[i][j])
+      }
+      for (const auto& name : noise_names)
+      {
+        TEST_FALSE(without_noise[i].metaValueExists(name))
+      }
+    }
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] ThermoRawFile::Options scan selection - metadata_only - skip_chromatograms)
 {
   // Every selection must give the matching subset of a full load, with identical spectra:

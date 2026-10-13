@@ -371,7 +371,7 @@ protected:
     setValidFormats_("RawToMzML:ThermoRaw_executable", {"exe"});
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem (external reader only).", true);
-    registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+    registerFlag_("RawToMzML:include_noise", "Include vendor sampled noise m/z, noise intensity and baseline arrays in mzML output when available. These preserve noise measurements, not calculated per-peak signal-to-noise ratios.", true);
     // Packages always contain the in-process reader (WITH_THERMO_RAW is ON on every supported
     // platform), which needs a .NET 8 runtime. 'external' needs ThermoRawFileParser.exe on the PATH
     // and, on linux and mac, mono, which the packages there do not provide, so linux and mac default

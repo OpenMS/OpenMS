@@ -84,8 +84,29 @@ order over all scans read, so they are the same whichever scans are selected.
 Sampled noise is deliberately separate from peak annotations. Its point count
 and mass grid can differ from the spectrum; sorting or restricting spectrum
 peaks does not reorder, truncate or reduce precision in these arrays. Scans
-without a centroid stream (e.g. ion trap scans) have no noise data and carry none
-of the three arrays.
+without available vendor noise measurements carry none of the three arrays;
+absence means unavailable, not zero noise. In particular, the segmented mass
+coordinates returned for scans without a native centroid stream are not exported
+as noise coordinates when their corresponding noise and baseline values are absent.
+
+## Preserving noise levels for reporter-ion quantification
+
+Noise export is already supported by the in-process reader and mzML reader/writer.
+To retain the vendor noise levels when converting a RAW file, enable it explicitly:
+
+```sh
+FileConverter -in input.raw -out output.mzML \
+  -RawToMzML:reader inprocess -RawToMzML:include_noise
+```
+
+The output contains `MS:1002743` (sampled noise m/z array), `MS:1002744`
+(sampled noise intensity array), and `MS:1002745` (sampled noise baseline array)
+when the vendor provides them. `MzMLFile::load()` restores each array as a
+double-list spectrum meta value with the corresponding name from the table above;
+storing the experiment again retains these CV-annotated binary arrays.
+They are not per-peak S/N values. Associating the noise grid with reporter ions
+and using S/N instead of intensity for TMT quantification is a separate algorithmic
+feature; exporting these arrays does not change existing quantification.
 
 The target is comparable mzML content, not identical XML bytes: OpenMS writes
 retention times in seconds, has its own software/data-processing records and
