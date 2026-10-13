@@ -583,12 +583,7 @@ namespace OpenMS
       {
         if (i == keep) { continue; }
         Feature& merged = feature_map[i];
-        for (auto& pep_id : merged.getPeptideIdentifications())
-        {
-          kept.getPeptideIdentifications().push_back(std::move(pep_id));
-        }
-        merged.getPeptideIdentifications().clear();
-        // the links to the identification data of the map, too
+        // the kept feature links the identifications of the merged ones
         for (const auto& query : merged.getIDQueries()) { kept.addIDQuery(query); }
         for (const auto& match : merged.getIDMatches()) { kept.addIDMatch(match); }
         merged.getIDQueries().clear();
