@@ -168,10 +168,6 @@ std::map<MS1LabeledFAIMS::CV, std::vector<ConsensusMap>> MS1LabeledFAIMS::split_
     {
       cvs.insert(getCV_(feature));
     }
-    for (const auto& id : map.getUnassignedPeptideIdentifications())
-    {
-      cvs.insert(getCV_(id));
-    }
   }
   if (cvs.empty()) { cvs.insert(std::nullopt); }
 
@@ -183,7 +179,6 @@ std::map<MS1LabeledFAIMS::CV, std::vector<ConsensusMap>> MS1LabeledFAIMS::split_
     for (auto& part : parts)
     {
       part.resize(0);
-      part.getUnassignedPeptideIdentifications().clear();
       for (auto& [index, header] : part.getColumnHeaders())
       {
         header.size = 0;
@@ -200,10 +195,6 @@ std::map<MS1LabeledFAIMS::CV, std::vector<ConsensusMap>> MS1LabeledFAIMS::split_
       {
         ++part.getColumnHeaders().at(handle.getMapIndex()).size;
       }
-    }
-    for (const auto& id : maps[i].getUnassignedPeptideIdentifications())
-    {
-      result.at(getCV_(id))[i].getUnassignedPeptideIdentifications().push_back(id);
     }
   }
   return result;
@@ -251,14 +242,10 @@ void MS1LabeledFAIMS::group(FeatureGroupingAlgorithmQT& linker, const std::vecto
     {
       result.push_back(std::move(feature));
     }
-    for (auto& id : linked.getUnassignedPeptideIdentifications())
-    {
-      result.getUnassignedPeptideIdentifications().push_back(std::move(id));
-    }
   }
-  // Every partition of maps with identification data has all of their identifications (only the features are split), and
-  // linking a partition drops those that only its features left out link. The identifications come from the input maps
-  // instead, for the features of all partitions.
+  // Every partition has all identifications of its maps (only the features are split), and linking a partition drops
+  // those that only its features left out link. The identifications come from the input maps instead, for the features
+  // of all partitions.
   if (std::any_of(maps.begin(), maps.end(), [](const ConsensusMap& map) { return ! map.getIdentificationData().empty(); }))
   {
     FeatureGroupingAlgorithm::groupIdentifications(maps, result);
