@@ -132,12 +132,13 @@ public:
                         const std::vector<OpenSwath::SwathMap>& swath_maps,
                         TransitionGroupMapType& transition_group_map);
 
-    /** @brief Adds the protein identification run (search run) that the peptide identifications of the features reference
+    /** @brief Adds the identification run of the transition list to the identification data of @p output
 
-     The run has the proteins of @p transition_exp. pickExperiment() adds it; call this when scoring with scorePeakgroups()
-     directly, since every peptide identification needs its protein identification run. If @p output already has the run
-     (e.g. from another part of the transition list), the proteins it does not have yet are added to it, in the order of
-     @p transition_exp.
+     Each scored feature links an identification of this run: its assay (peptide or compound) as match, with the
+     preliminary score of the feature as score. The run has the proteins of @p transition_exp as database sequences
+     (a compound run, if the transition list has only compounds). pickExperiment() adds it; scorePeakgroups() adds a
+     run without proteins if @p output has none. If @p output already has the run (e.g. from another part of the
+     transition list), the proteins it does not have yet are added to it, in the order of @p transition_exp.
 
      @param[in] transition_exp The transition list describing the experiment
      @param[in,out] output The output features
@@ -393,12 +394,27 @@ private:
                               OpenSwath_Ind_Scores_Pooled& idscores_out,
                               MobilogramParquetConsumer* mobilogram_consumer = nullptr) const;
 
-    void prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
-                                     const PeptideType& pep,
-                                     ProteaseDigestion& pd,
-                                     bool swath_present,
-                                     double precursor_mz,
-                                     bool ms1only) const;
+    /// The identification of a feature by its assay (see prepareScoredFeatureOutput_())
+    struct AssayIdentification_
+    {
+      bool compound = false;
+      std::string score_name;
+      double score = 0.0;
+      IdentificationData::MatchData match; ///< without sequence evidence; no representation for a peptide without sequence
+      std::vector<std::string> accessions; ///< the proteins of a peptide (its sequence evidence)
+    };
+
+    /// Prepare the output of a scored feature; returns the identification of the feature by its assay
+    AssayIdentification_ prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
+                                                     const PeptideType& pep,
+                                                     ProteaseDigestion& pd,
+                                                     bool swath_present,
+                                                     double precursor_mz,
+                                                     bool ms1only) const;
+
+    /// Add @p assay as identification to the run of the transition list in @p output (see addProteinIdentificationRun()),
+    /// linked by @p feature (a feature of @p output)
+    void addAssayIdentification_(FeatureMap& output, Feature& feature, const AssayIdentification_& assay) const;
 
     void addScoreMetaValues_(OpenMS::MRMFeature& mrmfeature,
                              const MRMTransitionGroupType& transition_group_detection,
@@ -441,6 +457,8 @@ private:
     double im_extra_drift_;
 
     std::unordered_map<std::string, const PeptideType*> PeptideRefMap_;
+    /// The molecule kind of the run of the transition list (see prepareProteinPeptideMaps_())
+    IdentificationData::MoleculeKind run_kind_ = IdentificationData::MoleculeKind::PEPTIDE;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;

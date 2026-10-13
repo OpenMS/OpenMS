@@ -5593,7 +5593,7 @@ XMLFile
         .def_static("addProteinIdentificationRun", [](const OpenSwath::LightTargetedExperiment& transition_exp, OpenMS::FeatureMap& output) {
             OpenMS::MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, output);
         }, "transition_exp"_a, "output"_a,
-           "Adds the protein identification run (search run) that the peptide identifications of the features reference, with the proteins of the transition list; merges them into the run if the output already has it (pickExperiment() adds it; call this after scorePeakgroups())")
+           "Adds the identification run of the transition list (whose identifications the scored features link) to the identification data of the output, with the proteins of the transition list; merges them into the run if the output already has it (pickExperiment() adds it)")
         ;
     def_ProgressLogger<OpenMS::MRMFeatureFinderScoring>(mrmfeaturefinderscoring_class);
 

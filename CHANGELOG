@@ -204,6 +204,14 @@ OpenMS Library:
     compound and RNA runs keeps such a score type, as the export of peptide runs does.
   - FeatureFinderMetaboIdent records targets without features as identifications (without matches) of the
     run "id" that no feature links, also for FAIMS data (one run, the compensation voltage on each).
+  - MRMFeatureFinderScoring (OpenSwathAnalyzer, OpenSwathWorkflow, FeatureFinderIdentification,
+    FeatureFinderMetaboIdent) annotates its features as identification data: each feature links an
+    identification of the run of the transition list with its assay (peptide or compound) as match and the
+    preliminary score of the feature as score. Library proteins are the database sequences of the run (an
+    inference result if one has an empty accession). Outputs unchanged.
+  - IdentificationData::Run::append() appends a run built separately (e.g. by a parallel producer) and returns
+    the new IDs; IdentificationDataConverter::appendFeatures() appends features with the identifications
+    they link.
   - Writers of formats that hold peptide identifications accept maps with identification data:
     IdentificationDataConverter::withPeptideIdentifications() (the converse of
     withIdentificationData()) gives them a view with the identifications exported. mzTab map

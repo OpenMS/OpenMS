@@ -100,6 +100,17 @@ public:
   static void editAsIdentificationData(FeatureMap& map, const std::function<void(FeatureMap&)>& edit);
   static void editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit);
   /**
+    @brief Append the features of @p source to @p target with the identifications they link, e.g. the parts of a map
+    that parallel producers built separately
+
+    A run of @p source is appended to the run of @p target with the same identifier (see IdentificationData::Run::append()),
+    or added if @p target has none; the links of the appended features (and their subordinates) follow. Identifications
+    of @p source that no feature links are appended as well. Inference results of @p source are not.
+
+    @throw Exception::InvalidValue if runs with the same identifier differ in molecule kind or score definitions
+  */
+  static void appendFeatures(FeatureMap& target, const FeatureMap& source);
+  /**
     @brief Give the identification runs of @p map that are in @p taken new UUIDs, so that its identifications stay apart
     from those of the maps that took them when they are combined (e.g. when grouping features)
 

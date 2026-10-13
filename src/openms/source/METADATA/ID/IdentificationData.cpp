@@ -346,6 +346,57 @@ ID::SourceId ID::Run::addSource(const SourceFile& source)
   ++revision_;
   return id;
 }
+ID::Run::AppendResult ID::Run::append(const Run& other)
+{
+  checkMutation_();
+  if (&other == this) invalid("A run cannot be appended to itself");
+  if (other.kind_ != kind_) invalid("Appended run differs in molecule kind");
+  const bool adopt_scores = scores_.empty() && match_count_ == 0;
+  // a part without scores and matches (e.g. identifications without candidates) fits any run
+  const bool without_scores = other.scores_.empty() && other.match_count_ == 0;
+  if (! adopt_scores && ! without_scores && (other.scores_ != scores_ || (other.primary_.has_value() != primary_.has_value())
+                         || (primary_ && other.primary_->value != primary_->value)))
+    invalid("Appended run differs in score definitions");
+  if (adopt_scores && ! other.scores_.empty())
+  {
+    for (const auto& definition : other.scores_) addScore(definition);
+    if (other.primary_) setPrimaryScore(getScoreId(other.primary_->value));
+  }
+  // databases and database sequences
+  std::vector<DatabaseId> databases;
+  for (const auto& database : other.databases_) databases.push_back(addDatabase(database));
+  if (other.sequences_)
+  {
+    auto sequences = sequences_.value_or(std::vector<DatabaseSequence> {});
+    std::set<std::pair<UInt32, std::string>> known;
+    for (const auto& sequence : sequences) known.emplace(sequence.database.value, sequence.accession);
+    for (auto sequence : *other.sequences_)
+    {
+      sequence.database = databases[sequence.database.value];
+      if (known.emplace(sequence.database.value, sequence.accession).second) sequences.push_back(std::move(sequence));
+    }
+    setDatabaseSequences(std::move(sequences));
+  }
+  AppendResult result;
+  for (const auto& source : other.sources_)
+  {
+    const auto equal = std::find_if(sources_.begin(), sources_.end(), [&](const Source& item) { return item.file == source.file; });
+    const SourceId target = equal != sources_.end() ? equal->id : addSource(source.file);
+    for (const auto& query : source.identifications)
+    {
+      const QueryId added = addIdentification(target, query.getObservation());
+      result.queries.emplace(query.getId(), added);
+      for (const auto& match : query.getMatches())
+      {
+        MatchData data = match.getData();
+        for (auto& evidence : data.sequence_evidence) evidence.database = databases[evidence.database.value];
+        result.matches.emplace(match.getId(), addMatch(added, data, other.getScores(match)));
+      }
+      if (query.getSelectedMatch()) setSelectedMatch(added, result.matches.at(*query.getSelectedMatch()));
+    }
+  }
+  return result;
+}
 ID::SourceId ID::Run::getSourceId(UInt32 index) const
 {
   if (index >= sources_.size()) invalid("Invalid source index");

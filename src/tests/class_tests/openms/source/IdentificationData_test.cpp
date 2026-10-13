@@ -685,6 +685,84 @@ START_SECTION((merging appends runs, keeps existing run references valid and is 
   TEST_EQUAL(&data.getRun("A") == address, true)
 }
 END_SECTION
+START_SECTION((AppendResult Run::append(const Run& other)))
+{
+  // a run, and a part of it built separately (e.g. by a parallel producer)
+  ID data;
+  auto& run = data.addRun("search");
+  run.setPrimaryScore(run.addScore(score()));
+  run.addScore(score("second", false));
+  ID::Database database;
+  database.path = "db.fasta";
+  const auto db = run.addDatabase(database);
+  run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {{db, "P1"}});
+  ID::SourceFile file;
+  file.path = "a.mzML";
+  const auto source = run.addSource(file);
+  run.addMatch(run.addIdentification(source, {}), peptide("PEPA"), {1.0, 2.0});
+
+  ID::Run part("search");
+  part.setPrimaryScore(part.addScore(score()));
+  part.addScore(score("second", false));
+  ID::Database other_database;
+  other_database.path = "other.fasta";
+  part.addDatabase(other_database); // a database the run does not have, before the one it has
+  const auto part_db = part.addDatabase(database);
+  part.setDatabaseSequences(std::vector<ID::DatabaseSequence> {{part_db, "P1"}, {part_db, "P2"}});
+  const auto part_source = part.addSource(file);
+  ID::SourceFile other_file;
+  other_file.path = "b.mzML";
+  const auto other_source = part.addSource(other_file);
+  ID::Observation observation;
+  observation.rt = 12.5;
+  const auto part_query = part.addIdentification(part_source, observation);
+  auto match_data = peptide("PEPB");
+  match_data.sequence_evidence.push_back({part_db, "P2", 3u, 6u, 'K', 'R'});
+  const auto part_match = part.addMatch(part_query, match_data, {3.0, std::nullopt});
+  const auto selected = part.addMatch(part_query, peptide("PEPC"), {4.0, 5.0});
+  part.setSelectedMatch(part_query, selected);
+  part.addIdentification(other_source, {});
+
+  const auto result = run.append(part);
+  TEST_EQUAL(result.queries.size(), 2)
+  TEST_EQUAL(result.matches.size(), 2)
+  TEST_EQUAL(run.getNumberOfIdentifications(), 3)
+  TEST_EQUAL(run.getNumberOfMatches(), 3)
+  // the source with the same file is shared, the other one added
+  TEST_EQUAL(run.getSources().size(), 2)
+  TEST_EQUAL(run.getSources()[0].identifications.size(), 2)
+  TEST_EQUAL(run.getSources()[1].file.path, "b.mzML")
+  // databases are mapped (the equal one) or added, database sequences added unless present
+  TEST_EQUAL(run.getDatabases().size(), 2)
+  TEST_EQUAL(run.getDatabaseSequences()->size(), 2)
+  const auto& appended = run.getIdentification(result.queries.at(part_query));
+  TEST_REAL_SIMILAR(*appended.rt, 12.5)
+  const auto& match = run.getMatch(result.matches.at(part_match));
+  TEST_EQUAL(match.representation, "PEPB")
+  TEST_EQUAL(run.getDatabase(match.sequence_evidence.at(0).database).path, "db.fasta")
+  TEST_EQUAL(match.sequence_evidence.at(0).accession, "P2")
+  const auto scores = run.getScores(match);
+  TEST_REAL_SIMILAR(*scores.at(0), 3.0)
+  TEST_EQUAL(bool(scores.at(1)), false)
+  TEST_EQUAL(*appended.getSelectedMatch() == result.matches.at(selected), true)
+  data.validate();
+
+  // other score definitions or another molecule kind are rejected, nothing changes
+  ID::Run foreign("search");
+  foreign.setPrimaryScore(foreign.addScore(score("other")));
+  TEST_EXCEPTION(Exception::InvalidValue, run.append(foreign))
+  ID::Run compounds("search", ID::MoleculeKind::COMPOUND);
+  TEST_EXCEPTION(Exception::InvalidValue, run.append(compounds))
+  TEST_EQUAL(run.getNumberOfMatches(), 3)
+
+  // a run without scores and matches takes those of the appended run
+  ID::Run empty("empty");
+  empty.append(part);
+  TEST_EQUAL(empty.getScoreDefinitions().size(), 2)
+  TEST_EQUAL(empty.getPrimaryScore()->value, 0)
+  TEST_EQUAL(empty.getNumberOfMatches(), 2)
+}
+END_SECTION
 START_SECTION(([EXTRA] scores are per-run columns, read through the run or bound views))
 {
   // Compact records: no per-match score vector, molecule details and evidence flanks out of line or as characters.

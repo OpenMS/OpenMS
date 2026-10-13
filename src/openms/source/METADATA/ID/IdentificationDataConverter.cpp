@@ -810,6 +810,52 @@ namespace
   }
 } // namespace
 
+void IdentificationDataConverter::appendFeatures(FeatureMap& target, const FeatureMap& source)
+{
+  // per run of the source: the run of the target and the new IDs (none if the run was added as it is)
+  std::map<std::string, std::pair<std::string, std::optional<ID::Run::AppendResult>>> appended;
+  auto& data = target.getIdentificationData();
+  for (const auto& run : source.getIdentificationData().getRuns())
+  {
+    const auto existing = std::find_if(data.getRuns().begin(), data.getRuns().end(),
+                                       [&](const ID::Run& item) { return item.getIdentifier() == run.getIdentifier(); });
+    if (existing == data.getRuns().end())
+    {
+      ID part;
+      part.addRun(ID::Run(run));
+      data.merge(part);
+      appended[run.getUuid()] = {run.getUuid(), std::nullopt};
+    }
+    else
+    {
+      appended[run.getUuid()] = {existing->getUuid(), data.getRun(run.getIdentifier()).append(run)};
+    }
+  }
+  const auto relink = [&](const auto& self, Feature& feature) -> void {
+    std::set<ID::QueryReference> queries;
+    for (const auto& query : feature.getIDQueries())
+    {
+      const auto& [uuid, ids] = appended.at(query.run_uuid);
+      queries.insert({uuid, ids ? ids->queries.at(query.query) : query.query});
+    }
+    std::set<ID::MatchReference> matches;
+    for (const auto& match : feature.getIDMatches())
+    {
+      const auto& [uuid, ids] = appended.at(match.run_uuid);
+      matches.insert({uuid, ids ? ids->matches.at(match.match) : match.match});
+    }
+    feature.getIDQueries() = std::move(queries);
+    feature.getIDMatches() = std::move(matches);
+    for (auto& child : feature.getSubordinates())
+      self(self, child);
+  };
+  for (const Feature& feature : source)
+  {
+    target.push_back(feature);
+    relink(relink, target.back());
+  }
+}
+
 bool IdentificationDataConverter::makeRunsDistinct(FeatureMap& map, std::set<std::string>& taken)
 { return distinctRuns(map, taken); }
 bool IdentificationDataConverter::makeRunsDistinct(ConsensusMap& map, std::set<std::string>& taken)

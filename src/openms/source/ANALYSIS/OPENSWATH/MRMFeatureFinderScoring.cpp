@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <unordered_set>
@@ -281,37 +282,139 @@ namespace OpenMS
     return;
   }
 
+  namespace
+  {
+    /// The run of the transition list in @p data (identifier run_identifier), added (without proteins) if there is none
+    IdentificationData::Run& transitionListRun(IdentificationData& data, IdentificationData::MoleculeKind kind)
+    {
+      for (const auto& run : data.getRuns())
+      {
+        if (run.getIdentifier() == run_identifier) return data.getRun(run_identifier);
+      }
+      IdentificationData::Run& run = data.addRun(run_identifier, kind);
+      // the run has no protein scores; its legacy protein run has no score type
+      IdentificationDataAdapter::setLegacyProteinScoreType(run, "", true);
+      run.addSource(IdentificationData::SourceFile()); // the spectra are not known
+      return run;
+    }
+
+    /// The molecule kind of the run of @p transition_exp: compounds if it has only compounds
+    IdentificationData::MoleculeKind transitionListKind(const OpenSwath::LightTargetedExperiment& transition_exp)
+    {
+      const auto& compounds = transition_exp.getCompounds();
+      const bool only_compounds = !compounds.empty() &&
+        std::none_of(compounds.begin(), compounds.end(), [](const OpenSwath::LightCompound& c) { return c.isPeptide(); });
+      return only_compounds ? IdentificationData::MoleculeKind::COMPOUND : IdentificationData::MoleculeKind::PEPTIDE;
+    }
+  }
+
   void MRMFeatureFinderScoring::addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output)
   {
-    auto& runs = output.getProteinIdentifications();
-    auto run = std::find_if(runs.begin(), runs.end(),
-                            [](const ProteinIdentification& r) { return r.getIdentifier() == run_identifier; });
-    if (run == runs.end())
+    IdentificationData& data = output.getIdentificationData();
+    IdentificationData::Run& run = transitionListRun(data, transitionListKind(transition_exp));
+    const std::string inference_identifier = std::string("legacy:") + run_identifier;
+    // the proteins of the run (accession, sequence): those it has, and those of the transition list it does not have yet,
+    // in the order of the transition list
+    std::vector<std::pair<std::string, std::string>> proteins;
+    const IdentificationData::InferenceResult* inference = nullptr;
+    for (const auto& result : data.getInferenceResults())
     {
-      runs.emplace_back();
-      run = std::prev(runs.end());
-      run->setIdentifier(run_identifier);
+      if (result.identifier == inference_identifier) inference = &result;
     }
-    // add the proteins the run does not have yet, in the order of the transition list
-    std::unordered_set<std::string> accessions;
-    for (const ProteinHit& hit : run->getHits())
+    if (inference != nullptr)
     {
-      accessions.insert(hit.getAccession());
+      for (const auto& hit : inference->proteins.getHits()) proteins.emplace_back(hit.getAccession(), hit.getSequence());
+    }
+    else if (run.getDatabaseSequences())
+    {
+      for (const auto& sequence : *run.getDatabaseSequences()) proteins.emplace_back(sequence.accession, sequence.sequence);
+    }
+    std::unordered_set<std::string> accessions;
+    for (const auto& protein : proteins)
+    {
+      accessions.insert(protein.first);
     }
     for (const ProteinType& prot : transition_exp.getProteins())
     {
-      if (accessions.insert(prot.id).second)
+      if (accessions.insert(prot.id).second) proteins.emplace_back(prot.id, prot.sequence);
+    }
+    const IdentificationData::DatabaseId database = run.addDatabase(IdentificationData::Database());
+    if (std::none_of(proteins.begin(), proteins.end(), [](const auto& protein) { return protein.first.empty(); }))
+    {
+      std::vector<IdentificationData::DatabaseSequence> sequences;
+      for (const auto& [accession, sequence] : proteins)
       {
-        ProteinHit prot_hit;
-        prot_hit.setSequence(prot.sequence);
-        prot_hit.setAccession(prot.id);
-        run->insertHit(prot_hit);
+        sequences.emplace_back(database, accession);
+        sequences.back().sequence = sequence;
+      }
+      run.setDatabaseSequences(std::move(sequences));
+      return;
+    }
+    // A protein without accession (which transition lists allow) is no database sequence: the run has no catalogue, and
+    // an inference result over it keeps the protein list (as the import of such a legacy protein run keeps it).
+    IdentificationData::InferenceResult result;
+    result.identifier = inference_identifier;
+    result.proteins.setIdentifier(run_identifier);
+    for (const auto& [accession, sequence] : proteins)
+    {
+      ProteinHit hit;
+      hit.setAccession(accession);
+      hit.setSequence(sequence);
+      result.proteins.insertHit(hit);
+    }
+    // (fields in order: run identifier, run UUID, score, selection; run_identifier is a macro here)
+    result.inputs.push_back(IdentificationData::InferenceInput {run.getIdentifier(), run.getUuid(), std::nullopt, "The proteins of the transition list"});
+    run.setDatabaseSequences(std::nullopt);
+    IdentificationDataAdapter::storeInferenceResult(data, result);
+  }
+
+  void MRMFeatureFinderScoring::addAssayIdentification_(FeatureMap& output, Feature& feature, const AssayIdentification_& assay) const
+  {
+    IdentificationData::Run& run = transitionListRun(output.getIdentificationData(), run_kind_);
+    // the preliminary score of the features is the score of the run
+    if (!run.getPrimaryScore())
+    {
+      IdentificationData::ScoreDefinition definition;
+      definition.name = assay.score_name;
+      definition.higher_better = true;
+      run.setPrimaryScore(run.addScore(definition));
+    }
+    else if (run.getScoreDefinition(*run.getPrimaryScore()).name != assay.score_name)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "The features of a transition list have different preliminary scores", assay.score_name);
+    }
+    const IdentificationData::QueryId query = run.addIdentification(run.getSourceId(0), IdentificationData::Observation());
+    feature.addIDQuery({run.getUuid(), query});
+    if (assay.match.representation.empty())
+    {
+      return; // a peptide without sequence: an identification without match
+    }
+    IdentificationData::MatchData match = assay.match;
+    if (assay.compound && run.getMoleculeKind() != IdentificationData::MoleculeKind::COMPOUND)
+    {
+      // a compound in the run of a transition list with peptides: by its identifier
+      match.encoding = IdentificationData::Encoding::DATABASE_ID;
+    }
+    if (!assay.accessions.empty())
+    {
+      const IdentificationData::DatabaseId database = run.addDatabase(IdentificationData::Database());
+      for (const auto& accession : assay.accessions)
+      {
+        IdentificationData::SequenceEvidence evidence;
+        evidence.database = database;
+        evidence.accession = accession;
+        match.sequence_evidence.push_back(std::move(evidence));
       }
     }
+    std::vector<std::optional<double>> scores(run.getScoreDefinitions().size());
+    scores[run.getPrimaryScore()->value] = assay.score;
+    feature.addIDMatch({run.getUuid(), run.addMatch(query, match, scores)});
   }
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
   {
+    run_kind_ = transitionListKind(transition_exp);
     PeptideRefMap_.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
@@ -572,7 +675,7 @@ namespace OpenMS
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
     const bool has_feature_report_limit = stop_report_after_feature_ >= 0;
     std::vector<SignedSize> scored_feature_indices;
-    std::vector<MRMFeature> feature_list;
+    std::vector<std::pair<MRMFeature, AssayIdentification_>> feature_list;
 
     // get drift time upper/lower offset (this assumes that all chromatograms
     // are derived from the same precursor with the same drift time)
@@ -933,12 +1036,12 @@ namespace OpenMS
           ///////////////////////////////////////////////////////////////////////////
           addScoreMetaValues_(mrmfeature, transition_group_detection, signal_noise_estimators, ms1_signal_noise_estimators,
                               expected_rt, swath_present, ms1only);
-          prepareScoredFeatureOutput_(mrmfeature, *pep, pd, swath_present, precursor_mz, ms1only);
+          AssayIdentification_ assay = prepareScoredFeatureOutput_(mrmfeature, *pep, pd, swath_present, precursor_mz, ms1only);
           #ifdef _OPENMP
           #pragma omp critical (openswath_feature_output_list)
           #endif
           {
-            feature_list.push_back(mrmfeature);
+            feature_list.emplace_back(mrmfeature, std::move(assay));
           }
         }
       }
@@ -987,18 +1090,20 @@ namespace OpenMS
         const double selected_precursor_mz = ms1only ? selected_feature.getMZ() : detection_precursor_mz;
         addScoreMetaValues_(selected_feature, transition_group_detection, signal_noise_estimators, ms1_signal_noise_estimators,
                             expected_rt, swath_present, ms1only);
-        prepareScoredFeatureOutput_(selected_feature, *pep, pd, swath_present, selected_precursor_mz, ms1only);
+        const AssayIdentification_ assay = prepareScoredFeatureOutput_(selected_feature, *pep, pd, swath_present, selected_precursor_mz, ms1only);
         output.push_back(selected_feature);
+        addAssayIdentification_(output, output.back(), assay);
       }
     }
     else
     {
       // Order by quality (high to low, via reverse iterator)
-      std::sort(feature_list.rbegin(), feature_list.rend(), OpenMS::Feature::OverallQualityLess());
+      std::sort(feature_list.rbegin(), feature_list.rend(), [](const auto& a, const auto& b) { return OpenMS::Feature::OverallQualityLess()(a.first, b.first); });
 
       for (Size i = 0; i < feature_list.size(); i++)
       {
-        output.push_back(feature_list[i]);
+        output.push_back(feature_list[i].first);
+        addAssayIdentification_(output, output.back(), feature_list[i].second);
       }
     }
 
@@ -1223,84 +1328,67 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
-                                                            const PeptideType& pep,
-                                                            ProteaseDigestion& pd,
-                                                            bool swath_present,
-                                                            double precursor_mz,
-                                                            bool ms1only) const
+  MRMFeatureFinderScoring::AssayIdentification_ MRMFeatureFinderScoring::prepareScoredFeatureOutput_(OpenMS::MRMFeature& mrmfeature,
+                                                                                                    const PeptideType& pep,
+                                                                                                    ProteaseDigestion& pd,
+                                                                                                    bool swath_present,
+                                                                                                    double precursor_mz,
+                                                                                                    bool ms1only) const
   {
-    PeptideIdentification pep_id_;
-    PeptideHit pep_hit_;
-
+    AssayIdentification_ assay;
+    assay.compound = !pep.isPeptide();
     if (pep.getChargeState() != 0)
     {
-      pep_hit_.setCharge(pep.getChargeState());
+      assay.match.charge = pep.getChargeState();
     }
-    // The hit's score is a preliminary score of the feature (higher is better); the score type names it.
+    // The score is a preliminary score of the feature (higher is better); its definition names it.
     const bool has_lda_prescore = mrmfeature.metaValueExists("xx_lda_prelim_score");
-    const double xx_lda_prescore = has_lda_prescore ?
+    assay.score = has_lda_prescore ?
       static_cast<double>(mrmfeature.getMetaValue("xx_lda_prelim_score")) : mrmfeature.getOverallQuality();
-    pep_hit_.setScore(xx_lda_prescore);
-    pep_id_.setScoreType(has_lda_prescore ? "xx_lda_prelim_score" : "OverallQuality");
+    assay.score_name = has_lda_prescore ? "xx_lda_prelim_score" : "OverallQuality";
     if (swath_present && mrmfeature.metaValueExists("xx_swath_prelim_score"))
     {
-      pep_hit_.setScore(mrmfeature.getMetaValue("xx_swath_prelim_score"));
-      pep_id_.setScoreType("xx_swath_prelim_score");
+      assay.score = mrmfeature.getMetaValue("xx_swath_prelim_score");
+      assay.score_name = "xx_swath_prelim_score";
     }
-    pep_id_.setHigherScoreBetter(true);
 
     if (pep.isPeptide() && !pep.sequence.empty())
     {
-      pep_hit_.setSequence(AASequence::fromString(pep.sequence));
-      mrmfeature.setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);
+      const AASequence sequence = AASequence::fromString(pep.sequence);
+      assay.match.representation = sequence.toString();
+      mrmfeature.setMetaValue("missedCleavages", pd.peptideCount(sequence) - 1);
     }
     else if (!pep.isPeptide())
     {
-      // A compound, as IdentificationDataConverter writes and reads them: represented by its SMILES if the assay has
-      // one, else by the assay's compound identifier.
+      // A compound: represented by its SMILES if the assay has one, else by the assay's compound identifier.
       const bool smiles = !pep.smiles.empty();
-      pep_hit_.setMetaValue("molecule_type", "compound");
-      pep_hit_.setMetaValue("label", smiles ? pep.smiles : pep.id);
-      pep_hit_.setMetaValue("identification:encoding",
-                            static_cast<int>(smiles ? IdentificationData::Encoding::SMILES : IdentificationData::Encoding::DATABASE_ID));
-      pep_hit_.setMetaValue("identification:name", pep.compound_name);
-      if (!pep.sum_formula.empty()) pep_hit_.setMetaValue("identification:formula", pep.sum_formula);
+      assay.match.encoding = smiles ? IdentificationData::Encoding::SMILES : IdentificationData::Encoding::DATABASE_ID;
+      assay.match.representation = smiles ? pep.smiles : pep.id;
+      auto& details = assay.match.details.emplace();
+      details.name = pep.compound_name;
+      if (!pep.sum_formula.empty()) details.formula = pep.sum_formula;
     }
 
-    // set protein accession numbers; those of a compound are its identifiers in the assay library (e.g. BiGG IDs), not
-    // sequence evidence
-    if (pep.isPeptide())
+    // the accession numbers of the proteins; those of a compound are its identifiers in the assay library (e.g. BiGG
+    // IDs), not sequence evidence
+    for (const auto& reference : pep.protein_refs)
     {
-      for (Size k = 0; k < pep.protein_refs.size(); k++)
+      if (pep.isPeptide())
       {
-        PeptideEvidence pe;
-        pe.setProteinAccession(pep.protein_refs[k]);
-        pep_hit_.addPeptideEvidence(pe);
+        assay.accessions.push_back(reference);
+      }
+      else if (!reference.empty()) // an empty reference names nothing
+      {
+        assay.match.details->identifiers.push_back({"assay library", reference});
       }
     }
-    else
-    {
-      StringList accessions;
-      for (const auto& reference : pep.protein_refs)
-      {
-        if (!reference.empty()) accessions.push_back(reference); // an empty reference names nothing
-      }
-      if (!accessions.empty())
-      {
-        pep_hit_.setMetaValue("identification:identifier_databases", StringList(accessions.size(), "assay library"));
-        pep_hit_.setMetaValue("identification:identifier_accessions", accessions);
-      }
-    }
-    pep_id_.insertHit(pep_hit_);
-    pep_id_.setIdentifier(run_identifier);
 
-    mrmfeature.getPeptideIdentifications().push_back(pep_id_);
     mrmfeature.ensureUniqueId();
 
     mrmfeature.setMetaValue("PrecursorMZ", precursor_mz);
     prepareFeatureOutput_(mrmfeature, ms1only, pep.getChargeState());
     mrmfeature.setMetaValue("xx_swath_prelim_score", 0.0);
+    return assay;
   }
 
   void MRMFeatureFinderScoring::prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const

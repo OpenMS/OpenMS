@@ -468,6 +468,25 @@ public:
     Size eraseIdentifications(const std::function<bool(const Identification&)>& remove);
     Size retainBest(ScoreId score, bool keep_ties = true, bool keep_empty_queries = false);
     void transformMatches(const std::function<void(MatchData&)>& transform);
+    /// The new IDs of the identifications and matches of a run appended to another (see append())
+    struct OPENMS_DLLAPI AppendResult
+    {
+      std::map<QueryId, QueryId> queries;
+      std::map<MatchId, MatchId> matches;
+    };
+    /**
+      @brief Append the identifications of @p other, e.g. a part of this run built separately (by a parallel producer)
+
+      @p other must be of the same molecule kind and have the same score definitions with the same primary score, or
+      have neither scores nor matches, or this run has neither scores nor matches yet and takes those of @p other. A source of @p other is the first source
+      of this run with the same file (added if there is none); its databases are those of this run that are equal
+      (added if there are none), and its database sequences are added unless this run has the same entry. The settings
+      of this run stay. Identifications and matches get new IDs of this run, with their scores and selected matches.
+
+      @return The new IDs, to update links to the identifications and matches of @p other
+      @throw Exception::InvalidValue if the runs differ in molecule kind or score definitions (nothing changes)
+    */
+    AppendResult append(const Run& other);
     Size getNumberOfIdentifications() const;
     Size getNumberOfMatches() const;
     UInt64 getNextQueryId() const

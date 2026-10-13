@@ -15,6 +15,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -198,6 +199,10 @@ protected:
       return EXECUTION_OK;
     }
 
+    // the run of the transition list that the identifications of the features of every file belong to, once (not once
+    // per file), with the proteins of the transition list in its order
+    MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, out_featureFile);
+
     // Here we deal with SWATH files (can be multiple files)
     // Only in OpenMP 3.0 are unsigned loop variables allowed
 #ifdef _OPENMP
@@ -243,22 +248,16 @@ protected:
         featureFinder.pickExperiment(chromatogram_ptr, featureFile,
                                      transition_exp_used, trafo, swath_maps, transition_group_map);
 
-        // write all features from tmp_featureFile into featureFile (their protein identification run is added below)
+        // write all features from tmp_featureFile into featureFile, with the identifications of their assays (appended
+        // to the run of the transition list)
 #ifdef _OPENMP
 #pragma omp critical (featureFinder)
 #endif
         {
-          for (const Feature& feature : featureFile)
-          {
-            out_featureFile.push_back(feature);
-          }
+          IdentificationDataConverter::appendFeatures(out_featureFile, featureFile);
         }
       } // end of do_continue
     } // end of loop over all files / end of OpenMP
-
-    // the protein identification run the features of every file reference, once (not once per file, which repeated
-    // its identifier), with the proteins of the transition list in its order
-    MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, out_featureFile);
 
     addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
     out_featureFile.ensureUniqueId();

@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h>
 #include <OpenMS/ANALYSIS/TARGETED/IChromatogramHandler.h>
@@ -303,9 +304,9 @@ namespace OpenMS
     // only, so embedded use does not affect later resampling in the process.
     Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
 
-    // The peptide identifications of the features reference the protein identification run (search run) of the
-    // transition list, which scorePeakgroups() does not add: add it (with all proteins, in the order of the transition
-    // list) once here instead of for every scoring batch.
+    // The identifications of the features belong to the run of the transition list, with its proteins, which
+    // scorePeakgroups() adds without them: add it (with all proteins, in the order of the transition list) once here
+    // instead of for every scoring batch; the runs of the batches are appended to it.
     if (store_features)
     {
       MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, out_featureFile);
@@ -857,15 +858,7 @@ namespace OpenMS
             {
               if (!osw_writer.isActive() && store_features)
               {
-                for (FeatureMap::const_iterator feature_it = featureFile.begin(); feature_it != featureFile.end(); ++feature_it)
-                {
-                  context.feature_file.push_back(*feature_it);
-                }
-                for (std::vector<ProteinIdentification>::const_iterator protid_it = featureFile.getProteinIdentifications().begin();
-                     protid_it != featureFile.getProteinIdentifications().end(); ++protid_it)
-                {
-                  context.feature_file.getProteinIdentifications().push_back(*protid_it);
-                }
+                IdentificationDataConverter::appendFeatures(context.feature_file, featureFile);
               }
 
               --context.remaining_score_jobs;
@@ -1193,21 +1186,10 @@ namespace OpenMS
       }
     }
 
-    // write features to output if so desired
+    // write features to output if so desired, with the identifications of their assays
     if (store_features)
     {
-      for (FeatureMap::const_iterator feature_it = featureFile.begin();
-           feature_it != featureFile.end(); ++feature_it)
-      {
-        out_featureFile.push_back(*feature_it);
-      }
-      for (std::vector<ProteinIdentification>::const_iterator protid_it =
-             featureFile.getProteinIdentifications().begin();
-           protid_it != featureFile.getProteinIdentifications().end();
-           ++protid_it)
-      {
-        out_featureFile.getProteinIdentifications().push_back(*protid_it);
-      }
+      IdentificationDataConverter::appendFeatures(out_featureFile, featureFile);
     }
   }
 

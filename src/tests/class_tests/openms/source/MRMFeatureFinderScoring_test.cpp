@@ -412,48 +412,47 @@ START_SECTION([EXTRA] compound assays are written as compound identifications)
   ff.pickExperiment(exp, features, transitions, trafo, *swath_map, transition_group_map);
 #endif
   Size hits = 0;
+  // the identifications of the assays: a compound run, whose identifications the features link
+  ABORT_IF(features.getIdentificationData().getRuns().size() != 1)
+  const auto& assay_run = features.getIdentificationData().getRuns()[0];
+  TEST_EQUAL(assay_run.getMoleculeKind() == IdentificationData::MoleculeKind::COMPOUND, true)
+  TEST_EQUAL(assay_run.getScoreDefinition(*assay_run.getPrimaryScore()).name, "xx_lda_prelim_score")
   for (const auto& feature : features)
   {
     const auto reference = feature.getMetaValue("PeptideRef").toString();
     const auto compound = std::find_if(transitions.compounds.begin(), transitions.compounds.end(), [&](const auto& c) { return c.id == reference; });
     ABORT_IF(compound == transitions.compounds.end())
-    for (const auto& id : feature.getPeptideIdentifications())
+    for (const auto& id : feature.getLinkedIdentifications(features.getIdentificationData()))
     {
-      TEST_EQUAL(id.getScoreType(), "xx_lda_prelim_score")
-      for (const auto& hit : id.getHits())
+      for (const auto* match : id.matches)
       {
         ++hits;
         const bool smiles = !compound->smiles.empty();
-        TEST_EQUAL(hit.getSequence().toString(), "")
-        TEST_EQUAL(hit.getMetaValue("molecule_type").toString(), "compound")
-        TEST_EQUAL(hit.getMetaValue("label").toString(), smiles ? compound->smiles : compound->id)
-        TEST_EQUAL(static_cast<int>(hit.getMetaValue("identification:encoding")),
+        TEST_EQUAL(match->representation, smiles ? compound->smiles : compound->id)
+        TEST_EQUAL(static_cast<int>(match->encoding),
                    static_cast<int>(smiles ? IdentificationData::Encoding::SMILES : IdentificationData::Encoding::DATABASE_ID))
-        TEST_EQUAL(hit.getMetaValue("identification:name").toString(), "compound " + compound->id)
-        TEST_EQUAL(hit.getMetaValue("identification:formula").toString(), "C6H12O6")
+        ABORT_IF(!match->details)
+        TEST_EQUAL(match->details->name, "compound " + compound->id)
+        TEST_EQUAL(*match->details->formula, "C6H12O6")
         // The assay's protein references are the compound's identifiers, not sequence evidence.
-        TEST_EQUAL(hit.getPeptideEvidences().size(), 0)
+        TEST_EQUAL(match->sequence_evidence.size(), 0)
         const auto references = std::count_if(compound->protein_refs.begin(), compound->protein_refs.end(), [](const auto& r) { return !r.empty(); });
-        TEST_EQUAL(hit.metaValueExists("identification:identifier_accessions") ? hit.getMetaValue("identification:identifier_accessions").toStringList().size() : 0,
-                   static_cast<Size>(references))
+        TEST_EQUAL(match->details->identifiers.size(), static_cast<Size>(references))
       }
     }
   }
   TEST_EQUAL(hits > 1, true)
-  // The features import into the owning identification model as compounds, also after a featureXML round trip.
+  // The features keep their compounds after a featureXML round trip (written with the conventions for compounds).
   std::string file;
   NEW_TMP_FILE(file)
   FeatureXMLFile().store(file, features);
   FeatureMap loaded;
   FeatureXMLFile().load(file, loaded);
-  for (auto* map : {&features, &loaded})
-  {
-    IdentificationDataConverter::importFeatureIDs(*map);
-    ABORT_IF(map->getIdentificationData().getRuns().size() != 1)
-    const auto& run = map->getIdentificationData().getRuns()[0];
-    TEST_EQUAL(run.getMoleculeKind() == IdentificationData::MoleculeKind::COMPOUND, true)
-    TEST_EQUAL(run.getNumberOfMatches(), hits)
-  }
+  IdentificationDataConverter::importFeatureIDs(loaded);
+  ABORT_IF(loaded.getIdentificationData().getRuns().size() != 1)
+  const auto& run = loaded.getIdentificationData().getRuns()[0];
+  TEST_EQUAL(run.getMoleculeKind() == IdentificationData::MoleculeKind::COMPOUND, true)
+  TEST_EQUAL(run.getNumberOfMatches(), hits)
 }
 END_SECTION
 
