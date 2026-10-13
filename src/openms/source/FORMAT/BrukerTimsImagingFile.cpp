@@ -151,6 +151,9 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
 
+    // TSF and BAF data are reported as such, not as a missing analysis.tdf
+    BrukerTimsFile::checkDataFormat(path);
+
     // Resolve analysis.tdf eagerly so an I/O error surfaces as FileNotReadable
     // here, rather than being masked by isImagingDataset() (which swallows
     // exceptions to behave as a non-throwing probe).

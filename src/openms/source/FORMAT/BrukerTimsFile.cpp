@@ -1376,6 +1376,78 @@ namespace OpenMS
   // =====================================================================
   // opentims only opens directories, so a '.d.zip' archive is unpacked into a temporary
   // directory that exists as long as this struct.
+  BrukerTimsFile::DataFormat BrukerTimsFile::detectFormat(const std::string& path)
+  {
+    bool tdf = false, tsf = false, baf = false;
+    const auto note = [&](const std::string& file_name)
+    {
+      if (file_name == "analysis.tdf" || file_name == "analysis.tdf_bin") tdf = true;
+      else if (file_name == "analysis.tsf" || file_name == "analysis.tsf_bin") tsf = true;
+      else if (file_name == "analysis.baf") baf = true;
+    };
+
+    if (File::isDirectory(path))
+    {
+      for (const char* file_name : {"analysis.tdf", "analysis.tdf_bin", "analysis.tsf", "analysis.tsf_bin", "analysis.baf"})
+      {
+        if (File::exists(path + "/" + file_name)) note(file_name);
+      }
+    }
+    else if (File::exists(path) && StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
+    {
+      const std::vector<std::string> entries = ZipArchiveFile::listEntries(path);
+      if (entries.empty()) return DataFormat::UNREADABLE_ARCHIVE;
+      // As unpack_() finds the data after extraction: files of a directory '*.d', nothing below '__MACOSX'
+      for (const std::string& entry : entries)
+      {
+        const std::filesystem::path entry_path = to_path(entry);
+        if (entry_path.parent_path().extension() != ".d") continue;
+        if (std::find(entry_path.begin(), entry_path.end(), std::filesystem::path("__MACOSX")) != entry_path.end()) continue;
+        note(entry_path.filename().string());
+      }
+    }
+    return tdf ? DataFormat::TDF : tsf ? DataFormat::TSF : baf ? DataFormat::BAF : DataFormat::NONE;
+  }
+
+  // Throws for the formats that are recognized but cannot be read
+  static void checkDataFormat(BrukerTimsFile::DataFormat format, const std::string& path)
+  {
+    using DataFormat = BrukerTimsFile::DataFormat;
+    if (format != DataFormat::TSF && format != DataFormat::BAF) return;
+    const std::string name = format == DataFormat::TSF ? "TSF" : "BAF";
+    const std::string file = format == DataFormat::TSF ? "analysis.tsf" : "analysis.baf";
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+      "Bruker " + name + " data (" + file + ") is not supported. Only Bruker TDF data can be read: a .d directory "
+      "with analysis.tdf and analysis.tdf_bin, as timsTOF instruments write with ion mobility separation. "
+      "Convert the run to mzML with another tool first");
+  }
+
+  void BrukerTimsFile::checkDataFormat(const std::string& path)
+  {
+    OpenMS::checkDataFormat(detectFormat(path), path);
+  }
+
+  // opentims decodes zstd-compressed frames only. Its own error for other data ends up as "the file ... is not
+  // readable for the current user", so this is checked before it gets the directory.
+  static void checkCompression(const std::string& d_path)
+  {
+    std::string compression;
+    try
+    {
+      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Statement query(db, "SELECT Value FROM GlobalMetadata WHERE Key = 'TimsCompressionType'");
+      if (query.executeStep()) compression = query.getColumn(0).getString();
+    }
+    catch (const std::exception&)
+    {
+      return; // no analysis.tdf that can be queried: opentims reports that
+    }
+    if (compression.empty() || std::atoi(compression.c_str()) == 2) return;
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+      "Bruker TDF data with TimsCompressionType " + compression + " is not supported. Only zstd-compressed frames "
+      "(TimsCompressionType 2) can be read, which timsTOF acquisition software has written since 2018");
+  }
+
   struct BrukerTimsFile::UnpackedArchive
   {
     std::string archive;          ///< the archive path as the caller gave it
@@ -1388,6 +1460,15 @@ namespace OpenMS
     if (File::isDirectory(path) || !StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
     {
       return nullptr;
+    }
+    // Nothing is extracted if the list of entries shows that there is nothing to read. (An archive whose
+    // entries cannot be listed goes on to unzipDirectory(), which says what is wrong with it.)
+    const DataFormat format = detectFormat(path);
+    OpenMS::checkDataFormat(format, path);
+    if (format == DataFormat::NONE && File::exists(path))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path, "ZIP archive does not contain a .d directory with analysis.tdf");
     }
     auto unpacked = std::make_shared<UnpackedArchive>();
     unpacked->archive = path;
@@ -1456,6 +1537,9 @@ namespace OpenMS
   static std::unique_ptr<TimsDataHandle> openTimsDataHandle(
     const std::string& path, const Config& config = Config())
   {
+    BrukerTimsFile::checkDataFormat(path);
+    checkCompression(path);
+
     std::string path_string = path;
 
     // 1. Always create handle with linear converters (safe baseline)

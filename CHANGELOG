@@ -136,6 +136,14 @@ OpenMS Library:
   - BrukerTimsFile keeps a decoded MS2 frame of a ddaPASEF run only until the last precursor that needs
     it has been read, not until the end of the load. An MS2-only load of a 110 min run (62,000 frames,
     230,000 precursors) peaks at 5.8 GB instead of 14 GB. The output is unchanged.
+  - Bruker .d input that cannot be read is reported as such. A .d directory with TSF data (analysis.tsf,
+    timsTOF without ion mobility) or BAF data (analysis.baf, QTOF) was an unknown file type ("Could not
+    determine input file type"); FileHandler::getType() now takes it as Bruker .d and the readers throw
+    a ParseError that names the format. TDF data that is not zstd-compressed (TimsCompressionType other
+    than 2) gets a ParseError naming the value instead of "... is not readable for the current user".
+    A '.d.zip' archive is typed by its list of entries: one without a .d directory is no longer taken
+    for Bruker data, and nothing is extracted before the reader rejects an archive.
+    New: BrukerTimsFile::detectFormat() and checkDataFormat().
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).

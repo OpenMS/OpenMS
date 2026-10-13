@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <map>
 #include <sstream>
 #include <tuple>
@@ -708,6 +709,8 @@ START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
   const std::string no_d_zip = tmp.getPath() + "/no_d.d.zip";
   ZipArchiveFile::zipDirectory(no_d, no_d_zip);
   TEST_EXCEPTION(Exception::ParseError, f.load(no_d_zip, exp));
+  // FileHandler looks at the list of entries as well, and does not take the archive for Bruker data
+  TEST_EQUAL(FileHandler::getType(no_d_zip), FileTypes::UNKNOWN)
 
   // A nested .d directory is what reaches opentims (which rejects it: no TDF data).
   const std::string nested = tmp.getPath() + "/nested";
@@ -715,6 +718,7 @@ START_SECTION([EXTRA] load() of a zipped .d directory (.d.zip))
   { std::ofstream os((nested + "/outer/run.d/analysis.tdf").c_str()); os << "no TDF data"; }
   const std::string nested_zip = tmp.getPath() + "/run.d.zip";
   ZipArchiveFile::zipDirectory(nested, nested_zip);
+  TEST_EQUAL(FileHandler::getType(nested_zip), FileTypes::BRUKER_TDF)
   std::string message;
   try
   {
@@ -792,6 +796,161 @@ START_SECTION([EXTRA] readDIAMetadata() keeps its .d.zip extraction for the next
   TEST_EXCEPTION(Exception::FileNotReadable, f.loadDIAStreaming(archive, consumer)) // the kept files
   MSExperiment exp;
   TEST_EXCEPTION(Exception::FileNotFound, f.load(archive, exp)) // nothing kept any more
+}
+END_SECTION
+
+START_SECTION(static DataFormat detectFormat(const std::string& path))
+{
+  // Told by file names only, so the files need no content. SDK-free.
+  using DF = BrukerTimsFile::DataFormat;
+  const auto format = [](const std::string& path) -> std::string
+  {
+    switch (BrukerTimsFile::detectFormat(path))
+    {
+      case DF::NONE: return "NONE";
+      case DF::TDF: return "TDF";
+      case DF::TSF: return "TSF";
+      case DF::BAF: return "BAF";
+      case DF::UNREADABLE_ARCHIVE: return "UNREADABLE_ARCHIVE";
+    }
+    return "?";
+  };
+  TempDir tmp;
+  Size n_made = 0;
+  // a directory with the given files (paths relative to it); returns its path
+  const auto make = [&tmp, &n_made](const std::string& name, const std::vector<std::string>& files)
+  {
+    const std::string dir = tmp.getPath() + "/" + std::to_string(n_made++) + "/" + name;
+    File::makeDir(dir);
+    for (const std::string& file : files)
+    {
+      File::makeDir(File::path(dir + "/" + file));
+      std::ofstream os((dir + "/" + file).c_str());
+      os << "no data";
+    }
+    return dir;
+  };
+  // the directory made by make(), as a ZIP archive; returns its path
+  const auto zip = [](const std::string& dir)
+  {
+    ZipArchiveFile::zipDirectory(dir, dir + ".d.zip");
+    return dir + ".d.zip";
+  };
+
+  // --- .d directories ---
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tdf", "analysis.tdf_bin"})), "TDF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tdf"})), "TDF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tdf_bin"})), "TDF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tsf", "analysis.tsf_bin"})), "TSF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tsf"})), "TSF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.baf"})), "BAF")
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tdf", "analysis.tsf", "analysis.baf"})), "TDF") // precedence
+  TEST_STRING_EQUAL(format(make("run.d", {"analysis.tsf", "analysis.baf"})), "TSF")
+  TEST_STRING_EQUAL(format(make("run.d", {})), "NONE")
+  TEST_STRING_EQUAL(format(make("run.d", {"readme.txt", "sub/analysis.tdf"})), "NONE") // not in the .d itself
+  TEST_STRING_EQUAL(format(tmp.getPath() + "/missing.d"), "NONE")
+  TEST_STRING_EQUAL(format(make("dir", {"file.d"}) + "/file.d"), "NONE") // a file, not a directory
+
+  // --- ZIP archives: the files have to be in a directory '*.d' ---
+  TEST_STRING_EQUAL(format(zip(make("archive", {"run.d/analysis.tdf", "run.d/analysis.tdf_bin"}))), "TDF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"outer/inner/run.d/analysis.tdf"}))), "TDF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"run.d/analysis.tsf", "run.d/analysis.tsf_bin"}))), "TSF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"run.d/analysis.baf"}))), "BAF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"old.d/analysis.tsf", "new.d/analysis.tdf"}))), "TDF")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"readme.txt"}))), "NONE")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"analysis.tdf", "data/analysis.tdf"}))), "NONE") // no .d directory
+  // what macOS adds to an archive is not data
+  TEST_STRING_EQUAL(format(zip(make("archive", {"__MACOSX/run.d/analysis.tdf", "notes.d/readme.txt"}))), "NONE")
+  TEST_STRING_EQUAL(format(zip(make("archive", {"__MACOSX/run.d/analysis.tdf", "run.d/analysis.tsf"}))), "TSF")
+  // not a ZIP archive, whatever its name says
+  const std::string not_a_zip = make("dir", {"broken.d.zip"}) + "/broken.d.zip";
+  TEST_STRING_EQUAL(format(not_a_zip), "UNREADABLE_ARCHIVE")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Bruker data that cannot be read is reported as such)
+{
+  // TSF data (timsTOF without ion mobility), BAF data (QTOF) and TDF data that is not zstd-compressed
+  // cannot be read. The read functions say so, instead of "could not determine the file type" or
+  // opentims' "... is not readable for the current user". SDK-free.
+  TempDir tmp;
+  BrukerTimsFile f;
+  MSExperiment exp;
+  ExperimentalSettings settings;
+  // the message of the ParseError a call throws
+  const auto parse_error = [](const std::function<void()>& call) -> std::string
+  {
+    try
+    {
+      call();
+    }
+    catch (const Exception::ParseError& e)
+    {
+      return e.what();
+    }
+    catch (const Exception::BaseException& e)
+    {
+      return std::string("not a ParseError: ") + e.getName();
+    }
+    return "no exception";
+  };
+  const auto contains = [](const std::string& text, const std::string& part) { return text.find(part) != std::string::npos; };
+
+  for (const std::string name : {"TSF", "BAF"})
+  {
+    const std::string file = name == "TSF" ? "analysis.tsf" : "analysis.baf";
+    const std::string d = tmp.getPath() + "/" + name + "/run.d";
+    File::makeDir(d);
+    { std::ofstream os((d + "/" + file).c_str()); os << "no data"; }
+
+    // every read function
+    const std::string expected = "Bruker " + name + " data (" + file + ") is not supported";
+    TEST_EQUAL(contains(parse_error([&]() { f.load(d, exp); }), expected), true)
+    TEST_EQUAL(contains(parse_error([&]() { f.readDIAMetadata(d, settings); }), expected), true)
+    TEST_EQUAL(contains(parse_error([&]() { RegularSwathFileConsumer consumer; f.loadDIAStreaming(d, consumer); }), expected), true)
+    TEST_EQUAL(contains(parse_error([&]() { MSExperiment none; ComparingConsumer consumer(none); f.transform(d, &consumer); }), expected), true)
+    TEST_EQUAL(contains(parse_error([&]() { BrukerTimsFile::checkDataFormat(d); }), expected), true)
+    // the message names the path
+    TEST_EQUAL(contains(parse_error([&]() { f.load(d, exp); }), d), true)
+
+    // FileHandler takes the directory as Bruker data, so that its users get the same message
+    TEST_EQUAL(FileHandler::getType(d), FileTypes::BRUKER_TDF)
+    TEST_EQUAL(FileHandler::getType(d + "/"), FileTypes::BRUKER_TDF)
+    TEST_EQUAL(contains(parse_error([&]() { FileHandler().loadExperiment(d, exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}); }), expected), true)
+
+    // the same for a zipped directory; nothing is extracted for it
+    const std::string archive = tmp.getPath() + "/" + name + ".d.zip";
+    ZipArchiveFile::zipDirectory(tmp.getPath() + "/" + name, archive);
+    TEST_EQUAL(contains(parse_error([&]() { f.load(archive, exp); }), expected), true)
+    TEST_EQUAL(FileHandler::getType(archive), FileTypes::BRUKER_TDF)
+  }
+  // TDF data passes the check, as does a path without Bruker data
+  const std::string tdf = tmp.getPath() + "/tdf/run.d";
+  File::makeDir(tdf);
+  { std::ofstream os((tdf + "/analysis.tdf").c_str()); os << "no data"; }
+  BrukerTimsFile::checkDataFormat(tdf);
+  BrukerTimsFile::checkDataFormat(tmp.getPath() + "/missing.d");
+  TEST_EQUAL(FileHandler::getType(tdf), FileTypes::BRUKER_TDF)
+
+  // --- TDF data whose frames are not zstd-compressed (TimsCompressionType other than 2) ---
+  const auto make_tdf = [&tmp](const std::string& name, const std::string& metadata_rows)
+  {
+    const std::string d = tmp.getPath() + "/" + name + ".d";
+    File::makeDir(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    if (!metadata_rows.empty()) conn.executeStatement("INSERT INTO GlobalMetadata VALUES " + metadata_rows + ";");
+    return d;
+  };
+  const std::string lzf = make_tdf("lzf", "('TimsCompressionType', '1')");
+  const std::string message = parse_error([&]() { f.load(lzf, exp); });
+  TEST_EQUAL(contains(message, "TimsCompressionType 1 is not supported"), true)
+  TEST_EQUAL(contains(message, lzf), true)
+  TEST_EQUAL(contains(parse_error([&]() { f.readDIAMetadata(lzf, settings); }), "TimsCompressionType 1 is not supported"), true)
+  // zstd-compressed, or no entry at all (as opentims has it): the directory reaches opentims, which finds
+  // no frame data in these
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(make_tdf("zstd", "('TimsCompressionType', '2')"), exp))
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(make_tdf("no_entry", ""), exp))
 }
 END_SECTION
 

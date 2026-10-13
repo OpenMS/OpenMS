@@ -220,16 +220,12 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
     if (type == FileTypes::BRUKER_TDF)
     {
-      if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
-      {
-        return FileTypes::BRUKER_TDF;
-      }
-      // Check for .d.zip: a ZIP archive containing a Bruker .d directory
-      if (File::exists(normalized) && !File::isDirectory(normalized) && StringUtils::hasSuffix(StringUtils::toLowered(normalized), ".zip"))
-      {
-        return FileTypes::BRUKER_TDF;
-      }
-      return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
+      // A Bruker .d directory, or a ZIP archive that holds one according to its list of entries. TSF and BAF
+      // data (no ion mobility) count as well: BrukerTimsFile then says that it cannot read them, which tells
+      // more than an unknown file type. An archive whose entries cannot be listed is taken by its name; the
+      // reader reports what is wrong with it.
+      return BrukerTimsFile::detectFormat(normalized) != BrukerTimsFile::DataFormat::NONE ? FileTypes::BRUKER_TDF
+                                                                                          : FileTypes::UNKNOWN;
     }
 #else
     if (type == FileTypes::BRUKER_TDF)

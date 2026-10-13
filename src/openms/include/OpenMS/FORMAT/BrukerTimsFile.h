@@ -229,6 +229,35 @@ namespace OpenMS
       std::string bruker_sdk_path;
     };
 
+    /// The Bruker data format of a .d directory, as told by the names of its files
+    enum class DataFormat
+    {
+      NONE,              ///< no Bruker data: none of the files below, or not a directory or ZIP archive at all
+      TDF,               ///< timsTOF data with ion mobility (analysis.tdf, analysis.tdf_bin): what this class reads
+      TSF,               ///< timsTOF data without ion mobility (analysis.tsf, analysis.tsf_bin): cannot be read
+      BAF,               ///< QTOF data (analysis.baf): cannot be read
+      UNREADABLE_ARCHIVE ///< a ZIP archive whose list of entries could not be read
+    };
+
+    /**
+      @brief Which Bruker data format the .d directory or '.d.zip' archive @p path holds
+
+      Only file names are looked at, in an archive its list of entries (nothing is extracted), so the
+      call is cheap and does not throw. In an archive the files have to be in a directory named '*.d',
+      as load() requires; '__MACOSX' directories are ignored. TDF takes precedence over TSF, and TSF
+      over BAF, if the files of several formats are present.
+    */
+    static DataFormat detectFormat(const std::string& path);
+
+    /**
+      @brief Checks that @p path does not hold Bruker data in a format that cannot be read
+
+      load() and the other read functions call this, so there is no need to call it before them.
+
+      @throws Exception::ParseError if detectFormat() finds TSF or BAF data
+    */
+    static void checkDataFormat(const std::string& path);
+
     /// Metadata for constructing a FullSwathFileConsumer for DIA streaming.
     struct DIAStreamingMetadata
     {
@@ -253,6 +282,10 @@ namespace OpenMS
                           const Config& config);
 
     /// Load entire .d directory into MSExperiment
+    /// @throws Exception::ParseError for Bruker data that cannot be read: TSF or BAF data (see detectFormat()), TDF
+    ///         data that is not zstd-compressed (TimsCompressionType other than 2), or a '.d.zip' archive without a
+    ///         .d directory. The other read functions throw the same.
+    /// @throws Exception::FileNotReadable if opentims cannot open the directory
     void load(const std::string& path, MSExperiment& exp);
     /// @overload with explicit configuration
     void load(const std::string& path, MSExperiment& exp, const Config& config);
