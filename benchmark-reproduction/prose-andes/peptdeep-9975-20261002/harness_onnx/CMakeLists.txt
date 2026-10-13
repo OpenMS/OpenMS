@@ -24,6 +24,10 @@ add_library(prose_objects OBJECT
  "${OPENMS}/src/openms/source/ML/PEPTDEEP/PeptDeepMS2Inference.cpp"
  "${OPENMS}/src/openms/source/ML/PEPTDEEP/PeptDeepRTInference.cpp"
  "${OPENMS}/src/openms/source/ML/PEPTDEEP/PeptDeepCCSInference.cpp")
+# develop after #10223: ProSE uses OpenMS::RegularExpression, which the pinned wheel's libOpenMS does not have yet
+if(EXISTS "${OPENMS}/src/openms/source/DATASTRUCTURES/RegularExpression.cpp")
+  target_sources(prose_objects PRIVATE "${OPENMS}/src/openms/source/DATASTRUCTURES/RegularExpression.cpp")
+endif()
 if(EXISTS "${OPENMS}/src/openms/source/ANALYSIS/ID/FragmentIonLikelihoodModel.cpp")
   target_sources(prose_objects PRIVATE "${OPENMS}/src/openms/source/ANALYSIS/ID/FragmentIonLikelihoodModel.cpp")
 endif()

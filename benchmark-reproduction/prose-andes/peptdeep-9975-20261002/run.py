@@ -119,6 +119,10 @@ ARMS = {
     # all hits is mostly lower-ranked candidates and decoys)
     "pd_cal": ("pdr_cal", {"peptdeep:enable": "true"}, "all"),
     "pd_cal_E": ("pdr_cal", {"peptdeep:enable": "true"}, SHUFFLED_E),
+    # #9975 merged with develop 06e4804 (#10466), smoke check before pushing the merge
+    "pdm_on": ("pdr_m", {"peptdeep:enable": "true"}, ("tims_plasma_30min", "astral_A2")),
+    # #9975 rebased onto develop c9c1497, smoke check before the force-push
+    "pdr2_on": ("pdr_m", {"peptdeep:enable": "true"}, ("tims_plasma_30min", "astral_A2")),
     # the same with peptdeep's own instrument class for each instrument (default QE), files where it differs
     "pd_inst": ("pdr_val", lambda row: {"peptdeep:enable": "true", "peptdeep:instrument": PEPTDEEP_INSTRUMENT[row["id"].split("_")[0]]},
                 tuple(r["id"] for r in MANIFEST if PEPTDEEP_INSTRUMENT[r["id"].split("_")[0]] != "QE")),

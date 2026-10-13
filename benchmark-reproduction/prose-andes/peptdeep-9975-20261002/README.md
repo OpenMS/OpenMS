@@ -128,6 +128,27 @@ while the Percolator ablations used the same cores, so its cost is not comparabl
   [split-10335-20261002](../split-10335-20261002)): all 8 idXML outputs identical. PeptDeep is off by
   default and none of its parameters is written to the search parameters.
 
+## Later checks of #9975 on newer develop
+
+Before each push that moved #9975 onto newer develop, the `pdr_m` tree was rebuilt with the ONNX harness, its class
+tests were run, and two files were searched with `peptdeep:enable=true` (`rebase_checks.tsv`):
+
+| Arm | #9975 state | Validation tree |
+| --- | --- | --- |
+| `pdm_on` (2026-10-09) | `7311f4e`: develop `06e4804` (with #10466) merged in | `fbcd24b456` |
+| `pdr2_on` (2026-10-13) | `c1bbc32`: the 15 commits rebased onto develop `c9c1497` | `8bb25e96da` (`build_records.json` → `pdr_m`) |
+
+- The class tests listed under Build pass for both builds (`tests_passed` in the build records).
+- On `tims_plasma_30min` and `astral_A2`, every PSM receives the five features (32453 / 32453 and 71721 / 71721).
+- `pdr2_on` equals `pdm_on` byte for byte: same native TSV and PIN SHA-256, same per-seed Percolator PSM counts. So the rebase
+  changes nothing against the merge.
+- The 158 files `pdr_m` takes from #9975 equal those of `c1bbc32`. The later head `796e562` changes only the
+  CHANGELOG.
+- These are checks, not a new benchmark. The searches ran on develop after #10466, so their PSM counts and run times
+  are not comparable with the tables above.
+- The `harness_onnx/CMakeLists.txt` compiles `RegularExpression.cpp` when the tree has it. develop's ProSE uses it
+  since #10223, and the pinned pyOpenMS nightly does not export it.
+
 ## Files
 - `run.py` (arm table), `chain_pd*.sh`, `build.py --harness harness_onnx`, `harness_onnx/`: the searches and
   the ONNX build, inside the harness of [pr-untangled-20261001](../pr-untangled-20261001).

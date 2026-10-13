@@ -18,5 +18,12 @@
     "binary_sha256": "03b68a1b178424de97eb7753814982b4bc279d78179e798a749931575d6b242d",
     "tests_passed": true,
     "harness": "harness_onnx"
+  },
+  "pdr_m": {
+    "source_commit": "8bb25e96da17e934774b8fce0fa5aa0d564777c3",
+    "source_tree": "b687c61a41f76c8c994f1f98611a30deca484b5a",
+    "binary_sha256": "72b60054ce363cd7dfc942284728327684a7991f06d494cf972106593f9f947d",
+    "tests_passed": true,
+    "harness": "harness_onnx"
   }
 }
