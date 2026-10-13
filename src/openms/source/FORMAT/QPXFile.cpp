@@ -52,6 +52,7 @@
 #include <vector>
 #include <map>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 namespace OpenMS
 {
@@ -159,6 +160,7 @@ void QPXFile::requireResolvableMergeIndices(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications)
 {
+  ProteinRunReferences::check(protein_identifications, peptide_identifications);
   validateMergeIndices(buildRunMapper(protein_identifications), peptide_identifications);
 }
 
@@ -166,6 +168,7 @@ void QPXFile::requireResolvableMergeIndices(
   const std::vector<ProteinIdentification>& protein_identifications,
   const std::vector<const PeptideIdentification*>& peptide_identifications)
 {
+  ProteinRunReferences::check(protein_identifications, peptide_identifications);
   validateMergeIndices(buildRunMapper(protein_identifications), peptide_identifications);
 }
 
@@ -174,6 +177,9 @@ std::shared_ptr<arrow::Table> QPXFile::exportToArrow(
   const PeptideIdentificationList& peptide_identifications,
   bool export_all_psms)
 {
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(protein_identifications, peptide_identifications);
+
   // -- Simple column builders --
   arrow::StringBuilder sequence_builder, peptidoform_builder;
   arrow::StringBuilder reference_file_builder, score_type_builder;
@@ -1546,6 +1552,7 @@ std::shared_ptr<arrow::Table> QPXFile::exportPSMsToQPXArrow(
   bool export_all_psms,
   const QPXIdentity::FeatureLinks* feature_links)
 {
+  ProteinRunReferences::check(protein_identifications, peptide_identifications);
   const IdentifierMSRunMapper mapper = buildRunMapper(protein_identifications);
   validateMergeIndices(mapper, peptide_identifications); // refuse merged input we cannot resolve
   warnOnStemCollisions(mapper);
@@ -1750,6 +1757,7 @@ bool QPXFile::exportToParquetStreaming(
   // runs inside an OpenMP region whose exception firewall turns any throw into a logged
   // `return false`, so a check down there could neither surface as MissingInformation nor avoid
   // leaving a truncated .parquet behind.
+  ProteinRunReferences::check(protein_identifications, peptide_identification_ptrs);
   validateMergeIndices(mapper, peptide_identification_ptrs);
   warnOnStemCollisions(mapper);
 

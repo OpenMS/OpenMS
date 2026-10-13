@@ -11,6 +11,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
+#include <OpenMS/FORMAT/MzCalibrationTof2MzConverter.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -23,6 +25,7 @@
 #include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
+#include <filesystem>
 #include <fstream>
 
 using namespace OpenMS;
@@ -109,6 +112,61 @@ namespace
     TEST_EQUAL(checked, true);
   }
 } // anon
+
+namespace
+{
+  using MzCal = MzCalibrationTof2MzConverter::Calibration;
+
+  // MzCalibration row (ModelType 1) and frame temperatures of a timsTOF Pro run (otofControl 6.0, 2019)
+  MzCal mzCalModelType1()
+  {
+    MzCal c;
+    c.model_type = 1;
+    c.digitizer_timebase = 0.2;
+    c.digitizer_delay = 24833.0;
+    c.t1 = 25.727448;
+    c.t2 = 28.353124;
+    c.dc1 = 27.0;
+    c.dc2 = 0.0;
+    c.c0 = 320.480481;
+    c.c1 = 157992.031315;
+    c.c2 = 0.002115;
+    c.c3 = 0.0;
+    c.c4 = -0.068565;
+    return c;
+  }
+  const double MT1_FRAME_T1 = 25.783137561298357;
+  const double MT1_FRAME_T2 = 28.876605339990224;
+
+  // MzCalibration row (ModelType 2) and frame temperatures of a timsTOF Pro run (timsControl 2.0, 2021).
+  // C3/C4 repeat C0/C2, as in all ModelType 2 files.
+  MzCal mzCalModelType2()
+  {
+    MzCal c;
+    c.model_type = 2;
+    c.digitizer_timebase = 0.19999999999999998;
+    c.digitizer_delay = 25726.199999999997;
+    c.t1 = 25.66893460672872;
+    c.t2 = 25.10638483329421;
+    c.dc1 = 20.0;
+    c.dc2 = 0.0;
+    c.c0 = 313.51167546836524;
+    c.c1 = 154833.4542880268;
+    c.c2 = -7.3593189552069465e-06;
+    c.c3 = 313.51167546836524;
+    c.c4 = -7.3593189552069465e-06;
+    // C5..C14: calibrant range and correction polynomial
+    c.correction.low = 225.951491;
+    c.correction.high = 1519.712539;
+    c.correction.n = 7;
+    c.correction.coefficients = {0.058519441907584555, -0.0005411344569873044, 1.8634987450927556e-06,
+                                 -3.1297916646308927e-09, 2.7471965457754794e-12, -1.207997933655641e-15,
+                                 2.095848318930801e-19};
+    return c;
+  }
+  const double MT2_FRAME_T1 = 25.67976562246388;
+  const double MT2_FRAME_T2 = 25.350275695575547;
+}
 
 START_TEST(BrukerTimsFile, "$Id$")
 
@@ -398,6 +456,261 @@ START_SECTION(RationalScan2ImConverter singularity edge cases)
 }
 END_SECTION
 
+START_SECTION(MzCalibrationTof2MzConverter ModelType 1 matches the Bruker SDK)
+{
+  // Reference: tims_index_to_mz of the Bruker TDF-SDK (libtimsdata) for the same calibration and frame
+  MzCalibrationTof2MzConverter conv({MzCalibrationTof2MzConverter::makeFrameModel(mzCalModelType1(), MT1_FRAME_T1, MT1_FRAME_T2)});
+  const std::vector<uint32_t> tofs = {1, 50000, 150000, 250000, 350000};
+  const std::vector<double> sdk = {95.00007900187677, 188.25046260982114, 469.54221185610277, 877.2135834525166, 1411.2595103197655};
+  std::vector<double> mzs(tofs.size());
+  conv.convert(0, mzs.data(), tofs.data(), static_cast<uint32_t>(tofs.size()));
+  TOLERANCE_ABSOLUTE(1e-9)
+  TOLERANCE_RELATIVE(1.0 + 1e-12)
+  for (size_t i = 0; i < tofs.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(mzs[i], sdk[i])
+  }
+
+  // Temperature correction, including the T2 term: dC2 = 25 and both frame temperatures shifted
+  MzCal cal = mzCalModelType1();
+  cal.dc2 = 25.0;
+  MzCalibrationTof2MzConverter conv_t({MzCalibrationTof2MzConverter::makeFrameModel(cal, 26.583137561298358, 25.876605339990224)});
+  const std::vector<double> sdk_t = {95.0039059785749, 188.25804879176218, 469.56113775995885, 877.2489438234296, 1411.31639969861};
+  conv_t.convert(0, mzs.data(), tofs.data(), static_cast<uint32_t>(tofs.size()));
+  for (size_t i = 0; i < tofs.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(mzs[i], sdk_t[i])
+  }
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
+}
+END_SECTION
+
+START_SECTION(MzCalibrationTof2MzConverter ModelType 2 matches the Bruker SDK inside the calibrant range)
+{
+  MzCalibrationTof2MzConverter::FrameModel m = MzCalibrationTof2MzConverter::makeFrameModel(mzCalModelType2(), MT2_FRAME_T1, MT2_FRAME_T2);
+  // C3/C4 repeat C0/C2 in ModelType 2: no cubic term, no mass offset
+  TEST_EQUAL(m.c3, 0.0)
+  TEST_EQUAL(m.c4, 0.0)
+  TEST_EQUAL(m.correction.n, 7)
+  MzCalibrationTof2MzConverter conv({m});
+
+  // Below, inside (150000, 250000) and above the calibrant range [225.95, 1519.71]
+  const std::vector<uint32_t> tofs_exact = {1, 20000, 50000, 150000, 250000, 385000, 396000};
+  const std::vector<double> sdk_exact = {99.9937348434843, 133.94736657275706, 194.17018217157815, 475.42674239965703,
+                                         880.5493429108868, 1623.9488391924265, 1694.4686480927487};
+  std::vector<double> mzs(tofs_exact.size());
+  conv.convert(1, mzs.data(), tofs_exact.data(), static_cast<uint32_t>(tofs_exact.size()));
+  TOLERANCE_ABSOLUTE(1e-9)
+  TOLERANCE_RELATIVE(1.0 + 1e-12)
+  for (size_t i = 0; i < tofs_exact.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(mzs[i], sdk_exact[i])
+  }
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
+
+  // Just below the calibrant range (m/z 225.90) the SDK still applies part of the correction
+  const uint32_t tof_edge = 63921;
+  double mz_edge = 0.0;
+  conv.convert(1, &mz_edge, &tof_edge, 1);
+  TEST_EQUAL(std::abs(mz_edge - 225.90057634972197) / 225.90057634972197 * 1e6 < 8.0, true)
+
+  // Without correction terms only the base curve is used: a few ppm off inside the range
+  MzCal no_corr = mzCalModelType2();
+  no_corr.correction = MzCalibrationTof2MzConverter::Correction();
+  const auto m_base = MzCalibrationTof2MzConverter::makeFrameModel(no_corr, MT2_FRAME_T1, MT2_FRAME_T2);
+  const double ppm_base = (MzCalibrationTof2MzConverter::tofToMz(m_base, 150000) - 475.42674239965703) / 475.42674239965703 * 1e6;
+  TEST_EQUAL(std::abs(ppm_base) > 0.1 && std::abs(ppm_base) < 8.0, true)
+}
+END_SECTION
+
+START_SECTION(MzCalibrationTof2MzConverter round-trip via inverse_convert)
+{
+  for (const MzCal& cal : {mzCalModelType1(), mzCalModelType2()})
+  {
+    MzCalibrationTof2MzConverter conv({MzCalibrationTof2MzConverter::makeFrameModel(cal, cal.t1 + 0.5, cal.t2)});
+    for (uint32_t tof = 1; tof < 400000; tof += 9973)
+    {
+      double mz = 0.0;
+      conv.convert(0, &mz, &tof, 1);
+      uint32_t back = 0;
+      conv.inverse_convert(0, &back, &mz, 1);
+      TEST_EQUAL(back, tof)
+    }
+  }
+
+  // ModelType 2 at the lower limit of the calibrant range: a base m/z just inside the range moves
+  // below the limit after a positive correction; the inverse must still find the original TOF
+  {
+    MzCal cal = mzCalModelType2();
+    cal.correction.n = 1;
+    cal.correction.coefficients = {0.05, 0, 0, 0, 0, 0, 0}; // constant 50 mDa correction
+    auto m_edge = MzCalibrationTof2MzConverter::makeFrameModel(cal, MT2_FRAME_T1, MT2_FRAME_T2);
+    const uint32_t tof_edge = 64000;
+    m_edge.correction.n = 0;
+    const double base_edge = MzCalibrationTof2MzConverter::tofToMz(m_edge, tof_edge);
+    m_edge.correction.n = 1;
+    m_edge.correction.low = base_edge - 0.01; // base just inside the range
+    const double mz_edge = MzCalibrationTof2MzConverter::tofToMz(m_edge, tof_edge); // base - 0.05
+    TEST_EQUAL(mz_edge < m_edge.correction.low, true)
+    TEST_EQUAL(MzCalibrationTof2MzConverter::mzToTof(m_edge, mz_edge), tof_edge)
+  }
+
+  // Cubic term (ModelType 1 with C3 != 0) is solved iteratively
+  MzCal cubic = mzCalModelType1();
+  cubic.c3 = 1e-4;
+  MzCalibrationTof2MzConverter::FrameModel m = MzCalibrationTof2MzConverter::makeFrameModel(cubic, cubic.t1, cubic.t2);
+  for (uint32_t tof = 1; tof < 400000; tof += 9973)
+  {
+    const double mz = MzCalibrationTof2MzConverter::tofToMz(m, tof);
+    TEST_EQUAL(MzCalibrationTof2MzConverter::mzToTof(m, mz), tof)
+  }
+}
+END_SECTION
+
+START_SECTION(MzCalibrationTof2MzConverter per-frame models)
+{
+  const MzCal cal = mzCalModelType1();
+  // index 0 = model for frame_id 0 (copy of frame 1); frame 2 is 1 degree warmer
+  const auto f1 = MzCalibrationTof2MzConverter::makeFrameModel(cal, cal.t1, cal.t2);
+  const auto f2 = MzCalibrationTof2MzConverter::makeFrameModel(cal, cal.t1 + 1.0, cal.t2);
+  MzCalibrationTof2MzConverter conv({f1, f1, f2}, "test converter");
+
+  const double tof = 200000.0;
+  double mz0 = 0.0, mz1 = 0.0, mz2 = 0.0, mz_out = 0.0;
+  conv.convert(0, &mz0, &tof, 1);
+  conv.convert(1, &mz1, &tof, 1);
+  conv.convert(2, &mz2, &tof, 1);
+  conv.convert(99, &mz_out, &tof, 1); // unknown frame: first frame
+  TEST_EQUAL(mz0, mz1)
+  TEST_EQUAL(mz_out, mz1)
+  // dC1 = 27 ppm per degree: 1 degree warmer scales (m/z + C4) down by 27 ppm
+  TEST_REAL_SIMILAR((mz2 - mz1) / (mz1 + cal.c4) * 1e6, -27.0)
+  TEST_EQUAL(conv.description(), "test converter")
+}
+END_SECTION
+
+START_SECTION(std::unique_ptr<Tof2MzConverter> tryCreateMzCalibrationConverter(const std::string& tims_dir_path))
+{
+  TempDir tmp_dir;
+  // .d folder with only the MzCalibration and Frames tables
+  auto make_d = [&tmp_dir](const std::string& name, int model_type_used, bool with_temperatures)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + name + ".d";
+    std::filesystem::create_directories(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE MzCalibration (Id INTEGER PRIMARY KEY, ModelType INTEGER, DigitizerTimebase REAL, "
+                          "DigitizerDelay REAL, T1 REAL, T2 REAL, dC1 REAL, dC2 REAL, C0 REAL, C1 REAL, C2 REAL, C3 REAL, C4 REAL);");
+    conn.executeStatement("INSERT INTO MzCalibration VALUES (1, " + std::to_string(model_type_used) + ", 0.2, 24833.0, 25.727448, "
+                          "28.353124, 27.0, 0.0, 320.480481, 157992.031315, 0.002115, 0.0, -0.068565);");
+    // unused row as found in older otofControl files: must be ignored
+    conn.executeStatement("INSERT INTO MzCalibration VALUES (2, 9, 0.2, 24833.0, 25.2, 178.2, 27.0, 0.0, 318.4, 156075.0, 0.0, 0.0, 0.0);");
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, MzCalibration INTEGER, T1 REAL, T2 REAL);");
+    if (with_temperatures)
+    {
+      conn.executeStatement("INSERT INTO Frames VALUES (1, 1, 25.783137561298357, 28.876605339990224);");
+      conn.executeStatement("INSERT INTO Frames VALUES (2, 1, 26.783137561298357, 28.876605339990224);");
+    }
+    else
+    {
+      conn.executeStatement("INSERT INTO Frames VALUES (1, 1, NULL, NULL);");
+      conn.executeStatement("INSERT INTO Frames VALUES (2, 1, NULL, NULL);");
+    }
+    return d;
+  };
+
+  auto conv = tryCreateMzCalibrationConverter(make_d("model1", 1, true));
+  TEST_NOT_EQUAL(conv.get(), nullptr)
+  if (conv)
+  {
+    TEST_EQUAL(conv->description().find("ModelType 1") != std::string::npos, true)
+    const uint32_t tof = 150000;
+    double mz1 = 0.0, mz2 = 0.0, mz0 = 0.0;
+    conv->convert(1, &mz1, &tof, 1);
+    conv->convert(2, &mz2, &tof, 1);
+    conv->convert(0, &mz0, &tof, 1);
+    TEST_REAL_SIMILAR(mz1, 469.54221185610277) // Bruker SDK, see above
+    TEST_REAL_SIMILAR((mz2 - mz1) / (mz1 + mzCalModelType1().c4) * 1e6, -27.0) // frame 2 is 1 degree warmer
+    TEST_EQUAL(mz0, mz1)
+  }
+
+  // frames without temperatures use the reference temperatures (no correction)
+  auto conv_no_t = tryCreateMzCalibrationConverter(make_d("no_temperatures", 1, false));
+  TEST_NOT_EQUAL(conv_no_t.get(), nullptr)
+  if (conv_no_t)
+  {
+    const MzCal cal = mzCalModelType1();
+    const auto ref = MzCalibrationTof2MzConverter::makeFrameModel(cal, cal.t1, cal.t2);
+    double mz = 0.0;
+    const uint32_t tof = 150000;
+    conv_no_t->convert(2, &mz, &tof, 1);
+    TEST_REAL_SIMILAR(mz, MzCalibrationTof2MzConverter::tofToMz(ref, tof))
+  }
+
+  // ModelType 2 with the correction columns C5..C14, and without them (base curve only)
+  auto make_d_mt2 = [&tmp_dir](const std::string& name, bool with_correction_columns)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + name + ".d";
+    std::filesystem::create_directories(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    const std::string base_cols = "Id INTEGER PRIMARY KEY, ModelType INTEGER, DigitizerTimebase REAL, DigitizerDelay REAL, "
+                                  "T1 REAL, T2 REAL, dC1 REAL, dC2 REAL, C0 REAL, C1 REAL, C2 REAL, C3 REAL, C4 REAL";
+    const std::string base_vals = "1, 2, 0.19999999999999998, 25726.199999999997, 25.66893460672872, 25.10638483329421, 20.0, 0.0, "
+                                  "313.51167546836524, 154833.4542880268, -7.3593189552069465e-06, 313.51167546836524, -7.3593189552069465e-06";
+    if (with_correction_columns)
+    {
+      conn.executeStatement("CREATE TABLE MzCalibration (" + base_cols + ", C5 REAL, C6 REAL, C7 INTEGER, C8 REAL, C9 REAL, "
+                            "C10 REAL, C11 REAL, C12 REAL, C13 REAL, C14 REAL);");
+      conn.executeStatement("INSERT INTO MzCalibration VALUES (" + base_vals + ", 225.951491, 1519.712539, 7, "
+                            "0.058519441907584555, -0.0005411344569873044, 1.8634987450927556e-06, -3.1297916646308927e-09, "
+                            "2.7471965457754794e-12, -1.207997933655641e-15, 2.095848318930801e-19);");
+    }
+    else
+    {
+      conn.executeStatement("CREATE TABLE MzCalibration (" + base_cols + ");");
+      conn.executeStatement("INSERT INTO MzCalibration VALUES (" + base_vals + ");");
+    }
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, MzCalibration INTEGER, T1 REAL, T2 REAL);");
+    conn.executeStatement("INSERT INTO Frames VALUES (1, 1, 25.67976562246388, 25.350275695575547);");
+    return d;
+  };
+  {
+    const uint32_t tof = 150000; // inside the calibrant range
+    auto conv_mt2 = tryCreateMzCalibrationConverter(make_d_mt2("model2", true));
+    TEST_NOT_EQUAL(conv_mt2.get(), nullptr)
+    if (conv_mt2)
+    {
+      double mz = 0.0;
+      conv_mt2->convert(1, &mz, &tof, 1);
+      TEST_REAL_SIMILAR(mz, 475.42674239965703) // Bruker SDK, see above
+    }
+    auto conv_mt2_base = tryCreateMzCalibrationConverter(make_d_mt2("model2_no_correction", false));
+    TEST_NOT_EQUAL(conv_mt2_base.get(), nullptr)
+    if (conv_mt2_base)
+    {
+      MzCal no_corr = mzCalModelType2();
+      no_corr.correction = MzCalibrationTof2MzConverter::Correction();
+      const auto m_base = MzCalibrationTof2MzConverter::makeFrameModel(no_corr, MT2_FRAME_T1, MT2_FRAME_T2);
+      double mz = 0.0;
+      conv_mt2_base->convert(1, &mz, &tof, 1);
+      TEST_REAL_SIMILAR(mz, MzCalibrationTof2MzConverter::tofToMz(m_base, tof))
+    }
+  }
+
+  // a frame using an unsupported ModelType, a missing table or a missing file: no converter
+  TEST_EQUAL(tryCreateMzCalibrationConverter(make_d("model9", 9, true)).get(), nullptr)
+  const std::string empty_d = tmp_dir.getPath() + "/empty.d";
+  std::filesystem::create_directories(empty_d);
+  {
+    SqliteConnector conn(empty_d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE Frames (Id INTEGER PRIMARY KEY, MzCalibration INTEGER, T1 REAL, T2 REAL);");
+  }
+  TEST_EQUAL(tryCreateMzCalibrationConverter(empty_d).get(), nullptr)
+  TEST_EQUAL(tryCreateMzCalibrationConverter(tmp_dir.getPath() + "/does_not_exist.d").get(), nullptr)
+}
+END_SECTION
+
 // Integration tests (only run when ENABLE_OPENTIMS_TESTS is ON and data is available)
 #ifdef OPENTIMS_DDA_TEST_DATA
 
@@ -456,6 +769,27 @@ START_SECTION(DDA loading integration test)
   TEST_EQUAL(exp.getInstrument().getModel(), "impacTEM-pt")
   TEST_EQUAL(exp.getInstrument().getVendor(), "Bruker")
   TEST_EQUAL(exp.getInstrument().getMetaValue("instrument serial number").toString(), "1854399.00095")
+}
+END_SECTION
+
+START_SECTION([EXTRA] Bruker SDK is optional in AUTO and required only by BRUKER_SDK)
+{
+  BrukerTimsFile f;
+  BrukerTimsFile::Config cfg;
+  cfg.export_mode = BrukerTimsFile::Config::FRAME;
+  cfg.frame_id_min = 1;
+  cfg.frame_id_max = 2;
+  cfg.bruker_sdk_path = "/nonexistent/libtimsdata.so";
+
+  // AUTO: an unusable SDK only produces a warning; m/z and 1/K0 come from analysis.tdf
+  MSExperiment exp_auto;
+  f.load(OPENTIMS_DDA_TEST_DATA, exp_auto, cfg);
+  TEST_EQUAL(exp_auto.size(), 2);
+
+  // BRUKER_SDK explicitly requests the SDK
+  cfg.tims_calibration_strategy = BrukerTimsFile::Config::TimsCalibrationStrategy::BRUKER_SDK;
+  MSExperiment exp_sdk;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(OPENTIMS_DDA_TEST_DATA, exp_sdk, cfg));
 }
 END_SECTION
 

@@ -1230,8 +1230,8 @@ END_SECTION
 
 START_SECTION(([EXTRA] importFromArrow_appends_shell_for_unknown_run_identifier))
 {
-  // Build one PeptideIdentification with a run_identifier that has NO matching
-  // ProteinIdentification — importFromArrow must append a shell entry.
+  // Build one PeptideIdentification and import its PSM table without the protein identification
+  // runs (which are stored in their own table) — importFromArrow must append a shell entry.
   PeptideIdentification pid;
   pid.setIdentifier("run_unknown");
   pid.setScoreType("hyperscore");
@@ -1249,10 +1249,15 @@ START_SECTION(([EXTRA] importFromArrow_appends_shell_for_unknown_run_identifier)
   PeptideIdentificationList pep_ids;
   pep_ids.push_back(pid);
 
-  // Export: no matching ProteinIdentification provided.
-  std::vector<ProteinIdentification> prot_ids_empty;
-  auto table = QPXFile::exportToArrow(prot_ids_empty, pep_ids, /*export_all_psms=*/true);
+  // Export with its run (every peptide identification needs one) ...
+  std::vector<ProteinIdentification> prot_ids(1);
+  prot_ids[0].setIdentifier("run_unknown");
+  auto table = QPXFile::exportToArrow(prot_ids, pep_ids, /*export_all_psms=*/true);
   TEST_NOT_EQUAL(table.get(), nullptr);
+
+  // ... but no run is known to the import, and none of the exporters accepts a peptide identification without one
+  std::vector<ProteinIdentification> prot_ids_empty;
+  TEST_EXCEPTION(Exception::InvalidParameter, QPXFile::exportToArrow(prot_ids_empty, pep_ids, /*export_all_psms=*/true))
 
   // Import against an *empty* prot_ids_out vector — shell must be appended.
   std::vector<ProteinIdentification> prot_ids_out;
@@ -1583,7 +1588,8 @@ START_SECTION(([EXTRA] exportToParquetStreaming parallel build (n_threads)))
 
   // --- Non-empty input that yields zero PSM rows (all hits empty) + 8 threads ---
   {
-    PeptideIdentificationList empty_hits(50); // 50 default-constructed PeptideIdentifications, no hits
+    PeptideIdentificationList empty_hits(50); // 50 PeptideIdentifications of the run, no hits
+    for (auto& p : empty_hits) { p.setIdentifier(protein_ids[0].getIdentifier()); }
     std::vector<const PeptideIdentification*> eh_ptrs;
     for (const auto& p : empty_hits) { eh_ptrs.push_back(&p); }
     std::string f; NEW_TMP_FILE(f)

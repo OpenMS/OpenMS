@@ -138,6 +138,13 @@ namespace OpenMS
     void resolveKeepMatching(std::vector<Entry>& entries, const std::string& uid, Edits& edits)
     {
       const Size best = bestEntry(entries);
+      // bestEntry() prefers identifications with matches: if the best has none, no identification has a sequence to
+      // match, and all of them stay as they are
+      if (entries[best].matches.empty())
+      {
+        for (auto& entry : entries) entry.keep = true;
+        return;
+      }
       entries[best].keep = true;
       const ID::Match* top = entries[best].matches.empty() ? nullptr : entries[best].matches[0];
       for (Size i = 0; i < entries.size(); ++i)

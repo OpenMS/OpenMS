@@ -1003,8 +1003,13 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
           if (query.mz) row.exp_mass_to_charge.set(*query.mz);
           if (match.calculated_mz) row.calc_mass_to_charge.set(*match.calculated_mz);
           else if (match.charge)
-            row.calc_mass_to_charge.set(NASequence::fromString(match.representation).getMonoWeight(NASequence::Full, match.charge)
-                                        / std::abs(match.charge));
+          {
+            // as NucleicAcidSearchEngine computes it: the adduct of a match is that of the ion
+            const auto sequence = NASequence::fromString(match.representation);
+            const AdductInfo* adduct = match.details && match.details->adduct ? &*match.details->adduct : nullptr;
+            row.calc_mass_to_charge.set(adduct ? adduct->getMZ(sequence.getMonoWeight())
+                                               : sequence.getMonoWeight(NASequence::Full, match.charge) / std::abs(match.charge));
+          }
           row.spectra_ref.setMSFile(ms_run_index);
           row.spectra_ref.setSpecRef(query.data_id);
           const auto scores = run.getScores(match);

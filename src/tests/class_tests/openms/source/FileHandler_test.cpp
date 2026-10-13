@@ -14,6 +14,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/IMAGING/MSImagingExperiment.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -23,6 +26,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -363,6 +367,50 @@ START_SECTION((void loadExperiment imzML is rejected by FileHandler))
   TEST_EXCEPTION(Exception::InvalidFileType, fh_imz.loadExperiment(imzml_path, exp_imz))
 END_SECTION
 
+START_SECTION((void loadImagingExperiment(const std::string& filename, MSImagingExperiment& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)))
+{
+  // imzML goes through ImzMLFile, so FileHandler must give the same experiment.
+  const std::string imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
+  MSImagingExperiment img, ref;
+  FileHandler().loadImagingExperiment(imzml_path, img);
+  ImzMLFile().load(imzml_path, ref);
+  TEST_EQUAL(img.getNumberOfPixels() > 0, true)
+  TEST_EQUAL(img.getNumberOfPixels(), ref.getNumberOfPixels())
+  TEST_EQUAL(img.getMSExperiment().size(), ref.getMSExperiment().size())
+
+  // Non-imaging formats are rejected; allowed_types is honored.
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadImagingExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), img))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(imzml_path, img, {FileTypes::BRUKER_TDF}))
+}
+END_SECTION
+
+#ifdef WITH_OPENTIMS
+START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and routed by loadImagingExperiment))
+{
+  // Fake .d folders with only GlobalMetadata: enough for type detection and the
+  // imaging probe, both of which run before any frame is read. TempDir removes them
+  // on scope exit, so reruns start from scratch.
+  TempDir tmp_dir;
+  auto fake_d = [&tmp_dir](const std::string& application_type)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + application_type + ".d";
+    std::filesystem::create_directories(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('MaldiApplicationType', '" + application_type + "');");
+    return d;
+  };
+
+  PeakMap exp;
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(fake_d("Imaging"), exp))
+
+  // A non-imaging .d reaches BrukerTimsImagingFile, whose strict imaging check rejects it.
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(fake_d("SingleSpectra"), img))
+}
+END_SECTION
+#endif
+
 START_SECTION((void storeExperiment(const std::string &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
 FileHandler fh;
 PeakMap exp;
@@ -433,6 +481,16 @@ START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_
   TEST_REAL_SIMILAR(h.getScore(), 0.5);
 
   File::removeDirRecursively(dir);
+
+  // every peptide identification needs its protein identification run: refused before anything is written
+  PeptideIdentificationList orphan = pep_ids;
+  orphan[0].setIdentifier("run_unknown");
+  std::string orphan_dir;
+  NEW_TMP_FILE(orphan_dir)
+  orphan_dir += ".idparquet";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, FileHandler().storeIdentifications(orphan_dir, prot_ids, orphan, {FileTypes::IDPARQUET}),
+    "Peptide identification has no matching protein run: 'run_unknown'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.")
+  TEST_FALSE(File::exists(orphan_dir))
 }
 END_SECTION
 

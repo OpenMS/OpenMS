@@ -101,7 +101,10 @@ public:
       Order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR", "NONE"
       
       Special value "NONE" disables all logging by removing streams from all levels.
-      
+
+      The default configuration writes debug and info messages to std::cout, and warnings and errors to
+      std::cerr, as the global streams do initially. Debug messages are written from setLogLevel("DEBUG") on.
+
       @param[in] log_level The minimum log level to enable. Levels below this will have their streams removed.
      */
     void setLogLevel(const std::string & log_level);

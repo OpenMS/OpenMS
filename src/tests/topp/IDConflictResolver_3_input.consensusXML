@@ -270,6 +270,10 @@
 			<VariableModification name="Glu->pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_48" accession="VIMSS15048" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_13" date="2017-04-21T12:59:35" search_engine="XTandem" search_engine_version="">
@@ -329,6 +333,10 @@
 			<VariableModification name="Glu->pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_49" accession="VIMSS15048" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_16" date="2017-04-21T14:12:06" search_engine="XTandem" search_engine_version="">
@@ -479,7 +487,7 @@
 			<PeptideIdentification identification_run_ref="PI_15" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="531.220825195312" RT="2379.37158203125" spectrum_reference="spectrum=3343" >
 				<UserParam type="int" name="spectrum_index" value="1562"/>
 				<UserParam type="int" name="map_index" value="3"/>
-                <PeptideHit score="0.142857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
+                <PeptideHit score="0.142857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_49">
                     <UserParam type="string" name="target_decoy" value="target"/>
                     <UserParam type="float" name="XTandem_score" value="36.2"/>
                     <UserParam type="float" name="nextscore" value="33.2"/>
@@ -523,7 +531,7 @@
 			<PeptideIdentification identification_run_ref="PI_12" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="573.205688476562" RT="1985.32336425781" spectrum_reference="spectrum=2901" >
 				<UserParam type="int" name="spectrum_index" value="1023"/>
 				<UserParam type="int" name="map_index" value="0"/>
-                <PeptideHit score="0.132857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
+                <PeptideHit score="0.132857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_48">
                     <UserParam type="string" name="target_decoy" value="target"/>
                     <UserParam type="float" name="XTandem_score" value="36.2"/>
                     <UserParam type="float" name="nextscore" value="33.2"/>
@@ -565,7 +573,7 @@
 			<PeptideIdentification identification_run_ref="PI_12" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="573.205932617188" RT="1932.23840332031" spectrum_reference="spectrum=2680" >
 				<UserParam type="int" name="spectrum_index" value="894"/>
 				<UserParam type="int" name="map_index" value="4"/>
-                <PeptideHit score="0.142857142857143" sequence="AFSGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
+                <PeptideHit score="0.142857142857143" sequence="AFSGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_48">
                     <UserParam type="string" name="target_decoy" value="target"/>
                     <UserParam type="float" name="XTandem_score" value="36.2"/>
                     <UserParam type="float" name="nextscore" value="33.2"/>

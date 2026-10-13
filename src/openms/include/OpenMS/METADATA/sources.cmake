@@ -43,6 +43,7 @@ ProteinHit.h
 ProteinIdentification.h
 SearchParameters.h
 ProteinModificationSummary.h
+ProteinRunReferences.h
 Sample.h
 ScanWindow.h
 Software.h

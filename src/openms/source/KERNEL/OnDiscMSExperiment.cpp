@@ -13,6 +13,39 @@
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// Keep only the peaks of @p container for which @p pass returns true. Filters in place, so every
+    /// non-peak field is kept and the float/string/integer data arrays stay aligned with the peaks.
+    /// A data array whose length does not match the peak count (a malformed file) cannot be aligned
+    /// and is emptied rather than thrown on, as the unfiltered read does not reject such files either.
+    template <typename ContainerT, typename PassT>
+    void filterPeaksInPlace(ContainerT& container, PassT pass)
+    {
+      std::vector<Size> kept;
+      kept.reserve(container.size());
+      for (Size i = 0; i < container.size(); ++i)
+      {
+        if (pass(container[i])) kept.push_back(i);
+      }
+      if (kept.size() == container.size()) return; // nothing removed
+
+      auto clear_mismatched = [&container](auto& arrays)
+      {
+        for (auto& a : arrays)
+        {
+          if (a.size() != container.size()) a.clear();
+        }
+      };
+      clear_mismatched(container.getFloatDataArrays());
+      clear_mismatched(container.getStringDataArrays());
+      clear_mismatched(container.getIntegerDataArrays());
+
+      container.select(kept);
+      container.updateRanges();
+    }
+  } // namespace
+
   bool OnDiscMSExperiment::openFile(const std::string& filename, bool skipMetaData)
   {
     filename_ = filename;
@@ -175,20 +208,11 @@ namespace OpenMS
     // Apply m/z and intensity range filters if set (requires peak data)
     if (options_.hasMZRange() || options_.hasIntensityRange())
     {
-      MSSpectrum filtered;
-      filtered.SpectrumSettings::operator=(spectrum);
-      filtered.reserve(spectrum.size());
-
-      for (const auto& peak : spectrum)
+      filterPeaksInPlace(spectrum, [this](const Peak1D& peak)
       {
-        bool pass_mz = !options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(peak.getMZ()));
-        bool pass_int = !options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity()));
-        if (pass_mz && pass_int)
-        {
-          filtered.push_back(peak);
-        }
-      }
-      return filtered;
+        return (!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(peak.getMZ())))
+            && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity())));
+      });
     }
 
     return spectrum;
@@ -210,20 +234,11 @@ namespace OpenMS
     // Apply RT and intensity range filters if set (RT range for chromatograms filters on RT dimension)
     if (options_.hasRTRange() || options_.hasIntensityRange())
     {
-      MSChromatogram filtered;
-      filtered.ChromatogramSettings::operator=(chromatogram);
-      filtered.reserve(chromatogram.size());
-
-      for (const auto& peak : chromatogram)
+      filterPeaksInPlace(chromatogram, [this](const ChromatogramPeak& peak)
       {
-        bool pass_rt = !options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(peak.getRT()));
-        bool pass_int = !options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity()));
-        if (pass_rt && pass_int)
-        {
-          filtered.push_back(peak);
-        }
-      }
-      return filtered;
+        return (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(peak.getRT())))
+            && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity())));
+      });
     }
 
     return chromatogram;

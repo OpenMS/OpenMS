@@ -21,6 +21,7 @@
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -1116,6 +1117,8 @@ bool ConsensusMapArrowIO::exportToParquet(
   std::vector<const BaseFeature*> rows;
   for (const auto& feature : cmap) rows.push_back(&feature);
   MapIdentificationParquet::validateLinks(cmap.getIdentificationData(), rows);
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(cmap);
 
   // 1. Write into a private sibling directory; publish only after every table is complete,
   //    so a failed export never leaves a partial bundle behind.
@@ -1468,10 +1471,19 @@ bool ConsensusMapArrowIO::importFromParquet(
     for (auto& feature : cmap) rows.push_back(&feature);
     MapIdentificationParquet::load(directory, cmap.getIdentificationData(), rows);
   }
+  const Size stored_runs = cmap.getProteinIdentifications().size();
   if (!importPSMsFromArrow(psms_table, cmap))
   {
     return false;
   }
+  // every peptide identification needs its protein identification run: the PSM table import appends a shell run
+  // for each run identifier the stored runs lack, which is a dangling reference in this file
+  if (cmap.getProteinIdentifications().size() > stored_runs)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProteinRunReferences::missingRunMessage(cmap.getProteinIdentifications()[stored_runs].getIdentifier()));
+  }
+  ProteinRunReferences::check(cmap);
 
   // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
   //    we own (per-consensus-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the

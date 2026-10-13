@@ -5,6 +5,12 @@
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
 	<featureList count="25">
 		<feature id="f_7276556891837796968">
 			<position dim="0">9.999999523162842</position>
@@ -96,6 +102,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="8.38886321535518" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="5.995e04"/>
 			<UserParam type="float" name="total_mi" value="3.893385795172904"/>
 			<UserParam type="string" name="PeptideRef" value="0"/>
@@ -240,6 +250,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.03733688287925" sequence="PEP[+299]TIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.10812e05"/>
 			<UserParam type="float" name="total_mi" value="4.696552340257441"/>
 			<UserParam type="string" name="PeptideRef" value="12"/>
@@ -384,6 +398,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.54518776403426" sequence="PEP[+299.0100]TIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="7.225e04"/>
 			<UserParam type="float" name="total_mi" value="4.282892142331042"/>
 			<UserParam type="string" name="PeptideRef" value="21"/>
@@ -528,6 +546,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.35537864551559" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="9.972e04"/>
 			<UserParam type="float" name="total_mi" value="5.870732693792488"/>
 			<UserParam type="string" name="PeptideRef" value="23"/>
@@ -672,6 +694,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.76457157899766" sequence="P[+199]EPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2.2776800021743774e05"/>
 			<UserParam type="float" name="total_mi" value="4.784858861227674"/>
 			<UserParam type="string" name="PeptideRef" value="1"/>
@@ -816,6 +842,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.31722905546883" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.0742e05"/>
 			<UserParam type="float" name="total_mi" value="4.718719202134778"/>
 			<UserParam type="string" name="PeptideRef" value="2"/>
@@ -960,6 +990,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="8.39887345792573" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="6.172e04"/>
 			<UserParam type="float" name="total_mi" value="3.945878784520537"/>
 			<UserParam type="string" name="PeptideRef" value="24"/>
@@ -1104,6 +1138,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.76457157899766" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2.2776800021743774e05"/>
 			<UserParam type="float" name="total_mi" value="4.784858861227674"/>
 			<UserParam type="string" name="PeptideRef" value="25"/>
@@ -1248,6 +1286,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.69396691347908" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="7.372e04"/>
 			<UserParam type="float" name="total_mi" value="4.334067148035181"/>
 			<UserParam type="string" name="PeptideRef" value="26"/>
@@ -1392,6 +1434,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.96298616894911" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="8.881e04"/>
 			<UserParam type="float" name="total_mi" value="4.144256910496029"/>
 			<UserParam type="string" name="PeptideRef" value="27"/>
@@ -1536,6 +1582,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.38466639087895" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.0e05"/>
 			<UserParam type="float" name="total_mi" value="6.016609514899899"/>
 			<UserParam type="string" name="PeptideRef" value="3"/>
@@ -1680,6 +1730,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.75522929918681" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="7.585e04"/>
 			<UserParam type="float" name="total_mi" value="4.410476798769997"/>
 			<UserParam type="string" name="PeptideRef" value="4"/>
@@ -1824,6 +1878,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.37981802705219" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="9.81e04"/>
 			<UserParam type="float" name="total_mi" value="5.609585039917494"/>
 			<UserParam type="string" name="PeptideRef" value="5"/>
@@ -1968,6 +2026,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.11323945013232" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.0e05"/>
 			<UserParam type="float" name="total_mi" value="6.016609514899899"/>
 			<UserParam type="string" name="PeptideRef" value="6"/>
@@ -2112,6 +2174,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.74361649306405" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="9.945e04"/>
 			<UserParam type="float" name="total_mi" value="5.806684374296741"/>
 			<UserParam type="string" name="PeptideRef" value="7"/>
@@ -2256,6 +2322,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.51450943084561" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="9.18e04"/>
 			<UserParam type="float" name="total_mi" value="5.12494703562976"/>
 			<UserParam type="string" name="PeptideRef" value="8"/>
@@ -2400,6 +2470,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.47912850135842" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.0e05"/>
 			<UserParam type="float" name="total_mi" value="6.016609514899899"/>
 			<UserParam type="string" name="PeptideRef" value="11"/>
@@ -2544,6 +2618,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="4.35663008309355" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.261443996887207e05"/>
 			<UserParam type="float" name="total_mi" value="6.076873271540448"/>
 			<UserParam type="string" name="PeptideRef" value="13"/>
@@ -2688,6 +2766,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.44903260279861" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="9.955e04"/>
 			<UserParam type="float" name="total_mi" value="5.82813054171604"/>
 			<UserParam type="string" name="PeptideRef" value="15"/>
@@ -2832,6 +2914,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="7.77884482680667" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="7.585e04"/>
 			<UserParam type="float" name="total_mi" value="4.410476798769997"/>
 			<UserParam type="string" name="PeptideRef" value="16"/>
@@ -2976,6 +3062,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="5.81366116878101" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.0e05"/>
 			<UserParam type="float" name="total_mi" value="6.016609514899899"/>
 			<UserParam type="string" name="PeptideRef" value="17"/>
@@ -3120,6 +3210,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.04662535892961" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1.0e05"/>
 			<UserParam type="float" name="total_mi" value="6.016609514899899"/>
 			<UserParam type="string" name="PeptideRef" value="18"/>
@@ -3264,6 +3358,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.0840985989822" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="9.79e04"/>
 			<UserParam type="float" name="total_mi" value="5.587256102722756"/>
 			<UserParam type="string" name="PeptideRef" value="19"/>
@@ -3408,6 +3506,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="6.14492563536333" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="9.649e04"/>
 			<UserParam type="float" name="total_mi" value="5.451614030128056"/>
 			<UserParam type="string" name="PeptideRef" value="20"/>
@@ -3552,6 +3654,10 @@
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="8.13215095893543" sequence="PEPTIDEA" charge="2">
+				</PeptideHit>
+			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="6.43e04"/>
 			<UserParam type="float" name="total_mi" value="4.024303862254638"/>
 			<UserParam type="string" name="PeptideRef" value="9"/>

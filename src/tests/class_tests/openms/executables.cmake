@@ -4,7 +4,7 @@ set(concept_executables_list
   Colorizer_test
   Exception_Base_test
   FuzzyStringComparator_test
-  #GlobalExceptionHandler_test
+  GlobalExceptionHandler_test
   PrecisionWrapper_test
   ProgressLogger_test
   RAIICleanup_test
@@ -127,6 +127,7 @@ set(metadata_executables_list
   ProteinHit_test
   ProteinIdentification_test
   ProteinModificationSummary_test
+  ProteinRunReferences_test
   IdentifierMSRunMapper_test
   Sample_test
   ScanWindow_test
@@ -269,6 +270,7 @@ set(format_executables_list
   OSWFileInference_test
   PTMXMLFile_test
   ParamCTDFile_test
+  ParamCWLFile_test
   ParamJSONFile_test
   ParamXMLFile_test
   ParquetFilter_test
@@ -627,6 +629,7 @@ set(analysis_executables_list
   PeakGroup_test
   PScore_test
   FragmentIndex_test
+  FragmentIonLikelihoodModel_test
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test

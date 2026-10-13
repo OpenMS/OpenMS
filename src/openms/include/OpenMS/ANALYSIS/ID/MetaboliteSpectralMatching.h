@@ -236,12 +236,13 @@ namespace OpenMS
       @c boost::math::max_factorial saturate at the maximum factorial. Negative hyperscores
       are clamped to 0.
 
-      @param[in] fragment_mass_error           Fragment-ion tolerance (value).
+      @param[in] fragment_mass_error           Finite, nonnegative fragment-ion tolerance (value); zero requires exact matches.
       @param[in] fragment_mass_tolerance_unit_ppm If @c true, @p fragment_mass_error is in ppm; otherwise Th.
       @param[in] exp_spectrum                  Experimental MS2 spectrum (sorted by m/z).
       @param[in] db_spectrum                   DB MS2 spectrum (sorted by m/z).
       @param[in] mz_lower_bound                Minimum m/z to consider; peaks below this are ignored. Default 0.0.
       @return Hyperscore (>= 0; 0 if fewer than three matched peaks).
+      @throws Exception::InvalidParameter if the fragment tolerance is negative or non-finite, including for empty spectra.
     */
     static double computeHyperScore(
       double fragment_mass_error,
@@ -257,13 +258,14 @@ namespace OpenMS
       (annotation string) and a @ref MSSpectrum::IntegerDataArray (charge) — otherwise this
       overload behaves like the no-annotation form.
 
-      @param[in]  fragment_mass_error           Fragment-ion tolerance (value).
+      @param[in]  fragment_mass_error           Finite, nonnegative fragment-ion tolerance (value); zero requires exact matches.
       @param[in]  fragment_mass_tolerance_unit_ppm If @c true, @p fragment_mass_error is in ppm; otherwise Th.
       @param[in]  exp_spectrum                  Experimental MS2 spectrum (sorted by m/z).
       @param[in]  db_spectrum                   DB MS2 spectrum (sorted by m/z).
       @param[out] annotations                   Per-matched-peak annotations (annotation string, charge, m/z, intensity); appended to.
       @param[in]  mz_lower_bound                Minimum m/z to consider; peaks below this are ignored.
       @return Hyperscore (>= 0; 0 if fewer than three matched peaks).
+      @throws Exception::InvalidParameter if the fragment tolerance is negative or non-finite, including for empty spectra.
     */
     static double computeHyperScore(
       double fragment_mass_error,
@@ -316,4 +318,3 @@ namespace OpenMS
   };
 
 }
-
