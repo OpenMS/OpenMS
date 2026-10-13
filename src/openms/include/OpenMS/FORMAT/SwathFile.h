@@ -167,10 +167,15 @@ public:
       (and @p plugin_consumer), so that the run is never held in memory as a whole (except with
       readoptions "normal", which keeps the SWATH maps in memory). Chromatograms are not read.
 
+      With readoptions "onDisc", the file is indexed once (OnDiscThermoRawExperiment) and the maps are
+      SpectrumAccessOnDisc views on it, which read the spectra from the .raw file when they are
+      accessed: nothing is loaded or cached up front. The spectra and SWATH windows are the same as
+      with the other read options.
+
       @param[in] file Path to a Thermo .raw file
       @param[in] tmp Temporary directory (for readoptions "cache" and "split")
-      @param[out] exp_meta Run metadata and the spectra without peaks
-      @param[in] readoptions "normal" (in-memory), "cache" (disk-cached) or "split" (mzML per window)
+      @param[out] exp_meta Run metadata (and the spectra without peaks, except for "onDisc")
+      @param[in] readoptions "normal" (in-memory), "cache" (disk-cached), "split" (mzML per window) or "onDisc" (read on access)
       @param[in] plugin_consumer Optional consumer that also receives every spectrum
       @return Swath maps for MS2 and MS1 (empty for "split")
     */
@@ -182,6 +187,13 @@ public:
 #endif
 
 protected:
+
+#ifdef WITH_THERMO_RAW
+    /// loadThermoRaw() with readoptions "onDisc"
+    std::vector<OpenSwath::SwathMap> loadThermoRawOnDisc_(const std::string& file,
+                                                          std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                          Interfaces::IMSDataConsumer* plugin_consumer);
+#endif
 
     /// Cache a file to disk
     OpenSwath::SpectrumAccessPtr doCacheFile_(const std::string& in, const std::string& tmp, const std::string& tmp_fname,

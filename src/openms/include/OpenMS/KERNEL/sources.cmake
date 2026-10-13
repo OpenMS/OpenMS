@@ -16,6 +16,7 @@ DPeak.h
 Feature.h
 FeatureHandle.h
 FeatureMap.h
+IMSExperimentRandomAccess.h
 MassTrace.h
 MobilityPeak1D.h
 MobilityPeak2D.h

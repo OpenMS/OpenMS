@@ -1910,6 +1910,14 @@ experimental settings) but no actual peak data.
         .def("size", [](const OpenMS::OnDiscMSExperiment& self) { return self.size(); }, "Returns the number of spectra available")
         .def("empty", [](const OpenMS::OnDiscMSExperiment& self) { return self.empty(); }, "Returns whether the experiment contains no spectra")
         .def("isSortedByRT", [](const OpenMS::OnDiscMSExperiment& self) { return self.isSortedByRT(); }, "Checks if all spectra are sorted with respect to ascending RT")
+        .def("getSpectrumMetadata", [](OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumMetadata(id); }, "id"_a,
+             "Returns a single spectrum without peaks and data arrays")
+        .def("getSpectrumRT", [](const OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumRT(id); }, "id"_a,
+             "Retention time of a spectrum (from the meta data if loaded)")
+        .def("getSpectrumMSLevel", [](const OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumMSLevel(id); }, "id"_a,
+             "MS level of a spectrum (from the meta data if loaded)")
+        .def("findFirstRT", [](const OpenMS::OnDiscMSExperiment& self, double rt) { return self.findFirstRT(rt); }, "rt"_a,
+             "Index of the first spectrum with RT >= rt (size() if there is none); needs spectra sorted by RT")
         // Aliases for Cython API compatibility: getSpectrumById/getChromatogramById take a native ID string
         .def("getSpectrumById", [](OpenMS::OnDiscMSExperiment& self, const std::string& id) { return self.getSpectrumByNativeId(id); }, "id"_a,
             R"doc(

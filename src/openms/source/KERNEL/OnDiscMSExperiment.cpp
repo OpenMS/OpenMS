@@ -218,6 +218,41 @@ namespace OpenMS
     return spectrum;
   }
 
+  MSSpectrum OnDiscMSExperiment::getSpectrumMetadata(Size id)
+  {
+    MSSpectrum spectrum;
+    if (meta_ms_experiment_)
+    {
+      spectrum = meta_ms_experiment_->operator[](id);
+    }
+    else
+    {
+      spectrum = indexed_mzml_file_.getMSSpectrumById(int(id));
+    }
+    spectrum.clear(false);
+    spectrum.getFloatDataArrays().clear();
+    spectrum.getStringDataArrays().clear();
+    spectrum.getIntegerDataArrays().clear();
+    return spectrum;
+  }
+
+  double OnDiscMSExperiment::getSpectrumRT(Size id) const
+  {
+    if (meta_ms_experiment_) { return meta_ms_experiment_->operator[](id).getRT(); }
+    return indexed_mzml_file_.getMSSpectrumById(int(id)).getRT();
+  }
+
+  UInt OnDiscMSExperiment::getSpectrumMSLevel(Size id) const
+  {
+    if (meta_ms_experiment_) { return meta_ms_experiment_->operator[](id).getMSLevel(); }
+    return indexed_mzml_file_.getMSSpectrumById(int(id)).getMSLevel();
+  }
+
+  std::unique_ptr<IMSExperimentRandomAccess> OnDiscMSExperiment::clone() const
+  {
+    return std::make_unique<OnDiscMSExperiment>(*this);
+  }
+
   MSChromatogram OnDiscMSExperiment::getChromatogram(Size id)
   {
     MSChromatogram chromatogram;

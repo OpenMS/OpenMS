@@ -32,6 +32,11 @@
 #endif
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
+#include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
+#endif
+#include <cmath>
 
 #include <memory> // for make_shared
 #include <utility>
@@ -242,6 +247,10 @@ namespace OpenMS
                                                             Interfaces::IMSDataConsumer* plugin_consumer)
   {
     OPENMS_LOG_INFO << "Loading Thermo RAW file " << file << " using readoptions " << readoptions << '\n';
+    if (readoptions == "onDisc")
+    {
+      return loadThermoRawOnDisc_(file, exp_meta, plugin_consumer);
+    }
     std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : "";
 
     // Read through FileHandler like the other tools (centroided spectra, source file as for a load)
@@ -286,6 +295,107 @@ namespace OpenMS
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
     endProgress();
+    return swath_maps;
+  }
+
+  std::vector<OpenSwath::SwathMap> SwathFile::loadThermoRawOnDisc_(const std::string& file,
+                                                                   std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                                   Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    // Same reader options as FileHandler uses for the other read options (centroided, no chromatograms)
+    ThermoRawFile::Options options;
+    options.centroid = true;
+    options.checksum = false;
+    options.skip_chromatograms = true;
+
+    startProgress(0, 1, "Indexing " + file);
+    auto experiment = std::make_shared<OnDiscThermoRawExperiment>();
+    experiment->openFile(file, options);
+    exp_meta = std::make_shared<ExperimentalSettings>(*experiment->getExperimentalSettings());
+
+    // Window assignment as with the streaming consumers: the windows are determined from the spectrum
+    // metadata (countScansInSwath_()), then each MS2 spectrum goes to the first window with the same
+    // center and ion mobility limits (cf. FullSwathFileConsumer::consumeSpectrum()).
+    std::vector<MSSpectrum> metadata;
+    metadata.reserve(experiment->getNrSpectra());
+    for (Size i = 0; i < experiment->getNrSpectra(); ++i)
+    {
+      metadata.push_back(experiment->getSpectrumMetadata(i));
+    }
+    std::vector<int> swath_counter;
+    int nr_ms1_spectra;
+    std::vector<OpenSwath::SwathMap> boundaries;
+    countScansInSwath_(metadata, swath_counter, nr_ms1_spectra, boundaries);
+    OPENMS_LOG_INFO << "Determined there to be " << swath_counter.size()
+                    << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
+
+    std::vector<Size> ms1_indices;
+    std::vector<std::vector<Size>> window_indices(boundaries.size());
+    for (Size i = 0; i < metadata.size(); ++i)
+    {
+      const MSSpectrum& s = metadata[i];
+      if (s.getMSLevel() == 1)
+      {
+        ms1_indices.push_back(i);
+        continue;
+      }
+      const Precursor& prec = s.getPrecursors()[0]; // countScansInSwath_() checked that there is one
+      double im_lower = -1, im_upper = -1;
+      if (s.metaValueExists("ion mobility lower limit"))
+      {
+        im_lower = (double)s.getMetaValue("ion mobility lower limit");
+        im_upper = (double)s.getMetaValue("ion mobility upper limit");
+      }
+      for (Size w = 0; w < boundaries.size(); ++w)
+      {
+        if (std::fabs(prec.getMZ() - boundaries[w].center) < 1e-6 &&
+            std::fabs(im_lower - boundaries[w].imLower) < 1e-6 &&
+            std::fabs(im_upper - boundaries[w].imUpper) < 1e-6)
+        {
+          window_indices[w].push_back(i);
+          break;
+        }
+      }
+    }
+    metadata.clear();
+    metadata.shrink_to_fit();
+    endProgress();
+
+    // A plugin consumer (e.g. SwathQC) sees every spectrum once, as with the streaming read options
+    if (plugin_consumer)
+    {
+      startProgress(0, experiment->getNrSpectra(), "Passing spectra of " + file + " to the plugin consumer");
+      exp_meta->setMetaValue("nr_ms1_spectra", nr_ms1_spectra); // required for SwathQC::getExpSettingsFunc()
+      plugin_consumer->setExperimentalSettings(*exp_meta);
+      exp_meta->removeMetaValue("nr_ms1_spectra");
+      for (Size i = 0; i < experiment->getNrSpectra(); ++i)
+      {
+        MSSpectrum s = experiment->getSpectrum(i);
+        plugin_consumer->consumeSpectrum(s);
+        setProgress(i);
+      }
+      endProgress();
+    }
+
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    if (!ms1_indices.empty())
+    {
+      OpenSwath::SwathMap map;
+      map.sptr = std::make_shared<SpectrumAccessOnDisc>(experiment, std::move(ms1_indices));
+      map.lower = map.upper = map.center = map.imLower = map.imUpper = -1;
+      map.ms1 = true;
+      swath_maps.push_back(map);
+    }
+    // OpenSwathWorkflow hands each window to one thread without lightClone(), so every window
+    // reads through its own handle (all handles share the index).
+    for (Size w = 0; w < boundaries.size(); ++w)
+    {
+      OpenSwath::SwathMap map = boundaries[w];
+      std::shared_ptr<IMSExperimentRandomAccess> handle = experiment->clone();
+      map.sptr = std::make_shared<SpectrumAccessOnDisc>(std::move(handle), std::move(window_indices[w]));
+      map.ms1 = false;
+      swath_maps.push_back(map);
+    }
     return swath_maps;
   }
 #endif

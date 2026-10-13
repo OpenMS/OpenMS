@@ -151,6 +151,15 @@ OpenMS Library:
     intensity estimates need are kept). FileHandler::transformExperiment() streams mzML, mzXML and
     Thermo .raw files into a consumer and applies the PeakFileOptions like loadExperiment(). SwathFile
     gains loadThermoRaw(); loadFromMSExperiment() keeps only the experimental settings as metadata (#10522).
+  - Random access to Thermo .raw files: OnDiscThermoRawExperiment keeps the file open with an index of
+    the selected scans and converts single spectra on request, identical to the corresponding spectra of
+    ThermoRawFile::load() with the same Options; clone() gives handles for concurrent reads. It and
+    OnDiscMSExperiment implement the new IMSExperimentRandomAccess interface (OnDiscMSExperiment gains
+    getSpectrumMetadata(), getSpectrumRT(), getSpectrumMSLevel() and findFirstRT()).
+    SpectrumAccessOnDisc exposes any IMSExperimentRandomAccess (or an RT-sorted subset of it) as an
+    OpenSwath::ISpectrumAccess; SwathFile::loadThermoRaw() supports readoptions "onDisc" (#10522).
+  - pyOpenMS: ThermoRawFile.transform() streams into a Python consumer; OnDiscThermoRawExperiment is
+    wrapped with indexing, iteration and RT lookup (#10522).
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
@@ -433,6 +442,8 @@ TOPP tools:
       - Thermo .raw input is streamed into the SWATH maps instead of being loaded completely and
         copied, and the full map is no longer kept alive as run metadata; -out_qc (SwathQC) now also
         receives the spectra of .raw input (#10522).
+      - -readOptions onDisc for Thermo .raw input reads the spectra of each SWATH window from the file
+        during extraction instead of holding them in memory; results are identical to 'normal' (#10522).
     SageAdapter, CometAdapter:
       - Thermo .raw input is streamed into the temporary mzML instead of being loaded into memory (#10522).
     IDFileConverter:
