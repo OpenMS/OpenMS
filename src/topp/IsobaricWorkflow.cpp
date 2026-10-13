@@ -423,7 +423,7 @@ protected:
    * @brief Fills an existing ConsensusFeature with all kinds of information of an identified and isobarically quantified peptide.
    *
    * @param[out] cf the ConsensusFeature to fill
-   * @param[in] pep information about the PSM (object will be moved)
+   * @param[in,out] pep information about the PSM (gets the run and the input file index of the consensus feature)
    * @param[in] exp the MSExperiment to extract information about spectra
    * @param[in] id_spec_idx index of the identifying spectrum
    * @param[in] quant_spec_idx index of the quantifying spectrum
@@ -500,7 +500,25 @@ protected:
       // Set id_merge_index to track which input file this peptide identification originated from.
       // This is required for proper mzTab export when multiple files are merged into a single ID run.
       pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_idx);
-      cf.setPeptideIdentifications({std::move(pep)});
+  }
+
+  /// Erases the consensus features of @p map that @p remove selects, with their peptide identifications in @p peptides (by index)
+  template <class Predicate>
+  static void eraseWithPeptides_(ConsensusMap& map, std::vector<PeptideIdentificationList>& peptides, Predicate remove)
+  {
+    Size kept = 0;
+    for (Size k = 0; k < map.size(); ++k)
+    {
+      if (remove(map[k])) continue;
+      if (kept != k)
+      {
+        map[kept] = std::move(map[k]);
+        peptides[kept] = std::move(peptides[k]);
+      }
+      ++kept;
+    }
+    map.erase(map.begin() + kept, map.end());
+    peptides.resize(kept);
   }
 
   std::string addTimeStamp_(std::string& s) const
@@ -608,6 +626,10 @@ protected:
     //const std::string& exp_design = getStringOption_("exp_design");
     IDMergerAlgorithm merger(ID_RUN_NAME_, false);
     ConsensusMap cmap;
+    // The peptide identification of each consensus feature of cmap (by index) and the unassigned ones: they become
+    // the identification data of cmap once all input files are processed.
+    std::vector<PeptideIdentificationList> cmap_peptides;
+    PeptideIdentificationList cmap_unassigned;
 
     //-------------------------------------------------------------
     // calculations
@@ -726,6 +748,7 @@ protected:
       }
 
       cur_cmap.resize(pep_ids.size());
+      std::vector<PeptideIdentificationList> cur_peptides(pep_ids.size());
 
       channel_extractor.registerChannelsInOutputMap(cmap, mz_file);
 
@@ -795,6 +818,7 @@ protected:
             std::vector<double> corrected(itys.size(), 0.);
             NonNegativeLeastSquaresSolver::solve(m, itys, corrected);
             fillConsensusFeature_(cur_cmap[pep_idx], pep, exp, id_spec_idx, quant_spec_idx, corrected, quant_method, quant_purity, id_purity, min_reporter_intensity, i);
+            cur_peptides[pep_idx].push_back(std::move(pep));
             if (sps_matched_ions >= 0)
             {
               cur_cmap[pep_idx].setMetaValue("sps_matched_ions", sps_matched_ions);
@@ -831,7 +855,6 @@ protected:
       {
         OPENMS_LOG_INFO << "Adding " << unassigned_pep_ids.size() 
                         << " peptide identifications without MS3 spectra to unassigned IDs." << std::endl;
-        auto& cmap_unassigned = cmap.getUnassignedPeptideIdentifications();
         cmap_unassigned.insert(cmap_unassigned.end(), 
                                std::make_move_iterator(unassigned_pep_ids.begin()), 
                                std::make_move_iterator(unassigned_pep_ids.end()));
@@ -853,9 +876,7 @@ protected:
       // the unassigned peptide IDs, so drop these empty placeholders here instead of merging them into
       // the output map.
       const Size before_prune = cur_cmap.size();
-      cur_cmap.erase(remove_if(cur_cmap.begin(), cur_cmap.end(),
-                               [](const ConsensusFeature& cf) { return cf.empty(); }),
-                     cur_cmap.end());
+      eraseWithPeptides_(cur_cmap, cur_peptides, [](const ConsensusFeature& cf) { return cf.empty(); });
       if (const Size pruned = before_prune - cur_cmap.size(); pruned > 0)
       {
         OPENMS_LOG_INFO << "Removed " << pruned << " unquantified consensus feature(s) without reporter "
@@ -866,6 +887,7 @@ protected:
       // Move assignment would lose column headers if early files have no peptide IDs after filtering.
       cmap.reserve(cmap.size() + cur_cmap.size());
       cmap.insert(cmap.end(), std::make_move_iterator(cur_cmap.begin()), std::make_move_iterator(cur_cmap.end()));
+      cmap_peptides.insert(cmap_peptides.end(), std::make_move_iterator(cur_peptides.begin()), std::make_move_iterator(cur_peptides.end()));
 
       // TODO If we do the parquet export, we can export the feature file here already. Then, if prot. inference and quant are disabled,
       //  the tool could be run on a single file and distributed over multiple nodes. We could use a parquet partitioned over raw_files
@@ -920,7 +942,7 @@ protected:
     // filter only affects real, identified features whose reporter channels were all below threshold.
     // TODO expose this as a proper min-intensity filtering setting.
     const auto empty_feat = [](const ConsensusFeature& c){return c.getIntensity() <= 0.;};
-    cmap.erase(remove_if(cmap.begin(), cmap.end(), empty_feat), cmap.end());
+    eraseWithPeptides_(cmap, cmap_peptides, empty_feat);
     // unique IDs for the map and for every consensus feature (consensusElement/@id is xs:ID)
     cmap.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     std::vector<ProteinIdentification> merged_prot_ids;
@@ -928,11 +950,20 @@ protected:
     PeptideIdentificationList _;
     merger.returnResultsAndClear(merged_prot_ids[0], _);
     std::cout << "Merged " << merged_prot_ids[0].getHits().size() << " proteins." << std::endl;
-    cmap.setProteinIdentifications(merged_prot_ids);
 
     // From here on, the identifications are identification data: inference, FDR, filtering and quantification work
     // on it, and it is exported once for the output formats.
-    IdentificationDataConverter::moveToIdentificationData(cmap);
+    {
+      MapPeptideIdentifications identifications;
+      identifications.proteins = std::move(merged_prot_ids);
+      for (Size k = 0; k < cmap.size(); ++k)
+      {
+        if (!cmap_peptides[k].empty()) identifications.features[{k}] = std::move(cmap_peptides[k]);
+      }
+      identifications.unassigned = std::move(cmap_unassigned);
+      cmap_peptides.clear();
+      IdentificationDataConverter::importMapIdentifications(cmap, identifications);
+    }
     IdentificationData& data = cmap.getIdentificationData();
     // The protein run of the inference result over all identifications, which the protein-level steps work on
     const auto editProteins = [&data](const std::function<void(ProteinIdentification&)>& edit) {
