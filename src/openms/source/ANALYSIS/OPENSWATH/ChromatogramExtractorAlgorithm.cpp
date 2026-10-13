@@ -12,10 +12,37 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <algorithm>
+#include <cstddef>
 #include <iostream>
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /**
+      @brief Advances @p mz_it to the first peak whose m/z is not below @p mz and returns the number of peaks skipped.
+
+      The targets are visited in m/z order, so the peak is usually a few steps ahead: those are
+      tried first. If the target is further away (e.g. the precursors of one isolation window in
+      a full MS1 spectrum), a binary search over the m/z-sorted remainder replaces the walk.
+    */
+    inline std::ptrdiff_t advanceToMz_(std::vector<double>::const_iterator& mz_it,
+                                       const std::vector<double>::const_iterator& mz_end,
+                                       const double mz)
+    {
+      const std::vector<double>::const_iterator begin = mz_it;
+      for (int step = 0; step < 8 && mz_it != mz_end && (*mz_it) < mz; ++step)
+      {
+        ++mz_it;
+      }
+      if (mz_it != mz_end && (*mz_it) < mz)
+      {
+        mz_it = std::lower_bound(mz_it, mz_end, mz);
+      }
+      return mz_it - begin;
+    }
+  }
 
   void ChromatogramExtractorAlgorithm::extract_value_tophat(
       const std::vector<double>::const_iterator& mz_start,
@@ -50,11 +77,8 @@ namespace OpenMS
     std::vector<double>::const_iterator int_walker;
 
     // advance the mz / int iterator until we hit the m/z value of the next transition
-    while (mz_it != mz_end && (*mz_it) < mz)
-    {
-      mz_it++;
-      int_it++;
-    }
+    const std::ptrdiff_t skipped = advanceToMz_(mz_it, mz_end, mz);
+    int_it += skipped;
 
     // walk right and left and add to our intensity
     mz_walker  = mz_it;
@@ -164,12 +188,9 @@ namespace OpenMS
     std::vector<double>::const_iterator int_walker;
 
     // advance the mz / int iterator until we hit the m/z value of the next transition
-    while (mz_it != mz_end && (*mz_it) < mz)
-    {
-      mz_it++;
-      im_it++;
-      int_it++;
-    }
+    const std::ptrdiff_t skipped = advanceToMz_(mz_it, mz_end, mz);
+    im_it += skipped;
+    int_it += skipped;
 
     // walk right and left and add to our intensity
     mz_walker  = mz_it;
