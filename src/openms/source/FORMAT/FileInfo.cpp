@@ -929,7 +929,7 @@ namespace OpenMS
 
           }
           // add our own hash
-          m_headers[id_hash] = { std::distance(entries.begin(), loopiter) };
+          m_headers[id_hash].push_back(std::distance(entries.begin(), loopiter));
         }
 
         {
@@ -947,7 +947,7 @@ namespace OpenMS
 
           }
           // add our own hash
-          m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
+          m_seqs[id_seq].push_back(std::distance(entries.begin(), loopiter));
         }
 
         // Collect sequence length for statistics
