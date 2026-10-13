@@ -43,7 +43,7 @@ def test_coordinate_products_and_copy_constructors():
 
 
 @pytest.mark.parametrize("input_kind", ["set", "generator"])
-def test_combined_borrows_database_entries_after_inputs_are_collected(input_kind):
+def test_combined_copies_survive_after_inputs_are_collected(input_kind):
     digestion = oms.RNaseDigestion()
     digestion.setEnzyme("RNase_T1")
     db = oms.RibonucleotideDB.getInstance()
@@ -109,3 +109,36 @@ def test_inference_rejects_unknown_and_edited_modification_definitions():
     edited.setMonoMass(edited.getMonoMass() + 50.0)
     with pytest.raises(ValueError, match="differs from the RibonucleotideDB entry"):
         digestion.inferCleavageSensitiveMods({edited})
+
+
+def test_inference_resolves_temporary_sequence_copies_before_generator_advances():
+    digestion = oms.RNaseDigestion()
+    digestion.setEnzyme("RNase_T1")
+    sequence = oms.NASequence.fromString("A[m2,2G][m1G]")
+
+    def modifications():
+        for position in (1, 2):
+            yield sequence[position]
+            gc.collect()
+
+    groups = digestion.inferCleavageSensitiveMods(modifications())
+    del sequence
+    gc.collect()
+    assert {mod.getCode() for mod in groups.combined()} == {"m2,2G", "m1G"}
+
+
+@pytest.mark.parametrize("accessor", ["combined", "cuts_after_sensitive"])
+def test_group_getters_do_not_expose_mutable_database_entries(accessor):
+    digestion = oms.RNaseDigestion()
+    digestion.setEnzyme("RNase_T1")
+    db = oms.RibonucleotideDB.getInstance()
+    groups = digestion.inferCleavageSensitiveMods({db.getRibonucleotide("m2,2G")})
+    copies = groups.combined() if accessor == "combined" else groups.cuts_after_sensitive
+    assert len(copies) == 1
+    modification = next(iter(copies))
+    original_mass = modification.getMonoMass()
+    modification.setCode("edited_output_copy")
+    modification.setMonoMass(original_mass + 50.0)
+    assert db.getRibonucleotide("m2,2G").getCode() == "m2,2G"
+    assert db.getRibonucleotide("m2,2G").getMonoMass() == original_mass
+    assert {mod.getCode() for mod in groups.combined()} == {"m2,2G"}

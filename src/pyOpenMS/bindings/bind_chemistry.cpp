@@ -107,6 +107,18 @@ namespace
     rejectForeignPointer_("Ribonucleotide", "RibonucleotideDB", r == nullptr ? "None" : r->getCode());
   }
 
+  /// Return owned Python copies so mutable access cannot edit shared database entries.
+  nb::set copyRibonucleotideSet_(const std::set<const OpenMS::Ribonucleotide*>& modifications)
+  {
+    nb::set result;
+    for (const auto* modification : modifications)
+    {
+      if (modification == nullptr) throw nb::value_error("A modification group contains a null ribonucleotide.");
+      result.add(nb::cast(*modification, nb::rv_policy::copy));
+    }
+    return result;
+  }
+
   const OpenMS::DigestionEnzyme* requireDBEnzyme_(const OpenMS::DigestionEnzyme* e)
   {
     if (e != nullptr)
@@ -1662,10 +1674,15 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
     nb::class_<OpenMS::RNaseDigestion::CleavageSensitiveModGroups>(m, "RNaseCleavageSensitiveModGroups", "Cleavage-blocking nucleotide modifications inferred for an RNase; groups and copies borrow stable RibonucleotideDB entries")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::RNaseDigestion::CleavageSensitiveModGroups&>())
-        .def_ro("cuts_before_sensitive", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::cuts_before_sensitive)
-        .def_ro("cuts_after_sensitive", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::cuts_after_sensitive)
-        .def("combined", &OpenMS::RNaseDigestion::CleavageSensitiveModGroups::combined, nb::rv_policy::reference,
-             "Return the combined modification set, borrowing its RibonucleotideDB entries.");
+        .def_prop_ro("cuts_before_sensitive", [](const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& self) {
+            return copyRibonucleotideSet_(self.cuts_before_sensitive);
+        }, "Return owned copies of modifications that block cleavage before a residue.")
+        .def_prop_ro("cuts_after_sensitive", [](const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& self) {
+            return copyRibonucleotideSet_(self.cuts_after_sensitive);
+        }, "Return owned copies of modifications that block cleavage after a residue.")
+        .def("combined", [](const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& self) {
+            return copyRibonucleotideSet_(self.combined());
+        }, "Return owned copies of the combined modifications; editing them does not alter the database or this group.");
     nb::class_<OpenMS::RNaseDigestion, OpenMS::EnzymaticDigestion>(m, "RNaseDigestion", 
         R"doc(
 Class for the enzymatic digestion of RNA
@@ -1705,12 +1722,12 @@ By returning only references into the original string this is very fast
         .def("countInternalCleavageSites", [](const OpenMS::RNaseDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
         .def("getFragmentPositions", &OpenMS::RNaseDigestion::getFragmentPositions,
              "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Return zero-based (start, length) coordinates for digestion products.")
-        .def("inferCleavageSensitiveMods", [](const OpenMS::RNaseDigestion& self, const std::set<const OpenMS::Ribonucleotide*>& modifications) {
+        .def("inferCleavageSensitiveMods", [](const OpenMS::RNaseDigestion& self, nb::iterable modifications) {
             std::set<const OpenMS::Ribonucleotide*> checked;
-            for (const auto* modification : modifications)
+            for (nb::handle modification : modifications)
             {
-                // Inferred groups and products may outlive or be copied independently of the Python inputs.
-                checked.insert(resolveDBRibonucleotide_(modification));
+                // Resolve each item while the iterator still owns the Python object.
+                checked.insert(resolveDBRibonucleotide_(nb::cast<const OpenMS::Ribonucleotide*>(modification)));
             }
             return self.inferCleavageSensitiveMods(checked);
         }, "variable_modifications"_a, "Infer variable modifications that block the configured RNase. Each definition must match a registered RibonucleotideDB entry; equivalent copies are resolved to that stable entry. Unknown codes or edited definitions raise ValueError.")
