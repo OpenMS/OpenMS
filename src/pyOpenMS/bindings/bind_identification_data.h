@@ -897,6 +897,34 @@ inline void bind(nb::module_& m)
         Inference::retainProteins(result, {retained.begin(), retained.end()});
       },
       nb::arg("result"), nb::arg("retained"));
+  // --- MapPeptideIdentifications ---
+  using MapIDs = OpenMS::MapPeptideIdentifications;
+  nb::class_<MapIDs>(m, "MapPeptideIdentifications",
+                     "The identifications of a feature or consensus map as peptide and protein identifications, apart "
+                     "from the map (see IdentificationDataConverter.exportMapIdentifications()). A feature is given by its "
+                     "path: its index, then the indices of its subordinates. Getters return copies.")
+    .def(nb::init<>())
+    .def(nb::init<const MapIDs&>())
+    .def("__copy__", [](const MapIDs& self) { return MapIDs(self); })
+    .def("__deepcopy__", [](const MapIDs& self, nb::dict) { return MapIDs(self); }, nb::arg("memo"))
+    .def_prop_rw("proteins", [](const MapIDs& self) { return self.proteins; },
+                 [](MapIDs& self, const std::vector<OpenMS::ProteinIdentification>& proteins) { self.proteins = proteins; })
+    .def_prop_rw("unassigned", [](const MapIDs& self) { return self.unassigned; },
+                 [](MapIDs& self, const OpenMS::PeptideIdentificationList& unassigned) { self.unassigned = unassigned; })
+    .def("at", [](const MapIDs& self, const std::vector<OpenMS::Size>& path) { return OpenMS::PeptideIdentificationList(self.at(path)); },
+         nb::arg("path"), "The peptide identifications of the feature at path (none if it has none)")
+    .def("paths", [](const MapIDs& self) {
+           std::vector<std::vector<OpenMS::Size>> paths;
+           for (const auto& [path, peptides] : self.features) paths.push_back(path);
+           return paths;
+         }, "The paths of the features with peptide identifications, in order")
+    .def("setFeature", [](MapIDs& self, const std::vector<OpenMS::Size>& path, const OpenMS::PeptideIdentificationList& peptides) {
+           if (peptides.empty()) self.features.erase(path);
+           else self.features[path] = peptides;
+         }, nb::arg("path"), nb::arg("peptides"), "Set the peptide identifications of the feature at path")
+    .def("eraseFeature", &MapIDs::eraseFeature, nb::arg("path"),
+         "Remove the peptide identifications of the feature at path and of its subordinates")
+    .def("empty", &MapIDs::empty);
   // --- IdentificationDataConverter ---
   nb::class_<OpenMS::IdentificationDataConverter>(m, "IdentificationDataConverter",
                                                   "Conversions of IdentificationData that keep the RNA and compound conventions of mzTab")
@@ -913,7 +941,21 @@ inline void bind(nb::module_& m)
     .def_static("importConsensusIDs", &OpenMS::IdentificationDataConverter::importConsensusIDs, nb::arg("consensus"),
                 nb::arg("clear_original") = true, "importFeatureIDs for a ConsensusMap")
     .def_static("exportConsensusIDs", &OpenMS::IdentificationDataConverter::exportConsensusIDs, nb::arg("consensus"),
-                nb::arg("clear_original") = true, "exportFeatureIDs for a ConsensusMap");
+                nb::arg("clear_original") = true, "exportFeatureIDs for a ConsensusMap")
+    .def_static("exportMapIdentifications",
+                nb::overload_cast<const OpenMS::FeatureMap&>(&OpenMS::IdentificationDataConverter::exportMapIdentifications),
+                nb::arg("map"), "The identifications of the map as peptide and protein identifications (MapPeptideIdentifications)")
+    .def_static("exportMapIdentifications",
+                nb::overload_cast<const OpenMS::ConsensusMap&>(&OpenMS::IdentificationDataConverter::exportMapIdentifications),
+                nb::arg("map"), "The identifications of the map as peptide and protein identifications (MapPeptideIdentifications)")
+    .def_static("importMapIdentifications",
+                nb::overload_cast<OpenMS::FeatureMap&, const OpenMS::MapPeptideIdentifications&>(&OpenMS::IdentificationDataConverter::importMapIdentifications),
+                nb::arg("map"), nb::arg("identifications"),
+                "Set the identification data of the map and the links of its features from peptide and protein identifications")
+    .def_static("importMapIdentifications",
+                nb::overload_cast<OpenMS::ConsensusMap&, const OpenMS::MapPeptideIdentifications&>(&OpenMS::IdentificationDataConverter::importMapIdentifications),
+                nb::arg("map"), nb::arg("identifications"),
+                "Set the identification data of the map and the links of its features from peptide and protein identifications");
   finishFieldProtocols();
 }
 } // namespace pyopenms_identification

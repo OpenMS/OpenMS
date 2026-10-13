@@ -258,6 +258,86 @@ START_SECTION(([EXTRA] maps: linked and unassigned identifications follow their 
 }
 END_SECTION
 
+START_SECTION((static MapPeptideIdentifications exportMapIdentifications(const FeatureMap& map) and importMapIdentifications()))
+{
+  // The view of a map with peptide identifications is those; imported into a map, it gives the identification data
+  // and links that converting the map gives, and their export gives the view again.
+  FeatureMap features;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), features);
+  const auto legacy = IdentificationDataConverter::exportMapIdentifications(features);
+  TEST_EQUAL(legacy.proteins == features.getProteinIdentifications(), true)
+  TEST_EQUAL(legacy.unassigned == features.getUnassignedPeptideIdentifications(), true)
+  Size assigned = 0;
+  for (Size i = 0; i < features.size(); ++i)
+  {
+    TEST_EQUAL(legacy.at({i}) == features[i].getPeptideIdentifications(), true)
+    assigned += features[i].getPeptideIdentifications().size();
+  }
+  TEST_NOT_EQUAL(assigned, 0)
+  TEST_EQUAL(legacy.peptides().size(), assigned + legacy.unassigned.size())
+
+  FeatureMap native = features;
+  native.getProteinIdentifications().clear();
+  native.getUnassignedPeptideIdentifications().clear();
+  for (auto& feature : native) feature.getPeptideIdentifications().clear();
+  IdentificationDataConverter::importMapIdentifications(native, legacy);
+  FeatureMap converted = features;
+  IdentificationDataConverter::importFeatureIDs(converted);
+  TEST_EQUAL(native.getIdentificationData().getRuns().size(), converted.getIdentificationData().getRuns().size())
+  for (Size i = 0; i < native.size(); ++i)
+  {
+    TEST_EQUAL(native[i].getLinkedIdentifications(native.getIdentificationData()).size(),
+               converted[i].getLinkedIdentifications(converted.getIdentificationData()).size())
+  }
+  const auto exported = IdentificationDataConverter::exportMapIdentifications(native);
+  TEST_EQUAL(exported.proteins == legacy.proteins, true)
+  TEST_EQUAL(exported.features == legacy.features, true)
+  TEST_EQUAL(exported.unassigned == legacy.unassigned, true)
+
+  // a view refers to features by path; one that names no feature is rejected
+  MapPeptideIdentifications dangling;
+  dangling.proteins = legacy.proteins;
+  dangling.features[{features.size()}] = legacy.at({0});
+  TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(native, dangling))
+
+  // consensus maps
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
+  const auto consensus_legacy = IdentificationDataConverter::exportMapIdentifications(consensus);
+  ConsensusMap consensus_native = consensus;
+  consensus_native.getProteinIdentifications().clear();
+  consensus_native.getUnassignedPeptideIdentifications().clear();
+  for (auto& feature : consensus_native) feature.getPeptideIdentifications().clear();
+  IdentificationDataConverter::importMapIdentifications(consensus_native, consensus_legacy);
+  const auto consensus_exported = IdentificationDataConverter::exportMapIdentifications(consensus_native);
+  TEST_EQUAL(consensus_exported.proteins == consensus_legacy.proteins, true)
+  TEST_EQUAL(consensus_exported.features == consensus_legacy.features, true)
+  TEST_EQUAL(consensus_exported.unassigned == consensus_legacy.unassigned, true)
+}
+END_SECTION
+START_SECTION((MapPeptideIdentifications: at(), peptides() and eraseFeature()))
+{
+  MapPeptideIdentifications ids;
+  PeptideIdentification a, b, c, d;
+  a.setIdentifier("a");
+  b.setIdentifier("b");
+  c.setIdentifier("c");
+  d.setIdentifier("d");
+  ids.features[{0}] = {a};
+  ids.features[{0, 1}] = {b};
+  ids.features[{1}] = {c};
+  ids.unassigned = {d};
+  TEST_EQUAL(ids.at({0, 1})[0].getIdentifier(), "b")
+  TEST_EQUAL(ids.at({2}).empty(), true)
+  const auto all = ids.peptides();
+  TEST_EQUAL(all.size(), 4)
+  TEST_EQUAL(all[0]->getIdentifier() + all[1]->getIdentifier() + all[2]->getIdentifier() + all[3]->getIdentifier(), "abcd")
+  ids.eraseFeature({0}); // with its subordinates
+  TEST_EQUAL(ids.features.size(), 1)
+  TEST_EQUAL(ids.at({1})[0].getIdentifier(), "c")
+  TEST_EQUAL(ids.empty(), false)
+}
+END_SECTION
 START_SECTION((static void editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit)))
 {
   ConsensusMap consensus;

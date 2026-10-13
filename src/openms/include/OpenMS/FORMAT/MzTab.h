@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
 
 #include <optional>
 
@@ -539,6 +540,9 @@ public:
 
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const std::string& filename);
 
+    /// Same as above, with the identifications of @p feature_map given as peptide and protein identifications (e.g. edited, see IdentificationDataConverter::exportMapIdentifications())
+    static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const MapPeptideIdentifications& identifications, const std::string& filename);
+
     /**
       * @brief Export peptide and protein identifications to mzTab
       *
@@ -686,8 +690,8 @@ public:
          bool nextPSMRow(MzTabPSMSectionRow& row);
 
        private:
-         /// A map with identification data, with them as peptide identifications (IdentificationDataConverter::withPeptideIdentifications())
-         std::optional<ConsensusMap> exported_map_;
+         /// The identifications of the map as peptide identifications (IdentificationDataConverter::exportMapIdentifications())
+         MapPeptideIdentifications ids_;
          const ConsensusMap& consensus_map_;
          std::set<std::string> protein_hit_user_value_keys_;
          std::set<std::string> consensus_feature_user_value_keys_;
@@ -760,6 +764,8 @@ public:
     static MzTabPeptideSectionRow peptideSectionRowFromConsensusFeature_(
       const ConsensusFeature& c, 
       const ConsensusMap& consensus_map,
+      const PeptideIdentificationList& peptide_ids,
+      const std::vector<ProteinIdentification>& protein_ids,
       const StringList& ms_runs,
       const Size n_assays,
       const Size n_study_variables,
@@ -776,6 +782,7 @@ public:
 
     static MzTabPeptideSectionRow peptideSectionRowFromFeature_(
       const Feature& c, 
+      const PeptideIdentificationList& peptide_ids,
       const std::set<std::string>& feature_user_value_keys,
       const std::set<std::string>& peptide_identifications_user_value_keys,
       const std::set<std::string>& peptide_hit_user_value_keys,
@@ -816,11 +823,13 @@ public:
 
     // TODO: move to core classes?
     static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map, 
+      const MapPeptideIdentifications& ids,
       std::set<std::string>& consensus_feature_user_value_keys,
       std::set<std::string>& peptide_identification_user_value_keys,
       std::set<std::string>& peptide_hit_user_value_keys);
 
     static void getFeatureMapMetaValues_(const FeatureMap& feature_map,
+      const MapPeptideIdentifications& ids,
       std::set<std::string>& feature_user_value_keys,
       std::set<std::string>& peptide_identification_user_value_keys,
       std::set<std::string>& peptide_hit_user_value_keys);

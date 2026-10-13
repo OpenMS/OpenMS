@@ -82,6 +82,8 @@ struct FeatureIdLookups
   /// id_run_file_name. Read-only after construction, so it is safe to share across the
   /// streaming path's OpenMP workers.
   IdentifierMSRunMapper run_mapper;
+  /// The peptide and protein identifications of the map (see IdentificationDataConverter::exportMapIdentifications())
+  const MapPeptideIdentifications* ids = nullptr;
 
   /// Per column header (map index): the QPX run name and intensity label.
   /// Both are expensive to derive and depend only on the header, of which there are at most
@@ -110,9 +112,10 @@ struct FeatureIdLookups
 
 /// Build the per-map protein-group q-value and gene-info lookups from the
 /// ConsensusMap's ProteinIdentifications.
-FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
+FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap, const MapPeptideIdentifications& ids)
 {
   FeatureIdLookups lut;
+  lut.ids = &ids;
 
   // Deliberately OUTSIDE the try below: that catch exists to tolerate a duplicate PATH LIST,
   // for which the forward map is still complete. A duplicate IDENTIFIER is the opposite -- the
@@ -121,7 +124,7 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
   // gives nothing away. The pg exporter refuses the same input.
   {
     std::set<std::string> seen_identifiers;
-    for (const auto& prot_id : cmap.getProteinIdentifications())
+    for (const auto& prot_id : ids.proteins)
     {
       if (!seen_identifiers.insert(prot_id.getIdentifier()).second)
       {
@@ -138,7 +141,7 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
   // the throw. Degrade to a warning rather than failing an otherwise-exportable map.
   try
   {
-    lut.run_mapper.create(cmap.getProteinIdentifications());
+    lut.run_mapper.create(ids.proteins);
   }
   catch (const Exception::InvalidValue& e)
   {
@@ -199,7 +202,7 @@ FeatureIdLookups buildFeatureIdLookups(const ConsensusMap& cmap)
       header.filename, ArrowIOHelpers::qpxRunFileName(header.filename), std::move(label)};
   }
 
-  for (const auto& prot_id : cmap.getProteinIdentifications())
+  for (const auto& prot_id : ids.proteins)
   {
     // Gene info from ProteinHit metavalues
     for (const auto& ph : prot_id.getHits())
@@ -679,7 +682,7 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
   for (const auto& row : rows)
   {
     const auto& cf = cmap[row.feat_idx];
-    const auto& pep_ids = cf.getPeptideIdentifications();
+    const auto& pep_ids = id_lut.ids->at({row.feat_idx});
 
     // The six columns feature_id is derived from, filled as each is written below. They are
     // collected rather than recomputed so the id is a function of what the row actually holds.
@@ -1394,23 +1397,16 @@ std::shared_ptr<arrow::Table> buildFeatureTableRange(
 /// uuid/creation_date, so build it once per output file and reuse it for the writer schema
 /// and every batch. Returns nullptr when QPX defines no token for the configured compression.
 std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
-  const ConsensusMap& cmap,
+  const MapPeptideIdentifications& ids,
   const ParquetWriteConfig& config)
 {
   // scan_format describes the `scan` column, which is extracted from the spectrum native
   // IDs of the features' peptide identifications (and the unassigned ones, which share the
   // same source runs).
   std::vector<std::string> refs;
-  for (const auto& cf : cmap)
+  for (const PeptideIdentification* pid : ids.peptides())
   {
-    for (const auto& pid : cf.getPeptideIdentifications())
-    {
-      if (!pid.getSpectrumReference().empty()) { refs.push_back(pid.getSpectrumReference()); }
-    }
-  }
-  for (const auto& pid : cmap.getUnassignedPeptideIdentifications())
-  {
-    if (!pid.getSpectrumReference().empty()) { refs.push_back(pid.getSpectrumReference()); }
+    if (!pid->getSpectrumReference().empty()) { refs.push_back(pid->getSpectrumReference()); }
   }
 
   std::map<std::string, std::string> extra;
@@ -1433,35 +1429,29 @@ std::shared_ptr<const arrow::KeyValueMetadata> qpxFeatureMetadata(
 ///
 /// Must run as a preflight -- single-threaded, before any OpenMP region and before the output
 /// file is opened -- for the same reason as requireUnambiguousIdentities().
-void requireResolvableIdRunsWith(const ConsensusMap& cmap, const IdentifierMSRunMapper& mapper)
+void requireResolvableIdRunsWith(const MapPeptideIdentifications& ids, const IdentifierMSRunMapper& mapper)
 {
-  for (Size i = 0; i < cmap.size(); ++i)
+  for (const auto& [path, pep_ids] : ids.features)
   {
     // Only the identification the row actually uses. Validating every attached one refused a
     // feature whose winning hit resolves perfectly, because a sibling identification -- hitless,
     // or simply not selected -- lacked an index that is never asked for.
-    const auto& pep_ids = cmap[i].getPeptideIdentifications();
     Size best_id_index = 0;
     bool inconsistent_scores = false;
     if (selectFeatureIdentity(pep_ids, best_id_index, inconsistent_scores) == nullptr) { continue; }
-    mapper.validateMergeIndex(pep_ids[best_id_index], i);
+    mapper.validateMergeIndex(pep_ids[best_id_index], path[0]);
   }
 }
 
-} // anonymous namespace (feature range builder + shared per-map lookups)
-
-
-void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& input_map)
+/// requireUnambiguousIdentities() on the identifications of a map
+void requireUnambiguousIdentitiesOf(const MapPeptideIdentifications& ids)
 {
-  // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
   Size divergent = 0;
   Size first_index = 0;
-  for (Size i = 0; i < cmap.size(); ++i)
+  for (const auto& [path, pep_ids] : ids.features)
   {
-    if (cmap[i].getAnnotationState() != BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT) { continue; }
-    if (divergent++ == 0) { first_index = i; }
+    if (BaseFeature::annotationState(pep_ids) != BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT) { continue; }
+    if (divergent++ == 0) { first_index = path[0]; }
   }
   if (divergent == 0) { return; }
 
@@ -1474,15 +1464,46 @@ void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& i
     "as consensusparquet, which preserves every identification.");
 }
 
+/// exportToArrow() with the identifications of the map
+std::shared_ptr<arrow::Table> exportFeatureTable(const ConsensusMap& cmap, const MapPeptideIdentifications& ids,
+                                                 QPXIdentity::FeatureLinks* out_links)
+{
+  requireUnambiguousIdentitiesOf(ids);   // preflight: single-threaded, before any OpenMP region
+  ProteinRunReferences::check(ids.proteins, ids.peptides()); // every peptide identification needs its protein identification run
+  const auto id_lut = buildFeatureIdLookups(cmap, ids);
+  requireResolvableIdRunsWith(ids, id_lut.run_mapper);
+  // A channel QPX cannot name would be written into intensities[].label, a documented join
+  // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
+  if (id_lut.has_unlabelable_channel) { return nullptr; }
+  return buildFeatureTableRange(cmap, id_lut, 0, cmap.size(), out_links);
+}
+
+} // anonymous namespace (feature range builder + shared per-map lookups)
+
+
+void ConsensusMapArrowExport::requireUnambiguousIdentities(const ConsensusMap& input_map)
+{
+  // the identifications as peptide identifications, which this format holds
+  requireUnambiguousIdentitiesOf(IdentificationDataConverter::exportMapIdentifications(input_map));
+}
+
+void ConsensusMapArrowExport::requireUnambiguousIdentities(const MapPeptideIdentifications& ids)
+{
+  requireUnambiguousIdentitiesOf(ids);
+}
+
 void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& input_map)
 {
   // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
+  requireResolvableIdRuns(IdentificationDataConverter::exportMapIdentifications(input_map));
+}
+
+void ConsensusMapArrowExport::requireResolvableIdRuns(const MapPeptideIdentifications& ids)
+{
   // Builds its own mapper so the check is usable without the rest of buildFeatureIdLookups().
   // The in-exporter paths pass the lookup's mapper instead, to avoid building it twice.
   std::set<std::string> seen_identifiers;
-  for (const auto& prot_id : cmap.getProteinIdentifications())
+  for (const auto& prot_id : ids.proteins)
   {
     if (!seen_identifiers.insert(prot_id.getIdentifier()).second)
     {
@@ -1493,25 +1514,16 @@ void ConsensusMapArrowExport::requireResolvableIdRuns(const ConsensusMap& input_
     }
   }
   IdentifierMSRunMapper mapper;
-  try { mapper.create(cmap.getProteinIdentifications()); }
+  try { mapper.create(ids.proteins); }
   catch (const Exception::InvalidValue&) { /* duplicate path lists; forward map is complete */ }
-  requireResolvableIdRunsWith(cmap, mapper);
+  requireResolvableIdRunsWith(ids, mapper);
 }
 
 std::shared_ptr<arrow::Table> ConsensusMapArrowExport::exportToArrow(const ConsensusMap& input_map,
                                                                      QPXIdentity::FeatureLinks* out_links)
 {
   // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
-  requireUnambiguousIdentities(cmap);   // preflight: single-threaded, before any OpenMP region
-  ProteinRunReferences::check(cmap);    // every peptide identification needs its protein identification run
-  const auto id_lut = buildFeatureIdLookups(cmap);
-  requireResolvableIdRunsWith(cmap, id_lut.run_mapper);
-  // A channel QPX cannot name would be written into intensities[].label, a documented join
-  // key. Refuse rather than emit a guessed or empty token (the pg exporter does the same).
-  if (id_lut.has_unlabelable_channel) { return nullptr; }
-  return buildFeatureTableRange(cmap, id_lut, 0, cmap.size(), out_links);
+  return exportFeatureTable(input_map, IdentificationDataConverter::exportMapIdentifications(input_map), out_links);
 }
 
 
@@ -1522,16 +1534,15 @@ bool ConsensusMapArrowExport::exportToParquet(
   QPXIdentity::FeatureLinks* out_links)
 {
   // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
-  auto table = exportToArrow(cmap, out_links);
+  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
+  auto table = exportFeatureTable(input_map, ids, out_links);
   if (!table)
   {
     OPENMS_LOG_ERROR << "ConsensusMapArrowExport: Failed to create Arrow table" << std::endl;
     return false;
   }
 
-  auto meta = qpxFeatureMetadata(cmap, config);
+  auto meta = qpxFeatureMetadata(ids, config);
   if (!meta) { return false; } // unsupported compression for QPX; already logged
   table = table->ReplaceSchemaMetadata(meta);
 
@@ -1604,8 +1615,8 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   QPXIdentity::FeatureLinks* out_links)
 {
   // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
+  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
+  const ConsensusMap& cmap = input_map;
   if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
 
   // Resolve the number of OpenMP threads used to build each batch's partitions.
@@ -1619,11 +1630,11 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   // Prebuild the per-map protein-group/gene lookups once; reused for every batch.
   // Preflight before the writer is opened and before the OpenMP batch build: a throw from
   // inside that region would be captured by the worker's catch-all and flattened to a bool.
-  requireUnambiguousIdentities(cmap);
-  ProteinRunReferences::check(cmap); // every peptide identification needs its protein identification run
+  requireUnambiguousIdentitiesOf(ids);
+  ProteinRunReferences::check(ids.proteins, ids.peptides()); // every peptide identification needs its protein identification run
 
-  const auto id_lut = buildFeatureIdLookups(cmap);
-  requireResolvableIdRunsWith(cmap, id_lut.run_mapper); // preflight, before the OpenMP region below
+  const auto id_lut = buildFeatureIdLookups(cmap, ids);
+  requireResolvableIdRunsWith(ids, id_lut.run_mapper); // preflight, before the OpenMP region below
   if (id_lut.has_unlabelable_channel) { return false; } // already logged
 
   // Pre-warm lazily-initialized singletons/statics touched by the per-feature build, so first-touch
@@ -1637,7 +1648,7 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
 
   // One metadata identity (uuid/creation_date) for the whole file, reused for the writer
   // schema and every batch so their schemas are identical.
-  auto meta = qpxFeatureMetadata(cmap, config);
+  auto meta = qpxFeatureMetadata(ids, config);
   if (!meta) { return false; } // unsupported compression for QPX; already logged
 
   // The writer's schema must match each batch table's schema exactly. buildFeatureTableRange()

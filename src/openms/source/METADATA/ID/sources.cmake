@@ -6,6 +6,7 @@ set(sources_list
 IdentificationData.cpp
 IdentificationDataAdapter.cpp
 IdentificationDataConverter.cpp
+MapPeptideIdentifications.cpp
 )
 
 ### add path to the filenames

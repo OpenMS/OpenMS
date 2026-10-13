@@ -39,13 +39,14 @@ namespace OpenMS::Internal
     file_ = filename;
   }
 
-  ConsensusXMLHandler::ConsensusXMLHandler(const ConsensusMap& map, const std::string& filename) :
+  ConsensusXMLHandler::ConsensusXMLHandler(const ConsensusMap& map, const MapPeptideIdentifications& identifications, const std::string& filename) :
     XMLHandler("", "1.7"),
     ProgressLogger(),
     act_cons_element_(),
     last_meta_(nullptr)
   {
     cconsensus_map_ = &map;
+    write_identifications_ = &identifications;
     file_ = filename;
   }
 
@@ -77,8 +78,12 @@ namespace OpenMS::Internal
                                                                                                       act_cons_element_.getMZ())) && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(act_cons_element_.getIntensity())))
       {
         consensus_map_->push_back(act_cons_element_);
-        act_cons_element_.getPeptideIdentifications().clear();
+        if (!act_peptides_.empty())
+        {
+          identifications_.features[{consensus_map_->size() - 1}] = std::move(act_peptides_);
+        }
       }
+      act_peptides_.clear();
       last_meta_ = nullptr;
     }
     else if (tag == "IdentificationRun")
@@ -87,7 +92,7 @@ namespace OpenMS::Internal
       getProteinGroups_(prot_id_.getProteinGroups(), "protein_group");
       getProteinGroups_(prot_id_.getIndistinguishableProteins(),
                         "indistinguishable_proteins");
-      consensus_map_->getProteinIdentifications().emplace_back(std::move(prot_id_));
+      identifications_.proteins.emplace_back(std::move(prot_id_));
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;
     }
@@ -112,13 +117,13 @@ namespace OpenMS::Internal
     }
     else if (tag == "PeptideIdentification")
     {
-      act_cons_element_.getPeptideIdentifications().emplace_back(std::move(pep_id_));
+      act_peptides_.emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
       last_meta_ = &act_cons_element_;
     }
     else if (tag == "UnassignedPeptideIdentification")
     {
-      consensus_map_->getUnassignedPeptideIdentifications().emplace_back(std::move(pep_id_));
+      identifications_.unassigned.emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
       last_meta_ = consensus_map_;
     }
@@ -664,14 +669,15 @@ namespace OpenMS::Internal
     // write identification run
     UInt prot_count = 0;
 
+    const MapPeptideIdentifications& identifications = *write_identifications_;
     // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
-    checkUniqueIdentifiers_(consensus_map.getProteinIdentifications());
+    checkUniqueIdentifiers_(identifications.proteins);
 
-    const auto definitions = ModificationDefinitionIO::collect(consensus_map);
-    for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
+    const auto definitions = ModificationDefinitionIO::collect(identifications.proteins, identifications.peptides());
+    for (UInt i = 0; i < identifications.proteins.size(); ++i)
     {
       setProgress(++progress_);
-      const ProteinIdentification& current_prot_id = consensus_map.getProteinIdentifications()[i];
+      const ProteinIdentification& current_prot_id = identifications.proteins[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
       identifier_id_[current_prot_id.getIdentifier()] =std::string("PI_") + i;
@@ -768,9 +774,9 @@ namespace OpenMS::Internal
     }
 
     //write unassigned peptide identifications
-    for (UInt i = 0; i < consensus_map.getUnassignedPeptideIdentifications().size(); ++i)
+    for (const PeptideIdentification& unassigned : identifications.unassigned)
     {
-      writePeptideIdentification_(file_, os, consensus_map.getUnassignedPeptideIdentifications()[i], "UnassignedPeptideIdentification", 1);
+      writePeptideIdentification_(file_, os, unassigned, "UnassignedPeptideIdentification", 1);
     }
 
     //file descriptions
@@ -827,9 +833,9 @@ namespace OpenMS::Internal
       os << "\t\t\t</groupedElementList>\n";
 
       // write PeptideIdentification
-      for (UInt j = 0; j < elem.getPeptideIdentifications().size(); ++j)
+      for (const PeptideIdentification& peptide : identifications.at({i}))
       {
-        writePeptideIdentification_(file_, os, elem.getPeptideIdentifications()[j], "PeptideIdentification", 3);
+        writePeptideIdentification_(file_, os, peptide, "PeptideIdentification", 3);
       }
 
       writeUserParam_("UserParam", os, elem, 3);

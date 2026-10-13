@@ -193,12 +193,12 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
                                                                     const ExperimentalDesign& design)
 {
   // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
+  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
+  const ConsensusMap& cmap = input_map;
   // every peptide identification needs its protein identification run
-  ProteinRunReferences::check(cmap);
+  ProteinRunReferences::check(ids.proteins, ids.peptides());
 
-  if (cmap.getProteinIdentifications().empty())
+  if (ids.proteins.empty())
   {
     OPENMS_LOG_WARN << "ProteinGroupArrowExport: No protein identifications found" << std::endl;
     return nullptr;
@@ -206,9 +206,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 
   // Same contract as the feature view: the pg view records one peptide per feature, so a
   // feature whose identifications disagree cannot be counted. Preflight, single-threaded.
-  ConsensusMapArrowExport::requireUnambiguousIdentities(cmap);
+  ConsensusMapArrowExport::requireUnambiguousIdentities(ids);
 
-  const auto& prot_id = cmap.getProteinIdentifications()[0];
+  const auto& prot_id = ids.proteins[0];
   const auto& groups = prot_id.getIndistinguishableProteins();
 
   if (groups.empty())
@@ -253,7 +253,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
     (void)ArrowIOHelpers::qpxWarnOnRunNameCollisions("ProteinGroupArrowExport", header_paths);
 
     const IdentifierMSRunMapper run_mapper =
-      buildRunMapper(cmap.getProteinIdentifications(), "ProteinGroupArrowExport");
+      buildRunMapper(ids.proteins, "ProteinGroupArrowExport");
 
     const auto& headers = cmap.getColumnHeaders();
     for (Size fi = 0; fi < cmap.size(); ++fi)
@@ -269,7 +269,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       }
       if (runs.empty()) { continue; }
 
-      for (const auto& pid : cf.getPeptideIdentifications())
+      for (const auto& pid : ids.at({fi}))
       {
         if (pid.getHits().empty()) { continue; }
         const auto& hit = pid.getHits()[0];
@@ -292,7 +292,7 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
       }
     }
 
-    indexEvidenceRuns(run_mapper, cmap.getUnassignedPeptideIdentifications(), acc_runs);
+    indexEvidenceRuns(run_mapper, ids.unassigned, acc_runs);
   }
 
   // -- Quantification units --

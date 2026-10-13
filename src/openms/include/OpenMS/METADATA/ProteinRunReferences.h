@@ -68,5 +68,8 @@ namespace OpenMS
 
     /// Same as above, for the peptide identifications of all consensus features and the unassigned ones
     static void checkProteinAccessions(const ConsensusMap& map);
+
+    /// Same as above, for peptide identifications given by pointers (e.g. those of a map, see IdentificationDataConverter::exportMapIdentifications())
+    static void checkProteinAccessions(const std::vector<ProteinIdentification>& runs, const std::vector<const PeptideIdentification*>& peptides);
   };
 } // namespace OpenMS

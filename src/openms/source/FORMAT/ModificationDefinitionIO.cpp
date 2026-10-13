@@ -96,6 +96,16 @@ namespace OpenMS
     return out;
   }
 
+  std::map<std::string, std::set<const ResidueModification*>> ModificationDefinitionIO::collect(
+    const std::vector<ProteinIdentification>& protein_ids,
+    const std::vector<const PeptideIdentification*>& peptide_ids)
+  {
+    DefsByRun out;
+    addSearchSpace_(out, protein_ids);
+    for (const PeptideIdentification* pep : peptide_ids) addHits_(out, *pep);
+    return out;
+  }
+
   std::map<std::string, std::set<const ResidueModification*>> ModificationDefinitionIO::collect(const FeatureMap& map)
   {
     DefsByRun out;

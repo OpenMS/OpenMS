@@ -602,11 +602,7 @@ namespace OpenMS
       fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](const Feature& f){ return !f.hasPrimaryID(); }), fmap.end());
     }
 
-    // add the identification data to the featureXML
-    // to allow featureXML export (without the use of legacy_ID)
-    // been transferred from the previous data stored within
-    // the feature.
-    IdentificationDataConverter::exportFeatureIDs(fmap, false);
+    // the feature formats store the identification data of the map, so no peptide identifications are exported here
 
     if (fmap.empty())
     {

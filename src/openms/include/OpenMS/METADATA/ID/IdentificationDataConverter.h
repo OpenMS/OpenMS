@@ -11,6 +11,7 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
 #include <functional>
 #include <optional>
 #include <set>
@@ -38,6 +39,27 @@ public:
   static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
   static void importConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
   static void exportConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
+
+  /// The identifications of a map as peptide and protein identifications, apart from the map (see exportMapIdentifications())
+  using MapPeptideIdentifications = OpenMS::MapPeptideIdentifications;
+  /**
+    @brief The identifications of @p map (its identification data and the links of its features) as peptide and
+    protein identifications, as a writer of a format holding those writes them
+
+    A map with peptide identifications (and no identification data) gives those.
+
+    @throw Exception::InvalidParameter if @p map has peptide identifications and identification data
+  */
+  static MapPeptideIdentifications exportMapIdentifications(const FeatureMap& map);
+  static MapPeptideIdentifications exportMapIdentifications(const ConsensusMap& map);
+  /**
+    @brief Set the identification data of @p map and the links of its features from peptide and protein
+    identifications (e.g. those of a file), as importFeatureIDs() imports the peptide identifications of a map
+
+    @throw Exception::InvalidParameter if a path refers to no feature of @p map
+  */
+  static void importMapIdentifications(FeatureMap& map, const MapPeptideIdentifications& identifications);
+  static void importMapIdentifications(ConsensusMap& map, const MapPeptideIdentifications& identifications);
 
   /// @name Maps for code that works on identification data
   ///@{

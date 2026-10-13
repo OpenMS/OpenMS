@@ -411,6 +411,10 @@ public:
     */
     Size eraseUnassignedIdentifications();
 
+    /// Remove all identifications: the identification data and the links of the features (and subordinates) to it
+    /// (and the peptide and protein identifications)
+    void clearIdentifications();
+
     /// Immutable access to the contained identification data
     const IdentificationData& getIdentificationData() const;
 

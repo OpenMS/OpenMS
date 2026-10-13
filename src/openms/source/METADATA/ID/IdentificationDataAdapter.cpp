@@ -1382,6 +1382,16 @@ namespace
   }
 } // namespace
 
+IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::importLegacyMap(const std::vector<ProteinIdentification>& proteins,
+                                                                                          const PeptideIdentificationList& peptides,
+                                                                                          std::vector<FeatureAssociation> locations)
+{
+  if (locations.size() != peptides.size()) invalid("Every peptide identification needs its location in the map");
+  auto imported = importLegacy(proteins, peptides);
+  auto associations = makeAssociations(imported, std::move(locations));
+  return {std::move(imported.data), std::move(associations)};
+}
+
 IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromFeatureMap(const FeatureMap& map)
 {
   if (! map.getIdentificationData().empty()) return nativeMap(map);
@@ -1405,9 +1415,7 @@ IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromFe
     location.unassigned = true;
     locations.push_back(std::move(location));
   }
-  auto imported = importLegacy(map.getProteinIdentifications(), peptides);
-  auto associations = makeAssociations(imported, std::move(locations));
-  return {std::move(imported.data), std::move(associations)};
+  return importLegacyMap(map.getProteinIdentifications(), peptides, std::move(locations));
 }
 
 IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromConsensusMap(const ConsensusMap& map)
@@ -1432,9 +1440,7 @@ IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromCo
     location.unassigned = true;
     locations.push_back(std::move(location));
   }
-  auto imported = importLegacy(map.getProteinIdentifications(), peptides);
-  auto associations = makeAssociations(imported, std::move(locations));
-  return {std::move(imported.data), std::move(associations)};
+  return importLegacyMap(map.getProteinIdentifications(), peptides, std::move(locations));
 }
 
 Size IdentificationDataAdapter::reconcileAssociations(const ID& data, std::vector<FeatureAssociation>& associations, MissingLinkPolicy policy)
@@ -1469,18 +1475,38 @@ Size IdentificationDataAdapter::reconcileAssociations(const ID& data, std::vecto
   return removed;
 }
 
+IdentificationDataAdapter::LegacyMapResult IdentificationDataAdapter::toLegacyMap(const ID& data,
+                                                                                  const std::vector<FeatureAssociation>& associations,
+                                                                                  const ExportOptions& options,
+                                                                                  MissingLinkPolicy policy)
+{
+  auto links = associations;
+  reconcileAssociations(data, links, policy);
+  auto converted = toLegacy(data, options);
+  std::map<QueryReference, Size> query_indices;
+  for (Size i = 0; i < converted.queries.size(); ++i)
+    query_indices[converted.queries[i]] = i;
+  LegacyMapResult result;
+  result.peptides.reserve(links.size());
+  for (auto& association : links)
+  {
+    const auto index = query_indices.find(association.query);
+    if (index == query_indices.end()) invalid("Associated query is not representable as a legacy peptide identification");
+    auto item = linkedPeptide(data, converted, index->second, association);
+    result.peptides.emplace_back(std::move(association), std::move(item));
+  }
+  result.proteins = std::move(converted.proteins);
+  result.losses = std::move(converted.losses);
+  return result;
+}
+
 std::vector<std::string> IdentificationDataAdapter::applyToFeatureMap(const ID& data,
                                                                       const std::vector<FeatureAssociation>& associations,
                                                                       FeatureMap& map,
                                                                       const ExportOptions& options,
                                                                       MissingLinkPolicy policy)
 {
-  auto links = associations;
-  reconcileAssociations(data, links, policy);
-  const auto converted = toLegacy(data, options);
-  std::map<QueryReference, Size> query_indices;
-  for (Size i = 0; i < converted.queries.size(); ++i)
-    query_indices[converted.queries[i]] = i;
+  auto converted = toLegacyMap(data, associations, options, policy);
   auto updated = map;
   updated.getIdentificationData() = data;
   const auto clear_links = [&](const auto& self, auto& feature) -> void {
@@ -1492,18 +1518,15 @@ std::vector<std::string> IdentificationDataAdapter::applyToFeatureMap(const ID& 
   };
   for (auto& feature : updated)
     clear_links(clear_links, feature);
-  updated.setProteinIdentifications(converted.proteins);
+  updated.setProteinIdentifications(std::move(converted.proteins));
   updated.getUnassignedPeptideIdentifications().clear();
   for (auto& feature : updated)
   {
     feature.getPeptideIdentifications().clear();
     clearFeatures(feature.getSubordinates());
   }
-  for (const auto& association : links)
+  for (auto& [association, item] : converted.peptides)
   {
-    const auto index = query_indices.find(association.query);
-    if (index == query_indices.end()) invalid("Associated query is not representable as a legacy peptide identification");
-    auto item = linkedPeptide(data, converted, index->second, association);
     if (association.unassigned) updated.getUnassignedPeptideIdentifications().push_back(std::move(item));
     else
     {
@@ -1530,32 +1553,20 @@ std::vector<std::string> IdentificationDataAdapter::applyToConsensusMap(const ID
                                                                         const ExportOptions& options,
                                                                         MissingLinkPolicy policy)
 {
-  auto links = associations;
-  reconcileAssociations(data, links, policy);
-  const auto converted = toLegacy(data, options);
-  std::map<QueryReference, Size> query_indices;
-  for (Size i = 0; i < converted.queries.size(); ++i)
-    query_indices[converted.queries[i]] = i;
+  auto converted = toLegacyMap(data, associations, options, policy);
   auto updated = map;
   updated.getIdentificationData() = data;
-  const auto clear_links = [&](const auto& self, auto& feature) -> void {
+  for (auto& feature : updated)
+  {
     feature.getIDMatches().clear();
     feature.getIDQueries().clear();
-    if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-      for (auto& child : feature.getSubordinates())
-        self(self, child);
-  };
-  for (auto& feature : updated)
-    clear_links(clear_links, feature);
-  updated.setProteinIdentifications(converted.proteins);
+  }
+  updated.setProteinIdentifications(std::move(converted.proteins));
   updated.getUnassignedPeptideIdentifications().clear();
   for (auto& feature : updated)
     feature.getPeptideIdentifications().clear();
-  for (const auto& association : links)
+  for (auto& [association, item] : converted.peptides)
   {
-    const auto index = query_indices.find(association.query);
-    if (index == query_indices.end()) invalid("Associated query is not representable as a legacy peptide identification");
-    auto item = linkedPeptide(data, converted, index->second, association);
     if (association.unassigned) updated.getUnassignedPeptideIdentifications().push_back(std::move(item));
     else
     {

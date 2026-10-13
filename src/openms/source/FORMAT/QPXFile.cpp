@@ -1665,16 +1665,14 @@ bool QPXFile::exportToParquet(
   const ParquetWriteConfig& config,
   const QPXIdentity::FeatureLinks* feature_links)
 {
-  // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
+  // the identifications as peptide identifications, which this format holds (assigned per feature, then unassigned)
+  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
   PeptideIdentificationList peptides;
-  for (const auto& feature : cmap)
+  for (const PeptideIdentification* peptide : ids.peptides())
   {
-    peptides.insert(peptides.end(), feature.getPeptideIdentifications().begin(), feature.getPeptideIdentifications().end());
+    peptides.push_back(*peptide);
   }
-  peptides.insert(peptides.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
-  return exportToParquet(cmap.getProteinIdentifications(), peptides, filename, export_all_psms, config, feature_links);
+  return exportToParquet(ids.proteins, peptides, filename, export_all_psms, config, feature_links);
 }
 
 bool QPXFile::exportToParquetStreaming(
@@ -1686,20 +1684,10 @@ bool QPXFile::exportToParquetStreaming(
   int n_threads,
   const QPXIdentity::FeatureLinks* feature_links)
 {
-  // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
-  // non-owning pointers (assigned per feature, then unassigned): no copies of the PSMs
-  std::vector<const PeptideIdentification*> peptides;
-  size_t n = cmap.getUnassignedPeptideIdentifications().size();
-  for (const auto& feature : cmap) n += feature.getPeptideIdentifications().size();
-  peptides.reserve(n);
-  for (const auto& feature : cmap)
-  {
-    for (const auto& peptide : feature.getPeptideIdentifications()) peptides.push_back(&peptide);
-  }
-  for (const auto& peptide : cmap.getUnassignedPeptideIdentifications()) peptides.push_back(&peptide);
-  return exportToParquetStreaming(cmap.getProteinIdentifications(), peptides, filename, export_all_psms, batch_size, config, n_threads,
+  // the identifications as peptide identifications, which this format holds; non-owning pointers (assigned per
+  // feature, then unassigned): no copies of the PSMs
+  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
+  return exportToParquetStreaming(ids.proteins, ids.peptides(), filename, export_all_psms, batch_size, config, n_threads,
                                   feature_links);
 }
 

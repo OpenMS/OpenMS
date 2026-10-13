@@ -239,6 +239,101 @@ namespace
     imported.validate();
     return {std::move(imported), std::move(imported_queries)};
   }
+  /// Import peptide identifications with their locations in a map (parallel to @p queries); compound and RNA
+  /// identifications (meta value "molecule_type") as importIDs() imports them
+  Adapter::FeatureImportResult importLocations(const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& queries,
+                                               std::vector<Adapter::FeatureAssociation> associations)
+  {
+    const bool generic = std::any_of(queries.begin(), queries.end(), [](const auto& query) {
+      return std::any_of(query.getHits().begin(), query.getHits().end(), [](const auto& hit) { return hit.metaValueExists("molecule_type"); });
+    });
+    if (! generic) return Adapter::importLegacyMap(proteins, queries, std::move(associations));
+    auto imported = importGeneric(proteins, queries);
+    for (Size i = 0; i < associations.size(); ++i)
+    {
+      auto& association = associations[i];
+      association.query = imported.queries.at(i);
+      const auto& run = *imported.data.findRunByUuid(association.query.run_uuid);
+      for (const auto& match : run.getIdentification(association.query.query).getMatches())
+        association.matches.push_back(match.getId());
+    }
+    return Adapter::FeatureImportResult {std::move(imported.data), std::move(associations)};
+  }
+
+  /// Replace the links of the features of @p map (and their subordinates) by the associations
+  template<class Map>
+  void applyLinks(Map& map, const std::vector<Adapter::FeatureAssociation>& associations)
+  {
+    const auto clear = [&](const auto& self, auto& feature) -> void {
+      feature.getIDMatches().clear();
+      feature.getIDQueries().clear();
+      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+        for (auto& child : feature.getSubordinates())
+          self(self, child);
+    };
+    for (auto& feature : map)
+      clear(clear, feature);
+    for (const auto& association : associations)
+    {
+      if (association.unassigned) continue;
+      if (association.feature_path.empty() || association.feature_path[0] >= map.size()) invalid("Invalid feature association path");
+      auto* feature = &map[association.feature_path[0]];
+      if constexpr (std::is_same_v<Map, FeatureMap>)
+      {
+        for (Size i = 1; i < association.feature_path.size(); ++i)
+        {
+          if (association.feature_path[i] >= feature->getSubordinates().size()) invalid("Invalid feature association path");
+          feature = &feature->getSubordinates()[association.feature_path[i]];
+        }
+      }
+      else if (association.feature_path.size() != 1)
+        invalid("Invalid consensus association path");
+      feature->addIDQuery(association.query);
+      for (auto match : association.matches)
+        feature->addIDMatch({association.query.run_uuid, match});
+    }
+  }
+
+  /// The peptide identifications of the associations of a map's identification data (@p converted), in their order;
+  /// compound and RNA runs as exportIDs() exports them
+  std::vector<std::pair<Adapter::FeatureAssociation, PeptideIdentification>> exportLocations(const Adapter::FeatureImportResult& converted,
+                                                                                              std::vector<ProteinIdentification>& proteins)
+  {
+    const bool generic = std::any_of(converted.data.getRuns().begin(), converted.data.getRuns().end(),
+                                     [](const auto& run) { return run.getMoleculeKind() != ID::MoleculeKind::PEPTIDE; });
+    if (! generic)
+    {
+      auto exported = Adapter::toLegacyMap(converted.data, converted.associations, legacyOptions(), Adapter::MissingLinkPolicy::REJECT);
+      reportLegacyLosses(exported.losses);
+      proteins = std::move(exported.proteins);
+      return std::move(exported.peptides);
+    }
+    PeptideIdentificationList queries;
+    proteins.clear();
+    IdentificationDataConverter::exportIDs(converted.data, proteins, queries, true);
+    std::map<ID::QueryReference, Size> indices;
+    Size index = 0;
+    for (const auto& run : converted.data.getRuns())
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          indices[{run.getUuid(), query.getId()}] = index++;
+    std::vector<std::pair<Adapter::FeatureAssociation, PeptideIdentification>> result;
+    result.reserve(converted.associations.size());
+    for (const auto& association : converted.associations)
+    {
+      auto query = queries.at(indices.at(association.query));
+      const auto& run = *converted.data.findRunByUuid(association.query.run_uuid);
+      const auto& matches = run.getIdentification(association.query.query).getMatches();
+      std::vector<PeptideHit> hits;
+      for (Size i = 0; i < matches.size(); ++i)
+        if (std::find(association.matches.begin(), association.matches.end(), matches[i].getId()) != association.matches.end())
+          hits.push_back(query.getHits().at(i));
+      query.setHits(hits);
+      result.emplace_back(association, std::move(query));
+    }
+    return result;
+  }
+
   template<class Map>
   void importMap(Map& map, bool clear_original)
   {
@@ -272,22 +367,7 @@ namespace
           association.unassigned = true;
           associations.push_back(std::move(association));
         }
-        const bool generic = std::any_of(queries.begin(), queries.end(), [](const auto& query) {
-          return std::any_of(query.getHits().begin(), query.getHits().end(), [](const auto& hit) { return hit.metaValueExists("molecule_type"); });
-        });
-        if (generic)
-        {
-          auto imported = importGeneric(map.getProteinIdentifications(), queries);
-          for (Size i = 0; i < associations.size(); ++i)
-          {
-            auto& association = associations[i];
-            association.query = imported.queries.at(i);
-            const auto& run = *imported.data.findRunByUuid(association.query.run_uuid);
-            for (const auto& match : run.getIdentification(association.query.query).getMatches())
-              association.matches.push_back(match.getId());
-          }
-          return Adapter::FeatureImportResult {std::move(imported.data), std::move(associations)};
-        }
+        return importLocations(map.getProteinIdentifications(), queries, std::move(associations));
       }
       if constexpr (std::is_same_v<Map, FeatureMap>) return Adapter::fromFeatureMap(map);
       else
@@ -295,30 +375,18 @@ namespace
     }();
     auto updated = map;
     updated.getIdentificationData() = std::move(converted.data);
-    const auto clear = [&](const auto& self, auto& feature) -> void {
-      feature.getIDMatches().clear();
-      feature.getIDQueries().clear();
-      if (clear_original) feature.getPeptideIdentifications().clear();
-      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-        for (auto& child : feature.getSubordinates())
-          self(self, child);
-    };
-    for (auto& feature : updated)
-      clear(clear, feature);
-    for (const auto& association : converted.associations)
+    if (clear_original)
     {
-      if (association.unassigned) continue;
-      if (association.feature_path.empty() || association.feature_path[0] >= updated.size()) invalid("Invalid feature association path");
-      auto* feature = &updated[association.feature_path[0]];
-      if constexpr (std::is_same_v<Map, FeatureMap>)
-        for (Size i = 1; i < association.feature_path.size(); ++i)
-          feature = &feature->getSubordinates().at(association.feature_path[i]);
-      else if (association.feature_path.size() != 1)
-        invalid("Invalid consensus association path");
-      feature->addIDQuery(association.query);
-      for (auto match : association.matches)
-        feature->addIDMatch({association.query.run_uuid, match});
+      const auto clear = [&](const auto& self, auto& feature) -> void {
+        feature.getPeptideIdentifications().clear();
+        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+          for (auto& child : feature.getSubordinates())
+            self(self, child);
+      };
+      for (auto& feature : updated)
+        clear(clear, feature);
     }
+    applyLinks(updated, converted.associations);
     if (clear_original)
     {
       updated.getProteinIdentifications().clear();
@@ -340,14 +408,7 @@ namespace
     if (generic)
     {
       std::vector<ProteinIdentification> proteins;
-      PeptideIdentificationList queries;
-      IdentificationDataConverter::exportIDs(converted.data, proteins, queries, true);
-      std::map<ID::QueryReference, Size> indices;
-      Size index = 0;
-      for (const auto& run : converted.data.getRuns())
-        for (const auto& source : run.getSources())
-          for (const auto& query : source.identifications)
-            indices[{run.getUuid(), query.getId()}] = index++;
+      auto peptides = exportLocations(converted, proteins);
       const auto clear = [&](const auto& self, auto& feature) -> void {
         feature.getPeptideIdentifications().clear();
         if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
@@ -358,16 +419,8 @@ namespace
         clear(clear, feature);
       updated.getProteinIdentifications() = std::move(proteins);
       updated.getUnassignedPeptideIdentifications().clear();
-      for (const auto& association : converted.associations)
+      for (auto& [association, query] : peptides)
       {
-        auto query = queries.at(indices.at(association.query));
-        const auto& run = *converted.data.findRunByUuid(association.query.run_uuid);
-        const auto& matches = run.getIdentification(association.query.query).getMatches();
-        std::vector<PeptideHit> hits;
-        for (Size i = 0; i < matches.size(); ++i)
-          if (std::find(association.matches.begin(), association.matches.end(), matches[i].getId()) != association.matches.end())
-            hits.push_back(query.getHits().at(i));
-        query.setHits(hits);
         if (association.unassigned) updated.getUnassignedPeptideIdentifications().push_back(std::move(query));
         else
         {
@@ -631,6 +684,85 @@ namespace
     return true;
   }
 } // namespace
+
+namespace
+{
+  template<class Map>
+  IdentificationDataConverter::MapPeptideIdentifications exportIdentifications(const Map& map)
+  {
+    IdentificationDataConverter::MapPeptideIdentifications result;
+    if (checkedLegacyIDs(map))
+    {
+      result.proteins = map.getProteinIdentifications();
+      const auto collect = [&](const auto& self, const auto& feature, std::vector<Size> path) -> void {
+        if (! feature.getPeptideIdentifications().empty()) result.features[path] = feature.getPeptideIdentifications();
+        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
+          for (Size i = 0; i < feature.getSubordinates().size(); ++i)
+          {
+            auto child = path;
+            child.push_back(i);
+            self(self, feature.getSubordinates()[i], std::move(child));
+          }
+      };
+      for (Size i = 0; i < map.size(); ++i)
+        collect(collect, map[i], {i});
+      result.unassigned = map.getUnassignedPeptideIdentifications();
+      return result;
+    }
+    if (map.getIdentificationData().empty()) return result;
+    const auto converted = [&]() {
+      if constexpr (std::is_same_v<Map, FeatureMap>) return Adapter::fromFeatureMap(map);
+      else
+        return Adapter::fromConsensusMap(map);
+    }();
+    for (auto& [association, peptide] : exportLocations(converted, result.proteins))
+    {
+      if (association.unassigned) result.unassigned.push_back(std::move(peptide));
+      else
+        result.features[association.feature_path].push_back(std::move(peptide));
+    }
+    return result;
+  }
+
+  template<class Map>
+  void importIdentifications(Map& map, const IdentificationDataConverter::MapPeptideIdentifications& identifications)
+  {
+    PeptideIdentificationList queries;
+    std::vector<Adapter::FeatureAssociation> associations;
+    for (const auto& [path, peptides] : identifications.features)
+    {
+      if (path.empty()) invalid("Invalid feature association path");
+      for (const auto& peptide : peptides)
+      {
+        queries.push_back(peptide);
+        Adapter::FeatureAssociation association;
+        association.feature_path = path;
+        associations.push_back(std::move(association));
+      }
+    }
+    for (const auto& peptide : identifications.unassigned)
+    {
+      queries.push_back(peptide);
+      Adapter::FeatureAssociation association;
+      association.unassigned = true;
+      associations.push_back(std::move(association));
+    }
+    auto converted = importLocations(identifications.proteins, queries, std::move(associations));
+    auto updated = map;
+    updated.getIdentificationData() = std::move(converted.data);
+    applyLinks(updated, converted.associations);
+    map = std::move(updated);
+  }
+} // namespace
+
+IdentificationDataConverter::MapPeptideIdentifications IdentificationDataConverter::exportMapIdentifications(const FeatureMap& map)
+{ return exportIdentifications(map); }
+IdentificationDataConverter::MapPeptideIdentifications IdentificationDataConverter::exportMapIdentifications(const ConsensusMap& map)
+{ return exportIdentifications(map); }
+void IdentificationDataConverter::importMapIdentifications(FeatureMap& map, const MapPeptideIdentifications& identifications)
+{ importIdentifications(map, identifications); }
+void IdentificationDataConverter::importMapIdentifications(ConsensusMap& map, const MapPeptideIdentifications& identifications)
+{ importIdentifications(map, identifications); }
 
 bool IdentificationDataConverter::hasPeptideIdentifications(const FeatureMap& map)
 { return hasLegacyIDs(map); }

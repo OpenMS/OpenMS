@@ -187,6 +187,8 @@ public:
 
     /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
     AnnotationState getAnnotationState() const;
+    /// state of @p peptides (e.g. the peptide identifications of a feature in a format, see MapPeptideIdentifications), as getAnnotationState()
+    static AnnotationState annotationState(const PeptideIdentificationList& peptides);
     /// Resolve stable match links against their owning dataset; rejects deleted links.
     AnnotationState getAnnotationState(const IdentificationData& data) const;
 

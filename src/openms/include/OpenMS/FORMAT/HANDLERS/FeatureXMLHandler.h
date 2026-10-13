@@ -16,6 +16,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
@@ -50,9 +51,10 @@ public:
 
     /** @name Constructors and Destructor */
     //@{
-    ///Default constructor
+    /// Constructor for loading: the identifications go to getIdentifications(), not to @p map
     FeatureXMLHandler(FeatureMap& map, const std::string& filename);
-    FeatureXMLHandler(const FeatureMap& map, const std::string& filename);
+    /// Constructor for storing @p map with @p identifications (see IdentificationDataConverter::exportMapIdentifications())
+    FeatureXMLHandler(const FeatureMap& map, const MapPeptideIdentifications& identifications, const std::string& filename);
     ///Destructor
     ~FeatureXMLHandler() override;
     //@}
@@ -80,6 +82,12 @@ public:
       return expected_size_;
     }
 
+    /// The identifications of the loaded map (see IdentificationDataConverter::importMapIdentifications())
+    MapPeptideIdentifications& getIdentifications()
+    {
+      return identifications_;
+    }
+
 protected:
 
     // restore default state for next load/store operation
@@ -94,8 +102,11 @@ protected:
     // Docu in base class
     void onCharacters(const char16_t* chars, Size length) override;
 
-    /// Writes a feature to a stream
-    void writeFeature_(const std::string& filename, std::ostream& os, const Feature& feat, const std::string& identifier_prefix, UInt64 identifier, UInt indentation_level);
+    /// Writes a feature (with the identifications at @p path) to a stream
+    void writeFeature_(const std::string& filename, std::ostream& os, const Feature& feat, const std::vector<Size>& path, const std::string& identifier_prefix, UInt64 identifier, UInt indentation_level);
+
+    /// The path of the current feature (see MapPeptideIdentifications)
+    std::vector<Size> currentFeaturePath_() const;
 
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
     void writePeptideIdentification_(const std::string& filename, std::ostream& os, const PeptideIdentification& id, const std::string& tag_name, UInt indentation_level);
@@ -118,6 +129,10 @@ protected:
     FeatureMap* map_;
     /// Feature map pointer for reading
     const FeatureMap* cmap_;
+    /// The identifications of the loaded map
+    MapPeptideIdentifications identifications_;
+    /// The identifications of the stored map
+    const MapPeptideIdentifications* write_identifications_ = nullptr;
     /// Options that can be set
     FeatureFileOptions options_;
     /// only parse until "count" tag is reached (used in loadSize())

@@ -68,6 +68,14 @@ public:
     IdentificationData data;
     std::vector<FeatureAssociation> associations;
   };
+  /// Peptide identifications of feature associations (see toLegacyMap())
+  struct OPENMS_DLLAPI LegacyMapResult
+  {
+    std::vector<ProteinIdentification> proteins;
+    /// The reconciled associations, each with its peptide identification (with the hits of its matches), in their order
+    std::vector<std::pair<FeatureAssociation, PeptideIdentification>> peptides;
+    std::vector<std::string> losses;
+  };
 
   /// Import with exact observation mappings, including identifications with no hits.
   static ImportResult importLegacy(const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides);
@@ -78,6 +86,22 @@ public:
   static LegacyResult toLegacy(const IdentificationData& data, const ExportOptions& options);
   /// Explicit chemical materialization using the run's retained custom modification definitions.
   static PeptideHit materializePeptide(const IdentificationData::Run& run, const IdentificationData::Match& match, IdentificationData::ScoreId score);
+  /**
+    @brief Export @p data and feature associations as peptide identifications, apart from a map (e.g. for a file format)
+
+    As applyToFeatureMap(): the associations are reconciled with @p policy, and each gets the peptide identification of
+    its query with the hits of its matches.
+  */
+  static LegacyMapResult toLegacyMap(const IdentificationData& data, const std::vector<FeatureAssociation>& associations,
+                                     const ExportOptions& options, MissingLinkPolicy policy);
+  /**
+    @brief Import peptide identifications with their places in a map (e.g. of a file format)
+
+    @p locations is parallel to @p peptides: the feature path, or unassigned, of each. The associations of the result
+    are the locations with the imported identifications and all their matches.
+  */
+  static FeatureImportResult importLegacyMap(const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides,
+                                             std::vector<FeatureAssociation> locations);
   /// Collect live associations while retaining map values outside the identification model.
   static FeatureImportResult fromFeatureMap(const FeatureMap& map);
   static FeatureImportResult fromConsensusMap(const ConsensusMap& map);

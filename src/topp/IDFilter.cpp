@@ -241,7 +241,7 @@ protected:
 
     //only used for cxml
     ConsensusMap cmap;
-    unordered_map<UInt64, ConsensusFeature*> id_to_featureref;
+    unordered_map<UInt64, Size> id_to_feature_index;
 
     const auto& infiletype = FileHandler::getType(inputfile_name);
     if (infiletype == FileTypes::IDXML || infiletype == FileTypes::IDPARQUET)
@@ -251,27 +251,25 @@ protected:
     else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
     {
       FileHandler().loadConsensusFeatures(inputfile_name, cmap, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
-      // the filters work on peptide identifications (identification data, e.g. of a consensusparquet bundle, is exported)
-      IdentificationDataConverter::moveToPeptideIdentifications(cmap);
-      for (auto& f : cmap)
+      // the filters work on peptide identifications (identification data, e.g. of a consensusparquet bundle, is exported);
+      // the filtered ones are the identifications of the map in the end
+      MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(cmap);
+      cmap.clearIdentifications();
+      for (auto& [path, feature_peptides] : ids.features)
       {
-        UInt64 id = f.getUniqueId();
-        id_to_featureref[id] = &f;
-        for (auto& p : f.getPeptideIdentifications())
+        UInt64 id = cmap[path[0]].getUniqueId();
+        id_to_feature_index[id] = path[0];
+        for (auto& p : feature_peptides)
         {
           p.setMetaValue(tmp_feature_id_metaval_,StringUtils::toStr(id));
           peptides.push_back(std::move(p));
-          //if ((UInt64)peptides.back().getMetaValue(tmp_feature_id_metaval_) != id) std::cout << "WHAT THE FUCK" << std::endl;
         }
-        f.getPeptideIdentifications().clear();
       }
-      auto& unassigned = cmap.getUnassignedPeptideIdentifications();
-      peptides.reserve(peptides.size() + unassigned.size());
-      std::move(std::begin(unassigned),std::end(unassigned),
+      peptides.reserve(peptides.size() + ids.unassigned.size());
+      std::move(std::begin(ids.unassigned),std::end(ids.unassigned),
           std::back_inserter(peptides));
-      unassigned.clear();
 
-      std::swap(proteins, cmap.getProteinIdentifications());
+      proteins = std::move(ids.proteins);
     }
 
 
@@ -838,6 +836,7 @@ protected:
     }
     else if (infiletype == FileTypes::CONSENSUSXML || infiletype == FileTypes::CONSENSUSPARQUET)
     {
+      MapPeptideIdentifications filtered;
       for (auto& p : peptides)
       {
         if (p.metaValueExists(tmp_feature_id_metaval_))
@@ -845,17 +844,16 @@ protected:
           UInt64 id(0);
           std::stringstream(p.getMetaValue(tmp_feature_id_metaval_).toString()) >> id;
           p.removeMetaValue(tmp_feature_id_metaval_);
-          auto& f = id_to_featureref[id];
-          f->getPeptideIdentifications().push_back(std::move(p));
+          filtered.features[{id_to_feature_index.at(id)}].push_back(std::move(p));
         }
         else
         {
-          cmap.getUnassignedPeptideIdentifications().push_back(std::move(p));
+          filtered.unassigned.push_back(std::move(p));
         }
       }
       peptides.clear();
-      std::swap(proteins, cmap.getProteinIdentifications());
-      proteins.clear();
+      filtered.proteins = std::move(proteins);
+      IdentificationDataConverter::importMapIdentifications(cmap, filtered);
       FileHandler().storeConsensusFeatures(outputfile_name, cmap, {infiletype});
     }
 

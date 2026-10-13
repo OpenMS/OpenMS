@@ -971,9 +971,21 @@ protected:
           cm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
       }
+      // the unassigned identifications are of the (only) map
       for (auto& pepID : cm.getUnassignedPeptideIdentifications())
       {
         pepID.setMetaValue("map_index", 0);
+      }
+      std::vector<std::tuple<std::string, IdentificationData::QueryId, IdentificationData::Observation>> unassigned;
+      for (const auto& id : cm.getUnassignedIdentifications())
+      {
+        IdentificationData::Observation observation = id.query->getObservation();
+        observation.setMetaValue("map_index", 0);
+        unassigned.emplace_back(id.run->getUuid(), id.query->getId(), std::move(observation));
+      }
+      for (const auto& [uuid, query, observation] : unassigned)
+      {
+        cm.getIdentificationData().findRunByUuid(uuid)->replaceObservation(query, observation);
       }
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::

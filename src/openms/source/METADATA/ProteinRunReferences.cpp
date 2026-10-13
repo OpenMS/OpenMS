@@ -72,9 +72,8 @@ namespace OpenMS
       return accessions;
     }
 
-    void checkAccessions(const RunAccessions& runs, const PeptideIdentificationList& peptides)
+    void checkAccessions(const RunAccessions& runs, const PeptideIdentification& peptide)
     {
-      for (const auto& peptide : peptides)
       {
         const auto run = runs.find(peptide.getIdentifier());
         if (run == runs.end())
@@ -97,6 +96,14 @@ namespace OpenMS
             }
           }
         }
+      }
+    }
+
+    void checkAccessions(const RunAccessions& runs, const PeptideIdentificationList& peptides)
+    {
+      for (const auto& peptide : peptides)
+      {
+        checkAccessions(runs, peptide);
       }
     }
 
@@ -172,6 +179,16 @@ namespace OpenMS
       checkFeatureAccessions(runs, feature);
     }
     checkAccessions(runs, map.getUnassignedPeptideIdentifications());
+  }
+
+  void ProteinRunReferences::checkProteinAccessions(const std::vector<ProteinIdentification>& runs,
+                                                    const std::vector<const PeptideIdentification*>& peptides)
+  {
+    const RunAccessions accessions = runAccessions(runs);
+    for (const PeptideIdentification* peptide : peptides)
+    {
+      checkAccessions(accessions, *peptide);
+    }
   }
 
   void ProteinRunReferences::checkProteinAccessions(const ConsensusMap& map)

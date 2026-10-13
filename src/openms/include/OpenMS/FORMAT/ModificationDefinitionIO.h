@@ -51,6 +51,11 @@ namespace OpenMS
       const std::vector<ProteinIdentification>& protein_ids,
       const PeptideIdentificationList& peptide_ids);
 
+    /// collect() over peptide identifications given by pointers (e.g. those of a map, see IdentificationDataConverter::exportMapIdentifications())
+    static std::map<std::string, std::set<const ResidueModification*>> collect(
+      const std::vector<ProteinIdentification>& protein_ids,
+      const std::vector<const PeptideIdentification*>& peptide_ids);
+
     /// collect() over a FeatureMap: its runs, the identifications of every feature (subordinates included) and the unassigned ones
     static std::map<std::string, std::set<const ResidueModification*>> collect(const FeatureMap& map);
 

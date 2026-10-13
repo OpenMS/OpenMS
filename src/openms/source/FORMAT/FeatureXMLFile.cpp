@@ -45,6 +45,25 @@ namespace OpenMS
     return handler.getSize();
   }
 
+  namespace
+  {
+    // The identifications of a file as peptide and protein identifications of the map
+    void setPeptideIdentifications(FeatureMap& map, MapPeptideIdentifications&& identifications)
+    {
+      map.setProteinIdentifications(std::move(identifications.proteins));
+      map.setUnassignedPeptideIdentifications(std::move(identifications.unassigned));
+      for (auto& [path, peptides] : identifications.features)
+      {
+        Feature* feature = &map.at(path[0]);
+        for (Size i = 1; i < path.size(); ++i)
+        {
+          feature = &feature->getSubordinates().at(path[i]);
+        }
+        feature->setPeptideIdentifications(std::move(peptides));
+      }
+    }
+  } // namespace
+
   void FeatureXMLFile::load(const std::string& filename, FeatureMap& feature_map)
   {
     feature_map.clear(true);
@@ -56,6 +75,7 @@ namespace OpenMS
     handler.setOptions(options_);
     handler.setLogType(getLogType());
     parse_(filename, &handler);
+    setPeptideIdentifications(feature_map, std::move(handler.getIdentifications()));
 
     // !!! Hack: set feature FWHM from meta info entries as
     // long as featureXML doesn't support a width entry.
@@ -72,28 +92,10 @@ namespace OpenMS
     feature_map.updateRanges();
   }
 
-  namespace
+  void FeatureXMLFile::store(const std::string& filename, const FeatureMap& feature_map)
   {
-    bool hasLegacyIdentifications(const Feature& feature)
-    {
-      return ! feature.getPeptideIdentifications().empty()
-             || std::any_of(feature.getSubordinates().begin(), feature.getSubordinates().end(),
-                            [](const Feature& child) { return hasLegacyIdentifications(child); });
-    }
-  } // namespace
-
-  void FeatureXMLFile::store(const std::string& filename, const FeatureMap& map)
-  {
-    // featureXML holds legacy identifications. A map with native identification data and no legacy identifications
-    // (which the file would hold otherwise) is written with its native identifications converted, so they are kept.
-    std::optional<FeatureMap> converted;
-    if (! map.getIdentificationData().empty() && map.getProteinIdentifications().empty() && map.getUnassignedPeptideIdentifications().empty()
-        && std::none_of(map.begin(), map.end(), [](const Feature& feature) { return hasLegacyIdentifications(feature); }))
-    {
-      converted.emplace(map);
-      IdentificationDataConverter::exportFeatureIDs(*converted, true);
-    }
-    const FeatureMap& feature_map = converted ? *converted : map;
+    // featureXML holds peptide and protein identifications: those of the map, or its identification data exported
+    const MapPeptideIdentifications identifications = IdentificationDataConverter::exportMapIdentifications(feature_map);
 
     if (!FileHandler::hasValidExtension(filename, FileTypes::FEATUREXML))
     {
@@ -102,7 +104,7 @@ namespace OpenMS
 
     // every peptide identification needs its protein identification run, and the proteins of its peptide evidences need
     // to be protein hits of that run (they are referenced there): fail before the file is opened (one pass for both)
-    ProteinRunReferences::checkProteinAccessions(feature_map);
+    ProteinRunReferences::checkProteinAccessions(identifications.proteins, identifications.peptides());
 
     if (Size invalid_unique_ids = feature_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId))
     {
@@ -126,7 +128,7 @@ namespace OpenMS
       throw;
     }
 
-    Internal::FeatureXMLHandler handler(feature_map, filename);
+    Internal::FeatureXMLHandler handler(feature_map, identifications, filename);
     handler.setOptions(options_);
     handler.setLogType(getLogType());
     save_(filename, &handler);

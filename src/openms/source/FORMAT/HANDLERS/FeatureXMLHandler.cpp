@@ -33,11 +33,12 @@ namespace OpenMS::Internal
     file_ = filename;
   }
 
-  FeatureXMLHandler::FeatureXMLHandler(const FeatureMap& map, const std::string& filename) :
+  FeatureXMLHandler::FeatureXMLHandler(const FeatureMap& map, const MapPeptideIdentifications& identifications, const std::string& filename) :
     Internal::XMLHandler("", "1.9")
   {
     resetMembers_();
     cmap_ = &map;
+    write_identifications_ = &identifications;
     file_ = filename;
   }
   FeatureXMLHandler::~FeatureXMLHandler() = default;
@@ -59,6 +60,7 @@ namespace OpenMS::Internal
     last_meta_ = nullptr;
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
+    identifications_ = MapPeptideIdentifications();
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
@@ -105,15 +107,16 @@ namespace OpenMS::Internal
       os << "\t</dataProcessing>\n";
     }
 
+    const MapPeptideIdentifications& identifications = *write_identifications_;
     // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
-    checkUniqueIdentifiers_(feature_map.getProteinIdentifications());
+    checkUniqueIdentifiers_(identifications.proteins);
 
     // write identification runs
     Size prot_count = 0;
-    const auto definitions = ModificationDefinitionIO::collect(feature_map);
-    for (Size i = 0; i < feature_map.getProteinIdentifications().size(); ++i)
+    const auto definitions = ModificationDefinitionIO::collect(identifications.proteins, identifications.peptides());
+    for (Size i = 0; i < identifications.proteins.size(); ++i)
     {
-      const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
+      const ProteinIdentification& current_prot_id = identifications.proteins[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
       identifier_id_[current_prot_id.getIdentifier()] =std::string("PI_") + i;
@@ -208,9 +211,9 @@ namespace OpenMS::Internal
     }
 
     //write unassigned peptide identifications
-    for (Size i = 0; i < feature_map.getUnassignedPeptideIdentifications().size(); ++i)
+    for (const PeptideIdentification& unassigned : identifications.unassigned)
     {
-      writePeptideIdentification_(file_, os, feature_map.getUnassignedPeptideIdentifications()[i], "UnassignedPeptideIdentification", 1);
+      writePeptideIdentification_(file_, os, unassigned, "UnassignedPeptideIdentification", 1);
     }
 
     // write features with their corresponding attributes
@@ -218,7 +221,7 @@ namespace OpenMS::Internal
     startProgress(0, feature_map.size(), "Storing featureXML file");
     for (Size s = 0; s < feature_map.size(); s++)
     {
-      writeFeature_(file_, os, feature_map[s], "f_", feature_map[s].getUniqueId(), 0);
+      writeFeature_(file_, os, feature_map[s], {s}, "f_", feature_map[s].getUniqueId(), 0);
       setProgress(s);
       // writeFeature_(file_, os, feature_map[s], "f_", s, 0);
     }
@@ -753,7 +756,8 @@ namespace OpenMS::Internal
       }
       else
       {
-        // this feature does not pass the restrictions --> remove it
+        // this feature does not pass the restrictions --> remove it (with its identifications)
+        identifications_.eraseFeature(currentFeaturePath_());
         if (subordinate_feature_level_ == 0)
         {
           map_->pop_back();
@@ -802,7 +806,7 @@ namespace OpenMS::Internal
     }
     else if (tag == "IdentificationRun")
     {
-      map_->getProteinIdentifications().push_back(prot_id_);
+      identifications_.proteins.push_back(prot_id_);
       prot_id_ = ProteinIdentification();
       last_meta_  = nullptr;
     }
@@ -828,13 +832,13 @@ namespace OpenMS::Internal
     }
     else if (tag == "PeptideIdentification")
     {
-      current_feature_->getPeptideIdentifications().push_back(pep_id_);
+      identifications_.features[currentFeaturePath_()].push_back(pep_id_);
       pep_id_ = PeptideIdentification();
       last_meta_  = &map_->back();
     }
     else if (tag == "UnassignedPeptideIdentification")
     {
-      map_->getUnassignedPeptideIdentifications().push_back(pep_id_);
+      identifications_.unassigned.push_back(pep_id_);
       pep_id_ = PeptideIdentification();
       last_meta_  = nullptr;
     }
@@ -895,7 +899,7 @@ namespace OpenMS::Internal
     }
   }
 
-  void FeatureXMLHandler::writeFeature_(const std::string& filename, ostream& os, const Feature& feat, const std::string& identifier_prefix, UInt64 identifier, UInt indentation_level)
+  void FeatureXMLHandler::writeFeature_(const std::string& filename, ostream& os, const Feature& feat, const std::vector<Size>& path, const std::string& identifier_prefix, UInt64 identifier, UInt indentation_level)
   {
     std::string indent =std::string(indentation_level, '\t');
 
@@ -949,15 +953,17 @@ namespace OpenMS::Internal
         // These subordinate identifiers are a bit long, but who cares about subordinates anyway?  :-P
         // This way the parent stands out clearly.  However,
         // note that only the portion after the last '_' is parsed when this is read back.
-        writeFeature_(filename, os, feat.getSubordinates()[i], identifier_prefix + identifier + "_", feat.getSubordinates()[i].getUniqueId(), indentation_level + 2);
+        std::vector<Size> subordinate_path = path;
+        subordinate_path.push_back(i);
+        writeFeature_(filename, os, feat.getSubordinates()[i], subordinate_path, identifier_prefix + identifier + "_", feat.getSubordinates()[i].getUniqueId(), indentation_level + 2);
       }
       os << indent << "\t\t\t</subordinate>\n";
     }
 
     // write PeptideIdentification
-    for (Size i = 0; i < feat.getPeptideIdentifications().size(); ++i)
+    for (const PeptideIdentification& peptide : write_identifications_->at(path))
     {
-      writePeptideIdentification_(filename, os, feat.getPeptideIdentifications()[i], "PeptideIdentification", 3);
+      writePeptideIdentification_(filename, os, peptide, "PeptideIdentification", 3);
     }
 
     writeUserParam_("UserParam", os, feat, indentation_level + 3);
@@ -1054,6 +1060,19 @@ namespace OpenMS::Internal
     tmp.removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
     writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
+  }
+
+  std::vector<Size> FeatureXMLHandler::currentFeaturePath_() const
+  {
+    // the current feature is the last one at its level (see updateCurrentFeature_())
+    std::vector<Size> path {map_->size() - 1};
+    const Feature* feature = &map_->back();
+    while (feature != current_feature_ && !feature->getSubordinates().empty())
+    {
+      path.push_back(feature->getSubordinates().size() - 1);
+      feature = &feature->getSubordinates().back();
+    }
+    return path;
   }
 
   void FeatureXMLHandler::updateCurrentFeature_(bool create)

@@ -1000,6 +1000,19 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     return eraseFlaggedFeatures(*this, erase, links);
   }
 
+  void ConsensusMap::clearIdentifications()
+  {
+    for (auto& feature : *this)
+    {
+      feature.getIDQueries().clear();
+      feature.getIDMatches().clear();
+      feature.getPeptideIdentifications().clear();
+    }
+    id_data_.clear();
+    protein_identifications_.clear();
+    unassigned_peptide_identifications_.clear();
+  }
+
   Size ConsensusMap::eraseUnassignedIdentifications()
   {
     using ID = IdentificationData;

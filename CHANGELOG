@@ -215,6 +215,18 @@ OpenMS Library:
     identifications first. Seeds and offset peptides are pseudo identifications without matches (meta value
     SeedFeatureID), no longer hits with a placeholder sequence, and a minimum PSM score (min_psm_cutoff) no
     longer drops them. New FAIMSHelper::filterIdentificationsByFAIMSCV(). Outputs unchanged.
+  - MapPeptideIdentifications: the identifications of a feature or consensus map as peptide and protein
+    identifications apart from the map (by feature path, unassigned), for formats that hold them.
+    IdentificationDataConverter::exportMapIdentifications()/importMapIdentifications() convert between a
+    map's identification data (or its peptide identifications) and this view;
+    IdentificationDataAdapter::toLegacyMap()/importLegacyMap() do it for feature associations. featureXML and
+    consensusXML read and write through it, as do mzTab, QPX, the QPX feature and protein-group exports,
+    TextExporter, MzTabExporter and IDFilter (consensus maps). FeatureMap/ConsensusMap::clearIdentifications(),
+    BaseFeature::annotationState(), and pointer-list overloads of ProteinRunReferences::checkProteinAccessions()
+    and ModificationDefinitionIO::collect(). Outputs unchanged. Storing a map that holds both peptide
+    identifications and identification data throws (Exception::InvalidParameter) instead of writing the peptide
+    identifications only; AccurateMassSearch (id_format ID) no longer exports its identification data as
+    peptide identifications as well.
   - Decharging (FeatureDeconvolution, MetaboliteFeatureDeconvolution) keeps the identifications of features
     as identification data: the consensus maps take the identification data of the features, their
     consensus features link the identifications of their features (as they took their peptide

@@ -123,34 +123,31 @@ protected:
         FeatureMap feature_map;
         FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
         // mzTab holds peptide identifications (identification data, e.g. of a featureparquet bundle, is exported)
-        IdentificationDataConverter::moveToPeptideIdentifications(feature_map);
+        MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(feature_map);
 
         // calculate coverage
         PeptideIdentificationList pep_ids;
-        vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
-
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
         {
-          const PeptideIdentificationList& pep_ids_bf = feature_map[i].getPeptideIdentifications();
+          const PeptideIdentificationList& pep_ids_bf = ids.at({i});
           pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
         }
 
-        pep_ids.insert(pep_ids.end(), feature_map.getUnassignedPeptideIdentifications().begin(), feature_map.getUnassignedPeptideIdentifications().end());
+        pep_ids.insert(pep_ids.end(), ids.unassigned.begin(), ids.unassigned.end());
 
         try // might throw Exception::MissingInformation()
         {
-          for (Size i = 0; i < prot_ids.size(); ++i)
+          for (Size i = 0; i < ids.proteins.size(); ++i)
           {
-            prot_ids[i].computeCoverage(pep_ids);
+            ids.proteins[i].computeCoverage(pep_ids);
           }
         }
         catch (Exception::MissingInformation& e)
         {
           OPENMS_LOG_WARN << "Non-critical exception: " << e.what() << "\n";
         }
-        feature_map.setProteinIdentifications(prot_ids);
 
-        mztab = MzTab::exportFeatureMapToMzTab(feature_map, in);
+        mztab = MzTab::exportFeatureMapToMzTab(feature_map, ids, in);
       }
 
       // export identification data from idXML/idparquet

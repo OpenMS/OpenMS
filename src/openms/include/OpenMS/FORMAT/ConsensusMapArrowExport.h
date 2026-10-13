@@ -12,6 +12,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 #include <OpenMS/FORMAT/QPXIdentity.h>
 
@@ -85,6 +86,8 @@ public:
     @throws Exception::IllegalArgument if any feature has divergent peptide annotations
   */
   static void requireUnambiguousIdentities(const ConsensusMap& cmap);
+  /// Same as above, for the identifications of a map (see IdentificationDataConverter::exportMapIdentifications())
+  static void requireUnambiguousIdentities(const MapPeptideIdentifications& ids);
 
   /**
     @brief Refuse a map whose features cannot be attributed to an origin MS run
@@ -105,6 +108,8 @@ public:
            merged run but carries no usable @c id_merge_index
   */
   static void requireResolvableIdRuns(const ConsensusMap& cmap);
+  /// Same as above, for the identifications of a map (see IdentificationDataConverter::exportMapIdentifications())
+  static void requireResolvableIdRuns(const MapPeptideIdentifications& ids);
 
   /**
     @brief Export ConsensusMap to Parquet file

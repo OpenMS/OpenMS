@@ -785,7 +785,7 @@ protected:
         FeatureMap feature_map;
         FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET}, log_type_);
         // the text output holds peptide identifications (identification data, e.g. of a featureparquet bundle, is exported)
-        IdentificationDataConverter::moveToPeptideIdentifications(feature_map);
+        const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(feature_map);
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
@@ -795,11 +795,10 @@ protected:
         PeptideIdentificationList pids;
         if (add_id_metavalues >= 0 || add_hit_metavalues >= 0)
         {
-                const PeptideIdentificationList& uapids = feature_map.getUnassignedPeptideIdentifications();
-                pids.insert(pids.end(), uapids.begin(), uapids.end());
-                for (const Feature& cm : feature_map)
+                pids.insert(pids.end(), ids.unassigned.begin(), ids.unassigned.end());
+                for (const auto& [path, cpids] : ids.features)
                 {
-                        const PeptideIdentificationList& cpids = cm.getPeptideIdentifications();
+                        if (path.size() != 1) continue; // of features, not subordinates
                         pids.insert(pids.end(), cpids.begin(), cpids.end());
                 }
                 if (add_id_metavalues >= 0)
@@ -831,7 +830,7 @@ protected:
           meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<FeatureMap, StringList>(feature_map.begin(), feature_map.end(), add_feature_metavalues);
         }
 
-        vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
+        vector<ProteinIdentification> prot_ids = ids.proteins;
 
         if (add_protein_hit_metavalues >= 0)
         {
@@ -908,15 +907,16 @@ protected:
           {
             writeProteinId(output, prot, protein_hit_meta_keys);
           }
-          for (const PeptideIdentification& pep : feature_map.getUnassignedPeptideIdentifications())
+          for (const PeptideIdentification& pep : ids.unassigned)
           {
             unassigned_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, pep) : "";
             writePeptideId(output, pep, unassigned_opts);
           }
         }
 
-        for (const Feature& feat : feature_map)
+        for (Size feature_index = 0; feature_index < feature_map.size(); ++feature_index)
         {
+          const Feature& feat = feature_map[feature_index];
           if (!no_ids)
           {
             output << "FEATURE";
@@ -945,7 +945,7 @@ protected:
           // peptide ids
           if (!no_ids)
           {
-            for (const PeptideIdentification& pep : feat.getPeptideIdentifications())
+            for (const PeptideIdentification& pep : ids.at({feature_index}))
             {
               peptide_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, pep) : "";
               writePeptideId(output, pep, peptide_opts);
@@ -967,71 +967,6 @@ protected:
         ConsensusMap consensus_map;
 
         FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET}, log_type_);
-        // the text output holds peptide identifications (identification data, e.g. of a consensusparquet bundle, is exported)
-        IdentificationDataConverter::moveToPeptideIdentifications(consensus_map);
-
-        // for optional export of ConsensusFeature meta values, collect all possible meta value keys
-        std::set<std::string> meta_value_keys;
-        if (add_metavalues)
-        {
-          for (const auto& cf: consensus_map)
-          {
-            std::vector<std::string> cf_meta_value_keys;
-            cf.getKeys(cf_meta_value_keys);
-            for (const auto& key: cf_meta_value_keys)
-            {
-              meta_value_keys.insert(key);
-            }
-          }
-        }
-
-        // extract common id and hit meta values
-        StringList peptide_id_meta_keys;
-        StringList peptide_hit_meta_keys;
-        StringList protein_hit_meta_keys;
-
-        PeptideIdentificationList pids;
-        if (add_id_metavalues >= 0 || add_hit_metavalues >= 0)
-        {
-          const PeptideIdentificationList& uapids = consensus_map.getUnassignedPeptideIdentifications();
-          pids.insert(pids.end(), uapids.begin(), uapids.end());
-          for (const ConsensusFeature& cm : consensus_map)
-          {
-            const PeptideIdentificationList& cpids = cm.getPeptideIdentifications();
-            pids.insert(pids.end(), cpids.begin(), cpids.end());
-          }
-          if (add_id_metavalues >= 0)
-          {
-              peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<PeptideIdentificationList, StringList>(pids.begin(), pids.end(), add_id_metavalues);
-              // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
-              std::erase(peptide_id_meta_keys, "predicted_RT");
-              std::erase(peptide_id_meta_keys, "predicted_RT_first_dim");
-              std::erase(peptide_id_meta_keys, "first_dim_rt");
-              std::erase(peptide_id_meta_keys, "predicted_PT");
-              std::erase(peptide_id_meta_keys, Constants::UserParam::SIGNIFICANCE_THRESHOLD);
-          }
-          if (add_hit_metavalues >= 0)
-          {
-            vector<PeptideHit> temp_hits;
-            for (Size i = 0; i != pids.size(); ++i)
-            {
-              const vector<PeptideHit>& hits = pids[i].getHits();
-              temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());
-            }
-
-            // siehe oben / analog machen
-            peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
-          }
-        }
-        if (add_protein_hit_metavalues >= 0)
-        {
-          const vector<ProteinIdentification>& prot_ids = consensus_map.getProteinIdentifications();
-          //TODO also iterate over all protein ID runs.
-          if (prot_ids.size() == 1)
-          {
-            protein_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, StringList>(prot_ids[0].getHits().begin(), prot_ids[0].getHits().end(), add_id_metavalues);
-          }
-        }
 
         if (sorting_method == "none")
         {
@@ -1070,6 +1005,72 @@ protected:
         {
           consensus_map.sortBySize();
         }
+
+        // the text output holds peptide identifications (identification data, e.g. of a consensusparquet bundle, is
+        // exported); the view refers to the consensus features by their (sorted) index
+        const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(consensus_map);
+
+        // for optional export of ConsensusFeature meta values, collect all possible meta value keys
+        std::set<std::string> meta_value_keys;
+        if (add_metavalues)
+        {
+          for (const auto& cf: consensus_map)
+          {
+            std::vector<std::string> cf_meta_value_keys;
+            cf.getKeys(cf_meta_value_keys);
+            for (const auto& key: cf_meta_value_keys)
+            {
+              meta_value_keys.insert(key);
+            }
+          }
+        }
+
+        // extract common id and hit meta values
+        StringList peptide_id_meta_keys;
+        StringList peptide_hit_meta_keys;
+        StringList protein_hit_meta_keys;
+
+        PeptideIdentificationList pids;
+        if (add_id_metavalues >= 0 || add_hit_metavalues >= 0)
+        {
+          pids.insert(pids.end(), ids.unassigned.begin(), ids.unassigned.end());
+          for (const auto& [path, cpids] : ids.features)
+          {
+            pids.insert(pids.end(), cpids.begin(), cpids.end());
+          }
+          if (add_id_metavalues >= 0)
+          {
+              peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<PeptideIdentificationList, StringList>(pids.begin(), pids.end(), add_id_metavalues);
+              // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
+              std::erase(peptide_id_meta_keys, "predicted_RT");
+              std::erase(peptide_id_meta_keys, "predicted_RT_first_dim");
+              std::erase(peptide_id_meta_keys, "first_dim_rt");
+              std::erase(peptide_id_meta_keys, "predicted_PT");
+              std::erase(peptide_id_meta_keys, Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+          }
+          if (add_hit_metavalues >= 0)
+          {
+            vector<PeptideHit> temp_hits;
+            for (Size i = 0; i != pids.size(); ++i)
+            {
+              const vector<PeptideHit>& hits = pids[i].getHits();
+              temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());
+            }
+
+            // siehe oben / analog machen
+            peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
+          }
+        }
+        if (add_protein_hit_metavalues >= 0)
+        {
+          const vector<ProteinIdentification>& prot_ids = ids.proteins;
+          //TODO also iterate over all protein ID runs.
+          if (prot_ids.size() == 1)
+          {
+            protein_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, StringList>(prot_ids[0].getHits().begin(), prot_ids[0].getHits().end(), add_id_metavalues);
+          }
+        }
+
 
         std::string date_time_now = DateTime::now().get();
 
@@ -1182,8 +1183,8 @@ protected:
           {
             std::string pep_line = "Protein identification runs associated with peptide/protein columns below: ";
             for (vector<ProteinIdentification>::const_iterator prot_it =
-                   consensus_map.getProteinIdentifications().begin();
-                 prot_it != consensus_map.getProteinIdentifications().end();
+                   ids.proteins.begin();
+                 prot_it != ids.proteins.end();
                  ++prot_it, ++max_prot_run)
             {
               std::string run_id = prot_it->getIdentifier();
@@ -1259,8 +1260,8 @@ protected:
               vector<set<std::string> > peptides_by_source(max_prot_run + 1),
               proteins_by_source(max_prot_run + 1);
               for (PeptideIdentificationList::const_iterator pep_it =
-                     cmit->getPeptideIdentifications().begin(); pep_it !=
-                   cmit->getPeptideIdentifications().end(); ++pep_it)
+                     ids.at({Size(cmit - consensus_map.begin())}).begin(); pep_it !=
+                   ids.at({Size(cmit - consensus_map.begin())}).end(); ++pep_it)
               {
                 Size index = prot_runs[pep_it->getIdentifier()];
                 for (vector<PeptideHit>::const_iterator hit_it = pep_it->
@@ -1334,7 +1335,7 @@ protected:
           peptide_opts.peptide_id_meta_keys = peptide_id_meta_keys;
           peptide_opts.peptide_hit_meta_keys = peptide_hit_meta_keys;
 
-          IdentifierMSRunMapper usi_mapper = buildUSIMapper_(consensus_map.getProteinIdentifications(), add_usi);
+          IdentifierMSRunMapper usi_mapper = buildUSIMapper_(ids.proteins, add_usi);
 
           FeatureHandle feature_handle_NaN;
           feature_handle_NaN.setRT(std::numeric_limits<
@@ -1435,14 +1436,14 @@ protected:
           if (!no_ids) // proteins
           {
             for (vector<ProteinIdentification>::const_iterator it =
-                   consensus_map.getProteinIdentifications().begin(); it !=
-                 consensus_map.getProteinIdentifications().end(); ++it)
+                   ids.proteins.begin(); it !=
+                 ids.proteins.end(); ++it)
             {
               writeProteinId(output, *it, protein_hit_meta_keys);
             }
 
             // unassigned peptides
-            for (PeptideIdentificationList::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
+            for (PeptideIdentificationList::const_iterator pit = ids.unassigned.begin(); pit != ids.unassigned.end(); ++pit)
             {
               unassigned_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, *pit) : "";
               writePeptideId(output, *pit, unassigned_opts);
@@ -1480,8 +1481,8 @@ protected:
             if (!no_ids)
             {
               for (PeptideIdentificationList::const_iterator pit =
-                     cmit->getPeptideIdentifications().begin(); pit !=
-                   cmit->getPeptideIdentifications().end(); ++pit)
+                     ids.at({Size(cmit - consensus_map.begin())}).begin(); pit !=
+                   ids.at({Size(cmit - consensus_map.begin())}).end(); ++pit)
               {
                 peptide_opts.usi_ms_run = add_usi ? resolveUSIMSRun(usi_mapper, *pit) : "";
                 writePeptideId(output, *pit, peptide_opts);

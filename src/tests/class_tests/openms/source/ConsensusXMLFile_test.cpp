@@ -883,11 +883,13 @@ START_SECTION([EXTRA] native identifications of a map without legacy ones are wr
   TEST_EQUAL(map[0].getPeptideIdentifications().size(), 0)
   TEST_EQUAL(map.getIdentificationData().getRuns().size(), 1)
   loaded[0].getPeptideIdentifications()[0].getHits()[0].setScore(0.5);
-  loaded.getIdentificationData() = map.getIdentificationData();
   ConsensusXMLFile().store(file, loaded);
   ConsensusMap again;
   ConsensusXMLFile().load(file, again);
   TEST_REAL_SIMILAR(again[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.5)
+  // A map holds its identifications as peptide identifications or as identification data, not both.
+  loaded.getIdentificationData() = map.getIdentificationData();
+  TEST_EXCEPTION(Exception::InvalidParameter, ConsensusXMLFile().store(file, loaded))
 }
 END_SECTION
 

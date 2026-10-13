@@ -702,16 +702,22 @@ namespace OpenMS
     const FeatureMap & input_map,
     const std::string & filename)
   {
-    OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
     // mzTab holds the identifications as peptide identifications
-    std::optional<FeatureMap> exported;
-    const FeatureMap& feature_map = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
+    return exportFeatureMapToMzTab(input_map, IdentificationDataConverter::exportMapIdentifications(input_map), filename);
+  }
+
+  MzTab MzTab::exportFeatureMapToMzTab(
+    const FeatureMap & feature_map,
+    const MapPeptideIdentifications& ids,
+    const std::string & filename)
+  {
+    OPENMS_LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
     // every peptide identification needs its protein identification run
-    ProteinRunReferences::check(feature_map);
+    ProteinRunReferences::check(ids.proteins, ids.peptides());
     MzTab mztab;
     MzTabMetaData meta_data;
 
-    const vector<ProteinIdentification> &prot_ids = feature_map.getProteinIdentifications();
+    const vector<ProteinIdentification> &prot_ids = ids.proteins;
     vector<std::string> var_mods, fixed_mods;
     MzTabString db, db_version;
     if (!prot_ids.empty())
@@ -761,6 +767,7 @@ namespace OpenMS
     set<std::string> peptide_hit_user_value_keys;
     MzTab::getFeatureMapMetaValues_(
       feature_map,     
+      ids,
       feature_user_value_keys,
       peptide_identifications_user_value_keys,
       peptide_hit_user_value_keys);
@@ -770,6 +777,7 @@ namespace OpenMS
       const Feature& f = feature_map[i];
       auto row = peptideSectionRowFromFeature_(
         f,
+        ids.at({i}),
         feature_user_value_keys, 
         peptide_identifications_user_value_keys, 
         peptide_hit_user_value_keys, 
@@ -781,7 +789,8 @@ namespace OpenMS
   }
 
   MzTabPeptideSectionRow MzTab::peptideSectionRowFromFeature_(
-    const Feature& f, 
+    const Feature& f,
+    const PeptideIdentificationList& pep_ids, 
     const set<std::string>& feature_user_value_keys,
     const set<std::string>& peptide_identifications_user_value_keys,
     const set<std::string>& peptide_hit_user_value_keys,
@@ -821,7 +830,6 @@ namespace OpenMS
     // create and fill opt_ columns for feature (peptide) user values
     addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_,std::string("global"), f);
 
-    const PeptideIdentificationList& pep_ids = f.getPeptideIdentifications();
     if (pep_ids.empty())
     {
       // still add empty opt_ columns before returning
@@ -830,7 +838,7 @@ namespace OpenMS
       return row;
     }
 
-    const PeptideIdentification& best_pid = f.getPeptideIdentifications()[0];
+    const PeptideIdentification& best_pid = pep_ids[0];
     addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", best_pid);
 
     // TODO: here we assume that all have the same score type etc.
@@ -889,6 +897,8 @@ namespace OpenMS
   MzTabPeptideSectionRow MzTab::peptideSectionRowFromConsensusFeature_(
     const ConsensusFeature& c, 
     const ConsensusMap& consensus_map,
+    const PeptideIdentificationList& curr_pep_ids,
+    const vector<ProteinIdentification>& prot_id,
     const StringList& ms_runs,
     const Size n_assays,
     const Size n_study_variables,
@@ -907,7 +917,6 @@ namespace OpenMS
 
     const ConsensusMap::ColumnHeaders& cm_column_headers = consensus_map.getColumnHeaders();
     const std::string & experiment_type = consensus_map.getExperimentType();
-    const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
 
     // create opt_ column for peptide sequence containing modification
     MzTabOptionalColumnEntry opt_global_modified_sequence;
@@ -1060,7 +1069,6 @@ namespace OpenMS
       }
     }
 
-    const PeptideIdentificationList& curr_pep_ids = c.getPeptideIdentifications();
     if (!curr_pep_ids.empty())
     {
       checkSequenceUniqueness_(curr_pep_ids);
@@ -2629,6 +2637,7 @@ state0:
   }
 
   void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map,
+    const MapPeptideIdentifications& ids,
     set<std::string>& feature_user_value_keys, 
     set<std::string>& peptide_identification_user_value_keys, 
     set<std::string>& peptide_hit_user_value_keys)
@@ -2641,7 +2650,7 @@ state0:
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
-      const PeptideIdentificationList& pep_ids = f.getPeptideIdentifications();
+      const PeptideIdentificationList& pep_ids = ids.at({i});
       for (PeptideIdentification const & pep_id : pep_ids)
       {
         vector<std::string> pep_keys;
@@ -2711,16 +2720,17 @@ state0:
 
   // extract *all* meta values stored at consensus feature, peptide id and peptide hit level
   void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
+    const MapPeptideIdentifications& ids,
     set<std::string>& consensus_feature_user_value_keys,
     set<std::string>& peptide_identification_user_value_keys,
     set<std::string>& peptide_hit_user_value_keys)
   {
     // extract meta values from unassigned peptide identifications
-    const PeptideIdentificationList & curr_pep_ids = consensus_map.getUnassignedPeptideIdentifications();
-    extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
+    extractMetaValuesFromIDs(ids.unassigned, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
 
-    for (ConsensusFeature const & c : consensus_map)
+    for (Size i = 0; i < consensus_map.size(); ++i)
     {
+      ConsensusFeature const & c = consensus_map[i];
       vector<std::string> keys;
       c.getKeys(keys);
       // replace whitespaces with underscore
@@ -2729,8 +2739,7 @@ state0:
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
       // extract meta values from assigned peptide identifications
-      const PeptideIdentificationList & curr_pep_ids = c.getPeptideIdentifications();
-      extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
+      extractMetaValuesFromIDs(ids.at({i}), peptide_identification_user_value_keys, peptide_hit_user_value_keys);
     }
 
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
@@ -2791,20 +2800,20 @@ state0:
     const bool export_all_psms,
     const std::string& title) 
   :
-    consensus_map_(IdentificationDataConverter::withPeptideIdentifications(input_map, exported_map_)),
+    ids_(IdentificationDataConverter::exportMapIdentifications(input_map)),
+    consensus_map_(input_map),
     filename_(filename), 
     export_unidentified_features_(export_unidentified_features),
     export_subfeatures_(export_subfeatures),
     export_empty_pep_ids_(export_empty_pep_ids),
     export_all_psms_(export_all_psms)
   {
-    // the map with peptide identifications
     const ConsensusMap& consensus_map = consensus_map_;
     // every peptide identification needs its protein identification run
-    ProteinRunReferences::check(consensus_map);
+    ProteinRunReferences::check(ids_.proteins, ids_.peptides());
 
     // fill ID datastructure without copying
-    const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
+    const vector<ProteinIdentification>& prot_id = ids_.proteins;
     prot_ids_.reserve(prot_id.size());
     for (const auto & i : prot_id)
     {
@@ -2814,28 +2823,25 @@ state0:
     // pre-reserve to prevent reallocations
     size_t new_size = peptide_ids_.size();
 
-    for (const auto& elem : consensus_map) new_size += elem.getPeptideIdentifications().size();
+    for (const auto& [path, p] : ids_.features) new_size += p.size();
 
     if (export_unassigned_ids)
     {
-      new_size += consensus_map.getUnassignedPeptideIdentifications().size();
+      new_size += ids_.unassigned.size();
     }
 
     peptide_ids_.reserve(new_size);
 
     // extract mapped IDs
-    for (Size i = 0; i < consensus_map.size(); ++i)
+    for (const auto& [path, p] : ids_.features)
     {
-      const ConsensusFeature& c = consensus_map[i];
-      const PeptideIdentificationList& p = c.getPeptideIdentifications();
       for (const PeptideIdentification& pi : p) { peptide_ids_.push_back(&pi); }
     }
 
     // also export PSMs of unassigned peptide identifications
     if (export_unassigned_ids)
     {
-      const PeptideIdentificationList& up = consensus_map.getUnassignedPeptideIdentifications();
-      for (const PeptideIdentification& pi : up) { peptide_ids_.push_back(&pi); }
+      for (const PeptideIdentification& pi : ids_.unassigned) { peptide_ids_.push_back(&pi); }
     }
 
     ////////////////////////////////////////////////
@@ -2883,6 +2889,7 @@ state0:
     // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide id and hit level.
     // These are stored in optional columns of the PEP section.
     MzTab::getConsensusMapMetaValues_(consensus_map, 
+      ids_,
       consensus_feature_user_value_keys_,
       consensus_feature_peptide_identification_user_value_keys_,
       consensus_feature_peptide_hit_user_value_keys_);
@@ -3289,11 +3296,9 @@ state0:
   {
     if (pep_id_ >= consensus_map_.size()) return false; 
 
-    auto c = std::cref(consensus_map_[pep_id_]);
-
-    auto has_peptide_hits = [&](const ConsensusFeature& c) 
+    auto has_peptide_hits = [&](Size index) 
       { 
-        for (const auto& pid : c.getPeptideIdentifications())
+        for (const auto& pid : ids_.at({index}))
         {
           if (!pid.getHits().empty()) return true;
         }
@@ -3301,16 +3306,17 @@ state0:
       };
     
     // skip unidentified features
-    while (!export_unidentified_features_ && !has_peptide_hits(c.get()))
+    while (!export_unidentified_features_ && !has_peptide_hits(pep_id_))
     {
       ++pep_id_;
       if (pep_id_ >= consensus_map_.size()) return false;      
-      c = consensus_map_[pep_id_];
     }
 
     auto pep_row = MzTab::peptideSectionRowFromConsensusFeature_(
-     c.get(), 
+     consensus_map_[pep_id_], 
      consensus_map_, 
+     ids_.at({pep_id_}),
+     ids_.proteins,
      ms_runs_,
      n_assays_,
      n_study_variables_, 

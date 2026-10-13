@@ -170,38 +170,43 @@ namespace OpenMS
                      });
   }
 
+  BaseFeature::AnnotationState BaseFeature::annotationState(const PeptideIdentificationList& peptides)
+  {
+    if (peptides.empty())
+    {
+      return AnnotationState::FEATURE_ID_NONE;
+    }
+    if (peptides.size() == 1 && !peptides[0].getHits().empty())
+    {
+      return AnnotationState::FEATURE_ID_SINGLE;
+    }
+    std::set<std::string> seqs;
+    for (Size i = 0; i < peptides.size(); ++i)
+    {
+      if (!peptides[i].getHits().empty())
+      {
+        PeptideIdentification id_tmp = peptides[i];
+        id_tmp.sort();  // look at best hit only - requires sorting
+        seqs.insert(id_tmp.getHits()[0].getSequence().toString());
+      }
+    }
+    if (seqs.size() == 1)
+    {
+      return AnnotationState::FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+    }
+    if (seqs.size() > 1)
+    {
+      return AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
+    }
+    /*else if (seqs.size()==0)*/
+    return AnnotationState::FEATURE_ID_NONE;   // very rare case of empty hits
+  }
+
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
   {
     if (id_matches_.empty()) // consider IDs in old format
     {
-      if (peptides_.empty())
-      {
-        return AnnotationState::FEATURE_ID_NONE;
-      }
-      if (peptides_.size() == 1 && !peptides_[0].getHits().empty())
-      {
-        return AnnotationState::FEATURE_ID_SINGLE;
-      }
-      std::set<std::string> seqs;
-      for (Size i = 0; i < peptides_.size(); ++i)
-      {
-        if (!peptides_[i].getHits().empty())
-        {
-          PeptideIdentification id_tmp = peptides_[i];
-          id_tmp.sort();  // look at best hit only - requires sorting
-          seqs.insert(id_tmp.getHits()[0].getSequence().toString());
-        }
-      }
-      if (seqs.size() == 1)
-      {
-        return AnnotationState::FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
-      }
-      if (seqs.size() > 1)
-      {
-        return AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
-      }
-      /*else if (seqs.size()==0)*/
-      return AnnotationState::FEATURE_ID_NONE;   // very rare case of empty hits
+      return annotationState(peptides_);
     }
     else // consider IDs in new format
     {

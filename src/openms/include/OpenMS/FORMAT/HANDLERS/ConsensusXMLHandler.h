@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
 #include <unordered_map>
 #include <map>
 
@@ -41,8 +42,16 @@ namespace Internal
   {
 public:
     ///Constructor
+    /// Constructor for loading: the identifications go to getIdentifications(), not to @p map
     ConsensusXMLHandler(ConsensusMap& map, const std::string& filename);
-    ConsensusXMLHandler(const ConsensusMap& map, const std::string& filename);
+    /// Constructor for storing @p map with @p identifications (see IdentificationDataConverter::exportMapIdentifications())
+    ConsensusXMLHandler(const ConsensusMap& map, const MapPeptideIdentifications& identifications, const std::string& filename);
+
+    /// The identifications of the loaded map (see IdentificationDataConverter::importMapIdentifications())
+    MapPeptideIdentifications& getIdentifications()
+    {
+      return identifications_;
+    }
     ///Destructor
     ~ConsensusXMLHandler() override;
 
@@ -89,6 +98,12 @@ protected:
     ConsensusMap* consensus_map_;
     const ConsensusMap* cconsensus_map_;
     ConsensusFeature act_cons_element_;
+    /// The peptide identifications of the current consensus element
+    PeptideIdentificationList act_peptides_;
+    /// The identifications of the loaded map
+    MapPeptideIdentifications identifications_;
+    /// The identifications of the stored map
+    const MapPeptideIdentifications* write_identifications_ = nullptr;
     DPosition<2> pos_;
     double it_;
     //@}

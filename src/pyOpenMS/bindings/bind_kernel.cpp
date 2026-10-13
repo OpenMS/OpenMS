@@ -3432,6 +3432,8 @@ This class supports direct iteration in Python.
         .def("getMinIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMinIntensity(); }, "Get the minimum intensity value")
         .def("getMaxIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
         .def("getIdentificationData", [](const OpenMS::ConsensusMap& self) { return OpenMS::IdentificationData(self.getIdentificationData()); })
+        .def("clearIdentifications", &OpenMS::ConsensusMap::clearIdentifications,
+             "Remove all identifications: the identification data, the links of the features and the peptide and protein identifications")
         .def("setIdentificationData", [](OpenMS::ConsensusMap& self, const OpenMS::IdentificationData& data) { data.validate(); self.getIdentificationData() = data; }, "data"_a)
         .def("identification_data_view", [](OpenMS::ConsensusMap& self) -> OpenMS::IdentificationData& { return self.getIdentificationData(); },
              nb::rv_policy::reference_internal,
@@ -3627,6 +3629,8 @@ Sorts features by overall quality score in ascending order
 Higher quality scores indicate better feature detection confidence
 )doc")
         .def("getIdentificationData", [](const OpenMS::FeatureMap& self) { return OpenMS::IdentificationData(self.getIdentificationData()); })
+        .def("clearIdentifications", &OpenMS::FeatureMap::clearIdentifications,
+             "Remove all identifications: the identification data, the links of the features and the peptide and protein identifications")
         .def("setIdentificationData", [](OpenMS::FeatureMap& self, const OpenMS::IdentificationData& data) { data.validate(); self.getIdentificationData() = data; }, "data"_a)
         .def("identification_data_view", [](OpenMS::FeatureMap& self) -> OpenMS::IdentificationData& { return self.getIdentificationData(); },
              nb::rv_policy::reference_internal,

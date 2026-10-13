@@ -34,8 +34,8 @@ namespace OpenMS
 bool QPXCollectionExport::requireExportable(const ConsensusMap& input_map, const ExperimentalDesign& design)
 {
   // the identifications as peptide identifications, which this format holds
-  std::optional<ConsensusMap> exported;
-  const ConsensusMap& cmap = IdentificationDataConverter::withPeptideIdentifications(input_map, exported);
+  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
+  const ConsensusMap& cmap = input_map;
   const auto refuse = [](const std::string& what)
   {
     OPENMS_LOG_ERROR << "QPXCollectionExport: " << what
@@ -46,11 +46,11 @@ bool QPXCollectionExport::requireExportable(const ConsensusMap& input_map, const
 
   // The pg exporter requires the first identification run and its inferred groups. Catch both
   // before the feature and PSM writers can leave a partial collection behind.
-  if (cmap.getProteinIdentifications().empty())
+  if (ids.proteins.empty())
   {
     return refuse("the ConsensusMap contains no protein identification run");
   }
-  if (cmap.getProteinIdentifications()[0].getIndistinguishableProteins().empty())
+  if (ids.proteins[0].getIndistinguishableProteins().empty())
   {
     return refuse("the first protein identification run contains no indistinguishable protein groups");
   }
@@ -58,8 +58,8 @@ bool QPXCollectionExport::requireExportable(const ConsensusMap& input_map, const
   // -- feature view --
   // Both throw. Order matches the exporter's, so the first complaint a user sees is the same
   // one they would have seen without the preflight.
-  ConsensusMapArrowExport::requireUnambiguousIdentities(cmap);
-  ConsensusMapArrowExport::requireResolvableIdRuns(cmap);
+  ConsensusMapArrowExport::requireUnambiguousIdentities(ids);
+  ConsensusMapArrowExport::requireResolvableIdRuns(ids);
 
   // -- psm view --
   // The psm exporter validates every identification the caller hands it: the assigned ones plus
@@ -69,18 +69,7 @@ bool QPXCollectionExport::requireExportable(const ConsensusMap& input_map, const
   // Keep pointers into the map rather than deep-copying every PSM. The map outlives this
   // synchronous preflight, and QPXFile's pointer overload is the same check used by its streaming
   // writer.
-  {
-    std::vector<const PeptideIdentification*> all_pep_ids;
-    size_t n = cmap.getUnassignedPeptideIdentifications().size();
-    for (const auto& feature : cmap) { n += feature.getPeptideIdentifications().size(); }
-    all_pep_ids.reserve(n);
-    for (const auto& feature : cmap)
-    {
-      for (const auto& pep_id : feature.getPeptideIdentifications()) { all_pep_ids.push_back(&pep_id); }
-    }
-    for (const auto& pep_id : cmap.getUnassignedPeptideIdentifications()) { all_pep_ids.push_back(&pep_id); }
-    QPXFile::requireResolvableMergeIndices(cmap.getProteinIdentifications(), all_pep_ids);
-  }
+  QPXFile::requireResolvableMergeIndices(ids.proteins, ids.peptides());
 
   // -- channel labels, shared by the feature and pg views --
   // Feature intensities[].label and the pg scalar label both join against run.samples[].label.
@@ -140,7 +129,7 @@ bool QPXCollectionExport::requireExportable(const ConsensusMap& input_map, const
 
   // Validate every group's complete annotation contract. No early exit on a well-formed group:
   // a malformed later group must be found before the first collection file is opened.
-  for (const auto& group : cmap.getProteinIdentifications()[0].getIndistinguishableProteins())
+  for (const auto& group : ids.proteins[0].getIndistinguishableProteins())
   {
     const auto* sample_abundances = Internal::sampleAbundances(group);
     const auto quantities = Internal::fractionGroupAbundances(group);

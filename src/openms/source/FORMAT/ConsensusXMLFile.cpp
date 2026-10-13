@@ -40,18 +40,24 @@ namespace OpenMS
     return options_;
   }
 
-  void ConsensusXMLFile::store(const std::string& filename, const ConsensusMap& map)
+  namespace
   {
-    // consensusXML holds legacy identifications. A map with native identification data and no legacy identifications
-    // (which the file would hold otherwise) is written with its native identifications converted, so they are kept.
-    std::optional<ConsensusMap> converted;
-    if (! map.getIdentificationData().empty() && map.getProteinIdentifications().empty() && map.getUnassignedPeptideIdentifications().empty()
-        && std::none_of(map.begin(), map.end(), [](const ConsensusFeature& feature) { return ! feature.getPeptideIdentifications().empty(); }))
+    // The identifications of a file as peptide and protein identifications of the map
+    void setPeptideIdentifications(ConsensusMap& map, MapPeptideIdentifications&& identifications)
     {
-      converted.emplace(map);
-      IdentificationDataConverter::exportConsensusIDs(*converted, true);
+      map.setProteinIdentifications(std::move(identifications.proteins));
+      map.setUnassignedPeptideIdentifications(std::move(identifications.unassigned));
+      for (auto& [path, peptides] : identifications.features)
+      {
+        map.at(path[0]).setPeptideIdentifications(std::move(peptides));
+      }
     }
-    const ConsensusMap& consensus_map = converted ? *converted : map;
+  } // namespace
+
+  void ConsensusXMLFile::store(const std::string& filename, const ConsensusMap& consensus_map)
+  {
+    // consensusXML holds peptide and protein identifications: those of the map, or its identification data exported
+    const MapPeptideIdentifications identifications = IdentificationDataConverter::exportMapIdentifications(consensus_map);
     if (!FileHandler::hasValidExtension(filename, FileTypes::CONSENSUSXML))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
@@ -59,7 +65,7 @@ namespace OpenMS
 
     // every peptide identification needs its protein identification run, and the proteins of its peptide evidences need
     // to be protein hits of that run (they are referenced there): fail before the file is opened (one pass for both)
-    ProteinRunReferences::checkProteinAccessions(consensus_map);
+    ProteinRunReferences::checkProteinAccessions(identifications.proteins, identifications.peptides());
 
     if (!consensus_map.isMapConsistent(&getGlobalLogWarn()))
     {
@@ -90,7 +96,7 @@ namespace OpenMS
     }
 
 
-    Internal::ConsensusXMLHandler handler(consensus_map, filename);
+    Internal::ConsensusXMLHandler handler(consensus_map, identifications, filename);
     handler.setOptions(options_);
     handler.setLogType(getLogType());
     save_(filename, &handler);
@@ -108,6 +114,7 @@ namespace OpenMS
     handler.setOptions(options_);
     handler.setLogType(getLogType());
     parse_(filename, &handler);
+    setPeptideIdentifications(consensus_map, std::move(handler.getIdentifications()));
 
     if (!consensus_map.isMapConsistent(&getGlobalLogWarn())) // a warning is printed to LOG_WARN during isMapConsistent()
     {

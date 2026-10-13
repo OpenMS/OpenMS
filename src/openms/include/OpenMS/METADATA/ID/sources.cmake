@@ -6,6 +6,7 @@ set(sources_list_h
 IdentificationData.h
 IdentificationDataAdapter.h
 IdentificationDataConverter.h
+MapPeptideIdentifications.h
 )
 
 ### add path to the filenames

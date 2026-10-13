@@ -602,6 +602,20 @@ namespace OpenMS
     return eraseFlaggedFeatures(*this, erase, links);
   }
 
+  void FeatureMap::clearIdentifications()
+  {
+    const auto clear = [](const auto& self, Feature& feature) -> void {
+      feature.getIDQueries().clear();
+      feature.getIDMatches().clear();
+      feature.getPeptideIdentifications().clear();
+      for (auto& subordinate : feature.getSubordinates()) self(self, subordinate);
+    };
+    for (auto& feature : *this) clear(clear, feature);
+    id_data_.clear();
+    protein_identifications_.clear();
+    unassigned_peptide_identifications_.clear();
+  }
+
   Size FeatureMap::eraseUnassignedIdentifications()
   {
     using ID = IdentificationData;
