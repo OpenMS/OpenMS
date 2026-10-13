@@ -761,6 +761,28 @@ if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
     "-DFORBIDDEN=name=\"profile spectrum\""
     -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
   set_tests_properties("TOPP_FileConverter_RAW_1_centroided" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  add_test("TOPP_FileConverter_RAW_noise" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -RawToMzML:include_noise -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_noise.tmp.mzML)
+  foreach (noise_accession 1002743 1002744 1002745)
+    add_test("TOPP_FileConverter_RAW_noise_${noise_accession}" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_noise.tmp.mzML
+      "-DEXPECTED=accession=\"MS:${noise_accession}\""
+      -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+    set_tests_properties("TOPP_FileConverter_RAW_noise_${noise_accession}" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_noise")
+  endforeach ()
+  # The SHA-1 of the raw file costs a second read of the whole file, so it is computed only on request
+  # (mzML requires a checksum term, so without it the SHA-1 value is empty).
+  add_test("TOPP_FileConverter_RAW_1_no_checksum" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML
+    "-DEXPECTED=name=\"SHA-1\" value=\"\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_1_no_checksum" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  add_test("TOPP_FileConverter_RAW_checksum" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -raw_checksum -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_checksum.tmp.mzML)
+  add_test("TOPP_FileConverter_RAW_checksum_written" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_checksum.tmp.mzML
+    "-DEXPECTED=name=\"SHA-1\""
+    "-DFORBIDDEN=name=\"SHA-1\" value=\"\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_checksum_written" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_checksum")
   if (NOT WIN32) # creating symbolic links needs extra privileges on Windows
     # Workflow systems (Nextflow, Galaxy) stage inputs as symbolic links, which Thermo's RawFileReader
     # cannot open itself (#10451). The source file must keep the linked name.

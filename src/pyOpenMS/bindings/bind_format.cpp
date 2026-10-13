@@ -117,7 +117,16 @@ NB_MODULE(_pyopenms_format, m) {
         .def_rw("all_detectors", &OpenMS::ThermoRawFile::Options::all_detectors, "Export UV/PDA/analog detector traces and PDA spectra")
         .def_rw("preserve_trailers", &OpenMS::ThermoRawFile::Options::preserve_trailers, "Retain all scan trailer label/value pairs")
         .def_rw("instrument_methods", &OpenMS::ThermoRawFile::Options::instrument_methods, "Retain the embedded instrument method texts")
-        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance");
+        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance")
+        .def_rw("first_scan", &OpenMS::ThermoRawFile::Options::first_scan, "First scan number to load (0: from the first scan)")
+        .def_rw("last_scan", &OpenMS::ThermoRawFile::Options::last_scan, "Last scan number to load (0: up to the last scan)")
+        .def_rw("rt_min", &OpenMS::ThermoRawFile::Options::rt_min, "Load scans with rt_min <= RT (seconds)")
+        .def_rw("rt_max", &OpenMS::ThermoRawFile::Options::rt_max, "Load scans with RT < rt_max (seconds)")
+        .def_rw("ms_levels", &OpenMS::ThermoRawFile::Options::ms_levels, "MS levels to load (empty: all; PDA spectra have level 0)")
+        .def_rw("precursor_mz_min", &OpenMS::ThermoRawFile::Options::precursor_mz_min, "Skip MSn scans whose first precursor m/z is below this")
+        .def_rw("precursor_mz_max", &OpenMS::ThermoRawFile::Options::precursor_mz_max, "Skip MSn scans whose first precursor m/z is at or above this")
+        .def_rw("metadata_only", &OpenMS::ThermoRawFile::Options::metadata_only, "Load spectrum metadata only (no peaks are read)")
+        .def_rw("skip_chromatograms", &OpenMS::ThermoRawFile::Options::skip_chromatograms, "Do not load the TIC and detector chromatograms");
     // ProgressLogger lives in another extension module, so its methods are added
     // explicitly instead of declaring it as a nanobind base class.
     auto thermorawfile_class = nb::class_<OpenMS::ThermoRawFile>(m, "ThermoRawFile", "Load Thermo RAW spectra and metadata for mzML export");

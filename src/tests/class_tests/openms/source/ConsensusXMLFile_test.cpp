@@ -933,4 +933,29 @@ START_SECTION([EXTRA] the identification data of a map is written as peptide and
 }
 END_SECTION
 
+START_SECTION([EXTRA] load - an empty file list ('spectra_data') is not stored)
+{
+  // older versions wrote one for runs without files
+  ConsensusMap map;
+  MapPeptideIdentifications ids;
+  ProteinIdentification run;
+  run.setIdentifier("run");
+  ids.proteins = {run};
+  IdentificationDataConverter::importMapIdentifications(map, ids);
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".consensusXML")
+  ConsensusXMLFile().store(file, map);
+  TEST_TRUE(replaceInFile4b(file, "</ProteinIdentification>",
+                            "<UserParam type=\"stringList\" name=\"spectra_data\" value=\"[]\"/>\n"
+                            "<UserParam type=\"stringList\" name=\"spectra_data_raw\" value=\"[]\"/>\n</ProteinIdentification>"))
+  ConsensusMap loaded;
+  ConsensusXMLFile().load(file, loaded);
+  const auto proteins = IdentificationDataConverter::proteinIdentifications(loaded);
+  TEST_EQUAL(proteins.size(), 1)
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].metaValueExists("spectra_data"), false)
+  TEST_EQUAL(proteins[0].metaValueExists("spectra_data_raw"), false)
+}
+END_SECTION
+
 END_TEST

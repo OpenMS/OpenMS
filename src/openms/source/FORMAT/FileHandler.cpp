@@ -1019,11 +1019,27 @@ namespace OpenMS
         f.setLogType(log);
         ThermoRawFile::Options raw_options = f.getOptions();
         raw_options.centroid = true;
+        // The SHA-1 reads the whole file again; the source file checksum is set below if requested.
+        raw_options.checksum = false;
+        // Push the scan-level PeakFileOptions down, so skipped scans and peaks are never decoded.
+        if (options_.hasMSLevels()) { raw_options.ms_levels = options_.getMSLevels(); }
+        if (options_.hasRTRange())
+        {
+          raw_options.rt_min = options_.getRTRange().minPosition()[0];
+          raw_options.rt_max = options_.getRTRange().maxPosition()[0];
+        }
+        if (options_.hasPrecursorMZRange())
+        {
+          raw_options.precursor_mz_min = options_.getPrecursorMZRange().minPosition()[0];
+          raw_options.precursor_mz_max = options_.getPrecursorMZRange().maxPosition()[0];
+        }
+        raw_options.metadata_only = options_.getMetadataOnly() || ! options_.getFillData();
+        raw_options.skip_chromatograms = options_.getSkipChromatograms();
         f.setOptions(raw_options);
         f.load(filename, exp);
 
-        // ThermoRawFile loads everything; apply PeakFileOptions filters post-load.
-        applyPostLoadOptions_(exp);
+        // Only the peak-level filters (m/z, intensity) are left to apply post-load.
+        if (options_.hasMZRange() || options_.hasIntensityRange()) { applyPostLoadOptions_(exp); }
       }
       break;
 #endif
