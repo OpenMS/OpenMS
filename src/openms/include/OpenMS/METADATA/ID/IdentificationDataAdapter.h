@@ -224,6 +224,14 @@ public:
     @throw Exception::InvalidParameter if the peptide identifications are not in one protein run
   */
   static void editPooledProteins(IdentificationData& data, const std::function<void(ProteinIdentification&)>& edit);
+  /**
+    @brief Edit the protein run of every inference result of @p data, e.g. of the results that merging runs per
+    condition gives (ConsensusMapMergerAlgorithm::mergeProteinsAcrossFractionsAndReplicates())
+
+    The counterpart of editing every protein run of a map with peptide identifications. As in editPooledProteins(),
+    the protein score definition of a result is dropped if the edit gives its proteins another score type.
+  */
+  static void editInferenceResults(IdentificationData& data, const std::function<void(ProteinIdentification&)>& edit);
 
   /**
     @name Legacy file lists

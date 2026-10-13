@@ -166,6 +166,8 @@ protected:
     ConsensusMap cmap;
     std::string in_cm = getStringOption_("in_cm");
     FileHandler().loadConsensusFeatures(in_cm, cmap, {FileTypes::CONSENSUSXML});
+    // QualityControl works on peptide identifications (until it is moved to identification data, see #10470)
+    IdentificationDataConverter::moveToPeptideIdentifications(cmap);
     for (ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
     {
       sortVectorOfPeptideIDsbyScore_(cf.getPeptideIdentifications());
@@ -292,6 +294,7 @@ protected:
       if (!in_postFDR.empty())
       {
         FileHandler().loadFeatures(in_postFDR[i], fmap_local, {FileTypes::FEATUREXML}, log_type_);
+        IdentificationDataConverter::moveToPeptideIdentifications(fmap_local);
         fmap = &fmap_local;
       }
       else

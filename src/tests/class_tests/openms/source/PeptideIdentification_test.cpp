@@ -16,6 +16,7 @@
 #include <unordered_map>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -426,6 +427,7 @@ START_SECTION((static std::multimap<String, std::pair<Size, Size>> buildUIDsFrom
 {
   ConsensusMap cmap;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap);
+  IdentificationDataConverter::moveToPeptideIdentifications(cmap); // a legacy fixture (loading gives identification data)
   std::multimap<std::string, std::pair<Size, Size>> map_of_UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
 
   auto b = map_of_UIDs.begin();
@@ -446,6 +448,7 @@ START_SECTION((static std::multimap<String, std::pair<Size, Size>> buildUIDsFrom
 
   FeatureMap fmap;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap);
+  IdentificationDataConverter::moveToPeptideIdentifications(fmap); // a legacy fixture (loading gives identification data)
   IdentifierMSRunMapper mapping(cmap.getProteinIdentifications());
 
   std::string uid_zero = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[0], mapping);

@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <optional>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include "MapIdentificationParquet.h"
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -1245,10 +1247,13 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
 }
 
 bool FeatureMapArrowIO::exportToParquet(
-  const FeatureMap& feature_map,
+  const FeatureMap& input_map,
   const std::string& directory,
   const ParquetWriteConfig& config)
 {
+  // the bundle holds identifications as identification data (peptide identifications are converted)
+  std::optional<FeatureMap> converted;
+  const FeatureMap& feature_map = IdentificationDataConverter::withIdentificationData(input_map, converted);
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .featureparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(feature_map.getProteinIdentifications());
@@ -1955,6 +1960,9 @@ bool FeatureMapArrowIO::importFromParquet(
     ProteinIdentificationArrowIO::applyRunIdentifierRename(
         rename, feature_map.getUnassignedPeptideIdentifications());
   }
+
+  // the peptide identifications of a bundle (written by former versions) as identification data
+  IdentificationDataConverter::moveToIdentificationData(feature_map);
 
   return true;
 }

@@ -237,9 +237,11 @@ START_SECTION(([EXTRA] maps: linked and unassigned identifications follow their 
 {
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), features);
+  IdentificationDataConverter::moveToPeptideIdentifications(features); // a legacy fixture (loading gives identification data)
   checkLinks(features);
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
+  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
   checkLinks(consensus);
 
   // read access converts a copy, maps without peptide identifications are used as they are
@@ -264,6 +266,7 @@ START_SECTION((static MapPeptideIdentifications exportMapIdentifications(const F
   // and links that converting the map gives, and their export gives the view again.
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), features);
+  IdentificationDataConverter::moveToPeptideIdentifications(features); // a legacy fixture (loading gives identification data)
   const auto legacy = IdentificationDataConverter::exportMapIdentifications(features);
   TEST_EQUAL(legacy.proteins == features.getProteinIdentifications(), true)
   TEST_EQUAL(legacy.unassigned == features.getUnassignedPeptideIdentifications(), true)
@@ -303,6 +306,7 @@ START_SECTION((static MapPeptideIdentifications exportMapIdentifications(const F
   // consensus maps
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
+  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
   const auto consensus_legacy = IdentificationDataConverter::exportMapIdentifications(consensus);
   ConsensusMap consensus_native = consensus;
   consensus_native.getProteinIdentifications().clear();
@@ -342,6 +346,7 @@ START_SECTION((static void editAsIdentificationData(ConsensusMap& map, const std
 {
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
+  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
   const auto original = consensus;
   // Callers keep references to protein runs (e.g. that of an inference result) across edits.
   const auto* run = &consensus.getProteinIdentifications()[0];
@@ -529,6 +534,7 @@ START_SECTION((static const std::vector<ConsensusMap>& withIdentificationData(co
   // peptide identifications are converted:
   std::vector<ConsensusMap> maps(2);
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), maps[0]);
+  IdentificationDataConverter::moveToPeptideIdentifications(maps[0]); // a legacy fixture (loading gives identification data)
   std::vector<ConsensusMap> converted;
   const auto& prepared = IdentificationDataConverter::withIdentificationData(maps, converted);
   TEST_EQUAL(&prepared == &converted, true)

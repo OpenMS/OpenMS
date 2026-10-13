@@ -319,6 +319,7 @@ START_SECTION((void readQuantData(FeatureMap& features, ExperimentalDesign& ed))
 {
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), features);
+  IdentificationDataConverter::moveToPeptideIdentifications(features); // a legacy fixture (loading gives identification data)
   ExperimentalDesign design = ExperimentalDesign::fromFeatureMap(features);
   TEST_EQUAL(quantifier_features.getPeptideResults().empty(), true);
   quantifier_features.readQuantData(features, design);
@@ -331,6 +332,7 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
 {
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
+  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
   TEST_EQUAL(quantifier_consensus.getPeptideResults().empty(), true);
   ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(consensus);
   quantifier_consensus.readQuantData(consensus, design);
@@ -374,9 +376,11 @@ START_SECTION(([EXTRA] readQuantData: maps with identification data give the res
   };
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), features);
+  IdentificationDataConverter::moveToPeptideIdentifications(features); // a legacy fixture (loading gives identification data)
   check(features);
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
+  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
   check(consensus);
 }
 END_SECTION
@@ -1159,6 +1163,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 {
   FeatureMap f;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), f);
+  IdentificationDataConverter::moveToPeptideIdentifications(f); // a legacy fixture (loading gives identification data)
   
   PeptideAndProteinQuant quantifier;
   PeptideAndProteinQuant::ProteinQuant quant;
@@ -1218,6 +1223,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
+  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
   ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus);
   ProteinIdentification proteins_ = consensus.getProteinIdentifications()[0];
   addSearchRun(consensus);

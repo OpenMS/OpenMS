@@ -179,9 +179,10 @@ namespace OpenMS
     // we need the protein identifications to reference the protein names
     ProteinIdentification protIdent;
     bool has_proteinIdentifications = false;
-    if (!cm.getProteinIdentifications().empty())
+    // (the protein runs of the map, as peptide identifications or identification data)
+    if (const auto proteins = IdentificationDataConverter::proteinIdentifications(cm); !proteins.empty())
     {
-      protIdent = cm.getProteinIdentifications()[0];
+      protIdent = proteins[0];
       has_proteinIdentifications = true;
     }
 

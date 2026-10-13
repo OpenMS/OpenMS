@@ -40,20 +40,6 @@ namespace OpenMS
     return options_;
   }
 
-  namespace
-  {
-    // The identifications of a file as peptide and protein identifications of the map
-    void setPeptideIdentifications(ConsensusMap& map, MapPeptideIdentifications&& identifications)
-    {
-      map.setProteinIdentifications(std::move(identifications.proteins));
-      map.setUnassignedPeptideIdentifications(std::move(identifications.unassigned));
-      for (auto& [path, peptides] : identifications.features)
-      {
-        map.at(path[0]).setPeptideIdentifications(std::move(peptides));
-      }
-    }
-  } // namespace
-
   void ConsensusXMLFile::store(const std::string& filename, const ConsensusMap& consensus_map)
   {
     // consensusXML holds peptide and protein identifications: those of the map, or its identification data exported
@@ -114,7 +100,8 @@ namespace OpenMS
     handler.setOptions(options_);
     handler.setLogType(getLogType());
     parse_(filename, &handler);
-    setPeptideIdentifications(consensus_map, std::move(handler.getIdentifications()));
+    // the identifications of the file as identification data
+    IdentificationDataConverter::importMapIdentifications(consensus_map, handler.getIdentifications());
 
     if (!consensus_map.isMapConsistent(&getGlobalLogWarn())) // a warning is printed to LOG_WARN during isMapConsistent()
     {

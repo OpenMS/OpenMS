@@ -155,7 +155,8 @@ namespace OpenMS::Internal::ClassTest
   /**
     @brief Compare an operation on the peptide identifications of a map with the same operation on its identification data
 
-    Runs @p operation(map, false) on a copy of @p input and @p operation(map, true) on a copy whose peptide identifications
+    Runs @p operation(map, false) on a copy of @p input with peptide identifications (identification data of the input is
+    moved into peptide identifications first) and @p operation(map, true) on a copy whose peptide identifications
     were moved into identification data; the latter must not produce peptide identifications. Its result is moved back
     into peptide identifications and compared with the former. @p operation returns the resulting map (of any type).
 
@@ -164,9 +165,12 @@ namespace OpenMS::Internal::ClassTest
   template<class Map, class Operation>
   std::string nativeDifference(const Map& input, Operation operation)
   {
-    Map native_input = input;
+    // the input as peptide identifications (a loaded map has identification data)
+    Map legacy_input = input;
+    IdentificationDataConverter::moveToPeptideIdentifications(legacy_input);
+    Map native_input = legacy_input;
     toNative(native_input);
-    auto expected = operation(Map(input), false);
+    auto expected = operation(std::move(legacy_input), false);
     auto actual = operation(std::move(native_input), true);
     if (NativeIdentificationDetail::hasPeptideIdentifications(actual)) return "the operation on identification data produced peptide identifications";
     toLegacy(actual);

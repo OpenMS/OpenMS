@@ -1041,6 +1041,18 @@ void IdentificationDataAdapter::editPooledProteins(ID& data, const std::function
   storeInferenceResult(data, *result);
 }
 
+void IdentificationDataAdapter::editInferenceResults(ID& data, const std::function<void(ProteinIdentification&)>& edit)
+{
+  auto results = data.getInferenceResults();
+  for (auto& result : results)
+  {
+    edit(result.proteins);
+    if (result.protein_score && result.protein_score->name != result.proteins.getScoreType()) result.protein_score.reset();
+  }
+  data.clearInferenceResults();
+  for (auto& result : results) data.addInferenceResult(std::move(result));
+}
+
 std::vector<ProteinHit> IdentificationDataAdapter::proteinHits(const ID::Run& run)
 {
   std::vector<ProteinHit> hits;

@@ -22,6 +22,7 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
         ConsensusXMLFile cf;
         ConsensusMap cmap;
         cf.load(OPENMS_GET_TEST_DATA_PATH("BSA.consensusXML"), cmap);
+        IdentificationDataConverter::moveToPeptideIdentifications(cmap); // a legacy fixture (loading gives identification data)
         ConsensusMapMergerAlgorithm cmerge;
         cmerge.mergeAllIDRuns(cmap);
         TEST_EQUAL(cmap.getProteinIdentifications().size(), 1)
@@ -33,6 +34,7 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
         ConsensusXMLFile cf;
         ConsensusMap cmap;
         cf.load(OPENMS_GET_TEST_DATA_PATH("BSA.consensusXML"), cmap);
+        IdentificationDataConverter::moveToPeptideIdentifications(cmap); // a legacy fixture (loading gives identification data)
         ConsensusMapMergerAlgorithm cmerge;
         ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(cmap);
         cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, ed);
@@ -49,6 +51,7 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
         ConsensusXMLFile cf;
         ConsensusMap cmap;
         cf.load(OPENMS_GET_TEST_DATA_PATH("BSA.consensusXML"), cmap);
+        IdentificationDataConverter::moveToPeptideIdentifications(cmap); // a legacy fixture (loading gives identification data)
         ConsensusMapMergerAlgorithm cmerge;
         ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(cmap);
         ExperimentalDesign::SampleSection ss{
@@ -100,6 +103,7 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
         ConsensusXMLFile cf;
         ConsensusMap cmap;
         cf.load(OPENMS_GET_TEST_DATA_PATH("BSA.consensusXML"), cmap);
+        IdentificationDataConverter::moveToPeptideIdentifications(cmap); // a legacy fixture (loading gives identification data)
         IdentificationDataConverter::moveToIdentificationData(cmap);
         const auto data = cmap.getIdentificationData();
         ConsensusMapMergerAlgorithm cmerge;
@@ -127,6 +131,7 @@ START_TEST(ConsensusMapMergerAlgorithm, "$Id$")
         ConsensusXMLFile cf;
         ConsensusMap cmap;
         cf.load(OPENMS_GET_TEST_DATA_PATH("BSA.consensusXML"), cmap);
+        IdentificationDataConverter::moveToPeptideIdentifications(cmap); // a legacy fixture (loading gives identification data)
         ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(cmap);
         ExperimentalDesign::SampleSection ss{
             {{"1","C1"},{"2","C2"},{"3","C3"}},

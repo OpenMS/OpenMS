@@ -26,6 +26,46 @@ namespace OpenMS
 
   namespace
   {
+    /// Sort the fixed and variable modifications of every run and remove duplicates (as merging maps does for their
+    /// protein identifications)
+    void uniqueModifications(IdentificationData& data)
+    {
+      std::vector<std::string> identifiers;
+      for (const auto& run : data.getRuns()) identifiers.push_back(run.getIdentifier());
+      for (const auto& identifier : identifiers)
+      {
+        auto& run = data.getRun(identifier);
+        auto settings = run.getSettings();
+        for (auto* mods : {&settings.search.fixed_modifications, &settings.search.variable_modifications})
+        {
+          std::sort(mods->begin(), mods->end());
+          mods->erase(std::unique(mods->begin(), mods->end()), mods->end());
+        }
+        if (! (settings == run.getSettings())) run.setSettings(settings);
+      }
+      // (the protein runs of inference results carry search parameters as well, which export writes)
+      auto results = data.getInferenceResults();
+      bool changed = false;
+      for (auto& result : results)
+      {
+        auto& search = result.proteins.getSearchParameters();
+        for (auto* mods : {&search.fixed_modifications, &search.variable_modifications})
+        {
+          auto unique_mods = *mods;
+          std::sort(unique_mods.begin(), unique_mods.end());
+          unique_mods.erase(std::unique(unique_mods.begin(), unique_mods.end()), unique_mods.end());
+          if (unique_mods != *mods)
+          {
+            *mods = std::move(unique_mods);
+            changed = true;
+          }
+        }
+      }
+      if (! changed) return;
+      data.clearInferenceResults();
+      for (auto& result : results) data.addInferenceResult(std::move(result));
+    }
+
     /// Replace the links of @p feature to erased matches by links to their identifications (see eraseMatches())
     void relinkErased(BaseFeature& feature, const IdentificationData& data,
                       const std::map<IdentificationData::MatchReference, IdentificationData::QueryReference>& erased)
@@ -143,6 +183,8 @@ namespace OpenMS
       it_2 = unique(fixMod.begin(), fixMod.end());
       fixMod.resize(it_2 - fixMod.begin());
     }
+    // and those of the runs of the identification data
+    uniqueModifications(id_data_);
 
     // append unassigned PeptideIdentifications
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
@@ -240,6 +282,8 @@ namespace OpenMS
       it_2 = unique(fixMod.begin(), fixMod.end());
       fixMod.resize(it_2 - fixMod.begin());
     }
+    // and those of the runs of the identification data
+    uniqueModifications(id_data_);
 
     // append unassigned identifications and update map index:
     for (PeptideIdentification pid : rhs.unassigned_peptide_identifications_)

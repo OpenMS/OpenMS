@@ -313,6 +313,8 @@ START_SECTION(([EXTRA] appendColumns shifts the map indices of the identificatio
   using namespace OpenMS::Internal::ClassTest;
   ConsensusMap lhs;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), lhs);
+  // the fixture is edited as peptide identifications (loading gives identification data)
+  IdentificationDataConverter::moveToPeptideIdentifications(lhs);
   // the columns of the other map come from another search
   ConsensusMap rhs = lhs;
   for (auto& run : rhs.getProteinIdentifications())

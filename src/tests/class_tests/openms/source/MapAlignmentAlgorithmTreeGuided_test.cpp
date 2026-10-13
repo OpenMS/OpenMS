@@ -12,6 +12,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <algorithm>
@@ -46,6 +47,8 @@ vector<FeatureMap> maps(3);
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in0.featureXML"), maps[0]);
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in1.featureXML"), maps[1]);
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in2.featureXML"), maps[2]);
+// the maps with peptide identifications (loading gives identification data)
+for (auto& map : maps) IdentificationDataConverter::moveToPeptideIdentifications(map);
 // copy maps for computeTrafosByOriginalRT and computeTransformedFeatureMaps
 vector<FeatureMap> maps_orig = maps;
 
@@ -216,6 +219,7 @@ START_SECTION(([EXTRA] maps with identification data align like maps with peptid
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in0.featureXML"), legacy[0]);
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in1.featureXML"), legacy[1]);
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmTreeGuided_test_in2.featureXML"), legacy[2]);
+  for (auto& map : legacy) IdentificationDataConverter::moveToPeptideIdentifications(map);
   vector<FeatureMap> native = legacy;
   for (auto& map : native) toNative(map);
   ABORT_IF(native[0].getIdentificationData().empty())

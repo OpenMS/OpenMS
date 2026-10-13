@@ -12,6 +12,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
@@ -534,6 +535,7 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
 
   FeatureMap fm_in;
   FileHandler().loadFeatures(dir, fm_in, {FileTypes::FEATUREPARQUET});
+  IdentificationDataConverter::moveToPeptideIdentifications(fm_in); // read as peptide identifications (the map has identification data)
 
   TEST_EQUAL(fm_in.size(), 1);
   TEST_EQUAL(fm_in[0].getUniqueId(), 42);
@@ -543,11 +545,9 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   TEST_EQUAL(fm_in[0].getCharge(), 2);
   TEST_REAL_SIMILAR(fm_in[0].getOverallQuality(), 0.9f);
 
-  // ID sidecar round-trip — identifier is synthesized on load (IdXMLFile.cpp:530
-  // parity); pep_ids re-stamp in lock-step.
+  // ID round-trip: the bundle stores identification data, whose runs keep their identifiers
   TEST_EQUAL(fm_in.getProteinIdentifications().size(), 1);
-  TEST_NOT_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "");
-  TEST_NOT_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
+  TEST_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
   TEST_STRING_EQUAL(fm_in.getProteinIdentifications()[0].getScoreType(), "score");
   TEST_EQUAL(fm_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
   TEST_EQUAL(fm_in[0].getPeptideIdentifications().size(), 1);
@@ -626,6 +626,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   FileHandler().loadConsensusFeatures(
     OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"),
     cmap_ref, {FileTypes::CONSENSUSXML});
+    IdentificationDataConverter::moveToPeptideIdentifications(cmap_ref); // read as peptide identifications (the map has identification data)
 
   // Sanity-anchor the reference: stable counts for this test fixture.
   TEST_EQUAL(cmap_ref.size(), 39);
@@ -646,6 +647,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
 
   ConsensusMap cmap_in;
   FileHandler().loadConsensusFeatures(dir, cmap_in, {FileTypes::CONSENSUSPARQUET});
+  IdentificationDataConverter::moveToPeptideIdentifications(cmap_in); // read as peptide identifications (the map has identification data)
 
   // ---- Top-level container counts ----
   TEST_EQUAL(cmap_in.size(), cmap_ref.size());
@@ -850,6 +852,7 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
 
   ConsensusMap cmap_in;
   FileHandler().loadConsensusFeatures(dir, cmap_in, {FileTypes::CONSENSUSPARQUET});
+  IdentificationDataConverter::moveToPeptideIdentifications(cmap_in); // read as peptide identifications (the map has identification data)
 
   TEST_EQUAL(cmap_in.size(), 1);
   TEST_EQUAL(cmap_in[0].getUniqueId(), 7);
@@ -859,11 +862,9 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
   TEST_EQUAL(cmap_in[0].getCharge(), 3);
   TEST_REAL_SIMILAR(cmap_in[0].getQuality(), 0.8f);
 
-  // ID sidecar round-trip — identifier is synthesized on load (IdXMLFile.cpp:530
-  // parity); pep_ids re-stamp in lock-step.
+  // ID round-trip: the bundle stores identification data, whose runs keep their identifiers
   TEST_EQUAL(cmap_in.getProteinIdentifications().size(), 1);
-  TEST_NOT_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "");
-  TEST_NOT_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
+  TEST_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
   TEST_STRING_EQUAL(cmap_in.getProteinIdentifications()[0].getScoreType(), "score");
   TEST_EQUAL(cmap_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
   TEST_EQUAL(cmap_in[0].getPeptideIdentifications().size(), 1);

@@ -25,9 +25,18 @@ def df_columns(self, columns='default', export_peptide_identifications=True):
 
 
 @addon("FeatureMap")
-def _get_prot_id_filename_from_pep_id(self, pep_id):
+def _map_identifications(self):
+    """The identifications of the map as peptide and protein identifications (MapPeptideIdentifications)."""
+    from pyopenms import IdentificationDataConverter
+    return IdentificationDataConverter.exportMapIdentifications(self)
+
+
+@addon("FeatureMap")
+def _get_prot_id_filename_from_pep_id(self, pep_id, proteins=None):
     """Gets the primary MS run path of the ProteinIdentification linked to the PeptideIdentification."""
-    for prot in self.getProteinIdentifications():
+    if proteins is None:
+        proteins = self._map_identifications().proteins
+    for prot in proteins:
         if prot.getIdentifier() == pep_id.getIdentifier():
             filenames = prot.getPrimaryMSRunPath()
             if filenames and filenames[0] != '':
@@ -58,8 +67,10 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
     elif not meta_values:
         meta_values = []
 
+    ids = self._map_identifications() if need_pep_ids else None
+    proteins = ids.proteins if need_pep_ids else None
     rows = []
-    for f in self.iter_feature_views():
+    for index, f in enumerate(self.iter_feature_views()):
         # Compute bounding box from hull points
         hull_pts = f.getConvexHull().getHullPoints()
         if len(hull_pts) > 0:
@@ -78,9 +89,9 @@ def to_df(self, columns=None, meta_values=None, export_peptide_identifications=T
                 vals.append(np.nan)
 
         if need_pep_ids:
-            pep = f.getPeptideIdentifications()
+            pep = ids.at([index])
             if len(pep) > 0:
-                ID_filename = self._get_prot_id_filename_from_pep_id(pep[0])
+                ID_filename = self._get_prot_id_filename_from_pep_id(pep[0], proteins)
                 spec_id = None
                 if f.metaValueExists('spectrum_native_id'):
                     spec_id = str(f.getMetaValue('spectrum_native_id'))
@@ -147,9 +158,10 @@ def get_assigned_peptide_identifications(self):
     to their features, use to_peptide_df(), which adds each one's feature_id.
     """
     from pyopenms._pyopenms_metadata import PeptideIdentificationList
+    ids = self._map_identifications()
     result = PeptideIdentificationList()
-    for f in self.iter_feature_views():
-        for pid in f.getPeptideIdentifications():
+    for index in range(self.size()):
+        for pid in ids.at([index]):
             result.push_back(pid)
     return result
 
@@ -189,11 +201,12 @@ def to_peptide_df(self, decode_ontology=True, default_missing_values=None, expor
     :return: DataFrame with one row per assigned peptide identification.
     """
     from pyopenms._pyopenms_metadata import PeptideIdentificationList
+    ids = self._map_identifications()
     peps = PeptideIdentificationList()
     feature_ids = []
-    for f in self.iter_feature_views():
+    for index, f in enumerate(self.iter_feature_views()):
         feature_id = f.getUniqueId()
-        for pid in f.getPeptideIdentifications():
+        for pid in ids.at([index]):
             peps.push_back(pid)
             # to_df() writes a row for pid only if this holds
             if export_unidentified or pid.getHits():

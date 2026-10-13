@@ -317,6 +317,8 @@ START_SECTION(([EXTRA] conversions treat the identification data like peptide id
   using namespace OpenMS::Internal::ClassTest;
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), features);
+  // the fixture is edited as peptide identifications (loading gives identification data)
+  IdentificationDataConverter::moveToPeptideIdentifications(features);
   const auto with_subordinates = std::find_if(features.begin(), features.end(), [](const Feature& f) { return ! f.getSubordinates().empty(); });
   const auto with_ids = std::find_if(features.begin(), features.end(), [](const Feature& f) { return ! f.getPeptideIdentifications().empty(); });
   ABORT_IF(with_subordinates == features.end() || with_ids == features.end() || features.getUnassignedPeptideIdentifications().empty())

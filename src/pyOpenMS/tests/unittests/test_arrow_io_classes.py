@@ -71,6 +71,9 @@ def feature_map():
     pep_id.setRT(100.0)
     pep_id.setMZ(500.25)
     pep_id.setIdentifier("PI_0")
+    # a score needs its type (the bundles store identification data, whose scores are named)
+    pep_id.setScoreType("q-value")
+    pep_id.setHigherScoreBetter(False)
     hit = oms.PeptideHit()
     hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
     hit.setCharge(2)
@@ -92,6 +95,8 @@ def feature_map():
     f2.setCharge(3)
     fmap.push_back(f2)
 
+    # the bundles link identifications to features by their unique IDs
+    fmap.setUniqueIds()
     return fmap
 
 
@@ -132,6 +137,9 @@ def consensus_map():
     pep_id.setRT(100.5)
     pep_id.setMZ(500.25)
     pep_id.setIdentifier("PI_0")
+    # a score needs its type (the bundles store identification data, whose scores are named)
+    pep_id.setScoreType("q-value")
+    pep_id.setHigherScoreBetter(False)
     hit = oms.PeptideHit()
     hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
     hit.setCharge(2)
@@ -156,6 +164,8 @@ def consensus_map():
     cf2.insert(0, bf2)
     cmap.push_back(cf2)
 
+    # the bundles link identifications to features by their unique IDs
+    cmap.setUniqueIds()
     return cmap
 
 

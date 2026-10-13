@@ -32,6 +32,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <fstream>
 #include <sstream>
 
@@ -175,30 +176,32 @@ START_SECTION((void load(const std::string &filename, FeatureMap&feature_map)))
   TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().size(), 2)
   TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::SMOOTHING), 1)
   TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION), 1)
+  // the identifications (loaded as identification data) as peptide and protein identifications
+  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(e);
   //protein identifications
-  TEST_EQUAL(e.getProteinIdentifications().size(), 2)
-  TEST_EQUAL(e.getProteinIdentifications()[0].getHits().size(), 2)
-  TEST_EQUAL(e.getProteinIdentifications()[0].getHits()[0].getSequence(), "ABCDEFG")
-  TEST_EQUAL(e.getProteinIdentifications()[0].getHits()[1].getSequence(), "HIJKLMN")
-  TEST_EQUAL(e.getProteinIdentifications()[1].getHits().size(), 1)
-  TEST_EQUAL(e.getProteinIdentifications()[1].getHits()[0].getSequence(), "OPQREST")
+  TEST_EQUAL(ids.proteins.size(), 2)
+  TEST_EQUAL(ids.proteins[0].getHits().size(), 2)
+  TEST_EQUAL(ids.proteins[0].getHits()[0].getSequence(), "ABCDEFG")
+  TEST_EQUAL(ids.proteins[0].getHits()[1].getSequence(), "HIJKLMN")
+  TEST_EQUAL(ids.proteins[1].getHits().size(), 1)
+  TEST_EQUAL(ids.proteins[1].getHits()[0].getSequence(), "OPQREST")
   //peptide identifications
-  TEST_EQUAL(e[0].getPeptideIdentifications().size(), 2)
-  TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("A"))
-  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits().size(), 2)
-  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("C"))
-  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("D"))
-  TEST_EQUAL(e[1].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("E"))
+  TEST_EQUAL(ids.at({0}).size(), 2)
+  TEST_EQUAL(ids.at({0})[0].getHits().size(), 1)
+  TEST_EQUAL(ids.at({0})[0].getHits()[0].getSequence(), AASequence::fromString("A"))
+  TEST_EQUAL(ids.at({0})[1].getHits().size(), 2)
+  TEST_EQUAL(ids.at({0})[1].getHits()[0].getSequence(), AASequence::fromString("C"))
+  TEST_EQUAL(ids.at({0})[1].getHits()[1].getSequence(), AASequence::fromString("D"))
+  TEST_EQUAL(ids.at({1}).size(), 1)
+  TEST_EQUAL(ids.at({1})[0].getHits().size(), 1)
+  TEST_EQUAL(ids.at({1})[0].getHits()[0].getSequence(), AASequence::fromString("E"))
   //unassigned peptide identifications
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications().size(), 2)
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("F"))
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits().size(), 2)
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("G"))
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("H"))
+  TEST_EQUAL(ids.unassigned.size(), 2)
+  TEST_EQUAL(ids.unassigned[0].getHits().size(), 1)
+  TEST_EQUAL(ids.unassigned[0].getHits()[0].getSequence(), AASequence::fromString("F"))
+  TEST_EQUAL(ids.unassigned[1].getHits().size(), 2)
+  TEST_EQUAL(ids.unassigned[1].getHits()[0].getSequence(), AASequence::fromString("G"))
+  TEST_EQUAL(ids.unassigned[1].getHits()[1].getSequence(), AASequence::fromString("H"))
 
   // test meta values:
   TEST_EQUAL(e[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
@@ -528,6 +531,7 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
   f.ensureUniqueId();
   PeptideIdentification pa;
   pa.setIdentifier("run4b");
+  pa.setScoreType("score"); // identification data needs the name of a score
   PeptideHit ha;
   ha.setSequence(AASequence::fromString("PEPK(TestFXML:Assigned)IDE"));
   pa.insertHit(ha);
@@ -536,6 +540,7 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
 
   PeptideIdentification pu;
   pu.setIdentifier("run4b");
+  pu.setScoreType("score"); // identification data needs the name of a score
   PeptideHit hu;
   hu.setSequence(AASequence::fromString("PEPR(TestFXML:Unassigned)IDE"));
   pu.insertHit(hu);
@@ -550,15 +555,16 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
 
   FeatureMap in;
   FeatureXMLFile().load(tmp_filename, in);
+  const MapPeptideIdentifications in_ids = IdentificationDataConverter::exportMapIdentifications(in);
   TEST_EQUAL(in.size(), 1)
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
-  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  TEST_EQUAL(in_ids.unassigned.size(), 1)
+  if (in.size() == 1 && !in_ids.at({0}).empty() && !in_ids.at({0})[0].getHits().empty())
   {
-    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestFXML:Assigned)IDE")
+    TEST_EQUAL(in_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPK(TestFXML:Assigned)IDE")
   }
-  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  if (in_ids.unassigned.size() == 1 && !in_ids.unassigned[0].getHits().empty())
   {
-    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestFXML:Unassigned)IDE")
+    TEST_EQUAL(in_ids.unassigned[0].getHits()[0].getSequence().toString(), "PEPR(TestFXML:Unassigned)IDE")
   }
 }
 END_SECTION
@@ -583,6 +589,7 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
   f.ensureUniqueId();
   PeptideIdentification pep;
   pep.setIdentifier("run4b_fresh");
+  pep.setScoreType("score"); // identification data needs the name of a score
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTKIDE"));
   pep.insertHit(hit);
@@ -599,9 +606,10 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
   FeatureMap in;
   FeatureXMLFile().load(tmp_filename, in);
   TEST_TRUE(db->hasDefinedModification("TestFXML:Fresh"))
-  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  const MapPeptideIdentifications in_ids = IdentificationDataConverter::exportMapIdentifications(in);
+  if (in.size() == 1 && !in_ids.at({0}).empty() && !in_ids.at({0})[0].getHits().empty())
   {
-    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTK(TestFXML:Fresh)IDE")
+    TEST_EQUAL(in_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPTK(TestFXML:Fresh)IDE")
   }
 }
 END_SECTION
@@ -620,6 +628,7 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   feature.setMZ(500.0);
   PeptideIdentification peptide;
   peptide.setIdentifier("search");
+  peptide.setScoreType("score"); // identification data needs the name of a score
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTIDE"));
   peptide.insertHit(hit);
@@ -656,8 +665,9 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   FeatureXMLFile().store(file, map);
   FeatureMap in;
   FeatureXMLFile().load(file, in);
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getIdentifier(), in.getProteinIdentifications()[0].getIdentifier())
+  const MapPeptideIdentifications in_ids = IdentificationDataConverter::exportMapIdentifications(in);
+  TEST_EQUAL(in_ids.unassigned.size(), 1)
+  TEST_EQUAL(in_ids.unassigned[0].getIdentifier(), in_ids.proteins[0].getIdentifier())
   std::string content;
   {
     std::ifstream is(file);
@@ -692,7 +702,7 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
     FeatureXMLFile().store(two_runs_file, two_runs);
     FeatureMap two_runs_in;
     FeatureXMLFile().load(two_runs_file, two_runs_in);
-    TEST_EQUAL(two_runs_in.getUnassignedPeptideIdentifications()[0].getHits()[0].getPeptideEvidences()[0].getProteinAccession(), "PROT_A")
+    TEST_EQUAL(IdentificationDataConverter::exportMapIdentifications(two_runs_in).unassigned[0].getHits()[0].getPeptideEvidences()[0].getProteinAccession(), "PROT_A")
     std::string text;
     {
       std::ifstream is(two_runs_file);
@@ -732,16 +742,17 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
     FeatureXMLFile().store(runs_file, runs);
     FeatureMap runs_in;
     FeatureXMLFile().load(runs_file, runs_in);
-    ABORT_IF(runs_in.getUnassignedPeptideIdentifications().size() != 2 || runs_in.getProteinIdentifications().size() != 3)
+    const MapPeptideIdentifications runs_ids = IdentificationDataConverter::exportMapIdentifications(runs_in);
+    ABORT_IF(runs_ids.unassigned.size() != 2 || runs_ids.proteins.size() != 3)
     for (Size i = 0; i < 2; ++i) // (run identifiers are made unique on load)
     {
-      const PeptideIdentification& run_peptide = runs_in.getUnassignedPeptideIdentifications()[i];
-      const ProteinIdentification& protein_run = runs_in.getProteinIdentifications()[i + 1];
+      const PeptideIdentification& run_peptide = runs_ids.unassigned[i];
+      const ProteinIdentification& protein_run = runs_ids.proteins[i + 1];
       TEST_EQUAL(run_peptide.getIdentifier(), protein_run.getIdentifier())
       TEST_EQUAL(run_peptide.getHits()[0].getPeptideEvidences()[0].getProteinAccession(), protein_run.getHits()[0].getAccession())
     }
-    TEST_EQUAL(runs_in.getProteinIdentifications()[1].getHits()[0].getAccession(), "B_C")
-    TEST_EQUAL(runs_in.getProteinIdentifications()[2].getHits()[0].getAccession(), "C")
+    TEST_EQUAL(runs_ids.proteins[1].getHits()[0].getAccession(), "B_C")
+    TEST_EQUAL(runs_ids.proteins[2].getHits()[0].getAccession(), "C")
   }
 }
 END_SECTION
@@ -782,24 +793,26 @@ START_SECTION([EXTRA] native identifications of a map without legacy ones are wr
   FeatureXMLFile().store(file, map);
   FeatureMap loaded;
   FeatureXMLFile().load(file, loaded);
-  TEST_EQUAL(loaded.getProteinIdentifications().size(), 1)
-  ABORT_IF(loaded.size() != 1 || loaded[0].getPeptideIdentifications().size() != 1)
-  const auto& legacy = loaded[0].getPeptideIdentifications()[0];
+  const MapPeptideIdentifications loaded_ids = IdentificationDataConverter::exportMapIdentifications(loaded);
+  TEST_EQUAL(loaded_ids.proteins.size(), 1)
+  ABORT_IF(loaded.size() != 1 || loaded_ids.at({0}).size() != 1)
+  const auto& legacy = loaded_ids.at({0})[0];
   TEST_EQUAL(legacy.getScoreType(), "Posterior Error Probability")
   TEST_EQUAL(legacy.getSpectrumReference(), "scan=7")
   ABORT_IF(legacy.getHits().size() != 1)
   TEST_EQUAL(legacy.getHits()[0].getSequence().toString(), "PEPTIDE")
   TEST_REAL_SIMILAR(legacy.getHits()[0].getScore(), 0.01)
-  // The map to store is not changed, and a map with legacy identifications is written as it is.
-  TEST_EQUAL(map[0].getPeptideIdentifications().size(), 0)
+  // The map to store is not changed; the loaded map has the identification data (edited, it is written so).
   TEST_EQUAL(map.getIdentificationData().getRuns().size(), 1)
-  loaded[0].getPeptideIdentifications()[0].getHits()[0].setScore(0.5);
+  ABORT_IF(loaded.getIdentificationData().getRuns().size() != 1)
+  auto& loaded_run = loaded.getIdentificationData().getRun(loaded.getIdentificationData().getRuns()[0].getIdentifier());
+  loaded_run.setScore(loaded_run.getSources()[0].identifications[0].getMatches()[0].getId(), *loaded_run.getPrimaryScore(), 0.5);
   FeatureXMLFile().store(file, loaded);
   FeatureMap again;
   FeatureXMLFile().load(file, again);
-  TEST_REAL_SIMILAR(again[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.5)
+  TEST_REAL_SIMILAR(IdentificationDataConverter::exportMapIdentifications(again).at({0})[0].getHits()[0].getScore(), 0.5)
   // A map holds its identifications as peptide identifications or as identification data, not both.
-  loaded.getIdentificationData() = map.getIdentificationData();
+  loaded[0].getPeptideIdentifications().push_back(PeptideIdentification());
   TEST_EXCEPTION(Exception::InvalidParameter, FeatureXMLFile().store(file, loaded))
 }
 END_SECTION

@@ -10,6 +10,7 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -295,13 +296,13 @@ protected:
       {
         OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
         IDFilter::removeUnreferencedProteins(cmap, true);
-        for (auto& run : cmap.getProteinIdentifications())
-        {
+        IdentificationDataAdapter::editInferenceResults(cmap.getIdentificationData(), [](ProteinIdentification& run) {
           IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
-        }
+        });
       }
 
-      for (auto& run : cmap.getProteinIdentifications())
+      // the protein runs are those of the inference results of the identification data of the map
+      IdentificationDataAdapter::editInferenceResults(cmap.getIdentificationData(), [](ProteinIdentification& run)
       {
         std::sort(run.getHits().begin(), run.getHits().end(),
                   [](const ProteinHit& f,
@@ -314,7 +315,7 @@ protected:
             [](const ProteinIdentification::ProteinGroup& f,
                const ProteinIdentification::ProteinGroup& g)
             {return f.accessions < g.accessions;});
-      }
+      });
 
       bool calc_protFDR = getStringOption_("protein_fdr") == "true";
       if (calc_protFDR)
@@ -325,17 +326,19 @@ protected:
         fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
         fdrparam.setValue("add_decoy_proteins","true");
         fdr.setParameters(fdrparam);
-        for (auto& run : cmap.getProteinIdentifications())
-        {
-          if (getStringOption_("picked_fdr") == "true")
+        const bool picked = getStringOption_("picked_fdr") == "true";
+        const std::string decoy_string = getStringOption_("picked_decoy_string");
+        const bool decoy_prefix = getStringOption_("picked_decoy_prefix") == "prefix";
+        IdentificationDataAdapter::editInferenceResults(cmap.getIdentificationData(), [&](ProteinIdentification& run) {
+          if (picked)
           {
-            fdr.applyPickedProteinFDR(run, getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+            fdr.applyPickedProteinFDR(run, decoy_string, decoy_prefix);
           }
           else
           {
             fdr.applyBasic(run, true);
           }
-        }
+        });
       }
 
       FileHandler().storeConsensusFeatures(out_file, cmap, {FileTypes::CONSENSUSXML});

@@ -8,6 +8,7 @@
 #include <OpenMS/FORMAT/IdentificationDataFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/test_config.h>
 #include <algorithm>
 #include <filesystem>
@@ -240,6 +241,7 @@ START_SECTION(([EXTRA] consensusXML outputs of ProteomicsLFQ, IsobaricWorkflow a
     STATUS(name)
     ConsensusMap original;
     ConsensusXMLFile().load(topp(name), original);
+    IdentificationDataConverter::moveToPeptideIdentifications(original); // a legacy fixture (loading gives identification data)
     const auto restored = toLegacy(toNative(original));
     bool equal = restored.getProteinIdentifications() == original.getProteinIdentifications()
                  && restored.getUnassignedPeptideIdentifications() == original.getUnassignedPeptideIdentifications() && restored.size() == original.size();

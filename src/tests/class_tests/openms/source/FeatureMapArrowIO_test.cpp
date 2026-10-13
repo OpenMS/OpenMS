@@ -12,6 +12,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 ///////////////////////////
@@ -894,6 +895,7 @@ START_SECTION(exportToParquet / importFromParquet - full round - trip)
   // --- Import back ---
   FeatureMap imported;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  IdentificationDataConverter::moveToPeptideIdentifications(imported); // read as peptide identifications (the map has identification data)
 
   // --- Verify features ---
   TEST_EQUAL(imported.size(), 2)
@@ -929,12 +931,9 @@ START_SECTION(exportToParquet / importFromParquet - full round - trip)
 
   // --- Verify protein identifications ---
   TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
-  // Identifier synthesized on load per IdXMLFile.cpp:530 parity — stored "run_full_1"
-  // becomes `<search_engine>_<date>_<UniqueIdGenerator>`. All pep_id collections
-  // (per-feature + unassigned) are re-stamped in lock-step.
+  // The bundle stores identification data, whose runs keep their identifiers.
   const std::string& fm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
-  TEST_NOT_EQUAL(fm_synth_id, "")
-  TEST_NOT_EQUAL(fm_synth_id, "run_full_1")
+  TEST_EQUAL(fm_synth_id, "run_full_1")
   TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
   TEST_STRING_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
   TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
@@ -1013,6 +1012,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, dir1), true)
   FeatureMap fm1;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir1, fm1), true)
+  IdentificationDataConverter::moveToPeptideIdentifications(fm1); // read as peptide identifications (the map has identification data)
 
   // second serialization round: re-export fm1 -> parquet -> fm2
   std::string dir2;
@@ -1020,6 +1020,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm1, dir2), true)
   FeatureMap fm2;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir2, fm2), true)
+  IdentificationDataConverter::moveToPeptideIdentifications(fm2); // read as peptide identifications (the map has identification data)
 
   // the two imported maps must be field-identical
   TEST_EQUAL(fm1.size(), fm2.size())
@@ -1284,6 +1285,7 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round
 
   FeatureMap imported;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  IdentificationDataConverter::moveToPeptideIdentifications(imported); // read as peptide identifications (the map has identification data)
 
   // --- Verify higher_score_better from ProteinIdentification ---
   TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
@@ -1405,6 +1407,16 @@ START_SECTION(exportToParquet / importFromParquet - per - PSM higher_score_bette
   fm.setUnassignedPeptideIdentifications({pep_id2});
 
   // --- Export and import ---
+  // The bundle stores identification data, which has one PSM score schema: PSMs with different score types are refused.
+  std::string refused_dir;
+  NEW_TMP_FILE(refused_dir)
+  refused_dir += ".fmd";
+  TEST_EXCEPTION(Exception::InvalidValue, FeatureMapArrowIO::exportToParquet(fm, refused_dir))
+  // With one PSM score type, the PSMs keep its orientation, independent of that of the protein run.
+  fm.getUnassignedPeptideIdentifications()[0].setScoreType("xcorr");
+  fm.getUnassignedPeptideIdentifications()[0].setHigherScoreBetter(true);
+  fm.getUnassignedPeptideIdentifications()[0].getHits()[0].setScore(1.5);
+
   std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
@@ -1413,6 +1425,7 @@ START_SECTION(exportToParquet / importFromParquet - per - PSM higher_score_bette
 
   FeatureMap imported;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  IdentificationDataConverter::moveToPeptideIdentifications(imported); // read as peptide identifications (the map has identification data)
 
   // Verify per-PSM higher_score_better: pep_id1 should be true (not run-level false)
   TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
@@ -1420,17 +1433,19 @@ START_SECTION(exportToParquet / importFromParquet - per - PSM higher_score_bette
   TEST_EQUAL(out_pid1.isHigherScoreBetter(), true) // per-PSM value, NOT run-level false
   TEST_EQUAL(out_pid1.getScoreType(), "xcorr")
 
-  // Verify unassigned PSM: higher_score_better should be false
+  // the unassigned PSM, too
   TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
   const PeptideIdentification& out_pid2 = imported.getUnassignedPeptideIdentifications()[0];
-  TEST_EQUAL(out_pid2.isHigherScoreBetter(), false)
-  TEST_EQUAL(out_pid2.getScoreType(), "expect")
+  TEST_EQUAL(out_pid2.isHigherScoreBetter(), true)
+  TEST_EQUAL(out_pid2.getScoreType(), "xcorr")
 
-  // Verify scan and reference_file_name survive round-trip via metavalue
-  // (scan is derived from spectrum_reference on export, reference_file_name from ProteinIdentification)
-  const PeptideHit& out_hit1 = out_pid1.getHits()[0];
-  TEST_EQUAL(out_hit1.metaValueExists("scan"), true)
-  TEST_EQUAL(static_cast<int>(out_hit1.getMetaValue("scan")), 99)
+  // and the protein run keeps its own
+  ABORT_IF(imported.getProteinIdentifications().size() != 1)
+  TEST_EQUAL(imported.getProteinIdentifications()[0].isHigherScoreBetter(), false)
+  TEST_EQUAL(imported.getProteinIdentifications()[0].getScoreType(), "expect")
+
+  // the spectrum reference survives (the bundle stores it with the identification, no scan number derived from it)
+  TEST_EQUAL(out_pid1.getSpectrumReference(), "spectrum=99")
 }
 END_SECTION
 
@@ -1528,9 +1543,9 @@ START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers thro
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
-  // The store-side check fires before any Arrow builder is allocated, so no
+  // The conversion to identification data rejects the duplicate run before any Arrow builder is allocated, so no
   // partial .featureparquet exists on disk after the throw.
-  TEST_EXCEPTION(Exception::InvalidValue, FeatureMapArrowIO::exportToParquet(fm, tmp_dir))
+  TEST_EXCEPTION(Exception::InvalidParameter, FeatureMapArrowIO::exportToParquet(fm, tmp_dir))
 }
 END_SECTION
 
@@ -1622,6 +1637,7 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - every peptide ident
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
   FeatureMap in;
   TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+  IdentificationDataConverter::moveToPeptideIdentifications(in); // read as peptide identifications (the map has identification data)
   ABORT_IF(in.size() != 1 || in[0].getSubordinates().size() != 1 || in.getProteinIdentifications().size() != 1)
   const std::string& identifier = in.getProteinIdentifications()[0].getIdentifier();
   TEST_EQUAL(in[0].getPeptideIdentifications()[0].getIdentifier(), identifier)
@@ -1801,6 +1817,7 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-sha
 
   FeatureMap in;
   TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+  IdentificationDataConverter::moveToPeptideIdentifications(in); // read as peptide identifications (the map has identification data)
 
   // --- map level ---
   TEST_EQUAL(in.getUniqueId(), 987654321ULL)
@@ -1890,6 +1907,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
   f.ensureUniqueId();
   PeptideIdentification pa;
   pa.setIdentifier("run4b");
+  pa.setScoreType("score"); // identification data needs the name of a score
   PeptideHit ha;
   ha.setSequence(AASequence::fromString("PEPK(TestFMap:Assigned)IDE"));
   pa.insertHit(ha);
@@ -1898,6 +1916,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
 
   PeptideIdentification pu;
   pu.setIdentifier("run4b");
+  pu.setScoreType("score"); // identification data needs the name of a score
   PeptideHit hu;
   hu.setSequence(AASequence::fromString("PEPR(TestFMap:Unassigned)IDE"));
   pu.insertHit(hu);
@@ -1908,6 +1927,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(map, dir))
   FeatureMap in;
   TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+  IdentificationDataConverter::moveToPeptideIdentifications(in); // read as peptide identifications (the map has identification data)
   TEST_EQUAL(in.size(), 1)
   TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
   if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
@@ -1975,8 +1995,6 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - owning identificatio
   unannotated.addIDQuery({run.getUuid(), empty_query});
   fm.push_back(top);
   fm.push_back(unannotated);
-  fm.getProteinIdentifications().resize(1);
-  fm.getProteinIdentifications()[0].setIdentifier("run");
 
   std::string dir;
   NEW_TMP_FILE(dir) dir += ".featureparquet";
@@ -2125,6 +2143,8 @@ START_SECTION([EXTRA] importFromParquet - definitions are registered from search
   TEST_FALSE(db->hasDefinedModification("TestFMap:Fresh")) // exporting registers nothing
   FeatureMap in;
   TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+  // the identification data registers the definitions of a run when its identifications are read
+  IdentificationDataConverter::moveToPeptideIdentifications(in);
   TEST_TRUE(db->hasDefinedModification("TestFMap:Fresh"))
   File::removeDirRecursively(dir);
 }

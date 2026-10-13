@@ -15,6 +15,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -184,7 +185,8 @@ protected:
       OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
       BasicProteinInferenceAlgorithm pi;
       pi.setParameters(getParam_().copy("Algorithm:", true));
-      pi.run(cmap, cmap.getProteinIdentifications()[0], true);
+      // on the identifications of the map as identification data: the merged run holds the result
+      pi.run(cmap, true);
       OPENMS_LOG_INFO << "Aggregating protein scores took " << sw.toString() << std::endl;
       sw.clear();
 
@@ -197,14 +199,18 @@ protected:
         fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
         fdrparam.setValue("add_decoy_proteins","true");
         fdr.setParameters(fdrparam);
-        if (getStringOption_("picked_fdr") == "true")
-        {
-          fdr.applyPickedProteinFDR(cmap.getProteinIdentifications()[0], getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
-        }
-        else
-        {
-          fdr.applyBasic(cmap.getProteinIdentifications()[0], true);
-        }
+        const bool picked = getStringOption_("picked_fdr") == "true";
+        // on the protein run of the inference result
+        IdentificationDataAdapter::editPooledProteins(cmap.getIdentificationData(), [&](ProteinIdentification& proteins) {
+          if (picked)
+          {
+            fdr.applyPickedProteinFDR(proteins, getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+          }
+          else
+          {
+            fdr.applyBasic(proteins, true);
+          }
+        });
       }
 
       OPENMS_LOG_INFO << "Storing output..." << std::endl;

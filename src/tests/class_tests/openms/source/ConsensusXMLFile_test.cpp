@@ -13,6 +13,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinHit.h>
@@ -171,29 +172,31 @@ TEST_EQUAL(map.getDataProcessing()[1].getProcessingActions().size(), 2)
 TEST_EQUAL(map.getDataProcessing()[1].getProcessingActions().count(DataProcessing::SMOOTHING), 1)
 TEST_EQUAL(map.getDataProcessing()[1].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION), 1)
 //protein identifications
-TEST_EQUAL(map.getProteinIdentifications().size(), 2)
-TEST_EQUAL(map.getProteinIdentifications()[0].getHits().size(), 2)
-TEST_EQUAL(map.getProteinIdentifications()[0].getHits()[0].getSequence(), "ABCDEFG")
-TEST_EQUAL(map.getProteinIdentifications()[0].getHits()[1].getSequence(), "HIJKLMN")
-TEST_EQUAL(map.getProteinIdentifications()[1].getHits().size(), 1)
-TEST_EQUAL(map.getProteinIdentifications()[1].getHits()[0].getSequence(), "OPQREST")
+// the identifications (loaded as identification data) as peptide and protein identifications
+const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(map);
+TEST_EQUAL(ids.proteins.size(), 2)
+TEST_EQUAL(ids.proteins[0].getHits().size(), 2)
+TEST_EQUAL(ids.proteins[0].getHits()[0].getSequence(), "ABCDEFG")
+TEST_EQUAL(ids.proteins[0].getHits()[1].getSequence(), "HIJKLMN")
+TEST_EQUAL(ids.proteins[1].getHits().size(), 1)
+TEST_EQUAL(ids.proteins[1].getHits()[0].getSequence(), "OPQREST")
 //peptide identifications
-TEST_EQUAL(map[0].getPeptideIdentifications().size(), 2)
-TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("A"))
-TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits().size(), 2)
-TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("C"))
-TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("D"))
-TEST_EQUAL(map[1].getPeptideIdentifications().size(), 1)
-TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString( "E"))
+TEST_EQUAL(ids.at({0}).size(), 2)
+TEST_EQUAL(ids.at({0})[0].getHits().size(), 1)
+TEST_EQUAL(ids.at({0})[0].getHits()[0].getSequence(), AASequence::fromString("A"))
+TEST_EQUAL(ids.at({0})[1].getHits().size(), 2)
+TEST_EQUAL(ids.at({0})[1].getHits()[0].getSequence(), AASequence::fromString("C"))
+TEST_EQUAL(ids.at({0})[1].getHits()[1].getSequence(), AASequence::fromString("D"))
+TEST_EQUAL(ids.at({1}).size(), 1)
+TEST_EQUAL(ids.at({1})[0].getHits().size(), 1)
+TEST_EQUAL(ids.at({1})[0].getHits()[0].getSequence(),AASequence::fromString( "E"))
 //unassigned peptide identifications
-TEST_EQUAL(map.getUnassignedPeptideIdentifications().size(), 2)
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("F"))
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits().size(), 2)
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("G"))
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("H"))
+TEST_EQUAL(ids.unassigned.size(), 2)
+TEST_EQUAL(ids.unassigned[0].getHits().size(), 1)
+TEST_EQUAL(ids.unassigned[0].getHits()[0].getSequence(), AASequence::fromString("F"))
+TEST_EQUAL(ids.unassigned[1].getHits().size(), 2)
+TEST_EQUAL(ids.unassigned[1].getHits()[0].getSequence(), AASequence::fromString("G"))
+TEST_EQUAL(ids.unassigned[1].getHits()[1].getSequence(), AASequence::fromString("H"))
 
 //features
 TEST_EQUAL(map.size(), 6)
@@ -265,10 +268,15 @@ START_SECTION((void store(const std::string &filename, const ConsensusMap &conse
 
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
 
-  // make protIDs non-unique
-  map.getProteinIdentifications().push_back(map.getProteinIdentifications()[0]);
-  TEST_EXCEPTION(Exception::ParseError, f.store(tmp_filename, map))
-  map.getProteinIdentifications().pop_back(); // undo
+  // protein runs with the same identifier (possible as peptide and protein identifications only) are rejected
+  {
+    ConsensusMap duplicate = map;
+    MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(map);
+    duplicate.clearIdentifications();
+    ids.proteins.push_back(ids.proteins[0]);
+    duplicate.setProteinIdentifications(ids.proteins);
+    TEST_EXCEPTION(Exception::ParseError, f.store(tmp_filename, duplicate))
+  }
 
   f.store(tmp_filename, map);
   WHITELIST("?xml-stylesheet")
@@ -340,8 +348,10 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   ConsensusMap map;
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
 
-  // attach quantities the way PeptideAndProteinQuant::annotateQuantificationsToProteins() does
-  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  // attach quantities the way PeptideAndProteinQuant::annotateQuantificationsToProteins() does (to the protein run
+  // of the identifications, edited as peptide and protein identifications)
+  MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(map);
+  ProteinIdentification& prot = ids.proteins[0];
   ProteinIdentification::ProteinGroup group;
   for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
   TEST_NOT_EQUAL(group.accessions.size(), 0)
@@ -368,6 +378,7 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   group.getIntegerDataArrays()[3].assign({1, 1});
 
   prot.insertIndistinguishableProteins(group);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -375,9 +386,10 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
 
   ConsensusMap loaded;
   f.load(tmp_filename, loaded);
+  const MapPeptideIdentifications loaded_ids = IdentificationDataConverter::exportMapIdentifications(loaded);
 
-  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
-  const ProteinIdentification::ProteinGroup& rt = loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0];
+  TEST_EQUAL(loaded_ids.proteins[0].getIndistinguishableProteins().size(), 1)
+  const ProteinIdentification::ProteinGroup& rt = loaded_ids.proteins[0].getIndistinguishableProteins()[0];
 
   // The assay-only layout is restored without inventing a legacy sample array.
   TEST_EQUAL(rt.getFloatDataArrays().size(), 4)
@@ -407,7 +419,7 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
 
   // no leftovers of the encoding on the ProteinIdentification
   std::vector<std::string> keys;
-  loaded.getProteinIdentifications()[0].getKeys(keys);
+  loaded_ids.proteins[0].getKeys(keys);
   for (const std::string& key : keys)
   {
     TEST_FALSE(StringUtils::hasSubstring(key, "_abundances"))
@@ -423,7 +435,7 @@ START_SECTION([EXTRA] Protein group quantities round-trip)
   f.store(tmp_filename2, loaded);
   ConsensusMap loaded2;
   f.load(tmp_filename2, loaded2);
-  TEST_TRUE(loaded2.getProteinIdentifications()[0].getIndistinguishableProteins()[0] == rt)
+  TEST_TRUE(IdentificationDataConverter::exportMapIdentifications(loaded2).proteins[0].getIndistinguishableProteins()[0] == rt)
 }
 END_SECTION
 
@@ -441,7 +453,8 @@ START_SECTION([EXTRA] Quantities whose owner no longer matches the group are dis
   ConsensusMap map;
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
 
-  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(map);
+  ProteinIdentification& prot = ids.proteins[0];
   TEST_EQUAL(prot.getHits().size(), 2)
   const std::string quantified_accession = prot.getHits()[0].getAccession();
 
@@ -452,6 +465,7 @@ START_SECTION([EXTRA] Quantities whose owner no longer matches the group are dis
   g.getFloatDataArrays()[0].setName("abundances");
   g.getFloatDataArrays()[0].assign({11.0f, 22.0f});
   prot.insertIndistinguishableProteins(g);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -486,7 +500,8 @@ START_SECTION([EXTRA] Quantities whose owner no longer matches the group are dis
 
   ConsensusMap loaded;
   f.load(tampered, loaded);
-  const auto& groups = loaded.getProteinIdentifications()[0].getIndistinguishableProteins();
+  const MapPeptideIdentifications loaded_ids = IdentificationDataConverter::exportMapIdentifications(loaded);
+  const auto& groups = loaded_ids.proteins[0].getIndistinguishableProteins();
   TEST_EQUAL(groups.size(), 1)
   TEST_EQUAL(groups[0].accessions[0], quantified_accession)
 
@@ -500,7 +515,7 @@ START_SECTION([EXTRA] Quantities whose owner no longer matches the group are dis
 
   // and nothing of the discarded block may linger as a stray UserParam
   std::vector<std::string> keys;
-  loaded.getProteinIdentifications()[0].getKeys(keys);
+  loaded_ids.proteins[0].getKeys(keys);
   for (const std::string& key : keys)
   {
     TEST_EQUAL(StringUtils::hasSubstring(key, "indistinguishable_proteins_0_"), false)
@@ -516,7 +531,8 @@ START_SECTION([EXTRA] Legacy all-zero sample abundances keep their length across
   ConsensusMap map;
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
 
-  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(map);
+  ProteinIdentification& prot = ids.proteins[0];
   ProteinIdentification::ProteinGroup group;
   for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
   group.probability = 0.5;
@@ -538,14 +554,16 @@ START_SECTION([EXTRA] Legacy all-zero sample abundances keep their length across
   group.getIntegerDataArrays()[0].assign({1, 1, 1});
   group.getIntegerDataArrays()[1].setName("file_level_psm_count");
   prot.insertIndistinguishableProteins(group);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   f.store(tmp_filename, map);
   ConsensusMap loaded;
   f.load(tmp_filename, loaded);
+  const MapPeptideIdentifications loaded_ids = IdentificationDataConverter::exportMapIdentifications(loaded);
 
-  const ProteinIdentification::ProteinGroup& rt = loaded.getProteinIdentifications()[0].getIndistinguishableProteins().back();
+  const ProteinIdentification::ProteinGroup& rt = loaded_ids.proteins[0].getIndistinguishableProteins().back();
   TEST_EQUAL(rt.getFloatDataArrays()[0].getName(), "abundances")
   TEST_EQUAL(rt.getFloatDataArrays()[0].size(), 3)
   TEST_EQUAL(rt.getFloatDataArrays()[1].size(), 3)
@@ -563,11 +581,13 @@ START_SECTION([EXTRA] Protein groups without quantities are written unchanged)
   ConsensusMap map;
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
 
-  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(map);
+  ProteinIdentification& prot = ids.proteins[0];
   ProteinIdentification::ProteinGroup group;
   for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
   group.probability = 0.5;
   prot.insertIndistinguishableProteins(group);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -586,8 +606,9 @@ START_SECTION([EXTRA] Protein groups without quantities are written unchanged)
 
   ConsensusMap loaded;
   f.load(tmp_filename, loaded);
-  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
-  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0].getFloatDataArrays().empty(), true)
+  const MapPeptideIdentifications loaded_ids = IdentificationDataConverter::exportMapIdentifications(loaded);
+  TEST_EQUAL(loaded_ids.proteins[0].getIndistinguishableProteins().size(), 1)
+  TEST_EQUAL(loaded_ids.proteins[0].getIndistinguishableProteins()[0].getFloatDataArrays().empty(), true)
 }
 END_SECTION
 
@@ -612,6 +633,7 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
   f.insert(FeatureHandle(0, f));
   PeptideIdentification pa;
   pa.setIdentifier("run4b");
+  pa.setScoreType("score"); // identification data needs the name of a score
   PeptideHit ha;
   ha.setSequence(AASequence::fromString("PEPK(TestCXML:Assigned)IDE"));
   pa.insertHit(ha);
@@ -620,6 +642,7 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
 
   PeptideIdentification pu;
   pu.setIdentifier("run4b");
+  pu.setScoreType("score"); // identification data needs the name of a score
   PeptideHit hu;
   hu.setSequence(AASequence::fromString("PEPR(TestCXML:Unassigned)IDE"));
   pu.insertHit(hu);
@@ -635,14 +658,15 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
   ConsensusMap in;
   ConsensusXMLFile().load(tmp_filename, in);
   TEST_EQUAL(in.size(), 1)
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
-  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  const MapPeptideIdentifications in_ids = IdentificationDataConverter::exportMapIdentifications(in);
+  TEST_EQUAL(in_ids.unassigned.size(), 1)
+  if (in.size() == 1 && !in_ids.at({0}).empty() && !in_ids.at({0})[0].getHits().empty())
   {
-    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestCXML:Assigned)IDE")
+    TEST_EQUAL(in_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPK(TestCXML:Assigned)IDE")
   }
-  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  if (in_ids.unassigned.size() == 1 && !in_ids.unassigned[0].getHits().empty())
   {
-    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestCXML:Unassigned)IDE")
+    TEST_EQUAL(in_ids.unassigned[0].getHits()[0].getSequence().toString(), "PEPR(TestCXML:Unassigned)IDE")
   }
 }
 END_SECTION
@@ -670,6 +694,7 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
   f.insert(FeatureHandle(0, f));
   PeptideIdentification pep;
   pep.setIdentifier("run4b_fresh");
+  pep.setScoreType("score"); // identification data needs the name of a score
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTKIDE"));
   pep.insertHit(hit);
@@ -686,9 +711,10 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
   ConsensusMap in;
   ConsensusXMLFile().load(tmp_filename, in);
   TEST_TRUE(db->hasDefinedModification("TestCXML:Fresh"))
-  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  const MapPeptideIdentifications in_ids = IdentificationDataConverter::exportMapIdentifications(in);
+  if (in.size() == 1 && !in_ids.at({0}).empty() && !in_ids.at({0})[0].getHits().empty())
   {
-    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTK(TestCXML:Fresh)IDE")
+    TEST_EQUAL(in_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPTK(TestCXML:Fresh)IDE")
   }
 }
 END_SECTION
@@ -709,6 +735,7 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   map.getColumnHeaders()[0].filename = "file.mzML";
   PeptideIdentification peptide;
   peptide.setIdentifier("search");
+  peptide.setScoreType("score"); // identification data needs the name of a score
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTIDE"));
   peptide.insertHit(hit);
@@ -745,8 +772,9 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   ConsensusXMLFile().store(file, map);
   ConsensusMap in;
   ConsensusXMLFile().load(file, in);
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getIdentifier(), in.getProteinIdentifications()[0].getIdentifier())
+  const MapPeptideIdentifications in_ids = IdentificationDataConverter::exportMapIdentifications(in);
+  TEST_EQUAL(in_ids.unassigned.size(), 1)
+  TEST_EQUAL(in_ids.unassigned[0].getIdentifier(), in_ids.proteins[0].getIdentifier())
   std::string content;
   {
     std::ifstream is(file);
@@ -781,7 +809,8 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
     ConsensusXMLFile().store(two_runs_file, two_runs);
     ConsensusMap two_runs_in;
     ConsensusXMLFile().load(two_runs_file, two_runs_in);
-    TEST_EQUAL(two_runs_in.getUnassignedPeptideIdentifications()[0].getHits()[0].getPeptideEvidences()[0].getProteinAccession(), "PROT_A")
+  const MapPeptideIdentifications two_runs_ids = IdentificationDataConverter::exportMapIdentifications(two_runs_in);
+    TEST_EQUAL(two_runs_ids.unassigned[0].getHits()[0].getPeptideEvidences()[0].getProteinAccession(), "PROT_A")
     std::string text;
     {
       std::ifstream is(two_runs_file);
@@ -821,16 +850,17 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
     ConsensusXMLFile().store(runs_file, runs);
     ConsensusMap runs_in;
     ConsensusXMLFile().load(runs_file, runs_in);
-    ABORT_IF(runs_in.getUnassignedPeptideIdentifications().size() != 2 || runs_in.getProteinIdentifications().size() != 3)
+  const MapPeptideIdentifications runs_ids = IdentificationDataConverter::exportMapIdentifications(runs_in);
+    ABORT_IF(runs_ids.unassigned.size() != 2 || runs_ids.proteins.size() != 3)
     for (Size i = 0; i < 2; ++i) // (run identifiers are made unique on load)
     {
-      const PeptideIdentification& run_peptide = runs_in.getUnassignedPeptideIdentifications()[i];
-      const ProteinIdentification& protein_run = runs_in.getProteinIdentifications()[i + 1];
+      const PeptideIdentification& run_peptide = runs_ids.unassigned[i];
+      const ProteinIdentification& protein_run = runs_ids.proteins[i + 1];
       TEST_EQUAL(run_peptide.getIdentifier(), protein_run.getIdentifier())
       TEST_EQUAL(run_peptide.getHits()[0].getPeptideEvidences()[0].getProteinAccession(), protein_run.getHits()[0].getAccession())
     }
-    TEST_EQUAL(runs_in.getProteinIdentifications()[1].getHits()[0].getAccession(), "B_C")
-    TEST_EQUAL(runs_in.getProteinIdentifications()[2].getHits()[0].getAccession(), "C")
+    TEST_EQUAL(runs_ids.proteins[1].getHits()[0].getAccession(), "B_C")
+    TEST_EQUAL(runs_ids.proteins[2].getHits()[0].getAccession(), "C")
   }
 }
 END_SECTION
@@ -871,24 +901,26 @@ START_SECTION([EXTRA] native identifications of a map without legacy ones are wr
   ConsensusXMLFile().store(file, map);
   ConsensusMap loaded;
   ConsensusXMLFile().load(file, loaded);
-  TEST_EQUAL(loaded.getProteinIdentifications().size(), 1)
-  ABORT_IF(loaded.size() != 1 || loaded[0].getPeptideIdentifications().size() != 1)
-  const auto& legacy = loaded[0].getPeptideIdentifications()[0];
+  const MapPeptideIdentifications loaded_ids = IdentificationDataConverter::exportMapIdentifications(loaded);
+  TEST_EQUAL(loaded_ids.proteins.size(), 1)
+  ABORT_IF(loaded.size() != 1 || loaded_ids.at({0}).size() != 1)
+  const auto& legacy = loaded_ids.at({0})[0];
   TEST_EQUAL(legacy.getScoreType(), "Posterior Error Probability")
   TEST_EQUAL(legacy.getSpectrumReference(), "scan=7")
   ABORT_IF(legacy.getHits().size() != 1)
   TEST_EQUAL(legacy.getHits()[0].getSequence().toString(), "PEPTIDE")
   TEST_REAL_SIMILAR(legacy.getHits()[0].getScore(), 0.01)
-  // The map to store is not changed, and a map with legacy identifications is written as it is.
-  TEST_EQUAL(map[0].getPeptideIdentifications().size(), 0)
+  // The map to store is not changed; the loaded map has the identification data (edited, it is written so).
   TEST_EQUAL(map.getIdentificationData().getRuns().size(), 1)
-  loaded[0].getPeptideIdentifications()[0].getHits()[0].setScore(0.5);
+  ABORT_IF(loaded.getIdentificationData().getRuns().size() != 1)
+  auto& loaded_run = loaded.getIdentificationData().getRun(loaded.getIdentificationData().getRuns()[0].getIdentifier());
+  loaded_run.setScore(loaded_run.getSources()[0].identifications[0].getMatches()[0].getId(), *loaded_run.getPrimaryScore(), 0.5);
   ConsensusXMLFile().store(file, loaded);
   ConsensusMap again;
   ConsensusXMLFile().load(file, again);
-  TEST_REAL_SIMILAR(again[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.5)
+  TEST_REAL_SIMILAR(IdentificationDataConverter::exportMapIdentifications(again).at({0})[0].getHits()[0].getScore(), 0.5)
   // A map holds its identifications as peptide identifications or as identification data, not both.
-  loaded.getIdentificationData() = map.getIdentificationData();
+  loaded[0].getPeptideIdentifications().push_back(PeptideIdentification());
   TEST_EXCEPTION(Exception::InvalidParameter, ConsensusXMLFile().store(file, loaded))
 }
 END_SECTION

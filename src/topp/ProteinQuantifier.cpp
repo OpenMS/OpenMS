@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/QPXIdentity.h>
 #include <OpenMS/FORMAT/QPXFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/QPXCollectionExport.h>
 
@@ -912,6 +913,8 @@ protected:
   {
     FeatureMap features;
     FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
+    // the protein-level steps below work on the protein identifications of the map
+    IdentificationDataConverter::moveToPeptideIdentifications(features);
     columns_headers_[0].filename = in;
 
     ExperimentalDesign ed = getExperimentalDesignFeatureMap_(design_file, features);
@@ -964,6 +967,9 @@ protected:
   {
     ConsensusMap consensus;
     FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
+    // the protein-level steps below (inference results, the quantified protein run for the exports) work on the
+    // protein identifications of the map
+    IdentificationDataConverter::moveToPeptideIdentifications(consensus);
 
     // Drop features whose peptide identifications disagree on the top sequence. They already
     // contribute nothing: PeptideAndProteinQuant::getAnnotation_() returns an empty hit for

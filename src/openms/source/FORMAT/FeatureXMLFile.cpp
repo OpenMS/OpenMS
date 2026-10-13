@@ -45,25 +45,6 @@ namespace OpenMS
     return handler.getSize();
   }
 
-  namespace
-  {
-    // The identifications of a file as peptide and protein identifications of the map
-    void setPeptideIdentifications(FeatureMap& map, MapPeptideIdentifications&& identifications)
-    {
-      map.setProteinIdentifications(std::move(identifications.proteins));
-      map.setUnassignedPeptideIdentifications(std::move(identifications.unassigned));
-      for (auto& [path, peptides] : identifications.features)
-      {
-        Feature* feature = &map.at(path[0]);
-        for (Size i = 1; i < path.size(); ++i)
-        {
-          feature = &feature->getSubordinates().at(path[i]);
-        }
-        feature->setPeptideIdentifications(std::move(peptides));
-      }
-    }
-  } // namespace
-
   void FeatureXMLFile::load(const std::string& filename, FeatureMap& feature_map)
   {
     feature_map.clear(true);
@@ -75,7 +56,8 @@ namespace OpenMS
     handler.setOptions(options_);
     handler.setLogType(getLogType());
     parse_(filename, &handler);
-    setPeptideIdentifications(feature_map, std::move(handler.getIdentifications()));
+    // the identifications of the file as identification data
+    IdentificationDataConverter::importMapIdentifications(feature_map, handler.getIdentifications());
 
     // !!! Hack: set feature FWHM from meta info entries as
     // long as featureXML doesn't support a width entry.

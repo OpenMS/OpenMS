@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
+#include <optional>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include "MapIdentificationParquet.h"
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -1106,10 +1108,13 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
 }
 
 bool ConsensusMapArrowIO::exportToParquet(
-  const ConsensusMap& cmap,
+  const ConsensusMap& input_map,
   const std::string& directory,
   const ParquetWriteConfig& config)
 {
+  // the bundle holds identifications as identification data (peptide identifications are converted)
+  std::optional<ConsensusMap> converted;
+  const ConsensusMap& cmap = IdentificationDataConverter::withIdentificationData(input_map, converted);
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .consensusparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(cmap.getProteinIdentifications());
@@ -1501,6 +1506,9 @@ bool ConsensusMapArrowIO::importFromParquet(
     ProteinIdentificationArrowIO::applyRunIdentifierRename(
         rename, cmap.getUnassignedPeptideIdentifications());
   }
+
+  // the peptide identifications of a bundle (written by former versions) as identification data
+  IdentificationDataConverter::moveToIdentificationData(cmap);
 
   return true;
 }

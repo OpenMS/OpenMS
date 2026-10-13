@@ -215,6 +215,18 @@ OpenMS Library:
     identifications first. Seeds and offset peptides are pseudo identifications without matches (meta value
     SeedFeatureID), no longer hits with a placeholder sequence, and a minimum PSM score (min_psm_cutoff) no
     longer drops them. New FAIMSHelper::filterIdentificationsByFAIMSCV(). Outputs unchanged.
+  - API CHANGE: feature and consensus maps loaded from featureXML, consensusXML, featureparquet and consensusparquet
+    hold their identifications as identification data (the links of their features), no longer as peptide and
+    protein identifications; IdentificationDataConverter::exportMapIdentifications() gives those. featureparquet and
+    consensusparquet bundles store identifications as identification data only (a map with peptide
+    identifications is converted): their runs keep their identifiers, a map has one PSM score schema, features
+    with identifications need valid unique IDs, and tool-defined modifications are registered when the
+    identifications are read. Files whose peptide hits have no score type cannot be loaded. QualityControl and
+    ProteinQuantifier convert loaded maps back until they work on identification data. ProteinInference and Epifany
+    (consensusXML) infer and filter on identification data; IdentificationDataAdapter::editInferenceResults() edits
+    the protein runs of all inference results. IBSpectra export and AssayGeneratorMetabo read the identifications of
+    native maps; merging consensus maps sorts the modifications of native runs as it does for protein
+    identifications. pyOpenMS: the FeatureMap/ConsensusMap DataFrame helpers read MapPeptideIdentifications.
   - MapPeptideIdentifications: the identifications of a feature or consensus map as peptide and protein
     identifications apart from the map (by feature path, unassigned), for formats that hold them.
     IdentificationDataConverter::exportMapIdentifications()/importMapIdentifications() convert between a

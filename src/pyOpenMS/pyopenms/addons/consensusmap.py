@@ -87,6 +87,13 @@ def get_intensity_df(self):
 
 
 @addon("ConsensusMap")
+def _map_identifications(self):
+    """The identifications of the map as peptide and protein identifications (MapPeptideIdentifications)."""
+    from pyopenms import IdentificationDataConverter
+    return IdentificationDataConverter.exportMapIdentifications(self)
+
+
+@addon("ConsensusMap")
 def get_metadata_df(self):
     """Generates a pandas DataFrame with feature meta data."""
     try:
@@ -94,12 +101,14 @@ def get_metadata_df(self):
     except ImportError:
         raise ImportError("pandas is required for get_metadata_df(). Install with: pip install pandas")
 
-    def gen(cmap, fun):
-        for f in cmap.iter_consensus_feature_views():
-            yield from fun(f)
+    ids = self._map_identifications()
 
-    def extract_meta_data(f):
-        pep = f.getPeptideIdentifications()
+    def gen(cmap, fun):
+        for index, f in enumerate(cmap.iter_consensus_feature_views()):
+            yield from fun(index, f)
+
+    def extract_meta_data(index, f):
+        pep = ids.at([index])
         if len(pep) != 0:
             hits = pep[0].getHits()
             if len(hits) != 0:
@@ -315,7 +324,8 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
 
     # Get column headers for intensity mapping
     col_headers = self.getColumnHeaders()
-    prot_ids = self.getProteinIdentifications()
+    ids = self._map_identifications()
+    prot_ids = ids.proteins
 
     # Build protein group lookup
     pg_lookup = {}
@@ -329,8 +339,8 @@ def to_feature_arrow(self, reference_file_name=None, columns=None,
                     pg_lookup[acc].extend(pg.accessions)
                     pg_qvalue_lookup[acc] = pg.probability
 
-    for cf in self.iter_consensus_feature_views():
-        pep_ids = cf.getPeptideIdentifications()
+    for index, cf in enumerate(self.iter_consensus_feature_views()):
+        pep_ids = ids.at([index])
         best_hit = None
         if pep_ids:
             hits = pep_ids[0].getHits()
