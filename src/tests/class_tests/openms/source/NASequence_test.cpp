@@ -885,6 +885,8 @@ END_SECTION
 
 START_SECTION(float getSequenceIdentity(const NASequence& other) const)
 {
+  TEST_EXCEPTION(Exception::IllegalArgument, NASequence::fromString("ACGU").getSequenceIdentity(NASequence::fromString("A")))
+  TEST_EXCEPTION(Exception::IllegalArgument, NASequence::fromString("A").getSequenceIdentity(NASequence::fromString("ACGU")))
   NASequence seq1 = NASequence::fromString("AUGCAUGC");
   NASequence seq2 = NASequence::fromString("AUGCAUGC");
 
@@ -907,49 +909,7 @@ START_SECTION(float getSequenceIdentity(const NASequence& other) const)
 }
 END_SECTION
 
-START_SECTION(NASequence getShuffled(Math::RandomShuffler& shuffler, double identity_threshold, int max_attempts, bool keep_five_prime, bool keep_three_prime) const)
-{
-  // Basic shuffle should produce a different sequence
-  NASequence seq = NASequence::fromString("AUGCAUGCAUGCAUGC");
-  Math::RandomShuffler shuffler(42);
-  NASequence shuffled = seq.getShuffled(shuffler, 0.5, 30);
-  // Must not be identical
-  TEST_EQUAL(seq != shuffled, true)
-  // Must have same length
-  TEST_EQUAL(seq.size(), shuffled.size())
-  // Identity should be below threshold
-  TEST_EQUAL(seq.getSequenceIdentity(shuffled) <= 0.5, true)
 
-  // With keep_five_prime: first nucleotide preserved
-  Math::RandomShuffler shuffler2(42);
-  NASequence shuffled_keep5 = seq.getShuffled(shuffler2, 0.5, 30, true, false);
-  TEST_EQUAL(shuffled_keep5[0] == seq[0], true)
-
-  // With keep_three_prime: last nucleotide preserved
-  Math::RandomShuffler shuffler3(42);
-  NASequence shuffled_keep3 = seq.getShuffled(shuffler3, 0.5, 30, false, true);
-  TEST_EQUAL(shuffled_keep3[shuffled_keep3.size() - 1] == seq[seq.size() - 1], true)
-
-  // With keep both terminals
-  Math::RandomShuffler shuffler4(42);
-  NASequence shuffled_keepboth = seq.getShuffled(shuffler4, 0.5, 30, true, true);
-  TEST_EQUAL(shuffled_keepboth[0] == seq[0], true)
-  TEST_EQUAL(shuffled_keepboth[shuffled_keepboth.size() - 1] == seq[seq.size() - 1], true)
-
-  // Terminal modifications preserved
-  NASequence seq_mods = NASequence::fromString("pAUGCAUGCAUGCAUGCp");
-  Math::RandomShuffler shuffler5(42);
-  NASequence shuffled_mods = seq_mods.getShuffled(shuffler5, 0.5, 30);
-  TEST_EQUAL(shuffled_mods.hasFivePrimeMod(), true)
-  TEST_EQUAL(shuffled_mods.hasThreePrimeMod(), true)
-
-  // Short sequence (<=2) stays unchanged
-  NASequence short_seq = NASequence::fromString("AU");
-  Math::RandomShuffler shuffler6(42);
-  NASequence shuffled_short = short_seq.getShuffled(shuffler6, 0.5, 30);
-  TEST_EQUAL(short_seq == shuffled_short, true)
-}
-END_SECTION
 
 
 /////////////////////////////////////////////////////////////

@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Sam Wein $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -16,6 +16,7 @@
 namespace OpenMS
 {
   class AASequence;
+  class NASequence;
   class DigestionEnzymeProtein;
 
   /**
@@ -80,6 +81,41 @@ namespace OpenMS
             const std::string& protease,
             const int max_attempts = 100
             );
+
+      /**
+        @brief Reverse RNA products while preserving composition, terminal chemistry and RNase cleavage positions.
+        @param[in] rna RNA parent
+        @param[in] rnase RNase name (unspecific cleavage is unsupported)
+        @param[in] keep_five_prime Additionally keep the parent's first nucleotide
+        @param[in] keep_three_prime Additionally keep the parent's last nucleotide
+        @return Cleavage-preserving RNA decoy; an untransformable product is retained unchanged
+        @throws Exception::IllegalArgument RNase products do not partition the parent
+      */
+      NASequence reversePeptides(const NASequence& rna, const std::string& rnase,
+                                bool keep_five_prime = false, bool keep_three_prime = false) const;
+
+      /**
+        @brief Portably shuffle RNA products without changing composition or modifications.
+
+        RNase cut contexts and terminal chemistry are retained. The identity threshold is a
+        best-effort target: return the lowest-identity valid permutation within the budget,
+        and report an unattained target. No nucleotide or modification is ever mutated.
+        A zero budget returns the original sequence.
+        Each RNA product starts from the configured seed so identical products
+        with the same fixed positions have identical decoys across parents.
+        @param[in] rna RNA parent
+        @param[in] rnase RNase name (unspecific cleavage is unsupported)
+        @param[in] max_attempts Shuffle budget per RNase product
+        @param[in] identity_threshold Best-effort maximum sequence identity in [0,1]
+        @param[in] keep_five_prime Additionally keep the parent's first nucleotide
+        @param[in] keep_three_prime Additionally keep the parent's last nucleotide
+        @return Best valid, composition-preserving RNA decoy found
+        @throws Exception::InvalidParameter Invalid budget or identity target
+        @throws Exception::IllegalArgument RNase products do not partition the parent
+      */
+      NASequence shufflePeptides(const NASequence& rna, const std::string& rnase,
+                                int max_attempts = 100, double identity_threshold = 0.5,
+                                bool keep_five_prime = false, bool keep_three_prime = false);
     
     private:
       // sequence identity by matching AAs
@@ -87,9 +123,9 @@ namespace OpenMS
 
       // portable shuffle
       Math::RandomShuffler shuffler_;
+      UInt64 seed_ = 0;
 
       // ensures that shuffling same peptide (in different proteins) leads to same decoy
       std::unordered_map<std::string, std::string> td_cache_;
   };
 }
-

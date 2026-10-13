@@ -10,6 +10,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
@@ -69,7 +70,7 @@ See www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/ and NeighborSeq for details.
 For RNA, terminal chain modifications remain at their original ends.
 The optional @p keep_terminal_nucleotides flag also fixes the first and last residues.
 With @p rnase, each original RNase product is reversed or shuffled within the parent;
-this does not guarantee that the resulting decoy has identical cleavage boundaries.
+the library transformation preserves the original RNase cleavage boundaries and composition.
 Unspecific cleavage is unsupported because its overlapping products do not partition
 the parent. If an RNase produces only single-nucleotide fragments, a warning reports
 that the decoy remains identical to the target.
@@ -110,7 +111,7 @@ protected:
     registerStringOption_("method", "<choice>", "reverse", "Method by which decoy sequences are generated from target sequences. Note that all sequences are shuffled using the same random seed, ensuring that identical sequences produce the same shuffled decoy sequences. Shuffled sequences that produce highly similar output sequences are shuffled again (see shuffle_sequence_identity_threshold).", false);
     setValidStrings_("method", {"reverse", "shuffle"});
     registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false, true);
-    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. In case of repeated failure, individual residues are 'mutated' to produce a different sequence.", false, true);
+    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. For proteins, repeated failure may mutate residues. For RNA, this is a best-effort identity target: composition and modifications are retained and an unattained target is reported.", false, true);
     registerIntOption_("shuffle_decoy_ratio", "<int>", 1, "shuffle: target-decoy database size ratio. The resulting size between target and decoy databases is 1 to this integer value.", false, true);
     setMinInt_("shuffle_decoy_ratio", 1);
 
@@ -490,40 +491,12 @@ protected:
                                 << entry.identifier << "'; the decoy is identical to the target.\n";
               }
 
-              NASequence result = na_seq; // preserves 5'/3' terminal mods
-              const auto& orig_seq = na_seq.getSequence();
-              for (const auto& [pos, frag_len] : fragment_positions)
-              {
-                if (frag_len <= 1)
-                {
-                  continue;
-                }
-
-                // Extract this fragment's nucleotides (without terminal mods)
-                auto it_begin = orig_seq.begin() + pos;
-                NASequence frag_copy({it_begin, it_begin + frag_len}, nullptr, nullptr);
-
-                // Only preserve terminal nucleotides at full-sequence boundaries
-                bool keep5 = keep_terminal_nucleotides && (pos == 0);
-                bool keep3 = keep_terminal_nucleotides && (pos + frag_len == result.size());
-
-                NASequence decoy_frag;
-                if (shuffle)
-                {
-                  shuffler.seed(repeat_seed);
-                  decoy_frag = frag_copy.getShuffled(shuffler, identity_threshold, max_attempts, keep5, keep3);
-                }
-                else // reverse
-                {
-                  decoy_frag = frag_copy.getReversed(keep5, keep3);
-                }
-
-                // Write reversed/shuffled nucleotides back into result
-                for (Size i = 0; i < frag_len; ++i)
-                {
-                  result[pos + i] = decoy_frag[i];
-                }
-              }
+              DecoyGenerator generator;
+              generator.setSeed(repeat_seed);
+              const auto result = shuffle ?
+                generator.shufflePeptides(na_seq, rnase, max_attempts, identity_threshold,
+                                          keep_terminal_nucleotides, keep_terminal_nucleotides) :
+                generator.reversePeptides(na_seq, rnase, keep_terminal_nucleotides, keep_terminal_nucleotides);
               decoy_entry.sequence = result.toString();
             }
             else
@@ -531,9 +504,10 @@ protected:
               // No digestion: reverse/shuffle the whole sequence
               if (shuffle)
               {
-                shuffler.seed(repeat_seed);
-                NASequence decoy_seq = na_seq.getShuffled(shuffler, identity_threshold, max_attempts,
-                                                         keep_terminal_nucleotides, keep_terminal_nucleotides);
+                DecoyGenerator generator;
+                generator.setSeed(repeat_seed);
+                NASequence decoy_seq = generator.shufflePeptides(na_seq, "no cleavage", max_attempts,
+                  identity_threshold, keep_terminal_nucleotides, keep_terminal_nucleotides);
                 decoy_entry.sequence = decoy_seq.toString();
               }
               else // reverse

@@ -420,6 +420,12 @@ searches
         .def("setSeed", [](OpenMS::DecoyGenerator& self, size_t seed) { return self.setSeed(seed); }, "seed"_a)
         .def("reverseProtein", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein) { return self.reverseProtein(protein); }, "protein"_a, "Reverses the protein sequence")
         .def("reversePeptides", [](const OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const std::string& protease) { return self.reversePeptides(protein, protease); }, "protein"_a, "protease"_a, "Reverses the protein's peptide sequences between enzymatic cutting positions")
+        .def("reversePeptides", [](const OpenMS::DecoyGenerator& self, const OpenMS::NASequence& rna, const std::string& rnase, bool keep_five, bool keep_three) {
+            return self.reversePeptides(rna, rnase, keep_five, keep_three);
+        }, "rna"_a, "rnase"_a, "keep_five_prime"_a = false, "keep_three_prime"_a = false, "Reverse RNA products while retaining RNase cut contexts, composition and terminal chemistry")
+        .def("shufflePeptides", [](OpenMS::DecoyGenerator& self, const OpenMS::NASequence& rna, const std::string& rnase, int attempts, double target, bool keep_five, bool keep_three) {
+            return self.shufflePeptides(rna, rnase, attempts, target, keep_five, keep_three);
+        }, "rna"_a, "rnase"_a, "max_attempts"_a = 100, "identity_threshold"_a = 0.5, "keep_five_prime"_a = false, "keep_three_prime"_a = false, "Portably shuffle RNA products; identity is best effort and composition/modifications are never mutated")
         .def("shuffle", [](OpenMS::DecoyGenerator& self, const OpenMS::AASequence& protein, const std::string& protease, int decoy_factor) { return self.shuffle(protein, protease, decoy_factor); }, "protein"_a, "protease"_a, "decoy_factor"_a = 1, 
             R"doc(
 Generate decoy protein sequences using shuffle algorithm. Digests protein using specified protease and shuffles each peptide. For top-down proteomics use "no cleavage". decoy_factor is the number of complete decoy proteins to generate. Returns vector of AASequence
@@ -2249,10 +2255,6 @@ the fixed and variable modifications given to the constructor
             if (self.size() != other.size()) { throw nb::value_error("Sequence lengths must match"); }
             return self.getSequenceIdentity(other);
         }, "other"_a, "Return positional residue identity for equal-length sequences, ignoring terminal modifications.")
-        .def("getShuffled", [](const OpenMS::NASequence& self, OpenMS::UInt seed, double threshold, int attempts, bool keep_five, bool keep_three) {
-            OpenMS::Math::RandomShuffler shuffler(seed);
-            return self.getShuffled(shuffler, threshold, attempts, keep_five, keep_three);
-        }, "seed"_a = 1, "identity_threshold"_a = 0.5, "max_attempts"_a = 30, "keep_five_prime"_a = false, "keep_three_prime"_a = false, "Shuffle with a reproducible seed and bounded identity retries, then mutate matching free residues if necessary. Terminal chain modifications are retained.")
         .def("set", [](OpenMS::NASequence& self, size_t index, const OpenMS::Ribonucleotide* r) {
             if (index >= self.size()) throw nb::index_error(); // NASequence::set is an unchecked seq_[index]
             self.set(index, resolveDBRibonucleotide_(r));

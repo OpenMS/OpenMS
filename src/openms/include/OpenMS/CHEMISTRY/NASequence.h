@@ -13,7 +13,6 @@
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/MATH/MathFunctions.h>
 #include <functional>
 #include <iosfwd>
 #include <vector>
@@ -492,31 +491,6 @@ namespace OpenMS
     NASequence getReversed(bool keep_five_prime = false, bool keep_three_prime = false) const;
 
     /**
-       @brief Return a shuffled copy of this sequence with identity quality control
-
-       Shuffles the internal ribonucleotide sequence while optionally preserving
-       terminal nucleotides. Repeatedly attempts shuffling until the sequence identity
-       with the original falls below the threshold or max_attempts is reached.
-       If a positive max_attempts budget is exhausted, matching free nucleotides
-       are mutated to force a different sequence. A zero budget leaves the sequence
-       unchanged. The identity threshold may remain unattainable when terminal
-       residues are fixed; sequences of at most two residues are returned unchanged.
-
-       @param[in] shuffler Random shuffler to use (seeded externally for reproducibility)
-       @param[in] identity_threshold Maximum allowed sequence identity with original (0.0-1.0)
-       @param[in] max_attempts Maximum number of shuffle attempts before mutating
-       @param[in] keep_five_prime If true, preserve the first (5') nucleotide position
-       @param[in] keep_three_prime If true, preserve the last (3') nucleotide position
-
-       @return NASequence with shuffled internal sequence
-
-       @note Terminal modifications (5' and 3' chain ends) are always preserved.
-    */
-    NASequence getShuffled(Math::RandomShuffler& shuffler, double identity_threshold = 0.5,
-                           int max_attempts = 30,
-                           bool keep_five_prime = false, bool keep_three_prime = false) const;
-
-    /**
        @brief Calculate sequence identity between this and another NASequence
 
        Compares ribonucleotide codes position-by-position. Only considers the internal
@@ -526,7 +500,7 @@ namespace OpenMS
 
        @return Sequence identity as a fraction (0.0-1.0), where 1.0 means identical
 
-       @pre Both sequences must have the same length (asserted).
+       @throws Exception::IllegalArgument The sequences have different lengths
     */
     float getSequenceIdentity(const NASequence& other) const;
 
