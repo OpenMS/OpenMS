@@ -19,6 +19,10 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
 
 OpenMS Library:
+  - FIX: TempDir names drop the hostname and, on Windows, use an 8-character random suffix instead
+    of a full UUID (about 45 instead of 90 characters). On Windows, OpenDIA failed with "unable to
+    open database file" once -workflow:intermediate_dir was longer than about 120 characters,
+    because its intermediate SQLite files (and their journals) ended up beyond MAX_PATH.
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
   - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
     critical sections, which also protects callers without OpenMP. Generated ids exclude zero.
