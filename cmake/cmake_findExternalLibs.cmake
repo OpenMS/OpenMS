@@ -664,7 +664,7 @@ if (WITH_THERMO_RAW)
       # This is the 1.0.0 release commit (OpenMS/openms-thermo-bridge#13; to be repinned to
       # the v1.0.0 tag once it is published). tools/ci/fetch_thermo_assets.sh checks that its
       # own pin matches and downloads the matching release assets when they exist.
-      GIT_TAG        a849a00193c5b49c509f1f7727fe266e04fd0ece  # 1.0.0
+      GIT_TAG        e6f0f979732a052ad38d378c2f58790e450770cf  # 1.0.0
     )
 
     # Configure the thermo bridge build options

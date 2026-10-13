@@ -83,7 +83,9 @@ order over all scans read, so they are the same whichever scans are selected.
 
 Sampled noise is deliberately separate from peak annotations. Its point count
 and mass grid can differ from the spectrum; sorting or restricting spectrum
-peaks does not reorder, truncate or reduce precision in these arrays.
+peaks does not reorder, truncate or reduce precision in these arrays. Scans
+without a centroid stream (e.g. ion trap scans) have no noise data and carry none
+of the three arrays.
 
 The target is comparable mzML content, not identical XML bytes: OpenMS writes
 retention times in seconds, has its own software/data-processing records and

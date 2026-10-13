@@ -7,8 +7,8 @@ endif()
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO OpenMS/openms-thermo-bridge
-    REF a849a00193c5b49c509f1f7727fe266e04fd0ece
-    SHA512 43c05433b7d0cde932c166e7765b8d58d98c99fda121c0b37538a9f6e8cb0ef694aa343483220cc5acc9852562cff85adfc35d052b14f4d9e72b88c03e3f7b36
+    REF e6f0f979732a052ad38d378c2f58790e450770cf
+    SHA512 5b7e1b209e1a5efeba90d15a2df99be90995a0630d811e7b9cf4a28ee95c1ba08e18df458cea483748acb395bef7a41df53fddcf1438e047ee9dc95fafbd4865
     HEAD_REF main
     PATCHES
         vcpkg-nethost-use.patch

@@ -351,7 +351,9 @@ Dependencies:
     find_package). ThermoRawFile reads each scan through its typed single-pass API (header,
     m/z-sorted peaks, charges and noise in one call) instead of per-scan JSON and separate
     peak and auxiliary-array calls; system or vcpkg installations of 0.x are no longer
-    accepted (#10522).
+    accepted (#10522). With noise_data, scans without a centroid stream (e.g. ion trap
+    scans) no longer carry a "sampled noise m/z array" without intensities; the vendor
+    returned the segmented scan masses there, not noise samples.
 
 TOPP tools:
   Changes:
