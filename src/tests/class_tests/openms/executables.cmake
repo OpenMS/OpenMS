@@ -674,6 +674,7 @@ set(transformations_executables_list
   EmgModel_test
   ExtendedIsotopeFitter1D_test
   ExtendedIsotopeModel_test
+  FeatureFinderAlgorithmMetaboIdent_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderIdentificationAlgorithm_test

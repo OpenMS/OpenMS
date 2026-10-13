@@ -345,7 +345,9 @@ protected:
     // statistics
     //-------------------------------------------------------------
 
-    Size n_missing = features.getUnassignedPeptideIdentifications().size();
+    // the targets without features (see FeatureFinderAlgorithmMetaboIdent)
+    const std::vector<IdentificationData::QueryMatches> missing = features.getUnassignedIdentifications();
+    Size n_missing = missing.size();
     OPENMS_LOG_INFO << "\nSummary statistics:\n"
              << table.size() << " targets specified\n"
              << features.size() << " features found\n"
@@ -356,16 +358,13 @@ protected:
     if (n_missing && !library.getCompounds().empty())
     {
       OPENMS_LOG_INFO << ":";
-      for (Size i = 0;
-           ((i < features.getUnassignedPeptideIdentifications().size()) &&
-            (i < n_examples)); ++i)
+      for (Size i = 0; ((i < missing.size()) && (i < n_examples)); ++i)
       {
-        const PeptideIdentification& pep_id =
-          features.getUnassignedPeptideIdentifications()[i];
-        if (pep_id.metaValueExists("PeptideRef"))
+        const IdentificationData::Identification& target = *missing[i].query;
+        if (target.metaValueExists("PeptideRef"))
         {
           const TargetedExperiment::Compound& compound =
-            library.getCompoundByRef(pep_id.getMetaValue("PeptideRef"));
+            library.getCompoundByRef(target.getMetaValue("PeptideRef"));
           OPENMS_LOG_INFO << "\n- " << FeatureFinderAlgorithmMetaboIdent::prettyPrintCompound(compound);
         }
       }

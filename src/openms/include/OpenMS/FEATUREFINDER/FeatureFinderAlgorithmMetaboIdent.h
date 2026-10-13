@@ -232,7 +232,8 @@ protected:
                            const std::vector<double>& ion_mobilities = {},
                            const std::string& adduct = "");
 
-  /// Add "peptide" identifications with information about targets to features
+  /// Add the targets without features to @p features: identifications of run "id" (without matches) that no feature
+  /// links, at the expected position of the target and with its name ("label") and reference ("PeptideRef")
   Size addTargetAnnotations_(FeatureMap& features);
 
   void addTargetRT_(TargetedExperiment::Compound& target, double rt);

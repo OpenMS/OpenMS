@@ -212,18 +212,25 @@ namespace OpenMS
         features.push_back(feat);
       }
 
-      // Copy ProteinIdentifications (the run "id" of the unassigned peptide identifications, which a group only has if
-      // it has targets without features) from the first group that has them
-      if (features.getProteinIdentifications().empty())
+      // Add the targets without features (the identifications of run "id", which a group only has if it has such
+      // targets) with FAIMS annotation, all in one run "id"
+      for (const auto& group_run : features_cv.getIdentificationData().getRuns())
       {
-        features.setProteinIdentifications(features_cv.getProteinIdentifications());
-      }
-
-      // Copy UnassignedPeptideIdentifications with FAIMS annotation
-      for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
-      {
-        pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+        auto& data = features.getIdentificationData();
+        auto& run = data.getRuns().empty() ? data.addRun(group_run.getIdentifier()) : data.getRun(group_run.getIdentifier());
+        if (run.getSources().empty())
+        {
+          run.addSource(IdentificationData::SourceFile());
+        }
+        for (const auto& source : group_run.getSources())
+        {
+          for (const auto& query : source.identifications)
+          {
+            IdentificationData::Observation observation = query.getObservation();
+            observation.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+            run.addIdentification(run.getSourceId(0), observation);
+          }
+        }
       }
 
       // Combine chromatograms
@@ -917,37 +924,39 @@ namespace OpenMS
         found_refs.insert(alt_refs.begin(), alt_refs.end());
       }
     }
-    // targets without features:
+    // targets without features: identifications (without matches and scores) of run "id" that no feature links,
+    // at the expected position of the target
     size_t n_missing = library_.getCompounds().size() - found_refs.size();
-    features.getUnassignedPeptideIdentifications().reserve(n_missing);
+    if (n_missing == 0)
+    {
+      return n_shared; // for summary statistics
+    }
+    IdentificationData::Run& run = features.getIdentificationData().addRun("id");
+    const IdentificationData::SourceId source = run.addSource(IdentificationData::SourceFile());
+    Size n_added = 0;
     for (vector<TargetedExperiment::Compound>::const_iterator it =
            library_.getCompounds().begin(); it != library_.getCompounds().end();
          ++it)
     {
       if (!found_refs.contains(it->id))
       {
-        PeptideIdentification peptide;
-        peptide.setIdentifier("id");
-        peptide.setMetaValue("label", it->getMetaValue("name"));
-        peptide.setMetaValue("PeptideRef", it->id);
-        peptide.setRT(it->getMetaValue("expected_rt"));
-        peptide.setMZ(calculateMZ_(it->theoretical_mass, it->getChargeState()));
+        IdentificationData::Observation target;
+        target.setMetaValue("label", it->getMetaValue("name"));
+        target.setMetaValue("PeptideRef", it->id);
+        target.rt = double(it->getMetaValue("expected_rt"));
+        target.mz = calculateMZ_(it->theoretical_mass, it->getChargeState());
         // Add IM annotation if available
         if (it->metaValueExists("expected_im"))
         {
-          peptide.setMetaValue("expected_im", it->getMetaValue("expected_im"));
+          target.setMetaValue("expected_im", it->getMetaValue("expected_im"));
         }
-        features.getUnassignedPeptideIdentifications().push_back(peptide);
+        run.addIdentification(source, target);
+        ++n_added;
       }
-      if (features.getUnassignedPeptideIdentifications().size() >= n_missing)
+      if (n_added >= n_missing)
       {
         break; // found all
       }
-    }
-    if (n_missing)
-    {
-      features.getProteinIdentifications().resize(1);
-      features.getProteinIdentifications()[0].setIdentifier("id");
     }
     return n_shared; // for summary statistics
   }
