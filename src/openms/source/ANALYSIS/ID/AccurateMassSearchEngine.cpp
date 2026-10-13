@@ -646,6 +646,10 @@ namespace OpenMS
       file_locations.emplace_back(ms_run_paths[0]);
     }
 
+    // the identifications of the map (if any) as identification data, to which the search adds a run
+    IdentificationDataConverter::moveToIdentificationData(fmap);
+    IdentificationData::Run& run = addAnnotationRun_(fmap.getIdentificationData(), "AccurateMassSearch");
+
     // map for storing overall results
     QueryResultsTable overall_results;
     Size dummy_count(0);
@@ -658,20 +662,14 @@ namespace OpenMS
       }
       overall_results.push_back(query_results);
 
-      annotate_(query_results, fmap[i]);
+      annotate_(run, query_results, fmap[i]);
     }
 
     // filter FeatureMap to only have entries with an identification
     if (!keep_unidentified_masses_)
     {
-      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return f.getPeptideIdentifications().empty(); }), fmap.end());
+      fmap.eraseFeatures([](const Feature& f) { return f.getIDQueries().empty() && f.getIDMatches().empty(); });
     }
-
-    // add dummy ProteinIdentification which is required to keep PeptideHits alive during store()
-    fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
-    fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchEngine");
-    fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
-    fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     if (fmap.empty())
     {
@@ -738,28 +736,52 @@ namespace OpenMS
     }
   }
 
-  void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const
+  IdentificationData::Run& AccurateMassSearchEngine::addAnnotationRun_(IdentificationData& data, const std::string& software)
   {
-    f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
-    f.getPeptideIdentifications().back().setIdentifier(search_engine_identifier);
-    // A hit's score is its absolute m/z error in ppm (the signed error is the meta value "mz_error_ppm").
-    f.getPeptideIdentifications().back().setScoreType("MassErrorAbsPPMScore");
-    f.getPeptideIdentifications().back().setHigherScoreBetter(false);
+    IdentificationData::Run run(search_engine_identifier, IdentificationData::MoleculeKind::COMPOUND);
+    // A candidate's score is its absolute m/z error in ppm (the signed error is the meta value "mz_error_ppm").
+    IdentificationData::ScoreDefinition abs_ppm;
+    abs_ppm.name = "MassErrorAbsPPMScore";
+    abs_ppm.higher_better = false;
+    run.setPrimaryScore(run.addScore(abs_ppm));
+    IdentificationData::RunSettings settings;
+    settings.software = software;
+    settings.date = DateTime::now();
+    run.setSettings(settings);
+    // the run has no protein scores; its legacy protein run has no score type
+    IdentificationDataAdapter::setLegacyProteinScoreType(run, "", true);
+    run.addSource(IdentificationData::SourceFile()); // the spectra are not known
+    // added by merging, so that another search of the same map gets a run of its own (with a numbered identifier)
+    const std::string uuid = run.getUuid();
+    IdentificationData search;
+    search.addRun(std::move(run));
+    data.merge(search);
+    return *data.findRunByUuid(uuid);
+  }
+
+  void AccurateMassSearchEngine::annotate_(IdentificationData::Run& run, const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const
+  {
+    // XML writers order meta values by the registration of their names. Legacy output writes the compound conventions
+    // of the identification export (see IdentificationDataConverter) before the values of the search; register them
+    // first, so the order stays.
+    for (const char* name : {"identifier", "molecule_type", "label", "identification:encoding", "identification:identifier_databases",
+                             "identification:identifier_accessions", "description", "modifications", "chemical_formula", "mz_error_ppm",
+                             "mz_error_Da"})
+    {
+      MetaInfoInterface::metaRegistry().registerName(name);
+    }
+    const auto query = run.addIdentification(run.getSourceId(0), IdentificationData::Observation());
+    f.addIDQuery({run.getUuid(), query});
     for (const AccurateMassSearchResult& result : amr)
     {
-      // An unmatched mass (kept with keep_unidentified_masses) is an identification without hits, as in the native
+      // An unmatched mass (kept with keep_unidentified_masses) is an identification without matches, as in the native
       // annotation.
       if (result.getMatchingIndex() == static_cast<Size>(-1)) continue;
-      PeptideHit hit;
-      hit.setScore(std::fabs(result.getMZErrorPPM()));
-      hit.setMetaValue("identifier", result.getMatchingHMDBids());
-      // A compound, as IdentificationDataConverter writes and reads them: represented by the first matching database
-      // entry, and qualified by all of them.
-      hit.setMetaValue("molecule_type", "compound");
-      hit.setMetaValue("label", result.getMatchingHMDBids().front());
-      hit.setMetaValue("identification:encoding", static_cast<int>(IdentificationData::Encoding::DATABASE_ID));
-      hit.setMetaValue("identification:identifier_databases", StringList(result.getMatchingHMDBids().size(), database_name_));
-      hit.setMetaValue("identification:identifier_accessions", result.getMatchingHMDBids());
+      // A compound: represented by the first matching database entry, and qualified by all of them.
+      IdentificationData::MatchData match;
+      match.encoding = IdentificationData::Encoding::DATABASE_ID;
+      match.representation = result.getMatchingHMDBids().front();
+      auto& details = match.details.emplace();
       StringList names;
       for (Size i = 0; i < result.getMatchingHMDBids().size(); ++i)
       { // mapping ok?
@@ -774,14 +796,16 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("DB entry '") + result.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
         names.push_back(entry->second[0]);
+        details.identifiers.push_back({database_name_, result.getMatchingHMDBids()[i]});
       }
-      hit.setCharge(result.getCharge());
-      hit.setMetaValue("description", names);
-      hit.setMetaValue("modifications", result.getFoundAdduct());
-      hit.setMetaValue("chemical_formula", result.getFormulaString());
-      hit.setMetaValue("mz_error_ppm", result.getMZErrorPPM());
-      hit.setMetaValue("mz_error_Da", result.getObservedMZ() - result.getCalculatedMZ());
-      f.getPeptideIdentifications().back().insertHit(hit);
+      match.charge = result.getCharge();
+      match.setMetaValue("identifier", result.getMatchingHMDBids());
+      match.setMetaValue("description", names);
+      match.setMetaValue("modifications", result.getFoundAdduct());
+      match.setMetaValue("chemical_formula", result.getFormulaString());
+      match.setMetaValue("mz_error_ppm", result.getMZErrorPPM());
+      match.setMetaValue("mz_error_Da", result.getObservedMZ() - result.getCalculatedMZ());
+      f.addIDMatch({run.getUuid(), run.addMatch(query, match, {std::fabs(result.getMZErrorPPM())})});
     }
   }
 
@@ -808,20 +832,19 @@ namespace OpenMS
       file_locations.emplace_back(fd.second.filename);
     }
 
+    // the identifications of the map (if any) as identification data, to which the search adds a run
+    IdentificationDataConverter::moveToIdentificationData(cmap);
+    IdentificationData::Run& run = addAnnotationRun_(cmap.getIdentificationData(), search_engine_identifier);
+
     // map for storing overall results
     QueryResultsTable overall_results;
     for (Size i = 0; i < cmap.size(); ++i)
     {
       std::vector<AccurateMassSearchResult> query_results;
       queryByConsensusFeature(cmap[i], i, num_of_maps, ion_mode_internal, query_results);
-      annotate_(query_results, cmap[i]);
+      annotate_(run, query_results, cmap[i]);
       overall_results.push_back(query_results);
     }
-    // add dummy protein identification which is required to keep peptidehits alive during store()
-    cmap.getProteinIdentifications().resize(cmap.getProteinIdentifications().size() + 1);
-    cmap.getProteinIdentifications().back().setIdentifier(search_engine_identifier);
-    cmap.getProteinIdentifications().back().setSearchEngine(search_engine_identifier);
-    cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     exportMzTab_(overall_results, num_of_maps, mztab_out, file_locations);
     return;

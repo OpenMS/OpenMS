@@ -197,6 +197,11 @@ OpenMS Library:
     hits; IDFilter's AnnotatedMSRun functions, MSPFile and TOPPView's identification view work on
     matches. MSPFile library annotations are matches of a run without scores, which idXML and
     mzIdentML cannot hold. ConsensusID combines the identifications of maps as identification data.
+  - AccurateMassSearch (id_format "legacy", mzTab 1.0) annotates feature and consensus maps as identification
+    data: a compound run per search (a repeated search of a map gets its own, numbered run) whose identifications
+    the features link, one match per result as before. Outputs unchanged.
+  - IdentificationDataAdapter::setLegacyProteinScoreType()/recordsLegacyProteinScoreType(); the legacy export of
+    compound and RNA runs keeps such a score type, as the export of peptide runs does.
   - FeatureFinderMetaboIdent records targets without features as identifications (without matches) of the
     run "id" that no feature links, also for FAIMS data (one run, the compensation voltage on each).
   - Writers of formats that hold peptide identifications accept maps with identification data:

@@ -437,8 +437,9 @@ void IdentificationDataConverter::exportIDs(const ID& data,
     auto processing = Adapter::settingsToLegacy(run);
     processing.setIdentifier(run.getIdentifier());
     if (run.getDatabases().size() > 1) reportLegacyLosses({"Legacy export can name only one database per run: " + run.getIdentifier()});
-    // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it.
-    if (run.getPrimaryScore())
+    // Without an inference result, the legacy run takes the primary score as its score type, as search engines write it,
+    // unless the run records another one (see IdentificationDataAdapter::settingsToLegacy())
+    if (run.getPrimaryScore() && ! Adapter::recordsLegacyProteinScoreType(run))
     {
       processing.setScoreType(run.getScoreDefinition(*run.getPrimaryScore()).name);
       processing.setHigherScoreBetter(run.getScoreDefinition(*run.getPrimaryScore()).higher_better);

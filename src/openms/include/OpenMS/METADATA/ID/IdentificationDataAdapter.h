@@ -122,6 +122,14 @@ public:
     q-values) calls this before, so the legacy protein run keeps its score type, as legacy rescoring keeps it.
   */
   static void keepLegacyProteinScoreType(IdentificationData::Run& run);
+  /**
+    @brief Give the legacy protein run of @p run the score type @p score_type (and direction @p higher_better), which
+    export writes without an inference result instead of the primary score (e.g. "" for a run without protein scores,
+    as legacy producers wrote it)
+  */
+  static void setLegacyProteinScoreType(IdentificationData::Run& run, const std::string& score_type, bool higher_better);
+  /// Whether the legacy protein run of @p run has a score type of its own (see setLegacyProteinScoreType())
+  static bool recordsLegacyProteinScoreType(const IdentificationData::Run& run);
   /// The identifier of the legacy protein run of @p run, which export gives its peptide identifications
   static std::string legacyIdentifier(const IdentificationData::Run& run);
   /**

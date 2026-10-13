@@ -433,8 +433,22 @@ private:
     void parseAdductsFile_(const std::string& filename, std::vector<AdductInfo>& result);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
-    /// Add search results to a Consensus/Feature
-    void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
+    /**
+      @brief The run for annotate_(): compound candidates of identifier search_engine_identifier with the absolute m/z
+      error in ppm ("MassErrorAbsPPMScore", lower is better) as score, by the software @p software, added to @p data
+    */
+    static IdentificationData::Run& addAnnotationRun_(IdentificationData& data, const std::string& software);
+
+    /**
+      @brief Add search results to a Consensus/Feature as an identification of @p run (see addAnnotationRun_())
+
+      The identification of the feature (without position) has one match per result: represented by the first
+      matching database entry and qualified by all of them, with their names ("description"), the adduct
+      ("modifications"), the formula and the m/z error as meta values. An unmatched mass (kept with
+      keep_unidentified_masses) gives an identification without matches. The feature links the identification
+      and its matches.
+    */
+    void annotate_(IdentificationData::Run& run, const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
 
     /// Extract query results from feature
     std::vector<AccurateMassSearchResult> extractQueryResults_(const Feature& feature, const Size& feature_index, const std::string& ion_mode_internal, Size& dummy_count) const;

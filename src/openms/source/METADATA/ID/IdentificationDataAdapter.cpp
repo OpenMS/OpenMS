@@ -846,6 +846,19 @@ void IdentificationDataAdapter::keepLegacyProteinScoreType(ID::Run& run)
   run.setSettings(settings);
 }
 
+void IdentificationDataAdapter::setLegacyProteinScoreType(ID::Run& run, const std::string& score_type, bool higher_better)
+{
+  auto settings = run.getSettings();
+  settings.setMetaValue(LEGACY_PROTEIN_SCORE_TYPE, score_type);
+  settings.setMetaValue(LEGACY_PROTEIN_HIGHER_BETTER, higher_better ? "true" : "false");
+  run.setSettings(settings);
+}
+
+bool IdentificationDataAdapter::recordsLegacyProteinScoreType(const ID::Run& run)
+{
+  return run.getSettings().metaValueExists(LEGACY_PROTEIN_SCORE_TYPE);
+}
+
 ID::RunSettings IdentificationDataAdapter::settingsFromLegacy(const ProteinIdentification& proteins)
 {
   ID::RunSettings settings;
