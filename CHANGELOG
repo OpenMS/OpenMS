@@ -111,6 +111,8 @@ OpenMS Library:
     IDFileConverter for identifications (e.g. to idXML) and FileConverter for feature maps
     (to featureXML). Loading a .oms file now reports this. Native identification data is stored as
     .idparquet; maps with native identification data as .featureparquet/.consensusparquet.
+  - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
+    made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
   - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
     critical sections, which also protects callers without OpenMP. Generated ids exclude zero.
