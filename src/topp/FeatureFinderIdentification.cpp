@@ -11,8 +11,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -219,10 +218,8 @@ protected:
       mzml.getOptions().addMSLevel(1);
       mzml.loadExperiment(in, ms_data_full, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
 
-      PeptideIdentificationList peptides;
-      vector<ProteinIdentification> proteins;
-
-      FileHandler().loadIdentifications(id, proteins, peptides, {FileTypes::IDXML, FileTypes::IDPARQUET});
+      IdentificationData identifications;
+      FileHandler().loadIdentifications(id, identifications, {FileTypes::IDXML, FileTypes::IDPARQUET});
 
       //-------------------------------------------------------------
       // Run feature detection (FAIMS handling is done internally)
@@ -232,7 +229,7 @@ protected:
       ffid_algo_run.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
       ffid_algo_run.setMSData(std::move(ms_data_full));
 
-      ffid_algo_run.run(peptides, proteins, features, FeatureMap(), in);
+      ffid_algo_run.run(std::move(identifications), features, FeatureMap(), in);
 
       // write auxiliary output (library is empty for multi-FAIMS data):
       if (!lib_out.empty())

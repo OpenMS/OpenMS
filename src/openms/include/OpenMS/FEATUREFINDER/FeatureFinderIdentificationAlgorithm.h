@@ -15,11 +15,13 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <fstream>
 #include <map>
+#include <optional>
 
 namespace OpenMS {
 /**
@@ -31,17 +33,21 @@ namespace OpenMS {
 
   @section FFid_inputs Inputs
 
-  Peptide IDs (@p peptides / @p proteins) are the high-confidence anchors used to define
-  the candidate elution windows.
+  Peptide identifications (@p identifications, as identification data) are the high-confidence
+  anchors used to define the candidate elution windows: the best match of each identification.
 
-  Optional @p seeds from an upstream untargeted feature finder can also be added.
+  Optional @p seeds from an upstream untargeted feature finder can also be added. Seeds (and offset
+  peptides, see @c add_mass_offset_peptides) are pseudo identifications: identifications without
+  matches, with the meta value @c SeedFeatureID (and @c OffsetPeptide), in the first run of the
+  identification data (or a run added for them). The feature candidates (@c candidates_out) keep
+  them; the output does not.
 
   @section FFid_faims FAIMS handling
 
   If the input @ref PeakMap carries multiple FAIMS compensation voltages, @ref run splits
   the data via @ref IMDataConverter::splitByFAIMSCV, runs the per-CV pipeline in a fresh
-  algorithm instance per group (peptide IDs filtered by @c FAIMS_CV through
-  @ref FAIMSHelper::filterPeptidesByFAIMSCV), annotates the resulting features with the
+  algorithm instance per group (identifications filtered by @c FAIMS_CV through
+  @ref FAIMSHelper::filterIdentificationsByFAIMSCV), annotates the resulting features with the
   @c FAIMS_CV meta value, and merges everything back into the caller's @p features.
   IDs without a @c FAIMS_CV are processed against @em every CV group for backward
   compatibility. In the multi-FAIMS case, @ref getLibrary returns an empty library because
@@ -49,13 +55,13 @@ namespace OpenMS {
 
   @section FFid_sideeffects ID-list transformations inside run()
 
-  The ID list is taken by value (see the run() signature), so the @em caller's
-  container is never observably modified. The transformations described here happen
-  on the function's local copy and influence which IDs reach @p features:
+  The identifications are taken by value (see the run() signature), so the @em caller's
+  data is never observably modified. The transformations described here happen
+  on the function's local copy and influence which identifications reach @p features:
 
-  - The local copy of @p peptides is shrunk to the best hit per identification.
-  - FFid meta values are added to each surviving hit before it is written into
-    @p features.
+  - Each identification keeps its best match only (identifications without matches are dropped).
+  - FFid meta values are added to each identification that is quantified before it is
+    written into @p features.
   - If @p seeds carries IDs, those are appended to the local copy of @p peptides
     before scoring.
 
@@ -81,14 +87,24 @@ public:
     See the class brief for the seeds list, the FAIMS handling, the side effects on the
     input ID list, and the primary-MS-run-path fallback semantics.
 
-    @param[in]  peptides      Peptide IDs (taken by value). The local copy is shrunk to best hit per identification and FFid meta values are added before being written into @p features; the caller's container is not modified.
-    @param[in]  proteins      Protein IDs corresponding to @p peptides.
+    The features link their identifications in the identification data of @p features, which has the runs of
+    @p identifications; identifications that no feature links are the unassigned ones.
+
+    @param[in]  identifications Peptide identifications (taken by value). Each identification of the local copy keeps its best match and gets FFid meta values before being written into @p features; the caller's data is not modified.
     @param[out] features      Quantified feature map; pre-existing contents are cleared for FAIMS data and replaced.
     @param[in]  seeds         Optional pre-detected features from an untargeted feature finder.
     @param[in]  spectra_file  Source mzML path used as a fallback for @c primaryMSRunPath annotation when the MSExperiment's own path isn't usable.
   */
   void run(
-    PeptideIdentificationList peptides,
+    IdentificationData identifications,
+    FeatureMap& features,
+    const FeatureMap& seeds = FeatureMap(),
+    const std::string& spectra_file = ""
+    );
+
+  /// As run() with identification data, for peptide and protein identifications (converted with IdentificationDataConverter::importIDs())
+  void run(
+    const PeptideIdentificationList& peptides,
     const std::vector<ProteinIdentification>& proteins,
     FeatureMap& features,
     const FeatureMap& seeds = FeatureMap(),
@@ -96,6 +112,7 @@ public:
     );
 
   /// Filter an existing candidate @ref FeatureMap in place and (optionally) fit elution models (entry point used to re-process candidates exported via the @c candidates_out parameter).
+  /// Peptide identifications of @p features (e.g. of a featureXML file) are converted to identification data first.
   void runOnCandidates(FeatureMap& features);
 
   /**
@@ -159,16 +176,50 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  /// mapping: RT (not necessarily unique) -> pointer to peptide
-  typedef std::multimap<double, PeptideIdentification*> RTMap;
-  /// mapping: charge -> (RT -> pointer to peptide)
+  /**
+    @brief An identification to quantify: the best match of an identification of the input, or a pseudo identification
+    (of a seed or an offset peptide, see addSeeds_() and addOffsetPeptides_()) without a match
+
+    The identifications of the output are made from these entries (see setOutputIdentifications_()).
+  */
+  struct IDEntry
+  {
+    std::string run_uuid; ///< the run of the identification (for a pseudo identification, the run for those)
+    IdentificationData::SourceId source; ///< the source of the identification in its run
+    IdentificationData::Observation observation; ///< RT, m/z and meta values (e.g. ion mobility, FAIMS CV)
+    std::optional<IdentificationData::MatchData> match; ///< the best match (none for a pseudo identification)
+    std::vector<std::optional<double>> scores; ///< the scores of the match, in the columns of its run
+    std::optional<double> score; ///< the primary score of the match
+    bool higher_better = true; ///< whether a higher primary score is better
+    AASequence sequence; ///< the sequence of the match (for a pseudo identification, pseudoSequence_())
+    Int charge = 0;
+    double rt = 0.0;
+    double mz = 0.0;
+  };
+
+  /// mapping: RT (not necessarily unique) -> identification (index in entries_)
+  typedef std::multimap<double, Size> RTMap;
+  /// mapping: charge -> (RT -> identification)
   typedef std::map<Int, RTMap> ChargeMap;
   /// mapping: sequence -> charge -> ID information
   typedef std::map<AASequence, ChargeMap> PeptideMap;
-  /// mapping: peptide ref. -> (RT -> pointer to peptide)
+  /// mapping: peptide ref. -> (RT -> identification)
   typedef std::map<std::string, RTMap> PeptideRefRTMap;
 
   PeptideMap peptide_map_;
+
+  /// the identification data of the input (its runs make the runs of the output)
+  IdentificationData input_;
+  /// the identifications to quantify, those that addPeptideToMap_() ignores, and pseudo identifications
+  std::vector<IDEntry> entries_;
+  /// the run and source of pseudo identifications (see addPseudoRun_())
+  std::string pseudo_run_uuid_;
+  IdentificationData::SourceId pseudo_source_;
+  /// whether the run of pseudo identifications was added for them (and is removed with them)
+  bool pseudo_run_added_ = false;
+  /// the next IDs of identifications and matches of the output (see addOutputIdentification_())
+  UInt64 next_query_id_ = 0;
+  UInt64 next_match_id_ = 0;
 
   Size n_peptides_ = 0; ///< number of peptides
 
@@ -229,32 +280,20 @@ protected:
     }
   } feature_filter_quality_;
 
-  /// predicate for filtering features by assigned peptides:
-  struct FeatureFilterPeptides
-  {
-    bool operator()(const Feature& feature)
-    {
-      return feature.getPeptideIdentifications().empty();
-    }
-  } feature_filter_peptides_;
-
-  /// comparison functor for (unassigned) peptide IDs
+  /// comparison functor for (unassigned) identifications: by sequence, charge and RT
   struct PeptideCompare
   {
-    bool operator()(const PeptideIdentification& p1,
-                    const PeptideIdentification& p2)
+    bool operator()(const IDEntry& p1, const IDEntry& p2) const
     {
-      const std::string& seq1 = p1.getHits()[0].getSequence().toString();
-      const std::string& seq2 = p2.getHits()[0].getSequence().toString();
+      const std::string seq1 = p1.sequence.toString();
+      const std::string seq2 = p2.sequence.toString();
       if (seq1 == seq2)
       {
-        Int charge1 = p1.getHits()[0].getCharge();
-        Int charge2 = p2.getHits()[0].getCharge();
-        if (charge1 == charge2)
+        if (p1.charge == p2.charge)
         {
-          return p1.getRT() < p2.getRT();
+          return p1.rt < p2.rt;
         }
-        return charge1 < charge2;
+        return p1.charge < p2.charge;
       }
       return seq1 < seq2;
     }
@@ -285,7 +324,8 @@ protected:
   double seed_apex_rt_tolerance_{5.0}; ///< max allowed RT deviation (s) between seed apex and detected feature apex; seed-derived features exceeding this are removed (0 = disabled)
   bool use_psm_cutoff_;
   double psm_score_cutoff_;
-  PeptideIdentificationList unassignedIDs_;
+  /// identifications that addPeptideToMap_() ignores (decoys, matches below the score cutoff): unassigned in the output
+  std::vector<Size> unassignedIDs_;
 
   const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
 
@@ -359,30 +399,56 @@ protected:
    */
   void calculateGlobalIMStats_();
 
+  /// assign the identifications of an assay to its best feature (in @p feature_ids), the others are @p unassigned
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features,
-    std::map<Size, std::vector<PeptideIdentification*> >& feat_ids,
-    RTMap& rt_internal);
+    std::map<Size, std::vector<Size> >& feat_ids,
+    RTMap& rt_internal,
+    std::vector<std::vector<Size>>& feature_ids,
+    std::vector<Size>& unassigned);
 
-  /// annotate identified features with m/z, isotope probabilities, etc.
-  void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map);
+  /// annotate identified features with m/z, isotope probabilities, etc.; @p feature_ids gets the identifications
+  /// (entries) assigned to each feature, @p unassigned the others
+  void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map,
+                         std::vector<std::vector<Size>>& feature_ids, std::vector<Size>& unassigned);
+
+  /// collect the identifications of @p data (in the order of their export) as entries
+  void collectEntries_(IdentificationData&& data);
+
+  /// set the run (and source) of pseudo identifications: the first run of the input, or one added for them
+  void addPseudoRun_();
+
+  /// add @p entry as identification (with its match) to @p data, linked by @p feature if given
+  void addOutputIdentification_(IdentificationData& data, const IDEntry& entry, Feature* feature);
+
+  /**
+    @brief Make the identification data of @p features from the runs of the input and the entries: those assigned to
+    each feature (@p feature_ids, in the order of the features), then the @p unassigned ones
+
+    The identifications get IDs in this order, the order of their export.
+  */
+  void setOutputIdentifications_(FeatureMap& features, const std::vector<std::vector<Size>>& feature_ids,
+                                 const std::vector<Size>& unassigned);
 
   void ensureConvexHulls_(Feature& feature) const;
 
   void postProcess_(FeatureMap& features);
 
   /// Helper functions for run()
+  /// @throw Exception::IllegalArgument if there is no MS data (spectra) to extract chromatograms from
+  void checkMSData_() const;
   void initializeFeatureFinder_();
   double calculateRTWindow_() const;
   void removeSeedPseudoIDs_(FeatureMap& features);
 
-  /// Helper function to check if a peptide hit is a seed pseudo-ID
-  static bool isSeedPseudoHit_(const PeptideHit& hit);
-  /// Is @p pid a pseudo ID (of a seed or offset peptide)?
-  static bool isPseudoID_(const PeptideIdentification& pid);
-
-  /// Is @p pid a pseudo ID (of a seed or offset peptide) without hits (or empty)?
-  static bool isEmptyPseudoID_(const PeptideIdentification& pid);
+  /// The sequence under which pseudo identifications are stored internally (a residue with a mass that does not occur)
+  static const AASequence& pseudoSequence_();
+  /// Is @p match the pseudo match of a seed or offset peptide (in feature candidates of former versions)?
+  static bool isSeedPseudoMatch_(const IdentificationData::MatchData& match);
+  /// Is @p observation a pseudo identification (of a seed or offset peptide)?
+  static bool isPseudoID_(const IdentificationData::Observation& observation);
+  /// The sequence of the first match of @p id (of a pseudo identification: pseudoSequence_()), for statistics
+  static std::string sequenceKey_(const IdentificationData::QueryMatches& id);
 
   /// Calculate RT bounds with optional tolerance expansion
   std::pair<double, double> calculateRTBounds_(double rt_min, double rt_max) const;
@@ -395,28 +461,24 @@ protected:
   /// @p clear_IDs set to false to keep IDs in internal charge maps (only needed for debugging purposes)
   void createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map, bool clear_IDs = true);
 
-  /// CAUTION: This method stores a pointer to the given @p peptide reference in internals
-  /// Make sure it stays valid until destruction of the class.
-  /// @todo find better solution
-  void addPeptideToMap_(PeptideIdentification& peptide,
-    PeptideMap& peptide_map);
+  /// Add the identification @p index (of entries_) to @p peptide_map, unless it is ignored (see unassignedIDs_)
+  void addPeptideToMap_(Size index, PeptideMap& peptide_map);
 
   void filterFeatures_(FeatureMap& features);
 
   /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
   /// Called by run() either directly or for each FAIMS CV group
   void runSingleGroup_(
-    PeptideIdentificationList peptides,
-    const std::vector<ProteinIdentification>& proteins,
+    IdentificationData identifications,
     FeatureMap& features,
     const FeatureMap& seeds,
     const std::string& spectra_file);
 
   // seeds for untargeted extraction
-  Size addSeeds_(PeptideIdentificationList& peptides, const FeatureMap& seeds);
+  Size addSeeds_(const FeatureMap& seeds);
 
   // quant. decoys
-  Size addOffsetPeptides_(PeptideIdentificationList& peptides, double offset);
+  Size addOffsetPeptides_(double offset);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
   /// Last batch might be smaller.

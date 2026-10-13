@@ -209,6 +209,12 @@ OpenMS Library:
     identification of the run of the transition list with its assay (peptide or compound) as match and the
     preliminary score of the feature as score. Library proteins are the database sequences of the run (an
     inference result if one has an empty accession). Outputs unchanged.
+  - API CHANGE: FeatureFinderIdentificationAlgorithm::run() takes identification data (an overload converts
+    peptide and protein identifications) and writes the identifications of its features as identification
+    data, in the order of the former output; runOnCandidates() converts candidates with peptide
+    identifications first. Seeds and offset peptides are pseudo identifications without matches (meta value
+    SeedFeatureID), no longer hits with a placeholder sequence, and a minimum PSM score (min_psm_cutoff) no
+    longer drops them. New FAIMSHelper::filterIdentificationsByFAIMSCV(). Outputs unchanged.
   - IdentificationData::Run::append() appends a run built separately (e.g. by a parallel producer) and returns
     the new IDs; IdentificationDataConverter::appendFeatures() appends features with the identifications
     they link.

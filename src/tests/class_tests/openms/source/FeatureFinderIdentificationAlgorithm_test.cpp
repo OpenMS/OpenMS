@@ -16,6 +16,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -60,15 +61,18 @@ START_SECTION([EXTRA] summary statistics cannot wrap a missing-peptide count)
   // Exercise the reporting boundary with deliberately inconsistent counters.
   // This is the shape that previously made an unsigned subtraction print a
   // huge "peptides without features" value instead of a non-negative count.
-  PeptideHit hit;
-  hit.setSequence(AASequence::fromString("PEPTIDEK"));
-  PeptideIdentification peptide;
-  peptide.setHits({hit});
+  FeatureMap features;
+  IdentificationData::Run& run = features.getIdentificationData().addRun("run");
+  const auto source = run.addSource(IdentificationData::SourceFile());
+  const auto query = run.addIdentification(source, IdentificationData::Observation());
+  IdentificationData::MatchData match;
+  match.representation = "PEPTIDEK";
+  match.charge = 2;
+  const auto match_id = run.addMatch(query, match);
 
   Feature feature;
   feature.setIntensity(1.0);
-  feature.setPeptideIdentifications({peptide});
-  FeatureMap features;
+  feature.addIDMatch({run.getUuid(), match_id});
   features.push_back(feature);
 
   TestableFeatureFinderIdentificationAlgorithm algo;
@@ -111,6 +115,8 @@ START_SECTION([EXTRA] run() rejects MS data without spectra)
   TEST_EQUAL(algo.getMSData().empty(), true)
   TEST_EXCEPTION(Exception::IllegalArgument,
                  algo.run(peptides, proteins, features, seeds, ""))
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 algo.run(IdentificationData(), features, seeds, ""))
 }
 END_SECTION
 

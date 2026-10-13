@@ -1761,9 +1761,9 @@ protected:
             fm, // fills fm
             seeds, mz_file);
 
-    // From here on, the identifications are identification data: every later step (conflict resolution, alignment,
-    // linking, inference, quantification) works on it, and the outputs are written from it.
-    IdentificationDataConverter::moveToIdentificationData(fm);
+    // From here on, the identifications are identification data (FeatureFinderIdentification writes them so): every
+    // later step (conflict resolution, alignment, linking, inference, quantification) works on it, and the outputs
+    // are written from it.
 
     if (filter_by_quant_scores)
     {

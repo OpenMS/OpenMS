@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <set>
 
@@ -53,6 +54,22 @@ namespace OpenMS
       */
       static PeptideIdentificationList filterPeptidesByFAIMSCV(
         const PeptideIdentificationList& peptides,
+        double target_cv,
+        double cv_tolerance = 0.01);
+
+      /**
+        @brief Filter identifications (identification data) by FAIMS compensation voltage
+
+        As filterPeptidesByFAIMSCV(): keeps the identifications with the specified FAIMS CV (meta value FAIMS_CV) and
+        those without it; the runs stay.
+
+        @param[in] data Input identification data
+        @param[in] target_cv Target FAIMS compensation voltage to filter for
+        @param[in] cv_tolerance Tolerance for floating point comparison (default: 0.01)
+        @return The filtered identification data
+      */
+      static IdentificationData filterIdentificationsByFAIMSCV(
+        const IdentificationData& data,
         double target_cv,
         double cv_tolerance = 0.01);
     };

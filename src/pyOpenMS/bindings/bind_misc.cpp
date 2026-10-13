@@ -737,9 +737,9 @@ If there are no MS1 scans in the MSData, features will be returned unchanged.
 Algorithm class for FeatureFinderIdentification
 Optional seeds from e.g. untargeted FeatureFinders can be added with
 seeds.
-Results will be written to features .
-Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
-and potential seed IDs added.
+Results will be written to features, which link their identifications
+in the identification data of features (getIdentificationData()).
+Caution: identifications keep their best match and get FFid metavalues.
 Usage:
 .. code-block:: python
 from pyopenms import *
@@ -769,12 +769,19 @@ ffid_algo.run(peptides, proteins, features)
 # 6 peptides without features
 )doc")
         .def(nb::init<>())
-        .def("run", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::PeptideIdentificationList peptides, const std::vector<OpenMS::ProteinIdentification>& proteins, OpenMS::FeatureMap& features, const OpenMS::FeatureMap& seeds, const std::string& spectra_file) { return self.run(peptides, proteins, features, seeds, spectra_file); }, "peptides"_a, "proteins"_a, "features"_a, "seeds"_a = OpenMS::FeatureMap(), "spectra_file"_a = "", 
+        .def("run", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, const OpenMS::IdentificationData& identifications, OpenMS::FeatureMap& features, const OpenMS::FeatureMap& seeds, const std::string& spectra_file) { return self.run(identifications, features, seeds, spectra_file); }, "identifications"_a, "features"_a, "seeds"_a = OpenMS::FeatureMap(), "spectra_file"_a = "",
+            R"doc(
+Run feature detection
+:param identifications: Identified peptides (identification data)
+:param features: Feature detection results will be added here, with the identifications as identification data
+:param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders
+)doc")
+        .def("run", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, const OpenMS::PeptideIdentificationList& peptides, const std::vector<OpenMS::ProteinIdentification>& proteins, OpenMS::FeatureMap& features, const OpenMS::FeatureMap& seeds, const std::string& spectra_file) { return self.run(peptides, proteins, features, seeds, spectra_file); }, "peptides"_a, "proteins"_a, "features"_a, "seeds"_a = OpenMS::FeatureMap(), "spectra_file"_a = "", 
             R"doc(
 Run feature detection
 :param peptides: Vector of identified peptides
 :param proteins: Vector of identified proteins
-:param features: Feature detection results will be added here
+:param features: Feature detection results will be added here, with the identifications as identification data
 :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders
 )doc")
         .def("runOnCandidates", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::FeatureMap& features) { return self.runOnCandidates(features); }, "features"_a, "Run feature detection on identified features (e.g. loaded from an IdXML file)")
@@ -1411,6 +1418,12 @@ chromatograms to be consumed and need to be informed about this
             },
             "peptides"_a, "target_cv"_a, "cv_tolerance"_a = 0.01,
             "Filters peptide identifications by FAIMS compensation voltage. IDs without FAIMS_CV annotation are kept for backward compatibility.")
+        .def_static("filterIdentificationsByFAIMSCV",
+            [](const OpenMS::IdentificationData& data, double target_cv, double cv_tolerance) {
+                return OpenMS::FAIMSHelper::filterIdentificationsByFAIMSCV(data, target_cv, cv_tolerance);
+            },
+            "data"_a, "target_cv"_a, "cv_tolerance"_a = 0.01,
+            "Filters identifications (identification data) by FAIMS compensation voltage. IDs without FAIMS_CV annotation are kept for backward compatibility.")
         ;
 
     // -----------------------------------------------------------------------

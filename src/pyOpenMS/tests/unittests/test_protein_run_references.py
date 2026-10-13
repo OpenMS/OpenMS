@@ -130,3 +130,41 @@ def test_feature_finder_identification_seeds_without_runs(tmp_path):
     assert all(len(f.getPeptideIdentifications()) == 0 for f in features)
     assert features.getUnassignedPeptideIdentifications().size() == 0
     oms.FeatureXMLFile().store(str(tmp_path / "seeds.featureXML"), features)
+
+
+@pytest.mark.skipif(not (TOPP_DATA / "FeatureFinderIdentification_1_input.mzML").exists(), reason="needs the TOPP test data")
+def test_feature_finder_identification_identification_data():
+    # FeatureFinderIdentification takes and writes identification data: the features link their identifications, the
+    # others stay unassigned in the data. Peptide and protein identifications are converted first, with the same result.
+    exp = oms.MSExperiment()
+    oms.MzMLFile().load(str(TOPP_DATA / "FeatureFinderIdentification_1_input.mzML"), exp)
+    proteins, peptides = oms.FileHandler().loadIdentifications(str(TOPP_DATA / "FeatureFinderIdentification_1_input.idXML"))
+
+    def run(*inputs):
+        algo = oms.FeatureFinderIdentificationAlgorithm()
+        params = algo.getParameters()
+        params.setValue("extract:mz_window", 0.1)
+        params.setValue("detect:peak_width", 60.0)
+        params.setValue("model:type", "none")
+        algo.setParameters(params)
+        algo.setMSData(exp)
+        features = oms.FeatureMap()
+        algo.run(*inputs, features)
+        return features
+
+    native = run(oms.IdentificationDataAdapter.fromLegacy(proteins, peptides))
+    converted = run(peptides, proteins)
+    for features in (native, converted):
+        assert features.size() > 0
+        assert features.getProteinIdentifications() == []
+        assert all(len(f.getPeptideIdentifications()) == 0 for f in features)
+        assert features.getUnassignedPeptideIdentifications().size() == 0
+        assert all(len(f.getIDMatches()) > 0 for f in features)
+    assert native.size() == converted.size()
+
+    def counts(features):
+        return [(run.getNumberOfIdentifications(), run.getNumberOfMatches()) for run in features.getIdentificationData().getRuns()]
+
+    assert counts(native) == counts(converted)
+    # each identification keeps its best match only
+    assert all(queries == matches for queries, matches in counts(native))

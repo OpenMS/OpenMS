@@ -458,16 +458,15 @@ struct NuXLRTPrediction
     size_t index{};
     for (const auto& f : features)
     {
-      const auto& pids = f.getPeptideIdentifications();
-      if (pids.empty()) continue;
+      const auto ids = f.getLinkedIdentifications(features.getIdentificationData());
+      if (ids.empty()) continue;
 
-      const auto& phits = pids[0].getHits(); 
-      if (phits.empty()) continue;
+      if (ids[0].matches.empty()) continue;
 
-      const auto& ph = phits[0]; 
-      const std::string& seq = ph.getSequence().toUnmodifiedString();
+      const AASequence sequence = AASequence::fromString(ids[0].matches[0]->representation);
+      const std::string& seq = sequence.toUnmodifiedString();
 
-      auto encoded_aas = encodeAAHist_(ph.getSequence());
+      auto encoded_aas = encodeAAHist_(sequence);
       for (const auto& c : amino_acids)
       {
         if (auto it = encoded_aas.find(c); it != encoded_aas.end())
@@ -513,7 +512,7 @@ struct NuXLRTPrediction
       x["mass"].push_back(f.getCharge() * f.getMZ()); // approx mass
 
       // nucleotide histogram      
-      auto nas = StringUtils::toStr(ph.getMetaValue("NuXL:NA",std::string("")));
+      auto nas = StringUtils::toStr(ids[0].matches[0]->getMetaValue("NuXL:NA",std::string("")));
       auto encoded_nas = encodeNAHist_(nas);
       for (const auto& c : nucleotides)
       {

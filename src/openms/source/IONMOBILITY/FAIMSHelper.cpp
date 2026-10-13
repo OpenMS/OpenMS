@@ -83,4 +83,19 @@ namespace OpenMS
     return filtered;
   }
 
+  IdentificationData FAIMSHelper::filterIdentificationsByFAIMSCV(
+    const IdentificationData& data,
+    double target_cv,
+    double cv_tolerance)
+  {
+    IdentificationData filtered = data;
+    // IDs without FAIMS_CV annotation stay in all groups (backward compatibility)
+    filtered.eraseIdentifications([&](const IdentificationData::Run&, const IdentificationData::Identification& id)
+    {
+      return id.metaValueExists(Constants::UserParam::FAIMS_CV) &&
+             !(std::abs(double(id.getMetaValue(Constants::UserParam::FAIMS_CV)) - target_cv) < cv_tolerance);
+    });
+    return filtered;
+  }
+
 }  //end namespace OpenMS
