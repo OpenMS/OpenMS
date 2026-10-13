@@ -363,10 +363,19 @@ TOPP tools:
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
         HyperScores with a warning.
-      - Search:peptdeep:enable fails (instead of warning and continuing) when OpenMS was
-        built without ONNX, a model is missing or cannot be loaded, or no PSM received
-        predicted features. On success it logs '[PeptDeepRescoring] Predicted features
-        added: N / M PSMs (<features>), NCE=<nce>'.
+      - PARAM: Search:peptdeep:enable (default false) adds five features per PSM from
+        AlphaPeptDeep predictions of its peptide, used by -rescore and written to -out_pin:
+        ms2_cosine, ms2_spectral_angle, ms2_pearson and ms2_frac_pred_found compare predicted
+        with annotated fragment intensities (Search:annotate:PSM must keep fragment annotations,
+        as its default ALL does), rt_abs_error compares the observed with the predicted retention
+        time after a per-run calibration. The collision energy is chosen per run from the data
+        unless Search:peptdeep:nce is set. Needs a build with WITH_ONNX=ON (the installers are)
+        and the models in share/OpenMS/models, or Search:peptdeep:ms2_model and rt_model.
+        It fails when OpenMS was built without ONNX, a model is missing or cannot be loaded, or
+        no PSM received predicted features. On success it logs '[PeptDeepRescoring] Predicted
+        features added: N / M PSMs (<features>), NCE=<nce>'. On the 20-file suite of #10364
+        (10 hits per spectrum) it gave 5.7% more PSMs at 1% FDR for 3.4 times the search CPU
+        time (#9975).
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
