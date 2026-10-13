@@ -729,8 +729,13 @@ protected:
         metadata.setExperimentalSettingsFunc([&exp](const ExperimentalSettings& s) { exp.getExperimentalSettings() = s; });
         metadata.setSpectraProcessingFunc([&exp](MSSpectrum& s)
         {
-          MSSpectrum meta = s;
-          meta.clear(false);
+          MSSpectrum meta;
+          meta = static_cast<const SpectrumSettings&>(s);
+          meta.setRT(s.getRT());
+          meta.setDriftTime(s.getDriftTime());
+          meta.setDriftTimeUnit(s.getDriftTimeUnit());
+          meta.setMSLevel(s.getMSLevel());
+          meta.setName(s.getName());
           exp.addSpectrum(std::move(meta));
         });
         std::vector<Interfaces::IMSDataConsumer*> consumers{&writer, &metadata};
