@@ -245,6 +245,9 @@ OpenMS Library:
     IDFileConverter for identifications (e.g. to idXML) and FileConverter for feature maps
     (to featureXML). Loading a .oms file now reports this. Native identification data is stored as
     .idparquet; maps with native identification data as .featureparquet/.consensusparquet.
+  - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
+    critical sections, which also protects callers without OpenMP. Generated ids exclude zero.
+    The seeded sequence is preserved except for skipped zeros.
   - FIX: IDFilter throws on non-finite observation-match scores and PSM/distinct peptide q-values outside [0, 1] before modifying the data; missing scores are still filtered out.
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
@@ -607,6 +610,19 @@ TOPP tools:
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
         HyperScores with a warning.
+      - PARAM: Search:peptdeep:enable (default false) adds five features per PSM from
+        AlphaPeptDeep predictions of its peptide, used by -rescore and written to -out_pin:
+        ms2_cosine, ms2_spectral_angle, ms2_pearson and ms2_frac_pred_found compare predicted
+        with annotated fragment intensities (Search:annotate:PSM must keep fragment annotations,
+        as its default ALL does), rt_abs_error compares the observed with the predicted retention
+        time after a per-run calibration. The collision energy is chosen per run from the data
+        unless Search:peptdeep:nce is set. Needs a build with WITH_ONNX=ON (the installers are)
+        and the models in share/OpenMS/models, or Search:peptdeep:ms2_model and rt_model.
+        It fails when OpenMS was built without ONNX, a model is missing or cannot be loaded, or
+        no PSM received predicted features. On success it logs '[PeptDeepRescoring] Predicted
+        features added: N / M PSMs (<features>), NCE=<nce>'. On the 20-file suite of #10364
+        (10 hits per spectrum) it gave 5.7% more PSMs at 1% FDR for 3.4 times the search CPU
+        time (#9975).
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
