@@ -17,7 +17,7 @@ for S in $SOLVERS; do
       -DGIT_TRACKING=OFF -DHAS_XSERVER=OFF -DMT_REQUIRE_OPENMP=ON > "$log.configure.log" 2>&1 \
       || { echo "$S configure FAILED" >> "$OUT/progress.log"; continue; }
   fi
-  /usr/bin/time -f "%e s wall" -o "$log.buildtime" cmake --build "$B" -j4 -k 0 > "$log.build.log" 2>&1
+  /usr/bin/time -f "%e s wall" -o "$log.buildtime" cmake --build "$B" -j4 -- -k 0 > "$log.build.log" 2>&1
   echo "$S build rc=$? $(cat $log.buildtime) $(date -Is)" >> "$OUT/progress.log"
   /usr/bin/time -f "%e s wall" -o "$log.testtime" ctest --test-dir "$B" -j4 --timeout 1500 \
     --output-junit "$log.junit.xml" > "$log.ctest.log" 2>&1
