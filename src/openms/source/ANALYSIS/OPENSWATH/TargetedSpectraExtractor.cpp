@@ -274,13 +274,15 @@ namespace OpenMS
     feat_map_output.clear();
     for (const OpenMS::Feature& feature : feat_map)
     {
-      const auto& peptide_identifications = feature.getPeptideIdentifications();
-      if (peptide_identifications.size())
+      // the identifications of the search, which the features link
+      const auto identifications = feature.getLinkedIdentifications(feat_map.getIdentificationData());
+      if (identifications.size())
       {
-        for (const auto& ident : peptide_identifications)
+        for (const auto& ident : identifications)
         {
-          for (const auto& hit : ident.getHits())
+          for (const auto* match : ident.matches)
           {
+            const IdentificationData::Match& hit = *match;
             OpenMS::Feature f;
             OpenMS::Feature s = feature;
             f.setUniqueId();
@@ -309,12 +311,12 @@ namespace OpenMS
               }
               s.setMetaValue("adducts", adducts);
               OpenMS::EmpiricalFormula chemform(hit.getMetaValue("chemical_formula").toString());
-              double adduct_mass = s.getMZ() * std::abs(hit.getCharge()) + static_cast<double>(hit.getMetaValue("mz_error_Da")) - chemform.getMonoWeight();
+              double adduct_mass = s.getMZ() * std::abs(hit.charge) + static_cast<double>(hit.getMetaValue("mz_error_Da")) - chemform.getMonoWeight();
               s.setMetaValue("dc_charge_adduct_mass", adduct_mass);
               s.setMetaValue("chemical_formula", hit.getMetaValue("chemical_formula"));
               s.setMetaValue("mz_error_ppm", hit.getMetaValue("mz_error_ppm"));
               s.setMetaValue("mz_error_Da", hit.getMetaValue("mz_error_Da"));
-              s.setCharge(hit.getCharge());
+              s.setCharge(hit.charge);
               f.setSubordinates({s});
               feat_map_output.push_back(f);
             }
@@ -334,7 +336,7 @@ namespace OpenMS
               s.setMetaValue("chemical_formula", "");
               s.setMetaValue("mz_error_ppm", 0);
               s.setMetaValue("mz_error_Da", 0);
-              // s.setCharge(hit.getCharge()); // The polarity should have been set during peak picking
+              // s.setCharge(hit.charge); // The polarity should have been set during peak picking
               f.setSubordinates({s});
               feat_map_output.push_back(f);
             }
