@@ -29,6 +29,11 @@
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include <exception>
 #include <memory>
 #include <algorithm>
 #include <array>
@@ -1701,15 +1706,28 @@ namespace OpenMS
     /// is the order a stable sort of the spectrum by m/z gives, which every spectrum needs in the end.
     std::vector<uint32_t> mz_order;
 
-    /// Decodes @p frame (which must have peaks). @p order_by_mz: also fill mz_order
-    void decode(TimsDataHandle& handle, TimsFrame& frame, bool order_by_mz)
+    /// Decodes @p frame (which must have peaks). @p order_by_mz: also fill mz_order.
+    /// With a decompression context and a buffer of handle.get_decomp_buffer_size() bytes that only the
+    /// calling thread uses, frames of one handle can be decoded by several threads at the same time (not
+    /// the same frame, and not with the converters of the Bruker SDK); without them the ones of the
+    /// handle are used.
+    void decode(TimsDataHandle& handle, TimsFrame& frame, bool order_by_mz, ZSTD_DCtx* context = nullptr, char* buffer = nullptr)
     {
       const uint32_t n = frame.num_peaks;
       scan_ids.resize(n);
       tofs.resize(n);
       intensities.resize(n);
       mzs.resize(n);
-      frame.save_to_buffs(nullptr, scan_ids.data(), tofs.data(), intensities.data(), mzs.data(), nullptr, nullptr);
+      if (context != nullptr && buffer != nullptr)
+      {
+        frame.decompress(buffer, context);
+        frame.save_to_buffs(nullptr, scan_ids.data(), tofs.data(), intensities.data(), mzs.data(), nullptr, nullptr, context);
+        frame.close();
+      }
+      else
+      {
+        frame.save_to_buffs(nullptr, scan_ids.data(), tofs.data(), intensities.data(), mzs.data(), nullptr, nullptr);
+      }
 
       const uint32_t n_scans = std::max(frame.num_scans, *std::max_element(scan_ids.begin(), scan_ids.end()) + 1);
       for (uint32_t scan = static_cast<uint32_t>(scan_numbers_.size()); scan < n_scans; ++scan) scan_numbers_.push_back(scan);
@@ -1736,7 +1754,7 @@ namespace OpenMS
   };
 
   static void frameToSpectrum(TimsDataHandle& handle, TimsFrame& frame, MSSpectrum& spec, int ms_level,
-                              DecodedFrame& decoded)
+                              DecodedFrame& decoded, ZSTD_DCtx* context = nullptr, char* buffer = nullptr)
   {
     spec.clear(true);
     spec.setRT(frame.time);
@@ -1749,7 +1767,7 @@ namespace OpenMS
 
     if (frame.num_peaks == 0) return;
 
-    decoded.decode(handle, frame, /*order_by_mz=*/true);
+    decoded.decode(handle, frame, /*order_by_mz=*/true, context, buffer);
 
     // Fill spectrum peaks and the IM float data array, in m/z order
     spec.resize(frame.num_peaks);
@@ -1856,6 +1874,133 @@ namespace OpenMS
     else
       frameToSpectrum(handle, frame, spec, 1, decoded);
   }
+
+  // Turns raw frames into spectra (frameToSpectrum()), several at a time: the frames are given up front in
+  // the order in which their spectra are asked for, and the next ones are decoded in parallel, each by a
+  // thread with its own decompression context and buffers. The spectra are those frameToSpectrum() gives
+  // one by one. A batch holds one large frame (an MS1 frame) per thread and the small frames between
+  // them, so the spectra held at a time stay few.
+  class RawFrameReader
+  {
+  public:
+    /// @param frames frame id and MS level of the frames, in the order of the next() calls
+    RawFrameReader(TimsDataHandle& handle, std::vector<std::pair<uint32_t, int>> frames) :
+      handle_(handle),
+      frames_(std::move(frames))
+    {
+      // The converters of OpenMS and the linear ones of opentims only read their tables; those of the
+      // Bruker SDK are called by one thread at a time
+      const bool sdk = dynamic_cast< ::BrukerTof2MzConverter*>(handle.tof2mz_converter.get()) != nullptr
+                    || dynamic_cast< ::BrukerScan2InvIonMobilityConverter*>(handle.scan2inv_ion_mobility_converter.get()) != nullptr;
+      // More than a few threads do not help: what is left of a load is serial (handing the spectra on, the
+      // passes over the loaded experiment), and waiting threads get in its way. Measured on two 5.6 min
+      // runs with 1 / 2 / 4 / 8 / 20 threads: 9.0 / 5.5 / 4.0 / 3.5 / 3.3 s (DDA), 8.5 / 6.1 / 4.9 / 6.5 / 5.7 s (DIA).
+      constexpr int MAX_THREADS = 4;
+      int n_threads = 1;
+#ifdef _OPENMP
+      if (!sdk) n_threads = std::min(MAX_THREADS, std::max(1, omp_get_max_threads()));
+#endif
+      n_threads = static_cast<int>(std::min<size_t>(static_cast<size_t>(n_threads), std::max<size_t>(1, frames_.size())));
+      workers_.resize(static_cast<size_t>(n_threads));
+      if (n_threads > 1)
+      {
+        for (Worker& worker : workers_)
+        {
+          worker.context.reset(ZSTD_createDCtx());
+          worker.buffer.resize(handle.get_decomp_buffer_size());
+        }
+      }
+    }
+
+    /// The spectrum of the next frame, which has to be @p frame_id
+    void next(uint32_t frame_id, MSSpectrum& spec)
+    {
+      if (next_in_batch_ == batch_.size()) decodeBatch_();
+      const size_t index = n_decoded_ - batch_.size() + next_in_batch_;
+      if (frames_[index].first != frame_id)
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RawFrameReader: frames are asked for in the order given");
+      }
+      spec = std::move(batch_[next_in_batch_++]);
+    }
+
+  private:
+    struct Worker
+    {
+      struct FreeContext
+      {
+        void operator()(ZSTD_DCtx* context) const { ZSTD_freeDCtx(context); }
+      };
+      std::unique_ptr<ZSTD_DCtx, FreeContext> context;
+      std::vector<char> buffer;
+      DecodedFrame decoded;
+    };
+
+    void decodeBatch_()
+    {
+      if (n_decoded_ == frames_.size())
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, n_decoded_, frames_.size());
+      }
+      // The next frames, up to one large frame per thread. Small frames (MS2 frames of a few thousand
+      // peaks) are not worth a thread of their own; a batch without two large frames is decoded serially.
+      constexpr uint32_t LARGE_FRAME = 20000; // peaks
+      const size_t max_frames = 64 * workers_.size();
+      size_t n = 0, n_large = 0;
+      while (n_decoded_ + n < frames_.size() && n < max_frames && n_large < workers_.size())
+      {
+        if (handle_.get_frame(frames_[n_decoded_ + n].first).num_peaks >= LARGE_FRAME) ++n_large;
+        ++n;
+      }
+      batch_.clear();
+      batch_.resize(n);
+      next_in_batch_ = 0;
+      if (workers_.size() == 1 || n_large < 2)
+      {
+        for (size_t i = 0; i < n; ++i) decodeFrame_(n_decoded_ + i, batch_[i], workers_[0]);
+      }
+      else
+      {
+        // every thread has its own worker; exceptions must not leave the parallel region
+        std::exception_ptr error = nullptr;
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(workers_.size()))
+        for (SignedSize i = 0; i < static_cast<SignedSize>(n); ++i)
+        {
+          try
+          {
+            int thread = 0;
+#ifdef _OPENMP
+            thread = omp_get_thread_num();
+#endif
+            decodeFrame_(n_decoded_ + static_cast<size_t>(i), batch_[static_cast<size_t>(i)], workers_[static_cast<size_t>(thread)]);
+          }
+          catch (...)
+          {
+#pragma omp critical (BrukerTimsFile_RawFrameReader)
+            {
+              if (!error) error = std::current_exception();
+            }
+          }
+        }
+        if (error) std::rethrow_exception(error);
+      }
+      n_decoded_ += n;
+    }
+
+    void decodeFrame_(size_t index, MSSpectrum& spec, Worker& worker)
+    {
+      TimsFrame& frame = handle_.get_frame(frames_[index].first);
+      frameToSpectrum(handle_, frame, spec, frames_[index].second, worker.decoded, worker.context.get(),
+                      worker.buffer.empty() ? nullptr : worker.buffer.data());
+    }
+
+    TimsDataHandle& handle_;
+    std::vector<std::pair<uint32_t, int>> frames_;
+    std::vector<Worker> workers_;
+    std::vector<MSSpectrum> batch_; ///< the spectra of the frames decoded last
+    size_t next_in_batch_ = 0;
+    size_t n_decoded_ = 0;
+  };
 
   // =====================================================================
   // Helper: build one aggregated MS1 spectrum from a sliding window of
@@ -2211,11 +2356,23 @@ namespace OpenMS
     if (eff.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
     const size_t ms1_to_emit = eff.load_ms1 ? ms1_frame_ids.size() : 0;
+    // MS1 frames that become spectra as they are (no aggregation, no centroiding) are decoded in parallel
+    std::unique_ptr<RawFrameReader> raw_ms1;
+    if (eff.ms1_n_neighbors <= 0 && !isCentroidingEnabled(eff))
+    {
+      std::vector<std::pair<uint32_t, int>> order;
+      for (size_t i = 0; i < ms1_to_emit; ++i) order.emplace_back(ms1_frame_ids[i], 1);
+      raw_ms1 = std::make_unique<RawFrameReader>(*handle, std::move(order));
+    }
     startProgress(0, ms1_to_emit, "Streaming DIA-PASEF MS1 frames");
     for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
-      if (eff.ms1_n_neighbors > 0)
+      if (raw_ms1)
+      {
+        raw_ms1->next(ms1_frame_ids[i], spec);
+      }
+      else if (eff.ms1_n_neighbors > 0)
       {
         loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, eff,
                                   ms1_aggregator, centroider, spec);
@@ -2632,10 +2789,18 @@ namespace OpenMS
     FrameAggregator ms1_aggregator(0.01);
     DecodedFrame decoded;
     if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    // MS1 frames that become spectra as they are (no aggregation, no centroiding) are decoded in parallel
+    // by raw_ms1, which is set up below once the order of the frames is known
+    const bool ms1_as_is = config.ms1_n_neighbors <= 0 && !isCentroidingEnabled(config);
+    std::unique_ptr<RawFrameReader> raw_ms1;
     const auto emit_ms1 = [&](size_t i)
     {
       MSSpectrum spec;
-      if (config.ms1_n_neighbors > 0)
+      if (raw_ms1)
+      {
+        raw_ms1->next(ms1_frame_ids[i], spec);
+      }
+      else if (config.ms1_n_neighbors > 0)
       {
         loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
                                   ms1_aggregator, centroider, spec);
@@ -2655,7 +2820,14 @@ namespace OpenMS
     const bool in_rt_order = emitsInRTOrder(handle, config, /*is_dia=*/false);
     if (!config.load_ms2 || !in_rt_order)
     {
+      if (ms1_as_is)
+      {
+        std::vector<std::pair<uint32_t, int>> order;
+        for (size_t i = 0; i < ms1_to_emit; ++i) order.emplace_back(ms1_frame_ids[i], 1);
+        raw_ms1 = std::make_unique<RawFrameReader>(handle, std::move(order));
+      }
       for (size_t i = 0; i < ms1_to_emit; ++i) emit_ms1(i);
+      raw_ms1.reset();
     }
 
     if (!config.load_ms2)
@@ -3200,6 +3372,15 @@ namespace OpenMS
         events.push_back({rt_sum / static_cast<double>(entries.size()), 0, &entries, prec_id});
       }
       std::stable_sort(events.begin(), events.end(), [](const Event& a, const Event& b) { return a.rt < b.rt; });
+      if (ms1_as_is)
+      {
+        std::vector<std::pair<uint32_t, int>> order;
+        for (const Event& event : events)
+        {
+          if (event.entries == nullptr) order.emplace_back(ms1_frame_ids[event.ms1_index], 1);
+        }
+        raw_ms1 = std::make_unique<RawFrameReader>(handle, std::move(order));
+      }
       for (const Event& event : events)
       {
         if (event.entries == nullptr)
@@ -3245,10 +3426,18 @@ namespace OpenMS
     DecodedFrame decoded;
     const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
     if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
+    // MS1 frames that become spectra as they are (no aggregation, no centroiding) are decoded in parallel
+    // by raw_ms1, which is set up once the order of the frames is known
+    const bool ms1_as_is = config.ms1_n_neighbors <= 0 && !isCentroidingEnabled(config);
+    std::unique_ptr<RawFrameReader> raw_ms1;
     const auto emit_ms1 = [&](size_t i)
     {
       MSSpectrum spec;
-      if (config.ms1_n_neighbors > 0)
+      if (raw_ms1)
+      {
+        raw_ms1->next(ms1_frame_ids[i], spec);
+      }
+      else if (config.ms1_n_neighbors > 0)
       {
         loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
                                   ms1_aggregator, centroider, spec);
@@ -3263,6 +3452,12 @@ namespace OpenMS
     // All MS1 frames in a row, for the cases in which they are not interleaved with MS2 spectra
     const auto emit_all_ms1 = [&]()
     {
+      if (ms1_as_is)
+      {
+        std::vector<std::pair<uint32_t, int>> order;
+        for (size_t i = 0; i < ms1_to_emit; ++i) order.emplace_back(ms1_frame_ids[i], 1);
+        raw_ms1 = std::make_unique<RawFrameReader>(handle, std::move(order));
+      }
       startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
       for (size_t i = 0; i < ms1_to_emit; ++i)
       {
@@ -3270,6 +3465,7 @@ namespace OpenMS
         setProgress(i);
       }
       endProgress();
+      raw_ms1.reset();
       if (config.load_ms1)
         centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
     };
@@ -3520,6 +3716,15 @@ namespace OpenMS
         }
       }
       std::stable_sort(events.begin(), events.end(), [](const Event& a, const Event& b) { return a.time < b.time; });
+      if (ms1_as_is)
+      {
+        std::vector<std::pair<uint32_t, int>> order;
+        for (const Event& event : events)
+        {
+          if (event.windows == nullptr) order.emplace_back(ms1_frame_ids[event.ms1_index], 1);
+        }
+        raw_ms1 = std::make_unique<RawFrameReader>(handle, std::move(order));
+      }
 
       for (const Event& event : events)
       {
@@ -3709,15 +3914,23 @@ namespace OpenMS
 
     FrameCentroider centroider;
     DecodedFrame decoded;
+    // the frames that become spectra as they are (all but MS1 frames that are centroided) are decoded in parallel
+    const bool centroid_ms1 = isCentroidingEnabled(config);
+    std::vector<std::pair<uint32_t, int>> raw_frames;
+    for (const FrameRef& frame : frames)
+    {
+      if (frame.level != 1 || !centroid_ms1) raw_frames.emplace_back(frame.id, frame.level);
+    }
+    RawFrameReader raw_reader(handle, std::move(raw_frames));
+
     startProgress(0, frames.size(), "Loading frames");
     for (size_t i = 0; i < frames.size(); ++i)
     {
-      TimsFrame& frame = handle.get_frame(frames[i].id);
       MSSpectrum spec;
-      if (frames[i].level == 1)
-        loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
+      if (frames[i].level == 1 && centroid_ms1)
+        loadMS1Spectrum(handle, handle.get_frame(frames[i].id), spec, config, centroider, decoded);
       else
-        frameToSpectrum(handle, frame, spec, frames[i].level, decoded);
+        raw_reader.next(frames[i].id, spec);
       sink(spec);
       setProgress(i);
     }
