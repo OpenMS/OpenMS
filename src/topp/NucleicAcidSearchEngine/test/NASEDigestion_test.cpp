@@ -101,7 +101,7 @@ START_SECTION(([EXTRA] collision retries are bounded and preserve chain termini)
 }
 END_SECTION
 
-START_SECTION(([EXTRA] collision-free decoys retain annotated source coordinates))
+START_SECTION(([EXTRA] opt-in repaired decoys refer to actual durable synthetic parents))
 {
   TestNASE tool;
   IdentificationData data;
@@ -132,12 +132,85 @@ START_SECTION(([EXTRA] collision-free decoys retain annotated source coordinates
       const auto& match = *mapping.second.begin();
       TEST_EQUAL(match.start_pos, 0)
       TEST_EQUAL(match.end_pos, 3)
-      TEST_EQUAL(match.getMetaValue("reshuffled_decoy").toString(), "true")
+      TEST_EQUAL(mapping.first->getMetaValue("reshuffled_decoy").toString(), "true")
+      TEST_EQUAL(mapping.first->getMetaValue("source_parent_accession").toString(), "DECOY")
+      TEST_EQUAL(NASequence::fromString(mapping.first->sequence).getSubsequence(match.start_pos, 4), oligo.sequence)
     }
   }
   tool.registerDigestedOligo_(data, decoy_ref, parent, {0, 4}, parent, targets, 0, collisions, resolved, unresolved, exhausted);
   TEST_EQUAL(unresolved, 1)
   TEST_EQUAL(data.getIdentifiedOligos().size(), 2)
+  TEST_EQUAL(data.getParentSequences().size(), 3)
+  TEST_EQUAL(decoy_ref->sequence, "pACGUp")
+  bool shared = false;
+  for (const auto& oligo : data.getIdentifiedOligos())
+  {
+    if (oligo.sequence == parent)
+    {
+      shared = true;
+      TEST_EQUAL(oligo.parent_matches.size(), 2)
+      TEST_FALSE(oligo.allParentsAreDecoys())
+    }
+  }
+  TEST_TRUE(shared)
+  std::string persisted;
+  NEW_TMP_FILE(persisted)
+  OMSFile().store(persisted, data);
+  IdentificationData loaded;
+  OMSFile().load(persisted, loaded);
+  bool synthetic = false;
+  for (const auto& source : loaded.getParentSequences())
+  {
+    if (source.metaValueExists("reshuffled_decoy"))
+    {
+      synthetic = true;
+      TEST_EQUAL(source.getMetaValue("source_parent_accession").toString(), "DECOY")
+      TEST_TRUE(source.accession.find("__NASE_reshuffled_") != std::string::npos)
+    }
+  }
+  TEST_TRUE(synthetic)
+  bool success = false;
+  Size successful_budget = 0;
+  tool.reshuffleDecoyIfCollision_(parent, targets, 5, success, successful_budget);
+  TEST_TRUE(success)
+  collisions = resolved = unresolved = exhausted = 0;
+  tool.registerDigestedOligo_(data, decoy_ref, parent, {0, 4}, parent, targets, successful_budget,
+    collisions, resolved, unresolved, exhausted);
+  TEST_EQUAL(resolved, 1)
+  TEST_EQUAL(exhausted, 0)
+
+  IdentificationData contextual_data;
+  const auto contextual_parent = NASequence::fromString("pGAACGUCp");
+  IdentificationData::ParentSequence contextual_source("source_DECOY", IdentificationData::MoleculeType::RNA,
+    contextual_parent.toString());
+  contextual_source.is_decoy = true;
+  auto contextual_ref = contextual_data.registerParentSequence(contextual_source);
+  const auto contextual_product = contextual_parent.getSubsequence(1, 4);
+  set<NASequence> contextual_targets{contextual_product};
+  collisions = resolved = unresolved = exhausted = 0;
+  tool.registerDigestedOligo_(contextual_data, contextual_ref, contextual_parent, {1, 4}, contextual_product,
+    contextual_targets, 20, collisions, resolved, unresolved, exhausted, "RNase_T1");
+  TEST_EQUAL(resolved, 1)
+  TEST_EQUAL(unresolved, 0)
+  TEST_EQUAL(contextual_ref->sequence, contextual_parent.toString())
+  RNaseDigestion t1;
+  t1.setEnzyme("RNase_T1");
+  for (const auto& oligo : contextual_data.getIdentifiedOligos())
+  {
+    TEST_EQUAL(oligo.sequence[3]->getCode(), "G")
+    const auto& mapping = *oligo.parent_matches.begin();
+    const auto actual_parent = NASequence::fromString(mapping.first->sequence);
+    TEST_TRUE(t1.getFragmentPositions(actual_parent) == t1.getFragmentPositions(contextual_parent))
+    TEST_EQUAL(actual_parent.getSubsequence(1, 4), oligo.sequence)
+    TEST_TRUE(mapping.first->accession.ends_with("source_DECOY"))
+    const auto& match = *mapping.second.begin();
+    TEST_EQUAL(match.start_pos, 1)
+    TEST_EQUAL(match.end_pos, 4)
+    TEST_EQUAL(match.left_neighbor, "G")
+    TEST_EQUAL(match.right_neighbor, "U")
+  }
+  TEST_EXCEPTION(Exception::IllegalArgument, tool.registerDigestedOligo_(contextual_data, contextual_ref,
+    contextual_parent, {6, 4}, contextual_product, contextual_targets, 0, collisions, resolved, unresolved, exhausted))
 }
 END_SECTION
 
@@ -164,10 +237,12 @@ END_SECTION
 
 START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA candidates))
 {
-  std::string mzml, fasta, output;
+  std::string mzml, fasta, output, cached;
   NEW_TMP_FILE(mzml)
   NEW_TMP_FILE(fasta)
   NEW_TMP_FILE(output)
+  NEW_TMP_FILE(cached)
+  cached += ".oms";
   mzml += ".mzML";
   fasta += ".fasta";
   output += ".idXML";
@@ -201,7 +276,22 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
       "-threads", "1", "-oligo:min_size", "1", "-oligo:missed_cleavages", "0"};
   };
   fixture("ACGUAC", "ACGUAC", 2);
-  TEST_EQUAL(runSearch(arguments()), 0)
+  auto producer_args = arguments();
+  producer_args.insert(producer_args.end(), {"-digest_out", cached});
+  TEST_EQUAL(runSearch(producer_args), 0)
+  IdentificationData cached_data;
+  OMSFile().load(cached, cached_data);
+  TEST_FALSE(cached_data.getDBSearchParams().empty())
+  ABORT_IF(cached_data.getDBSearchParams().empty())
+  TEST_EQUAL(static_cast<int>(cached_data.getDBSearchParams().begin()->getMetaValue("digestion:max_decoy_reshuffle_attempts")), 0)
+  const std::vector<std::string> cache_args{"-in", mzml, "-digest", cached, "-id_out", output, "-threads", "1"};
+  TEST_EQUAL(runSearch(cache_args), 0)
+  auto mismatch_args = cache_args;
+  mismatch_args.insert(mismatch_args.end(), {"-fdr:max_decoy_reshuffle_attempts", "1"});
+  TEST_EQUAL(runSearch(mismatch_args), 6)
+  auto matching_args = cache_args;
+  matching_args.insert(matching_args.end(), {"-fdr:max_decoy_reshuffle_attempts", "0"});
+  TEST_EQUAL(runSearch(matching_args), 0)
   TEST_EQUAL(hitCount(output), 1)
 
   for (const std::string credit : {"true", "false"})

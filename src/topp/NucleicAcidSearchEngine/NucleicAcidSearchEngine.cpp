@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include "ModifiedNASequenceGenerator.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 
 // preprocessing and filtering of spectra
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
@@ -108,8 +109,9 @@ When using ambiguous modifications in a search, NucleicAcidSearchEngine can opti
 
 
 During new database digestion, all target products are registered before decoys.
-Decoy products identical to targets are deterministically reshuffled up to
-@p fdr:max_decoy_reshuffle_attempts times; unresolved collisions are skipped.
+Shared target/decoy products retain normal OpenMS labeling by default. Opt-in
+@p fdr:max_decoy_reshuffle_attempts uses portable, composition- and cleavage-preserving
+permutations with durable synthetic parent provenance; unresolved products remain shared.
 Reshuffled parent matches retain source coordinates and are marked as synthetic.
 Cached digests are reused as stored, without regenerating their decoys.
 
@@ -294,7 +296,7 @@ protected:
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
-    registerIntOption_("fdr:max_decoy_reshuffle_attempts", "<num>", 5, "Maximum deterministic reshuffle attempts for a digested decoy colliding with a target (0 disables reshuffling; unresolved collisions are skipped)", false, true);
+    registerIntOption_("fdr:max_decoy_reshuffle_attempts", "<num>", 0, "Opt-in maximum portable, composition/cleavage-preserving reshuffle attempts for shared target/decoy products. Default 0 preserves shared labeling; unresolved products remain shared. Cached products are reused as stored; an explicitly incompatible setting requires a fresh digest", false, true);
     setMinInt_("fdr:max_decoy_reshuffle_attempts", 0);
   }
 
@@ -431,172 +433,113 @@ protected:
     return hash;
   }
 
-  /// @brief Shuffle internal residues while preserving chain termini.
-  NASequence reshuffleOligo_(const NASequence& original, UInt64 seed) const
-  {
-    if (original.size() < 2)
-    {
-      return original;
-    }
-
-    NASequence shuffled = original;
-    std::vector<const Ribonucleotide*> residues = shuffled.getSequence();
-
-    // Separate residues by terminal specificity
-    std::vector<const Ribonucleotide*> five_prime_residues;
-    std::vector<const Ribonucleotide*> anywhere_residues;
-    std::vector<const Ribonucleotide*> three_prime_residues;
-
-    for (size_t i = 0; i < residues.size(); ++i)
-    {
-      const Ribonucleotide* ribo = residues[i];
-      Ribonucleotide::TermSpecificityNuc term_spec = ribo->getTermSpecificity();
-
-      if (term_spec == Ribonucleotide::FIVE_PRIME)
-      {
-        five_prime_residues.push_back(ribo);
-      }
-      else if (term_spec == Ribonucleotide::THREE_PRIME)
-      {
-        three_prime_residues.push_back(ribo);
-      }
-      else // ANYWHERE
-      {
-        anywhere_residues.push_back(ribo);
-      }
-    }
-
-    // Shuffle only the ANYWHERE residues
-    if (!anywhere_residues.empty())
-    {
-      std::mt19937_64 rng(seed);
-      std::shuffle(anywhere_residues.begin(), anywhere_residues.end(), rng);
-    }
-
-    // Reconstruct: 5' mods, shuffled middles, 3' mods
-    std::vector<const Ribonucleotide*> new_residues;
-    new_residues.reserve(residues.size());
-    new_residues.insert(new_residues.end(), five_prime_residues.begin(), five_prime_residues.end());
-    new_residues.insert(new_residues.end(), anywhere_residues.begin(), anywhere_residues.end());
-    new_residues.insert(new_residues.end(), three_prime_residues.begin(), three_prime_residues.end());
-
-    shuffled.setSequence(new_residues);
-    return shuffled;
-  }
-
-  /// @brief Try a bounded sequence of deterministic shuffles against all target products.
+  /// @brief Try portable, composition- and cleavage-preserving library permutations.
   NASequence reshuffleDecoyIfCollision_(const NASequence& original,
                                         const set<NASequence>& target_oligos,
-                                        Size max_attempts,
-                                        bool& resolved,
-                                        Size& attempts_used) const
+                                        Size max_attempts, bool& resolved,
+                                        Size& attempts_used,
+                                        const std::string& rnase = "no cleavage",
+                                        const NASequence& parent = NASequence(),
+                                        const pair<Size, Size>& position = {0, 0}) const
   {
     attempts_used = 0;
-    if (!target_oligos.count(original))
+    resolved = !target_oligos.count(original);
+    if (resolved) return original;
+    if (!parent.empty() && (position.first > parent.size() ||
+        position.second > parent.size() - position.first || position.second != original.size()))
     {
-      resolved = true;
-      return original;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Collision product coordinates must match its parent region.");
     }
-
-    UInt64 base_seed = stableHash64_(original.toString());
+    RNaseDigestion digestor;
+    digestor.setEnzyme(rnase);
+    const auto original_cuts = parent.empty() ? vector<pair<Size, Size>>() : digestor.getFragmentPositions(parent);
     for (Size attempt = 1; attempt <= max_attempts; ++attempt)
     {
       attempts_used = attempt;
-      UInt64 attempt_seed = base_seed ^
-        (0x9e3779b97f4a7c15ULL + static_cast<UInt64>(attempt));
-      NASequence candidate = reshuffleOligo_(original, attempt_seed);
-      if (!target_oligos.count(candidate))
+      DecoyGenerator generator;
+      generator.setSeed(stableHash64_(original.toString()) ^ (0x9e3779b97f4a7c15ULL + attempt));
+      const auto candidate = generator.shufflePeptides(original, rnase, 1, 0.99);
+      if (target_oligos.count(candidate)) continue;
+      if (!parent.empty())
       {
-        resolved = true;
-        return candidate;
+        NASequence synthetic = parent;
+        for (Size i = 0; i < position.second; ++i) synthetic[position.first + i] = candidate[i];
+        if (digestor.getFragmentPositions(synthetic) != original_cuts) continue;
       }
+      resolved = true;
+      return candidate;
     }
-
-    resolved = false;
     return original;
   }
 
-  // Register one digested fragment in IdentificationData and map it back to
-  // its parent coordinates/neighbors.
-  //
-  // For decoys, detect collisions with already seen target fragments and try
-  // deterministic reshuffling (up to max_decoy_reshuffle_attempts) before
-  // registration. Collision/reshuffle statistics are accumulated via the
-  // counter references.
-  /// @brief Register a target or collision-free decoy with its source parent coordinates.
-  void registerDigestedOligo_(
-    IdentificationData& id_data,
+  /// @brief Register normal shared products, or an opt-in repaired product against its actual synthetic parent.
+  void registerDigestedOligo_(IdentificationData& id_data,
     IdentificationData::ParentSequenceRef parent_ref,
-    const NASequence& digestion_parent,
-    const pair<Size, Size>& pos,
-    const NASequence& fragment,
-    set<NASequence>& target_oligos,
-    Size max_decoy_reshuffle_attempts,
-    Size& decoy_collisions,
-    Size& decoy_resolved,
-    Size& decoy_unresolved,
-    Size& decoy_max_attempts_reached) const
+    const NASequence& digestion_parent, const pair<Size, Size>& pos,
+    const NASequence& fragment, set<NASequence>& target_oligos,
+    Size max_decoy_reshuffle_attempts, Size& decoy_collisions,
+    Size& decoy_resolved, Size& decoy_unresolved,
+    Size& decoy_max_attempts_reached,
+    const std::string& rnase = "no cleavage") const
   {
-    NASequence final_fragment = fragment;
-    bool should_register = true; // Only register if no unresolved collision
-    bool was_reshuffled = false; // Track if this decoy was reshuffled
-
-    if (parent_ref->is_decoy)
+    if (pos.first > digestion_parent.size() || pos.second > digestion_parent.size() - pos.first ||
+        pos.second != fragment.size() || fragment.empty())
     {
-      if (target_oligos.count(fragment))
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Digestion product coordinates must match a non-empty parent region.");
+    }
+    NASequence final_fragment = fragment;
+    NASequence matched_parent = digestion_parent;
+    if (parent_ref->is_decoy && target_oligos.count(fragment))
+    {
+      ++decoy_collisions;
+      bool resolved = false;
+      Size attempts_used = 0;
+      // Include the cleavage-sensitive modifications enumerated in this product.
+      for (Size i = 0; i < pos.second; ++i) matched_parent[pos.first + i] = fragment[i];
+      final_fragment = reshuffleDecoyIfCollision_(fragment, target_oligos,
+        max_decoy_reshuffle_attempts, resolved, attempts_used, rnase, matched_parent, pos);
+      if (!resolved)
       {
-        ++decoy_collisions;
-        bool resolved = false;
-        Size attempts_used = 0;
-        final_fragment = reshuffleDecoyIfCollision_(
-          fragment, target_oligos, max_decoy_reshuffle_attempts, resolved,
-          attempts_used);
-        if ((max_decoy_reshuffle_attempts > 0) &&
-            (attempts_used >= max_decoy_reshuffle_attempts))
-        {
-          ++decoy_max_attempts_reached;
-        }
-        if (resolved)
-        {
-          ++decoy_resolved;
-          was_reshuffled = true; // Fragment was successfully reshuffled
-        }
-        else
-        {
-          ++decoy_unresolved;
-          should_register = false; // Skip registration - collision not resolved
-        }
+        ++decoy_unresolved;
+        if (max_decoy_reshuffle_attempts > 0 && attempts_used == max_decoy_reshuffle_attempts) ++decoy_max_attempts_reached;
+        // Retain OpenMS's normal target+decoy product convention, including when opt-in retries fail.
+        matched_parent = digestion_parent;
+      }
+      else
+      {
+        ++decoy_resolved;
+        for (Size i = 0; i < pos.second; ++i) matched_parent[pos.first + i] = final_fragment[i];
+        IdentificationData::ParentSequence synthetic = *parent_ref;
+        const std::string source_accession = synthetic.accession;
+        // Preserve both source prefix and suffix decoy naming conventions.
+        synthetic.accession += "__NASE_reshuffled_" + std::to_string(pos.first) + "_" + std::to_string(pos.second) +
+          "_" + std::to_string(stableHash64_(matched_parent.toString())) + "__" + source_accession;
+        synthetic.sequence = matched_parent.toString();
+        synthetic.coverage = 0.0;
+        synthetic.description += " [NASE opt-in cleavage-preserving reshuffle of " + source_accession + "]";
+        synthetic.setMetaValue("reshuffled_decoy", "true");
+        synthetic.setMetaValue("source_parent_accession", source_accession);
+        synthetic.setMetaValue("source_parent_start", static_cast<Int64>(pos.first));
+        synthetic.setMetaValue("source_parent_length", static_cast<Int64>(pos.second));
+        synthetic.setMetaValue("decoy_reshuffle_protocol", "cleavage_preserving_portable_v1");
+        parent_ref = id_data.registerParentSequence(synthetic);
       }
     }
-    else
+    else if (!parent_ref->is_decoy)
     {
       target_oligos.insert(fragment);
     }
-
-    // Only register if no unresolved collision
-    if (should_register)
-    {
-      IdentificationData::IdentifiedOligo oligo(final_fragment);
-
-      // Add parent match with coordinates
-      Size end_pos = pos.first + pos.second; // past-the-end position!
-      IdentificationData::ParentMatch match(pos.first, end_pos - 1);
-      match.left_neighbor = ((pos.first > 0) ?
-                             digestion_parent[pos.first - 1]->getCode() :
-                             std::string(1, IdentificationData::ParentMatch::LEFT_TERMINUS));
-      match.right_neighbor = ((end_pos < digestion_parent.size()) ?
-                              digestion_parent[end_pos]->getCode() :
-                              std::string(1, IdentificationData::ParentMatch::RIGHT_TERMINUS));
-
-      // Mark reshuffled decoys - coordinates point to original location, not reshuffled sequence
-      if (was_reshuffled)
-      {
-        match.setMetaValue("reshuffled_decoy", "true");
-      }
-
-      oligo.parent_matches[parent_ref].insert(match);
-      id_data.registerIdentifiedOligo(oligo);
-    }
+    IdentificationData::IdentifiedOligo oligo(final_fragment);
+    const Size end = pos.first + pos.second;
+    IdentificationData::ParentMatch match(pos.first, end - 1);
+    match.left_neighbor = pos.first > 0 ? matched_parent[pos.first - 1]->getCode() :
+      std::string(1, IdentificationData::ParentMatch::LEFT_TERMINUS);
+    match.right_neighbor = end < matched_parent.size() ? matched_parent[end]->getCode() :
+      std::string(1, IdentificationData::ParentMatch::RIGHT_TERMINUS);
+    oligo.parent_matches[parent_ref].insert(match);
+    id_data.registerIdentifiedOligo(oligo);
   }
 
   // check for minimum and maximum size
@@ -1505,6 +1448,11 @@ protected:
       search_param.database = in_db;
       search_param.missed_cleavages = getIntOption_("oligo:missed_cleavages");
       search_param.digestion_enzyme = configured_enzyme;
+      search_param.min_length = getIntOption_("oligo:min_size");
+      search_param.max_length = getIntOption_("oligo:max_size");
+      const Size max_decoy_reshuffle_attempts = static_cast<Size>(getIntOption_("fdr:max_decoy_reshuffle_attempts"));
+      search_param.setMetaValue("digestion:max_decoy_reshuffle_attempts", static_cast<int>(max_decoy_reshuffle_attempts));
+      search_param.setMetaValue("digestion:decoy_reshuffle_protocol", "cleavage_preserving_portable_v1");
       IdentificationData::SearchParamRef search_ref =
         id_data.registerDBSearchParam(search_param);
       step_ref = id_data.registerProcessingStep(step, search_ref);
@@ -1517,9 +1465,6 @@ protected:
       // set minimum and maximum size of oligo after digestion
       Size min_oligo_length = getIntOption_("oligo:min_size");
       Size max_oligo_length = getIntOption_("oligo:max_size");
-
-      Size max_decoy_reshuffle_attempts =
-        static_cast<Size>(getIntOption_("fdr:max_decoy_reshuffle_attempts"));
 
       progresslogger.startProgress(0, 1, "loading database from FASTA file...");
       vector<FASTAFile::FASTAEntry> fasta_db;
@@ -1554,49 +1499,25 @@ protected:
         }
       }
 
-      auto digest_and_register_parent =
-        [&](IdentificationData::ParentSequenceRef parent_ref)
+      // Internal fixed modifications are shared by all parents in this digest.
+      set<ConstRibonucleotidePtr> internal_fixed;
+      for (auto* mod : fixed_modifications)
+      {
+        if (mod->getTermSpecificity() == Ribonucleotide::ANYWHERE) internal_fixed.insert(mod);
+      }
+      const auto digest_and_register_parent = [&](IdentificationData::ParentSequenceRef parent_ref)
       {
         NASequence parent = NASequence::fromString(parent_ref->sequence);
-        // Internal fixed modifications determine cleavage; oligo-terminal mods are
-        // still applied to each resulting product during candidate generation.
-        set<ConstRibonucleotidePtr> internal_fixed;
-        for (auto* mod : fixed_modifications)
-        {
-          if (mod->getTermSpecificity() == Ribonucleotide::ANYWHERE)
-          {
-            internal_fixed.insert(mod);
-          }
-        }
         ModifiedNASequenceGenerator::applyFixedModifications(internal_fixed, parent);
-        if (cleavage_sensitive_modifications.empty())
+        vector<RNaseDigestion::DigestionProduct> products;
+        // This API already delegates to normal digestion when the groups are empty.
+        digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups,
+          max_variable_mods_per_oligo, products, min_oligo_length, max_oligo_length);
+        for (const auto& product : products)
         {
-          vector<RNaseDigestion::DigestionProduct> products;
-          digestor.digest(parent, products, min_oligo_length,
-                          max_oligo_length);
-          for (const auto& product : products)
-          {
-            registerDigestedOligo_(
-              id_data, parent_ref, parent, product.position, product.fragment,
-              target_oligos,
-              max_decoy_reshuffle_attempts, decoy_collisions, decoy_resolved,
-              decoy_unresolved, decoy_max_attempts_reached);
-          }
-        }
-        else
-        {
-          vector<RNaseDigestion::DigestionProduct> products;
-          digestor.digestWithCleavageSensitiveMods(
-            parent, cleavage_sensitive_groups, max_variable_mods_per_oligo,
-            products, min_oligo_length, max_oligo_length);
-          for (const auto& product : products)
-          {
-            registerDigestedOligo_(
-              id_data, parent_ref, parent, product.position, product.fragment,
-              target_oligos, max_decoy_reshuffle_attempts, decoy_collisions,
-              decoy_resolved, decoy_unresolved,
-              decoy_max_attempts_reached);
-          }
+          registerDigestedOligo_(id_data, parent_ref, parent, product.position, product.fragment,
+            target_oligos, max_decoy_reshuffle_attempts, decoy_collisions, decoy_resolved,
+            decoy_unresolved, decoy_max_attempts_reached, digestor.getEnzymeName());
         }
       };
 
@@ -1633,8 +1554,8 @@ protected:
         }
         if (decoy_unresolved > 0)
         {
-          OPENMS_LOG_WARN << "Unable to resolve " << decoy_unresolved
-                          << " decoy oligo collision(s) after "
+          OPENMS_LOG_INFO << "Retaining " << decoy_unresolved
+                          << " shared target+decoy oligo product(s) after "
                           << max_decoy_reshuffle_attempts
                           << " reshuffle attempts." << endl;
         }
@@ -1658,6 +1579,28 @@ protected:
 
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
+      const std::string setting = "fdr:max_decoy_reshuffle_attempts";
+      const bool explicitly_supplied = param_cmdline_.exists(setting) || param_instance_.exists(setting) ||
+        param_common_tool_.exists(setting) || param_common_.exists(setting);
+      const bool known_policy = search_ref->metaValueExists("digestion:max_decoy_reshuffle_attempts") &&
+        search_ref->metaValueExists("digestion:decoy_reshuffle_protocol");
+      if (explicitly_supplied && (!known_policy ||
+          static_cast<int>(search_ref->getMetaValue("digestion:max_decoy_reshuffle_attempts")) != getIntOption_(setting) ||
+          search_ref->getMetaValue("digestion:decoy_reshuffle_protocol").toString() != "cleavage_preserving_portable_v1"))
+      {
+        OPENMS_LOG_ERROR << "The explicitly requested decoy reshuffle setting does not match the cached digestion provenance (or the legacy policy is unknown). Generate a fresh digest to apply it.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      if (!known_policy)
+      {
+        OPENMS_LOG_WARN << "Cached digestion has no recorded decoy reshuffle policy; reusing its products as stored.\n";
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "Reusing cached decoy digestion policy: "
+                        << search_ref->getMetaValue("digestion:decoy_reshuffle_protocol") << ", max attempts "
+                        << search_ref->getMetaValue("digestion:max_decoy_reshuffle_attempts") << ".\n";
+      }
       search_param.digestion_enzyme = search_ref->digestion_enzyme;
       cleavage_sensitive_groups = {};
       cleavage_sensitive_modifications.clear();
