@@ -32,6 +32,12 @@ OpenMS Library:
   - FIX: MetaboliteSpectralMatching HyperScore rejects negative and non-finite fragment tolerances before scoring, including empty spectra; zero-tolerance exact matching remains supported.
   - FIX: OMS schema 6 preserves IdentificationData processing actions and distinct same-second search provenance; schemas 1-5 remain readable.
   - FIX: IdentificationData chooses a reproducible representative for exact best-score ties without target/decoy preference.
+  - ProteinIdentification: an empty file list ('spectra_data', 'spectra_data_raw') names no files and is not
+    stored. setPrimaryMSRunPath() with an empty list removes the meta value (it stored an empty list and warned),
+    addPrimaryMSRunPath() with an empty list changes nothing, and idXML, featureXML, consensusXML and the Parquet
+    formats drop an empty list when loading (removeEmptyPrimaryMSRunPaths()). An empty list could not be told from
+    a missing one: getPrimaryMSRunPath() returns no files for both, and the Parquet formats wrote both as an empty
+    list and read an empty list back, so converting a run without files added one.
   - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) throws InvalidParameter for isotopic_pattern:charge_low above
     charge_high (the charge count wrapped; crash) and aborts seeds without an isotope pattern for feature:min_isotope_fit 0 (crash).
   - FIX: ParamValue and DataValue conversions to double, float and long double throw a ConversionError
