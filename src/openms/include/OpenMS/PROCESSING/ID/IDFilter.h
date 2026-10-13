@@ -1176,56 +1176,26 @@ namespace OpenMS
     /// @name Filter functions for AnnotatedMSRun
     ///@{
 
-    /// Filters AnnotatedMSRun according to score thresholds
+    /**
+       @brief Filters the identifications of an AnnotatedMSRun according to score thresholds
+
+       Works on its identification data: matches whose primary score is not at least as good as
+       @p peptide_threshold_score (or that have none) are erased, as are the proteins of inference results whose score is
+       not at least as good as @p protein_threshold_score (score orientations are taken into account). Identifications
+       and runs stay, also without matches or proteins (they contain search meta data). Sequence evidence of proteins
+       that are gone is removed.
+    */
     static void filterHitsByScore(AnnotatedMSRun& annotated_data,
                                   double peptide_threshold_score,
-                                  double protein_threshold_score)
-    {
-      // filter protein hits:
-      filterHitsByScore(annotated_data.getProteinIdentifications(),
-                        protein_threshold_score);
-      // don't remove empty protein IDs - they contain search meta data and may
-      // be referenced by peptide IDs (via run ID)
+                                  double protein_threshold_score);
 
-      // filter peptide hits:
-      for (PeptideIdentification& peptide_id : annotated_data.getPeptideIdentifications())
-      {
-        filterHitsByScore(peptide_id, peptide_threshold_score);
-      }
-      removeDanglingProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
-    }
+    /**
+       @brief Filters the identifications of an AnnotatedMSRun by keeping the N best matches of every identification
 
-    /// Filters AnnotatedMSRun by keeping the N best peptide hits for every spectrum
-    static void keepNBestHits(AnnotatedMSRun& annotated_data, Size n)
-    {
-      // don't filter the protein hits by "N best" here - filter the peptides
-      // and update the protein hits!
-      PeptideIdentificationList all_peptides; // IDs from all spectra
-      // filter peptide hits:
-      for (PeptideIdentification& peptide_id : annotated_data.getPeptideIdentifications())
-      {
-        // Create a temporary vector with a single PeptideIdentification
-        PeptideIdentificationList temp_vec = {peptide_id};
-        keepNBestHits(temp_vec, n);
-        // Copy back the filtered hits
-        if (!temp_vec.empty())
-        {
-          peptide_id = temp_vec[0];
-        }
-        else
-        {
-          peptide_id.getHits().clear();
-        }
-        
-        // Since we're working with individual PeptideIdentifications, we don't need to remove empty ones
-        // but we still need to update protein references
-        temp_vec = {peptide_id};
-        removeDanglingProteinReferences(temp_vec, annotated_data.getProteinIdentifications());
-        all_peptides.push_back(peptide_id);
-      }
-      // update protein hits:
-      removeUnreferencedProteins(annotated_data.getProteinIdentifications(), all_peptides);
-    }
+       Works on its identification data, as keepNBestPeptideHits() for maps (an identification of several spectra keeps
+       its @p n best matches). Proteins that no match refers to any more are removed.
+    */
+    static void keepNBestHits(AnnotatedMSRun& annotated_data, Size n);
 
     /// Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other).
     /// The vector is sorted and reduced to @p n elements. If the vector's size 's' is less than @p n, only 's' best spectra are kept.
@@ -1401,31 +1371,16 @@ namespace OpenMS
       }
     }
 
-    /// Filters AnnotatedMSRun according to the given proteins.
+    /**
+       @brief Filters the identifications of an AnnotatedMSRun according to the given proteins
+
+       Works on its identification data: proteins that are not in @p proteins are removed, and so are the matches of
+       identifications of MS2 spectra that refer to none of them. Identifications left without matches are removed,
+       with the links of the spectra to them.
+    */
     static void keepHitsMatchingProteins(
       AnnotatedMSRun& experiment,
-      const std::vector<FASTAFile::FASTAEntry>& proteins)
-    {
-      std::set<std::string> accessions;
-      for (auto it = proteins.begin(); it != proteins.end(); ++it)
-      {
-        accessions.insert(it->identifier);
-      }
-
-      // filter protein hits:
-      keepHitsMatchingProteins(experiment.getProteinIdentifications(), accessions);
-
-      // filter peptide hits:
-      // std::pair<OpenMS::MSSpectrum&, OpenMS::PeptideIdentification&>
-      for (auto [spectrum, peptide_id] : experiment)
-      {
-        if (spectrum.getMSLevel() == 2)
-        {
-          keepHitsMatchingProteins(peptide_id, accessions);
-        }
-      }
-      removeEmptyIdentifications(experiment.getPeptideIdentifications());
-    }
+      const std::vector<FASTAFile::FASTAEntry>& proteins);
 
     ///@}
 

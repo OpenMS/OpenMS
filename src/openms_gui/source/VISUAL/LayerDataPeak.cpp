@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/LayerData1DIonMobility.h>
@@ -291,7 +292,16 @@ namespace OpenMS
     p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
     p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
     mapper.setParameters(p);
-    mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
+    try
+    {
+      mapper.annotate(*getPeakDataMuteable(), identifications, protein_identifications, true);
+    }
+    catch (const Exception::BaseException& e)
+    {
+      // e.g. identifications without their protein run, or with another score schema
+      OPENMS_LOG_ERROR << "Annotating the spectra with identifications failed: " << e.what() << std::endl;
+      return false;
+    }
 
     return true;
   }

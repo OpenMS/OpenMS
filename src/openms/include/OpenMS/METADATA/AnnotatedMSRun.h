@@ -10,35 +10,26 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 
 #include <functional>
+#include <set>
 #include <vector>
 
 namespace OpenMS
 {
-  class PeptideIdentification;
-
-  class MSSpectrum;
-
   /**
-   * @brief Class for storing MS run data with peptide and protein identifications
+   * @brief Class for storing MS run data with identifications of its spectra
    *
-   * This class stores an MSExperiment (containing spectra) along with peptide and protein
-   * identifications. Each spectrum in the MSExperiment is associated with a single
-   * PeptideIdentification object.
-   *
-   * The class provides methods to access and modify these identifications, as well as
-   * iterators to traverse the spectra and their associated identifications together.
+   * This class stores an MSExperiment (containing spectra) along with identification data (IdentificationData):
+   * the identifications of the spectra, with their runs (search settings, databases, proteins). A spectrum links the
+   * identifications of it (see getSpectrumIDQueries()), as a feature links identifications, and can link none or
+   * several (e.g. of several searches).
    */
   class OPENMS_DLLAPI AnnotatedMSRun
   {
   public:
-    using SpectrumIdRef = std::pair<MSSpectrum&, PeptideIdentification&>;
-    using ConstSpectrumIdRef = std::pair<const MSSpectrum&, const PeptideIdentification&>;
     using SpectrumType = MSExperiment::SpectrumType;
     using ChromatogramType = MSExperiment::ChromatogramType;
 
@@ -64,83 +55,14 @@ namespace OpenMS
     /// Destructor
     ~AnnotatedMSRun() = default;
 
-    /// Equality operator
-    bool operator==(const AnnotatedMSRun& rhs) const
-    {
-      return data == rhs.data &&
-             peptide_ids_ == rhs.peptide_ids_ &&
-             protein_ids_ == rhs.protein_ids_;
-    }
+    /// Equality operator (spectra, identification data and the links of the spectra)
+    bool operator==(const AnnotatedMSRun& rhs) const;
 
     /// Inequality operator
     bool operator!=(const AnnotatedMSRun& rhs) const
     {
       return !(*this == rhs);
     }
-
-    /**
-     * @brief Get the protein identification
-     * @return A reference to the protein identification
-     */
-    std::vector<ProteinIdentification>& getProteinIdentifications()
-    {
-      return protein_ids_;
-    }
-
-    /**
-     * @brief Get the protein identification (const version)
-     * @return A const reference to the protein identification
-     */
-    const std::vector<ProteinIdentification>& getProteinIdentifications() const
-    {
-      return protein_ids_;
-    }
-
-    /**
-     * @brief set the protein identifications
-     * @param[in] ids Vector of protein identifications
-     */
-    void setProteinIdentifications(const std::vector<ProteinIdentification>& ids)
-    {
-      protein_ids_ = ids;
-    }
-
-    /**
-     * @brief Set the protein identifications (move version)
-     * @param[in] ids Vector of protein identifications
-     */
-    void setProteinIdentifications(std::vector<ProteinIdentification>&& ids)
-    {
-      protein_ids_ = std::move(ids);
-    }
-
-    /**
-     * @brief Get all peptide identifications for all spectra
-     * @return A reference to the vector of peptide identifications
-     */
-    [[deprecated("legacy identifications: use the identification data")]]
-    PeptideIdentificationList& getPeptideIdentifications();
-    
-    /**
-     * @brief Get all peptide identifications for all spectra (const version)
-     * @return A const reference to the vector of peptide identifications
-     */
-    [[deprecated("legacy identifications: use the identification data")]]
-    const PeptideIdentificationList& getPeptideIdentifications() const;
-
-    /**
-     * @brief Set all peptide identifications for all spectra (move version)
-     * @param[in] ids Vector of peptide identifications
-     */
-    [[deprecated("legacy identifications: use the identification data")]]
-    void setPeptideIdentifications(PeptideIdentificationList&& ids);
-
-    /**
-     * @brief Set all peptide identifications for all spectra
-     * @param[in] ids Vector of peptide identifications
-     */
-    [[deprecated("legacy identifications: use the identification data")]]
-    void setPeptideIdentifications(const PeptideIdentificationList& ids);
 
     /**
      * @brief Get the MSExperiment
@@ -166,196 +88,69 @@ namespace OpenMS
      */
     void setMSExperiment(const MSExperiment& experiment);
 
-    /**
-     * @brief Get a const iterator to the beginning of the data
-     * @return A const iterator to the beginning
-     */
-    inline auto cbegin() const
+    /// @name Identifications as identification data
+    ///@{
+    /// The identifications of the spectra, with their runs (search settings, databases, proteins)
+    IdentificationData& getIdentificationData()
     {
-      checkPeptideIdSize_(OPENMS_PRETTY_FUNCTION);
-      return PairIterator(data.getSpectra().cbegin(), peptide_ids_.cbegin());
+      return id_data_;
+    }
+    const IdentificationData& getIdentificationData() const
+    {
+      return id_data_;
     }
 
     /**
-     * @brief Get an iterator to the beginning of the data
-     * @return An iterator to the beginning
-     */
-    inline auto begin()
-    {
-      checkPeptideIdSize_(OPENMS_PRETTY_FUNCTION);
-      return PairIterator(data.getSpectra().begin(), peptide_ids_.begin());
-    }
-
-    /**
-     * @brief Get a const iterator to the beginning of the data
-     * @return A const iterator to the beginning
-     */
-    inline auto begin() const
-    {
-      checkPeptideIdSize_(OPENMS_PRETTY_FUNCTION);
-      return PairIterator(data.getSpectra().cbegin(), peptide_ids_.cbegin());
-    }
-
-    /**
-     * @brief Get an iterator to the end of the data
-     * @return An iterator to the end
-     */
-    inline auto end()
-    {
-      return PairIterator(data.getSpectra().end(), peptide_ids_.end());
-    }
-
-    /**
-     * @brief Get a const iterator to the end of the data
-     * @return A const iterator to the end
-     */
-    inline auto end() const
-    {
-      return PairIterator(data.getSpectra().end(), peptide_ids_.end());
-    }
-
-    /**
-     * @brief Get a const iterator to the end of the data
-     * @return A const iterator to the end
-     */
-    inline auto cend() const
-    {
-      return PairIterator(data.getSpectra().cend(), peptide_ids_.cend());
-    }
-
-    /**
-     * @brief Access a spectrum and its associated peptide identification
-     * @param[in] idx The index of the spectrum
-     * @return A pair of references to the spectrum and its peptide identification
-     */
-    inline SpectrumIdRef operator[](size_t idx)
-    {
-      if (idx >= peptide_ids_.size())
-      {
-        throw Exception::IndexOverflow(__FILE__, __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          idx, peptide_ids_.size());
-      }
-      if (idx >= data.getSpectra().size())
-      {
-        throw Exception::IndexOverflow(__FILE__, __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          idx, data.getSpectra().size());
-      }      
-      return {data.getSpectra()[idx], peptide_ids_[idx]};
-    }
-
-    /**
-     * @brief Access a spectrum and its associated peptide identification (const version)
-     * @param[in] idx The index of the spectrum
-     * @return A pair of const references to the spectrum and its peptide identification
-     */
-    inline ConstSpectrumIdRef operator[](size_t idx) const
-    {
-      if (idx >= peptide_ids_.size())
-      {
-        throw Exception::IndexOverflow(__FILE__, __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          idx, peptide_ids_.size());
-      }
-      if (idx >= data.getSpectra().size())
-      {
-        throw Exception::IndexOverflow(__FILE__, __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          idx, data.getSpectra().size());
-      }
-      return {data.getSpectra()[idx], peptide_ids_[idx]};
-    }
-
-    /**
-     * @brief Iterator for pairs of spectra and peptide identifications
+     * @brief The identifications that the spectrum at @p index links (e.g. those that IDMapper maps to it)
      *
-     * This iterator allows traversing the spectra and their associated peptide
-     * identifications together.
+     * A spectrum links identifications with all their matches. An identification can be linked by several spectra
+     * (e.g. when it is mapped by retention time), and one that no spectrum links stays in the identification data.
+     * Links follow the spectra by index: code that reorders or removes spectra keeps them in step.
      */
-    template<typename T1, typename T2>
-    struct PairIterator
-    {     
-      using iterator_category = std::forward_iterator_tag;
-      using difference_type = std::ptrdiff_t;
+    const std::set<IdentificationData::QueryReference>& getSpectrumIDQueries(Size index) const;
 
-      /**
-       * @brief Constructor
-       * @param[in] ptr1 Iterator to the spectra
-       * @param[in] ptr2 Iterator to the peptide identifications
-       */
-      PairIterator(T1 ptr1, T2 ptr2) : m_ptr1(ptr1), m_ptr2(ptr2)
-      {}
+    /// Link the spectrum at @p index to the identification @p query
+    void addSpectrumIDQuery(Size index, const IdentificationData::QueryReference& query);
 
-      /**
-       * @brief Pre-increment operator
-       * @return Reference to this iterator after incrementing
-       */
-      PairIterator& operator++()
-      {
-        ++m_ptr1;
-        ++m_ptr2;
-        return *this;
-      }
+    /// Remove the identification links of all spectra
+    void clearSpectrumIDQueries();
 
-      /**
-       * @brief Post-increment operator
-       * @return Copy of this iterator before incrementing
-       */
-      PairIterator operator++(int)
-      {
-        auto tmp(*this);
-        ++(*this);
-        return tmp;
-      }
+    /**
+     * @brief The identifications that the spectrum at @p index links, each with all its matches, in the order of
+     * their export (see IdentificationData::resolveLinks())
+     *
+     * @throw Exception::MissingInformation if a link refers to an identification that the identification data does not have
+     */
+    std::vector<IdentificationData::QueryMatches> getSpectrumIdentifications(Size index) const;
 
-      /**
-       * @brief Dereference operator
-       * @return A pair of references to the current spectrum and peptide identification
-       */
-      auto operator*()
-      {
-        return std::make_pair(std::ref(*m_ptr1), std::ref(*m_ptr2));
-      }
+    /// Whether a spectrum links an identification
+    bool hasSpectrumIdentifications() const;
 
-      /**
-       * @brief Equality operator
-       * @param[in] a First iterator
-       * @param[in] b Second iterator
-       * @return True if the iterators are equal
-       */
-      inline friend bool operator==(const PairIterator& a, const PairIterator& b)
-      {
-        return a.m_ptr1 == b.m_ptr1 && a.m_ptr2 == b.m_ptr2;
-      }
+    /// Remove the identification data and the links of all spectra
+    void clearIdentifications();
 
-      /**
-       * @brief Inequality operator
-       * @param[in] a First iterator
-       * @param[in] b Second iterator
-       * @return True if the iterators are not equal
-       */
-      inline friend bool operator!=(const PairIterator& a, const PairIterator& b)
-      {
-        return !(a == b);
-      }
+    /**
+     * @brief Erase the matches for which @p remove returns true; their identifications stay, also without matches
+     *
+     * @return The number of erased matches
+     */
+    Size eraseMatches(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&,
+                                               const IdentificationData::Match&)>& remove);
 
-    private:
-      T1 m_ptr1;
-      T2 m_ptr2;
-    };
-
-    typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::iterator, PeptideIdentificationList::iterator> Iterator;
-    typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::const_iterator, PeptideIdentificationList::const_iterator> ConstIterator;
+    /**
+     * @brief Erase the identifications for which @p remove returns true, with their matches and the links of the spectra to them
+     *
+     * @return The number of erased identifications
+     */
+    Size eraseIdentifications(const std::function<bool(const IdentificationData::Run&, const IdentificationData::Identification&)>& remove);
+    ///@}
 
   private:
 
-    // Helper to enforce invariant
-    void checkPeptideIdSize_(const char* function_name) const;
-
-    PeptideIdentificationList peptide_ids_;
-    std::vector<ProteinIdentification> protein_ids_;
     MSExperiment data;
+    IdentificationData id_data_;
+    /// The identifications that each spectrum links, by spectrum index (spectra after the last one with links have none)
+    std::vector<std::set<IdentificationData::QueryReference>> spectrum_queries_;
   };
 } // namespace OpenMS
 
@@ -365,7 +160,7 @@ namespace std
   /**
    * @brief Hash function for OpenMS::AnnotatedMSRun.
    *
-   * Hashes all fields used in operator==: data (MSExperiment), peptide_ids_, and protein_ids_.
+   * Hashes all fields used in operator==: data (MSExperiment), the identification data and the links of the spectra.
    * Since the component types don't have std::hash specializations, this hash uses
    * identifying properties (sizes and identifiers) to create a fast, consistent hash.
    */
@@ -380,27 +175,11 @@ namespace std
       // Hash the number of chromatograms
       OpenMS::hash_combine(seed, OpenMS::hash_int(run.getMSExperiment().getChromatograms().size()));
 
-      // Hash the number of peptide identifications
-      OpenMS::hash_combine(seed, OpenMS::hash_int(run.getPeptideIdentifications().size()));
-
-      // Hash the number of protein identifications
-      OpenMS::hash_combine(seed, OpenMS::hash_int(run.getProteinIdentifications().size()));
-
-      // Hash identifying properties from protein identifications
-      for (const auto& prot_id : run.getProteinIdentifications())
+      // Hash the identification runs and the links of the spectra
+      OpenMS::hash_combine(seed, OpenMS::hash_int(run.getIdentificationData().getRuns().size()));
+      for (OpenMS::Size index = 0; index < run.getMSExperiment().size(); ++index)
       {
-        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(prot_id.getIdentifier()));
-        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(prot_id.getSearchEngine()));
-        OpenMS::hash_combine(seed, OpenMS::hash_int(prot_id.getHits().size()));
-      }
-
-      // Hash identifying properties from peptide identifications
-      for (const auto& pep_id : run.getPeptideIdentifications())
-      {
-        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pep_id.getIdentifier()));
-        OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(pep_id.getScoreType()));
-        OpenMS::hash_combine(seed, OpenMS::hash_int(pep_id.getHits().size()));
-        OpenMS::hash_combine(seed, OpenMS::hash_float(pep_id.getSignificanceThreshold()));
+        OpenMS::hash_combine(seed, OpenMS::hash_int(run.getSpectrumIDQueries(index).size()));
       }
 
       // Hash identifying properties from spectra

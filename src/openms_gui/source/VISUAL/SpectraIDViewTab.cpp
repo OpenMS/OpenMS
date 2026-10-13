@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
@@ -83,6 +83,35 @@ namespace ProteinClmn
 
 namespace OpenMS
 {
+  namespace
+  {
+    /**
+      The proteins of the first protein run of @p data, as its legacy protein run has them: of the inference result that
+      covers its first run, else the database sequences of that run
+    */
+    std::vector<ProteinHit> firstProteinRunHits(const IdentificationData& data)
+    {
+      if (data.getRuns().empty()) return {};
+      const auto& run = data.getRuns().front();
+      for (const auto& result : data.getInferenceResults())
+      {
+        for (const auto& input : result.inputs)
+        {
+          if (input.run_uuid == run.getUuid()) return IdentificationDataAdapter::proteinHits(data, result);
+        }
+      }
+      return IdentificationDataAdapter::proteinHits(run);
+    }
+
+    /// The match @p hit_index of identification @p id_index of the spectrum @p spectrum_index, if there is one
+    const IdentificationData::Match* spectrumMatch(const AnnotatedMSRun& run, int spectrum_index, int id_index, int hit_index)
+    {
+      if (spectrum_index < 0 || id_index < 0 || hit_index < 0) return nullptr;
+      const auto identifications = run.getSpectrumIdentifications(spectrum_index);
+      if (Size(id_index) >= identifications.size() || Size(hit_index) >= identifications[id_index].matches.size()) return nullptr;
+      return identifications[id_index].matches[hit_index];
+    }
+  }
 
   SpectraIDViewTab::SpectraIDViewTab(const Param&, QWidget* parent) :
     QWidget(parent),
@@ -166,27 +195,29 @@ namespace OpenMS
 
     if (is_first_time_loading_ && layer_)
     {
-      auto& annotated_peak_data = *layer_->getPeakData();
+      const auto& annotated_peak_data = *layer_->getPeakData();
 
-      if (annotated_peak_data.getPeptideIdentifications().empty())
+      // the identifications of the spectra (each once, also if several spectra link it)
+      std::set<IdentificationData::QueryReference> queries;
+      for (Size i = 0; i < annotated_peak_data.getMSExperiment().size(); ++i)
+      {
+        queries.insert(annotated_peak_data.getSpectrumIDQueries(i).begin(), annotated_peak_data.getSpectrumIDQueries(i).end());
+      }
+      if (queries.empty())
       {
         return;
       }
-      
-      for (const auto& [spec, pepid] : annotated_peak_data)
-      {
-        const vector<PeptideHit>& pep_hits = pepid.getHits();
-        //add id_accession as the key of the map and push the peptideID to the vector value-
-        for (const auto & pep_hit : pep_hits)
-        {
-          const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
 
-          for (const auto & evidence : evidences)
+      //add id_accession as the key of the map and push the match to the vector value
+      for (const auto& identification : annotated_peak_data.getIdentificationData().resolveLinks(queries, {}))
+      {
+        for (const auto& match : identification.query->getMatches())
+        {
+          for (const auto& evidence : match.sequence_evidence)
           {
-            const std::string& id_accession = evidence.getProteinAccession();            
-            protein_to_peptide_id_map[id_accession].push_back(&pepid);
+            protein_to_peptide_id_map[evidence.accession].push_back({identification.run->getUuid(), match.getId()});
           }
-        }        
+        }
       }
       // set is_first_time_loading to false so that the map gets created only the first time!
       is_first_time_loading_ = false;
@@ -301,56 +332,51 @@ namespace OpenMS
         QJsonArray peptides_data;
        
         //use data from the protein_to_peptide_id_map map and store the start/end position to the QJsonArray
-        for (auto pep_id_ptr : protein_to_peptide_id_map[current_accession.toStdString()])
+        const auto& data = layer_->getPeakData()->getIdentificationData();
+        const auto& references = protein_to_peptide_id_map[current_accession.toStdString()];
+        for (const auto& reference : std::set<IdentificationData::MatchReference>(references.begin(), references.end()))
         {
-          const vector<PeptideHit>& pep_hits = pep_id_ptr->getHits();
+          const auto& match = data.findRunByUuid(reference.run_uuid)->getMatch(reference.match);
+          if (match.encoding != IdentificationData::Encoding::AA_SEQUENCE) continue;
+          const AASequence aaseq = AASequence::fromString(match.representation);
+          const auto qstrseq = toQString(aaseq.toString());
 
-          //store start and end positions
-          //TODO maybe we could store the index of the hit that belongs to that specific protein in the map as well
-          // or we generally should only look at the first hit
-          for (const auto & pep_hit : pep_hits)
+          for (const auto& evidence : match.sequence_evidence)
           {
-            const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
-            const AASequence& aaseq = pep_hit.getSequence();
-            const auto qstrseq = toQString(aaseq.toString());
-
-            for (const auto & evidence : evidences)
+            const std::string& id_accession = evidence.accession;
+            QJsonObject pep_data_obj;
+            int pep_start = evidence.start ? int(*evidence.start) : PeptideEvidence::UNKNOWN_POSITION;
+            int pep_end = evidence.end ? int(*evidence.end) : PeptideEvidence::UNKNOWN_POSITION;
+            if (toQString(id_accession) == current_accession)
             {
-              const std::string& id_accession = evidence.getProteinAccession();
-              QJsonObject pep_data_obj;
-              int pep_start = evidence.getStart();
-              int pep_end = evidence.getEnd();
-              if (toQString(id_accession) == current_accession)
+              // contains key-value of modName and vector of indices
+              QJsonObject mod_data;
+
+              for (int i = 0; i < (int)aaseq.size(); ++i)
               {
-                // contains key-value of modName and vector of indices
-                QJsonObject mod_data;
-
-                for (int i = 0; i < (int)aaseq.size(); ++i)
+                if (aaseq[i].isModified())
                 {
-                  if (aaseq[i].isModified())
-                  {
-                    const std::string& mod_name = aaseq[i].getModificationName();
+                  const std::string& mod_name = aaseq[i].getModificationName();
 
-                    if (!mod_data.contains(toQString(mod_name)))
-                    {
-                      mod_data[toQString(mod_name)] = QJsonArray{i + pep_start}; // add pep_start to get the correct location in the whole sequence
-                    }
-                    else
-                    {
-                      QJsonArray values = mod_data.value(toQString(mod_name)).toArray();
-                      // add pep_start to get the correct location in the whole sequence
-                      values.push_back(i + pep_start); 
-                      mod_data[toQString(mod_name)] = values;
-                    }
+                  if (!mod_data.contains(toQString(mod_name)))
+                  {
+                    mod_data[toQString(mod_name)] = QJsonArray{i + pep_start}; // add pep_start to get the correct location in the whole sequence
+                  }
+                  else
+                  {
+                    QJsonArray values = mod_data.value(toQString(mod_name)).toArray();
+                    // add pep_start to get the correct location in the whole sequence
+                    values.push_back(i + pep_start); 
+                    mod_data[toQString(mod_name)] = values;
                   }
                 }
-                pep_data_obj["start"] = pep_start;
-                pep_data_obj["end"] = pep_end;
-                pep_data_obj["seq"] = qstrseq;
-                pep_data_obj["mod_data"] = mod_data;
-                //Push objects to array that will be passed to html
-                peptides_data.push_back(pep_data_obj);
               }
+              pep_data_obj["start"] = pep_start;
+              pep_data_obj["end"] = pep_end;
+              pep_data_obj["seq"] = qstrseq;
+              pep_data_obj["mod_data"] = mod_data;
+              //Push objects to array that will be passed to html
+              peptides_data.push_back(pep_data_obj);
             }
           }
         }
@@ -460,12 +486,13 @@ namespace OpenMS
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
       if (item_pepid)// might be null for MS1 spectra
       {
-        // int current_identification_index = StringUtils::toInt32(item_pepid->data(Qt::DisplayRole));
+        int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
-
-        const PeptideIdentification& peptide_id = annotated_exp.getPeptideIdentifications()[current_spectrum_index];
-        const vector<PeptideHit>& phits = peptide_id.getHits();
-        const PeptideHit& hit = phits[current_peptide_hit_index];
+        const IdentificationData::Match* hit = spectrumMatch(annotated_exp, current_spectrum_index, current_identification_index, current_peptide_hit_index);
+        if (hit == nullptr)
+        {
+          return;
+        }
 
         // initialize window, when the table is requested for the first time
         // afterwards the size will stay at the manually resized window size
@@ -494,7 +521,7 @@ namespace OpenMS
         // reset table, if a new ID is chosen
         fragment_window_->setRowCount(0);
 
-        for (const PeptideHit::PeakAnnotation& pa : hit.getPeakAnnotations())
+        for (const PeptideHit::PeakAnnotation& pa : hit->peak_annotations)
         {
           fragment_window_->insertRow(fragment_window_->rowCount());
           QTableWidgetItem* item = fragment_window_->itemPrototype()->clone();
@@ -558,11 +585,11 @@ namespace OpenMS
   namespace Detail
   {
     template<>
-    struct MetaKeyGetter<std::reference_wrapper<const PeptideHit>> 
+    struct MetaKeyGetter<const IdentificationData::Match*>
     {
-      static void getKeys(const std::reference_wrapper<const PeptideHit>& object, std::vector<std::string>& keys)
+      static void getKeys(const IdentificationData::Match* object, std::vector<std::string>& keys)
       {
-        object.get().getKeys(keys);
+        object->getKeys(keys);
       };
     };
   }// namespace Detail
@@ -573,7 +600,7 @@ namespace OpenMS
     // the spectrum table (almost; annotations gone) correctly restores the row, while the proteins do not get newly
     // refreshed. Check why and fix. It is not too bad though.
     // no valid peak layer attached
-    if (!hasData(layer_) || layer_->getPeakData()->getProteinIdentifications().empty())
+    if (!hasData(layer_) || layer_->getPeakData()->getIdentificationData().getRuns().empty())
     {
       //clear(); this was done in updateEntries_() already.
       return;
@@ -595,12 +622,15 @@ namespace OpenMS
       // only when checked, otherwise only highlights
     {
       int row = selected_spec_row_idx;
-      //int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
-      int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
-      int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();      
-      const PeptideIdentification& pep_id = layer_->getPeakData()->getPeptideIdentifications()[num_id];
-      const vector<PeptideHit>& hits = pep_id.getHits();
-      if (!hits.empty()) accs = hits[num_ph].extractProteinAccessionsSet();
+      auto* item_id = table_widget_->item(row, Clmn::ID_NR);
+      if (item_id != nullptr && item_id->data(Qt::DisplayRole).isValid()) // null for spectra without identification
+      {
+        int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+        int num_id = item_id->data(Qt::DisplayRole).toInt();
+        int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
+        const IdentificationData::Match* hit = spectrumMatch(*layer_->getPeakData(), spectrum_index, num_id, num_ph);
+        if (hit != nullptr) accs = hit->extractProteinAccessionsSet();
+      }
     }
 
     // create header labels (setting header labels must occur after fill)
@@ -616,9 +646,10 @@ namespace OpenMS
     // generate flat list
     int selected_row(-1);
     // index i is needed, so iterate the old way...
-    for (Size i = 0; i < layer_->getPeakData()->getProteinIdentifications()[0].getHits().size(); ++i)
+    const auto proteins = firstProteinRunHits(layer_->getPeakData()->getIdentificationData());
+    for (Size i = 0; i < proteins.size(); ++i)
     {
-      const auto& protein = layer_->getPeakData()->getProteinIdentifications()[0].getHits()[i];
+      const auto& protein = proteins[i];
       if (accs.empty() || accs.find(protein.getAccession()) != accs.end())
       {
         // set row background color
@@ -696,34 +727,51 @@ namespace OpenMS
 
     int restore_spec_index = int(layer_peak->getCurrentIndex());
 
+    const AnnotatedMSRun& annotated_exp = *layer_->getPeakData();
+    const MSExperiment& exp = annotated_exp.getMSExperiment();
+
     set<std::string> common_keys;
     bool has_peak_annotations(false);
-    // determine meta values common to all hits
-    Detail::MetaKeyGetter<std::reference_wrapper<const PeptideHit>> getter;
+    // determine meta values common to all matches
+    Detail::MetaKeyGetter<const IdentificationData::Match*> getter;
     if (create_rows_for_commmon_metavalue_->isChecked())
     {
-      std::vector<std::reference_wrapper<const PeptideHit>> all_hits;
+      std::vector<const IdentificationData::Match*> all_hits;
 
-      for (auto [spectrum, peptide_id] : *layer_->getPeakData())
+      for (Size i = 0; i < exp.size(); ++i)
       {
-        UInt ms_level = spectrum.getMSLevel();
-
-        if (ms_level != 2) // skip non ms2 spectra and spectra with no identification
+        if (exp[i].getMSLevel() != 2) // skip non ms2 spectra
         {
           continue;
         }
-
-        const vector<PeptideHit>& phits = peptide_id.getHits();
-        all_hits.insert(all_hits.end(), phits.begin(), phits.end());
-        if (!has_peak_annotations && !phits.empty() && !phits[0].getPeakAnnotations().empty())
+        for (const auto& identification : annotated_exp.getSpectrumIdentifications(i))
         {
-          has_peak_annotations = true;
+          all_hits.insert(all_hits.end(), identification.matches.begin(), identification.matches.end());
+          if (!has_peak_annotations && !identification.matches.empty() && !identification.matches[0]->peak_annotations.empty())
+          {
+            has_peak_annotations = true;
+          }
         }
       }
 
       common_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<
-                      std::vector<std::reference_wrapper<const PeptideHit>>,
+                      std::vector<const IdentificationData::Match*>,
                       set<std::string> >(all_hits.begin(), all_hits.end(), 100.0, getter);
+    }
+    // the scores besides the primary one (the score schema is the same in all runs)
+    std::vector<std::string> score_names;
+    for (const auto& run : annotated_exp.getIdentificationData().getRuns())
+    {
+      for (Size score = 0; score < run.getScoreDefinitions().size(); ++score)
+      {
+        const auto& name = run.getScoreDefinitions()[score].name;
+        if ((run.getPrimaryScore() && run.getPrimaryScore()->value == score) || common_keys.contains(name)
+            || std::find(score_names.begin(), score_names.end(), name) != score_names.end())
+        {
+          continue;
+        }
+        score_names.push_back(name);
+      }
     }
 
     // create header labels (setting header labels must occur after fill)
@@ -737,6 +785,13 @@ namespace OpenMS
     {
       headers << toQString(ck);
     }
+    if (create_rows_for_commmon_metavalue_->isChecked())
+    {
+      for (const auto& name : score_names)
+      {
+        headers << toQString(name);
+      }
+    }
 
     table_widget_->blockSignals(true); // to be safe, that clear does not trigger anything.
     table_widget_->clear();
@@ -749,12 +804,17 @@ namespace OpenMS
     // generate flat list
     int selected_row(-1);
     // index i is needed, so iterate the old way...
-    for (Size i = 0; i < layer_->getPeakData()->getMSExperiment().size(); ++i)
+    for (Size i = 0; i < exp.size(); ++i)
     {
-      auto [spectrum, peptide_id] = (*layer_->getPeakData())[i];
+      const MSSpectrum& spectrum = exp[i];
       const UInt ms_level = spectrum.getMSLevel();
       const vector<Precursor> & precursors = spectrum.getPrecursors();
-      const Size id_count = peptide_id.getHits().size();
+      const auto identifications = annotated_exp.getSpectrumIdentifications(i);
+      Size id_count = 0;
+      for (const auto& identification : identifications)
+      {
+        id_count += identification.matches.size();
+      }
 
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
       if (ms_level != 2)
@@ -771,7 +831,7 @@ namespace OpenMS
       // set row background color
       QColor bg_color = (id_count == 0 ? Qt::white : QColor::fromRgb(127,255,148));
 
-      // get peptide identifications of current spectrum
+      // get identifications of current spectrum
       if (id_count == 0)
       {
         // add new row at the end of the table
@@ -781,46 +841,43 @@ namespace OpenMS
       }
       else
       {
-        // get peptide identifications of current spectrum
-        #ifdef DEBUG_SPECTRA_ID_VIEW
-          cout << "Peptide hits: " << peptide_id.getHits().size() << endl;
-        #endif
-
-        for (Size ph_idx = 0; ph_idx != peptide_id.getHits().size(); ++ph_idx)
+        for (Size id_idx = 0; id_idx != identifications.size(); ++id_idx)
+        {
+        const IdentificationData::Run& run = *identifications[id_idx].run;
+        const auto& matches = identifications[id_idx].matches;
+        for (Size ph_idx = 0; ph_idx != matches.size(); ++ph_idx)
         {
           #ifdef DEBUG_SPECTRA_ID_VIEW
-            cout << "Peptide hit index: " << ph_idx << endl;
-            cout << "Peptide hit: " << peptide_id.getHits()[ph_idx].getSequence().toString() << endl;
+            cout << "Match index: " << ph_idx << endl;
+            cout << "Match: " << matches[ph_idx]->representation << endl;
           #endif
-          const PeptideHit& ph = peptide_id.getHits()[ph_idx];
+          const IdentificationData::Match& ph = *matches[ph_idx];
+          const auto scores = run.getScores(ph);
 
           // add new row at the end of the table
           table_widget_->insertRow(table_widget_->rowCount());
 
           fillRow_(spectrum, i, bg_color);
 
-          table_widget_->setAtBottomRow(ph.getScore(), Clmn::SCORE, bg_color);
-          table_widget_->setAtBottomRow((int)ph.getRank(), Clmn::RANK, bg_color);
-          table_widget_->setAtBottomRow(ph.getCharge(), Clmn::CHARGE, bg_color);
-
-          // sequence
-          std::string seq = ph.getSequence().toString();
-          if (seq.empty())
+          if (run.getPrimaryScore() && scores[run.getPrimaryScore()->value])
           {
-            seq = StringUtils::toStr(ph.getMetaValue("label"));
+            table_widget_->setAtBottomRow(*scores[run.getPrimaryScore()->value], Clmn::SCORE, bg_color);
           }
-          table_widget_->setAtBottomRow(toQString(seq), Clmn::SEQUENCE, bg_color);
+          table_widget_->setAtBottomRow((int)ph_idx + 1, Clmn::RANK, bg_color);
+          table_widget_->setAtBottomRow(ph.charge, Clmn::CHARGE, bg_color);
+
+          // sequence (or other molecule)
+          table_widget_->setAtBottomRow(toQString(ph.representation), Clmn::SEQUENCE, bg_color);
 
        // accession, start and end in protein (note that one peptide might match twice into same protein)
-        const vector<PeptideEvidence>& pevids = ph.getPeptideEvidences();
         vector<std::string> protein_accessions;
         vector<std::string> protein_starts;
         vector<std::string> protein_ends;
-        for (const PeptideEvidence& ev : pevids)
+        for (const auto& ev : ph.sequence_evidence)
         {
-          protein_accessions.push_back(ev.getProteinAccession());
-          protein_starts.push_back(StringUtils::toStr(ev.getStart() + 1));
-          protein_ends.push_back(StringUtils::toStr(ev.getEnd() + 1));
+          protein_accessions.push_back(ev.accession);
+          protein_starts.push_back(StringUtils::toStr(ev.start ? Int(*ev.start) + 1 : 0));
+          protein_ends.push_back(StringUtils::toStr(ev.end ? Int(*ev.end) + 1 : 0));
         }
         std::string accessions = ListUtils::concatenate(vector<std::string>(protein_accessions.begin(), protein_accessions.end()), ", ");
         std::string starts = ListUtils::concatenate(vector<std::string>(protein_starts.begin(), protein_starts.end()), ", ");
@@ -828,7 +885,7 @@ namespace OpenMS
         table_widget_->setAtBottomRow(toQString(accessions), Clmn::ACCESSIONS, bg_color);
         table_widget_->setAtBottomRow(toQString(starts), Clmn::START, bg_color);
         table_widget_->setAtBottomRow(toQString(ends), Clmn::END, bg_color);
-        table_widget_->setAtBottomRow((int) i, Clmn::ID_NR, bg_color); // spectrum index
+        table_widget_->setAtBottomRow((int)(id_idx), Clmn::ID_NR, bg_color); // identification of the spectrum
         table_widget_->setAtBottomRow((int)(ph_idx), Clmn::PEPHIT_NR, bg_color);
         
         bool selected(false);
@@ -852,11 +909,11 @@ namespace OpenMS
           {
             ppm_error = fabs((double)ph.getMetaValue("OMS:precursor_mz_error_ppm"));
           }
-          else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
+          else if (ph.encoding == IdentificationData::Encoding::AA_SEQUENCE) // works for normal linear fragments with the correct modifications included in the AASequence
           {
               double exp_precursor = first_precursor.getMZ();
               int charge = first_precursor.getCharge();
-              double theo_precursor= ph.getSequence().getMZ(charge);
+              double theo_precursor = AASequence::fromString(ph.representation).getMZ(charge);
               ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
             }
             table_widget_->setAtBottomRow(ppm_error, Clmn::PREC_PPM, bg_color);
@@ -871,7 +928,7 @@ namespace OpenMS
             {
               // set hidden data for export to TSV
               QString annotation;
-              for (const PeptideHit::PeakAnnotation& pa : ph.getPeakAnnotations())
+              for (const PeptideHit::PeakAnnotation& pa : ph.peak_annotations)
               {
                 annotation += toQString(StringUtils::toStr(pa.mz)) + "|" +
                   toQString(StringUtils::toStr(pa.intensity)) + "|" +
@@ -896,7 +953,19 @@ namespace OpenMS
               
               ++current_col;
             }
+            for (const auto& name : score_names)
+            {
+              for (Size score = 0; score < run.getScoreDefinitions().size(); ++score)
+              {
+                if (run.getScoreDefinitions()[score].name == name && scores[score])
+                {
+                  table_widget_->setAtBottomRow(*scores[score], current_col, bg_color);
+                }
+              }
+              ++current_col;
+            }
           }
+        }
         }
       }
 
@@ -964,34 +1033,34 @@ namespace OpenMS
     // synchronize PeptideHits with the annotations in the spectrum
     dynamic_cast<LayerData1DPeak*>(layer_)->synchronizePeakAnnotations();
 
-    vector<ProteinIdentification> prot_id = layer_->getPeakData()->getProteinIdentifications();
-    PeptideIdentificationList all_pep_ids;
-
-    // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
-    // otherwise duplicates will be stored, if more than one PeptideHit is contained in a PeptideIdentification
-    set<int> added_spectra;
+    // the identifications of the spectra in the table, each once (also if several spectra link it)
+    std::set<IdentificationData::QueryReference> queries;
     for (int r = 0; r < table_widget_->rowCount(); ++r)
     {
       // get spectrum index of current table line
       int spectrum_index = table_widget_->item(r, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
-
-      // skip this row, if this spectrum was already processed
-      if (added_spectra.find(spectrum_index) != added_spectra.end())
-      {
-        continue;
-      }
-      added_spectra.insert(spectrum_index);
-
-      const PeptideIdentification& pep_id = (*layer_->getPeakData())[spectrum_index].second;
-      all_pep_ids.push_back(pep_id);
+      const auto& linked = layer_->getPeakData()->getSpectrumIDQueries(spectrum_index);
+      queries.insert(linked.begin(), linked.end());
     }
+    IdentificationData data = layer_->getPeakData()->getIdentificationData();
+    data.eraseIdentifications([&](const IdentificationData::Run& run, const IdentificationData::Identification& query) {
+      return !queries.contains({run.getUuid(), query.getId()});
+    });
 
     QString filename = GUIHelpers::getSaveFilename(this, "Save file", "", FileTypeList({FileTypes::IDXML, FileTypes::MZIDENTML}), true, FileTypes::IDXML);
     if (filename.isEmpty())
     {
       return;
-    }      
-    FileHandler().storeIdentifications(fromQString(filename), prot_id, all_pep_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
+    }
+    try
+    {
+      FileHandler().storeIdentifications(fromQString(filename), data, {FileTypes::IDXML, FileTypes::MZIDENTML});
+    }
+    catch (const Exception::BaseException& e)
+    {
+      // e.g. matches without scores (of spectral libraries), which these formats cannot hold
+      QMessageBox::warning(this, "Error", QString("Cannot store the identifications: ") + e.what());
+    }
   }
 
   void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* /*item*/)
@@ -999,35 +1068,45 @@ namespace OpenMS
   }
 
   // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),
-  // update the corresponding PeptideIdentification / PeptideHits by adding a metavalue: 'selected'
+  // update the corresponding matches by adding a metavalue: 'selected'
   void SpectraIDViewTab::updatedSingleCell_(QTableWidgetItem* item)
   {
-    // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
+    // extract position of the correct spectrum, identification and match from the table
     int row = item->row();
     std::string selected = item->checkState() == Qt::Checked ? "true" : "false";
-    // int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+    int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
     int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
     // maintain sortability of our checkbox column
     TableView::updateCheckBoxItem(item);
 
-    PeptideIdentification& pep_id = (*layer_->getPeakDataMuteable())[num_id].second;
-
-    // update "selected" value in the correct PeptideHits
-    vector<PeptideHit>& hits = pep_id.getHits();
-    // XL-MS specific case, both PeptideHits belong to the same cross-link
-    if (hits[0].metaValueExists("xl_chain")) 
+    const auto identifications = layer_->getPeakData()->getSpectrumIdentifications(spectrum_index);
+    if (num_id < 0 || Size(num_id) >= identifications.size() || num_ph < 0 || Size(num_ph) >= identifications[num_id].matches.size())
     {
-      hits[0].setMetaValue("selected", selected);
-      if (hits.size() >= 2)
+      return;
+    }
+    const auto& matches = identifications[num_id].matches;
+    // update "selected" value in the correct matches
+    std::vector<IdentificationData::MatchId> edit;
+    // XL-MS specific case, both matches belong to the same cross-link
+    if (matches[0]->metaValueExists("xl_chain"))
+    {
+      for (Size i = 0; i < std::min<Size>(2, matches.size()); ++i)
       {
-        hits[1].setMetaValue("selected", selected);
+        edit.push_back(matches[i]->getId());
       }
     }
-    else // general case, update only the selected PeptideHit
+    else // general case, update only the selected match
     {
-      hits[num_ph].setMetaValue("selected", selected);
+      edit.push_back(matches[num_ph]->getId());
+    }
+    auto* run = layer_->getPeakDataMuteable()->getIdentificationData().findRunByUuid(identifications[num_id].run->getUuid());
+    for (const auto& id : edit)
+    {
+      IdentificationData::MatchData match = run->getMatch(id).getData();
+      match.setMetaValue("selected", selected);
+      run->replaceMatch(id, match);
     }
   }
 

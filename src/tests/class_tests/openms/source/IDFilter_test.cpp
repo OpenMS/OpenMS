@@ -19,6 +19,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -1491,6 +1492,111 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] AnnotatedMSRun: filterHitsByScore, keepNBestHits, keepHitsMatchingProteins on identification data))
+{
+  using ID = IdentificationData;
+  // two MS2 spectra and an MS1 spectrum; the identification of each MS2 spectrum has matches with scores 10, 20, 30
+  // that refer to proteins P1, P2 and the absent protein P3; the MS1 spectrum links an identification of P2 (score 5)
+  const auto make = []() {
+    MSExperiment exp;
+    for (UInt level : {2u, 2u, 1u})
+    {
+      MSSpectrum spectrum;
+      spectrum.setMSLevel(level);
+      exp.addSpectrum(spectrum);
+    }
+    AnnotatedMSRun annotated(std::move(exp));
+    auto& run = annotated.getIdentificationData().addRun("search");
+    ID::ScoreDefinition score;
+    score.name = "score";
+    run.setPrimaryScore(run.addScore(score));
+    ID::Database database;
+    database.path = "proteins.fasta";
+    const auto db = run.addDatabase(database);
+    run.setDatabaseSequences(std::vector<ID::DatabaseSequence> {{db, "P1"}, {db, "P2"}});
+    const auto source = run.addSource(ID::SourceFile());
+    const auto add = [&](Size spectrum, const std::vector<std::pair<std::string, std::vector<std::string>>>& matches, double first_score) {
+      const auto query = run.addIdentification(source, ID::Observation());
+      double value = first_score;
+      for (const auto& [sequence, accessions] : matches)
+      {
+        ID::MatchData match;
+        match.representation = sequence;
+        for (const auto& accession : accessions) match.sequence_evidence.push_back({db, accession, std::nullopt, std::nullopt, 0, 0});
+        run.addMatch(query, match, {value});
+        value += 10.0;
+      }
+      annotated.addSpectrumIDQuery(spectrum, {run.getUuid(), query});
+    };
+    add(0, {{"PEPA", {"P1"}}, {"PEPB", {"P2"}}, {"PEPC", {"P1", "P3"}}}, 10.0);
+    add(1, {{"PEPD", {"P2"}}, {"PEPE", {"P2"}}, {"PEPF", {"P3"}}}, 10.0);
+    add(2, {{"PEPG", {"P2"}}}, 5.0);
+    return annotated;
+  };
+  const auto representations = [](const AnnotatedMSRun& annotated, Size spectrum) {
+    std::vector<std::string> result;
+    for (const auto& identification : annotated.getSpectrumIdentifications(spectrum))
+    {
+      for (const auto* match : identification.matches) result.push_back(match->representation);
+    }
+    return ListUtils::concatenate(result, ",");
+  };
+  const auto evidence = [](const AnnotatedMSRun& annotated, const std::string& sequence) {
+    for (const auto& source : annotated.getIdentificationData().getRuns()[0].getSources())
+    {
+      for (const auto& query : source.identifications)
+      {
+        for (const auto& match : query.getMatches())
+        {
+          if (match.representation != sequence) continue;
+          std::vector<std::string> accessions;
+          for (const auto& item : match.sequence_evidence) accessions.push_back(item.accession);
+          return ListUtils::concatenate(accessions, ",");
+        }
+      }
+    }
+    return std::string("-");
+  };
+  const auto proteins = [](const AnnotatedMSRun& annotated) {
+    std::vector<std::string> accessions;
+    for (const auto& sequence : *annotated.getIdentificationData().getRuns()[0].getDatabaseSequences()) accessions.push_back(sequence.accession);
+    return ListUtils::concatenate(accessions, ",");
+  };
+
+  // matches with a score below 15 go, their identifications stay; evidence of absent proteins goes
+  AnnotatedMSRun annotated = make();
+  IDFilter::filterHitsByScore(annotated, 15.0, 0.0);
+  TEST_EQUAL(representations(annotated, 0), "PEPB,PEPC")
+  TEST_EQUAL(representations(annotated, 1), "PEPE,PEPF")
+  TEST_EQUAL(annotated.getSpectrumIdentifications(2).size(), 1)
+  TEST_EQUAL(representations(annotated, 2), "")
+  TEST_EQUAL(evidence(annotated, "PEPC"), "P1")
+  TEST_EQUAL(evidence(annotated, "PEPF"), "")
+  TEST_EQUAL(proteins(annotated), "P1,P2")
+
+  // the best match of each identification; proteins that no match refers to go
+  annotated = make();
+  IDFilter::keepNBestHits(annotated, 1);
+  TEST_EQUAL(representations(annotated, 0), "PEPC")
+  TEST_EQUAL(representations(annotated, 1), "PEPF")
+  TEST_EQUAL(representations(annotated, 2), "PEPG")
+  TEST_EQUAL(proteins(annotated), "P1,P2")
+  annotated.eraseMatches([](const ID::Run&, const ID::Identification&, const ID::Match& match) { return match.representation == "PEPG"; });
+  IDFilter::keepNBestHits(annotated, 1);
+  TEST_EQUAL(proteins(annotated), "P1")
+
+  // matches of MS2 spectra that refer to none of the proteins go, and identifications left without matches
+  annotated = make();
+  std::vector<FASTAFile::FASTAEntry> fasta(1);
+  fasta[0].identifier = "P1";
+  IDFilter::keepHitsMatchingProteins(annotated, fasta);
+  TEST_EQUAL(proteins(annotated), "P1")
+  TEST_EQUAL(representations(annotated, 0), "PEPA,PEPC")
+  TEST_EQUAL(annotated.getSpectrumIDQueries(1).empty(), true)
+  TEST_EQUAL(representations(annotated, 2), "PEPG") // MS1
+}
+END_SECTION
 
 END_TEST
 

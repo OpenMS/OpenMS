@@ -332,9 +332,26 @@ namespace OpenMS
     MSExperiment exp;
     this->load(filename, ids, exp);
 
-    // Convert to the new data structure (one PeptideIdentification per spectrum)
-    annot_exp.setPeptideIdentifications(std::move(ids));
+    annot_exp.clearIdentifications();
     annot_exp.getMSExperiment() = std::move(exp);
+    // The annotation of each library spectrum is an identification of it, with its peptide as match. Library
+    // annotations have no scores, so the run has none.
+    IdentificationData::Run& run = annot_exp.getIdentificationData().addRun(File::basename(filename));
+    IdentificationData::SourceFile file;
+    file.path = filename;
+    const IdentificationData::SourceId source = run.addSource(file);
+    for (Size index = 0; index < ids.size(); ++index)
+    {
+      const IdentificationData::QueryId query = run.addIdentification(source, IdentificationData::Observation());
+      for (const PeptideHit& hit : ids[index].getHits())
+      {
+        IdentificationData::MatchData match;
+        match.representation = hit.getSequence().toString();
+        match.charge = hit.getCharge();
+        run.addMatch(query, match);
+      }
+      annot_exp.addSpectrumIDQuery(index, {run.getUuid(), query});
+    }
   }
 
   void MSPFile::parseHeader_(const std::string & header, PeakSpectrum & spec)
@@ -373,13 +390,22 @@ namespace OpenMS
 
     ofstream out(filename.c_str());
 
-    for (auto [spectrum, peptide_id] : exp)
+    for (Size index = 0; index < exp.getMSExperiment().size(); ++index)
     {
-      if (!peptide_id.getHits().empty())
+      const PeakSpectrum& spectrum = exp.getMSExperiment()[index];
+      // the first match of the identifications of the spectrum
+      const IdentificationData::Match* match = nullptr;
+      for (const auto& identification : exp.getSpectrumIdentifications(index))
       {
-        PeptideHit hit = peptide_id.getHits()[0];
+        if (identification.matches.empty()) continue;
+        match = identification.matches.front();
+        break;
+      }
+      if (match != nullptr)
+      {
+        const AASequence sequence = AASequence::fromString(match->representation);
         std::string peptide;
-        for (const Residue& pit : hit.getSequence())
+        for (const Residue& pit : sequence)
         {
           if (pit.isModified() && pit.getOneLetterCode() == "M" &&
               fabs(pit.getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01)
@@ -391,25 +417,25 @@ namespace OpenMS
             peptide += pit.getOneLetterCode();
           }
         }
-        out << "Name: " << peptide << "/" << hit.getCharge() << "\n";
-        out << "MW: " << hit.getSequence().getMonoWeight() << "\n";
+        out << "Name: " << peptide << "/" << match->charge << "\n";
+        out << "MW: " << sequence.getMonoWeight() << "\n";
         out << "Comment:";
 
         // modifications
         // e.g. 2/9,C,Carbamidomethyl/12,C,Carbamidomethyl
         Size num_mods(0);
         vector<std::string> modifications;
-        if (hit.getSequence().hasNTerminalModification())
+        if (sequence.hasNTerminalModification())
         {
-          std::string mod = hit.getSequence().getNTerminalModificationName();
+          std::string mod = sequence.getNTerminalModificationName();
           ++num_mods;
-          std::string modification = "0," + hit.getSequence().begin()->getOneLetterCode() + "," + mod;
+          std::string modification = "0," + sequence.begin()->getOneLetterCode() + "," + mod;
           modifications.push_back(modification);
         }
 
         // @improvement improve writing support (Andreas)
         UInt pos(0);
-        for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit, ++pos)
+        for (AASequence::ConstIterator pit = sequence.begin(); pit != sequence.end(); ++pit, ++pos)
         {
           if (!pit->isModified())
           {

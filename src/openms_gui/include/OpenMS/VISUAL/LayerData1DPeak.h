@@ -11,6 +11,8 @@
 #include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 
+#include <optional>
+
 namespace OpenMS
 {
   
@@ -70,15 +72,20 @@ namespace OpenMS
     // docu in base class
     Annotation1DItem* addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color) override;
 
-    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
-    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
+    /**
+      @brief Store the peak annotations of the current spectrum (e.g. manually changed ones) in the selected match
+
+      The selected match is match @p peptide_hit_index of identification @p peptide_id_index of the current spectrum
+      (see AnnotatedMSRun::getSpectrumIdentifications()). Without one (e.g. for a spectrum without identification, or
+      an identification without matches), the annotations stay in the view only: a match needs a molecule.
+    */
     void synchronizePeakAnnotations();
 
-    /// remove peak annotations in the given list from the currently active PeptideHit
+    /// remove peak annotations in the given list from the selected match (see synchronizePeakAnnotations())
     void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
 
-    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
-    void updatePeptideHitAnnotations_(PeptideHit& hit);
+    /// The selected match of the current spectrum (see synchronizePeakAnnotations()), if there is one
+    std::optional<IdentificationData::MatchReference> getSelectedMatch() const;
 
   protected:
   };

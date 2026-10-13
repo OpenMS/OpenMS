@@ -101,6 +101,38 @@ namespace OpenMS
     return item;
   }
 
+  std::optional<IdentificationData::MatchReference> LayerData1DPeak::getSelectedMatch() const
+  {
+    if (getPeakData() == nullptr || getPeakData()->getMSExperiment().empty() || peptide_id_index < 0 || peptide_hit_index < 0)
+    {
+      return std::nullopt;
+    }
+    const auto identifications = getPeakData()->getSpectrumIdentifications(getCurrentIndex());
+    if (Size(peptide_id_index) >= identifications.size())
+    {
+      return std::nullopt;
+    }
+    const auto& identification = identifications[peptide_id_index];
+    if (Size(peptide_hit_index) >= identification.matches.size())
+    {
+      return std::nullopt;
+    }
+    return IdentificationData::MatchReference {identification.run->getUuid(), identification.matches[peptide_hit_index]->getId()};
+  }
+
+  namespace
+  {
+    /// Replace the peak annotations of the match @p reference of @p data
+    void setPeakAnnotations(IdentificationData& data, const IdentificationData::MatchReference& reference,
+                            std::vector<PeptideHit::PeakAnnotation> annotations)
+    {
+      auto* run = data.findRunByUuid(reference.run_uuid);
+      IdentificationData::MatchData match = run->getMatch(reference.match).getData();
+      match.peak_annotations = std::move(annotations);
+      run->replaceMatch(reference.match, match);
+    }
+  }
+
   void LayerData1DPeak::synchronizePeakAnnotations()
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW    
@@ -115,89 +147,38 @@ namespace OpenMS
       return;
     }
 
-    // no ID selected
-    if (peptide_id_index == -1 || peptide_hit_index == -1)
+    if (getCurrentSpectrum().getMSLevel() != 2)
     {
       return;
     }
 
-    // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getMSExperiment().getSpectrum(current_idx_);
-
-    int ms_level = spectrum.getMSLevel();
-
-    if (ms_level != 2)
-      return;
-
-    // store user fragment annotations
-    PeptideIdentificationList& pep_ids = getPeakDataMuteable()->getPeptideIdentifications();
-    vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
-        
-    if (!pep_ids.empty())
+    // no match selected
+    const auto selected = getSelectedMatch();
+    if (!selected)
     {
-      #ifdef DEBUG_IDENTIFICATION_VIEW    
-      std::cout << "PeptideIdentifications found in the current spectrum." << std::endl;
-      #endif
-      vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
-
-      if (!hits.empty())
-      {
-        PeptideHit& hit = hits[peptide_hit_index];
-        updatePeptideHitAnnotations_(hit);
-      }
-      else
-      { // no hits? add empty hit
-        PeptideHit hit;
-        updatePeptideHitAnnotations_(hit);
-        hits.push_back(hit);
-      }
+      return;
     }
-    else 
-    {      
-      std::cout << "No PeptideIdentifications found in the current spectrum." << std::endl;
-      // copy user annotations to fragment annotation vector
-      const Annotations1DContainer& las = getAnnotations(current_idx_);
 
-      // no annotations so we don't need to synchronize
-      bool has_peak_annotation(false);
-      for (auto& a : las)
+    // copy user annotations to fragment annotation vector
+    vector<PeptideHit::PeakAnnotation> fas;
+    // do not change the match's annotations, if there are no annotations on the spectrum
+    bool annotations_changed(false);
+    // for each annotation item on the canvas
+    for (auto& a : getCurrentAnnotations())
+    {
+      // only store peak annotations (skip general labels and distance annotations)
+      auto pa = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(a);
+      if (pa == nullptr)
       {
-        // only store peak annotations
-        auto pa = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(a);
-        if (pa != nullptr)
-        {
-          has_peak_annotation = true;
-          break;
-        }
+        continue;
       }
-      if (has_peak_annotation == false)
-      {
-        return;
-      }
-      PeptideIdentification pep_id;
-      pep_id.setIdentifier("Unknown");
+      fas.push_back(pa->toPeakAnnotation());
+      annotations_changed = true;
+    }
 
-      // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-      if (prot_ids.empty() || prot_ids.back().getIdentifier() !=std::string("Unknown"))
-      {
-        ProteinIdentification prot_id;
-        prot_id.setIdentifier("Unknown");
-        prot_ids.push_back(prot_id);
-      }
-
-      PeptideHit hit;
-      if (spectrum.getPrecursors().empty() == false)
-      {
-        pep_id.setMZ(spectrum.getPrecursors()[0].getMZ());
-        hit.setCharge(spectrum.getPrecursors()[0].getCharge());
-      }
-      pep_id.setRT(spectrum.getRT());
-
-      updatePeptideHitAnnotations_(hit);
-      std::vector<PeptideHit> hits;
-      hits.push_back(hit);
-      pep_id.setHits(hits);
-      pep_ids.push_back(pep_id);
+    if (annotations_changed)
+    {
+      setPeakAnnotations(getPeakDataMuteable()->getIdentificationData(), *selected, std::move(fas));
     }
   }
 
@@ -209,30 +190,22 @@ namespace OpenMS
       return;
     }
 
-    // no ID selected
-    if (peptide_id_index == -1 || peptide_hit_index == -1)
-    {
-      return;
-    }
-
-    // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getMSExperiment().getSpectrum(current_idx_);
-    int ms_level = spectrum.getMSLevel();
-
     // wrong MS level
-    if (ms_level < 2)
+    if (getCurrentSpectrum().getMSLevel() < 2)
     {
       return;
     }
 
-    // extract PeptideIdentification and PeptideHit if possible.
-    // that this function returns prematurely is unlikely,
-    // since we are deleting existing annotations,
-    // that have to be somewhere, but better make sure
-    PeptideIdentification& pep_ids = getPeakDataMuteable()->getPeptideIdentifications()[peptide_id_index];
+    // the selected match. That this function returns prematurely is unlikely, since we are deleting existing
+    // annotations, that have to be somewhere, but better make sure
+    const auto selected = getSelectedMatch();
+    if (!selected)
+    {
+      return;
+    }
 
-    PeptideHit& hit = pep_ids.getHits()[peptide_hit_index];
-    vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
+    vector<PeptideHit::PeakAnnotation> fas =
+      getPeakData()->getIdentificationData().findRunByUuid(selected->run_uuid)->getMatch(selected->match).peak_annotations;
     if (fas.empty())
     {
       return;
@@ -262,44 +235,14 @@ namespace OpenMS
         }
       }
     }
-    // remove the collected annotations from the PeptideHit annotations
+    // remove the collected annotations from the match's annotations
     for (auto const& tmp_a : to_remove)
     {
       fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
     }
     if (!to_remove.empty())
     {
-      hit.setPeakAnnotations(fas);
-    }
-  }
-
-  void LayerData1DPeak::updatePeptideHitAnnotations_(PeptideHit& hit)
-  {
-    // copy user annotations to fragment annotation vector
-    const Annotations1DContainer& las = getCurrentAnnotations();
-
-    // initialize with an empty vector
-    vector<PeptideHit::PeakAnnotation> fas;
-
-    // do not change PeptideHit annotations, if there are no annotations on the spectrum
-    bool annotations_changed(false);
-
-    // for each annotation item on the canvas
-    for (auto& a : las)
-    {
-      // only store peak annotations (skip general labels and distance annotations)
-      auto pa = dynamic_cast<Annotation1DPeakItem<Peak1D>*>(a);
-      if (pa == nullptr)
-      {
-        continue;
-      }
-      fas.push_back(pa->toPeakAnnotation());
-      annotations_changed = true;
-    }
-
-    if (annotations_changed)
-    {
-      hit.setPeakAnnotations(fas);
+      setPeakAnnotations(getPeakDataMuteable()->getIdentificationData(), *selected, std::move(fas));
     }
   }
 

@@ -214,5 +214,30 @@ class TestIDMapper(unittest.TestCase):
         self.assert_feature_has_identification(features[0], "PEPONE")
         self.assert_feature_has_identification(features[1], "PEPTWO")
 
+    def test_annotate_annotated_msrun(self):
+        """Spectra link the identifications that map to them; identifications that map to none are not added."""
+        exp = oms.MSExperiment()
+        exp.addSpectrum(self.create_test_spectrum(100.0, 2, 500.0))
+        exp.addSpectrum(self.create_test_spectrum(200.0, 2, 600.0))
+        run = oms.AnnotatedMSRun()
+        run.setMSExperiment(exp)
+
+        peptide_ids = self.to_pep_list([
+            self.create_test_peptide_id(100.0, 500.0, "PEPONE"),
+            self.create_test_peptide_id(300.0, 700.0, "PEPTWO")
+        ])
+        mapper = oms.IDMapper()
+        mapper.annotate(run, peptide_ids, self.search_runs(), True, False)
+
+        self.assertTrue(run.hasSpectrumIdentifications())
+        self.assertEqual(len(run.getSpectrumIDQueries(0)), 1)
+        self.assertEqual(len(run.getSpectrumIDQueries(1)), 0)
+        data = run.getIdentificationData()
+        self.assertEqual(data.getRun("search").getNumberOfMatches(), 1)
+
+        run.clearIdentifications()
+        self.assertFalse(run.hasSpectrumIdentifications())
+        self.assertEqual(len(run.getIdentificationData().getRuns()), 0)
+
 if __name__ == '__main__':
     unittest.main()

@@ -64,10 +64,10 @@ namespace OpenMS
     void removeTemporaryAnnotations_(Size spectrum_index);
 
     /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
-    void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
+    void addTheoreticalSpectrumLayer_(const IdentificationData::Match& ph);
 
     /// Add peak annotatios from id data structure
-    void addPeakAnnotationsFromID_(const PeptideHit& hit);
+    void addPeakAnnotationsFromID_(const IdentificationData::Match& hit);
 
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
@@ -76,7 +76,7 @@ namespace OpenMS
     void removeGraphicalPeakAnnotations_(int spectrum_index);
 
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
-    void addPeakAnnotations_(const PeptideIdentificationList& ph);
+    void addPeakAnnotations_(const std::vector<IdentificationData::QueryMatches>& identifications);
 
     /// Helper function for text formatting
     std::string n_times(Size n, const std::string& input);

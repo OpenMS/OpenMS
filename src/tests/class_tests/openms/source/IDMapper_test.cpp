@@ -120,25 +120,34 @@ START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
   TEST_EQUAL(m2.getParameters(), p);
 END_SECTION
 
-/*
-START_SECTION((void annotate(AnnotatedMSRun& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
-  // create id
+START_SECTION((void annotate(AnnotatedMSRun& map, const FeatureMap& fmap, const bool clear_ids = false, const bool map_ms1 = false)))
+  using ID = IdentificationData;
+  // a feature with two identifications: one without m/z and RT (those of the feature are taken) and one with them
   FeatureMap fm;
+  auto& run = fm.getIdentificationData().addRun("myID");
+  ID::ScoreDefinition score;
+  score.name = "score";
+  run.setPrimaryScore(run.addScore(score));
+  const auto source = run.addSource(ID::SourceFile());
+  ID::Observation without_position, with_position;
+  with_position.mz = 800.0;
+  with_position.rt = 9.05;
   Feature f;
   f.setMZ(900.0);
   f.setRT(9.0);
-  PeptideIdentificationList pids;
-  PeptideIdentification pid;
-  pid.setIdentifier("myID");
-  pid.setHits(std::vector<PeptideHit>(4));
-  pids.push_back(pid); // without MZ&RT for PID (take feature instead)
-  pid.setMZ(800.0);
-  pid.setRT(9.05);
-  pids.push_back(pid); // with MZ&RT from PID
-  f.setPeptideIdentifications(pids);
+  for (const auto& observation : {without_position, with_position})
+  {
+    const auto query = run.addIdentification(source, observation);
+    f.addIDQuery({run.getUuid(), query});
+    for (const std::string sequence : {"PEPTIDE", "PEPTIDER", "PEPTIDA", "PEPTIDAR"})
+    {
+      ID::MatchData match;
+      match.representation = sequence;
+      match.charge = 2;
+      f.addIDMatch({run.getUuid(), run.addMatch(query, match, {1.0})});
+    }
+  }
   fm.push_back(f);
-  std::vector<ProteinIdentification> prids(2);
-  fm.setProteinIdentifications(prids);
 
   // create experiment
   AnnotatedMSRun annotated_experiment;
@@ -170,34 +179,37 @@ START_SECTION((void annotate(AnnotatedMSRun& map, FeatureMap fmap, const bool cl
   mapper.annotate(annotated_experiment, fm, true, true);
 
   //test
-  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 2)
-  //scan 1
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits().size(), 2)
-  //scan 2
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[1].size(), 2)
-  ABORT_IF(annotated_experiment.getPeptideIdentifications(1).size() != 2)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[0].getHits().size(), 4)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[0].getMZ(), 900.0)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[1].getHits().size(), 4)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[1].getMZ(), 800.0)
+  TEST_EQUAL(annotated_experiment.getIdentificationData().getRuns().size(), 1)
+  TEST_EQUAL(annotated_experiment.getIdentificationData().getRuns()[0].getUuid(), run.getUuid())
+  //scan 1 and 2: both identifications, with their matches
+  for (Size index : {0, 1})
+  {
+    const auto identifications = annotated_experiment.getSpectrumIdentifications(index);
+    ABORT_IF(identifications.size() != 2)
+    TEST_EQUAL(identifications[0].matches.size(), 4)
+    TEST_EQUAL(identifications[1].matches.size(), 4)
+    // the identifications keep their own positions
+    TEST_EQUAL(bool(identifications[0].query->mz), false)
+    TEST_REAL_SIMILAR(*identifications[1].query->mz, 800.0)
+  }
   //scan 3
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 0)
+  TEST_EQUAL(annotated_experiment.getSpectrumIdentifications(2).size(), 0)
 
-  std::cout << annotated_experiment.getProteinIdentifications().size() << std::endl;
-  std::cout << fm.getProteinIdentifications().size() << std::endl;
+  // a feature can link some of the matches of an identification: the spectra get those
+  FeatureMap partial = fm;
+  std::erase_if(partial[0].getIDMatches(), [&](const ID::MatchReference& reference) {
+    return partial.getIdentificationData().findRunByUuid(reference.run_uuid)->getMatch(reference.match).representation == "PEPTIDAR";
+  });
+  mapper.annotate(annotated_experiment, partial, true, true);
+  TEST_EQUAL(annotated_experiment.getSpectrumIdentifications(0)[0].matches.size(), 3)
+  TEST_EQUAL(annotated_experiment.getIdentificationData().getRuns()[0].getNumberOfMatches(), 6)
+
   mapper.annotate(annotated_experiment, fm, true, false); // no MS1 mapping. MZ threshold never fulfilled
-  std::cout << annotated_experiment.getProteinIdentifications().size() << std::endl;
-  //test
-  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 2)
-  //scan 1
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0).size(), 0)
-  //scan 2
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1).size(), 0)
-  //scan 3
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 0)
-
+  //test: the run, without identifications
+  TEST_EQUAL(annotated_experiment.getIdentificationData().getRuns().size(), 1)
+  TEST_EQUAL(annotated_experiment.getIdentificationData().getRuns()[0].getNumberOfMatches(), 0)
+  TEST_EQUAL(annotated_experiment.hasSpectrumIdentifications(), false)
 END_SECTION
-*/
 
 START_SECTION((void annotate(AnnotatedMSRun& map, const PeptideIdentificationList& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
   // load id
@@ -256,19 +268,32 @@ START_SECTION((void annotate(AnnotatedMSRun& map, const PeptideIdentificationLis
   mapper.annotate(annotated_experiment, identifications, protein_identifications);
 
   //test
-  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits().size(),2)
-  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
-  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+  {
+    const auto legacy = IdentificationDataAdapter::toLegacy(annotated_experiment.getIdentificationData());
+    TEST_EQUAL(legacy.proteins.size(), 1)
+    TEST_EQUAL(legacy.proteins[0].getHits().size(),2)
+    TEST_EQUAL(legacy.proteins[0].getHits()[0].getAccession(),"ABCDE")
+    TEST_EQUAL(legacy.proteins[0].getHits()[1].getAccession(),"FGHIJ")
+    // the identifications that map to no spectrum are not added
+    TEST_EQUAL(legacy.peptides.size(), 2)
+  }
   //scan 1
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits().size(), 2)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  {
+    const auto identifications = annotated_experiment.getSpectrumIdentifications(0);
+    ABORT_IF(identifications.size() != 1)
+    TEST_EQUAL(identifications[0].matches.size(), 2)
+    TEST_EQUAL(identifications[0].matches[0]->representation, "LHASGITVTEIPVTATNFK")
+    TEST_EQUAL(identifications[0].matches[1]->representation, "MRSLGYVAVISAVATDTDK")
+  }
   //scan 2
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[1].getHits().size(), 0)
+  TEST_EQUAL(annotated_experiment.getSpectrumIdentifications(1).size(), 0)
   //scan 3
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[2].getHits().size(), 1)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[2].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+  {
+    const auto identifications = annotated_experiment.getSpectrumIdentifications(2);
+    ABORT_IF(identifications.size() != 1)
+    TEST_EQUAL(identifications[0].matches.size(), 1)
+    TEST_EQUAL(identifications[0].matches[0]->representation, "HSKLSAK")
+  }
 
   //-----------------------------------------------------------------------------------
   // TEST NATIVE_ID MAPPING
@@ -305,19 +330,32 @@ START_SECTION((void annotate(AnnotatedMSRun& map, const PeptideIdentificationLis
   mapper2.annotate(annotated_experiment2, identifications2, protein_identifications2);
 
   //test
-  TEST_EQUAL(annotated_experiment2.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits().size(),2)
-  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
-  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+  {
+    const auto legacy = IdentificationDataAdapter::toLegacy(annotated_experiment2.getIdentificationData());
+    TEST_EQUAL(legacy.proteins.size(), 1)
+    TEST_EQUAL(legacy.proteins[0].getHits().size(),2)
+    TEST_EQUAL(legacy.proteins[0].getHits()[0].getAccession(),"ABCDE")
+    TEST_EQUAL(legacy.proteins[0].getHits()[1].getAccession(),"FGHIJ")
+    // the identifications that map to no spectrum are not added
+    TEST_EQUAL(legacy.peptides.size(), 2)
+  }
   //scan 1
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits().size(), 2)
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  {
+    const auto identifications = annotated_experiment2.getSpectrumIdentifications(0);
+    ABORT_IF(identifications.size() != 1)
+    TEST_EQUAL(identifications[0].matches.size(), 2)
+    TEST_EQUAL(identifications[0].matches[0]->representation, "LHASGITVTEIPVTATNFK")
+    TEST_EQUAL(identifications[0].matches[1]->representation, "MRSLGYVAVISAVATDTDK")
+  }
   //scan 2
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[1].getHits().size(), 0)
+  TEST_EQUAL(annotated_experiment2.getSpectrumIdentifications(1).size(), 0)
   //scan 3
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[2].getHits().size(), 1)
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[2].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+  {
+    const auto identifications = annotated_experiment2.getSpectrumIdentifications(2);
+    ABORT_IF(identifications.size() != 1)
+    TEST_EQUAL(identifications[0].matches.size(), 1)
+    TEST_EQUAL(identifications[0].matches[0]->representation, "HSKLSAK")
+  }
 
 END_SECTION
 

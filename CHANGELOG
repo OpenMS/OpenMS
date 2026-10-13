@@ -188,6 +188,15 @@ OpenMS Library:
     that identification instead of a copy, and a pseudo feature for an MS2 spectrum without
     identification (-use_averagine_ids) carries the precursor charge itself instead of a placeholder
     identification without sequence and score. Outputs unchanged; new tests cover both options.
+  - API CHANGE: AnnotatedMSRun holds the identifications of its spectra as identification data
+    (getIdentificationData()) instead of one PeptideIdentification per spectrum and a vector of
+    protein runs; a spectrum links the identifications of it (getSpectrumIDQueries(),
+    addSpectrumIDQuery(), getSpectrumIdentifications()), none or several, as a feature does.
+    The pair iterators over spectra and peptide identifications are removed. IDMapper adds the
+    identifications that map to spectra (and their runs) and links them instead of merging their
+    hits; IDFilter's AnnotatedMSRun functions, MSPFile and TOPPView's identification view work on
+    matches. MSPFile library annotations are matches of a run without scores, which idXML and
+    mzIdentML cannot hold. ConsensusID combines the identifications of maps as identification data.
   - Writers of formats that hold peptide identifications accept maps with identification data:
     IdentificationDataConverter::withPeptideIdentifications() (the converse of
     withIdentificationData()) gives them a view with the identifications exported. mzTab map

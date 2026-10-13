@@ -55,29 +55,28 @@ public:
     /**
       @brief Mapping method for peak maps
 
-      The identifications stored in a PeptideIdentification instance can be added to the
-      corresponding spectrum.
-      Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries.
+      The identifications are added to the identification data of @p map, and the spectra they map to link them (see
+      AnnotatedMSRun::getSpectrumIDQueries()): the spectrum that an identification refers to (its spectrum reference),
+      else ALL spectra which are within the allowed RT and MZ boundaries. Identifications that map to no spectrum are not
+      added; the identification runs are added with all their settings.
 
       @param[in,out] map MSExperiment to receive the identifications
       @param[in] peptide_ids PeptideIdentification for the MSExperiment
       @param[in] protein_ids ProteinIdentification for the MSExperiment
-      @param[in] clear_ids Reset peptide and protein identifications of each scan before annotating
+      @param[in] clear_ids Remove the identifications of @p map before annotating
       @param[in] map_ms1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
       @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
+      @exception Exception::InvalidParameter if the identifications do not share the score schema of the identifications of @p map
     */
     void annotate(AnnotatedMSRun& map, const PeptideIdentificationList& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool map_ms1 = false);
 
     /**
       @brief Mapping method for peak maps
 
-      Add peptide identifications stored in a feature map to their
-      corresponding spectrum.
-
-      This function converts the feature map to a vector of peptide identifications (all peptide IDs from each feature are taken)
-      and calls the respective annotate() function.
-      RT and m/z are taken from the peptides, or (if missing) from the feature itself.
+      Add the identifications that the features of a feature map link (with the matches they link) to their
+      corresponding spectra, as the function above.
+      RT and m/z are taken from the identifications, or (if missing) from the feature itself.
 
       @param[in,out] map MSExperiment to receive the identifications
       @param[in] fmap FeatureMap with PeptideIdentifications for the MSExperiment
@@ -285,6 +284,20 @@ protected:
     void checkHits_(const PeptideIdentificationList& ids) const;
     /// check that all identifications of @p ids have RT and m/z
     void checkHits_(const IdentificationData& ids) const;
+
+    /// Where an identification maps to spectra: the spectrum of its spectrum reference, else by RT (and precursor m/z)
+    struct SpectrumCandidate_
+    {
+      std::string spectrum_reference;
+      double rt;
+      double mz;
+    };
+    /// For each of the @p candidates, the indices of the spectra of @p experiment that it maps to
+    std::vector<std::vector<Size>> mapToSpectra_(const MSExperiment& experiment, const std::vector<SpectrumCandidate_>& candidates, bool map_ms1) const;
+    /// Add the identifications @p queries of @p data that @p mapped maps to spectra (see mapToSpectra_()) to @p map,
+    /// linked by those spectra, with the runs of @p data
+    static void addToSpectra_(AnnotatedMSRun& map, IdentificationData&& data, const std::vector<IdentificationData::QueryReference>& queries,
+                              const std::vector<std::vector<Size>>& mapped);
 
     /// annotate @p map, which holds its identifications as identification data, with @p ids (without data processing)
     void annotate_(FeatureMap& map, IdentificationData ids, bool use_centroid_rt, bool use_centroid_mz, const PeakMap& spectra);

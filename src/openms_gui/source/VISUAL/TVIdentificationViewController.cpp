@@ -45,6 +45,15 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// The peptide of a match, if it is one (an empty sequence for other molecules)
+    AASequence sequenceOf(const IdentificationData::Match& match)
+    {
+      return match.encoding == IdentificationData::Encoding::AA_SEQUENCE ? AASequence::fromString(match.representation) : AASequence();
+    }
+  }
+
   TVIdentificationViewController::TVIdentificationViewController(TOPPViewBase* parent, SpectraIDViewTab* spec_id_view) :
     TVControllerBase(parent),
     spec_id_view_(spec_id_view)
@@ -105,20 +114,20 @@ namespace OpenMS
 
       // get peptide identification
       auto layer_1d_peak = dynamic_cast<const LayerData1DPeak*>(&w->canvas()->getCurrentLayer());
-      const auto& pids = layer_1d_peak->getPeakData()->getPeptideIdentifications();
-      if (peptide_id_index >= static_cast<int>(pids.size()))
+      const auto identifications = layer_1d_peak->getPeakData()->getSpectrumIdentifications(spectrum_index);
+      if (peptide_id_index >= static_cast<int>(identifications.size()))
       {
-        OPENMS_LOG_FATAL_ERROR << "PeptideIdentification index out of bounds! Aborting!" << endl;
+        OPENMS_LOG_FATAL_ERROR << "Identification index out of bounds! Aborting!" << endl;
         return;
       }
-      const PeptideIdentification& pi = pids[peptide_id_index];
+      const auto& identification = identifications[peptide_id_index];
 
       switch (layer_1d_peak->getCurrentSpectrum().getMSLevel())
       {
         // mass fingerprint annotation of name etc.
         case 1:
         { 
-          addPeakAnnotations_(PeptideIdentificationList(1, pi)); 
+          addPeakAnnotations_({identification});
           break;
         }
 
@@ -126,16 +135,16 @@ namespace OpenMS
         case 2:
         {
           // check if index in bounds and hits are present
-          if (peptide_hit_index < static_cast<int>(pi.getHits().size()))
+          if (peptide_hit_index < static_cast<int>(identification.matches.size()))
           {
             #ifdef DEBUG_IDENTIFICATION_VIEW
-              cout << "Creating annotations for PeptideIdentification index: " << peptide_id_index << endl;
-              cout << "PeptideHit index: " << peptide_hit_index << endl;
-              cout << "PeptideHit: " << pi.getHits()[peptide_hit_index].getSequence().toString() << endl;
+              cout << "Creating annotations for identification index: " << peptide_id_index << endl;
+              cout << "Match index: " << peptide_hit_index << endl;
+              cout << "Match: " << identification.matches[peptide_hit_index]->representation << endl;
             #endif
-            // get hit
-            PeptideHit ph = pi.getHits()[peptide_hit_index];
-            if (ph.getPeakAnnotations().empty())
+            // get match (a copy, the layers change)
+            const IdentificationData::Match ph = *identification.matches[peptide_hit_index];
+            if (ph.peak_annotations.empty())
             {
               // if no fragment annotations are stored, create a theoretical spectrum
               addTheoreticalSpectrumLayer_(ph);
@@ -161,7 +170,7 @@ namespace OpenMS
     // else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
   }
 
-  void TVIdentificationViewController::addPeakAnnotations_(const PeptideIdentificationList& ph)
+  void TVIdentificationViewController::addPeakAnnotations_(const std::vector<IdentificationData::QueryMatches>& identifications)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "TVIdentificationViewController::addPeakAnnotations() called" << endl;
@@ -186,15 +195,13 @@ namespace OpenMS
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
       return;
     }
-    for (PeptideIdentificationList::const_iterator it = ph.begin();
-                                                            it!= ph.end();
-                                                            ++it)
+    for (const auto& identification : identifications)
     {
-      if (!it->hasMZ())
+      if (!identification.query->mz)
       {
         continue;
       }
-      double mz = it->getMZ();
+      double mz = *identification.query->mz;
       Size peak_idx = getCurrentLayer().getCurrentSpectrum().findNearest(mz);
 
       // m/z fits ?
@@ -208,16 +215,20 @@ namespace OpenMS
       Annotation1DCaret<Peak1D>* first_dit(nullptr);
       // we could have many hits for different compounds which have the exact same sum formula... so first group by sum formula
       map<std::string, StringList> formula_to_names;
-      for (const PeptideHit& pep : it->getHits())
+      for (const IdentificationData::Match* match : identification.matches)
       {
-        if (pep.metaValueExists("identifier") && pep.metaValueExists("chemical_formula"))
+        // a compound: its name and formula, or the meta values that legacy compound hits had
+        const auto& details = match->details.value_or_default();
+        const bool has_name = !details.name.empty() || match->metaValueExists("identifier");
+        const bool has_formula = details.formula || match->metaValueExists("chemical_formula");
+        if (has_name && has_formula)
         {
-          std::string name = StringUtils::toStr(pep.getMetaValue("identifier"));
+          std::string name = !details.name.empty() ? details.name : StringUtils::toStr(match->getMetaValue("identifier"));
           if (name.length() > 20)
           {
             name = StringUtils::substr(name, 0, 17) + "...";
           }
-          std::string cf = StringUtils::toStr(pep.getMetaValue("chemical_formula"));
+          std::string cf = details.formula ? *details.formula : StringUtils::toStr(match->getMetaValue("chemical_formula"));
           if (cf.empty())
           {
             continue; // skip unannotated "null" peaks
@@ -227,11 +238,11 @@ namespace OpenMS
         else
         {
           StringList msg;
-          if (!pep.metaValueExists("identifier"))
+          if (!has_name)
           {
             msg.push_back("identifier");
           }
-          if (!pep.metaValueExists("chemical_formula"))
+          if (!has_formula)
           {
             msg.push_back("chemical_formula");
           }
@@ -327,11 +338,10 @@ namespace OpenMS
     {
       UInt ms_level = current_layer().getCurrentSpectrum().getMSLevel();
 
-      const PeptideIdentification& pid = current_layer().getPeakData()->getPeptideIdentifications()[spectrum_index];
+      const auto identifications = current_layer().getPeakData()->getSpectrumIdentifications(spectrum_index);
       #ifdef DEBUG_IDENTIFICATION_VIEW
-        cout << "PeptideIdentification index: " << peptide_id_index << endl;
-        cout << "PeptideHit index: " << peptide_hit_index << endl;
-        cout << "PeptideHit: " << pid.getHits()[peptide_hit_index].getSequence().toString() << endl;
+        cout << "Identification index: " << peptide_id_index << endl;
+        cout << "Match index: " << peptide_hit_index << endl;
         cout << "MS level: " << ms_level << endl;
         cout << "Spectrum index: " << spectrum_index << endl;
       #endif
@@ -340,7 +350,7 @@ namespace OpenMS
       {
         case 1: // mass fingerprint annotation of name etc and precursor labels
         {
-          addPeakAnnotations_(PeptideIdentificationList(1, pid));
+          addPeakAnnotations_(identifications);
           vector<Precursor> precursors;
 
           // collect all MS2 spectra precursor till next MS1 spectrum is encountered
@@ -364,15 +374,20 @@ namespace OpenMS
         }
         case 2: // annotation with stored fragments or synthesized theoretical spectrum
         {
-          // get selected hit
-          PeptideHit ph = pid.getHits()[peptide_hit_index];
+          // get selected match (a copy, the layers change)
+          if (peptide_id_index < 0 || peptide_id_index >= static_cast<int>(identifications.size())
+              || peptide_hit_index < 0 || peptide_hit_index >= static_cast<int>(identifications[peptide_id_index].matches.size()))
+          {
+            break;
+          }
+          IdentificationData::Match ph = *identifications[peptide_id_index].matches[peptide_hit_index];
 
-          if (ph.getPeakAnnotations().empty())
+          if (ph.peak_annotations.empty())
           {
             // if no fragment annotations are stored, create a theoretical spectrum
             addTheoreticalSpectrumLayer_(ph);
 
-            // synchronize PeptideHits with the annotations in the spectrum
+            // synchronize the match with the annotations in the spectrum
             current_layer().synchronizePeakAnnotations();
             // remove labels and theoretical spectrum (will be recreated using PH annotations)
             removeGraphicalPeakAnnotations_(spectrum_index);
@@ -383,17 +398,16 @@ namespace OpenMS
             { 
               return;
             }
-            // update current PeptideHit with the synchronized one
+            // update current match with the synchronized one
             widget_1D->canvas()->activateSpectrum(spectrum_index);
-            const PeptideIdentification & pi2 = current_layer().getPeakData()->getPeptideIdentifications()[spectrum_index];
-            ph = pi2.getHits()[peptide_hit_index];
+            ph = *current_layer().getPeakData()->getSpectrumIdentifications(spectrum_index)[peptide_id_index].matches[peptide_hit_index];
 
           }
           // use stored fragment annotations
           #ifdef DEBUG_IDENTIFICATION_VIEW
-            cout << "Creating annotations for PeptideIdentification index: " << peptide_id_index << endl;
-            cout << "PeptideHit index: " << peptide_hit_index << endl;
-            cout << "PeptideHit: " << ph.getSequence().toString() << endl;
+            cout << "Creating annotations for identification index: " << peptide_id_index << endl;
+            cout << "Match index: " << peptide_hit_index << endl;
+            cout << "Match: " << ph.representation << endl;
           #endif
           addPeakAnnotationsFromID_(ph);
 
@@ -405,13 +419,13 @@ namespace OpenMS
             if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
             {
               std::string hor_bar = "_";
-              std::string seq_alpha = ph.getSequence().toUnmodifiedString();
+              std::string seq_alpha = sequenceOf(ph).toUnmodifiedString();
               int xl_pos_alpha =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)));
               int xl_pos_beta =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2))) - xl_pos_alpha - 1;
 
               std::string alpha_cov;
               std::string beta_cov;
-              extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
+              extractCoverageStrings(ph.peak_annotations, alpha_cov, beta_cov, seq_alpha.size(), 0);
 
               // std::string formatting
               box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + std::string(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
@@ -419,7 +433,7 @@ namespace OpenMS
             }
             else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
             {
-              std::string seq_alpha = ph.getSequence().toUnmodifiedString();
+              std::string seq_alpha = sequenceOf(ph).toUnmodifiedString();
               std::string seq_beta = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
               int xl_pos_alpha =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)));
               int xl_pos_beta =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)));
@@ -432,20 +446,20 @@ namespace OpenMS
 
               std::string alpha_cov;
               std::string beta_cov;
-              extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
+              extractCoverageStrings(ph.peak_annotations, alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
 
               box_text +=std::string(alpha_space, ' ') + alpha_cov + "<br>" + std::string(alpha_space, ' ') + seq_alpha + "<br>" + std::string(prefix_length, ' ') + vert_bar + "<br>" + std::string(beta_space, ' ') + seq_beta + "<br>" + std::string(beta_space, ' ') + beta_cov;
               // color: <font color=\"green\">&boxur;</font>
             }
             else // if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "mono-link")
             {
-              std::string seq_alpha = ph.getSequence().toUnmodifiedString();
+              std::string seq_alpha = sequenceOf(ph).toUnmodifiedString();
               int xl_pos_alpha =StringUtils::toInt32(StringUtils::toStr(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)));
               Size prefix_length = xl_pos_alpha;
 
               std::string alpha_cov;
               std::string beta_cov;
-              extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
+              extractCoverageStrings(ph.peak_annotations, alpha_cov, beta_cov, seq_alpha.size(), 0);
 
               box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + std::string(prefix_length, ' ') + vert_bar;
 
@@ -453,38 +467,33 @@ namespace OpenMS
             box_text = R"(<font size="5" style="background-color:white;"><pre>)" + box_text + "</pre></font> ";
             widget_1D->canvas()->setTextBox(toQString(box_text));
           }
-          else if (ph.getPeakAnnotations().empty()) // only write the sequence
+          else if (ph.peak_annotations.empty()) // only write the sequence
           {
-            std::string seq = ph.getSequence().toString();
-            if (seq.empty())
-            {
-              seq = StringUtils::toStr(ph.getMetaValue("label")); // e.g. for RNA sequences
-            }
-            widget_1D->canvas()->setTextBox(toQString(seq));
+            widget_1D->canvas()->setTextBox(toQString(ph.representation));
           }
           else if (widget_1D->canvas()->isIonLadderVisible())
           {
-            if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+            if (ph.encoding == IdentificationData::Encoding::AA_SEQUENCE) // generate sequence diagram for a peptide
             {
               // @TODO: read ion list from the input file (meta value)
               static vector<std::string> top_ions = ListUtils::create<std::string>("a,b,c");
               static vector<std::string> bottom_ions = ListUtils::create<std::string>("x,y,z");
               std::string diagram = generateSequenceDiagram_(
-                ph.getSequence(),
-                ph.getPeakAnnotations(),
+                sequenceOf(ph),
+                ph.peak_annotations,
                 top_ions,
                 bottom_ions);
               widget_1D->canvas()->setTextBox(toQString(diagram));
             }
-            else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
+            else if (ph.encoding == IdentificationData::Encoding::NA_SEQUENCE) // generate sequence diagram for RNA
             {
               try
               {
                 // @TODO: read ion list from the input file (meta value)
-                NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
+                NASequence na_seq = NASequence::fromString(ph.representation);
                 static vector<std::string> top_ions = ListUtils::create<std::string>("a-B,a,b,c,d");
                 static vector<std::string> bottom_ions = ListUtils::create<std::string>("w,x,y,z");
-                std::string diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
+                std::string diagram = generateSequenceDiagram_(na_seq, ph.peak_annotations,
                                                           top_ions, bottom_ions);
                 widget_1D->canvas()->setTextBox(toQString(diagram));
               }
@@ -937,7 +946,7 @@ namespace OpenMS
     temporary_annotations_.clear();
   }
 
-  void TVIdentificationViewController::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
+  void TVIdentificationViewController::addTheoreticalSpectrumLayer_(const IdentificationData::Match& ph)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding theoretical spectrum layer" << endl;
@@ -946,7 +955,7 @@ namespace OpenMS
     auto& current_layer = dynamic_cast<LayerData1DPeak&>(current_canvas->getCurrentLayer());
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
-    const AASequence& aa_sequence = ph.getSequence();
+    const AASequence aa_sequence = sequenceOf(ph);
 
     // get measured spectrum indices and spectrum
     Size current_spectrum_layer_index = current_canvas->getCurrentLayerIndex();
@@ -962,7 +971,7 @@ namespace OpenMS
     try
     {
       TheoreticalSpectrumGenerator generator;
-      Int max_charge = max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
+      Int max_charge = max(1, ph.charge); // at least generate charge 1 if no charge (0) is annotated
 
       // generate mass ladder for all charge states
       generator.setParameters(tag_params);
@@ -1169,24 +1178,15 @@ namespace OpenMS
     widget_1D->canvas()->setTextBox(QString());
   }
 
-  void TVIdentificationViewController::addPeakAnnotationsFromID_(const PeptideHit& hit)
+  void TVIdentificationViewController::addPeakAnnotationsFromID_(const IdentificationData::Match& hit)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding peak annotations from ID" << endl;  
     #endif
 
     // get annotations and sequence
-    const vector<PeptideHit::PeakAnnotation>& annotations =
-      hit.getPeakAnnotations();
-
-    std::string seq = hit.getSequence().toString();
-    if (seq.empty())
-    { // no sequence information stored? use label
-      if (hit.metaValueExists("label"))
-      {
-        seq = StringUtils::toStr(hit.getMetaValue("label"));
-      }
-    }
+    const vector<PeptideHit::PeakAnnotation>& annotations = hit.peak_annotations;
+    const std::string& seq = hit.representation;
 
     auto* current_canvas = tv_->getActive1DWidget()->canvas();
     LayerDataBase& current_layer = current_canvas->getCurrentLayer();
@@ -1352,16 +1352,10 @@ namespace OpenMS
 
         if (ms_level != 2) continue;
 
-        const PeptideIdentificationList& peptide_ids = current_layer.getPeakData()->getPeptideIdentifications();
-        if (i >= peptide_ids.size())
+        const auto identifications = current_layer.getPeakData()->getSpectrumIdentifications(i);
+        if (std::all_of(identifications.begin(), identifications.end(), [](const auto& identification) { return identification.matches.empty(); }))
         {
-          OPENMS_LOG_FATAL_ERROR << "Peptide identification index out of bounds!" << endl;
-        }
-        const PeptideIdentification& peptide_id = peptide_ids[i];
-
-        if (peptide_id.getHits().empty())  // skip spectra with no identification
-        {
-          continue;
+          continue; // skip spectra with no identification
         }
         OPENMS_LOG_DEBUG << "During activation, found first MS2 spectrum with peptide identification: " << i << endl;
         current_layer.setCurrentIndex(i);
