@@ -754,6 +754,28 @@ if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
     "-DFORBIDDEN=name=\"profile spectrum\""
     -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
   set_tests_properties("TOPP_FileConverter_RAW_1_centroided" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  add_test("TOPP_FileConverter_RAW_noise" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -RawToMzML:include_noise -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_noise.tmp.mzML)
+  foreach (noise_accession 1002743 1002744 1002745)
+    add_test("TOPP_FileConverter_RAW_noise_${noise_accession}" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_noise.tmp.mzML
+      "-DEXPECTED=accession=\"MS:${noise_accession}\""
+      -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+    set_tests_properties("TOPP_FileConverter_RAW_noise_${noise_accession}" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_noise")
+  endforeach ()
+  # The SHA-1 of the raw file costs a second read of the whole file, so it is computed only on request
+  # (mzML requires a checksum term, so without it the SHA-1 value is empty).
+  add_test("TOPP_FileConverter_RAW_1_no_checksum" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML
+    "-DEXPECTED=name=\"SHA-1\" value=\"\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_1_no_checksum" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  add_test("TOPP_FileConverter_RAW_checksum" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -raw_checksum -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_checksum.tmp.mzML)
+  add_test("TOPP_FileConverter_RAW_checksum_written" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_checksum.tmp.mzML
+    "-DEXPECTED=name=\"SHA-1\""
+    "-DFORBIDDEN=name=\"SHA-1\" value=\"\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_checksum_written" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_checksum")
   if (NOT WIN32) # creating symbolic links needs extra privileges on Windows
     # Workflow systems (Nextflow, Galaxy) stage inputs as symbolic links, which Thermo's RawFileReader
     # cannot open itself (#10451). The source file must keep the linked name.
@@ -4052,6 +4074,15 @@ add_test("TOPP_QualityControl_1_out_consXML" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Qual
 add_test("TOPP_QualityControl_1_out_mzTab" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QualityControl_1_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/QualityControl_1_out.mzTab -whitelist "MS:1000752")
 set_tests_properties("TOPP_QualityControl_1_out_consXML" PROPERTIES DEPENDS "TOPP_QualityControl_1")
 set_tests_properties("TOPP_QualityControl_1_out_mzTab" PROPERTIES DEPENDS "TOPP_QualityControl_1")
+# a feature with two q-value (lower is better) identifications, the worse one stored first:
+# the better one has to be the first identification in -out_feat and the best hit of evidence.txt/msms.txt
+add_test("TOPP_QualityControl_2" ${TOPP_BIN_PATH}/QualityControl -test -in_cm ${DATA_DIR_TOPP}/QualityControl_2_in.consensusXML -in_postFDR ${DATA_DIR_TOPP}/QualityControl_2_in.featureXML -out_feat ${TESTS_TEMP_DIR}/QualityControl_2_out.tmp.featureXML -out_txt:directory ${TESTS_TEMP_DIR}/QualityControl_2_out_txt)
+add_test("TOPP_QualityControl_2_out_feat" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QualityControl_2_out.tmp.featureXML -in2 ${DATA_DIR_TOPP}/QualityControl_2_out.featureXML)
+add_test("TOPP_QualityControl_2_out_evidence" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QualityControl_2_out_txt/evidence.txt -in2 ${DATA_DIR_TOPP}/QualityControl_2_out_evidence.txt)
+add_test("TOPP_QualityControl_2_out_msms" ${DIFF} -in1 ${TESTS_TEMP_DIR}/QualityControl_2_out_txt/msms.txt -in2 ${DATA_DIR_TOPP}/QualityControl_2_out_msms.txt)
+set_tests_properties("TOPP_QualityControl_2_out_feat" PROPERTIES DEPENDS "TOPP_QualityControl_2")
+set_tests_properties("TOPP_QualityControl_2_out_evidence" PROPERTIES DEPENDS "TOPP_QualityControl_2")
+set_tests_properties("TOPP_QualityControl_2_out_msms" PROPERTIES DEPENDS "TOPP_QualityControl_2")
 
 ## Tests for TOPPAS/ExecutePipeline are in ./src/tests/TOPPAS/...
 

@@ -19,6 +19,12 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
 
 OpenMS Library:
+  - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
+    made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
+  - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
+  - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
+    critical sections, which also protects callers without OpenMP. Generated ids exclude zero.
+    The seeded sequence is preserved except for skipped zeros.
   - FIX: IDFilter throws on non-finite observation-match scores and PSM/distinct peptide q-values outside [0, 1] before modifying the data; missing scores are still filtered out.
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
@@ -26,6 +32,8 @@ OpenMS Library:
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - FIX: MetaboliteSpectralMatching HyperScore rejects negative and non-finite fragment tolerances before scoring, including empty spectra; zero-tolerance exact matching remains supported.
+  - FIX: OMS schema 6 preserves IdentificationData processing actions and distinct same-second search provenance; schemas 1-5 remain readable.
+  - FIX: IdentificationData chooses a reproducible representative for exact best-score ties without target/decoy preference.
   - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) throws InvalidParameter for isotopic_pattern:charge_low above
     charge_high (the charge count wrapped; crash) and aborts seeds without an isotope pattern for feature:min_isotope_fit 0 (crash).
   - FIX: ParamValue and DataValue conversions to double, float and long double throw a ConversionError
@@ -114,6 +122,16 @@ OpenMS Library:
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
+  - ThermoRawFile reads .raw files faster: trailer values are looked up by a per-file label index,
+    numbers and scan filters are parsed without locale streams and regular expressions, the TIC
+    is built from the scan headers, and with more than one thread up to three worker threads read
+    scans ahead while the calling thread converts them (output independent of the thread count). New ThermoRawFile::Options select scans by scan number, RT, MS
+    level and precursor m/z, and load metadata only or skip chromatograms; scans that are not
+    selected are not decoded, and selected MSn scans keep the precursors of a full load (#10522).
+    FileHandler::loadExperiment() passes the PeakFileOptions MS levels, RT and precursor m/z ranges,
+    metadata-only, fill-data and skip-chromatograms to the reader (MS2-only tools no longer decode
+    MS1 scans; fill-data off now loads spectra without peaks) and no longer computes the SHA-1 of the
+    RAW file. Instrument configuration ids no longer depend on which scans are loaded.
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
@@ -340,9 +358,18 @@ Dependencies:
     package and the pyOpenMS wheels bundle it. 3.6.5 fixes the 13 advisories of 2026-09-29
     listed under 3.6.0's known issues, among them the High-severity CVE-2026-84782 (DTLS,
     which OpenMS does not use).
+  - WITH_THERMO_RAW requires openms-thermo-bridge 1.0.0 (FetchContent, vcpkg overlay and
+    find_package). ThermoRawFile reads each scan through its typed single-pass API (header,
+    m/z-sorted peaks, charges and noise in one call) instead of per-scan JSON and separate
+    peak and auxiliary-array calls; system or vcpkg installations of 0.x are no longer
+    accepted (#10522). With noise_data, scans without a centroid stream (e.g. ion trap
+    scans) no longer carry a "sampled noise m/z array" without intensities; the vendor
+    returned the segmented scan masses there, not noise samples.
 
 TOPP tools:
   Changes:
+    NucleicAcidSearchEngine:
+      - Resolve interleaved ambiguity variants within their original precursor/source hypotheses, record current cached-digest search parameters, and produce finite LFQ retention times. Exact cutoff tie retention is unchanged; exported ties now follow the shared library value order.
     All tools:
       - FIX: -debug activates console debug logging in the main thread even when its
         thread-local logger was initialized before parameter parsing. Debug levels from INI
@@ -385,6 +412,10 @@ TOPP tools:
         FDR:PSM (ProSEAlgorithm::setKeepPreFdrPsms), and the .pin is written from them before the
         protein FDR; with -rescore it still holds the rescored PSMs before the FDR filters. The other
         outputs do not change.
+    FileConverter:
+      - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
+        default, which cost a second read of the whole file (5-15% of the conversion time); the new
+        flag -raw_checksum restores it. Without it the mzML sourceFile has an empty SHA-1 (#10522).
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
@@ -399,19 +430,18 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
-      - FIX: -feat_dir checkpoints record -protein_quantification. Detection keeps the peptide
-        uniqueness annotation that strictly_unique_peptides filters on only in that mode, so a
-        strict combine accepted checkpoints detected in another mode and then dropped the peptide
-        hits lacking it (all of them, ending in "No protein is supported by a strictly unique
-        peptide"). Such a combine is now refused and names the setting; detecting and combining
-        runs have to use the same -protein_quantification (#10481).
-    FileInfo:
-      - FIX: a duplicate FASTA header or sequence was not reported when an entry in between had the
-        same std::hash value; each hash now keeps all of its entries.
-      - FIX: the consensusXML statistics (-s) for qualities were computed over twice the number of
-        consensus features, half of the values zero; they now cover each feature once.
-      - FIX: crashed on an idXML or mzIdentML with a peptide identification without hits; such
-        spectra are now skipped as unidentified.
+    QualityControl:
+      - FIX: The identifications of a feature are sorted best first according to their score
+        direction. Lower-is-better scores (q-value, PEP, E-value) put the worst identification
+        first, which the MaxQuant-compatible evidence.txt and msms.txt took as the feature's best
+        hit (wrong Type, MS/MS Count and best-hit columns), and -out_feat listed it first.
+        Identifications without hits are sorted last instead of being read past their end. The
+        identifications that ID conflict resolution removes from a consensus feature are now
+        listed best first among the unassigned ones (-out_cm, PSM section of -out).
+  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
+    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
+    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
+    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 Build System:
   - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX

@@ -142,11 +142,15 @@ target_link_libraries(Bzip2InputStream_test XercesC::XercesC)
 target_link_libraries(CompressedInputSource_test XercesC::XercesC)
 target_link_libraries(ZipRandomAccessFile_test libzip::zip)
 target_link_libraries(LPWrapper_test ${LPTARGET})
+target_link_libraries(UniqueIdGenerator_test Threads::Threads)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
 target_link_libraries(BilinearInterpolation_test Eigen3::Eigen)
 target_link_libraries(MatrixEigen_test Eigen3::Eigen)
 target_link_libraries(MRMScoring_test Eigen3::Eigen)
+# The vendored Percolator is linked PRIVATE into libOpenMS with hidden symbols.
+# This test calls its PosteriorEstimator directly, so it links the static library.
+target_link_libraries(PercolatorPosteriorEstimator_test OpenMS_Percolator)
 
 
 if (WITH_HDF5)
