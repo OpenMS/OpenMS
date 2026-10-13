@@ -12,6 +12,9 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
+// A WebAssembly module cannot start other programs: there, the functions below report
+// that instead of using Boost.Process (which does not support Emscripten).
+#ifndef __EMSCRIPTEN__
 #include <boost/version.hpp>
 
 // Boost.Process v1 compatibility shims removed in Boost 1.88; use v1/ prefix for 1.88+
@@ -35,6 +38,7 @@ namespace bp = boost::process::v1;
 #else
 namespace bp = boost::process;
 #endif
+#endif // __EMSCRIPTEN__
 
 namespace OpenMS
 {
@@ -71,6 +75,14 @@ namespace OpenMS
       args.push_back(static_cast<std::string>(a));
     }
 
+#ifdef __EMSCRIPTEN__
+    if (verbose)
+    {
+      OPENMS_LOG_INFO << " failed" << std::endl;
+      OPENMS_LOG_ERROR << "Error: Could not run '" << executable << "': WebAssembly does not support running external programs." << std::endl;
+    }
+    return false;
+#else
     try
     {
       bp::ipstream pipe_out;
@@ -121,6 +133,7 @@ namespace OpenMS
       }
       return false;
     }
+#endif
 
     if (verbose)
     {
@@ -135,6 +148,14 @@ namespace OpenMS
 
     std::vector<std::string> args = {"--vanilla", "-e", "sessionInfo()"};
 
+#ifdef __EMSCRIPTEN__
+    if (verbose)
+    {
+      OPENMS_LOG_INFO << " failed" << std::endl;
+      OPENMS_LOG_ERROR << "Error: Could not run '" << executable << "': WebAssembly does not support running external programs." << std::endl;
+    }
+    return false;
+#else
     try
     {
       // Use both pipes to match Qt MergedChannels behavior (stderr merged into output)
@@ -193,6 +214,7 @@ namespace OpenMS
       }
       return false;
     }
+#endif
 
     if (verbose)
     {

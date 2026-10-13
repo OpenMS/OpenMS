@@ -1,0 +1,140 @@
+# OpenMS for WebAssembly: builds the library and its JavaScript bindings with Emscripten
+# (CMake preset wasm32-emscripten-release, see src/openms_wasm/README.md), runs the tests
+# of the bindings in Node.js and uploads the npm package (with the demo web application).
+#
+# The dependencies are built by vcpkg for the wasm32-emscripten triplet; the binary cache
+# lives on the rsync archive like the one of the native builds (.github/actions/dependencies).
+#
+# Trigger: changes to the WebAssembly build in pull requests, the nightly branch, releases,
+# or manual dispatch.
+
+name: "WebAssembly"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - nightly
+      - release/*
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - ".github/workflows/wasm.yml"
+      - "cmake/emscripten.cmake"
+      - "src/openms_wasm/**"
+      - "vcpkg-overlays/emscripten/**"
+      - "vcpkg-overlays/triplets/wasm32-emscripten.cmake"
+      - "vcpkg.json"
+      - "CMakePresets.json"
+
+permissions:
+  contents: read
+
+env:
+  # The Emscripten release the build is tested with (src/openms_wasm/README.md).
+  EMSDK_VERSION: "6.0.12"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install build tools
+        shell: bash
+        run: |
+          # flex and bison: the Apache Thrift port (Parquet) needs them on the build machine
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build flex bison ccache
+
+      - name: Install the Emscripten SDK
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          cd "$RUNNER_TEMP/emsdk"
+          ./emsdk install "$EMSDK_VERSION"
+          ./emsdk activate "$EMSDK_VERSION"
+          source ./emsdk_env.sh
+          {
+            echo "EMSDK=$EMSDK"
+            echo "EMSDK_NODE=$EMSDK_NODE"
+          } >> "$GITHUB_ENV"
+          {
+            echo "$EMSDK"
+            echo "$EMSDK/upstream/emscripten"
+            dirname "$EMSDK_NODE"
+          } >> "$GITHUB_PATH"
+
+      - uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
+        with:
+          name: vcpkg-cache
+          path: ${{ github.workspace }}/.vcpkg-cache
+          key: wasm32-emscripten-${{ env.EMSDK_VERSION }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/emscripten/**', 'vcpkg-overlays/triplets/wasm32-emscripten.cmake') }}
+          ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
+          ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          ssh_user: ${{ secrets.ARCHIVE_RRSYNC_USER }}
+
+      - name: Init vcpkg submodule and binary cache
+        shell: bash
+        run: |
+          git submodule update --init vcpkg
+          mkdir -p "$GITHUB_WORKSPACE/.vcpkg-cache"
+          echo "VCPKG_BINARY_SOURCES=clear;files,$GITHUB_WORKSPACE/.vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+
+      - name: Restore ccache
+        uses: actions/cache/restore@v5
+        with:
+          path: .ccache
+          key: wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-
+            wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-develop-
+            wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-
+
+      - name: Configure
+        shell: bash
+        run: |
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache" CCACHE_MAXSIZE=2G
+          cmake --preset wasm32-emscripten-release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build
+        shell: bash
+        run: |
+          export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
+          cmake --build build/wasm32-emscripten-release --target openms_wasm -j"$(nproc)"
+          ccache --show-stats
+          ls -la build/wasm32-emscripten-release/openms-wasm
+
+      - name: Save ccache
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: .ccache
+          key: wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Test the JavaScript bindings
+        shell: bash
+        run: ctest --test-dir build/wasm32-emscripten-release -R openms_wasm --output-on-failure
+
+      - name: Pack the npm package
+        shell: bash
+        run: |
+          cd build/wasm32-emscripten-release/openms-wasm
+          npm pack
+          ls -la *.tgz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: openms-wasm
+          path: |
+            build/wasm32-emscripten-release/openms-wasm/*.tgz
+            build/wasm32-emscripten-release/openms-wasm/examples
+            build/wasm32-emscripten-release/openms-wasm/openms.*
+          if-no-files-found: error

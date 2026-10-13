@@ -99,8 +99,22 @@ function(openms_add_compiler_flags target_name)
   # AVX's 256-bit reductions change Eigen's floating-point evaluation order
   # vs the 128-bit paths used by GCC/Clang, causing cross-platform numeric
   # divergence in sensitive algorithms (e.g. normalizedCrossCorrelation).
-  if(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+  # (Emscripten's toolchain file reports the processor as x86, but -mssse3 is no
+  # WebAssembly flag; see below.)
+  if(NOT MSVC AND NOT EMSCRIPTEN AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
     target_compile_options(${target_name} PUBLIC -mssse3)
+  endif()
+
+  # WebAssembly (cmake/emscripten.cmake): the exception handling mode is part of the
+  # usage requirements, as every object linked into a module has to use the same; the
+  # build itself already compiles everything with it. WebAssembly SIMD for the SSE
+  # code paths (via SIMDe), like -mssse3 above.
+  if(EMSCRIPTEN)
+    target_compile_options(${target_name} PUBLIC ${OPENMS_EMSCRIPTEN_EH_FLAG})
+    target_link_options(${target_name} PUBLIC ${OPENMS_EMSCRIPTEN_EH_FLAG})
+    if(OPENMS_WASM_SIMD)
+      target_compile_options(${target_name} PUBLIC -msimd128)
+    endif()
   endif()
 
   # When full OpenMP isn't available (typically Apple clang without libomp),
@@ -213,6 +227,12 @@ function(openms_add_executable_compiler_flags target_name)
   openms_add_compiler_flags(${target_name})
   
   # Executable-specific PRIVATE flags can be added here
+
+  # WebAssembly: the executables of the build (class tests, TOPP tools) are Node.js
+  # programs working on the files of the host (cmake/emscripten.cmake).
+  if(EMSCRIPTEN)
+    target_link_options(${target_name} PRIVATE ${OPENMS_EMSCRIPTEN_NODE_PROGRAM_LINK_OPTIONS})
+  endif()
   
   # Address sanitizer (PRIVATE)
   if(ADDRESS_SANITIZER)

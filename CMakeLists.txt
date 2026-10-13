@@ -75,6 +75,12 @@ if(OPENMS_USE_VCPKG AND NOT VCPKG_TOOLCHAIN)
     "-DOPENMS_USE_VCPKG=OFF to take the dependencies from system packages or CMAKE_PREFIX_PATH.")
 endif()
 
+# WebAssembly: defaults for the build options declared below, and the compiler and
+# linker settings of an Emscripten build (preset wasm32-emscripten-release)
+if(EMSCRIPTEN)
+  include(cmake/emscripten.cmake)
+endif()
+
 # required for cmake < 3.13 if ccache is used
 set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 
@@ -123,6 +129,7 @@ option(INSTALL_OPENMS_EXAMPLES "Install the OpenMS example data." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
+option(WITH_CURL "Build with libcurl, for HTTP requests (NetworkGetRequest, MascotRemoteQuery, the update check). Without it, these report an error when run." ON)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
@@ -466,6 +473,10 @@ if(ENABLE_UPDATE_CHECK)
   message(STATUS "    - Set the environment variable OPENMS_DISABLE_UPDATE_CHECK to disable the functionality at runtime.")
 endif()
 
+if(EMSCRIPTEN)
+  openms_emscripten_check_options()
+endif()
+
 
 #------------------------------------------------------------------------------
 # Enable AddressSanitizer
@@ -474,8 +485,12 @@ option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
 include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
 #------------------------------------------------------------------------------
-# we build shared libraries
-set(BUILD_SHARED_LIBS true)
+# we build shared libraries (static ones for WebAssembly, see cmake/emscripten.cmake)
+if(EMSCRIPTEN)
+  set(BUILD_SHARED_LIBS false)
+else()
+  set(BUILD_SHARED_LIBS true)
+endif()
 
 #------------------------------------------------------------------------------
 # Host directory for referencing from subprojects
@@ -759,7 +774,11 @@ endif()
 ## A build against an installed OpenMS library does not provide a CMake package: the
 ## installation it builds on already does (OpenMSConfig.cmake), and a second one would
 ## collide with it where the layers are installed into one prefix.
-if(NOT OPENMS_USE_INSTALLED_LIBRARY)
+## Neither does the WebAssembly build (cmake/emscripten.cmake): its product is the
+## JavaScript module of src/openms_wasm. Its libraries are static, and a static library
+## exports its private dependencies, which include bundled libraries (GTE, SQLiteCpp,
+## Percolator, ...) that are not installed.
+if(NOT OPENMS_USE_INSTALLED_LIBRARY AND NOT EMSCRIPTEN)
   openms_export_targets()
   install_export_targets()
 endif()

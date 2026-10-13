@@ -242,6 +242,20 @@
             }
         },
         {
+            "name": "wasm32-emscripten-release",
+            "displayName": "WebAssembly (Emscripten) Release",
+            "description": "The OpenMS libraries and their JavaScript bindings (src/openms_wasm) for WebAssembly, with vcpkg dependencies built for the wasm32-emscripten triplet (vcpkg-overlays/triplets). Needs the Emscripten SDK in the environment (source emsdk_env.sh, which sets EMSDK). vcpkg-overlays/emscripten adds the ports that need changes for WebAssembly; native builds do not use it. cmake/emscripten.cmake sets the defaults of this build.",
+            "inherits": [
+                "base",
+                "release-base"
+            ],
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "wasm32-emscripten",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg-overlays/emscripten/ports"
+            }
+        },
+        {
             "name": "linux-x64-ci",
             "displayName": "Linux x64 CI",
             "description": "OpenMS CI preset with vcpkg dependencies on Linux x64",
@@ -336,6 +350,10 @@
         {
             "name": "windows-x64-relwithdebinfo",
             "configurePreset": "windows-x64-relwithdebinfo"
+        },
+        {
+            "name": "wasm32-emscripten-release",
+            "configurePreset": "wasm32-emscripten-release"
         },
         {
             "name": "linux-x64-ci",

@@ -12,6 +12,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 
+// A WebAssembly module cannot start other programs: there, the functions below report
+// that instead of using Boost.Process (which does not support Emscripten).
+#ifndef __EMSCRIPTEN__
 #include <boost/version.hpp>
 
 // Boost.Process v1 compatibility shims removed in Boost 1.88; use v1/ prefix for 1.88+
@@ -36,6 +39,7 @@ namespace bp = boost::process::v1;
 #else
 namespace bp = boost::process;
 #endif
+#endif // __EMSCRIPTEN__
 
 using namespace std;
 
@@ -72,6 +76,11 @@ namespace OpenMS
       ss << "Python executable ('" << py_original << "') resolved to '" << python_executable << "'\n";
     }
 
+#ifdef __EMSCRIPTEN__
+    ss << "  Cannot run Python ('" << python_executable << "'): WebAssembly does not support running external programs.\n";
+    error_msg = ss.str();
+    return false;
+#else
     try
     {
       bp::ipstream pipe_out;
@@ -104,10 +113,15 @@ namespace OpenMS
       error_msg = ss.str();
       return false;
     }
+#endif
   }
 
   bool PythonInfo::isPackageInstalled(const std::string& python_executable, const std::string& package_name)
   {
+#ifdef __EMSCRIPTEN__
+    (void)python_executable; (void)package_name;
+    return false;
+#else
     try
     {
       bp::child child(
@@ -130,11 +144,15 @@ namespace OpenMS
     {
       return false;
     }
+#endif
   }
 
   std::string PythonInfo::getVersion(const std::string& python_executable)
   {
     std::string v;
+#ifdef __EMSCRIPTEN__
+    (void)python_executable;
+#else
     try
     {
       bp::ipstream pipe_out;
@@ -170,6 +188,7 @@ namespace OpenMS
     {
       // return empty string
     }
+#endif
     return v;
   }
 

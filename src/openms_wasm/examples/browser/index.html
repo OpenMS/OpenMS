@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenMS in the Browser</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>OpenMS in the browser</h1>
+    <p class="subtitle">The OpenMS library compiled to WebAssembly. Everything runs locally; no data leaves this page.</p>
+    <p id="status" class="status">Loading OpenMS…</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="peptide">Peptide</button>
+    <button role="tab" aria-selected="false" data-tab="digest">Digestion</button>
+    <button role="tab" aria-selected="false" data-tab="mzml">mzML viewer</button>
+  </nav>
+
+  <main>
+    <!-- Peptide: masses, isotopes, fragments ------------------------------------------>
+    <section id="peptide" class="panel" role="tabpanel">
+      <form id="peptide-form" class="row">
+        <label>Sequence
+          <input id="peptide-sequence" value="PEPTM(Oxidation)IDEK" spellcheck="false" size="32">
+        </label>
+        <label>Charge
+          <input id="peptide-charge" type="number" min="1" max="10" value="2">
+        </label>
+        <button type="submit">Calculate</button>
+      </form>
+      <p class="hint">Modifications in OpenMS notation, e.g. <code>.(Acetyl)SEQUENC(Phospho)E</code> or <code>M[+15.995]</code>.</p>
+      <div id="peptide-error" class="error" hidden></div>
+      <div class="grid">
+        <div>
+          <h2>Masses</h2>
+          <table id="peptide-masses" class="kv"></table>
+        </div>
+        <div>
+          <h2>Isotope distribution</h2>
+          <svg id="peptide-isotopes" class="plot" viewBox="0 0 480 220" role="img" aria-label="Isotope distribution"></svg>
+        </div>
+      </div>
+      <h2>b and y ions</h2>
+      <svg id="peptide-fragments" class="plot wide" viewBox="0 0 960 260" role="img" aria-label="Theoretical spectrum"></svg>
+    </section>
+
+    <!-- Digestion -------------------------------------------------------------------->
+    <section id="digest" class="panel" role="tabpanel" hidden>
+      <form id="digest-form">
+        <label class="block">Protein sequence
+          <textarea id="digest-protein" rows="5" spellcheck="false">MKWVTFISLLFLFSSAYSRGVFRRDAHKSEVAHRFKDLGEENFKALVLIAFAQYLQQCPFEDHVKLVNEVTEFAKTCVADESAENCDKSLHTLFGDKLCTVATLRETYGEMADCCAKQEPERNECFLQHKDDNPNLPRLVRPEVDVMCTAFHDNEETFLKKYLYEIARRHPYFYAPELLFFAKRYKAAFTECCQAADKAACLLPKLDELRDEGKASSAKQRLKCASLQKFGERAFKAWAVARLSQRFPKAEFAEVSKLVTDLTKVHTECCHGDLLECADDRADLAKYICENQDSISSKLKECCEKPLLEKSHCIAEVENDEMPADLPSLAADFVESKDVCKNYAEAKDVFLGMFLYEYARRHPDYSVVLLLRLAKTYETTLEKCCAAADPHECYAKVFDEFKPLVEEPQNLIKQNCELFEQLGEYKFQNALLVRYTKKVPQVSTPTLVEVSRNLGKVGSKCCKHPEAKRMPCAEDYLSVVLNQLCVLHEKTPVSDRVTKCCTESLVNRRPCFSALEVDETYVPKEFNAETFTFHADICTLSEKERQIKKQTALVELVKHKPKATKEQLKAVMDDFAAFVEKCCKADDKETCFAEEGKKLVAASQAALGL</textarea>
+        </label>
+        <div class="row">
+          <label>Enzyme <select id="digest-enzyme"></select></label>
+          <label>Missed cleavages <input id="digest-missed" type="number" min="0" max="5" value="1"></label>
+          <label>Length <input id="digest-min" type="number" min="1" value="7"> – <input id="digest-max" type="number" min="0" value="30"></label>
+          <button type="submit">Digest</button>
+        </div>
+      </form>
+      <p id="digest-summary" class="hint"></p>
+      <div class="table-wrap">
+        <table id="digest-table" class="data">
+          <thead><tr><th>#</th><th>Peptide</th><th>Length</th><th>Mono mass</th><th>m/z 2+</th><th>m/z 3+</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- mzML viewer ------------------------------------------------------------------>
+    <section id="mzml" class="panel" role="tabpanel" hidden>
+      <label id="drop-zone" class="drop-zone">
+        <input id="mzml-file" type="file" accept=".mzML,.mzml,.mzML.gz,.mzXML,.mgf">
+        <span>Drop an mzML, mzXML or MGF file here, or click to choose one.</span>
+      </label>
+      <p id="mzml-summary" class="hint"></p>
+      <div class="row" id="mzml-actions" hidden>
+        <button id="action-centroid" type="button">Centroid (PeakPickerHiRes)</button>
+        <button id="action-features" type="button">Detect features (FeatureFindingMetabo)</button>
+        <button id="action-download" type="button">Download mzML</button>
+      </div>
+      <h2 id="tic-title" hidden>Total ion chromatogram</h2>
+      <svg id="mzml-tic" class="plot wide" viewBox="0 0 960 200" role="img" aria-label="Total ion chromatogram" hidden></svg>
+      <h2 id="spectrum-title" hidden>Spectrum</h2>
+      <svg id="mzml-spectrum" class="plot wide" viewBox="0 0 960 260" role="img" aria-label="Spectrum" hidden></svg>
+      <div class="table-wrap">
+        <table id="mzml-table" class="data selectable" hidden>
+          <thead><tr><th>#</th><th>Native ID</th><th>RT (s)</th><th>MS level</th><th>Peaks</th><th>Base peak m/z</th><th>Precursor m/z</th><th>Charge</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <h2 id="features-title" hidden>Features</h2>
+      <div class="table-wrap">
+        <table id="features-table" class="data" hidden>
+          <thead><tr><th>#</th><th>RT (s)</th><th>m/z</th><th>Charge</th><th>Intensity</th><th>Quality</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Built with <a href="https://www.openms.org">OpenMS</a> <span id="version"></span> and Emscripten.</p>
+  </footer>
+
+  <script type="module" src="app.mjs"></script>
+</body>
+</html>

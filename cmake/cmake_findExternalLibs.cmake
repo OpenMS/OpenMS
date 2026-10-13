@@ -240,7 +240,11 @@ endif()
 
 #------------------------------------------------------------------------------
 # libcurl (used for HTTP in OpenMS core; also needed by Apache Arrow 23+)
-find_package(CURL REQUIRED)
+# Optional (WITH_CURL): without it, NetworkGetRequest and MascotRemoteQuery report an
+# error when run. The WebAssembly build has no sockets and goes without.
+if(WITH_CURL)
+  find_package(CURL REQUIRED)
+endif()
 
 #------------------------------------------------------------------------------
 # Apache Arrow and Parquet (required dependency).

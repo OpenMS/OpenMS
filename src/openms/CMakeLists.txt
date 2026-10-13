@@ -78,7 +78,7 @@ set(OPENMS_DEP_LIBRARIES)
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::boost
-  CURL::libcurl
+  $<$<BOOL:${WITH_CURL}>:CURL::libcurl>
   XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
@@ -456,7 +456,9 @@ endif()
 # NOTE: We intentionally do NOT hide libarrow.a or libparquet.a symbols because
 # the OpenMS public API exposes arrow::Table etc., and downstream consumers
 # (including test executables) need to resolve those symbols from libOpenMS.so.
-if(ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE)
+# (Not for WebAssembly: libOpenMS is a static library there, and wasm-ld has no
+# --exclude-libs.)
+if(ARROW_USE_STATIC AND NOT MSVC AND NOT APPLE AND NOT EMSCRIPTEN)
   target_link_options(OpenMS PRIVATE "LINKER:--exclude-libs,libarrow_bundled_dependencies.a")
 endif()
 

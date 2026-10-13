@@ -8,7 +8,9 @@
 
 #include <OpenMS/SYSTEM/CurlInit.h>
 
+#ifdef WITH_CURL
 #include <curl/curl.h>
+#endif
 
 namespace OpenMS
 {
@@ -18,13 +20,18 @@ namespace OpenMS
     (void)instance;
   }
 
+  // Without libcurl (WITH_CURL=OFF) there is nothing to initialize.
   CurlInit::CurlInit()
   {
+#ifdef WITH_CURL
     curl_global_init(CURL_GLOBAL_DEFAULT);
+#endif
   }
 
   CurlInit::~CurlInit()
   {
+#ifdef WITH_CURL
     curl_global_cleanup();
+#endif
   }
 }

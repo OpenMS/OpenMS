@@ -3040,17 +3040,18 @@ namespace OpenMS
                 std::min(static_cast<SignedSize>(ambiguous_[0]), end_at_most - len)};
       }
 
-      /// The sequences looked up for the spans of @p length (combinations saturate at 2^32, far above any budget)
+      /// The sequences looked up for the spans of @p length (combinations saturate at 2^32, far above any budget).
+      /// Counted in 64 bits; the result saturates where Size is narrower (32-bit targets such as WebAssembly).
       Size lookups(const Size length) const
       {
-        Size total = 0, combinations = 1;
+        UInt64 total = 0, combinations = 1;
         for (Size k = 1; k <= maxAmbiguous(); ++k)
         {
-          combinations = std::min(combinations * residuesMatchedBy(protein_[ambiguous_[k - 1]]).size(), Size(1) << 32);
+          combinations = std::min<UInt64>(combinations * residuesMatchedBy(protein_[ambiguous_[k - 1]]).size(), UInt64(1) << 32);
           const auto [first, last] = starts(length, k);
-          if (first <= last) total += combinations * static_cast<Size>(last - first + 1);
+          if (first <= last) total += combinations * static_cast<UInt64>(last - first + 1);
         }
-        return total;
+        return static_cast<Size>(std::min<UInt64>(total, std::numeric_limits<Size>::max()));
       }
 
     private:
