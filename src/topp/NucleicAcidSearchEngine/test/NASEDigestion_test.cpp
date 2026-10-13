@@ -3,10 +3,12 @@
 #define OPENMS_NASE_CLASS_TEST
 #include "../NucleicAcidSearchEngine.cpp"
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <fstream>
+#include <iterator>
 #include <limits>
 
 class TestNASE : public NucleicAcidSearchEngine
@@ -14,13 +16,14 @@ class TestNASE : public NucleicAcidSearchEngine
 public:
   using NucleicAcidSearchEngine::getModifications_;
   using NucleicAcidSearchEngine::calculatePrecursorPercentage_;
+  using NucleicAcidSearchEngine::flashMassUpperBound_;
   using NucleicAcidSearchEngine::updatePrecursorPercentage_;
   using NucleicAcidSearchEngine::filterBlacklistedIons_;
   using NucleicAcidSearchEngine::calculateFragmentCoverage_;
   void preprocess(MSExperiment& exp, bool remove, const std::string& method)
   {
     preprocessSpectra_(exp, 10.0, true, true, true, -1, -5, true,
-      false, 100, 50, "slide", false, 1000, remove, 0.01, false, 2, method);
+      false, 100, 50, "slide", false, 1000, remove, 0.01, false, 2, method, 0.85, 0.25);
   }
   using NucleicAcidSearchEngine::resolveAmbiguousMods_;
   using NucleicAcidSearchEngine::HitsByScore;
@@ -73,6 +76,39 @@ static MSSpectrum isotopeSpectrum(Int charge)
     spectrum.push_back(Peak1D(500 + isotope * Constants::C13C12_MASSDIFF_U / 2, 100 - isotope * 20));
   }
   return spectrum;
+}
+
+namespace
+{
+  MSSpectrum rnaFragmentPattern(int charge, bool positive = false)
+  {
+    MSSpectrum s;
+    s.setMSLevel(2);
+    s.setType(SpectrumSettings::SpectrumType::CENTROID);
+    s.setNativeID("scan=17");
+    s.setRT(12.5);
+    Precursor p;
+    p.setMZ(1500.0);
+    p.setCharge(positive ? 5 : -5);
+    s.getPrecursors().push_back(p);
+    auto formula = NASequence::fromString("ACGUACGU").getFormula();
+    const double mass = formula.getMonoWeight();
+    const double carrier = positive ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U;
+    auto isotopes = formula.getIsotopeDistribution(CoarseIsotopePatternGenerator(8));
+    for (Size i = 0; i < isotopes.size(); ++i)
+    {
+      s.emplace_back((mass + i * Constants::C13C12_MASSDIFF_U) / charge + carrier,
+                     isotopes[i].getIntensity() * 10000);
+    }
+    s.emplace_back(83.123, 9.0);
+    s.emplace_back(1799.123, 11.0); // Unassigned signal must survive.
+    s.sortByPosition();
+    MSSpectrum::IntegerDataArray ids;
+    ids.setName("original_index");
+    for (Size i = 0; i < s.size(); ++i) ids.push_back(i);
+    s.getIntegerDataArrays().push_back(ids);
+    return s;
+  }
 }
 
 START_TEST(NASEDigestion, "$Id$")
@@ -187,6 +223,17 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
     IdXMLFile().load(output, proteins, peptides);
     TEST_STRING_EQUAL(peptides[0].getScoreType(), "MVH score")
   }
+
+  auto flash_args = arguments();
+  flash_args.insert(flash_args.end(), {"-preprocessing:deisotoping", "flash"});
+  TEST_EQUAL(runSearch(flash_args), 0)
+  TEST_EQUAL(hitCount(output), 1)
+  auto incompatible_args = arguments();
+  incompatible_args.insert(incompatible_args.end(), {"-preprocessing:deisotoping", "none", "-decharge_ms2"});
+  TEST_NOT_EQUAL(runSearch(incompatible_args), 0)
+  incompatible_args = arguments();
+  incompatible_args.insert(incompatible_args.end(), {"-preprocessing:deisotoping", "flash", "-fragment:mass_tolerance_unit", "Da"});
+  TEST_NOT_EQUAL(runSearch(incompatible_args), 0)
 
   fixture("ACGUAC", "ACGUAC", -2);
   TEST_EQUAL(runSearch(arguments()), 0)
@@ -643,4 +690,284 @@ START_SECTION(([EXTRA] residual precursor percentage uses raw intensity and stro
 }
 END_SECTION
 
+START_SECTION(([EXTRA] FLASH MS2: void filter(MSSpectrum& spectrum, int scan_number, bool decharge)))
+{
+  RNADeisotoper detector(10, 5, false, 8000);
+  MSSpectrum empty;
+  empty.setMSLevel(2);
+  detector.filter(empty, 0, false);
+  TEST_TRUE(empty.empty())
+
+  auto original = rnaFragmentPattern(2);
+  auto filtered = original;
+  detector.filter(filtered, 17, false);
+  TEST_EQUAL(filtered.getPrecursors()[0].getMZ(), original.getPrecursors()[0].getMZ())
+  TEST_EQUAL(filtered.getPrecursors()[0].getCharge(), -5)
+  TEST_EQUAL(filtered.getNativeID(), original.getNativeID())
+  TEST_EQUAL(filtered.getRT(), original.getRT())
+  TEST_TRUE(Int(filtered.getMetaValue("flash_isotope_peaks_removed")) > 0)
+  TEST_EQUAL(filtered.getIntegerDataArrays()[0].size(), filtered.size())
+  TEST_EQUAL(filtered.getIntegerDataArrays()[1].size(), filtered.size())
+  for (Size i = 0; i < filtered.size(); ++i)
+  {
+    const auto index = filtered.getIntegerDataArrays()[0][i];
+    TEST_REAL_SIMILAR(filtered[i].getMZ(), original[index].getMZ())
+    TEST_REAL_SIMILAR(filtered[i].getIntensity(), original[index].getIntensity())
+  }
+  TEST_EQUAL(filtered.back().getMZ(), 1799.123)
+  TEST_EQUAL(filtered.back().getIntensity(), 11.0)
+
+  auto single = original;
+  detector.filter(single, 17, true);
+  const double mono_mass = NASequence::fromString("ACGUACGU").getFormula().getMonoWeight();
+  bool found_single = false;
+  for (const auto& peak : single)
+    if (abs(peak.getMZ() - (mono_mass - Constants::PROTON_MASS_U)) < 1e-6) found_single = true;
+  TEST_TRUE(found_single)
+  TEST_EQUAL(single.getPrecursors()[0].getMZ(), 1500.0)
+
+  auto unknown = original;
+  unknown.getPrecursors()[0].setCharge(0);
+  detector.filter(unknown, 17, false);
+  TEST_TRUE(Int(unknown.getMetaValue("flash_isotope_peaks_removed")) > 0)
+
+  // The real z=2 envelope must veto the z=1 harmonic explanation even when
+  // the precursor permits only z=1 assignments. All original peaks survive.
+  auto bounded = original;
+  bounded.getPrecursors()[0].setCharge(-1);
+  detector.filter(bounded, 17, false);
+  TEST_EQUAL(bounded.size(), original.size())
+  TEST_EQUAL(Int(bounded.getMetaValue("flash_isotope_peaks_removed")), 0)
+  const auto& bounded_charges = bounded.getIntegerDataArrays().back();
+  TEST_EQUAL(bounded_charges.getName(), "flash_charge")
+  for (Size i = 0; i < bounded.size(); ++i)
+  {
+    TEST_EQUAL(bounded_charges[i], 0)
+    TEST_EQUAL(bounded[i], original[i])
+  }
+
+  auto isolated = original;
+  isolated.resize(1);
+  isolated.getIntegerDataArrays()[0].resize(1);
+  detector.filter(isolated, 17, false);
+  TEST_EQUAL(isolated.size(), 1)
+  TEST_EQUAL(isolated[0], original[0])
+
+  // Missing M0 can be misindexed by the averagine model; never invent an observed peak.
+  auto missing_mono = original;
+  vector<Size> keep;
+  for (Size i = 0; i < original.size(); ++i)
+    if (i != 1) keep.push_back(i); // index 0 is the unassigned low-mass signal
+  missing_mono.select(keep);
+  const Size missing_size = missing_mono.size();
+  detector.filter(missing_mono, 17, false);
+  TEST_TRUE(missing_mono.size() <= missing_size)
+  for (const auto& peak : missing_mono)
+  {
+    bool observed = false;
+    for (const auto& old_peak : original)
+      if (peak == old_peak) observed = true;
+    TEST_TRUE(observed)
+  }
+
+  auto profile = original;
+  profile.setType(SpectrumSettings::SpectrumType::PROFILE);
+  detector.filter(profile, 17, false);
+  TEST_EQUAL(profile.size(), filtered.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] FLASH MS2: RNADeisotoper(double tolerance_ppm, int max_abs_charge, bool positive, double max_mass, double min_cos = 0.85, double min_snr = 0.25)))
+{
+  RNADeisotoper positive(10, 5, true, 8000);
+  auto s = rnaFragmentPattern(3, true);
+  const Size size = s.size();
+  positive.filter(s, 18, false);
+  TEST_TRUE(s.size() < size)
+  TEST_EQUAL(s.getPrecursors()[0].getCharge(), 5)
+
+  // A supplied upper limit must not be silently raised to the default.
+  MSSpectrum low_mass;
+  low_mass.setMSLevel(2);
+  low_mass.setType(SpectrumSettings::SpectrumType::CENTROID);
+  const auto formula = NASequence::fromString("ACG").getFormula();
+  const auto isotopes = formula.getIsotopeDistribution(CoarseIsotopePatternGenerator(8));
+  for (Size i = 0; i < isotopes.size(); ++i)
+  {
+    low_mass.emplace_back((formula.getMonoWeight() + i * Constants::C13C12_MASSDIFF_U) / 2 + Constants::PROTON_MASS_U,
+                          isotopes[i].getIntensity() * 10000);
+  }
+  RNADeisotoper limited(10, 5, true, 700);
+  auto restricted = low_mass;
+  limited.filter(restricted, 19, false);
+  TEST_EQUAL(restricted.size(), low_mass.size())
+  for (Size i = 0; i < low_mass.size(); ++i) TEST_EQUAL(restricted[i], low_mass[i])
+  RNADeisotoper default_limit(10, 5, true);
+  default_limit.filter(low_mass, 19, false);
+  TEST_TRUE(low_mass.size() < restricted.size())
+
+  TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(0, 2, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(-10, 2, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(std::numeric_limits<double>::quiet_NaN(), 2, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(10, 0, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(10, -1, true))
+  for (double invalid : {std::numeric_limits<double>::quiet_NaN(),
+                         std::numeric_limits<double>::infinity(),
+                         -std::numeric_limits<double>::infinity()})
+  {
+    TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(10, 2, true, 1000, invalid, 0.25))
+    TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(10, 2, true, 1000, 0.85, invalid))
+  }
+  // Finite out-of-range values retain the existing FLASH parameter contract.
+  TEST_EXCEPTION(Exception::InvalidParameter, RNADeisotoper(10, 2, true, 1000, 0.49, 0.25))
+  TEST_EXCEPTION(Exception::InvalidParameter, RNADeisotoper(10, 2, true, 1000, 1.01, 0.25))
+  TEST_EXCEPTION(Exception::InvalidParameter, RNADeisotoper(10, 2, true, 1000, 0.85, 0.24))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(10, 2, true, 49))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(10, 2, true, std::numeric_limits<double>::quiet_NaN()))
+  TEST_EXCEPTION(Exception::IllegalArgument, RNADeisotoper(10, 2, true, std::numeric_limits<double>::infinity()))
+}
+END_SECTION
+START_SECTION(([EXTRA] double flashMassUpperBound_(double mz, Int charge, bool negative_mode) const))
+{
+  TestNASE tool;
+  for (bool negative : {false, true})
+  {
+    const double carrier = negative ? -Constants::PROTON_MASS_U : Constants::PROTON_MASS_U;
+    TEST_REAL_SIMILAR(tool.flashMassUpperBound_(1000.0, 3, negative), (1000.0 - carrier) * 3 + 100.0)
+    TEST_EQUAL(tool.flashMassUpperBound_(1000.0, -3, negative), tool.flashMassUpperBound_(1000.0, 3, negative))
+  }
+}
+END_SECTION
+START_SECTION(([EXTRA] FLASH MS2: preprocessing retains raw-scale decisions with duplicate or empty native IDs))
+{
+  TestNASE tool;
+  auto first = rnaFragmentPattern(2);
+  auto second = first;
+  for (auto& peak : second) peak.setIntensity(peak.getIntensity() * 100.0);
+  RNADeisotoper detector(10, 5, false, 8000);
+  auto expected_first = first, expected_second = second;
+  const auto normalize = [](MSSpectrum& spectrum, const MSSpectrum& original)
+  {
+    double scale = 0.0;
+    for (const auto& peak : original) scale = std::max(scale, double(peak.getIntensity()));
+    for (auto& peak : spectrum) peak.setIntensity(peak.getIntensity() / scale);
+  };
+  detector.filter(expected_first, 0, true);
+  detector.filter(expected_second, 1, true);
+  TEST_TRUE(expected_first.size() < first.size())
+  TEST_TRUE(expected_second.size() < second.size())
+  normalize(expected_first, first);
+  normalize(expected_second, second);
+  for (const std::string& id : {std::string(), std::string("duplicate")})
+  {
+    first.setNativeID(id);
+    second.setNativeID(id);
+    MSExperiment experiment;
+    experiment.setSpectra({first, second});
+    tool.preprocess(experiment, false, "flash");
+    TEST_EQUAL(experiment[0].size(), expected_first.size())
+    TEST_EQUAL(experiment[1].size(), expected_second.size())
+    ABORT_IF(experiment[0].size() != expected_first.size() || experiment[1].size() != expected_second.size())
+    for (Size i = 0; i < expected_first.size(); ++i) TEST_EQUAL(experiment[0][i], expected_first[i])
+    for (Size i = 0; i < expected_second.size(); ++i) TEST_EQUAL(experiment[1][i], expected_second[i])
+    TEST_TRUE(experiment[0].getIntegerDataArrays() == expected_first.getIntegerDataArrays())
+    TEST_TRUE(experiment[1].getIntegerDataArrays() == expected_second.getIntegerDataArrays())
+  }
+}
+END_SECTION
+START_SECTION(([EXTRA] FLASH MS2: shared monoisotopes and harmonic RNA fragments))
+{
+  MSSpectrum s;
+  s.setMSLevel(2);
+  s.setType(SpectrumSettings::SpectrumType::CENTROID);
+  Precursor p;
+  p.setMZ(1000.0);
+  p.setCharge(-5);
+  s.getPrecursors().push_back(p);
+  vector<Peak1D> peaks;
+  for (int z = 1; z <= 3; ++z)
+  {
+    const auto formula = NASequence::fromString(std::string(z, 'C')).getFormula(NASequence::CIon);
+    const auto iso = formula.getIsotopeDistribution(CoarseIsotopePatternGenerator(8));
+    for (Size i = 0; i < iso.size(); ++i)
+      peaks.emplace_back((formula.getMonoWeight() + i * Constants::C13C12_MASSDIFF_U) / z - Constants::PROTON_MASS_U,
+                         iso[i].getIntensity() * 10000);
+  }
+  sort(peaks.begin(), peaks.end(), [](const auto& a, const auto& b) { return a.getMZ() < b.getMZ(); });
+  for (const auto& peak : peaks)
+  {
+    if (!s.empty() && abs(s.back().getMZ() - peak.getMZ()) < 1e-8)
+      s.back().setIntensity(s.back().getIntensity() + peak.getIntensity());
+    else s.push_back(peak);
+  }
+  const auto shared = s.front();
+  s.emplace_back(83.123, 9.0);
+  s.emplace_back(1799.123, 11.0);
+  s.sortByPosition();
+  const Size before = s.size();
+  RNADeisotoper detector(10, 5, false, 6000);
+  detector.filter(s, 19, false);
+  int shared_count = 0;
+  for (const auto& peak : s)
+  {
+    if (abs(peak.getMZ() - shared.getMZ()) < 1e-8)
+    {
+      ++shared_count;
+      TEST_REAL_SIMILAR(peak.getIntensity(), shared.getIntensity())
+    }
+  }
+  TEST_EQUAL(shared_count, 1)
+  TEST_TRUE(s.size() <= before)
+  TEST_EQUAL(s.front().getMZ(), 83.123)
+  STATUS("Harmonic mixture: " << before << " -> " << s.size() << " peaks; detected groups " << s.getMetaValue("flash_detected_peak_groups"))
+}
+END_SECTION
+START_SECTION(([EXTRA] FLASH MS2: profile samples belonging to monoisotopes are retained individually))
+{
+  auto sticks = rnaFragmentPattern(2);
+  MSSpectrum profile = sticks;
+  profile.clear(false);
+  profile.getIntegerDataArrays().clear();
+  profile.setType(SpectrumSettings::SpectrumType::PROFILE);
+  // Sample each isotope at five points, with a symmetric intensity profile.
+  const vector<double> offsets{-0.001, -0.0005, 0.0, 0.0005, 0.001};
+  const vector<double> weights{0.2, 0.6, 1.0, 0.6, 0.2};
+  for (Size i = 0; i < sticks.size(); ++i)
+  {
+    if (i == 0 || i + 1 == sticks.size()) profile.push_back(sticks[i]);
+    else
+    {
+      for (Size j = 0; j < offsets.size(); ++j)
+        profile.emplace_back(sticks[i].getMZ() + offsets[j], sticks[i].getIntensity() * weights[j]);
+    }
+  }
+  profile.sortByPosition();
+  MSSpectrum::IntegerDataArray ids;
+  ids.setName("original_index");
+  for (Size i = 0; i < profile.size(); ++i) ids.push_back(i);
+  profile.getIntegerDataArrays().push_back(ids);
+  const MSSpectrum original = profile;
+  RNADeisotoper detector(10, 5, false, 8000);
+  detector.filter(profile, 20, false);
+  TEST_TRUE(profile.size() < original.size())
+  TEST_TRUE(profile.getType() == SpectrumSettings::SpectrumType::PROFILE)
+  TEST_EQUAL(profile.getNativeID(), original.getNativeID())
+  TEST_EQUAL(profile.getPrecursors()[0].getCharge(), -5)
+  Size mono_samples = 0;
+  for (Size i = 0; i < profile.size(); ++i)
+  {
+    const int original_index = profile.getIntegerDataArrays()[0][i];
+    TEST_EQUAL(profile[i], original[original_index])
+    if (abs(profile[i].getMZ() - sticks[1].getMZ()) < 0.002)
+    {
+      ++mono_samples;
+      TEST_EQUAL(profile.getIntegerDataArrays()[1][i], -2)
+    }
+  }
+  TEST_EQUAL(mono_samples, 5)
+  TEST_EQUAL(profile.front(), original.front())
+  TEST_EQUAL(profile.back(), original.back())
+  TEST_TRUE(Int(profile.getMetaValue("flash_isotope_peaks_removed")) > 0)
+}
+END_SECTION
 END_TEST
