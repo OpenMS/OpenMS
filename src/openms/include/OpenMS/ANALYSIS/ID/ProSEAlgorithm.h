@@ -123,7 +123,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       std::vector<std::string> fixed_mods, variable_mods, ion_series;
       bool open_search = false;
       bool calibration_enabled = false;
-      bool snes_mode = false;
+      bool peptide_mass_mode = false;
       bool chunked = false;
       std::string decoy_mode;                  ///< "generated" | "external" | "none (target-only)"
       double psm_fdr_threshold = 0.0, protein_fdr_threshold = 0.0;
@@ -579,7 +579,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * before pruning and before zero-scoring candidates are dropped -- so the
      * summary reflects the full pool. Instances accumulate across chunks in the
      * chunked search paths, where each chunk contributes its own candidates for
-     * the same spectrum. With peptide:deduplicate enabled for a non-SNES index,
+     * the same spectrum. With peptide:deduplicate enabled for a fragment index,
      * repeated peptidoform/charge/isotope hypotheses in later chunks are skipped
      * before add(). The per-chunk candidate cap still determines which distinct
      * hypotheses enter the pool; chunked and unchunked pools can therefore differ.
@@ -972,6 +972,25 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       const std::string& enzyme,
       const std::string& database_name,
       const PeakMap* evidence_spectra = nullptr) const;
+
+    /**
+     * @brief Adds PeptDeep-prediction-derived rescoring features to the PSMs.
+     *
+     * No-op unless both @p peptdeep:ms2_model and @p peptdeep:rt_model are set. Warns
+     * and does nothing when OpenMS was built without ONNX support, so an ini file that
+     * requests the models still runs (without those features) on such a build.
+     */
+    void annotatePeptDeepFeatures_(const PeakMap& spectra,
+                                   std::vector<ProteinIdentification>& protein_ids,
+                                   PeptideIdentificationList& peptide_ids) const;
+
+    bool peptdeep_enable_{false};
+    std::string peptdeep_ms2_model_;
+    std::string peptdeep_rt_model_;
+    std::string peptdeep_instrument_{"QE"};
+    double peptdeep_nce_{-1.0};
+    std::string peptdeep_rt_model_type_{"b_spline"};
+    int peptdeep_batch_size_{500};
 
     /// Calibration overwrites these with the calibrated magnitudes for the duration of
     /// search(); pure runtime-state mutation that does not affect the logical const-ness

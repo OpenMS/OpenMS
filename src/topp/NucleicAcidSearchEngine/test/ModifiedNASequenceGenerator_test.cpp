@@ -15,14 +15,13 @@
 ///////////////////////////
 
 #include <string>
+#include <set>
 
 using namespace OpenMS;
 using namespace std;
 
 START_TEST(ModifiedNASequenceGenerator, "$Id$")
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 const RibonucleotideDB* db = RibonucleotideDB::getInstance();
 
 START_SECTION((static void applyFixedModifications(const std::set<ModifiedNASequenceGenerator::ConstRibonucleotidePtr>& fixed_mods, NASequence& sequence)))
@@ -89,12 +88,53 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
 
   ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 7, ams, true);
   TEST_EQUAL(ams.size(), 3*3*3*2*2*2*2); // 3^3 combinations for U times 2^4 for A
+
+  // if a residue is already modified, it must not be changed again;
+  // this is relevant for NASE where pre-digest (cleavage-sensitive) mods
+  // consume part of the variable-mod budget.
+  ams.clear();
+  var_mods.clear();
+  var_mods.insert(db->getRibonucleotide("m3U"));
+  var_mods.insert(db->getRibonucleotide("s4U"));
+  sequence = NASequence::fromString("A[m2,2G]UA");
+
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 0, ams, true);
+  TEST_EQUAL(ams.size(), 1);
+  TEST_STRING_EQUAL(ams[0].toString(), sequence.toString());
+
+  ams.clear();
+  ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 1, ams, true);
+  // original + two one-site U modifications at the unmodified U position
+  TEST_EQUAL(ams.size(), 3);
+  set<string> seqs;
+  for (const NASequence& s : ams) seqs.insert(s.toString());
+  TEST_EQUAL(seqs.count(sequence.toString()), 1);
+  TEST_EQUAL(seqs.count(NASequence::fromString("A[m2,2G][m3U]A").toString()), 1);
+  TEST_EQUAL(seqs.count(NASequence::fromString("A[m2,2G][s4U]A").toString()), 1);
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] applyVariableModifications includes terminal variants in the one-modification path))
+{
+  const auto* db = RibonucleotideDB::getInstance();
+  std::set<const Ribonucleotide*> mods{db->getRibonucleotide("5'-p"), db->getRibonucleotide("3'-p")};
+  std::vector<NASequence> variants;
+  ModifiedNASequenceGenerator::applyVariableModifications(mods, NASequence::fromString("ACGU"), 1, variants);
+  std::set<std::string> sequences;
+  for (const auto& variant : variants) sequences.insert(variant.toString());
+  TEST_EQUAL(sequences.size(), 3)
+  TEST_EQUAL(sequences.count("pACGU"), 1)
+  TEST_EQUAL(sequences.count("ACGUp"), 1)
+  variants.clear();
+  ModifiedNASequenceGenerator::applyVariableModifications({}, NASequence(), 1, variants);
+  TEST_EQUAL(variants.size(), 1)
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-END_TEST
 
+END_TEST
 
 

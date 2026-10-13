@@ -3243,18 +3243,31 @@ ProgressLogger
         .def(nb::init<const OpenMS::MetaboliteSpectralMatching &>())
         .def("__copy__", [](const OpenMS::MetaboliteSpectralMatching& self) { return OpenMS::MetaboliteSpectralMatching(self); })
         .def("__deepcopy__", [](const OpenMS::MetaboliteSpectralMatching& self, nb::dict) { return OpenMS::MetaboliteSpectralMatching(self); }, "memo"_a)
-        .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
-        .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) {
+        .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound, bool use_mass_accuracy) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound, use_mass_accuracy); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a = 0.0, "use_mass_accuracy"_a = false)
+        .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound, bool use_mass_accuracy) {
             std::vector<OpenMS::PeptideHit::PeakAnnotation> annotations;
-            auto score = OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, annotations, mz_lower_bound);
+            auto score = OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, annotations, mz_lower_bound, use_mass_accuracy);
             return nb::make_tuple(score, annotations);
-        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a = 0.0, "use_mass_accuracy"_a = false)
         .def("run", [](OpenMS::MetaboliteSpectralMatching& self, OpenMS::MSExperiment& p0, OpenMS::MSExperiment& p1, OpenMS::MzTab& p2) {
             std::string out_spectra;
             self.run(p0, p1, p2, out_spectra);
             return out_spectra;
         })
         ;
+    metabolitespectralmatching_class
+        .def_static("computeMVHScore", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& experimental, const OpenMS::MSSpectrum& theoretical, OpenMS::Size classes, double tic, double lower, bool accuracy, bool single) {
+            return OpenMS::MetaboliteSpectralMatching::computeMVHScore(tolerance, ppm, experimental, theoretical, classes, tic, lower, accuracy, single);
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a,
+           "num_intensity_classes"_a = 3, "tic_fraction"_a = 0.98, "mz_lower_bound"_a = 0.0,
+           "use_mass_accuracy"_a = true, "single_peak_credit"_a = true)
+        .def_static("computeMVHScoreWithAnnotations", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& experimental, const OpenMS::MSSpectrum& theoretical, OpenMS::Size classes, double tic, double lower, bool accuracy, bool single) {
+            std::vector<OpenMS::PeptideHit::PeakAnnotation> annotations;
+            const double score = OpenMS::MetaboliteSpectralMatching::computeMVHScore(tolerance, ppm, experimental, theoretical, annotations, classes, tic, lower, accuracy, single);
+            return nb::make_tuple(score, annotations);
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a,
+           "num_intensity_classes"_a = 3, "tic_fraction"_a = 0.98, "mz_lower_bound"_a = 0.0,
+           "use_mass_accuracy"_a = true, "single_peak_credit"_a = true);
     def_ProgressLogger<OpenMS::MetaboliteSpectralMatching>(metabolitespectralmatching_class);
 
     // -----------------------------------------------------------------------
