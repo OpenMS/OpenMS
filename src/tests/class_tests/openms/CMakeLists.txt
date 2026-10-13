@@ -155,6 +155,8 @@ endif()
 
 target_link_libraries(OSWParquetFile_test ${OPENMS_ARROW_TARGET})
 target_link_libraries(IdentificationDataFile_test ${OPENMS_ARROW_TARGET} ${OPENMS_PARQUET_TARGET})
+# Reads the stored matches.parquet with parquet::arrow itself, which libOpenMS does not re-export on every platform.
+target_link_libraries(IdentificationDataArrow_test ${OPENMS_ARROW_TARGET} ${OPENMS_PARQUET_TARGET})
 
 target_link_libraries(Arrow_test
   ${OPENMS_ARROW_TARGET}
