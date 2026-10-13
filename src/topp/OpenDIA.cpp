@@ -44,6 +44,9 @@
 #include <filesystem>
 #include <iterator>
 #include <limits>
+#ifdef __GLIBC__
+#include <malloc.h> // malloc_trim
+#endif
 #include <map>
 #include <memory>
 #include <optional>
@@ -2499,6 +2502,13 @@ protected:
       {
         return extraction_result;
       }
+
+#ifdef __GLIBC__
+      // Extraction and scoring ran on all threads, and glibc keeps what they freed in the arenas of
+      // those threads, where the (mostly single-threaded) rescoring, inference and export do not
+      // allocate: without returning it, their memory comes on top of it.
+      malloc_trim(0);
+#endif
 
       Rescorer rescoring;
       Param rescoring_params = getParam_().copy("Rescoring:", true);
