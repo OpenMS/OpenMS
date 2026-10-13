@@ -2206,6 +2206,7 @@ namespace OpenMS
 
     startProgress(0, total_work, "Streaming DIA-PASEF MS2 frames");
     Size progress_count = 0;
+    std::vector<char> in_window; // per scan of the frame: within the ion mobility limits of the window?
 
     for (const auto& [group, frame_ids] : group_to_frames)
     {
@@ -2213,21 +2214,17 @@ namespace OpenMS
       if (wit == group_to_windows.end()) continue;
       const auto& dia_windows = wit->second;
 
-      for (const DIAWindow* win : dia_windows)
+      // Every frame is decoded once and split into the windows of its group. Each window still gets
+      // its spectra in the order of the frames.
+      for (size_t i = 0; i < frame_ids.size(); ++i)
       {
-        for (size_t i = 0; i < frame_ids.size(); ++i)
+        TimsFrame& frame = handle->get_frame(frame_ids[i]);
+        if (frame.num_peaks > 0) decoded.decode(*handle, frame, /*order_by_mz=*/true);
+
+        for (const DIAWindow* win : dia_windows)
         {
           setProgress(progress_count++);
-          TimsFrame& frame = handle->get_frame(frame_ids[i]);
           if (frame.num_peaks == 0) continue;
-
-          std::vector<uint32_t> scan_ids(frame.num_peaks);
-          std::vector<uint32_t> intensities(frame.num_peaks);
-          std::vector<double> mzs(frame.num_peaks);
-          std::vector<double> inv_ion_mobilities(frame.num_peaks);
-
-          frame.save_to_buffs(nullptr, scan_ids.data(), nullptr, intensities.data(),
-                              mzs.data(), inv_ion_mobilities.data(), nullptr);
 
           MSSpectrum spec;
           spec.setRT(frame.time);
@@ -2248,15 +2245,21 @@ namespace OpenMS
           DataArrays::FloatDataArray im_array;
           IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
 
-          for (uint32_t p = 0; p < frame.num_peaks; ++p)
+          in_window.resize(decoded.scan_im.size());
+          for (size_t scan = 0; scan < decoded.scan_im.size(); ++scan)
           {
-            if (inv_ion_mobilities[p] >= win->im_lower && inv_ion_mobilities[p] <= win->im_upper)
+            in_window[scan] = decoded.scan_im[scan] >= win->im_lower && decoded.scan_im[scan] <= win->im_upper;
+          }
+          for (const uint32_t p : decoded.mz_order)
+          {
+            const uint32_t scan = decoded.scan_ids[p];
+            if (in_window[scan])
             {
               Peak1D peak;
-              peak.setMZ(mzs[p]);
-              peak.setIntensity(static_cast<double>(intensities[p]));
+              peak.setMZ(decoded.mzs[p]);
+              peak.setIntensity(static_cast<double>(decoded.intensities[p]));
               spec.push_back(peak);
-              im_array.push_back(static_cast<float>(inv_ion_mobilities[p]));
+              im_array.push_back(static_cast<float>(decoded.scan_im[scan]));
             }
           }
 
@@ -2264,10 +2267,9 @@ namespace OpenMS
           {
             spec.getFloatDataArrays().push_back(std::move(im_array));
             spec.setIMPeakType(IMPeakType::IM_PROFILE);
-            // Sort peaks by m/z (and the IM float data array alongside).
-            // See the matching comment in the MS1 loop above — TIMS save_to_buffs
-            // returns peaks in (scan_id, m/z-within-scan) order; OpenSwath's
-            // chromatogram extraction assumes globally m/z-sorted input.
+            // OpenSwath's chromatogram extraction assumes m/z-sorted input (see the matching comment
+            // in the MS1 loop above). The peaks were added in m/z order; this only sorts if the frame
+            // could not be ordered when it was decoded.
             spec.sortByPosition();
             consumer.consumeSpectrum(spec);
           }
@@ -3297,28 +3299,29 @@ namespace OpenMS
                     : "Loading DIA-PASEF MS2 frames");
       Size progress_count = 0;
 
+      // Without centroiding and prefilter the peaks of a window are emitted as they are, in m/z order.
+      // The prefilter and the centroider get them in the order of the frame.
+      const bool emit_as_is = !do_hill_raw && !config.isotopic_prefilter;
+      std::vector<char> in_window; // per scan of the frame: within the ion mobility limits of the window?
+
       for (const auto& [group, frame_ids] : group_to_frames)
       {
         auto wit = group_to_windows.find(group);
         if (wit == group_to_windows.end()) continue;
         const auto& dia_windows = wit->second;
 
-        for (const DIAWindow* win : dia_windows)
+        // Every frame is decoded once and split into the windows of its group. The spectra of a frame
+        // share its retention time and stay in the order of the windows; all others are put in order
+        // by retention time at the end of the load.
+        for (size_t i = 0; i < frame_ids.size(); ++i)
         {
-          for (size_t i = 0; i < frame_ids.size(); ++i)
+          TimsFrame& frame = handle.get_frame(frame_ids[i]);
+          if (frame.num_peaks > 0) decoded.decode(handle, frame, /*order_by_mz=*/emit_as_is);
+
+          for (const DIAWindow* win : dia_windows)
           {
             setProgress(progress_count++);
-            TimsFrame& frame = handle.get_frame(frame_ids[i]);
             if (frame.num_peaks == 0) continue;
-
-            std::vector<uint32_t> raw_scan_ids(frame.num_peaks);
-            std::vector<uint32_t> raw_intensities(frame.num_peaks);
-            std::vector<double> raw_mzs(frame.num_peaks);
-            std::vector<double> raw_ims(frame.num_peaks);
-
-            frame.save_to_buffs(nullptr, raw_scan_ids.data(), nullptr,
-                                raw_intensities.data(),
-                                raw_mzs.data(), raw_ims.data(), nullptr);
 
             MSSpectrum spec;
             spec.setRT(frame.time);
@@ -3339,20 +3342,40 @@ namespace OpenMS
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
 
-            // Window-filter into FrameBuffers once for all algos. IM is
-            // already in 1/K0 from save_to_buffs — no scan_id→IM conversion
-            // needed here (unlike the aggregated path). scan_ids carried
+            in_window.resize(decoded.scan_im.size());
+            for (size_t scan = 0; scan < decoded.scan_im.size(); ++scan)
+            {
+              in_window[scan] = decoded.scan_im[scan] >= win->im_lower && decoded.scan_im[scan] <= win->im_upper;
+            }
+
+            if (emit_as_is)
+            {
+              for (const uint32_t p : decoded.mz_order)
+              {
+                const uint32_t scan = decoded.scan_ids[p];
+                if (!in_window[scan]) continue;
+                spec.emplace_back(decoded.mzs[p], static_cast<float>(static_cast<double>(decoded.intensities[p])));
+                im_array.push_back(static_cast<float>(decoded.scan_im[scan]));
+              }
+              if (spec.empty()) continue;
+              spec.setIMPeakType(IMPeakType::IM_PROFILE);
+              spec.getFloatDataArrays().push_back(std::move(im_array));
+              exp.addSpectrum(std::move(spec));
+              continue;
+            }
+
+            // Window-filter into FrameBuffers for the prefilter and HillBased. scan_ids carried
             // through for HillBased max_scan_gap and the isotopic prefilter.
             FrameBuffers buf;
-            buf.reserve(frame.num_peaks);
             for (uint32_t p = 0; p < frame.num_peaks; ++p)
             {
-              if (raw_ims[p] >= win->im_lower && raw_ims[p] <= win->im_upper)
+              const uint32_t scan = decoded.scan_ids[p];
+              if (in_window[scan])
               {
-                buf.mz.push_back(raw_mzs[p]);
-                buf.intensity.push_back(static_cast<double>(raw_intensities[p]));
-                buf.im.push_back(raw_ims[p]);
-                buf.scan_ids.push_back(raw_scan_ids[p]);
+                buf.mz.push_back(decoded.mzs[p]);
+                buf.intensity.push_back(static_cast<double>(decoded.intensities[p]));
+                buf.im.push_back(decoded.scan_im[scan]);
+                buf.scan_ids.push_back(scan);
               }
             }
             if (buf.empty()) continue;
