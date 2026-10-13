@@ -18,6 +18,7 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
 #include <fstream>
 #include <iterator>
@@ -615,6 +616,20 @@ START_SECTION(([EXTRA] reference metadata is explicit and defaults to unknown))
   TEST_TRUE(std::find(producer.begin(), producer.end(), "#sequencing_platform=custom-MS") != producer.end())
   TEST_TRUE(std::find(producer.begin(), producer.end(), "#basecalling=custom-producer") != producer.end())
   TEST_EXCEPTION(Exception::InvalidParameter, BedRModFile().store(output, data, "", {{"basecalling", "bad\nheader"}}))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] buffered output errors are reported))
+{
+  // Linux's full device opens successfully but fails on write/flush.
+  if (File::exists("/dev/full"))
+  {
+    TEST_EXCEPTION(Exception::FileNotWritable, BedRModFile().store("/dev/full", IdentificationData()))
+  }
+  else
+  {
+    NOT_TESTABLE
+  }
 }
 END_SECTION
 

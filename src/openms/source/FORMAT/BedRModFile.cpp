@@ -436,5 +436,11 @@ namespace OpenMS
           << joinFragmentPositions_(row.fragments, true) << '\t'
           << joinFragmentPositions_(row.fragments, false) << '\n';
     }
+    // Buffered writes may fail after a successful open (e.g. a full device).
+    out.flush();
+    if (!out)
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_file);
+    }
   }
 }
