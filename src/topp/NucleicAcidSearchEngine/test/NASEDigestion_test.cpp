@@ -14,6 +14,7 @@ class TestNASE : public NucleicAcidSearchEngine
 public:
   using NucleicAcidSearchEngine::getModifications_;
   using NucleicAcidSearchEngine::calculatePrecursorPercentage_;
+  using NucleicAcidSearchEngine::updatePrecursorPercentage_;
   using NucleicAcidSearchEngine::filterBlacklistedIons_;
   using NucleicAcidSearchEngine::calculateFragmentCoverage_;
   void preprocess(MSExperiment& exp, bool remove, const std::string& method)
@@ -617,14 +618,26 @@ START_SECTION(([EXTRA] residual precursor percentage uses raw intensity and stro
   spectrum.push_back(Peak1D(499.999, 100.0));
   spectrum.push_back(Peak1D(500.001, 250.0));
   spectrum.push_back(Peak1D(500.0 + Constants::C13C12_MASSDIFF_U / 2, 900.0));
-  spectrum.sortByPosition(); // isotope intensity does not change the monoisotopic metric
+  spectrum.sortByPosition(); // a narrow window does not include the isotope peak
   const auto percentage = TestNASE::calculatePrecursorPercentage_(spectrum, 10.0, true);
   TEST_TRUE(percentage.has_value())
   ABORT_IF(!percentage.has_value())
   TEST_REAL_SIMILAR(*percentage, 25.0)
+  TEST_REAL_SIMILAR(*TestNASE::calculatePrecursorPercentage_(spectrum, 1.0, false), 90.0)
   TEST_REAL_SIMILAR(*TestNASE::calculatePrecursorPercentage_(spectrum, 0.0, false), 0.0)
+  spectrum.setMetaValue("precursor_percentage", 999.0);
+  spectrum.setMetaValue("unrelated_annotation", "retained");
+  TestNASE::updatePrecursorPercentage_(spectrum, false, 10.0, true);
+  TEST_FALSE(spectrum.metaValueExists("precursor_percentage"))
+  TEST_EQUAL(spectrum.getMetaValue("unrelated_annotation"), "retained")
+  TestNASE::updatePrecursorPercentage_(spectrum, true, 10.0, true);
+  TEST_REAL_SIMILAR(double(spectrum.getMetaValue("precursor_percentage")), 25.0)
   spectrum.setPrecursors({precursor, precursor});
   TEST_FALSE(TestNASE::calculatePrecursorPercentage_(spectrum, 0.1, false).has_value())
+  spectrum.setMetaValue("precursor_percentage", 999.0);
+  TestNASE::updatePrecursorPercentage_(spectrum, true, 10.0, true);
+  TEST_FALSE(spectrum.metaValueExists("precursor_percentage"))
+  TEST_EQUAL(spectrum.getMetaValue("unrelated_annotation"), "retained")
   spectrum.setPrecursors({});
   TEST_FALSE(TestNASE::calculatePrecursorPercentage_(spectrum, 0.1, false).has_value())
 }

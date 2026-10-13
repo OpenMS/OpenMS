@@ -299,7 +299,7 @@ protected:
     registerIntOption_("report:top_hits", "<num>", 1, "Number of top-scoring hits per spectrum to retain; all exact ties at the cutoff are included (0 for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
 
-    registerFlag_("report:precursor_percentage", "Report the strongest peak around the monoisotopic precursor m/z as a percentage of the raw MS2 base peak intensity. Uses its independent report tolerance, excludes isotope peaks, and is omitted unless there is exactly one precursor; this is not the intensity removed by preprocessing.", false);
+    registerFlag_("report:precursor_percentage", "Report the strongest peak in the configured precursor m/z window as a percentage of the raw MS2 base peak intensity. Uses its independent report tolerance; wide windows can include isotope peaks. This does not integrate an isotope envelope or measure preprocessing removal, and is omitted unless there is exactly one precursor.", false);
     registerDoubleOption_("report:precursor_percentage_mass_tolerance", "<tolerance>", 10.0, "Mass tolerance for finding the residual precursor peak in the raw MS2 spectrum", false, true);
     setMinFloat_("report:precursor_percentage_mass_tolerance", 0.0);
     registerStringOption_("report:precursor_percentage_mass_tolerance_unit", "<unit>", "ppm", "Unit for the residual precursor peak mass tolerance", false, true);
@@ -676,6 +676,18 @@ protected:
     }
     if (base_peak_intensity <= 0.0) return nullopt;
     return 100.0 * residual_intensity / base_peak_intensity;
+  }
+
+  /// Replace this run's derived metric; never reuse a stale input annotation.
+  static void updatePrecursorPercentage_(MSSpectrum& spectrum, bool enabled,
+                                        double mass_tolerance, bool tolerance_ppm)
+  {
+    spectrum.removeMetaValue("precursor_percentage");
+    if (enabled)
+    {
+      const auto percentage = calculatePrecursorPercentage_(spectrum, mass_tolerance, tolerance_ppm);
+      if (percentage) spectrum.setMetaValue("precursor_percentage", *percentage);
+    }
   }
 
   void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping)
@@ -1445,18 +1457,13 @@ protected:
     options.addMSLevel(2);
     f.setOptions(options);
     f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
-    if (getFlag_("report:precursor_percentage"))
+    const bool report_precursor_percentage = getFlag_("report:precursor_percentage");
+    const double report_precursor_tolerance = getDoubleOption_("report:precursor_percentage_mass_tolerance");
+    const bool report_precursor_tolerance_ppm = getStringOption_("report:precursor_percentage_mass_tolerance_unit") == "ppm";
+    for (MSSpectrum& spectrum : spectra)
     {
-      double tolerance = getDoubleOption_("report:precursor_percentage_mass_tolerance");
-      bool tolerance_ppm = (getStringOption_("report:precursor_percentage_mass_tolerance_unit") == "ppm");
-      for (MSSpectrum& spectrum : spectra)
-      {
-        optional<double> percentage = calculatePrecursorPercentage_(spectrum, tolerance, tolerance_ppm);
-        if (percentage)
-        {
-          spectrum.setMetaValue("precursor_percentage", *percentage);
-        }
-      }
+      updatePrecursorPercentage_(spectrum, report_precursor_percentage,
+        report_precursor_tolerance, report_precursor_tolerance_ppm);
     }
     spectra.sortSpectra(true);
 
