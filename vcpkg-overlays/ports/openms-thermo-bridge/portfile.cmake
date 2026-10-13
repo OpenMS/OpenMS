@@ -2,13 +2,13 @@ if(NOT VCPKG_TARGET_IS_WINDOWS)
     vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 endif()
 
-# Pin both native and managed sources to the same reviewed revision, the one the
-# 1.0.0 release (v1.0.0 tag pending) points at, and build the managed component locally.
+# Pin both native and managed sources to the v1.0.0 release commit and build the
+# managed component locally.
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO OpenMS/openms-thermo-bridge
-    REF e6f0f979732a052ad38d378c2f58790e450770cf
-    SHA512 5b7e1b209e1a5efeba90d15a2df99be90995a0630d811e7b9cf4a28ee95c1ba08e18df458cea483748acb395bef7a41df53fddcf1438e047ee9dc95fafbd4865
+    REF 75849ecf6f600a3e52479823043842e571a774ae
+    SHA512 0adf23eae20cfa90bdd9326f5bb551b4459294e4e5de08f4d72e0d7f66c5520a0c6731b8503ce0def04165318968fd6c20199bc661bf1899e0725b71c48506ee
     HEAD_REF main
     PATCHES
         vcpkg-nethost-use.patch

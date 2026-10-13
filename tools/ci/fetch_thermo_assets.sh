@@ -38,7 +38,7 @@ set -euo pipefail
 # Commit of openms-thermo-bridge; must equal the FetchContent GIT_TAG in
 # cmake/cmake_findExternalLibs.cmake (checked below). BRIDGE_TAG is the release tag
 # that points at this commit; the release assets are named after it.
-BRIDGE_COMMIT="e6f0f979732a052ad38d378c2f58790e450770cf"
+BRIDGE_COMMIT="75849ecf6f600a3e52479823043842e571a774ae"
 BRIDGE_TAG="v1.0.0"
 RAW_URL="https://archive.openms.de/openms/testfiles/Angiotensin_AllScans.raw"
 RAW_SHA256="3a0236f719e7c91e3c958f57f4e66ae422803ec3e6a997b9af4d2af395332b9f"
