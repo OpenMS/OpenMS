@@ -341,8 +341,9 @@ Dependencies:
     which OpenMS does not use).
 
 TOPP tools:
-  - NucleicAcidSearchEngine: retain and reproducibly order cutoff ties, resolve interleaved ambiguity variants within their original precursor/source hypotheses, record current cached-digest search parameters, and produce finite LFQ retention times.
   Changes:
+    NucleicAcidSearchEngine:
+      - Resolve interleaved ambiguity variants within their original precursor/source hypotheses, record current cached-digest search parameters, and produce finite LFQ retention times. Exact cutoff tie retention is unchanged; exported ties now follow the shared library value order.
     All tools:
       - FIX: -debug activates console debug logging in the main thread even when its
         thread-local logger was initialized before parameter parsing. Debug levels from INI

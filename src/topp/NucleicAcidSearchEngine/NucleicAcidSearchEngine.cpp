@@ -108,8 +108,8 @@ For example, "mA?" stands for methyladenosine ("mA", see above) or 2'-O-methylad
 When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
 
 
-Exact score ties at @p report:top_hits are retained as a complete group and ordered
-by sequence, charge, isotope, and adduct values. A representative selected downstream
+Exact score ties at @p report:top_hits remain a complete group. Exported ties use
+the library's deterministic molecule, charge and adduct value order. A representative selected downstream
 is reproducible but does not establish unique modification localization.
 When using @p digest, search tolerances and modifications in the output describe
 the current run while database and digestion provenance remain from the cache.
@@ -1182,7 +1182,6 @@ protected:
       vector<double> rts;
       for (const auto& charge_pair : entry.second)
       {
-        charges.push_back(charge_pair.first);
         // use intensity-weighted mean of precursor RTs as "apex" RT:
         double weighted_rt = 0.0, total_weight = 0.0;
         for (const auto& rt_pair : charge_pair.second)
@@ -1196,6 +1195,7 @@ protected:
         if (total_weight > 0.0 && std::isfinite(total_weight) && std::isfinite(weighted_rt))
         {
           rts.push_back(weighted_rt / total_weight);
+          charges.push_back(charge_pair.first);
         }
         else
         {
@@ -1210,6 +1210,7 @@ protected:
           if (!observed_rts.empty())
           {
             rts.push_back(Math::median(observed_rts.begin(), observed_rts.end(), false));
+            charges.push_back(charge_pair.first);
           }
         }
       }
@@ -1424,6 +1425,7 @@ protected:
       id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
     IdentificationData::ProcessingStep step(software_ref, {file_ref});
+    step.actions.insert(DataProcessing::IDENTIFICATION);
     IdentificationData::ProcessingStepRef step_ref;
 
     // get digested sequences:
@@ -1433,6 +1435,8 @@ protected:
       search_param.database = in_db;
       search_param.missed_cleavages = getIntOption_("oligo:missed_cleavages");
       search_param.digestion_enzyme = configured_enzyme;
+      search_param.min_length = getIntOption_("oligo:min_size");
+      search_param.max_length = getIntOption_("oligo:max_size");
       IdentificationData::SearchParamRef search_ref =
         id_data.registerDBSearchParam(search_param);
       step_ref = id_data.registerProcessingStep(step, search_ref);
@@ -1527,20 +1531,23 @@ protected:
 
       // Preserve digestion/database provenance, but record the parameters used
       // by this search rather than the tolerances of the cached digest producer.
-      IdentificationData::DBSearchParam current_search = *search_ref;
-      current_search.charges = search_param.charges;
-      current_search.mass_type = search_param.mass_type;
-      current_search.precursor_mass_tolerance = search_param.precursor_mass_tolerance;
-      current_search.fragment_mass_tolerance = search_param.fragment_mass_tolerance;
-      current_search.precursor_tolerance_ppm = search_param.precursor_tolerance_ppm;
-      current_search.fragment_tolerance_ppm = search_param.fragment_tolerance_ppm;
-      current_search.fixed_mods = search_param.fixed_mods;
-      current_search.variable_mods = search_param.variable_mods;
+      IdentificationData::DBSearchParam current_search = search_param;
+      current_search.database = search_ref->database;
+      current_search.database_version = search_ref->database_version;
+      current_search.taxonomy = search_ref->taxonomy;
+      current_search.digestion_enzyme = search_ref->digestion_enzyme;
+      current_search.enzyme_term_specificity = search_ref->enzyme_term_specificity;
+      current_search.missed_cleavages = search_ref->missed_cleavages;
+      current_search.min_length = search_ref->min_length;
+      current_search.max_length = search_ref->max_length;
+      std::vector<std::string> cached_keys;
+      search_ref->getKeys(cached_keys);
+      for (const auto& key : cached_keys)
+      {
+        if (key.starts_with("digestion:")) current_search.setMetaValue(key, search_ref->getMetaValue(key));
+      }
       search_ref = id_data.registerDBSearchParam(current_search);
-      // Distinguish this identification from the digest producer even when both
-      // operations run within the same timestamp second. ProcessingStep identity
-      // does not include its associated search parameters.
-      step.actions.insert(DataProcessing::IDENTIFICATION);
+      // Fresh and cached searches both record the identification action.
       step_ref = id_data.registerProcessingStep(step, search_ref);
       // reference this step in all following ID data items:
       id_data.setCurrentProcessingStep(step_ref);
@@ -1866,14 +1873,17 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              AnnotatedHit new_hit;
-              new_hit.oligo_ref = oligo_ref;
-              new_hit.sequence = candidate;
-              new_hit.precursor_error_ppm =
-                (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
-              new_hit.annotations = annotations;
-              new_hit.precursor_ref = &(prec_it->second);
-              retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
+              if (report_top_hits == 0 || scan_hits.size() < report_top_hits || score >= scan_hits.rbegin()->first)
+              {
+                AnnotatedHit new_hit;
+                new_hit.oligo_ref = oligo_ref;
+                new_hit.sequence = candidate;
+                new_hit.precursor_error_ppm =
+                  (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
+                new_hit.annotations = annotations;
+                new_hit.precursor_ref = &(prec_it->second);
+                retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
+              }
             }
           }
         }
@@ -1929,7 +1939,7 @@ protected:
     // dummy "peptide" results:
     if (!id_out.empty())
     {
-      if (!digest.empty())
+      if (!in_digest.empty())
       {
         // RNA seqs. were imported from a previous search run - need to "tag"
         // them with the current processing step so they get exported properly:

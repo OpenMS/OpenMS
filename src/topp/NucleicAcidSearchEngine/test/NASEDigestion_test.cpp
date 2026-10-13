@@ -459,19 +459,20 @@ START_SECTION(([EXTRA] LFQ uses finite weights or the median of finite observati
   IdentificationData data;
   auto input = data.registerInputFile(IdentificationData::InputFile("lfq.mzML"));
   Size index = 0;
-  const auto add = [&](const std::string& sequence, double rt, double weight)
+  const auto add = [&](const std::string& sequence, double rt, double weight, Int charge = -2)
   {
     auto oligo = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString(sequence)));
     IdentificationData::Observation obs("scan=" + std::to_string(++index), input, rt);
     obs.setMetaValue("precursor_intensity", weight);
     auto observation = data.registerObservation(obs);
-    data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, observation, -2));
+    data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, observation, charge));
   };
   const double nan = std::numeric_limits<double>::quiet_NaN();
   add("ACGU", 10, 0);
   add("ACGU", 20, -1);
   add("ACGU", 30, nan);
   add("ACGU", nan, 100);
+  add("ACGU", nan, 100, -3);
   add("AGGU", 10, 1);
   add("AGGU", 30, 3);
   add("AGGU", 100, nan);
@@ -489,6 +490,7 @@ START_SECTION(([EXTRA] LFQ uses finite weights or the median of finite observati
     std::vector<std::string> fields;
     StringUtils::split(table[row], '\t', fields);
     rts[fields[0]] = StringUtils::toDouble(fields[4]);
+    TEST_EQUAL(fields[3], "-2")
   }
   TEST_REAL_SIMILAR(rts.at("ACGU"), 20)
   TEST_REAL_SIMILAR(rts.at("AGGU"), 25)
