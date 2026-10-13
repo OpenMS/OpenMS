@@ -284,6 +284,14 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
   TEST_FALSE(cached_data.getDBSearchParams().empty())
   ABORT_IF(cached_data.getDBSearchParams().empty())
   TEST_EQUAL(static_cast<int>(cached_data.getDBSearchParams().begin()->getMetaValue("digestion:max_decoy_reshuffle_attempts")), 0)
+  // A cached producer can carry extra metadata omitted by current-search setup.
+  IdentificationData enriched;
+  auto enriched_parameters = *cached_data.getDBSearchParams().begin();
+  enriched_parameters.setMetaValue("arbitrary_producer_annotation", "retain this record");
+  const auto enriched_ref = enriched.registerDBSearchParam(enriched_parameters);
+  enriched.merge(cached_data);
+  TEST_EQUAL(enriched_ref->getMetaValue("arbitrary_producer_annotation").toString(), "retain this record")
+  OMSFile().store(cached, enriched);
   const std::vector<std::string> cache_args{"-in", mzml, "-digest", cached, "-id_out", output, "-threads", "1"};
   TEST_EQUAL(runSearch(cache_args), 0)
   auto mismatch_args = cache_args;

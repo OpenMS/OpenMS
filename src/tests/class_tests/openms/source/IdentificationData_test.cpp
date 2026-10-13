@@ -123,10 +123,19 @@ START_SECTION((SearchParamRef registerDBSearchParam(const DBSearchParam& param))
   param.setMetaValue("digestion:decoy_reshuffle_protocol", "cleavage_preserving_portable_v1");
   const auto recorded = metadata.registerDBSearchParam(param);
   TEST_TRUE(recorded == metadata.registerDBSearchParam(param))
+  ID::DBSearchParam omitted = param;
+  omitted.clearMetaInfo();
+  TEST_TRUE(recorded == metadata.registerDBSearchParam(omitted))
+  ID::DBSearchParam subset = param;
+  subset.removeMetaValue("digestion:decoy_reshuffle_protocol");
+  TEST_TRUE(recorded == metadata.registerDBSearchParam(subset))
   ID::DBSearchParam changed = param;
   changed.setMetaValue("digestion:max_decoy_reshuffle_attempts", 1);
   TEST_EXCEPTION(Exception::InvalidValue, metadata.registerDBSearchParam(changed))
   changed.setMetaValue("digestion:max_decoy_reshuffle_attempts", "0");
+  TEST_EXCEPTION(Exception::InvalidValue, metadata.registerDBSearchParam(changed))
+  changed = param;
+  changed.setMetaValue("new_explicit_key", "must not be silently ignored");
   TEST_EXCEPTION(Exception::InvalidValue, metadata.registerDBSearchParam(changed))
   TEST_EQUAL(metadata.getDBSearchParams().size(), 1)
   TEST_TRUE(static_cast<const MetaInfoInterface&>(*recorded) == param)
@@ -567,6 +576,12 @@ START_SECTION((ProcessingStepRef merge(const IdentificationData& other)))
   TEST_EQUAL(recorded.getDBSearchParams().size(), 1)
   TEST_EQUAL(static_cast<int>(original->getMetaValue("digestion:max_decoy_reshuffle_attempts")), 0)
   TEST_TRUE(recorded.getInputFiles().empty())
+  IdentificationData omitted;
+  param.clearMetaInfo();
+  omitted.registerDBSearchParam(param);
+  recorded.merge(omitted);
+  TEST_EQUAL(recorded.getDBSearchParams().size(), 1)
+  TEST_EQUAL(static_cast<int>(original->getMetaValue("digestion:max_decoy_reshuffle_attempts")), 0)
 }
 END_SECTION
 

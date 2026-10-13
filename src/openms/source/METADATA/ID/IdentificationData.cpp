@@ -16,16 +16,22 @@ using namespace std;
 namespace OpenMS
 {
 
-  /// Reject metadata mismatches for an existing database-search identity.
+  /// Reject explicit metadata mismatches; omitted keys reuse the recorded values.
   static void checkDBSearchParamMetadata_(const IdentificationData::DBSearchParams& registered,
                                         const IdentificationData::DBSearchParam& param)
   {
     const auto existing = registered.find(param);
-    if (existing != registered.end() && !existing->MetaInfoInterface::operator==(param))
+    if (existing == registered.end()) return;
+    vector<std::string> keys;
+    param.getKeys(keys);
+    for (const auto& key : keys)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Identical database-search fields require consistent metadata. Metadata-only differences do not define a distinct search; use distinct search fields for a different physical search.",
-        param.database);
+      if (!existing->metaValueExists(key) || existing->getMetaValue(key) != param.getMetaValue(key))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Explicit database-search metadata conflicts with the recorded search identity. Omitted metadata reuses recorded values; metadata-only differences do not define a distinct search.",
+          key);
+      }
     }
   }
 
