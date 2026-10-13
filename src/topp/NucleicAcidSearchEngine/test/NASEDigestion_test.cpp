@@ -292,7 +292,8 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
   enriched.merge(cached_data);
   TEST_EQUAL(enriched_ref->getMetaValue("arbitrary_producer_annotation").toString(), "retain this record")
   OMSFile().store(cached, enriched);
-  const std::vector<std::string> cache_args{"-in", mzml, "-digest", cached, "-id_out", output, "-threads", "1"};
+  const std::vector<std::string> cache_args{"-in", mzml, "-digest", cached, "-id_out", output,
+    "-out", output + ".mzTab", "-threads", "1"};
   TEST_EQUAL(runSearch(cache_args), 0)
   auto mismatch_args = cache_args;
   mismatch_args.insert(mismatch_args.end(), {"-fdr:max_decoy_reshuffle_attempts", "1"});
@@ -301,6 +302,17 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
   matching_args.insert(matching_args.end(), {"-fdr:max_decoy_reshuffle_attempts", "0"});
   TEST_EQUAL(runSearch(matching_args), 0)
   TEST_EQUAL(hitCount(output), 1)
+  vector<ProteinIdentification> cached_proteins;
+  PeptideIdentificationList cached_hits;
+  IdXMLFile().load(output, cached_proteins, cached_hits);
+  TEST_FALSE(cached_proteins.empty())
+  ABORT_IF(cached_proteins.empty())
+  for (const auto& run : cached_proteins)
+  {
+    const auto& recorded = run.getSearchParameters();
+    TEST_EQUAL(static_cast<int>(recorded.getMetaValue("digestion:max_decoy_reshuffle_attempts")), 0)
+    TEST_EQUAL(recorded.getMetaValue("digestion:decoy_reshuffle_protocol").toString(), "cleavage_preserving_portable_v1")
+  }
 
   for (const std::string credit : {"true", "false"})
   {

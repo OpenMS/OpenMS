@@ -6475,7 +6475,8 @@ set_tests_properties("TOPP_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "T
 # use pre-digested sequence data:
 add_test("TOPP_NucleicAcidSearchEngine_2" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_22_out.tmp.mzTab -db_out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_23_out.tmp.oms -digest ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_1_digest.oms)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_2" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
-add_test("TOPP_NucleicAcidSearchEngine_21_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+# Metadata registry order can differ after reload; allow only this pair with its expected values.
+add_test("TOPP_NucleicAcidSearchEngine_21_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_21_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" -matched_whitelist "max_decoy_reshuffle_attempts\" value=\"0\":decoy_reshuffle_protocol\" value=\"cleavage_preserving_portable_v1\"")
 add_test("TOPP_NucleicAcidSearchEngine_22_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_22_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
 # don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_23_out.oms)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_21_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_2")

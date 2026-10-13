@@ -17,6 +17,7 @@
 			<VariableModification name="E-18.0106" />
 			<VariableModification name="M+15.9949" />
 			<VariableModification name="Q-17.0265" />
+			<UserParam type="string" name="test" value="test"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type_protein" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="urn:lsid:rumpelstielzchen" score="140.600006103516" sequence="HIJKLMN">
