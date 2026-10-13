@@ -178,13 +178,15 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
 
       // OpenMS: the padded medians must be strictly increasing, or the spline
       // divides by zero (BaseSpline::initiateQR). Upstream adds
-      // lcg_uniform_rand() * 1e-20, which is lost to rounding unless the
-      // median is ~0 (and is 0 when the draw is 0), so scale the offset to the
-      // median and keep it away from 0.
-      double random_offset = (1.0 + PseudoRandom::lcg_uniform_rand()) * 1e-10
-                             * max(1.0, fabs(medians.back()));
+      // i * lcg_uniform_rand() * 1e-20, which is lost to rounding unless the
+      // median is ~0, and spacing that is tiny next to the real medians makes
+      // the spline fit ill-conditioned. Space the padding like the real medians
+      // instead (the random draw is kept so the random stream stays the same).
+      PseudoRandom::lcg_uniform_rand();
+      double offset = medians.size() > 1 ? medians.back() - medians.front()
+                                         : max(1.0, fabs(medians.back()));
       for (int i = medians.size(); i < 4; ++i) {
-        medians.push_back(medians.back() + i*random_offset);
+        medians.push_back(medians.back() + i*offset);
         negatives.push_back(negatives.back());
         sizes.push_back(sizes.back());
       }
@@ -285,7 +287,12 @@ void PosteriorEstimator::binData(const vector<pair<double, bool> >& combined,
         double numNegatives = n_z_ge_w * pi0 + E_f1_mod_run_tot;
         double numPsmsCorrected = psmsInBin - n_z_ge_w + numNegatives;
         
-        if (medians.size() > 0 && *(medians.rbegin()) == median) {
+        // OpenMS: also merge medians that are not exactly equal but too close
+        // for the PEP spline (BaseSpline keeps their distances in sparse vectors
+        // that treat |dx| <= 1e-15 as 0). Relative, so that they stay apart after
+        // the spline's log/logit transform of the scores, too.
+        if (medians.size() > 0 && fabs(*(medians.rbegin()) - median)
+            <= 1e-12 * max(1.0, fabs(median))) {
           *(negatives.rbegin()) += numNegatives;
           *(sizes.rbegin()) += numPsmsCorrected;
         } else {

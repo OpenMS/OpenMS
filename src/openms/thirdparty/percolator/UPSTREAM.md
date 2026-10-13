@@ -54,14 +54,16 @@ hand-editing sources and committing them, to keep sync self-healing.
   `PosteriorEstimator::includeNegativesInResult` a `std::atomic<bool>`:
   `Scores::calcQvals` sets it from the OpenMP cross-validation loops, a data race
   on a plain `bool`.
-- `patches/03-pep-padding-ties.patch` — when fewer than 4 PEP bins are left,
-  `PosteriorEstimator::estimate` pads them to 4 for the spline. Upstream adds an
-  offset of at most 1e-20, which is lost to rounding unless the score is about 0,
-  so the padded scores were tied (`BaseSpline::initiateQR` asserts `dx > 0` in
-  Debug builds and divides by zero in Release builds). The patch scales the offset
-  to the score, and sorts the bins in ascending order before padding (upstream
-  sorted them afterwards, so padding a descending list was not monotone either).
-  Still present in upstream master as of 2026-10-12.
+- `patches/03-pep-padding-ties.patch` — keeps the PEP spline's bin medians
+  strictly increasing, which `BaseSpline::initiateQR` needs (it asserts `dx > 0`
+  in Debug builds and divides by zero in Release builds, giving meaningless PEPs).
+  `BaseSpline` keeps the distances in sparse vectors that treat |dx| <= 1e-15 as
+  0, so (1) `PosteriorEstimator::binData` also merges medians closer than 1e-12
+  (relative) instead of only equal ones, and (2) when fewer than 4 bins are left,
+  `PosteriorEstimator::estimate` sorts them ascending first and pads them spaced
+  like the real medians (upstream added at most 1e-20, lost to rounding, and padded
+  before sorting). Seen with ProSE `-rescore`. Still present in upstream master as
+  of 2026-10-12.
 
 ### Regenerating the patch
 
