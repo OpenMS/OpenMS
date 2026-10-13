@@ -116,13 +116,20 @@ add_link_options(
 ## Link options of the programs OpenMS runs with Node.js (class tests, TOPP tools):
 ## they read and write the files of the host directly (NODERAWFS) and return their
 ## exit code (EXIT_RUNTIME). EXECUTABLE starts the JavaScript file with a
-## '#!/usr/bin/env node' line and makes it executable, and these targets drop the
-## '.js' suffix Emscripten's toolchain file gives executables (openms_add_executable_compiler_flags
-## in compiler_flags.cmake): <bin>/Foo then runs like a native program, so the tests
-## run it the same way on every platform.
+## '#!/usr/bin/env node' line and makes it executable.
 set(OPENMS_EMSCRIPTEN_NODE_PROGRAM_LINK_OPTIONS
   "-sNODERAWFS=1"
   "-sEXIT_RUNTIME=1"
   "-sENVIRONMENT=node"
   "-sEXECUTABLE=1"
 )
+
+## Makes executable @p target such a Node.js program (openms_add_executable_compiler_flags
+## calls it for the executables of OpenMS; targets that do not use that function call it
+## themselves). It also drops the '.js' suffix Emscripten's toolchain file gives executables
+## (per target: project() calls of subdirectories reset CMAKE_EXECUTABLE_SUFFIX): <bin>/Foo
+## then runs like a native program, so the tests run it the same way on every platform.
+function(openms_emscripten_node_program target)
+  target_link_options(${target} PRIVATE ${OPENMS_EMSCRIPTEN_NODE_PROGRAM_LINK_OPTIONS})
+  set_target_properties(${target} PROPERTIES SUFFIX "")
+endfunction()

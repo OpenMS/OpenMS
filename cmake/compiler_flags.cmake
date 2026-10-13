@@ -231,8 +231,7 @@ function(openms_add_executable_compiler_flags target_name)
   # WebAssembly: the executables of the build (class tests, TOPP tools) are Node.js
   # programs working on the files of the host (cmake/emscripten.cmake).
   if(EMSCRIPTEN)
-    target_link_options(${target_name} PRIVATE ${OPENMS_EMSCRIPTEN_NODE_PROGRAM_LINK_OPTIONS})
-    set_target_properties(${target_name} PROPERTIES SUFFIX "")
+    openms_emscripten_node_program(${target_name})
   endif()
   
   # Address sanitizer (PRIVATE)
