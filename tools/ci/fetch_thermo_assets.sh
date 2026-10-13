@@ -51,11 +51,12 @@ dest="${2:-.}"
 # while no release asset exists for BRIDGE_TAG (the bridge then builds the managed
 # assemblies itself, see above).
 case "$platform" in
-  # ${BRIDGE_TAG} is not published yet, so every platform takes the empty-digest path
-  # above and lets the .NET SDK publish the managed assemblies during the build.
-  linux-x64)   managed_sha256="" ;;
-  osx-arm64)   managed_sha256="" ;;
-  win-x64)     managed_sha256="" ;;
+  linux-x64)   managed_sha256="18e8c70a6d7dc49717fd543b03b2a53c681e6b56b9f97da9abf2e8b7c7d910e9" ;;
+  osx-arm64)   managed_sha256="56fc5b232a4856ece9e605fad6cf178749b6b356eeaa2cc0db1af0506660ca45" ;;
+  win-x64)     managed_sha256="c07c805865a755828f05833e24af95b2c1986fab66b220bdde1ff58532dacea5" ;;
+  # The managed assemblies are architecture-neutral IL, but ${BRIDGE_TAG} publishes
+  # no linux-arm64 zip, so this platform takes the empty-digest path above and lets
+  # the .NET SDK publish them during the build.
   linux-arm64) managed_sha256="" ;;
   *)
     echo "usage: $0 <linux-x64|linux-arm64|osx-arm64|win-x64> [dest-dir]" >&2
