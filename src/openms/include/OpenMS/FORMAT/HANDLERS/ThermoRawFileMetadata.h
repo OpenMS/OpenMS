@@ -13,6 +13,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace OpenMS::Internal
@@ -46,6 +47,36 @@ struct OPENMS_DLLAPI ThermoScan
   std::vector<ThermoReaction> reactions;   ///< reactions in acquisition order (MS2 first)
 };
 
+/**
+  @brief Per-file trailer label lookup.
+
+  Thermo stores the trailer-extra layout once per controller, so every scan of a file lists the
+  same labels in the same order. Labels are registered once (add()) and their position is learned
+  from the first scan that has them; later scans only verify the label at that position (one string
+  comparison) instead of searching all entries. A scan with a different layout falls back to a
+  linear search and updates the cached position, so arbitrary trailers are still handled correctly.
+*/
+class OPENMS_DLLAPI ThermoTrailerIndex
+{
+public:
+  /// Key of a registered label for find() / value().
+  using Key = std::size_t;
+
+  /// Register @p label (exact match, including the trailing colon) and return its key.
+  Key add(const std::string& label);
+
+  /// Value of the registered label in @p scan, or nullptr if the scan has no such entry.
+  const std::string* find(const ThermoScan& scan, Key key);
+
+  /// Value of the registered label in @p scan, or "" if absent.
+  const std::string& value(const ThermoScan& scan, Key key);
+
+private:
+  static constexpr std::size_t npos_ = static_cast<std::size_t>(-1);
+  std::vector<std::string> labels_;      ///< registered labels by key
+  std::vector<std::size_t> positions_;   ///< last position of each label (npos_ if not seen yet)
+};
+
 /// One precursor of an MSn scan as reconstructed by ThermoRawFileMetadata::precursors().
 struct OPENMS_DLLAPI ThermoPrecursor
 {
@@ -69,15 +100,27 @@ struct OPENMS_DLLAPI ThermoPrecursor
 class OPENMS_DLLAPI ThermoRawFileMetadata
 {
 public:
+  ThermoRawFileMetadata();
+
   /// Value of the trailer-extra entry with exactly this @p label, or "" if absent.
   static std::string trailer(const ThermoScan& scan, const std::string& label);
 
   /**
-    @brief Parse a trailer value as a number.
+    @brief Parse a trailer value as a number (locale-independent).
     @return the number, or an empty optional when the value is empty, not fully numeric (e.g. "2,5"
-            or "12.3abc") or not finite. A literal zero is a valid number, not "missing".
+            or "12.3abc") or not finite. Surrounding whitespace and a leading '+' are accepted.
+            A literal zero is a valid number, not "missing".
   */
-  static std::optional<double> number(const std::string& value);
+  static std::optional<double> number(std::string_view value);
+
+  /**
+    @brief Filter key of an MSn filter string: the text between "ms<N> " and the following " [".
+
+    Used to find a scan's parent by filter when no master scan is known, e.g.
+    "FTMS + c NSI Full ms2 500.00@hcd30.00 [100-1000]" yields "500.00@hcd30.00".
+    @return the key, or "" if the filter has no such part.
+  */
+  static std::string filterKey(const std::string& filter);
 
   /**
     @brief Selected ion m/z of a precursor (ThermoRawFileParser rule).
@@ -113,6 +156,9 @@ private:
   };
   std::map<int, State> scans_;         ///< seen scans by scan number
   std::map<std::string, int> filters_; ///< most recent scan per filter key ("" for MS1)
+  ThermoTrailerIndex trailer_;         ///< per-file positions of the trailer labels read below
+  ThermoTrailerIndex::Key master_key_, charge_key_, mono_key_, sps_masses_key_;
+  std::vector<ThermoTrailerIndex::Key> width_keys_; ///< "MS<level> Isolation Width:" by level
 
   /// True if @p second is the supplemental (HCD / CID) step of an ETD / ECD reaction @p first on the same target.
   static bool supplemental_(const ThermoReaction& first, const ThermoReaction& second);
@@ -121,6 +167,10 @@ private:
   /// Most recent scan whose filter key is the parent of @p key (0 if none).
   int parentFromFilter_(const std::string& key) const;
   /// SPS target masses from the legacy ("SPS Mass N:") or modern ("SPS Masses:") trailer labels.
-  static std::vector<double> spsMasses_(const ThermoScan& scan);
+  std::vector<double> spsMasses_(const ThermoScan& scan);
+  /// True if @p label is a legacy "SPS Mass <N>:" label.
+  static bool isLegacySpsLabel_(const std::string& label);
+  /// True if @p label is "SPS Masses:" or "SPS Masses Continued:".
+  static bool isModernSpsLabel_(const std::string& label);
 };
 } // namespace OpenMS::Internal

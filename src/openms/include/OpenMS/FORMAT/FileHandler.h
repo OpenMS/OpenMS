@@ -174,6 +174,8 @@ public:
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
+      The MS level, RT range, precursor m/z range, metadata-only, fill-data and skip-chromatograms options are passed to the reader, so skipped scans are not decoded
+      (fill-data off loads spectra without peaks, like metadata-only). The SourceFile carries no SHA-1 checksum unless @p rewrite_source_file and @p compute_hash are set.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -468,11 +470,11 @@ private:
     /**
       @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
 
-      Used by vendor-format paths (Thermo .raw, Bruker .d) whose loaders read all
-      scans/peaks regardless of PeakFileOptions. Filters MS level, RT range, precursor
+      Used by vendor-format paths whose loaders read all scans/peaks regardless of
+      PeakFileOptions (Bruker .d), and for the per-peak filters on Thermo .raw (the
+      scan-level filters are passed to ThermoRawFile). Filters MS level, RT range, precursor
       m/z range, per-peak m/z and intensity ranges, and strips peak data when
-      metadata-only is requested. Calls updateRanges() at the end. Until these filters
-      are pushed into the respective loader classes, both vendor paths share this.
+      metadata-only is requested. Calls updateRanges() at the end.
     */
     void applyPostLoadOptions_(MSExperiment& exp) const;
 

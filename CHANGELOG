@@ -125,6 +125,12 @@ OpenMS Library:
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - FIX: MetaboliteSpectralMatching HyperScore rejects negative and non-finite fragment tolerances before scoring, including empty spectra; zero-tolerance exact matching remains supported.
   - FIX: IdentificationData chooses a reproducible representative for exact best-score ties without target/decoy preference.
+  - ProteinIdentification: an empty file list ('spectra_data', 'spectra_data_raw') names no files and is not
+    stored. setPrimaryMSRunPath() with an empty list removes the meta value (it stored an empty list and warned),
+    addPrimaryMSRunPath() with an empty list changes nothing, and idXML, featureXML, consensusXML and the Parquet
+    formats drop an empty list when loading (removeEmptyPrimaryMSRunPaths()). An empty list could not be told from
+    a missing one: getPrimaryMSRunPath() returns no files for both, and the Parquet formats wrote both as an empty
+    list and read an empty list back, so converting a run without files added one.
   - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) throws InvalidParameter for isotopic_pattern:charge_low above
     charge_high (the charge count wrapped; crash) and aborts seeds without an isotope pattern for feature:min_isotope_fit 0 (crash).
   - FIX: ParamValue and DataValue conversions to double, float and long double throw a ConversionError
@@ -213,6 +219,16 @@ OpenMS Library:
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
+  - ThermoRawFile reads .raw files faster: trailer values are looked up by a per-file label index,
+    numbers and scan filters are parsed without locale streams and regular expressions, the TIC
+    is built from the scan headers, and with more than one thread up to three worker threads read
+    scans ahead while the calling thread converts them (output independent of the thread count). New ThermoRawFile::Options select scans by scan number, RT, MS
+    level and precursor m/z, and load metadata only or skip chromatograms; scans that are not
+    selected are not decoded, and selected MSn scans keep the precursors of a full load (#10522).
+    FileHandler::loadExperiment() passes the PeakFileOptions MS levels, RT and precursor m/z ranges,
+    metadata-only, fill-data and skip-chromatograms to the reader (MS2-only tools no longer decode
+    MS1 scans; fill-data off now loads spectra without peaks) and no longer computes the SHA-1 of the
+    RAW file. Instrument configuration ids no longer depend on which scans are loaded.
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
@@ -436,6 +452,13 @@ Dependencies:
     package and the pyOpenMS wheels bundle it. 3.6.5 fixes the 13 advisories of 2026-09-29
     listed under 3.6.0's known issues, among them the High-severity CVE-2026-84782 (DTLS,
     which OpenMS does not use).
+  - WITH_THERMO_RAW requires openms-thermo-bridge 1.0.0 (FetchContent, vcpkg overlay and
+    find_package). ThermoRawFile reads each scan through its typed single-pass API (header,
+    m/z-sorted peaks, charges and noise in one call) instead of per-scan JSON and separate
+    peak and auxiliary-array calls; system or vcpkg installations of 0.x are no longer
+    accepted (#10522). With noise_data, scans without a centroid stream (e.g. ion trap
+    scans) no longer carry a "sampled noise m/z array" without intensities; the vendor
+    returned the segmented scan masses there, not noise samples.
 
 TOPP tools:
   Removed:
@@ -494,6 +517,10 @@ TOPP tools:
         features added: N / M PSMs (<features>), NCE=<nce>'. On the 20-file suite of #10364
         (10 hits per spectrum) it gave 5.7% more PSMs at 1% FDR for 3.4 times the search CPU
         time (#9975).
+    FileConverter:
+      - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
+        default, which cost a second read of the whole file (5-15% of the conversion time); the new
+        flag -raw_checksum restores it. Without it the mzML sourceFile has an empty SHA-1 (#10522).
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.

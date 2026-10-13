@@ -1,8 +1,13 @@
 # Thermo RAW to mzML with metadata preservation
 
-`ThermoRawFile` requires the openms-thermo-bridge revision pinned in
+`ThermoRawFile` requires openms-thermo-bridge 1.0.0, the revision pinned in
 `cmake/cmake_findExternalLibs.cmake` (native and managed components from the same
-revision). It loads source SHA-1, the complete creation timestamp,
+revision). It reads every scan with the bridge's typed single-pass API: one call per
+scan returns the header (with the vendor-formatted trailer values) and, for scans that are
+converted, the m/z-sorted peaks with their charges and noise arrays; no per-scan JSON is
+parsed. With more than one OpenMP thread (TOPP `-threads`), up to three worker threads
+read the following scans ahead on their own bridge accessors while the calling thread
+converts them; the output does not depend on the thread count. It loads source SHA-1, the complete creation timestamp,
 sample fields, user sample fields, embedded method texts and the full scan trailer.
 Vendor values without a confirmed standardized unit are kept under `Thermo ...`
 metadata keys; they are not assigned guessed units.
@@ -27,8 +32,40 @@ set `centroid = true` on both conversion paths. `FileHandler::loadExperiment()`,
 through which most TOPP tools read `.raw` input, sets `centroid = true`, as
 FileConverter does unless `-RawToMzML:no_peak_picking` is given. Optional
 charge/noise/detector exports are disabled by default. Trailer preservation,
-methods and SHA-1 are on; each can be disabled separately to control output size
-or hashing cost.
+methods and SHA-1 are on in `Options`; each can be disabled separately to control
+output size or hashing cost. The SHA-1 reads the whole file once more (5-15% of the
+load time), so FileConverter computes it only with `-raw_checksum`; otherwise the
+mzML `sourceFile` carries an empty SHA-1.
+
+## Loading part of a file
+
+`Options` also selects which scans are read. Scans that are not selected are
+not decoded:
+
+| Option | Selection |
+| --- | --- |
+| `first_scan`, `last_scan` | Scan number range (inclusive; 0 = unbounded) |
+| `rt_min`, `rt_max` | Retention time range in seconds, `rt_min <= RT < rt_max` |
+| `ms_levels` | MS levels to load (empty = all; PDA spectra have level 0) |
+| `precursor_mz_min`, `precursor_mz_max` | MSn scans whose first precursor m/z is in `[min, max)`; MS1 is kept |
+| `metadata_only` | Spectra without peaks, charge or noise arrays |
+| `skip_chromatograms` | No TIC or detector chromatograms |
+
+A selected MSn scan is the same as in a full load: its precursors, including the
+precursor intensity that is estimated from the parent scan, do not depend on
+whether the parent scan is selected (the reader decodes the parent internally if
+needed). With `metadata_only`, values derived from the peaks are absent: the
+precursor intensity, `lowest observed m/z` / `highest observed m/z`, and the base
+peak of centroided data (the vendor scan statistics base peak is reported
+instead). The TIC chromatogram always covers the whole run.
+
+`FileHandler::loadExperiment()` passes the `PeakFileOptions` MS levels, RT and
+precursor m/z ranges, metadata-only, fill-data (off = no peaks) and
+skip-chromatograms settings on to the reader, so for example a search engine that
+loads MS2 spectra only never decodes the MS1 scans. The m/z and intensity ranges
+are applied after loading. `FileHandler` does not compute the SHA-1 of the RAW
+file. Instrument configuration ids (`thermo_ic_N`) are assigned in acquisition
+order over all scans read, so they are the same whichever scans are selected.
 
 | Metadata | OpenMS representation |
 | --- | --- |
@@ -46,7 +83,30 @@ or hashing cost.
 
 Sampled noise is deliberately separate from peak annotations. Its point count
 and mass grid can differ from the spectrum; sorting or restricting spectrum
-peaks does not reorder, truncate or reduce precision in these arrays.
+peaks does not reorder, truncate or reduce precision in these arrays. Scans
+without available vendor noise measurements carry none of the three arrays;
+absence means unavailable, not zero noise. In particular, the segmented mass
+coordinates returned for scans without a native centroid stream are not exported
+as noise coordinates when their corresponding noise and baseline values are absent.
+
+## Preserving noise levels for reporter-ion quantification
+
+Noise export is already supported by the in-process reader and mzML reader/writer.
+To retain the vendor noise levels when converting a RAW file, enable it explicitly:
+
+```sh
+FileConverter -in input.raw -out output.mzML \
+  -RawToMzML:reader inprocess -RawToMzML:include_noise
+```
+
+The output contains `MS:1002743` (sampled noise m/z array), `MS:1002744`
+(sampled noise intensity array), and `MS:1002745` (sampled noise baseline array)
+when the vendor provides them. `MzMLFile::load()` restores each array as a
+double-list spectrum meta value with the corresponding name from the table above;
+storing the experiment again retains these CV-annotated binary arrays.
+They are not per-peak S/N values. Associating the noise grid with reporter ions
+and using S/N instead of intensity for TMT quantification is a separate algorithmic
+feature; exporting these arrays does not change existing quantification.
 
 The target is comparable mzML content, not identical XML bytes: OpenMS writes
 retention times in seconds, has its own software/data-processing records and
@@ -65,7 +125,7 @@ are in `test_ThermoRawFile.py`.
 
 The bridge source revision is pinned in `cmake_findExternalLibs.cmake` and the
 vcpkg overlay. The paired bridge is published in
-https://github.com/OpenMS/openms-thermo-bridge/pull/11. To use a local checkout,
+https://github.com/OpenMS/openms-thermo-bridge/pull/13 (1.0.0). To use a local checkout,
 use CMake's standard
 `-DFETCHCONTENT_SOURCE_DIR_OPENMSTHERMOBRIDGE=/absolute/path/to/openms-thermo-bridge`
 override to use the paired checkout. A matching prebuilt managed directory can

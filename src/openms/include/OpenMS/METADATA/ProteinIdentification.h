@@ -340,6 +340,9 @@ public:
     /**
        Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
 
+       The paths are stored as the meta value 'spectra_data' ('spectra_data_raw' for @p raw). An empty list names no
+       files and is not stored: it removes the meta value, so a run without files has no 'spectra_data'.
+
        @param[in] s The file paths
        @param[in] raw Store paths to the raw files (or equivalent) rather than mzMLs
     */
@@ -347,8 +350,18 @@ public:
 
     /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
     void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
+    /// Append file paths to the primary MS runs (an empty list changes nothing)
     void addPrimaryMSRunPath(const std::string& s, bool raw = false);
+    /// @copydoc addPrimaryMSRunPath(const std::string&, bool)
     void addPrimaryMSRunPath(const StringList& s, bool raw = false);
+
+    /**
+       @brief Remove empty file lists ('spectra_data', 'spectra_data_raw')
+
+       An empty list names no files and means the same as no list, so it is not stored (see setPrimaryMSRunPath()).
+       File readers call this for files written before OpenMS 3.7, which may contain one.
+    */
+    void removeEmptyPrimaryMSRunPaths();
 
     /**
        Get the file paths to the primary MS runs

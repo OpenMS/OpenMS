@@ -318,16 +318,9 @@ namespace OpenMS
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, bool raw)
   {
-    std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
-    setMetaValue(meta_name, DataValue(StringList()));
-    if (s.empty())
-    {
-      OPENMS_LOG_WARN << "Setting an empty value for primary MS runs paths." << std::endl;
-    }
-    else
-    {
-      addPrimaryMSRunPath(s, raw);
-    }
+    // an empty list names no files and is not stored
+    removeMetaValue(raw ? "spectra_data_raw" : "spectra_data");
+    addPrimaryMSRunPath(s, raw);
   }
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
@@ -362,6 +355,10 @@ namespace OpenMS
 
   void ProteinIdentification::addPrimaryMSRunPath(const StringList& s, bool raw)
   {
+    if (s.empty())
+    {
+      return;
+    }
     std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
     if (!raw) // mzML files expected
     {
@@ -378,6 +375,21 @@ namespace OpenMS
     StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
     spectra_data.insert(spectra_data.end(), s.begin(), s.end());
     setMetaValue(meta_name, spectra_data);
+  }
+
+  void ProteinIdentification::removeEmptyPrimaryMSRunPaths()
+  {
+    for (const char* meta_name : {"spectra_data", "spectra_data_raw"})
+    {
+      if (metaValueExists(meta_name))
+      {
+        const DataValue& value = getMetaValue(meta_name);
+        if (value.valueType() == DataValue::STRING_LIST && value.toStringList().empty())
+        {
+          removeMetaValue(meta_name);
+        }
+      }
+    }
   }
 
   void ProteinIdentification::addPrimaryMSRunPath(const std::string& s, bool raw)

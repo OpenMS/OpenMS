@@ -2704,6 +2704,8 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
         .def("setPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::vector<std::string>& s, bool raw) { self.setPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false,
             R"doc(Set the file paths to the primary MS runs.
 
+An empty list names no files and is not stored: it removes the 'spectra_data' ('spectra_data_raw') meta value.
+
 :param s: The file paths
 :param raw: Store paths to the raw files (or equivalent) rather than mzMLs
 )doc")
@@ -2730,6 +2732,8 @@ Does not return anything but stores the coverage inside the ProteinHit objects.
         .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::string& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false)
         .def("addPrimaryMSRunPath", [](OpenMS::ProteinIdentification& self, const std::vector<std::string>& s, bool raw) { return self.addPrimaryMSRunPath(s, raw); }, "s"_a, "raw"_a = false)
         .def("getPrimaryMSRunPath", [](const OpenMS::ProteinIdentification& self, bool raw) { std::vector<std::string> output; self.getPrimaryMSRunPath(output, raw); return output; }, "raw"_a = false)
+        .def("removeEmptyPrimaryMSRunPaths", &OpenMS::ProteinIdentification::removeEmptyPrimaryMSRunPaths,
+            "Remove empty file lists ('spectra_data', 'spectra_data_raw'), which name no files and are not stored")
         
         .def("__hash__", [](const OpenMS::ProteinIdentification& self) { return std::hash<OpenMS::ProteinIdentification>{}(self); })
         ;

@@ -143,6 +143,60 @@ def test_thermo_options():
     assert reader.getLogType() == pyopenms.LogType.NONE
 
 
+def test_thermo_selection_options():
+    if not hasattr(pyopenms, "ThermoRawFile"):
+        pytest.skip("OpenMS built without Thermo RAW support")
+    options = pyopenms.ThermoRawFileOptions()
+    assert options.first_scan == 0 and options.last_scan == 0
+    assert options.rt_min == float("-inf") and options.rt_max == float("inf")
+    assert options.precursor_mz_min == float("-inf") and options.precursor_mz_max == float("inf")
+    assert options.ms_levels == []
+    assert not options.metadata_only and not options.skip_chromatograms
+    options.ms_levels = [2, 3]
+    options.first_scan, options.last_scan = 10, 20
+    options.rt_min, options.rt_max = 1.0, 2.0
+    options.metadata_only = options.skip_chromatograms = True
+    copy = pyopenms.ThermoRawFileOptions(options)
+    assert copy.ms_levels == [2, 3]
+    assert (copy.first_scan, copy.last_scan) == (10, 20)
+    assert (copy.rt_min, copy.rt_max) == (1.0, 2.0)
+    assert copy.metadata_only and copy.skip_chromatograms
+
+
+@needs_raw_file
+def test_raw_selection_matches_full_load():
+    """Selected scans are the same as in a full load, precursors included."""
+    options = pyopenms.ThermoRawFileOptions()
+    options.centroid = True
+    options.checksum = False
+    reader = pyopenms.ThermoRawFile()
+    reader.setOptions(options)
+    full = pyopenms.MSExperiment()
+    reader.load(RAW_FILE, full)
+
+    options.ms_levels = [2]
+    options.skip_chromatograms = True
+    reader.setOptions(options)
+    ms2 = pyopenms.MSExperiment()
+    reader.load(RAW_FILE, ms2)
+    expected = [s for s in full if s.getMSLevel() == 2]
+    assert ms2.getNrSpectra() == len(expected) > 0
+    assert ms2.getNrChromatograms() == 0
+    for got, want in zip(ms2, expected):
+        assert got.getNativeID() == want.getNativeID()
+        assert got.getPrecursors()[0].getMZ() == want.getPrecursors()[0].getMZ()
+        assert got.getPrecursors()[0].getIntensity() == want.getPrecursors()[0].getIntensity()
+        assert got.size() == want.size()
+
+    options.ms_levels = []
+    options.metadata_only = True
+    reader.setOptions(options)
+    headers = pyopenms.MSExperiment()
+    reader.load(RAW_FILE, headers)
+    assert headers.getNrSpectra() == full.getNrSpectra()
+    assert all(s.size() == 0 for s in headers)
+
+
 def test_instrument_configurations():
     experiment = pyopenms.MSExperiment()
     instrument = pyopenms.Instrument()
