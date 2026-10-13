@@ -394,6 +394,28 @@ START_SECTION(PrecalculatedAveragine(double min_mass, double max_mass, double de
   PrecalculatedAveragine pa_rna(500.0, 5000.0, 100.0, generator, true);
   IsotopeDistribution iso_rna = pa_rna.get(1000.0);
   TEST_EQUAL(iso_rna.size() > 0, true)
+
+  // Trimming must normalize the retained peptide and RNA samples, including
+  // the boundary isotope that caused trimming to stop.
+  for (bool rna : {false, true})
+  {
+    PrecalculatedAveragine normalized(500.0, 10000.0, 100.0, generator, rna);
+    for (double mass : {500.0, 1000.0, 2500.0, 5000.0, 7500.0, 10000.0})
+    {
+      const auto pattern = normalized.get(mass);
+      double power = 0.0, sum = 0.0;
+      for (const auto& peak : pattern)
+      {
+        power += double(peak.getIntensity()) * peak.getIntensity();
+        sum += peak.getIntensity();
+      }
+      TEST_TRUE(std::abs(power - 1.0) < 2e-6)
+      // The SNR multiplier is the squared L1/L2 ratio of the retained model.
+      // Dividing by measured power makes this independent of its normalization.
+      const double expected_snr_factor = sum * sum / power;
+      TEST_TRUE(std::abs(normalized.getSNRMultiplicationFactor(mass) - expected_snr_factor) < 2e-6 * expected_snr_factor)
+    }
+  }
 }
 END_SECTION
 
