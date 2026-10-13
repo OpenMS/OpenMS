@@ -157,13 +157,18 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   IdentificationData result;
   OMSFile().load(output + ".oms", result);
   bool current_identification = false;
-  for (const auto& mapping : result.getDBSearchSteps())
+  for (const auto& match : result.getObservationMatches())
   {
-    if (mapping.first->actions.count(DataProcessing::IDENTIFICATION))
+    for (const auto& applied : match.steps_and_scores)
     {
+      if (!applied.processing_step_opt ||
+          !(*applied.processing_step_opt)->actions.count(DataProcessing::IDENTIFICATION)) continue;
+      const auto mapping = result.getDBSearchSteps().find(*applied.processing_step_opt);
+      TEST_TRUE(mapping != result.getDBSearchSteps().end())
+      if (mapping == result.getDBSearchSteps().end()) continue;
       current_identification = true;
-      TEST_REAL_SIMILAR(mapping.second->precursor_mass_tolerance, 20)
-      TEST_REAL_SIMILAR(mapping.second->fragment_mass_tolerance, 25)
+      TEST_REAL_SIMILAR(mapping->second->precursor_mass_tolerance, 20)
+      TEST_REAL_SIMILAR(mapping->second->fragment_mass_tolerance, 25)
     }
   }
   TEST_TRUE(current_identification)
