@@ -244,6 +244,56 @@ START_SECTION([EXTRA] conservative fallback drops transfers when the FDR is not 
 }
 END_SECTION
 
+START_SECTION([EXTRA] mass-only donor modifications use the complete peptide mass for isotope scoring)
+{
+  Feature donor = makeFeature(80.0, 600.0, 2, 2.0e6, "PEPTIDEBBR", 2);
+  AASequence modified_sequence = donor.getPeptideIdentifications()[0].getHits()[0].getSequence();
+  modified_sequence.setModificationByDiffMonoMass(5, 306.025304840900048);
+  PeptideHit modified_hit = donor.getPeptideIdentifications()[0].getHits()[0];
+  modified_hit.setSequence(modified_sequence);
+  PeptideIdentification modified_id = donor.getPeptideIdentifications()[0];
+  modified_id.setHits({modified_hit});
+  donor.setPeptideIdentifications({modified_id});
+  donor.setMZ(modified_sequence.getMZ(2));
+
+  Feature acceptor = makeFeature(80.5, donor.getMZ(), 2, 2.0e6, "", 12);
+  acceptor.setMetaValue("pipecho_obs_envelope", DoubleList({100.0, 55.0, 20.0, 5.0}));
+  vector<Feature> runA = {
+    makeFeature(50.0, 500.00, 2, 1.0e6, "PEPTIDEAAK", 1),
+    donor,
+    makeFeature(110.0, 700.00, 2, 3.0e6, "PEPTIDECCK", 3)
+  };
+  vector<Feature> runB = {
+    makeFeature(51.0, 500.00, 2, 1.1e6, "PEPTIDEAAK", 11),
+    acceptor,
+    makeFeature(110.5, 700.00, 2, 2.9e6, "PEPTIDECCK", 13),
+    makeFeature(140.0, 750.00, 2, 1.5e6, "PEPTIDEDDK", 14)
+  };
+  vector<FeatureMap> maps = {makeRun("runA.mzML", runA), makeRun("runB.mzML", runB)};
+
+  PipEchoAlgorithm algo;
+  Param param = algo.getParameters();
+  param.setValue("fdr", 1.0);
+  param.setValue("local_rt:enabled", "false");
+  algo.setParameters(param);
+
+  ConsensusMap consensus;
+  algo.group(maps, consensus);
+  bool transferred_modified_peptide = false;
+  for (const ConsensusFeature& cf : consensus)
+  {
+    for (const FeatureHandle& handle : cf)
+    {
+      if (handle.getUniqueId() == 12 && cf.metaValueExists("mbr_transfer_map_indices"))
+      {
+        transferred_modified_peptide = true;
+      }
+    }
+  }
+  TEST_EQUAL(transferred_modified_peptide, true)
+}
+END_SECTION
+
 START_SECTION([EXTRA] ion mobility disambiguates competing acceptors when present)
 {
   // When the data carries ion mobility, PIP-ECHO uses it as a 4th scoring

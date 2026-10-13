@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <boost/math/distributions/normal.hpp>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
@@ -282,8 +283,18 @@ double RunStatistics::calc_isotope_score(const Feature& donor, const Feature& ac
 
   // Donor peptide's theoretical isotope envelope (neutral formula -- the relative
   // isotope intensities are charge-independent), to the observed envelope length.
-  IsotopeDistribution iso = donor_hit->getSequence().getFormula().getIsotopeDistribution(
-    CoarseIsotopePatternGenerator(obs->size()));
+  CoarseIsotopePatternGenerator generator(obs->size());
+  IsotopeDistribution iso;
+  try
+  {
+    iso = donor_hit->getSequence().getFormula().getIsotopeDistribution(generator);
+  }
+  catch (const Exception::InvalidValue&)
+  {
+    // Mass-only modifications have no exact composition; estimate from their
+    // included monoisotopic mass rather than scoring an incomplete formula.
+    iso = generator.estimateFromPeptideMonoWeight(donor_hit->getSequence().getMonoWeight());
+  }
 
   std::vector<double> theo;
   theo.reserve(iso.size());
