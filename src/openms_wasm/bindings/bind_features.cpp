@@ -29,25 +29,13 @@ namespace OpenMS::WASM
 
   namespace
   {
-    template <typename T>
-    val metaValue(const T& object, const std::string& name)
-    {
-      return object.metaValueExists(name) ? toJS(object.getMetaValue(name)) : val::undefined();
-    }
-
-    template <typename T>
-    void setMetaValue(T& object, const std::string& name, const val& value)
-    {
-      object.setMetaValue(name, dataValueFromJS(value));
-    }
-
     template <typename Container>
     void checkIndex(const Container& c, Size i)
     {
       if (i >= c.size()) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, i, c.size());
     }
 
-    val boundingBoxToJS(const DBoundingBox<2>& bb)
+    JS::BoundingBox boundingBoxToJS(const DBoundingBox<2>& bb)
     {
       val o = val::object();
       o.set("minRT", bb.minPosition()[0]);
@@ -70,19 +58,19 @@ namespace OpenMS::WASM
     double featureGetWidth(const Feature& f) { return f.getWidth(); }
     void featureSetWidth(Feature& f, double w) { f.setWidth(static_cast<float>(w)); }
 
-    val featureBoundingBox(const Feature& f)
+    JS::OptionalBoundingBox featureBoundingBox(const Feature& f)
     {
       if (f.getConvexHulls().empty()) return val::null();
       return boundingBoxToJS(f.getConvexHull().getBoundingBox());
     }
 
     /// Bounding boxes of the mass traces (one convex hull per isotope trace).
-    val featureMassTraceBoxes(const Feature& f)
+    JS::BoundingBoxList featureMassTraceBoxes(const Feature& f)
     {
       return toArray(f.getConvexHulls(), [](const ConvexHull2D& h) { return boundingBoxToJS(h.getBoundingBox()); });
     }
 
-    val featureHullPoints(const Feature& f)
+    JS::HullPoints featureHullPoints(const Feature& f)
     {
       val result = val::array();
       if (f.getConvexHulls().empty()) return result;
@@ -96,7 +84,7 @@ namespace OpenMS::WASM
       return result;
     }
 
-    val featureToJS(const Feature& f)
+    JS::FeatureObject featureToJS(const Feature& f)
     {
       val o = val::object();
       o.set("uniqueId", std::to_string(f.getUniqueId()));
@@ -135,10 +123,10 @@ namespace OpenMS::WASM
       for (auto& f : m) f.ensureUniqueId();
     }
 
-    val mapToArray(const FeatureMap& m) { return toArray(m, featureToJS); }
+    JS::FeatureObjects mapToArray(const FeatureMap& m) { return toArray(m, featureToJS); }
 
     /// The features as columns of typed arrays (for plots and tables).
-    val mapFeatureTable(const FeatureMap& m)
+    JS::FeatureTable mapFeatureTable(const FeatureMap& m)
     {
       val o = val::object();
       o.set("rt", toTypedArray<double>(m, [](const Feature& f) { return f.getRT(); }));
@@ -160,7 +148,7 @@ namespace OpenMS::WASM
 
     double consensusSize(const ConsensusMap& m) { return static_cast<double>(m.size()); }
 
-    val consensusFeatureToJS(const ConsensusFeature& f)
+    JS::ConsensusFeatureObject consensusFeatureToJS(const ConsensusFeature& f)
     {
       val o = val::object();
       o.set("uniqueId", std::to_string(f.getUniqueId()));
@@ -183,10 +171,10 @@ namespace OpenMS::WASM
       return o;
     }
 
-    val consensusGet(const ConsensusMap& m, Size i) { checkIndex(m, i); return consensusFeatureToJS(m[i]); }
-    val consensusToArray(const ConsensusMap& m) { return toArray(m, consensusFeatureToJS); }
+    JS::ConsensusFeatureObject consensusGet(const ConsensusMap& m, Size i) { checkIndex(m, i); return consensusFeatureToJS(m[i]); }
+    JS::ConsensusFeatureObjects consensusToArray(const ConsensusMap& m) { return toArray(m, consensusFeatureToJS); }
 
-    val consensusColumnHeaders(const ConsensusMap& m)
+    JS::ColumnHeaders consensusColumnHeaders(const ConsensusMap& m)
     {
       val result = val::array();
       for (const auto& [index, header] : m.getColumnHeaders())
@@ -209,7 +197,7 @@ namespace OpenMS::WASM
     double tracesSize(const MassTraceList& l) { return static_cast<double>(l.size()); }
     void tracesClear(MassTraceList& l) { l.clear(); }
 
-    val tracesToArray(const MassTraceList& l)
+    JS::MassTraceObjects tracesToArray(const MassTraceList& l)
     {
       return toArray(l, [](const MassTrace& t) {
         val o = val::object();

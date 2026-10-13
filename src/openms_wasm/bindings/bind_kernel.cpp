@@ -27,7 +27,7 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // Plain JavaScript objects for small records (no .delete() needed)
 
-    val precursorToJS(const Precursor& p)
+    JS::PrecursorObject precursorToJS(const Precursor& p)
     {
       val o = val::object();
       o.set("mz", p.getMZ());
@@ -68,7 +68,7 @@ namespace OpenMS::WASM
       return p;
     }
 
-    val productToJS(const Product& p)
+    JS::ProductObject productToJS(const Product& p)
     {
       val o = val::object();
       o.set("mz", p.getMZ());
@@ -99,30 +99,10 @@ namespace OpenMS::WASM
       return result;
     }
 
-    template <typename T>
-    val metaValue(const T& object, const std::string& name)
-    {
-      return object.metaValueExists(name) ? toJS(object.getMetaValue(name)) : val::undefined();
-    }
-
-    template <typename T>
-    void setMetaValue(T& object, const std::string& name, const val& value)
-    {
-      object.setMetaValue(name, dataValueFromJS(value));
-    }
-
-    template <typename T>
-    val metaValueKeys(const T& object)
-    {
-      std::vector<std::string> keys;
-      object.getKeys(keys);
-      return toArray(keys);
-    }
-
     //------------------------------------------------------------------------------
     // MSSpectrum
 
-    val spectrumGetPeaks(const MSSpectrum& s)
+    JS::SpectrumPeaks spectrumGetPeaks(const MSSpectrum& s)
     {
       val o = val::object();
       o.set("mz", toTypedArray<double>(s, [](const Peak1D& p) { return p.getMZ(); }));
@@ -130,7 +110,7 @@ namespace OpenMS::WASM
       return o;
     }
 
-    void spectrumSetPeaks(MSSpectrum& s, const val& mz, const val& intensity)
+    void spectrumSetPeaks(MSSpectrum& s, const JS::NumberInput& mz, const JS::NumberInput& intensity)
     {
       const auto mzs = numbersFromJS<double>(mz);
       const auto ints = numbersFromJS<float>(intensity);
@@ -151,7 +131,7 @@ namespace OpenMS::WASM
       s.getStringDataArrays().clear();
     }
 
-    val spectrumGetPeak(const MSSpectrum& s, Size i)
+    JS::PeakObject spectrumGetPeak(const MSSpectrum& s, Size i)
     {
       if (i >= s.size()) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, i, s.size());
       val o = val::object();
@@ -165,9 +145,9 @@ namespace OpenMS::WASM
       s.emplace_back(mz, static_cast<float>(intensity));
     }
 
-    val spectrumGetPrecursors(const MSSpectrum& s) { return toArray(s.getPrecursors(), precursorToJS); }
+    JS::PrecursorList spectrumGetPrecursors(const MSSpectrum& s) { return toArray(s.getPrecursors(), precursorToJS); }
 
-    void spectrumSetPrecursors(MSSpectrum& s, const val& precursors)
+    void spectrumSetPrecursors(MSSpectrum& s, const JS::PrecursorInputList& precursors)
     {
       std::vector<Precursor> result;
       const unsigned n = precursors["length"].as<unsigned>();
@@ -178,7 +158,7 @@ namespace OpenMS::WASM
       s.setPrecursors(result);
     }
 
-    val spectrumGetProducts(const MSSpectrum& s) { return toArray(s.getProducts(), productToJS); }
+    JS::ProductList spectrumGetProducts(const MSSpectrum& s) { return toArray(s.getProducts(), productToJS); }
 
     std::string spectrumGetType(const MSSpectrum& s) { return SpectrumSettings::spectrumTypeToString(s.getType()); }
     void spectrumSetType(MSSpectrum& s, const std::string& type) { s.setType(SpectrumSettings::toSpectrumType(type)); }
@@ -201,7 +181,7 @@ namespace OpenMS::WASM
     int spectrumFindNearestTol(const MSSpectrum& s, double mz, double tolerance) { return s.findNearest(mz, tolerance); }
     double spectrumTIC(const MSSpectrum& s) { return s.calculateTIC(); }
 
-    val spectrumBasePeak(const MSSpectrum& s)
+    JS::BasePeak spectrumBasePeak(const MSSpectrum& s)
     {
       if (s.empty()) return val::null();
       const auto it = s.getBasePeak();
@@ -212,14 +192,14 @@ namespace OpenMS::WASM
       return o;
     }
 
-    val spectrumFloatDataArrays(const MSSpectrum& s) { return dataArraysToJS(s.getFloatDataArrays()); }
-    val spectrumIntegerDataArrays(const MSSpectrum& s) { return dataArraysToJS(s.getIntegerDataArrays()); }
-    val spectrumStringDataArrays(const MSSpectrum& s) { return dataArraysToJS(s.getStringDataArrays()); }
+    JS::FloatDataArrays spectrumFloatDataArrays(const MSSpectrum& s) { return dataArraysToJS(s.getFloatDataArrays()); }
+    JS::IntegerDataArrays spectrumIntegerDataArrays(const MSSpectrum& s) { return dataArraysToJS(s.getIntegerDataArrays()); }
+    JS::StringDataArrays spectrumStringDataArrays(const MSSpectrum& s) { return dataArraysToJS(s.getStringDataArrays()); }
 
     //------------------------------------------------------------------------------
     // MSChromatogram
 
-    val chromatogramGetPeaks(const MSChromatogram& c)
+    JS::ChromatogramPeaks chromatogramGetPeaks(const MSChromatogram& c)
     {
       val o = val::object();
       o.set("rt", toTypedArray<double>(c, [](const ChromatogramPeak& p) { return p.getRT(); }));
@@ -227,7 +207,7 @@ namespace OpenMS::WASM
       return o;
     }
 
-    void chromatogramSetPeaks(MSChromatogram& c, const val& rt, const val& intensity)
+    void chromatogramSetPeaks(MSChromatogram& c, const JS::NumberInput& rt, const JS::NumberInput& intensity)
     {
       const auto rts = numbersFromJS<double>(rt);
       const auto ints = numbersFromJS<float>(intensity);
@@ -255,9 +235,9 @@ namespace OpenMS::WASM
       c.emplace_back(rt, static_cast<float>(intensity));
     }
 
-    val chromatogramGetPrecursor(const MSChromatogram& c) { return precursorToJS(c.getPrecursor()); }
-    void chromatogramSetPrecursor(MSChromatogram& c, const val& p) { c.setPrecursor(precursorFromJS(p)); }
-    val chromatogramGetProduct(const MSChromatogram& c) { return productToJS(c.getProduct()); }
+    JS::PrecursorObject chromatogramGetPrecursor(const MSChromatogram& c) { return precursorToJS(c.getPrecursor()); }
+    void chromatogramSetPrecursor(MSChromatogram& c, const JS::PrecursorInput& p) { c.setPrecursor(precursorFromJS(p)); }
+    JS::ProductObject chromatogramGetProduct(const MSChromatogram& c) { return productToJS(c.getProduct()); }
     std::string chromatogramGetType(const MSChromatogram& c) { return ChromatogramSettings::ChromatogramNames[static_cast<int>(c.getChromatogramType())]; }
     void chromatogramClear(MSChromatogram& c, bool clear_meta_data) { c.clear(clear_meta_data); }
     double chromatogramTIC(const MSChromatogram& c)
@@ -266,7 +246,7 @@ namespace OpenMS::WASM
       for (const auto& p : c) sum += p.getIntensity();
       return sum;
     }
-    val chromatogramFloatDataArrays(const MSChromatogram& c) { return dataArraysToJS(c.getFloatDataArrays()); }
+    JS::FloatDataArrays chromatogramFloatDataArrays(const MSChromatogram& c) { return dataArraysToJS(c.getFloatDataArrays()); }
 
     //------------------------------------------------------------------------------
     // MSExperiment
@@ -307,7 +287,7 @@ namespace OpenMS::WASM
 
     void experimentAddSpectrum(MSExperiment& e, const MSSpectrum& s) { e.addSpectrum(s); }
     void experimentAddChromatogram(MSExperiment& e, const MSChromatogram& c) { e.addChromatogram(c); }
-    val experimentGetMSLevels(const MSExperiment& e) { return toArray(e.getMSLevels()); }
+    JS::NumberArray experimentGetMSLevels(const MSExperiment& e) { return toArray(e.getMSLevels()); }
     void experimentSortSpectra(MSExperiment& e, bool sort_mz) { e.sortSpectra(sort_mz); }
     void experimentSortChromatograms(MSExperiment& e, bool sort_rt) { e.sortChromatograms(sort_rt); }
     bool experimentIsSorted(const MSExperiment& e, bool check_mz) { return e.isSorted(check_mz); }
@@ -326,7 +306,7 @@ namespace OpenMS::WASM
     int experimentFirstProductSpectrum(const MSExperiment& e, int index) { return e.getFirstProductSpectrum(index); }
 
     /// One row per spectrum: what a spectrum table of a user interface shows, without copying peaks.
-    val experimentSpectrumSummary(const MSExperiment& e)
+    JS::SpectrumSummary experimentSpectrumSummary(const MSExperiment& e)
     {
       val rows = val::array();
       for (Size i = 0; i < e.size(); ++i)
@@ -358,7 +338,7 @@ namespace OpenMS::WASM
     }
 
     /// All peaks of @p ms_level in an RT/m/z window as three columns (for heat maps etc.).
-    val experimentGet2DPeakData(const MSExperiment& e, double min_rt, double max_rt, double min_mz, double max_mz, UInt ms_level)
+    JS::PeakData2D experimentGet2DPeakData(const MSExperiment& e, double min_rt, double max_rt, double min_mz, double max_mz, UInt ms_level)
     {
       std::vector<double> rt, mz;
       std::vector<float> intensity;
@@ -426,7 +406,7 @@ EMSCRIPTEN_BINDINGS(openms_kernel)
     .function("getStringDataArrays", OMS_FN(&spectrumStringDataArrays))
     .function("getMetaValue", OMS_FN(&metaValue<MSSpectrum>))
     .function("setMetaValue", OMS_FN(&setMetaValue<MSSpectrum>))
-    .function("metaValueExists", OMS_METHOD(MSSpectrum, static_cast<bool (MetaInfoInterface::*)(const std::string&) const>(&MetaInfoInterface::metaValueExists)))
+    .function("metaValueExists", OMS_FN(&metaValueExists<MSSpectrum>))
     .function("getMetaValueKeys", OMS_FN(&metaValueKeys<MSSpectrum>))
     .function("getMetaValues", OMS_FN(&metaValuesToObject<MSSpectrum>))
     ;

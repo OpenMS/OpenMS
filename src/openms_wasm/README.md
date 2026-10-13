@@ -27,7 +27,8 @@ The bindings cover a selection of the OpenMS API, named as in C++ and pyOpenMS:
 | Parameters | `Param`, and on every algorithm `getParameters()`/`setParameters()`, `getParameterValues()`/`setParameterValues({...})` |
 | Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, the file system `FS` |
 
-`openms.d.ts` declares all of them for TypeScript.
+`openms.d.ts` declares all of them for TypeScript, including the shapes of the plain objects
+they return (e.g. `getPeaks(): { mz: Float64Array; intensity: Float32Array }`).
 
 ## Using the module
 
@@ -50,7 +51,33 @@ OpenMS.setLogEnabled("info", false);       // silence progress messages
 ```
 
 Browsers have to serve `openms.wasm` as `application/wasm`. Large files are best
-processed in a Web Worker, so that the page stays responsive.
+processed in a Web Worker, so that the page stays responsive; a worker can also read the
+user's file directly, without copying it into memory first:
+
+```js
+// worker.mjs, started with new Worker("worker.mjs", { type: "module" })
+import createOpenMS from "@openms/openms-wasm";
+const ready = createOpenMS();                    // set onmessage before awaiting anything
+
+onmessage = async ({ data: file }) => {          // a File from <input type="file">
+  const OpenMS = await ready;
+  OpenMS.FS.mkdir("/input");
+  OpenMS.FS.mount(OpenMS.FS.filesystems.WORKERFS, { files: [file] }, "/input");
+  const handler = new OpenMS.FileHandler();
+  const exp = new OpenMS.MSExperiment();
+  try {
+    handler.loadExperiment(`/input/${file.name}`, exp);
+    postMessage(exp.getSpectrumSummary());       // plain objects: no cleanup, cloneable
+  } finally {
+    handler.delete();
+    exp.delete();
+    OpenMS.FS.unmount("/input");
+    OpenMS.FS.rmdir("/input");
+  }
+};
+```
+
+`examples/node/summary.mjs` shows the same with Node.js (`NODEFS`).
 
 ### Files
 
@@ -85,9 +112,10 @@ Gzip- and bzip2-compressed mzML files are read as usual.
 
 Objects created from JavaScript (`new OpenMS.MSExperiment()`, but also objects returned
 by functions, like `exp.getSpectrum(0)`) live in the WebAssembly memory and are not
-garbage collected: call `.delete()` when done, or declare them with
-[`using`](https://github.com/tc39/proposal-explicit-resource-management)
-(`using exp = new OpenMS.MSExperiment();`). Plain values are converted to JavaScript and
+garbage collected: call `.delete()` when done, or, where the JavaScript engine supports
+[`using`](https://github.com/tc39/proposal-explicit-resource-management) declarations
+(Node.js 24, current Chrome and Firefox), declare them with `using exp = new OpenMS.MSExperiment();`.
+Plain values are converted to JavaScript and
 need no cleanup: numbers, strings, arrays, peak data (`Float64Array`/`Float32Array`), and
 the plain objects returned for small records (precursors, residues, modifications,
 parameter entries, `toArray()`/`toObject()` views of results).

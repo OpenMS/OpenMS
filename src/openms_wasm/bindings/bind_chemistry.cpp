@@ -36,7 +36,7 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // Residues and modifications as plain objects (they live in OpenMS' databases)
 
-    val residueToJS(const Residue& r)
+    JS::ResidueObject residueToJS(const Residue& r)
     {
       val o = val::object();
       o.set("name", r.getName());
@@ -50,7 +50,7 @@ namespace OpenMS::WASM
       return o;
     }
 
-    val modificationToJS(const ResidueModification* m)
+    JS::ModificationObject modificationToJS(const ResidueModification* m)
     {
       if (m == nullptr) return val::null();
       val o = val::object();
@@ -67,7 +67,7 @@ namespace OpenMS::WASM
       return o;
     }
 
-    ResidueModification::TermSpecificity termSpecificityFromJS(const val& v)
+    ResidueModification::TermSpecificity termSpecificityFromJS(const JS::TermSpecificityInput& v)
     {
       if (isNullish(v)) return ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
       const std::string name = v.as<std::string>();
@@ -94,12 +94,12 @@ namespace OpenMS::WASM
     AASequence sequencePrefix(const AASequence& s, Size n) { return s.getPrefix(n); }
     AASequence sequenceSuffix(const AASequence& s, Size n) { return s.getSuffix(n); }
     AASequence sequenceSubsequence(const AASequence& s, Size start, UInt n) { return s.getSubsequence(start, n); }
-    val sequenceResidue(const AASequence& s, Size i)
+    JS::ResidueObject sequenceResidue(const AASequence& s, Size i)
     {
       if (i >= s.size()) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, i, s.size());
       return residueToJS(s.getResidue(i));
     }
-    val sequenceResidues(const AASequence& s)
+    JS::ResidueList sequenceResidues(const AASequence& s)
     {
       val result = val::array();
       for (Size i = 0; i < s.size(); ++i) result.call<void>("push", residueToJS(s.getResidue(i)));
@@ -114,7 +114,7 @@ namespace OpenMS::WASM
     bool sequenceHasPrefix(const AASequence& s, const AASequence& other) { return s.hasPrefix(other); }
     bool sequenceHasSuffix(const AASequence& s, const AASequence& other) { return s.hasSuffix(other); }
     bool sequenceEquals(const AASequence& s, const AASequence& other) { return s == other; }
-    val sequenceAAFrequencies(const AASequence& s)
+    JS::ElementCounts sequenceAAFrequencies(const AASequence& s)
     {
       std::map<std::string, Size> table;
       s.getAAFrequencies(table);
@@ -127,7 +127,7 @@ namespace OpenMS::WASM
     // EmpiricalFormula
 
     EmpiricalFormula formulaFromString(const std::string& s) { return EmpiricalFormula(s); }
-    val formulaToObject(const EmpiricalFormula& f)
+    JS::ElementCounts formulaToObject(const EmpiricalFormula& f)
     {
       val o = val::object();
       for (const auto& [element, count] : f.toMap()) o.set(element, count);
@@ -142,14 +142,14 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // IsotopeDistribution
 
-    val isotopesPeaks(const IsotopeDistribution& d)
+    JS::IsotopePeaks isotopesPeaks(const IsotopeDistribution& d)
     {
       val o = val::object();
       o.set("mz", toTypedArray<double>(d.getContainer(), [](const Peak1D& p) { return p.getMZ(); }));
       o.set("intensity", toTypedArray<double>(d.getContainer(), [](const Peak1D& p) { return p.getIntensity(); }));
       return o;
     }
-    val isotopesContainer(const IsotopeDistribution& d)
+    JS::PeakObjectList isotopesContainer(const IsotopeDistribution& d)
     {
       return toArray(d.getContainer(), [](const Peak1D& p) {
         val o = val::object();
@@ -158,7 +158,7 @@ namespace OpenMS::WASM
         return o;
       });
     }
-    val isotopesMostAbundant(const IsotopeDistribution& d)
+    JS::OptionalPeak isotopesMostAbundant(const IsotopeDistribution& d)
     {
       if (d.size() == 0) return val::null();
       const Peak1D p = d.getMostAbundant();
@@ -176,12 +176,12 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // Databases (static functions)
 
-    val residueDBGetResidue(const std::string& name)
+    JS::ResidueObject residueDBGetResidue(const std::string& name)
     {
       const Residue* r = ResidueDB::getInstance()->getResidue(name); // throws for unknown names
       return residueToJS(*r);
     }
-    val residueDBGetResidueNames()
+    JS::StringArray residueDBGetResidueNames()
     {
       std::vector<std::string> names;
       for (const Residue* r : ResidueDB::getInstance()->getResidues("Natural20")) names.push_back(r->getName());
@@ -189,37 +189,37 @@ namespace OpenMS::WASM
       return toArray(names);
     }
 
-    val modDBGetModification(const std::string& name) { return modificationToJS(ModificationsDB::getInstance()->getModification(name)); }
-    val modDBGetModificationAt(const std::string& name, const std::string& residue, const val& term)
+    JS::ModificationObject modDBGetModification(const std::string& name) { return modificationToJS(ModificationsDB::getInstance()->getModification(name)); }
+    JS::ModificationObject modDBGetModificationAt(const std::string& name, const std::string& residue, const JS::TermSpecificityInput& term)
     {
       return modificationToJS(ModificationsDB::getInstance()->getModification(name, residue, termSpecificityFromJS(term)));
     }
     bool modDBHas(const std::string& name) { return ModificationsDB::getInstance()->has(name); }
-    val modDBAllSearchModifications()
+    JS::StringArray modDBAllSearchModifications()
     {
       std::vector<std::string> mods;
       ModificationsDB::getInstance()->getAllSearchModifications(mods);
       return toArray(mods);
     }
-    val modDBSearchByDiffMonoMass(double mass, double max_error, const std::string& residue)
+    JS::StringArray modDBSearchByDiffMonoMass(double mass, double max_error, const std::string& residue)
     {
       std::vector<std::string> mods;
       ModificationsDB::getInstance()->searchModificationsByDiffMonoMassSorted(mods, mass, max_error, residue);
       return toArray(mods);
     }
-    val modDBBestByDiffMonoMass(double mass, double max_error, const std::string& residue)
+    JS::ModificationObject modDBBestByDiffMonoMass(double mass, double max_error, const std::string& residue)
     {
       return modificationToJS(ModificationsDB::getInstance()->getBestModificationByDiffMonoMass(mass, max_error, residue));
     }
 
-    val proteaseDBAllNames()
+    JS::StringArray proteaseDBAllNames()
     {
       std::vector<std::string> names;
       ProteaseDB::getInstance()->getAllNames(names);
       std::sort(names.begin(), names.end());
       return toArray(names);
     }
-    val proteaseDBGetEnzyme(const std::string& name)
+    JS::EnzymeObject proteaseDBGetEnzyme(const std::string& name)
     {
       const DigestionEnzymeProtein* e = ProteaseDB::getInstance()->getEnzyme(name); // throws for unknown names
       val o = val::object();
@@ -238,14 +238,14 @@ namespace OpenMS::WASM
     std::string digestionGetSpecificity(const ProteaseDigestion& d) { return EnzymaticDigestion::NamesOfSpecificity[d.getSpecificity()]; }
     void digestionSetSpecificity(ProteaseDigestion& d, const std::string& name) { d.setSpecificity(EnzymaticDigestion::getSpecificityByName(name)); }
 
-    val digestionDigest(const ProteaseDigestion& d, const AASequence& protein, Size min_length, Size max_length)
+    JS::AASequenceList digestionDigest(const ProteaseDigestion& d, const AASequence& protein, Size min_length, Size max_length)
     {
       std::vector<AASequence> peptides;
       d.digest(protein, peptides, min_length, max_length);
       return toArray(peptides);
     }
 
-    val digestionDigestUnmodified(const ProteaseDigestion& d, const std::string& protein, Size min_length, Size max_length)
+    JS::StringArray digestionDigestUnmodified(const ProteaseDigestion& d, const std::string& protein, Size min_length, Size max_length)
     {
       std::vector<std::string_view> peptides;
       d.digestUnmodified(protein, peptides, min_length, max_length);

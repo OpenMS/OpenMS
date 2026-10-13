@@ -152,7 +152,7 @@ namespace OpenMS::WASM
     return DataValue(paramValueFromJS(v));
   }
 
-  val paramToObject(const Param& p)
+  JS::ParamValues paramToObject(const Param& p)
   {
     val result = val::object();
     for (auto it = p.begin(); it != p.end(); ++it)
@@ -162,7 +162,7 @@ namespace OpenMS::WASM
     return result;
   }
 
-  void updateParamFromObject(Param& p, const val& values)
+  void updateParamFromObject(Param& p, const JS::ParamValues& values)
   {
     const val keys = val::global("Object").call<val>("keys", values);
     const unsigned n = keys["length"].as<unsigned>();

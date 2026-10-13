@@ -15,6 +15,8 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 
+#include "js_types.h"
+
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 
@@ -256,14 +258,17 @@ namespace OpenMS::WASM
   DataValue dataValueFromJS(const val& v);
 
   /// All entries of @p p as {name: value} object.
-  val paramToObject(const Param& p);
+  JS::ParamValues paramToObject(const Param& p);
 
   /// Sets the values in @p values (an object {name: value}); names must exist in @p p.
-  void updateParamFromObject(Param& p, const val& values);
+  void updateParamFromObject(Param& p, const JS::ParamValues& values);
 
-  /// Meta values of a MetaInfoInterface as {name: value} object.
+  //------------------------------------------------------------------------------
+  // Meta values (MetaInfoInterface), bound as methods of the classes that have them
+
+  /// Meta values of @p object as {name: value} object.
   template <typename T>
-  val metaValuesToObject(const T& object)
+  JS::MetaValues metaValuesToObject(const T& object)
   {
     val result = val::object();
     std::vector<std::string> keys;
@@ -272,6 +277,33 @@ namespace OpenMS::WASM
     {
       result.set(key, toJS(object.getMetaValue(key)));
     }
-    return result;
+    return JS::MetaValues(result);
+  }
+
+  /// The meta value @p name, or undefined.
+  template <typename T>
+  JS::MetaValue metaValue(const T& object, const std::string& name)
+  {
+    return JS::MetaValue(object.metaValueExists(name) ? toJS(object.getMetaValue(name)) : val::undefined());
+  }
+
+  template <typename T>
+  void setMetaValue(T& object, const std::string& name, const JS::MetaValueInput& value)
+  {
+    object.setMetaValue(name, dataValueFromJS(value));
+  }
+
+  template <typename T>
+  bool metaValueExists(const T& object, const std::string& name)
+  {
+    return object.metaValueExists(name);
+  }
+
+  template <typename T>
+  JS::StringArray metaValueKeys(const T& object)
+  {
+    std::vector<std::string> keys;
+    object.getKeys(keys);
+    return JS::StringArray(toArray(keys));
   }
 } // namespace OpenMS::WASM

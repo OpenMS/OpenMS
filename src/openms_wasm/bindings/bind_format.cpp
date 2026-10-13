@@ -72,7 +72,7 @@ namespace OpenMS::WASM
       return a;
     }
 
-    val peakFileOptionsToJS(const PeakFileOptions& o)
+    JS::PeakFileOptions peakFileOptionsToJS(const PeakFileOptions& o)
     {
       val v = val::object();
       v.set("msLevels", toArray(o.getMSLevels()));
@@ -89,13 +89,13 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // MzMLFile
 
-    void mzmlSetOptions(MzMLFile& f, const val& options)
+    void mzmlSetOptions(MzMLFile& f, const JS::PeakFileOptions& options)
     {
       PeakFileOptions o = f.getOptions();
       applyPeakFileOptions(o, options);
       f.setOptions(o);
     }
-    val mzmlGetOptions(const MzMLFile& f) { return peakFileOptionsToJS(f.getOptions()); }
+    JS::PeakFileOptions mzmlGetOptions(const MzMLFile& f) { return peakFileOptionsToJS(f.getOptions()); }
     void mzmlLoad(MzMLFile& f, const std::string& path, PeakMap& exp) { f.load(path, exp); }
     void mzmlStore(const MzMLFile& f, const std::string& path, const PeakMap& exp) { f.store(path, exp); }
     void mzmlLoadBuffer(MzMLFile& f, const std::string& buffer, PeakMap& exp) { f.loadBuffer(buffer, exp); }
@@ -141,7 +141,7 @@ namespace OpenMS::WASM
     }
 
     /// FASTA entries as plain objects {identifier, description, sequence}.
-    val fastaLoad(const FASTAFile& f, const std::string& path)
+    JS::FASTAEntries fastaLoad(const FASTAFile& f, const std::string& path)
     {
       std::vector<FASTAFile::FASTAEntry> entries;
       f.load(path, entries);
@@ -154,7 +154,7 @@ namespace OpenMS::WASM
       });
     }
 
-    void fastaStore(const FASTAFile& f, const std::string& path, const val& entries)
+    void fastaStore(const FASTAFile& f, const std::string& path, const JS::FASTAEntries& entries)
     {
       std::vector<FASTAFile::FASTAEntry> result;
       const unsigned n = entries["length"].as<unsigned>();
@@ -175,13 +175,13 @@ namespace OpenMS::WASM
     std::string handlerGetTypeByFileName(const std::string& path) { return FileTypes::typeToName(FileHandler::getTypeByFileName(path)); }
     std::string handlerGetTypeByContent(const std::string& path) { return FileTypes::typeToName(FileHandler::getTypeByContent(path)); }
 
-    void handlerSetOptions(FileHandler& h, const val& options)
+    void handlerSetOptions(FileHandler& h, const JS::PeakFileOptions& options)
     {
       PeakFileOptions o = h.getOptions();
       applyPeakFileOptions(o, options);
       h.setOptions(o);
     }
-    val handlerGetOptions(const FileHandler& h) { return peakFileOptionsToJS(h.getOptions()); }
+    JS::PeakFileOptions handlerGetOptions(const FileHandler& h) { return peakFileOptionsToJS(h.getOptions()); }
     void handlerLoadExperiment(FileHandler& h, const std::string& path, PeakMap& exp) { h.loadExperiment(path, exp); }
     void handlerStoreExperiment(FileHandler& h, const std::string& path, const PeakMap& exp) { h.storeExperiment(path, exp); }
     void handlerLoadFeatures(FileHandler& h, const std::string& path, FeatureMap& map) { h.loadFeatures(path, map); }

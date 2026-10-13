@@ -32,13 +32,13 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // Param
 
-    val paramGetValue(const Param& p, const std::string& key)
+    JS::ParamValue paramGetValue(const Param& p, const std::string& key)
     {
       const Param::ParamEntry& entry = p.getEntry(key); // throws ElementNotFound
       return toJS(entry.value, entry.isBool());
     }
 
-    void paramSetValue(Param& p, const std::string& key, const val& value)
+    void paramSetValue(Param& p, const std::string& key, const JS::ParamValue& value)
     {
       if (p.exists(key))
       {
@@ -52,14 +52,14 @@ namespace OpenMS::WASM
       }
     }
 
-    void paramSetValueDescribed(Param& p, const std::string& key, const val& value, const std::string& description)
+    void paramSetValueDescribed(Param& p, const std::string& key, const JS::ParamValue& value, const std::string& description)
     {
       p.setValue(key, paramValueFromJS(value), description);
     }
 
     double paramSize(const Param& p) { return static_cast<double>(p.size()); }
 
-    val paramKeys(const Param& p)
+    JS::StringArray paramKeys(const Param& p)
     {
       val result = val::array();
       for (auto it = p.begin(); it != p.end(); ++it) result.call<void>("push", it.getName());
@@ -80,7 +80,7 @@ namespace OpenMS::WASM
       }
     }
 
-    val entryToJS(const std::string& name, const Param::ParamEntry& e)
+    JS::ParamEntry entryToJS(const std::string& name, const Param::ParamEntry& e)
     {
       val o = val::object();
       o.set("name", name);
@@ -103,16 +103,16 @@ namespace OpenMS::WASM
     }
 
     /// All entries with their documentation: what a user interface needs to build a parameter form.
-    val paramEntries(const Param& p)
+    JS::ParamEntries paramEntries(const Param& p)
     {
       val result = val::array();
       for (auto it = p.begin(); it != p.end(); ++it) result.call<void>("push", entryToJS(it.getName(), *it));
       return result;
     }
 
-    val paramGetEntry(const Param& p, const std::string& key) { return entryToJS(key, p.getEntry(key)); }
+    JS::ParamEntry paramGetEntry(const Param& p, const std::string& key) { return entryToJS(key, p.getEntry(key)); }
     std::string paramGetDescription(const Param& p, const std::string& key) { return p.getDescription(key); }
-    val paramGetTags(const Param& p, const std::string& key) { return toArray(p.getTags(key)); }
+    JS::StringArray paramGetTags(const Param& p, const std::string& key) { return toArray(p.getTags(key)); }
     Param paramCopy(const Param& p, const std::string& prefix, bool remove_prefix) { return p.copy(prefix, remove_prefix); }
     void paramInsert(Param& p, const std::string& prefix, const Param& other) { p.insert(prefix, other); }
 
@@ -122,10 +122,10 @@ namespace OpenMS::WASM
     Param handlerGetParameters(const DefaultParamHandler& h) { return h.getParameters(); }
     Param handlerGetDefaults(const DefaultParamHandler& h) { return h.getDefaults(); }
     std::string handlerGetName(const DefaultParamHandler& h) { return h.getName(); }
-    val handlerGetParameterValues(const DefaultParamHandler& h) { return paramToObject(h.getParameters()); }
+    JS::ParamValues handlerGetParameterValues(const DefaultParamHandler& h) { return paramToObject(h.getParameters()); }
 
     /// Sets the parameters named in @p values ({name: value}), keeping the others.
-    void handlerSetParameterValues(DefaultParamHandler& h, const val& values)
+    void handlerSetParameterValues(DefaultParamHandler& h, const JS::ParamValues& values)
     {
       Param p = h.getParameters();
       updateParamFromObject(p, values);
@@ -149,7 +149,7 @@ namespace OpenMS::WASM
     void normalizerSpectrum(const Normalizer& f, MSSpectrum& s) { f.filterPeakSpectrum(s); }
     void normalizerPeakMap(const Normalizer& f, PeakMap& e) { f.filterPeakMap(e); }
 
-    val alignmentGet(const SpectrumAlignment& a, const MSSpectrum& s1, const MSSpectrum& s2)
+    JS::Alignment alignmentGet(const SpectrumAlignment& a, const MSSpectrum& s1, const MSSpectrum& s2)
     {
       std::vector<std::pair<Size, Size>> alignment;
       a.getSpectrumAlignment(alignment, s1, s2);

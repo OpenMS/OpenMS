@@ -79,6 +79,7 @@ add_executable(openms_wasm
   bindings/bind_kernel.cpp
   bindings/bind_misc.cpp
   bindings/bind_processing.cpp
+  bindings/js_types.cpp
 )
 target_link_libraries(openms_wasm PRIVATE OpenMS)
 openms_add_compiler_flags(openms_wasm)
