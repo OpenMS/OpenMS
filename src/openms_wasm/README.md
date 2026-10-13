@@ -152,7 +152,8 @@ other programs (search engine adapters, R, Java), has no network access of its o
 (`NetworkGetRequest` reports an error; fetch data in JavaScript and write it to the file
 system), and cannot read vendor formats (Thermo RAW, Bruker .d): convert them to mzML
 first. The HMDB mapping tables of accurate mass search are not packaged (write them to
-`/share/OpenMS/CHEMISTRY/` if needed).
+`/share/OpenMS/CHEMISTRY/` if needed). A JavaScript engine reports no CPU time: the CPU
+times of `StopWatch` are the elapsed times of the module.
 
 ## Building
 
@@ -189,7 +190,13 @@ pass `locateFile`), or not at all (`NONE`).
 
 The OpenMS class tests can be run on the WebAssembly library as well: configure with
 `-DENABLE_CLASS_TESTING=ON`, build the tests you want (each links the whole library) and
-run them with `ctest`; they run in Node.js and use the files of the build machine.
+run them with `ctest`; they run in Node.js and use the files of the build machine. All of
+them pass except those that exercise what the module does not have: threads
+(`GlobalExceptionHandler`, `LogConfigHandler`, `LogStream`, `UniqueIdGenerator`, `File`,
+`TOPPBase`: they start `std::thread`s), other programs and the network (`ExternalProcess`,
+`TOPPExternalToolBase`, `Network`; `File` also looks for programs next to its own), and the
+TOPP tool registry (`ToolHandler`: it lists the tools of the build, and the WebAssembly
+build has none).
 
 The WebAssembly build installs no CMake package (`OpenMSConfig.cmake`): its libraries are
 static and privately link bundled libraries that are not installed. To compile C++ code of

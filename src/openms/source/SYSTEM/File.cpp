@@ -27,6 +27,7 @@
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
+#include <random>
 #include <set>
 #include <vector>
 
@@ -653,6 +654,11 @@ namespace OpenMS{
     std::string pid;
 #ifdef OPENMS_WINDOWSPLATFORM
     pid = StringUtils::toStr(static_cast<long long>(GetCurrentProcessId()));
+#elif defined(__EMSCRIPTEN__)
+    // getpid() is 42 in every WebAssembly module: a random number, drawn once per module
+    // instance, tells instances apart that share a file system (e.g. Node.js programs run in parallel)
+    static const std::string instance_id = StringUtils::toStr(static_cast<long long>(std::random_device{}()));
+    pid = instance_id;
 #else
     pid = StringUtils::toStr(static_cast<long long>(getpid()));
 #endif
