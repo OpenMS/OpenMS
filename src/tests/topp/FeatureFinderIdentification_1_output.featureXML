@@ -2341,10 +2341,10 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.926508064873514"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.893218486235624"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.309917568900298"/>
-			<UserParam type="float" name="var_library_sangle" value="0.497597408861928"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.309917568900298"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.407551402615396"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.295388978801226"/>
+			<UserParam type="float" name="var_library_sangle" value="0.469570782949061"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.295388978801226"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.392609239362389"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.931575655645972"/>
 			<UserParam type="float" name="var_intensity_score" value="0.810766316962763"/>
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
@@ -2354,7 +2354,7 @@
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.011045668207526"/>
 			<UserParam type="float" name="var_massdev_score" value="0.0"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.0"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.00423175730867"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.040160802843185"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="613.30659575872096"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
