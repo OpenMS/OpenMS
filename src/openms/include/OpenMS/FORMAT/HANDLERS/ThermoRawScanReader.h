@@ -109,6 +109,22 @@ namespace Internal
     void readAhead(int last_scan, int peaks_from);
 
     /**
+      @brief Visit the headers of scans @p first to @p last ahead of header(), without peaks.
+
+      A cheap pass, e.g. to count the scans a filtered conversion selects before streaming them
+      or to index a file for random access. Instrument configurations are registered in the
+      same order as header() would register them (so ids match a single pass), and the state
+      of header() and convert() is not changed otherwise.
+
+      @param[in] first First scan number; use firstScan() if precursors are resolved
+      @param[in] last Last scan number
+      @param[in] precursors Also set ScanInfo::precursor_mz. Reads the trailers and resolves
+                 the precursors from @p first on (slower); otherwise precursor_mz is NaN.
+      @param[in] visit Called for every scan in order; returning false stops the pass
+    */
+    void scanHeaders(int first, int last, bool precursors, const std::function<bool(const ScanInfo&)>& visit);
+
+    /**
       @brief Convert the scan of the last header() call.
 
       @param[out] spectrum The converted spectrum (peaks sorted by m/z)
@@ -133,7 +149,7 @@ namespace Internal
     /// TIC chromatogram as reported by the vendor library (reads every scan header).
     MSChromatogram ticChromatogram() const;
 
-    /// Detector (UV/PDA/analog) chromatograms and PDA spectra (Options::all_detectors).
+    /// Detector (UV/PDA/analog) chromatograms and PDA spectra (Options::all_detectors); may be called at any time.
     void readDetectors(std::vector<MSChromatogram>& chromatograms, std::vector<MSSpectrum>& spectra);
 
   private:

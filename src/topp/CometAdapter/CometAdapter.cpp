@@ -20,6 +20,8 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -711,25 +713,34 @@ protected:
 #ifdef WITH_THERMO_RAW
     if (is_thermo_raw)
     {
-      // Load .raw via FileHandler (dispatches to ThermoRawFile).
-      // Only target MS level is loaded.
-      FileHandler fh;
-      fh.getOptions().clearMSLevels();
-      fh.getOptions().addMSLevel(ms_level);
-      fh.loadExperiment(inputfile_name, exp, {FileTypes::RAW}, log_type_);
-
-      OPENMS_LOG_INFO << "Loaded " << exp.size() << " MS" << ms_level
-                      << " spectra from Thermo .raw file." << std::endl;
-
+      // Stream .raw via FileHandler (dispatches to ThermoRawFile) into a temporary
+      // mzML, scan by scan. Only the target MS level is read. The spectrum metadata
+      // (without peaks) is kept in exp for post-processing.
       // Thermo native IDs are "scan=N" with monotonic N — mzParser handles
       // them correctly, so no native ID rewriting is needed (unlike the
       // Bruker path below where "frame=F scan=S" triggers a sort UB).
+      FileHandler fh;
+      fh.getOptions().clearMSLevels();
+      fh.getOptions().addMSLevel(ms_level);
       auto tmp_mzml = TempFiles::getTemporaryFile() + ".mzML";
-      MzMLFile().store(tmp_mzml, exp);
+      {
+        PlainMSDataWritingConsumer writer(tmp_mzml);
+        MSDataTransformingConsumer metadata;
+        metadata.setExperimentalSettingsFunc([&exp](const ExperimentalSettings& s) { exp.getExperimentalSettings() = s; });
+        metadata.setSpectraProcessingFunc([&exp](MSSpectrum& s)
+        {
+          MSSpectrum meta = s;
+          meta.clear(false);
+          exp.addSpectrum(std::move(meta));
+        });
+        std::vector<Interfaces::IMSDataConsumer*> consumers{&writer, &metadata};
+        MSDataChainingConsumer chain(consumers);
+        fh.transformExperiment(inputfile_name, &chain, {FileTypes::RAW}, log_type_);
+      }
       input_file_with_index = tmp_mzml;
 
-      // Free peak data but keep spectrum metadata for post-processing.
-      for (auto& spec : exp.getSpectra()) { spec.clear(false); }
+      OPENMS_LOG_INFO << "Converted " << exp.size() << " MS" << ms_level
+                      << " spectra from Thermo .raw file." << std::endl;
     }
     else
 #endif

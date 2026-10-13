@@ -121,6 +121,36 @@ precursor reconstruction, `MzMLFile_test` for synthetic metadata round trips,
 for RAW-to-mzML integration when `ENABLE_THERMO_RAW_TESTS=ON`. Python API tests
 are in `test_ThermoRawFile.py`.
 
+## Streaming
+
+`ThermoRawFile::transform(path, consumer)` gives the same spectra and
+chromatograms as `load()` with the same `Options`, but passes them one at a time
+to an `Interfaces::IMSDataConsumer` instead of building an `MSExperiment`. A
+first pass reads the scan headers only (no peaks). The consumer then receives:
+
+1. `setExpectedSize()` with the exact spectrum and chromatogram counts,
+2. `setExperimentalSettings()` with all instrument configurations,
+3. `consumeSpectrum()` for every selected MS scan in acquisition (RT) order,
+4. `consumeSpectrum()` for PDA spectra (`all_detectors`), RT-sorted among
+   themselves but after the MS scans (`load()` sorts them into the MS scans),
+5. `consumeChromatogram()` for the TIC, then the detector chromatograms.
+
+Memory does not grow with the file size. For the precursor intensity estimate,
+only the most recently converted parent scans are kept in a small bounded cache;
+a parent that is not cached is decoded again. Detector data (`all_detectors`) is
+read in one go. The SHA-1 is only computed if `Options::checksum` is set.
+
+| Entry point | Behaviour |
+| --- | --- |
+| `FileHandler::transformExperiment()` | Streams mzML, mzXML and .raw into a consumer; for .raw the `PeakFileOptions` are passed on as in `loadExperiment()` |
+| `FileConverter -process_lowmemory` | Streams .raw to mzML, mzXML and the other low-memory output types |
+| `OpenSwathWorkflow` | Streams .raw into the SWATH consumers; the run metadata is taken from a metadata-only read |
+| `SageAdapter`, `CometAdapter` | Stream .raw into the temporary mzML |
+
+A streamed mzML differs from an in-memory conversion only in the file content
+term (the streaming writer takes it from the first spectrum) and the index
+offsets.
+
 ## Building the paired branches locally
 
 The bridge source revision is pinned in `cmake_findExternalLibs.cmake` and the
