@@ -1434,7 +1434,14 @@ namespace OpenMS
 
     /// Retain one best candidate per observation; inference is explicitly preserved.
     static void keepBestMatchPerObservation(IdentificationData& data, const IdentificationData::ScoreDefinition& score);
-    /// Remove missing scores and values worse than the inclusive cutoff.
+    /**
+      @brief Remove matches without a value of @p score or with a value worse than the inclusive @p cutoff
+
+      Stored values must be finite, and PSM-level and distinct peptide-level q-values (accessions MS:1002354 and
+      MS:1001868) must lie in [0, 1]; other scores may be negative. All values are checked before anything is removed.
+
+      @throws Exception::InvalidValue A stored value is not finite or a q-value lies outside [0, 1] (the data is unchanged)
+    */
     static void filterObservationMatchesByScore(IdentificationData& data, const IdentificationData::ScoreDefinition& score, double cutoff);
     /// Remove decoy-only matches, decoy database sequences and the evidence that refers to them; preserve inference.
     static void removeDecoys(IdentificationData& data);

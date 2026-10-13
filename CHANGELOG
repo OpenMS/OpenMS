@@ -111,6 +111,7 @@ OpenMS Library:
     IDFileConverter for identifications (e.g. to idXML) and FileConverter for feature maps
     (to featureXML). Loading a .oms file now reports this. Native identification data is stored as
     .idparquet; maps with native identification data as .featureparquet/.consensusparquet.
+  - FIX: IDFilter throws on non-finite observation-match scores and PSM/distinct peptide q-values outside [0, 1] before modifying the data; missing scores are still filtered out.
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
@@ -455,6 +456,10 @@ TOPP tools:
         files also take effect. A subsequent run in the same process removes the console
         destination from both the global configuration and the current thread before it parses
         its command line, and adds it again only if its debug level is above 0 (#10478).
+	  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
+	    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
+	    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
+	    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
@@ -489,14 +494,12 @@ TOPP tools:
         peptide"). Such a combine is now refused and names the setting; detecting and combining
         runs have to use the same -protein_quantification (#10481).
     FileInfo:
+      - FIX: a duplicate FASTA header or sequence was not reported when an entry in between had the
+        same std::hash value; each hash now keeps all of its entries.
       - FIX: the consensusXML statistics (-s) for qualities were computed over twice the number of
         consensus features, half of the values zero; they now cover each feature once.
       - FIX: crashed on an idXML or mzIdentML with a peptide identification without hits; such
         spectra are now skipped as unidentified.
-  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
-    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
-    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
-    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 PyOpenMS:
   - Bindings for the owning IdentificationData model, IdentificationDataFile (native Parquet),

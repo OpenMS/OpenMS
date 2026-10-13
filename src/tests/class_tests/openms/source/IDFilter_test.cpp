@@ -6,6 +6,9 @@
 // $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <cmath>
+#include <limits>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -1088,6 +1091,117 @@ START_SECTION((static void keepNBestSpectra(PeptideIdentificationList& peptides,
   cout << peptides[1].getHits()[0].getSequence().toString() << endl;
   TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), 1000);
   TEST_REAL_SIMILAR(peptides[1].getHits()[0].getScore(), 40);
+}
+END_SECTION
+
+START_SECTION((static void filterObservationMatchesByScore(IdentificationData& data, const IdentificationData::ScoreDefinition& score, double cutoff)))
+{
+  using ID = IdentificationData;
+  // a run whose matches have a primary score and (except one) a value of @p score
+  const auto make = [](const ID::ScoreDefinition& score, const std::vector<double>& values) {
+    ID data;
+    auto& run = data.addRun("search");
+    ID::ScoreDefinition raw;
+    raw.name = "raw";
+    run.setPrimaryScore(run.addScore(raw));
+    run.addScore(score);
+    const auto source = run.addSource({});
+    ID::MatchData match;
+    match.representation = "PEPTIDEK";
+    for (Size i = 0; i < values.size(); ++i)
+    {
+      ID::Observation observation;
+      observation.data_id = "scan=" + StringUtils::toStr(i);
+      run.addMatch(run.addIdentification(source, observation), match, {1.0, values[i]});
+    }
+    ID::Observation missing;
+    missing.data_id = "missing";
+    run.addMatch(run.addIdentification(source, missing), match, {1.0, std::nullopt});
+    return data;
+  };
+  // Q-value cutoffs include their boundaries and remove missing values.
+  for (const std::string accession : {"MS:1002354", "MS:1001868"})
+  {
+    for (double cutoff : {0.05, 1.0})
+    {
+      ID::ScoreDefinition q;
+      q.name = "q-value";
+      q.accession = accession;
+      q.higher_better = false;
+      auto data = make(q, {0.0, 0.01, 0.05, 0.1, 1.0});
+      IDFilter::filterObservationMatchesByScore(data, q, cutoff);
+      const auto& run = data.getRuns().front();
+      TEST_EQUAL(run.getNumberOfMatches(), cutoff == 0.05 ? 3 : 5)
+      const auto view = run.bindScore(run.findScore(q));
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+          {
+            const auto value = view(match);
+            TEST_TRUE(value && *value >= 0.0 && *value <= cutoff)
+          }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] filterObservationMatchesByScore permits negative scores other than q-values))
+{
+  using ID = IdentificationData;
+  for (const bool higher_better : {false, true})
+  {
+    ID data;
+    auto& run = data.addRun("search");
+    ID::ScoreDefinition custom;
+    custom.name = "custom score";
+    custom.higher_better = higher_better;
+    run.setPrimaryScore(run.addScore(custom));
+    const auto source = run.addSource({});
+    ID::MatchData match;
+    match.representation = "PEPTIDEK";
+    for (double value : {-2.0, -1.0, 0.0}) run.addMatch(run.addIdentification(source, {}), match, {value});
+    IDFilter::filterObservationMatchesByScore(data, custom, -1.0);
+    TEST_EQUAL(data.getRuns().front().getNumberOfMatches(), 2)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] filterObservationMatchesByScore throws on q-values outside [0, 1] without changing the data))
+{
+  using ID = IdentificationData;
+  for (const std::string accession : {"MS:1002354", "MS:1001868"})
+  {
+    for (const double value : {-1.0, 2.0})
+    {
+      ID data;
+      auto& run = data.addRun("search");
+      ID::ScoreDefinition q;
+      q.name = "q-value";
+      q.accession = accession;
+      q.higher_better = false;
+      run.setPrimaryScore(run.addScore(q));
+      const auto source = run.addSource({});
+      ID::MatchData match;
+      match.representation = "PEPTIDEK";
+      for (double stored : {0.1, value, 0.01}) run.addMatch(run.addIdentification(source, {}), match, {stored});
+      const ID before = data;
+      TEST_EXCEPTION(Exception::InvalidValue, IDFilter::filterObservationMatchesByScore(data, q, 0.05))
+      TEST_TRUE(data == before)
+    }
+  }
+  // the same values are valid for a score that is not a q-value
+  ID data;
+  auto& run = data.addRun("search");
+  ID::ScoreDefinition custom;
+  custom.name = "custom score";
+  custom.higher_better = false;
+  run.setPrimaryScore(run.addScore(custom));
+  const auto source = run.addSource({});
+  ID::MatchData match;
+  match.representation = "PEPTIDEK";
+  for (double stored : {-1.0, 2.0, 0.01}) run.addMatch(run.addIdentification(source, {}), match, {stored});
+  IDFilter::filterObservationMatchesByScore(data, custom, 0.05);
+  TEST_EQUAL(data.getRuns().front().getNumberOfMatches(), 2)
 }
 END_SECTION
 

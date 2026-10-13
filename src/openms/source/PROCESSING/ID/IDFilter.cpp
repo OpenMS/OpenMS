@@ -7,8 +7,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <regex>
+#include <cmath>
 
 using namespace std;
 
@@ -743,6 +746,27 @@ namespace OpenMS
   void IDFilter::filterObservationMatchesByScore(IdentificationData& data, const IdentificationData::ScoreDefinition& score, double cutoff)
   {
     data.validate();
+    // PSM-level and distinct peptide-level q-values lie in [0, 1]; other scores may be negative. Checked before
+    // filtering, so that an invalid score leaves the data unchanged.
+    const bool q_value = score.accession == "MS:1002354" || score.accession == "MS:1001868";
+    for (const auto& run : data.getRuns())
+    {
+      if (run.getScoreDefinitions().empty()) continue;
+      const auto view = run.bindScore(run.findScore(score));
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          for (const auto& match : query.getMatches())
+          {
+            const auto value = view(match);
+            if (value && (! std::isfinite(*value) || (q_value && (*value < 0.0 || *value > 1.0))))
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "Invalid score of type '" + score.name + "' for identification '" + query.data_id + "': expected " +
+                                              (q_value ? "a finite q-value in [0, 1]." : "a finite score."),
+                                            StringUtils::toStr(*value));
+            }
+          }
+    }
     IdentificationData replacement(data);
     for (const auto& current : replacement.getRuns())
     {
