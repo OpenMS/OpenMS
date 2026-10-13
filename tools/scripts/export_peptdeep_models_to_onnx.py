@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import onnx
 import onnxruntime as ort
+from onnx import numpy_helper
 import torch
 
 from peptdeep.model.rt import AlphaRTModel
@@ -19,6 +20,12 @@ DEFAULT_PRETRAINED_DIR = Path(
 DEFAULT_OUT_DIR = Path(".")
 
 MOD_HIDDEN = len(model_const["mod_elements"])
+
+# The instrument reaches the MS2 model as a one-hot of width MAX_INSTRUMENT_NUM, so the position of
+# a name in INSTRUMENTS *is* its encoding and OpenMS has to mirror both. model_const.yaml says as
+# much: "We MUST keep the order of these instruments for models".
+INSTRUMENTS = list(model_const["instruments"])
+MAX_INSTRUMENT_NUM = model_const["max_instrument_num"]
 
 
 def parse_args():
@@ -51,6 +58,54 @@ def get_model_class(module_name, candidate_names):
         f"Could not find any of {candidate_names} in {module_name}. "
         f"Available model-like names: {available}"
     )
+
+
+def instrument_onehot_depth(onnx_path):
+    """Width of the instrument one-hot baked into an exported MS2 graph.
+
+    This is the bound on the instrument index at inference time, and it cannot be discovered from
+    the outside: ONNX's OneHot answers an out-of-range index with an all-off row instead of an
+    error, so a consumer that guesses too high silently loses the instrument.
+    """
+    graph = onnx.load(str(onnx_path)).graph
+
+    values = {init.name: init for init in graph.initializer}
+    for node in graph.node:
+        if node.op_type == "Constant":
+            for attr in node.attribute:
+                if attr.name == "value":
+                    values[node.output[0]] = attr.t
+
+    for node in graph.node:
+        if node.op_type == "OneHot":
+            depth = numpy_helper.to_array(values[node.input[1]])
+            return int(depth.reshape(-1)[0])
+
+    raise AssertionError(
+        f"{onnx_path} has no OneHot node: peptdeep's instrument encoding changed, so OpenMS' "
+        "ML::ALPHAPEPTDEEP_INSTRUMENTS and ML::PEPTDEEP_MAX_INSTRUMENT_NUM no longer describe it."
+    )
+
+
+def report_instruments():
+    """Print the instrument table OpenMS has to agree with.
+
+    OpenMS mirrors it in src/openms/include/OpenMS/ML/PEPTDEEP/PeptDeepUtils.h; a peptdeep release
+    that appends an instrument shows up here, and this is where to notice it.
+    """
+    print("\nInstrument encoding from peptdeep (model_const.yaml):")
+    for index, name in enumerate(INSTRUMENTS):
+        print(f"  {index} = {name}")
+    print(f"  {MAX_INSTRUMENT_NUM - 1} = anything else (featurize.py: unknown_inst_index)")
+    print(f"  max_instrument_num = {MAX_INSTRUMENT_NUM}, so "
+          f"{MAX_INSTRUMENT_NUM - 1 - len(INSTRUMENTS)} slot(s) left for new instruments")
+    print("  OpenMS mirror: ML::ALPHAPEPTDEEP_INSTRUMENTS = {"
+          + ", ".join(f'"{name}"' for name in INSTRUMENTS) + "}")
+
+    if len(INSTRUMENTS) > MAX_INSTRUMENT_NUM:
+        raise AssertionError(
+            f"{len(INSTRUMENTS)} instruments do not fit in max_instrument_num={MAX_INSTRUMENT_NUM}"
+        )
 
 
 def make_dummy_inputs(task, batch_size=1, seq_len=16):
@@ -145,10 +200,11 @@ def export_ms2(pretrained_dir, out_dir):
     model = AlphaMS2Model()
     model = warmup_and_load(model, pretrained_dir / "ms2.pth", "ms2")
 
-    return export_and_check(
+    out_path = out_dir / "peptdeep_ms2_dynamic.onnx"
+    sess = export_and_check(
         model=model,
         args=make_dummy_inputs("ms2"),
-        out_path=out_dir / "peptdeep_ms2_dynamic.onnx",
+        out_path=out_path,
         input_names=["aa_indices", "mod_x", "charges", "nce", "instrument_indices"],
         output_names=["ms2_intensities"],
         dynamic_axes={
@@ -160,6 +216,17 @@ def export_ms2(pretrained_dir, out_dir):
             "ms2_intensities": {0: "batch_size", 1: "frag_position"},
         },
     )
+
+    depth = instrument_onehot_depth(out_path)
+    if depth != MAX_INSTRUMENT_NUM:
+        raise AssertionError(
+            f"exported MS2 graph one-hots the instrument to width {depth}, but peptdeep reports "
+            f"max_instrument_num={MAX_INSTRUMENT_NUM}; OpenMS' ML::PEPTDEEP_MAX_INSTRUMENT_NUM "
+            "follows the graph, so it would be wrong either way"
+        )
+    print(f"\nInstrument one-hot width in the exported MS2 graph: {depth}")
+
+    return sess
 
 
 def export_ccs(pretrained_dir, out_dir):
@@ -254,6 +321,8 @@ if __name__ == "__main__":
 
     print(f"Using pretrained models from: {pretrained_dir}")
     print(f"Writing ONNX models to: {out_dir}")
+
+    report_instruments()
 
     rt_sess = export_rt(pretrained_dir, out_dir)
     smoke_rt(rt_sess)
