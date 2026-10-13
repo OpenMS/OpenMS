@@ -299,13 +299,11 @@ protected:
     registerIntOption_("report:top_hits", "<num>", 1, "Number of top-scoring hits per spectrum to retain; all exact ties at the cutoff are included (0 for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
 
-    registerFlag_("report:precursor_percentage", "Report the residual precursor peak intensity as a percentage of the base peak intensity in the raw MS2 spectrum", false);
+    registerFlag_("report:precursor_percentage", "Report the strongest peak around the monoisotopic precursor m/z as a percentage of the raw MS2 base peak intensity. Uses its independent report tolerance, excludes isotope peaks, and is omitted unless there is exactly one precursor; this is not the intensity removed by preprocessing.", false);
     registerDoubleOption_("report:precursor_percentage_mass_tolerance", "<tolerance>", 10.0, "Mass tolerance for finding the residual precursor peak in the raw MS2 spectrum", false, true);
     setMinFloat_("report:precursor_percentage_mass_tolerance", 0.0);
     registerStringOption_("report:precursor_percentage_mass_tolerance_unit", "<unit>", "ppm", "Unit for the residual precursor peak mass tolerance", false, true);
     setValidStrings_("report:precursor_percentage_mass_tolerance_unit", {"Da", "ppm"});
-    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
-    setMinInt_("report:top_hits", 0);
     registerDoubleOption_("report:require_coverage", "<fraction>", 0.0, "Minimum fraction of internal oligonucleotide positions that must be covered by fragment ions (0.0 = no requirement, 1.0 = full coverage required). Coverage requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position.", false, true);
     setMinFloat_("report:require_coverage", 0.0);
     setMaxFloat_("report:require_coverage", 1.0);
@@ -1020,6 +1018,10 @@ protected:
       obs.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
       obs.setMetaValue("precursor_intensity",
                          spectrum.getPrecursors()[0].getIntensity());
+      if (spectrum.metaValueExists("precursor_percentage"))
+      {
+        obs.setMetaValue("precursor_percentage", spectrum.getMetaValue("precursor_percentage"));
+      }
       IdentificationData::ObservationRef obs_ref;
 #pragma omp critical (id_data_access)
       obs_ref = id_data.registerObservation(obs);
@@ -1058,10 +1060,6 @@ protected:
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
         match.adduct_opt = hit.precursor_ref->adduct;
-        if (exp[scan_index].metaValueExists("precursor_percentage"))
-        {
-          match.setMetaValue("precursor_percentage", exp[scan_index].getMetaValue("precursor_percentage"));
-        }
 #pragma omp critical (id_data_access)
         id_data.registerObservationMatch(match);
       }
@@ -1990,7 +1988,9 @@ protected:
       OMSFile(log_type_).store(db_out, id_data);
     }
 
-    MzTab results = IdentificationDataConverter::exportMzTab(id_data);
+    MzTab results = IdentificationDataConverter::exportMzTab(id_data,
+      getFlag_("report:precursor_percentage") ? set<std::string>{"precursor_percentage"} : set<std::string>{},
+      {"isotope_offset"});
     OPENMS_LOG_DEBUG << "Nucleic acid rows: "
                      << results.getNucleicAcidSectionRows().size()
                      << "\nOligonucleotide rows: "

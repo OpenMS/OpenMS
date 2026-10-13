@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <set>
 
 namespace OpenMS
 {
@@ -38,8 +39,17 @@ namespace OpenMS
                           PeptideIdentificationList& peptides,
                           bool export_ids_wo_scores = false);
 
-    /// Export to mzTab format
-    static MzTab exportMzTab(const IdentificationData& id_data);
+    /**
+      @brief Export to mzTab format with caller-selected optional metadata columns.
+
+      @param[in] id_data Identification data to export.
+      @param[in] observation_meta_keys Observation keys exported as opt_global_<key>.
+      @param[in] match_meta_keys Match keys exported as opt_global_<key>; when both
+                 sources provide the same requested key, the match value takes precedence.
+    */
+    static MzTab exportMzTab(const IdentificationData& id_data,
+                            const std::set<std::string>& observation_meta_keys = {},
+                            const std::set<std::string>& match_meta_keys = {});
 
     /// Import FASTA sequences as parent sequences
     static void importSequences(IdentificationData& id_data,
@@ -207,7 +217,9 @@ namespace OpenMS
       const IdentificationData::ObservationMatch& match, double calc_mass,
       std::vector<MzTabSectionRow>& output,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map,
-      std::map<IdentificationData::InputFileRef, Size>& file_map)
+      std::map<IdentificationData::InputFileRef, Size>& file_map,
+      const std::set<std::string>& observation_meta_keys,
+      const std::set<std::string>& match_meta_keys)
     {
       MzTabSectionRow xsm; // PSM or OSM
       // @TODO: handle modifications properly
@@ -223,31 +235,25 @@ namespace OpenMS
       xsm.calc_mass_to_charge.set(calc_mass / abs(match.charge));
       xsm.spectra_ref.setMSFile(file_map[query.input_file]);
       xsm.spectra_ref.setSpecRef(query.data_id);
-      // optional column for adduct:
+      // Export only metadata selected by the caller, using the format's generic
+      // column helper. Adduct identity is an intrinsic ObservationMatch field.
+      MetaInfoInterface optional_meta;
+      std::set<std::string> optional_keys = observation_meta_keys;
+      optional_keys.insert(match_meta_keys.begin(), match_meta_keys.end());
+      for (const auto& key : observation_meta_keys)
+      {
+        if (query.metaValueExists(key)) optional_meta.setMetaValue(key, query.getMetaValue(key));
+      }
+      for (const auto& key : match_meta_keys)
+      {
+        if (match.metaValueExists(key)) optional_meta.setMetaValue(key, match.getMetaValue(key));
+      }
       if (match.adduct_opt)
       {
-        MzTabOptionalColumnEntry opt_adduct;
-        opt_adduct.first = "opt_adduct";
-        opt_adduct.second.set((*match.adduct_opt)->getName());
-        xsm.opt_.push_back(opt_adduct);
+        optional_keys.insert("adduct");
+        optional_meta.setMetaValue("adduct", (*match.adduct_opt)->getName());
       }
-      // optional columns for isotope offset:
-      // @TODO: find a way of passing in the names of relevant meta values
-      // (e.g. from NucleicAcidSearchEngine), instead of hard-coding them here
-      if (match.metaValueExists("precursor_percentage"))
-      {
-        MzTabOptionalColumnEntry opt_meta;
-        opt_meta.first = "opt_precursor_percentage";
-        opt_meta.second.set(StringUtils::toStr(match.getMetaValue("precursor_percentage")));
-        xsm.opt_.push_back(opt_meta);
-      }
-      if (match.metaValueExists("isotope_offset"))
-      {
-        MzTabOptionalColumnEntry opt_meta;
-        opt_meta.first = "opt_isotope_offset";
-        opt_meta.second.set(StringUtils::toStr(match.getMetaValue("isotope_offset")));
-        xsm.opt_.push_back(opt_meta);
-      }
+      MzTab::addMetaInfoToOptionalColumns(optional_keys, xsm.opt_, "global", optional_meta);
       // don't repeat data from the peptide section (e.g. accessions)
       // why are "pre"/"post"/"start"/"end" not in the peptide section?!
       output.push_back(xsm);
