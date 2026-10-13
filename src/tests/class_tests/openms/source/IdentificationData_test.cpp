@@ -160,6 +160,11 @@ START_SECTION((ProcessingStepRef registerProcessingStep(const ProcessingStep& st
   data.registerProcessingStep(step, param_ref);
   TEST_EQUAL(data.getProcessingSteps().size(), 2);
   TEST_EQUAL(data.getDBSearchSteps().size(), 1);
+  ID::DBSearchParam changed = *param_ref;
+  changed.precursor_mass_tolerance += 1.0;
+  auto changed_ref = data.registerDBSearchParam(changed);
+  TEST_EXCEPTION(Exception::InvalidValue, data.registerProcessingStep(step, changed_ref))
+  TEST_TRUE(data.getDBSearchSteps().at(step_ref) == param_ref)
 }
 END_SECTION
 

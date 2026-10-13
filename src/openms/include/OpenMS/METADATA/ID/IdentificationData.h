@@ -266,6 +266,7 @@ namespace OpenMS
       @brief Register a database search step with associated parameters
 
       @return Reference to the registered processing step
+      @throws Exception::InvalidValue The same step is already associated with different search parameters
     */
     ProcessingStepRef registerProcessingStep(
       const ProcessingStep& step, SearchParamRef search_ref);

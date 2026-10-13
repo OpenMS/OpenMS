@@ -381,7 +381,7 @@ namespace OpenMS
     d.fields_.hour = local.tm_hour;
     d.fields_.minute = local.tm_min;
     d.fields_.second = local.tm_sec;
-    d.fields_.millisecond = 0;
+    d.fields_.millisecond = static_cast<int>(chrono::duration_cast<chrono::milliseconds>(tp.time_since_epoch()).count() % 1000);
     d.fields_.valid = true;
     return d;
   }
@@ -404,7 +404,7 @@ namespace OpenMS
     d.fields_.hour = utc.tm_hour;
     d.fields_.minute = utc.tm_min;
     d.fields_.second = utc.tm_sec;
-    d.fields_.millisecond = 0;
+    d.fields_.millisecond = static_cast<int>(chrono::duration_cast<chrono::milliseconds>(tp.time_since_epoch()).count() % 1000);
     d.fields_.valid = true;
     return d;
   }

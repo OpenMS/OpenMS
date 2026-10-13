@@ -296,6 +296,13 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
+      const auto existing = db_search_steps_.find(step_ref);
+      if (existing != db_search_steps_.end() && existing->second != search_ref)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "A processing step is already associated with different database search parameters. Use a distinct processing step.",
+          step.date_time.toString("yyyy-MM-ddThh:mm:ss.zzz"));
+      }
       db_search_steps_.insert(make_pair(step_ref, search_ref));
     }
     return step_ref;
