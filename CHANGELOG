@@ -133,6 +133,9 @@ OpenMS Library:
     of its window group (load() without RT aggregation, transform() and loadDIAStreaming(), which
     OpenSWATH uses), instead of decoding it once per window; the window spectra are emitted in m/z order.
     A default diaPASEF load takes less than half the time. The output is unchanged.
+  - BrukerTimsFile keeps a decoded MS2 frame of a ddaPASEF run only until the last precursor that needs
+    it has been read, not until the end of the load. An MS2-only load of a 110 min run (62,000 frames,
+    230,000 precursors) peaks at 5.8 GB instead of 14 GB. The output is unchanged.
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).

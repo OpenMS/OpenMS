@@ -2567,8 +2567,14 @@ namespace OpenMS
 
     // Extract data for needed frames (lazy, on demand per precursor group)
     // We cache extracted frame data to avoid re-extraction when multiple
-    // precursors share the same frame.
+    // precursors share the same frame. A frame leaves the cache with the last
+    // precursor entry that needs it, so the cache holds a few frames, not the run.
     std::unordered_map<uint32_t, FrameData> frame_cache;
+    std::unordered_map<uint32_t, uint32_t> frame_uses; // precursor entries that still need the frame
+    for (const auto& entry : precursor_entries)
+    {
+      if (handle.has_frame(entry.frame_id)) ++frame_uses[entry.frame_id];
+    }
 
     auto getFrameData = [&](uint32_t frame_id) -> const FrameData&
     {
@@ -2630,36 +2636,39 @@ namespace OpenMS
       std::vector<double> tof_vals;
       std::vector<double> sqrt_mz_vals;
 
+      auto fit_uses = frame_uses; // this pass goes through all entries once, as the one below does
       for (const auto& entry : precursor_entries)
       {
         if (!handle.has_frame(entry.frame_id)) continue;
-        if (std::isnan(entry.monoisotopic_mz) || entry.monoisotopic_mz <= 0.0) continue;
-
-        const FrameData& fd = getFrameData(entry.frame_id);
-        if (fd.mzs.empty()) continue;
-
-        // Find the highest-intensity peak in the scan range [scan_begin, scan_end)
-        auto [p_begin, p_end] = fd.peakRangeForScans(entry.scan_begin, entry.scan_end);
-        double best_intensity = -1.0;
-        uint32_t best_tof = 0;
-        double best_mz = 0.0;
-
-        for (uint32_t p = p_begin; p < p_end; ++p)
+        const bool last_use = (--fit_uses[entry.frame_id] == 0);
+        if (!(std::isnan(entry.monoisotopic_mz) || entry.monoisotopic_mz <= 0.0))
         {
-          if (static_cast<double>(fd.intensities[p]) > best_intensity)
+          const FrameData& fd = getFrameData(entry.frame_id);
+
+          // Find the highest-intensity peak in the scan range [scan_begin, scan_end)
+          auto [p_begin, p_end] = fd.peakRangeForScans(entry.scan_begin, entry.scan_end);
+          double best_intensity = -1.0;
+          uint32_t best_tof = 0;
+          double best_mz = 0.0;
+
+          for (uint32_t p = p_begin; p < p_end; ++p)
           {
-            best_intensity = static_cast<double>(fd.intensities[p]);
-            best_tof = fd.tofs[p];
-            best_mz = fd.mzs[p];
+            if (static_cast<double>(fd.intensities[p]) > best_intensity)
+            {
+              best_intensity = static_cast<double>(fd.intensities[p]);
+              best_tof = fd.tofs[p];
+              best_mz = fd.mzs[p];
+            }
+          }
+
+          if (best_intensity > 0.0 &&
+              std::abs(best_mz - entry.monoisotopic_mz) < cal_tol)
+          {
+            tof_vals.push_back(static_cast<double>(best_tof));
+            sqrt_mz_vals.push_back(std::sqrt(entry.monoisotopic_mz));
           }
         }
-
-        if (best_intensity > 0.0 &&
-            std::abs(best_mz - entry.monoisotopic_mz) < cal_tol)
-        {
-          tof_vals.push_back(static_cast<double>(best_tof));
-          sqrt_mz_vals.push_back(std::sqrt(entry.monoisotopic_mz));
-        }
+        if (last_use) frame_cache.erase(entry.frame_id);
       }
 
       if (tof_vals.size() >= 2)
@@ -2740,6 +2749,7 @@ namespace OpenMS
           all_im.push_back(fd.inv_ion_mobilities[p]);
           all_frame_mz.push_back(fd.mzs[p]);
         }
+        if (--frame_uses[entry->frame_id] == 0) frame_cache.erase(entry->frame_id); // fd is gone
       }
 
       if (all_tofs.empty())
