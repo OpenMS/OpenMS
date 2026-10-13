@@ -19,6 +19,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <fstream>
+#include <iterator>
 
 ///////////////////////////
 
@@ -112,7 +114,7 @@ START_SECTION(void load(const std::string& filename, IdentificationData& id_data
   current.precursor_mass_tolerance = 20;
   auto current_ref = input.registerDBSearchParam(current);
   DateTime time;
-  time.set("2026-10-10 12:00:00");
+  time.set("2026-10-10T12:00:00.123");
   input.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}, time), original_ref);
   input.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}, time,
     {DataProcessing::IDENTIFICATION, DataProcessing::FILTERING}), current_ref);
@@ -137,6 +139,26 @@ START_SECTION(void load(const std::string& filename, IdentificationData& id_data
       TEST_EQUAL(mapping.first->actions.count(DataProcessing::FILTERING), 1);
       TEST_REAL_SIMILAR(mapping.second->precursor_mass_tolerance, 20);
     }
+  }
+  // Simulate a future writer's extra action without changing SQLite cell lengths.
+  // The remaining known action and all other data must still be readable.
+  std::ifstream binary_in(path, std::ios::binary);
+  std::string bytes((std::istreambuf_iterator<char>(binary_in)), std::istreambuf_iterator<char>());
+  binary_in.close();
+  const std::string known = DataProcessing::processingActionToString(DataProcessing::IDENTIFICATION);
+  const auto location = bytes.find(known);
+  TEST_TRUE(location != std::string::npos)
+  ABORT_IF(location == std::string::npos)
+  bytes.replace(location, known.size(), std::string(known.size(), 'X'));
+  std::ofstream binary_out(path, std::ios::binary | std::ios::trunc);
+  binary_out.write(bytes.data(), bytes.size());
+  binary_out.close();
+  IdentificationData future;
+  OMSFile().load(path, future);
+  TEST_EQUAL(future.getProcessingSteps().size(), 2)
+  for (const auto& processing : future.getProcessingSteps())
+  {
+    TEST_FALSE(processing.actions.count(DataProcessing::IDENTIFICATION))
   }
 }
 END_SECTION

@@ -544,7 +544,7 @@ namespace OpenMS::Internal
       if (!step.input_file_refs.empty()) any_input_files = true;
       query.bind(":id", id);
       query.bind(":software_id", processing_software_keys_[&(*step.software_ref)]);
-      query.bind(":date_time", step.date_time.get());
+      query.bind(":date_time", step.date_time.toString("yyyy-MM-ddThh:mm:ss.zzz"));
       StringList action_names;
       for (const auto action : step.actions)
       {

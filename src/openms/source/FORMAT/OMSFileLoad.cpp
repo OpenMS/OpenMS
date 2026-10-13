@@ -364,7 +364,14 @@ namespace OpenMS::Internal
         const auto actions = ListUtils::create<std::string>(query.getColumn("processing_actions").getString());
         for (const auto& action : actions)
         {
-          step.actions.insert(DataProcessing::toProcessingAction(action));
+          try
+          {
+            step.actions.insert(DataProcessing::toProcessingAction(action));
+          }
+          catch (const Exception::InvalidValue&)
+          {
+            OPENMS_LOG_WARN << "Unknown identification processing action '" << action << "' - skipping\n";
+          }
         }
       }
       if (have_input_files)
