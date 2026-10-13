@@ -292,6 +292,33 @@ namespace OpenMS
         "Input to extractChromatogram needs to be sorted by m/z");
     }
 
+    // A chromatogram gets one point for every spectrum inside its RT window: reserve that many
+    // up front instead of growing the arrays point by point (which leaves each of them with up
+    // to twice the capacity it needs and fragments the heap with the outgrown buffers).
+    {
+      std::vector<double> spectrum_rts;
+      spectrum_rts.reserve(input_size);
+      for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
+      {
+        spectrum_rts.push_back(input->getSpectrumMetaById(scan_idx).RT);
+      }
+      std::sort(spectrum_rts.begin(), spectrum_rts.end());
+      for (Size k = 0; k < extraction_coordinates.size(); ++k)
+      {
+        const ExtractionCoordinates& coord = extraction_coordinates[k];
+        Size nr_points = input_size;
+        if (coord.rt_end - coord.rt_start > 0)
+        {
+          nr_points = std::upper_bound(spectrum_rts.begin(), spectrum_rts.end(), coord.rt_end) -
+                      std::lower_bound(spectrum_rts.begin(), spectrum_rts.end(), coord.rt_start);
+        }
+        std::vector<double>& times = output[k]->getTimeArray()->data;
+        std::vector<double>& intensities = output[k]->getIntensityArray()->data;
+        times.reserve(times.size() + nr_points);
+        intensities.reserve(intensities.size() + nr_points);
+      }
+    }
+
     //go through all spectra
     startProgress(0, input_size, "Extracting chromatograms");
     for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
