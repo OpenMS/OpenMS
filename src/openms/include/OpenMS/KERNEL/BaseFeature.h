@@ -153,12 +153,15 @@ public:
     /// @name Functions for dealing with identifications in legacy format
     ///@{
     /// returns a const reference to the PeptideIdentification vector
+    [[deprecated("legacy identifications: use the identification data")]]
     const PeptideIdentificationList& getPeptideIdentifications() const;
 
     /// returns a mutable reference to the PeptideIdentification vector
+    [[deprecated("legacy identifications: use the identification data")]]
     PeptideIdentificationList& getPeptideIdentifications();
 
     /// sets the PeptideIdentification vector
+    [[deprecated("legacy identifications: use the identification data")]]
     void setPeptideIdentifications(const PeptideIdentificationList& peptides);
 
     /**

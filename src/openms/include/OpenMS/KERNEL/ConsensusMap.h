@@ -238,12 +238,15 @@ public:
     ProteinIdentification* findProteinIdentification(const std::string& identifier);
 
     /// non-mutable access to the unassigned peptide identifications
+    [[deprecated("legacy identifications: use the identification data")]]
     const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
 
     /// mutable access to the unassigned peptide identifications
+    [[deprecated("legacy identifications: use the identification data")]]
     PeptideIdentificationList& getUnassignedPeptideIdentifications();
 
     /// sets the unassigned peptide identifications
+    [[deprecated("legacy identifications: use the identification data")]]
     void setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications);
 
     /// returns a const reference to the description of the applied data processing

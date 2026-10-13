@@ -118,24 +118,28 @@ namespace OpenMS
      * @brief Get all peptide identifications for all spectra
      * @return A reference to the vector of peptide identifications
      */
+    [[deprecated("legacy identifications: use the identification data")]]
     PeptideIdentificationList& getPeptideIdentifications();
     
     /**
      * @brief Get all peptide identifications for all spectra (const version)
      * @return A const reference to the vector of peptide identifications
      */
+    [[deprecated("legacy identifications: use the identification data")]]
     const PeptideIdentificationList& getPeptideIdentifications() const;
 
     /**
      * @brief Set all peptide identifications for all spectra (move version)
      * @param[in] ids Vector of peptide identifications
      */
+    [[deprecated("legacy identifications: use the identification data")]]
     void setPeptideIdentifications(PeptideIdentificationList&& ids);
 
     /**
      * @brief Set all peptide identifications for all spectra
      * @param[in] ids Vector of peptide identifications
      */
+    [[deprecated("legacy identifications: use the identification data")]]
     void setPeptideIdentifications(const PeptideIdentificationList& ids);
 
     /**
