@@ -16,6 +16,19 @@ using namespace std;
 namespace OpenMS
 {
 
+  /// Reject metadata mismatches for an existing database-search identity.
+  static void checkDBSearchParamMetadata_(const IdentificationData::DBSearchParams& registered,
+                                        const IdentificationData::DBSearchParam& param)
+  {
+    const auto existing = registered.find(param);
+    if (existing != registered.end() && !existing->MetaInfoInterface::operator==(param))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Identical database-search fields require consistent metadata. Metadata-only differences do not define a distinct search; use distinct search fields for a different physical search.",
+        param.database);
+    }
+  }
+
   /// Check whether a reference points to an element in a container
   template <typename RefType, typename ContainerType>
   static bool isValidReference_(RefType ref, ContainerType& container)
@@ -248,6 +261,7 @@ namespace OpenMS
   IdentificationData::registerDBSearchParam(const DBSearchParam& param)
   {
     // @TODO: any required information that should be checked?
+    checkDBSearchParamMetadata_(db_search_params_, param);
     return db_search_params_.insert(param).first;
   }
 
@@ -1046,6 +1060,8 @@ namespace OpenMS
   IdentificationData::RefTranslator
   IdentificationData::merge(const IdentificationData& other)
   {
+    // Detect conflicting search provenance before mutating any data or disabling checks.
+    for (const auto& param : other.getDBSearchParams()) checkDBSearchParamMetadata_(db_search_params_, param);
     RefTranslator trans;
     // incoming data (stored in IdentificationData) is guaranteed to be consistent,
     // so no need to check for consistency again:

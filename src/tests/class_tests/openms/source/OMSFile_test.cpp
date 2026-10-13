@@ -103,6 +103,46 @@ START_SECTION(void load(const std::string& filename, IdentificationData& id_data
 }
 END_SECTION
 
+START_SECTION(([EXTRA] DB search parameter metadata survives OMS roundtrip))
+{
+  IdentificationData input;
+  IdentificationData::DBSearchParam parameters;
+  parameters.database = "rna.fasta";
+  parameters.setMetaValue("digestion:max_decoy_reshuffle_attempts", 0);
+  parameters.setMetaValue("digestion:decoy_reshuffle_protocol", "cleavage_preserving_portable_v1");
+  parameters.setMetaValue("arbitrary_integer", 17);
+  parameters.setMetaValue("arbitrary_string", "recorded search provenance");
+  input.registerDBSearchParam(parameters);
+  std::string path;
+  NEW_TMP_FILE(path)
+  OMSFile().store(path, input);
+  IdentificationData output;
+  OMSFile().load(path, output);
+  TEST_EQUAL(output.getDBSearchParams().size(), 1)
+  ABORT_IF(output.getDBSearchParams().size() != 1)
+  const auto& restored = *output.getDBSearchParams().begin();
+  TEST_TRUE(static_cast<const MetaInfoInterface&>(restored) == parameters)
+  TEST_EQUAL(static_cast<int>(restored.getMetaValue("digestion:max_decoy_reshuffle_attempts")), 0)
+  TEST_EQUAL(restored.getMetaValue("digestion:decoy_reshuffle_protocol").toString(), "cleavage_preserving_portable_v1")
+  TEST_EQUAL(static_cast<int>(restored.getMetaValue("arbitrary_integer")), 17)
+  TEST_EQUAL(restored.getMetaValue("arbitrary_string").toString(), "recorded search provenance")
+
+  // The metadata table is optional; empty/older records must still load.
+  IdentificationData legacy_input;
+  IdentificationData::DBSearchParam plain;
+  plain.database = "legacy.fasta";
+  legacy_input.registerDBSearchParam(plain);
+  std::string legacy_path;
+  NEW_TMP_FILE(legacy_path)
+  OMSFile().store(legacy_path, legacy_input);
+  IdentificationData legacy_output;
+  OMSFile().load(legacy_path, legacy_output);
+  TEST_EQUAL(legacy_output.getDBSearchParams().size(), 1)
+  ABORT_IF(legacy_output.getDBSearchParams().size() != 1)
+  TEST_TRUE(legacy_output.getDBSearchParams().begin()->isMetaEmpty())
+}
+END_SECTION
+
 START_SECTION(void store(const std::string& filename, const FeatureMap& features))
 {
   FeatureMap features;

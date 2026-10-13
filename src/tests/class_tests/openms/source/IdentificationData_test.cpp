@@ -117,6 +117,19 @@ START_SECTION((SearchParamRef registerDBSearchParam(const DBSearchParam& param))
   // re-registering doesn't lead to redundant entries:
   data.registerDBSearchParam(param);
   TEST_EQUAL(data.getDBSearchParams().size(), 1);
+
+  IdentificationData metadata;
+  param.setMetaValue("digestion:max_decoy_reshuffle_attempts", 0);
+  param.setMetaValue("digestion:decoy_reshuffle_protocol", "cleavage_preserving_portable_v1");
+  const auto recorded = metadata.registerDBSearchParam(param);
+  TEST_TRUE(recorded == metadata.registerDBSearchParam(param))
+  ID::DBSearchParam changed = param;
+  changed.setMetaValue("digestion:max_decoy_reshuffle_attempts", 1);
+  TEST_EXCEPTION(Exception::InvalidValue, metadata.registerDBSearchParam(changed))
+  changed.setMetaValue("digestion:max_decoy_reshuffle_attempts", "0");
+  TEST_EXCEPTION(Exception::InvalidValue, metadata.registerDBSearchParam(changed))
+  TEST_EQUAL(metadata.getDBSearchParams().size(), 1)
+  TEST_TRUE(static_cast<const MetaInfoInterface&>(*recorded) == param)
 }
 END_SECTION
 
@@ -541,6 +554,19 @@ START_SECTION((ProcessingStepRef merge(const IdentificationData& other)))
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
   TEST_EQUAL(data.getParentSequences().size(), 2);
+
+  IdentificationData recorded, conflicting;
+  ID::DBSearchParam param;
+  param.database = "provenance.fasta";
+  param.setMetaValue("digestion:max_decoy_reshuffle_attempts", 0);
+  const auto original = recorded.registerDBSearchParam(param);
+  param.setMetaValue("digestion:max_decoy_reshuffle_attempts", 1);
+  conflicting.registerDBSearchParam(param);
+  conflicting.registerInputFile(ID::InputFile("must-not-be-merged.mzML"));
+  TEST_EXCEPTION(Exception::InvalidValue, recorded.merge(conflicting))
+  TEST_EQUAL(recorded.getDBSearchParams().size(), 1)
+  TEST_EQUAL(static_cast<int>(original->getMetaValue("digestion:max_decoy_reshuffle_attempts")), 0)
+  TEST_TRUE(recorded.getInputFiles().empty())
 }
 END_SECTION
 

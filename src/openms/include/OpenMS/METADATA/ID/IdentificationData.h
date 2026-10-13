@@ -250,7 +250,14 @@ namespace OpenMS
     /*!
       @brief Register database search parameters
 
+      Search-field values define identity. Re-registering that identity requires
+      consistent metadata; metadata-only differences do not define a distinct
+      search. Use distinct search-field values for a different physical search.
+
+      @param[in] param Database search parameters to register
       @return Reference to the registered search parameters
+      @throws Exception::InvalidValue The same search fields are already registered
+      with incompatible metadata; the registered record remains unchanged
     */
     SearchParamRef registerDBSearchParam(const DBSearchParam& param);
 

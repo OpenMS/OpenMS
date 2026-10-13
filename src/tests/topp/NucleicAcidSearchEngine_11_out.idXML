@@ -2,6 +2,8 @@
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="./NucleicAcidSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2" enzyme="unknown_enzyme" missed_cleavages="22" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="5" peak_mass_tolerance_ppm="true" >
+				<UserParam type="int" name="digestion:max_decoy_reshuffle_attempts" value="0"/>
+				<UserParam type="string" name="digestion:decoy_reshuffle_protocol" value="cleavage_preserving_portable_v1"/>
 	</SearchParameters>
 	<IdentificationRun date="2019-04-18T16:00:33" search_engine="NucleicAcidSearchEngine" search_engine_version="test" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
