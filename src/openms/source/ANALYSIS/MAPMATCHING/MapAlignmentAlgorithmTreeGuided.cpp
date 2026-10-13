@@ -130,8 +130,7 @@ namespace OpenMS
   {
     for (Size i = 0; i < feature_maps.size(); ++i)
     {
-      std::optional<FeatureMap> converted;
-      const FeatureMap& map = IdentificationDataConverter::withIdentificationData(feature_maps[i], converted);
+      const FeatureMap& map = feature_maps[i];
       for (const BaseFeature& bf : map)
       {
         addPeptideSequences_(bf.getLinkedIdentifications(map.getIdentificationData()), maps_seq_and_rt[i], maps_ranges[i], bf.getRT());
@@ -180,7 +179,6 @@ namespace OpenMS
     std::set<std::string> taken_runs;
     for (auto& map : feature_maps_transformed)
     {
-      IdentificationDataConverter::moveToIdentificationData(map);
       IdentificationDataConverter::makeRunsDistinct(map, taken_runs);
     }
 

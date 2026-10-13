@@ -191,8 +191,7 @@ namespace OpenMS
     textFile.addLine(ListUtils::concatenate(constructHeader_(*quantMethod), "\t"));
 
     // the identifications of the consensus features are read from identification data
-    std::optional<ConsensusMap> converted;
-    const ConsensusMap& identified = IdentificationDataConverter::withIdentificationData(cm, converted);
+    const ConsensusMap& identified = cm;
     for (ConsensusMap::ConstIterator cm_iter = identified.begin();
          cm_iter != identified.end();
          ++cm_iter)

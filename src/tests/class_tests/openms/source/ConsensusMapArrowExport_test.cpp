@@ -14,7 +14,7 @@
 #include <OpenMS/FORMAT/ConsensusMapArrowExport.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/NativeIdentificationTest.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 ///////////////////////////
 
@@ -43,15 +43,19 @@ using namespace std;
 
 /////////////////////////////////////////////////////////////
 // Every peptide identification needs its protein identification run (search run), which may have
-// no protein hits: gives a map built without one a run that all its peptide identifications use.
+// no protein hits: gives the identifications @p ids of a map built without one a run that all its
+// peptide identifications use, and the map these identifications.
 /////////////////////////////////////////////////////////////
 
-void addSearchRun(ConsensusMap& cmap)
+void addSearchRun(ConsensusMap& cmap, MapPeptideIdentifications& ids)
 {
   ProteinIdentification run;
   run.setIdentifier("search_run");
-  cmap.getProteinIdentifications().push_back(run);
-  cmap.applyFunctionOnPeptideIDs([](PeptideIdentification& pid) { pid.setIdentifier("search_run"); });
+  ids.proteins.push_back(run);
+  for (auto& [path, peptides] : ids.features)
+    for (auto& pid : peptides) pid.setIdentifier("search_run");
+  for (auto& pid : ids.unassigned) pid.setIdentifier("search_run");
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 }
 
 /////////////////////////////////////////////////////////////
@@ -61,6 +65,7 @@ void addSearchRun(ConsensusMap& cmap)
 ConsensusMap createTestConsensusMap()
 {
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
 
   // Set up column headers
@@ -95,7 +100,7 @@ ConsensusMap createTestConsensusMap()
   pg.accessions = {"PROT_A", "PROT_B"};
   prot_id.insertProteinGroup(pg);
 
-  cmap.setProteinIdentifications({prot_id});
+  ids.proteins = {prot_id};
 
   // Create ConsensusFeature 1 - identified
   ConsensusFeature cf1;
@@ -136,7 +141,7 @@ ConsensusMap createTestConsensusMap()
   hit1.setPeptideEvidences({ev1});
 
   pep_id1.setHits({hit1});
-  cf1.setPeptideIdentifications({pep_id1});
+  ids.features[{cmap.size()}] = {pep_id1};
 
   cmap.push_back(cf1);
 
@@ -173,7 +178,7 @@ ConsensusMap createTestConsensusMap()
   hit2.setPeptideEvidences({ev2a, ev2b});
 
   pep_id2.setHits({hit2});
-  cf2.setPeptideIdentifications({pep_id2});
+  ids.features[{cmap.size()}] = {pep_id2};
 
   cmap.push_back(cf2);
 
@@ -192,6 +197,7 @@ ConsensusMap createTestConsensusMap()
 
   cmap.push_back(cf3);
 
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
   return cmap;
 }
 
@@ -372,28 +378,6 @@ START_SECTION(([EXTRA] unmapped features are separated by observed_mz, not by rt
 }
 END_SECTION
 
-START_SECTION(([EXTRA] exportToArrow - a map with identification data exports as its peptide identifications))
-{
-  ConsensusMap cmap = createTestConsensusMap();
-  // the identifications name their search run, as identification data needs it
-  Internal::ClassTest::addSearchRun(cmap);
-  ConsensusMap native = cmap;
-  IdentificationDataConverter::importConsensusIDs(native);
-  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(native), false)
-
-  auto legacy_table = ConsensusMapArrowExport::exportToArrow(cmap);
-  auto native_table = ConsensusMapArrowExport::exportToArrow(native);
-  ABORT_IF(legacy_table == nullptr || native_table == nullptr)
-  TEST_EQUAL(legacy_table->num_rows(), 4)
-  TEST_TRUE(native_table->Equals(*legacy_table))
-
-  // (the fixture has no protein groups, so neither export has a table)
-  auto legacy_groups = ProteinGroupArrowExport::exportToArrow(cmap);
-  auto native_groups = ProteinGroupArrowExport::exportToArrow(native);
-  TEST_EQUAL(native_groups == nullptr, legacy_groups == nullptr)
-}
-END_SECTION
-
 START_SECTION(exportToArrow - column types)
 {
   ConsensusMap cmap = createTestConsensusMap();
@@ -430,6 +414,7 @@ END_SECTION
 START_SECTION(exportToArrow - modifications column)
 {
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
 
   // A row in the QPX feature view is keyed on (feature, run), so the feature needs a handle
@@ -458,11 +443,11 @@ START_SECTION(exportToArrow - modifications column)
   hit.setSequence(AASequence::fromString("PEPTM(Oxidation)IDE"));
   hit.setCharge(2);
   pep_id.setHits({hit});
-  cf.setPeptideIdentifications({pep_id});
+  ids.features[{cmap.size()}] = {pep_id};
 
   cmap.push_back(cf);
 
-  addSearchRun(cmap);
+  addSearchRun(cmap, ids);
 
   auto table = ConsensusMapArrowExport::exportToArrow(cmap);
 
@@ -480,6 +465,7 @@ START_SECTION(([EXTRA] feature view melts to one row per (feature, run)))
   // Label-free: each row carries its own run's coordinates and a single "LFQ" intensity,
   // matching docs/spec/feature.md ("a quantified peptidoform in a specific run file").
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   for (Size m = 0; m < 2; ++m)
   {
@@ -541,6 +527,7 @@ START_SECTION(([EXTRA] every identification-level column comes from the winning 
   // while scan/ion-mobility/PEP come from pep_ids[0], a row describes one peptide's identity
   // next to another peptide's acquisition metadata.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
   ch.filename = "/data/run1.mzML";
@@ -576,10 +563,10 @@ START_SECTION(([EXTRA] every identification-level column comes from the winning 
   bh.setScore(0.01);
   better.setHits({bh});
 
-  cf.setPeptideIdentifications({worse, better});
+  ids.features[{cmap.size()}] = {worse, better};
   cmap.push_back(cf);
 
-  addSearchRun(cmap);
+  addSearchRun(cmap, ids);
 
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -610,6 +597,7 @@ START_SECTION(([EXTRA] label-free row coordinates are mutually consistent))
   // source. Computing ppm error against the consensus centroid while reporting the handle's
   // m/z yields an error measured against a value the row does not contain.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
   ch.filename = "/data/run1.mzML";
@@ -637,10 +625,10 @@ START_SECTION(([EXTRA] label-free row coordinates are mutually consistent))
   hit.setCharge(2);
   hit.setScore(0.01);
   pid.setHits({hit});
-  cf.setPeptideIdentifications({pid});
+  ids.features[{cmap.size()}] = {pid};
   cmap.push_back(cf);
 
-  addSearchRun(cmap);
+  addSearchRun(cmap, ids);
 
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -682,6 +670,7 @@ START_SECTION(([EXTRA] a leading hitless identification does not discard the fea
   // The positional pick (pep_ids[0].getHits()[0]) lost a feature's identity whenever its first
   // identification carried no hits, even though a later one did.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
   ch.filename = "/data/run1.mzML";
@@ -703,10 +692,10 @@ START_SECTION(([EXTRA] a leading hitless identification does not discard the fea
   PeptideHit h; h.setSequence(AASequence::fromString("FOUNDPEPTIDEK")); h.setCharge(2); h.setScore(0.02);
   real_id.setHits({h});
 
-  cf.setPeptideIdentifications({hitless, real_id});
+  ids.features[{cmap.size()}] = {hitless, real_id};
   cmap.push_back(cf);
 
-  addSearchRun(cmap);
+  addSearchRun(cmap, ids);
 
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -721,6 +710,7 @@ START_SECTION(([EXTRA] a feature whose identifications are all hitless does not 
   // Guarding the scan column on !pep_ids.empty() instead of on the selected identification
   // dereferenced a null pointer here.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
   ch.filename = "/data/run1.mzML";
@@ -738,10 +728,10 @@ START_SECTION(([EXTRA] a feature whose identifications are all hitless does not 
   PeptideIdentification another_empty_pid;
   another_empty_pid.setScoreType("q-value");
   another_empty_pid.setHigherScoreBetter(false);
-  cf.setPeptideIdentifications({empty_pid, another_empty_pid});
+  ids.features[{cmap.size()}] = {empty_pid, another_empty_pid};
   cmap.push_back(cf);
 
-  addSearchRun(cmap);
+  addSearchRun(cmap, ids);
 
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -757,6 +747,7 @@ START_SECTION(([EXTRA] two runs sharing a stem stay separate rows))
   // stemmed name merged them into one row carrying both runs' intensities -- worse than the
   // ambiguous-but-separate rows the psm exporter warns about.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   for (Size m = 0; m < 2; ++m)
   {
@@ -789,6 +780,7 @@ START_SECTION(([EXTRA] isobaric feature rows keep consensus coordinates and list
   // quantification scan, so the row must keep the ConsensusFeature's precursor coordinates
   // and use the handles only for channel intensities.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   const std::vector<std::string> channels = {"126", "127N", "127C"};
   for (Size c = 0; c < channels.size(); ++c)
   {
@@ -836,6 +828,7 @@ END_SECTION
 START_SECTION(([EXTRA] SILAC feature labels use the canonical QPX two-plex vocabulary))
 {
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("labeled_MS1");
   const std::vector<std::string> raw_labels = {"no_label", "Arg6"};
   for (Size channel = 0; channel < raw_labels.size(); ++channel)
@@ -899,6 +892,7 @@ END_SECTION
 START_SECTION(exportToParquet - empty consensus map)
 {
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
 
   std::string filename;
   NEW_TMP_FILE(filename);
@@ -1016,6 +1010,7 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
   // check below is order-sensitive (catches any batch-boundary reordering). Mixes
   // identified/unidentified, modified/unmodified, target/decoy.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   ConsensusMap::ColumnHeaders headers;
   ConsensusMap::ColumnHeader ch0; ch0.filename = "sample1.mzML"; headers[0] = ch0;
   cmap.setColumnHeaders(headers);
@@ -1026,7 +1021,7 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
   prot_id.setHits({ph});
   ProteinIdentification::ProteinGroup pg; pg.probability = 0.01; pg.accessions = {"PROT_A"};
   prot_id.insertProteinGroup(pg);
-  cmap.setProteinIdentifications({prot_id});
+  ids.proteins = {prot_id};
 
   const size_t N = 2500;
   for (size_t i = 0; i < N; ++i)
@@ -1051,10 +1046,11 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
       PeptideEvidence ev; ev.setProteinAccession("PROT_A");
       hit.setPeptideEvidences({ev});
       pid.setHits({hit});
-      cf.setPeptideIdentifications({pid});
+      ids.features[{cmap.size()}] = {pid};
     }
     cmap.push_back(cf);
   }
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   // --- One-shot reference ---
   std::string ref_file; NEW_TMP_FILE(ref_file)
@@ -1138,6 +1134,7 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   // streaming<->one-shot equivalence test cannot catch an index-name typo here, since both paths
   // now share buildFeatureTableRange.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   ConsensusMap::ColumnHeaders headers;
   ConsensusMap::ColumnHeader ch0; ch0.filename = "run.mzML"; headers[0] = ch0;
   cmap.setColumnHeaders(headers);
@@ -1147,7 +1144,7 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   prot_id.setHits({ph});
   ProteinIdentification::ProteinGroup pgrp; pgrp.probability = 0.02; pgrp.accessions = {"PROT_A"};
   prot_id.insertProteinGroup(pgrp);
-  cmap.setProteinIdentifications({prot_id});
+  ids.proteins = {prot_id};
 
   ConsensusFeature cf;
   cf.setMZ(555.5); cf.setRT(321.0); cf.setCharge(2);
@@ -1175,7 +1172,7 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   PeptideEvidence ev; ev.setProteinAccession("PROT_A");
   hit.setPeptideEvidences({ev});
   pid.setHits({hit});
-  cf.setPeptideIdentifications({pid});
+  ids.features[{cmap.size()}] = {pid};
   cmap.push_back(cf);
 
   // Second feature exercises the FALLBACK precedence branches: predicted_rt (lowercase, only reached
@@ -1196,8 +1193,9 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   PeptideEvidence ev2; ev2.setProteinAccession("PROT_A");
   hit2.setPeptideEvidences({ev2});
   pid2.setHits({hit2});
-  cf2.setPeptideIdentifications({pid2});
+  ids.features[{cmap.size()}] = {pid2};
   cmap.push_back(cf2);
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   auto table = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(table, nullptr)
@@ -1274,6 +1272,7 @@ START_SECTION([EXTRA] exportToArrow - isobaric channels of one file share one ru
   // the channel identity lives in `label`. So whichever channel column the first FeatureHandle
   // happens to point at, the row must resolve to that file's single stem.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("labeled_MS2");
 
   ConsensusMap::ColumnHeaders headers;
@@ -1289,7 +1288,7 @@ START_SECTION([EXTRA] exportToArrow - isobaric channels of one file share one ru
 
   ProteinIdentification prot_id;
   prot_id.setIdentifier("PI_0");
-  cmap.setProteinIdentifications({prot_id});
+  ids.proteins = {prot_id};
 
   // Two features anchored at different channel columns (2 and 0)
   for (UInt64 first_map : {UInt64(2), UInt64(0)})
@@ -1308,6 +1307,7 @@ START_SECTION([EXTRA] exportToArrow - isobaric channels of one file share one ru
     }
     cmap.push_back(cf);
   }
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   auto table = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(table, nullptr)
@@ -1326,6 +1326,7 @@ START_SECTION(([EXTRA] a merged run without id_merge_index is refused, not resol
   // it does: ProteomicsLFQ writes the feature view FIRST and pg third, so accepting here and
   // refusing there leaves a wrong feature.parquet on disk beside a half-written collection.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
   ch.filename = "/data/runA.mzML";
@@ -1337,7 +1338,7 @@ START_SECTION(([EXTRA] a merged run without id_merge_index is refused, not resol
   prot.setScoreType("q-value");
   prot.setHigherScoreBetter(false);
   prot.setPrimaryMSRunPath({"/data/runA.mzML", "/data/runB.mzML"}); // merged run
-  cmap.setProteinIdentifications({prot});
+  ids.proteins = {prot};
 
   PeptideIdentification pid;                 // no id_merge_index: origin undetermined
   pid.setIdentifier("merged");
@@ -1352,13 +1353,15 @@ START_SECTION(([EXTRA] a merged run without id_merge_index is refused, not resol
   cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
   BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
   cf.insert(0, bf);
-  cf.setPeptideIdentifications({pid});
+  ids.features[{cmap.size()}] = {pid};
   cmap.push_back(cf);
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   TEST_EXCEPTION(Exception::MissingInformation, ConsensusMapArrowExport::exportToArrow(cmap))
 
   // With the index present the same input exports and names the right run.
-  cmap[0].getPeptideIdentifications()[0].setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
+  ids.features[{0}][0].setMetaValue(Constants::UserParam::ID_MERGE_INDEX, 1);
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
   auto idrun = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("id_run_file_name")->chunk(0));
@@ -1372,6 +1375,7 @@ START_SECTION(([EXTRA] only the selected identification must be resolvable))
   // identification that carries no hit cannot affect the output and must not be able to refuse
   // the export. Validating every attached identification rejected input that exports correctly.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
   ch.filename = "/data/runA.mzML";
@@ -1383,7 +1387,7 @@ START_SECTION(([EXTRA] only the selected identification must be resolvable))
   prot.setScoreType("q-value");
   prot.setHigherScoreBetter(false);
   prot.setPrimaryMSRunPath({"/data/runA.mzML", "/data/runB.mzML"});
-  cmap.setProteinIdentifications({prot});
+  ids.proteins = {prot};
 
   PeptideIdentification hitless;              // no hits, no id_merge_index: never selected
   hitless.setIdentifier("merged");
@@ -1404,8 +1408,9 @@ START_SECTION(([EXTRA] only the selected identification must be resolvable))
   cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
   BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
   cf.insert(0, bf);
-  cf.setPeptideIdentifications({hitless, winner});
+  ids.features[{cmap.size()}] = {hitless, winner};
   cmap.push_back(cf);
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -1420,6 +1425,7 @@ START_SECTION(([EXTRA] duplicate identification-run identifiers are refused))
   // identifier leave only the last one's paths -- and a feature of the first would then be
   // stamped with a file it never came from, with one row and no warning to give it away.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
   ch.filename = "/data/runA.mzML";
@@ -1432,9 +1438,11 @@ START_SECTION(([EXTRA] duplicate identification-run identifiers are refused))
   ProteinIdentification b;
   b.setIdentifier("dup");                     // same identifier, different file
   b.setPrimaryMSRunPath({"/data/runB.mzML"});
-  cmap.setProteinIdentifications({a, b});
+  ids.proteins = {a, b};
 
-  TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowExport::exportToArrow(cmap))
+  // a map cannot have them; given for one, the exporter refuses them
+  TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(cmap, ids))
+  TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowExport::requireResolvableIdRuns(ids))
 }
 END_SECTION
 
@@ -1490,19 +1498,17 @@ START_SECTION(([EXTRA] the feature<->PSM cross-references resolve and agree in b
   // means the psm view cannot resolve run_file_name -- and a PSM with no run file matches no
   // feature row, so the cross-references would come out empty and every assertion below would hold
   // vacuously. The `total_listed > 0` guard further down is what catches that if this line is lost.
-  cmap.getProteinIdentifications()[0].setPrimaryMSRunPath({"sample1.mzML"});
+  auto cmap_ids = IdentificationDataConverter::exportMapIdentifications(cmap);
+  cmap_ids.proteins[0].setPrimaryMSRunPath({"sample1.mzML"});
+  IdentificationDataConverter::importMapIdentifications(cmap, cmap_ids);
 
   QPXIdentity::FeatureLinks links;
   auto features = ConsensusMapArrowExport::exportToArrow(cmap, &links);
   TEST_NOT_EQUAL(features, nullptr)
 
   PeptideIdentificationList all_pepids;
-  for (const auto& cf : cmap)
-  {
-    for (const auto& pid : cf.getPeptideIdentifications()) { all_pepids.push_back(pid); }
-  }
-  for (const auto& pid : cmap.getUnassignedPeptideIdentifications()) { all_pepids.push_back(pid); }
-  auto psms = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pepids,
+  for (const auto* pid : cmap_ids.peptides()) { all_pepids.push_back(*pid); }
+  auto psms = QPXFile::exportPSMsToQPXArrow(cmap_ids.proteins, all_pepids,
                                             /*export_all_psms=*/false, &links);
   TEST_NOT_EQUAL(psms, nullptr)
 
@@ -1552,12 +1558,13 @@ START_SECTION(([EXTRA] a psm view exported without a feature view leaves feature
   // The spec's answer for an unlinked PSM is null, not a fabricated reference. Every psm-only
   // producer (ProSE, any search engine) takes this path.
   ConsensusMap cmap = createTestConsensusMap();
+  const auto cmap_ids = IdentificationDataConverter::exportMapIdentifications(cmap);
   PeptideIdentificationList all_pepids;
-  for (const auto& cf : cmap)
+  for (const auto& [path, peptides] : cmap_ids.features)
   {
-    for (const auto& pid : cf.getPeptideIdentifications()) { all_pepids.push_back(pid); }
+    for (const auto& pid : peptides) { all_pepids.push_back(pid); }
   }
-  auto psms = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pepids);
+  auto psms = QPXFile::exportPSMsToQPXArrow(cmap_ids.proteins, all_pepids);
   TEST_NOT_EQUAL(psms, nullptr)
   TEST_TRUE(psms->num_rows() > 0)
   auto psm_feature_id = std::static_pointer_cast<arrow::Int64Array>(psms->GetColumnByName("feature_id")->chunk(0));
@@ -1576,6 +1583,7 @@ START_SECTION(([EXTRA] a PSM claimed by two feature rows is refused during link 
   // validation would leave exportToArrow() itself returning a feature table whose two rows claim
   // one PSM while its out_links map can name only one owner.
   ConsensusMap cmap;
+  MapPeptideIdentifications ids;
   cmap.setExperimentType("label-free");
   ConsensusMap::ColumnHeader ch;
   ch.filename = "/data/runA.mzML";
@@ -1592,7 +1600,7 @@ START_SECTION(([EXTRA] a PSM claimed by two feature rows is refused during link 
   ProteinHit ph;
   ph.setAccession("PROT_A");
   prot.setHits({ph});
-  cmap.setProteinIdentifications({prot});
+  ids.proteins = {prot};
 
   // One identification, two consensus features. Same run, scan, peptidoform and charge -> same
   // psm_id; different rt and m/z -> two distinct feature rows, both listing it.
@@ -1600,6 +1608,7 @@ START_SECTION(([EXTRA] a PSM claimed by two feature rows is refused during link 
   {
     PeptideIdentification pid;
     pid.setIdentifier("PI_0");
+    pid.setScoreType("q-value"); // identification data needs the name of a score
     pid.setSpectrumReference("scan=1234");
     PeptideHit hit;
     hit.setSequence(AASequence::fromString("PEPTIDE"));
@@ -1621,9 +1630,10 @@ START_SECTION(([EXTRA] a PSM claimed by two feature rows is refused during link 
     bf.setRT(100.0 + i);
     bf.setCharge(2);
     cf.insert(0, bf);
-    cf.setPeptideIdentifications({make_id()});
+    ids.features[{cmap.size()}] = {make_id()};
     cmap.push_back(cf);
   }
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   QPXIdentity::FeatureLinks links;
   bool conflict_reported = false;

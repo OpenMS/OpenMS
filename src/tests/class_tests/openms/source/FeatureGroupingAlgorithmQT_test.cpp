@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <string>
 #include <vector>
@@ -63,12 +64,15 @@ START_SECTION(([EXTRA] group() with only empty FeatureMaps and use_identificatio
   // postprocess_() still transfers protein / unassigned IDs.
   for (Size i = 0; i < maps.size(); ++i)
   {
+    MapPeptideIdentifications ids;
     ProteinIdentification prot;
     prot.setIdentifier("run" + std::to_string(i));
-    maps[i].getProteinIdentifications().push_back(prot);
+    ids.proteins.push_back(prot);
     PeptideIdentification upep;
     upep.setIdentifier("run" + std::to_string(i));
-    maps[i].getUnassignedPeptideIdentifications().push_back(upep);
+    upep.setScoreType("score");
+    ids.unassigned.push_back(upep);
+    IdentificationDataConverter::importMapIdentifications(maps[i], ids);
   }
 
   FeatureGroupingAlgorithmQT algo;
@@ -79,8 +83,9 @@ START_SECTION(([EXTRA] group() with only empty FeatureMaps and use_identificatio
   ConsensusMap out;
   algo.group(maps, out);
   TEST_EQUAL(out.size(), 0)
-  TEST_EQUAL(out.getProteinIdentifications().size(), 3)
-  TEST_EQUAL(out.getUnassignedPeptideIdentifications().size(), 3)
+  const auto grouped = IdentificationDataConverter::exportMapIdentifications(out);
+  TEST_EQUAL(grouped.proteins.size(), 3)
+  TEST_EQUAL(grouped.unassigned.size(), 3)
 }
 END_SECTION
 

@@ -11,7 +11,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <boost/regex.hpp>
 
 using namespace std;
@@ -25,8 +24,7 @@ namespace OpenMS
   Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & input_map, vector<double>& medians, const std::string& acc_filter, const std::string& desc_filter)
   {
     // the filters read the identification data
-    std::optional<ConsensusMap> converted;
-    const ConsensusMap& map = (acc_filter.empty() && desc_filter.empty()) ? input_map : IdentificationDataConverter::withIdentificationData(input_map, converted);
+    const ConsensusMap& map = input_map;
     Size number_of_maps = map.getColumnHeaders().size();
     vector<vector<double> > feature_int(number_of_maps);
     medians.resize(number_of_maps);

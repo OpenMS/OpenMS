@@ -189,12 +189,17 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
   return exportToArrow(cmap, ExperimentalDesign::fromConsensusMap(cmap));
 }
 
-std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const ConsensusMap& input_map,
+std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const ConsensusMap& cmap,
                                                                     const ExperimentalDesign& design)
 {
   // the identifications as peptide identifications, which this format holds
-  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
-  const ConsensusMap& cmap = input_map;
+  return exportToArrow(cmap, IdentificationDataConverter::exportMapIdentifications(cmap), design);
+}
+
+std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const ConsensusMap& cmap,
+                                                                    const MapPeptideIdentifications& ids,
+                                                                    const ExperimentalDesign& design)
+{
   // every peptide identification needs its protein identification run
   ProteinRunReferences::check(ids.proteins, ids.peptides());
 
@@ -999,7 +1004,17 @@ bool ProteinGroupArrowExport::exportToParquet(
   const std::string& filename,
   const ParquetWriteConfig& config)
 {
-  auto table = exportToArrow(cmap, design);
+  return exportToParquet(cmap, IdentificationDataConverter::exportMapIdentifications(cmap), design, filename, config);
+}
+
+bool ProteinGroupArrowExport::exportToParquet(
+  const ConsensusMap& cmap,
+  const MapPeptideIdentifications& ids,
+  const ExperimentalDesign& design,
+  const std::string& filename,
+  const ParquetWriteConfig& config)
+{
+  auto table = exportToArrow(cmap, ids, design);
   if (!table)
   {
     OPENMS_LOG_ERROR << "ProteinGroupArrowExport: Failed to create Arrow table" << std::endl;

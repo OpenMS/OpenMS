@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -364,8 +365,17 @@ namespace OpenMS
                 bool best_psms_annotated,
                 const std::optional<const ExperimentalDesign>& ed = std::optional<const ExperimentalDesign>());
 
+    /**
+      @brief Graph of @p proteins and the peptide identifications @p identifications of the consensus features of
+      @p cmap (and the unassigned ones, with @p use_unassigned_ids), e.g. those that
+      IdentificationDataConverter::exportWithMatchReferences() gives
+
+      The graph refers to the peptide identifications and hits of @p identifications (and edits them), so it must
+      not outlive them.
+    */
     IDBoostGraph(ProteinIdentification& proteins,
-                ConsensusMap& cmap,
+                const ConsensusMap& cmap,
+                MapPeptideIdentifications& identifications,
                 Size use_top_psms,
                 bool use_run_info,
                 bool use_unassigned_ids,
@@ -554,7 +564,7 @@ namespace OpenMS
                     bool best_psms_annotated = false);
 
     void buildGraph_(ProteinIdentification& proteins,
-                    ConsensusMap& cmap,
+                    MapPeptideIdentifications& identifications,
                     Size use_top_psms,
                     bool use_unassigned_ids,
                     bool best_psms_annotated = false);
@@ -583,7 +593,8 @@ namespace OpenMS
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraphWithRunInfo_(ProteinIdentification& proteins,
-                               ConsensusMap& cmap,
+                               const ConsensusMap& cmap,
+                               MapPeptideIdentifications& identifications,
                                Size use_top_psms,
                                bool use_unassigned_ids,
                                const ExperimentalDesign& ed);

@@ -15,7 +15,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -188,8 +187,6 @@ protected:
 
         }
 
-        // the identifications as identification data (peptide identifications are converted):
-        IdentificationDataConverter::moveToIdentificationData(tmp);
         maps[i] = tmp;
         maps[i].updateRanges();
 
@@ -221,8 +218,6 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
-        // the identifications as identification data (peptide identifications are converted):
-        IdentificationDataConverter::moveToIdentificationData(maps[i]);
         maps[i].updateRanges();
         // copy over information on the primary MS run
         StringList ms_runs;

@@ -913,18 +913,17 @@ protected:
   {
     FeatureMap features;
     FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
-    // the protein-level steps below work on the protein identifications of the map
-    IdentificationDataConverter::moveToPeptideIdentifications(features);
     columns_headers_[0].filename = in;
 
     ExperimentalDesign ed = getExperimentalDesignFeatureMap_(design_file, features);
 
     // protein inference results in the featureXML?
+    const auto feature_proteins = IdentificationDataConverter::proteinIdentifications(features);
     if (getStringOption_("protein_groups").empty() &&
-        (features.getProteinIdentifications().size() == 1) &&
-        (!features.getProteinIdentifications()[0].getHits().empty()))
+        (feature_proteins.size() == 1) &&
+        (!feature_proteins[0].getHits().empty()))
     {
-      proteins_ = features.getProteinIdentifications()[0];
+      proteins_ = feature_proteins[0];
     }
     quantifier.readQuantData(features, ed);
     quantifier.quantifyPeptides(peptides_);
@@ -967,9 +966,6 @@ protected:
   {
     ConsensusMap consensus;
     FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
-    // the protein-level steps below (inference results, the quantified protein run for the exports) work on the
-    // protein identifications of the map
-    IdentificationDataConverter::moveToPeptideIdentifications(consensus);
 
     // Drop features whose peptide identifications disagree on the top sequence. They already
     // contribute nothing: PeptideAndProteinQuant::getAnnotation_() returns an empty hit for
@@ -979,11 +975,14 @@ protected:
     // Identifications agreeing on the same modified sequence are unambiguous and kept.
     {
       const Size before = consensus.size();
-      auto divergent = [](const ConsensusFeature& cf)
+      // by the top hits of the peptide identifications of each feature
+      const auto feature_ids = IdentificationDataConverter::exportMapIdentifications(consensus);
+      Size index = 0; // the features are visited in order
+      consensus.eraseFeatures([&feature_ids, &index](const ConsensusFeature&)
       {
-        return cf.getAnnotationState() == BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT;
-      };
-      consensus.erase(std::remove_if(consensus.begin(), consensus.end(), divergent), consensus.end());
+        return BaseFeature::annotationState(feature_ids.at({index++})) ==
+               BaseFeature::AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT;
+      });
       if (const Size removed = before - consensus.size(); removed > 0)
       {
         OPENMS_LOG_WARN << "ProteinQuantifier: ignoring " << removed << " of " << before
@@ -999,13 +998,16 @@ protected:
 
     ExperimentalDesign ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 
+    // the identifications as the exports below write them: their protein runs hold the inference results and get the
+    // quantified protein run
+    auto ids = IdentificationDataConverter::exportMapIdentifications(consensus);
     bool inference_in_cxml = false;
     // protein inference results in the consensusXML or from external ID-only file?
     if (getStringOption_("protein_groups").empty() &&
-        (consensus.getProteinIdentifications().size() == 1) &&
-        consensus.getProteinIdentifications()[0].hasInferenceData())
+        (ids.proteins.size() == 1) &&
+        ids.proteins[0].hasInferenceData())
     {
-      proteins_ = consensus.getProteinIdentifications()[0];
+      proteins_ = ids.proteins[0];
       inference_in_cxml = true;
     }
 
@@ -1021,12 +1023,11 @@ protected:
       quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
       if (!inference_in_cxml)
       {
-        auto& prots = consensus.getProteinIdentifications();
-        prots.insert(prots.begin(), proteins_); // insert inference information as first protein identification
+        ids.proteins.insert(ids.proteins.begin(), proteins_); // insert inference information as first protein identification
       }
       else
       {
-        std::swap(consensus.getProteinIdentifications()[0], proteins_);
+        std::swap(ids.proteins[0], proteins_);
       }
 
       // fill MzTab with meta data and quants annotated in identification data structure
@@ -1035,6 +1036,7 @@ protected:
       const bool report_subfeatures(false);
       MzTabFile().store(mztab,
         consensus,
+        ids,
         !inference_in_cxml,
         report_unidentified_features,
         report_unmapped,
@@ -1052,19 +1054,18 @@ protected:
         quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
         if (!inference_in_cxml)
         {
-          auto& prots = consensus.getProteinIdentifications();
-          prots.insert(prots.begin(), proteins_);
+          ids.proteins.insert(ids.proteins.begin(), proteins_);
         }
         else
         {
-          std::swap(consensus.getProteinIdentifications()[0], proteins_);
+          std::swap(ids.proteins[0], proteins_);
         }
       }
 
       // Validate the whole collection before the first write. Each view refuses input it
       // cannot represent, but only before its OWN file, so a refusal in the psm or pg view
       // would leave the earlier files behind as a partial collection.
-      if (!QPXCollectionExport::requireExportable(consensus, ed))
+      if (!QPXCollectionExport::requireExportable(consensus, ids, ed))
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             out_qpx, "the QPX collection cannot be written in full");
@@ -1080,7 +1081,7 @@ protected:
       QPXIdentity::FeatureLinks feature_links;
 
       // Feature-level export
-      if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet",
+      if (!ConsensusMapArrowExport::exportToParquet(consensus, ids, out_qpx + "/quantms.feature.parquet",
                                                     ParquetWriteConfig{}, &feature_links))
       {
         // Abort rather than log and continue: a partial QPX collection written with a zero
@@ -1090,7 +1091,7 @@ protected:
       }
 
       // PSM-level export: the identifications of the consensus features and the unassigned ones
-      if (!QPXFile::exportToParquet(consensus, out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
+      if (!QPXFile::exportToParquet(ids, out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
                                     ParquetWriteConfig{}, &feature_links))
       {
         // Abort rather than log and continue: a partial QPX collection written with a zero
@@ -1103,7 +1104,7 @@ protected:
       // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
       // files aggregated into one quantity, and the design defines each fraction-group/label
       // assay represented by the protein abundance arrays.
-      if (!ProteinGroupArrowExport::exportToParquet(consensus, ed, out_qpx + "/quantms.pg.parquet"))
+      if (!ProteinGroupArrowExport::exportToParquet(consensus, ids, ed, out_qpx + "/quantms.pg.parquet"))
       {
         // Abort rather than log and continue: a partial QPX collection written with a zero
         // exit code looks like a successful export.

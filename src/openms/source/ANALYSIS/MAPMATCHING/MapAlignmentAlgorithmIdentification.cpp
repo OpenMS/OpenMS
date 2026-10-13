@@ -10,7 +10,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
@@ -568,14 +567,12 @@ namespace OpenMS
 
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(const FeatureMap& features, SeqToList& rt_data)
   {
-    std::optional<FeatureMap> converted;
-    return getMapRetentionTimes_(IdentificationDataConverter::withIdentificationData(features, converted), rt_data);
+    return getMapRetentionTimes_(features, rt_data);
   }
 
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(const ConsensusMap& features, SeqToList& rt_data)
   {
-    std::optional<ConsensusMap> converted;
-    return getMapRetentionTimes_(IdentificationDataConverter::withIdentificationData(features, converted), rt_data);
+    return getMapRetentionTimes_(features, rt_data);
   }
 
   template <typename MapType>

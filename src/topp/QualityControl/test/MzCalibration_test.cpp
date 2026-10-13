@@ -108,7 +108,8 @@ peptide_ID.setRT(1);
 peptide_ID.setSpectrumReference( "XTandem::3");
 identifications.push_back(peptide_ID);
 peptide_hits.clear();
-feature1.setPeptideIdentifications(identifications);
+MapPeptideIdentifications ref_ids;
+ref_ids.features[{0}] = identifications;
 fmap_ref.push_back(feature1);
 // unassigned PeptideHits
 peptide_hit.setSequence(AASequence::fromString("YYYY"));
@@ -119,26 +120,28 @@ peptide_hits.clear();
 peptide_ID.setRT(0.5);
 peptide_ID.setSpectrumReference( "XTandem::2");
 unassignedIDs.push_back(peptide_ID);
-fmap_ref.setUnassignedPeptideIdentifications(unassignedIDs);
-Internal::ClassTest::addSearchRun(fmap_ref);
+ref_ids.unassigned = unassignedIDs;
+Internal::ClassTest::addSearchRun(ref_ids);
+Internal::ClassTest::setIdentifications(fmap_ref, ref_ids);
 MzCalibration cal;
 // tests compute function
 START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const QCBase::SpectraMap map_to_spectrum))
 {
   FeatureMap fmap = fmap_ref;
   cal.compute(fmap, exp, spectra_map);
+  auto computed = Internal::ClassTest::identificationsOf(fmap);
 
   // things that shouldn't change
   ABORT_IF(fmap.size() != 1);
-  ABORT_IF(fmap[0].getPeptideIdentifications().size() != 2);
-  ABORT_IF(fmap[0].getPeptideIdentifications()[0].getHits().size() != 1);
-  ABORT_IF(fmap[0].getPeptideIdentifications()[1].getHits().size() != 1);
-  ABORT_IF(fmap.getUnassignedPeptideIdentifications().size() != 1);
-  ABORT_IF(fmap.getUnassignedPeptideIdentifications()[0].getHits().size() != 1);
+  ABORT_IF(computed.at({0}).size() != 2);
+  ABORT_IF(computed.at({0})[0].getHits().size() != 1);
+  ABORT_IF(computed.at({0})[1].getHits().size() != 1);
+  ABORT_IF(computed.unassigned.size() != 1);
+  ABORT_IF(computed.unassigned[0].getHits().size() != 1);
   // things that should now be there
-  for (const Feature& f : fmap)
+  for (Size i = 0; i < fmap.size(); ++i)
   {
-    for (const PeptideIdentification& pepID : f.getPeptideIdentifications())
+    for (const PeptideIdentification& pepID : computed.at({i}))
     {
       ABORT_IF(!pepID.getHits()[0].metaValueExists("mz_raw"));
       ABORT_IF(!pepID.getHits()[0].metaValueExists("mz_ref"));
@@ -146,39 +149,41 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
       ABORT_IF(!pepID.getHits()[0].metaValueExists("calibrated_mz_error_ppm"));
     }
   }
-  for (const PeptideIdentification& upepID : fmap.getUnassignedPeptideIdentifications())
+  for (const PeptideIdentification& upepID : computed.unassigned)
   {
     ABORT_IF(!upepID.getHits()[0].metaValueExists("mz_raw"));
     ABORT_IF(!upepID.getHits()[0].metaValueExists("mz_ref"));
   }
 
   // test with valid input
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_raw"), 5);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getHits()[0].getMetaValue("mz_raw"), 7);
+  TEST_REAL_SIMILAR(computed.at({0})[0].getHits()[0].getMetaValue("mz_raw"), 5);
+  TEST_REAL_SIMILAR(computed.at({0})[1].getHits()[0].getMetaValue("mz_raw"), 7);
   // test unassigned
-  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_raw"), 6);
+  TEST_REAL_SIMILAR(computed.unassigned[0].getHits()[0].getMetaValue("mz_raw"), 6);
 
   // test refMZ
   double ref = AASequence::fromString("AAAA").getMonoWeight(OpenMS::Residue::Full, 2) / 2;
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_ref"), ref);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getHits()[0].getMetaValue("mz_ref"), AASequence::fromString("WWWW").getMonoWeight(OpenMS::Residue::Full, 3) / 3);
-  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getHits()[0].getMetaValue("mz_ref"), AASequence::fromString("YYYY").getMonoWeight(OpenMS::Residue::Full, 2) / 2);
+  TEST_REAL_SIMILAR(computed.at({0})[0].getHits()[0].getMetaValue("mz_ref"), ref);
+  TEST_REAL_SIMILAR(computed.at({0})[1].getHits()[0].getMetaValue("mz_ref"), AASequence::fromString("WWWW").getMonoWeight(OpenMS::Residue::Full, 3) / 3);
+  TEST_REAL_SIMILAR(computed.unassigned[0].getHits()[0].getMetaValue("mz_ref"), AASequence::fromString("YYYY").getMonoWeight(OpenMS::Residue::Full, 2) / 2);
 
   // test  mz_error
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"), (5 - ref) / ref * 1000000);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("calibrated_mz_error_ppm"), (5.5 - ref) / ref * 1000000);
+  TEST_REAL_SIMILAR(computed.at({0})[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"), (5 - ref) / ref * 1000000);
+  TEST_REAL_SIMILAR(computed.at({0})[0].getHits()[0].getMetaValue("calibrated_mz_error_ppm"), (5.5 - ref) / ref * 1000000);
 
   // test empty MSExperiment
   MSExperiment exp_empty {};
   QCBase::SpectraMap spectra_map_empty(exp_empty);
   fmap = fmap_ref; // reset FeatureMap
   cal.compute(fmap, exp_empty, spectra_map_empty);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"), (5.5 - ref) / ref * 1000000);
+  computed = Internal::ClassTest::identificationsOf(fmap);
+  TEST_REAL_SIMILAR(computed.at({0})[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"), (5.5 - ref) / ref * 1000000);
 
   // test with exp where no calibration was performed
   fmap = fmap_ref;
   cal.compute(fmap, exp_no_calibration, spectra_map);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"), (5.5 - ref) / ref * 1000000);
+  computed = Internal::ClassTest::identificationsOf(fmap);
+  TEST_REAL_SIMILAR(computed.at({0})[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"), (5.5 - ref) / ref * 1000000);
 
   // test empty FeatureMap
   FeatureMap fmap_empty {};
@@ -195,9 +200,11 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   fmap_empty.clear();
   PeptideIdentification peptide_ID_empty {};
   identifications.push_back(peptide_ID_empty);
-  feature1.setPeptideIdentifications(identifications);
   fmap_empty.push_back(feature1);
-  Internal::ClassTest::addSearchRun(fmap_empty);
+  MapPeptideIdentifications empty_ids;
+  empty_ids.features[{0}] = identifications;
+  Internal::ClassTest::addSearchRun(empty_ids);
+  Internal::ClassTest::setIdentifications(fmap_empty, empty_ids);
   cal.compute(fmap_empty, exp, spectra_map);
   TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
 
@@ -206,15 +213,19 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   peptide_ID.setHits(std::vector<PeptideHit> {});
   identifications.clear();
   identifications.push_back(peptide_ID);
-  feature1.setPeptideIdentifications(identifications);
   fmap_empty.push_back(feature1);
-  Internal::ClassTest::addSearchRun(fmap_empty);
+  empty_ids = MapPeptideIdentifications();
+  empty_ids.features[{0}] = identifications;
+  Internal::ClassTest::addSearchRun(empty_ids);
+  Internal::ClassTest::setIdentifications(fmap_empty, empty_ids);
   cal.compute(fmap_empty, exp, spectra_map);
   TEST_EQUAL(fmap_empty.isMetaEmpty(), true);
 
   // test wrong MS-Level exception
   fmap = fmap_ref; // reset FeatureMap
-  fmap[0].getPeptideIdentifications()[0].setSpectrumReference( "XTandem::4");
+  auto wrong_level = ref_ids;
+  wrong_level.features[{0}][0].setSpectrumReference( "XTandem::4");
+  Internal::ClassTest::setIdentifications(fmap, wrong_level);
   exp.getSpectra()[0].setNativeID("XTandem::4");
   exp.getSpectra()[0].setMSLevel(1);
   spectra_map.calculateMap(exp);
@@ -227,8 +238,10 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   dummy_hit.setSequence(AASequence::fromString("MMMMM"));
   dummy_hit.setCharge(2);
   pep_no_spec_ref.setHits({dummy_hit});
-  fmap[0].setPeptideIdentifications({pep_no_spec_ref});
-  Internal::ClassTest::addSearchRun(fmap);
+  auto no_reference = ref_ids;
+  no_reference.features[{0}] = {pep_no_spec_ref};
+  Internal::ClassTest::addSearchRun(no_reference);
+  Internal::ClassTest::setIdentifications(fmap, no_reference);
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, cal.compute(fmap, exp, spectra_map), "No spectrum reference annotated at peptide identification!");
 }
 END_SECTION

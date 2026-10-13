@@ -12,7 +12,6 @@
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/DATASTRUCTURES/ExposedVector.h>
-#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -70,8 +69,7 @@ namespace OpenMS
       public DocumentIdentifier,
       public ExposedVector<Feature>,
       public UniqueIdInterface,
-      public UniqueIdIndexer<FeatureMap>,
-      public MapUtilities<FeatureMap>
+      public UniqueIdIndexer<FeatureMap>
   {
   public:
     EXPOSED_VECTOR_INTERFACE(Feature)
@@ -126,7 +124,7 @@ namespace OpenMS
       @brief Add one feature map to another.
 
       Features are merged into one container, simply by appending.
-      UnassignedPeptides and ProteinIdentifications are appended.
+      The identification data is merged (see IdentificationData::merge()).
       Information on DocumentIdentifier, UniqueIdInterface (of container only)
       are reset to default.
 
@@ -166,36 +164,6 @@ namespace OpenMS
     void swapFeaturesOnly(FeatureMap& from);
 
     void swap(FeatureMap& from);
-
-    /// @name Functions for dealing with identifications in legacy format
-    ///@{
-    /// non-mutable access to the protein identifications
-    const std::vector<ProteinIdentification>& getProteinIdentifications() const;
-
-    /// mutable access to the protein identifications
-    std::vector<ProteinIdentification>& getProteinIdentifications();
-
-    /// sets the protein identifications
-    void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
-
-    /// finds a protein identification by its identifier (returns nullptr if not found)
-    const ProteinIdentification* findProteinIdentification(const std::string& identifier) const;
-
-    /// finds a protein identification by its identifier (returns nullptr if not found)
-    ProteinIdentification* findProteinIdentification(const std::string& identifier);
-
-    /// non-mutable access to the unassigned peptide identifications
-    [[deprecated("legacy identifications: use the identification data")]]
-    const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
-
-    /// mutable access to the unassigned peptide identifications
-    [[deprecated("legacy identifications: use the identification data")]]
-    PeptideIdentificationList& getUnassignedPeptideIdentifications();
-
-    /// sets the unassigned peptide identifications
-    [[deprecated("legacy identifications: use the identification data")]]
-    void setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications);
-    ///@}
 
     /// returns a const reference to the description of the applied data processing
     const std::vector<DataProcessing>& getDataProcessing() const;
@@ -274,7 +242,7 @@ namespace OpenMS
     std::set<IdentificationData::MatchReference> getUnassignedIDMatches() const;
 
     /*!
-      @brief The identifications and matches that no feature (or a subordinate) links (the counterpart of getUnassignedPeptideIdentifications())
+      @brief The identifications and matches that no feature (or a subordinate) links (the unassigned peptide identifications of a format)
 
       @see IdentificationData::getUnlinked()
     */
@@ -322,7 +290,6 @@ namespace OpenMS
     Size eraseUnassignedIdentifications();
 
     /// Remove all identifications: the identification data and the links of the features (and subordinates) to it
-    /// (and the peptide and protein identifications)
     void clearIdentifications();
 
     /// Immutable access to the contained identification data
@@ -333,12 +300,6 @@ namespace OpenMS
     ///@}
 
 protected:
-    /// protein identifications
-    std::vector<ProteinIdentification> protein_identifications_;
-
-    /// peptide identifications not matched to a specific feature
-    PeptideIdentificationList unassigned_peptide_identifications_;
-
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
 

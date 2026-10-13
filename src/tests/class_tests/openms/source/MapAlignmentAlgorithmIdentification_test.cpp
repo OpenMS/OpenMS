@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/NativeIdentificationTest.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <iostream>
 
@@ -394,7 +394,6 @@ END_SECTION
 
 START_SECTION([EXTRA] align() of feature and consensus maps uses their identifications as identification data)
 {
-  using namespace OpenMS::Internal::ClassTest;
   vector<vector<ProteinIdentification>> runs(2);
   vector<PeptideIdentificationList> ids(2);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_1.idXML"), runs[0], ids[0]);
@@ -410,26 +409,22 @@ START_SECTION([EXTRA] align() of feature and consensus maps uses their identific
     return ListUtils::concatenate(result, ",");
   };
 
-  // the identifications unassigned: same data points with peptide identifications and with identification data
+  // the identifications unassigned: same data points as with the peptide identifications
   // (a map needs a feature, else it counts as empty, see setReference())
   vector<FeatureMap> maps(2);
   vector<ConsensusMap> consensus(2);
   for (Size i = 0; i < 2; ++i)
   {
+    MapPeptideIdentifications unassigned;
+    unassigned.proteins = runs[i];
+    unassigned.unassigned = ids[i];
     maps[i].push_back(Feature());
-    maps[i].setProteinIdentifications(runs[i]);
-    maps[i].setUnassignedPeptideIdentifications(ids[i]);
+    IdentificationDataConverter::importMapIdentifications(maps[i], unassigned);
     consensus[i].push_back(ConsensusFeature());
-    consensus[i].setProteinIdentifications(runs[i]);
-    consensus[i].setUnassignedPeptideIdentifications(ids[i]);
+    IdentificationDataConverter::importMapIdentifications(consensus[i], unassigned);
   }
+  TEST_FALSE(maps[0].getIdentificationData().empty())
   vector<TransformationDescription> transforms;
-  aligner.align(maps, transforms, 0);
-  TEST_EQUAL(points(transforms[1], 0), points(expected[1], 0))
-  for (auto& map : maps) toNative(map);
-  for (auto& map : consensus) toNative(map);
-  TEST_EQUAL(maps[0].getUnassignedPeptideIdentifications().empty() && !maps[0].getIdentificationData().empty(), true)
-  transforms.clear();
   aligner.align(maps, transforms, 0);
   TEST_EQUAL(points(transforms[1], 0), points(expected[1], 0))
   transforms.clear();
@@ -446,16 +441,17 @@ START_SECTION([EXTRA] align() of feature and consensus maps uses their identific
   for (Size i = 0; i < 2; ++i)
   {
     maps[i] = FeatureMap();
-    maps[i].setProteinIdentifications(runs[i]);
+    MapPeptideIdentifications on_features;
+    on_features.proteins = runs[i];
     for (const auto& id : ids[i])
     {
       Feature feature;
       feature.setRT(id.getRT() + 10);
       feature.setUniqueId();
-      feature.getPeptideIdentifications().push_back(id);
+      on_features.features[{maps[i].size()}].push_back(id);
       maps[i].push_back(feature);
     }
-    toNative(maps[i]);
+    IdentificationDataConverter::importMapIdentifications(maps[i], on_features);
   }
   Param feature_rt = params;
   feature_rt.setValue("use_feature_rt", "true");

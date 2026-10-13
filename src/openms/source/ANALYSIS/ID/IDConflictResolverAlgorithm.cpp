@@ -8,7 +8,6 @@
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <algorithm>
 #include <limits>    // for std::numeric_limits
@@ -280,19 +279,9 @@ namespace OpenMS
       }
     }
 
-    void exportIDs(FeatureMap& map)
-    {
-      IdentificationDataConverter::exportFeatureIDs(map);
-    }
-    void exportIDs(ConsensusMap& map)
-    {
-      IdentificationDataConverter::exportConsensusIDs(map);
-    }
-
     template<class Map>
     void resolveMap(Map& map, Mode mode)
     {
-      const bool converted = IdentificationDataConverter::moveToIdentificationData(map);
       auto& data = map.getIdentificationData();
       Edits edits;
       // annotate as not part of the resolution
@@ -328,13 +317,11 @@ namespace OpenMS
         relink(feature, entries, edits);
       }
       applyEdits(map, edits);
-      if (converted) exportIDs(map);
     }
 
     template<class Map>
     void resolveBetweenFeaturesMap(Map& map)
     {
-      const bool converted = IdentificationDataConverter::moveToIdentificationData(map);
       auto& data = map.getIdentificationData();
       // the feature with the highest intensity for each (charge, sequence of the best match)
       std::map<std::pair<Int, AASequence>, typename Map::value_type*> feature_set;
@@ -370,7 +357,6 @@ namespace OpenMS
           unassign(element);
         }
       }
-      if (converted) exportIDs(map);
     }
   } // namespace
 

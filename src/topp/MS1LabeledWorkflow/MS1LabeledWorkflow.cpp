@@ -1783,16 +1783,15 @@ protected:
     //-------------------------------------------------------------
     // output
     //-------------------------------------------------------------
-    // The output formats (QPX, consensusXML, mzTab) hold peptide identifications: export the identifications once
-    // rather than in a copy of the map per output.
-    IdentificationDataConverter::exportConsensusIDs(consensus);
+    // The QPX views and mzTab hold peptide identifications: export the identifications once rather than per view.
+    auto ids = IdentificationDataConverter::exportMapIdentifications(consensus);
 
     if (!out_qpx.empty())
     {
       OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << endl;
 
       // every deterministic refusal of the three views, before the first file is written
-      if (!QPXCollectionExport::requireExportable(consensus, design_))
+      if (!QPXCollectionExport::requireExportable(consensus, ids, design_))
       {
         return CANNOT_WRITE_OUTPUT_FILE; // already logged
       }
@@ -1800,21 +1799,21 @@ protected:
       QPXCollectionExport::Transaction qpx_collection(out_qpx);
 
       QPXIdentity::FeatureLinks feature_links;
-      if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet", ParquetWriteConfig{}, &feature_links))
+      if (!ConsensusMapArrowExport::exportToParquet(consensus, ids, out_qpx + "/quantms.feature.parquet", ParquetWriteConfig{}, &feature_links))
       {
         OPENMS_LOG_ERROR << "Failed to write features Parquet file" << endl;
         return CANNOT_WRITE_OUTPUT_FILE;
       }
 
       // PSM-level export: the identifications of the multiplets and the unassigned ones
-      if (!QPXFile::exportToParquet(consensus, out_qpx + "/quantms.psm.parquet",
+      if (!QPXFile::exportToParquet(ids, out_qpx + "/quantms.psm.parquet",
                                     /*export_all_psms=*/false, ParquetWriteConfig{}, &feature_links))
       {
         OPENMS_LOG_ERROR << "Failed to write PSM Parquet file" << endl;
         return CANNOT_WRITE_OUTPUT_FILE;
       }
 
-      if (!ProteinGroupArrowExport::exportToParquet(consensus, design_, out_qpx + "/quantms.pg.parquet"))
+      if (!ProteinGroupArrowExport::exportToParquet(consensus, ids, design_, out_qpx + "/quantms.pg.parquet"))
       {
         OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << endl;
         return CANNOT_WRITE_OUTPUT_FILE;
@@ -1835,7 +1834,7 @@ protected:
       const bool report_subfeatures(false);
       const bool report_unidentified_spectra(false);
       const bool report_not_only_best_psm_per_spectrum(false);
-      MzTabFile().store(out, consensus, false, report_unidentified_features, report_unmapped, report_subfeatures,
+      MzTabFile().store(out, consensus, std::move(ids), false, report_unidentified_features, report_unmapped, report_subfeatures,
                         report_unidentified_spectra, report_not_only_best_psm_per_spectrum);
     }
 

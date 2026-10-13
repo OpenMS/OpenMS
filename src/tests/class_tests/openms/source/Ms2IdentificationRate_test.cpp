@@ -65,14 +65,11 @@ PeptideIdentificationList pep_ids_fdr = {pep_id_fdr};
 
 PeptideIdentificationList two_target_ids = {pep_id_target, pep_id_target, pep_id_decoy, pep_id_empty};
 
-// construct features with peptideIdentifications
+// construct features with peptideIdentifications (the first one has none, as the third)
 Feature feat_empty_pi;
-feat_empty_pi.setPeptideIdentifications(pep_ids_empty);
 Feature feat_target;
-feat_target.setPeptideIdentifications(pep_ids);
 Feature feat_empty;
 Feature feat_fdr;
-feat_fdr.setPeptideIdentifications(pep_ids_fdr);
 
 // construct FeatureMap
 FeatureMap fmap;
@@ -85,11 +82,16 @@ fmap_fdr.push_back(feat_fdr);
 
 FeatureMap fmap_empty;
 
-
-fmap.setUnassignedPeptideIdentifications(pep_ids);
-// identification data needs their search run and a score type
-Internal::ClassTest::addSearchRun(fmap);
-Internal::ClassTest::addSearchRun(fmap_fdr);
+// the identifications of the maps: identification data needs their search run and a score type
+MapPeptideIdentifications fmap_ids;
+fmap_ids.features[{1}] = pep_ids;
+fmap_ids.unassigned = pep_ids;
+Internal::ClassTest::addSearchRun(fmap_ids);
+Internal::ClassTest::setIdentifications(fmap, fmap_ids);
+MapPeptideIdentifications fmap_fdr_ids;
+fmap_fdr_ids.features[{0}] = pep_ids_fdr;
+Internal::ClassTest::addSearchRun(fmap_fdr_ids);
+Internal::ClassTest::setIdentifications(fmap_fdr, fmap_fdr_ids);
 
 // construct MSSpectrum
 MSSpectrum ms2;

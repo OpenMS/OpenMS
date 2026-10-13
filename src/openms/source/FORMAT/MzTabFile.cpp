@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/FORMAT/TextFile.h>
@@ -3004,6 +3005,21 @@ namespace OpenMS
       const bool export_empty_pep_ids,
       const bool export_all_psms) const
   {
+    store(filename, cmap, IdentificationDataConverter::exportMapIdentifications(cmap), first_run_inference_only,
+          export_unidentified_features, export_unassigned_ids, export_subfeatures, export_empty_pep_ids, export_all_psms);
+  }
+
+  void MzTabFile::store(
+      const std::string& filename,
+      const ConsensusMap& cmap,
+      MapPeptideIdentifications ids,
+      const bool first_run_inference_only,
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids,
+      const bool export_subfeatures,
+      const bool export_empty_pep_ids,
+      const bool export_all_psms) const
+  {
     if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
@@ -3012,6 +3028,7 @@ namespace OpenMS
 
     MzTab::CMMzTabStream s(
       cmap,
+      std::move(ids),
       filename,
       first_run_inference_only,
       export_unidentified_features,

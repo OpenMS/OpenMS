@@ -10,7 +10,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
@@ -82,8 +81,7 @@ namespace OpenMS
     }
 
     // The identifications of the features (read as identification data; features keep their order)
-    std::optional<ConsensusMap> converted;
-    const ConsensusMap& identified = IdentificationDataConverter::withIdentificationData(consensus, converted);
+    const ConsensusMap& identified = consensus;
     const IdentificationData& data = identified.getIdentificationData();
     // The peptide identity of a feature: its first match of its first identification, as the first hit of its first
     // peptide identification

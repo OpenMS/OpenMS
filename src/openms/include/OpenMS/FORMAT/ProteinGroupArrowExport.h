@@ -29,6 +29,7 @@ namespace OpenMS
 {
   class ExperimentalDesign;
   class ProteinIdentification;
+  struct MapPeptideIdentifications;
 }
 
 namespace OpenMS
@@ -80,6 +81,11 @@ public:
   */
   static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap,
                                                      const ExperimentalDesign& design);
+  /// Same as above, with the identifications @p ids of @p cmap (see IdentificationDataConverter::exportMapIdentifications()),
+  /// e.g. with the quantified protein run first
+  static std::shared_ptr<arrow::Table> exportToArrow(const ConsensusMap& cmap,
+                                                     const MapPeptideIdentifications& ids,
+                                                     const ExperimentalDesign& design);
 
   /**
     @brief Export protein group data to Apache Arrow Table, deriving the design from @p cmap
@@ -106,6 +112,13 @@ public:
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,
+    const ExperimentalDesign& design,
+    const std::string& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{});
+  /// Same as above, with the identifications @p ids of @p cmap (see exportToArrow())
+  static bool exportToParquet(
+    const ConsensusMap& cmap,
+    const MapPeptideIdentifications& ids,
     const ExperimentalDesign& design,
     const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});

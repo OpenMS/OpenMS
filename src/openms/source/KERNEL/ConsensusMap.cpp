@@ -108,8 +108,6 @@ namespace OpenMS
       UniqueIdIndexer<ConsensusMap>(source),
       column_description_(source.column_description_),
       experiment_type_(source.experiment_type_),
-      protein_identifications_(source.protein_identifications_),
-      unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
       data_processing_(source.data_processing_),
       id_data_(source.id_data_)
   {
@@ -162,35 +160,8 @@ namespace OpenMS
       getColumnHeaders()[it->first].size = it->second.size + it2->second.size;
     }
 
-    // append proteinIdentification
-    protein_identifications_.insert(protein_identifications_.end(),
-                                    rhs.protein_identifications_.begin(),
-                                    rhs.protein_identifications_.end());
-
-    // ensure non-redundant modification parameter
-    for (auto& pi : protein_identifications_)
-    {
-      std::vector<std::string>::iterator it_2;
-
-      // remove redundant variable modifications
-      std::vector<std::string>& varMod = pi.getSearchParameters().variable_modifications;
-      sort(varMod.begin(), varMod.end());
-      it_2 = unique(varMod.begin(), varMod.end());
-      varMod.resize(it_2 - varMod.begin());
-
-      // remove redundant fixed modifications
-      std::vector<std::string>& fixMod = pi.getSearchParameters().fixed_modifications;
-      sort(fixMod.begin(), fixMod.end());
-      it_2 = unique(fixMod.begin(), fixMod.end());
-      fixMod.resize(it_2 - fixMod.begin());
-    }
-    // and those of the runs of the identification data
+    // ensure non-redundant modification parameters in the runs of the identification data
     uniqueModifications(id_data_);
-
-    // append unassigned PeptideIdentifications
-    unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
-                                               rhs.unassigned_peptide_identifications_.begin(),
-                                               rhs.unassigned_peptide_identifications_.end());
 
     // append consensusElements to consensusElementList:
     this->insert(this->end(), rhs.begin(), rhs.end());
@@ -261,56 +232,12 @@ namespace OpenMS
       column_description_.insert(std::make_pair(lhs_map_size + rhsfd.first, rhsfd.second));
     }
 
-    // append proteinIdentification
-    protein_identifications_.insert(protein_identifications_.end(),
-                                    rhs.protein_identifications_.begin(),
-                                    rhs.protein_identifications_.end());
-
-    // ensure non-redundant modification parameter
-    for (auto& pi : protein_identifications_)
-    {
-      std::vector<std::string>::iterator it_2;
-
-      // remove redundant variable modifications
-      std::vector<std::string>& varMod = pi.getSearchParameters().variable_modifications;
-      sort(varMod.begin(), varMod.end());
-      it_2 = unique(varMod.begin(), varMod.end());
-      varMod.resize(it_2 - varMod.begin());
-
-      // remove redundant fixed modifications
-      std::vector<std::string>& fixMod = pi.getSearchParameters().fixed_modifications;
-      sort(fixMod.begin(), fixMod.end());
-      it_2 = unique(fixMod.begin(), fixMod.end());
-      fixMod.resize(it_2 - fixMod.begin());
-    }
-    // and those of the runs of the identification data
+    // ensure non-redundant modification parameters in the runs of the identification data
     uniqueModifications(id_data_);
-
-    // append unassigned identifications and update map index:
-    for (PeptideIdentification pid : rhs.unassigned_peptide_identifications_)
-    {
-      if (pid.metaValueExists("map_index"))
-      {
-        Size old_index = (Size)pid.getMetaValue("map_index");
-        pid.setMetaValue("map_index", lhs_map_size + old_index);
-      }
-      unassigned_peptide_identifications_.push_back(std::move(pid));
-    }
-
-    // combine IDs (new format):
 
     // append consensusElements to consensusElementList and update map index:
     for (ConsensusFeature cf : rhs)
     {
-      for (PeptideIdentification& pid : cf.getPeptideIdentifications())
-      {
-        if (pid.metaValueExists("map_index"))
-        {
-          Size old_index = (Size)pid.getMetaValue("map_index");
-          pid.setMetaValue("map_index", lhs_map_size + old_index);
-        }
-      }
-
       // update map indices
       ConsensusFeature::HandleSetType new_handles;
       for (auto handle : cf) // OMS_CODING_TEST_EXCLUDE Note: std::set only provides const iterators, so we copy
@@ -353,8 +280,6 @@ namespace OpenMS
       clearUniqueId();
       column_description_.clear();
       experiment_type_ = "label-free";  // default
-      protein_identifications_.clear();
-      unassigned_peptide_identifications_.clear();
       data_processing_.clear();
       id_data_.clear();
     }
@@ -441,43 +366,6 @@ namespace OpenMS
     std::stable_sort(begin(), end(), ConsensusFeature::MapsLess());
   }
 
-  void ConsensusMap::sortPeptideIdentificationsByMapIndex()
-  {
-    // lambda predicate
-    auto mapIndexLess = [] (const PeptideIdentification & a, const PeptideIdentification & b) -> bool
-    {
-      const bool has_a = a.metaValueExists("map_index");
-      const bool has_b = b.metaValueExists("map_index");
-
-      // moves IDs without meta value to end
-      if (has_a && !has_b)
-      {
-        return true;
-      }
-      if (!has_a && has_b)
-      {
-        return false;
-      }
-
-      // both have map index annotated
-      if (has_a && has_b)
-      {
-        return a.getMetaValue("map_index") < b.getMetaValue("map_index");
-      }
-
-      // no map index annotated in both
-      return false;
-    };
-
-    std::transform(begin(), end(), begin(),
-      [mapIndexLess](ConsensusFeature& c)
-      {
-        auto& pids = c.getPeptideIdentifications();
-        stable_sort(pids.begin(), pids.end(), mapIndexLess);
-        return c;
-      });
-  }
-
   void ConsensusMap::swap(ConsensusMap& from)
   {
     ConsensusMap tmp;
@@ -502,77 +390,10 @@ namespace OpenMS
     // swap the remaining members
     std::swap(column_description_, from.column_description_);
     experiment_type_.swap(from.experiment_type_);
-    protein_identifications_.swap(from.protein_identifications_);
-    unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
     data_processing_.swap(from.data_processing_);
     id_data_.swap(from.id_data_);
   }
 
-  /// non-mutable access to the protein identifications
-  const std::vector<ProteinIdentification>& ConsensusMap::getProteinIdentifications() const
-  {
-    return protein_identifications_;
-  }
-
-  /// mutable access to the protein identifications
-  std::vector<ProteinIdentification>& ConsensusMap::getProteinIdentifications()
-  {
-    return protein_identifications_;
-  }
-
-  /// sets the protein identifications
-  void ConsensusMap::setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
-  {
-    protein_identifications_ = protein_identifications;
-  }
-
-  /// sets the protein identifications
-  void ConsensusMap::setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications)
-  {
-    protein_identifications_ = std::move(protein_identifications);
-  }
-
-  const ProteinIdentification* ConsensusMap::findProteinIdentification(const std::string& identifier) const
-  {
-    for (const auto& prot_id : protein_identifications_)
-    {
-      if (prot_id.getIdentifier() == identifier)
-      {
-        return &prot_id;
-      }
-    }
-    return nullptr;
-  }
-
-  ProteinIdentification* ConsensusMap::findProteinIdentification(const std::string& identifier)
-  {
-    for (auto& prot_id : protein_identifications_)
-    {
-      if (prot_id.getIdentifier() == identifier)
-      {
-        return &prot_id;
-      }
-    }
-    return nullptr;
-  }
-
-  /// non-mutable access to the unassigned peptide identifications
-  const PeptideIdentificationList& ConsensusMap::getUnassignedPeptideIdentifications() const
-  {
-    return unassigned_peptide_identifications_;
-  }
-
-  /// mutable access to the unassigned peptide identifications
-  PeptideIdentificationList& ConsensusMap::getUnassignedPeptideIdentifications()
-  {
-    return unassigned_peptide_identifications_;
-  }
-
-  /// sets the unassigned peptide identifications
-  void ConsensusMap::setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications)
-  {
-    unassigned_peptide_identifications_ = unassigned_peptide_identifications;
-  }
 
   /// returns a const reference to the description of the applied data processing
   const std::vector<DataProcessing>& ConsensusMap::getDataProcessing() const
@@ -666,9 +487,7 @@ namespace OpenMS
   {
     return data_ == rhs.data_ && MetaInfoInterface::operator==(rhs) && RangeManagerType::operator==(rhs) && DocumentIdentifier::operator==(rhs)
            && UniqueIdInterface::operator==(rhs) && column_description_ == rhs.column_description_ && experiment_type_ == rhs.experiment_type_
-           && protein_identifications_ == rhs.protein_identifications_
-           && unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ && data_processing_ == rhs.data_processing_
-           && id_data_ == rhs.id_data_;
+           && data_processing_ == rhs.data_processing_ && id_data_ == rhs.id_data_;
   }
 
   /// Equality operator
@@ -797,20 +616,6 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
 
   std::vector<FeatureMap> ConsensusMap::split(ConsensusMap::SplitMeta mode) const
   {
-    if (!getIdentificationData().empty())
-    {
-      // the identifications are split as peptide identifications (by map index, or all to the first map after the
-      // IsobaricAnalyzer); each part holds its share as identification data again
-      ConsensusMap legacy(*this);
-      IdentificationDataConverter::moveToPeptideIdentifications(legacy);
-      std::vector<FeatureMap> parts = legacy.split(mode);
-      for (auto& part : parts)
-      {
-        IdentificationDataConverter::moveToIdentificationData(part);
-      }
-      return parts;
-    }
-
     // Column headers are keyed by map index, and the keys need not be contiguous (e.g. after
     // 'FileFilter -consensus:map 0 3', or for a consensusXML without <map id="0">). The result
     // vector is therefore addressed by the position of a map index among the column headers
@@ -831,17 +636,31 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       }
       return pos->second;
     };
+    auto mapIndexOf = [](const PeptideIdentification& pep_id) -> UInt64
+    {
+      if (!pep_id.metaValueExists("map_index"))
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
+      }
+      return static_cast<UInt64>(pep_id.getMetaValue("map_index"));
+    };
 
     std::vector<FeatureMap> fmaps(index_to_position.size());
+    // The identifications are split as peptide identifications; each FeatureMap imports its share at the end.
+    const MapPeptideIdentifications identifications = IdentificationDataConverter::exportMapIdentifications(*this);
+    std::vector<MapPeptideIdentifications> parts(fmaps.size());
 
     // Check for Isobaric Analyzer
     bool iso_analyze = DataProcessingUtils::hasIsobaricAnalyzer(getDataProcessing());
 
-    for (const auto& cf : *this)
+    for (Size cf_index = 0; cf_index < size(); ++cf_index)
     {
+      const ConsensusFeature& cf = (*this)[cf_index];
       UInt64 min_index = std::numeric_limits<UInt64>::max();
       // Create new Features from FeatureHandles
       std::map<UInt64, BaseFeature> new_feats;
+      std::map<UInt64, PeptideIdentificationList> new_peptides;
       for (const FeatureHandle& fh : cf.getFeatures())
       {
         UInt64 index = fh.getMapIndex();
@@ -861,22 +680,12 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       }
 
       // Add PeptideIdentifications to ...
-      for (const PeptideIdentification& pep_id : cf.getPeptideIdentifications())
+      for (const PeptideIdentification& pep_id : identifications.at({cf_index}))
       {
-        // ... the first Feature.
-        if (iso_analyze)
-        {
-          (*new_feats.begin()).second.getPeptideIdentifications().push_back(pep_id);
-          continue;
-        }
-
-        // ... the corresponding Feature by map_index.
-        if (!pep_id.metaValueExists("map_index"))
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
-        }
-        new_feats[pep_id.getMetaValue("map_index")].getPeptideIdentifications().push_back(pep_id);
+        // ... the first Feature, or the corresponding Feature by map_index.
+        const UInt64 index = iso_analyze ? new_feats.begin()->first : mapIndexOf(pep_id);
+        if (!new_feats.contains(index)) new_feats[index] = BaseFeature();
+        new_peptides[index].push_back(pep_id);
       }
 
       // handle MetaValues of current CF
@@ -902,10 +711,15 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           break;
       }
 
-      // Add new Features to corresponding FeatureMap.
+      // Add new Features (and their identifications) to corresponding FeatureMap.
       for (auto it = new_feats.begin(); it != new_feats.end(); ++it)
       {
-        fmaps[positionOf(it->first)].emplace_back(std::move(it->second));
+        const Size part = positionOf(it->first);
+        if (auto peptides = new_peptides.find(it->first); peptides != new_peptides.end())
+        {
+          parts[part].features[{fmaps[part].size()}] = std::move(peptides->second);
+        }
+        fmaps[part].emplace_back(std::move(it->second));
       }
     }
 
@@ -915,41 +729,33 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       // ... the first FeatureMap, i.e. the one of map index 0. It is resolved like any other map
       // index, so a missing column 0 (or no column at all) is reported instead of written out of bounds.
       const Size first = positionOf(0);
-      fmaps[first].getUnassignedPeptideIdentifications() = this->getUnassignedPeptideIdentifications();
-      fmaps[first].getProteinIdentifications() = this->getProteinIdentifications(); // wrong! improve: only copy the ProtID which belongs to this FMap!
+      parts[first].unassigned = identifications.unassigned;
+      parts[first].proteins = identifications.proteins; // wrong! improve: only copy the ProtID which belongs to this FMap!
     }
     else
     {
       // ... the corresponding FeatureMap by map_index.
-      for (const PeptideIdentification& upep_id : this->getUnassignedPeptideIdentifications())
+      for (const PeptideIdentification& upep_id : identifications.unassigned)
       {
-        if (!upep_id.metaValueExists("map_index"))
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
-        }
-        fmaps[positionOf(static_cast<UInt64>(upep_id.getMetaValue("map_index")))].getUnassignedPeptideIdentifications().push_back(upep_id);
+        parts[positionOf(mapIndexOf(upep_id))].unassigned.push_back(upep_id);
       }
 
       // every peptide identification needs its protein identification run: copy the runs each FeatureMap refers to
-      for (auto& fm : fmaps)
+      for (auto& part : parts)
       {
         std::set<std::string> identifiers;
-        for (const Feature& f : fm)
+        for (const PeptideIdentification* pep_id : part.peptides()) identifiers.insert(pep_id->getIdentifier());
+        for (const ProteinIdentification& run : identifications.proteins)
         {
-          for (const PeptideIdentification& pep_id : f.getPeptideIdentifications()) identifiers.insert(pep_id.getIdentifier());
-        }
-        for (const PeptideIdentification& pep_id : fm.getUnassignedPeptideIdentifications()) identifiers.insert(pep_id.getIdentifier());
-        for (const ProteinIdentification& run : this->getProteinIdentifications())
-        {
-          if (identifiers.contains(run.getIdentifier())) fm.getProteinIdentifications().push_back(run);
+          if (identifiers.contains(run.getIdentifier())) part.proteins.push_back(run);
         }
       }
     }
 
-    for (auto& fm : fmaps)
+    for (Size i = 0; i < fmaps.size(); ++i)
     {
-      fm.getDataProcessing() = this->getDataProcessing();
+      if (!parts[i].empty()) IdentificationDataConverter::importMapIdentifications(fmaps[i], parts[i]);
+      fmaps[i].getDataProcessing() = this->getDataProcessing();
     }
 
     return fmaps;
@@ -1063,11 +869,8 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     {
       feature.getIDQueries().clear();
       feature.getIDMatches().clear();
-      feature.getPeptideIdentifications().clear();
     }
     id_data_.clear();
-    protein_identifications_.clear();
-    unassigned_peptide_identifications_.clear();
   }
 
   Size ConsensusMap::eraseUnassignedIdentifications()

@@ -33,7 +33,7 @@ namespace OpenMS
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature& element) :
-    BaseFeature(element, map_index), handles_(), ratios_()
+    BaseFeature(element), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
   }
@@ -43,7 +43,6 @@ namespace OpenMS
   void ConsensusFeature::insert(const ConsensusFeature& cf)
   {
     handles_.insert(cf.handles_.begin(), cf.handles_.end());
-    peptides_.insert(peptides_.end(), cf.getPeptideIdentifications().begin(), cf.getPeptideIdentifications().end());
     id_queries_.insert(cf.id_queries_.begin(), cf.id_queries_.end());
     id_matches_.insert(cf.id_matches_.begin(), cf.id_matches_.end());
   }
@@ -51,7 +50,6 @@ namespace OpenMS
   void ConsensusFeature::insert(ConsensusFeature&& cf)
   {
     handles_.insert(make_move_iterator(cf.handles_.begin()), make_move_iterator(cf.handles_.end()));
-    peptides_.insert(peptides_.end(), make_move_iterator(cf.getPeptideIdentifications().begin()), make_move_iterator(cf.getPeptideIdentifications().end()));
     id_queries_.merge(cf.id_queries_);
     id_matches_.merge(cf.id_matches_);
   }
@@ -100,14 +98,7 @@ namespace OpenMS
   void ConsensusFeature::insert(UInt64 map_index, const BaseFeature& element)
   {
     insert(FeatureHandle(map_index, element));
-    // annotate map index to peptide identification
-    PeptideIdentificationList ids(element.getPeptideIdentifications());
-    for (PeptideIdentification& it : ids)
-    {
-      it.setMetaValue("map_index", map_index);
-    }
-    peptides_.insert(peptides_.end(), ids.begin(), ids.end());
-    // links to native identifications (their map index is set where the identification data is merged)
+    // links to the identifications (their map index is set where the identification data is merged)
     id_queries_.insert(element.getIDQueries().begin(), element.getIDQueries().end());
     id_matches_.insert(element.getIDMatches().begin(), element.getIDMatches().end());
   }

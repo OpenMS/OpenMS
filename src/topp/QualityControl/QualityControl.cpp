@@ -22,7 +22,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include "Contaminants.h"
 #include "FragmentMassError.h"
@@ -168,9 +167,8 @@ protected:
     ConsensusMap cmap;
     std::string in_cm = getStringOption_("in_cm");
     FileHandler().loadConsensusFeatures(in_cm, cmap, {FileTypes::CONSENSUSXML});
-    // QualityControl works on identification data: the best identification of a feature is the one with the best score
-    // (in the direction of the score), the identifications of a feature keep their order
-    IdentificationDataConverter::moveToIdentificationData(cmap);
+    // the best identification of a feature is the one with the best score (in the direction of the score), the
+    // identifications of a feature keep their order
     std::vector<FeatureMap> fmaps;
     if (in_postFDR.empty())
     {
@@ -280,7 +278,6 @@ protected:
       {
         fmap = &(fmaps[i]);
       }
-      IdentificationDataConverter::moveToIdentificationData(*fmap);
 
       TransformationDescription trafo_descr;
       if (!in_trafo.empty())

@@ -254,14 +254,14 @@ START_SECTION((ConsensusFeature(const BaseFeature &feature)))
   f.setRT(44324.6);
   f.setMZ(867.4);
   f.setUniqueId(23);
-  f.getPeptideIdentifications().resize(1);
+  f.addIDMatch({"run", IdentificationData::MatchId{1}});
   const BaseFeature& f_cref = f;
   ConsensusFeature cf(f_cref);
 
   TEST_EQUAL(cf.getRT(),44324.6);
   TEST_EQUAL(cf.getMZ(),867.4);
   TEST_EQUAL(cf.getCharge(),-17);
-  TEST_EQUAL(cf.getPeptideIdentifications().size(), 1);
+  TEST_EQUAL(cf.getIDMatches().size(), 1);
   TEST_EQUAL(cf.empty(), true);
 END_SECTION
 
@@ -273,13 +273,13 @@ START_SECTION((ConsensusFeature(UInt64 map_index, const BaseFeature& element)))
   f.setMZ(867.4);
   f.setIntensity(1000);
   f.setUniqueId(23);
-  f.getPeptideIdentifications().resize(1);
+  f.addIDMatch({"run", IdentificationData::MatchId{1}});
   ConsensusFeature cf(99, f);
 
   TEST_EQUAL(cf.getRT(),44324.6);
   TEST_EQUAL(cf.getMZ(),867.4);
   TEST_EQUAL(cf.getCharge(),-17);
-  TEST_EQUAL(cf.getPeptideIdentifications().size(), 1);
+  TEST_EQUAL(cf.getIDMatches().size(), 1);
   ConsensusFeature::HandleSetType::const_iterator it = cf.begin();
   TEST_EQUAL(it->getMapIndex(), 99)
   TEST_EQUAL(it->getUniqueId(), 23)

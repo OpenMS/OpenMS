@@ -98,18 +98,6 @@ namespace OpenMS
 
   void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, ProteinIdentification& prot_run, bool include_unassigned) const
   {
-    if (IdentificationDataConverter::hasPeptideIdentifications(cmap))
-    {
-      // converted for inference and back, the protein run of the map holds the result
-      if (cmap.getProteinIdentifications().size() != 1 || &cmap.getProteinIdentifications()[0] != &prot_run)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Protein inference over a consensus map with peptide identifications needs its only protein run. "
-                                          "Merge the runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns()).");
-      }
-      IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) { runNative_(map, include_unassigned); });
-      return;
-    }
     runNative_(cmap, include_unassigned);
     if (const auto result = IdentificationDataAdapter::pooledInferenceResult(cmap.getIdentificationData()))
     {
@@ -119,7 +107,7 @@ namespace OpenMS
 
   void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, bool include_unassigned) const
   {
-    IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) { runNative_(map, include_unassigned); });
+    runNative_(cmap, include_unassigned);
   }
 
   void BasicProteinInferenceAlgorithm::runNative_(ConsensusMap& cmap, bool include_unassigned) const
@@ -165,15 +153,15 @@ namespace OpenMS
     // hits name their matches, with the requested score type as their main score (e.g., "RAW" = a search engine score,
     // "PEP", "q-value"); the results also contain name, score orientation and type before and after switching.
     const auto materialize = [&]() {
-      ConsensusMap legacy = IdentificationDataConverter::exportWithMatchReferences(cmap);
+      MapPeptideIdentifications legacy = IdentificationDataConverter::exportWithMatchReferences(cmap);
       PeptideIdentificationList peptides;
-      for (auto& feature : legacy)
+      for (auto& [path, feature_peptides] : legacy.features)
       {
-        for (auto& peptide : feature.getPeptideIdentifications()) peptides.push_back(std::move(peptide));
+        for (auto& peptide : feature_peptides) peptides.push_back(std::move(peptide));
       }
       if (include_unassigned)
       {
-        for (auto& peptide : legacy.getUnassignedPeptideIdentifications()) peptides.push_back(std::move(peptide));
+        for (auto& peptide : legacy.unassigned) peptides.push_back(std::move(peptide));
       }
       auto isr = IDScoreSwitcherAlgorithm::switchToScoreType(peptides, requested_score_type_as_string);
       return std::make_pair(std::move(peptides), isr);

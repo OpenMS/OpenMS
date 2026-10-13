@@ -36,10 +36,13 @@ END_SECTION
 
 START_SECTION(void compute(FeatureMap& features))
 {
+  using namespace Internal::ClassTest;
   Feature f;
   PeptideIdentification pi;
   pi.getHits().push_back(PeptideHit(1.0, 1, 3, AASequence::fromString("KKK")));
-  f.getPeptideIdentifications().push_back(pi);
+  MapPeptideIdentifications ids;
+  ids.features[{0}].push_back(pi);
+  ids.features[{1}].push_back(pi);
   f.setMetaValue("FWHM", 123.4);
   FeatureMap fm;
   fm.push_back(f);
@@ -47,10 +50,11 @@ START_SECTION(void compute(FeatureMap& features))
   f.setMetaValue("model_FWHM", 98.1);
   fm.push_back(f);
   FWHM fw;
-  Internal::ClassTest::addSearchRun(fm);
+  addSearchRun(ids);
+  setIdentifications(fm, ids);
   fw.compute(fm);
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getMetaValue("FWHM"), 123.4)
-  TEST_EQUAL(fm[1].getPeptideIdentifications()[0].getMetaValue("FWHM"), 98.1)
+  TEST_EQUAL(peptidesOf(fm, {0})[0].getMetaValue("FWHM"), 123.4)
+  TEST_EQUAL(peptidesOf(fm, {1})[0].getMetaValue("FWHM"), 98.1)
 }
 END_SECTION
 

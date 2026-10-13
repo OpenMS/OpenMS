@@ -49,6 +49,14 @@ using namespace std;
 
 namespace
 {
+  /// Append @p feature to @p map, with the peptide identifications @p peptides in @p ids
+  void pushFeature(FeatureMap& map, MapPeptideIdentifications& ids, const Feature& feature,
+                   const PeptideIdentificationList& peptides)
+  {
+    if (! peptides.empty()) ids.features[{map.size()}] = peptides;
+    map.push_back(feature);
+  }
+
   // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
   const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
   {
@@ -516,7 +524,8 @@ START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
   prot_id.setIdentifier("run_1");
   prot_id.setSearchEngine("TestEngine");
   prot_id.setScoreType("TestScore");
-  fm.getProteinIdentifications().push_back(prot_id);
+  MapPeptideIdentifications fm_ids;
+  fm_ids.proteins.push_back(prot_id);
 
   // Feature (uid=1000) with 1 PeptideIdentification containing 1 PeptideHit
   Feature f1;
@@ -537,9 +546,7 @@ START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
   hit1.setScore(0.95);
   hit1.setCharge(2);
   pep_id1.getHits().push_back(hit1);
-  f1.getPeptideIdentifications().push_back(pep_id1);
-
-  fm.push_back(f1);
+  pushFeature(fm, fm_ids, f1, {pep_id1});
 
   // 1 unassigned PeptideIdentification with 1 PeptideHit
   PeptideIdentification pep_id2;
@@ -553,10 +560,10 @@ START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
   hit2.setScore(0.80);
   hit2.setCharge(3);
   pep_id2.getHits().push_back(hit2);
-  fm.getUnassignedPeptideIdentifications().push_back(pep_id2);
+  fm_ids.unassigned.push_back(pep_id2);
 
   // Export PSMs to Arrow
-  auto table = FeatureMapArrowIO::exportPSMsToArrow(fm);
+  auto table = FeatureMapArrowIO::exportPSMsToArrow(fm, fm_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 2)
 
@@ -599,7 +606,8 @@ START_SECTION(importPSMsFromArrow - PSM round - trip)
   prot_id.setIdentifier("run_1");
   prot_id.setSearchEngine("TestEngine");
   prot_id.setScoreType("TestScore");
-  fm_in.getProteinIdentifications().push_back(prot_id);
+  MapPeptideIdentifications fm_in_ids;
+  fm_in_ids.proteins.push_back(prot_id);
 
   // Feature (uid=1000) with 1 PeptideIdentification
   Feature f1;
@@ -620,9 +628,7 @@ START_SECTION(importPSMsFromArrow - PSM round - trip)
   hit1.setScore(0.95);
   hit1.setCharge(2);
   pep_id1.getHits().push_back(hit1);
-  f1.getPeptideIdentifications().push_back(pep_id1);
-
-  fm_in.push_back(f1);
+  pushFeature(fm_in, fm_in_ids, f1, {pep_id1});
 
   // Unassigned PeptideIdentification
   PeptideIdentification pep_id2;
@@ -636,33 +642,34 @@ START_SECTION(importPSMsFromArrow - PSM round - trip)
   hit2.setScore(0.80);
   hit2.setCharge(3);
   pep_id2.getHits().push_back(hit2);
-  fm_in.getUnassignedPeptideIdentifications().push_back(pep_id2);
+  fm_in_ids.unassigned.push_back(pep_id2);
 
   // === Export features and PSMs ===
   auto features_table = FeatureMapArrowIO::exportFeaturesToArrow(fm_in);
   TEST_NOT_EQUAL(features_table, nullptr)
 
-  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(fm_in);
+  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(fm_in, fm_in_ids);
   TEST_NOT_EQUAL(psm_table, nullptr)
   TEST_EQUAL(psm_table->num_rows(), 2)
 
   // === Import: first features, then PSMs ===
   FeatureMap fm_out;
-  fm_out.setProteinIdentifications(fm_in.getProteinIdentifications());
+  MapPeptideIdentifications fm_out_ids;
+  fm_out_ids.proteins = fm_in_ids.proteins;
 
   bool ok = FeatureMapArrowIO::importFeaturesFromArrow(features_table, fm_out);
   TEST_EQUAL(ok, true)
   TEST_EQUAL(fm_out.size(), 1)
 
-  ok = FeatureMapArrowIO::importPSMsFromArrow(psm_table, fm_out);
+  ok = FeatureMapArrowIO::importPSMsFromArrow(psm_table, fm_out, fm_out_ids);
   TEST_EQUAL(ok, true)
 
   // === Verify feature PSMs ===
   const Feature& out_f1 = fm_out[0];
   TEST_EQUAL(out_f1.getUniqueId(), 1000)
-  TEST_EQUAL(out_f1.getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(fm_out_ids.at({0}).size(), 1)
 
-  const PeptideIdentification& out_pid1 = out_f1.getPeptideIdentifications()[0];
+  const PeptideIdentification& out_pid1 = fm_out_ids.at({0})[0];
   TEST_EQUAL(out_pid1.getHits().size(), 1)
   TEST_EQUAL(out_pid1.getScoreType(), "TestScore")
   TEST_REAL_SIMILAR(out_pid1.getRT(), 100.0)
@@ -673,9 +680,9 @@ START_SECTION(importPSMsFromArrow - PSM round - trip)
   TEST_EQUAL(out_hit1.getCharge(), 2)
 
   // === Verify unassigned PSMs ===
-  TEST_EQUAL(fm_out.getUnassignedPeptideIdentifications().size(), 1)
+  TEST_EQUAL(fm_out_ids.unassigned.size(), 1)
 
-  const PeptideIdentification& out_pid2 = fm_out.getUnassignedPeptideIdentifications()[0];
+  const PeptideIdentification& out_pid2 = fm_out_ids.unassigned[0];
   TEST_EQUAL(out_pid2.getHits().size(), 1)
   TEST_EQUAL(out_pid2.getScoreType(), "TestScore")
 
@@ -701,9 +708,10 @@ START_SECTION([EXTRA] importPSMsFromArrow - interleaved P_ID rows group by value
   prot_id.setIdentifier("run_ilv");
   prot_id.setScoreType("TestScore");
   prot_id.setHigherScoreBetter(true);
-  fm_in.getProteinIdentifications().push_back(prot_id);
+  MapPeptideIdentifications fm_in_ids;
+  fm_in_ids.proteins.push_back(prot_id);
 
-  auto make_feature = [](UInt64 uid, double rt, double mz, const std::string& seqA,
+  auto make_feature = [&fm_in, &fm_in_ids](UInt64 uid, double rt, double mz, const std::string& seqA,
                          double scoreA, const std::string& seqB, double scoreB) -> Feature
   {
     Feature f;
@@ -732,7 +740,7 @@ START_SECTION([EXTRA] importPSMsFromArrow - interleaved P_ID rows group by value
     h2.setCharge(2);
     pep_id.getHits().push_back(h2);
 
-    f.getPeptideIdentifications().push_back(pep_id);
+    fm_in_ids.features[{fm_in.size()}].push_back(pep_id); // (of the feature that is appended next)
     return f;
   };
 
@@ -742,7 +750,7 @@ START_SECTION([EXTRA] importPSMsFromArrow - interleaved P_ID rows group by value
   // === Export PSMs: 2 pep-ids x 2 hits = 4 rows ===
   // Row layout: [0]=f9001 hit0 (P_ID 0), [1]=f9001 hit1 (P_ID 0),
   //             [2]=f9002 hit0 (P_ID 1), [3]=f9002 hit1 (P_ID 1)
-  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(fm_in);
+  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(fm_in, fm_in_ids);
   TEST_NOT_EQUAL(psm_table, nullptr)
   TEST_EQUAL(psm_table->num_rows(), 4)
 
@@ -762,7 +770,8 @@ START_SECTION([EXTRA] importPSMsFromArrow - interleaved P_ID rows group by value
 
   // === Import into a fresh FeatureMap whose 2 features carry the matching unique ids ===
   FeatureMap fm_out;
-  fm_out.setProteinIdentifications(fm_in.getProteinIdentifications());
+  MapPeptideIdentifications fm_out_ids;
+  fm_out_ids.proteins = fm_in_ids.proteins;
   Feature of1;
   of1.setUniqueId(9001);
   Feature of2;
@@ -770,19 +779,19 @@ START_SECTION([EXTRA] importPSMsFromArrow - interleaved P_ID rows group by value
   fm_out.push_back(of1);
   fm_out.push_back(of2);
 
-  bool ok = FeatureMapArrowIO::importPSMsFromArrow(interleaved, fm_out);
+  bool ok = FeatureMapArrowIO::importPSMsFromArrow(interleaved, fm_out, fm_out_ids);
   TEST_EQUAL(ok, true)
 
   // === Each feature must receive exactly ONE PeptideIdentification with TWO hits ===
   // (buggy adjacency grouping yields two 1-hit PeptideIdentifications per feature).
   TEST_EQUAL(fm_out.size(), 2)
   TEST_EQUAL(fm_out[0].getUniqueId(), 9001)
-  TEST_EQUAL(fm_out[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(fm_out[0].getPeptideIdentifications()[0].getHits().size(), 2)
+  TEST_EQUAL(fm_out_ids.at({0}).size(), 1)
+  TEST_EQUAL(fm_out_ids.at({0})[0].getHits().size(), 2)
 
   TEST_EQUAL(fm_out[1].getUniqueId(), 9002)
-  TEST_EQUAL(fm_out[1].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(fm_out[1].getPeptideIdentifications()[0].getHits().size(), 2)
+  TEST_EQUAL(fm_out_ids.at({1}).size(), 1)
+  TEST_EQUAL(fm_out_ids.at({1})[0].getHits().size(), 2)
 }
 END_SECTION
 
@@ -823,7 +832,8 @@ START_SECTION(exportToParquet / importFromParquet - full round - trip)
   pg.accessions = {"P12345"};
   prot_id.insertProteinGroup(pg);
 
-  fm.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications fm_ids;
+  fm_ids.proteins = {prot_id};
 
   // --- Feature 1: with subordinate and PSM ---
   Feature f1;
@@ -860,9 +870,7 @@ START_SECTION(exportToParquet / importFromParquet - full round - trip)
   pep_hit1.setScore(0.001);
   pep_hit1.setCharge(2);
   pep_id1.insertHit(pep_hit1);
-  f1.setPeptideIdentifications({pep_id1});
-
-  fm.push_back(f1);
+  pushFeature(fm, fm_ids, f1, {pep_id1});
 
   // --- Feature 2: simple, no PSMs ---
   Feature f2;
@@ -883,19 +891,20 @@ START_SECTION(exportToParquet / importFromParquet - full round - trip)
   unassigned_hit.setScore(0.5);
   unassigned_hit.setCharge(3);
   unassigned.insertHit(unassigned_hit);
-  fm.setUnassignedPeptideIdentifications({unassigned});
+  fm_ids.unassigned = {unassigned};
 
   // --- Export to temp directory ---
   std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
+  IdentificationDataConverter::importMapIdentifications(fm, fm_ids);
   TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
 
   // --- Import back ---
   FeatureMap imported;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
-  IdentificationDataConverter::moveToPeptideIdentifications(imported); // read as peptide identifications (the map has identification data)
+  const auto imported_ids = IdentificationDataConverter::exportMapIdentifications(imported);
 
   // --- Verify features ---
   TEST_EQUAL(imported.size(), 2)
@@ -922,24 +931,24 @@ START_SECTION(exportToParquet / importFromParquet - full round - trip)
   TEST_EQUAL(imported[1].getSubordinates().size(), 0)
 
   // --- Verify PSMs ---
-  TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(imported[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDER")
-  TEST_REAL_SIMILAR(imported[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.001)
+  TEST_EQUAL(imported_ids.at({0}).size(), 1)
+  TEST_EQUAL(imported_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPTIDER")
+  TEST_REAL_SIMILAR(imported_ids.at({0})[0].getHits()[0].getScore(), 0.001)
 
-  TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
-  TEST_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACDEFGHIK")
+  TEST_EQUAL(imported_ids.unassigned.size(), 1)
+  TEST_EQUAL(imported_ids.unassigned[0].getHits()[0].getSequence().toString(), "ACDEFGHIK")
 
   // --- Verify protein identifications ---
-  TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(imported_ids.proteins.size(), 1)
   // The bundle stores identification data, whose runs keep their identifiers.
-  const std::string& fm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
+  const std::string& fm_synth_id = imported_ids.proteins[0].getIdentifier();
   TEST_EQUAL(fm_synth_id, "run_full_1")
-  TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
-  TEST_STRING_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getIdentifier(), fm_synth_id);
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getProteinGroups().size(), 1)
+  TEST_STRING_EQUAL(imported_ids.at({0})[0].getIdentifier(), fm_synth_id);
+  TEST_STRING_EQUAL(imported_ids.unassigned[0].getIdentifier(), fm_synth_id);
+  TEST_EQUAL(imported_ids.proteins[0].getSearchEngine(), "Comet")
+  TEST_EQUAL(imported_ids.proteins[0].getHits().size(), 1)
+  TEST_EQUAL(imported_ids.proteins[0].getHits()[0].getAccession(), "P12345")
+  TEST_EQUAL(imported_ids.proteins[0].getProteinGroups().size(), 1)
 }
 END_SECTION
 
@@ -966,7 +975,8 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   pg.probability = 0.95;
   pg.accessions = {"Q99999"};
   prot_id.insertProteinGroup(pg);
-  fm.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications fm_ids;
+  fm_ids.proteins = {prot_id};
 
   Feature f1;
   f1.setRT(111.0);
@@ -995,8 +1005,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   pep_hit.setScore(0.002);
   pep_hit.setCharge(2);
   pep.insertHit(pep_hit);
-  f1.setPeptideIdentifications({pep});
-  fm.push_back(f1);
+  pushFeature(fm, fm_ids, f1, {pep});
 
   Feature f2;
   f2.setRT(222.0);
@@ -1009,10 +1018,11 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   // first serialization round: memory -> parquet -> fm1
   std::string dir1;
   NEW_TMP_FILE(dir1) dir1 += ".fmd";
+  IdentificationDataConverter::importMapIdentifications(fm, fm_ids);
   TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, dir1), true)
   FeatureMap fm1;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir1, fm1), true)
-  IdentificationDataConverter::moveToPeptideIdentifications(fm1); // read as peptide identifications (the map has identification data)
+  const auto fm1_ids = IdentificationDataConverter::exportMapIdentifications(fm1);
 
   // second serialization round: re-export fm1 -> parquet -> fm2
   std::string dir2;
@@ -1020,7 +1030,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm1, dir2), true)
   FeatureMap fm2;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir2, fm2), true)
-  IdentificationDataConverter::moveToPeptideIdentifications(fm2); // read as peptide identifications (the map has identification data)
+  const auto fm2_ids = IdentificationDataConverter::exportMapIdentifications(fm2);
 
   // the two imported maps must be field-identical
   TEST_EQUAL(fm1.size(), fm2.size())
@@ -1054,29 +1064,29 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - parquet->parquet con
   TEST_REAL_SIMILAR(fm1[0].getSubordinates()[0].getIntensity(), fm2[0].getSubordinates()[0].getIntensity())
   TEST_EQUAL(fm1[0].getSubordinates()[0].getCharge(), fm2[0].getSubordinates()[0].getCharge())
   TEST_EQUAL(fm1[0].getSubordinates()[0].getUniqueId(), fm2[0].getSubordinates()[0].getUniqueId())
-  TEST_EQUAL(fm1[0].getPeptideIdentifications().size(), fm2[0].getPeptideIdentifications().size())
-  TEST_EQUAL(fm1[0].getPeptideIdentifications()[0].getHits().size(), fm2[0].getPeptideIdentifications()[0].getHits().size())
-  TEST_STRING_EQUAL(fm1[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(),
-                    fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString())
-  TEST_REAL_SIMILAR(fm1[0].getPeptideIdentifications()[0].getHits()[0].getScore(), fm2[0].getPeptideIdentifications()[0].getHits()[0].getScore())
-  TEST_EQUAL(fm1[0].getPeptideIdentifications()[0].getHits()[0].getCharge(), fm2[0].getPeptideIdentifications()[0].getHits()[0].getCharge())
-  TEST_STRING_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDEK")
-  TEST_REAL_SIMILAR(fm2[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.002)
-  TEST_EQUAL(fm1.getProteinIdentifications().size(), fm2.getProteinIdentifications().size())
-  TEST_EQUAL(fm1.getProteinIdentifications()[0].getHits().size(), fm2.getProteinIdentifications()[0].getHits().size())
-  TEST_EQUAL(fm1.getProteinIdentifications()[0].getHits()[0].getAccession(), fm2.getProteinIdentifications()[0].getHits()[0].getAccession())
-  TEST_REAL_SIMILAR(fm1.getProteinIdentifications()[0].getHits()[0].getScore(), fm2.getProteinIdentifications()[0].getHits()[0].getScore())
-  TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits()[0].getAccession(), "Q99999")
-  TEST_EQUAL(fm1.getProteinIdentifications()[0].getProteinGroups().size(), fm2.getProteinIdentifications()[0].getProteinGroups().size())
-  const auto& group1 = fm1.getProteinIdentifications()[0].getProteinGroups()[0];
-  const auto& group2 = fm2.getProteinIdentifications()[0].getProteinGroups()[0];
+  TEST_EQUAL(fm1_ids.at({0}).size(), fm2_ids.at({0}).size())
+  TEST_EQUAL(fm1_ids.at({0})[0].getHits().size(), fm2_ids.at({0})[0].getHits().size())
+  TEST_STRING_EQUAL(fm1_ids.at({0})[0].getHits()[0].getSequence().toString(),
+                    fm2_ids.at({0})[0].getHits()[0].getSequence().toString())
+  TEST_REAL_SIMILAR(fm1_ids.at({0})[0].getHits()[0].getScore(), fm2_ids.at({0})[0].getHits()[0].getScore())
+  TEST_EQUAL(fm1_ids.at({0})[0].getHits()[0].getCharge(), fm2_ids.at({0})[0].getHits()[0].getCharge())
+  TEST_STRING_EQUAL(fm2_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPTIDEK")
+  TEST_REAL_SIMILAR(fm2_ids.at({0})[0].getHits()[0].getScore(), 0.002)
+  TEST_EQUAL(fm1_ids.proteins.size(), fm2_ids.proteins.size())
+  TEST_EQUAL(fm1_ids.proteins[0].getHits().size(), fm2_ids.proteins[0].getHits().size())
+  TEST_EQUAL(fm1_ids.proteins[0].getHits()[0].getAccession(), fm2_ids.proteins[0].getHits()[0].getAccession())
+  TEST_REAL_SIMILAR(fm1_ids.proteins[0].getHits()[0].getScore(), fm2_ids.proteins[0].getHits()[0].getScore())
+  TEST_EQUAL(fm2_ids.proteins[0].getHits()[0].getAccession(), "Q99999")
+  TEST_EQUAL(fm1_ids.proteins[0].getProteinGroups().size(), fm2_ids.proteins[0].getProteinGroups().size())
+  const auto& group1 = fm1_ids.proteins[0].getProteinGroups()[0];
+  const auto& group2 = fm2_ids.proteins[0].getProteinGroups()[0];
   TEST_REAL_SIMILAR(group1.probability, group2.probability)
   TEST_EQUAL(group1.accessions.size(), group2.accessions.size())
   TEST_EQUAL(group1.accessions[0], group2.accessions[0])
   TEST_EQUAL(group2.accessions[0], "Q99999")
   // identifier consistency within each imported map: the stamped pep-id identifier equals the protein run identifier
-  TEST_STRING_EQUAL(fm1[0].getPeptideIdentifications()[0].getIdentifier(), fm1.getProteinIdentifications()[0].getIdentifier())
-  TEST_STRING_EQUAL(fm2[0].getPeptideIdentifications()[0].getIdentifier(), fm2.getProteinIdentifications()[0].getIdentifier())
+  TEST_STRING_EQUAL(fm1_ids.at({0})[0].getIdentifier(), fm1_ids.proteins[0].getIdentifier())
+  TEST_STRING_EQUAL(fm2_ids.at({0})[0].getIdentifier(), fm2_ids.proteins[0].getIdentifier())
 }
 END_SECTION
 
@@ -1123,10 +1133,8 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round - 
   f.setUniqueId(42);
   fm.push_back(f);
 
-  // --- Set up minimal ProteinIdentification (required for parquet export) ---
-  ProteinIdentification prot_id;
-  prot_id.setIdentifier("run_1");
-  fm.setProteinIdentifications({prot_id});
+  // --- an identification run (without identifications) ---
+  fm.getIdentificationData().addRun("run_1");
 
   // --- Export to temp directory ---
   std::string tmp_dir;
@@ -1200,7 +1208,8 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round
   ph2.setScore(0.01);
   prot_id.insertHit(ph2);
 
-  fm.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications fm_ids;
+  fm_ids.proteins = {prot_id};
 
   // --- Feature with PeptideIdentification ---
   Feature f1;
@@ -1254,9 +1263,7 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round
 
   pep_id1.insertHit(hit1);
   pep_id1.insertHit(hit2);
-  f1.setPeptideIdentifications({pep_id1});
-
-  fm.push_back(f1);
+  pushFeature(fm, fm_ids, f1, {pep_id1});
 
   // --- Unassigned PeptideIdentification with spectrum-level metavalue ---
   PeptideIdentification pep_id2;
@@ -1274,22 +1281,23 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round
   hit3.setRank(1);
   hit3.setMetaValue("target_decoy", "target");
   pep_id2.insertHit(hit3);
-  fm.setUnassignedPeptideIdentifications({pep_id2});
+  fm_ids.unassigned = {pep_id2};
 
   // --- Export and import ---
   std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".fmd";
 
+  IdentificationDataConverter::importMapIdentifications(fm, fm_ids);
   TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
 
   FeatureMap imported;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
-  IdentificationDataConverter::moveToPeptideIdentifications(imported); // read as peptide identifications (the map has identification data)
+  const auto imported_ids = IdentificationDataConverter::exportMapIdentifications(imported);
 
   // --- Verify higher_score_better from ProteinIdentification ---
-  TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
-  const PeptideIdentification& out_pid1 = imported[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(imported_ids.at({0}).size(), 1)
+  const PeptideIdentification& out_pid1 = imported_ids.at({0})[0];
   TEST_EQUAL(out_pid1.isHigherScoreBetter(), false)
   TEST_EQUAL(out_pid1.getScoreType(), "expect")
   TEST_REAL_SIMILAR(out_pid1.getRT(), 100.0)
@@ -1336,8 +1344,8 @@ START_SECTION(exportToParquet / importFromParquet - PSM completeness round
   TEST_EQUAL(decoy_hit->getPeptideEvidences()[0].getProteinAccession(), "P12345")
 
   // --- Verify unassigned PSM ---
-  TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
-  const PeptideIdentification& out_pid2 = imported.getUnassignedPeptideIdentifications()[0];
+  TEST_EQUAL(imported_ids.unassigned.size(), 1)
+  const PeptideIdentification& out_pid2 = imported_ids.unassigned[0];
   TEST_EQUAL(out_pid2.isHigherScoreBetter(), false)
   TEST_REAL_SIMILAR(out_pid2.getRT(), 200.0)
   TEST_EQUAL(out_pid2.getHits().size(), 1)
@@ -1361,7 +1369,8 @@ START_SECTION(exportToParquet / importFromParquet - per - PSM higher_score_bette
   prot_id.setSearchEngine("Comet");
   prot_id.setScoreType("expect");
   prot_id.setHigherScoreBetter(false);
-  fm.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications fm_ids;
+  fm_ids.proteins = {prot_id};
 
   // Feature with PeptideIdentification where higher_score_better=true (differs from run-level)
   Feature f1;
@@ -1386,8 +1395,7 @@ START_SECTION(exportToParquet / importFromParquet - per - PSM higher_score_bette
   hit1.setRank(1);
   hit1.setMetaValue("target_decoy", "target");
   pep_id1.insertHit(hit1);
-  f1.setPeptideIdentifications({pep_id1});
-  fm.push_back(f1);
+  pushFeature(fm, fm_ids, f1, {pep_id1});
 
   // Unassigned PeptideIdentification with higher_score_better=false (same as run-level)
   PeptideIdentification pep_id2;
@@ -1404,18 +1412,16 @@ START_SECTION(exportToParquet / importFromParquet - per - PSM higher_score_bette
   hit2.setRank(1);
   hit2.setMetaValue("target_decoy", "target");
   pep_id2.insertHit(hit2);
-  fm.setUnassignedPeptideIdentifications({pep_id2});
+  fm_ids.unassigned = {pep_id2};
 
   // --- Export and import ---
-  // The bundle stores identification data, which has one PSM score schema: PSMs with different score types are refused.
-  std::string refused_dir;
-  NEW_TMP_FILE(refused_dir)
-  refused_dir += ".fmd";
-  TEST_EXCEPTION(Exception::InvalidValue, FeatureMapArrowIO::exportToParquet(fm, refused_dir))
+  // The map has identification data, which has one PSM score schema: PSMs with different score types are refused.
+  TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataConverter::importMapIdentifications(fm, fm_ids))
   // With one PSM score type, the PSMs keep its orientation, independent of that of the protein run.
-  fm.getUnassignedPeptideIdentifications()[0].setScoreType("xcorr");
-  fm.getUnassignedPeptideIdentifications()[0].setHigherScoreBetter(true);
-  fm.getUnassignedPeptideIdentifications()[0].getHits()[0].setScore(1.5);
+  fm_ids.unassigned[0].setScoreType("xcorr");
+  fm_ids.unassigned[0].setHigherScoreBetter(true);
+  fm_ids.unassigned[0].getHits()[0].setScore(1.5);
+  IdentificationDataConverter::importMapIdentifications(fm, fm_ids);
 
   std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
@@ -1425,24 +1431,24 @@ START_SECTION(exportToParquet / importFromParquet - per - PSM higher_score_bette
 
   FeatureMap imported;
   TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
-  IdentificationDataConverter::moveToPeptideIdentifications(imported); // read as peptide identifications (the map has identification data)
+  const auto imported_ids = IdentificationDataConverter::exportMapIdentifications(imported);
 
   // Verify per-PSM higher_score_better: pep_id1 should be true (not run-level false)
-  TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
-  const PeptideIdentification& out_pid1 = imported[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(imported_ids.at({0}).size(), 1)
+  const PeptideIdentification& out_pid1 = imported_ids.at({0})[0];
   TEST_EQUAL(out_pid1.isHigherScoreBetter(), true) // per-PSM value, NOT run-level false
   TEST_EQUAL(out_pid1.getScoreType(), "xcorr")
 
   // the unassigned PSM, too
-  TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
-  const PeptideIdentification& out_pid2 = imported.getUnassignedPeptideIdentifications()[0];
+  TEST_EQUAL(imported_ids.unassigned.size(), 1)
+  const PeptideIdentification& out_pid2 = imported_ids.unassigned[0];
   TEST_EQUAL(out_pid2.isHigherScoreBetter(), true)
   TEST_EQUAL(out_pid2.getScoreType(), "xcorr")
 
   // and the protein run keeps its own
-  ABORT_IF(imported.getProteinIdentifications().size() != 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].isHigherScoreBetter(), false)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getScoreType(), "expect")
+  ABORT_IF(imported_ids.proteins.size() != 1)
+  TEST_EQUAL(imported_ids.proteins[0].isHigherScoreBetter(), false)
+  TEST_EQUAL(imported_ids.proteins[0].getScoreType(), "expect")
 
   // the spectrum reference survives (the bundle stores it with the identification, no scan number derived from it)
   TEST_EQUAL(out_pid1.getSpectrumReference(), "spectrum=99")
@@ -1469,10 +1475,8 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap - level MetaValue
   fm.setMetaValue("custom_int_list", DataValue(IntList {10, 20, 30}));
   fm.setMetaValue("custom_double_list", DataValue(DoubleList {1.5, 2.5}));
 
-  // Minimal ProteinIdentification so exportToParquet succeeds.
-  ProteinIdentification prot_id;
-  prot_id.setIdentifier("run_mv_test");
-  fm.setProteinIdentifications({prot_id});
+  // an identification run (without identifications)
+  fm.getIdentificationData().addRun("run_mv_test");
 
   // One feature so the map is non-empty.
   Feature f;
@@ -1518,10 +1522,10 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap - level MetaValue
 END_SECTION
 
 /////////////////////////////////////////////////////////////
-// Fix #2b: exportToParquet rejects duplicate ProtID identifiers (XML-lane parity)
+// Fix #2b: no export of duplicate ProtID identifiers (XML-lane parity)
 /////////////////////////////////////////////////////////////
 
-START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers throw Exception::InvalidValue)
+START_SECTION(exportToParquet - the identifications of a map have no duplicate ProteinIdentification identifiers)
 {
   FeatureMap fm;
 
@@ -1529,7 +1533,8 @@ START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers thro
   p1.setIdentifier("dup");
   ProteinIdentification p2;
   p2.setIdentifier("dup");
-  fm.setProteinIdentifications({p1, p2});
+  MapPeptideIdentifications ids;
+  ids.proteins = {p1, p2};
 
   Feature f;
   f.setRT(50.0);
@@ -1539,13 +1544,11 @@ START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers thro
   f.setUniqueId(101);
   fm.push_back(f);
 
-  std::string tmp_dir;
-  NEW_TMP_FILE(tmp_dir)
-  tmp_dir += ".fmd";
-
-  // The conversion to identification data rejects the duplicate run before any Arrow builder is allocated, so no
-  // partial .featureparquet exists on disk after the throw.
-  TEST_EXCEPTION(Exception::InvalidParameter, FeatureMapArrowIO::exportToParquet(fm, tmp_dir))
+  // the identifications of a map (identification data) cannot have runs with the same identifier, so a map with them
+  // cannot be exported
+  TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(fm, ids))
+  fm.getIdentificationData().addRun("dup");
+  TEST_EXCEPTION(Exception::InvalidValue, fm.getIdentificationData().addRun("dup"))
 }
 END_SECTION
 
@@ -1595,7 +1598,8 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - every peptide ident
   ProteinIdentification run; // no protein hits
   run.setIdentifier("search");
   run.setSearchEngine("SearchEngine");
-  fm.setProteinIdentifications({run});
+  MapPeptideIdentifications fm_ids;
+  fm_ids.proteins = {run};
 
   PeptideIdentification pep;
   pep.setIdentifier("search");
@@ -1615,21 +1619,19 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - every peptide ident
   f.setUniqueId(42);
   Feature sub = f;
   sub.setUniqueId(43);
-  sub.getPeptideIdentifications().push_back(pep); // a subordinate with its own identification
   f.getSubordinates().push_back(sub);
-  f.getPeptideIdentifications().push_back(pep);
   fm.push_back(f);
+  fm_ids.features[{0}] = {pep};
+  fm_ids.features[{0, 0}] = {pep}; // a subordinate with its own identification
 
-  // the identifications of features, subordinates and unassigned ones are checked before anything is written
+  // the identifications of features, subordinates and unassigned ones need their run to be those of a map
   {
     FeatureMap bad = fm;
-    bad[0].getSubordinates()[0].getPeptideIdentifications()[0].setIdentifier("other");
-    std::string tmp_dir;
-    NEW_TMP_FILE(tmp_dir)
-    tmp_dir += ".featureparquet";
-    TEST_EXCEPTION(Exception::InvalidParameter, FeatureMapArrowIO::exportToParquet(bad, tmp_dir))
-    TEST_FALSE(File::exists(tmp_dir))
+    auto bad_ids = fm_ids;
+    bad_ids.features[{0, 0}][0].setIdentifier("other");
+    TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(bad, bad_ids))
   }
+  IdentificationDataConverter::importMapIdentifications(fm, fm_ids);
 
   // the run identifier is synthesized on load: the identifications of the subordinates follow it, too
   const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_fmruns";
@@ -1637,12 +1639,12 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - every peptide ident
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
   FeatureMap in;
   TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
-  IdentificationDataConverter::moveToPeptideIdentifications(in); // read as peptide identifications (the map has identification data)
-  ABORT_IF(in.size() != 1 || in[0].getSubordinates().size() != 1 || in.getProteinIdentifications().size() != 1)
-  const std::string& identifier = in.getProteinIdentifications()[0].getIdentifier();
-  TEST_EQUAL(in[0].getPeptideIdentifications()[0].getIdentifier(), identifier)
-  TEST_EQUAL(in[0].getSubordinates()[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(in[0].getSubordinates()[0].getPeptideIdentifications()[0].getIdentifier(), identifier)
+  const auto in_ids = IdentificationDataConverter::exportMapIdentifications(in);
+  ABORT_IF(in.size() != 1 || in[0].getSubordinates().size() != 1 || in_ids.proteins.size() != 1)
+  const std::string& identifier = in_ids.proteins[0].getIdentifier();
+  TEST_EQUAL(in_ids.at({0})[0].getIdentifier(), identifier)
+  TEST_EQUAL(in_ids.at({0, 0}).size(), 1)
+  TEST_EQUAL(in_ids.at({0, 0})[0].getIdentifier(), identifier)
   File::removeDirRecursively(dir);
 }
 END_SECTION
@@ -1686,7 +1688,8 @@ START_SECTION(([EXTRA] importPSMsFromArrow - a PSM naming an unknown feature is 
 
   // A PSM table whose rows reference feature unique id 5001 ...
   FeatureMap src;
-  src.setProteinIdentifications({prot});
+  MapPeptideIdentifications src_ids;
+  src_ids.proteins = {prot};
   Feature f;
   f.setRT(1.0);
   f.setMZ(2.0);
@@ -1702,15 +1705,15 @@ START_SECTION(([EXTRA] importPSMsFromArrow - a PSM naming an unknown feature is 
   hit.setCharge(2);
   hit.setScore(1.0);
   pid.insertHit(hit);
-  f.setPeptideIdentifications({pid});
-  src.push_back(f);
+  pushFeature(src, src_ids, f, {pid});
 
-  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(src);
+  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(src, src_ids);
   TEST_EQUAL(psm_table == nullptr, false)
 
   // ... imported into a map that contains no such feature.
   FeatureMap target;
-  target.setProteinIdentifications({prot});
+  MapPeptideIdentifications target_ids;
+  target_ids.proteins = {prot};
   Feature other;
   other.setRT(1.0);
   other.setMZ(2.0);
@@ -1723,7 +1726,7 @@ START_SECTION(([EXTRA] importPSMsFromArrow - a PSM naming an unknown feature is 
   // partition. That partition is not bookkeeping: FDR is estimated over both lists together and
   // every exporter reports them separately, so a reader that repairs the link reports a
   // different experiment from the one that was written. Refuse the input instead.
-  TEST_FALSE(FeatureMapArrowIO::importPSMsFromArrow(psm_table, target))
+  TEST_FALSE(FeatureMapArrowIO::importPSMsFromArrow(psm_table, target, target_ids))
 }
 END_SECTION
 
@@ -1759,7 +1762,8 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-sha
   prot_hit.setDescription("Serum albumin OS=Bos taurus");
   prot_hit.setScore(0.99);
   prot.insertHit(prot_hit);
-  fm.setProteinIdentifications({prot});
+  MapPeptideIdentifications fm_ids;
+  fm_ids.proteins = {prot};
 
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("LVNELTEFAK"));
@@ -1791,8 +1795,7 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-sha
   feat.setMetaValue("IM_median", 0.8123);
   feat.setMetaValue("masserror_ppm", -1.25);
   feat.setMetaValue("pipecho_obs_envelope", DoubleList({100.0, 55.5, 20.25}));
-  feat.setPeptideIdentifications({pid});
-  fm.push_back(feat);
+  pushFeature(fm, fm_ids, feat, {pid});
 
   // An identification not attached to any feature. FDR is estimated over this list together
   // with the attached ones, so which list a PSM is in is part of the result.
@@ -1809,15 +1812,16 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-sha
   un_pid.setMZ(784.3);
   un_pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=999");
   un_pid.insertHit(un_hit);
-  fm.setUnassignedPeptideIdentifications({un_pid});
+  fm_ids.unassigned = {un_pid};
 
   const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_plfq";
   TEST_TRUE(File::makeDir(dir))
+  IdentificationDataConverter::importMapIdentifications(fm, fm_ids);
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
 
   FeatureMap in;
   TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
-  IdentificationDataConverter::moveToPeptideIdentifications(in); // read as peptide identifications (the map has identification data)
+  const auto in_ids = IdentificationDataConverter::exportMapIdentifications(in);
 
   // --- map level ---
   TEST_EQUAL(in.getUniqueId(), 987654321ULL)
@@ -1828,8 +1832,8 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-sha
 
   // --- the partition ---
   TEST_EQUAL(in.size(), 1)
-  TEST_EQUAL(in[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  TEST_EQUAL(in_ids.at({0}).size(), 1)
+  TEST_EQUAL(in_ids.unassigned.size(), 1)
 
   // --- feature, typed columns are exact ---
   TEST_REAL_SIMILAR(in[0].getRT(), 1234.5)
@@ -1848,7 +1852,7 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-sha
   TEST_EQUAL(in[0].getMetaValue("pipecho_obs_envelope") == DataValue(DoubleList({100.0, 55.5, 20.25})), true)
 
   // --- attached PSM ---
-  const PeptideIdentification& in_pid = in[0].getPeptideIdentifications()[0];
+  const PeptideIdentification& in_pid = in_ids.at({0})[0];
   TEST_EQUAL(in_pid.getScoreType(), "Posterior Error Probability")
   TEST_EQUAL(in_pid.isHigherScoreBetter(), false)
   TEST_EQUAL(in_pid.getSpectrumReference(), "controllerType=0 controllerNumber=1 scan=1234")
@@ -1864,11 +1868,11 @@ START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-sha
   TEST_EQUAL(in_hit.getPeptideEvidences()[0].getProteinAccession(), "P02769")
 
   // --- unassigned PSM stayed unassigned ---
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "DAFLGSFLYEYSR")
+  TEST_EQUAL(in_ids.unassigned[0].getHits()[0].getSequence().toString(), "DAFLGSFLYEYSR")
 
   // --- protein run: sequence and description feed computeCoverage on the combining side ---
-  TEST_EQUAL(in.getProteinIdentifications().size(), 1)
-  const ProteinIdentification& in_prot = in.getProteinIdentifications()[0];
+  TEST_EQUAL(in_ids.proteins.size(), 1)
+  const ProteinIdentification& in_prot = in_ids.proteins[0];
   TEST_EQUAL(in_prot.getHits().size(), 1)
   TEST_EQUAL(in_prot.getHits()[0].getAccession(), "P02769")
   TEST_EQUAL(in_prot.getHits()[0].getSequence(), "MKWVTFISLLLLFSSAYSRGVFRR")
@@ -1898,7 +1902,8 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
   ProteinIdentification prot;
   prot.setIdentifier("run4b");
   prot.setDateTime(DateTime::now());
-  map.getProteinIdentifications().push_back(prot);
+  MapPeptideIdentifications map_ids;
+  map_ids.proteins.push_back(prot);
 
   Feature f;
   f.setRT(100.0);
@@ -1911,8 +1916,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
   PeptideHit ha;
   ha.setSequence(AASequence::fromString("PEPK(TestFMap:Assigned)IDE"));
   pa.insertHit(ha);
-  f.getPeptideIdentifications().push_back(pa);
-  map.push_back(f);
+  pushFeature(map, map_ids, f, {pa});
 
   PeptideIdentification pu;
   pu.setIdentifier("run4b");
@@ -1920,27 +1924,28 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
   PeptideHit hu;
   hu.setSequence(AASequence::fromString("PEPR(TestFMap:Unassigned)IDE"));
   pu.insertHit(hu);
-  map.getUnassignedPeptideIdentifications().push_back(pu);
+  map_ids.unassigned.push_back(pu);
 
   std::string dir;
   NEW_TMP_FILE(dir) dir += ".fmd";
+  IdentificationDataConverter::importMapIdentifications(map, map_ids);
   TEST_TRUE(FeatureMapArrowIO::exportToParquet(map, dir))
   FeatureMap in;
   TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
-  IdentificationDataConverter::moveToPeptideIdentifications(in); // read as peptide identifications (the map has identification data)
+  const auto in_ids = IdentificationDataConverter::exportMapIdentifications(in);
   TEST_EQUAL(in.size(), 1)
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
-  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  TEST_EQUAL(in_ids.unassigned.size(), 1)
+  if (in.size() == 1 && !in_ids.at({0}).empty() && !in_ids.at({0})[0].getHits().empty())
   {
-    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestFMap:Assigned)IDE")
+    TEST_EQUAL(in_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPK(TestFMap:Assigned)IDE")
   }
-  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  if (in_ids.unassigned.size() == 1 && !in_ids.unassigned[0].getHits().empty())
   {
-    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestFMap:Unassigned)IDE")
+    TEST_EQUAL(in_ids.unassigned[0].getHits()[0].getSequence().toString(), "PEPR(TestFMap:Unassigned)IDE")
   }
-  if (in.getProteinIdentifications().size() == 1)
+  if (in_ids.proteins.size() == 1)
   {
-    const auto& sp = in.getProteinIdentifications()[0].getSearchParameters();
+    const auto& sp = in_ids.proteins[0].getSearchParameters();
     TEST_TRUE(sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
     if (sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
     {
@@ -2135,7 +2140,7 @@ START_SECTION([EXTRA] importFromParquet - definitions are registered from search
   ProteinIdentification::SearchParameters sp;
   sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestFMap:Fresh", 'K', "C2H2O"));
   prot.setSearchParameters(sp);
-  map.getProteinIdentifications().push_back(prot);
+  map.getIdentificationData() = IdentificationDataAdapter::fromLegacy({prot}, {}); // (this registers nothing)
 
   std::string dir;
   NEW_TMP_FILE(dir) dir += ".fmd";
@@ -2144,7 +2149,7 @@ START_SECTION([EXTRA] importFromParquet - definitions are registered from search
   FeatureMap in;
   TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
   // the identification data registers the definitions of a run when its identifications are read
-  IdentificationDataConverter::moveToPeptideIdentifications(in);
+  IdentificationDataConverter::exportMapIdentifications(in);
   TEST_TRUE(db->hasDefinedModification("TestFMap:Fresh"))
   File::removeDirRecursively(dir);
 }

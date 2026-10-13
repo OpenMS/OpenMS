@@ -413,26 +413,6 @@ namespace
     return locations;
   }
 
-  void collectFeatures(const std::vector<Feature>& features,
-                       std::vector<Size> prefix,
-                       PeptideIdentificationList& peptides,
-                       std::vector<Adapter::FeatureAssociation>& locations)
-  {
-    for (Size i = 0; i < features.size(); ++i)
-    {
-      auto path = prefix;
-      path.push_back(i);
-      for (const auto& item : features[i].getPeptideIdentifications())
-      {
-        peptides.push_back(item);
-        Adapter::FeatureAssociation association;
-        association.feature_path = path;
-        locations.push_back(std::move(association));
-      }
-      collectFeatures(features[i].getSubordinates(), path, peptides, locations);
-    }
-  }
-
   /// Whether export rebuilds the legacy protein run @p original exactly from the settings and database sequences
   /// of @p run, so that an inference result holding @p original would only repeat them.
   bool rebuildsLegacyProteins(const ID::Run& run, const ProteinIdentification& original)
@@ -460,15 +440,6 @@ namespace
     if (rebuildsLegacyProteins(run, original)) return true;
     run.setSettings(previous);
     return false;
-  }
-
-  void clearFeatures(std::vector<Feature>& features)
-  {
-    for (auto& feature : features)
-    {
-      feature.getPeptideIdentifications().clear();
-      clearFeatures(feature.getSubordinates());
-    }
   }
 
   PeptideIdentification
@@ -1406,53 +1377,12 @@ IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::import
 
 IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromFeatureMap(const FeatureMap& map)
 {
-  if (! map.getIdentificationData().empty()) return nativeMap(map);
-  PeptideIdentificationList peptides;
-  std::vector<FeatureAssociation> locations;
-  for (Size i = 0; i < map.size(); ++i)
-  {
-    for (const auto& item : map[i].getPeptideIdentifications())
-    {
-      peptides.push_back(item);
-      FeatureAssociation location;
-      location.feature_path = {i};
-      locations.push_back(std::move(location));
-    }
-    collectFeatures(map[i].getSubordinates(), {i}, peptides, locations);
-  }
-  for (const auto& item : map.getUnassignedPeptideIdentifications())
-  {
-    peptides.push_back(item);
-    FeatureAssociation location;
-    location.unassigned = true;
-    locations.push_back(std::move(location));
-  }
-  return importLegacyMap(map.getProteinIdentifications(), peptides, std::move(locations));
+  return nativeMap(map);
 }
 
 IdentificationDataAdapter::FeatureImportResult IdentificationDataAdapter::fromConsensusMap(const ConsensusMap& map)
 {
-  if (! map.getIdentificationData().empty()) return nativeMap(map);
-  PeptideIdentificationList peptides;
-  std::vector<FeatureAssociation> locations;
-  for (Size i = 0; i < map.size(); ++i)
-  {
-    for (const auto& item : map[i].getPeptideIdentifications())
-    {
-      peptides.push_back(item);
-      FeatureAssociation location;
-      location.feature_path = {i};
-      locations.push_back(std::move(location));
-    }
-  }
-  for (const auto& item : map.getUnassignedPeptideIdentifications())
-  {
-    peptides.push_back(item);
-    FeatureAssociation location;
-    location.unassigned = true;
-    locations.push_back(std::move(location));
-  }
-  return importLegacyMap(map.getProteinIdentifications(), peptides, std::move(locations));
+  return nativeMap(map);
 }
 
 Size IdentificationDataAdapter::reconcileAssociations(const ID& data, std::vector<FeatureAssociation>& associations, MissingLinkPolicy policy)
@@ -1512,86 +1442,4 @@ IdentificationDataAdapter::LegacyMapResult IdentificationDataAdapter::toLegacyMa
   return result;
 }
 
-std::vector<std::string> IdentificationDataAdapter::applyToFeatureMap(const ID& data,
-                                                                      const std::vector<FeatureAssociation>& associations,
-                                                                      FeatureMap& map,
-                                                                      const ExportOptions& options,
-                                                                      MissingLinkPolicy policy)
-{
-  auto converted = toLegacyMap(data, associations, options, policy);
-  auto updated = map;
-  updated.getIdentificationData() = data;
-  const auto clear_links = [&](const auto& self, auto& feature) -> void {
-    feature.getIDMatches().clear();
-    feature.getIDQueries().clear();
-    if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-      for (auto& child : feature.getSubordinates())
-        self(self, child);
-  };
-  for (auto& feature : updated)
-    clear_links(clear_links, feature);
-  updated.setProteinIdentifications(std::move(converted.proteins));
-  updated.getUnassignedPeptideIdentifications().clear();
-  for (auto& feature : updated)
-  {
-    feature.getPeptideIdentifications().clear();
-    clearFeatures(feature.getSubordinates());
-  }
-  for (auto& [association, item] : converted.peptides)
-  {
-    if (association.unassigned) updated.getUnassignedPeptideIdentifications().push_back(std::move(item));
-    else
-    {
-      if (association.feature_path.empty() || association.feature_path.front() >= updated.size()) invalid("Feature association path is out of range");
-      auto* feature = &updated[association.feature_path.front()];
-      for (Size i = 1; i < association.feature_path.size(); ++i)
-      {
-        if (association.feature_path[i] >= feature->getSubordinates().size()) invalid("Subordinate feature association path is out of range");
-        feature = &feature->getSubordinates()[association.feature_path[i]];
-      }
-      feature->addIDQuery(association.query);
-      for (auto match : association.matches)
-        feature->addIDMatch({association.query.run_uuid, match});
-      feature->getPeptideIdentifications().push_back(std::move(item));
-    }
-  }
-  map = std::move(updated);
-  return converted.losses;
-}
-
-std::vector<std::string> IdentificationDataAdapter::applyToConsensusMap(const ID& data,
-                                                                        const std::vector<FeatureAssociation>& associations,
-                                                                        ConsensusMap& map,
-                                                                        const ExportOptions& options,
-                                                                        MissingLinkPolicy policy)
-{
-  auto converted = toLegacyMap(data, associations, options, policy);
-  auto updated = map;
-  updated.getIdentificationData() = data;
-  for (auto& feature : updated)
-  {
-    feature.getIDMatches().clear();
-    feature.getIDQueries().clear();
-  }
-  updated.setProteinIdentifications(std::move(converted.proteins));
-  updated.getUnassignedPeptideIdentifications().clear();
-  for (auto& feature : updated)
-    feature.getPeptideIdentifications().clear();
-  for (auto& [association, item] : converted.peptides)
-  {
-    if (association.unassigned) updated.getUnassignedPeptideIdentifications().push_back(std::move(item));
-    else
-    {
-      if (association.feature_path.size() != 1 || association.feature_path.front() >= updated.size())
-        invalid("Consensus feature association path is out of range");
-      auto& feature = updated[association.feature_path.front()];
-      feature.addIDQuery(association.query);
-      for (auto match : association.matches)
-        feature.addIDMatch({association.query.run_uuid, match});
-      feature.getPeptideIdentifications().push_back(std::move(item));
-    }
-  }
-  map = std::move(updated);
-  return converted.losses;
-}
 } // namespace OpenMS

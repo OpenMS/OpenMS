@@ -112,16 +112,13 @@ namespace OpenMS
       optionally in the unassigned list, see @p include_unassigned) is used. @p prot_id is
       expected to be the union of the proteins of all runs in @p cmap.
 
-      Works on identification data (see run(ConsensusMap&, bool)). A map with peptide identifications is converted
-      for this and back (IdentificationDataConverter::editAsIdentificationData()); @p prot_id must be its only protein
-      run (merge runs first, see ConsensusMapMergerAlgorithm::mergeAllIDRuns()), which then holds the result. For a
-      map with identification data, @p prot_id gets the proteins of the result.
+      Works on identification data (see run(ConsensusMap&, bool)); @p prot_id gets the proteins of the result.
 
       @param[in,out] cmap                Consensus map providing the peptide identifications; PSMs may be sorted/filtered in place.
       @param[in,out] prot_id             Protein-identification run to annotate with aggregated scores.
-      @param[in]     include_unassigned  If true, also include @ref ConsensusMap::getUnassignedPeptideIdentifications.
-      @throws Exception::InvalidParameter If PSMs of a peptide carry different score types, or if @p prot_id is not the
-              only protein run of a map with peptide identifications.
+      @param[in]     include_unassigned  If true, also include the unassigned identifications (see
+                                         ConsensusMap::getUnassignedIdentifications()).
+      @throws Exception::InvalidParameter If PSMs of a peptide carry different score types.
     */
     void run(ConsensusMap& cmap, ProteinIdentification& prot_id, bool include_unassigned) const;
 
@@ -134,8 +131,7 @@ namespace OpenMS
       with them, whose inputs are the runs) replaces the inference result that pooled the runs. The identifications
       that features link count once per feature, the unassigned ones if @p include_unassigned. Matches are reduced to
       the best one per identification; dropped proteins (parameter @p min_peptides_per_protein, or group resolution)
-      are removed from the sequence evidence of the matches, with the matches that are left without any. Maps with
-      peptide identifications are converted for this (IdentificationDataConverter::editAsIdentificationData()).
+      are removed from the sequence evidence of the matches, with the matches that are left without any.
 
       @param[in,out] cmap                Consensus map with the identifications
       @param[in]     include_unassigned  If true, also use the unassigned identifications

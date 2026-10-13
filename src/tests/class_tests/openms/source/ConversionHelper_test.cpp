@@ -113,8 +113,7 @@ START_SECTION((template < typename FeatureT > static void convert(ConsensusMap c
     MapConversion::convert(cm, true, out_fm);
 
     TEST_EQUAL(cm.getUniqueId(), out_fm.getUniqueId());
-    TEST_EQUAL(cm.getProteinIdentifications().size(), out_fm.getProteinIdentifications().size());
-    TEST_EQUAL(cm.getUnassignedPeptideIdentifications().size(), out_fm.getUnassignedPeptideIdentifications().size());
+    TEST_TRUE(cm.getIdentificationData() == out_fm.getIdentificationData());
     TEST_EQUAL(cm.size(), out_fm.size());
 
     for (Size i = 0; i < cm.size(); ++i)
@@ -312,54 +311,40 @@ START_SECTION([EXTRA] convert(PeakMap) orders equal intensities by RT and m/z)
 }
 END_SECTION
 
-START_SECTION(([EXTRA] conversions treat the identification data like peptide identifications))
+START_SECTION(([EXTRA] conversions keep the identifications of the converted features))
 {
   using namespace OpenMS::Internal::ClassTest;
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), features);
-  // the fixture is edited as peptide identifications (loading gives identification data)
-  IdentificationDataConverter::moveToPeptideIdentifications(features);
+  auto input = identificationsOf(features);
   const auto with_subordinates = std::find_if(features.begin(), features.end(), [](const Feature& f) { return ! f.getSubordinates().empty(); });
-  const auto with_ids = std::find_if(features.begin(), features.end(), [](const Feature& f) { return ! f.getPeptideIdentifications().empty(); });
-  ABORT_IF(with_subordinates == features.end() || with_ids == features.end() || features.getUnassignedPeptideIdentifications().empty())
+  ABORT_IF(with_subordinates == features.end() || input.features.empty() || input.unassigned.empty())
   // the conversion to consensus features drops the identifications of subordinates
-  with_subordinates->getSubordinates()[0].setPeptideIdentifications(with_ids->getPeptideIdentifications());
+  input.features[{Size(with_subordinates - features.begin()), 0}] = input.features.begin()->second;
+  setIdentifications(features, input);
   for (Size n : {Size(-1), Size(1), Size(0)})
   {
-    TEST_EQUAL(nativeDifference(features, [&](FeatureMap map, bool) {
-                 ConsensusMap out;
-                 MapConversion::convert(7, map, out, n);
-                 return out;
-               }),
-               "")
+    // the identifications of the first n features, with the map index
+    MapPeptideIdentifications expected;
+    expected.proteins = input.proteins;
+    expected.unassigned = input.unassigned;
+    for (Size i = 0; i < std::min(n, features.size()); ++i)
+    {
+      PeptideIdentificationList peptides = input.at({i});
+      if (peptides.empty()) continue;
+      for (auto& peptide : peptides) peptide.setMetaValue("map_index", UInt64(7));
+      expected.features[{i}] = peptides;
+    }
+    ConsensusMap out;
+    MapConversion::convert(7, features, out, n);
+    TEST_EQUAL(identificationDifference(expected, identificationsOf(out)), "")
   }
-  // identifications linked by converted features get the map index; unlinked ones stay, others are removed
-  FeatureMap native = features;
-  toNative(native);
-  ConsensusMap out;
-  MapConversion::convert(7, native, out);
-  Size marked = 0, unmarked = 0;
-  for (const auto& run : out.getIdentificationData().getRuns())
-    for (const auto& source : run.getSources())
-      for (const auto& query : source.identifications)
-      {
-        if (! query.metaValueExists("map_index")) ++unmarked;
-        else if (query.getMetaValue("map_index") == DataValue(7)) ++marked;
-      }
-  Size assigned = 0;
-  for (const auto& feature : features)
-    assigned += feature.getPeptideIdentifications().size();
-  TEST_EQUAL(marked, assigned)
-  TEST_EQUAL(unmarked, features.getUnassignedPeptideIdentifications().size())
 
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
-  TEST_EQUAL(nativeDifference(consensus, [](ConsensusMap map, bool) {
-               FeatureMap result;
-               MapConversion::convert(map, true, result);
-               return result;
-             }),
-             "")
+  FeatureMap result;
+  MapConversion::convert(consensus, true, result);
+  TEST_EQUAL(identificationDifference(identificationsOf(consensus), identificationsOf(result)), "")
 }
 END_SECTION
 

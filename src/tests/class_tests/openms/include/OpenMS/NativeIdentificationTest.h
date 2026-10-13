@@ -8,36 +8,72 @@
 
 #pragma once
 
-// Checks that code working on the identification data of feature and consensus maps does what it
-// does on their peptide identifications. Header-only, like TestFileValidation.h.
+// Builds and reads the identifications of feature and consensus maps in tests, as peptide and protein identifications
+// apart from the map (MapPeptideIdentifications). Header-only, like TestFileValidation.h.
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
 
 #include <string>
-#include <type_traits>
 #include <vector>
 
 namespace OpenMS::Internal::ClassTest
 {
-  /// Move the peptide identifications of a map into its identification data (feature links)
-  inline void toNative(FeatureMap& map)
+  /// The identifications of a map as peptide and protein identifications (see IdentificationDataConverter::exportMapIdentifications())
+  template<class Map>
+  MapPeptideIdentifications identificationsOf(const Map& map)
   {
-    IdentificationDataConverter::importFeatureIDs(map);
+    return IdentificationDataConverter::exportMapIdentifications(map);
   }
-  inline void toNative(ConsensusMap& map)
+  /// The peptide identifications of the feature at @p path of a map: its index, then the indices of its subordinates
+  template<class Map>
+  PeptideIdentificationList peptidesOf(const Map& map, const std::vector<Size>& path)
   {
-    IdentificationDataConverter::importConsensusIDs(map);
+    return identificationsOf(map).at(path);
   }
-  /// Move the identification data of a map back into peptide identifications
-  inline void toLegacy(FeatureMap& map)
+  /// The unassigned peptide identifications of a map
+  template<class Map>
+  PeptideIdentificationList unassignedOf(const Map& map)
   {
-    IdentificationDataConverter::exportFeatureIDs(map);
+    return identificationsOf(map).unassigned;
   }
-  inline void toLegacy(ConsensusMap& map)
+  /// The protein identifications of a map
+  template<class Map>
+  std::vector<ProteinIdentification> proteinsOf(const Map& map)
   {
-    IdentificationDataConverter::exportConsensusIDs(map);
+    return identificationsOf(map).proteins;
+  }
+  /// Give a map the identifications @p identifications (see IdentificationDataConverter::importMapIdentifications())
+  template<class Map>
+  void setIdentifications(Map& map, const MapPeptideIdentifications& identifications)
+  {
+    IdentificationDataConverter::importMapIdentifications(map, identifications);
+  }
+
+  /**
+    @brief Give hand-built peptide identifications what identification data needs: their search run and a score type
+
+    The search run is the first protein identification run of @p identifications (a new one named "search" if there is
+    none, or if it has no identifier); every peptide identification gets its identifier, and the score type
+    @p score_type if it has none.
+  */
+  inline void addSearchRun(MapPeptideIdentifications& identifications, const std::string& score_type = "score")
+  {
+    if (identifications.proteins.empty()) identifications.proteins.emplace_back();
+    auto& run = identifications.proteins[0];
+    if (run.getIdentifier().empty()) run.setIdentifier("search");
+    const std::string identifier = run.getIdentifier();
+    const auto complete = [&](PeptideIdentificationList& peptides) {
+      for (auto& id : peptides)
+      {
+        id.setIdentifier(identifier);
+        if (id.getScoreType().empty()) id.setScoreType(score_type);
+      }
+    };
+    for (auto& [path, peptides] : identifications.features) complete(peptides);
+    complete(identifications.unassigned);
   }
 
   namespace NativeIdentificationDetail
@@ -85,30 +121,14 @@ namespace OpenMS::Internal::ClassTest
       return {};
     }
 
-    template<class Map>
-    bool hasPeptideIdentifications(const Map& map)
-    {
-      if (! map.getUnassignedPeptideIdentifications().empty() || ! map.getProteinIdentifications().empty()) return true;
-      const auto any = [](const auto& self, const auto& feature) -> bool {
-        if (! feature.getPeptideIdentifications().empty()) return true;
-        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-          for (const auto& subordinate : feature.getSubordinates())
-            if (self(self, subordinate)) return true;
-        return false;
-      };
-      for (const auto& feature : map)
-        if (any(any, feature)) return true;
-      return false;
-    }
   } // namespace NativeIdentificationDetail
 
-  /// The first difference between the identifications (and then anything else) of two maps; empty if they are equal
-  template<class Map>
-  std::string mapDifference(const Map& expected, const Map& actual)
+  /// The first difference between two sets of identifications of a map; empty if they are equal
+  inline std::string identificationDifference(const MapPeptideIdentifications& expected, const MapPeptideIdentifications& actual)
   {
     using namespace NativeIdentificationDetail;
-    const auto& runs_a = expected.getProteinIdentifications();
-    const auto& runs_b = actual.getProteinIdentifications();
+    const auto& runs_a = expected.proteins;
+    const auto& runs_b = actual.proteins;
     if (runs_a.size() != runs_b.size()) return std::to_string(runs_a.size()) + " vs. " + std::to_string(runs_b.size()) + " protein identification runs";
     for (Size i = 0; i < runs_a.size(); ++i)
     {
@@ -120,60 +140,28 @@ namespace OpenMS::Internal::ClassTest
       if (runs_a[i].getHits() != runs_b[i].getHits()) difference += " protein hits";
       return difference;
     }
-    auto difference = peptideDifference(expected.getUnassignedPeptideIdentifications(), actual.getUnassignedPeptideIdentifications());
+    auto difference = peptideDifference(expected.unassigned, actual.unassigned);
     if (! difference.empty()) return "unassigned:" + difference;
-    if (expected.size() != actual.size()) return std::to_string(expected.size()) + " vs. " + std::to_string(actual.size()) + " features";
-    for (Size i = 0; i < expected.size(); ++i)
+    if (expected.features.size() != actual.features.size())
+      return std::to_string(expected.features.size()) + " vs. " + std::to_string(actual.features.size()) + " features with peptide identifications";
+    for (auto a = expected.features.begin(), b = actual.features.begin(); a != expected.features.end(); ++a, ++b)
     {
-      difference = peptideDifference(expected[i].getPeptideIdentifications(), actual[i].getPeptideIdentifications());
-      if (! difference.empty()) return "feature " + std::to_string(i) + ":" + difference;
+      if (a->first != b->first) return "feature " + std::to_string(a->first[0]) + " vs. " + std::to_string(b->first[0]) + " with peptide identifications";
+      difference = peptideDifference(a->second, b->second);
+      if (! difference.empty()) return "feature " + std::to_string(a->first[0]) + ":" + difference;
     }
-    if (! (expected.getIdentificationData() == actual.getIdentificationData())) return "identification data";
-    if (! (expected == actual)) return "other than identifications";
     return {};
   }
 
-  /**
-    @brief Give the peptide identifications of a hand-built map what identification data needs: their search run and a score type
-
-    The search run is the first protein identification run of @p map (a new one named "search" if it has none, or if it
-    has no identifier); every peptide identification gets its identifier, and the score type @p score_type if it has none.
-  */
+  /// The first difference between the identifications (and then anything else) of two maps; empty if they are equal
   template<class Map>
-  void addSearchRun(Map& map, const std::string& score_type = "score")
+  std::string mapDifference(const Map& expected, const Map& actual)
   {
-    if (map.getProteinIdentifications().empty()) map.getProteinIdentifications().emplace_back();
-    auto& run = map.getProteinIdentifications()[0];
-    if (run.getIdentifier().empty()) run.setIdentifier("search");
-    const std::string identifier = run.getIdentifier();
-    map.applyFunctionOnPeptideIDs([&](PeptideIdentification& id) {
-      id.setIdentifier(identifier);
-      if (id.getScoreType().empty()) id.setScoreType(score_type);
-    });
-  }
-
-  /**
-    @brief Compare an operation on the peptide identifications of a map with the same operation on its identification data
-
-    Runs @p operation(map, false) on a copy of @p input with peptide identifications (identification data of the input is
-    moved into peptide identifications first) and @p operation(map, true) on a copy whose peptide identifications
-    were moved into identification data; the latter must not produce peptide identifications. Its result is moved back
-    into peptide identifications and compared with the former. @p operation returns the resulting map (of any type).
-
-    @return The first difference (see mapDifference()), or an empty string if the results are equal
-  */
-  template<class Map, class Operation>
-  std::string nativeDifference(const Map& input, Operation operation)
-  {
-    // the input as peptide identifications (a loaded map has identification data)
-    Map legacy_input = input;
-    IdentificationDataConverter::moveToPeptideIdentifications(legacy_input);
-    Map native_input = legacy_input;
-    toNative(native_input);
-    auto expected = operation(std::move(legacy_input), false);
-    auto actual = operation(std::move(native_input), true);
-    if (NativeIdentificationDetail::hasPeptideIdentifications(actual)) return "the operation on identification data produced peptide identifications";
-    toLegacy(actual);
-    return mapDifference(expected, actual);
+    auto difference = identificationDifference(identificationsOf(expected), identificationsOf(actual));
+    if (! difference.empty()) return difference;
+    if (expected.size() != actual.size()) return std::to_string(expected.size()) + " vs. " + std::to_string(actual.size()) + " features";
+    if (! (expected.getIdentificationData() == actual.getIdentificationData())) return "identification data";
+    if (! (expected == actual)) return "other than identifications";
+    return {};
   }
 } // namespace OpenMS::Internal::ClassTest

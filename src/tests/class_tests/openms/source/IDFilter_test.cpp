@@ -377,7 +377,8 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, b
     ProteinHit ph2; ph2.setAccession("PROT2");
     prot.insertHit(ph1);
     prot.insertHit(ph2);
-    cmap.setProteinIdentifications({prot});
+    MapPeptideIdentifications ids;
+    ids.proteins = {prot};
 
     // assigned PSMs on a consensus feature
     PeptideHit hitA;
@@ -395,7 +396,7 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, b
 
     ConsensusFeature cf;
     cf.setRT(1.0); cf.setMZ(100.0);
-    cf.getPeptideIdentifications().push_back(pid);
+    ids.features[{0}].push_back(pid);
     cmap.push_back(cf);
 
     // unassigned PSM
@@ -408,7 +409,8 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, b
     upid.setScoreType("q-value");
     upid.setHigherScoreBetter(false);
     upid.setHits({hitC});
-    cmap.getUnassignedPeptideIdentifications().push_back(upid);
+    ids.unassigned.push_back(upid);
+    IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
     return cmap;
   };
@@ -417,15 +419,16 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, b
   {
     ConsensusMap cmap = make_cmap();
     IDFilter::removeDanglingProteinReferences(cmap, false);
+    const auto ids = IdentificationDataConverter::exportMapIdentifications(cmap);
 
-    const vector<PeptideHit>& assigned = cmap[0].getPeptideIdentifications()[0].getHits();
+    const vector<PeptideHit>& assigned = ids.at({0})[0].getHits();
     TEST_EQUAL(assigned.size(), 2);
     TEST_EQUAL(assigned[0].getPeptideEvidences().size(), 1);
     TEST_STRING_EQUAL(assigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT1");
     TEST_EQUAL(assigned[1].getPeptideEvidences().size(), 0); // only DECOY_PROT1 -> removed
 
     // unassigned PSMs are processed too (include_unassigned defaults to true)
-    const vector<PeptideHit>& unassigned = cmap.getUnassignedPeptideIdentifications()[0].getHits();
+    const vector<PeptideHit>& unassigned = ids.unassigned[0].getHits();
     TEST_EQUAL(unassigned.size(), 1);
     TEST_EQUAL(unassigned[0].getPeptideEvidences().size(), 1);
     TEST_STRING_EQUAL(unassigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT2");
@@ -435,7 +438,8 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, b
   {
     ConsensusMap cmap = make_cmap();
     IDFilter::removeDanglingProteinReferences(cmap, true);
-    const vector<PeptideHit>& assigned = cmap[0].getPeptideIdentifications()[0].getHits();
+    const auto ids = IdentificationDataConverter::exportMapIdentifications(cmap);
+    const vector<PeptideHit>& assigned = ids.at({0})[0].getHits();
     TEST_EQUAL(assigned.size(), 1); // hitB removed (no surviving evidence)
     TEST_STRING_EQUAL(assigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT1");
   }
@@ -453,7 +457,8 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, c
   ProteinHit ph2; ph2.setAccession("PROT2");
   prot.insertHit(ph1);
   prot.insertHit(ph2);
-  cmap.setProteinIdentifications({prot});
+  MapPeptideIdentifications ids;
+  ids.proteins = {prot};
 
   PeptideHit hitA;
   hitA.setSequence(AASequence::fromString("PEPTIDEA"));
@@ -461,28 +466,30 @@ START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, c
   { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitA.addPeptideEvidence(e); }
   PeptideIdentification pid; pid.setIdentifier("run1"); pid.setScoreType("q-value"); pid.setHits({hitA});
   ConsensusFeature cf; cf.setRT(1.0); cf.setMZ(100.0);
-  cf.getPeptideIdentifications().push_back(pid);
+  ids.features[{0}].push_back(pid);
   cmap.push_back(cf);
 
   PeptideHit hitC;
   hitC.setSequence(AASequence::fromString("PEPTIDEC"));
   { PeptideEvidence e; e.setProteinAccession("PROT2"); hitC.addPeptideEvidence(e); }
   PeptideIdentification upid; upid.setIdentifier("run1"); upid.setScoreType("q-value"); upid.setHits({hitC});
-  cmap.getUnassignedPeptideIdentifications().push_back(upid);
+  ids.unassigned.push_back(upid);
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   ProteinIdentification ref_run;
   ProteinHit only1; only1.setAccession("PROT1");
   ref_run.insertHit(only1);
 
   IDFilter::removeDanglingProteinReferences(cmap, ref_run, false);
+  const auto filtered = IdentificationDataConverter::exportMapIdentifications(cmap);
 
   // assigned hitA: PROT1 kept, DECOY_PROT1 removed
-  const PeptideHit& a = cmap[0].getPeptideIdentifications()[0].getHits()[0];
+  const PeptideHit& a = filtered.at({0})[0].getHits()[0];
   TEST_EQUAL(a.getPeptideEvidences().size(), 1);
   TEST_STRING_EQUAL(a.getPeptideEvidences()[0].getProteinAccession(), "PROT1");
 
   // unassigned hitC: PROT2 is NOT in ref_run -> removed (ref_run overrides per-run)
-  const PeptideHit& c = cmap.getUnassignedPeptideIdentifications()[0].getHits()[0];
+  const PeptideHit& c = filtered.unassigned[0].getHits()[0];
   TEST_EQUAL(c.getPeptideEvidences().size(), 0);
 }
 END_SECTION
@@ -1198,16 +1205,14 @@ START_SECTION((static void filterHitsByScore(ConsensusMap& map, double threshold
   TEST_EQUAL(map.getIdentificationData().getRuns()[0].getNumberOfIdentifications(), 5)
   TEST_EQUAL(map[0].getIDMatches().size(), 1)
 
-  // a map with peptide identifications is filtered as its peptide identifications
-  ConsensusMap legacy = nativeMap();
-  IdentificationDataConverter::exportConsensusIDs(legacy);
-  ConsensusMap expected = legacy;
-  for (auto& feature : expected) IDFilter::filterHitsByScore(feature.getPeptideIdentifications(), 0.02);
-  IDFilter::filterHitsByScore(expected.getUnassignedPeptideIdentifications(), 0.02);
-  IDFilter::filterHitsByScore(legacy, 0.02);
-  TEST_EQUAL(legacy[0].getPeptideIdentifications() == expected[0].getPeptideIdentifications(), true)
-  TEST_EQUAL(legacy[1].getPeptideIdentifications() == expected[1].getPeptideIdentifications(), true)
-  TEST_EQUAL(legacy.getUnassignedPeptideIdentifications().size(), expected.getUnassignedPeptideIdentifications().size())
+  // the identifications of the map are filtered as peptide identifications
+  auto expected = IdentificationDataConverter::exportMapIdentifications(nativeMap());
+  for (auto& [path, peptides] : expected.features) IDFilter::filterHitsByScore(peptides, 0.02);
+  IDFilter::filterHitsByScore(expected.unassigned, 0.02);
+  const auto actual = IdentificationDataConverter::exportMapIdentifications(map);
+  TEST_EQUAL(actual.at({0}) == expected.at({0}), true)
+  TEST_EQUAL(actual.at({1}) == expected.at({1}), true)
+  TEST_EQUAL(actual.unassigned.size(), expected.unassigned.size())
 }
 END_SECTION
 

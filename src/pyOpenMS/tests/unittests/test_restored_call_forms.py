@@ -125,7 +125,8 @@ def _identified_run(shift):
     search = oms.ProteinIdentification()
     search.setIdentifier("search")
     search.setSearchEngine("SearchEngine")
-    fmap.setProteinIdentifications([search])
+    ids = oms.MapPeptideIdentifications()
+    ids.proteins = [search]
     peptides = oms.PeptideIdentificationList()
     for i, sequence in enumerate(["PEPTIDEK", "ELVISLIVESK", "DLGEEHFK", "LVNELTEFAK", "YLYEIAR"]):
         rt = 100.0 * (i + 1) + shift
@@ -145,8 +146,9 @@ def _identified_run(shift):
         feature.setMZ(500.0 + i)
         feature_peptides = oms.PeptideIdentificationList()
         feature_peptides.push_back(pid)
-        feature.setPeptideIdentifications(feature_peptides)
+        ids.setFeature([fmap.size()], feature_peptides)
         fmap.push_back(feature)
+    oms.IdentificationDataConverter.importMapIdentifications(fmap, ids)
     return fmap, peptides
 
 

@@ -813,8 +813,8 @@ def testConsensusFeature():
      ConsensusFeature.setUniqueId
      ConsensusFeature.size
 
-     ConsensusFeature.getPeptideIdentifications
-     ConsensusFeature.setPeptideIdentifications
+     ConsensusFeature.getIDMatches
+     ConsensusFeature.getIDQueries
     """
 
 
@@ -846,8 +846,9 @@ def testConsensusFeature():
 
     assert f.size() >= 0
 
-    p = f.getPeptideIdentifications()
-    f.setPeptideIdentifications(p)
+    # the links of the feature to the identifications of its map
+    assert len(f.getIDMatches()) == 0
+    assert len(f.getIDQueries()) == 0
 
     # Test __repr__ and __str__ methods
     cf_repr = pyopenms.ConsensusFeature()
@@ -888,15 +889,13 @@ def testConsensusMap():
      ConsensusMap.extend
      ConsensusMap.getDataProcessing
      ConsensusMap.getColumnHeaders
-     ConsensusMap.getProteinIdentifications
-     ConsensusMap.getUnassignedPeptideIdentifications
+     ConsensusMap.getIdentificationData
+     ConsensusMap.clearIdentifications
      ConsensusMap.getUniqueId
      ConsensusMap.hasInvalidUniqueId
      ConsensusMap.hasValidUniqueId
      ConsensusMap.setDataProcessing
      ConsensusMap.setColumnHeaders
-     ConsensusMap.setProteinIdentifications
-     ConsensusMap.setUnassignedPeptideIdentifications
      ConsensusMap.setUniqueId
      ConsensusMap.setUniqueIds
      ConsensusMap.size
@@ -922,15 +921,13 @@ def testConsensusMap():
     m.ensureUniqueId()
     m.getDataProcessing()
     m.getColumnHeaders()
-    m.getProteinIdentifications()
-    m.getUnassignedPeptideIdentifications()
+    assert m.getIdentificationData().empty()
+    m.clearIdentifications()
     m.getUniqueId()
     m.hasInvalidUniqueId()
     m.hasValidUniqueId()
     m.setDataProcessing
     m.setColumnHeaders
-    m.setProteinIdentifications
-    m.setUnassignedPeptideIdentifications
     m.setUniqueId
     m.setUniqueIds
     m.size()
@@ -1442,8 +1439,8 @@ def testFeature():
      Feature.setSubordinates
      Feature.setUniqueId
 
-     Feature.getPeptideIdentifications
-     Feature.setPeptideIdentifications
+     Feature.getIDMatches
+     Feature.getIDQueries
     """
     f = pyopenms.Feature()
     _testMetaInfoInterface(f)
@@ -1467,8 +1464,9 @@ def testFeature():
     f.setWidth(40.0)
     assert f.getWidth() == 40.0
 
-    p = f.getPeptideIdentifications()
-    f.setPeptideIdentifications(p)
+    # the links of the feature to the identifications of its map
+    assert len(f.getIDMatches()) == 0
+    assert len(f.getIDQueries()) == 0
 
     # Test __repr__ and __str__ methods
     f_repr = pyopenms.Feature()
@@ -2182,16 +2180,14 @@ def testFeatureMap():
      FeatureMap.ensureUniqueId
      FeatureMap.extend
      FeatureMap.getDataProcessing
-     FeatureMap.getProteinIdentifications
-     FeatureMap.getUnassignedPeptideIdentifications
+     FeatureMap.getIdentificationData
+     FeatureMap.clearIdentifications
      FeatureMap.getUniqueId
      FeatureMap.setUniqueId
      FeatureMap.hasInvalidUniqueId
      FeatureMap.hasValidUniqueId
      FeatureMap.push_back
      FeatureMap.setDataProcessing
-     FeatureMap.setProteinIdentifications
-     FeatureMap.setUnassignedPeptideIdentifications
      FeatureMap.setUniqueIds
      FeatureMap.size
      FeatureMap.sortByIntensity
@@ -2268,11 +2264,8 @@ def testFeatureMap():
     assert isinstance(fm2.getMinIntensity(), float)
     assert isinstance(fm2.getMaxIntensity(), float)
 
-    assert fm2.getProteinIdentifications() == []
-    fm2.setProteinIdentifications([])
-
-    assert fm2.getUnassignedPeptideIdentifications().empty()
-    fm2.setUnassignedPeptideIdentifications(pyopenms.PeptideIdentificationList())
+    assert fm2.getIdentificationData().empty()
+    fm2.clearIdentifications()
 
     fm2.clear()
     assert fm2.size() == 0
@@ -2382,15 +2375,26 @@ def testFeatureXMLFile():
 
     f.setMetaValue('spectrum_native_id', 'spectrum=123')
     pep_id = pyopenms.PeptideIdentification()
-    pep_id.insertHit(pyopenms.PeptideHit())
+    pep_id.setIdentifier('search')
+    pep_id.setScoreType('score')
+    hit = pyopenms.PeptideHit()
+    hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))  # identification data needs a sequence
+    pep_id.insertHit(hit)
     peplist = pyopenms.PeptideIdentificationList()
     peplist.push_back(pep_id)
-    f.setPeptideIdentifications(peplist)
 
     fm.push_back(f)
 
     f.setMetaValue('spectrum_native_id', 'spectrum=124')
     fm.push_back(f)
+
+    run = pyopenms.ProteinIdentification()
+    run.setIdentifier('search')
+    ids = pyopenms.MapPeptideIdentifications()
+    ids.proteins = [run]
+    ids.setFeature([0], peplist)
+    ids.setFeature([1], peplist)
+    pyopenms.IdentificationDataConverter.importMapIdentifications(fm, ids)
 
     assert fm.get_assigned_peptide_identifications().size() == 2
     assert fm.get_df(meta_values='all').shape == (2, 17)

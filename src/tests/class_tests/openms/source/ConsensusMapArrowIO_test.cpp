@@ -48,6 +48,14 @@ using namespace std;
 
 namespace
 {
+  /// Append @p feature to @p map, with the peptide identifications @p peptides in @p ids
+  void pushFeature(ConsensusMap& map, MapPeptideIdentifications& ids, const ConsensusFeature& feature,
+                   const PeptideIdentificationList& peptides)
+  {
+    if (! peptides.empty()) ids.features[{map.size()}] = peptides;
+    map.push_back(feature);
+  }
+
   // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
   const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
   {
@@ -237,9 +245,10 @@ START_SECTION(exportPSMsToArrow - empty ConsensusMap)
   // Need at least an empty ProteinIdentification for QPXFile
   ProteinIdentification prot_id;
   prot_id.setIdentifier("run_1");
-  cmap.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications cmap_ids;
+  cmap_ids.proteins = {prot_id};
 
-  auto table = ConsensusMapArrowIO::exportPSMsToArrow(cmap);
+  auto table = ConsensusMapArrowIO::exportPSMsToArrow(cmap, cmap_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 0)
 }
@@ -253,7 +262,8 @@ START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
   prot_id.setIdentifier("run_1");
   prot_id.setSearchEngine("TestEngine");
   prot_id.setScoreType("TestScore");
-  cmap.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications cmap_ids;
+  cmap_ids.proteins = {prot_id};
 
   // ConsensusFeature (uid=1000) with 1 PeptideIdentification
   ConsensusFeature cf;
@@ -274,9 +284,7 @@ START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
   hit1.setScore(0.95);
   hit1.setCharge(2);
   pep_id1.getHits().push_back(hit1);
-  cf.getPeptideIdentifications().push_back(pep_id1);
-
-  cmap.push_back(cf);
+  pushFeature(cmap, cmap_ids, cf, {pep_id1});
 
   // 1 unassigned PeptideIdentification
   PeptideIdentification pep_id2;
@@ -290,9 +298,9 @@ START_SECTION(exportPSMsToArrow - feature and unassigned PSMs)
   hit2.setScore(0.80);
   hit2.setCharge(3);
   pep_id2.getHits().push_back(hit2);
-  cmap.getUnassignedPeptideIdentifications().push_back(pep_id2);
+  cmap_ids.unassigned.push_back(pep_id2);
 
-  auto table = ConsensusMapArrowIO::exportPSMsToArrow(cmap);
+  auto table = ConsensusMapArrowIO::exportPSMsToArrow(cmap, cmap_ids);
   TEST_NOT_EQUAL(table, nullptr)
   TEST_EQUAL(table->num_rows(), 2)
 
@@ -456,7 +464,8 @@ START_SECTION(importPSMsFromArrow - PSM round-trip)
   prot_id.setIdentifier("run_1");
   prot_id.setSearchEngine("TestEngine");
   prot_id.setScoreType("TestScore");
-  cmap_in.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications cmap_in_ids;
+  cmap_in_ids.proteins = {prot_id};
 
   // ConsensusFeature (uid=1000) with 1 PeptideIdentification
   ConsensusFeature cf;
@@ -477,9 +486,7 @@ START_SECTION(importPSMsFromArrow - PSM round-trip)
   hit1.setScore(0.95);
   hit1.setCharge(2);
   pep_id1.getHits().push_back(hit1);
-  cf.getPeptideIdentifications().push_back(pep_id1);
-
-  cmap_in.push_back(cf);
+  pushFeature(cmap_in, cmap_in_ids, cf, {pep_id1});
 
   // Unassigned PeptideIdentification
   PeptideIdentification pep_id2;
@@ -493,38 +500,39 @@ START_SECTION(importPSMsFromArrow - PSM round-trip)
   hit2.setScore(0.80);
   hit2.setCharge(3);
   pep_id2.getHits().push_back(hit2);
-  cmap_in.getUnassignedPeptideIdentifications().push_back(pep_id2);
+  cmap_in_ids.unassigned.push_back(pep_id2);
 
   // Export features and PSMs
   auto features_table = ConsensusMapArrowIO::exportFeaturesToArrow(cmap_in);
   TEST_NOT_EQUAL(features_table, nullptr)
 
-  auto psm_table = ConsensusMapArrowIO::exportPSMsToArrow(cmap_in);
+  auto psm_table = ConsensusMapArrowIO::exportPSMsToArrow(cmap_in, cmap_in_ids);
   TEST_NOT_EQUAL(psm_table, nullptr)
   TEST_EQUAL(psm_table->num_rows(), 2)
 
   // Import: first features, then PSMs
   ConsensusMap cmap_out;
-  cmap_out.setProteinIdentifications(cmap_in.getProteinIdentifications());
+  MapPeptideIdentifications cmap_out_ids;
+  cmap_out_ids.proteins = cmap_in_ids.proteins;
 
   bool ok = ConsensusMapArrowIO::importFeaturesFromArrow(features_table, cmap_out);
   TEST_EQUAL(ok, true)
   TEST_EQUAL(cmap_out.size(), 1)
 
-  ok = ConsensusMapArrowIO::importPSMsFromArrow(psm_table, cmap_out);
+  ok = ConsensusMapArrowIO::importPSMsFromArrow(psm_table, cmap_out, cmap_out_ids);
   TEST_EQUAL(ok, true)
 
   // Verify feature PSMs
-  TEST_EQUAL(cmap_out[0].getPeptideIdentifications().size(), 1)
-  const auto& out_pid1 = cmap_out[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(cmap_out_ids.at({0}).size(), 1)
+  const auto& out_pid1 = cmap_out_ids.at({0})[0];
   TEST_EQUAL(out_pid1.getHits().size(), 1)
   TEST_EQUAL(out_pid1.getHits()[0].getSequence().toString(), "PEPTIDER")
   TEST_REAL_SIMILAR(out_pid1.getHits()[0].getScore(), 0.95)
   TEST_EQUAL(out_pid1.getHits()[0].getCharge(), 2)
 
   // Verify unassigned PSMs
-  TEST_EQUAL(cmap_out.getUnassignedPeptideIdentifications().size(), 1)
-  const auto& out_pid2 = cmap_out.getUnassignedPeptideIdentifications()[0];
+  TEST_EQUAL(cmap_out_ids.unassigned.size(), 1)
+  const auto& out_pid2 = cmap_out_ids.unassigned[0];
   TEST_EQUAL(out_pid2.getHits().size(), 1)
   TEST_EQUAL(out_pid2.getHits()[0].getSequence().toString(), "ACDEFGHIK")
   TEST_REAL_SIMILAR(out_pid2.getHits()[0].getScore(), 0.80)
@@ -546,7 +554,8 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
   prot_id.setSearchEngine("Comet");
   prot_id.setScoreType("expect");
   prot_id.setHigherScoreBetter(false);
-  cmap.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications cmap_ids;
+  cmap_ids.proteins = {prot_id};
 
   // ConsensusFeature with PeptideIdentification where higher_score_better=true (differs from run-level)
   ConsensusFeature cf;
@@ -571,8 +580,7 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
   hit1.setRank(1);
   hit1.setMetaValue("target_decoy", "target");
   pep_id1.insertHit(hit1);
-  cf.setPeptideIdentifications({pep_id1});
-  cmap.push_back(cf);
+  pushFeature(cmap, cmap_ids, cf, {pep_id1});
 
   // Unassigned PeptideIdentification with higher_score_better=false (same as run-level)
   PeptideIdentification pep_id2;
@@ -589,18 +597,16 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
   hit2.setRank(1);
   hit2.setMetaValue("target_decoy", "target");
   pep_id2.insertHit(hit2);
-  cmap.getUnassignedPeptideIdentifications().push_back(pep_id2);
+  cmap_ids.unassigned.push_back(pep_id2);
 
   // --- Export and import ---
-  // The bundle stores identification data, which has one PSM score schema: PSMs with different score types are refused.
-  std::string refused_dir;
-  NEW_TMP_FILE(refused_dir)
-  refused_dir += ".cmd";
-  TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowIO::exportToParquet(cmap, refused_dir))
+  // The map has identification data, which has one PSM score schema: PSMs with different score types are refused.
+  TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataConverter::importMapIdentifications(cmap, cmap_ids))
   // With one PSM score type, the PSMs keep its orientation, independent of that of the protein run.
-  cmap.getUnassignedPeptideIdentifications()[0].setScoreType("xcorr");
-  cmap.getUnassignedPeptideIdentifications()[0].setHigherScoreBetter(true);
-  cmap.getUnassignedPeptideIdentifications()[0].getHits()[0].setScore(1.5);
+  cmap_ids.unassigned[0].setScoreType("xcorr");
+  cmap_ids.unassigned[0].setHigherScoreBetter(true);
+  cmap_ids.unassigned[0].getHits()[0].setScore(1.5);
+  IdentificationDataConverter::importMapIdentifications(cmap, cmap_ids);
 
   std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
@@ -610,24 +616,24 @@ START_SECTION(exportToParquet / importFromParquet - per-PSM higher_score_better 
 
   ConsensusMap imported;
   TEST_EQUAL(ConsensusMapArrowIO::importFromParquet(tmp_dir, imported), true)
-  IdentificationDataConverter::moveToPeptideIdentifications(imported); // read as peptide identifications (the map has identification data)
+  const auto imported_ids = IdentificationDataConverter::exportMapIdentifications(imported);
 
   // Verify per-PSM higher_score_better: pep_id1 should be true (not run-level false)
-  TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
-  const PeptideIdentification& out_pid1 = imported[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(imported_ids.at({0}).size(), 1)
+  const PeptideIdentification& out_pid1 = imported_ids.at({0})[0];
   TEST_EQUAL(out_pid1.isHigherScoreBetter(), true) // per-PSM value, NOT run-level false
   TEST_EQUAL(out_pid1.getScoreType(), "xcorr")
 
   // the unassigned PSM, too
-  TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
-  const PeptideIdentification& out_pid2 = imported.getUnassignedPeptideIdentifications()[0];
+  TEST_EQUAL(imported_ids.unassigned.size(), 1)
+  const PeptideIdentification& out_pid2 = imported_ids.unassigned[0];
   TEST_EQUAL(out_pid2.isHigherScoreBetter(), true)
   TEST_EQUAL(out_pid2.getScoreType(), "xcorr")
 
   // and the protein run keeps its own
-  ABORT_IF(imported.getProteinIdentifications().size() != 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].isHigherScoreBetter(), false)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getScoreType(), "expect")
+  ABORT_IF(imported_ids.proteins.size() != 1)
+  TEST_EQUAL(imported_ids.proteins[0].isHigherScoreBetter(), false)
+  TEST_EQUAL(imported_ids.proteins[0].getScoreType(), "expect")
 
   // the spectrum reference survives (the bundle stores it with the identification, no scan number derived from it)
   TEST_EQUAL(out_pid1.getSpectrumReference(), "spectrum=99")
@@ -691,7 +697,8 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   pg.accessions = {"P12345"};
   prot_id.insertProteinGroup(pg);
 
-  cmap.setProteinIdentifications({prot_id});
+  MapPeptideIdentifications cmap_ids;
+  cmap_ids.proteins = {prot_id};
 
   // --- ConsensusFeature 1: with handles, metavalues, and PSM ---
   ConsensusFeature cf1;
@@ -731,9 +738,7 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   pep_hit1.setScore(0.001);
   pep_hit1.setCharge(2);
   pep_id1.insertHit(pep_hit1);
-  cf1.setPeptideIdentifications({pep_id1});
-
-  cmap.push_back(cf1);
+  pushFeature(cmap, cmap_ids, cf1, {pep_id1});
 
   // --- ConsensusFeature 2: simple, no PSMs ---
   ConsensusFeature cf2;
@@ -754,19 +759,20 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   unassigned_hit.setScore(0.5);
   unassigned_hit.setCharge(3);
   unassigned.insertHit(unassigned_hit);
-  cmap.setUnassignedPeptideIdentifications({unassigned});
+  cmap_ids.unassigned = {unassigned};
 
   // --- Export to temp directory ---
   std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
   tmp_dir += ".cmd";
 
+  IdentificationDataConverter::importMapIdentifications(cmap, cmap_ids);
   TEST_EQUAL(ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir), true)
 
   // --- Import back ---
   ConsensusMap imported;
   TEST_EQUAL(ConsensusMapArrowIO::importFromParquet(tmp_dir, imported), true)
-  IdentificationDataConverter::moveToPeptideIdentifications(imported); // read as peptide identifications (the map has identification data)
+  const auto imported_ids = IdentificationDataConverter::exportMapIdentifications(imported);
 
   // --- Verify column headers ---
   TEST_EQUAL(imported.getColumnHeaders().size(), 2)
@@ -814,24 +820,24 @@ START_SECTION(exportToParquet / importFromParquet - full round-trip)
   TEST_EQUAL(imported[1].getFeatures().size(), 0)
 
   // --- Verify PSMs ---
-  TEST_EQUAL(imported[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(imported[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDER")
-  TEST_REAL_SIMILAR(imported[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 0.001)
+  TEST_EQUAL(imported_ids.at({0}).size(), 1)
+  TEST_EQUAL(imported_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPTIDER")
+  TEST_REAL_SIMILAR(imported_ids.at({0})[0].getHits()[0].getScore(), 0.001)
 
-  TEST_EQUAL(imported.getUnassignedPeptideIdentifications().size(), 1)
-  TEST_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ACDEFGHIK")
+  TEST_EQUAL(imported_ids.unassigned.size(), 1)
+  TEST_EQUAL(imported_ids.unassigned[0].getHits()[0].getSequence().toString(), "ACDEFGHIK")
 
   // --- Verify protein identifications ---
-  TEST_EQUAL(imported.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(imported_ids.proteins.size(), 1)
   // The bundle stores identification data, whose runs keep their identifiers.
-  const std::string& cm_synth_id = imported.getProteinIdentifications()[0].getIdentifier();
+  const std::string& cm_synth_id = imported_ids.proteins[0].getIdentifier();
   TEST_EQUAL(cm_synth_id, "run_full_1")
-  TEST_STRING_EQUAL(imported[0].getPeptideIdentifications()[0].getIdentifier(), cm_synth_id);
-  TEST_STRING_EQUAL(imported.getUnassignedPeptideIdentifications()[0].getIdentifier(), cm_synth_id);
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getSearchEngine(), "Comet")
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getHits()[0].getAccession(), "P12345")
-  TEST_EQUAL(imported.getProteinIdentifications()[0].getProteinGroups().size(), 1)
+  TEST_STRING_EQUAL(imported_ids.at({0})[0].getIdentifier(), cm_synth_id);
+  TEST_STRING_EQUAL(imported_ids.unassigned[0].getIdentifier(), cm_synth_id);
+  TEST_EQUAL(imported_ids.proteins[0].getSearchEngine(), "Comet")
+  TEST_EQUAL(imported_ids.proteins[0].getHits().size(), 1)
+  TEST_EQUAL(imported_ids.proteins[0].getHits()[0].getAccession(), "P12345")
+  TEST_EQUAL(imported_ids.proteins[0].getProteinGroups().size(), 1)
 }
 END_SECTION
 
@@ -912,10 +918,8 @@ START_SECTION(exportToParquet / importFromParquet - metadata round-trip (Documen
   cf.setUniqueId(9999);
   cmap.push_back(cf);
 
-  // Need ProteinIdentification for export
-  ProteinIdentification prot_id;
-  prot_id.setIdentifier("run_meta_test");
-  cmap.setProteinIdentifications({prot_id});
+  // an identification run (without identifications)
+  cmap.getIdentificationData().addRun("run_meta_test");
 
   // --- Export ---
   std::string tmp_dir;
@@ -1002,9 +1006,7 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   cf.setUniqueId(9999);
   cmap.push_back(cf);
 
-  ProteinIdentification prot_id;
-  prot_id.setIdentifier("run_lists_test");
-  cmap.setProteinIdentifications({prot_id});
+  cmap.getIdentificationData().addRun("run_lists_test");
 
   std::string tmp_dir;
   NEW_TMP_FILE(tmp_dir)
@@ -1070,28 +1072,27 @@ START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
 END_SECTION
 
 /////////////////////////////////////////////////////////////
-// Fix #2b: exportToParquet rejects duplicate ProtID identifiers (XML-lane parity)
+// Fix #2b: no export of duplicate ProtID identifiers (XML-lane parity)
 /////////////////////////////////////////////////////////////
 
-START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers throw Exception::InvalidValue)
+START_SECTION(exportToParquet - the identifications of a map have no duplicate ProteinIdentification identifiers)
 {
   ConsensusMap cmap;
 
   ProteinIdentification p1; p1.setIdentifier("dup");
   ProteinIdentification p2; p2.setIdentifier("dup");
-  cmap.setProteinIdentifications({p1, p2});
+  MapPeptideIdentifications ids;
+  ids.proteins = {p1, p2};
 
   ConsensusFeature cf;
   cf.setRT(50.0); cf.setMZ(400.0); cf.setIntensity(500.0f); cf.setCharge(1); cf.setUniqueId(101);
   cmap.push_back(cf);
 
-  std::string tmp_dir;
-  NEW_TMP_FILE(tmp_dir)
-  tmp_dir += ".cmd";
-
-  // (the conversion to identification data rejects the duplicate run)
-  TEST_EXCEPTION(Exception::InvalidParameter,
-                 ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir))
+  // the identifications of a map (identification data) cannot have runs with the same identifier, so a map with them
+  // cannot be exported
+  TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(cmap, ids))
+  cmap.getIdentificationData().addRun("dup");
+  TEST_EXCEPTION(Exception::InvalidValue, cmap.getIdentificationData().addRun("dup"))
 }
 END_SECTION
 
@@ -1106,7 +1107,8 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
   ProteinIdentification prot;
   prot.setIdentifier("run4b");
   prot.setDateTime(DateTime::now());
-  map.getProteinIdentifications().push_back(prot);
+  MapPeptideIdentifications map_ids;
+  map_ids.proteins.push_back(prot);
 
   ConsensusFeature f;
   f.setRT(100.0);
@@ -1120,8 +1122,7 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
   PeptideHit ha;
   ha.setSequence(AASequence::fromString("PEPK(TestCMap:Assigned)IDE"));
   pa.insertHit(ha);
-  f.getPeptideIdentifications().push_back(pa);
-  map.push_back(f);
+  pushFeature(map, map_ids, f, {pa});
 
   PeptideIdentification pu;
   pu.setIdentifier("run4b");
@@ -1129,27 +1130,28 @@ START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modific
   PeptideHit hu;
   hu.setSequence(AASequence::fromString("PEPR(TestCMap:Unassigned)IDE"));
   pu.insertHit(hu);
-  map.getUnassignedPeptideIdentifications().push_back(pu);
+  map_ids.unassigned.push_back(pu);
 
   std::string dir;
   NEW_TMP_FILE(dir) dir += ".cmd";
+  IdentificationDataConverter::importMapIdentifications(map, map_ids);
   TEST_TRUE(ConsensusMapArrowIO::exportToParquet(map, dir))
   ConsensusMap in;
   TEST_TRUE(ConsensusMapArrowIO::importFromParquet(dir, in))
-  IdentificationDataConverter::moveToPeptideIdentifications(in); // read as peptide identifications (the map has identification data)
+  const auto in_ids = IdentificationDataConverter::exportMapIdentifications(in);
   TEST_EQUAL(in.size(), 1)
-  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
-  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  TEST_EQUAL(in_ids.unassigned.size(), 1)
+  if (in.size() == 1 && !in_ids.at({0}).empty() && !in_ids.at({0})[0].getHits().empty())
   {
-    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestCMap:Assigned)IDE")
+    TEST_EQUAL(in_ids.at({0})[0].getHits()[0].getSequence().toString(), "PEPK(TestCMap:Assigned)IDE")
   }
-  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  if (in_ids.unassigned.size() == 1 && !in_ids.unassigned[0].getHits().empty())
   {
-    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestCMap:Unassigned)IDE")
+    TEST_EQUAL(in_ids.unassigned[0].getHits()[0].getSequence().toString(), "PEPR(TestCMap:Unassigned)IDE")
   }
-  if (in.getProteinIdentifications().size() == 1)
+  if (in_ids.proteins.size() == 1)
   {
-    const auto& sp = in.getProteinIdentifications()[0].getSearchParameters();
+    const auto& sp = in_ids.proteins[0].getSearchParameters();
     TEST_TRUE(sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
     if (sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
     {
@@ -1176,7 +1178,7 @@ START_SECTION([EXTRA] importFromParquet - definitions are registered from search
   ProteinIdentification::SearchParameters sp;
   sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestCMap:Fresh", 'K', "C2H2O"));
   prot.setSearchParameters(sp);
-  map.getProteinIdentifications().push_back(prot);
+  map.getIdentificationData() = IdentificationDataAdapter::fromLegacy({prot}, {}); // (this registers nothing)
 
   std::string dir;
   NEW_TMP_FILE(dir) dir += ".cmd";
@@ -1185,7 +1187,7 @@ START_SECTION([EXTRA] importFromParquet - definitions are registered from search
   ConsensusMap in;
   TEST_TRUE(ConsensusMapArrowIO::importFromParquet(dir, in))
   // the identification data registers the definitions of a run when its identifications are read
-  IdentificationDataConverter::moveToPeptideIdentifications(in);
+  IdentificationDataConverter::exportMapIdentifications(in);
   TEST_TRUE(db->hasDefinedModification("TestCMap:Fresh"))
   File::removeDirRecursively(dir);
 }

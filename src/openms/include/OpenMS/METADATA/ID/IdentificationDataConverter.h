@@ -35,92 +35,32 @@ public:
   static IdentificationData::DatabaseId importSequences(IdentificationData::Run& run, const IdentificationData::Database& database,
                                                         const std::vector<FASTAFile::FASTAEntry>& fasta, const std::string& decoy_pattern = "");
   static void exportSequenceEvidence(const std::vector<IdentificationData::SequenceEvidence>& evidence, PeptideHit& hit);
-  static void importFeatureIDs(FeatureMap& features, bool clear_original = true);
-  static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
-  static void importConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
-  static void exportConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
-
   /// The identifications of a map as peptide and protein identifications, apart from the map (see exportMapIdentifications())
   using MapPeptideIdentifications = OpenMS::MapPeptideIdentifications;
   /**
     @brief The identifications of @p map (its identification data and the links of its features) as peptide and
     protein identifications, as a writer of a format holding those writes them
-
-    A map with peptide identifications (and no identification data) gives those.
-
-    @throw Exception::InvalidParameter if @p map has peptide identifications and identification data
   */
   static MapPeptideIdentifications exportMapIdentifications(const FeatureMap& map);
   static MapPeptideIdentifications exportMapIdentifications(const ConsensusMap& map);
   /**
-    @brief Set the identification data of @p map and the links of its features from peptide and protein
-    identifications (e.g. those of a file), as importFeatureIDs() imports the peptide identifications of a map
+    @brief Set the identification data of @p map and the links of its features (and subordinates) from peptide and
+    protein identifications (e.g. those of a file), replacing the identifications of @p map
 
-    @throw Exception::InvalidParameter if a path refers to no feature of @p map
+    @throw Exception::InvalidParameter if a path refers to no feature of @p map, or for identifications that
+    identification data cannot hold (see IdentificationDataAdapter::importLegacyMap())
   */
   static void importMapIdentifications(FeatureMap& map, const MapPeptideIdentifications& identifications);
   static void importMapIdentifications(ConsensusMap& map, const MapPeptideIdentifications& identifications);
 
   /// @name Maps for code that works on identification data
   ///@{
-  /// Whether @p map has peptide or protein identifications (of features, subordinates or unassigned)
-  static bool hasPeptideIdentifications(const FeatureMap& map);
-  static bool hasPeptideIdentifications(const ConsensusMap& map);
   /**
-    @brief Read access to the identifications of a map as identification data
-
-    @return @p map if it has no peptide identifications, else @p converted: a copy of @p map with its peptide
-    identifications moved into its identification data (importFeatureIDs())
-
-    @throw Exception::InvalidParameter if @p map has peptide identifications and identification data
-  */
-  static const FeatureMap& withIdentificationData(const FeatureMap& map, std::optional<FeatureMap>& converted);
-  static const ConsensusMap& withIdentificationData(const ConsensusMap& map, std::optional<ConsensusMap>& converted);
-  /**
-    @brief Read access to the identifications of a map as peptide identifications, for code that works on them (e.g.
-    writers of formats that hold peptide identifications)
-
-    The converse of withIdentificationData().
-
-    @return @p map if it has no identification data or has peptide identifications, else @p exported: a copy of @p map
-    with its identification data exported as peptide identifications (exportFeatureIDs())
-  */
-  static const FeatureMap& withPeptideIdentifications(const FeatureMap& map, std::optional<FeatureMap>& exported);
-  static const ConsensusMap& withPeptideIdentifications(const ConsensusMap& map, std::optional<ConsensusMap>& exported);
-  /**
-    @brief The protein identifications of a map: its own, or for a map with identification data (and none of its own)
-    those that export writes (exportFeatureIDs()), e.g. the protein run of an inference result
+    @brief The protein identifications of a map, as export writes them (exportMapIdentifications()), e.g. the protein
+    run of an inference result
   */
   static std::vector<ProteinIdentification> proteinIdentifications(const FeatureMap& map);
   static std::vector<ProteinIdentification> proteinIdentifications(const ConsensusMap& map);
-  /**
-    @brief Move the peptide identifications of a map into its identification data, for code that edits identification data
-
-    @return Whether @p map had peptide identifications, i.e. whether to move them back afterwards (exportFeatureIDs())
-    @throw Exception::InvalidParameter if @p map has peptide identifications and identification data
-  */
-  static bool moveToIdentificationData(FeatureMap& map);
-  static bool moveToIdentificationData(ConsensusMap& map);
-  /**
-    @brief Move the identification data of a map into peptide identifications, for code that works on them (e.g. writers
-    of formats that hold peptide identifications): the converse of moveToIdentificationData()
-
-    @return Whether @p map had identification data and no peptide identifications, i.e. whether it changed
-  */
-  static bool moveToPeptideIdentifications(FeatureMap& map);
-  static bool moveToPeptideIdentifications(ConsensusMap& map);
-  /**
-    @brief Edit the identifications of a map as identification data
-
-    Runs @p edit on @p map. A map with peptide identifications has them moved into its identification data for the
-    edit (moveToIdentificationData()) and back afterwards (exportFeatureIDs()/exportConsensusIDs()), also if @p edit
-    throws. Its protein identification runs keep their objects if their number does not change, so references to
-    them (e.g. to the protein run of an inference result) stay valid.
-
-    @throw Exception::InvalidParameter if @p map has peptide identifications and identification data
-  */
-  static void editAsIdentificationData(FeatureMap& map, const std::function<void(FeatureMap&)>& edit);
-  static void editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit);
   /**
     @brief Append the features of @p source to @p target with the identifications they link, e.g. the parts of a map
     that parallel producers built separately
@@ -144,24 +84,21 @@ public:
   static bool makeRunsDistinct(FeatureMap& map, std::set<std::string>& taken);
   static bool makeRunsDistinct(ConsensusMap& map, std::set<std::string>& taken);
   /**
-    @brief The maps with their identifications as identification data, each identification run in one map only (to
-    combine their identifications, e.g. when grouping features)
+    @brief The maps with each identification run in one map only (to combine their identifications, e.g. when
+    grouping features)
 
-    Maps with peptide identifications are converted (see withIdentificationData()); a run that is also in an earlier
-    map gets a new UUID (see makeRunsDistinct()). Maps are copied only if one needs to change.
+    A run that is also in an earlier map gets a new UUID (see makeRunsDistinct()). Maps are copied only if one needs
+    to change.
 
     @return @p maps, or @p converted holding all maps
-    @throw Exception::InvalidParameter if a map has peptide identifications and identification data
   */
-  static const std::vector<FeatureMap>& withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted);
-  static const std::vector<ConsensusMap>& withIdentificationData(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted);
+  static const std::vector<FeatureMap>& withDistinctRuns(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted);
+  static const std::vector<ConsensusMap>& withDistinctRuns(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted);
   /**
-    @brief A copy of @p map with its identifications as peptide identifications (exportConsensusIDs()) whose peptide
-    hits name their match (see matchReference()), for algorithms that work on peptide hits, e.g. protein inference
-
-    @throw Exception::InvalidParameter if @p map has peptide identifications
+    @brief The identifications of @p map as peptide identifications (see exportMapIdentifications()) whose peptide hits
+    name their match (see matchReference()), for algorithms that work on peptide hits, e.g. protein inference
   */
-  static ConsensusMap exportWithMatchReferences(const ConsensusMap& map);
+  static MapPeptideIdentifications exportWithMatchReferences(const ConsensusMap& map);
   /// The match that a peptide hit of exportWithMatchReferences() stands for, if it names one
   static std::optional<IdentificationData::MatchReference> matchReference(const PeptideHit& hit);
   /**

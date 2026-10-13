@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -67,8 +68,10 @@ IdXMLFile().load(File::find("./examples/BSA/BSA1_OMSSA.idXML"), prots, peps);
 
 START_SECTION(Size fillCalibrants(const FeatureMap& fm, double tol_ppm))
   FeatureMap fm;
-  fm.setProteinIdentifications(prots);
-  fm.setUnassignedPeptideIdentifications(peps);
+  MapPeptideIdentifications ids;
+  ids.proteins = prots;
+  ids.unassigned = peps;
+  IdentificationDataConverter::importMapIdentifications(fm, ids);
 
   InternalCalibration ic;
   Size cal_count = ic.fillCalibrants(fm, 100.0);

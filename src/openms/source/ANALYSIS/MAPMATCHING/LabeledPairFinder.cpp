@@ -15,7 +15,6 @@
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace std;
 
@@ -56,11 +55,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "two file descriptions required");
     if (result_map.getColumnHeaders().begin()->second.filename != result_map.getColumnHeaders().rbegin()->second.filename)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the two file descriptions have to contain the same file name");
-    // the identifications as identification data (peptide identifications are converted, and so is the result back):
-    const bool legacy = IdentificationDataConverter::hasPeptideIdentifications(maps[0]);
-    vector<ConsensusMap> converted;
-    const vector<ConsensusMap>& input_maps = IdentificationDataConverter::withIdentificationData(maps, converted);
-    checkIds_(input_maps);
+    checkIds_(maps);
 
     //look up the light and heavy index
     Size light_index = numeric_limits<Size>::max();
@@ -87,7 +82,7 @@ namespace OpenMS
 
     // sort consensus features by RT (and MZ) to speed up searching afterwards
     typedef ConstRefVector<ConsensusMap> RefMap;
-    RefMap model_ref(input_maps[0].begin(), input_maps[0].end());
+    RefMap model_ref(maps[0].begin(), maps[0].end());
     model_ref.sortByPosition();
 
     //calculate matches
@@ -298,7 +293,7 @@ namespace OpenMS
     // FeatureGroupingAlgorithm::groupIdentifications()). An identification gets the map index of the light or heavy
     // feature that links it; unassigned ones have none.
     std::map<UInt64, const ConsensusFeature*> features; // by unique ID
-    for (const ConsensusFeature& feature : input_maps[0])
+    for (const ConsensusFeature& feature : maps[0])
     {
       features.emplace(feature.getUniqueId(), &feature);
     }
@@ -309,13 +304,13 @@ namespace OpenMS
       {
         const auto found = features.find(handle.getUniqueId());
         if (found == features.end()) continue;
-        for (const auto& query : found->second->getLinkedIDQueries(input_maps[0].getIdentificationData()))
+        for (const auto& query : found->second->getLinkedIDQueries(maps[0].getIdentificationData()))
         {
           map_indices.emplace(query, handle.getMapIndex());
         }
       }
     }
-    FeatureGroupingAlgorithm::groupIdentifications(input_maps, result_map);
+    FeatureGroupingAlgorithm::groupIdentifications(maps, result_map);
     auto& data = result_map.getIdentificationData();
     for (const auto& current : data.getRuns())
     {
@@ -341,11 +336,6 @@ namespace OpenMS
 
     // Very useful for checking the results, and the ids have no real meaning anyway
     result_map.sortByMZ();
-
-    if (legacy)
-    {
-      IdentificationDataConverter::exportConsensusIDs(result_map);
-    }
   }
 
 }

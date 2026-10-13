@@ -126,6 +126,14 @@ public:
     const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{},
     QPXIdentity::FeatureLinks* out_links = nullptr);
+  /// Same as above, with the identifications @p ids of @p cmap (see IdentificationDataConverter::exportMapIdentifications()),
+  /// e.g. exported once for several views
+  static bool exportToParquet(
+    const ConsensusMap& cmap,
+    const MapPeptideIdentifications& ids,
+    const std::string& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    QPXIdentity::FeatureLinks* out_links = nullptr);
 
   /**
     @brief Stream a ConsensusMap to a Parquet file in row batches (bounded peak memory)
@@ -155,6 +163,15 @@ public:
   */
   static bool exportToParquetStreaming(
     const ConsensusMap& cmap,
+    const std::string& filename,
+    size_t batch_size = 1000000,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    int n_threads = 1,
+    QPXIdentity::FeatureLinks* out_links = nullptr);
+  /// Same as above, with the identifications @p ids of @p cmap (see IdentificationDataConverter::exportMapIdentifications())
+  static bool exportToParquetStreaming(
+    const ConsensusMap& cmap,
+    const MapPeptideIdentifications& ids,
     const std::string& filename,
     size_t batch_size = 1000000,
     const ParquetWriteConfig& config = ParquetWriteConfig{},

@@ -49,32 +49,41 @@ START_SECTION((virtual ~FeatureMap()))
 	delete pl_ptr;
 END_SECTION
 
-PeptideIdentificationList ids(1);
-PeptideHit hit;
-hit.setSequence(AASequence::fromString("ABCDE"));
-ids[0].setHits(std::vector<PeptideHit>(1, hit));
+// identification data with matches of ABCDE (in two identifications) and KRGH, which the features link
+IdentificationData id_data;
+auto& id_run = id_data.addRun("search");
+{
+  IdentificationData::ScoreDefinition score;
+  score.name = "score";
+  id_run.setPrimaryScore(id_run.addScore(score));
+}
+const auto id_source = id_run.addSource({});
+const auto addMatch = [&](const std::string& sequence) {
+  IdentificationData::MatchData match;
+  match.representation = sequence;
+  return IdentificationData::MatchReference {id_run.getUuid(), id_run.addMatch(id_run.addIdentification(id_source, {}), match, {1.0})};
+};
+const auto abcde = addMatch("ABCDE"), abcde_again = addMatch("ABCDE"), krgh = addMatch("KRGH");
 
 Feature feature1;
 feature1.getPosition()[0] = 2.0;
 feature1.getPosition()[1] = 3.0;
 feature1.setIntensity(1.0f);
-feature1.setPeptideIdentifications(ids);  // single hit
+feature1.addIDMatch(abcde); // single hit
 
 Feature feature2;
 feature2.getPosition()[0] = 0.0;
 feature2.getPosition()[1] = 2.5;
 feature2.setIntensity(0.5f);
-ids.resize(2);
-ids[1].setHits(std::vector<PeptideHit>(1, hit)); // same as first hit
-feature2.setPeptideIdentifications(ids);
+feature2.addIDMatch(abcde);
+feature2.addIDMatch(abcde_again); // same as first hit
 
 Feature feature3;
 feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
 feature3.setIntensity(0.01f);
-hit.setSequence(AASequence::fromString("KRGH"));
-ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
-feature3.setPeptideIdentifications(ids);
+feature3.addIDMatch(abcde);
+feature3.addIDMatch(krgh); // different to first hit
 
 //feature with convex hulls
 Feature feature4;
@@ -86,40 +95,6 @@ hulls[0].addPoint(DPosition<2>(-1.0,2.0));
 hulls[0].addPoint(DPosition<2>(4.0,1.2));
 hulls[0].addPoint(DPosition<2>(5.0,3.123));
 feature4.setConvexHulls(hulls);
-
-START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
-	FeatureMap tmp;
-	TEST_EQUAL(tmp.getProteinIdentifications().size(),0)
-END_SECTION
-
-START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
-	FeatureMap tmp;
-	tmp.getProteinIdentifications().resize(1);
-	TEST_EQUAL(tmp.getProteinIdentifications().size(),1)
-END_SECTION
-
-START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
-	FeatureMap tmp;
-	tmp.setProteinIdentifications(std::vector<ProteinIdentification>(2));
-	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
-END_SECTION
-
-START_SECTION((const PeptideIdentificationList& getUnassignedPeptideIdentifications() const))
-	FeatureMap tmp;
-	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
-END_SECTION
-
-START_SECTION((PeptideIdentificationList& getUnassignedPeptideIdentifications()))
-	FeatureMap tmp;
-	tmp.getUnassignedPeptideIdentifications().resize(1);
-	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
-END_SECTION
-
-START_SECTION((void setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications)))
-	FeatureMap tmp;
-	tmp.setUnassignedPeptideIdentifications(PeptideIdentificationList(2));
-	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
-END_SECTION
 
 START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
   FeatureMap tmp;
@@ -178,8 +153,7 @@ START_SECTION((FeatureMap(const FeatureMap &source)))
   map1.updateRanges();
   map1.setIdentifier("lsid");;
   map1.getDataProcessing().resize(1);
-  map1.getProteinIdentifications().resize(1);
-  map1.getUnassignedPeptideIdentifications().resize(1);
+  map1.getIdentificationData() = id_data;
 
   FeatureMap map2(map1);
 
@@ -188,8 +162,7 @@ START_SECTION((FeatureMap(const FeatureMap &source)))
   TEST_REAL_SIMILAR(map2.getMaxIntensity(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-  TEST_EQUAL(map2.getProteinIdentifications().size(),1);
-  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+  TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1);
 END_SECTION
 
 START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
@@ -201,8 +174,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	map1.updateRanges();
 	map1.setIdentifier("lsid");
 	map1.getDataProcessing().resize(1);
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
+	map1.getIdentificationData() = id_data;
 
 	//assignment
 	FeatureMap map2;
@@ -213,8 +185,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
   TEST_REAL_SIMILAR(map2.getMaxIntensity(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+	TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1);
 
   //assignment of empty object
    map2 = FeatureMap();
@@ -223,8 +194,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
   TEST_EQUAL(map2.hasRange() == HasRangeType::NONE, true)
   TEST_STRING_EQUAL(map2.getIdentifier(),"")
   TEST_EQUAL(map2.getDataProcessing().size(),0)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),0);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0);
+	TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 0);
 END_SECTION
 
 START_SECTION((FeatureMap& operator=(FeatureMap&& rhs)))
@@ -236,8 +206,7 @@ START_SECTION((FeatureMap& operator=(FeatureMap&& rhs)))
   map1.updateRanges();
   map1.setIdentifier("lsid");
   map1.getDataProcessing().resize(1);
-  map1.getProteinIdentifications().resize(1);
-  map1.getUnassignedPeptideIdentifications().resize(1);
+  map1.getIdentificationData() = id_data;
 
   // move assignment
   FeatureMap map2;
@@ -248,8 +217,7 @@ START_SECTION((FeatureMap& operator=(FeatureMap&& rhs)))
   TEST_REAL_SIMILAR(map2.getMaxIntensity(), 1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(), "lsid")
   TEST_EQUAL(map2.getDataProcessing().size(), 1)
-  TEST_EQUAL(map2.getProteinIdentifications().size(), 1);
-  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(), 1);
+  TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1);
 
   // move assignment of empty object
   map2 = FeatureMap();
@@ -258,8 +226,7 @@ START_SECTION((FeatureMap& operator=(FeatureMap&& rhs)))
   TEST_EQUAL(map2.hasRange() == HasRangeType::NONE, true)
   TEST_STRING_EQUAL(map2.getIdentifier(), "")
   TEST_EQUAL(map2.getDataProcessing().size(), 0)
-  TEST_EQUAL(map2.getProteinIdentifications().size(), 0);
-  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(), 0);
+  TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 0);
 END_SECTION
 
 START_SECTION((bool operator == (const FeatureMap& rhs) const))
@@ -279,12 +246,8 @@ START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	TEST_EQUAL(empty==edit, false)
 
     edit = empty;
-	edit.getProteinIdentifications().resize(1);
+	edit.getIdentificationData() = id_data;
     TEST_EQUAL(edit==empty, false)
-
-	edit = empty;
-	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_EQUAL(empty==edit, false)
 
 
 	edit = empty;
@@ -312,12 +275,8 @@ START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	TEST_FALSE(empty == edit)
 
     edit = empty;
-	edit.getProteinIdentifications().resize(10);
+	edit.getIdentificationData() = id_data;
     TEST_FALSE(edit == empty)
-
-	edit = empty;
-	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_FALSE(empty == edit)
 
 
 	edit = empty;
@@ -359,14 +318,13 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 	// test basic classes
 	m1.setIdentifier ("123");
 	m1.getDataProcessing().resize(1);
-	m1.getProteinIdentifications().resize(1);
-	m1.getUnassignedPeptideIdentifications().resize(1);
+	m1.getIdentificationData().addRun("a");
 	m1.ensureUniqueId();
 
 	m2.setIdentifier ("321");
 	m2.getDataProcessing().resize(2);
-	m2.getProteinIdentifications().resize(2);
-	m2.getUnassignedPeptideIdentifications().resize(2);
+	m2.getIdentificationData().addRun("b");
+	m2.getIdentificationData().addRun("c");
 	m2.push_back(Feature());
 	m2.push_back(Feature());
 
@@ -375,8 +333,7 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 	TEST_EQUAL(m1.getIdentifier(), "")
 	TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false)
 	TEST_EQUAL(m1.getDataProcessing().size(), 3)
-	TEST_EQUAL(m1.getProteinIdentifications().size(),3)
-	TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(),3)
+	TEST_EQUAL(m1.getIdentificationData().getRuns().size(), 3)
 	TEST_EQUAL(m1.size(),3);
 END_SECTION
 
@@ -488,8 +445,7 @@ START_SECTION((void swap(FeatureMap& from)))
   map1.push_back(feature2);
   map1.updateRanges();
   map1.getDataProcessing().resize(1);
-  map1.getProteinIdentifications().resize(1);
-  map1.getUnassignedPeptideIdentifications().resize(1);
+  map1.getIdentificationData() = id_data;
 
   map1.swap(map2);
 
@@ -497,15 +453,13 @@ START_SECTION((void swap(FeatureMap& from)))
   TEST_EQUAL(map1.size(),0)
   TEST_EQUAL(map1.hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(map1.getDataProcessing().size(),0)
-  TEST_EQUAL(map1.getProteinIdentifications().size(),0)
-  TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0)
+  TEST_EQUAL(map1.getIdentificationData().getRuns().size(), 0)
 
   TEST_EQUAL(map2.getIdentifier(),"stupid comment")
   TEST_EQUAL(map2.size(),2)
   TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-  TEST_EQUAL(map2.getProteinIdentifications().size(),1)
-  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1)
+  TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1)
 }
 END_SECTION
 
@@ -517,8 +471,7 @@ START_SECTION((void swapFeaturesOnly(FeatureMap& from)))
   map1.push_back(feature2);
   map1.updateRanges();
   map1.getDataProcessing().resize(1);
-  map1.getProteinIdentifications().resize(1);
-  map1.getUnassignedPeptideIdentifications().resize(1);
+  map1.getIdentificationData() = id_data;
 
   map1.swapFeaturesOnly(map2);
 
@@ -526,15 +479,13 @@ START_SECTION((void swapFeaturesOnly(FeatureMap& from)))
   TEST_EQUAL(map1.size(),0)
   TEST_EQUAL(map1.hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(map1.getDataProcessing().size(),1)
-  TEST_EQUAL(map1.getProteinIdentifications().size(),1)
-  TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),1)
+  TEST_EQUAL(map1.getIdentificationData().getRuns().size(), 1)
 
   TEST_EQUAL(map2.getIdentifier(),"")
   TEST_EQUAL(map2.size(),2)
   TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
   TEST_EQUAL(map2.getDataProcessing().size(),0)
-  TEST_EQUAL(map2.getProteinIdentifications().size(),0)
-  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0)
+  TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 0)
 }
 END_SECTION
 
@@ -587,8 +538,7 @@ START_SECTION((void clear(bool clear_meta_data=true)))
 	map1.push_back(feature2);
 	map1.updateRanges();
 	map1.getDataProcessing().resize(1);
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
+	map1.getIdentificationData() = id_data;
 
 	map1.clear(false);
 	TEST_EQUAL(map1.size(),0)
@@ -692,6 +642,7 @@ END_SECTION
 
 START_SECTION((AnnotationStatistics getAnnotationStatistics() const))
   FeatureMap fm;
+  fm.getIdentificationData() = id_data; // the features link its matches
 
   AnnotationStatistics stats, res;
   stats = fm.getAnnotationStatistics();
@@ -828,13 +779,6 @@ START_SECTION((Size eraseFeatures(const std::function<bool(const Feature&)>& rem
   TEST_TRUE(ids.getRuns()[0].findIdentification(without_matches) == nullptr)
   TEST_EQUAL(map.getUnassignedIdentifications().size(), 2)
   map.getIdentificationData().validate();
-
-  // A map with peptide identifications erases them with its features.
-  FeatureMap legacy;
-  legacy.resize(2);
-  legacy[0].getPeptideIdentifications().resize(1);
-  TEST_EQUAL(legacy.eraseFeatures([](const Feature& feature) { return ! feature.getPeptideIdentifications().empty(); }), 1)
-  TEST_EQUAL(legacy.size(), 1)
 
 }
 END_SECTION

@@ -933,7 +933,6 @@ namespace OpenMS
   void FeatureFinderIdentificationAlgorithm::runOnCandidates(FeatureMap & features)
   {
     // candidates of a file (e.g. featureXML) have peptide identifications
-    IdentificationDataConverter::moveToIdentificationData(features);
     const IdentificationData& data = features.getIdentificationData();
 
     // extract ID information for statistics:

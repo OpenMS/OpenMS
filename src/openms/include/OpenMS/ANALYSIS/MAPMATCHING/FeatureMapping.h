@@ -112,8 +112,6 @@ namespace OpenMS
       @param[in] precursor_rt_tolerance   Half-width of the RT tolerance window in seconds (absolute).
       @param[in] ppm                      If true, interpret @p precursor_mz_tolerance as ppm; otherwise as Th.
       @return Mapping result containing one entry per matched feature plus the list of unassigned MS2 spectra.
-      @throw Exception::InvalidParameter if a map of @p fm_info has peptide identifications: their
-      identifications must be identification data (see IdentificationDataConverter::moveToIdentificationData()).
     */
     static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
                                                        const FeatureMappingInfo& fm_info,

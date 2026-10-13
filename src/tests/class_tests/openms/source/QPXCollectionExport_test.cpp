@@ -21,6 +21,7 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -30,6 +31,7 @@
 #include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <fstream>
+#include <functional>
 
 using namespace OpenMS;
 using namespace std;
@@ -38,6 +40,20 @@ namespace
 {
   /// A label-free map over @p paths, one fraction each, all in one sample, with one quantified
   /// protein group. This is the shape every section below perturbs.
+  /// Edit the identifications of @p cmap as peptide and protein identifications
+  void editIdentifications(ConsensusMap& cmap, const std::function<void(MapPeptideIdentifications&)>& edit)
+  {
+    auto ids = IdentificationDataConverter::exportMapIdentifications(cmap);
+    edit(ids);
+    IdentificationDataConverter::importMapIdentifications(cmap, ids);
+  }
+
+  /// Give @p cmap the protein identification runs @p proteins
+  void setProteins(ConsensusMap& cmap, const std::vector<ProteinIdentification>& proteins)
+  {
+    editIdentifications(cmap, [&](MapPeptideIdentifications& ids) { ids.proteins = proteins; });
+  }
+
   ConsensusMap makeMap(const std::vector<std::string>& paths, Size n_samples = 1)
   {
     ConsensusMap cmap;
@@ -75,7 +91,7 @@ namespace
     grp.getIntegerDataArrays()[1].setName("fraction_group_level_label");
     grp.getIntegerDataArrays()[1].push_back(1);
     prot.insertIndistinguishableProteins(grp);
-    cmap.setProteinIdentifications({prot});
+    setProteins(cmap, {prot});
     return cmap;
   }
 
@@ -103,8 +119,10 @@ namespace
     cf.setMZ(500.0); cf.setRT(100.0 + map_index); cf.setCharge(2);
     BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0 + map_index); bf.setCharge(2);
     cf.insert(map_index, bf);
-    cf.setPeptideIdentifications(pids);
     cmap.push_back(cf);
+    editIdentifications(cmap, [&](MapPeptideIdentifications& ids) {
+      for (const auto& pid : pids) ids.features[{cmap.size() - 1}].push_back(pid);
+    });
   }
 
   /// A one-sample design over @p paths, optionally omitting one (path, label) row.
@@ -157,11 +175,11 @@ START_SECTION(([EXTRA] requireExportable - refuses missing protein-identificatio
   const std::vector<std::string> paths = {"/d/F1.mzML"};
 
   ConsensusMap no_ids = makeMap(paths);
-  no_ids.setProteinIdentifications({});
+  no_ids.clearIdentifications();
   TEST_FALSE(QPXCollectionExport::requireExportable(no_ids, makeDesign(paths)))
 
   ConsensusMap no_groups = makeMap(paths);
-  no_groups.getProteinIdentifications()[0].getIndistinguishableProteins().clear();
+  editIdentifications(no_groups, [](MapPeptideIdentifications& ids) { ids.proteins[0].getIndistinguishableProteins().clear(); });
   TEST_FALSE(QPXCollectionExport::requireExportable(no_groups, makeDesign(paths)))
 }
 END_SECTION
@@ -169,14 +187,16 @@ END_SECTION
 START_SECTION(([EXTRA] requireExportable - rejects the same duplicate run identifier as the feature writer))
 {
   const std::vector<std::string> paths = {"/d/F1.mzML"};
+  // a map cannot have two runs of one identifier, but the identifications given for one can
   ConsensusMap cmap = makeMap(paths);
-  auto duplicate = cmap.getProteinIdentifications()[0];
+  auto ids = IdentificationDataConverter::exportMapIdentifications(cmap);
+  auto duplicate = ids.proteins[0];
   duplicate.setPrimaryMSRunPath({"/d/other.mzML"});
-  cmap.getProteinIdentifications().push_back(duplicate);
+  ids.proteins.push_back(duplicate);
 
   TEST_EXCEPTION(Exception::InvalidValue,
-                 QPXCollectionExport::requireExportable(cmap, makeDesign(paths)))
-  TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowExport::exportToArrow(cmap))
+                 QPXCollectionExport::requireExportable(cmap, ids, makeDesign(paths)))
+  TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowExport::requireResolvableIdRuns(ids))
 }
 END_SECTION
 
@@ -202,7 +222,7 @@ START_SECTION(([EXTRA] requireExportable - refuses what the psm view refuses))
   const std::vector<std::string> paths = {"/d/F1.mzML", "/d/F2.mzML"};
   ConsensusMap cmap = makeMap(paths);
   addFeature(cmap, 0, {makePSM(0)});
-  cmap.getUnassignedPeptideIdentifications() = {makePSM(-1, "STRAYPEPTIDEK")};
+  editIdentifications(cmap, [](MapPeptideIdentifications& ids) { ids.unassigned = {makePSM(-1, "STRAYPEPTIDEK")}; });
   const ExperimentalDesign design = makeDesign(paths);
 
   // The feature view accepts it -- which is exactly why the collection-level check is needed.
@@ -229,8 +249,9 @@ START_SECTION(([EXTRA] requireExportable - refuses incomplete unit-level annotat
 {
   const std::vector<std::string> paths = {"/d/F1.mzML"};
   ConsensusMap cmap = makeMap(paths);
-  cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0]
-    .getIntegerDataArrays().pop_back();
+  editIdentifications(cmap, [](MapPeptideIdentifications& ids) {
+    ids.proteins[0].getIndistinguishableProteins()[0].getIntegerDataArrays().pop_back();
+  });
 
   TEST_FALSE(QPXCollectionExport::requireExportable(cmap, makeDesign(paths)))
   TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap, makeDesign(paths)), nullptr)
@@ -270,10 +291,12 @@ START_SECTION(([EXTRA] requireExportable - refuses two channels with the same ca
   second.setMetaValue("channel_id", 1);
   cmap.getColumnHeaders()[1] = second;
 
-  auto& group = cmap.getProteinIdentifications()[0].getIndistinguishableProteins()[0];
-  group.getFloatDataArrays()[1].push_back(200.0f);
-  group.getIntegerDataArrays()[0].push_back(1);
-  group.getIntegerDataArrays()[1].push_back(2);
+  editIdentifications(cmap, [](MapPeptideIdentifications& ids) {
+    auto& group = ids.proteins[0].getIndistinguishableProteins()[0];
+    group.getFloatDataArrays()[1].push_back(200.0f);
+    group.getIntegerDataArrays()[0].push_back(1);
+    group.getIntegerDataArrays()[1].push_back(2);
+  });
 
   ExperimentalDesign::MSFileSection section;
   for (UInt label = 1; label <= 2; ++label)
@@ -345,7 +368,7 @@ START_SECTION(([EXTRA] requireExportable - refuses a ragged design))
   grp.getIntegerDataArrays()[1].push_back(1);
   grp.getIntegerDataArrays()[1].push_back(2);
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   ExperimentalDesign::MSFileSection section;
   for (Size f = 0; f < paths.size(); ++f)
@@ -424,7 +447,7 @@ START_SECTION(([EXTRA] requireExportable - refuses a channel QPX cannot label))
   grp.accessions = {"PROT_A"};
   grp.probability = 0.01;
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   TEST_FALSE(QPXCollectionExport::requireExportable(cmap, makeDesign({"/d/run.mzML"})))
   TEST_EQUAL(ConsensusMapArrowExport::exportToArrow(cmap), nullptr)

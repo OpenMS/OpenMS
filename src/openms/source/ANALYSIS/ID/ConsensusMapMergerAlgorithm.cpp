@@ -10,7 +10,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -157,7 +156,7 @@ namespace OpenMS
   void ConsensusMapMergerAlgorithm::mergeProteinIDRuns(ConsensusMap &cmap,
                                              map<unsigned, unsigned> const &mapIdx_to_new_protIDRun) const
   {
-    IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) { mergeProteinIDRunsNative_(map, mapIdx_to_new_protIDRun); });
+    mergeProteinIDRunsNative_(cmap, mapIdx_to_new_protIDRun);
   }
 
   void ConsensusMapMergerAlgorithm::mergeProteinIDRunsNative_(ConsensusMap& cmap, const map<unsigned, unsigned>& mapIdx_to_new_protIDRun) const
@@ -312,7 +311,7 @@ namespace OpenMS
   //merge proteins across fractions and replicates
   void ConsensusMapMergerAlgorithm::mergeAllIDRuns(ConsensusMap& cmap) const
   {
-    IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) { mergeAllIDRunsNative_(map); });
+    mergeAllIDRunsNative_(cmap);
   }
 
   void ConsensusMapMergerAlgorithm::mergeAllIDRunsNative_(ConsensusMap& cmap) const

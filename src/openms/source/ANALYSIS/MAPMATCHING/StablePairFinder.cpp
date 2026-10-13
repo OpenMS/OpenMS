@@ -9,7 +9,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <optional>
 #include <set>
@@ -112,10 +111,8 @@ namespace OpenMS
     std::vector<Annotations> annotations[2];
     if (use_IDs_)
     {
-      std::vector<ConsensusMap> converted; // legacy peptide identifications are read as identification data
-      const std::vector<ConsensusMap>& maps = IdentificationDataConverter::withIdentificationData(input_maps, converted);
-      annotations[0] = getAnnotations(maps[0]);
-      annotations[1] = getAnnotations(maps[1]);
+      annotations[0] = getAnnotations(input_maps[0]);
+      annotations[1] = getAnnotations(input_maps[1]);
     }
 
     // set up the distance functor:

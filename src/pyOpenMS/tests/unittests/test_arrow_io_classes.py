@@ -58,7 +58,8 @@ def feature_map():
     ph.setAccession("PROT_A")
     ph.setScore(0.99)
     prot_id.setHits([ph])
-    fmap.setProteinIdentifications([prot_id])
+    ids = oms.MapPeptideIdentifications()
+    ids.proteins = [prot_id]
 
     # Feature 1 with PSM
     f1 = oms.Feature()
@@ -84,7 +85,7 @@ def feature_map():
     pep_id.setHits([hit])
     pid_list = oms.PeptideIdentificationList()
     pid_list.append(pep_id)
-    f1.setPeptideIdentifications(pid_list)
+    ids.setFeature([0], pid_list)
     fmap.push_back(f1)
 
     # Feature 2 without PSM
@@ -94,6 +95,7 @@ def feature_map():
     f2.setIntensity(2000.0)
     f2.setCharge(3)
     fmap.push_back(f2)
+    oms.IdentificationDataConverter.importMapIdentifications(fmap, ids)
 
     # the bundles link identifications to features by their unique IDs
     fmap.setUniqueIds()
@@ -118,7 +120,8 @@ def consensus_map():
     ph.setAccession("PROT_A")
     ph.setScore(0.99)
     prot_id.setHits([ph])
-    cmap.setProteinIdentifications([prot_id])
+    ids = oms.MapPeptideIdentifications()
+    ids.proteins = [prot_id]
 
     # ConsensusFeature 1
     cf1 = oms.ConsensusFeature()
@@ -147,7 +150,7 @@ def consensus_map():
     pep_id.setHits([hit])
     pid_list = oms.PeptideIdentificationList()
     pid_list.append(pep_id)
-    cf1.setPeptideIdentifications(pid_list)
+    ids.setFeature([0], pid_list)
     cmap.push_back(cf1)
 
     # ConsensusFeature 2
@@ -163,6 +166,7 @@ def consensus_map():
     bf2.setRT(200.0)
     cf2.insert(0, bf2)
     cmap.push_back(cf2)
+    oms.IdentificationDataConverter.importMapIdentifications(cmap, ids)
 
     # the bundles link identifications to features by their unique IDs
     cmap.setUniqueIds()

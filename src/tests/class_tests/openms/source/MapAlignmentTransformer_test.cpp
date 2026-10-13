@@ -212,27 +212,24 @@ START_SECTION(([EXTRA] maps: the identification data is transformed like peptide
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), features);
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
+  // the transformation of a map against that of its identifications as peptide identifications
+  const auto difference = [&](auto map, bool store_original_rt) {
+    auto expected = identificationsOf(map);
+    for (auto& [path, peptides] : expected.features) MapAlignmentTransformer::transformRetentionTimes(peptides, td, store_original_rt);
+    MapAlignmentTransformer::transformRetentionTimes(expected.unassigned, td, store_original_rt);
+    MapAlignmentTransformer::transformRetentionTimes(map, td, store_original_rt);
+    return identificationDifference(expected, identificationsOf(map));
+  };
   for (bool store_original_rt : {false, true})
   {
-    TEST_EQUAL(nativeDifference(features, [&](FeatureMap map, bool) {
-                 MapAlignmentTransformer::transformRetentionTimes(map, td, store_original_rt);
-                 return map;
-               }),
-               "")
-    TEST_EQUAL(nativeDifference(consensus, [&](ConsensusMap map, bool) {
-                 MapAlignmentTransformer::transformRetentionTimes(map, td, store_original_rt);
-                 return map;
-               }),
-               "")
+    TEST_EQUAL(difference(features, store_original_rt), "")
+    TEST_EQUAL(difference(consensus, store_original_rt), "")
   }
-  // the comparison notices identifications that only one model transforms
-  TEST_EQUAL(nativeDifference(features, [&](FeatureMap map, bool) {
-               MapAlignmentTransformer::transformRetentionTimes(map.getUnassignedPeptideIdentifications(), td);
-               return map;
-             }).starts_with("unassigned: peptide identification 0: position"),
-             true)
+  // the comparison notices identifications that only one side transforms
+  auto expected = identificationsOf(features);
+  MapAlignmentTransformer::transformRetentionTimes(expected.unassigned, td);
+  TEST_EQUAL(identificationDifference(expected, identificationsOf(features)).starts_with("unassigned: peptide identification 0: position"), true)
   // the transformation applies to linked and unlinked identifications
-  toNative(features);
   std::vector<std::pair<IdentificationData::QueryReference, double>> before;
   for (const auto& run : features.getIdentificationData().getRuns())
     for (const auto& source : run.getSources())

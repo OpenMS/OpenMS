@@ -3420,7 +3420,6 @@ This class supports direct iteration in Python.
         .def("sortByQuality", [](OpenMS::ConsensusMap& self, bool reverse) { return self.sortByQuality(reverse); }, "reverse"_a = false, "Sorts the peaks according to ascending quality.")
         .def("sortBySize", [](OpenMS::ConsensusMap& self) { return self.sortBySize(); }, "Sorts with respect to the size (number of elements)")
         .def("sortByMaps", [](OpenMS::ConsensusMap& self) { return self.sortByMaps(); }, "Sorts with respect to the sets of maps covered by the consensus features (lexicographically)")
-        .def("sortPeptideIdentificationsByMapIndex", [](OpenMS::ConsensusMap& self) { return self.sortPeptideIdentificationsByMapIndex(); }, "Sorts PeptideIdentifications of consensus features with respect to their map index.")
         .def("updateRanges", [](OpenMS::ConsensusMap& self) { return self.updateRanges(); }, "Updates the RT, m/z, and intensity ranges based on contained consensus features")
         .def("clearRanges", [](OpenMS::ConsensusMap& self) { return self.clearRanges(); }, "Clear all ranges")
         .def("empty", [](const OpenMS::ConsensusMap& self) { return self.empty(); }, "Returns True if the map is empty")
@@ -3433,16 +3432,11 @@ This class supports direct iteration in Python.
         .def("getMaxIntensity", [](const OpenMS::ConsensusMap& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
         .def("getIdentificationData", [](const OpenMS::ConsensusMap& self) { return OpenMS::IdentificationData(self.getIdentificationData()); })
         .def("clearIdentifications", &OpenMS::ConsensusMap::clearIdentifications,
-             "Remove all identifications: the identification data, the links of the features and the peptide and protein identifications")
+             "Remove all identifications: the identification data and the links of the features to it")
         .def("setIdentificationData", [](OpenMS::ConsensusMap& self, const OpenMS::IdentificationData& data) { data.validate(); self.getIdentificationData() = data; }, "data"_a)
         .def("identification_data_view", [](OpenMS::ConsensusMap& self) -> OpenMS::IdentificationData& { return self.getIdentificationData(); },
              nb::rv_policy::reference_internal,
              "Live view of the map's identification data: edits (e.g. through run_view()) land in the map. Valid while the map exists.")
-        .def("getProteinIdentifications", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); }, "Returns the protein identification runs stored in this map")
-        .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
-        .def("setProteinIdentifications", [](OpenMS::ConsensusMap& self, std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, "Sets the protein identifications")
-        .def("getUnassignedPeptideIdentifications", [](OpenMS::ConsensusMap& self) -> OpenMS::PeptideIdentificationList { return self.getUnassignedPeptideIdentifications(); }, "Returns peptide identifications that are not assigned to any consensus feature")
-        .def("setUnassignedPeptideIdentifications", [](OpenMS::ConsensusMap& self, const OpenMS::PeptideIdentificationList& unassigned_peptide_identifications) { return self.setUnassignedPeptideIdentifications(unassigned_peptide_identifications); }, "unassigned_peptide_identifications"_a, "Sets the unassigned PeptideIdentificationList")
         .def("getDataProcessing", [](OpenMS::ConsensusMap& self) -> std::vector<OpenMS::DataProcessing> { return self.getDataProcessing(); }, "Returns a copy of the description of the applied data processing")
         .def("setDataProcessing", [](OpenMS::ConsensusMap& self, const std::vector<OpenMS::DataProcessing>& processing_method) { return self.setDataProcessing(processing_method); }, "processing_method"_a, "Sets the description of the applied data processing")
         .def("setPrimaryMSRunPath", [](OpenMS::ConsensusMap& self, const std::vector<std::string>& s) { return self.setPrimaryMSRunPath(s); }, "s"_a, "Sets the file paths to the primary MS run (stored in ColumnHeaders)")
@@ -3630,29 +3624,11 @@ Higher quality scores indicate better feature detection confidence
 )doc")
         .def("getIdentificationData", [](const OpenMS::FeatureMap& self) { return OpenMS::IdentificationData(self.getIdentificationData()); })
         .def("clearIdentifications", &OpenMS::FeatureMap::clearIdentifications,
-             "Remove all identifications: the identification data, the links of the features and the peptide and protein identifications")
+             "Remove all identifications: the identification data and the links of the features to it")
         .def("setIdentificationData", [](OpenMS::FeatureMap& self, const OpenMS::IdentificationData& data) { data.validate(); self.getIdentificationData() = data; }, "data"_a)
         .def("identification_data_view", [](OpenMS::FeatureMap& self) -> OpenMS::IdentificationData& { return self.getIdentificationData(); },
              nb::rv_policy::reference_internal,
              "Live view of the map's identification data: edits (e.g. through run_view()) land in the map. Valid while the map exists.")
-        .def("getProteinIdentifications", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::ProteinIdentification> { return self.getProteinIdentifications(); })
-        .def("setProteinIdentifications", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::ProteinIdentification>& protein_identifications) { return self.setProteinIdentifications(protein_identifications); }, "protein_identifications"_a, 
-            R"doc(
-Returns the protein identification runs stored in this map
-:return: Protein identification data from database searches
-Protein identifications contain metadata about search parameters and protein hits
-)doc")
-        .def("getUnassignedPeptideIdentifications", [](OpenMS::FeatureMap& self) -> OpenMS::PeptideIdentificationList { return self.getUnassignedPeptideIdentifications(); }, 
-            R"doc(
-Sets the protein identifications for this map
-:param protein_ids: Protein identification results to associate with this map
-)doc")
-        .def("setUnassignedPeptideIdentifications", [](OpenMS::FeatureMap& self, const OpenMS::PeptideIdentificationList& unassigned_peptide_identifications) { return self.setUnassignedPeptideIdentifications(unassigned_peptide_identifications); }, "unassigned_peptide_identifications"_a, 
-            R"doc(
-Returns peptide identifications that are not assigned to any feature
-:return: Unassigned peptide identification results
-These are peptide IDs that could not be matched to features, possibly due to feature detection issues or filtering
-)doc")
         .def("getDataProcessing", [](OpenMS::FeatureMap& self) -> std::vector<OpenMS::DataProcessing> { return self.getDataProcessing(); })
         .def("setDataProcessing", [](OpenMS::FeatureMap& self, const std::vector<OpenMS::DataProcessing>& processing_method) { return self.setDataProcessing(processing_method); }, "processing_method"_a, "Sets the description of the applied data processing")
         .def("setPrimaryMSRunPath", [](OpenMS::FeatureMap& self, const std::vector<std::string>& s) { return self.setPrimaryMSRunPath(s); }, "s"_a, "Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)")
@@ -3766,7 +3742,6 @@ RichPeak2D
           .def("__copy__", [](const OpenMS::BaseFeature& self) { return OpenMS::BaseFeature(self); })
           .def(
             "__deepcopy__", [](const OpenMS::BaseFeature& self, nb::dict) { return OpenMS::BaseFeature(self); }, "memo"_a)
-          .def(nb::init<const OpenMS::BaseFeature&, size_t>())
           .def(nb::init<OpenMS::Peak2D>())
           .def(nb::init<OpenMS::RichPeak2D>())
           .def(nb::init<OpenMS::FeatureHandle>())
@@ -3785,14 +3760,6 @@ RichPeak2D
           .def(nb::self == nb::self)
           .def(nb::self != nb::self)
           .def(
-            "getPeptideIdentifications",
-            [](OpenMS::BaseFeature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); },
-            "Returns the PeptideIdentification vector")
-          .def(
-            "setPeptideIdentifications",
-            [](OpenMS::BaseFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); },
-            "peptides"_a, "Sets the PeptideIdentification vector")
-          .def(
             "getAnnotationState",
             [](const OpenMS::BaseFeature& self, const OpenMS::IdentificationData& data) { return self.getAnnotationState(data); }, "data"_a)
           .def("getIDMatches", [](const OpenMS::BaseFeature& self) { return self.getIDMatches(); })
@@ -3801,9 +3768,6 @@ RichPeak2D
           .def("addIDQuery", &OpenMS::BaseFeature::addIDQuery, "query"_a)
           .def("getPrimaryID", [](const OpenMS::BaseFeature& self) { return self.getPrimaryID(); })
           .def("setPrimaryID", &OpenMS::BaseFeature::setPrimaryID, "molecule"_a)
-          .def(
-            "getAnnotationState", [](const OpenMS::BaseFeature& self) { return self.getAnnotationState(); },
-            "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
 
       ;
     // AnnotationState enum nested under BaseFeature
@@ -3910,14 +3874,6 @@ Get access to the underlying features through getFeatureList()
       .def(nb::self == nb::self)
       .def(nb::self != nb::self)
       .def(
-        "getPeptideIdentifications",
-        [](const OpenMS::ConsensusFeature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); },
-        "Returns the PeptideIdentification vector")
-      .def(
-        "setPeptideIdentifications",
-        [](OpenMS::ConsensusFeature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); },
-        "peptides"_a, "Sets the PeptideIdentification vector")
-      .def(
         "getAnnotationState",
         [](const OpenMS::ConsensusFeature& self, const OpenMS::IdentificationData& data) { return self.getAnnotationState(data); }, "data"_a)
       .def("getIDMatches", [](const OpenMS::ConsensusFeature& self) { return self.getIDMatches(); })
@@ -3926,9 +3882,6 @@ Get access to the underlying features through getFeatureList()
       .def("addIDQuery", &OpenMS::ConsensusFeature::addIDQuery, "query"_a)
       .def("getPrimaryID", [](const OpenMS::ConsensusFeature& self) { return self.getPrimaryID(); })
       .def("setPrimaryID", &OpenMS::ConsensusFeature::setPrimaryID, "molecule"_a)
-      .def(
-        "getAnnotationState", [](const OpenMS::ConsensusFeature& self) { return self.getAnnotationState(); },
-        "State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only")
       .def(
         "computeDechargeConsensus",
         [](OpenMS::ConsensusFeature& self, const OpenMS::FeatureMap& fm, bool intensity_weighted_averaging) {
@@ -4080,22 +4033,6 @@ Sets the charge state of the feature
 )doc")
       .def(nb::self != nb::self)
       .def(
-        "getPeptideIdentifications",
-        [](const OpenMS::Feature& self) -> OpenMS::PeptideIdentificationList { return self.getPeptideIdentifications(); },
-        R"doc(
-Returns the peptide identifications associated with this feature
-:return: List of peptide identifications from database search
-Only relevant for peptide features. Contains results from peptide identification tools
-)doc")
-      .def(
-        "setPeptideIdentifications",
-        [](OpenMS::Feature& self, const OpenMS::PeptideIdentificationList& peptides) { return self.setPeptideIdentifications(peptides); },
-        "peptides"_a,
-        R"doc(
-Sets the peptide identifications associated with this feature
-:param peptides: List of peptide identifications to associate with this feature
-)doc")
-      .def(
         "getAnnotationState", [](const OpenMS::Feature& self, const OpenMS::IdentificationData& data) { return self.getAnnotationState(data); },
         "data"_a)
       .def("getIDMatches", [](const OpenMS::Feature& self) { return self.getIDMatches(); })
@@ -4104,12 +4041,6 @@ Sets the peptide identifications associated with this feature
       .def("addIDQuery", &OpenMS::Feature::addIDQuery, "query"_a)
       .def("getPrimaryID", [](const OpenMS::Feature& self) { return self.getPrimaryID(); })
       .def("setPrimaryID", &OpenMS::Feature::setPrimaryID, "molecule"_a)
-      .def(
-        "getAnnotationState", [](const OpenMS::Feature& self) { return self.getAnnotationState(); },
-        R"doc(
-Returns the annotation state of the feature
-:return: Enum indicating the annotation status of this feature
-)doc")
 
       .def("__copy__", [](const OpenMS::Feature& self) { return OpenMS::Feature(self); })
       .def(

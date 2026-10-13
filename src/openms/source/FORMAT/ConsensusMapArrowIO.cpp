@@ -1033,22 +1033,29 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportFeaturesToArrow(
 std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
   const ConsensusMap& cmap)
 {
+  return exportPSMsToArrow(cmap, IdentificationDataConverter::exportMapIdentifications(cmap));
+}
+
+std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
+  const ConsensusMap& cmap,
+  const MapPeptideIdentifications& identifications)
+{
   // Collect all PeptideIdentifications with their associated consensus_feature_unique_ids.
   PeptideIdentificationList all_pep_ids;
   std::vector<std::pair<int64_t, bool>> feature_ids_per_pep_id; // (id, is_null)
 
   // Collect from consensus features (flat - no subordinates)
-  for (const auto& cf : cmap)
+  for (Size i = 0; i < cmap.size(); ++i)
   {
-    for (const auto& pep_id : cf.getPeptideIdentifications())
+    for (const auto& pep_id : identifications.at({i}))
     {
       all_pep_ids.push_back(pep_id);
-      feature_ids_per_pep_id.push_back({static_cast<int64_t>(cf.getUniqueId()), false});
+      feature_ids_per_pep_id.push_back({static_cast<int64_t>(cmap[i].getUniqueId()), false});
     }
   }
 
   // Unassigned peptide identifications get consensus_feature_unique_id = null
-  for (const auto& pep_id : cmap.getUnassignedPeptideIdentifications())
+  for (const auto& pep_id : identifications.unassigned)
   {
     all_pep_ids.push_back(pep_id);
     feature_ids_per_pep_id.push_back({0, true});
@@ -1056,7 +1063,7 @@ std::shared_ptr<arrow::Table> ConsensusMapArrowIO::exportPSMsToArrow(
 
   // Delegate to QPXFile to produce the base PSM table
   auto base_table = QPXFile::exportToArrow(
-    cmap.getProteinIdentifications(), all_pep_ids, true);
+    identifications.proteins, all_pep_ids, true);
   if (!base_table) { return nullptr; }
 
   // Build the consensus_feature_unique_id column (one value per PeptideHit)
@@ -1112,18 +1119,12 @@ bool ConsensusMapArrowIO::exportToParquet(
   const std::string& directory,
   const ParquetWriteConfig& config)
 {
-  // the bundle holds identifications as identification data (peptide identifications are converted)
-  std::optional<ConsensusMap> converted;
-  const ConsensusMap& cmap = IdentificationDataConverter::withIdentificationData(input_map, converted);
-  // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
-  // so we never leave a partial .consensusparquet behind. Throws Exception::InvalidValue.
-  ProteinIdentificationArrowIO::checkUniqueIdentifiers(cmap.getProteinIdentifications());
-  // Native identification links must resolve before anything is written (throws InvalidValue).
+  const ConsensusMap& cmap = input_map;
+  // Native identification links must resolve before anything is written (throws InvalidValue), so we never leave a
+  // partial .consensusparquet behind.
   std::vector<const BaseFeature*> rows;
   for (const auto& feature : cmap) rows.push_back(&feature);
   MapIdentificationParquet::validateLinks(cmap.getIdentificationData(), rows);
-  // every peptide identification needs its protein identification run
-  ProteinRunReferences::check(cmap);
 
   // 1. Write into a private sibling directory; publish only after every table is complete,
   //    so a failed export never leaves a partial bundle behind.
@@ -1163,8 +1164,9 @@ bool ConsensusMapArrowIO::exportToParquet(
     return false;
   }
 
-  // 3. Export PSMs table
-  auto psms_table = exportPSMsToArrow(cmap);
+  // 3. Export PSMs table: empty, the bundle holds the identifications as identification data (step 5); the legacy
+  //    tables (PSMs, proteins, protein groups, search parameters) keep the layout that former versions read
+  auto psms_table = exportPSMsToArrow(cmap, MapPeptideIdentifications());
   if (!psms_table)
   {
     OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to create PSMs Arrow table" << std::endl;
@@ -1175,8 +1177,8 @@ bool ConsensusMapArrowIO::exportToParquet(
     return false;
   }
 
-  // 4. Delegate protein data to ProteinIdentificationArrowIO
-  const auto& prot_ids = cmap.getProteinIdentifications();
+  // 4. Delegate protein data to ProteinIdentificationArrowIO (empty, see step 3)
+  const std::vector<ProteinIdentification> prot_ids;
   if (!ProteinIdentificationArrowIO::exportProteinsToParquet(
           prot_ids, output + "/proteins.parquet", config))
   {
@@ -1189,7 +1191,7 @@ bool ConsensusMapArrowIO::exportToParquet(
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
           prot_ids, output + "/search_params.parquet", config,
-          ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(cmap))))
+          ModificationDefinitionIO::encodeByRun(prot_ids, {})))
   {
     return false;
   }
@@ -1292,7 +1294,8 @@ bool ConsensusMapArrowIO::importFeaturesFromArrow(
 
 bool ConsensusMapArrowIO::importPSMsFromArrow(
   const std::shared_ptr<arrow::Table>& table,
-  ConsensusMap& cmap)
+  const ConsensusMap& cmap,
+  MapPeptideIdentifications& identifications)
 {
   if (!table || table->num_rows() == 0) { return true; }
 
@@ -1347,16 +1350,14 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
   }
 
   // Delegate PSM construction to QPXFile::importFromArrow.
-  std::vector<ProteinIdentification> prot_ids = cmap.getProteinIdentifications();
   PeptideIdentificationList pep_ids;
-  if (!QPXFile::importFromArrow(tbl, prot_ids, pep_ids)) { return false; }
-  cmap.setProteinIdentifications(prot_ids);
+  if (!QPXFile::importFromArrow(tbl, identifications.proteins, pep_ids)) { return false; }
 
-  // Walk each constructed PeptideIdentification and route to features by feature_id.
-  std::unordered_map<int64_t, ConsensusFeature*> feature_lookup;
-  for (auto& cf : cmap)
+  // Walk each constructed PeptideIdentification and route to features (by index) by feature_id.
+  std::unordered_map<int64_t, Size> feature_lookup;
+  for (Size i = 0; i < cmap.size(); ++i)
   {
-    feature_lookup[static_cast<int64_t>(cf.getUniqueId())] = &cf;
+    feature_lookup[static_cast<int64_t>(cmap[i].getUniqueId())] = i;
   }
 
   // Re-derive the p_id sequence in first-seen order (independent of adjacency).
@@ -1383,20 +1384,20 @@ bool ConsensusMapArrowIO::importPSMsFromArrow(
 
     if (is_null)
     {
-      cmap.getUnassignedPeptideIdentifications().push_back(std::move(pep_ids[i]));
+      identifications.unassigned.push_back(std::move(pep_ids[i]));
     }
     else
     {
       auto it = feature_lookup.find(fid);
       if (it != feature_lookup.end())
       {
-        it->second->getPeptideIdentifications().push_back(std::move(pep_ids[i]));
+        identifications.features[{it->second}].push_back(std::move(pep_ids[i]));
       }
       else
       {
         OPENMS_LOG_WARN << "ConsensusMapArrowIO: Could not find consensus feature with id "
                         << fid << " for PSM. Adding as unassigned." << std::endl;
-        cmap.getUnassignedPeptideIdentifications().push_back(std::move(pep_ids[i]));
+        identifications.unassigned.push_back(std::move(pep_ids[i]));
       }
     }
   }
@@ -1410,17 +1411,17 @@ bool ConsensusMapArrowIO::importFromParquet(
 {
   cmap = ConsensusMap{};
 
-  // 1. Import protein identification data
-  std::vector<ProteinIdentification> prot_ids;
+  // 1. Import protein identification data (of bundles written by former versions, which hold peptide
+  //    identifications: they become identification data below)
+  MapPeptideIdentifications legacy;
   if (!ProteinIdentificationArrowIO::importFromParquet(
           directory + "/proteins.parquet",
           directory + "/protein_groups.parquet",
           directory + "/search_params.parquet",
-          prot_ids))
+          legacy.proteins))
   {
     return false;
   }
-  cmap.setProteinIdentifications(prot_ids);
 
   // 2. Import consensus features and ConsensusMap-level metadata
   auto features_table = readParquetTable_(directory + "/consensus_features.parquet");
@@ -1476,39 +1477,42 @@ bool ConsensusMapArrowIO::importFromParquet(
     for (auto& feature : cmap) rows.push_back(&feature);
     MapIdentificationParquet::load(directory, cmap.getIdentificationData(), rows);
   }
-  const Size stored_runs = cmap.getProteinIdentifications().size();
-  if (!importPSMsFromArrow(psms_table, cmap))
+  const Size stored_runs = legacy.proteins.size();
+  if (!importPSMsFromArrow(psms_table, cmap, legacy))
   {
     return false;
   }
   // every peptide identification needs its protein identification run: the PSM table import appends a shell run
   // for each run identifier the stored runs lack, which is a dangling reference in this file
-  if (cmap.getProteinIdentifications().size() > stored_runs)
+  if (legacy.proteins.size() > stored_runs)
   {
     throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-      ProteinRunReferences::missingRunMessage(cmap.getProteinIdentifications()[stored_runs].getIdentifier()));
+      ProteinRunReferences::missingRunMessage(legacy.proteins[stored_runs].getIdentifier()));
   }
-  ProteinRunReferences::check(cmap);
-
-  // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
-  //    we own (per-consensus-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the
-  //    stored identifier becomes informational; the in-memory identifier downstream
-  //    sees is freshly synthesized with a UniqueIdGenerator suffix.
+  if (!legacy.empty())
   {
-    auto& prot_ids = cmap.getProteinIdentifications();
-    auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
+    ProteinRunReferences::check(legacy.proteins, legacy.peptides());
 
-    for (auto& cf : cmap)
+    // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
+    //    (per-consensus-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the
+    //    stored identifier becomes informational; the in-memory identifier downstream
+    //    sees is freshly synthesized with a UniqueIdGenerator suffix.
+    auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(legacy.proteins);
+    for (auto& [path, peptides] : legacy.features)
     {
-      ProteinIdentificationArrowIO::applyRunIdentifierRename(
-          rename, cf.getPeptideIdentifications());
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, peptides);
     }
-    ProteinIdentificationArrowIO::applyRunIdentifierRename(
-        rename, cmap.getUnassignedPeptideIdentifications());
-  }
+    ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, legacy.unassigned);
 
-  // the peptide identifications of a bundle (written by former versions) as identification data
-  IdentificationDataConverter::moveToIdentificationData(cmap);
+    // the peptide identifications as identification data (a bundle holds them in one form only)
+    if (!cmap.getIdentificationData().empty())
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: the bundle has peptide identifications (psms.parquet) and identification "
+                       << "data (identifications/); it can hold its identifications in one of them only." << std::endl;
+      return false;
+    }
+    IdentificationDataConverter::importMapIdentifications(cmap, legacy);
+  }
 
   return true;
 }

@@ -21,7 +21,7 @@
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
@@ -252,7 +252,6 @@ using namespace OpenMS;
     // The precursors at the linked features become identifications (with the spectrum index and the map index of the
     // matching feature), which the consensus features of a copy of the map link.
     ConsensusMap linked_features = cfeatures;
-    IdentificationDataConverter::moveToIdentificationData(linked_features);
     progresslogger.startProgress(0, 1, "Map spectrum precursors to linked features...");
     idmapper.annotate(linked_features, IdentificationData(), true, true, spectra);
     progresslogger.endProgress();

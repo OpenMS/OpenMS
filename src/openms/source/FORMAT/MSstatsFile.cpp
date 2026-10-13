@@ -323,8 +323,7 @@ void MSstatsFile::storeLFQ(const std::string& filename,
 
   // Extract information from the consensus features.
   // The identifications of the consensus features are read from identification data
-  std::optional<ConsensusMap> converted;
-  const ConsensusMap& identified = IdentificationDataConverter::withIdentificationData(consensus_map, converted);
+  const ConsensusMap& identified = consensus_map;
   MSstatsFile::AggregatedConsensusInfo aggregatedInfo = MSstatsFile::aggregateInfo_(identified, spectra_paths);
 
   // The output file of the MSstats converter
@@ -630,8 +629,7 @@ void MSstatsFile::storeISO(const std::string& filename,
 
   // Extract information from the consensus features.
   // The identifications of the consensus features are read from identification data
-  std::optional<ConsensusMap> converted;
-  const ConsensusMap& identified = IdentificationDataConverter::withIdentificationData(consensus_map, converted);
+  const ConsensusMap& identified = consensus_map;
   MSstatsFile::AggregatedConsensusInfo AggregatedInfo = MSstatsFile::aggregateInfo_(identified, spectra_paths);
 
   // The output file of the MSstatsConverter

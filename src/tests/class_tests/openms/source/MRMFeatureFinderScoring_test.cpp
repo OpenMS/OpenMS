@@ -448,7 +448,6 @@ START_SECTION([EXTRA] compound assays are written as compound identifications)
   FeatureXMLFile().store(file, features);
   FeatureMap loaded;
   FeatureXMLFile().load(file, loaded);
-  IdentificationDataConverter::importFeatureIDs(loaded);
   ABORT_IF(loaded.getIdentificationData().getRuns().size() != 1)
   const auto& run = loaded.getIdentificationData().getRuns()[0];
   TEST_EQUAL(run.getMoleculeKind() == IdentificationData::MoleculeKind::COMPOUND, true)

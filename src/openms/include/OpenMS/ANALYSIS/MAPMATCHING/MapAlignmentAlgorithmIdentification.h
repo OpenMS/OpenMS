@@ -239,8 +239,7 @@ protected:
       the sequence of the linked identification closest in RT to the feature).\n
       Depending on @p score_cutoff and @p min_score, only matches whose primary score is at least as good as @p min_score are used.
       This param is useless with use_feature_rt yet.\n
-      Depending on @p use_adducts, differently adducted matches of a molecule count as different.\n
-      Maps with peptide identifications are read as identification data (IdentificationDataConverter::withIdentificationData()).
+      Depending on @p use_adducts, differently adducted matches of a molecule count as different.
 
       @param[in] features Input features for RT data
       @param[out] rt_data Lists of RT values for diff. peptide sequences (output)

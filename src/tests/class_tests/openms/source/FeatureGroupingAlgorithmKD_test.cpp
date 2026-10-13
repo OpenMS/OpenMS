@@ -10,6 +10,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,18 +50,22 @@ START_SECTION((group() with two empty FeatureMaps does not crash))
   std::vector<FeatureMap> maps(2); // two feature-empty maps
   // metadata carried by the (feature-empty) maps must NOT be silently dropped by the
   // empty-input early return: postprocess_() still transfers protein / unassigned IDs.
+  MapPeptideIdentifications ids;
   ProteinIdentification prot;
   prot.setIdentifier("run0");
-  maps[0].getProteinIdentifications().push_back(prot);
+  ids.proteins.push_back(prot);
   PeptideIdentification upep;
   upep.setIdentifier("run0");
-  maps[0].getUnassignedPeptideIdentifications().push_back(upep);
+  upep.setScoreType("score");
+  ids.unassigned.push_back(upep);
+  IdentificationDataConverter::importMapIdentifications(maps[0], ids);
 
   ConsensusMap out;
   algo.group(maps, out);
   TEST_EQUAL(out.size(), 0)
-  TEST_EQUAL(out.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(out.getUnassignedPeptideIdentifications().size(), 1)
+  const auto grouped = IdentificationDataConverter::exportMapIdentifications(out);
+  TEST_EQUAL(grouped.proteins.size(), 1)
+  TEST_EQUAL(grouped.unassigned.size(), 1)
 }
 END_SECTION
 

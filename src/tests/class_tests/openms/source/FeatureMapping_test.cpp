@@ -201,14 +201,6 @@ START_SECTION([EXTRA] (identifications of the assigned features))
   TEST_EQUAL(linked[0]->getMetaValue("description").toStringList()[0], "HMDB:1")
   TEST_EQUAL(r.getFirstLinkedMatches(H1).empty(), true)
   TEST_EQUAL(FeatureMapping::FeatureToMs2Indices().getFirstLinkedMatches(H0).empty(), true)
-
-  // Peptide identifications must be identification data first.
-  FeatureMapping::FeatureMappingInfo legacy;
-  legacy.feature_maps.emplace_back();
-  legacy.feature_maps[0].push_back(Feature());
-  legacy.feature_maps[0][0].getPeptideIdentifications().resize(1);
-  legacy.kd_tree.addMaps(legacy.feature_maps);
-  TEST_EXCEPTION(Exception::InvalidParameter, FeatureMapping::assignMS2IndexToFeature(exp, legacy, 0.5, 5.0, false))
 }
 END_SECTION
 

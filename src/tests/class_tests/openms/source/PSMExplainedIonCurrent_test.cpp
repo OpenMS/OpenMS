@@ -164,9 +164,11 @@ FeatureMap fmap;
 
 Feature empty_feat;
 
-fmap.setUnassignedPeptideIdentifications(pep_ids);
 fmap.push_back(empty_feat);
-fmap.setProteinIdentifications({protId});
+MapPeptideIdentifications fmap_ids;
+fmap_ids.unassigned = pep_ids;
+fmap_ids.proteins = {protId};
+IdentificationDataConverter::importMapIdentifications(fmap, fmap_ids);
 
 PSMExplainedIonCurrent* ptr = nullptr;
 PSMExplainedIonCurrent* nulpt = nullptr;
@@ -225,14 +227,17 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   // featureMap whose search run has no fragment mass tolerance
   {
     FeatureMap fmap_auto = fmap;
-    fmap_auto.getProteinIdentifications()[0].setSearchParameters(ProteinIdentification::SearchParameters());
+    auto ids = fmap_ids;
+    ids.proteins[0].setSearchParameters(ProteinIdentification::SearchParameters());
+    IdentificationDataConverter::importMapIdentifications(fmap_auto, ids);
     TEST_EXCEPTION(Exception::MissingInformation, psm_corr.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
   }
-  // featureMap with peptide identifications but without their search run (ProteinIdentification): not valid input
+  // peptide identifications without their search run (ProteinIdentification) cannot be the identifications of a map
   {
     FeatureMap fmap_auto = fmap;
-    fmap_auto.getProteinIdentifications().clear();
-    TEST_EXCEPTION(Exception::InvalidParameter, psm_corr.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
+    auto ids = fmap_ids;
+    ids.proteins.clear();
+    TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(fmap_auto, ids))
   }
 
   //--------------------------------------------------------------------
@@ -250,8 +255,10 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
     spectra_map.calculateMap(exp_ms1);
     // fmap with PeptideIdentification with spec_ref matching to a MS1 Spectrum
     FeatureMap fmap_ms1(fmap);
-    fmap_ms1.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::3")});
-    Internal::ClassTest::addSearchRun(fmap_ms1); // the run of the map
+    auto ids = fmap_ids;
+    ids.unassigned = {createPeptideIdentification("XTandem::3")};
+    Internal::ClassTest::addSearchRun(ids); // the run of the map
+    Internal::ClassTest::setIdentifications(fmap_ms1, ids);
     TEST_EXCEPTION(Exception::IllegalArgument, psm_corr.compute(fmap_ms1, exp_ms1, spectra_map))
   }
 
@@ -261,9 +268,11 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   {
     // put PeptideIdentification with spec_ref matching to MSSpectrum with fragmentation method SORI to fmap
     FeatureMap fmap_sori;
-    fmap_sori.setProteinIdentifications({protId});
-    fmap_sori.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::5")});
-    Internal::ClassTest::addSearchRun(fmap_sori); // the run of the map
+    MapPeptideIdentifications ids;
+    ids.proteins = {protId};
+    ids.unassigned = {createPeptideIdentification("XTandem::5")};
+    Internal::ClassTest::addSearchRun(ids); // the run of the map
+    Internal::ClassTest::setIdentifications(fmap_sori, ids);
 
     spectra_map.calculateMap(exp_sori);
     TEST_EXCEPTION(Exception::InvalidParameter, psm_corr.compute(fmap_sori, exp_sori, spectra_map))
@@ -275,9 +284,11 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   {
     // put PeptideIdentification without hits & with spec_ref matching to spectrum with no peaks, empty spectrum to fmap
     FeatureMap failing_fmap;
-    failing_fmap.setProteinIdentifications({protId});
-    failing_fmap.setUnassignedPeptideIdentifications({no_hit_id, createPeptideIdentification("XTandem::6")});
-    Internal::ClassTest::addSearchRun(failing_fmap); // the run of the map
+    MapPeptideIdentifications ids;
+    ids.proteins = {protId};
+    ids.unassigned = {no_hit_id, createPeptideIdentification("XTandem::6")};
+    Internal::ClassTest::addSearchRun(ids); // the run of the map
+    Internal::ClassTest::setIdentifications(failing_fmap, ids);
 
     spectra_map.calculateMap(failing_exp);
 

@@ -11,7 +11,7 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -284,20 +284,16 @@ namespace OpenMS
 
   void IDMapper::annotate(AnnotatedMSRun& map, const FeatureMap& fmap, const bool clear_ids, const bool map_ms1)
   {
-    // The identifications of a map with peptide identifications, as identification data
-    std::optional<FeatureMap> converted;
-    const FeatureMap& features = IdentificationDataConverter::withIdentificationData(fmap, converted);
-
     if (clear_ids)
     { // start with empty IDs
       map.clearIdentifications();
     }
 
-    IdentificationData data = features.getIdentificationData();
+    IdentificationData data = fmap.getIdentificationData();
     std::vector<SpectrumCandidate_> candidates;
     std::vector<IdentificationData::QueryReference> queries;
     std::set<IdentificationData::MatchReference> linked_matches;
-    for (const Feature& feature : features)
+    for (const Feature& feature : fmap)
     {
       for (const auto& linked : feature.getLinkedIdentifications(data))
       {
@@ -484,48 +480,6 @@ namespace OpenMS
       std::string run_;
       UInt64 next_ = 0;
     };
-
-    /**
-      @brief Annotate @p map as identification data with @p annotate
-
-      A map with identification data is annotated as it is. Otherwise, its peptide identifications are moved into its
-      identification data and back afterwards (also if @p annotate throws), so it holds peptide identifications.
-    */
-    template<class Map>
-    void annotateAsIdentificationData(Map& map, const std::function<void(Map&)>& annotate)
-    {
-      if (!map.getIdentificationData().empty() && !IdentificationDataConverter::hasPeptideIdentifications(map))
-      {
-        annotate(map);
-        return;
-      }
-      IdentificationDataConverter::moveToIdentificationData(map);
-      const auto restore = [&map]() {
-        if constexpr (std::is_same_v<Map, FeatureMap>) IdentificationDataConverter::exportFeatureIDs(map);
-        else IdentificationDataConverter::exportConsensusIDs(map);
-      };
-      try
-      {
-        annotate(map);
-      }
-      catch (...)
-      {
-        restore();
-        throw;
-      }
-      restore();
-    }
-
-    template<class Map>
-    void checkNative(const Map& map)
-    {
-      if (IdentificationDataConverter::hasPeptideIdentifications(map))
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "IDMapper: the map has peptide identifications; annotating it with identification data needs them as "
-                                          "identification data (see IdentificationDataConverter::moveToIdentificationData())");
-      }
-    }
   } // namespace
 
   void IDMapper::annotate(
@@ -543,14 +497,11 @@ namespace OpenMS
     // preserve data processing from identification runs (search engine, database, etc.)
     addIdentificationDataProcessing_(map.getDataProcessing(), protein_ids);
 
-    annotateAsIdentificationData<ConsensusMap>(map, [&](ConsensusMap& native) {
-      annotate_(native, std::move(imported), measure_from_subelements, annotate_ids_with_subelements, spectra);
-    });
+    annotate_(map, std::move(imported), measure_from_subelements, annotate_ids_with_subelements, spectra);
   }
 
   void IDMapper::annotate(ConsensusMap& map, const IdentificationData& ids, bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
   {
-    checkNative(map);
     annotate_(map, ids, measure_from_subelements, annotate_ids_with_subelements, spectra);
 
     // preserve data processing from identification runs (search engine, database, etc.)
@@ -1002,14 +953,11 @@ namespace OpenMS
     // preserve data processing from identification runs (search engine, database, etc.)
     addIdentificationDataProcessing_(map.getDataProcessing(), protein_ids);
 
-    annotateAsIdentificationData<FeatureMap>(map, [&](FeatureMap& native) {
-      annotate_(native, std::move(imported), use_centroid_rt, use_centroid_mz, spectra);
-    });
+    annotate_(map, std::move(imported), use_centroid_rt, use_centroid_mz, spectra);
   }
 
   void IDMapper::annotate(FeatureMap& map, const IdentificationData& ids, bool use_centroid_rt, bool use_centroid_mz, const PeakMap& spectra)
   {
-    checkNative(map);
     annotate_(map, ids, use_centroid_rt, use_centroid_mz, spectra);
 
     // preserve data processing from identification runs (search engine, database, etc.)

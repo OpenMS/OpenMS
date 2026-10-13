@@ -21,8 +21,6 @@
 
 namespace OpenMS
 {
-  class ConsensusMap;
-  class FeatureMap;
   class ResidueModification;
 
   /**
@@ -55,12 +53,6 @@ namespace OpenMS
     static std::map<std::string, std::set<const ResidueModification*>> collect(
       const std::vector<ProteinIdentification>& protein_ids,
       const std::vector<const PeptideIdentification*>& peptide_ids);
-
-    /// collect() over a FeatureMap: its runs, the identifications of every feature (subordinates included) and the unassigned ones
-    static std::map<std::string, std::set<const ResidueModification*>> collect(const FeatureMap& map);
-
-    /// collect() over a ConsensusMap: its runs, the identifications of every consensus feature and the unassigned ones
-    static std::map<std::string, std::set<const ResidueModification*>> collect(const ConsensusMap& map);
 
     /// Serialise @p defs into one ';'-joined string. Deterministic: records are sorted.
     static std::string encode(const std::set<const ResidueModification*>& defs);

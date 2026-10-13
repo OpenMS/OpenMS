@@ -73,14 +73,10 @@ public:
       width_ = feature.width_;
       // Note: will terminate program if move assignment throws because of noexcept
       // but we can't recover in that case anyways and we need to mark it noexcept for the move.
-      peptides_ = std::move(feature.peptides_);
       primary_id_ = std::move(feature.primary_id_);
       id_matches_ = std::move(feature.id_matches_);
       id_queries_ = std::move(feature.id_queries_);
     }
-
-    /// Copy constructor with a new map_index
-    BaseFeature(const BaseFeature& rhs, UInt64 map_index);
 
     /// Constructor from raw data point
     explicit BaseFeature(const Peak2D& point);
@@ -150,46 +146,18 @@ public:
     /// Inequality operator
     bool operator!=(const BaseFeature& rhs) const;
 
-    /// @name Functions for dealing with identifications in legacy format
-    ///@{
-    /// returns a const reference to the PeptideIdentification vector
-    [[deprecated("legacy identifications: use the identification data")]]
-    const PeptideIdentificationList& getPeptideIdentifications() const;
-
-    /// returns a mutable reference to the PeptideIdentification vector
-    [[deprecated("legacy identifications: use the identification data")]]
-    PeptideIdentificationList& getPeptideIdentifications();
-
-    /// sets the PeptideIdentification vector
-    [[deprecated("legacy identifications: use the identification data")]]
-    void setPeptideIdentifications(const PeptideIdentificationList& peptides);
-
     /**
-      @brief Sorts the peptide identifications of this feature by the score of their best hit
-
-      First the hits of every identification are sorted with PeptideIdentification::sort(), so
-      afterwards the best hit of each identification is its first hit. Then the identifications
-      are ordered best first: the identification whose first hit has the best score ends up at
-      index 0. Identifications without hits are placed after all identifications with hits.
-      Identifications whose first hits score equally, and identifications without hits among
-      themselves, keep their relative order (the sort is stable).
-
-      @note The identifications are assumed to share one score type. The score orientation used
-      to compare them is read once, from the first identification (in the order before sorting)
-      that has hits, or is higher-is-better if no identification has hits. An identification with
-      a different orientation is ordered by that single orientation rather than rejected; only
-      the order of its own hits follows its own orientation. With mixed orientations the result
-      therefore depends on the order before sorting, and sorting again can change it; the sort is
-      idempotent only when all identifications share one orientation.
+      @brief State of the identifications of @p peptides (e.g. the peptide identifications of a feature in a format, see
+      MapPeptideIdentifications): none, one, several of the same sequence or of different sequences (by the best hit of
+      each identification)
     */
-    void sortPeptideIdentifications();
-    ///@}
-
-    /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
-    AnnotationState getAnnotationState() const;
-    /// state of @p peptides (e.g. the peptide identifications of a feature in a format, see MapPeptideIdentifications), as getAnnotationState()
     static AnnotationState annotationState(const PeptideIdentificationList& peptides);
-    /// Resolve stable match links against their owning dataset; rejects deleted links.
+    /**
+      @brief State of the matches this feature links in @p data (see annotationState()): none, one, several of the same
+      molecule or of different molecules
+
+      @throws Exception::MissingInformation if a link refers to a match that @p data does not have
+    */
     AnnotationState getAnnotationState(const IdentificationData& data) const;
 
     /// @name Functions for dealing with identifications in new format
@@ -231,7 +199,7 @@ public:
     std::set<IdentificationData::QueryReference> getLinkedIDQueries(const IdentificationData& data) const;
 
     /**
-       @brief The identifications this feature links, each with its linked matches (the counterpart of getPeptideIdentifications())
+       @brief The identifications this feature links, each with its linked matches (its peptide identifications in a format)
 
        In the order of the peptide identifications that an export of @p data gives the feature.
 
@@ -240,8 +208,8 @@ public:
     std::vector<IdentificationData::QueryMatches> getLinkedIdentifications(const IdentificationData& data) const;
 
     /**
-       @brief The linked match with the best primary score, with its identification (the counterpart of the first hit
-       of the first peptide identification after sortPeptideIdentifications())
+       @brief The linked match with the best primary score, with its identification (the best hit of the peptide
+       identifications of the feature)
 
        Of matches that score equally, the first in the order of getLinkedIdentifications() is taken.
        Matches without a primary score value are skipped.
@@ -266,9 +234,6 @@ protected:
 
     /// Width (FWHM) for the feature. The default value is 0.0, a feature finding algorithm can compute this form the model.
     WidthType width_;
-
-    /// PeptideIdentifications belonging to the feature
-    PeptideIdentificationList peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
     std::optional<IdentificationData::MoleculeIdentity> primary_id_;

@@ -98,45 +98,8 @@ namespace OpenMS
         }
       }
       *cons_it = adjusted;
-
-      for (auto& id : cons_it->getPeptideIdentifications())
-      {
-        // if old_map_index is not present, there was no map_index in the beginning,
-        // therefore the newly assigned map_index cannot be "corrected"
-        // -> remove the MetaValue to be consistent.
-        if (id.metaValueExists("old_map_index"))
-        {
-          Size old_map_index = (Size)id.getMetaValue("old_map_index");
-          Size file_index = (Size)id.getMetaValue("map_index");
-          Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
-          id.setMetaValue("map_index", new_idx);
-          id.removeMetaValue("old_map_index");
-        }
-        else
-        {
-          id.removeMetaValue("map_index");
-        }
-      }
     }
-    for (auto& id : out.getUnassignedPeptideIdentifications())
-    {
-      // if old_map_index is not present, there was no map_index in the beginning,
-      // therefore the newly assigned map_index cannot be "corrected"
-      // -> remove the MetaValue to be consistent.
-      if (id.metaValueExists("old_map_index"))
-      {
-        Size old_map_index = (Size)id.getMetaValue("old_map_index");
-        Size file_index = (Size)id.getMetaValue("map_index");
-        Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
-        id.setMetaValue("map_index", new_idx);
-        id.removeMetaValue("old_map_index");
-      }
-      else
-      {
-        id.removeMetaValue("map_index");
-      }
-    }
-    // the same for the identifications in identification data:
+    // the map indices of the identifications:
     auto& data = out.getIdentificationData();
     for (const auto& current : data.getRuns())
     {
@@ -203,12 +166,6 @@ namespace OpenMS
     template <class MapType>
     void postprocessMaps(const std::vector<MapType>& maps, ConsensusMap& out)
     {
-      if (std::any_of(maps.begin(), maps.end(), [](const MapType& map) { return IdentificationDataConverter::hasPeptideIdentifications(map); }))
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Feature grouping needs the identifications of the maps as identification data; "
-                                          "convert peptide identifications first (see groupWithIdentificationData_())");
-      }
       FeatureGroupingAlgorithm::groupIdentifications(maps, out);
 
       // canonical ordering for checking the results:
@@ -218,15 +175,10 @@ namespace OpenMS
     }
 
     template <class MapType>
-    void groupWithData(const std::vector<MapType>& maps, ConsensusMap& out, const std::function<void(const std::vector<MapType>&)>& group)
+    void groupWithData(const std::vector<MapType>& maps, const std::function<void(const std::vector<MapType>&)>& group)
     {
-      const bool legacy = std::any_of(maps.begin(), maps.end(), [](const MapType& map) { return IdentificationDataConverter::hasPeptideIdentifications(map); });
-      std::vector<MapType> converted;
-      group(IdentificationDataConverter::withIdentificationData(maps, converted));
-      if (legacy)
-      {
-        IdentificationDataConverter::exportConsensusIDs(out);
-      }
+      std::vector<MapType> distinct;
+      group(IdentificationDataConverter::withDistinctRuns(maps, distinct));
     }
   } // namespace
 
@@ -324,16 +276,16 @@ namespace OpenMS
     postprocessMaps(maps, out);
   }
 
-  void FeatureGroupingAlgorithm::groupWithIdentificationData_(const std::vector<FeatureMap>& maps, ConsensusMap& out,
+  void FeatureGroupingAlgorithm::groupWithDistinctRuns_(const std::vector<FeatureMap>& maps,
                                                               const std::function<void(const std::vector<FeatureMap>&)>& group)
   {
-    groupWithData(maps, out, group);
+    groupWithData(maps, group);
   }
 
-  void FeatureGroupingAlgorithm::groupWithIdentificationData_(const std::vector<ConsensusMap>& maps, ConsensusMap& out,
+  void FeatureGroupingAlgorithm::groupWithDistinctRuns_(const std::vector<ConsensusMap>& maps,
                                                               const std::function<void(const std::vector<ConsensusMap>&)>& group)
   {
-    groupWithData(maps, out, group);
+    groupWithData(maps, group);
   }
 
   FeatureGroupingAlgorithm::~FeatureGroupingAlgorithm() = default;

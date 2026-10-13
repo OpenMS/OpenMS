@@ -334,125 +334,6 @@ namespace
     return result;
   }
 
-  template<class Map>
-  void importMap(Map& map, bool clear_original)
-  {
-    auto converted = [&]() {
-      if (map.getIdentificationData().empty())
-      {
-        PeptideIdentificationList queries;
-        std::vector<Adapter::FeatureAssociation> associations;
-        const auto collect = [&](const auto& self, const auto& feature, std::vector<Size> path) -> void {
-          for (const auto& query : feature.getPeptideIdentifications())
-          {
-            queries.push_back(query);
-            Adapter::FeatureAssociation association;
-            association.feature_path = path;
-            associations.push_back(std::move(association));
-          }
-          if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-            for (Size i = 0; i < feature.getSubordinates().size(); ++i)
-            {
-              auto child = path;
-              child.push_back(i);
-              self(self, feature.getSubordinates()[i], std::move(child));
-            }
-        };
-        for (Size i = 0; i < map.size(); ++i)
-          collect(collect, map[i], {i});
-        for (const auto& query : map.getUnassignedPeptideIdentifications())
-        {
-          queries.push_back(query);
-          Adapter::FeatureAssociation association;
-          association.unassigned = true;
-          associations.push_back(std::move(association));
-        }
-        return importLocations(map.getProteinIdentifications(), queries, std::move(associations));
-      }
-      if constexpr (std::is_same_v<Map, FeatureMap>) return Adapter::fromFeatureMap(map);
-      else
-        return Adapter::fromConsensusMap(map);
-    }();
-    auto updated = map;
-    updated.getIdentificationData() = std::move(converted.data);
-    if (clear_original)
-    {
-      const auto clear = [&](const auto& self, auto& feature) -> void {
-        feature.getPeptideIdentifications().clear();
-        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-          for (auto& child : feature.getSubordinates())
-            self(self, child);
-      };
-      for (auto& feature : updated)
-        clear(clear, feature);
-    }
-    applyLinks(updated, converted.associations);
-    if (clear_original)
-    {
-      updated.getProteinIdentifications().clear();
-      updated.getUnassignedPeptideIdentifications().clear();
-    }
-    map = std::move(updated);
-  }
-  template<class Map>
-  void exportMap(Map& map, bool clear_original)
-  {
-    auto converted = [&]() {
-      if constexpr (std::is_same_v<Map, FeatureMap>) return Adapter::fromFeatureMap(map);
-      else
-        return Adapter::fromConsensusMap(map);
-    }();
-    auto updated = map;
-    const bool generic = std::any_of(converted.data.getRuns().begin(), converted.data.getRuns().end(),
-                                     [](const auto& run) { return run.getMoleculeKind() != ID::MoleculeKind::PEPTIDE; });
-    if (generic)
-    {
-      std::vector<ProteinIdentification> proteins;
-      auto peptides = exportLocations(converted, proteins);
-      const auto clear = [&](const auto& self, auto& feature) -> void {
-        feature.getPeptideIdentifications().clear();
-        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-          for (auto& child : feature.getSubordinates())
-            self(self, child);
-      };
-      for (auto& feature : updated)
-        clear(clear, feature);
-      updated.getProteinIdentifications() = std::move(proteins);
-      updated.getUnassignedPeptideIdentifications().clear();
-      for (auto& [association, query] : peptides)
-      {
-        if (association.unassigned) updated.getUnassignedPeptideIdentifications().push_back(std::move(query));
-        else
-        {
-          auto* feature = &updated.at(association.feature_path.at(0));
-          if constexpr (std::is_same_v<Map, FeatureMap>)
-            for (Size i = 1; i < association.feature_path.size(); ++i)
-              feature = &feature->getSubordinates().at(association.feature_path[i]);
-          feature->getPeptideIdentifications().push_back(std::move(query));
-        }
-      }
-    }
-    else if constexpr (std::is_same_v<Map, FeatureMap>)
-      reportLegacyLosses(
-        Adapter::applyToFeatureMap(converted.data, converted.associations, updated, legacyOptions(), Adapter::MissingLinkPolicy::REJECT));
-    else
-      reportLegacyLosses(
-        Adapter::applyToConsensusMap(converted.data, converted.associations, updated, legacyOptions(), Adapter::MissingLinkPolicy::REJECT));
-    if (clear_original)
-    {
-      const auto clear = [&](const auto& self, auto& feature) -> void {
-        feature.getIDMatches().clear();
-        feature.getIDQueries().clear();
-        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-          for (auto& child : feature.getSubordinates())
-            self(self, child);
-      };
-      for (auto& feature : updated)
-        clear(clear, feature);
-      updated.getIdentificationData().clear();
-    }
-    map = std::move(updated);
-  }
 } // namespace
 void IdentificationDataConverter::importIDs(ID& data, const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides)
 {
@@ -651,64 +532,12 @@ void IdentificationDataConverter::exportSequenceEvidence(const std::vector<ID::S
   }
   hit.setPeptideEvidences(evidence);
 }
-void IdentificationDataConverter::importFeatureIDs(FeatureMap& map, bool clear)
-{ importMap(map, clear); }
-void IdentificationDataConverter::exportFeatureIDs(FeatureMap& map, bool clear)
-{ exportMap(map, clear); }
-void IdentificationDataConverter::importConsensusIDs(ConsensusMap& map, bool clear)
-{ importMap(map, clear); }
-void IdentificationDataConverter::exportConsensusIDs(ConsensusMap& map, bool clear)
-{ exportMap(map, clear); }
-
-namespace
-{
-  template<class Map>
-  bool hasLegacyIDs(const Map& map)
-  {
-    if (! map.getProteinIdentifications().empty() || ! map.getUnassignedPeptideIdentifications().empty()) return true;
-    const auto any = [](const auto& self, const auto& feature) -> bool {
-      if (! feature.getPeptideIdentifications().empty()) return true;
-      if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-        for (const auto& subordinate : feature.getSubordinates())
-          if (self(self, subordinate)) return true;
-      return false;
-    };
-    return std::any_of(map.begin(), map.end(), [&](const auto& feature) { return any(any, feature); });
-  }
-  template<class Map>
-  bool checkedLegacyIDs(const Map& map)
-  {
-    if (! hasLegacyIDs(map)) return false;
-    if (! map.getIdentificationData().empty())
-      invalid("The map has peptide identifications and identification data; it can hold its identifications in one of them only");
-    return true;
-  }
-} // namespace
-
 namespace
 {
   template<class Map>
   IdentificationDataConverter::MapPeptideIdentifications exportIdentifications(const Map& map)
   {
     IdentificationDataConverter::MapPeptideIdentifications result;
-    if (checkedLegacyIDs(map))
-    {
-      result.proteins = map.getProteinIdentifications();
-      const auto collect = [&](const auto& self, const auto& feature, std::vector<Size> path) -> void {
-        if (! feature.getPeptideIdentifications().empty()) result.features[path] = feature.getPeptideIdentifications();
-        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(feature)>, Feature>)
-          for (Size i = 0; i < feature.getSubordinates().size(); ++i)
-          {
-            auto child = path;
-            child.push_back(i);
-            self(self, feature.getSubordinates()[i], std::move(child));
-          }
-      };
-      for (Size i = 0; i < map.size(); ++i)
-        collect(collect, map[i], {i});
-      result.unassigned = map.getUnassignedPeptideIdentifications();
-      return result;
-    }
     if (map.getIdentificationData().empty()) return result;
     const auto converted = [&]() {
       if constexpr (std::is_same_v<Map, FeatureMap>) return Adapter::fromFeatureMap(map);
@@ -764,97 +593,16 @@ void IdentificationDataConverter::importMapIdentifications(FeatureMap& map, cons
 void IdentificationDataConverter::importMapIdentifications(ConsensusMap& map, const MapPeptideIdentifications& identifications)
 { importIdentifications(map, identifications); }
 
-bool IdentificationDataConverter::hasPeptideIdentifications(const FeatureMap& map)
-{ return hasLegacyIDs(map); }
-bool IdentificationDataConverter::hasPeptideIdentifications(const ConsensusMap& map)
-{ return hasLegacyIDs(map); }
-const FeatureMap& IdentificationDataConverter::withIdentificationData(const FeatureMap& map, std::optional<FeatureMap>& converted)
-{
-  if (! checkedLegacyIDs(map)) return map;
-  converted = map;
-  importMap(*converted, true);
-  return *converted;
-}
-const ConsensusMap& IdentificationDataConverter::withIdentificationData(const ConsensusMap& map, std::optional<ConsensusMap>& converted)
-{
-  if (! checkedLegacyIDs(map)) return map;
-  converted = map;
-  importMap(*converted, true);
-  return *converted;
-}
 std::vector<ProteinIdentification> IdentificationDataConverter::proteinIdentifications(const FeatureMap& map)
 {
-  if (! map.getProteinIdentifications().empty() || map.getIdentificationData().empty()) return map.getProteinIdentifications();
+  if (map.getIdentificationData().empty()) return {};
   return Adapter::toLegacy(map.getIdentificationData(), legacyOptions()).proteins;
 }
 std::vector<ProteinIdentification> IdentificationDataConverter::proteinIdentifications(const ConsensusMap& map)
 {
-  if (! map.getProteinIdentifications().empty() || map.getIdentificationData().empty()) return map.getProteinIdentifications();
+  if (map.getIdentificationData().empty()) return {};
   return Adapter::toLegacy(map.getIdentificationData(), legacyOptions()).proteins;
 }
-const FeatureMap& IdentificationDataConverter::withPeptideIdentifications(const FeatureMap& map, std::optional<FeatureMap>& exported)
-{
-  if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return map;
-  exported = map;
-  exportMap(*exported, true);
-  return *exported;
-}
-const ConsensusMap& IdentificationDataConverter::withPeptideIdentifications(const ConsensusMap& map, std::optional<ConsensusMap>& exported)
-{
-  if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return map;
-  exported = map;
-  exportMap(*exported, true);
-  return *exported;
-}
-namespace
-{
-  template<class Map>
-  void editMap(Map& map, const std::function<void(Map&)>& edit)
-  {
-    if (! checkedLegacyIDs(map))
-    {
-      edit(map);
-      return;
-    }
-    // The original protein runs (their storage) come back with the exported values.
-    std::vector<ProteinIdentification> runs;
-    runs.swap(map.getProteinIdentifications());
-    map.getProteinIdentifications() = runs;
-    try
-    {
-      importMap(map, true);
-    }
-    catch (...)
-    {
-      map.getProteinIdentifications().swap(runs);
-      throw;
-    }
-    const auto restore = [&] {
-      exportMap(map, true);
-      auto& exported = map.getProteinIdentifications();
-      if (exported.size() != runs.size()) return;
-      for (Size i = 0; i < runs.size(); ++i)
-        runs[i] = std::move(exported[i]);
-      exported.swap(runs);
-    };
-    try
-    {
-      edit(map);
-    }
-    catch (...)
-    {
-      restore();
-      throw;
-    }
-    restore();
-  }
-} // namespace
-
-void IdentificationDataConverter::editAsIdentificationData(FeatureMap& map, const std::function<void(FeatureMap&)>& edit)
-{ editMap(map, edit); }
-void IdentificationDataConverter::editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit)
-{ editMap(map, edit); }
-
 namespace
 {
   template<class Map>
@@ -923,7 +671,6 @@ namespace
     bool change = false;
     for (const auto& map : maps)
     {
-      if (checkedLegacyIDs(map)) change = true;
       for (const auto& run : map.getIdentificationData().getRuns())
         if (! taken.insert(run.getUuid()).second) change = true;
     }
@@ -934,9 +681,7 @@ namespace
     for (const auto& map : maps)
     {
       converted.push_back(map);
-      auto& copy = converted.back();
-      if (hasLegacyIDs(copy)) importMap(copy, true);
-      distinctRuns(copy, taken);
+      distinctRuns(converted.back(), taken);
     }
     return converted;
   }
@@ -992,9 +737,9 @@ bool IdentificationDataConverter::makeRunsDistinct(FeatureMap& map, std::set<std
 { return distinctRuns(map, taken); }
 bool IdentificationDataConverter::makeRunsDistinct(ConsensusMap& map, std::set<std::string>& taken)
 { return distinctRuns(map, taken); }
-const std::vector<FeatureMap>& IdentificationDataConverter::withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted)
+const std::vector<FeatureMap>& IdentificationDataConverter::withDistinctRuns(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted)
 { return distinctMaps(maps, converted); }
-const std::vector<ConsensusMap>& IdentificationDataConverter::withIdentificationData(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted)
+const std::vector<ConsensusMap>& IdentificationDataConverter::withDistinctRuns(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted)
 { return distinctMaps(maps, converted); }
 
 namespace
@@ -1003,9 +748,8 @@ namespace
   const std::string MATCH_REFERENCE = "identification:match_reference";
 } // namespace
 
-ConsensusMap IdentificationDataConverter::exportWithMatchReferences(const ConsensusMap& map)
+IdentificationDataConverter::MapPeptideIdentifications IdentificationDataConverter::exportWithMatchReferences(const ConsensusMap& map)
 {
-  if (hasLegacyIDs(map)) invalid("The map has peptide identifications already");
   ConsensusMap copy = map;
   auto& data = copy.getIdentificationData();
   for (const auto& current : data.getRuns())
@@ -1022,8 +766,7 @@ ConsensusMap IdentificationDataConverter::exportWithMatchReferences(const Consen
     for (const auto& [id, match] : named)
       run.replaceMatch(id, match);
   }
-  exportMap(copy, true);
-  return copy;
+  return exportIdentifications(copy);
 }
 
 std::optional<ID::MatchReference> IdentificationDataConverter::matchReference(const PeptideHit& hit)
@@ -1079,31 +822,6 @@ void IdentificationDataConverter::updateReferencedMatches(ID& data, const Peptid
     const auto primary = *run.getPrimaryScore();
     for (const auto& [id, score] : scored) run.setScore(id, primary, score);
   }
-}
-
-bool IdentificationDataConverter::moveToIdentificationData(FeatureMap& map)
-{
-  if (! checkedLegacyIDs(map)) return false;
-  importMap(map, true);
-  return true;
-}
-bool IdentificationDataConverter::moveToIdentificationData(ConsensusMap& map)
-{
-  if (! checkedLegacyIDs(map)) return false;
-  importMap(map, true);
-  return true;
-}
-bool IdentificationDataConverter::moveToPeptideIdentifications(FeatureMap& map)
-{
-  if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return false;
-  exportMap(map, true);
-  return true;
-}
-bool IdentificationDataConverter::moveToPeptideIdentifications(ConsensusMap& map)
-{
-  if (map.getIdentificationData().empty() || hasLegacyIDs(map)) return false;
-  exportMap(map, true);
-  return true;
 }
 
 MzTab IdentificationDataConverter::exportMzTab(const ID& data)

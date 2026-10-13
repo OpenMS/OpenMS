@@ -37,7 +37,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "At least two maps must be given!");
     }
 
-    groupWithIdentificationData_(maps, out, [&](const std::vector<FeatureMap>& inputs) {
+    groupWithDistinctRuns_(maps, [&](const std::vector<FeatureMap>& inputs) {
       // define reference map (the one with most peaks)
       Size reference_map_index = 0;
       Size max_count = 0;

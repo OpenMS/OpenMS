@@ -15,8 +15,6 @@
 
 namespace OpenMS
 {
-  class ConsensusMap;
-  class FeatureMap;
   class PeptideIdentification;
   class PeptideIdentificationList;
   class ProteinIdentification;
@@ -50,26 +48,14 @@ namespace OpenMS
     /// Same as above, for peptide identifications given by pointers
     static void check(const std::vector<ProteinIdentification>& runs, const std::vector<const PeptideIdentification*>& peptides);
 
-    /// Same as above, for the peptide identifications of all features (including subordinates) and the unassigned ones
-    static void check(const FeatureMap& map);
-
-    /// Same as above, for the peptide identifications of all consensus features and the unassigned ones
-    static void check(const ConsensusMap& map);
-
     /**
       @brief Throws Exception::ElementNotFound if a peptide evidence names a protein that is no protein hit of its run
 
       featureXML and consensusXML reference the proteins of a peptide hit's evidences among the protein hits of the
-      peptide identification's run (empty accessions are not written). Checks the peptide identifications of all
-      features (including subordinates) and the unassigned ones, and includes check(): a peptide identification
+      peptide identification's run (empty accessions are not written), e.g. for the peptide identifications of a map
+      (see IdentificationDataConverter::exportMapIdentifications()). Includes check(): a peptide identification
       without its run throws Exception::InvalidParameter (with missingRunMessage()).
     */
-    static void checkProteinAccessions(const FeatureMap& map);
-
-    /// Same as above, for the peptide identifications of all consensus features and the unassigned ones
-    static void checkProteinAccessions(const ConsensusMap& map);
-
-    /// Same as above, for peptide identifications given by pointers (e.g. those of a map, see IdentificationDataConverter::exportMapIdentifications())
     static void checkProteinAccessions(const std::vector<ProteinIdentification>& runs, const std::vector<const PeptideIdentification*>& peptides);
   };
 } // namespace OpenMS

@@ -18,7 +18,6 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -256,7 +255,6 @@ namespace OpenMS
     // ConsensusMap
     ConsensusMap consensus_map;
     FileHandler().loadConsensusFeatures(consensus_file_path, consensus_map, {FileTypes::CONSENSUSXML});
-    IdentificationDataConverter::moveToIdentificationData(consensus_map);
 
     //-------------------------------------------------------------
     // open on-disc data (=spectra are only loaded on demand to safe memory)

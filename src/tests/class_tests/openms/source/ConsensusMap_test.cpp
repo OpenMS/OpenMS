@@ -33,6 +33,10 @@ START_TEST(ConsensusMap, "$Id$")
 
 ConsensusMap* ptr = nullptr;
 ConsensusMap* nullPointer = nullptr;
+
+// identification data of a map (one run)
+IdentificationData id_data;
+id_data.addRun("search");
 START_SECTION((ConsensusMap()))
 	ptr = new ConsensusMap();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -41,40 +45,6 @@ END_SECTION
 
 START_SECTION((~ConsensusMap()))
 	delete ptr;
-END_SECTION
-
-START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
-	FeatureMap tmp;
-	TEST_EQUAL(tmp.getProteinIdentifications().size(),0)
-END_SECTION
-
-START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
-	FeatureMap tmp;
-	tmp.getProteinIdentifications().resize(1);
-	TEST_EQUAL(tmp.getProteinIdentifications().size(),1)
-END_SECTION
-
-START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
-	FeatureMap tmp;
-	tmp.setProteinIdentifications(std::vector<ProteinIdentification>(2));
-	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
-END_SECTION
-
-START_SECTION((const PeptideIdentificationList& getUnassignedPeptideIdentifications() const))
-	FeatureMap tmp;
-	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
-END_SECTION
-
-START_SECTION((PeptideIdentificationList& getUnassignedPeptideIdentifications()))
-	FeatureMap tmp;
-	tmp.getUnassignedPeptideIdentifications().resize(1);
-	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
-END_SECTION
-
-START_SECTION((void setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications)))
-	FeatureMap tmp;
-	tmp.setUnassignedPeptideIdentifications(PeptideIdentificationList(2));
-	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION
 
 START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
@@ -188,15 +158,14 @@ START_SECTION((ConsensusMap& appendRows(const ConsensusMap &rhs)))
   // test basic classes
   m1.setIdentifier ("123");
   m1.getDataProcessing().resize(1);
-  m1.getProteinIdentifications().resize(1);
-  m1.getUnassignedPeptideIdentifications().resize(1);
+  m1.getIdentificationData().addRun("a");
   m1.ensureUniqueId();
   m1.getColumnHeaders()[0].filename = "m1";
 
   m2.setIdentifier ("321");
   m2.getDataProcessing().resize(2);
-  m2.getProteinIdentifications().resize(2);
-  m2.getUnassignedPeptideIdentifications().resize(2);
+  m2.getIdentificationData().addRun("b");
+  m2.getIdentificationData().addRun("c");
   m2.push_back(ConsensusFeature());
   m2.push_back(ConsensusFeature());
   m2.getColumnHeaders()[1].filename = "m2";
@@ -205,8 +174,7 @@ START_SECTION((ConsensusMap& appendRows(const ConsensusMap &rhs)))
   TEST_EQUAL(m1.getIdentifier(), "");
   TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false);
   TEST_EQUAL(m1.getDataProcessing().size(), 3);
-  TEST_EQUAL(m1.getProteinIdentifications().size(),3);
-  TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(),3);
+  TEST_EQUAL(m1.getIdentificationData().getRuns().size(), 3);
   TEST_EQUAL(m1.size(),3);
   TEST_EQUAL(m1.getColumnHeaders().size(), 2);
 }
@@ -239,15 +207,14 @@ START_SECTION((ConsensusMap& appendColumns(const ConsensusMap &rhs)))
 
   m1.setIdentifier("123");
   m1.getDataProcessing().resize(1);
-  m1.getProteinIdentifications().resize(1);
-  m1.getUnassignedPeptideIdentifications().resize(1);
+  m1.getIdentificationData().addRun("a");
   m1.ensureUniqueId();
   m1.getColumnHeaders()[0].filename = "m1";
 
   m2.setIdentifier("321");
   m2.getDataProcessing().resize(2);
-  m2.getProteinIdentifications().resize(2);
-  m2.getUnassignedPeptideIdentifications().resize(2);
+  m2.getIdentificationData().addRun("b");
+  m2.getIdentificationData().addRun("c");
   m2.getColumnHeaders()[0].filename = "m2_1";
   m2.getColumnHeaders()[1].filename = "m2_2";
 
@@ -272,8 +239,7 @@ START_SECTION((ConsensusMap& appendColumns(const ConsensusMap &rhs)))
   TEST_EQUAL(m1.getIdentifier(), "");
   TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false);
   TEST_EQUAL(m1.getDataProcessing().size(), 3);
-  TEST_EQUAL(m1.getProteinIdentifications().size(), 3);
-  TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(), 3);
+  TEST_EQUAL(m1.getIdentificationData().getRuns().size(), 3);
   TEST_EQUAL(m1.size(), 2);
   TEST_EQUAL(m1.getColumnHeaders().size(), 3);
   TEST_EQUAL(m1.getColumnHeaders()[0].filename, "m1");
@@ -313,39 +279,61 @@ START_SECTION(([EXTRA] appendColumns shifts the map indices of the identificatio
   using namespace OpenMS::Internal::ClassTest;
   ConsensusMap lhs;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), lhs);
-  // the fixture is edited as peptide identifications (loading gives identification data)
-  IdentificationDataConverter::moveToPeptideIdentifications(lhs);
   // the columns of the other map come from another search
-  ConsensusMap rhs = lhs;
-  for (auto& run : rhs.getProteinIdentifications())
+  auto rhs_ids = identificationsOf(lhs);
+  for (auto& run : rhs_ids.proteins)
     run.setIdentifier(run.getIdentifier() + "_rhs");
   const auto rename = [](PeptideIdentificationList& ids) {
     for (auto& id : ids)
       id.setIdentifier(id.getIdentifier() + "_rhs");
   };
+  for (auto& [path, peptides] : rhs_ids.features)
+    rename(peptides);
+  rename(rhs_ids.unassigned);
+  ConsensusMap rhs = lhs;
   UInt64 unique_id = 1;
   for (auto& feature : rhs)
-  {
-    rename(feature.getPeptideIdentifications());
     feature.setUniqueId(unique_id++); // no conflicts, which would get random replacements
+  setIdentifications(rhs, rhs_ids);
+
+  // the identifications of both maps, those of the other map with the map indices of its columns in the result
+  const Size columns = lhs.getColumnHeaders().size();
+  const auto shifted = [&](PeptideIdentificationList peptides) {
+    for (auto& peptide : peptides)
+      if (peptide.metaValueExists("map_index")) peptide.setMetaValue("map_index", columns + Size(peptide.getMetaValue("map_index")));
+    return peptides;
+  };
+  auto expected = identificationsOf(lhs);
+  expected.proteins.insert(expected.proteins.end(), rhs_ids.proteins.begin(), rhs_ids.proteins.end());
+  for (const auto& [path, peptides] : rhs_ids.features)
+  {
+    auto appended_path = path;
+    appended_path[0] += lhs.size();
+    expected.features[appended_path] = shifted(peptides);
   }
-  rename(rhs.getUnassignedPeptideIdentifications());
-  TEST_EQUAL(nativeDifference(lhs, [&](ConsensusMap map, bool native) {
-               ConsensusMap other = rhs;
-               if (native) toNative(other);
-               map.appendColumns(other);
-               return map;
-             }),
-             "")
+  const auto unassigned = shifted(rhs_ids.unassigned);
+  expected.unassigned.insert(expected.unassigned.end(), unassigned.begin(), unassigned.end());
+  ConsensusMap appended = lhs;
+  appended.appendColumns(rhs);
+  auto actual = identificationsOf(appended);
+  // (unassigned identifications of several runs are in the order of their identifications, i.e. interleaved here)
+  const auto sorted = [](PeptideIdentificationList& peptides) {
+    std::stable_sort(peptides.begin(), peptides.end(), [](const PeptideIdentification& a, const PeptideIdentification& b) {
+      return std::make_tuple(a.getIdentifier(), a.getRT(), a.getMZ()) < std::make_tuple(b.getIdentifier(), b.getRT(), b.getMZ());
+    });
+  };
+  sorted(expected.unassigned);
+  sorted(actual.unassigned);
+  TEST_EQUAL(identificationDifference(expected, actual), "")
+
   // identifications of a run in both maps cannot refer to the columns of both
-  toNative(lhs);
   const ConsensusMap before = lhs;
   TEST_EXCEPTION(Exception::InvalidValue, lhs.appendColumns(before))
   TEST_TRUE(lhs == before)
 }
 END_SECTION
 
-const ConsensusMap map_const_1 = []() {
+const ConsensusMap map_const_1 = [&]() {
   ConsensusMap map1;
   map1.resize(3);
   map1.setMetaValue("meta",std::string("value"));
@@ -356,8 +344,7 @@ const ConsensusMap map_const_1 = []() {
   map1.getColumnHeaders()[0].setMetaValue("meta",std::string("meta"));
   map1.getDataProcessing().resize(1);
   map1.setExperimentType("labeled_MS2");
-  map1.getProteinIdentifications().resize(1);
-  map1.getUnassignedPeptideIdentifications().resize(1);
+  map1.getIdentificationData() = id_data;
   return map1;
 }();
 
@@ -378,8 +365,7 @@ START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
   TEST_EQUAL(map2.getExperimentType(), "labeled_MS2")
 
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1)
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1)
+	TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1)
 
   //assignment of empty object
   ConsensusMap map2_empty;
@@ -388,8 +374,7 @@ START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
   TEST_EQUAL(map2.getColumnHeaders().size(),0)
   TEST_EQUAL(map2.getExperimentType(),"label-free") // default
   TEST_EQUAL(map2.getDataProcessing().size(),0)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),0)
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0)
+	TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 0)
 END_SECTION
 
 START_SECTION((ConsensusMap(const ConsensusMap& source)))
@@ -402,8 +387,7 @@ START_SECTION((ConsensusMap(const ConsensusMap& source)))
 	TEST_EQUAL(map2.getColumnHeaders()[0].getMetaValue("meta") == "meta", true)
   TEST_EQUAL(map2.getExperimentType(),"labeled_MS2")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+	TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1);
 END_SECTION
 
 
@@ -424,8 +408,7 @@ START_SECTION((ConsensusMap& operator = (ConsensusMap&& source)))
   TEST_EQUAL(map2.getExperimentType(), "labeled_MS2")
 
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1)
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1)
+	TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1)
 
   //assignment of empty object
   ConsensusMap map2_empty;
@@ -434,8 +417,7 @@ START_SECTION((ConsensusMap& operator = (ConsensusMap&& source)))
   TEST_EQUAL(map2.getColumnHeaders().size(), 0)
   TEST_EQUAL(map2.getExperimentType(), "label-free") // default
   TEST_EQUAL(map2.getDataProcessing().size(), 0)
-  TEST_EQUAL(map2.getProteinIdentifications().size(), 0)
-  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(), 0)
+  TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 0)
   END_SECTION
 
 START_SECTION((ConsensusMap(ConsensusMap && source)))
@@ -450,8 +432,7 @@ START_SECTION((ConsensusMap(ConsensusMap && source)))
 	TEST_EQUAL(map2.getColumnHeaders()[0].getMetaValue("meta") == "meta", true)
   TEST_EQUAL(map2.getExperimentType(),"labeled_MS2")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+	TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1);
 END_SECTION
 
 
@@ -504,8 +485,7 @@ START_SECTION((void swap(ConsensusMap& from)))
 	map1.setIdentifier("LSID");
 	map1.setExperimentType("labeled_MS2");
 	map1.getDataProcessing().resize(1);
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
+	map1.getIdentificationData() = id_data;
 
 	map1.swap(map2);
 
@@ -513,16 +493,14 @@ START_SECTION((void swap(ConsensusMap& from)))
 	TEST_EQUAL(map1.getColumnHeaders().size(),0)
 	TEST_EQUAL(map1.getIdentifier(),"")
   TEST_EQUAL(map1.getDataProcessing().size(),0)
-	TEST_EQUAL(map1.getProteinIdentifications().size(),0);
-	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0);
+	TEST_EQUAL(map1.getIdentificationData().getRuns().size(), 0);
 
 	TEST_EQUAL(map2.size(),1)
 	TEST_EQUAL(map2.getColumnHeaders().size(),1)
 	TEST_EQUAL(map2.getIdentifier(),"LSID")
   TEST_EQUAL(map2.getExperimentType(),"labeled_MS2")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+	TEST_EQUAL(map2.getIdentificationData().getRuns().size(), 1);
 END_SECTION
 
 START_SECTION((bool operator == (const ConsensusMap& rhs) const))
@@ -554,11 +532,7 @@ START_SECTION((bool operator == (const ConsensusMap& rhs) const))
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
-	edit.getProteinIdentifications().resize(10);
-	TEST_EQUAL(empty==edit, false);
-
-	edit = empty;
-	edit.getUnassignedPeptideIdentifications().resize(10);
+	edit.getIdentificationData() = id_data;
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
@@ -602,11 +576,7 @@ START_SECTION((bool operator != (const ConsensusMap& rhs) const))
 	TEST_FALSE(empty == edit);
 
 	edit = empty;
-	edit.getProteinIdentifications().resize(10);
-	TEST_FALSE(empty == edit);
-
-	edit = empty;
-	edit.getUnassignedPeptideIdentifications().resize(10);
+	edit.getIdentificationData() = id_data;
 	TEST_FALSE(empty == edit);
 
 	edit = empty;
@@ -660,12 +630,6 @@ START_SECTION((void sortByMaps()))
 }
 END_SECTION
 
-START_SECTION((void sortPeptideIdentificationsByMapIndex()))
-{
-  NOT_TESTABLE; // tested within TOPP IDMapper
-}
-END_SECTION
-
 START_SECTION((void clear(bool clear_meta_data = true)))
 {
   ConsensusMap map1;
@@ -677,8 +641,7 @@ START_SECTION((void clear(bool clear_meta_data = true)))
 	map1.setIdentifier("LSID");
 	map1.setExperimentType("labeled_MS2");
 	map1.getDataProcessing().resize(1);
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
+	map1.getIdentificationData() = id_data;
 	
 	map1.clear(false);
 	TEST_EQUAL(map1.size(), 0)
@@ -747,14 +710,17 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   run0.setIdentifier("run_0");
   run1.setIdentifier("run_1");
   unused.setIdentifier("unused");
-  cm.setProteinIdentifications({run0, run1, unused});
+  MapPeptideIdentifications ids;
+  ids.proteins = {run0, run1, unused};
 
   PeptideIdentification id1, id2;
+  id1.setScoreType("score");
+  id2.setScoreType("score");
   id1.setIdentifier("run_0");
   id1.setRT(10);
   id1.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("AAA")));
   id1.setMetaValue("map_index", 0);
-  cf1.getPeptideIdentifications().push_back(id1);
+  ids.features[{0}].push_back(id1);
   cf1.setMetaValue("test", "some information");
   cm.push_back(cf1);
 
@@ -764,20 +730,24 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   id2.setRT(20);
   id2.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("WWW")));
   id2.setMetaValue("map_index", 1);
-  cf2.getPeptideIdentifications().push_back(id2);
+  ids.features[{1}].push_back(id2);
 
   cm.push_back(cf2);
 
   PeptideIdentification uid1, uid2;
+  uid1.setScoreType("score");
+  uid2.setScoreType("score");
   uid1.setIdentifier("run_0");
   uid2.setIdentifier("run_1");
   uid1.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("LLL")));
   uid1.setMetaValue("map_index", 0);
   uid2.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("KKK")));
   uid2.setMetaValue("map_index", 1);
-  cm.getUnassignedPeptideIdentifications().push_back(uid1);
-  cm.getUnassignedPeptideIdentifications().push_back(uid2);
+  ids.unassigned.push_back(uid1);
+  ids.unassigned.push_back(uid2);
+  IdentificationDataConverter::importMapIdentifications(cm, ids);
 
+  using namespace OpenMS::Internal::ClassTest;
   vector<FeatureMap> fmaps;
 
   // test with non iso analyze data
@@ -788,25 +758,27 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   // map 0
   TEST_EQUAL(fmaps[0][0].getRT(), 10);
   TEST_EQUAL(fmaps[0][0].getIntensity(), 100000);
-  TEST_EQUAL(fmaps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAA");
+  TEST_EQUAL(peptidesOf(fmaps[0], {0})[0].getHits()[0].getSequence().toString(), "AAA");
   TEST_EQUAL(fmaps[0][0].metaValueExists("test"), false);
   TEST_EQUAL(fmaps[0][1].getRT(), 20);
   TEST_EQUAL(fmaps[0][1].getIntensity(), 300000);
-  TEST_EQUAL(fmaps[0][1].getPeptideIdentifications().empty(), true);
+  TEST_EQUAL(peptidesOf(fmaps[0], {1}).empty(), true);
   // map 1
   TEST_EQUAL(fmaps[1][0].getRT(), 11);
   TEST_EQUAL(fmaps[1][0].getIntensity(), 200000);
-  TEST_EQUAL(fmaps[1][0].getPeptideIdentifications().empty(), true);
+  TEST_EQUAL(peptidesOf(fmaps[1], {0}).empty(), true);
   TEST_EQUAL(fmaps[1][1].getRT(), 21);
   TEST_EQUAL(fmaps[1][1].getIntensity(), 400000);
-  TEST_EQUAL(fmaps[1][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "WWW");
-  TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LLL");
-  TEST_EQUAL(fmaps[1].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "KKK");
+  TEST_EQUAL(peptidesOf(fmaps[1], {1})[0].getHits()[0].getSequence().toString(), "WWW");
+  TEST_EQUAL(unassignedOf(fmaps[0])[0].getHits()[0].getSequence().toString(), "LLL");
+  TEST_EQUAL(unassignedOf(fmaps[1])[0].getHits()[0].getSequence().toString(), "KKK");
   // every peptide identification keeps its protein identification run (search run)
   for (const FeatureMap& fmap : fmaps)
   {
-    TEST_EQUAL(fmap.getProteinIdentifications().size(), 1)
-    TEST_EQUAL(fmap.getProteinIdentifications()[0].getIdentifier(), "run_" + std::to_string(&fmap - fmaps.data()))
+    const auto proteins = proteinsOf(fmap);
+    TEST_EQUAL(proteins.size(), 1)
+    ABORT_IF(proteins.size() != 1)
+    TEST_EQUAL(proteins[0].getIdentifier(), "run_" + std::to_string(&fmap - fmaps.data()))
   }
 
   // test with iso analyze data
@@ -820,14 +792,15 @@ START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitM
   ABORT_IF(fmaps.size() != 2);
   ABORT_IF(fmaps[0].size() != 2);
   ABORT_IF(fmaps[1].size() != 2);
-  const auto pi00 = fmaps[0][0].getPeptideIdentifications();
-  const auto pi01 = fmaps[0][1].getPeptideIdentifications();
+  const auto pi00 = peptidesOf(fmaps[0], {0});
+  const auto pi01 = peptidesOf(fmaps[0], {1});
   TEST_EQUAL(pi00[0].getHits()[0].getSequence(),AASequence::fromString("AAA"));
   TEST_EQUAL(pi01[0].getHits()[0].getSequence(),AASequence::fromString("WWW"));
-  TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString("LLL"));
-  TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),AASequence::fromString("KKK"));
-  TEST_EQUAL(fmaps[1][0].getPeptideIdentifications().empty(), true);
-  TEST_EQUAL(fmaps[1][1].getPeptideIdentifications().empty(), true);
+  const auto unassigned0 = unassignedOf(fmaps[0]);
+  TEST_EQUAL(unassigned0[0].getHits()[0].getSequence(),AASequence::fromString("LLL"));
+  TEST_EQUAL(unassigned0[1].getHits()[0].getSequence(),AASequence::fromString("KKK"));
+  TEST_EQUAL(peptidesOf(fmaps[1], {0}).empty(), true);
+  TEST_EQUAL(peptidesOf(fmaps[1], {1}).empty(), true);
 
   // test different all meta value modes
   fmaps = cm.split(ConsensusMap::SplitMeta::COPY_FIRST);
@@ -851,15 +824,15 @@ END_SECTION
 
 START_SECTION([EXTRA] split() of a map with identification data)
 {
-  // the identifications of the map above as identification data: the parts hold the same identifications as
-  // identification data
+  // the identifications of the map above: the parts hold them as identification data
   ConsensusMap cm;
   cm.getColumnHeaders()[0].filename = "file.FeatureXML";
   cm.getColumnHeaders()[1].filename = "file2.FeatureXML";
   ProteinIdentification run0, run1;
   run0.setIdentifier("run_0");
   run1.setIdentifier("run_1");
-  cm.setProteinIdentifications({run0, run1});
+  MapPeptideIdentifications ids;
+  ids.proteins = {run0, run1};
   const auto identification = [](const std::string& run, double rt, const std::string& sequence, int map_index) {
     PeptideIdentification id;
     id.setIdentifier(run);
@@ -873,40 +846,39 @@ START_SECTION([EXTRA] split() of a map with identification data)
   ConsensusFeature cf1, cf2;
   cf1.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
   cf1.insert(FeatureHandle(1, Peak2D({ 11, 434.33 }, 200000), 0));
-  cf1.getPeptideIdentifications().push_back(identification("run_0", 10, "AAA", 0));
+  ids.features[{0}].push_back(identification("run_0", 10, "AAA", 0));
   cf2.insert(FeatureHandle(0, Peak2D({ 20, 433.33 }, 300000), 0));
   cf2.insert(FeatureHandle(1, Peak2D({ 21, 433.33 }, 400000), 0));
-  cf2.getPeptideIdentifications().push_back(identification("run_1", 20, "WWW", 1));
+  ids.features[{1}].push_back(identification("run_1", 20, "WWW", 1));
   cm.push_back(cf1);
   cm.push_back(cf2);
-  cm.getUnassignedPeptideIdentifications().push_back(identification("run_0", 30, "LLL", 0));
-  cm.getUnassignedPeptideIdentifications().push_back(identification("run_1", 40, "KKK", 1));
+  ids.unassigned.push_back(identification("run_0", 30, "LLL", 0));
+  ids.unassigned.push_back(identification("run_1", 40, "KKK", 1));
+  IdentificationDataConverter::importMapIdentifications(cm, ids);
 
   // the sequences of the features, the unassigned identifications and the protein runs of a part
-  const auto content = [](FeatureMap part) {
-    IdentificationDataConverter::moveToPeptideIdentifications(part);
+  const auto content = [](const FeatureMap& part) {
+    const auto part_ids = IdentificationDataConverter::exportMapIdentifications(part);
     std::string result;
-    for (const Feature& feature : part)
+    for (Size i = 0; i < part.size(); ++i)
     {
-      for (const PeptideIdentification& id : feature.getPeptideIdentifications())
+      for (const PeptideIdentification& id : part_ids.at({i}))
       {
         result += id.getHits()[0].getSequence().toString() + " ";
       }
       result += "| ";
     }
-    for (const PeptideIdentification& id : part.getUnassignedPeptideIdentifications())
+    for (const PeptideIdentification& id : part_ids.unassigned)
     {
       result += id.getHits()[0].getSequence().toString() + " ";
     }
-    for (const ProteinIdentification& run : part.getProteinIdentifications())
+    for (const ProteinIdentification& run : part_ids.proteins)
     {
       result += "| " + run.getIdentifier();
     }
     return result;
   };
 
-  ConsensusMap native(cm);
-  TEST_EQUAL(IdentificationDataConverter::moveToIdentificationData(native), true)
   for (const bool isobaric : {false, true})
   {
     if (isobaric)
@@ -916,18 +888,12 @@ START_SECTION([EXTRA] split() of a map with identification data)
       p.setProcessingActions({DataProcessing::QUANTITATION});
       p.setSoftware(Software("IsobaricAnalyzer"));
       cm.getDataProcessing().push_back(p);
-      native.getDataProcessing().push_back(p);
     }
-    const vector<FeatureMap> legacy_parts = cm.split(ConsensusMap::SplitMeta::DISCARD);
-    const vector<FeatureMap> native_parts = native.split(ConsensusMap::SplitMeta::DISCARD);
-    ABORT_IF(native_parts.size() != 2);
-    for (Size i = 0; i < 2; ++i)
-    {
-      TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(native_parts[i]), false)
-      TEST_EQUAL(content(native_parts[i]), content(legacy_parts[i]))
-    }
-    TEST_EQUAL(native_parts[0].getIdentificationData().empty(), false)
-    TEST_EQUAL(content(native_parts[0]), isobaric ? "AAA | WWW | LLL KKK | run_0| run_1" : "AAA | | LLL | run_0")
+    const vector<FeatureMap> parts = cm.split(ConsensusMap::SplitMeta::DISCARD);
+    ABORT_IF(parts.size() != 2);
+    TEST_EQUAL(parts[0].getIdentificationData().empty(), false)
+    TEST_EQUAL(content(parts[0]), isobaric ? "AAA | WWW | LLL KKK | run_0| run_1" : "AAA | | LLL | run_0")
+    TEST_EQUAL(content(parts[1]), isobaric ? "| | " : "| WWW | KKK | run_1")
   }
 }
 END_SECTION
@@ -945,18 +911,22 @@ START_SECTION([EXTRA] split() with non-contiguous column keys (map indices 0 and
   ConsensusFeature cf;
   cf.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
   cf.insert(FeatureHandle(3, Peak2D({ 11, 434.33 }, 200000), 0));
+  using namespace OpenMS::Internal::ClassTest;
+  MapPeptideIdentifications ids;
   PeptideIdentification id3;
   id3.setRT(11);
   id3.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("WWW")));
   id3.setMetaValue("map_index", 3);
-  cf.getPeptideIdentifications().push_back(id3);
+  ids.features[{0}].push_back(id3);
   cf.setMetaValue("test", "some information");
   cm.push_back(cf);
 
   PeptideIdentification uid3;
   uid3.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("KKK")));
   uid3.setMetaValue("map_index", 3);
-  cm.getUnassignedPeptideIdentifications().push_back(uid3);
+  ids.unassigned.push_back(uid3);
+  addSearchRun(ids);
+  setIdentifications(cm, ids);
 
   vector<FeatureMap> fmaps = cm.split(ConsensusMap::SplitMeta::COPY_ALL);
   ABORT_IF(fmaps.size() != 2);
@@ -965,15 +935,17 @@ START_SECTION([EXTRA] split() with non-contiguous column keys (map indices 0 and
   // position 0 <-> map index 0
   TEST_EQUAL(fmaps[0][0].getRT(), 10);
   TEST_EQUAL(fmaps[0][0].getIntensity(), 100000);
-  TEST_EQUAL(fmaps[0][0].getPeptideIdentifications().empty(), true);
-  TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications().empty(), true);
+  TEST_EQUAL(peptidesOf(fmaps[0], {0}).empty(), true);
+  TEST_EQUAL(unassignedOf(fmaps[0]).empty(), true);
   // position 1 <-> map index 3
   TEST_EQUAL(fmaps[1][0].getRT(), 11);
   TEST_EQUAL(fmaps[1][0].getIntensity(), 200000);
-  ABORT_IF(fmaps[1][0].getPeptideIdentifications().size() != 1);
-  TEST_EQUAL(fmaps[1][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "WWW");
-  ABORT_IF(fmaps[1].getUnassignedPeptideIdentifications().size() != 1);
-  TEST_EQUAL(fmaps[1].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "KKK");
+  const auto peptides1 = peptidesOf(fmaps[1], {0});
+  ABORT_IF(peptides1.size() != 1);
+  TEST_EQUAL(peptides1[0].getHits()[0].getSequence().toString(), "WWW");
+  const auto unassigned1 = unassignedOf(fmaps[1]);
+  ABORT_IF(unassigned1.size() != 1);
+  TEST_EQUAL(unassigned1[0].getHits()[0].getSequence().toString(), "KKK");
   // COPY_ALL: the meta values of the consensus feature reach both maps
   TEST_EQUAL(fmaps[0][0].getMetaValue("test"), "some information");
   TEST_EQUAL(fmaps[1][0].getMetaValue("test"), "some information");
@@ -1019,8 +991,11 @@ START_SECTION([EXTRA] split() throws Exception::ElementNotFound for a map index 
     PeptideIdentification id;
     id.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("AAA")));
     id.setMetaValue("map_index", 5);
-    cf.getPeptideIdentifications().push_back(id);
     cm_pep.push_back(cf);
+    MapPeptideIdentifications ids;
+    ids.features[{cm_pep.size() - 1}].push_back(id);
+    Internal::ClassTest::addSearchRun(ids);
+    Internal::ClassTest::setIdentifications(cm_pep, ids);
     TEST_EXCEPTION(Exception::ElementNotFound, cm_pep.split());
   }
   // an unassigned PeptideIdentification whose 'map_index' is not a column header
@@ -1029,7 +1004,10 @@ START_SECTION([EXTRA] split() throws Exception::ElementNotFound for a map index 
     PeptideIdentification uid;
     uid.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("LLL")));
     uid.setMetaValue("map_index", 7);
-    cm_upep.getUnassignedPeptideIdentifications().push_back(uid);
+    MapPeptideIdentifications ids;
+    ids.unassigned.push_back(uid);
+    Internal::ClassTest::addSearchRun(ids);
+    Internal::ClassTest::setIdentifications(cm_upep, ids);
     TEST_EXCEPTION_WITH_MESSAGE(Exception::ElementNotFound, cm_upep.split(),
       "the element 'Map index 7 does not name a column of this ConsensusMap. Check input!' could not be found");
   }

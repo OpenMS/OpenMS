@@ -643,7 +643,6 @@ namespace OpenMS
     }
 
     // the identifications of the map (if any) as identification data, to which the search adds a run
-    IdentificationDataConverter::moveToIdentificationData(fmap);
     IdentificationData::Run& run = addAnnotationRun_(fmap.getIdentificationData(), "AccurateMassSearch");
 
     // map for storing overall results
@@ -829,7 +828,6 @@ namespace OpenMS
     }
 
     // the identifications of the map (if any) as identification data, to which the search adds a run
-    IdentificationDataConverter::moveToIdentificationData(cmap);
     IdentificationData::Run& run = addAnnotationRun_(cmap.getIdentificationData(), search_engine_identifier);
 
     // map for storing overall results

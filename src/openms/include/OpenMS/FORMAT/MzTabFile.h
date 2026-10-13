@@ -60,6 +60,19 @@ namespace OpenMS
       const bool export_empty_pep_ids = false,
       const bool export_all_psms = false) const;
 
+    /// Same as above, with the identifications @p ids of @p cmap (see IdentificationDataConverter::exportMapIdentifications()),
+    /// e.g. with the quantified protein run first
+    void store(
+      const std::string& filename,
+      const ConsensusMap& cmap,
+      MapPeptideIdentifications ids,
+      const bool first_run_inference_only,
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids,
+      const bool export_subfeatures,
+      const bool export_empty_pep_ids = false,
+      const bool export_all_psms = false) const;
+
     // Set store behaviour of optional "reliability" and "uri" columns (default=no)
     void storeProteinReliabilityColumn(bool store);
     void storePeptideReliabilityColumn(bool store);

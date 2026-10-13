@@ -113,10 +113,9 @@ namespace
     return f;
   }
 
-  Feature makeDonorFeature(double rt, double mz, Int charge, double intensity, UInt64 uid,
-                           const AASequence& seq)
+  // The peptide ID that makes a feature a donor (identified)
+  PeptideIdentification donorID(Int charge, const AASequence& seq)
   {
-    Feature f = makeFeatureNoId(rt, mz, charge, intensity, uid);
     PeptideHit hit;
     hit.setSequence(seq);
     hit.setCharge(charge);
@@ -127,8 +126,7 @@ namespace
     pid.setScoreType("q-value");
     pid.setHigherScoreBetter(false);
     pid.setHits({hit});
-    f.setPeptideIdentifications({pid});
-    return f;
+    return pid;
   }
 
   // Build ~target_total features across `n_runs` pre-aligned runs.
@@ -204,6 +202,8 @@ namespace
 
     Dataset ds;
     ds.maps.resize(n_runs);
+    // the peptide IDs of the donors of each run
+    std::vector<MapPeptideIdentifications> donor_ids(n_runs);
     for (std::size_t r = 0; r < n_runs; ++r)
     {
       ds.maps[r].setPrimaryMSRunPath({"run" + std::to_string(r) + ".mzML"});
@@ -239,7 +239,8 @@ namespace
 
         if (identified)
         {
-          ds.maps[r].push_back(makeDonorFeature(rt, mz, mp.charge, intensity, uid, aaseq));
+          donor_ids[r].features[{ds.maps[r].size()}] = {donorID(mp.charge, aaseq)};
+          ds.maps[r].push_back(makeFeatureNoId(rt, mz, mp.charge, intensity, uid));
           donor_runs[mp.seq].insert(r);
           ++ds.n_donor_features;
         }
@@ -308,12 +309,12 @@ namespace
     }
 
     // the peptide IDs of the donors become identification data that the features link
-    for (auto& map : ds.maps)
+    for (std::size_t r = 0; r < n_runs; ++r)
     {
       ProteinIdentification search;
       search.setIdentifier("search");
-      map.setProteinIdentifications({search});
-      IdentificationDataConverter::moveToIdentificationData(map);
+      donor_ids[r].proteins = {search};
+      IdentificationDataConverter::importMapIdentifications(ds.maps[r], donor_ids[r]);
     }
     return ds;
   }

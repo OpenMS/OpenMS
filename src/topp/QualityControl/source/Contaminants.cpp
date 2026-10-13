@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include "Contaminants.h"
 #include <algorithm>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -20,7 +20,7 @@ namespace OpenMS
 
   void Contaminants::compute(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants)
   {
-    IdentificationDataConverter::editAsIdentificationData(features, [&](FeatureMap& map) { computeNative_(map, contaminants); });
+    computeNative_(features, contaminants);
   }
 
   void Contaminants::computeNative_(FeatureMap& features, const std::vector<FASTAFile::FASTAEntry>& contaminants)

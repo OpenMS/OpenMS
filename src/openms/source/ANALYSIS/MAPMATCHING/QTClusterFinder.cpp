@@ -101,17 +101,11 @@ struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
   void QTClusterFinder::run_(const vector<MapType>& maps,
                              ConsensusMap& result_map)
   {
-    const bool legacy = std::any_of(maps.begin(), maps.end(), [](const MapType& map) {
-      return IdentificationDataConverter::hasPeptideIdentifications(map);
-    });
-    vector<MapType> converted;
-    const vector<MapType>& input_maps = IdentificationDataConverter::withIdentificationData(maps, converted);
+    // the identifications of the maps are combined in the result (see FeatureGroupingAlgorithm::groupIdentifications())
+    vector<MapType> distinct;
+    const vector<MapType>& input_maps = IdentificationDataConverter::withDistinctRuns(maps, distinct);
     cluster_(input_maps, result_map);
     FeatureGroupingAlgorithm::groupIdentifications(input_maps, result_map);
-    if (legacy)
-    {
-      IdentificationDataConverter::exportConsensusIDs(result_map);
-    }
   }
 
   template <typename MapType>

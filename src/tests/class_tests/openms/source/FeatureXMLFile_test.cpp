@@ -519,10 +519,11 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
   TEST_TRUE(defineMod4b("TestFXML:Unassigned", 'R', "CH2") != nullptr)
   FeatureMap map;
   map.ensureUniqueId();
+  MapPeptideIdentifications ids;
   ProteinIdentification prot;
   prot.setIdentifier("run4b");
   prot.setDateTime(DateTime::now());
-  map.getProteinIdentifications().push_back(prot);
+  ids.proteins.push_back(prot);
 
   Feature f;
   f.setRT(100.0);
@@ -535,7 +536,7 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
   PeptideHit ha;
   ha.setSequence(AASequence::fromString("PEPK(TestFXML:Assigned)IDE"));
   pa.insertHit(ha);
-  f.getPeptideIdentifications().push_back(pa);
+  ids.features[{0}].push_back(pa);
   map.push_back(f);
 
   PeptideIdentification pu;
@@ -544,7 +545,8 @@ START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and un
   PeptideHit hu;
   hu.setSequence(AASequence::fromString("PEPR(TestFXML:Unassigned)IDE"));
   pu.insertHit(hu);
-  map.getUnassignedPeptideIdentifications().push_back(pu);
+  ids.unassigned.push_back(pu);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename)
@@ -579,9 +581,11 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
   prot.setIdentifier("run4b_fresh");
   prot.setDateTime(DateTime::now());
   ProteinIdentification::SearchParameters sp;
-  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestFXML:Fresh", 'K', "C2H2O"));
+  // the definition under a stand-in name: giving the map its identifications registers the definitions
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestFXML:Stand", 'K', "C2H2O"));
   prot.setSearchParameters(sp);
-  map.getProteinIdentifications().push_back(prot);
+  MapPeptideIdentifications ids;
+  ids.proteins.push_back(prot);
   Feature f;
   f.setRT(100.0);
   f.setMZ(500.0);
@@ -593,14 +597,17 @@ START_SECTION([EXTRA] load - definitions are registered before the sequences are
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTKIDE"));
   pep.insertHit(hit);
-  f.getPeptideIdentifications().push_back(pep);
+  ids.features[{0}].push_back(pep);
   map.push_back(f);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename)
   FeatureXMLFile().store(tmp_filename, map);
   TEST_FALSE(db->hasDefinedModification("TestFXML:Fresh")) // storing registers nothing
-  // a hit using the not-yet-registered name, as a file from another process would carry it
+  // a definition and a hit using the not-yet-registered name, as a file from another process would carry them
+  TEST_TRUE(replaceInFile4b(tmp_filename, "TestFXML:Stand", "TestFXML:Fresh"))
+  while (replaceInFile4b(tmp_filename, "TestFXML:Stand", "TestFXML:Fresh")) {}
   TEST_TRUE(replaceInFile4b(tmp_filename, "sequence=\"PEPTKIDE\"", "sequence=\"PEPTK(TestFXML:Fresh)IDE\""))
 
   FeatureMap in;
@@ -622,7 +629,8 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   ProteinIdentification run; // no protein hits, e.g. a de novo or peptidomics search
   run.setIdentifier("search");
   run.setDateTime(DateTime::now());
-  map.setProteinIdentifications({run});
+  MapPeptideIdentifications ids;
+  ids.proteins = {run};
   Feature feature;
   feature.setRT(100.0);
   feature.setMZ(500.0);
@@ -632,27 +640,28 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTIDE"));
   peptide.insertHit(hit);
-  feature.getPeptideIdentifications().push_back(peptide);
+  ids.features[{0}].push_back(peptide);
   map.push_back(feature);
-  map.getUnassignedPeptideIdentifications().push_back(peptide);
+  ids.unassigned.push_back(peptide);
   map.ensureUniqueId();
   map[0].setUniqueId(1);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 
-  // not omitted: storing fails before the file is opened
+  // not omitted: the map cannot have them
   for (int assigned = 0; assigned < 2; ++assigned)
   {
     FeatureMap bad = map;
-    (assigned ? bad[0].getPeptideIdentifications() : bad.getUnassignedPeptideIdentifications())[0].setIdentifier("other");
-    std::string bad_file;
-    NEW_TMP_FILE_EXT(bad_file, ".featureXML")
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, FeatureXMLFile().store(bad_file, bad), message)
-    TEST_FALSE(File::exists(bad_file))
+    auto bad_ids = ids;
+    (assigned ? bad_ids.features[{0}] : bad_ids.unassigned)[0].setIdentifier("other");
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(bad, bad_ids), message)
   }
 
   // a protein that is no protein hit of the run cannot be referenced (it was written as "PH_0", i.e. another protein)
   {
     FeatureMap bad = map;
-    bad.getUnassignedPeptideIdentifications()[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_X", 0, 6, '-', '-'));
+    auto bad_ids = ids;
+    bad_ids.unassigned[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_X", 0, 6, '-', '-'));
+    IdentificationDataConverter::importMapIdentifications(bad, bad_ids);
     std::string bad_file;
     NEW_TMP_FILE_EXT(bad_file, ".featureXML")
     TEST_EXCEPTION(Exception::ElementNotFound, FeatureXMLFile().store(bad_file, bad))
@@ -690,13 +699,15 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   // for unknown accessions by former versions, cannot be loaded)
   {
     FeatureMap two_runs = map;
+    auto two_runs_ids = ids;
     ProteinIdentification other;
     other.setIdentifier("other");
     other.setDateTime(DateTime::now());
     other.insertHit(ProteinHit(0.0, 1, "PROT_B", ""));
-    two_runs.getProteinIdentifications()[0].insertHit(ProteinHit(0.0, 1, "PROT_A", ""));
-    two_runs.getProteinIdentifications().push_back(other);
-    two_runs.getUnassignedPeptideIdentifications()[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_A", 0, 6, '-', '-'));
+    two_runs_ids.proteins[0].insertHit(ProteinHit(0.0, 1, "PROT_A", ""));
+    two_runs_ids.proteins.push_back(other);
+    two_runs_ids.unassigned[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_A", 0, 6, '-', '-'));
+    IdentificationDataConverter::importMapIdentifications(two_runs, two_runs_ids);
     std::string two_runs_file;
     NEW_TMP_FILE_EXT(two_runs_file, ".featureXML")
     FeatureXMLFile().store(two_runs_file, two_runs);
@@ -724,35 +735,37 @@ START_SECTION([EXTRA] store/load - every peptide identification needs its protei
   // up as "A_B_C" when writing, so a peptide hit referenced the protein of the other run)
   {
     FeatureMap runs = map;
-    runs.getUnassignedPeptideIdentifications().clear();
+    auto runs_ids = ids;
+    runs_ids.unassigned.clear();
     for (const auto& [identifier, accession] : std::vector<std::pair<std::string, std::string>>{{"A", "B_C"}, {"A_B", "C"}})
     {
       ProteinIdentification protein_run;
       protein_run.setIdentifier(identifier);
       protein_run.setDateTime(DateTime::now());
       protein_run.insertHit(ProteinHit(0.0, 1, accession, ""));
-      runs.getProteinIdentifications().push_back(protein_run);
+      runs_ids.proteins.push_back(protein_run);
       PeptideIdentification run_peptide = peptide;
       run_peptide.setIdentifier(identifier);
       run_peptide.getHits()[0].addPeptideEvidence(PeptideEvidence(accession, 0, 6, '-', '-'));
-      runs.getUnassignedPeptideIdentifications().push_back(run_peptide);
+      runs_ids.unassigned.push_back(run_peptide);
     }
+    IdentificationDataConverter::importMapIdentifications(runs, runs_ids);
     std::string runs_file;
     NEW_TMP_FILE_EXT(runs_file, ".featureXML")
     FeatureXMLFile().store(runs_file, runs);
     FeatureMap runs_in;
     FeatureXMLFile().load(runs_file, runs_in);
-    const MapPeptideIdentifications runs_ids = IdentificationDataConverter::exportMapIdentifications(runs_in);
-    ABORT_IF(runs_ids.unassigned.size() != 2 || runs_ids.proteins.size() != 3)
+    const MapPeptideIdentifications runs_in_ids = IdentificationDataConverter::exportMapIdentifications(runs_in);
+    ABORT_IF(runs_in_ids.unassigned.size() != 2 || runs_in_ids.proteins.size() != 3)
     for (Size i = 0; i < 2; ++i) // (run identifiers are made unique on load)
     {
-      const PeptideIdentification& run_peptide = runs_ids.unassigned[i];
-      const ProteinIdentification& protein_run = runs_ids.proteins[i + 1];
+      const PeptideIdentification& run_peptide = runs_in_ids.unassigned[i];
+      const ProteinIdentification& protein_run = runs_in_ids.proteins[i + 1];
       TEST_EQUAL(run_peptide.getIdentifier(), protein_run.getIdentifier())
       TEST_EQUAL(run_peptide.getHits()[0].getPeptideEvidences()[0].getProteinAccession(), protein_run.getHits()[0].getAccession())
     }
-    TEST_EQUAL(runs_ids.proteins[1].getHits()[0].getAccession(), "B_C")
-    TEST_EQUAL(runs_ids.proteins[2].getHits()[0].getAccession(), "C")
+    TEST_EQUAL(runs_in_ids.proteins[1].getHits()[0].getAccession(), "B_C")
+    TEST_EQUAL(runs_in_ids.proteins[2].getHits()[0].getAccession(), "C")
   }
 }
 END_SECTION
@@ -762,7 +775,7 @@ END_SECTION
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
 VALIDATE_TMP_FILES
 
-START_SECTION([EXTRA] native identifications of a map without legacy ones are written as legacy identifications)
+START_SECTION([EXTRA] the identification data of a map is written as peptide and protein identifications)
 {
   using ID = IdentificationData;
   FeatureMap map;
@@ -811,9 +824,6 @@ START_SECTION([EXTRA] native identifications of a map without legacy ones are wr
   FeatureMap again;
   FeatureXMLFile().load(file, again);
   TEST_REAL_SIMILAR(IdentificationDataConverter::exportMapIdentifications(again).at({0})[0].getHits()[0].getScore(), 0.5)
-  // A map holds its identifications as peptide identifications or as identification data, not both.
-  loaded[0].getPeptideIdentifications().push_back(PeptideIdentification());
-  TEST_EXCEPTION(Exception::InvalidParameter, FeatureXMLFile().store(file, loaded))
 }
 END_SECTION
 

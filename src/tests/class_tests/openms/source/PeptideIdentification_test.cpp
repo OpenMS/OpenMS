@@ -17,7 +17,6 @@
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -423,47 +422,22 @@ START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vecto
 }
 END_SECTION
 
-START_SECTION((static std::multimap<String, std::pair<Size, Size>> buildUIDsFromAllPepIDs(const ConsensusMap &cmap)))
+START_SECTION((static std::string buildUIDFromPepID(const PeptideIdentification& pep_id, const IdentifierMSRunMapper& mapping)))
 {
   ConsensusMap cmap;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap);
-  IdentificationDataConverter::moveToPeptideIdentifications(cmap); // a legacy fixture (loading gives identification data)
-  std::multimap<std::string, std::pair<Size, Size>> map_of_UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
+  // the identifications of the map as peptide identifications
+  const auto ids = IdentificationDataConverter::exportMapIdentifications(cmap);
+  IdentifierMSRunMapper mapping(ids.proteins);
 
-  auto b = map_of_UIDs.begin();
-  TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=112")
-  TEST_EQUAL(b->second.first, Size(-1))
-  TEST_EQUAL(b->second.second, 4)
-  ++b;
-  TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=113")
-  TEST_EQUAL(b->second.first, 11)
-  TEST_EQUAL(b->second.second, 0)
-  ++b;
-  TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=118")
-  TEST_EQUAL(b->second.first, 4)
-  TEST_EQUAL(b->second.second, 0)
-
-  FeatureMap fmap;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap);
-  IdentificationDataConverter::moveToPeptideIdentifications(fmap); // a legacy fixture (loading gives identification data)
-  IdentifierMSRunMapper mapping(cmap.getProteinIdentifications());
-
-  std::string uid_zero = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[0], mapping);
-  std::string uid_one = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[1], mapping);
-  std::string uid_two = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[2], mapping);
+  const auto& peptides = ids.at({0});
+  std::string uid_zero = PeptideIdentification::buildUIDFromPepID(peptides[0], mapping);
+  std::string uid_one = PeptideIdentification::buildUIDFromPepID(peptides[1], mapping);
+  std::string uid_two = PeptideIdentification::buildUIDFromPepID(peptides[2], mapping);
 
   TEST_EQUAL(uid_zero,"file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=219")
   TEST_EQUAL(uid_one, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_1.mzML|spectrum=33")
   TEST_EQUAL(uid_two, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_2_.mzML|spectrum=133")
-}
-END_SECTION
-
-START_SECTION((static std::string buildUIDFromPepID(const PeptideIdentification& pep_id, const IdentifierMSRunMapper& mapping)))
-{
-      NOT_TESTABLE //Tested above
 }
 END_SECTION
 

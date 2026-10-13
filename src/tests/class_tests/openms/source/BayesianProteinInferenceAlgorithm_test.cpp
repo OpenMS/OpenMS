@@ -373,26 +373,17 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
       TEST_REAL_SIMILAR(psms.at("PEPTIDED"), 0.9)
       TEST_NOT_EQUAL(psms.at("PEPTIDEA"), 0.99)
 
-      // the result is the legacy protein run
-      IdentificationDataConverter::exportConsensusIDs(map);
-      TEST_EQUAL(map.getProteinIdentifications().size(), 1)
-      ABORT_IF(map.getProteinIdentifications().size() != 1)
-      TEST_EQUAL(map.getProteinIdentifications()[0].getInferenceEngine(), "Epifany")
-      TEST_EQUAL(map.getProteinIdentifications()[0].getHits().size(), 4)
-      TEST_EQUAL(map[0].getPeptideIdentifications()[0].getScoreType(), "Posterior Probability")
-
-      // a map with peptide identifications is converted for inference: same result
-      auto legacy = nativeMap();
-      IdentificationDataConverter::exportConsensusIDs(legacy);
-      bpia.inferPosteriorProbabilities(legacy, false);
-      TEST_EQUAL(legacy.getIdentificationData().empty(), true)
-      TEST_EQUAL(legacy.getProteinIdentifications().size(), 1)
-      ABORT_IF(legacy.getProteinIdentifications().size() != 1)
-      for (const auto& hit : legacy.getProteinIdentifications()[0].getHits())
+      // the result is the protein run of the map
+      const auto exported = IdentificationDataConverter::exportMapIdentifications(map);
+      TEST_EQUAL(exported.proteins.size(), 1)
+      ABORT_IF(exported.proteins.size() != 1)
+      TEST_EQUAL(exported.proteins[0].getInferenceEngine(), "Epifany")
+      TEST_EQUAL(exported.proteins[0].getHits().size(), 4)
+      for (const auto& hit : exported.proteins[0].getHits())
       {
         TEST_REAL_SIMILAR(scores.at(hit.getAccession()), hit.getScore())
       }
-      TEST_REAL_SIMILAR(legacy[0].getPeptideIdentifications()[0].getHits()[0].getScore(), psms.at("PEPTIDEA"))
+      TEST_EQUAL(exported.at({0})[0].getScoreType(), "Posterior Probability")
     }
     END_SECTION
 
@@ -451,12 +442,13 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
       auto second = nativeMap();
       map.getIdentificationData().merge(second.getIdentificationData());
       TEST_EXCEPTION(Exception::MissingInformation, bpia.inferPosteriorProbabilities(map, false))
-      // two legacy protein runs
-      auto legacy = nativeMap();
-      IdentificationDataConverter::exportConsensusIDs(legacy);
-      legacy.getProteinIdentifications().push_back(legacy.getProteinIdentifications()[0]);
-      legacy.getProteinIdentifications()[1].setIdentifier("other");
-      TEST_EXCEPTION(Exception::MissingInformation, bpia.inferPosteriorProbabilities(legacy, false))
+      // two protein runs, one of them without peptide identifications
+      auto two_runs = nativeMap();
+      auto ids = IdentificationDataConverter::exportMapIdentifications(two_runs);
+      ids.proteins.push_back(ids.proteins[0]);
+      ids.proteins[1].setIdentifier("other");
+      IdentificationDataConverter::importMapIdentifications(two_runs, ids);
+      TEST_EXCEPTION(Exception::MissingInformation, bpia.inferPosteriorProbabilities(two_runs, false))
       // no (error) probabilities
       auto scored = nativeMap("XTandem");
       TEST_EXCEPTION(Exception::MissingInformation, bpia.inferPosteriorProbabilities(scored, false))

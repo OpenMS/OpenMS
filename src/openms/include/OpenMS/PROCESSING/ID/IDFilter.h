@@ -703,8 +703,7 @@ namespace OpenMS
      * @brief Extracts all proteins not matched by PSMs in features
      *
      * The proteins come from the identification data of @p cmap: those of the inference result that covers a run
-     * (as its legacy protein run), else the database sequences of the run. Maps with peptide identifications are
-     * converted for this (IdentificationDataConverter::editAsIdentificationData()).
+     * (as its legacy protein run), else the database sequences of the run.
      *
      * @param[in] cmap the Input ConsensusMap
      * @return extracted ProteinHits for every IDRun (by the identifier of its legacy protein run)
@@ -740,8 +739,7 @@ namespace OpenMS
        or if requested in the unassigned peptide list
 
        The proteins of a run are those of the inference result that covers it (as its legacy protein run), else its
-       database sequences; the peptides of the features are the matches they link. Maps with peptide identifications
-       are converted for this (IdentificationDataConverter::editAsIdentificationData()).
+       database sequences; the peptides of the features are the matches they link.
     */
     static void removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned);
 
@@ -782,8 +780,7 @@ namespace OpenMS
              protein run of @p cmap are kept. The matching is done per identification run.
 
        In identification data, the proteins of a run are those of the inference result that covers it, else its
-       database sequences, and peptide hits are matches; removing a match keeps its identification. Maps with
-       peptide identifications are converted for this (IdentificationDataConverter::editAsIdentificationData()).
+       database sequences, and peptide hits are matches; removing a match keeps its identification.
     */
     static void removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false);
 
@@ -1205,8 +1202,7 @@ namespace OpenMS
        @brief Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum
 
        Works on identification data: each identification keeps its @p n best matches by primary score (the first
-       ones of equal scores, matches without a score last). Maps with peptide identifications are converted for this
-       (IdentificationDataConverter::editAsIdentificationData()).
+       ones of equal scores, matches without a score last).
     */
     static void keepNBestPeptideHits(FeatureMap& map, Size n);
     static void keepNBestPeptideHits(ConsensusMap& map, Size n);
@@ -1217,8 +1213,7 @@ namespace OpenMS
        As filterHitsByScore() for peptide identifications, for the identifications that features link and the
        unassigned ones. Works on identification data: matches whose primary score is not at least as good as
        @p threshold_score (score orientation is taken into account) or that have no primary score value are erased;
-       identifications stay, also without matches. Maps with peptide identifications are converted for this
-       (IdentificationDataConverter::editAsIdentificationData()).
+       identifications stay, also without matches.
     */
     static void filterHitsByScore(FeatureMap& map, double threshold_score);
     static void filterHitsByScore(ConsensusMap& map, double threshold_score);
@@ -1228,8 +1223,7 @@ namespace OpenMS
 
        As keepUniquePeptidesPerProtein() for peptide identifications, for the identifications that features link and
        the unassigned ones: matches without the meta value 'protein_references' (added by PeptideIndexer) or whose
-       value is not 'unique' are erased. Works on identification data; maps with peptide identifications are converted
-       for this (IdentificationDataConverter::editAsIdentificationData()).
+       value is not 'unique' are erased. Works on identification data.
     */
     static void keepUniquePeptidesPerProtein(FeatureMap& map);
     static void keepUniquePeptidesPerProtein(ConsensusMap& map);
@@ -1238,8 +1232,7 @@ namespace OpenMS
        @brief Removes the peptide identifications without hits of a Consensus/FeatureMap
 
        Works on identification data: identifications without matches are erased, and features no longer link an
-       identification without any of its matches (whose legacy peptide identification has no hits). Maps with
-       peptide identifications are converted for this (IdentificationDataConverter::editAsIdentificationData()).
+       identification without any of its matches (whose legacy peptide identification has no hits).
     */
     static void removeEmptyIdentifications(FeatureMap& map);
     static void removeEmptyIdentifications(ConsensusMap& map);
@@ -1264,8 +1257,7 @@ namespace OpenMS
        (meta value "best_per_peptide"; see annotateBestPerPeptideWithData())
 
        Works on identification data: the matches that features link count once per feature, the unassigned ones
-       once; the protein run of a run is the inference result that covers it, else the run itself. Maps with peptide
-       identifications are converted for this (IdentificationDataConverter::editAsIdentificationData()).
+       once; the protein run of a run is the inference result that covers it, else the run itself.
     */
     static void annotateBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);
     static void annotateBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum);

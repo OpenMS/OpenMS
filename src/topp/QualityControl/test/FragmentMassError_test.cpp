@@ -94,7 +94,8 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   Feature feat_empty;
 
   // put valid data in fmap
-  fmap.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::1", "HIMALAYA", 1, 888), createPeptideIdentification("XTandem::2", "ALABAMA", 2, 264), pep_id_empty});
+  MapPeptideIdentifications fmap_ids;
+  fmap_ids.unassigned = {createPeptideIdentification("XTandem::1", "HIMALAYA", 1, 888), createPeptideIdentification("XTandem::2", "ALABAMA", 2, 264), pep_id_empty};
   fmap.push_back(feat_empty);
   // set ProteinIdentifications
   ProteinIdentification protId;
@@ -102,7 +103,8 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   param.fragment_mass_tolerance_ppm = false;
   param.fragment_mass_tolerance = 0.3;
   protId.setSearchParameters(param);
-  fmap.setProteinIdentifications({protId});
+  fmap_ids.proteins = {protId};
+  IdentificationDataConverter::importMapIdentifications(fmap, fmap_ids);
 
   // MSExperiment
   MSExperiment exp;
@@ -175,14 +177,17 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   // featureMap whose search run has no fragment mass tolerance
   {
     FeatureMap fmap_auto = fmap;
-    fmap_auto.getProteinIdentifications()[0].setSearchParameters(ProteinIdentification::SearchParameters());
+    auto ids = fmap_ids;
+    ids.proteins[0].setSearchParameters(ProteinIdentification::SearchParameters());
+    IdentificationDataConverter::importMapIdentifications(fmap_auto, ids);
     TEST_EXCEPTION(Exception::MissingInformation, frag_ma_err.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
   }
-  // featureMap with peptide identifications but without their search run (ProteinIdentification): not valid input
+  // peptide identifications without their search run (ProteinIdentification) cannot be the identifications of a map
   {
     FeatureMap fmap_auto = fmap;
-    fmap_auto.getProteinIdentifications().clear();
-    TEST_EXCEPTION(Exception::InvalidParameter, frag_ma_err.compute(fmap_auto, exp, spectra_map, QCBase::ToleranceUnit::AUTO))
+    auto ids = fmap_ids;
+    ids.proteins.clear();
+    TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(fmap_auto, ids))
   }
 
   //--------------------------------------------------------------------
@@ -201,8 +206,9 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   //--------------------------------------------------------------------
 
   // fmap with PeptideIdentification with RT matching to a MS1 Spectrum
-  fmap.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::3")});
-  Internal::ClassTest::addSearchRun(fmap); // the run of the map
+  fmap_ids.unassigned = {createPeptideIdentification("XTandem::3")};
+  Internal::ClassTest::addSearchRun(fmap_ids); // the run of the map
+  Internal::ClassTest::setIdentifications(fmap, fmap_ids);
 
   // set MS1 Spectrum to exp
   exp.setSpectra({createMSSpectrum(1, 5, "XTandem::3")});
@@ -216,9 +222,11 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
 
   // put PeptideIdentification with RT matching to MSSpectrum with fragmentation method SORI to fmap
   FeatureMap fmap_sori;
-  fmap_sori.setProteinIdentifications({protId});
-  fmap_sori.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::5")});
-  Internal::ClassTest::addSearchRun(fmap_sori); // the run of the map
+  MapPeptideIdentifications sori_ids;
+  sori_ids.proteins = {protId};
+  sori_ids.unassigned = {createPeptideIdentification("XTandem::5")};
+  Internal::ClassTest::addSearchRun(sori_ids); // the run of the map
+  Internal::ClassTest::setIdentifications(fmap_sori, sori_ids);
 
   // MSExperiment with fragmentation method SORI (not supported)
   exp.setSpectra({createMSSpectrum(2, 7, "XTandem::5", Precursor::ActivationMethod::SORI)});
@@ -231,8 +239,9 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   //--------------------------------------------------------------------
 
   // put PeptideIdentification with RT matching to MSSpectrum with no peaks to fmap
-  fmap.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::6")});
-  Internal::ClassTest::addSearchRun(fmap); // the run of the map
+  fmap_ids.unassigned = {createPeptideIdentification("XTandem::6")};
+  Internal::ClassTest::addSearchRun(fmap_ids); // the run of the map
+  Internal::ClassTest::setIdentifications(fmap, fmap_ids);
 
   // MSExperiment without peaks
   exp.setSpectra({createMSSpectrum(2, 4, "XTandem::6")});
@@ -354,12 +363,14 @@ START_SECTION(void compute(PeptideIdentificationList& pep_ids, const ProteinIden
 
     // run the FeatureMap overload (already-correct reference) on the SAME data
     FeatureMap fmap_var;
-    fmap_var.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::1", "HIMALAYA", 1, 888),
-                                                  createPeptideIdentification("XTandem::2", "ALABAMA", 2, 264)});
+    MapPeptideIdentifications ids_var;
+    ids_var.unassigned = {createPeptideIdentification("XTandem::1", "HIMALAYA", 1, 888),
+                          createPeptideIdentification("XTandem::2", "ALABAMA", 2, 264)};
     fmap_var.push_back(Feature());
     ProteinIdentification protId_var;
     protId_var.setSearchParameters(param);
-    fmap_var.setProteinIdentifications({protId_var});
+    ids_var.proteins = {protId_var};
+    IdentificationDataConverter::importMapIdentifications(fmap_var, ids_var);
     FragmentMassError frag_ma_err_fmap_var;
     frag_ma_err_fmap_var.compute(fmap_var, exp_var, spectra_map_var);
     const FragmentMassError::Statistics fmap_result = frag_ma_err_fmap_var.getResults()[0];

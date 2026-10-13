@@ -15,7 +15,6 @@
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -170,7 +169,7 @@ namespace OpenMS
 
   void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
-    IdentificationDataConverter::editAsIdentificationData(fmap, [&](FeatureMap& map) { computeNative_(map, exp, map_to_spectrum, tolerance_unit, tolerance); });
+    computeNative_(fmap, exp, map_to_spectrum, tolerance_unit, tolerance);
   }
 
   void FragmentMassError::computeNative_(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)

@@ -177,7 +177,8 @@ namespace OpenMS
 
     // copy meta data
     fm_.setIdentifier(fm.getIdentifier());
-    fm_.setProteinIdentifications(fm.getProteinIdentifications());
+    // the identifications of the visible features, with the protein runs
+    fm_.getIdentificationData() = fm.getIdentificationData();
     // copy features
     for (auto it = fm.begin(); it != fm.end(); ++it)
     {
@@ -186,6 +187,7 @@ namespace OpenMS
         fm_.push_back(*it);
       }
     }
+    fm_.eraseUnassignedIdentifications();
   }
 
   void LayerStoreDataFeatureMapAll::saveToFile(const std::string& path, const ProgressLogger::LogType lt) const

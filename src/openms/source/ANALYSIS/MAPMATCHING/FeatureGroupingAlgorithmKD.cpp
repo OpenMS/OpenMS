@@ -271,13 +271,13 @@ namespace OpenMS
   void FeatureGroupingAlgorithmKD::group(const std::vector<FeatureMap>& maps,
                                          ConsensusMap& out)
   {
-    groupWithIdentificationData_(maps, out, [&](const std::vector<FeatureMap>& inputs) { group_(inputs, out); });
+    groupWithDistinctRuns_(maps, [&](const std::vector<FeatureMap>& inputs) { group_(inputs, out); });
   }
 
   void FeatureGroupingAlgorithmKD::group(const std::vector<ConsensusMap>& maps,
                                          ConsensusMap& out)
   {
-    groupWithIdentificationData_(maps, out, [&](const std::vector<ConsensusMap>& inputs) { group_(inputs, out); });
+    groupWithDistinctRuns_(maps, [&](const std::vector<ConsensusMap>& inputs) { group_(inputs, out); });
   }
 
   void FeatureGroupingAlgorithmKD::runClustering_(const KDTreeFeatureMaps& kd_data, ConsensusMap& out)

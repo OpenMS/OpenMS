@@ -12,7 +12,6 @@
 
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -167,8 +166,7 @@ namespace OpenMS
 
   Size InternalCalibration::fillCalibrants(const FeatureMap& features, double tol_ppm)
   {
-    std::optional<FeatureMap> converted;
-    const FeatureMap& fm = IdentificationDataConverter::withIdentificationData(features, converted);
+    const FeatureMap& fm = features;
     const auto& data = fm.getIdentificationData();
     const auto unassigned = fm.getUnassignedIdentifications();
     cal_data_.clear();

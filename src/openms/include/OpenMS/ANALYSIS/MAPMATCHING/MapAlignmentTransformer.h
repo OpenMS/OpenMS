@@ -39,8 +39,6 @@ namespace OpenMS
 
     /**
       @brief Applies the given transformation to a feature map (features and its identification data)
-
-      A map with peptide identifications is converted for this and back (IdentificationDataConverter::editAsIdentificationData()).
     */
     static void transformRetentionTimes(FeatureMap& fmap,
                                         const TransformationDescription& trafo,

@@ -9,7 +9,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -447,12 +447,6 @@ namespace OpenMS
                         << " hits (total) that were missing the required meta value ('protein_references', added by PeptideIndexer)." << endl;
       }
     }
-
-    template<class MapType>
-    void edit(MapType& map, const std::function<void(MapType&)>& operation)
-    {
-      IdentificationDataConverter::editAsIdentificationData(map, operation);
-    }
   } // namespace
 
 
@@ -637,35 +631,31 @@ namespace OpenMS
   map<std::string, vector<ProteinHit>> IDFilter::extractUnassignedProteins(ConsensusMap& cmap)
   {
     map<std::string, vector<ProteinHit>> result;
-    edit<ConsensusMap>(cmap, [&](ConsensusMap& map) {
-      auto& data = map.getIdentificationData();
-      // the accessions that peptides in features refer to, per protein run:
-      const auto referenced = referencedAccessions(map, false);
-      // every protein run is listed (by its legacy identifier), also without unassigned proteins:
-      for (const auto& result_item : data.getInferenceResults())
-      {
-        result[result_item.proteins.getIdentifier().empty() ? result_item.identifier : result_item.proteins.getIdentifier()];
-      }
-      for (const auto& run : data.getRuns())
-      {
-        if (proteinResult(data, run) == nullptr) result[IdentificationDataAdapter::legacyIdentifier(run)];
-      }
-      keepProteins(data, [&](const std::string& key, const std::string& accession) {
-        const auto found = referenced.find(key);
-        return found != referenced.end() && found->second.contains(accession);
-      }, &result);
-    });
+    auto& data = cmap.getIdentificationData();
+    // the accessions that peptides in features refer to, per protein run:
+    const auto referenced = referencedAccessions(cmap, false);
+    // every protein run is listed (by its legacy identifier), also without unassigned proteins:
+    for (const auto& result_item : data.getInferenceResults())
+    {
+      result[result_item.proteins.getIdentifier().empty() ? result_item.identifier : result_item.proteins.getIdentifier()];
+    }
+    for (const auto& run : data.getRuns())
+    {
+      if (proteinResult(data, run) == nullptr) result[IdentificationDataAdapter::legacyIdentifier(run)];
+    }
+    keepProteins(data, [&](const std::string& key, const std::string& accession) {
+      const auto found = referenced.find(key);
+      return found != referenced.end() && found->second.contains(accession);
+    }, &result);
     return result;
   }
 
   void IDFilter::removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned)
   {
-    edit<ConsensusMap>(cmap, [&](ConsensusMap& map) {
-      const auto referenced = referencedAccessions(map, include_unassigned);
-      keepProteins(map.getIdentificationData(), [&](const std::string& key, const std::string& accession) {
-        const auto found = referenced.find(key);
-        return found != referenced.end() && found->second.contains(accession);
-      });
+    const auto referenced = referencedAccessions(cmap, include_unassigned);
+    keepProteins(cmap.getIdentificationData(), [&](const std::string& key, const std::string& accession) {
+      const auto found = referenced.find(key);
+      return found != referenced.end() && found->second.contains(accession);
     });
   }
 
@@ -690,10 +680,8 @@ namespace OpenMS
 
   void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference)
   {
-    edit<ConsensusMap>(cmap, [&](ConsensusMap& map) {
-      const auto& data = map.getIdentificationData();
-      filterReferences(map, [&](const IdentificationData::Run& run) { return proteinAccessions(data, run); }, remove_peptides_without_reference);
-    });
+    const auto& data = cmap.getIdentificationData();
+    filterReferences(cmap, [&](const IdentificationData::Run& run) { return proteinAccessions(data, run); }, remove_peptides_without_reference);
   }
 
   void IDFilter::removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference)
@@ -703,9 +691,7 @@ namespace OpenMS
     {
       accessions.insert(hit.getAccession());
     }
-    edit<ConsensusMap>(cmap, [&](ConsensusMap& map) {
-      filterReferences(map, [&](const IdentificationData::Run&) { return accessions; }, remove_peptides_without_reference);
-    });
+    filterReferences(cmap, [&](const IdentificationData::Run&) { return accessions; }, remove_peptides_without_reference);
   }
 
   void IDFilter::filterHitsByScore(AnnotatedMSRun& annotated_data, double peptide_threshold_score, double protein_threshold_score)
@@ -772,62 +758,62 @@ namespace OpenMS
 
   void IDFilter::keepNBestPeptideHits(FeatureMap& map, Size n)
   {
-    edit<FeatureMap>(map, [&](FeatureMap& m) { keepNBest(m, n); });
+    keepNBest(map, n);
   }
 
   void IDFilter::keepNBestPeptideHits(ConsensusMap& map, Size n)
   {
-    edit<ConsensusMap>(map, [&](ConsensusMap& m) { keepNBest(m, n); });
+    keepNBest(map, n);
   }
 
   void IDFilter::filterHitsByScore(FeatureMap& map, double threshold_score)
   {
-    edit<FeatureMap>(map, [&](FeatureMap& m) { filterByScore(m, threshold_score); });
+    filterByScore(map, threshold_score);
   }
 
   void IDFilter::filterHitsByScore(ConsensusMap& map, double threshold_score)
   {
-    edit<ConsensusMap>(map, [&](ConsensusMap& m) { filterByScore(m, threshold_score); });
+    filterByScore(map, threshold_score);
   }
 
   void IDFilter::keepUniquePeptidesPerProtein(FeatureMap& map)
   {
-    edit<FeatureMap>(map, [](FeatureMap& m) { keepUnique(m); });
+    keepUnique(map);
   }
 
   void IDFilter::keepUniquePeptidesPerProtein(ConsensusMap& map)
   {
-    edit<ConsensusMap>(map, [](ConsensusMap& m) { keepUnique(m); });
+    keepUnique(map);
   }
 
   void IDFilter::removeEmptyIdentifications(FeatureMap& map)
   {
-    edit<FeatureMap>(map, [](FeatureMap& m) { removeEmpty(m); });
+    removeEmpty(map);
   }
 
   void IDFilter::removeEmptyIdentifications(ConsensusMap& map)
   {
-    edit<ConsensusMap>(map, [](ConsensusMap& m) { removeEmpty(m); });
+    removeEmpty(map);
   }
 
   void IDFilter::annotateBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
   {
-    edit<FeatureMap>(map, [&](FeatureMap& m) { annotateBestNative(m, ignore_mods, ignore_charges, nr_best_spectrum); });
+    annotateBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum);
   }
 
   void IDFilter::annotateBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
   {
-    edit<ConsensusMap>(map, [&](ConsensusMap& m) { annotateBestNative(m, ignore_mods, ignore_charges, nr_best_spectrum); });
+    annotateBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum);
   }
 
   void IDFilter::keepBestPerPeptidePerRun(FeatureMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
   {
-    edit<FeatureMap>(map, [&](FeatureMap& m) { keepBestNative(m, ignore_mods, ignore_charges, nr_best_spectrum); });
+    keepBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum);
   }
 
   void IDFilter::keepBestPerPeptidePerRun(ConsensusMap& map, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
   {
-    edit<ConsensusMap>(map, [&](ConsensusMap& m) { keepBestNative(m, ignore_mods, ignore_charges, nr_best_spectrum); });
+    keepBestNative(map, ignore_mods, ignore_charges, nr_best_spectrum);
   }
 
   void IDFilter::removeDanglingProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference)

@@ -209,9 +209,6 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
-      // sort list of peptide identifications in each consensus feature by map index
-      map.sortPeptideIdentificationsByMapIndex();
-
       consensusFile.storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
     }
 

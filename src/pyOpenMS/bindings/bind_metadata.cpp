@@ -364,14 +364,6 @@ loaders enforce this; the checks raise an error naming the first peptide identif
             "runs"_a, "identifier"_a, "Raises if the identifier names none of the runs")
         .def_static("check", [](const std::vector<OpenMS::ProteinIdentification>& runs, const OpenMS::PeptideIdentificationList& peptides) { OpenMS::ProteinRunReferences::check(runs, peptides); },
             "runs"_a, "peptides"_a, "Raises if a peptide identification names no protein identification run")
-        .def_static("check", [](const OpenMS::FeatureMap& map) { OpenMS::ProteinRunReferences::check(map); }, "map"_a,
-            "Raises if a peptide identification of a feature (or subordinate) or an unassigned one names no protein identification run")
-        .def_static("check", [](const OpenMS::ConsensusMap& map) { OpenMS::ProteinRunReferences::check(map); }, "map"_a,
-            "Raises if a peptide identification of a consensus feature or an unassigned one names no protein identification run")
-        .def_static("checkProteinAccessions", [](const OpenMS::FeatureMap& map) { OpenMS::ProteinRunReferences::checkProteinAccessions(map); }, "map"_a,
-            "Raises if a peptide evidence names a protein that is no protein hit of the peptide identification's run (featureXML references them there)")
-        .def_static("checkProteinAccessions", [](const OpenMS::ConsensusMap& map) { OpenMS::ProteinRunReferences::checkProteinAccessions(map); }, "map"_a,
-            "Raises if a peptide evidence names a protein that is no protein hit of the peptide identification's run (consensusXML references them there)")
         ;
 
     // -----------------------------------------------------------------------

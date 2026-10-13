@@ -114,8 +114,6 @@ namespace OpenMS
     ExposedVector<Feature>(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
-    protein_identifications_(),
-    unassigned_peptide_identifications_(),
     data_processing_(),
     id_data_()
   {
@@ -128,8 +126,6 @@ namespace OpenMS
       ExposedVector<Feature>(source),
       UniqueIdInterface(source),
       UniqueIdIndexer<FeatureMap>(source),
-      protein_identifications_(source.protein_identifications_),
-      unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
       data_processing_(source.data_processing_),
       id_data_(source.id_data_)
   {
@@ -150,8 +146,6 @@ namespace OpenMS
     DocumentIdentifier::operator=(rhs);
     UniqueIdInterface::operator=(rhs);
     data_ = rhs.data_;
-    protein_identifications_ = rhs.protein_identifications_;
-    unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
     data_processing_ = rhs.data_processing_;
 
     id_data_ = rhs.id_data_;
@@ -165,9 +159,7 @@ namespace OpenMS
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
     return data_ == rhs.data_ && MetaInfoInterface::operator==(rhs) && RangeManagerType::operator==(rhs) && DocumentIdentifier::operator==(rhs)
-           && UniqueIdInterface::operator==(rhs) && protein_identifications_ == rhs.protein_identifications_
-           && unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ && data_processing_ == rhs.data_processing_
-           && id_data_ == rhs.id_data_;
+           && UniqueIdInterface::operator==(rhs) && data_processing_ == rhs.data_processing_ && id_data_ == rhs.id_data_;
   }
 
   bool FeatureMap::operator!=(const FeatureMap& rhs) const
@@ -200,8 +192,6 @@ namespace OpenMS
     UniqueIdInterface::operator=(empty_map);
 
     // merge these:
-    protein_identifications_.insert(protein_identifications_.end(), rhs.protein_identifications_.begin(), rhs.protein_identifications_.end());
-    unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(), rhs.unassigned_peptide_identifications_.end());
     data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end());
 
     // append features:
@@ -342,64 +332,8 @@ namespace OpenMS
     UniqueIdIndexer<FeatureMap>::swap(from);
 
     // swap the remaining members
-    protein_identifications_.swap(from.protein_identifications_);
-    unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
     data_processing_.swap(from.data_processing_);
     id_data_.swap(from.id_data_);
-  }
-
-  const std::vector<ProteinIdentification>& FeatureMap::getProteinIdentifications() const
-  {
-    return protein_identifications_;
-  }
-
-  std::vector<ProteinIdentification>& FeatureMap::getProteinIdentifications()
-  {
-    return protein_identifications_;
-  }
-
-  void FeatureMap::setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
-  {
-    protein_identifications_ = protein_identifications;
-  }
-
-  const ProteinIdentification* FeatureMap::findProteinIdentification(const std::string& identifier) const
-  {
-    for (const auto& prot_id : protein_identifications_)
-    {
-      if (prot_id.getIdentifier() == identifier)
-      {
-        return &prot_id;
-      }
-    }
-    return nullptr;
-  }
-
-  ProteinIdentification* FeatureMap::findProteinIdentification(const std::string& identifier)
-  {
-    for (auto& prot_id : protein_identifications_)
-    {
-      if (prot_id.getIdentifier() == identifier)
-      {
-        return &prot_id;
-      }
-    }
-    return nullptr;
-  }
-
-  const PeptideIdentificationList& FeatureMap::getUnassignedPeptideIdentifications() const
-  {
-    return unassigned_peptide_identifications_;
-  }
-
-  PeptideIdentificationList& FeatureMap::getUnassignedPeptideIdentifications()
-  {
-    return unassigned_peptide_identifications_;
-  }
-
-  void FeatureMap::setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications)
-  {
-    unassigned_peptide_identifications_ = unassigned_peptide_identifications;
   }
 
   const std::vector<DataProcessing>& FeatureMap::getDataProcessing() const
@@ -480,8 +414,6 @@ namespace OpenMS
       clearRanges();
       this->DocumentIdentifier::operator=(DocumentIdentifier()); // no "clear" method
       clearUniqueId();
-      protein_identifications_.clear();
-      unassigned_peptide_identifications_.clear();
       data_processing_.clear();
       id_data_.clear();
     }
@@ -607,13 +539,10 @@ namespace OpenMS
     const auto clear = [](const auto& self, Feature& feature) -> void {
       feature.getIDQueries().clear();
       feature.getIDMatches().clear();
-      feature.getPeptideIdentifications().clear();
       for (auto& subordinate : feature.getSubordinates()) self(self, subordinate);
     };
     for (auto& feature : *this) clear(clear, feature);
     id_data_.clear();
-    protein_identifications_.clear();
-    unassigned_peptide_identifications_.clear();
   }
 
   Size FeatureMap::eraseUnassignedIdentifications()

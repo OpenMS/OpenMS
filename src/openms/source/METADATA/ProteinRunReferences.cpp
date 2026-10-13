@@ -9,8 +9,6 @@
 #include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
@@ -43,15 +41,6 @@ namespace OpenMS
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                             ProteinRunReferences::missingRunMessage(peptide.getIdentifier()));
         }
-      }
-    }
-
-    void checkFeature(const RunIdentifiers& runs, const Feature& feature)
-    {
-      checkPeptides(runs, feature.getPeptideIdentifications());
-      for (const auto& subordinate : feature.getSubordinates())
-      {
-        checkFeature(runs, subordinate);
       }
     }
 
@@ -107,14 +96,6 @@ namespace OpenMS
       }
     }
 
-    void checkFeatureAccessions(const RunAccessions& runs, const Feature& feature)
-    {
-      checkAccessions(runs, feature.getPeptideIdentifications());
-      for (const auto& subordinate : feature.getSubordinates())
-      {
-        checkFeatureAccessions(runs, subordinate);
-      }
-    }
   } // namespace
 
   std::string ProteinRunReferences::missingRunMessage(const std::string& identifier)
@@ -151,36 +132,6 @@ namespace OpenMS
     }
   }
 
-  void ProteinRunReferences::check(const FeatureMap& map)
-  {
-    const RunIdentifiers runs = runIdentifiers(map.getProteinIdentifications());
-    for (const auto& feature : map)
-    {
-      checkFeature(runs, feature);
-    }
-    checkPeptides(runs, map.getUnassignedPeptideIdentifications());
-  }
-
-  void ProteinRunReferences::check(const ConsensusMap& map)
-  {
-    const RunIdentifiers runs = runIdentifiers(map.getProteinIdentifications());
-    for (const auto& feature : map)
-    {
-      checkPeptides(runs, feature.getPeptideIdentifications());
-    }
-    checkPeptides(runs, map.getUnassignedPeptideIdentifications());
-  }
-
-  void ProteinRunReferences::checkProteinAccessions(const FeatureMap& map)
-  {
-    const RunAccessions runs = runAccessions(map.getProteinIdentifications());
-    for (const auto& feature : map)
-    {
-      checkFeatureAccessions(runs, feature);
-    }
-    checkAccessions(runs, map.getUnassignedPeptideIdentifications());
-  }
-
   void ProteinRunReferences::checkProteinAccessions(const std::vector<ProteinIdentification>& runs,
                                                     const std::vector<const PeptideIdentification*>& peptides)
   {
@@ -189,15 +140,5 @@ namespace OpenMS
     {
       checkAccessions(accessions, *peptide);
     }
-  }
-
-  void ProteinRunReferences::checkProteinAccessions(const ConsensusMap& map)
-  {
-    const RunAccessions runs = runAccessions(map.getProteinIdentifications());
-    for (const auto& feature : map)
-    {
-      checkAccessions(runs, feature.getPeptideIdentifications());
-    }
-    checkAccessions(runs, map.getUnassignedPeptideIdentifications());
   }
 } // namespace OpenMS

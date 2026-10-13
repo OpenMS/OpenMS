@@ -36,22 +36,25 @@ END_SECTION
 
 START_SECTION(void compute(FeatureMap& features))
 {
+  using namespace Internal::ClassTest;
   Feature f;
   PeptideIdentification pi;
   pi.getHits().push_back(PeptideHit(1.0, 1, 3, AASequence::fromString("KKK")));
   pi.setMZ(100.0);
-  f.getPeptideIdentifications().push_back(pi);
+  MapPeptideIdentifications ids;
+  ids.features[{0}].push_back(pi);
   FeatureMap fm;
   fm.push_back(f);
   pi.setMZ(200.0);
   pi.getHits().back().setCharge(2);
-  f.getPeptideIdentifications().back() = pi;
+  ids.features[{1}].push_back(pi);
   fm.push_back(f);
   PeptideMass fw;
-  Internal::ClassTest::addSearchRun(fm);
+  addSearchRun(ids);
+  setIdentifications(fm, ids);
   fw.compute(fm);
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mass"), (100.0 - Constants::PROTON_MASS_U) * 3)
-  TEST_EQUAL(fm[1].getPeptideIdentifications()[0].getHits()[0].getMetaValue("mass"), (200.0 - Constants::PROTON_MASS_U) * 2)
+  TEST_EQUAL(peptidesOf(fm, {0})[0].getHits()[0].getMetaValue("mass"), (100.0 - Constants::PROTON_MASS_U) * 3)
+  TEST_EQUAL(peptidesOf(fm, {1})[0].getHits()[0].getMetaValue("mass"), (200.0 - Constants::PROTON_MASS_U) * 2)
 }
 END_SECTION
 

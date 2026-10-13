@@ -9,7 +9,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/QC/MissedCleavages.h>
 #include <iostream>
 
@@ -76,55 +75,53 @@ namespace OpenMS
 
   void MissedCleavages::compute(FeatureMap& fmap)
   {
-    IdentificationDataConverter::editAsIdentificationData(fmap, [&](FeatureMap& map) {
-      MapU32 result {};
+    MapU32 result {};
 
-      bool has_pepIDs = QCBase::hasPepID(map);
-      if (!has_pepIDs)
-      {
-        mc_result_.push_back(result);
-        return;
-      }
-
-      // if the FeatureMap is empty, result is 0
-      if (map.empty())
-      {
-        OPENMS_LOG_WARN << "FeatureXML is empty.\n";
-        mc_result_.push_back(result);
-        return;
-      }
-
-      // Exception if there is no identification run (ProteinIdentification)
-      const auto* search = QCBase::searchParameters(map.getIdentificationData());
-      if (search == nullptr)
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing information in ProteinIdentifications.");
-      }
-
-      std::string enzyme = search->digestion_enzyme.getName();
-      auto max_mc = search->missed_cleavages;
-
-      // Exception if digestion enzyme is not given
-      if (enzyme == "unknown_enzyme")
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in FeatureMap detected. No computation possible.");
-      }
-
-      // create a digestor, which doesn't allow any missed cleavages
-      ProteaseDigestion digestor;
-      digestor.setEnzyme(enzyme);
-      digestor.setMissedCleavages(0);
-
-      // the identifications of the features and the unassigned ones
-      QCBase::annotateIdentifications(map, [&](Feature*, std::vector<QCBase::AnnotatedIdentification>& identifications) {
-        for (auto& id : identifications)
-        {
-          get_missed_cleavages_from_peptide_identification_(digestor, result, max_mc, id);
-        }
-      });
-
+    bool has_pepIDs = QCBase::hasPepID(fmap);
+    if (!has_pepIDs)
+    {
       mc_result_.push_back(result);
+      return;
+    }
+
+    // if the FeatureMap is empty, result is 0
+    if (fmap.empty())
+    {
+      OPENMS_LOG_WARN << "FeatureXML is empty.\n";
+      mc_result_.push_back(result);
+      return;
+    }
+
+    // Exception if there is no identification run (ProteinIdentification)
+    const auto* search = QCBase::searchParameters(fmap.getIdentificationData());
+    if (search == nullptr)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Missing information in ProteinIdentifications.");
+    }
+
+    std::string enzyme = search->digestion_enzyme.getName();
+    auto max_mc = search->missed_cleavages;
+
+    // Exception if digestion enzyme is not given
+    if (enzyme == "unknown_enzyme")
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No digestion enzyme in FeatureMap detected. No computation possible.");
+    }
+
+    // create a digestor, which doesn't allow any missed cleavages
+    ProteaseDigestion digestor;
+    digestor.setEnzyme(enzyme);
+    digestor.setMissedCleavages(0);
+
+    // the identifications of the features and the unassigned ones
+    QCBase::annotateIdentifications(fmap, [&](Feature*, std::vector<QCBase::AnnotatedIdentification>& identifications) {
+      for (auto& id : identifications)
+      {
+        get_missed_cleavages_from_peptide_identification_(digestor, result, max_mc, id);
+      }
     });
+
+    mc_result_.push_back(result);
   }
 
 

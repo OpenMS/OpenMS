@@ -14,8 +14,6 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <algorithm>
 
@@ -78,12 +76,6 @@ namespace OpenMS
         }
       }
     }
-
-    void addFeature_(DefsByRun& out, const Feature& feature)
-    {
-      for (const PeptideIdentification& pep : feature.getPeptideIdentifications()) addHits_(out, pep);
-      for (const Feature& sub : feature.getSubordinates()) addFeature_(out, sub);
-    }
   } // namespace
 
   std::map<std::string, std::set<const ResidueModification*>> ModificationDefinitionIO::collect(
@@ -103,27 +95,6 @@ namespace OpenMS
     DefsByRun out;
     addSearchSpace_(out, protein_ids);
     for (const PeptideIdentification* pep : peptide_ids) addHits_(out, *pep);
-    return out;
-  }
-
-  std::map<std::string, std::set<const ResidueModification*>> ModificationDefinitionIO::collect(const FeatureMap& map)
-  {
-    DefsByRun out;
-    addSearchSpace_(out, map.getProteinIdentifications());
-    for (const Feature& feature : map) addFeature_(out, feature);
-    for (const PeptideIdentification& pep : map.getUnassignedPeptideIdentifications()) addHits_(out, pep);
-    return out;
-  }
-
-  std::map<std::string, std::set<const ResidueModification*>> ModificationDefinitionIO::collect(const ConsensusMap& map)
-  {
-    DefsByRun out;
-    addSearchSpace_(out, map.getProteinIdentifications());
-    for (const ConsensusFeature& feature : map)
-    {
-      for (const PeptideIdentification& pep : feature.getPeptideIdentifications()) addHits_(out, pep);
-    }
-    for (const PeptideIdentification& pep : map.getUnassignedPeptideIdentifications()) addHits_(out, pep);
     return out;
   }
 

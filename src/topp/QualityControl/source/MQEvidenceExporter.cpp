@@ -15,7 +15,6 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <filesystem>
@@ -297,21 +296,15 @@ if (!MQExporterHelper::isValid(filename_))
   feature_map.getPrimaryMSRunPath(spectra_data);
   std::string raw_file = File::basename(spectra_data.empty() ? feature_map.getLoadedFilePath() : spectra_data[0]);
 
-  // the identifications of the maps (maps with peptide identifications are read through a converted copy)
-  std::optional<FeatureMap> converted_features;
-  const FeatureMap& features = IdentificationDataConverter::withIdentificationData(feature_map, converted_features);
-  std::optional<ConsensusMap> converted_consensus;
-  const ConsensusMap& consensus = IdentificationDataConverter::withIdentificationData(cmap, converted_consensus);
-
-  for (const Feature& f : features)
+  for (const Feature& f : feature_map)
   {
     const Size& f_id = f.getUniqueId();
     const auto& c_id = fTc.find(f_id);
     if (c_id != fTc.end())
     {
-      const ConsensusFeature& cf = consensus[c_id->second];
-      exportRowFromFeature_(f, cf, MQExporterHelper::linkedIdentifications(f, features.getIdentificationData()),
-                            MQExporterHelper::linkedIdentifications(cf, consensus.getIdentificationData()), raw_file, exp, prot_mapper);
+      const ConsensusFeature& cf = cmap[c_id->second];
+      exportRowFromFeature_(f, cf, MQExporterHelper::linkedIdentifications(f, feature_map.getIdentificationData()),
+                            MQExporterHelper::linkedIdentifications(cf, cmap.getIdentificationData()), raw_file, exp, prot_mapper);
     }
     else
     {

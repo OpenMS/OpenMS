@@ -12,7 +12,7 @@ namespace OpenMS
 {
   namespace
   {
-    /// The native counterpart of the legacy conversion: the identifications of the converted features are kept and
+    /// The identifications of the converted features are kept and
     /// marked with the map index, those of the other features and of subordinates are dropped, unassigned ones are kept.
     void convertIdentifications(UInt64 map_index, const FeatureMap& input, Size n, ConsensusMap& output)
     {
@@ -124,8 +124,6 @@ namespace OpenMS
     {
       output_map.setUniqueId();
     }
-    output_map.setProteinIdentifications(input_map.getProteinIdentifications());
-    output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
     output_map.getIdentificationData() = input_map.getIdentificationData();
 
     for (Size i = 0; i < input_map.size(); ++i)
@@ -163,8 +161,6 @@ namespace OpenMS
       output_map.push_back(ConsensusFeature(input_map_index, input_map[element_index]));
     }
     output_map.getColumnHeaders()[input_map_index].size = static_cast<Size>(input_map.size());
-    output_map.setProteinIdentifications(input_map.getProteinIdentifications());
-    output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
     convertIdentifications(input_map_index, input_map, n, output_map);
     output_map.updateRanges();
   }

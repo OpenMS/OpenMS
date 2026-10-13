@@ -129,29 +129,25 @@ START_SECTION((void addToGroup(int map_id, const FeatureMap& feature_map)))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] group() with peptide identifications))
+START_SECTION(([EXTRA] group(): the identifications of the result as peptide identifications))
 {
-  // maps with peptide identifications are grouped on identification data; so does the result have them:
+  // the peptide identifications of the result have the map index of their map
   std::vector<FeatureMap> maps {makeMap(100.0, 1), makeMap(101.0, 2)};
-  for (auto& map : maps)
-  {
-    IdentificationDataConverter::exportFeatureIDs(map);
-  }
-  TEST_EQUAL(maps[0][0].getPeptideIdentifications().size(), 1)
   FeatureGroupingAlgorithmUnlabeled algo;
   ConsensusMap out;
   algo.group(maps, out);
   TEST_EQUAL(out.size(), 1)
   ABORT_IF(out.size() != 1)
-  TEST_EQUAL(out.getIdentificationData().empty(), true)
-  TEST_EQUAL(out.getProteinIdentifications().size(), 2)
-  TEST_EQUAL(out[0].getPeptideIdentifications().size(), 2)
-  ABORT_IF(out[0].getPeptideIdentifications().size() != 2)
-  TEST_EQUAL(Size(out[0].getPeptideIdentifications()[0].getMetaValue("map_index")), 0)
-  TEST_EQUAL(Size(out[0].getPeptideIdentifications()[1].getMetaValue("map_index")), 1)
-  TEST_EQUAL(out.getUnassignedPeptideIdentifications().size(), 2)
-  ABORT_IF(out.getUnassignedPeptideIdentifications().size() != 2)
-  TEST_EQUAL(Size(out.getUnassignedPeptideIdentifications()[1].getMetaValue("map_index")), 1)
+  const auto ids = IdentificationDataConverter::exportMapIdentifications(out);
+  TEST_EQUAL(ids.proteins.size(), 2)
+  const auto& peptides = ids.at({0});
+  TEST_EQUAL(peptides.size(), 2)
+  ABORT_IF(peptides.size() != 2)
+  TEST_EQUAL(Size(peptides[0].getMetaValue("map_index")), 0)
+  TEST_EQUAL(Size(peptides[1].getMetaValue("map_index")), 1)
+  TEST_EQUAL(ids.unassigned.size(), 2)
+  ABORT_IF(ids.unassigned.size() != 2)
+  TEST_EQUAL(Size(ids.unassigned[1].getMetaValue("map_index")), 1)
 }
 END_SECTION
 

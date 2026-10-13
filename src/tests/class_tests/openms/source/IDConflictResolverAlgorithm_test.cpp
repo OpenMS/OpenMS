@@ -9,8 +9,10 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 using namespace OpenMS;
+using namespace OpenMS::Internal::ClassTest;
 using namespace std;
 
 // One identification of one spectrum. Hits are deliberately not sorted by the helper:
@@ -64,11 +66,13 @@ START_SECTION((static void resolve(FeatureMap& features, bool keep_matching = fa
       ids.push_back(makePepID_("scan=3", "PEPTIDER", 2, 0.75, higher_better));
       ids.push_back(makePepID_("scan=4", "", 2, 0.0, higher_better)); // no hits
       for (auto& id : ids) id.setIdentifier("search");
-      feature.setPeptideIdentifications(ids);
+      MapPeptideIdentifications view;
+      view.features[{0}] = ids;
+      view.proteins = {makeSearch_()};
       map.push_back(feature);
-      map.setProteinIdentifications({makeSearch_()});
+      setIdentifications(map, view);
       IDConflictResolverAlgorithm::resolve(map, keep_matching);
-      const auto& kept = map[0].getPeptideIdentifications();
+      const auto kept = peptidesOf(map, {0});
       ABORT_IF(kept.empty() || kept[0].getHits().empty())
       TEST_EQUAL(kept[0].getHits()[0].getSequence().toString(), higher_better ? "PEPTIDER" : "PEPTIDEK")
     }
@@ -90,23 +94,25 @@ START_SECTION((resolve with keep_matching and only hitless identifications))
       id.setIdentifier("search");
       ids.push_back(id);
     }
-    feature.setPeptideIdentifications(ids);
+    MapPeptideIdentifications view;
+    if (! ids.empty()) view.features[{0}] = ids;
     map.push_back(feature);
-    // every peptide identification needs its protein identification run (the resolution works on identification data)
-    map.setProteinIdentifications({makeSearch_()});
+    // every peptide identification needs its protein identification run
+    view.proteins = {makeSearch_()};
 
     auto unassigned = makePepID_("scan=unassigned", "PEPTIDEK", 2, 0.5, higher_better);
     unassigned.setIdentifier("search");
     // resolve() annotates pre-existing unassigned IDs as "not mapped" in either mode.
     unassigned.setMetaValue("feature_id", "not mapped");
-    map.getUnassignedPeptideIdentifications().push_back(unassigned);
-    const auto unassigned_before = map.getUnassignedPeptideIdentifications();
+    view.unassigned.push_back(unassigned);
+    setIdentifications(map, view);
+    const auto unassigned_before = unassignedOf(map);
 
     IDConflictResolverAlgorithm::resolve(map, true);
 
     TEST_EQUAL(map.size(), 1)
-    TEST_TRUE(map[0].getPeptideIdentifications() == ids)
-    TEST_TRUE(map.getUnassignedPeptideIdentifications() == unassigned_before)
+    TEST_TRUE(peptidesOf(map, {0}) == ids)
+    TEST_TRUE(unassignedOf(map) == unassigned_before)
   };
 
   for (const bool higher_better : {false, true})
@@ -153,60 +159,63 @@ START_SECTION(resolveBetweenFeatures())
   f1.setIntensity(1000.0);
   f1.setCharge(2);
   f1.setOverallQuality(1.0);
-  f1.setPeptideIdentifications(ids);
   
   f2.setRT(1600.5);
   f2.setMZ(400.7);
   f2.setIntensity(10000.0);
   f2.setCharge(2);
   f2.setOverallQuality(1.0);
-  f2.setPeptideIdentifications(ids);
   
   f3.setRT(1600.5);
   f3.setMZ(400.7);
   f3.setIntensity(1000.0);
   f3.setCharge(3);
   f3.setOverallQuality(1.0);
-  f3.setPeptideIdentifications(ids);
   
   f4.setRT(1600.5);
   f4.setMZ(400.7);
   f4.setIntensity(1001.0);
   f4.setCharge(2);
   f4.setOverallQuality(1.0);
-  f4.setPeptideIdentifications(ids2);
   
   map.push_back(f1);
   map.push_back(f2);
-  map.setProteinIdentifications({makeSearch_()});
+  // f1 and f2 have the identifications ids (f3 and f4 would have ids and ids2)
+  MapPeptideIdentifications view;
+  view.features[{0}] = ids;
+  view.features[{1}] = ids;
+  view.proteins = {makeSearch_()};
+  setIdentifications(map, view);
   
   IDConflictResolverAlgorithm::resolveBetweenFeatures(map);
   
+  const auto resolved = identificationsOf(map);
   for (FeatureMap::ConstIterator it = map.begin(); it != map.end(); ++it)
   {
+    const auto& peptides = resolved.at({Size(it - map.begin())});
     
     if ((it->getIntensity() == 1000.0) && (it->getCharge() == 2))
     {
       // This identification was removed by the resolveBetweenFeatures() method.
-      TEST_EQUAL(it->getPeptideIdentifications().empty(), true)
+      TEST_EQUAL(peptides.empty(), true)
     }
       
     if ((it->getIntensity() == 10000.0) && (it->getCharge() == 2))
     {
       // This identification remains unchanged by the resolveBetweenFeatures() method.
-      TEST_EQUAL(it->getPeptideIdentifications().empty(), false)
+      TEST_EQUAL(peptides.empty(), false)
     }
     
     if ((it->getIntensity() == 1000.0) && (it->getCharge() == 3))
     {
       // This identification remains unchanged by the resolveBetweenFeatures() method.
-      TEST_EQUAL(it->getPeptideIdentifications().empty(), false)
+      TEST_EQUAL(peptides.empty(), false)
     }
     
     if ((it->getIntensity() == 1001.0) && (it->getCharge() == 2))
     {
       // This identification remains unchanged by the resolveBetweenFeatures() method.
-      TEST_EQUAL(it->getPeptideIdentifications().empty(), false)
+      TEST_EQUAL(peptides.empty(), false)
     }
 
   }
@@ -276,16 +285,17 @@ START_SECTION(resolveAllHitRankAggregation())
   pep_ids.push_back(id1);
   pep_ids.push_back(id2);
   pep_ids.push_back(id3);
-  cf.setPeptideIdentifications(pep_ids);
-
   cmap.push_back(cf);
-  cmap.setProteinIdentifications({makeSearch_()});
+  MapPeptideIdentifications view;
+  view.features[{0}] = pep_ids;
+  view.proteins = {makeSearch_()};
+  setIdentifications(cmap, view);
 
   IDConflictResolverAlgorithm::resolveAllHitRankAggregation(cmap);
 
   // After resolution: each feature should have exactly 1 PeptideIdentification with 1 hit
   TEST_EQUAL(cmap.size(), 1)
-  const PeptideIdentificationList& result_ids = cmap[0].getPeptideIdentifications();
+  const PeptideIdentificationList result_ids = peptidesOf(cmap, {0});
   TEST_EQUAL(result_ids.size(), 1)
   TEST_EQUAL(result_ids[0].getHits().size(), 1)
   // SEQ_A should be selected as the winner by rank aggregation,
@@ -295,7 +305,7 @@ START_SECTION(resolveAllHitRankAggregation())
   TEST_REAL_SIMILAR(result_ids[0].getHits()[0].getScore(), 0.8)
 
   // The other 2 IDs should have been moved to unassigned
-  TEST_EQUAL(cmap.getUnassignedPeptideIdentifications().size(), 2)
+  TEST_EQUAL(unassignedOf(cmap).size(), 2)
 }
 END_SECTION
 

@@ -12,6 +12,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ID/MapPeptideIdentifications.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 
 #include <memory>
@@ -57,12 +58,20 @@ public:
   /**
     @brief Export peptide spectrum matches (PSMs) associated with features to Apache Arrow Table
 
-    Each PeptideHit from each PeptideIdentification (both feature-level
-    and unassigned) becomes one row.
+    Each PeptideHit from each PeptideIdentification of @p identifications (those of the features of @p feature_map,
+    subordinates included, by their paths, and the unassigned ones) becomes one row, which names its feature by its
+    unique id.
 
-    @param[in] feature_map The FeatureMap whose identifications to export
+    @param[in] feature_map The FeatureMap whose features the identifications belong to
+    @param[in] identifications The identifications to export, e.g. those of @p feature_map (see
+               IdentificationDataConverter::exportMapIdentifications())
     @return Shared pointer to Arrow Table, or nullptr on error
   */
+  static std::shared_ptr<arrow::Table> exportPSMsToArrow(
+    const FeatureMap& feature_map,
+    const MapPeptideIdentifications& identifications);
+
+  /// The PSMs of the identifications of @p feature_map (see IdentificationDataConverter::exportMapIdentifications())
   static std::shared_ptr<arrow::Table> exportPSMsToArrow(
     const FeatureMap& feature_map);
 
@@ -71,10 +80,10 @@ public:
 
     Writes five Parquet files: features.parquet, psms.parquet,
     proteins.parquet, protein_groups.parquet, and search_params.parquet
-    into the specified directory. Protein-level data is delegated to
-    ProteinIdentificationArrowIO. FeatureMap-level metadata
+    into the specified directory. FeatureMap-level metadata
     (DocumentIdentifier, DataProcessing) is stored as file-level
-    key-value metadata in features.parquet.
+    key-value metadata in features.parquet. The PSM and protein tables stay empty:
+    they are the layout of bundles of former versions, which hold peptide identifications.
 
     If the map owns identification data (FeatureMap::getIdentificationData()) or
     features carry native identification links, the bundle also contains the native
@@ -86,8 +95,7 @@ public:
     complete. An existing feature bundle or empty directory is replaced; any other
     existing file or directory is left untouched and the export fails.
 
-    @throw Exception::InvalidValue for duplicate protein run identifiers or unresolved
-           identification links
+    @throw Exception::InvalidValue for unresolved identification links
 
     @param[in] feature_map The FeatureMap to export
     @param[in] directory Output directory path
@@ -119,15 +127,19 @@ public:
     @brief Import PSMs from Apache Arrow Table
 
     Reconstructs PeptideIdentifications and PeptideHits from the table
-    and assigns them to the appropriate features or as unassigned.
+    and adds them to @p identifications: to the features of @p feature_map
+    (by the paths of the features with the unique ids of the rows) or as unassigned.
 
     @param[in] table Arrow Table with PSM data
-    @param[out] feature_map FeatureMap to populate
+    @param[in] feature_map FeatureMap with the features the PSMs belong to
+    @param[in,out] identifications The identifications to add to (their proteins give the score directions
+                   of PSMs without one)
     @return true on success, false on error
   */
   static bool importPSMsFromArrow(
     const std::shared_ptr<arrow::Table>& table,
-    FeatureMap& feature_map);
+    const FeatureMap& feature_map,
+    MapPeptideIdentifications& identifications);
 
   /**
     @brief Import FeatureMap from a directory of Parquet files
@@ -135,8 +147,9 @@ public:
     Reads five Parquet files (features.parquet, psms.parquet,
     proteins.parquet, protein_groups.parquet, search_params.parquet)
     from the specified directory and reconstructs a complete FeatureMap
-    including feature hierarchy, PSM linkage, protein identifications,
-    and FeatureMap-level metadata.
+    including feature hierarchy, identifications and FeatureMap-level metadata.
+    The identifications are those of identifications/ (see exportToParquet()), or the
+    peptide and protein identifications of a bundle of a former version, as identification data.
 
     @param[in] directory Input directory path containing Parquet files
     @param[out] feature_map FeatureMap to populate

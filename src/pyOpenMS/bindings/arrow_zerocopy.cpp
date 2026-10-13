@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/MSExperimentArrowExport.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
@@ -354,7 +355,11 @@ NB_MODULE(_arrow_zerocopy, m) {
             auto& fmap = nb::cast<OpenMS::FeatureMap&>(fmap_obj);
             auto table = pyarrow_to_table(pa_table);
             nb::gil_scoped_release release;
-            return OpenMS::FeatureMapArrowIO::importPSMsFromArrow(table, fmap);
+            // added to the identifications of the map, as peptide identifications
+            auto identifications = OpenMS::IdentificationDataConverter::exportMapIdentifications(fmap);
+            if (!OpenMS::FeatureMapArrowIO::importPSMsFromArrow(table, fmap, identifications)) return false;
+            OpenMS::IdentificationDataConverter::importMapIdentifications(fmap, identifications);
+            return true;
         },
         nb::arg("table"), nb::arg("feature_map"),
         "Import PSMs from a PyArrow Table into a FeatureMap (zero-copy).\n\n"
@@ -420,7 +425,11 @@ NB_MODULE(_arrow_zerocopy, m) {
             auto& cmap = nb::cast<OpenMS::ConsensusMap&>(cmap_obj);
             auto table = pyarrow_to_table(pa_table);
             nb::gil_scoped_release release;
-            return OpenMS::ConsensusMapArrowIO::importPSMsFromArrow(table, cmap);
+            // added to the identifications of the map, as peptide identifications
+            auto identifications = OpenMS::IdentificationDataConverter::exportMapIdentifications(cmap);
+            if (!OpenMS::ConsensusMapArrowIO::importPSMsFromArrow(table, cmap, identifications)) return false;
+            OpenMS::IdentificationDataConverter::importMapIdentifications(cmap, identifications);
+            return true;
         },
         nb::arg("table"), nb::arg("consensus_map"),
         "Import PSMs from a PyArrow Table into a ConsensusMap (zero-copy).\n\n"

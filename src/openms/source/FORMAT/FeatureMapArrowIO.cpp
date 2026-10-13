@@ -1154,32 +1154,41 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportFeaturesToArrow(
 std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
   const FeatureMap& feature_map)
 {
+  return exportPSMsToArrow(feature_map, IdentificationDataConverter::exportMapIdentifications(feature_map));
+}
+
+std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
+  const FeatureMap& feature_map,
+  const MapPeptideIdentifications& identifications)
+{
   // 1. Collect all PeptideIdentifications with their associated feature_ids.
   //    For each PeptideIdentification we store (feature_unique_id, is_null).
   PeptideIdentificationList all_pep_ids;
   std::vector<std::pair<int64_t, bool>> feature_ids_per_pep_id; // (feature_id, is_null)
 
-  // Helper: recursively collect PeptideIdentifications from a Feature and its subordinates.
-  std::function<void(const Feature&)> collectFromFeature = [&](const Feature& f)
+  // Helper: recursively collect the PeptideIdentifications of a Feature (at @p path) and its subordinates.
+  std::function<void(const Feature&, const std::vector<Size>&)> collectFromFeature = [&](const Feature& f, const std::vector<Size>& path)
   {
-    for (const auto& pep_id : f.getPeptideIdentifications())
+    for (const auto& pep_id : identifications.at(path))
     {
       all_pep_ids.push_back(pep_id);
       feature_ids_per_pep_id.push_back({static_cast<int64_t>(f.getUniqueId()), false});
     }
-    for (const auto& sub : f.getSubordinates())
+    for (Size i = 0; i < f.getSubordinates().size(); ++i)
     {
-      collectFromFeature(sub);
+      auto child = path;
+      child.push_back(i);
+      collectFromFeature(f.getSubordinates()[i], child);
     }
   };
 
-  for (const auto& feature : feature_map)
+  for (Size i = 0; i < feature_map.size(); ++i)
   {
-    collectFromFeature(feature);
+    collectFromFeature(feature_map[i], {i});
   }
 
   // Unassigned peptide identifications get feature_id = null
-  for (const auto& pep_id : feature_map.getUnassignedPeptideIdentifications())
+  for (const auto& pep_id : identifications.unassigned)
   {
     all_pep_ids.push_back(pep_id);
     feature_ids_per_pep_id.push_back({0, true}); // null
@@ -1188,7 +1197,7 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
   // 2. Call QPXFile::exportToArrow to produce the base PSM table.
   //    We use export_all_psms=true so all hits per PeptideIdentification are exported.
   auto base_table = QPXFile::exportToArrow(
-    feature_map.getProteinIdentifications(), all_pep_ids, true);
+    identifications.proteins, all_pep_ids, true);
   if (!base_table) { return nullptr; }
 
   // 3. Build the feature_id column.
@@ -1251,17 +1260,11 @@ bool FeatureMapArrowIO::exportToParquet(
   const std::string& directory,
   const ParquetWriteConfig& config)
 {
-  // the bundle holds identifications as identification data (peptide identifications are converted)
-  std::optional<FeatureMap> converted;
-  const FeatureMap& feature_map = IdentificationDataConverter::withIdentificationData(input_map, converted);
-  // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
-  // so we never leave a partial .featureparquet behind. Throws Exception::InvalidValue.
-  ProteinIdentificationArrowIO::checkUniqueIdentifiers(feature_map.getProteinIdentifications());
-  // Native identification links must resolve before anything is written (throws InvalidValue).
+  const FeatureMap& feature_map = input_map;
+  // Native identification links must resolve before anything is written (throws InvalidValue), so we never leave a
+  // partial .featureparquet behind.
   const auto rows = linkedFeatures_(feature_map);
   MapIdentificationParquet::validateLinks(feature_map.getIdentificationData(), rows);
-  // every peptide identification needs its protein identification run
-  ProteinRunReferences::check(feature_map);
 
   // 1. Write into a private sibling directory; publish only after every table is complete,
   //    so a failed export never leaves a partial bundle behind.
@@ -1305,8 +1308,9 @@ bool FeatureMapArrowIO::exportToParquet(
     return false;
   }
 
-  // 3. Export PSMs table
-  auto psms_table = exportPSMsToArrow(feature_map);
+  // 3. Export PSMs table: empty, the bundle holds the identifications as identification data (step 5); the legacy
+  //    tables (PSMs, proteins, protein groups, search parameters) keep the layout that former versions read
+  auto psms_table = exportPSMsToArrow(feature_map, MapPeptideIdentifications());
   if (!psms_table)
   {
     OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to create PSMs Arrow table" << std::endl;
@@ -1317,8 +1321,8 @@ bool FeatureMapArrowIO::exportToParquet(
     return false;
   }
 
-  // 4. Delegate protein data to ProteinIdentificationArrowIO
-  const auto& prot_ids = feature_map.getProteinIdentifications();
+  // 4. Delegate protein data to ProteinIdentificationArrowIO (empty, see step 3)
+  const std::vector<ProteinIdentification> prot_ids;
   if (!ProteinIdentificationArrowIO::exportProteinsToParquet(
           prot_ids, output + "/proteins.parquet", config))
   {
@@ -1331,7 +1335,7 @@ bool FeatureMapArrowIO::exportToParquet(
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
           prot_ids, output + "/search_params.parquet", config,
-          ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(feature_map))))
+          ModificationDefinitionIO::encodeByRun(prot_ids, {})))
   {
     return false;
   }
@@ -1520,7 +1524,8 @@ bool FeatureMapArrowIO::importFeaturesFromArrow(
 
 bool FeatureMapArrowIO::importPSMsFromArrow(
   const std::shared_ptr<arrow::Table>& table,
-  FeatureMap& feature_map)
+  const FeatureMap& feature_map,
+  MapPeptideIdentifications& identifications)
 {
   if (!table || table->num_rows() == 0) { return true; }
 
@@ -1541,19 +1546,21 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     return false;
   }
 
-  // Build feature lookup: unique_id -> Feature* (recursively includes subordinates)
-  std::unordered_map<int64_t, Feature*> feature_lookup;
-  std::function<void(Feature&)> buildLookup = [&](Feature& f)
+  // Build feature lookup: unique_id -> path of the feature (recursively includes subordinates)
+  std::unordered_map<int64_t, std::vector<Size>> feature_lookup;
+  std::function<void(const Feature&, const std::vector<Size>&)> buildLookup = [&](const Feature& f, const std::vector<Size>& path)
   {
-    feature_lookup[static_cast<int64_t>(f.getUniqueId())] = &f;
-    for (auto& sub : f.getSubordinates())
+    feature_lookup[static_cast<int64_t>(f.getUniqueId())] = path;
+    for (Size i = 0; i < f.getSubordinates().size(); ++i)
     {
-      buildLookup(sub);
+      auto child = path;
+      child.push_back(i);
+      buildLookup(f.getSubordinates()[i], child);
     }
   };
-  for (auto& f : feature_map)
+  for (Size i = 0; i < feature_map.size(); ++i)
   {
-    buildLookup(f);
+    buildLookup(feature_map[i], {i});
   }
 
   // Read columns
@@ -1596,7 +1603,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
 
   // Build a lookup for higher_score_better from ProteinIdentifications
   std::unordered_map<std::string, bool> higher_score_better_lookup;
-  for (const auto& prot_id : feature_map.getProteinIdentifications())
+  for (const auto& prot_id : identifications.proteins)
   {
     higher_score_better_lookup[prot_id.getIdentifier()] = prot_id.isHigherScoreBetter();
   }
@@ -1812,14 +1819,14 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     if (group.feature_id_is_null)
     {
       // Unassigned
-      feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+      identifications.unassigned.push_back(std::move(group.pep_id));
     }
     else
     {
       auto it = feature_lookup.find(group.feature_id);
       if (it != feature_lookup.end())
       {
-        it->second->getPeptideIdentifications().push_back(std::move(group.pep_id));
+        identifications.features[it->second].push_back(std::move(group.pep_id));
       }
       else
       {
@@ -1846,17 +1853,17 @@ bool FeatureMapArrowIO::importFromParquet(
 {
   feature_map = FeatureMap{};
 
-  // 1. Import protein identification data
-  std::vector<ProteinIdentification> prot_ids;
+  // 1. Import protein identification data (of bundles written by former versions, which hold peptide
+  //    identifications: they become identification data below)
+  MapPeptideIdentifications legacy;
   if (!ProteinIdentificationArrowIO::importFromParquet(
           directory + "/proteins.parquet",
           directory + "/protein_groups.parquet",
           directory + "/search_params.parquet",
-          prot_ids))
+          legacy.proteins))
   {
     return false;
   }
-  feature_map.setProteinIdentifications(prot_ids);
 
   // 2. Import features and FeatureMap-level metadata
   auto features_table = readParquetTable_(directory + "/features.parquet");
@@ -1929,40 +1936,35 @@ bool FeatureMapArrowIO::importFromParquet(
     for (auto& feature : feature_map) collect(feature);
     MapIdentificationParquet::load(directory, feature_map.getIdentificationData(), rows);
   }
-  if (!importPSMsFromArrow(psms_table, feature_map))
+  if (!importPSMsFromArrow(psms_table, feature_map, legacy))
   {
     return false;
   }
-  // every peptide identification needs its protein identification run (checked on the stored identifiers)
-  ProteinRunReferences::check(feature_map);
-
-  // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
-  //    we own (per-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the stored
-  //    identifier becomes informational; the in-memory identifier downstream sees
-  //    is freshly synthesized with a UniqueIdGenerator suffix.
+  if (!legacy.empty())
   {
-    auto& prot_ids = feature_map.getProteinIdentifications();
-    auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
+    // every peptide identification needs its protein identification run (checked on the stored identifiers)
+    ProteinRunReferences::check(legacy.proteins, legacy.peptides());
 
-    // features and their subordinates (which can carry peptide identifications, too)
-    std::function<void(Feature&)> renameFeature = [&](Feature& f)
+    // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
+    //    (per-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the stored
+    //    identifier becomes informational; the in-memory identifier downstream sees
+    //    is freshly synthesized with a UniqueIdGenerator suffix.
+    auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(legacy.proteins);
+    for (auto& [path, peptides] : legacy.features)
     {
-      ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, f.getPeptideIdentifications());
-      for (auto& sub : f.getSubordinates())
-      {
-        renameFeature(sub);
-      }
-    };
-    for (auto& feature : feature_map)
-    {
-      renameFeature(feature);
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, peptides);
     }
-    ProteinIdentificationArrowIO::applyRunIdentifierRename(
-        rename, feature_map.getUnassignedPeptideIdentifications());
-  }
+    ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, legacy.unassigned);
 
-  // the peptide identifications of a bundle (written by former versions) as identification data
-  IdentificationDataConverter::moveToIdentificationData(feature_map);
+    // the peptide identifications as identification data (a bundle holds them in one form only)
+    if (!feature_map.getIdentificationData().empty())
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: the bundle has peptide identifications (psms.parquet) and identification data "
+                       << "(identifications/); it can hold its identifications in one of them only." << std::endl;
+      return false;
+    }
+    IdentificationDataConverter::importMapIdentifications(feature_map, legacy);
+  }
 
   return true;
 }

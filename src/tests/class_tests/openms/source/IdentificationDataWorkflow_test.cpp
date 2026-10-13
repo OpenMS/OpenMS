@@ -6,6 +6,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace OpenMS;
 using Adapter = IdentificationDataAdapter;
@@ -33,17 +34,19 @@ START_TEST(IdentificationDataWorkflow, "$Id$")
 START_SECTION([EXTRA] feature and subordinate links are live while measured values survive filtering)
 {
   FeatureMap map;
-  map.setProteinIdentifications({protein()});
   Feature feature;
   feature.setIntensity(1200.5);
   feature.setRT(25);
-  feature.getPeptideIdentifications().push_back(peptide());
   Feature subordinate;
   subordinate.setIntensity(42);
-  subordinate.getPeptideIdentifications().push_back(peptide());
   feature.getSubordinates().push_back(subordinate);
   map.push_back(feature);
-  map.getUnassignedPeptideIdentifications().push_back(peptide());
+  MapPeptideIdentifications ids;
+  ids.proteins = {protein()};
+  ids.features[{0}] = {peptide()};
+  ids.features[{0, 0}] = {peptide()};
+  ids.unassigned = {peptide()};
+  IdentificationDataConverter::importMapIdentifications(map, ids);
   auto imported = Adapter::fromFeatureMap(map);
   TEST_EQUAL(imported.associations.size(), 3)
   TEST_EQUAL(imported.associations[1].feature_path.size(), 2)
@@ -54,18 +57,17 @@ START_SECTION([EXTRA] feature and subordinate links are live while measured valu
   TEST_EXCEPTION(Exception::InvalidParameter, Adapter::reconcileAssociations(imported.data, links, Adapter::MissingLinkPolicy::REJECT))
   TEST_EQUAL(links[0].matches.size(), 2)
   TEST_EQUAL(Adapter::reconcileAssociations(imported.data, links, Adapter::MissingLinkPolicy::PRUNE), 3)
-  Adapter::ExportOptions options;
-  auto losses = Adapter::applyToFeatureMap(imported.data, links, map, options, Adapter::MissingLinkPolicy::REJECT);
-  TEST_TRUE(losses.empty())
+  // filtering the matches of the map keeps the links of the remaining ones and the measured values
+  map.eraseMatches([](const auto&, const auto&, const auto& match) { return match.representation != "PEPTIDE"; });
+  const auto filtered = IdentificationDataConverter::exportMapIdentifications(map);
   TEST_REAL_SIMILAR(map[0].getIntensity(), 1200.5)
   TEST_REAL_SIMILAR(map[0].getSubordinates()[0].getIntensity(), 42)
-  TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(map[0].getSubordinates()[0].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits().size(), 1)
-  run.eraseMatches([](const auto&) { return true; });
-  Adapter::applyToFeatureMap(imported.data, links, map, options, Adapter::MissingLinkPolicy::PRUNE);
+  TEST_EQUAL(filtered.at({0})[0].getHits().size(), 1)
+  TEST_EQUAL(filtered.at({0, 0})[0].getHits().size(), 1)
+  TEST_EQUAL(filtered.unassigned[0].getHits().size(), 1)
+  map.eraseIdentifications([](const auto&, const auto&) { return true; });
   TEST_EQUAL(map.size(), 1)
-  TEST_EQUAL(map[0].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(IdentificationDataConverter::exportMapIdentifications(map).at({0}).size(), 0)
   TEST_REAL_SIMILAR(map[0].getIntensity(), 1200.5)
 }
 END_SECTION
@@ -73,26 +75,25 @@ END_SECTION
 START_SECTION([EXTRA] consensus intensities and channels remain independent of identification links)
 {
   ConsensusMap map;
-  map.setProteinIdentifications({protein()});
   ConsensusFeature feature;
   feature.setIntensity(999);
-  feature.getPeptideIdentifications().push_back(peptide());
   map.push_back(feature);
   map.getColumnHeaders()[0].filename = "TMT-channel";
   map.getColumnHeaders()[0].label = "126";
-  auto imported = Adapter::fromConsensusMap(map);
-  auto& run = imported.data.getRun("search");
-  run.filterMatches([](const auto& match) { return match.representation == "PEPTIDE"; });
-  Adapter::ExportOptions options;
-  Adapter::applyToConsensusMap(imported.data, imported.associations, map, options, Adapter::MissingLinkPolicy::PRUNE);
+  MapPeptideIdentifications ids;
+  ids.proteins = {protein()};
+  ids.features[{0}] = {peptide()};
+  IdentificationDataConverter::importMapIdentifications(map, ids);
+  map.eraseMatches([](const auto&, const auto&, const auto& match) { return match.representation != "PEPTIDE"; });
   TEST_REAL_SIMILAR(map[0].getIntensity(), 999)
-  TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits().size(), 1)
+  TEST_EQUAL(IdentificationDataConverter::exportMapIdentifications(map).at({0})[0].getHits().size(), 1)
   TEST_EQUAL(map.getColumnHeaders()[0].label, "126")
-  auto broken = imported.associations;
-  broken[0].feature_path = {500};
-  TEST_EXCEPTION(Exception::InvalidParameter, Adapter::applyToConsensusMap(imported.data, broken, map, options, Adapter::MissingLinkPolicy::PRUNE))
+  // identifications of a feature the map does not have are refused, and the map stays as it is
+  auto broken = ids;
+  broken.features[{500}] = broken.features[{0}];
+  TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(map, broken))
   TEST_REAL_SIMILAR(map[0].getIntensity(), 999)
-  TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits().size(), 1)
+  TEST_EQUAL(IdentificationDataConverter::exportMapIdentifications(map).at({0})[0].getHits().size(), 1)
 }
 END_SECTION
 

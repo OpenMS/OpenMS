@@ -1149,9 +1149,8 @@ protected:
         protein_quants, inferred_proteins, true);
     });
 
-    // The output formats (QPX, consensusXML, mzTab) hold peptide identifications: export the identifications once
-    // rather than in a copy of the map per output.
-    IdentificationDataConverter::exportConsensusIDs(cmap);
+    // The QPX views and mzTab hold peptide identifications: export the identifications once rather than per view.
+    auto ids = IdentificationDataConverter::exportMapIdentifications(cmap);
 
     {
       if (!out_qpx.empty())
@@ -1161,7 +1160,7 @@ protected:
         // Validate the whole collection before the first write. This tool streams millions of
         // feature and PSM rows before the pg view is even reached, so a design-level refusal
         // there would otherwise land after two very large files are already on disk.
-        if (!QPXCollectionExport::requireExportable(cmap, design))
+        if (!QPXCollectionExport::requireExportable(cmap, ids, design))
         {
           return CANNOT_WRITE_OUTPUT_FILE; // already logged
         }
@@ -1179,7 +1178,7 @@ protected:
         // Collected while the feature rows are built, then handed to the psm view so it can fill
         // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
         QPXIdentity::FeatureLinks feature_links;
-        if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, out_qpx + "/quantms.feature.parquet",
+        if (!ConsensusMapArrowExport::exportToParquetStreaming(cmap, ids, out_qpx + "/quantms.feature.parquet",
                                                                /*batch_size=*/1000000,
                                                                ParquetWriteConfig{},
                                                                /*n_threads=*/0,
@@ -1193,7 +1192,8 @@ protected:
         // unassigned), without deep-copying millions of PeptideIdentifications.
         // Streaming/batched write keeps peak memory bounded for very large PSM counts;
         // n_threads=0 builds each batch's partitions in parallel across all available cores.
-        if (!QPXFile::exportToParquetStreaming(cmap,
+        if (!QPXFile::exportToParquetStreaming(ids.proteins,
+                                               ids.peptides(),
                                                out_qpx + "/quantms.psm.parquet",
                                                /*export_all_psms=*/false,
                                                /*batch_size=*/1000000,
@@ -1209,7 +1209,7 @@ protected:
         // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
         // files aggregated into one quantity, and the design is what defines that grouping and
         // the sample numbering the protein abundances are stored under.
-        if (!ProteinGroupArrowExport::exportToParquet(cmap, design, out_qpx + "/quantms.pg.parquet"))
+        if (!ProteinGroupArrowExport::exportToParquet(cmap, ids, design, out_qpx + "/quantms.pg.parquet"))
         {
           OPENMS_LOG_ERROR << "Failed to write protein groups Parquet file" << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -1234,6 +1234,7 @@ protected:
 
       MzTabFile().store(out_mzTab, 
                         cmap, 
+                        std::move(ids),
                         false,
                         report_unidentified_features, 
                         report_unmapped, 

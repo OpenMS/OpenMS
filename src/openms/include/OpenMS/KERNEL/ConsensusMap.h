@@ -13,7 +13,6 @@
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
@@ -59,8 +58,7 @@ namespace OpenMS
     public DocumentIdentifier,
     public ExposedVector<ConsensusFeature>,
     public UniqueIdInterface,
-    public UniqueIdIndexer<ConsensusMap>,
-    public MapUtilities<ConsensusMap>
+    public UniqueIdIndexer<ConsensusMap>
   {
 public:
     EXPOSED_VECTOR_INTERFACE(ConsensusFeature)
@@ -208,9 +206,6 @@ public:
 
     /// Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
     void sortByMaps();
-
-    /// Sorts PeptideIdentifications of consensus features with respect to their map index.
-    void sortPeptideIdentificationsByMapIndex();
     //@}
 
     // Docu in base class
@@ -218,36 +213,6 @@ public:
 
     /// Swaps the content of this map with the content of @p from
     void swap(ConsensusMap& from);
-
-    /// non-mutable access to the protein identifications
-    const std::vector<ProteinIdentification>& getProteinIdentifications() const;
-
-    /// mutable access to the protein identifications
-    std::vector<ProteinIdentification>& getProteinIdentifications();
-
-    /// sets the protein identifications
-    void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
-
-    /// sets the protein identifications by moving
-    void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
-
-    /// finds a protein identification by its identifier (returns nullptr if not found)
-    const ProteinIdentification* findProteinIdentification(const std::string& identifier) const;
-
-    /// finds a protein identification by its identifier (returns nullptr if not found)
-    ProteinIdentification* findProteinIdentification(const std::string& identifier);
-
-    /// non-mutable access to the unassigned peptide identifications
-    [[deprecated("legacy identifications: use the identification data")]]
-    const PeptideIdentificationList& getUnassignedPeptideIdentifications() const;
-
-    /// mutable access to the unassigned peptide identifications
-    [[deprecated("legacy identifications: use the identification data")]]
-    PeptideIdentificationList& getUnassignedPeptideIdentifications();
-
-    /// sets the unassigned peptide identifications
-    [[deprecated("legacy identifications: use the identification data")]]
-    void setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications);
 
     /// returns a const reference to the description of the applied data processing
     const std::vector<DataProcessing>& getDataProcessing() const;
@@ -333,14 +298,14 @@ public:
 
      If the ConsensusMap originated from some number of FeatureMaps, those are reconstructed with the information
      provided by the map index.
-     If the ConsensusMap originated from the IsobaricAnalyzer, only Features are separated. All PeptideIdentifications
-     (assigned and unassigned) are added to the first FeatureMap.
+     The identifications are split as peptide identifications (see IdentificationDataConverter::exportMapIdentifications()):
+     those of a consensus feature go to its feature of the map index they are annotated with ('map_index'), unassigned
+     ones to the FeatureMap of their map index, and each FeatureMap gets the protein identification runs its
+     identifications refer to. If the ConsensusMap originated from the IsobaricAnalyzer, only Features are separated:
+     all identifications (assigned and unassigned) and all protein identification runs go to the first FeatureMap.
+     Each FeatureMap holds its identifications as identification data.
 
      MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
-
-     The identifications of a map with identification data are split in the same way, and the FeatureMaps hold them as
-     identification data (the identifications are distributed through a converted copy, see
-     IdentificationDataConverter::moveToPeptideIdentifications()).
 
      The result holds one FeatureMap per column header (see getColumnHeaders()), ordered by map index: the k-th
      FeatureMap corresponds to the k-th column header in key order. Map indices do not have to be contiguous, e.g.
@@ -368,7 +333,7 @@ public:
     std::set<IdentificationData::MatchReference> getUnassignedIDMatches() const;
 
     /*!
-      @brief The identifications and matches that no feature links (the counterpart of getUnassignedPeptideIdentifications())
+      @brief The identifications and matches that no feature links (the unassigned peptide identifications of a format)
 
       @see IdentificationData::getUnlinked()
     */
@@ -415,8 +380,7 @@ public:
     */
     Size eraseUnassignedIdentifications();
 
-    /// Remove all identifications: the identification data and the links of the features (and subordinates) to it
-    /// (and the peptide and protein identifications)
+    /// Remove all identifications: the identification data and the links of the features to it
     void clearIdentifications();
 
     /// Immutable access to the contained identification data
@@ -432,12 +396,6 @@ public:
 
     /// type of experiment (label-free, labeled_MS1, labeled_MS2)
     std::string experiment_type_ = "label-free";
-
-    /// protein identifications
-    std::vector<ProteinIdentification> protein_identifications_;
-
-    /// unassigned peptide identifications (without feature)
-    PeptideIdentificationList unassigned_peptide_identifications_;
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;

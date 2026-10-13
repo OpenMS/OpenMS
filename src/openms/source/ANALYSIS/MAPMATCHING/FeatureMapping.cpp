@@ -8,7 +8,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 #include <OpenMS/MATH/MathFunctions.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 using namespace std;
 
@@ -21,10 +20,6 @@ namespace OpenMS
                                                                               const double& precursor_rt_tolerance,
                                                                               bool ppm)
   {
-    for (const auto& map : fm_info.feature_maps)
-      if (IdentificationDataConverter::hasPeptideIdentifications(map))
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Feature maps with peptide identifications: move them into identification data first");
     std::map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
     std::map<const BaseFeature*, const IdentificationData*> identification_data;
     vector<size_t> unassigned_ms2;

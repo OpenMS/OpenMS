@@ -15,7 +15,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
@@ -1840,8 +1839,7 @@ namespace OpenMS
         UInt fiter = 0;
         UInt ided = 0;
         // the identifications as identification data
-        std::optional<FeatureMap> converted;
-        const auto& identified = IdentificationDataConverter::withIdentificationData(feature_map, converted);
+        const auto& identified = feature_map;
         //ofstream out(outputfile_name.c_str());
         while (fiter < feature_map.size())
         {

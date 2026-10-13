@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
@@ -244,9 +245,10 @@ namespace OpenMS
 
     // last protein ID must be from AccurateMassSearch (it gets appended there)
     std::string engine = "no protein identification section found";
-    if (fm.getProteinIdentifications().size() > 0)
+    const auto proteins = IdentificationDataConverter::proteinIdentifications(fm);
+    if (proteins.size() > 0)
     {
-      engine = fm.getProteinIdentifications().back().getSearchEngine();
+      engine = proteins.back().getSearchEngine();
       if (engine == AccurateMassSearchEngine::search_engine_identifier)
       {
         auto* lp = dynamic_cast<LayerDataPeak*>(&layer);

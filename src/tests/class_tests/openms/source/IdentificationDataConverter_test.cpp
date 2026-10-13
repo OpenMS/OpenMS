@@ -79,32 +79,33 @@ namespace
     }
     return result;
   }
+  /// The links of the features of a map against the identifications of the map as peptide identifications
   template<class Map>
-  void checkLinks(const Map& legacy)
+  void checkLinks(const Map& map)
   {
-    Map native = legacy;
-    TEST_TRUE(IdentificationDataConverter::moveToIdentificationData(native))
-    TEST_TRUE(! IdentificationDataConverter::hasPeptideIdentifications(native))
-    TEST_TRUE(! IdentificationDataConverter::moveToIdentificationData(native))
-    const auto& data = native.getIdentificationData();
+    const auto ids = IdentificationDataConverter::exportMapIdentifications(map);
+    const auto& data = map.getIdentificationData();
     Size best_matches = 0;
-    for (Size i = 0; i < legacy.size(); ++i)
+    for (Size i = 0; i < map.size(); ++i)
     {
-      TEST_TRUE(sequences(legacy[i].getPeptideIdentifications()) == sequences(native[i].getLinkedIdentifications(data)))
-      auto sorted = legacy[i];
-      sorted.sortPeptideIdentifications();
-      const auto best = native[i].getBestLinkedMatch(data);
-      const bool has_hit = ! sorted.getPeptideIdentifications().empty() && ! sorted.getPeptideIdentifications()[0].getHits().empty();
-      TEST_EQUAL(best.has_value(), has_hit)
-      if (! best || ! has_hit) continue;
+      const auto& peptides = ids.at({i});
+      TEST_TRUE(sequences(peptides) == sequences(map[i].getLinkedIdentifications(data)))
+      // the best hit of the peptide identifications (the first of equally good ones)
+      const PeptideHit* best_hit = nullptr;
+      for (const auto& peptide : peptides)
+        for (const auto& hit : peptide.getHits())
+          if (! best_hit || (peptide.isHigherScoreBetter() ? hit.getScore() > best_hit->getScore() : hit.getScore() < best_hit->getScore()))
+            best_hit = &hit;
+      const auto best = map[i].getBestLinkedMatch(data);
+      TEST_EQUAL(best.has_value(), best_hit != nullptr)
+      if (! best || ! best_hit) continue;
       ++best_matches;
       TEST_EQUAL(best->matches.size(), 1)
-      TEST_EQUAL(best->matches[0]->representation, sorted.getPeptideIdentifications()[0].getHits()[0].getSequence().toString())
-      TEST_REAL_SIMILAR(*best->run->getScore(best->matches[0]->getId(), *best->run->getPrimaryScore()), sorted.getPeptideIdentifications()[0].getHits()[0].getScore())
+      TEST_REAL_SIMILAR(*best->run->getScore(best->matches[0]->getId(), *best->run->getPrimaryScore()), best_hit->getScore())
     }
     TEST_TRUE(best_matches > 0)
-    TEST_TRUE(! legacy.getUnassignedPeptideIdentifications().empty())
-    TEST_TRUE(sequences(legacy.getUnassignedPeptideIdentifications()) == sequences(native.getUnassignedIdentifications()))
+    TEST_TRUE(! ids.unassigned.empty())
+    TEST_TRUE(sequences(ids.unassigned) == sequences(map.getUnassignedIdentifications()))
   }
 } // namespace
 
@@ -183,17 +184,18 @@ START_SECTION((feature ownership survives copies and reduced - data export inclu
   TEST_EQUAL(copy == map, true);
   TEST_EQUAL(copy.getUnassignedIDMatches().empty(), true);
   TEST_EQUAL(copy[0].getSubordinates()[0].getAnnotationState(copy.getIdentificationData()) == BaseFeature::AnnotationState::FEATURE_ID_SINGLE, true);
-  IdentificationDataConverter::exportFeatureIDs(copy, false);
-  TEST_EQUAL(copy[0].getPeptideIdentifications().size(), 1);
-  TEST_EQUAL(copy[0].getPeptideIdentifications()[0].getHits().empty(), true);
-  TEST_EQUAL(copy[0].getSubordinates()[0].getPeptideIdentifications()[0].getHits().size(), 1);
-  IdentificationDataConverter::exportFeatureIDs(copy, true);
+  const auto ids = IdentificationDataConverter::exportMapIdentifications(copy);
+  TEST_EQUAL(ids.at({0}).size(), 1);
+  TEST_EQUAL(ids.at({0})[0].getHits().empty(), true);
+  TEST_EQUAL(ids.at({0, 0})[0].getHits().size(), 1);
+  copy.clearIdentifications();
   TEST_EQUAL(copy.getIdentificationData().empty(), true);
   TEST_EQUAL(copy[0].getIDQueries().empty(), true);
   TEST_EQUAL(copy[0].getSubordinates()[0].getIDMatches().empty(), true);
-  IdentificationDataConverter::importFeatureIDs(copy, true);
-  TEST_EQUAL(copy[0].getPeptideIdentifications().empty(), true);
+  IdentificationDataConverter::importMapIdentifications(copy, ids);
   TEST_EQUAL(copy.getIdentificationData().getRuns().front().getNumberOfIdentifications(), 2);
+  TEST_EQUAL(copy[0].getIDQueries().size(), 1);
+  TEST_EQUAL(copy[0].getSubordinates()[0].getIDMatches().size(), 1);
 }
 END_SECTION
 START_SECTION((RNA feature conversion retains subordinate and empty - query associations))
@@ -208,11 +210,12 @@ START_SECTION((RNA feature conversion retains subordinate and empty - query asso
   ID::Observation empty;
   empty.data_id = "scan=empty";
   map[0].addIDQuery({run.getUuid(), run.addIdentification(run.getSourceId(0), empty)});
-  IdentificationDataConverter::exportFeatureIDs(map, true);
-  TEST_EQUAL(map[0].getPeptideIdentifications().size(), 1);
-  TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits().empty(), true);
-  TEST_EQUAL(map[0].getSubordinates()[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("label"), "ACUGp");
-  IdentificationDataConverter::importFeatureIDs(map, true);
+  const auto ids = IdentificationDataConverter::exportMapIdentifications(map);
+  TEST_EQUAL(ids.at({0}).size(), 1);
+  TEST_EQUAL(ids.at({0})[0].getHits().empty(), true);
+  TEST_EQUAL(ids.at({0, 0})[0].getHits()[0].getMetaValue("label"), "ACUGp");
+  map.clearIdentifications();
+  IdentificationDataConverter::importMapIdentifications(map, ids);
   TEST_EQUAL(map.getIdentificationData().getRuns().front().getMoleculeKind() == ID::MoleculeKind::OLIGONUCLEOTIDE, true);
   TEST_EQUAL(map[0].getIDQueries().size(), 1);
   TEST_EQUAL(map[0].getSubordinates()[0].getIDMatches().size(), 1);
@@ -237,86 +240,61 @@ START_SECTION(([EXTRA] maps: linked and unassigned identifications follow their 
 {
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), features);
-  IdentificationDataConverter::moveToPeptideIdentifications(features); // a legacy fixture (loading gives identification data)
   checkLinks(features);
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
-  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
   checkLinks(consensus);
-
-  // read access converts a copy, maps without peptide identifications are used as they are
-  std::optional<ConsensusMap> converted;
-  const auto& view = IdentificationDataConverter::withIdentificationData(consensus, converted);
-  TEST_TRUE(converted.has_value() && &view == &*converted)
-  TEST_TRUE(IdentificationDataConverter::hasPeptideIdentifications(consensus))
-  TEST_TRUE(! view.getIdentificationData().empty())
-  std::optional<ConsensusMap> again;
-  TEST_TRUE(&IdentificationDataConverter::withIdentificationData(view, again) == &view && ! again)
-  // both models at once are rejected
-  ConsensusMap both = *converted;
-  both.getUnassignedPeptideIdentifications() = consensus.getUnassignedPeptideIdentifications();
-  TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::withIdentificationData(both, again))
-  TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::moveToIdentificationData(both))
 }
 END_SECTION
 
 START_SECTION((static MapPeptideIdentifications exportMapIdentifications(const FeatureMap& map) and importMapIdentifications()))
 {
-  // The view of a map with peptide identifications is those; imported into a map, it gives the identification data
-  // and links that converting the map gives, and their export gives the view again.
+  // The view of a map is its identifications as peptide identifications; imported into the map without
+  // identifications, it gives identification data and links whose export gives the view again.
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_3.featureXML"), features);
-  IdentificationDataConverter::moveToPeptideIdentifications(features); // a legacy fixture (loading gives identification data)
-  const auto legacy = IdentificationDataConverter::exportMapIdentifications(features);
-  TEST_EQUAL(legacy.proteins == features.getProteinIdentifications(), true)
-  TEST_EQUAL(legacy.unassigned == features.getUnassignedPeptideIdentifications(), true)
+  const auto view = IdentificationDataConverter::exportMapIdentifications(features);
   Size assigned = 0;
   for (Size i = 0; i < features.size(); ++i)
   {
-    TEST_EQUAL(legacy.at({i}) == features[i].getPeptideIdentifications(), true)
-    assigned += features[i].getPeptideIdentifications().size();
+    TEST_EQUAL(view.at({i}).size(), features[i].getLinkedIdentifications(features.getIdentificationData()).size())
+    assigned += view.at({i}).size();
   }
   TEST_NOT_EQUAL(assigned, 0)
-  TEST_EQUAL(legacy.peptides().size(), assigned + legacy.unassigned.size())
+  TEST_EQUAL(view.peptides().size(), assigned + view.unassigned.size())
+  TEST_EQUAL(view.unassigned.size(), features.getUnassignedIdentifications().size())
 
   FeatureMap native = features;
-  native.getProteinIdentifications().clear();
-  native.getUnassignedPeptideIdentifications().clear();
-  for (auto& feature : native) feature.getPeptideIdentifications().clear();
-  IdentificationDataConverter::importMapIdentifications(native, legacy);
-  FeatureMap converted = features;
-  IdentificationDataConverter::importFeatureIDs(converted);
-  TEST_EQUAL(native.getIdentificationData().getRuns().size(), converted.getIdentificationData().getRuns().size())
+  native.clearIdentifications();
+  IdentificationDataConverter::importMapIdentifications(native, view);
+  TEST_EQUAL(native.getIdentificationData().getRuns().size(), features.getIdentificationData().getRuns().size())
   for (Size i = 0; i < native.size(); ++i)
   {
     TEST_EQUAL(native[i].getLinkedIdentifications(native.getIdentificationData()).size(),
-               converted[i].getLinkedIdentifications(converted.getIdentificationData()).size())
+               features[i].getLinkedIdentifications(features.getIdentificationData()).size())
   }
   const auto exported = IdentificationDataConverter::exportMapIdentifications(native);
-  TEST_EQUAL(exported.proteins == legacy.proteins, true)
-  TEST_EQUAL(exported.features == legacy.features, true)
-  TEST_EQUAL(exported.unassigned == legacy.unassigned, true)
+  TEST_EQUAL(exported.proteins == view.proteins, true)
+  TEST_EQUAL(exported.features == view.features, true)
+  TEST_EQUAL(exported.unassigned == view.unassigned, true)
 
   // a view refers to features by path; one that names no feature is rejected
   MapPeptideIdentifications dangling;
-  dangling.proteins = legacy.proteins;
-  dangling.features[{features.size()}] = legacy.at({0});
+  dangling.proteins = view.proteins;
+  dangling.features[{features.size()}] = view.at({0});
   TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(native, dangling))
 
   // consensus maps
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
-  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
-  const auto consensus_legacy = IdentificationDataConverter::exportMapIdentifications(consensus);
+  const auto consensus_view = IdentificationDataConverter::exportMapIdentifications(consensus);
   ConsensusMap consensus_native = consensus;
-  consensus_native.getProteinIdentifications().clear();
-  consensus_native.getUnassignedPeptideIdentifications().clear();
-  for (auto& feature : consensus_native) feature.getPeptideIdentifications().clear();
-  IdentificationDataConverter::importMapIdentifications(consensus_native, consensus_legacy);
+  consensus_native.clearIdentifications();
+  IdentificationDataConverter::importMapIdentifications(consensus_native, consensus_view);
   const auto consensus_exported = IdentificationDataConverter::exportMapIdentifications(consensus_native);
-  TEST_EQUAL(consensus_exported.proteins == consensus_legacy.proteins, true)
-  TEST_EQUAL(consensus_exported.features == consensus_legacy.features, true)
-  TEST_EQUAL(consensus_exported.unassigned == consensus_legacy.unassigned, true)
+  TEST_EQUAL(consensus_exported.proteins == consensus_view.proteins, true)
+  TEST_EQUAL(consensus_exported.features == consensus_view.features, true)
+  TEST_EQUAL(consensus_exported.unassigned == consensus_view.unassigned, true)
 }
 END_SECTION
 START_SECTION((MapPeptideIdentifications: at(), peptides() and eraseFeature()))
@@ -342,36 +320,6 @@ START_SECTION((MapPeptideIdentifications: at(), peptides() and eraseFeature()))
   TEST_EQUAL(ids.empty(), false)
 }
 END_SECTION
-START_SECTION((static void editAsIdentificationData(ConsensusMap& map, const std::function<void(ConsensusMap&)>& edit)))
-{
-  ConsensusMap consensus;
-  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), consensus);
-  IdentificationDataConverter::moveToPeptideIdentifications(consensus); // a legacy fixture (loading gives identification data)
-  const auto original = consensus;
-  // Callers keep references to protein runs (e.g. that of an inference result) across edits.
-  const auto* run = &consensus.getProteinIdentifications()[0];
-  bool native = false;
-  IdentificationDataConverter::editAsIdentificationData(consensus, [&](ConsensusMap& map) {
-    native = map.getUnassignedPeptideIdentifications().empty() && ! map.getIdentificationData().empty();
-  });
-  TEST_TRUE(native)
-  TEST_EQUAL(&consensus.getProteinIdentifications()[0] == run, true)
-  TEST_TRUE(consensus == original)
-  // An edit that throws leaves the map with peptide identifications.
-  TEST_EXCEPTION(Exception::InvalidValue, IdentificationDataConverter::editAsIdentificationData(consensus, [](ConsensusMap&) {
-                   throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "failed", "");
-                 }))
-  TEST_EQUAL(&consensus.getProteinIdentifications()[0] == run, true)
-  TEST_TRUE(consensus == original)
-  // A map with identification data is edited as it is.
-  auto native_map = original;
-  IdentificationDataConverter::importConsensusIDs(native_map);
-  const auto* data = &native_map.getIdentificationData();
-  IdentificationDataConverter::editAsIdentificationData(native_map, [&](ConsensusMap& map) { TEST_EQUAL(&map.getIdentificationData() == data, true) });
-  TEST_EQUAL(native_map.getUnassignedPeptideIdentifications().empty(), true)
-}
-END_SECTION
-
 START_SECTION((static bool makeRunsDistinct(FeatureMap& map, std::set<std::string>& taken)))
 {
   FeatureMap map;
@@ -430,97 +378,44 @@ START_SECTION((static bool makeRunsDistinct(ConsensusMap& map, std::set<std::str
 }
 END_SECTION
 
-START_SECTION((static const ConsensusMap& withPeptideIdentifications(const ConsensusMap& map, std::optional<ConsensusMap>& exported) and proteinIdentifications()))
+START_SECTION((static std::vector<ProteinIdentification> proteinIdentifications(const ConsensusMap& map)))
 {
-  ConsensusMap legacy;
+  ConsensusMap map;
+  TEST_EQUAL(IdentificationDataConverter::proteinIdentifications(map).empty(), true)
   ProteinIdentification run;
   run.setIdentifier("search");
   run.setSearchEngine("engine");
-  legacy.setProteinIdentifications({run});
-  legacy.resize(1);
+  map.resize(1);
   PeptideIdentification peptide;
   peptide.setIdentifier("search");
   peptide.setScoreType("score");
   peptide.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE")));
-  legacy[0].getPeptideIdentifications().push_back(peptide);
+  MapPeptideIdentifications ids;
+  ids.proteins = {run};
+  ids.features[{0}] = {peptide};
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 
-  // a map with peptide identifications is its own view
-  std::optional<ConsensusMap> exported;
-  TEST_EQUAL(&IdentificationDataConverter::withPeptideIdentifications(legacy, exported), &legacy)
-  TEST_EQUAL(exported.has_value(), false)
-  TEST_EQUAL(IdentificationDataConverter::proteinIdentifications(legacy).size(), 1)
-
-  // a map with identification data has a view with its identifications exported, and the protein runs export writes
-  ConsensusMap native = legacy;
-  IdentificationDataConverter::importConsensusIDs(native);
-  const ConsensusMap& view = IdentificationDataConverter::withPeptideIdentifications(native, exported);
-  TEST_EQUAL(exported.has_value(), true)
-  TEST_EQUAL(view[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(view.getIdentificationData().empty(), true)
-  TEST_EQUAL(native[0].getPeptideIdentifications().empty(), true)
-  const auto proteins = IdentificationDataConverter::proteinIdentifications(native);
+  // the protein runs that export writes
+  const auto proteins = IdentificationDataConverter::proteinIdentifications(map);
   ABORT_IF(proteins.size() != 1)
   TEST_EQUAL(proteins[0].getIdentifier(), "search")
   TEST_EQUAL(proteins[0].getSearchEngine(), "engine")
+  TEST_EQUAL(proteins == IdentificationDataConverter::exportMapIdentifications(map).proteins, true)
 }
 END_SECTION
 
-START_SECTION((static bool moveToPeptideIdentifications(FeatureMap& map) and (ConsensusMap& map)))
-{
-  FeatureMap legacy;
-  ProteinIdentification run;
-  run.setIdentifier("search");
-  legacy.setProteinIdentifications({run});
-  legacy.resize(1);
-  PeptideIdentification peptide;
-  peptide.setIdentifier("search");
-  peptide.setScoreType("score");
-  peptide.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE")));
-  legacy[0].getPeptideIdentifications().push_back(peptide);
-  PeptideIdentification unassigned = peptide;
-  unassigned.setRT(10.0);
-  legacy.getUnassignedPeptideIdentifications().push_back(unassigned);
-
-  // a map with peptide identifications (or none at all) stays as it is
-  FeatureMap unchanged = legacy;
-  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(unchanged), false)
-  TEST_EQUAL(unchanged == legacy, true)
-  FeatureMap empty;
-  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(empty), false)
-
-  // a map with identification data gets them as peptide identifications again
-  FeatureMap native = legacy;
-  TEST_EQUAL(IdentificationDataConverter::moveToIdentificationData(native), true)
-  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(native), true)
-  TEST_EQUAL(native.getIdentificationData().empty(), true)
-  TEST_EQUAL(native[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(native.getUnassignedPeptideIdentifications().size(), 1)
-  TEST_EQUAL(native.getProteinIdentifications().size(), 1)
-
-  ConsensusMap consensus;
-  consensus.setProteinIdentifications({run});
-  consensus.resize(1);
-  consensus[0].getPeptideIdentifications().push_back(peptide);
-  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(consensus), false)
-  TEST_EQUAL(IdentificationDataConverter::moveToIdentificationData(consensus), true)
-  TEST_EQUAL(IdentificationDataConverter::moveToPeptideIdentifications(consensus), true)
-  TEST_EQUAL(consensus[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(consensus.getIdentificationData().empty(), true)
-}
-END_SECTION
-
-START_SECTION((static const std::vector<FeatureMap>& withIdentificationData(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted)))
+START_SECTION((static const std::vector<FeatureMap>& withDistinctRuns(const std::vector<FeatureMap>& maps, std::vector<FeatureMap>& converted)))
 {
   // maps with distinct runs are used as they are:
   std::vector<FeatureMap> maps(2);
   maps[0].getIdentificationData() = fixture();
   maps[1].getIdentificationData() = fixture();
   std::vector<FeatureMap> converted;
-  TEST_EQUAL(&IdentificationDataConverter::withIdentificationData(maps, converted) == &maps, true)
+  TEST_EQUAL(&IdentificationDataConverter::withDistinctRuns(maps, converted) == &maps, true)
   TEST_EQUAL(converted.empty(), true)
   // a run that is also in an earlier map gets a new UUID in a copy:
   maps[1] = maps[0];
-  const auto& distinct = IdentificationDataConverter::withIdentificationData(maps, converted);
+  const auto& distinct = IdentificationDataConverter::withDistinctRuns(maps, converted);
   TEST_EQUAL(&distinct == &converted, true)
   ABORT_IF(converted.size() != 2)
   TEST_EQUAL(converted[0] == maps[0], true)
@@ -529,20 +424,24 @@ START_SECTION((static const std::vector<FeatureMap>& withIdentificationData(cons
 }
 END_SECTION
 
-START_SECTION((static const std::vector<ConsensusMap>& withIdentificationData(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted)))
+START_SECTION((static const std::vector<ConsensusMap>& withDistinctRuns(const std::vector<ConsensusMap>& maps, std::vector<ConsensusMap>& converted)))
 {
-  // peptide identifications are converted:
+  // the same map twice: the copy of the second gets new UUIDs for its runs
   std::vector<ConsensusMap> maps(2);
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), maps[0]);
-  IdentificationDataConverter::moveToPeptideIdentifications(maps[0]); // a legacy fixture (loading gives identification data)
+  maps[1] = maps[0];
   std::vector<ConsensusMap> converted;
-  const auto& prepared = IdentificationDataConverter::withIdentificationData(maps, converted);
+  const auto& prepared = IdentificationDataConverter::withDistinctRuns(maps, converted);
   TEST_EQUAL(&prepared == &converted, true)
   ABORT_IF(converted.size() != 2)
-  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(converted[0]), false)
-  TEST_EQUAL(converted[0].getIdentificationData().empty(), false)
-  TEST_EQUAL(converted[1] == maps[1], true)
-  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(maps[0]), true)
+  TEST_EQUAL(converted[0] == maps[0], true)
+  TEST_NOT_EQUAL(converted[1].getIdentificationData().getRuns()[0].getUuid(), maps[0].getIdentificationData().getRuns()[0].getUuid())
+  // with the same identifications
+  TEST_EQUAL(IdentificationDataConverter::exportMapIdentifications(converted[1]).features == IdentificationDataConverter::exportMapIdentifications(maps[1]).features, true)
+  // maps with distinct runs are used as they are
+  std::vector<ConsensusMap> again;
+  TEST_EQUAL(&IdentificationDataConverter::withDistinctRuns(converted, again) == &converted, true)
+  TEST_EQUAL(again.empty(), true)
 }
 END_SECTION
 

@@ -13,7 +13,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <cfloat>
 #include <numeric>
@@ -130,7 +129,7 @@ namespace OpenMS
 
   void PSMExplainedIonCurrent::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
-    IdentificationDataConverter::editAsIdentificationData(fmap, [&](FeatureMap& map) { computeNative_(map, exp, map_to_spectrum, tolerance_unit, tolerance); });
+    computeNative_(fmap, exp, map_to_spectrum, tolerance_unit, tolerance);
   }
 
   void PSMExplainedIonCurrent::computeNative_(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)

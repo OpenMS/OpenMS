@@ -20,6 +20,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/QC/MissedCleavages.h>
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <string>
 #include <vector>
 
@@ -64,20 +65,17 @@ PeptideIdentificationList pep_ids_1 = {pep_id_1, pep_id_1};
 PeptideIdentificationList pep_ids_empty {};
 PeptideIdentificationList pep_ids_3 = {pep_id_3};
 
-// construct features with peptideIdentifications
+// construct features (their peptide identifications are given with the identifications of the maps)
 Feature feat_empty_pi;
-feat_empty_pi.setPeptideIdentifications(pep_ids_empty);
 feat_empty_pi.setMetaValue("FWHM", 32.21);
 
 Feature feat;
-feat.setPeptideIdentifications(pep_ids);
 feat.setMetaValue("FWHM", 32.21);
 
 Feature feat_empty;
 feat_empty.setMetaValue("FWHM", 32.21);
 
 Feature feat_3;
-feat_3.setPeptideIdentifications(pep_ids_3);
 feat_3.setMetaValue("FWHM", 32.21);
 
 // FeatureMap
@@ -91,24 +89,34 @@ FeatureMap feature_map_no_enzyme;
 feature_map.push_back(feat_empty_pi);
 feature_map.push_back(feat);
 feature_map.push_back(feat_empty);
-feature_map.setUnassignedPeptideIdentifications(pep_ids_1);
-feature_map.getProteinIdentifications().resize(1);
-feature_map.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("trypsin");
-feature_map.getProteinIdentifications()[0].getSearchParameters().missed_cleavages = 2;
+MapPeptideIdentifications ids;
+ids.features[{1}] = pep_ids;
+ids.unassigned = pep_ids_1;
+ids.proteins.resize(1);
+ids.proteins[0].getSearchParameters().digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme("trypsin");
+ids.proteins[0].getSearchParameters().missed_cleavages = 2;
+IdentificationDataConverter::importMapIdentifications(feature_map, ids);
 
 // FeatureMap with more missed cleavages than allowed
 feature_map_3.push_back(feat_3);
-feature_map_3.getProteinIdentifications().resize(1);
-feature_map_3.getProteinIdentifications()[0].getSearchParameters().digestion_enzyme.setName("trypsin");
-feature_map_3.getProteinIdentifications()[0].getSearchParameters().missed_cleavages = 2;
+MapPeptideIdentifications ids_3;
+ids_3.features[{0}] = pep_ids_3;
+ids_3.proteins.resize(1);
+ids_3.proteins[0].getSearchParameters().digestion_enzyme.setName("trypsin");
+ids_3.proteins[0].getSearchParameters().missed_cleavages = 2;
+IdentificationDataConverter::importMapIdentifications(feature_map_3, ids_3);
 
 // FeatureMap without ProteinIdentifications
 feature_map_no_protein.push_back(feat);
+MapPeptideIdentifications ids_no_protein;
+ids_no_protein.features[{0}] = pep_ids;
 
 // FeatureMap without given enzyme
 feature_map_no_enzyme.push_back(feat);
-ProteinIdentification prot_id;
-feature_map_no_enzyme.setProteinIdentifications({prot_id});
+MapPeptideIdentifications ids_no_enzyme;
+ids_no_enzyme.features[{0}] = pep_ids;
+ids_no_enzyme.proteins.resize(1);
+IdentificationDataConverter::importMapIdentifications(feature_map_no_enzyme, ids_no_enzyme);
 
 //////////////////////////////////////////////////////////////////
 // start Section
@@ -157,7 +165,12 @@ START_SECTION(void compute(FeatureMap& fmap))
     }
   };
 
-  feature_map.applyFunctionOnPeptideIDs(lam);
+  const auto exported = IdentificationDataConverter::exportMapIdentifications(feature_map);
+  for (const auto* pep_id : exported.peptides())
+  {
+    PeptideIdentification copy = *pep_id;
+    lam(copy);
+  }
   TEST_EQUAL(frequ.size(), 4)
   TEST_EQUAL(frequ[0], 0)
   TEST_EQUAL(frequ[1], 1)
@@ -173,9 +186,8 @@ START_SECTION(void compute(FeatureMap& fmap))
 
   // Missing informations in ProteinIdentifications
   // fmap.getProteinIdentifications().empty()
-  MissedCleavages mc_no_protein;
-  // peptide identifications without their search run (ProteinIdentification) are not valid input
-  TEST_EXCEPTION(Exception::InvalidParameter, mc_no_protein.compute(feature_map_no_protein))
+  // peptide identifications without their search run (ProteinIdentification) cannot be the identifications of a map
+  TEST_EXCEPTION(Exception::InvalidParameter, IdentificationDataConverter::importMapIdentifications(feature_map_no_protein, ids_no_protein))
 
   // no given enzyme
   // enzyme == "unknown_enzyme"

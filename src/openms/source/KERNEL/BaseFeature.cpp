@@ -25,22 +25,6 @@ namespace OpenMS
   {
   }
 
-  BaseFeature::BaseFeature(const BaseFeature& rhs, UInt64 map_index):
-      RichPeak2D(rhs),
-      quality_(rhs.quality_),
-      charge_(rhs.charge_),
-      width_(rhs.width_),
-      peptides_(rhs.peptides_),
-      primary_id_(rhs.primary_id_),
-      id_matches_(rhs.id_matches_),
-      id_queries_(rhs.id_queries_)
-  {
-    for (auto& pep : this->peptides_)
-    {
-      pep.setMetaValue("map_index", map_index);
-    }
-  }
-
   BaseFeature::BaseFeature(const RichPeak2D& point) :
     RichPeak2D(point), quality_(0.0), charge_(0), width_(0)
   {
@@ -50,8 +34,7 @@ namespace OpenMS
     RichPeak2D(fh),
     quality_(0.0),
     charge_(fh.getCharge()),
-    width_(fh.getWidth()),
-    peptides_()
+    width_(fh.getWidth())
   {
   }
 
@@ -63,7 +46,7 @@ namespace OpenMS
   bool BaseFeature::operator==(const BaseFeature& rhs) const
   {
     return RichPeak2D::operator==(rhs) && (quality_ == rhs.quality_) && (charge_ == rhs.charge_) && (width_ == rhs.width_)
-           && (peptides_ == rhs.peptides_) && (primary_id_ == rhs.primary_id_) && (id_matches_ == rhs.id_matches_)
+           && (primary_id_ == rhs.primary_id_) && (id_matches_ == rhs.id_matches_)
            && (id_queries_ == rhs.id_queries_);
   }
 
@@ -108,68 +91,6 @@ namespace OpenMS
     charge_ = charge;
   }
 
-  const PeptideIdentificationList& BaseFeature::getPeptideIdentifications()
-  const
-  {
-    return peptides_;
-  }
-
-  PeptideIdentificationList& BaseFeature::getPeptideIdentifications()
-  {
-    return peptides_;
-  }
-
-  void BaseFeature::setPeptideIdentifications(
-    const PeptideIdentificationList& peptides)
-  {
-    peptides_ = peptides;
-  }
-
-  void BaseFeature::sortPeptideIdentifications()
-  {
-    // Sort the hits of every identification in a pass of its own. Doing it inside the comparator
-    // skips every identification the sort never compares (e.g. the only identification of a
-    // feature) and lets the comparator modify its arguments.
-    for (PeptideIdentification& pep : peptides_)
-    {
-      pep.sort();
-    }
-
-    // Read the score orientation once, from the first identification that has hits (default:
-    // higher is better), and use it for every comparison. Taking it from the left operand makes
-    // the comparator asymmetric as soon as two identifications disagree on isHigherScoreBetter(),
-    // and the sort requires a strict weak ordering.
-    bool higher_score_better = true;
-    for (const PeptideIdentification& pep : peptides_)
-    {
-      if (!pep.getHits().empty())
-      {
-        higher_score_better = pep.isHigherScoreBetter();
-        break;
-      }
-    }
-
-    // Best first: the identification whose first (= best) hit scores best comes first,
-    // identifications without hits go last, and ties keep their relative order (stable sort).
-    // Hit presence is the guard, not PeptideIdentification::empty(): an identification with an
-    // identifier or score type but no hits is not empty(), yet it has no first hit to read.
-    std::stable_sort(peptides_.begin(), peptides_.end(),
-                     [higher_score_better](const PeptideIdentification& p1, const PeptideIdentification& p2)
-                     {
-                       if (p1.getHits().empty())
-                       {
-                         return false; // no hits: never precedes anything
-                       }
-                       if (p2.getHits().empty())
-                       {
-                         return true; // hits precede no hits
-                       }
-                       const double s1 = p1.getHits()[0].getScore();
-                       const double s2 = p2.getHits()[0].getScore();
-                       return higher_score_better ? (s1 > s2) : (s1 < s2);
-                     });
-  }
-
   BaseFeature::AnnotationState BaseFeature::annotationState(const PeptideIdentificationList& peptides)
   {
     if (peptides.empty())
@@ -202,26 +123,9 @@ namespace OpenMS
     return AnnotationState::FEATURE_ID_NONE;   // very rare case of empty hits
   }
 
-  BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
-  {
-    if (id_matches_.empty()) // consider IDs in old format
-    {
-      return annotationState(peptides_);
-    }
-    else // consider IDs in new format
-    {
-      if (id_matches_.size() == 1)
-      {
-        return AnnotationState::FEATURE_ID_SINGLE;
-      }
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Comparing multiple owning match annotations requires their IdentificationData");
-    }
-  }
-
   BaseFeature::AnnotationState BaseFeature::getAnnotationState(const IdentificationData& data) const
   {
-    if (id_matches_.empty()) return getAnnotationState();
+    if (id_matches_.empty()) return AnnotationState::FEATURE_ID_NONE;
     std::optional<IdentificationData::MoleculeIdentity> molecule;
     bool divergent = false;
     for (const auto& reference : id_matches_)

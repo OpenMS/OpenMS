@@ -12,6 +12,7 @@
 
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/NativeIdentificationTest.h>
 
 ///////////////////////////
 
@@ -573,13 +574,15 @@ START_SECTION(static Size mergeCoincidentFeatures(FeatureMap& feature_map))
 {
   // Positional isomers identified from the HCD and ETD scans of one precursor: FFId reports the
   // same signal once per isomer, at exactly the same position.
+  using namespace Internal::ClassTest;
   FeatureMap fmap;
+  MapPeptideIdentifications ids;
   Feature iso1 = createTestFeature(659.206, 698.827042711, 1977408.0, 2);
-  iso1.getPeptideIdentifications().push_back(createTestPepID("ESKS(Phospho)SPRPTAEK", 0.2));
+  ids.features[{0}].push_back(createTestPepID("ESKS(Phospho)SPRPTAEK", 0.2));
   Feature other = createTestFeature(700.0, 698.827042711, 5000.0, 2); // same m/z, other RT
-  other.getPeptideIdentifications().push_back(createTestPepID("PEPTIDER", 0.01));
+  ids.features[{1}].push_back(createTestPepID("PEPTIDER", 0.01));
   Feature iso2 = createTestFeature(659.206, 698.827042711, 1977408.0, 2);
-  iso2.getPeptideIdentifications().push_back(createTestPepID("ESKSSPRPT(Phospho)AEK", 0.5));
+  ids.features[{2}].push_back(createTestPepID("ESKSSPRPT(Phospho)AEK", 0.5));
   Feature other_charge = createTestFeature(659.206, 698.827042711, 1000.0, 3); // different charge
   // a third copy, more intense: it is the one kept, in its own position
   Feature iso3 = createTestFeature(659.206, 698.827042711, 2000000.0, 2);
@@ -595,6 +598,8 @@ START_SECTION(static Size mergeCoincidentFeatures(FeatureMap& feature_map))
   {
     f.ensureUniqueId();
   }
+  addSearchRun(ids);
+  setIdentifications(fmap, ids);
   const UInt64 iso3_uid = fmap[4].getUniqueId();
 
   TEST_EQUAL(FeatureOverlapFilter::mergeCoincidentFeatures(fmap), 2)
@@ -606,26 +611,31 @@ START_SECTION(static Size mergeCoincidentFeatures(FeatureMap& feature_map))
   TEST_REAL_SIMILAR(fmap[2].getIntensity(), 2000000.0)
   TEST_REAL_SIMILAR(fmap[3].getMZ(), 698.8271)
   // no identification is lost: both isomers' IDs are now on the merged feature
-  TEST_EQUAL(fmap[2].getPeptideIdentifications().size(), 2)
-  TEST_EQUAL(fmap[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "ESKS(Phospho)SPRPTAEK")
-  TEST_EQUAL(fmap[2].getPeptideIdentifications()[1].getHits()[0].getSequence().toString(), "ESKSSPRPT(Phospho)AEK")
-  TEST_EQUAL(fmap[0].getPeptideIdentifications().size(), 1)
+  const auto merged = peptidesOf(fmap, {2});
+  TEST_EQUAL(merged.size(), 2)
+  ABORT_IF(merged.size() != 2)
+  TEST_EQUAL(merged[0].getHits()[0].getSequence().toString(), "ESKS(Phospho)SPRPTAEK")
+  TEST_EQUAL(merged[1].getHits()[0].getSequence().toString(), "ESKSSPRPT(Phospho)AEK")
+  TEST_EQUAL(peptidesOf(fmap, {0}).size(), 1)
 
   // ties keep the first feature
   FeatureMap tie;
   tie.push_back(createTestFeature(10.0, 500.0, 100.0, 2));
   tie.push_back(createTestFeature(10.0, 500.0, 100.0, 2));
-  tie[0].getPeptideIdentifications().push_back(createTestPepID("PEPTIDEK", 0.1));
-  tie[1].getPeptideIdentifications().push_back(createTestPepID("PEPTIDER", 0.1));
+  MapPeptideIdentifications tie_ids;
+  tie_ids.features[{0}].push_back(createTestPepID("PEPTIDEK", 0.1));
+  tie_ids.features[{1}].push_back(createTestPepID("PEPTIDER", 0.1));
   for (auto& f : tie)
   {
     f.ensureUniqueId();
   }
+  addSearchRun(tie_ids);
+  setIdentifications(tie, tie_ids);
   const UInt64 first_uid = tie[0].getUniqueId();
   TEST_EQUAL(FeatureOverlapFilter::mergeCoincidentFeatures(tie), 1)
   TEST_EQUAL(tie.size(), 1)
   TEST_EQUAL(tie[0].getUniqueId(), first_uid)
-  TEST_EQUAL(tie[0].getPeptideIdentifications().size(), 2)
+  TEST_EQUAL(peptidesOf(tie, {0}).size(), 2)
 
   // nothing to merge: untouched
   FeatureMap distinct;

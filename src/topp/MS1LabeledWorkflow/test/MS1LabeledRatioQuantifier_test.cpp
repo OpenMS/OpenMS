@@ -14,7 +14,9 @@ using namespace OpenMS;
 
 namespace
 {
-void addPeptide(ConsensusMap& map, const std::string& sequence, Size run, const std::vector<double>& intensities)
+// Add a feature with an identification of the sequence to the map and its identifications @p ids
+void addPeptide(ConsensusMap& map, MapPeptideIdentifications& ids, const std::string& sequence, Size run,
+                const std::vector<double>& intensities)
 {
   ConsensusFeature feature;
   for (Size channel = 0; channel < intensities.size(); ++channel)
@@ -35,8 +37,9 @@ void addPeptide(ConsensusMap& map, const std::string& sequence, Size run, const 
   id.setScoreType("q-value");
   id.setHigherScoreBetter(false);
   id.insertHit(hit);
-  feature.getPeptideIdentifications().push_back(id);
+  ids.features[{map.size()}].push_back(id);
   map.push_back(feature);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
 }
 } // namespace
 
@@ -67,23 +70,24 @@ START_SECTION((void run(ConsensusMap&, const ExperimentalDesign&, ProteinIdentif
   // the search run of the identifications
   ProteinIdentification search;
   search.setIdentifier("search");
-  map.setProteinIdentifications({search});
+  MapPeptideIdentifications ids;
+  ids.proteins = {search};
   ProteinIdentification proteins;
   ProteinIdentification::ProteinGroup group;
   group.accessions = {"P1"};
   proteins.getIndistinguishableProteins() = {group};
 
   // Disjoint partial triplexes: neither M/L nor H/L has the required two peptides.
-  addPeptide(map, "PEPTIDEK", 0, {100, 200, 0});
-  addPeptide(map, "AAAAK", 0, {100, 0, 300});
+  addPeptide(map, ids, "PEPTIDEK", 0, {100, 200, 0});
+  addPeptide(map, ids, "AAAAK", 0, {100, 0, 300});
   MS1LabeledRatioQuantifier quantifier;
   quantifier.run(map, design, proteins);
   TEST_EQUAL(quantifier.getProteinGroupRatios().size(), 0)
   TEST_EQUAL(proteins.getIndistinguishableProteins()[0].getFloatDataArrays().size(), 0)
 
   // A passing comparison in fraction group 2 must not admit a reference-only row in group 1.
-  addPeptide(map, "PEPTIDEK", 1, {100, 200, 0});
-  addPeptide(map, "AAAAK", 1, {100, 400, 0});
+  addPeptide(map, ids, "PEPTIDEK", 1, {100, 200, 0});
+  addPeptide(map, ids, "AAAAK", 1, {100, 400, 0});
   quantifier.run(map, design, proteins);
   const auto& ratios = quantifier.getProteinGroupRatios().at("P1");
   TEST_EQUAL(ratios.size(), 2)
@@ -103,14 +107,16 @@ START_SECTION((void run(ConsensusMap&, const ExperimentalDesign&, ProteinIdentif
   quantifier.setParameters(param);
   ConsensusMap alternate = map;
   alternate.resize(0);
-  addPeptide(alternate, "PEPTIDEK", 0, {100, 200, 0});
-  addPeptide(alternate, "AAAAK", 0, {0, 200, 300});
+  MapPeptideIdentifications alternate_ids;
+  alternate_ids.proteins = {search};
+  addPeptide(alternate, alternate_ids, "PEPTIDEK", 0, {100, 200, 0});
+  addPeptide(alternate, alternate_ids, "AAAAK", 0, {0, 200, 300});
   quantifier.run(alternate, design, proteins);
   TEST_EQUAL(quantifier.getProteinGroupRatios().size(), 0)
   // Re-running also clears earlier annotations from the protein group.
   TEST_EQUAL(proteins.getIndistinguishableProteins()[0].getFloatDataArrays().size(), 0)
 
-  addPeptide(alternate, "VVVVK", 0, {100, 400, 0});
+  addPeptide(alternate, alternate_ids, "VVVVK", 0, {100, 400, 0});
   quantifier.run(alternate, design, proteins);
   const auto& alternate_ratios = quantifier.getProteinGroupRatios().at("P1");
   TEST_EQUAL(alternate_ratios.size(), 2)
@@ -121,31 +127,6 @@ START_SECTION((void run(ConsensusMap&, const ExperimentalDesign&, ProteinIdentif
   TEST_EQUAL(alternate_ratios[1].count, 3)
   TEST_REAL_SIMILAR(alternate_ratios[1].ratio, 1.0)
   TEST_EQUAL(proteins.getIndistinguishableProteins()[0].getFloatDataArrays().size(), 1)
-
-  // The identifications as identification data give the same ratios and annotations.
-  ConsensusMap native = alternate;
-  IdentificationDataConverter::moveToIdentificationData(native);
-  TEST_EQUAL(native.getIdentificationData().empty(), false)
-  ProteinIdentification native_proteins = proteins;
-  MS1LabeledRatioQuantifier native_quantifier;
-  native_quantifier.setParameters(param);
-  native_quantifier.run(native, design, native_proteins);
-  TEST_EQUAL(native_quantifier.getPeptideRatios().size(), quantifier.getPeptideRatios().size())
-  TEST_EQUAL(native_quantifier.getProteinGroupRatios().size(), 1)
-  const auto& native_ratios = native_quantifier.getProteinGroupRatios().at("P1");
-  TEST_EQUAL(native_ratios.size(), alternate_ratios.size())
-  for (Size i = 0; i < native_ratios.size(); ++i)
-  {
-    TEST_EQUAL(native_ratios[i].channel, alternate_ratios[i].channel)
-    TEST_EQUAL(native_ratios[i].count, alternate_ratios[i].count)
-    TEST_REAL_SIMILAR(native_ratios[i].ratio, alternate_ratios[i].ratio)
-  }
-  TEST_EQUAL(native_proteins.getIndistinguishableProteins() == proteins.getIndistinguishableProteins(), true)
-  ABORT_IF(native.size() != alternate.size())
-  for (Size i = 0; i < native.size(); ++i)
-  {
-    TEST_EQUAL(static_cast<const MetaInfoInterface&>(native[i]) == static_cast<const MetaInfoInterface&>(alternate[i]), true)
-  }
 }
 END_SECTION
 

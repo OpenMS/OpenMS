@@ -17,6 +17,7 @@ namespace OpenMS
 {
   class ConsensusMap;
   class ExperimentalDesign;
+  struct MapPeptideIdentifications;
 
 /**
   @brief Whole-collection preflight for the QPX Parquet export (@c -out_qpx)
@@ -73,6 +74,10 @@ public:
     @throws Exception::InvalidValue if two identification runs share an identifier
   */
   static bool requireExportable(const ConsensusMap& cmap, const ExperimentalDesign& design);
+  /// Same as above, for the identifications @p ids of @p cmap that the views are given (e.g. with the quantified
+  /// protein run first; see IdentificationDataConverter::exportMapIdentifications())
+  static bool requireExportable(const ConsensusMap& cmap, const MapPeptideIdentifications& ids,
+                                const ExperimentalDesign& design);
 
   /**
     @brief Scope guard that leaves no partial QPX collection behind

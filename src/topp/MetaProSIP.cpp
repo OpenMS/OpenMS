@@ -11,7 +11,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -3055,8 +3054,6 @@ protected:
     OPENMS_LOG_INFO << "loading feature map..." << endl;
     FeatureMap feature_map;
     FileHandler().loadFeatures(in_features, feature_map, {FileTypes::FEATUREXML});
-    // From here on, the identifications are identification data.
-    IdentificationDataConverter::moveToIdentificationData(feature_map);
     const IdentificationData& identifications = feature_map.getIdentificationData();
 
     // annotate as features found using feature finding (to distinguish them from averagine features oder id based features ... see below)

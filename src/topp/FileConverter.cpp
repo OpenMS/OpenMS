@@ -972,10 +972,6 @@ protected:
         }
       }
       // the unassigned identifications are of the (only) map
-      for (auto& pepID : cm.getUnassignedPeptideIdentifications())
-      {
-        pepID.setMetaValue("map_index", 0);
-      }
       std::vector<std::tuple<std::string, IdentificationData::QueryId, IdentificationData::Observation>> unassigned;
       for (const auto& id : cm.getUnassignedIdentifications())
       {

@@ -123,8 +123,6 @@ public:
       score type (see IdentificationDataAdapter::unscoredRun()).
 
       @exception Exception::MissingInformation is thrown if an identification of @p ids has no RT or m/z
-      @exception Exception::InvalidParameter is thrown if @p map has peptide identifications (convert them first, see
-      IdentificationDataConverter::moveToIdentificationData())
     */
     void annotate(FeatureMap& map, const IdentificationData& ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap());
 
@@ -163,8 +161,6 @@ public:
       to no consensus feature are removed.
 
       @exception Exception::MissingInformation is thrown if an identification of @p ids has no RT or m/z
-      @exception Exception::InvalidParameter is thrown if @p map has peptide identifications (convert them first, see
-      IdentificationDataConverter::moveToIdentificationData())
     */
     void annotate(ConsensusMap& map, const IdentificationData& ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false,
                   const PeakMap& spectra = PeakMap());

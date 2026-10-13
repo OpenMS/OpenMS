@@ -73,7 +73,8 @@ def create_test_consensus_map(labelfree=True):
     pg.accessions = [b"PROT_A", b"PROT_B"]
     prot_id.insertProteinGroup(pg)
 
-    cmap.setProteinIdentifications([prot_id])
+    ids = oms.MapPeptideIdentifications()
+    ids.proteins = [prot_id]
 
     # Create ConsensusFeature 1 - identified
     cf1 = oms.ConsensusFeature()
@@ -99,6 +100,7 @@ def create_test_consensus_map(labelfree=True):
     pep_id1 = oms.PeptideIdentification()
     pep_id1.setRT(100.5)
     pep_id1.setMZ(500.25)
+    pep_id1.setIdentifier("PI_0")
     pep_id1.setScoreType("Posterior Error Probability")
     pep_id1.setMetaValue("spectrum_reference",
                           "controllerType=0 controllerNumber=1 scan=1234")
@@ -116,7 +118,7 @@ def create_test_consensus_map(labelfree=True):
     pep_id1.setHits([hit1])
     pep_id_list1 = oms.PeptideIdentificationList()
     pep_id_list1.append(pep_id1)
-    cf1.setPeptideIdentifications(pep_id_list1)
+    ids.setFeature([0], pep_id_list1)
 
     cmap.push_back(cf1)
 
@@ -136,6 +138,7 @@ def create_test_consensus_map(labelfree=True):
     pep_id2 = oms.PeptideIdentification()
     pep_id2.setRT(200.0)
     pep_id2.setMZ(600.30)
+    pep_id2.setIdentifier("PI_0")
     pep_id2.setScoreType("Posterior Error Probability")
 
     hit2 = oms.PeptideHit()
@@ -153,7 +156,7 @@ def create_test_consensus_map(labelfree=True):
     pep_id2.setHits([hit2])
     pep_id_list2 = oms.PeptideIdentificationList()
     pep_id_list2.append(pep_id2)
-    cf2.setPeptideIdentifications(pep_id_list2)
+    ids.setFeature([1], pep_id_list2)
 
     cmap.push_back(cf2)
 
@@ -171,6 +174,7 @@ def create_test_consensus_map(labelfree=True):
     cf3.insert(0, bf4)
 
     cmap.push_back(cf3)
+    oms.IdentificationDataConverter.importMapIdentifications(cmap, ids)
 
     return cmap
 

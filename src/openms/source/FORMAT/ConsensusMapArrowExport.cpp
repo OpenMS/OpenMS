@@ -1534,7 +1534,17 @@ bool ConsensusMapArrowExport::exportToParquet(
   QPXIdentity::FeatureLinks* out_links)
 {
   // the identifications as peptide identifications, which this format holds
-  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
+  return exportToParquet(input_map, IdentificationDataConverter::exportMapIdentifications(input_map), filename, config,
+                         out_links);
+}
+
+bool ConsensusMapArrowExport::exportToParquet(
+  const ConsensusMap& input_map,
+  const MapPeptideIdentifications& ids,
+  const std::string& filename,
+  const ParquetWriteConfig& config,
+  QPXIdentity::FeatureLinks* out_links)
+{
   auto table = exportFeatureTable(input_map, ids, out_links);
   if (!table)
   {
@@ -1615,8 +1625,19 @@ bool ConsensusMapArrowExport::exportToParquetStreaming(
   QPXIdentity::FeatureLinks* out_links)
 {
   // the identifications as peptide identifications, which this format holds
-  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
-  const ConsensusMap& cmap = input_map;
+  return exportToParquetStreaming(input_map, IdentificationDataConverter::exportMapIdentifications(input_map), filename,
+                                  batch_size, config, n_threads, out_links);
+}
+
+bool ConsensusMapArrowExport::exportToParquetStreaming(
+  const ConsensusMap& cmap,
+  const MapPeptideIdentifications& ids,
+  const std::string& filename,
+  size_t batch_size,
+  const ParquetWriteConfig& config,
+  int n_threads,
+  QPXIdentity::FeatureLinks* out_links)
+{
   if (batch_size == 0) { batch_size = 1000000; } // guard: a zero step would never advance
 
   // Resolve the number of OpenMP threads used to build each batch's partitions.

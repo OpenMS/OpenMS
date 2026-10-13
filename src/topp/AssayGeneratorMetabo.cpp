@@ -280,8 +280,8 @@ protected:
         if (it->getSoftware().getName() == "FeatureFinderMetabo")
         {
           // if id information is missing set use_known_unknowns to true
-          // (as protein identifications or identification data, e.g. of AccurateMassSearch)
-          if (feature_map.getProteinIdentifications().empty() && feature_map.getIdentificationData().empty())
+          // (identification data, e.g. of AccurateMassSearch)
+          if (feature_map.getIdentificationData().empty())
           {
             use_known_unknowns = true;
             OPENMS_LOG_INFO << "Due to the use of data without previous identification "

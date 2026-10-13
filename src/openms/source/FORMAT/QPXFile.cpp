@@ -1666,7 +1666,17 @@ bool QPXFile::exportToParquet(
   const QPXIdentity::FeatureLinks* feature_links)
 {
   // the identifications as peptide identifications, which this format holds (assigned per feature, then unassigned)
-  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
+  return exportToParquet(IdentificationDataConverter::exportMapIdentifications(input_map), filename, export_all_psms,
+                         config, feature_links);
+}
+
+bool QPXFile::exportToParquet(
+  const MapPeptideIdentifications& ids,
+  const std::string& filename,
+  bool export_all_psms,
+  const ParquetWriteConfig& config,
+  const QPXIdentity::FeatureLinks* feature_links)
+{
   PeptideIdentificationList peptides;
   for (const PeptideIdentification* peptide : ids.peptides())
   {

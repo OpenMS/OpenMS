@@ -8,7 +8,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/USI.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 
@@ -230,40 +229,6 @@ namespace OpenMS
       }
     }
     return filtered;
-  }
-
-  std::multimap<std::string, std::pair<Size, Size>>
-  PeptideIdentification::buildUIDsFromAllPepIDs(const ConsensusMap &cmap)
-  {
-    multimap<std::string, std::pair<Size, Size>> customID_to_cpepID{};
-
-    IdentifierMSRunMapper mapping(cmap.getProteinIdentifications());
-    //Iterates of the vector of PeptideIdentification to build the UID
-    //and the pep_index
-    auto lambda = [](const PeptideIdentificationList &cpep_ids,
-                     const IdentifierMSRunMapper& id_mapping,
-                     multimap<std::string, std::pair<Size, Size>> &customID_to_cpepID,
-                     const Size &cf_index) {
-        Size pep_index = 0;
-        for (const PeptideIdentification &cpep_id : cpep_ids)
-        {
-          std::pair<Size, Size> index = {cf_index, pep_index};
-          auto uid = buildUIDFromPepID(cpep_id, id_mapping);
-          customID_to_cpepID.insert(make_pair(uid, index));
-          ++pep_index;
-        }
-    };
-    //Build the multimap of all UIDs from the ConsensusMap
-    //The multimap maps the UID of the PeptideIdentification to all occurrences in the ConsensusMap
-    //An occurrence is described as a pair of an index of the ConsensusFeature and the PeptideIdentification
-    for (Size i = 0; i < cmap.size(); ++i)
-    {
-      lambda(cmap[i].getPeptideIdentifications(), mapping, customID_to_cpepID, i);
-    }
-    //all unassigned PeptideIdentifications get -1 for the ConsensusFeature index
-    lambda(cmap.getUnassignedPeptideIdentifications(), mapping, customID_to_cpepID, -1);
-
-    return customID_to_cpepID;
   }
 
   std::string PeptideIdentification::buildUIDFromPepID(const PeptideIdentification &pep_id,

@@ -2800,7 +2800,25 @@ state0:
     const bool export_all_psms,
     const std::string& title) 
   :
-    ids_(IdentificationDataConverter::exportMapIdentifications(input_map)),
+    CMMzTabStream(input_map, IdentificationDataConverter::exportMapIdentifications(input_map), filename,
+                  first_run_inference_only, export_unidentified_features, export_unassigned_ids, export_subfeatures,
+                  export_empty_pep_ids, export_all_psms, title)
+  {
+  }
+
+  MzTab::CMMzTabStream::CMMzTabStream(
+    const ConsensusMap& input_map,
+    MapPeptideIdentifications ids,
+    const std::string& filename,
+    const bool first_run_inference_only,
+    const bool export_unidentified_features,
+    const bool export_unassigned_ids,
+    const bool export_subfeatures,
+    const bool export_empty_pep_ids,
+    const bool export_all_psms,
+    const std::string& title) 
+  :
+    ids_(std::move(ids)),
     consensus_map_(input_map),
     filename_(filename), 
     export_unidentified_features_(export_unidentified_features),

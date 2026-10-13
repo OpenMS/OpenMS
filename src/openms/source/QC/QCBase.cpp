@@ -13,7 +13,6 @@
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/METADATA/DataProcessingUtils.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <optional>
@@ -164,48 +163,42 @@ namespace OpenMS
 
   bool QCBase::hasPepID(const FeatureMap& fmap)
   {
-    std::optional<FeatureMap> converted;
-    return hasIdentifications(IdentificationDataConverter::withIdentificationData(fmap, converted).getIdentificationData());
+    return hasIdentifications(fmap.getIdentificationData());
   }
 
   bool QCBase::hasPepID(const ConsensusMap& cmap)
   {
-    std::optional<ConsensusMap> converted;
-    return hasIdentifications(IdentificationDataConverter::withIdentificationData(cmap, converted).getIdentificationData());
+    return hasIdentifications(cmap.getIdentificationData());
   }
 
   void QCBase::annotateIdentifications(FeatureMap& map, const std::function<void(Feature*, std::vector<AnnotatedIdentification>&)>& visit, bool include_unassigned)
   {
-    IdentificationDataConverter::editAsIdentificationData(map, [&](FeatureMap& native) {
-      Annotations annotations;
-      const auto& data = native.getIdentificationData();
-      for (auto& feature : native)
-      {
-        auto identifications = annotations.identifications(feature.getLinkedIdentifications(data));
-        visit(&feature, identifications);
-      }
-      if (include_unassigned)
-      {
-        auto identifications = annotations.identifications(native.getUnassignedIdentifications());
-        visit(nullptr, identifications);
-      }
-      annotations.store(native.getIdentificationData());
-    });
+    Annotations annotations;
+    const auto& data = map.getIdentificationData();
+    for (auto& feature : map)
+    {
+      auto identifications = annotations.identifications(feature.getLinkedIdentifications(data));
+      visit(&feature, identifications);
+    }
+    if (include_unassigned)
+    {
+      auto identifications = annotations.identifications(map.getUnassignedIdentifications());
+      visit(nullptr, identifications);
+    }
+    annotations.store(map.getIdentificationData());
   }
 
   void QCBase::visitIdentifications(const FeatureMap& map, const std::function<void(const Feature*, const std::vector<AnnotatedIdentification>&)>& visit, bool include_unassigned)
   {
-    std::optional<FeatureMap> converted;
-    const FeatureMap& native = IdentificationDataConverter::withIdentificationData(map, converted);
     Annotations annotations;
-    const auto& data = native.getIdentificationData();
-    for (const auto& feature : native)
+    const auto& data = map.getIdentificationData();
+    for (const auto& feature : map)
     {
       visit(&feature, annotations.identifications(feature.getLinkedIdentifications(data)));
     }
     if (include_unassigned)
     {
-      visit(nullptr, annotations.identifications(native.getUnassignedIdentifications()));
+      visit(nullptr, annotations.identifications(map.getUnassignedIdentifications()));
     }
   }
 

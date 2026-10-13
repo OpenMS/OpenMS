@@ -26,6 +26,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <arrow/api.h>
 
@@ -131,7 +132,9 @@ namespace
     prot.setIdentifier("run1");
     prot.setScoreType("q-value");
     prot.setPrimaryMSRunPath({"/data/run1.mzML"});
-    cmap.setProteinIdentifications({prot});
+    MapPeptideIdentifications ids;
+    ids.proteins = {prot};
+    IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
     for (const auto& [rt, mz] : rt_mz)
     {

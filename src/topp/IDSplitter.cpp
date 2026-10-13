@@ -17,7 +17,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <type_traits>
 
@@ -86,7 +85,6 @@ protected:
   template <typename MapType>
   static void split_(MapType& map, vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)
   {
-    IdentificationDataConverter::moveToIdentificationData(map);
     auto exported = IdentificationDataAdapter::toLegacy(map.getIdentificationData());
     proteins = std::move(exported.proteins);
     peptides = std::move(exported.peptides);

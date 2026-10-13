@@ -1327,8 +1327,6 @@ protected:
     const std::vector<std::pair<std::string, DataValue>> stamped = {
       {"PLFQ:schema", DataValue(CHECKPOINT_SCHEMA_VERSION)},
       {"PLFQ:run_identifier", DataValue(rd.id_ms_run_ref.empty() ? "" : rd.id_ms_run_ref)},
-      {"PLFQ:canonical_identifier", DataValue(fm.getProteinIdentifications().empty()
-                                              ? std::string() : fm.getProteinIdentifications()[0].getIdentifier())},
       {"PLFQ:fwhm", DataValue(rd.fwhm)},
       {"PLFQ:decoy_string", DataValue(rd.decoy_string)},
       {"PLFQ:decoy_prefix", DataValue(rd.decoy_prefix ? 1 : 0)},
@@ -1454,7 +1452,7 @@ protected:
     // schema-1 checkpoint always has them, so one that does not is malformed rather than merely
     // out of date -- report it as such instead of dying with an exception from the kernel classes.
     for (const char* k : {"PLFQ:fwhm", "PLFQ:decoy_prefix", "PLFQ:decoy_inferred",
-                          "PLFQ:fixed_mods", "PLFQ:var_mods", "PLFQ:canonical_identifier"})
+                          "PLFQ:fixed_mods", "PLFQ:var_mods"})
     {
       if (! fm.metaValueExists(k))
       {
@@ -1520,48 +1518,13 @@ protected:
     rd.fixed_modifications.insert(fixed.begin(), fixed.end());
     rd.variable_modifications.insert(var.begin(), var.end());
 
-    // The Parquet reader synthesizes a fresh run identifier on load and treats the stored one as
-    // informational, so the canonical identifier has to be put back by hand -- on the protein run
-    // and on every peptide identification that references it.
-    const std::string canonical = stored("PLFQ:canonical_identifier");
-    if (! canonical.empty() && ! fm.getProteinIdentifications().empty())
-    {
-      fm.getProteinIdentifications()[0].setIdentifier(canonical);
-      for (auto& f : fm) { for (auto& p : f.getPeptideIdentifications()) { p.setIdentifier(canonical); } }
-      for (auto& p : fm.getUnassignedPeptideIdentifications()) { p.setIdentifier(canonical); }
-    }
-
-    for (const auto& k : {"PLFQ:schema", "PLFQ:run_identifier", "PLFQ:canonical_identifier", "PLFQ:fwhm",
+    for (const auto& k : {"PLFQ:schema", "PLFQ:run_identifier", "PLFQ:fwhm",
                           "PLFQ:decoy_string", "PLFQ:decoy_prefix", "PLFQ:decoy_inferred", "PLFQ:fixed_mods",
                           "PLFQ:var_mods", "PLFQ:fingerprint", "PLFQ:design_row", "PLFQ:fasta_stamp",
                           "PLFQ:mzml_stamp", "PLFQ:id_stamp", "PLFQ:openms_version", "PLFQ:openms_revision"})
     {
       fm.removeMetaValue(k);
     }
-
-    // The Parquet reader annotates every PeptideHit with 'scan' and 'reference_file_name', derived
-    // from columns it stores for analytics, whether or not the written hit carried them. A detected
-    // run never carries them -- loadAndCleanupIDFile_ strips every PeptideHit meta value that is not
-    // a score, a q-value, a Luciphor FLR, target_decoy or (for strictly unique peptides)
-    // protein_references -- so leaving them on would make a checkpointed run emit two mzTab opt_
-    // columns a single-shot run does not, and the two would stop being comparable. Restore what was
-    // written.
-    auto drop_invented = [](PeptideIdentificationList& pids) {
-      for (auto& pid : pids)
-      {
-        for (auto& hit : pid.getHits())
-        {
-          hit.removeMetaValue("scan");
-          hit.removeMetaValue("reference_file_name");
-        }
-      }
-    };
-    for (auto& f : fm) { drop_invented(f.getPeptideIdentifications()); }
-    drop_invented(fm.getUnassignedPeptideIdentifications());
-
-    // A checkpoint written with peptide identifications (by an earlier version): the run continues with its
-    // identifications as identification data, as a detected one does (see detectRun_()).
-    IdentificationDataConverter::moveToIdentificationData(fm);
 
     rd.features = std::move(fm);
     return CheckpointState::USABLE;
@@ -2598,8 +2561,10 @@ protected:
       // init consensus map with basic experimental design information
       consensus.setExperimentType("label-free");
 
-      auto& all_protein_ids = consensus.getProteinIdentifications();
-      auto& all_peptide_ids = consensus.getUnassignedPeptideIdentifications();
+      // the identifications of all runs, unassigned (there are no features): imported once after all fractions
+      MapPeptideIdentifications spectral_counts;
+      auto& all_protein_ids = spectral_counts.proteins;
+      auto& all_peptide_ids = spectral_counts.unassigned;
 
       Size run_index(0);
       for (auto const& ms_files : frac2ms) // for each fraction->ms file(s) e.g.: Fraction1->FileA,FileB,FileC
@@ -2664,10 +2629,8 @@ protected:
           ++run_index;
         }
       }
+      IdentificationDataConverter::importMapIdentifications(consensus, spectral_counts);
     }
-
-    // The identifications of the spectral counts (the feature-based ones are identification data since detection)
-    IdentificationDataConverter::moveToIdentificationData(consensus);
 
     //-------------------------------------------------------------
     // ID related algorithms
@@ -2737,10 +2700,6 @@ protected:
     // e.g. by removing them with a Filter beforehand.
 
     consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
-
-    // The output formats (QPX, consensusXML, mzTab) hold peptide identifications: export the identifications once
-    // rather than in a copy of the map per output.
-    IdentificationDataConverter::exportConsensusIDs(consensus);
 
     {
       if (!out_qpx.empty())

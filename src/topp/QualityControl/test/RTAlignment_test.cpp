@@ -64,21 +64,22 @@ START_SECTION(const std::string& getName() const override) {TEST_EQUAL(rtA.getNa
   identifications.push_back(peptide_ID);
   peptide_ID.setRT(1);
   identifications.push_back(peptide_ID);
-  feature1.setPeptideIdentifications(identifications);
+  MapPeptideIdentifications ids;
+  ids.features[{0}] = identifications;
   identifications.clear();
   fmap.push_back(feature1);
   peptide_ID.setRT(10);
   identifications.push_back(peptide_ID);
   peptide_ID.setRT(12);
   identifications.push_back(peptide_ID);
-  feature2.setPeptideIdentifications(identifications);
+  ids.features[{1}] = identifications;
   fmap.push_back(feature2);
   // unassigned PeptideHits
   peptide_ID.setRT(0.5);
   unassignedIDs.push_back(peptide_ID);
   peptide_ID.setRT(2.5);
   unassignedIDs.push_back(peptide_ID);
-  fmap.setUnassignedPeptideIdentifications(unassignedIDs);
+  ids.unassigned = unassignedIDs;
 
   // Transformation
   TransformationDescription td;
@@ -86,20 +87,22 @@ START_SECTION(const std::string& getName() const override) {TEST_EQUAL(rtA.getNa
   td.setDataPoints(vector<pair<double, double>> {{0.0, 1.0}, {0.25, 1.5}, {0.5, 2.0}, {1.0, 3.0}});
   td.fitModel("linear");
   RTAlignment rtA;
-  Internal::ClassTest::addSearchRun(fmap);
+  Internal::ClassTest::addSearchRun(ids);
+  Internal::ClassTest::setIdentifications(fmap, ids);
   rtA.compute(fmap, td);
+  const auto computed = Internal::ClassTest::identificationsOf(fmap);
   // test features
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getMetaValue("rt_align"), 1);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getMetaValue("rt_raw"), 0);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("rt_align"), 3);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("rt_raw"), 1);
-  TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[0].getMetaValue("rt_align"), 21);
-  TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[0].getMetaValue("rt_raw"), 10);
+  TEST_REAL_SIMILAR(computed.at({0})[0].getMetaValue("rt_align"), 1);
+  TEST_REAL_SIMILAR(computed.at({0})[0].getMetaValue("rt_raw"), 0);
+  TEST_REAL_SIMILAR(computed.at({0})[1].getMetaValue("rt_align"), 3);
+  TEST_REAL_SIMILAR(computed.at({0})[1].getMetaValue("rt_raw"), 1);
+  TEST_REAL_SIMILAR(computed.at({1})[0].getMetaValue("rt_align"), 21);
+  TEST_REAL_SIMILAR(computed.at({1})[0].getMetaValue("rt_raw"), 10);
   // test unassigned
-  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("rt_align"), 2);
-  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("rt_raw"), 0.5);
-  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("rt_align"), 6);
-  TEST_REAL_SIMILAR(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("rt_raw"), 2.5);
+  TEST_REAL_SIMILAR(computed.unassigned[0].getMetaValue("rt_align"), 2);
+  TEST_REAL_SIMILAR(computed.unassigned[0].getMetaValue("rt_raw"), 0.5);
+  TEST_REAL_SIMILAR(computed.unassigned[1].getMetaValue("rt_align"), 6);
+  TEST_REAL_SIMILAR(computed.unassigned[1].getMetaValue("rt_raw"), 2.5);
 
   // empty FeatureMap
   FeatureMap fmap_empty {};
@@ -109,16 +112,15 @@ START_SECTION(const std::string& getName() const override) {TEST_EQUAL(rtA.getNa
   fmap_empty.push_back(feature_empty);
   rtA.compute(fmap_empty, td);
   // empty PeptideIdentifications
-  identifications.clear();
-  feature1.setPeptideIdentifications(identifications);
   fmap_empty.push_back(feature1);
   rtA.compute(fmap_empty, td);
   // empty PeptideIdentification
   PeptideIdentification peptide_ID_empty {};
-  identifications.push_back(peptide_ID_empty);
-  feature1.setPeptideIdentifications(identifications);
   fmap_empty.push_back(feature1);
-  Internal::ClassTest::addSearchRun(fmap_empty);
+  MapPeptideIdentifications empty_ids;
+  empty_ids.features[{fmap_empty.size() - 1}] = {peptide_ID_empty};
+  Internal::ClassTest::addSearchRun(empty_ids);
+  Internal::ClassTest::setIdentifications(fmap_empty, empty_ids);
   rtA.compute(fmap_empty, td);
 
   // data processing: after alignment

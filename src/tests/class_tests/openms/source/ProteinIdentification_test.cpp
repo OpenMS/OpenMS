@@ -1022,7 +1022,7 @@ END_SECTION
 
 START_SECTION(([EXTRA] computeCoverage(const ConsensusMap&, bool) and computeModifications(const ConsensusMap&, ...) with identification data))
 {
-  // A consensus map with an identification on a feature and an unassigned one, with peptide and with identification data
+  // A consensus map with an identification on a feature and an unassigned one: as with its peptide identifications
   ProteinIdentification run;
   run.setIdentifier("run");
   ProteinHit protein;
@@ -1038,21 +1038,23 @@ START_SECTION(([EXTRA] computeCoverage(const ConsensusMap&, bool) and computeMod
     id.insertHit(hit);
     return id;
   };
-  ConsensusMap legacy;
-  legacy.setProteinIdentifications({run});
-  legacy.resize(1);
-  legacy[0].getPeptideIdentifications().push_back(peptide("M(Oxidation)KQSTIALALLPLLFTPVTK", 0, 19));
-  legacy.getUnassignedPeptideIdentifications().push_back(peptide("TPEMPVLENR", 22, 31));
-  ConsensusMap native = legacy;
-  IdentificationDataConverter::importConsensusIDs(native);
+  MapPeptideIdentifications ids;
+  ids.proteins = {run};
+  ids.features[{0}].push_back(peptide("M(Oxidation)KQSTIALALLPLLFTPVTK", 0, 19));
+  ids.unassigned.push_back(peptide("TPEMPVLENR", 22, 31));
+  ConsensusMap native;
+  native.resize(1);
+  IdentificationDataConverter::importMapIdentifications(native, ids);
 
   for (bool use_unassigned : {true, false})
   {
+    PeptideIdentificationList peptides = ids.features[{0}];
+    if (use_unassigned) peptides.push_back(ids.unassigned[0]);
     ProteinIdentification from_legacy = run, from_native = run;
-    from_legacy.computeCoverage(legacy, use_unassigned);
+    from_legacy.computeCoverage(peptides);
     from_native.computeCoverage(native, use_unassigned);
     TEST_REAL_SIMILAR(from_native.getHits()[0].getCoverage(), from_legacy.getHits()[0].getCoverage())
-    from_legacy.computeModifications(legacy, StringList(), use_unassigned);
+    from_legacy.computeModifications(peptides, StringList());
     from_native.computeModifications(native, StringList(), use_unassigned);
     TEST_EQUAL(from_native.getHits()[0].getModifications() == from_legacy.getHits()[0].getModifications(), true)
   }

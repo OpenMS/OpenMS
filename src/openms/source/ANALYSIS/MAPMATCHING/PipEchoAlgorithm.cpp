@@ -183,7 +183,7 @@ PipEchoAlgorithm::~PipEchoAlgorithm() = default;
 void PipEchoAlgorithm::group(const std::vector<FeatureMap>& maps, ConsensusMap& consensus_map)
 {
   // the identifications of the features are read as identification data:
-  groupWithIdentificationData_(maps, consensus_map, [&](const std::vector<FeatureMap>& feature_maps) {
+  groupWithDistinctRuns_(maps, [&](const std::vector<FeatureMap>& feature_maps) {
     PipEcho::Impl impl(param_, mz_range(feature_maps));
     PipEcho::RunMap runs;
 

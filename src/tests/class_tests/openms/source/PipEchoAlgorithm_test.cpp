@@ -29,7 +29,10 @@ using namespace std;
 
 namespace
 {
-  // Build a feature; a non-empty sequence attaches a peptide ID, turning the
+  // Test-only meta value of a feature: the sequence of its peptide ID (see makeRun())
+  const std::string DONOR_SEQUENCE = "test:donor_sequence";
+
+  // Build a feature; a non-empty sequence gives it a peptide ID (in makeRun()), turning the
   // feature into a PIP-ECHO "donor" (identified). Empty sequence -> "acceptor".
   Feature makeFeature(double rt, double mz, Int charge, double intensity,
                       const std::string& seq, UInt64 uid)
@@ -42,16 +45,7 @@ namespace
     f.setUniqueId(uid);
     if (!seq.empty())
     {
-      PeptideHit hit;
-      hit.setSequence(AASequence::fromString(seq));
-      hit.setCharge(charge);
-      hit.setScore(0.01);
-      PeptideIdentification pid;
-      pid.setIdentifier("search");
-      pid.setScoreType("q-value");
-      pid.setHigherScoreBetter(false);
-      pid.setHits({hit});
-      f.setPeptideIdentifications({pid});
+      f.setMetaValue(DONOR_SEQUENCE, seq);
     }
     return f;
   }
@@ -61,13 +55,31 @@ namespace
   FeatureMap makeRun(const std::string& path, const vector<Feature>& feats)
   {
     FeatureMap fm;
-    for (const auto& f : feats) { fm.push_back(f); }
+    MapPeptideIdentifications ids;
+    for (Feature f : feats)
+    {
+      if (f.metaValueExists(DONOR_SEQUENCE))
+      {
+        PeptideHit hit;
+        hit.setSequence(AASequence::fromString(f.getMetaValue(DONOR_SEQUENCE).toString()));
+        hit.setCharge(f.getCharge());
+        hit.setScore(0.01);
+        PeptideIdentification pid;
+        pid.setIdentifier("search");
+        pid.setScoreType("q-value");
+        pid.setHigherScoreBetter(false);
+        pid.setHits({hit});
+        ids.features[{fm.size()}] = {pid};
+        f.removeMetaValue(DONOR_SEQUENCE);
+      }
+      fm.push_back(f);
+    }
     fm.setPrimaryMSRunPath({path});
     ProteinIdentification search;
     search.setIdentifier("search");
     search.setPrimaryMSRunPath({path});
-    fm.setProteinIdentifications({search});
-    IdentificationDataConverter::moveToIdentificationData(fm);
+    ids.proteins = {search};
+    IdentificationDataConverter::importMapIdentifications(fm, ids);
     return fm;
   }
 

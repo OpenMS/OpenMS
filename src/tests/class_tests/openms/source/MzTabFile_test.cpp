@@ -18,6 +18,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -178,10 +179,11 @@ START_SECTION([EXTRA] store - every peptide identification needs its protein ide
     "Peptide identification has no matching protein run: 'other'. Every peptide identification needs the protein identification run (search run) with its identifier, which may have no protein hits.")
   TEST_FALSE(File::exists(file))
 
-  ConsensusMap cmap;
-  cmap.setProteinIdentifications(runs);
-  cmap.getUnassignedPeptideIdentifications() = peptides;
-  TEST_EXCEPTION(Exception::InvalidParameter, MzTabFile().store(file, cmap, false, false, true, false))
+  // a map cannot have such identifications, but the identifications given for one are checked as well
+  MapPeptideIdentifications ids;
+  ids.proteins = runs;
+  ids.unassigned = peptides;
+  TEST_EXCEPTION(Exception::InvalidParameter, MzTabFile().store(file, ConsensusMap(), ids, false, false, true, false))
   TEST_FALSE(File::exists(file))
 }
 END_SECTION

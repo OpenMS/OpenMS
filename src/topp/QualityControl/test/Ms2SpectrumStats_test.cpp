@@ -65,21 +65,22 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   identifications.push_back(peptide_ID);
   peptide_ID.setSpectrumReference( "XTandem::1");
   identifications.push_back(peptide_ID);
-  f1.setPeptideIdentifications(identifications);
+  MapPeptideIdentifications ids;
+  ids.features[{0}] = identifications;
   identifications.clear();
   fmap.push_back(f1);
   peptide_ID.setSpectrumReference( "XTandem::10");
   identifications.push_back(peptide_ID);
   peptide_ID.setSpectrumReference( "XTandem::12");
   identifications.push_back(peptide_ID);
-  f1.setPeptideIdentifications(identifications);
+  ids.features[{1}] = identifications;
   fmap.push_back(f1);
   // unassigned PeptideHits
   peptide_ID.setSpectrumReference( "XTandem::1.5");
   unassignedIDs.push_back(peptide_ID);
   peptide_ID.setSpectrumReference( "XTandem::2.5");
   unassignedIDs.push_back(peptide_ID);
-  fmap.setUnassignedPeptideIdentifications(unassignedIDs);
+  ids.unassigned = unassignedIDs;
 
   // MSExperiment
   PeakMap exp;
@@ -163,23 +164,25 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
 
   Ms2SpectrumStats top;
   std::vector<IdentificationData::Observation> new_unassigned_pep_ids;
-  Internal::ClassTest::addSearchRun(fmap);
+  Internal::ClassTest::addSearchRun(ids);
+  Internal::ClassTest::setIdentifications(fmap, ids);
   new_unassigned_pep_ids = top.compute(exp, fmap, map_to_spectrum);
+  const auto computed = Internal::ClassTest::identificationsOf(fmap);
 
   // test features
-  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
-  TEST_EQUAL(fmap[0].getPeptideIdentifications()[0].getMetaValue("identified"), 1);
-  TEST_EQUAL(fmap[0].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 1);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("total_ion_count"), 6);
-  TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[1].getMetaValue("base_peak_intensity"), 4);
-  TEST_EQUAL(fmap[1].getPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 1);
-  TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[1].getMetaValue("total_ion_count"), 10);
-  TEST_REAL_SIMILAR(fmap[1].getPeptideIdentifications()[1].getMetaValue("base_peak_intensity"), 9);
-  TEST_EQUAL(fmap[1].getPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 2);
+  TEST_EQUAL(computed.at({0})[0].getMetaValue("ScanEventNumber"), 1);
+  TEST_EQUAL(computed.at({0})[0].getMetaValue("identified"), 1);
+  TEST_EQUAL(computed.at({0})[1].getMetaValue("ScanEventNumber"), 1);
+  TEST_REAL_SIMILAR(computed.at({0})[1].getMetaValue("total_ion_count"), 6);
+  TEST_REAL_SIMILAR(computed.at({0})[1].getMetaValue("base_peak_intensity"), 4);
+  TEST_EQUAL(computed.at({1})[0].getMetaValue("ScanEventNumber"), 1);
+  TEST_REAL_SIMILAR(computed.at({1})[1].getMetaValue("total_ion_count"), 10);
+  TEST_REAL_SIMILAR(computed.at({1})[1].getMetaValue("base_peak_intensity"), 9);
+  TEST_EQUAL(computed.at({1})[1].getMetaValue("ScanEventNumber"), 2);
   // test unassigned
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("ScanEventNumber"), 2);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[0].getMetaValue("identified"), 1);
-  TEST_EQUAL(fmap.getUnassignedPeptideIdentifications()[1].getMetaValue("ScanEventNumber"), 3);
+  TEST_EQUAL(computed.unassigned[0].getMetaValue("ScanEventNumber"), 2);
+  TEST_EQUAL(computed.unassigned[0].getMetaValue("identified"), 1);
+  TEST_EQUAL(computed.unassigned[1].getMetaValue("ScanEventNumber"), 3);
   TEST_REAL_SIMILAR(*new_unassigned_pep_ids[0].rt, 20);
   TEST_EQUAL(new_unassigned_pep_ids[0].getMetaValue("ScanEventNumber"), 3);
   TEST_EQUAL(new_unassigned_pep_ids[0].getMetaValue("identified"), 0);
@@ -195,8 +198,10 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   // empty PeptideIdentifications
   fmap_empty.clear();
   fmap_empty.push_back(f1); // need some non-empty feature
-  fmap_empty.setUnassignedPeptideIdentifications({});
-  Internal::ClassTest::addSearchRun(fmap_empty);
+  MapPeptideIdentifications empty_ids;
+  empty_ids.features[{0}] = identifications; // those of the second feature above
+  Internal::ClassTest::addSearchRun(empty_ids);
+  Internal::ClassTest::setIdentifications(fmap_empty, empty_ids);
   new_unassigned_pep_ids = top.compute(exp, fmap_empty, map_to_spectrum);
   TEST_EQUAL(new_unassigned_pep_ids.size(), 5);
   // empty MSExperiment
@@ -205,8 +210,10 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
 
   // test exception PepID without 'spectrum_reference'
   PeptideIdentification pep_no_spec_ref;
-  fmap[1].setPeptideIdentifications({pep_no_spec_ref});
-  Internal::ClassTest::addSearchRun(fmap);
+  auto no_reference = Internal::ClassTest::identificationsOf(fmap);
+  no_reference.features[{1}] = {pep_no_spec_ref};
+  Internal::ClassTest::addSearchRun(no_reference);
+  Internal::ClassTest::setIdentifications(fmap, no_reference);
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, top.compute(exp, fmap, map_to_spectrum), "No spectrum reference annotated at peptide identification!");
 }
 END_SECTION

@@ -31,26 +31,42 @@ namespace
 ConsensusMap omssaMap(const vector<ProteinIdentification>& prot_ids, const PeptideIdentificationList& pep_ids)
 {
   ConsensusMap cmap;
-  cmap.setProteinIdentifications(prot_ids);
+  MapPeptideIdentifications ids;
+  ids.proteins = prot_ids;
   for (Size i = 0; i < pep_ids.size(); ++i)
   {
     if (i % 3 == 0)
     {
-      cmap.getUnassignedPeptideIdentifications().push_back(pep_ids[i]);
+      ids.unassigned.push_back(pep_ids[i]);
       continue;
     }
     ConsensusFeature feature;
     feature.setUniqueId(i + 1);
-    feature.getPeptideIdentifications().push_back(pep_ids[i]);
+    ids.features[{cmap.size()}].push_back(pep_ids[i]);
     cmap.push_back(feature);
   }
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
   return cmap;
 }
+/// The peptide identifications of the features of @p cmap
 PeptideIdentificationList assignedPSMs(const ConsensusMap& cmap)
 {
   PeptideIdentificationList result;
-  for (const auto& feature : cmap)
-    result.insert(result.end(), feature.getPeptideIdentifications().begin(), feature.getPeptideIdentifications().end());
+  for (const auto& [path, peptides] : IdentificationDataConverter::exportMapIdentifications(cmap).features)
+    result.insert(result.end(), peptides.begin(), peptides.end());
+  return result;
+}
+/// The unassigned peptide identifications of @p cmap
+PeptideIdentificationList unassignedPSMs(const ConsensusMap& cmap)
+{
+  return IdentificationDataConverter::exportMapIdentifications(cmap).unassigned;
+}
+/// The peptide identifications of the features of @p cmap, then the unassigned ones
+PeptideIdentificationList allPSMs(const ConsensusMap& cmap)
+{
+  auto result = assignedPSMs(cmap);
+  const auto unassigned = unassignedPSMs(cmap);
+  result.insert(result.end(), unassigned.begin(), unassigned.end());
   return result;
 }
 } // namespace
@@ -764,15 +780,13 @@ START_SECTION((void applyBasic(ConsensusMap & cmap, bool include_unassigned_pept
 
   // With the unassigned PSMs, the PSMs of the map get what they get together.
   auto cmap = omssaMap(prot_ids, pep_ids);
-  auto expected = assignedPSMs(cmap);
-  const auto assigned_count = expected.size();
-  expected.insert(expected.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  const auto assigned_count = assignedPSMs(cmap).size();
+  auto expected = allPSMs(cmap);
   fdr.applyBasic(prot_ids, expected);
   fdr.applyBasic(cmap, true);
-  TEST_EQUAL(cmap.getIdentificationData().empty(), true) // peptide identifications in, peptide identifications out
-  TEST_TRUE(cmap.getProteinIdentifications() == prot_ids)
-  auto actual = assignedPSMs(cmap);
-  actual.insert(actual.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  TEST_EQUAL(cmap.getIdentificationData().getPrimaryScoreDefinition()->name, "q-value")
+  TEST_EQUAL(unassignedPSMs(cmap).size(), pep_ids.size() - assigned_count) // the unassigned ones stay
+  auto actual = allPSMs(cmap);
   TEST_EQUAL(peptideDifference(expected, actual), "")
   TEST_EQUAL(actual[0].getScoreType(), "q-value")
   TEST_TRUE(actual[0].getHits()[0].metaValueExists("OMSSA_score"))
@@ -789,7 +803,7 @@ START_SECTION((void applyBasic(ConsensusMap & cmap, bool include_unassigned_pept
     for (const auto& hit : id.getHits())
       q_values[hit.getMetaValue("OMSSA_score")] = hit.getScore();
   Size decoys = 0, shared_scores = 0;
-  for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+  for (const auto& id : unassignedPSMs(cmap))
   {
     TEST_EQUAL(id.getScoreType(), "q-value")
     TEST_EQUAL(id.isHigherScoreBetter(), false)
@@ -805,21 +819,6 @@ START_SECTION((void applyBasic(ConsensusMap & cmap, bool include_unassigned_pept
   }
   TEST_NOT_EQUAL(decoys, 0)
   TEST_NOT_EQUAL(shared_scores, 0)
-
-  // A map with identification data stays one.
-  cmap = omssaMap(prot_ids, pep_ids);
-  Internal::ClassTest::toNative(cmap);
-  fdr.applyBasic(cmap, true);
-  TEST_EQUAL(cmap.getUnassignedPeptideIdentifications().empty(), true)
-  TEST_EQUAL(cmap.getIdentificationData().getPrimaryScoreDefinition()->name, "q-value")
-  Internal::ClassTest::toLegacy(cmap);
-  actual = assignedPSMs(cmap);
-  actual.insert(actual.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
-  expected = assignedPSMs(omssaMap(prot_ids, pep_ids));
-  auto unassigned = omssaMap(prot_ids, pep_ids).getUnassignedPeptideIdentifications();
-  expected.insert(expected.end(), unassigned.begin(), unassigned.end());
-  fdr.applyBasic(prot_ids, expected);
-  TEST_EQUAL(peptideDifference(expected, actual), "")
 }
 END_SECTION
 
@@ -830,15 +829,11 @@ START_SECTION((double rocN(const ConsensusMap& ids, Size fp_cutoff, bool include
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FalseDiscoveryRate_OMSSA.idXML"), prot_ids, pep_ids);
   FalseDiscoveryRate fdr;
   const auto cmap = omssaMap(prot_ids, pep_ids);
-  auto all = assignedPSMs(cmap);
-  const auto assigned = all;
-  all.insert(all.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  const auto all = allPSMs(cmap);
+  const auto assigned = assignedPSMs(cmap);
   TEST_REAL_SIMILAR(fdr.rocN(cmap, 50, true), fdr.rocN(all, 50))
   TEST_REAL_SIMILAR(fdr.rocN(cmap, 50, false), fdr.rocN(assigned, 50))
   TEST_REAL_SIMILAR(fdr.rocN(cmap, 50, prot_ids[1].getIdentifier(), true), fdr.rocN(all, 50, prot_ids[1].getIdentifier()))
-  auto native = cmap;
-  Internal::ClassTest::toNative(native);
-  TEST_REAL_SIMILAR(fdr.rocN(native, 50, false), fdr.rocN(assigned, 50))
 }
 END_SECTION
 
@@ -850,12 +845,10 @@ START_SECTION((void applyBasicPeptideLevel(ConsensusMap & map, bool include_unas
   FalseDiscoveryRate fdr;
   // With the unassigned PSMs, (best) hits get the q-values of their peptides as with the PSMs together.
   auto cmap = omssaMap(prot_ids, pep_ids);
-  auto expected = assignedPSMs(cmap);
-  expected.insert(expected.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  auto expected = allPSMs(cmap);
   fdr.applyBasicPeptideLevel(expected);
   fdr.applyBasicPeptideLevel(cmap, true);
-  auto actual = assignedPSMs(cmap);
-  actual.insert(actual.end(), cmap.getUnassignedPeptideIdentifications().begin(), cmap.getUnassignedPeptideIdentifications().end());
+  const auto actual = allPSMs(cmap);
   ABORT_IF(actual.size() != expected.size())
   Size compared = 0;
   for (Size i = 0; i < actual.size(); ++i)

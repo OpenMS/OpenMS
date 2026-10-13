@@ -67,8 +67,8 @@ public:
      *
      * @param[in] tree Vector of BinaryTreeNodes that contains order for alignment.
      * @param[out] feature_maps_transformed Vector with input maps for transformation process. Because the transformed maps are stored within this vector it's not const.
-     *   Their identifications are moved into their identification data first, with distinct runs (see IdentificationDataConverter::moveToIdentificationData()
-     *   and IdentificationDataConverter::makeRunsDistinct()), so that the combined maps keep them apart.
+     *   Their identification runs are made distinct first (see IdentificationDataConverter::makeRunsDistinct()), so that the
+     *   combined maps keep them apart.
      * @param[in] maps_ranges Vector that contains all sorted RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
      * @param[in] map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
      * @param[in] trafo_order Vector to store indices of maps in order of alignment.
@@ -144,8 +144,6 @@ protected:
 
     /**
      * @brief For each input map, extract the identifications (sequences) of existing features with associated feature RT.
-     *
-     * Maps with peptide identifications are read as identification data (IdentificationDataConverter::withIdentificationData()).
      *
      * @param[in] feature_maps Vector of original maps containing identifications.
      * @param[out] maps_seq_and_rt Vector of maps to store feature RTs given for individual peptide sequences for each feature map.

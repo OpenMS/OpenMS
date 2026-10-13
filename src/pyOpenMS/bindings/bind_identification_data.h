@@ -863,11 +863,7 @@ inline void bind(nb::module_& m)
         const auto removed = Adapter::reconcileAssociations(values, associations, policy);
         return std::make_pair(std::move(associations), removed);
       },
-      nb::arg("data"), nb::arg("associations"), nb::arg("policy"), "Return (updated associations, removed link count).")
-    .def_static("applyToFeatureMap", &Adapter::applyToFeatureMap, nb::arg("data"), nb::arg("associations"), nb::arg("map"), nb::arg("options"),
-                nb::arg("policy"))
-    .def_static("applyToConsensusMap", &Adapter::applyToConsensusMap, nb::arg("data"), nb::arg("associations"), nb::arg("map"), nb::arg("options"),
-                nb::arg("policy"));
+      nb::arg("data"), nb::arg("associations"), nb::arg("policy"), "Return (updated associations, removed link count).");
 
   // --- IdentificationDataInference ---
   auto inference = valueClass<Inference>(m, "IdentificationDataInference");
@@ -930,18 +926,6 @@ inline void bind(nb::module_& m)
                                                   "Conversions of IdentificationData that keep the RNA and compound conventions of mzTab")
     .def_static("exportMzTab", &OpenMS::IdentificationDataConverter::exportMzTab, nb::arg("data"),
                 "Return an mzTab document of the dataset (store it with MzTabFile().store)")
-    .def_static("importFeatureIDs", &OpenMS::IdentificationDataConverter::importFeatureIDs, nb::arg("features"),
-                nb::arg("clear_original") = true,
-                "Turn the PeptideIdentifications of the features (e.g. from IDMapper) into links to the map's IdentificationData; "
-                "with clear_original, the copies, unassigned identifications and protein runs are removed")
-    .def_static("exportFeatureIDs", &OpenMS::IdentificationDataConverter::exportFeatureIDs, nb::arg("features"),
-                nb::arg("clear_original") = true,
-                "Turn the links of the features into PeptideIdentifications; with clear_original, the links and the "
-                "IdentificationData are removed")
-    .def_static("importConsensusIDs", &OpenMS::IdentificationDataConverter::importConsensusIDs, nb::arg("consensus"),
-                nb::arg("clear_original") = true, "importFeatureIDs for a ConsensusMap")
-    .def_static("exportConsensusIDs", &OpenMS::IdentificationDataConverter::exportConsensusIDs, nb::arg("consensus"),
-                nb::arg("clear_original") = true, "exportFeatureIDs for a ConsensusMap")
     .def_static("exportMapIdentifications",
                 nb::overload_cast<const OpenMS::FeatureMap&>(&OpenMS::IdentificationDataConverter::exportMapIdentifications),
                 nb::arg("map"), "The identifications of the map as peptide and protein identifications (MapPeptideIdentifications)")
@@ -955,7 +939,13 @@ inline void bind(nb::module_& m)
     .def_static("importMapIdentifications",
                 nb::overload_cast<OpenMS::ConsensusMap&, const OpenMS::MapPeptideIdentifications&>(&OpenMS::IdentificationDataConverter::importMapIdentifications),
                 nb::arg("map"), nb::arg("identifications"),
-                "Set the identification data of the map and the links of its features from peptide and protein identifications");
+                "Set the identification data of the map and the links of its features from peptide and protein identifications")
+    .def_static("proteinIdentifications",
+                nb::overload_cast<const OpenMS::FeatureMap&>(&OpenMS::IdentificationDataConverter::proteinIdentifications),
+                nb::arg("map"), "The protein identifications of the map, as exportMapIdentifications() gives them")
+    .def_static("proteinIdentifications",
+                nb::overload_cast<const OpenMS::ConsensusMap&>(&OpenMS::IdentificationDataConverter::proteinIdentifications),
+                nb::arg("map"), "The protein identifications of the map, as exportMapIdentifications() gives them");
   finishFieldProtocols();
 }
 } // namespace pyopenms_identification

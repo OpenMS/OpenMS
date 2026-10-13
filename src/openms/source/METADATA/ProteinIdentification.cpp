@@ -524,26 +524,12 @@ namespace OpenMS
     }
 
     /**
-      @brief Visit the peptide hits of the consensus features of @p cmap (and of its unassigned identifications)
-
-      For a map with identification data, these are the matches that the features link (and the unassigned ones), as
-      the peptide hits that export gives them.
+      @brief Visit the peptide hits of the consensus features of @p cmap (and of its unassigned identifications): the
+      matches that the features link (and the unassigned ones), as the peptide hits that export gives them
     */
     void visitHits(const ConsensusMap& cmap, bool use_unassigned_ids, const std::function<void(const PeptideHit&)>& visit)
     {
       const IdentificationData& data = cmap.getIdentificationData();
-      if (data.empty())
-      {
-        const auto visit_ids = [&](const PeptideIdentificationList& pep_ids) {
-          for (const auto& peptide_id : pep_ids)
-          {
-            for (const auto& peptide_hit : peptide_id.getHits()) visit(peptide_hit);
-          }
-        };
-        for (const auto& feat : cmap) visit_ids(feat.getPeptideIdentifications());
-        if (use_unassigned_ids) visit_ids(cmap.getUnassignedPeptideIdentifications());
-        return;
-      }
       const auto visit_ids = [&](const std::vector<IdentificationData::QueryMatches>& identifications) {
         for (const auto& identification : identifications)
         {

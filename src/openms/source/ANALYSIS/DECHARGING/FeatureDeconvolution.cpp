@@ -594,8 +594,6 @@ namespace OpenMS
     }
 
     // prepare output consensusMaps
-    cons_map.setProteinIdentifications(fm_out.getProteinIdentifications());
-    cons_map_p.setProteinIdentifications(fm_out.getProteinIdentifications());
     // the identifications that the features link: only single features keep their links (see below)
     cons_map.getIdentificationData() = fm_out.getIdentificationData();
     cons_map_p.getIdentificationData() = fm_out.getIdentificationData();
@@ -826,7 +824,6 @@ namespace OpenMS
 
         ConsensusFeature cf(fm_out[f0_idx]);
         // the consensus feature of a pair does not take the identifications of its first feature
-        cf.setPeptideIdentifications(PeptideIdentificationList());
         cf.getIDQueries().clear();
         cf.getIDMatches().clear();
         cf.setQuality(0.0);

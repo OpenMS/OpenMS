@@ -34,10 +34,43 @@
 
 #include <arrow/api.h>
 
+#include <functional>
 #include <tuple>
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  /// Edit the identifications of @p cmap as peptide and protein identifications
+  void editIdentifications(ConsensusMap& cmap, const std::function<void(MapPeptideIdentifications&)>& edit)
+  {
+    auto ids = IdentificationDataConverter::exportMapIdentifications(cmap);
+    edit(ids);
+    IdentificationDataConverter::importMapIdentifications(cmap, ids);
+  }
+
+  /// Give @p cmap the protein identification runs @p proteins
+  void setProteins(ConsensusMap& cmap, const std::vector<ProteinIdentification>& proteins)
+  {
+    editIdentifications(cmap, [&](MapPeptideIdentifications& ids) { ids.proteins = proteins; });
+  }
+
+  /// Give @p cmap the unassigned peptide identifications @p peptides
+  void setUnassigned(ConsensusMap& cmap, const PeptideIdentificationList& peptides)
+  {
+    editIdentifications(cmap, [&](MapPeptideIdentifications& ids) { ids.unassigned = peptides; });
+  }
+
+  /// Append @p feature to @p cmap, with the peptide identifications @p peptides
+  void pushFeature(ConsensusMap& cmap, const ConsensusFeature& feature, const PeptideIdentificationList& peptides)
+  {
+    cmap.push_back(feature);
+    editIdentifications(cmap, [&](MapPeptideIdentifications& ids) {
+      if (! peptides.empty()) ids.features[{cmap.size() - 1}] = peptides;
+    });
+  }
+} // namespace
 
 namespace
 {
@@ -88,6 +121,7 @@ namespace
   {
     PeptideIdentification pep_id;
     pep_id.setIdentifier(identifier);
+    pep_id.setScoreType("q-value"); // identification data needs the name of a score
     if (merge_index >= 0)
     {
       pep_id.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, merge_index);
@@ -620,14 +654,13 @@ START_SECTION(([EXTRA] features with divergent peptide annotations are excluded 
     g.accessions = {"PROT_A"};
     g.probability = 0.01;
     prot.insertIndistinguishableProteins(g);
-    cmap.setProteinIdentifications({prot});
+    setProteins(cmap, {prot});
 
     ConsensusFeature cf;
     cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
     BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
     cf.insert(0, bf);
-    cf.setPeptideIdentifications(pids);
-    cmap.push_back(cf);
+    pushFeature(cmap, cf, pids);
     return cmap;
   };
 
@@ -674,7 +707,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - gene lists stay parallel to pg_ac
   g.accessions = {"PROT_A", "PROT_B"};
   g.probability = 0.01;
   prot.insertIndistinguishableProteins(g);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   PeptideIdentification pid;
   pid.setIdentifier("run");
@@ -691,8 +724,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - gene lists stay parallel to pg_ac
   cf.setMZ(500.0); cf.setRT(100.0); cf.setCharge(2);
   BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
   cf.insert(0, bf);
-  cf.setPeptideIdentifications({pid});
-  cmap.push_back(cf);
+  pushFeature(cmap, cf, {pid});
 
   auto t = ProteinGroupArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -746,7 +778,7 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   // sample-abundance marker is required.
   setFractionGroupQuantities(grp, {{1, 1, 1000.0f}, {2, 1, 2000.0f}});
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
   TEST_EQUAL(design.getNumberOfSamples(), 2)
@@ -774,13 +806,6 @@ START_SECTION((static std::shared_ptr<arrow::Table> exportToArrow(const Consensu
   TEST_EQUAL(t_derived->num_rows(), 2)
   TEST_TRUE(groupedRuns(t_derived) == runs)
 
-  // A map with identification data exports as its protein identifications.
-  ConsensusMap native = cmap;
-  IdentificationDataConverter::importConsensusIDs(native);
-  TEST_EQUAL(native.getProteinIdentifications().empty(), true)
-  auto t_native = ProteinGroupArrowExport::exportToArrow(native, design);
-  ABORT_IF(t_native == nullptr)
-  TEST_TRUE(t_native->Equals(*t))
 }
 END_SECTION
 
@@ -818,7 +843,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - fraction groups stay distinct whe
   grp.getFloatDataArrays()[0].push_back(7000.0f);      // legacy sample-level total
   setFractionGroupQuantities(grp, {{1, 1, 3000.0f}, {4, 1, 4000.0f}});
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
   TEST_EQUAL(design.getNumberOfSamples(), 1)
@@ -901,7 +926,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - a design row missing from one fra
   setFractionGroupQuantities(grp, {{1, 1, 100.0f}, {1, 2, 200.0f},
                                    {1, 3, 300.0f}, {1, 4, 400.0f}});
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap, design), nullptr)
 
@@ -976,7 +1001,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - a design channel with no column h
     }
     setFractionGroupQuantities(grp, quantities);
     prot.insertIndistinguishableProteins(grp);
-    cmap.setProteinIdentifications({prot});
+    setProteins(cmap, {prot});
   };
 
   auto designWithLabels = [&](unsigned n_labels)
@@ -1053,7 +1078,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - a sample reused across fraction g
   setFractionGroupQuantities(grp, {{1, 1, 10.0f}, {1, 2, 20.0f},
                                    {2, 1, 30.0f}, {2, 2, 40.0f}});
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
   TEST_EQUAL(design.getNumberOfSamples(), 3)   // REF, S0, S1 -- REF is reached from both plexes
@@ -1117,7 +1142,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - design files absent from the map 
   grp.getFloatDataArrays()[0].push_back(5000.0f);
   setFractionGroupQuantities(grp, {{1, 1, 5000.0f}});
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   auto t = ProteinGroupArrowExport::exportToArrow(cmap, design);
   TEST_NOT_EQUAL(t, nullptr)
@@ -1161,7 +1186,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - total_features counts feature row
   grp.getFloatDataArrays()[0].push_back(1234.0f);
   setFractionGroupQuantities(grp, {{1, 1, 1234.0f}});
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   // ONE consensus feature, quantified in BOTH fractions of the unit.
   PeptideIdentification pid;
@@ -1182,8 +1207,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - total_features counts feature row
     BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0); bf.setCharge(2);
     cf.insert(m, bf);
   }
-  cf.setPeptideIdentifications({pid});
-  cmap.push_back(cf);
+  pushFeature(cmap, cf, {pid});
 
   auto t = ProteinGroupArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -1227,7 +1251,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - a foreign design is refused, not 
   grp.getFloatDataArrays()[0].push_back(1000.0f);   // ONE sample, but the design describes two
   setFractionGroupQuantities(grp, {{1, 1, 1000.0f}});
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   TEST_EQUAL(ProteinGroupArrowExport::exportToArrow(cmap), nullptr)
 }
@@ -1263,8 +1287,8 @@ START_SECTION(([EXTRA] ConsensusMap overload - quantification with nowhere to pu
   grp.getFloatDataArrays()[0].push_back(1234.0f);
   setFractionGroupQuantities(grp, {{1, 1, 1234.0f}});
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
-  cmap.getUnassignedPeptideIdentifications() = {makeMergedPeptide("PROT_A", 0, "PEPTIDEK", "merged")};
+  setProteins(cmap, {prot});
+  setUnassigned(cmap, {makeMergedPeptide("PROT_A", 0, "PEPTIDEK", "merged")});
 
   ExperimentalDesign::SampleSection samples;
   samples.addSample("S0");
@@ -1328,11 +1352,11 @@ START_SECTION(([EXTRA] ConsensusMap overload - an unquantified group melts onto 
   grp.accessions = {"PROT_A"};
   grp.probability = 0.01;
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   // Evidence in BOTH fractions of the one unit.
-  cmap.getUnassignedPeptideIdentifications() = {makeMergedPeptide("PROT_A", 0, "PEPTIDEK", "merged"),
-                                                makeMergedPeptide("PROT_A", 1, "PEPTIDER", "merged")};
+  setUnassigned(cmap, {makeMergedPeptide("PROT_A", 0, "PEPTIDEK", "merged"),
+                                                makeMergedPeptide("PROT_A", 1, "PEPTIDER", "merged")});
 
   auto t = ProteinGroupArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -1365,7 +1389,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - total_sequences counts sequences,
   g.accessions = {"PROT_A"};
   g.probability = 0.01;
   prot.insertIndistinguishableProteins(g);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   // One sequence, two charge states => two consensus features, one peptide.
   for (int z : {2, 3})
@@ -1385,8 +1409,7 @@ START_SECTION(([EXTRA] ConsensusMap overload - total_sequences counts sequences,
     cf.setMZ(500.0); cf.setRT(100.0 + z); cf.setCharge(z);
     BaseFeature bf; bf.setIntensity(10.0f); bf.setMZ(500.0); bf.setRT(100.0 + z); bf.setCharge(z);
     cf.insert(0, bf);
-    cf.setPeptideIdentifications({pid});
-    cmap.push_back(cf);
+    pushFeature(cmap, cf, {pid});
   }
 
   auto t = ProteinGroupArrowExport::exportToArrow(cmap);
@@ -1441,7 +1464,7 @@ START_SECTION(([EXTRA] a group carrying only the legacy sample abundances is ref
   grp.getFloatDataArrays()[0].push_back(1000.0f);
   grp.getFloatDataArrays()[0].push_back(2000.0f);
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  setProteins(cmap, {prot});
 
   const ExperimentalDesign design = ExperimentalDesign::fromConsensusMap(cmap);
   TEST_EQUAL(design.getNumberOfSamples(), 2)
@@ -1457,7 +1480,7 @@ START_SECTION(([EXTRA] a group carrying only the legacy sample abundances is ref
   id_only.getIndistinguishableProteins().clear();
   id_only.insertIndistinguishableProteins(plain);
   ConsensusMap id_only_map = cmap;
-  id_only_map.setProteinIdentifications({id_only});
+  setProteins(id_only_map, {id_only});
   TEST_NOT_EQUAL(ProteinGroupArrowExport::exportToArrow(id_only_map, design), nullptr)
 }
 END_SECTION

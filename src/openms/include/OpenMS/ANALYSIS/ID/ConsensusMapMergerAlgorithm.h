@@ -55,9 +55,7 @@ namespace OpenMS
     /// @note Groups are not carried over during merging.
     /// @note In identification data, the runs stay as they are: an inference result (without inference yet) pools them,
     ///   with the proteins of the merged run, and export writes it as the merged protein run (with 'id_merge_index' for
-    ///   the identifications). Maps with peptide identifications are converted for this
-    ///   (IdentificationDataConverter::editAsIdentificationData()); so are they for mergeProteinIDRuns(), whose new runs
-    ///   are inference results like this.
+    ///   the identifications). So are the new runs of mergeProteinIDRuns().
     /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
     void mergeAllIDRuns(ConsensusMap& cmap) const;
 

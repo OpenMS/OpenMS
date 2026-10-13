@@ -31,11 +31,15 @@
 namespace OpenMS
 {
 
-bool QPXCollectionExport::requireExportable(const ConsensusMap& input_map, const ExperimentalDesign& design)
+bool QPXCollectionExport::requireExportable(const ConsensusMap& cmap, const ExperimentalDesign& design)
 {
   // the identifications as peptide identifications, which this format holds
-  const MapPeptideIdentifications ids = IdentificationDataConverter::exportMapIdentifications(input_map);
-  const ConsensusMap& cmap = input_map;
+  return requireExportable(cmap, IdentificationDataConverter::exportMapIdentifications(cmap), design);
+}
+
+bool QPXCollectionExport::requireExportable(const ConsensusMap& cmap, const MapPeptideIdentifications& ids,
+                                            const ExperimentalDesign& design)
+{
   const auto refuse = [](const std::string& what)
   {
     OPENMS_LOG_ERROR << "QPXCollectionExport: " << what

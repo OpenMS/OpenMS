@@ -14,6 +14,8 @@
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
+#include <functional>
+
 using namespace OpenMS;
 
 namespace
@@ -56,6 +58,14 @@ MSExperiment makeSpectra()
   return spectra;
 }
 
+/// Edit the identifications of @p map as peptide and protein identifications
+void editIdentifications(ConsensusMap& map, const std::function<void(MapPeptideIdentifications&)>& edit)
+{
+  auto ids = IdentificationDataConverter::exportMapIdentifications(map);
+  edit(ids);
+  IdentificationDataConverter::importMapIdentifications(map, ids);
+}
+
 ConsensusMap makeMap(Size run)
 {
   ConsensusMap map;
@@ -70,7 +80,9 @@ ConsensusMap makeMap(Size run)
   ProteinIdentification protein;
   protein.setIdentifier("run" + std::to_string(run));
   protein.setPrimaryMSRunPath({"run" + std::to_string(run) + ".mzML"});
-  map.setProteinIdentifications({protein});
+  MapPeptideIdentifications ids;
+  ids.proteins = {protein};
+  IdentificationDataConverter::importMapIdentifications(map, ids);
   for (const double cv : {-45.0, -65.0})
   {
     ConsensusFeature feature;
@@ -154,8 +166,8 @@ END_SECTION
 START_SECTION((static void annotate(const IDMapper&, ConsensusMap&, const IdentificationData&)))
 {
   auto map = makeMap(0);
-  const auto proteins = map.getProteinIdentifications();
-  map.getProteinIdentifications().clear();
+  const auto proteins = IdentificationDataConverter::proteinIdentifications(map);
+  map.clearIdentifications();
   IDMapper mapper;
   // The wrong CV is an exact m/z match. It must never receive the identification.
   PeptideIdentificationList ids {makeId("scan=4", -65.0), makeId("scan=9", -85.0)};
@@ -194,13 +206,16 @@ START_SECTION((static void group(FeatureGroupingAlgorithmQT&, const std::vector<
     }
     feature.setFeatures(std::move(handles));
   }
-  for (auto& feature : maps[0])
-  {
-    auto id = makeId("scan=" + std::to_string(feature.getUniqueId()), (double)feature.getMetaValue(Constants::UserParam::FAIMS_CV));
-    id.setMetaValue("map_index", 0);
-    id.setMetaValue("old_map_index", 0);
-    feature.getPeptideIdentifications().push_back(id);
-  }
+  editIdentifications(maps[0], [&](MapPeptideIdentifications& ids) {
+    for (Size i = 0; i < maps[0].size(); ++i)
+    {
+      const auto& feature = maps[0][i];
+      auto id = makeId("scan=" + std::to_string(feature.getUniqueId()), (double)feature.getMetaValue(Constants::UserParam::FAIMS_CV));
+      id.setMetaValue("map_index", 0);
+      id.setMetaValue("old_map_index", 0);
+      ids.features[{i}].push_back(id);
+    }
+  });
   // Run 1 has no IDs: matching must transfer each ID only within its CV.
   FeatureGroupingAlgorithmQT linker;
   Param linking = linker.getParameters();
@@ -212,13 +227,17 @@ START_SECTION((static void group(FeatureGroupingAlgorithmQT&, const std::vector<
   TEST_EQUAL(result.getColumnHeaders().size(), 4)
   TEST_EQUAL(result.getColumnHeaders().at(0).filename, "run0.mzML")
   TEST_EQUAL(result.getColumnHeaders().at(2).filename, "run1.mzML")
-  TEST_EQUAL(result.getProteinIdentifications().size(), 2)
-  for (const auto& feature : result)
+  auto result_ids = IdentificationDataConverter::exportMapIdentifications(result);
+  TEST_EQUAL(result_ids.proteins.size(), 2)
+  for (Size i = 0; i < result.size(); ++i)
   {
+    const auto& feature = result[i];
     const double cv = feature.getMetaValue(Constants::UserParam::FAIMS_CV);
     TEST_EQUAL(feature.size(), 4)
-    TEST_EQUAL(feature.getPeptideIdentifications().size(), 1)
-    TEST_REAL_SIMILAR((double)feature.getPeptideIdentifications()[0].getMetaValue(Constants::UserParam::FAIMS_CV), cv)
+    const auto& peptides = result_ids.at({i});
+    TEST_EQUAL(peptides.size(), 1)
+    ABORT_IF(peptides.size() != 1)
+    TEST_REAL_SIMILAR((double)peptides[0].getMetaValue(Constants::UserParam::FAIMS_CV), cv)
     for (const auto& handle : feature.getFeatures())
     {
       TEST_REAL_SIMILAR(handle.getIntensity(), -cv * (handle.getMapIndex() / 2 + 1))
@@ -234,31 +253,34 @@ START_SECTION((static void group(FeatureGroupingAlgorithmQT&, const std::vector<
     TEST_EQUAL(feature.size(), (double)feature.getMetaValue(Constants::UserParam::FAIMS_CV) == -45.0 ? 4 : 2)
   }
   // A CV with IDs but no detected features retains its IDs once, without adding sample columns.
-  maps[0].getUnassignedPeptideIdentifications().push_back(makeId("scan=999", -85.0));
+  editIdentifications(maps[0], [](MapPeptideIdentifications& ids) { ids.unassigned.push_back(makeId("scan=999", -85.0)); });
   MS1LabeledFAIMS::group(linker, maps, result);
   TEST_EQUAL(result.size(), 2)
   TEST_EQUAL(result.getColumnHeaders().size(), 4)
-  TEST_EQUAL(result.getUnassignedPeptideIdentifications().size(), 1)
-  TEST_EQUAL(result.getUnassignedPeptideIdentifications()[0].getSpectrumReference(), "scan=999")
-  TEST_EQUAL(result.getProteinIdentifications().size(), 2)
+  result_ids = IdentificationDataConverter::exportMapIdentifications(result);
+  TEST_EQUAL(result_ids.unassigned.size(), 1)
+  ABORT_IF(result_ids.unassigned.size() != 1)
+  TEST_EQUAL(result_ids.unassigned[0].getSpectrumReference(), "scan=999")
+  TEST_EQUAL(result_ids.proteins.size(), 2)
 
-  // Maps with identification data: the result has the identifications of the input maps, linked within their CV.
+  // Identifications of the second channel: the result has the identifications of the input maps, linked within their CV.
   std::vector<ConsensusMap> native {makeMap(0), makeMap(1)};
-  for (auto& feature : native[0])
-  {
-    auto id = makeId("scan=" + std::to_string(feature.getUniqueId()), (double)feature.getMetaValue(Constants::UserParam::FAIMS_CV));
-    id.setMetaValue("map_index", 1);
-    id.setMetaValue("old_map_index", 1);
-    feature.getPeptideIdentifications().push_back(id);
-  }
-  native[0].getUnassignedPeptideIdentifications().push_back(makeId("scan=999", -85.0));
-  for (auto& map : native) { IdentificationDataConverter::moveToIdentificationData(map); }
+  editIdentifications(native[0], [&](MapPeptideIdentifications& ids) {
+    for (Size i = 0; i < native[0].size(); ++i)
+    {
+      const auto& feature = native[0][i];
+      auto id = makeId("scan=" + std::to_string(feature.getUniqueId()), (double)feature.getMetaValue(Constants::UserParam::FAIMS_CV));
+      id.setMetaValue("map_index", 1);
+      id.setMetaValue("old_map_index", 1);
+      ids.features[{i}].push_back(id);
+    }
+    ids.unassigned.push_back(makeId("scan=999", -85.0));
+  });
   MS1LabeledFAIMS::group(linker, native, result);
   TEST_EQUAL(result.size(), 2)
   TEST_EQUAL(result.getColumnHeaders().size(), 4)
   TEST_EQUAL(result.getColumnHeaders().at(0).size, 2)
   TEST_EQUAL(result.getColumnHeaders().at(3).size, 2)
-  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(result), false)
   const auto& data = result.getIdentificationData();
   for (const auto& feature : result)
   {

@@ -1163,6 +1163,10 @@ class TestBugFixes:
         without checking if the metavalue exists, causing KeyError or unexpected behavior.
         """
         fmap = pyopenms.FeatureMap()
+        run = pyopenms.ProteinIdentification()
+        run.setIdentifier('search')
+        ids = pyopenms.MapPeptideIdentifications()
+        ids.proteins = [run]
 
         # Add a feature WITH spectrum_native_id
         f1 = pyopenms.Feature()
@@ -1173,13 +1177,15 @@ class TestBugFixes:
         f1.setMetaValue('spectrum_native_id', 'scan=100')
         # Add peptide identification to trigger the code path
         pep1 = pyopenms.PeptideIdentification()
+        pep1.setIdentifier('search')
+        pep1.setScoreType('score')
         hit1 = pyopenms.PeptideHit()
         hit1.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
         hit1.setScore(10.0)
         pep1.setHits([hit1])
         pep_list1 = pyopenms.PeptideIdentificationList()
         pep_list1.push_back(pep1)
-        f1.setPeptideIdentifications(pep_list1)
+        ids.setFeature([0], pep_list1)
         fmap.push_back(f1)
 
         # Add a feature WITHOUT spectrum_native_id (the bug case)
@@ -1190,14 +1196,17 @@ class TestBugFixes:
         f2.setCharge(3)
         # NO setMetaValue('spectrum_native_id', ...) - this is the bug case
         pep2 = pyopenms.PeptideIdentification()
+        pep2.setIdentifier('search')
+        pep2.setScoreType('score')
         hit2 = pyopenms.PeptideHit()
         hit2.setSequence(pyopenms.AASequence.fromString('ANOTHER'))
         hit2.setScore(20.0)
         pep2.setHits([hit2])
         pep_list2 = pyopenms.PeptideIdentificationList()
         pep_list2.push_back(pep2)
-        f2.setPeptideIdentifications(pep_list2)
+        ids.setFeature([1], pep_list2)
         fmap.push_back(f2)
+        pyopenms.IdentificationDataConverter.importMapIdentifications(fmap, ids)
 
         # This should not raise an error
         df = fmap.to_df(export_peptide_identifications=True)
@@ -1279,7 +1288,8 @@ class TestFeatureMapPeptideDataFrame:
         prot = pyopenms.ProteinIdentification()
         prot.setIdentifier('run1')
         prot.setPrimaryMSRunPath(['run1.mzML'])
-        fmap.setProteinIdentifications([prot])
+        map_ids = pyopenms.MapPeptideIdentifications()
+        map_ids.proteins = [prot]
         ids = ids or (cls.LARGE_ID, 7, 9)
         for unique_id, native_id, identified in zip(ids, ('scan=1', None, 'scan=3'), (True, True, False)):
             f = pyopenms.Feature()
@@ -1297,8 +1307,9 @@ class TestFeatureMapPeptideDataFrame:
                 pep.setHits([hit])
             peps = pyopenms.PeptideIdentificationList()
             peps.push_back(pep)
-            f.setPeptideIdentifications(peps)
+            map_ids.setFeature([fmap.size()], peps)
             fmap.push_back(f)
+        pyopenms.IdentificationDataConverter.importMapIdentifications(fmap, map_ids)
         return fmap
 
     def test_assigned_identifications_are_returned_unchanged(self):
@@ -1309,7 +1320,8 @@ class TestFeatureMapPeptideDataFrame:
         # 3.5.0 added these meta values to every hit; 3.6 leaves the hits as stored
         for key in ('feature_id', 'ID_native_id', 'ID_filename'):
             assert not peps[0].getHits()[0].metaValueExists(key)
-        assert not fmap[0].getPeptideIdentifications()[0].getHits()[0].metaValueExists('feature_id')
+        stored = pyopenms.IdentificationDataConverter.exportMapIdentifications(fmap).at([0])
+        assert not stored[0].getHits()[0].metaValueExists('feature_id')
 
     def test_rows_carry_the_feature_id(self):
         """Each row carries the ID of its feature as uint64."""
@@ -1349,7 +1361,8 @@ class TestFeatureMapPeptideDataFrame:
 
     def test_columns(self):
         """peptide_df_columns() lists the columns of to_peptide_df()."""
-        for score_type in ('q-value', ''):
+        # (the identifications of a map are identification data, whose scores have names: no empty score type)
+        for score_type in ('q-value', 'hyperscore'):
             fmap = self._feature_map(score_type=score_type)
             cols = fmap.peptide_df_columns()
             assert cols == list(fmap.to_peptide_df().columns)
@@ -1701,24 +1714,30 @@ class TestStringColumnsNotTruncated:
             assert df.loc[3, 'PeptideRef'] == 'PEP_1'
 
     def test_feature_map_missing_id_columns_are_null(self):
-        """A feature whose peptide identification has no matching ProteinIdentification and no
+        """A feature whose peptide identification's ProteinIdentification has no MS run path and that has no
         spectrum_native_id meta value gets null ID_filename / ID_native_id, not 'unknown' / 'None'."""
         import pandas as pd
         fmap = pyopenms.FeatureMap()
+        run = pyopenms.ProteinIdentification()  # without primary MS run path
+        run.setIdentifier('run_without_ms_run_path')
+        ids = pyopenms.MapPeptideIdentifications()
+        ids.proteins = [run]
         f = pyopenms.Feature()
         f.setRT(1.0)
         f.setMZ(2.0)
         f.setUniqueId(11)
         pep = pyopenms.PeptideIdentification()
-        pep.setIdentifier('run_without_protein_id')
+        pep.setIdentifier('run_without_ms_run_path')
+        pep.setScoreType('score')
         hit = pyopenms.PeptideHit()
         hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
         hit.setScore(0.5)
         pep.setHits([hit])
         pep_list = pyopenms.PeptideIdentificationList()
         pep_list.push_back(pep)
-        f.setPeptideIdentifications(pep_list)
+        ids.setFeature([0], pep_list)
         fmap.push_back(f)
+        pyopenms.IdentificationDataConverter.importMapIdentifications(fmap, ids)
 
         df = fmap.to_df()
         assert df.loc[11, 'peptide_sequence'] == 'PEPTIDE'

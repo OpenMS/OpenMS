@@ -28,6 +28,7 @@ namespace arrow
 
 namespace OpenMS
 {
+struct MapPeptideIdentifications;
 
 /**
   @brief Export PSM (Peptide Spectrum Match) data to Apache Arrow format following QPX PSM schema
@@ -102,11 +103,18 @@ public:
     @brief Export the PSMs of a consensus map to a Parquet file
 
     As the overload for peptide identifications, with those of the consensus features followed by the unassigned ones
-    and the protein identifications of the map. A map with identification data is exported as its peptide
-    identifications (IdentificationDataConverter::withPeptideIdentifications()).
+    and the protein identifications of the map, as IdentificationDataConverter::exportMapIdentifications() gives them.
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,
+    const std::string& filename,
+    bool export_all_psms = false,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const QPXIdentity::FeatureLinks* feature_links = nullptr);
+  /// Same as above, for the identifications @p ids of a consensus map (see
+  /// IdentificationDataConverter::exportMapIdentifications()), e.g. exported once for several views
+  static bool exportToParquet(
+    const MapPeptideIdentifications& ids,
     const std::string& filename,
     bool export_all_psms = false,
     const ParquetWriteConfig& config = ParquetWriteConfig{},
@@ -182,8 +190,8 @@ public:
   /**
     @brief Stream the PSMs of a consensus map (of its features, then the unassigned ones) to a QPX Parquet file
 
-    As the overload for peptide identification pointers, which point into @p cmap (or, for a map with identification
-    data, into a copy with its identifications exported, see IdentificationDataConverter::withPeptideIdentifications()).
+    As the overload for peptide identification pointers, which point into the identifications of @p cmap as
+    IdentificationDataConverter::exportMapIdentifications() gives them.
   */
   static bool exportToParquetStreaming(
     const ConsensusMap& cmap,

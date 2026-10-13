@@ -10,6 +10,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -162,7 +163,8 @@ START_SECTION((static Size computeMedians(const ConsensusMap & map, std::vector<
     ProteinIdentification search;
     search.setIdentifier("search");
     search.setSearchEngine("Engine");
-    map.getProteinIdentifications() = {search};
+    MapPeptideIdentifications ids;
+    ids.proteins = {search};
     PeptideHit hit(10.0, 1, 2, AASequence::fromString("PEPTIDER"));
     PeptideEvidence evidence;
     evidence.setProteinAccession("P02769|ALBU_BOVIN");
@@ -171,7 +173,8 @@ START_SECTION((static Size computeMedians(const ConsensusMap & map, std::vector<
     id.setIdentifier("search");
     id.setScoreType("hyperscore");
     id.setHits({hit});
-    map[0].setPeptideIdentifications({id});
+    ids.features[{0}] = {id};
+    IdentificationDataConverter::importMapIdentifications(map, ids);
     const ConsensusMap before = map;
     vector<double> medians;
     ConsensusMapNormalizerAlgorithmMedian::computeMedians(map, medians, "ALBU", "");

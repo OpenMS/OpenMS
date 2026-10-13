@@ -9,6 +9,7 @@
 // TODO move LoadSize into handler
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include "FeatureLinkerBase.cpp"
 
@@ -163,7 +164,6 @@ protected:
         f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
         f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
         f_fxml_tmp.loadFeatures(ins[reference_index], map_ref, {FileTypes::FEATUREXML, FileTypes::FEATUREPARQUET});
-        IdentificationDataConverter::moveToIdentificationData(map_ref);
         IdentificationDataConverter::makeRunsDistinct(map_ref, taken_runs);
         algorithm->setReference(reference_index, map_ref);
         ref_id = map_ref.getUniqueId();
@@ -189,7 +189,6 @@ protected:
 
         if (i != reference_index)
         {
-          IdentificationDataConverter::moveToIdentificationData(tmp_map);
           IdentificationDataConverter::makeRunsDistinct(tmp_map, taken_runs);
           algorithm->addToGroup(i, tmp_map);
 
@@ -237,8 +236,6 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET});
-        // the identifications as identification data (peptide identifications are converted):
-        IdentificationDataConverter::moveToIdentificationData(maps[i]);
         StringList ms_runs;
         maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());

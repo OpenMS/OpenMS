@@ -21,7 +21,6 @@
 
 namespace OpenMS
 {
-    class ConsensusMap;
     class PeptideIdentification;
 
     using SpectrumIdentification = PeptideIdentification; // better name that might become the default in future version
@@ -166,15 +165,6 @@ public:
     /// returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<std::string>& accession);
 
-      /**
-      @brief Builds MultiMap over all PI's via their UID (as obtained from buildUIDFromPepID()),
-             which is mapped to a index of PI therein, i.e. cm[p.first].getPeptideIdentifications()[p.second];
-
-      @param[in] cmap All PI's of the CMap are enumerated and their UID -> pair mapping is computed
-
-      @return Returns the MultiMap
-    */
-    static std::multimap<std::string, std::pair<Size, Size>> buildUIDsFromAllPepIDs(const ConsensusMap &cmap);
 
       /**
       @brief Builds UID from PeptideIdentification

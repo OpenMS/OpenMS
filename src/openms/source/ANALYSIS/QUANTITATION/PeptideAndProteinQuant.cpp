@@ -24,7 +24,6 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -840,8 +839,7 @@ namespace OpenMS
       filename = File::stemName(ed.getMSFileSection()[0].path);
     }
 
-    std::optional<FeatureMap> converted;
-    const FeatureMap& map = IdentificationDataConverter::withIdentificationData(features, converted);
+    const FeatureMap& map = features;
     for (const auto & f : map)
     {
       const auto identifications = f.getLinkedIdentifications(map.getIdentificationData());
@@ -937,8 +935,7 @@ namespace OpenMS
       quantification_fraction_group_labels_.emplace(it->second.fraction_group, label);
     }
 
-    std::optional<ConsensusMap> converted;
-    const ConsensusMap& map = IdentificationDataConverter::withIdentificationData(consensus, converted);
+    const ConsensusMap& map = consensus;
     for (const auto & c : map)
     {
       stats_.total_features += c.getFeatures().size();

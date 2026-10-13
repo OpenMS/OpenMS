@@ -95,9 +95,7 @@ OpenMS Library:
   - Reading map identifications from identification data: BaseFeature::getLinkedIdentifications()
     and getBestLinkedMatch(), FeatureMap/ConsensusMap::getUnassignedIdentifications() (the
     counterparts of getPeptideIdentifications(), the best hit and the unassigned peptide
-    identifications), IdentificationData::resolveLinks()/getUnlinked(), Run::eraseIdentifications();
-    IdentificationDataConverter::withIdentificationData()/moveToIdentificationData() give code that
-    works on identification data a map in that form.
+    identifications), IdentificationData::resolveLinks()/getUnlinked(), Run::eraseIdentifications().
   - InternalCalibration::fillCalibrants(FeatureMap), the accession/description filters of the
     consensus map normalizers, FileInfo's and QcMLFile's identification counts of feature and
     consensus maps and SeedListGenerator's seeds from featureXML read identification data (peptide
@@ -111,7 +109,7 @@ OpenMS Library:
     IDConflictResolver changes (values unchanged).
   - Feature linking works on identification data: the feature grouping algorithms (QT, KD,
     unlabeled, labeled, WNet), their pair and cluster finders, PIPECHO and the FeatureLinker tools.
-    IdentificationDataConverter::makeRunsDistinct() and withIdentificationData() for map vectors
+    IdentificationDataConverter::makeRunsDistinct() and withDistinctRuns() for map vectors
     keep the runs of the linked maps apart. ConsensusID's grouping by precursor position links
     match-free identifications (outputs unchanged).
   - IDFilter's map functions (unreferenced proteins, dangling references, N best hits, empty
@@ -124,8 +122,8 @@ OpenMS Library:
     conversion, filtering, group resolution) apply to the matches, and the IDBoostGraph core runs
     on a copy whose peptide hits name their matches
     (IdentificationDataConverter::exportWithMatchReferences(), updateReferencedMatches()).
-    BasicProteinInferenceAlgorithm::run(ConsensusMap&, ProteinIdentification&, bool) needs the
-    protein run to be the map's only one for maps with peptide identifications.
+    BasicProteinInferenceAlgorithm::run(ConsensusMap&, ProteinIdentification&, bool) runs as
+    run(ConsensusMap&, bool) and gives the protein run the proteins of the result.
   - Map alignment works on identification data: MapAlignmentAlgorithmIdentification collects the
     RTs of feature and consensus maps from the identifications that features link (and the
     unassigned ones), skipping identifications without RT and keying compounds by adduct if
@@ -140,11 +138,10 @@ OpenMS Library:
     identification of its own (with "map_index"). Precursors without identification become
     identifications without matches in a run without scores that shares the legacy protein run
     (IdentificationDataAdapter::unscoredRun()). The overloads for peptide identifications
-    annotate maps with identification data in place and other maps as before (outputs
-    unchanged; their peptide identifications need their protein identification run, see
-    below), except that with consensus:use_subelements and spectra, but without
-    annotate_ids_with_subelements, a consensus feature with several matching subelements links a
-    precursor without identification once instead of repeating it.
+    convert them and annotate likewise (outputs unchanged; their peptide identifications need
+    their protein identification run, see below), except that with consensus:use_subelements
+    and spectra, but without annotate_ids_with_subelements, a consensus feature with several
+    matching subelements links a precursor without identification once instead of repeating it.
     OpenPepXL pairs spectra and MultiplexResolverAlgorithm resolves multiplets through these links
     (outputs unchanged); OpenPepXLAlgorithm::run() no longer adds identifications to its input map.
   - ProteomicsLFQ and IsobaricWorkflow work on identification data: they convert the identifications
@@ -180,9 +177,7 @@ OpenMS Library:
     splits off their identification data; IDSplitter's idXML lists each identification once, in its
     original order (previously the unassigned ones came first). TextExporter, MzTabExporter and
     IDFilter export the identification data of featureparquet/consensusparquet input, which they
-    previously ignored. New for this: FeatureMap/ConsensusMap::eraseUnassignedIdentifications() and
-    IdentificationDataConverter::moveToPeptideIdentifications() (the converse of
-    moveToIdentificationData()).
+    previously ignored. New for this: FeatureMap/ConsensusMap::eraseUnassignedIdentifications().
   - MetaProSIP works on identification data: it converts the identifications of its feature map once
     after loading. A pseudo feature for an unassigned identification (-use_unassigned_ids) links
     that identification instead of a copy, and a pseudo feature for an MS2 spectrum without
@@ -221,8 +216,7 @@ OpenMS Library:
     consensusparquet bundles store identifications as identification data only (a map with peptide
     identifications is converted): their runs keep their identifiers, a map has one PSM score schema, features
     with identifications need valid unique IDs, and tool-defined modifications are registered when the
-    identifications are read. Files whose peptide hits have no score type cannot be loaded. ProteinQuantifier
-    converts loaded maps back until it works on identification data. ProteinInference and Epifany
+    identifications are read. Files whose peptide hits have no score type cannot be loaded. ProteinInference and Epifany
     (consensusXML) infer and filter on identification data; IdentificationDataAdapter::editInferenceResults() edits
     the protein runs of all inference results. IBSpectra export and AssayGeneratorMetabo read the identifications of
     native maps; merging consensus maps sorts the modifications of native runs as it does for protein
@@ -241,15 +235,13 @@ OpenMS Library:
   - MapPeptideIdentifications: the identifications of a feature or consensus map as peptide and protein
     identifications apart from the map (by feature path, unassigned), for formats that hold them.
     IdentificationDataConverter::exportMapIdentifications()/importMapIdentifications() convert between a
-    map's identification data (or its peptide identifications) and this view;
+    map's identification data and this view;
     IdentificationDataAdapter::toLegacyMap()/importLegacyMap() do it for feature associations. featureXML and
     consensusXML read and write through it, as do mzTab, QPX, the QPX feature and protein-group exports,
     TextExporter, MzTabExporter and IDFilter (consensus maps). FeatureMap/ConsensusMap::clearIdentifications(),
     BaseFeature::annotationState(), and pointer-list overloads of ProteinRunReferences::checkProteinAccessions()
-    and ModificationDefinitionIO::collect(). Outputs unchanged. Storing a map that holds both peptide
-    identifications and identification data throws (Exception::InvalidParameter) instead of writing the peptide
-    identifications only; AccurateMassSearch (id_format ID) no longer exports its identification data as
-    peptide identifications as well.
+    and ModificationDefinitionIO::collect(). Outputs unchanged. AccurateMassSearch (id_format ID) no longer
+    exports its identification data as peptide identifications as well.
   - Decharging (FeatureDeconvolution, MetaboliteFeatureDeconvolution) keeps the identifications of features
     as identification data: the consensus maps take the identification data of the features, their
     consensus features link the identifications of their features (as they took their peptide
@@ -257,16 +249,36 @@ OpenMS Library:
   - IdentificationData::Run::append() appends a run built separately (e.g. by a parallel producer) and returns
     the new IDs; IdentificationDataConverter::appendFeatures() appends features with the identifications
     they link.
-  - Writers of formats that hold peptide identifications accept maps with identification data:
-    IdentificationDataConverter::withPeptideIdentifications() (the converse of
-    withIdentificationData()) gives them a view with the identifications exported. mzTab map
-    export, the QPX feature, psm-preflight and protein group views write such maps as they
-    write the same map with peptide identifications.
-  - Algorithms that work on identification data convert the peptide identifications of maps.
-    Each peptide identification needs the protein identification run (the search run) with its
-    identifier, as search engines and ID mapping write it; the run may have no protein hits or
-    database (e.g. peptidomics, de novo). Maps with peptide identifications without such a run
-    are rejected (Exception::InvalidParameter naming the identifier).
+  - Writers of formats that hold peptide identifications write the identification data of maps: mzTab map
+    export, the QPX feature, psm-preflight and protein group views export the identifications of a map (see
+    MapPeptideIdentifications), as they wrote its peptide identifications.
+  - Peptide identifications that become identifications of a map (importMapIdentifications(), featureXML and
+    consensusXML loading, IDMapper) each need the protein identification run (the search run) with their
+    identifier, as search engines and ID mapping write it; the run may have no protein hits or database (e.g.
+    peptidomics, de novo). Others are rejected (Exception::InvalidParameter naming the identifier).
+  - API CHANGE: feature and consensus maps hold their identifications only as identification data. Removed:
+    BaseFeature::getPeptideIdentifications()/setPeptideIdentifications()/sortPeptideIdentifications() and the
+    BaseFeature(const BaseFeature&, UInt64 map_index) constructor, FeatureMap/ConsensusMap::
+    getProteinIdentifications()/setProteinIdentifications()/findProteinIdentification()/
+    getUnassignedPeptideIdentifications()/setUnassignedPeptideIdentifications(),
+    ConsensusMap::sortPeptideIdentificationsByMapIndex(), the map overloads of ProteinRunReferences::check()
+    and checkProteinAccessions(), and IdentificationDataConverter::importFeatureIDs()/exportFeatureIDs()/
+    importConsensusIDs()/exportConsensusIDs(). Use IdentificationDataConverter::exportMapIdentifications() and
+    importMapIdentifications() (MapPeptideIdentifications) for the identifications of a map as peptide and
+    protein identifications, proteinIdentifications() for its protein runs, BaseFeature::getLinkedIdentifications()
+    and getBestLinkedMatch() for those of a feature, FeatureMap/ConsensusMap::getIdentificationData() and
+    clearIdentifications().
+    Exporters that take a consensus map take the identifications exported once as well:
+    QPXCollectionExport::requireExportable(), ConsensusMapArrowExport::exportToParquet()/
+    exportToParquetStreaming(), QPXFile::exportToParquet(), ProteinGroupArrowExport::exportToArrow()/
+    exportToParquet(), MzTabFile::store() and the CMMzTabStream constructor have overloads for
+    MapPeptideIdentifications. FeatureMapArrowIO/ConsensusMapArrowIO::exportPSMsToArrow() and
+    importPSMsFromArrow() read and write MapPeptideIdentifications; IDBoostGraph's consensus map constructor and
+    IdentificationDataConverter::exportWithMatchReferences() use them as well. pyOpenMS: the removed accessors and
+    converter functions are no longer bound; MapPeptideIdentifications and
+    IdentificationDataConverter.exportMapIdentifications()/importMapIdentifications()/proteinIdentifications()
+    replace them. ProteomicsLFQ's feature checkpoints no longer store the canonical run identifier
+    (PLFQ:canonical_identifier), which bundles keep. Outputs unchanged.
   - .featureparquet and .consensusparquet bundles store a map's owning identification data
     (identifications/, a native bundle) and the per-feature links (identification_links.parquet,
     keyed by feature unique ID, stored as int64 like the feature tables so they join without a
@@ -710,7 +722,7 @@ PyOpenMS:
   - Native algorithm entry points for IdentificationData: FalseDiscoveryRate.applyToObservationMatches,
     IDFilter.keepBestMatchPerObservation/filterObservationMatchesByScore/removeDecoys,
     MapAlignmentAlgorithmIdentification.align/setReference and IdentificationDataConverter.exportMzTab,
-    importFeatureIDs/exportFeatureIDs and importConsensusIDs/exportConsensusIDs.
+    exportMapIdentifications/importMapIdentifications (MapPeptideIdentifications).
     Predicate callbacks accept any Python truth value. Native identification I/O releases the GIL.
   - ProteinIdentification.setScoreSoftware/getScoreSoftware/clearScoreSoftware.
 

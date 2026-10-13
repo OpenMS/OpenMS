@@ -381,12 +381,12 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(data.getInferenceResults().size(), 1)
       TEST_EQUAL(proteinScores(map), "P1:0.99,P2:0.98,P3:0.95")
 
-      // the result is the legacy protein run
-      IdentificationDataConverter::exportConsensusIDs(map);
-      TEST_EQUAL(map.getProteinIdentifications().size(), 1)
-      ABORT_IF(map.getProteinIdentifications().size() != 1)
-      TEST_EQUAL(map.getProteinIdentifications()[0].getInferenceEngine(), "TOPPProteinInference")
-      TEST_EQUAL(map.getProteinIdentifications()[0].getHits().size(), 3)
+      // the result is the protein run of the map
+      const auto exported = IdentificationDataConverter::proteinIdentifications(map);
+      TEST_EQUAL(exported.size(), 1)
+      ABORT_IF(exported.size() != 1)
+      TEST_EQUAL(exported[0].getInferenceEngine(), "TOPPProteinInference")
+      TEST_EQUAL(exported[0].getHits().size(), 3)
 
       // without the unassigned identification, P3 has no peptide (min_peptides_per_protein 1): it is removed, and
       // so is the unassigned match that referred to it
@@ -429,18 +429,6 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       bpia.run(map, proteins, true);
       TEST_EQUAL(proteins.getHits().size(), 3)
       TEST_EQUAL(proteins.getScoreType(), "Posterior Probability")
-
-      // with peptide identifications: the only protein run of the map gets the result
-      map = nativeMap();
-      IdentificationDataConverter::exportConsensusIDs(map);
-      ProteinIdentification other;
-      TEST_EXCEPTION(Exception::InvalidParameter, bpia.run(map, other, true))
-      auto& run = map.getProteinIdentifications()[0];
-      bpia.run(map, run, true);
-      TEST_EQUAL(&map.getProteinIdentifications()[0] == &run, true)
-      TEST_EQUAL(run.getScoreType(), "Posterior Probability")
-      TEST_EQUAL(run.getInferenceEngine(), "TOPPProteinInference")
-      TEST_EQUAL(map.getIdentificationData().empty(), true)
     }
     END_SECTION
 

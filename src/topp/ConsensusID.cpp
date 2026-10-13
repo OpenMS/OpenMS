@@ -20,7 +20,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -577,7 +576,6 @@ protected:
     // different ID runs with the max. number of times we see the same ID run
     // in the annotations of a feature.
 
-    IdentificationDataConverter::moveToIdentificationData(input_map);
     // The algorithms combine peptide identifications: a feature gives them the identifications it links as export
     // writes them, with the hits of its linked matches, in the protein runs that export writes.
     IdentificationDataAdapter::LegacyResult legacy = IdentificationDataAdapter::toLegacy(input_map.getIdentificationData());

@@ -154,8 +154,7 @@ namespace OpenMS
 
       @p visit gets every feature with the identifications it links (none for a feature without identifications), then,
       if @p include_unassigned, the unassigned identifications with a null feature. An identification that several
-      features link is the same object each time. Maps with peptide identifications are converted for this and back
-      (IdentificationDataConverter::editAsIdentificationData()).
+      features link is the same object each time.
     */
     static void annotateIdentifications(FeatureMap& map, const std::function<void(Feature* feature, std::vector<AnnotatedIdentification>& identifications)>& visit,
                                         bool include_unassigned = true);

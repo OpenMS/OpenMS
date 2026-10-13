@@ -62,6 +62,7 @@ ConsensusMap makeDuplexMap()
   map.getColumnHeaders()[1].filename = "run.mzML";
   map.getColumnHeaders()[1].label = "Lys8Arg10";
   map.getColumnHeaders()[1].setMetaValue("channel_id", 1);
+  MapPeptideIdentifications ids;
 
   // A: complete doublet (Lys8 shift), heavy peptide identified
   {
@@ -72,7 +73,7 @@ ConsensusMap makeDuplexMap()
     cf.setIntensity(300.0);
     cf.insert(makeHandle(0, 100.0, 500.0, 2, 100.0));
     cf.insert(makeHandle(1, 100.0, 500.0 + LYS8 / 2, 2, 200.0));
-    cf.getPeptideIdentifications().push_back(makeId("PEPTIDEK(Label:13C(6)15N(2))", 2, 1));
+    ids.features[{map.size()}].push_back(makeId("PEPTIDEK(Label:13C(6)15N(2))", 2, 1));
     map.push_back(cf);
   }
   // B: only the heavy partner was detected; nothing blacklisted around the light position
@@ -83,7 +84,7 @@ ConsensusMap makeDuplexMap()
     cf.setCharge(2);
     cf.setIntensity(50.0);
     cf.insert(makeHandle(0, 200.0, 600.0, 2, 50.0));
-    cf.getPeptideIdentifications().push_back(makeId("AAAAK(Label:13C(6)15N(2))", 2, 0));
+    ids.features[{map.size()}].push_back(makeId("AAAAK(Label:13C(6)15N(2))", 2, 0));
     map.push_back(cf);
   }
   // C: doublet with an Arg10 shift, but the sequence carries a Lys8 label -> conflict
@@ -95,7 +96,7 @@ ConsensusMap makeDuplexMap()
     cf.setIntensity(300.0);
     cf.insert(makeHandle(0, 300.0, 700.0, 2, 100.0));
     cf.insert(makeHandle(1, 300.0, 700.0 + ARG10 / 2, 2, 200.0));
-    cf.getPeptideIdentifications().push_back(makeId("AAAAK(Label:13C(6)15N(2))", 2, 1));
+    ids.features[{map.size()}].push_back(makeId("AAAAK(Label:13C(6)15N(2))", 2, 1));
     map.push_back(cf);
   }
   // D: no identification -> conflict output, unchanged
@@ -117,11 +118,12 @@ ConsensusMap makeDuplexMap()
     cf.setCharge(2);
     cf.setIntensity(50.0);
     cf.insert(makeHandle(0, 500.0, 900.0, 2, 50.0));
-    cf.getPeptideIdentifications().push_back(makeId("AAAAR(Label:13C(6)15N(4))", 2, 0));
+    ids.features[{map.size()}].push_back(makeId("AAAAR(Label:13C(6)15N(4))", 2, 0));
     map.push_back(cf);
   }
   map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-  Internal::ClassTest::addSearchRun(map);
+  Internal::ClassTest::addSearchRun(ids);
+  Internal::ClassTest::setIdentifications(map, ids);
   return map;
 }
 
@@ -173,7 +175,7 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
   // A: unchanged
   TEST_EQUAL(out[0].size(), 2)
   TEST_REAL_SIMILAR(out[0].getMZ(), 500.0)
-  TEST_EQUAL(out[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(Internal::ClassTest::peptidesOf(out, {0}).size(), 1)
 
   // B: completed with a zero-intensity light dummy; the detected feature moved to column 1
   {
@@ -191,7 +193,7 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
     TEST_REAL_SIMILAR(it->getMZ(), 600.0)
     TEST_REAL_SIMILAR(it->getIntensity(), 50.0)
     // the new map index of the identified feature is recorded on the hit
-    TEST_EQUAL((int)cf.getPeptideIdentifications()[0].getHits()[0].getMetaValue("map_index"), 1)
+    TEST_EQUAL((int)Internal::ClassTest::peptidesOf(out, {1})[0].getHits()[0].getMetaValue("map_index"), 1)
   }
 
   // E: completed, but the light dummy is not quantifiable because its region was blacklisted
@@ -209,9 +211,9 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
 
   // C and D went to the conflicts, unchanged
   TEST_REAL_SIMILAR(conflicts[0].getMZ(), 700.0)
-  TEST_EQUAL(conflicts[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(Internal::ClassTest::peptidesOf(conflicts, {0}).size(), 1)
   TEST_REAL_SIMILAR(conflicts[1].getMZ(), 800.0)
-  TEST_EQUAL(conflicts[1].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(Internal::ClassTest::peptidesOf(conflicts, {1}).size(), 0)
 
   // without a blacklist, E's dummy is reported as absent (0) instead of not quantifiable (NaN)
   ConsensusMap out2, conflicts2;
@@ -234,9 +236,11 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
     cf.setCharge(2);
     cf.insert(makeHandle(0, 100.0, 500.0, 2, 100.0));
     cf.insert(makeHandle(1, 100.0, 500.0 + (LYS8 + ARG10) / 2, 2, 200.0));
-    cf.getPeptideIdentifications().push_back(makeId("PEPTIDEK(Label:13C(6)15N(2))AAR(Label:13C(6)15N(4))", 2, 1));
+    MapPeptideIdentifications ids2;
+    ids2.features[{0}].push_back(makeId("PEPTIDEK(Label:13C(6)15N(2))AAR(Label:13C(6)15N(4))", 2, 1));
     in2.push_back(cf);
-    Internal::ClassTest::addSearchRun(in2);
+    Internal::ClassTest::addSearchRun(ids2);
+    Internal::ClassTest::setIdentifications(in2, ids2);
 
     ConsensusMap out3, conflicts3;
     resolver.resolve(in2, out3, conflicts3);
@@ -254,7 +258,9 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
   // an identification without the 'map_index' annotation cannot be resolved
   {
     ConsensusMap in3 = makeDuplexMap();
-    in3[0].getPeptideIdentifications()[0].removeMetaValue("map_index");
+    auto ids3 = Internal::ClassTest::identificationsOf(in3);
+    ids3.features[{0}][0].removeMetaValue("map_index");
+    Internal::ClassTest::setIdentifications(in3, ids3);
     ConsensusMap out4, conflicts4;
     TEST_EXCEPTION(Exception::MissingInformation, resolver.resolve(in3, out4, conflicts4))
   }
@@ -263,16 +269,15 @@ END_SECTION
 
 START_SECTION(([EXTRA] resolve() on identification data))
 {
-  // a map with identification data gives outputs with identification data
+  // the outputs get the identification data of the input
   ConsensusMap in = makeDuplexMap();
-  in.getUnassignedPeptideIdentifications().push_back(makeId("AAAAK", 2, 0));
-  Internal::ClassTest::addSearchRun(in);
-  IdentificationDataConverter::importConsensusIDs(in);
+  auto ids = Internal::ClassTest::identificationsOf(in);
+  ids.unassigned.push_back(makeId("AAAAK", 2, 0));
+  Internal::ClassTest::addSearchRun(ids);
+  Internal::ClassTest::setIdentifications(in, ids);
   MultiplexResolverAlgorithm resolver;
   ConsensusMap out, conflicts;
   resolver.resolve(in, out, conflicts);
-  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(out), false)
-  TEST_EQUAL(IdentificationDataConverter::hasPeptideIdentifications(conflicts), false)
   ABORT_IF(out.size() != 3 || conflicts.size() != 2)
 
   // each output keeps the identifications of its consensus features and the unassigned one of the input
@@ -317,19 +322,19 @@ START_SECTION(([EXTRA] resolve() on identification data))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] resolve() keeps the identifications of conflicting multiplets on request (peptide identifications)))
+START_SECTION(([EXTRA] resolve() keeps the identifications of conflicting multiplets on request (as peptide identifications)))
 {
+  using namespace Internal::ClassTest;
   ConsensusMap in = makeDuplexMap();
-  Internal::ClassTest::addSearchRun(in);
   MultiplexResolverAlgorithm resolver;
   ConsensusMap out, conflicts;
   resolver.resolve(in, out, conflicts);
-  const Size unassigned = out.getUnassignedPeptideIdentifications().size();
+  const Size unassigned = unassignedOf(out).size();
   Size conflicting = 0;
-  for (const auto& cf : conflicts) { conflicting += cf.getPeptideIdentifications().size(); }
+  for (Size i = 0; i < conflicts.size(); ++i) { conflicting += peptidesOf(conflicts, {i}).size(); }
   TEST_EQUAL(conflicting > 0, true)
   resolver.resolve(in, out, conflicts, MSExperiment(), true);
-  TEST_EQUAL(out.getUnassignedPeptideIdentifications().size(), unassigned + conflicting)
+  TEST_EQUAL(unassignedOf(out).size(), unassigned + conflicting)
   TEST_EQUAL(out.size(), 3)
 }
 END_SECTION

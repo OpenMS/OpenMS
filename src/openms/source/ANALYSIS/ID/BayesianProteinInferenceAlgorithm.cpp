@@ -798,27 +798,10 @@ namespace OpenMS
       bool greedy_group_resolution, // TODO probably better to add it as a Param
       std::optional<const ExperimentalDesign> exp_des)
   {
-    // For study-wide inference on ConsensusMap data, require a single merged protein run.
-    // (Multiple runs should be merged using ConsensusMapMergerAlgorithm::mergeAllIDRuns() beforehand.)
-    if (IdentificationDataConverter::hasPeptideIdentifications(cmap))
-    {
-      const vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
-      if (proteinIDs.empty())
-      {
-        throw OpenMS::Exception::MissingInformation(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "No protein identification runs provided for inference.");
-      }
-      if (proteinIDs.size() != 1)
-      {
-        throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, MERGE_FIRST);
-      }
-    }
-    IdentificationDataConverter::editAsIdentificationData(cmap, [&](ConsensusMap& map) {
-      inferPosteriorProbabilitiesNative_(map, greedy_group_resolution, exp_des);
-    });
+    // For study-wide inference on ConsensusMap data, require a single merged protein run (see
+    // inferPosteriorProbabilitiesNative_()); multiple runs should be merged using
+    // ConsensusMapMergerAlgorithm::mergeAllIDRuns() beforehand.
+    inferPosteriorProbabilitiesNative_(cmap, greedy_group_resolution, exp_des);
   }
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilitiesNative_(
@@ -923,19 +906,19 @@ namespace OpenMS
 
     // The graph is built on the identifications as peptide identifications whose hits name their matches. The
     // posteriors of the PSMs and the evidence that group resolution keeps go back to the matches.
-    ConsensusMap legacy = IdentificationDataConverter::exportWithMatchReferences(cmap);
+    MapPeptideIdentifications legacy = IdentificationDataConverter::exportWithMatchReferences(cmap);
     setScoreTypeAndSettings_(proteins);
     {
-      IDBoostGraph ibg(proteins, legacy, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms, exp_des);
+      IDBoostGraph ibg(proteins, cmap, legacy, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms, exp_des);
       inferPosteriorProbabilities_(ibg);
       if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
     }
     PeptideIdentificationList peptides;
-    for (auto& feature : legacy)
+    for (auto& [path, feature_peptides] : legacy.features)
     {
-      for (auto& peptide : feature.getPeptideIdentifications()) peptides.push_back(std::move(peptide));
+      for (auto& peptide : feature_peptides) peptides.push_back(std::move(peptide));
     }
-    for (auto& peptide : legacy.getUnassignedPeptideIdentifications()) peptides.push_back(std::move(peptide));
+    for (auto& peptide : legacy.unassigned) peptides.push_back(std::move(peptide));
     IdentificationDataConverter::updateReferencedMatches(data, peptides, param_.getValue("update_PSM_probabilities").toBool());
 
     if (!keep_all_psms)

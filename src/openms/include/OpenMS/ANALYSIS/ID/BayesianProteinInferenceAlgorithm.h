@@ -100,13 +100,10 @@ namespace OpenMS
      *  Optionally adds indistinguishable protein groups with separate scores, too.
      *  Output scores are always posterior probabilities. Input can be posterior or error probabilities.
      *  See Param object defaults_ within the BayesianProteinInferenceAlgorithm for more settings.
-     *  Requires the identifications of @p cmap in one protein run: a single merged ProteinIdentification run (i.e.
-     *  @p cmap.getProteinIdentifications().size() == 1) with peptide IDs referring to that run, or as identification
-     *  data, one run or the runs that an inference result pools. For study-wide inference across multiple runs/files,
-     *  merge runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns).
+     *  Requires the identifications of @p cmap in one protein run: one run, or the runs that an inference result pools.
+     *  For study-wide inference across multiple runs/files, merge runs first (ConsensusMapMergerAlgorithm::mergeAllIDRuns).
      *
-     *  Works on identification data; a map with peptide identifications is converted for this and back
-     *  (IdentificationDataConverter::editAsIdentificationData()). The proteins of the protein run (of the inference
+     *  Works on identification data. The proteins of the protein run (of the inference
      *  result that pools the runs, else the database sequences of the run) are inferred, and the result (an inference
      *  result whose inputs are the runs) replaces that inference result. PSM scores become posterior probabilities of
      *  the matches, filtered by the cutoff, and updated by inference (parameter update_PSM_probabilities); group

@@ -478,23 +478,20 @@ def test_converter_turns_feature_annotations_into_links_and_back():
     peptide.setRT(100.0)
     peptide.setMZ(500.0)
     peptide.setHits([oms.PeptideHit(7.0, 1, 2, oms.AASequence.fromString("PEPTIDE"))])
-    feature = oms.Feature()
-    feature.setPeptideIdentifications(oms.PeptideIdentificationList([peptide]))
     features = oms.FeatureMap()
-    features.push_back(feature)
-    features.setProteinIdentifications([run])
+    features.push_back(oms.Feature())
+    ids = oms.MapPeptideIdentifications()
+    ids.proteins = [run]
+    ids.setFeature([0], oms.PeptideIdentificationList([peptide]))
 
-    oms.IdentificationDataConverter.importFeatureIDs(features)
-    linked = features[0]
-    assert len(linked.getPeptideIdentifications()) == 0 and features.getProteinIdentifications() == []
-    (link,) = linked.getIDMatches()
+    oms.IdentificationDataConverter.importMapIdentifications(features, ids)
+    (link,) = features[0].getIDMatches()
     data = features.getIdentificationData()
     assert data.findRunByUuid(link.run_uuid).getMatch(link.match).representation == "PEPTIDE"
 
-    oms.IdentificationDataConverter.exportFeatureIDs(features)
-    restored = features[0]
-    assert len(restored.getIDMatches()) == 0 and features.getIdentificationData().empty()
-    assert restored.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() == "PEPTIDE"
+    restored = oms.IdentificationDataConverter.exportMapIdentifications(features)
+    assert restored.at([0])[0].getHits()[0].getSequence().toString() == "PEPTIDE"
+    assert [p.getIdentifier() for p in restored.proteins] == ["search"]
 
 
 def test_id_mapper_links_features_to_identification_data():
@@ -526,7 +523,7 @@ def test_id_mapper_links_features_to_identification_data():
     (second,) = features[1].getIDMatches()
     assert first == second
     assert features.getIdentificationData().findRunByUuid(first.run_uuid).getMatch(first.match).representation == "PEPTIDE"
-    assert len(features[0].getPeptideIdentifications()) == 0
+    assert len(oms.IdentificationDataConverter.exportMapIdentifications(features).at([0])) == 1
 
 
 def test_native_filter_writes_reduced_dataset_with_explicit_inference_policy(tmp_path):

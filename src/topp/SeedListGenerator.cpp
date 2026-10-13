@@ -12,7 +12,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -180,7 +179,6 @@ protected:
         FeatureMap features;
         FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML}, log_type_);
         // seeds at the positions of the unassigned identifications
-        IdentificationDataConverter::moveToIdentificationData(features);
         seed_lists[0].clear();
         for (const auto& id : features.getUnassignedIdentifications())
         {

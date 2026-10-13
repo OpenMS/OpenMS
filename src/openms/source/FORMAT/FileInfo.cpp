@@ -35,7 +35,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
@@ -1085,8 +1085,6 @@ namespace OpenMS
       ff.loadFeatures(in, feat, {FileTypes::FEATUREXML}, options.log_type);
 
       feat.updateRanges();
-      // the identifications as identification data
-      IdentificationDataConverter::moveToIdentificationData(feat);
 
       os << "Number of features: " << feat.size() << '\n'
          << '\n';
@@ -1151,8 +1149,6 @@ namespace OpenMS
     {
       // reading input
       FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML}, options.log_type);
-      // the identifications as identification data
-      IdentificationDataConverter::moveToIdentificationData(cons);
       const auto& cons_data = cons.getIdentificationData();
 
       cons.updateRanges();

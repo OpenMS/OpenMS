@@ -24,6 +24,7 @@ def _run(identifier):
 def _peptide(identifier):
     pid = oms.PeptideIdentification()
     pid.setIdentifier(identifier)
+    pid.setScoreType("score")  # identification data needs the name of a score
     hit = oms.PeptideHit()
     hit.setSequence(oms.AASequence.fromString("PEPTIDEK"))
     pid.setHits([hit])
@@ -47,13 +48,15 @@ def test_check():
     with pytest.raises(Exception, match=MESSAGE):
         oms.ProteinRunReferences.check(runs, _peptides("search", "other"))
 
+    # the identifications of a map, too
     fmap = oms.FeatureMap()
-    fmap.setProteinIdentifications(runs)
-    fmap.setUnassignedPeptideIdentifications(_peptides("search"))
-    oms.ProteinRunReferences.check(fmap)
-    fmap.setUnassignedPeptideIdentifications(_peptides("other"))
+    ids = oms.MapPeptideIdentifications()
+    ids.proteins = runs
+    ids.unassigned = _peptides("search")
+    oms.IdentificationDataConverter.importMapIdentifications(fmap, ids)
+    ids.unassigned = _peptides("other")
     with pytest.raises(Exception, match=MESSAGE):
-        oms.ProteinRunReferences.check(fmap)
+        oms.IdentificationDataConverter.importMapIdentifications(oms.FeatureMap(), ids)
 
 
 def test_idxml_store_does_not_omit(tmp_path):
@@ -73,27 +76,28 @@ def test_idxml_store_does_not_omit(tmp_path):
 
 
 def test_featurexml_store_does_not_omit(tmp_path):
+    # a peptide identification without its run cannot be an identification of a map (so of a featureXML file)
     fmap = oms.FeatureMap()
-    fmap.setProteinIdentifications([_run("search")])
-    fmap.setUnassignedPeptideIdentifications(_peptides("other"))
-    bad = tmp_path / "bad.featureXML"
+    ids = oms.MapPeptideIdentifications()
+    ids.proteins = [_run("search")]
+    ids.unassigned = _peptides("other")
     with pytest.raises(Exception, match=MESSAGE):
-        oms.FeatureXMLFile().store(str(bad), fmap)
-    assert not bad.exists()
+        oms.IdentificationDataConverter.importMapIdentifications(fmap, ids)
+    assert fmap.getIdentificationData().empty()
 
 
 def test_featurexml_store_needs_the_proteins_in_the_run(tmp_path):
     run = _run("search")
     fmap = oms.FeatureMap()
-    fmap.setProteinIdentifications([run])
     peptides = _peptides("search")
     hit = peptides[0].getHits()[0]
     hit.setPeptideEvidences([oms.PeptideEvidence("PROT_X", 0, 6, "-", "-")])
     pid = peptides[0]
     pid.setHits([hit])
-    fmap.setUnassignedPeptideIdentifications(_list(pid))
-    with pytest.raises(Exception, match="No accession PROT_X found in run 'search'"):
-        oms.ProteinRunReferences.checkProteinAccessions(fmap)
+    ids = oms.MapPeptideIdentifications()
+    ids.proteins = [run]
+    ids.unassigned = _list(pid)
+    oms.IdentificationDataConverter.importMapIdentifications(fmap, ids)
     bad = tmp_path / "bad.featureXML"
     with pytest.raises(Exception, match="No accession PROT_X"):
         oms.FeatureXMLFile().store(str(bad), fmap)
@@ -126,9 +130,7 @@ def test_feature_finder_identification_seeds_without_runs(tmp_path):
     features = oms.FeatureMap()
     algo.run(oms.PeptideIdentificationList(), [], features, seeds, "")
     assert features.size() > 0
-    assert features.getProteinIdentifications() == []
-    assert all(len(f.getPeptideIdentifications()) == 0 for f in features)
-    assert features.getUnassignedPeptideIdentifications().size() == 0
+    assert oms.IdentificationDataConverter.exportMapIdentifications(features).empty()
     oms.FeatureXMLFile().store(str(tmp_path / "seeds.featureXML"), features)
 
 
@@ -156,9 +158,6 @@ def test_feature_finder_identification_identification_data():
     converted = run(peptides, proteins)
     for features in (native, converted):
         assert features.size() > 0
-        assert features.getProteinIdentifications() == []
-        assert all(len(f.getPeptideIdentifications()) == 0 for f in features)
-        assert features.getUnassignedPeptideIdentifications().size() == 0
         assert all(len(f.getIDMatches()) > 0 for f in features)
     assert native.size() == converted.size()
 

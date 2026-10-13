@@ -12,7 +12,6 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <cmath>
 #include <limits>
@@ -375,9 +374,7 @@ namespace OpenMS
     MultiplexDeltaMassesGenerator generator(param_.getValue("algorithm:labels").toString(),
                                             param_.getValue("algorithm:max_nr_labelled_aas"), label_mass_shift);
 
-    // the identifications of the consensus features as identification data
-    std::optional<ConsensusMap> converted;
-    const ConsensusMap& in = IdentificationDataConverter::withIdentificationData(map_in, converted);
+    const ConsensusMap& in = map_in;
     const ID& data = in.getIdentificationData();
 
     // both outputs start as empty copies of the input, i.e. with its meta data
@@ -441,11 +438,5 @@ namespace OpenMS
 
     map_out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     map_conflicts.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-    if (converted)
-    {
-      IdentificationDataConverter::exportConsensusIDs(map_out);
-      IdentificationDataConverter::exportConsensusIDs(map_conflicts);
-    }
   }
 } // namespace OpenMS

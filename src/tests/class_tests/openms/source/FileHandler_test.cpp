@@ -512,7 +512,8 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   prot.setIdentifier("run_1");
   prot.setScoreType("score");
   prot.setHigherScoreBetter(true);
-  fm.getProteinIdentifications().push_back(prot);
+  MapPeptideIdentifications ids;
+  ids.proteins.push_back(prot);
 
   PeptideIdentification pid;
   pid.setIdentifier("run_1");
@@ -523,9 +524,10 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   hit.setCharge(2);
   hit.setScore(0.8);
   pid.getHits().push_back(hit);
-  f.getPeptideIdentifications().push_back(pid);
+  ids.features[{0}].push_back(pid);
 
   fm.push_back(f);
+  IdentificationDataConverter::importMapIdentifications(fm, ids);
 
   std::string dir;
   NEW_TMP_FILE(dir)
@@ -535,7 +537,8 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
 
   FeatureMap fm_in;
   FileHandler().loadFeatures(dir, fm_in, {FileTypes::FEATUREPARQUET});
-  IdentificationDataConverter::moveToPeptideIdentifications(fm_in); // read as peptide identifications (the map has identification data)
+  // read as peptide identifications
+  const auto in_ids = IdentificationDataConverter::exportMapIdentifications(fm_in);
 
   TEST_EQUAL(fm_in.size(), 1);
   TEST_EQUAL(fm_in[0].getUniqueId(), 42);
@@ -546,15 +549,15 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
   TEST_REAL_SIMILAR(fm_in[0].getOverallQuality(), 0.9f);
 
   // ID round-trip: the bundle stores identification data, whose runs keep their identifiers
-  TEST_EQUAL(fm_in.getProteinIdentifications().size(), 1);
-  TEST_EQUAL(fm_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
-  TEST_STRING_EQUAL(fm_in.getProteinIdentifications()[0].getScoreType(), "score");
-  TEST_EQUAL(fm_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
-  TEST_EQUAL(fm_in[0].getPeptideIdentifications().size(), 1);
-  TEST_STRING_EQUAL(fm_in[0].getPeptideIdentifications()[0].getIdentifier(),
-                    fm_in.getProteinIdentifications()[0].getIdentifier());
-  TEST_EQUAL(fm_in[0].getPeptideIdentifications()[0].getHits().size(), 1);
-  const PeptideHit& h_in = fm_in[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_EQUAL(in_ids.proteins.size(), 1);
+  TEST_EQUAL(in_ids.proteins[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(in_ids.proteins[0].getScoreType(), "score");
+  TEST_EQUAL(in_ids.proteins[0].isHigherScoreBetter(), true);
+  TEST_EQUAL(in_ids.at({0}).size(), 1);
+  TEST_STRING_EQUAL(in_ids.at({0})[0].getIdentifier(),
+                    in_ids.proteins[0].getIdentifier());
+  TEST_EQUAL(in_ids.at({0})[0].getHits().size(), 1);
+  const PeptideHit& h_in = in_ids.at({0})[0].getHits()[0];
   TEST_STRING_EQUAL(h_in.getSequence().toString(), "PEPTIDE");
   TEST_EQUAL(h_in.getCharge(), 2);
   TEST_REAL_SIMILAR(h_in.getScore(), 0.8);
@@ -626,18 +629,19 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   FileHandler().loadConsensusFeatures(
     OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"),
     cmap_ref, {FileTypes::CONSENSUSXML});
-    IdentificationDataConverter::moveToPeptideIdentifications(cmap_ref); // read as peptide identifications (the map has identification data)
+  // read as peptide identifications
+  const auto ref_ids = IdentificationDataConverter::exportMapIdentifications(cmap_ref);
 
   // Sanity-anchor the reference: stable counts for this test fixture.
   TEST_EQUAL(cmap_ref.size(), 39);
   TEST_EQUAL(cmap_ref.getColumnHeaders().size(), 5);
-  TEST_EQUAL(cmap_ref.getProteinIdentifications().size(), 1);
-  TEST_EQUAL(cmap_ref.getUnassignedPeptideIdentifications().size(), 65);
-  TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getHits().size(), 25);
-  TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 18);
+  TEST_EQUAL(ref_ids.proteins.size(), 1);
+  TEST_EQUAL(ref_ids.unassigned.size(), 65);
+  TEST_EQUAL(ref_ids.proteins[0].getHits().size(), 25);
+  TEST_EQUAL(ref_ids.proteins[0].getIndistinguishableProteins().size(), 18);
   // ConsensusXMLHandler rebuilds the run identifier as "<engine>_<date>_<hash>"
   // on load — the file-level XML id="PI_0" is only an internal cross-reference.
-  TEST_EQUAL(StringUtils::hasPrefix(cmap_ref.getProteinIdentifications()[0].getIdentifier(), "OMSSA_"), true);
+  TEST_EQUAL(StringUtils::hasPrefix(ref_ids.proteins[0].getIdentifier(), "OMSSA_"), true);
 
   std::string dir;
   NEW_TMP_FILE(dir)
@@ -647,13 +651,14 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
 
   ConsensusMap cmap_in;
   FileHandler().loadConsensusFeatures(dir, cmap_in, {FileTypes::CONSENSUSPARQUET});
-  IdentificationDataConverter::moveToPeptideIdentifications(cmap_in); // read as peptide identifications (the map has identification data)
+  // read as peptide identifications
+  const auto in_ids = IdentificationDataConverter::exportMapIdentifications(cmap_in);
 
   // ---- Top-level container counts ----
   TEST_EQUAL(cmap_in.size(), cmap_ref.size());
   TEST_EQUAL(cmap_in.getColumnHeaders().size(), cmap_ref.getColumnHeaders().size());
-  TEST_EQUAL(cmap_in.getProteinIdentifications().size(), cmap_ref.getProteinIdentifications().size());
-  TEST_EQUAL(cmap_in.getUnassignedPeptideIdentifications().size(), cmap_ref.getUnassignedPeptideIdentifications().size());
+  TEST_EQUAL(in_ids.proteins.size(), ref_ids.proteins.size());
+  TEST_EQUAL(in_ids.unassigned.size(), ref_ids.unassigned.size());
 
   // ---- ColumnHeaders (map references): filename, label, unique_id per map ----
   for (const auto& [map_idx, header_ref] : cmap_ref.getColumnHeaders())
@@ -693,27 +698,21 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // identifier SUFFIXES differ between lanes by design, but each lane is internally
   // consistent (no dangling pep_id->prot_id references) and the set sizes match.
   std::set<std::string> run_ids_ref, run_ids_in;
-  for (const auto& p : cmap_ref.getProteinIdentifications()) run_ids_ref.insert(p.getIdentifier());
-  for (const auto& p : cmap_in.getProteinIdentifications()) run_ids_in.insert(p.getIdentifier());
+  for (const auto& p : ref_ids.proteins) run_ids_ref.insert(p.getIdentifier());
+  for (const auto& p : in_ids.proteins) run_ids_in.insert(p.getIdentifier());
   TEST_EQUAL(run_ids_in.size(), run_ids_ref.size());
 
   Size dangling_ref = 0, dangling_in = 0;
-  for (const auto& cf : cmap_ref)
-    for (const auto& pid : cf.getPeptideIdentifications())
-      if (!run_ids_ref.count(pid.getIdentifier())) ++dangling_ref;
-  for (const auto& pid : cmap_ref.getUnassignedPeptideIdentifications())
-    if (!run_ids_ref.count(pid.getIdentifier())) ++dangling_ref;
-  for (const auto& cf : cmap_in)
-    for (const auto& pid : cf.getPeptideIdentifications())
-      if (!run_ids_in.count(pid.getIdentifier())) ++dangling_in;
-  for (const auto& pid : cmap_in.getUnassignedPeptideIdentifications())
-    if (!run_ids_in.count(pid.getIdentifier())) ++dangling_in;
+  for (const auto* pid : ref_ids.peptides())
+    if (!run_ids_ref.count(pid->getIdentifier())) ++dangling_ref;
+  for (const auto* pid : in_ids.peptides())
+    if (!run_ids_in.count(pid->getIdentifier())) ++dangling_in;
   TEST_EQUAL(dangling_ref, 0);
   TEST_EQUAL(dangling_in, 0);
 
   // ---- ProteinIdentification (run-level) round-trip ----
-  const auto& prot_ref = cmap_ref.getProteinIdentifications()[0];
-  const auto& prot_in  = cmap_in.getProteinIdentifications()[0];
+  const auto& prot_ref = ref_ids.proteins[0];
+  const auto& prot_in  = in_ids.proteins[0];
   // Identifier prefix (search_engine_date) must match; the UniqueIdGenerator
   // suffix differs between lanes by design.
   TEST_EQUAL(StringUtils::hasPrefix(prot_in.getIdentifier(), "OMSSA_"), true);
@@ -757,21 +756,19 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
              == group_signature(prot_ref.getProteinGroups()), true);
 
   // ---- id_merge_index distribution (PSM -> original-run linkage) ----
-  auto merge_index_hist = [](const ConsensusMap& m) {
+  auto merge_index_hist = [](const MapPeptideIdentifications& m) {
     std::map<int, Size> hist;
-    auto count = [&](const PeptideIdentification& pid) {
-      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
-        ++hist[(int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)];
+    for (const auto* pid : m.peptides())
+    {
+      if (pid->metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
+        ++hist[(int)pid->getMetaValue(Constants::UserParam::ID_MERGE_INDEX)];
       else
         ++hist[-1];
-    };
-    for (const auto& cf : m)
-      for (const auto& pid : cf.getPeptideIdentifications()) count(pid);
-    for (const auto& pid : m.getUnassignedPeptideIdentifications()) count(pid);
+    }
     return hist;
   };
-  auto hist_ref = merge_index_hist(cmap_ref);
-  auto hist_in  = merge_index_hist(cmap_in);
+  auto hist_ref = merge_index_hist(ref_ids);
+  auto hist_in  = merge_index_hist(in_ids);
   TEST_EQUAL(hist_in == hist_ref, true);
   TEST_EQUAL(hist_ref.count(-1), 0); // every PSM in this fixture must have id_merge_index
   TEST_EQUAL(hist_ref.size(), 5);    // values 0..4 (one per spectra_data entry)
@@ -796,17 +793,17 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
     std::sort(sigs.begin(), sigs.end());
     return sigs;
   };
-  TEST_EQUAL(psm_sigs(cmap_in.getUnassignedPeptideIdentifications())
-             == psm_sigs(cmap_ref.getUnassignedPeptideIdentifications()), true);
+  TEST_EQUAL(psm_sigs(in_ids.unassigned)
+             == psm_sigs(ref_ids.unassigned), true);
 
   // Same comparison for feature-attached PSMs, flattened across all features.
-  auto attached_sigs = [&](const ConsensusMap& m) {
+  auto attached_sigs = [&](const MapPeptideIdentifications& m) {
     std::vector<PeptideIdentification> all;
-    for (const auto& cf : m)
-      for (const auto& pid : cf.getPeptideIdentifications()) all.push_back(pid);
+    for (const auto& [path, peptides] : m.features)
+      for (const auto& pid : peptides) all.push_back(pid);
     return psm_sigs(all);
   };
-  TEST_EQUAL(attached_sigs(cmap_in) == attached_sigs(cmap_ref), true);
+  TEST_EQUAL(attached_sigs(in_ids) == attached_sigs(ref_ids), true);
 
   File::removeDirRecursively(dir);
 }
@@ -829,7 +826,8 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
   prot.setIdentifier("run_1");
   prot.setScoreType("score");
   prot.setHigherScoreBetter(true);
-  cmap.getProteinIdentifications().push_back(prot);
+  MapPeptideIdentifications ids;
+  ids.proteins.push_back(prot);
 
   PeptideIdentification pid;
   pid.setIdentifier("run_1");
@@ -840,9 +838,10 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
   hit.setCharge(3);
   hit.setScore(0.7);
   pid.getHits().push_back(hit);
-  cf.getPeptideIdentifications().push_back(pid);
+  ids.features[{0}].push_back(pid);
 
   cmap.push_back(cf);
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   std::string dir;
   NEW_TMP_FILE(dir)
@@ -852,7 +851,8 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
 
   ConsensusMap cmap_in;
   FileHandler().loadConsensusFeatures(dir, cmap_in, {FileTypes::CONSENSUSPARQUET});
-  IdentificationDataConverter::moveToPeptideIdentifications(cmap_in); // read as peptide identifications (the map has identification data)
+  // read as peptide identifications
+  const auto in_ids = IdentificationDataConverter::exportMapIdentifications(cmap_in);
 
   TEST_EQUAL(cmap_in.size(), 1);
   TEST_EQUAL(cmap_in[0].getUniqueId(), 7);
@@ -863,15 +863,15 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
   TEST_REAL_SIMILAR(cmap_in[0].getQuality(), 0.8f);
 
   // ID round-trip: the bundle stores identification data, whose runs keep their identifiers
-  TEST_EQUAL(cmap_in.getProteinIdentifications().size(), 1);
-  TEST_EQUAL(cmap_in.getProteinIdentifications()[0].getIdentifier(), "run_1");
-  TEST_STRING_EQUAL(cmap_in.getProteinIdentifications()[0].getScoreType(), "score");
-  TEST_EQUAL(cmap_in.getProteinIdentifications()[0].isHigherScoreBetter(), true);
-  TEST_EQUAL(cmap_in[0].getPeptideIdentifications().size(), 1);
-  TEST_STRING_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getIdentifier(),
-                    cmap_in.getProteinIdentifications()[0].getIdentifier());
-  TEST_EQUAL(cmap_in[0].getPeptideIdentifications()[0].getHits().size(), 1);
-  const PeptideHit& h_in = cmap_in[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_EQUAL(in_ids.proteins.size(), 1);
+  TEST_EQUAL(in_ids.proteins[0].getIdentifier(), "run_1");
+  TEST_STRING_EQUAL(in_ids.proteins[0].getScoreType(), "score");
+  TEST_EQUAL(in_ids.proteins[0].isHigherScoreBetter(), true);
+  TEST_EQUAL(in_ids.at({0}).size(), 1);
+  TEST_STRING_EQUAL(in_ids.at({0})[0].getIdentifier(),
+                    in_ids.proteins[0].getIdentifier());
+  TEST_EQUAL(in_ids.at({0})[0].getHits().size(), 1);
+  const PeptideHit& h_in = in_ids.at({0})[0].getHits()[0];
   TEST_STRING_EQUAL(h_in.getSequence().toString(), "PEPTIDE");
   TEST_EQUAL(h_in.getCharge(), 3);
   TEST_REAL_SIMILAR(h_in.getScore(), 0.7);

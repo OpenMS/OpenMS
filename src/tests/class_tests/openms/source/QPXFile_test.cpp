@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/QPXValueValidation.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
@@ -796,7 +797,9 @@ START_SECTION(([EXTRA] ProteinGroupArrowExport writes QPX channel labels, not ch
       group.getIntegerDataArrays()[1].push_back(static_cast<Int>(c + 1));
     }
     prot_id.insertIndistinguishableProteins(group);
-    cmap.setProteinIdentifications({prot_id});
+    MapPeptideIdentifications ids;
+    ids.proteins = {prot_id};
+    IdentificationDataConverter::importMapIdentifications(cmap, ids);
     return cmap;
   };
 
@@ -903,7 +906,8 @@ START_SECTION(([EXTRA] the three QPX views agree on their run names))
     grp.getIntegerDataArrays()[1].push_back(1);
   }
   prot.insertIndistinguishableProteins(grp);
-  cmap.setProteinIdentifications({prot});
+  MapPeptideIdentifications ids;
+  ids.proteins = {prot};
 
   // One feature per run, each identified by a PSM naming its own run via id_merge_index.
   PeptideIdentificationList all_pep_ids;
@@ -928,10 +932,11 @@ START_SECTION(([EXTRA] the three QPX views agree on their run names))
     cf.setMZ(500.0); cf.setRT(100.0 + m); cf.setCharge(2);
     BaseFeature bf; bf.setIntensity(100.0f * (m + 1)); bf.setMZ(500.0); bf.setRT(100.0 + m); bf.setCharge(2);
     cf.insert(m, bf);
-    cf.setPeptideIdentifications({pid});
+    ids.features[{cmap.size()}] = {pid};
     cmap.push_back(cf);
     all_pep_ids.push_back(pid);
   }
+  IdentificationDataConverter::importMapIdentifications(cmap, ids);
 
   auto run_names = [](const std::shared_ptr<arrow::Table>& t)
   {
@@ -952,7 +957,7 @@ START_SECTION(([EXTRA] the three QPX views agree on their run names))
     return out;
   };
 
-  auto psm_t  = QPXFile::exportPSMsToQPXArrow(cmap.getProteinIdentifications(), all_pep_ids, false);
+  auto psm_t  = QPXFile::exportPSMsToQPXArrow(IdentificationDataConverter::proteinIdentifications(cmap), all_pep_ids, false);
   auto feat_t = ConsensusMapArrowExport::exportToArrow(cmap);
   auto pg_t   = ProteinGroupArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(psm_t, nullptr)

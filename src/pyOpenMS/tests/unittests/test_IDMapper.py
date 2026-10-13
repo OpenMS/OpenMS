@@ -34,8 +34,12 @@ class TestIDMapper(unittest.TestCase):
         s.setPrecursors([p])
         return s
 
-    def assert_feature_has_identification(self, feature, expected_sequence):
-        pep_ids = feature.getPeptideIdentifications()
+    def peptides(self, features, index):
+        """The peptide identifications of a feature of a map."""
+        return oms.IdentificationDataConverter.exportMapIdentifications(features).at([index])
+
+    def assert_feature_has_identification(self, features, index, expected_sequence):
+        pep_ids = self.peptides(features, index)
         self.assertGreater(len(pep_ids), 0, "Feature has no peptide identifications.")
         hits = pep_ids[0].getHits()
         self.assertGreater(len(hits), 0, "Peptide identification has no hits.")
@@ -73,7 +77,7 @@ class TestIDMapper(unittest.TestCase):
         empty_exp.updateRanges()
 
         mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
-        self.assert_feature_has_identification(features[0], "TESTPEPTIDE")
+        self.assert_feature_has_identification(features, 0, "TESTPEPTIDE")
 
     def test_annotate_featuremap_with_msexperiment(self):
         """Test with populated MSExperiment containing MS2 spectra."""
@@ -95,7 +99,7 @@ class TestIDMapper(unittest.TestCase):
         exp.updateRanges()
 
         mapper.annotate(features, peptide_ids, self.search_runs(), True, True, exp)
-        self.assert_feature_has_identification(features[0], "MATCHEDPEP")
+        self.assert_feature_has_identification(features, 0, "MATCHEDPEP")
 
     def test_annotate_tolerance_settings(self):
         """Test RT and m/z tolerance boundaries."""
@@ -119,7 +123,7 @@ class TestIDMapper(unittest.TestCase):
         empty_exp.updateRanges()
         mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
 
-        pep_ids = features[0].getPeptideIdentifications()
+        pep_ids = self.peptides(features, 0)
         self.assertEqual(len(pep_ids), 1)
         self.assertEqual(pep_ids[0].getHits()[0].getSequence().toString(), "INSIDE")
 
@@ -159,7 +163,7 @@ class TestIDMapper(unittest.TestCase):
 
                 mapper.annotate(features, peptide_ids, self.search_runs(), use_centroid_rt, use_centroid_mz, empty_exp)
 
-                pep_ids = features[0].getPeptideIdentifications()
+                pep_ids = self.peptides(features, 0)
                 self.assertEqual(len(pep_ids), 1)
                 self.assertEqual(pep_ids[0].getHits()[0].getSequence().toString(), "HULLTEST")
 
@@ -185,7 +189,7 @@ class TestIDMapper(unittest.TestCase):
         empty_exp.updateRanges()
 
         mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
-        self.assertEqual(len(features[0].getPeptideIdentifications()), 0)
+        self.assertEqual(len(self.peptides(features, 0)), 0)
 
     def test_annotate_multiple_features_multiple_ids(self):
         """Test many-to-many mapping behavior."""
@@ -211,8 +215,8 @@ class TestIDMapper(unittest.TestCase):
 
         mapper.annotate(features, peptide_ids, self.search_runs(), True, True, empty_exp)
 
-        self.assert_feature_has_identification(features[0], "PEPONE")
-        self.assert_feature_has_identification(features[1], "PEPTWO")
+        self.assert_feature_has_identification(features, 0, "PEPONE")
+        self.assert_feature_has_identification(features, 1, "PEPTWO")
 
     def test_annotate_annotated_msrun(self):
         """Spectra link the identifications that map to them; identifications that map to none are not added."""

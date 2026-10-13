@@ -15,6 +15,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <OpenMS/METADATA/ID/IdentificationDataAdapter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
@@ -378,7 +379,8 @@ void Biosaur2Algorithm::run(FeatureMap& feature_map,
   paseftol_ = original_paseftol;
   feature_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   feature_map.ensureUniqueId();
-  feature_map.getProteinIdentifications().resize(1);
+  // the features have no identifications, but an (empty) protein identification run, as their featureXML has had
+  feature_map.getIdentificationData() = IdentificationDataAdapter::fromLegacy(std::vector<ProteinIdentification>(1), {});
 }
 
 double Biosaur2Algorithm::calculatePPM_(double mz1, double mz2) const
@@ -3192,7 +3194,6 @@ FeatureMap Biosaur2Algorithm::convertToFeatureMap_(const vector<PeptideFeature>&
 
   feature_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   feature_map.ensureUniqueId();
-  feature_map.getProteinIdentifications().resize(1);
   return feature_map;
 }
 

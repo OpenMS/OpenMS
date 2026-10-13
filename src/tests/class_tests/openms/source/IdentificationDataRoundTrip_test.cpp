@@ -160,42 +160,6 @@ std::string consensusXML(const ConsensusMap& map)
   return path;
 }
 
-/// The identifications of a map as links to the map's own IdentificationData, without legacy copies.
-ConsensusMap toNative(const ConsensusMap& map)
-{
-  auto imported = Adapter::fromConsensusMap(map);
-  ConsensusMap native = map;
-  native.getProteinIdentifications().clear();
-  native.getUnassignedPeptideIdentifications().clear();
-  for (auto& feature : native)
-    feature.getPeptideIdentifications().clear();
-  for (const auto& association : imported.associations)
-  {
-    if (association.unassigned) continue;
-    auto& feature = native[association.feature_path.front()];
-    feature.addIDQuery(association.query);
-    for (const auto& match : association.matches)
-      feature.addIDMatch({association.query.run_uuid, match});
-  }
-  native.getIdentificationData() = throughBundle(imported.data);
-  return native;
-}
-
-/// Legacy identifications rebuilt from the native links of @p native.
-ConsensusMap toLegacy(const ConsensusMap& native)
-{
-  auto imported = Adapter::fromConsensusMap(native);
-  ConsensusMap legacy = native;
-  Adapter::applyToConsensusMap(imported.data, imported.associations, legacy, {}, Adapter::MissingLinkPolicy::REJECT);
-  // Only the legacy copies are compared; drop the links again.
-  legacy.getIdentificationData().clear();
-  for (auto& feature : legacy)
-  {
-    feature.getIDQueries().clear();
-    feature.getIDMatches().clear();
-  }
-  return legacy;
-}
 } // namespace
 
 START_TEST(IdentificationDataRoundTrip, "$Id$")
@@ -229,7 +193,7 @@ START_SECTION(([EXTRA] idXML outputs of IDMerger, PercolatorAdapter, ProteomicsL
 }
 END_SECTION
 
-START_SECTION(([EXTRA] consensusXML outputs of ProteomicsLFQ, IsobaricWorkflow and IDMerger survive native links))
+START_SECTION(([EXTRA] consensusXML outputs of ProteomicsLFQ, IsobaricWorkflow and IDMerger survive a native round trip of their identification data))
 {
   for (const std::string name : {"ProteomicsLFQ_1_out.consensusXML", "ProteomicsLFQ_1_subset_out.consensusXML", "ProteomicsLFQ_2_out.consensusXML",
                                  "ProteomicsLFQ_3_out.consensusXML", "ProteomicsLFQ_3_seedRT_out.consensusXML", "ProteomicsLFQ_4_out.consensusXML",
@@ -241,22 +205,21 @@ START_SECTION(([EXTRA] consensusXML outputs of ProteomicsLFQ, IsobaricWorkflow a
     STATUS(name)
     ConsensusMap original;
     ConsensusXMLFile().load(topp(name), original);
-    IdentificationDataConverter::moveToPeptideIdentifications(original); // a legacy fixture (loading gives identification data)
-    const auto restored = toLegacy(toNative(original));
-    bool equal = restored.getProteinIdentifications() == original.getProteinIdentifications()
-                 && restored.getUnassignedPeptideIdentifications() == original.getUnassignedPeptideIdentifications() && restored.size() == original.size();
-    for (Size i = 0; equal && i < original.size(); ++i)
-      equal = restored[i].getPeptideIdentifications() == original[i].getPeptideIdentifications();
+    // the identification data through the bundle, linked by the features as before
+    ConsensusMap restored = original;
+    restored.getIdentificationData() = throughBundle(original.getIdentificationData());
+    const auto expected = IdentificationDataConverter::exportMapIdentifications(original);
+    const auto actual = IdentificationDataConverter::exportMapIdentifications(restored);
+    const bool equal = actual.proteins == expected.proteins && actual.unassigned == expected.unassigned && actual.features == expected.features;
     TEST_TRUE(equal)
     if (! equal)
     {
       TEST_EQUAL(firstDifference(consensusXML(original), consensusXML(restored)), "")
-      TEST_EQUAL(difference(original.getProteinIdentifications(), original.getUnassignedPeptideIdentifications(),
-                            restored.getProteinIdentifications(), restored.getUnassignedPeptideIdentifications()), "")
-      for (Size i = 0; i < std::min(original.size(), restored.size()); ++i)
-        if (original[i].getPeptideIdentifications() != restored[i].getPeptideIdentifications())
+      TEST_EQUAL(difference(expected.proteins, expected.unassigned, actual.proteins, actual.unassigned), "")
+      for (const auto& [path, peptides] : expected.features)
+        if (actual.at(path) != peptides)
         {
-          TEST_EQUAL(difference({}, original[i].getPeptideIdentifications(), {}, restored[i].getPeptideIdentifications()), "")
+          TEST_EQUAL(difference({}, peptides, {}, actual.at(path)), "")
           break;
         }
     }

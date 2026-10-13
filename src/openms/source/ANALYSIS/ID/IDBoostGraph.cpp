@@ -165,7 +165,8 @@ namespace OpenMS
   }
 
   IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins,
-                             ConsensusMap& cmap,
+                             const ConsensusMap& cmap,
+                             MapPeptideIdentifications& identifications,
                              Size use_top_psms,
                              bool use_run_info,
                              bool use_unassigned_ids,
@@ -173,15 +174,15 @@ namespace OpenMS
                              const std::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
-    OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << cmap.getUnassignedPeptideIdentifications().size() <<
+    OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << identifications.unassigned.size() <<
     " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
-      buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.value_or(ExperimentalDesign::fromConsensusMap(cmap)));
+      buildGraphWithRunInfo_(proteins, cmap, identifications, use_top_psms, use_unassigned_ids, ed.value_or(ExperimentalDesign::fromConsensusMap(cmap)));
     }
     else
     {
-      buildGraph_(proteins, cmap, use_top_psms, use_unassigned_ids, best_psms_annotated);
+      buildGraph_(proteins, identifications, use_top_psms, use_unassigned_ids, best_psms_annotated);
     }
   }
 
@@ -316,7 +317,8 @@ namespace OpenMS
   }
 
   void IDBoostGraph::buildGraphWithRunInfo_(ProteinIdentification& proteins,
-                                           ConsensusMap& cmap,
+                                           const ConsensusMap& cmap,
+                                           MapPeptideIdentifications& identifications,
                                            Size use_top_psms,
                                            bool use_unassigned_ids,
                                            const ExperimentalDesign& ed)
@@ -346,14 +348,14 @@ namespace OpenMS
     }
 
     ProgressLogger pl;
-    Size roughNrIds = cmap.size();
-    if (use_unassigned_ids) roughNrIds += cmap.getUnassignedPeptideIdentifications().size();
+    Size roughNrIds = identifications.features.size();
+    if (use_unassigned_ids) roughNrIds += identifications.unassigned.size();
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, roughNrIds, "Building graph with run information...");
     const std::string& protRun = proteins.getIdentifier();
-    for (auto& feat : cmap)
+    for (auto& [path, peptides] : identifications.features)
     {
-      for (auto& spectrum : feat.getPeptideIdentifications())
+      for (auto& spectrum : peptides)
       {
         if (spectrum.getIdentifier() == protRun)
         {
@@ -366,7 +368,7 @@ namespace OpenMS
 
     if (use_unassigned_ids)
     {
-      for (auto& id : cmap.getUnassignedPeptideIdentifications())
+      for (auto& id : identifications.unassigned)
       {
         if (id.getIdentifier() == protRun)
         {
@@ -456,7 +458,7 @@ namespace OpenMS
 
 
   void IDBoostGraph::buildGraph_(ProteinIdentification& proteins,
-                                 ConsensusMap& cmap,
+                                 MapPeptideIdentifications& identifications,
                                  Size use_top_psms,
                                  bool use_unassigned_ids,
                                  bool best_psms_annotated)
@@ -474,14 +476,14 @@ namespace OpenMS
     }
 
     ProgressLogger pl;
-    Size roughNrIds = cmap.size();
-    if (use_unassigned_ids) roughNrIds += cmap.getUnassignedPeptideIdentifications().size();
+    Size roughNrIds = identifications.features.size();
+    if (use_unassigned_ids) roughNrIds += identifications.unassigned.size();
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, roughNrIds, "Building graph...");
     const std::string& protRun = proteins.getIdentifier();
-    for (auto& feature : cmap)
+    for (auto& [path, peptides] : identifications.features)
     {
-      for (auto& id : feature.getPeptideIdentifications())
+      for (auto& id : peptides)
       {
         if (id.getIdentifier() == protRun)
         {
@@ -492,7 +494,7 @@ namespace OpenMS
     }
     if (use_unassigned_ids)
     {
-      for (auto& id : cmap.getUnassignedPeptideIdentifications())
+      for (auto& id : identifications.unassigned)
       {
         if (id.getIdentifier() == protRun)
         {

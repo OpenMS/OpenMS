@@ -28,7 +28,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
 #include <algorithm>
@@ -1179,9 +1178,6 @@ protected:
         f.getFeatOptions().setMZRange(DRange<1>(mz_l, mz_u));
         f.getFeatOptions().setIntensityRange(DRange<1>(it_l, it_u));
         f.loadFeatures(in, feature_map);
-        // From here on, the identifications are identification data (featureXML output exports them).
-        IdentificationDataConverter::moveToIdentificationData(feature_map);
-
 
         //-------------------------------------------------------------
         // calculations
@@ -1261,8 +1257,6 @@ protected:
         f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
         f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));
         f.loadConsensusFeatures(in, consensus_map);
-        // From here on, the identifications are identification data (consensusXML output exports them).
-        IdentificationDataConverter::moveToIdentificationData(consensus_map);
 
         //-------------------------------------------------------------
         // calculations

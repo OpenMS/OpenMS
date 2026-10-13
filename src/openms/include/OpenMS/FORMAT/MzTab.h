@@ -678,6 +678,19 @@ public:
           const bool export_empty_pep_ids = false,
           const bool export_all_psms = false,
           const std::string& title = "ConsensusMap export from OpenMS");
+        /// Same as above, with the identifications @p ids of @p consensus_map (see
+        /// IdentificationDataConverter::exportMapIdentifications()), e.g. with the quantified protein run first
+        CMMzTabStream(
+          const ConsensusMap& consensus_map,
+          MapPeptideIdentifications ids,
+          const std::string& filename,
+          const bool first_run_inference_only,
+          const bool export_unidentified_features,
+          const bool export_unassigned_ids,
+          const bool export_subfeatures,
+          const bool export_empty_pep_ids = false,
+          const bool export_all_psms = false,
+          const std::string& title = "ConsensusMap export from OpenMS");
 
          const MzTabMetaData& getMetaData() const;
 

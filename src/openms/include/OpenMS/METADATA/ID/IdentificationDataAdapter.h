@@ -89,8 +89,8 @@ public:
   /**
     @brief Export @p data and feature associations as peptide identifications, apart from a map (e.g. for a file format)
 
-    As applyToFeatureMap(): the associations are reconciled with @p policy, and each gets the peptide identification of
-    its query with the hits of its matches.
+    The associations are reconciled with @p policy (see reconcileAssociations()), and each gets the peptide
+    identification of its query with the hits of its matches.
   */
   static LegacyMapResult toLegacyMap(const IdentificationData& data, const std::vector<FeatureAssociation>& associations,
                                      const ExportOptions& options, MissingLinkPolicy policy);
@@ -102,22 +102,11 @@ public:
   */
   static FeatureImportResult importLegacyMap(const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides,
                                              std::vector<FeatureAssociation> locations);
-  /// Collect live associations while retaining map values outside the identification model.
+  /// The identification data of @p map and the links of its features (and subordinates) as associations
   static FeatureImportResult fromFeatureMap(const FeatureMap& map);
   static FeatureImportResult fromConsensusMap(const ConsensusMap& map);
   /// Prune deleted candidate links, or throw without changing any associations.
   static Size reconcileAssociations(const IdentificationData& data, std::vector<FeatureAssociation>& associations, MissingLinkPolicy policy);
-  /// Replace identification annotations only; retain measured features, channels and intensities.
-  static std::vector<std::string> applyToFeatureMap(const IdentificationData& data,
-                                                    const std::vector<FeatureAssociation>& associations,
-                                                    FeatureMap& map,
-                                                    const ExportOptions& options,
-                                                    MissingLinkPolicy policy);
-  static std::vector<std::string> applyToConsensusMap(const IdentificationData& data,
-                                                      const std::vector<FeatureAssociation>& associations,
-                                                      ConsensusMap& map,
-                                                      const ExportOptions& options,
-                                                      MissingLinkPolicy policy);
 
   /**
     @brief Run settings from a legacy protein run: search engine and version, date, search parameters and metadata
