@@ -398,19 +398,18 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
-      - FIX: -feat_dir checkpoints record -protein_quantification. Detection keeps the peptide
-        uniqueness annotation that strictly_unique_peptides filters on only in that mode, so a
-        strict combine accepted checkpoints detected in another mode and then dropped the peptide
-        hits lacking it (all of them, ending in "No protein is supported by a strictly unique
-        peptide"). Such a combine is now refused and names the setting; detecting and combining
-        runs have to use the same -protein_quantification (#10481).
-    FileInfo:
-      - FIX: a duplicate FASTA header or sequence was not reported when an entry in between had the
-        same std::hash value; each hash now keeps all of its entries.
-      - FIX: the consensusXML statistics (-s) for qualities were computed over twice the number of
-        consensus features, half of the values zero; they now cover each feature once.
-      - FIX: crashed on an idXML or mzIdentML with a peptide identification without hits; such
-        spectra are now skipped as unidentified.
+    QualityControl:
+      - FIX: The identifications of a feature are sorted best first according to their score
+        direction. Lower-is-better scores (q-value, PEP, E-value) put the worst identification
+        first, which the MaxQuant-compatible evidence.txt and msms.txt took as the feature's best
+        hit (wrong Type, MS/MS Count and best-hit columns), and -out_feat listed it first.
+        Identifications without hits are sorted last instead of being read past their end. The
+        identifications that ID conflict resolution removes from a consensus feature are now
+        listed best first among the unassigned ones (-out_cm, PSM section of -out).
+  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
+    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
+    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
+    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 Build System:
   - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX
