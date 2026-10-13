@@ -148,11 +148,13 @@ static Result transport(int n, unsigned seed)
           lp.getObjectiveValue(), (int)lp.getStatus()};
 }
 
-int main()
+int main(int argc, char** argv)
 {
   const int reps = 3;
+  const std::string filter = argc > 1 ? argv[1] : "";
   auto run = [&](const std::string& name, auto f)
   {
+    if (!filter.empty() && name.find(filter) == std::string::npos) return;
     std::vector<double> solve;
     Result last{};
     for (int r = 0; r < reps; ++r) { last = f(); solve.push_back(last.solve_s); }
@@ -160,7 +162,7 @@ int main()
     std::printf("%s,%s,%.4f,%.4f,%.6f,%d\n", backend(), name.c_str(), last.build_s, solve[reps / 2], last.obj, last.status);
     std::fflush(stdout);
   };
-  std::printf("backend,problem,build_s,solve_median_s,objective,status\n");
+  if (filter.empty()) std::printf("backend,problem,build_s,solve_median_s,objective,status\n");
   for (int n : {1000, 5000, 20000, 50000})
     run("edgesel_n" + std::to_string(n), [&] { return edgeSelection(n, 6, 42 + n); });
   for (auto [a, j] : std::vector<std::pair<int, int>>{{5, 30}, {10, 60}, {15, 100}})
