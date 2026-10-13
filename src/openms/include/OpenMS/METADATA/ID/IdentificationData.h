@@ -466,6 +466,14 @@ public:
     /// Remove identifications (with their matches), also ones without matches; returns the number removed.
     /// Evaluates all predicates before committing, like filterMatches().
     Size eraseIdentifications(const std::function<bool(const Identification&)>& remove);
+    /**
+      @brief Keep the matches with the best value of @p score per identification
+
+      Matches without a value of @p score are removed. Without @p keep_ties, one of equally good matches stays: the first
+      in value order (molecule encoding and representation, charge, adduct), so the choice does not depend on the order
+      of the matches and prefers neither targets nor decoys.
+      @return The number of removed matches
+    */
     Size retainBest(ScoreId score, bool keep_ties = true, bool keep_empty_queries = false);
     void transformMatches(const std::function<void(MatchData&)>& transform);
     /// The new IDs of the identifications and matches of a run appended to another (see append())

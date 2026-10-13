@@ -13,6 +13,7 @@
 #include <limits>
 #include <random>
 #include <set>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -173,6 +174,16 @@ namespace
     ~CallbackGuard()
     { active = false; }
   };
+  /// The value order of matches with equal scores: molecule (encoding and representation), charge and adduct. It picks
+  /// a representative of a tie that does not depend on the order of the matches and prefers neither targets nor decoys.
+  auto tieKey(const ID::MatchData& match)
+  {
+    const auto& adduct = match.details.value_or_default().adduct;
+    return std::make_tuple(match.encoding, match.representation, match.charge, adduct.has_value(),
+                           adduct ? adduct->getName() : std::string(),
+                           adduct ? adduct->getEmpiricalFormula().toString() : std::string(),
+                           adduct ? adduct->getCharge() : 0, adduct ? adduct->getMolMultiplier() : 0u);
+  }
 } // namespace
 
 /// The score values of a run: one column per score definition and one row per match (Match::slot_); NaN is a missing
@@ -907,13 +918,14 @@ Size ID::Run::retainBest(ScoreId score, bool keep_ties, bool keep_empty_queries)
         if (std::isnan(value)) continue;
         if (! best || (scores_[score.value].higher_better ? value > *best : value < *best)) best = value;
       }
-      bool taken = false;
+      // without ties, the first of the best matches in value order
+      const Match* representative = nullptr;
+      if (best && ! keep_ties)
+        for (const auto& match : query.matches_)
+          if (column[match.slot_] == *best && (! representative || tieKey(match) < tieKey(*representative)))
+            representative = &match;
       for (const auto& match : query.matches_)
-      {
-        bool keep = best && column[match.slot_] == *best && (keep_ties || ! taken);
-        retained.push_back(keep);
-        taken = taken || keep;
-      }
+        retained.push_back(best && column[match.slot_] == *best && (keep_ties || &match == representative));
     }
   Size at = 0;
   return filterMatches([&](const Match&) { return retained[at++]; }, keep_empty_queries);

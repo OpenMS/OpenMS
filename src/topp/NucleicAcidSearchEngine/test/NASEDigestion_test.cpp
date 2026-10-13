@@ -6,6 +6,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <fstream>
+#include <limits>
 
 class TestNASE : public NucleicAcidSearchEngine
 {
@@ -21,6 +22,10 @@ public:
   using NucleicAcidSearchEngine::resolveAmbiguousMods_;
   using NucleicAcidSearchEngine::HitsByScore;
   using NucleicAcidSearchEngine::AnnotatedHit;
+  using NucleicAcidSearchEngine::PrecursorInfo;
+  using NucleicAcidSearchEngine::retainTopHit_;
+  using NucleicAcidSearchEngine::sortHitsByValue_;
+  using NucleicAcidSearchEngine::generateLFQInput_;
   void enableAmbiguities() { resolve_ambiguous_mods_ = true; }
   bool ambiguitiesEnabled() const { return resolve_ambiguous_mods_; }
 };
@@ -91,15 +96,17 @@ START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypothes
 }
 END_SECTION
 
-START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA candidates))
+START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
 {
-  std::string mzml, fasta, output;
+  std::string mzml, fasta, output, digest;
   NEW_TMP_FILE(mzml)
   NEW_TMP_FILE(fasta)
   NEW_TMP_FILE(output)
+  NEW_TMP_FILE(digest)
   mzml += ".mzML";
   fasta += ".fasta";
   output += ".idXML";
+  digest += ".idparquet";
   NucleicAcidSpectrumGenerator generator;
   Param parameters = generator.getParameters();
   parameters.setValue("add_first_prefix_ion", "true");
@@ -130,8 +137,37 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
       "-threads", "1", "-oligo:min_size", "1", "-oligo:missed_cleavages", "0"};
   };
   fixture("ACGUAC", "ACGUAC", 2);
-  TEST_EQUAL(runSearch(arguments()), 0)
+  auto args = arguments();
+  args.insert(args.end(), {"-digest_out", digest});
+  TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
+
+  // Reuse the digest with different search tolerances while preserving its database.
+  args = {"-in", mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
+    "-precursor:mass_tolerance", "20", "-fragment:mass_tolerance", "25", "-threads", "1",
+    "-db_out", output + ".db.idparquet"};
+  TEST_EQUAL(runSearch(args), 0)
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  IdXMLFile().load(output, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  ABORT_IF(proteins.size() != 1)
+  TEST_REAL_SIMILAR(proteins[0].getSearchParameters().precursor_mass_tolerance, 20)
+  TEST_REAL_SIMILAR(proteins[0].getSearchParameters().fragment_mass_tolerance, 25)
+  TEST_TRUE(proteins[0].getSearchParameters().db == fasta)
+  // The search run records the tolerances of this search, and the database and digestion of the digest
+  // (it was made with -oligo:min_size 1; this search uses the default).
+  IdentificationData result;
+  FileHandler().loadIdentifications(output + ".db.idparquet", result, {FileTypes::IDPARQUET});
+  TEST_EQUAL(result.getRuns().size(), 1)
+  ABORT_IF(result.getRuns().size() != 1)
+  const auto& search_run = result.getRuns().front();
+  TEST_REAL_SIMILAR(search_run.getSettings().search.precursor_mass_tolerance, 20)
+  TEST_REAL_SIMILAR(search_run.getSettings().search.fragment_mass_tolerance, 25)
+  TEST_EQUAL(static_cast<Int>(search_run.getSettings().search.getMetaValue("rna_min_length")), 1)
+  TEST_EQUAL(search_run.getDatabases().size(), 1)
+  ABORT_IF(search_run.getDatabases().empty())
+  TEST_EQUAL(search_run.getDatabases()[0].path, fasta)
 
   for (const std::string credit : {"true", "false"})
   {
@@ -150,7 +186,7 @@ START_SECTION(([EXTRA] fixed and variable modifications produce searchable RNA c
   TEST_EQUAL(hitCount(output), 1)
 
   fixture("ACGUAC", "AC[m2,2G]UAC", 2);
-  auto args = arguments("RNase_T1");
+  args = arguments("RNase_T1");
   args.insert(args.end(), {"-modifications:fixed", "m22G"});
   TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
@@ -281,6 +317,211 @@ START_SECTION(([EXTRA] imported digests use only their recorded enzyme for modif
   fixture("ACGUAC", "AC[m2,2G]UAC", RNaseDB::getInstance()->getEnzyme("no cleavage"));
   TEST_EQUAL(runSearch(arguments("RNase_T1", "1")), 0)
   TEST_TRUE(hit_labels() == StringList{"AC[m2,2G]UAC"})
+}
+END_SECTION
+
+START_SECTION(([EXTRA] complete cutoff ties are retained for every arrival order))
+{
+  TestNASE tool;
+  RNaseDigestion::DigestedOligo digested;
+  digested.sequence = NASequence::fromString("ACGU");
+  const auto* oligo = &digested;
+  TestNASE::PrecursorInfo precursor{0, -2, 0, nullopt};
+  std::vector<std::string> sequences{"AAA", "AAC", "AAG", "AAU"};
+  std::vector<double> scores{12.0, 10.0, 10.0, 9.0};
+  std::vector<Size> order{0, 1, 2, 3};
+  do
+  {
+    TestNASE::HitsByScore hits;
+    for (Size index : order)
+    {
+      TestNASE::AnnotatedHit hit;
+      hit.oligo_ref = oligo;
+      hit.sequence = NASequence::fromString(sequences[index]);
+      hit.precursor_error_ppm = 0;
+      hit.precursor_ref = &precursor;
+      tool.retainTopHit_(hits, scores[index], hit, 2);
+    }
+    tool.sortHitsByValue_(hits);
+    TEST_EQUAL(hits.size(), 3)
+    std::vector<std::string> retained;
+    for (const auto& hit : hits)
+    {
+      retained.push_back(hit.second.sequence.toString());
+    }
+    TEST_TRUE(retained == std::vector<std::string>({"AAA", "AAC", "AAG"}))
+  }
+  while (std::next_permutation(order.begin(), order.end()));
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ambiguity variants merge within each precursor across tied-hit permutations))
+{
+  TestNASE tool;
+  tool.enableAmbiguities();
+  TEST_EQUAL(tool.getModifications_({"mA?"}).size(), 2)
+  RNaseDigestion::DigestedOligo digested;
+  digested.sequence = NASequence::fromString("AUCAGp");
+  const auto* oligo = &digested;
+  const AdductInfo sodium("Na+", EmpiricalFormula("Na"), 1);
+  TestNASE::PrecursorInfo first{0, -2, 0, nullopt};
+  TestNASE::PrecursorInfo second{0, -3, 1, sodium};
+  const std::vector<std::string> sequences{"AUC[Am]Gp", "AUC[Am]Gp", "AUC[mA]Gp", "AUC[mA]Gp", "AUC[m6A]Gp"};
+  const std::vector<const TestNASE::PrecursorInfo*> precursors{&first, &second, &first, &second, &first};
+  std::vector<Size> order{0, 1, 2, 3, 4};
+  do
+  {
+    TestNASE::HitsByScore hits;
+    for (const Size index : order)
+    {
+      TestNASE::AnnotatedHit hit;
+      hit.oligo_ref = oligo;
+      hit.sequence = NASequence::fromString(sequences[index]);
+      hit.precursor_ref = precursors[index];
+      hit.precursor_error_ppm = index;
+      tool.retainTopHit_(hits, 10.0, hit, 1);
+    }
+    // Before the fix, value sorting interleaves the two precursor groups and
+    // places the unrelated m6A hit between the variants of the first precursor.
+    tool.sortHitsByValue_(hits);
+    tool.resolveAmbiguousMods_(hits);
+    tool.sortHitsByValue_(hits);
+    TEST_EQUAL(hits.size(), 3)
+    std::vector<std::string> retained;
+    Size ambiguous_count = 0;
+    for (const auto& hit : hits)
+    {
+      retained.push_back(hit.second.sequence.toString());
+      TEST_EQUAL(hit.first, 10.0)
+      TEST_TRUE(hit.second.oligo_ref == oligo)
+      if (hit.second.sequence.toString() == "AUC[mA?]Gp")
+      {
+        ++ambiguous_count;
+        TEST_TRUE(hit.second.precursor_ref == &first || hit.second.precursor_ref == &second)
+        // Preserve the deterministically first specific variant's metadata.
+        TEST_REAL_SIMILAR(hit.second.precursor_error_ppm, hit.second.precursor_ref == &first ? 0.0 : 1.0)
+      }
+      else
+      {
+        TEST_TRUE(hit.second.precursor_ref == &first)
+        TEST_REAL_SIMILAR(hit.second.precursor_error_ppm, 4.0)
+      }
+    }
+    TEST_EQUAL(ambiguous_count, 2)
+    TEST_TRUE(retained == std::vector<std::string>({"AUC[m6A]Gp", "AUC[mA?]Gp", "AUC[mA?]Gp"}))
+  }
+  while (std::next_permutation(order.begin(), order.end()));
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ambiguity resolution preserves score source terminal and precursor identities))
+{
+  TestNASE tool;
+  tool.enableAmbiguities();
+  tool.getModifications_({"mA?"});
+  RNaseDigestion::DigestedOligo digested, other_digested;
+  digested.sequence = NASequence::fromString("AUCAGp");
+  other_digested.sequence = NASequence::fromString("AAUAGp");
+  const auto* oligo = &digested;
+  const auto* other_oligo = &other_digested;
+  const AdductInfo sodium("Na+", EmpiricalFormula("Na"), 1);
+  TestNASE::PrecursorInfo precursor{0, -2, 0, nullopt};
+  TestNASE::PrecursorInfo equal_values{0, -2, 0, nullopt};
+  TestNASE::PrecursorInfo other_charge{0, -3, 0, nullopt};
+  TestNASE::PrecursorInfo other_isotope{0, -2, 1, nullopt};
+  TestNASE::PrecursorInfo other_adduct{0, -2, 0, sodium};
+  TestNASE::AnnotatedHit first, second;
+  first.oligo_ref = second.oligo_ref = oligo;
+  first.precursor_ref = second.precursor_ref = &precursor;
+  first.sequence = NASequence::fromString("AUC[Am]Gp");
+  second.sequence = NASequence::fromString("AUC[mA]Gp");
+  const auto check_distinct = [&](const TestNASE::AnnotatedHit& other, double other_score = 10.0)
+  {
+    TestNASE::HitsByScore hits;
+    hits.emplace(10.0, first);
+    hits.emplace(other_score, other);
+    tool.sortHitsByValue_(hits);
+    tool.resolveAmbiguousMods_(hits);
+    TEST_EQUAL(hits.size(), 2)
+    for (const auto& hit : hits)
+    {
+      TEST_TRUE(hit.second.sequence == first.sequence || hit.second.sequence == other.sequence)
+    }
+  };
+  check_distinct(second, 9.0);
+  auto different = second;
+  different.oligo_ref = other_oligo;
+  check_distinct(different);
+  different = second;
+  different.sequence = NASequence::fromString("pAUC[mA]Gp");
+  check_distinct(different);
+  different.sequence = NASequence::fromString("AUC[mA]G");
+  check_distinct(different);
+  different.sequence = NASequence::fromString("AUCC[mA]Gp");
+  check_distinct(different);
+  for (const auto* other_precursor : {&equal_values, &other_charge, &other_isotope, &other_adduct})
+  {
+    different = second;
+    different.precursor_ref = other_precursor;
+    check_distinct(different);
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] LFQ uses finite weights or the median of finite observations))
+{
+  TestNASE tool;
+  IdentificationData data;
+  auto& run = data.addRun("lfq", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+  IdentificationData::ScoreDefinition score;
+  score.name = "hyperscore";
+  run.setPrimaryScore(run.addScore(score));
+  IdentificationData::SourceFile input;
+  input.path = "lfq.mzML";
+  const auto source = run.addSource(input);
+  Size index = 0;
+  const auto add = [&](const std::string& sequence, double rt, double weight, Int charge = -2)
+  {
+    IdentificationData::Observation observation;
+    observation.data_id = "scan=" + std::to_string(++index);
+    // observation coordinates are finite: a retention time that is not known is missing
+    if (std::isfinite(rt)) observation.rt = rt;
+    observation.setMetaValue("precursor_intensity", weight);
+    const auto query = run.addIdentification(source, observation);
+    IdentificationData::MatchData match;
+    match.encoding = IdentificationData::Encoding::NA_SEQUENCE;
+    match.representation = sequence;
+    match.charge = charge;
+    run.addMatch(query, match, {1.0});
+  };
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  add("ACGU", 10, 0);
+  add("ACGU", 20, -1);
+  add("ACGU", 30, nan);
+  add("ACGU", nan, 100);
+  add("ACGU", nan, 100, -3);
+  add("AGGU", 10, 1);
+  add("AGGU", 30, 3);
+  add("AGGU", 100, nan);
+  add("AGGU", nan, 100);
+  add("AUUU", nan, 1);
+  std::string path;
+  NEW_TMP_FILE(path)
+  tool.generateLFQInput_(data, path);
+  TextFile file(path);
+  const std::vector<std::string> table(file.begin(), file.end());
+  TEST_EQUAL(table.size(), 3)
+  std::map<std::string, double> rts;
+  for (Size row = 1; row < table.size(); ++row)
+  {
+    std::vector<std::string> fields;
+    StringUtils::split(table[row], '\t', fields);
+    rts[fields[0]] = StringUtils::toDouble(fields[4]);
+    TEST_EQUAL(fields[3], "-2")
+  }
+  TEST_REAL_SIMILAR(rts.at("ACGU"), 20)
+  TEST_REAL_SIMILAR(rts.at("AGGU"), 25)
+  TEST_EQUAL(rts.count("AUUU"), 0)
 }
 END_SECTION
 

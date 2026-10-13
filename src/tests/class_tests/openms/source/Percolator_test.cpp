@@ -675,6 +675,43 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
 }
 END_SECTION
 
+START_SECTION([EXTRA] nonparametric PEP with fewer than 4 distinct scores)
+{
+  // A feature that does not separate targets from decoys and takes only two
+  // values yields fewer than 4 PEP bins, which are padded to 4 for the PEP
+  // spline. They used to be padded with tied scores, so the spline asserted
+  // (BaseSpline::initiateQR: dx > 0) in Debug builds and divided by zero in
+  // Release builds. Seen with ProSE -rescore, which uses these settings.
+  RescoreInput input;
+  input.feature_names = StringList{"f0"};
+  for (size_t i = 0; i < 200; ++i)
+  {
+    input.features.push_back({static_cast<double>(i % 2)});
+    input.is_decoy.push_back(i >= 100);
+  }
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  par.setValue("train_best_positive", "true");
+  par.setValue("post_processing_tdc", "true");
+  par.setValue("subset_max_train", 0);
+  par.setValue("pep_method", "nonparametric");
+  p.setParameters(par);
+
+  RescoreOutput out = p.rescore(input);
+  TEST_EQUAL(out.peps.size(), input.features.size())
+  std::set<double> distinct_scores(out.scores.begin(), out.scores.end());
+  TEST_TRUE(distinct_scores.size() < 4)
+  bool peps_valid = true;
+  for (double pep : out.peps)
+  {
+    peps_valid = peps_valid && std::isfinite(pep) && pep >= 0.0 && pep <= 1.0;
+  }
+  TEST_TRUE(peps_valid)
+}
+END_SECTION
+
 START_SECTION([EXTRA] malformed input throws InvalidValue)
 {
   // Empty input
