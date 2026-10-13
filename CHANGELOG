@@ -29,6 +29,8 @@ OpenMS Library:
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - FIX: MetaboliteSpectralMatching HyperScore rejects negative and non-finite fragment tolerances before scoring, including empty spectra; zero-tolerance exact matching remains supported.
+  - FIX: OMS schema 6 preserves IdentificationData processing actions and distinct same-second search provenance; schemas 1-5 remain readable.
+  - FIX: IdentificationData chooses a reproducible representative for exact best-score ties without target/decoy preference.
   - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) throws InvalidParameter for isotopic_pattern:charge_low above
     charge_high (the charge count wrapped; crash) and aborts seeds without an isotope pattern for feature:min_isotope_fit 0 (crash).
   - FIX: ParamValue and DataValue conversions to double, float and long double throw a ConversionError
@@ -343,6 +345,8 @@ Dependencies:
 
 TOPP tools:
   Changes:
+    NucleicAcidSearchEngine:
+      - Resolve interleaved ambiguity variants within their original precursor/source hypotheses, record current cached-digest search parameters, and produce finite LFQ retention times. Exact cutoff tie retention is unchanged; exported ties now follow the shared library value order.
     All tools:
       - FIX: -debug activates console debug logging in the main thread even when its
         thread-local logger was initialized before parameter parsing. Debug levels from INI
