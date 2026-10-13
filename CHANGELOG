@@ -34,6 +34,8 @@ OpenMS Library:
   - FIX: IdentificationData chooses a reproducible representative for exact best-score ties without target/decoy preference.
   - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) throws InvalidParameter for isotopic_pattern:charge_low above
     charge_high (the charge count wrapped; crash) and aborts seeds without an isotope pattern for feature:min_isotope_fit 0 (crash).
+  - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) counted aborted seeds in a map shared by
+    the OpenMP threads of the seed extension without a lock, which could corrupt the map (intermittent crash).
   - FIX: ParamValue and DataValue conversions to double, float and long double throw a ConversionError
     for string and list values instead of returning garbage.
   - FIX: MRMIonSeries::annotateTransitionCV gave every formula neutral loss (e.g. y7-H2O1) the mass
