@@ -327,7 +327,7 @@ START_SECTION(CCS filtering keeps matches when CCS is missing)
 }
 END_SECTION
 
-START_SECTION((static double computeHyperScore(double, bool, const MSSpectrum&, const MSSpectrum&, double)))
+START_SECTION((static double computeHyperScore(double, bool, const MSSpectrum&, const MSSpectrum&, double, bool)))
 {
   MSSpectrum exp_spec;
   exp_spec.push_back(Peak1D(100.0, 100.0));
@@ -388,5 +388,175 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION((static double computeMVHScore(double, bool, const MSSpectrum&, const MSSpectrum&, Size, double, double, bool, bool)))
+{
+  // Intensity classes must follow intensity, not the spectrum's m/z order.
+  MSSpectrum exp_spec;
+  for (Size i = 0; i < 7; ++i)
+  {
+    exp_spec.push_back(Peak1D(100.0 + i, i == 5 ? 1000.0 : 10.0 + i));
+  }
+  MSSpectrum strong_match;
+  strong_match.push_back(Peak1D(105.0, 1.0));
+  MSSpectrum weak_match;
+  weak_match.push_back(Peak1D(100.0, 1.0));
+  const double strong_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, strong_match, 3, 1.0, 0.0, false);
+  const double weak_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, weak_match, 3, 1.0, 0.0, false);
+  TEST_TRUE(strong_score > weak_score)
+
+  // All retained peaks must be divided in the 1:2:4 ratio. With 70 peaks,
+  // ranks 5 and 15 belong to different classes (10/20/40), not one remainder.
+  MSSpectrum dense_spec;
+  for (Size i = 0; i < 70; ++i)
+  {
+    dense_spec.push_back(Peak1D(100.0 + i, 70.0 - i));
+  }
+  MSSpectrum top_class_match;
+  top_class_match.push_back(Peak1D(104.0, 1.0));
+  MSSpectrum second_class_match;
+  second_class_match.push_back(Peak1D(114.0, 1.0));
+  const double top_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, dense_spec, top_class_match, 3, 1.0, 0.0, false);
+  const double second_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, dense_spec, second_class_match, 3, 1.0, 0.0, false);
+  TEST_TRUE(top_score > second_score)
+
+  // Two ions matching the same peak must receive the same credit as one
+  // matched ion and one unmatched ion, with the theoretical count held fixed.
+  // The strongest class contains only one peak, so double credit previously
+  // made its binomial coefficient invalid and returned a zero score.
+  MSSpectrum shared_peak;
+  shared_peak.push_back(Peak1D(104.98, 1.0));
+  shared_peak.push_back(Peak1D(105.005, 1.0));
+  MSSpectrum single_match;
+  single_match.push_back(Peak1D(105.005, 1.0));
+  single_match.push_back(Peak1D(105.5, 1.0));
+  for (bool ppm : {false, true})
+  {
+    const double tolerance = ppm ? 1000.0 : 0.1;
+    for (bool accuracy : {false, true})
+    {
+      const double shared_score = MetaboliteSpectralMatching::computeMVHScore(
+        tolerance, ppm, exp_spec, shared_peak, 3, 1.0, 0.0, accuracy);
+      const double single_score = MetaboliteSpectralMatching::computeMVHScore(
+        tolerance, ppm, exp_spec, single_match, 3, 1.0, 0.0, accuracy);
+      TEST_TRUE(shared_score > 0.0)
+      TEST_REAL_SIMILAR(shared_score, single_score)
+    }
+  }
+
+  // Even when duplicate credits fit within a class, they must not inflate
+  // either the hypergeometric term or the mass-accuracy bonus.
+  const double shared_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, shared_peak, 1, 1.0, 0.0, true);
+  const double single_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, single_match, 1, 1.0, 0.0, true);
+  TEST_REAL_SIMILAR(shared_score, single_score)
+
+  // The disabled mode reproduces the historical per-ion score, including
+  // its zero result when duplicate credits exceed an intensity class size.
+  const double legacy_invalid = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, shared_peak, 3, 1.0, 0.0, true, false);
+  TEST_REAL_SIMILAR(legacy_invalid, 0.0)
+  const double legacy_shared = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, shared_peak, 1, 1.0, 0.0, true, false);
+  const Size locations = static_cast<Size>(((106.0 + 0.1) - (100.0 - 0.1)) / 0.1);
+  const double accuracy = (exp(-2.0 * pow((105.0 - 104.98) / 0.1, 2)) +
+                           exp(-2.0 * pow((105.0 - 105.005) / 0.1, 2))) / 2.0;
+  const double legacy_expected = log(double(locations * (locations - 1)) / 42.0) + accuracy * log(3.0);
+  TEST_REAL_SIMILAR(legacy_shared, legacy_expected)
+  TEST_TRUE(legacy_shared > shared_score)
+  const double explicit_single = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, shared_peak, 1, 1.0, 0.0, true, true);
+  TEST_REAL_SIMILAR(explicit_single, shared_score)
+
+  // A matched peak excluded by the TIC cutoff supplies no accuracy credit.
+  MSSpectrum outside_tic;
+  outside_tic.push_back(Peak1D(100.0, 1.0));
+  outside_tic.push_back(Peak1D(105.0, 1.0));
+  MSSpectrum unmatched_low_peak;
+  unmatched_low_peak.push_back(Peak1D(100.5, 1.0));
+  unmatched_low_peak.push_back(Peak1D(105.0, 1.0));
+  const double outside_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, outside_tic, 1, 0.5, 0.0, true);
+  const double unmatched_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, unmatched_low_peak, 1, 0.5, 0.0, true);
+  TEST_REAL_SIMILAR(outside_score, unmatched_score)
+}
+END_SECTION
+
+START_SECTION((static double computeMVHScore(double, bool, const MSSpectrum&, const MSSpectrum&, std::vector<PeptideHit::PeakAnnotation>&, Size, double, double, bool, bool)))
+{
+  MSSpectrum exp_spec;
+  for (Size i = 0; i < 7; ++i)
+  {
+    exp_spec.push_back(Peak1D(100.0 + i, i == 5 ? 1000.0 : 10.0 + i));
+  }
+  MSSpectrum db_spec;
+  db_spec.push_back(Peak1D(104.98, 1.0));
+  db_spec.push_back(Peak1D(105.005, 1.0));
+  MSSpectrum::StringDataArray names;
+  names.setName("IonNames");
+  names.push_back("c1");
+  names.push_back("c2");
+  db_spec.getStringDataArrays().push_back(names);
+  MSSpectrum::IntegerDataArray charges;
+  charges.setName("Charges");
+  charges.push_back(-1);
+  charges.push_back(-2);
+  db_spec.getIntegerDataArrays().push_back(charges);
+
+  vector<PeptideHit::PeakAnnotation> annotations;
+  const double annotated_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, db_spec, annotations, 3, 1.0, 0.0, true);
+  const double plain_score = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, db_spec, 3, 1.0, 0.0, true);
+  TEST_TRUE(annotated_score > 0.0)
+  TEST_REAL_SIMILAR(annotated_score, plain_score)
+  TEST_EQUAL(annotations.size(), 2)
+  if (annotations.size() == 2)
+  {
+    TEST_STRING_EQUAL(annotations[0].annotation, "c1")
+    TEST_EQUAL(annotations[0].charge, -1)
+    TEST_REAL_SIMILAR(annotations[0].mz, 105.0)
+    TEST_STRING_EQUAL(annotations[1].annotation, "c2")
+    TEST_EQUAL(annotations[1].charge, -2)
+    TEST_REAL_SIMILAR(annotations[1].mz, 105.0)
+  }
+  vector<PeptideHit::PeakAnnotation> legacy_annotations;
+  const double legacy_annotated = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, db_spec, legacy_annotations, 1, 1.0, 0.0, true, false);
+  const double legacy_plain = MetaboliteSpectralMatching::computeMVHScore(
+    0.1, false, exp_spec, db_spec, 1, 1.0, 0.0, true, false);
+  TEST_REAL_SIMILAR(legacy_annotated, legacy_plain)
+  TEST_TRUE(legacy_annotations == annotations)
+
+  // Theoretical ions in the mass range, but with no fragment matches, must
+  // not produce a positive identification score or matching annotations.
+  MSSpectrum no_match = db_spec;
+  no_match[0].setMZ(100.5);
+  no_match[1].setMZ(101.5);
+  for (bool ppm : {false, true})
+  {
+    const double tolerance = ppm ? 100.0 : 0.1;
+    for (bool accuracy : {false, true})
+    {
+      for (bool single_credit : {false, true})
+      {
+        vector<PeptideHit::PeakAnnotation> no_annotations;
+        const double no_match_score = MetaboliteSpectralMatching::computeMVHScore(
+          tolerance, ppm, exp_spec, no_match, no_annotations, 3, 1.0, 0.0, accuracy, single_credit);
+        TEST_EQUAL(no_match_score, 0.0)
+        TEST_TRUE(no_annotations.empty())
+        TEST_EQUAL(MetaboliteSpectralMatching::computeMVHScore(
+          tolerance, ppm, exp_spec, no_match, 3, 1.0, 0.0, accuracy, single_credit), 0.0)
+      }
+    }
+  }
+}
+END_SECTION
 
 END_TEST
