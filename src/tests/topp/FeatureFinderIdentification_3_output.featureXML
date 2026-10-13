@@ -5113,7 +5113,7 @@
 					<UserParam type="float" name="width_at_50" value="95.328369140619998"/>
 					<UserParam type="float" name="logSN" value="4.177656353047988"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.411464840173721"/>
+					<UserParam type="float" name="isotope_probability" value="0.396936237812042"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.325378417969" RT="1736.66821289062" >

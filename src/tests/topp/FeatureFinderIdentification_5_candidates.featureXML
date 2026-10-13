@@ -6117,7 +6117,7 @@
 					<UserParam type="float" name="width_at_50" value="95.328369140619998"/>
 					<UserParam type="float" name="logSN" value="4.177656353047988"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.411464840173721"/>
+					<UserParam type="float" name="isotope_probability" value="0.396936237812042"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.325378417969" RT="1736.66821289062" >
@@ -6266,7 +6266,7 @@
 					<UserParam type="float" name="width_at_50" value="1.677368164059999"/>
 					<UserParam type="float" name="logSN" value="0.0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.411464840173721"/>
+					<UserParam type="float" name="isotope_probability" value="0.396936237812042"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="4.246965867919922e05"/>
@@ -6380,7 +6380,7 @@
 					<UserParam type="float" name="width_at_50" value="1.967651367190001"/>
 					<UserParam type="float" name="logSN" value="0.0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.411464840173721"/>
+					<UserParam type="float" name="isotope_probability" value="0.396936237812042"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="4.246965867919922e05"/>
@@ -6500,7 +6500,7 @@
 					<UserParam type="float" name="width_at_50" value="2.758911132809999"/>
 					<UserParam type="float" name="logSN" value="0.0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.411464840173721"/>
+					<UserParam type="float" name="isotope_probability" value="0.396936237812042"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="4.246965867919922e05"/>
@@ -6614,7 +6614,7 @@
 					<UserParam type="float" name="width_at_50" value="2.677612304679997"/>
 					<UserParam type="float" name="logSN" value="0.0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.411464840173721"/>
+					<UserParam type="float" name="isotope_probability" value="0.396936237812042"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="4.246965867919922e05"/>

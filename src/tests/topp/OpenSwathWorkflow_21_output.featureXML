@@ -1191,7 +1191,7 @@
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="0.0"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_combined" value="0.0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.0"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.630052464681174"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.64431339388932"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0.0"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.421979514423138"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
