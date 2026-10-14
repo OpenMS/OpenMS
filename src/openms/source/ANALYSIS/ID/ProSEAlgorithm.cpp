@@ -1573,9 +1573,9 @@ namespace OpenMS
       peptide_ids.resize(used_slots);
     }
 
-    // The work per spectrum varies with its number of hits: hand out small blocks
-#pragma omp parallel for schedule(dynamic, 16)
-    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    // The body of the parallel loop below. A lambda, so that the parallel region captures one
+    // variable instead of 53: LLVM's OpenMP runtime passes at most 32 to a region on WebAssembly.
+    const auto annotate_scan = [&](SignedSize scan_index)
     {
       if (!annotated_hits[scan_index].empty())
       {
@@ -1904,6 +1904,13 @@ namespace OpenMS
           }
         }
       }
+    };
+
+    // The work per spectrum varies with its number of hits: hand out small blocks
+#pragma omp parallel for schedule(dynamic, 16)
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      annotate_scan(scan_index);
     }
 
 #ifdef _OPENMP
