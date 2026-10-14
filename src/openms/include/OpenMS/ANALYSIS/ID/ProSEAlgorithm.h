@@ -136,6 +136,19 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     };
 
     /**
+     * @brief Outcome of the Percolator rescoring of one search run (see rescoreWithPercolator() and the parameter 'rescore').
+     *
+     * With 'rescore' off nothing is attempted: @c applied is false and @c skipped_reason empty.
+     */
+    struct PercolatorRescoring
+    {
+      /// True if the PSMs were rescored
+      bool applied = false;
+      /// Why the PSMs were not rescored, as a sentence to show to the user (empty if @c applied or not attempted)
+      std::string skipped_reason;
+    };
+
+    /**
      * @brief Comprehensive search result including modification analysis
      *
      * This structure contains all outputs from an open search including:
@@ -152,6 +165,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       OpenSearchModificationAnalysis::OpenSearchAnalysisResult modification_analysis;
       bool is_open_search = false;
       RunStatistics stats;
+      /// Outcome of the Percolator rescoring of this run (parameter 'rescore')
+      PercolatorRescoring percolator;
     };
 
     /**
@@ -180,6 +195,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *    @c aggregate.modification_analysis is populated as usual and only
      *    @c aggregate.protein_ids / @c aggregate.peptide_ids are released
      *    afterwards. In closed search nothing is pooled at all.
+     *  - When Percolator (parameter 'rescore') rescored only some of the files,
+     *    their runs report different search engines (Percolator / ProSE) and
+     *    are not merged: nothing is pooled (a warning is logged), so
+     *    @p aggregate is left almost-empty as above, also in open search.
      *
      * The aggregate's @c protein_ids template is taken from the first
      * successful per-file result (search parameters are identical across files
@@ -315,17 +334,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     void annotatePsmQValues(PeptideIdentificationList& peptide_ids) const;
 
-    /// Outcome of rescoreWithPercolator()
-    struct PercolatorRescoring
-    {
-      /// True if the PSMs were rescored
-      bool applied = false;
-      /// Why the PSMs were not rescored, as a sentence to show to the user (empty if @c applied)
-      std::string skipped_reason;
-    };
-
     /**
-     * @brief Rescore the PSMs of one search run in-process with Percolator, as the ProSE TOPP tool does with -rescore.
+     * @brief Rescore the PSMs of one search run in-process with Percolator, as the parameter 'rescore' does in every search.
      *
      * Trains Percolator (Percolator::rescorePSMs) on the standard PIN feature set
      * (PercolatorInfile::getStandardFeatureSet) plus the search engine features of the run (the
@@ -337,10 +347,11 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * engine "Percolator", version "3.08-vendored", meta value 'percolator' and the
      * "Percolator:*" search parameter meta values PercolatorAdapter writes).
      *
-     * Shared by the ProSE TOPP tool and other callers (e.g. the WebAssembly bindings), so the
-     * Percolator settings live in one place. A search to be rescored should defer its FDR
-     * filtering (FDR:PSM and FDR:protein 0), so that Percolator gets all target and decoy PSMs;
-     * applyDeferredPsmFDR() and applyCompleteSetProteinFDR() apply the FDR afterwards.
+     * The searches of this class call it for every run when the parameter 'rescore' is on (the
+     * default), in place of their PSM-level FDR, which then follows on the rescored PSMs
+     * (applyDeferredPsmFDR()). Call it directly only to rescore PSMs of a search with 'rescore'
+     * off, whose FDR filtering must then be off too (FDR:PSM and FDR:protein 0), so that
+     * Percolator gets all target and decoy PSMs.
      *
      * The PSMs are not rescored, and stay unchanged, with fewer than 100 PSMs, without decoy PSMs
      * or if Percolator fails; @c skipped_reason of the result then says why. Nothing is logged
@@ -370,7 +381,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * decoy PSMs are filtered alike, decoys are not removed (that is the protein FDR's
      * finalization, see applyCompleteSetProteinFDR()).
      *
-     * Shared by the ProSE TOPP tool (-rescore) and other callers, as rescoreWithPercolator().
+     * The searches of this class apply it after rescoreWithPercolator() when the parameter
+     * 'rescore' is on.
      *
      * @param[in] protein_ids The runs of the search; the first one tells whether there are decoys.
      * @param[in,out] peptide_ids PSMs of the run, rescored by rescoreWithPercolator() or with their
@@ -1099,6 +1111,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     DecoyMode_ decoy_mode_{DecoyMode_::AUTO};
     std::string decoy_prefix_;
 
+    bool rescore_{true}; ///< rescore: Percolator rescoring of every run before its PSM-level FDR
     double fdr_psm_{0.0};
     bool fdr_psm_by_scored_charges_{true}; ///< FDR:PSM_groups: separate competitions per number of scored fragment charges
     double fdr_protein_{0.0};
@@ -1173,6 +1186,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// start of each search() call. `mutable` for the same reason as above:
     /// pure diagnostic state, orthogonal to logical const-ness.
     mutable RunStatistics last_run_stats_;
+
+    /// Percolator rescoring outcome of the most recent search(spectra, ctx, ...) call, bridged to
+    /// SearchResult::percolator as last_run_stats_ is to SearchResult::stats.
+    mutable PercolatorRescoring last_percolator_;
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback
@@ -1305,6 +1322,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// is the q-value, so this is the achieved FDR of the filtered set
     /// (-1.0 if empty).
     static double maxRetainedScore_(const PeptideIdentificationList& peptide_ids);
+
+    /// Helper: the PSM-level FDR of one search run, the last step of every search path. With
+    /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()) and then
+    /// applies FDR:PSM with applyDeferredPsmFDR(); otherwise applies FDR:PSM to the search engine
+    /// scores (if @p has_decoys). Fills the FDR fields of @p stats.
+    /// @return The outcome of the rescoring (not applied, no reason with 'rescore' off).
+    PercolatorRescoring applyPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
+                                     PeptideIdentificationList& peptide_ids,
+                                     bool has_decoys,
+                                     RunStatistics& stats) const;
 
     /// Helper: fill a RunStatistics with identification counts, distributions and
     /// per-run tolerance estimation for one searched file (post-FDR). Silent;

@@ -137,7 +137,7 @@ namespace OpenMS
       @brief Rescore search engine PSMs in place on the standard Percolator (.pin) feature set.
 
       This is the in-process equivalent of writing a .pin file, running the percolator executable
-      and reading its results back. PercolatorAdapter's in-process backend and ProSE ('-rescore')
+      and reading its results back. PercolatorAdapter's in-process backend and ProSE ('Search:rescore')
       use it. Steps:
       1. stamp the PIN feature meta values on every hit (PercolatorInfile::stampPinFeaturesOnHits)
       2. build a RescoreInput from the numeric columns of @p feature_set. Bookkeeping columns

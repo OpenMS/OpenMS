@@ -714,6 +714,7 @@ static void configure_ion_prior_params_(ProSEAlgorithm& algo, Size min_psms, dou
   p.setValue("annotate:ion_prior_min_psms", static_cast<Int>(min_psms));
   p.setValue("annotate:ion_prior_train_fdr", train_fdr);
   p.setValue("annotate:ion_prior_features", ion_prior_features_);
+  p.setValue("rescore", "false"); // the native scores of every hit (Percolator keeps the best hit and replaces them)
   algo.setParameters(p);
 }
 
@@ -1552,6 +1553,7 @@ START_SECTION(([EXTRA] FDR-filtered modification discovery))
   p.setValue("peptide:max_size", 40);
   p.setValue("peptide:missed_cleavages", 1);
   p.setValue("report:top_hits", 1);
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   vector<ProteinIdentification> prot_ids;
@@ -2318,6 +2320,7 @@ START_SECTION((ExitCodes search(const std::string &, const std::string &, std::v
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.05);
   p.setValue("FDR:protein", 0.5);   // lenient: keep proteins but exercise the picked-FDR path
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   std::vector<ProteinIdentification> prot_ids;
@@ -2382,6 +2385,7 @@ START_SECTION(([EXTRA] file-based single-file search retains decoys when protein
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient, so decoys survive the q-value cut) ...
   p.setValue("FDR:protein", 0.0);   // ... but protein FDR OFF -> decoys must be retained
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   std::vector<ProteinIdentification> prot_ids;
@@ -2443,6 +2447,7 @@ START_SECTION(([EXTRA] in-memory search applies PSM-level FDR only, never protei
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.0);       // no PSM filtering, so decoys are retained...
   p.setValue("FDR:protein", 0.5);   // ...and this overload must NOT remove them via protein FDR
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   std::vector<ProteinIdentification> prot_ids;
@@ -2483,6 +2488,7 @@ START_SECTION(([EXTRA] in-memory search retains decoys after PSM-level FDR filte
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.5);       // PSM filtering ON (lenient) ...
   p.setValue("FDR:protein", 0.0);   // ... protein FDR OFF -> decoys retained
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   std::vector<ProteinIdentification> prot_ids;
@@ -2707,6 +2713,7 @@ START_SECTION((MultiFileSearchResult searchWithModificationAnalysis(const std::v
   p.setValue("decoys", "generate");
   p.setValue("FDR:PSM", 0.0);
   p.setValue("FDR:protein", 0.0);
+  p.setValue("rescore", "false"); // ProSE's own scores and FDR (the rescoring has its own section)
   algo.setParameters(p);
 
   // the run identifier holds the time of the search
@@ -4880,9 +4887,11 @@ START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<Prot
   TEST_TRUE(rescoring.skipped_reason.starts_with("Percolator failed: "))
   TEST_TRUE(unchanged(proteins, peptides, proteins_before, peptides_before))
 
-  // A real search, as TOPP_ProSE_11_rescore (ProSE_6_fdr.ini) without its FDR: Percolator gets all PSMs.
+  // A real search, as TOPP_ProSE_11_rescore (ProSE_6_fdr.ini) without its FDR and without the rescoring
+  // of the search itself: Percolator gets all PSMs with ProSE's scores.
   ProSEAlgorithm algo;
   Param p = algo.getParameters();
+  p.setValue("rescore", "false");
   p.setValue("decoys", "generate");
   p.setValue("precursor:mass_tolerance_lower", 20.0);
   p.setValue("precursor:mass_tolerance_upper", 20.0);
@@ -5020,6 +5029,133 @@ START_SECTION((bool applyDeferredPsmFDR(const std::vector<ProteinIdentification>
     TEST_TRUE(peptides == percolator_rescored_peptides)
     PeptideIdentificationList none;
     TEST_FALSE(algo.applyDeferredPsmFDR(percolator_rescored_proteins, none, true, 0.05))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator before the FDR filters, by default))
+{
+  TEST_EQUAL(ProSEAlgorithm().getParameters().getValue("rescore").toString(), "true")
+
+  const std::string spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML");
+  const std::string database_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_database.fasta");
+  const std::string small_spectra_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.mzML");
+  const std::string small_database_file = OPENMS_GET_TEST_DATA_PATH("../../../topp/SimpleSearchEngine_1.fasta");
+  // the settings of TOPP_ProSE_11_rescore (ProSE_6_fdr.ini); 'rescore' as given (empty: the default)
+  auto configure = [](ProSEAlgorithm& algo, const std::string& rescore, double psm_fdr, double protein_fdr)
+  {
+    Param p = algo.getParameters();
+    p.setValue("decoys", "generate");
+    p.setValue("precursor:mass_tolerance_lower", 20.0);
+    p.setValue("precursor:mass_tolerance_upper", 20.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("fragment:mass_tolerance", 10.0);
+    p.setValue("fragment:mass_tolerance_unit", "ppm");
+    p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+    p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+    p.setValue("FDR:PSM", psm_fdr);
+    p.setValue("FDR:protein", protein_fdr);
+    if (!rescore.empty()) { p.setValue("rescore", rescore); }
+    algo.setParameters(p);
+    algo.setLogType(ProgressLogger::NONE);
+  };
+  // hits whose score is a q-value <= max_q in a q-value identification (0 if any is not)
+  auto q_value_hits = [](const PeptideIdentificationList& peptides, double max_q)
+  {
+    Size hits = 0;
+    for (const PeptideIdentification& id : peptides)
+    {
+      if (id.getScoreType() != "q-value" || id.isHigherScoreBetter() || id.getHits().size() > 1) { return Size(0); }
+      for (const PeptideHit& hit : id.getHits())
+      {
+        if (hit.getScore() < 0.0 || hit.getScore() > max_q) { return Size(0); }
+        ++hits;
+      }
+    }
+    return hits;
+  };
+
+  // Default, several files: each run is rescored on its own and reports the outcome; FDR:PSM is applied
+  // to Percolator's q-values. The second file has too few PSMs: it keeps ProSE's scores, with the reason.
+  {
+    ProSEAlgorithm algo;
+    configure(algo, "", 0.05, 0.0);
+    ProSEAlgorithm::MultiFileSearchResult mfres =
+      algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_file, small_spectra_file}, database_file);
+    ABORT_IF(mfres.per_file.size() != 2)
+    const ProSEAlgorithm::SearchResult& rescored = mfres.per_file[0];
+    TEST_TRUE(rescored.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_TRUE(rescored.percolator.applied)
+    TEST_EQUAL(rescored.percolator.skipped_reason, "")
+    ABORT_IF(rescored.protein_ids.empty())
+    TEST_EQUAL(rescored.protein_ids[0].getSearchEngine(), "Percolator")
+    TEST_TRUE(q_value_hits(rescored.peptide_ids, 0.05) > 0)
+    TEST_TRUE(rescored.stats.fdr_applied)
+    TEST_TRUE(rescored.stats.achieved_psm_fdr <= 0.05)
+
+    const ProSEAlgorithm::SearchResult& skipped = mfres.per_file[1];
+    TEST_TRUE(skipped.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(skipped.percolator.applied)
+    TEST_TRUE(skipped.percolator.skipped_reason.starts_with("Only "))
+    ABORT_IF(skipped.protein_ids.empty())
+    TEST_EQUAL(skipped.protein_ids[0].getSearchEngine(), "ProSE")
+    // runs of different search engines are not pooled
+    TEST_TRUE(mfres.aggregate.protein_ids.empty())
+    TEST_TRUE(mfres.aggregate.peptide_ids.empty())
+  }
+
+  // Off: ProSE's own scores, nothing attempted.
+  {
+    ProSEAlgorithm algo;
+    configure(algo, "false", 0.0, 0.0);
+    ProSEAlgorithm::SearchResult native = algo.searchWithModificationAnalysis(spectra_file, database_file);
+    TEST_TRUE(native.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(native.percolator.applied)
+    TEST_EQUAL(native.percolator.skipped_reason, "")
+    ABORT_IF(native.protein_ids.empty() || native.peptide_ids.empty())
+    TEST_EQUAL(native.protein_ids[0].getSearchEngine(), "ProSE")
+    bool native_scores = true;
+    for (const PeptideIdentification& id : native.peptide_ids)
+    {
+      native_scores = native_scores && id.getScoreType() == "ln(hyperscore)" && id.isHigherScoreBetter();
+    }
+    TEST_TRUE(native_scores)
+  }
+
+  // Too few PSMs: the default search gives the reason and exactly the PSMs of the search with 'rescore' off.
+  {
+    ProSEAlgorithm on, off;
+    configure(on, "", 0.0, 0.0);
+    configure(off, "false", 0.0, 0.0);
+    ProSEAlgorithm::SearchResult on_result = on.searchWithModificationAnalysis(small_spectra_file, small_database_file);
+    ProSEAlgorithm::SearchResult off_result = off.searchWithModificationAnalysis(small_spectra_file, small_database_file);
+    TEST_TRUE(on_result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    TEST_FALSE(on_result.percolator.applied)
+    TEST_TRUE(on_result.percolator.skipped_reason.starts_with("Only "))
+    TEST_TRUE(on_result.percolator.skipped_reason.find("Percolator rescoring needs at least 100") != std::string::npos)
+    TEST_FALSE(on_result.peptide_ids.empty())
+    TEST_TRUE(on_result.peptide_ids == off_result.peptide_ids)
+  }
+
+  // The file-based search(): rescoring, then FDR:PSM and the protein FDR on the rescored PSMs.
+  {
+    ProSEAlgorithm algo;
+    configure(algo, "", 0.05, 0.05);
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    TEST_TRUE(algo.search(spectra_file, database_file, proteins, peptides) == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+    ABORT_IF(proteins.size() != 1)
+    TEST_EQUAL(proteins[0].getSearchEngine(), "Percolator")
+    TEST_TRUE(q_value_hits(peptides, 0.05) > 0)
+    TEST_TRUE(proteins[0].getHits().size() > 0)
+    Size decoy_proteins = 0, decoy_psms = 0;
+    for (const ProteinHit& hit : proteins[0].getHits()) { decoy_proteins += hit.getAccession().starts_with("DECOY_"); }
+    for (const PeptideIdentification& id : peptides)
+    {
+      for (const PeptideHit& hit : id.getHits()) { decoy_psms += hit.isDecoy(); }
+    }
+    TEST_EQUAL(decoy_proteins, 0) // the protein FDR's finalization removes the decoys
+    TEST_EQUAL(decoy_psms, 0)
   }
 }
 END_SECTION

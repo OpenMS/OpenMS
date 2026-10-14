@@ -353,6 +353,16 @@ namespace OpenMS
     defaults_.setValidStrings("report:isotope_error_convention", {"observed_minus_theoretical", "theoretical_minus_observed"});
     defaults_.setSectionDescription("report", "Reporting Options");
 
+    defaults_.setValue("rescore", "true",
+                       "Rescore the PSMs of every search run (input file) in-process with Percolator (OpenMS' built-in "
+                       "implementation, as PercolatorAdapter uses by default) before the FDR filters: Percolator q-values become "
+                       "the main score (the SVM score and PEP are kept as meta values), only the best hit per spectrum is kept, "
+                       "and FDR:PSM and FDR:protein are applied to the rescored PSMs. Needs decoys (see 'decoys') and at least "
+                       "100 PSMs: a run without them, or for which Percolator fails, is not rescored and keeps its search engine "
+                       "scores, which the FDR filters then use (the ProSE tool warns). Set to 'false' to report the search engine "
+                       "scores, e.g. to rescore the Percolator input (.pin) of the ProSE tool externally.");
+    defaults_.setValidStrings("rescore", {"true", "false"});
+
     defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Target and decoy PSMs are filtered alike by the q-value threshold; decoys that pass are kept (no decoy-specific stripping here — decoys are removed only at protein-FDR finalization). Requires '-decoys' to be set.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
@@ -661,6 +671,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "[ProSE] annotate:self_trained_ion_priors: not applied to a target-only search (decoys=ignore)." << endl;
       self_trained_ion_priors_ = false;
     }
+    rescore_ = param_.getValue("rescore").toString() == "true";
     fdr_psm_ = param_.getValue("FDR:PSM");
     fdr_psm_by_scored_charges_ = param_.getValue("FDR:PSM_groups").toString() == "scored_charges";
     fdr_protein_ = param_.getValue("FDR:protein");
@@ -2635,6 +2646,7 @@ namespace OpenMS
     // Reset per-run stats here so the chunked single-file path (searchChunked_,
     // which does not route through search(spectra, ctx, ...)) starts clean too.
     last_run_stats_ = RunStatistics{};
+    last_percolator_ = PercolatorRescoring{};
 
     // Chunking disabled → take the existing single-context path (decoys built
     // lazily by prepareContext). The ctx is locally owned and not reused,
@@ -2920,26 +2932,8 @@ namespace OpenMS
     // Pre-FDR stats (target/decoy counts + HyperScore distribution).
     capturePreFdrStats_(peptide_ids, last_run_stats_);
 
-    if (fdr_psm_ > 0.0 && has_decoys)
-    {
-      // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
-      // No decoy-specific stripping happens here (decoupled from decoy removal); the decoys that
-      // pass are kept because downstream protein-level FDR and cross-file merging need them.
-      // Categorical decoy removal happens only at protein-FDR finalization (file-based
-      // single-file search below, or ProSE.cpp).
-      StopWatch sw_fdr; sw_fdr.start();
-      annotatePsmQValues(peptide_ids);
-      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-      last_run_stats_.fdr_applied = true;
-      last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
-      sw_fdr.stop();
-      last_run_stats_.seconds_fdr = sw_fdr.getClockTime();
-    }
-    else if (fdr_psm_ > 0.0 && !has_decoys)
-    {
-      OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
-                         "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << std::endl;
-    }
+    // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
+    last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_);
 
     restore_tolerances();
 
@@ -3593,6 +3587,7 @@ namespace OpenMS
     // Reset the per-run statistics bridge for this file. Callers copy it into
     // their SearchResult::stats after search() returns OK.
     last_run_stats_ = RunStatistics{};
+    last_percolator_ = PercolatorRescoring{};
 
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
@@ -3887,26 +3882,8 @@ namespace OpenMS
     // entirely, and overwrites each hit's HyperScore with its q-value.
     capturePreFdrStats_(peptide_ids, last_run_stats_);
 
-    if (fdr_psm_ > 0.0 && has_decoys)
-    {
-      // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
-      // No decoy-specific stripping happens here (decoupled from decoy removal); the decoys that
-      // pass are kept because downstream protein-level FDR and cross-file merging need them.
-      // Categorical decoy removal happens only at protein-FDR finalization (file-based
-      // single-file search below, or ProSE.cpp).
-      StopWatch sw_fdr; sw_fdr.start();
-      annotatePsmQValues(peptide_ids);
-      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
-      last_run_stats_.fdr_applied = true;
-      last_run_stats_.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
-      sw_fdr.stop();
-      last_run_stats_.seconds_fdr = sw_fdr.getClockTime();
-    }
-    else if (fdr_psm_ > 0.0 && !has_decoys)
-    {
-      OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
-                         "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << endl;
-    }
+    // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
+    last_percolator_ = applyPsmFDR_(protein_ids, peptide_ids, has_decoys, last_run_stats_);
 
     restore_fi_params();
 
@@ -4059,7 +4036,7 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // In-process Percolator rescoring of one search run (ProSE -rescore). Single
+  // In-process Percolator rescoring of one search run (parameter 'rescore'). Single
   // source of truth for the ProSE TOPP tool and other callers (e.g. the
   // WebAssembly bindings); it was a copy in the tool before.
   // =====================================================================
@@ -4187,6 +4164,65 @@ namespace OpenMS
     // Filters target and decoy PSMs alike by q-value; decoy removal is the protein FDR's finalization.
     IDFilter::filterHitsByScore(peptide_ids, psm_fdr);
     return true;
+  }
+
+  ProSEAlgorithm::PercolatorRescoring ProSEAlgorithm::applyPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
+                                                                   PeptideIdentificationList& peptide_ids,
+                                                                   bool has_decoys,
+                                                                   RunStatistics& stats) const
+  {
+    PercolatorRescoring rescoring;
+    if (rescore_)
+    {
+      // Percolator gets all target and decoy PSMs; the PSM FDR follows on its q-values (or, if it
+      // skipped the run, on the search engine scores).
+#ifdef _OPENMP
+      const int threads = omp_get_max_threads();
+#else
+      const int threads = 1;
+#endif
+      OPENMS_LOG_INFO << "[ProSE] Rescoring the PSMs with Percolator..." << std::endl;
+      rescoring = rescoreWithPercolator(protein_ids, peptide_ids, threads);
+      if (fdr_psm_ > 0.0)
+      {
+        StopWatch sw_fdr; sw_fdr.start();
+        if (applyDeferredPsmFDR(protein_ids, peptide_ids, rescoring.applied, fdr_psm_))
+        {
+          stats.fdr_applied = true;
+          stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
+          sw_fdr.stop();
+          stats.seconds_fdr = sw_fdr.getClockTime();
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
+                             "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << std::endl;
+        }
+      }
+      return rescoring;
+    }
+
+    if (fdr_psm_ > 0.0 && has_decoys)
+    {
+      // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
+      // No decoy-specific stripping happens here (decoupled from decoy removal); the decoys that
+      // pass are kept because downstream protein-level FDR and cross-file merging need them.
+      // Categorical decoy removal happens only at protein-FDR finalization (file-based
+      // single-file search below, or ProSE.cpp).
+      StopWatch sw_fdr; sw_fdr.start();
+      annotatePsmQValues(peptide_ids);
+      IDFilter::filterHitsByScore(peptide_ids, fdr_psm_);
+      stats.fdr_applied = true;
+      stats.achieved_psm_fdr = maxRetainedScore_(peptide_ids);
+      sw_fdr.stop();
+      stats.seconds_fdr = sw_fdr.getClockTime();
+    }
+    else if (fdr_psm_ > 0.0 && !has_decoys)
+    {
+      OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
+                         "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << std::endl;
+    }
+    return rescoring;
   }
 
   namespace
@@ -4789,6 +4825,7 @@ namespace OpenMS
 
     // Carry whatever statistics the search managed to populate, even on failure.
     result.stats = last_run_stats_;
+    result.percolator = last_percolator_;
 
     if (result.exit_code != ExitCodes::EXECUTION_OK)
     {
@@ -5251,16 +5288,8 @@ namespace OpenMS
         }
         // Pre-FDR stats (target/decoy counts + HyperScore distribution).
         capturePreFdrStats_(result.peptide_ids, result.stats);
-        if (fdr_psm_ > 0.0 && has_decoys)
-        {
-          StopWatch sw_fdr; sw_fdr.start();
-          annotatePsmQValues(result.peptide_ids);
-          IDFilter::filterHitsByScore(result.peptide_ids, fdr_psm_);
-          result.stats.fdr_applied = true;
-          result.stats.achieved_psm_fdr = maxRetainedScore_(result.peptide_ids);
-          sw_fdr.stop();
-          result.stats.seconds_fdr = sw_fdr.getClockTime();
-        }
+        // PSM-level FDR, after Percolator rescoring with 'rescore' (see applyPsmFDR_)
+        result.percolator = applyPsmFDR_(result.protein_ids, result.peptide_ids, has_decoys, result.stats);
 
         result.exit_code = ExitCodes::EXECUTION_OK;
 
@@ -5422,12 +5451,14 @@ namespace OpenMS
           OPENMS_LOG_WARN << "[ProSE] Search failed for " << in_spectra
                           << " (exit code " << static_cast<int>(result.exit_code) << "). Continuing." << std::endl;
           result.stats = last_run_stats_;
+          result.percolator = last_percolator_;
           result.stats.input_file = File::basename(in_spectra);
           mfres.per_file.push_back(std::move(result));
           continue;
         }
 
         result.stats = last_run_stats_;
+        result.percolator = last_percolator_;
         result.stats.input_file = File::basename(in_spectra);
 
         if (!result.protein_ids.empty())
@@ -5490,7 +5521,27 @@ namespace OpenMS
     // build_pooled_aggregate == false caller gets the same almost-empty aggregate as the
     // single-file fast path above. In open search the pooled set is built, analyzed and
     // then released again (see the release block after the analysis).
-    const bool need_pooled = build_pooled_aggregate || mfres.aggregate.is_open_search;
+    bool need_pooled = build_pooled_aggregate || mfres.aggregate.is_open_search;
+
+    // IDMergerAlgorithm merges only runs of the same search engine (and version). With 'rescore', a run
+    // that Percolator could not rescore keeps ProSE as its search engine, while the rescored ones report
+    // Percolator: such runs are not pooled (the aggregate stays almost empty, as without pooling).
+    if (need_pooled)
+    {
+      std::set<std::pair<std::string, std::string>> engines;
+      for (const auto& pf : mfres.per_file)
+      {
+        if (pf.exit_code != ExitCodes::EXECUTION_OK || pf.protein_ids.empty()) { continue; }
+        engines.emplace(pf.protein_ids[0].getSearchEngine(), pf.protein_ids[0].getSearchEngineVersion());
+      }
+      if (engines.size() > 1)
+      {
+        OPENMS_LOG_WARN << "[ProSE] Not pooling the identifications of the input files: Percolator rescored only some "
+                        << "of them, and runs of different search engines are not merged. Set 'rescore' to 'false' "
+                        << "to pool them with ProSE's scores." << std::endl;
+        need_pooled = false;
+      }
+    }
 
     if (need_pooled)
     {

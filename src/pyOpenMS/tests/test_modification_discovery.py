@@ -261,6 +261,11 @@ def test_synthetic_modification_discovery():
     assert result.exit_code == ExitCodes.EXECUTION_OK
     assert result.is_open_search is True
     assert result.peptide_ids.size() > 500
+    # Percolator rescoring is on by default, but a target-only search cannot be rescored: the
+    # outcome says why, and the PSMs keep ProSE's scores
+    assert algo.getParameters().getValue("rescore") in (True, "true")
+    assert result.percolator.applied is False
+    assert result.percolator.skipped_reason.startswith("No decoy PSMs")
 
     # 5. Check delta mass bins for expected modifications
     dm_entries = result.modification_analysis.delta_mass_stats.entries
