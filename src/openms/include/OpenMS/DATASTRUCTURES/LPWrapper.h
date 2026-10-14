@@ -526,7 +526,7 @@ public:
     /**
       @brief Get the currently active solver backend
       
-      @return Currently active solver (GLPK or COIN-OR)
+      @return Currently active solver (SOLVER_HIGHS by default, SOLVER_COINOR or SOLVER_GLPK if selected via LP_SOLVER)
     */
     SOLVER getSolver() const;
 

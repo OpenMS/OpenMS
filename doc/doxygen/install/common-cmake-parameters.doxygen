@@ -173,7 +173,8 @@ The most important CMake variables are:
     <th valign="top">LP_SOLVER=HIGHS/COIN/GLPK</td>
     <td>Select the linear programming solver backend. <code>HIGHS</code> (default) uses HiGHS 1.11 or newer from
     vcpkg or the system if found, and otherwise fetches HiGHS via FetchContent and links it statically into libOpenMS.
-    <code>COIN</code> and <code>GLPK</code> are deprecated and will be removed in the next release.
+    <code>COIN</code> and <code>GLPK</code> are deprecated and will be removed in the next release; with vcpkg, they also
+    need the <code>lp-coin</code> or <code>lp-glpk</code> feature in <code>VCPKG_MANIFEST_FEATURES</code>.
     <code>AUTO</code>, the former default, is an alias for <code>HIGHS</code>.</td>
   </tr>
   <tr>
