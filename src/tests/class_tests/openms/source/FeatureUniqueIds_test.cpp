@@ -20,6 +20,20 @@ using namespace OpenMS;
 
 namespace
 {
+  template <typename MapType>
+  bool hasValidUniqueIds(const MapType& map)
+  {
+    try
+    {
+      FeatureUniqueIds::check(map);
+      return true;
+    }
+    catch (const Exception::InvalidValue&)
+    {
+      return false;
+    }
+  }
+
   Feature featureWithId(UInt64 id)
   {
     Feature feature;
@@ -36,11 +50,11 @@ START_TEST(FeatureUniqueIds, "$Id$")
 START_SECTION((static void check(const FeatureMap& map)))
 {
   FeatureMap map;
-  FeatureUniqueIds::check(map); // empty map is valid
+  TEST_TRUE(hasValidUniqueIds(map)); // empty map is valid
 
   map.push_back(featureWithId(1));
   map.push_back(featureWithId(2));
-  FeatureUniqueIds::check(map);
+  TEST_TRUE(hasValidUniqueIds(map));
 
   // invalid id on a top-level feature
   FeatureMap invalid = map;
@@ -64,21 +78,21 @@ START_SECTION((static void check(const FeatureMap& map)))
 
   FeatureMap valid_sub = map;
   valid_sub[0].getSubordinates().push_back(featureWithId(3));
-  FeatureUniqueIds::check(valid_sub);
+  TEST_TRUE(hasValidUniqueIds(valid_sub));
 }
 END_SECTION
 
 START_SECTION((static void check(const ConsensusMap& map)))
 {
   ConsensusMap map;
-  FeatureUniqueIds::check(map);
+  TEST_TRUE(hasValidUniqueIds(map));
 
   ConsensusFeature cf;
   cf.setUniqueId(1);
   map.push_back(cf);
   cf.setUniqueId(2);
   map.push_back(cf);
-  FeatureUniqueIds::check(map);
+  TEST_TRUE(hasValidUniqueIds(map));
 
   ConsensusMap duplicate = map;
   duplicate.push_back(cf);

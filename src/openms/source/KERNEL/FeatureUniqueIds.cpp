@@ -55,7 +55,7 @@ namespace OpenMS
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         std::to_string(invalid) + " " + what + " without a valid unique id.",
-                                        std::to_string(invalid));
+                                        "0");
         }
         if (has_duplicate)
         {

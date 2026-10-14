@@ -47,7 +47,10 @@ public:
       spectra of other MS levels and chromatograms do not contribute. The
       @p n MS1 peaks with the highest intensity are written to the output
       as @c ConsensusFeature entries tagged with @p input_map_index; their
-      order in the output is by descending intensity. The column header
+      order in the output is by descending intensity. Every consensus
+      feature gets a fresh, valid unique id; its single feature handle
+      stores the index of the peak among the selected peaks as its id
+      (so the first handle has the invalid id 0). The column header
       @c size for @p input_map_index reflects the number of peaks written.
 
       @note @p n is capped by the number of MS1 peaks in @p input_map, not

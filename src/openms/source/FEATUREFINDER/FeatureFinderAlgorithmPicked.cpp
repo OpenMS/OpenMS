@@ -565,6 +565,7 @@ namespace OpenMS
           tmp.setMetaValue("intensity_score", meta[1][peak]);
           tmp.setMetaValue("pattern_score", meta[meta_index_isotope][peak]);
           tmp.setMetaValue("trace_score", meta[0][peak]);
+          tmp.setUniqueId();
           seed_map.push_back(tmp);
         }
         FileHandler().storeFeatures("debug/seeds_" + StringUtils::toStr(c) + ".featureXML", seed_map);
@@ -1101,10 +1102,15 @@ namespace OpenMS
     setParameters(param);
     setData_(std::move(input_map), features);
     setSeeds(seeds);
+    const Size features_before = features.size();
     run_();
 
-    // every returned feature gets a valid unique id, before any id-dependent step (e.g. the FAIMS merge) of the caller
-    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    // every found feature gets a valid unique id, before any id-dependent step (e.g. the FAIMS merge) of the caller;
+    // the map's own id and the features already in the map keep their ids
+    for (Size i = features_before; i < features.size(); ++i)
+    {
+      features[i].setUniqueId();
+    }
   }
 
   void FeatureFinderAlgorithmPicked::updateMembers_()

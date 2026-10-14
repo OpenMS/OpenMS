@@ -18,9 +18,10 @@ namespace OpenMS
   /**
     @brief Checks that every feature of a map has a valid unique id that no other feature of the map shares.
 
-    Contract: every Feature and ConsensusFeature in a map that a library algorithm returns has a valid
-    (non-zero) unique id, and the ids are unique within the map, subordinates included. Algorithms that
-    produce feature maps establish it before returning; class tests verify it with check().
+    The intended contract is that every Feature and ConsensusFeature in a map has a valid (non-zero) unique id
+    that is unique within the map, subordinates included. Not every producer establishes it yet, and file writers
+    do not enforce it; producers that do (e.g. FeatureFinderAlgorithmPicked, SeedListGenerator) verify their
+    output with check() in their class tests. Feature handles are not checked.
 
     @ingroup Kernel
   */

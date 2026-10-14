@@ -973,12 +973,8 @@ protected:
       else // experimental data
       {
         MapConversion::convert(0, exp, cm);
-        // the consensus features built from peaks have no unique IDs yet
-        if (uid_postprocessing == "ensure")
-        {
-          cm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        }
-        else if (uid_postprocessing == "reassign")
+        // convert() gives the map and every consensus feature a valid unique ID, so only 'reassign' changes them
+        if (uid_postprocessing == "reassign")
         {
           cm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }

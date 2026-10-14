@@ -23,6 +23,24 @@ using namespace std;
 
 ///////////////////////////
 
+namespace
+{
+  // FeatureUniqueIds::check() as a boolean, so a violation is reported by a TEST_* macro instead of aborting the test
+  template <typename MapType>
+  bool hasValidUniqueIds(const MapType& map)
+  {
+    try
+    {
+      OpenMS::FeatureUniqueIds::check(map);
+      return true;
+    }
+    catch (const OpenMS::Exception::InvalidValue&)
+    {
+      return false;
+    }
+  }
+}
+
 START_TEST(SeedListGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -130,7 +148,7 @@ START_SECTION((void convertSeedList(const SeedList& seeds, FeatureMap& features)
 	TEST_EQUAL(features[1].getMZ(), 222.222);
 	TEST_EQUAL(features[2].getRT(), 3.3);
 	TEST_EQUAL(features[2].getMZ(), 333.333);
-	FeatureUniqueIds::check(features);
+	TEST_TRUE(hasValidUniqueIds(features));
 }
 END_SECTION
 

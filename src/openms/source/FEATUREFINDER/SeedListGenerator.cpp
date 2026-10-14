@@ -95,6 +95,7 @@ namespace OpenMS
                                           FeatureMap& features)
   {
     features.clear(true); // "true" should really be a default value here...
+    features.setUniqueId();
     for (const auto& seed : seeds)
     {
       Feature feature;

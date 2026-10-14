@@ -119,6 +119,9 @@ public:
 
       @note The input data is moved internally (no copying overhead).
 
+      Every feature found is appended to @p features with a fresh, valid unique id. The map's own unique id and
+      the features already in @p features are left unchanged.
+
       @param[in] input_map The input map of centroided spectra with MS level 1.
       @param[out] features The output feature map.
       @param[in] param The parameters for the algorithm.

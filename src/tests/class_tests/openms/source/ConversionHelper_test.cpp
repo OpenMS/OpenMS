@@ -21,6 +21,24 @@
 using namespace OpenMS;
 using namespace std;
 
+namespace
+{
+  // FeatureUniqueIds::check() as a boolean, so a violation is reported by a TEST_* macro instead of aborting the test
+  template <typename MapType>
+  bool hasValidUniqueIds(const MapType& map)
+  {
+    try
+    {
+      OpenMS::FeatureUniqueIds::check(map);
+      return true;
+    }
+    catch (const OpenMS::Exception::InvalidValue&)
+    {
+      return false;
+    }
+  }
+}
+
 START_TEST(ConsensusMap, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -96,7 +114,7 @@ START_SECTION((static void convert(UInt64 const input_map_index, PeakMap & input
   }
 
   TEST_EQUAL(cm.back().getIntensity(),912);
-  FeatureUniqueIds::check(cm);
+  TEST_TRUE(hasValidUniqueIds(cm));
 
 }
 END_SECTION
