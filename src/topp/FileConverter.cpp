@@ -499,11 +499,12 @@ protected:
       return PARSE_ERROR;
     }
 
-    // consensus features need features (or consensus features) as input; peaks would give consensus features without ids
-    const bool consensus_input_type = in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET || in_type == FileTypes::TSV ||
-                                      in_type == FileTypes::PEPLIST || in_type == FileTypes::KROENIK || in_type == FileTypes::CONSENSUSXML ||
-                                      in_type == FileTypes::CONSENSUSPARQUET || in_type == FileTypes::EDTA;
-    if ((out_type == FileTypes::CONSENSUSXML || out_type == FileTypes::CONSENSUSPARQUET) && !consensus_input_type)
+    // consensus output needs features or consensus features as input; peaks are not converted to consensus features
+    // (their handles could only refer to peak indices, not to elements with ids)
+    const bool provides_features =
+      FileTypeList(FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_FEATURES})).contains(in_type) ||
+      FileTypeList(FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_CONSENSUSFEATURES})).contains(in_type);
+    if ((out_type == FileTypes::CONSENSUSXML || out_type == FileTypes::CONSENSUSPARQUET) && !provides_features)
     {
       writeLogError_("Error: Cannot convert " + FileTypes::typeToName(in_type) + " to " + FileTypes::typeToName(out_type) +
                      ". Only feature and consensus data can be converted to consensus data; detect features first (e.g. with a FeatureFinder tool).");
@@ -978,7 +979,7 @@ protected:
         }
         MapConversion::convert(0, fm, cm);
       }
-      // nothing to do for consensus input; other input types were rejected above
+      // nothing to do for consensus input (OMS input cannot be loaded here yet; loadExperiment() rejects it above)
       for (auto& pepID : cm.getUnassignedPeptideIdentifications())
       {
         pepID.setMetaValue("map_index", 0);

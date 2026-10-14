@@ -10,7 +10,6 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
@@ -19,14 +18,16 @@ namespace OpenMS
   /**
     @brief Static helpers that convert between @c FeatureMap and @c ConsensusMap.
 
-    There is no conversion from a @c PeakMap: consensus features built from
-    peaks have no meaningful element ids. MapAlignmentAlgorithmPoseClustering
-    selects the peaks it aligns itself.
+    There is no conversion from a @c PeakMap: the handle of a consensus
+    feature built from a peak could only refer to the peak's index, not to
+    an element with a unique id. MapAlignmentAlgorithmPoseClustering selects
+    the peaks it aligns itself.
 
-    Each overload replaces the contents of the destination, gives it a
-    container-level unique id, and leaves it in a state where the standard
-    range queries reflect the new contents without further bookkeeping by
-    the caller.
+    Each overload replaces the contents of the destination and leaves it in
+    a state where the standard range queries reflect the new contents
+    without further bookkeeping by the caller. The container unique id of
+    the destination is copied from the source or freshly drawn, depending
+    on the overload.
 
     The conversions are not symmetric: which fields are preserved
     (container / element unique ids, protein and unassigned peptide

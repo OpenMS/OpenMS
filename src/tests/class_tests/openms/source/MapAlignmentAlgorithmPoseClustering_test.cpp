@@ -13,17 +13,21 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 #include <algorithm>
+#include <limits>
 #include <vector>
 
 using namespace std;
 using namespace OpenMS;
 
-// exposes the protected peak selection
+// exposes the protected peak and feature selection
 class TestAligner : public MapAlignmentAlgorithmPoseClustering
 {
 public:
   using MapAlignmentAlgorithmPoseClustering::selectPeaks_;
+  using MapAlignmentAlgorithmPoseClustering::selectFeatures_;
 };
 
 /////////////////////////////////////////////////////////////
@@ -292,6 +296,82 @@ START_SECTION([EXTRA] selectPeaks_ orders equal intensities by RT and m/z)
   TEST_REAL_SIMILAR(out[2].getMZ(), 720.0)
   TEST_REAL_SIMILAR(out[3].getRT(), 10.0)
   TEST_REAL_SIMILAR(out[3].getMZ(), 730.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] selectPeaks_ rejects NaN intensities)
+{
+  PeakMap nan_map;
+  MSSpectrum spec;
+  spec.setMSLevel(1);
+  spec.push_back(Peak1D(500.0, 10.0f));
+  spec.push_back(Peak1D(600.0, std::numeric_limits<float>::quiet_NaN()));
+  nan_map.addSpectrum(spec);
+  ConsensusMap out;
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectPeaks_(map_index, nan_map, out, 1))
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectPeaks_(map_index, nan_map, out, Size(-1)))
+
+  // NaN outside MS1 does not matter
+  nan_map[0].setMSLevel(2);
+  TestAligner::selectPeaks_(map_index, nan_map, out, Size(-1));
+  TEST_EQUAL(out.size(), 0)
+}
+END_SECTION
+
+/////
+// selectFeatures_() picks the features that setReference(FeatureMap) and align(FeatureMap) align
+
+START_SECTION((static void selectFeatures_(UInt64 map_index, const FeatureMap& map, ConsensusMap& output, Size n)))
+{
+  // sorted by RT, the most intense features come last
+  FeatureMap fm;
+  fm.setUniqueId(42);
+  for (UInt i = 0; i < 5; ++i)
+  {
+    Feature f;
+    f.setRT(10.0 * i);
+    f.setMZ(400.0 + i);
+    f.setIntensity(100.0f * (i + 1));
+    f.setUniqueId(i + 1);
+    fm.push_back(f);
+  }
+  fm.getProteinIdentifications().resize(1);
+
+  ConsensusMap out;
+  // the two most intense features (not the first two), in map order
+  TestAligner::selectFeatures_(map_index, fm, out, 2);
+  TEST_EQUAL(out.size(), 2)
+  ABORT_IF(out.size() != 2)
+  TEST_REAL_SIMILAR(out[0].getRT(), 30.0)
+  TEST_REAL_SIMILAR(out[1].getRT(), 40.0)
+  TEST_EQUAL(out[0].begin()->getUniqueId(), 4)
+  TEST_EQUAL(out[1].begin()->getUniqueId(), 5)
+  TEST_EQUAL(out[0].begin()->getMapIndex(), map_index)
+  TEST_EQUAL(out.getColumnHeaders()[map_index].size, 5) // the input size, as in MapConversion::convert()
+  TEST_EQUAL(out.getUniqueId(), 42)
+  TEST_EQUAL(out.getProteinIdentifications().size(), 1)
+
+  // equal intensities: earlier RT first
+  fm[3].setIntensity(500.0f); // ties with fm[4]
+  TestAligner::selectFeatures_(map_index, fm, out, 1);
+  TEST_EQUAL(out.size(), 1)
+  ABORT_IF(out.size() != 1)
+  TEST_REAL_SIMILAR(out[0].getRT(), 30.0)
+
+  // all features: the same as MapConversion::convert()
+  ConsensusMap converted;
+  MapConversion::convert(map_index, fm, converted);
+  TestAligner::selectFeatures_(map_index, fm, out, Size(-1));
+  TEST_EQUAL(out.size(), converted.size())
+  for (Size i = 0; i < std::min(out.size(), converted.size()); ++i)
+  {
+    TEST_EQUAL(out[i], converted[i])
+  }
+
+  // NaN intensities are rejected
+  fm[2].setIntensity(std::numeric_limits<float>::quiet_NaN());
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectFeatures_(map_index, fm, out, 2))
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectFeatures_(map_index, fm, out, Size(-1)))
 }
 END_SECTION
 

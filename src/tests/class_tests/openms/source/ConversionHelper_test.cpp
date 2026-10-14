@@ -14,9 +14,6 @@
 #include <OpenMS/KERNEL/ConversionHelper.h>
 ///////////////////////////
 
-#include <algorithm>
-#include <vector>
-
 using namespace OpenMS;
 using namespace std;
 

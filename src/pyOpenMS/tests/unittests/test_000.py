@@ -6433,7 +6433,7 @@ def test_MapConversion():
     exp.addSpectrum(sp)
     exp.addSpectrum(sp)
 
-    # peaks cannot be converted to a ConsensusMap: their consensus features would have no unique ids
+    # peaks cannot be converted to a ConsensusMap: the handles would refer to peak indices, not to elements with ids
     cmap = pyopenms.ConsensusMap()
     try:
         pyopenms.MapConversion().convert(0, exp, cmap, 2)
