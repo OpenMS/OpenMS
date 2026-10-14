@@ -27,10 +27,8 @@ choco install -y --no-progress \
 curl --no-progress-meter --fail --retry 3 --retry-all-errors -L -o NSIS.tar.gz https://raw.githubusercontent.com/OpenMS/NSIS/main/NSIS.tar.gz
 7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
 
-# These are only needed in CI:
-choco install -y --no-progress \
-  ccache \
-  rclone
+# These are only needed in CI (fetched from GitHub releases, SHA256-checked):
+bash "$(dirname "$0")/install-windows-tools.sh" rclone ccache
 
 # Use an older version of rsync to match the server:
 choco install -y --no-progress --version 6.2.7 rsync

@@ -544,7 +544,7 @@ jobs:
       - name: Install the binary cache tools
         shell: bash
         run: |
-          choco install -y --no-progress rclone
+          bash tools/ci/install-windows-tools.sh rclone
           choco install -y --no-progress --version 6.2.7 rsync
 
       # The main CI's vcpkg binary cache, under the key of its Windows build
