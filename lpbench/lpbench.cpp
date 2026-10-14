@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <cstdio>
 #include <random>
 #include <string>
@@ -55,6 +56,10 @@ static Result edgeSelection(int nodes, int deg, unsigned seed)
     lp.addRow(incident[n], ones, "n" + std::to_string(n), 0, 1, LPWrapper::DOUBLE_BOUNDED);
   }
   auto t1 = Clock::now();
+  if (const char* dir = std::getenv("LPBENCH_MPS_DIR")) // dump the instance for solver experiments
+  {
+    lp.writeProblem(std::string(dir) + "/edgesel_n" + std::to_string(nodes) + ".mps", LPWrapper::FORMAT_MPS);
+  }
   LPWrapper::SolverParam p;
   p.message_level = 0;
   p.time_limit = 120000;

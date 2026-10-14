@@ -794,6 +794,10 @@ namespace OpenMS
     // always pass the gap: HiGHS' own default (1e-4) would otherwise stop before proven optimality for mip_gap = 0
     highs_->setOptionValue("mip_rel_gap", solver_param.mip_gap);
     highs_->setOptionValue("presolve", solver_param.enable_presolve ? std::string("on") : std::string("off"));
+    // Skip the probing and enumeration presolve rules. On the large binary set-packing ILPs OpenMS builds
+    // (e.g. decharging), they spend most of the runtime building clique tables (50k-node instance:
+    // 70 s -> 5 s, same optimum). Only switching off both helps; the remaining presolve rules stay on.
+    highs_->setOptionValue("presolve_rule_off", (HighsInt)((1 << kPresolveRuleProbing) | (1 << kPresolveRuleEnumeration)));
 
     // Solve
     HighsStatus status = highs_->run();
