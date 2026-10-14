@@ -40,14 +40,14 @@ end
 
 ###############################################################################
 def fixable(name, path)
-  if File.directory?(path + name)
+  filename = "#{path}/#{name}"
+  if File.symlink?(filename) or File.directory?(filename)
     return false
   elsif name.match(/^\./)
     return false
   elsif name.match(/\.app$/)
     return false
   else
-    filename = "#{path}/#{name}"
     debug filename.to_s
     otool_out=`otool -L #{filename}`
     ## Otool returns exit code 0 even if it is not an object file -> check output

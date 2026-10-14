@@ -21,6 +21,7 @@ Please cite:
 """
 from __future__ import annotations
 
+import glob
 import os
 import sys
 import warnings
@@ -184,13 +185,20 @@ del _patch_pyarrow_filesystem
 
 # On conda the libs will be installed to the general conda lib path which is available during load.
 # Try to skip this loading if we do not ship the libraries in the package (e.g. as wheel via pip).
-if sys.platform.startswith("linux") and os.path.exists(os.path.join(here, "libOpenMS.so")):
+if sys.platform.startswith("linux"):
     # load local shared libraries before we import pyopenms*.so, else
     # those are not found. setting LD_LIBRARY_PATH does not work,
     # see: http://stackoverflow.com/questions/1178094
-    import ctypes
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
+    openms_libraries = glob.glob(os.path.join(here, "libOpenMS.so.*"))
+    if not openms_libraries:
+        openms_libraries = [os.path.join(here, "libOpenMS.so")]
+    if os.path.exists(openms_libraries[0]):
+        openswath_libraries = glob.glob(os.path.join(here, "libOpenSwathAlgo.so.*"))
+        if not openswath_libraries:
+            openswath_libraries = [os.path.join(here, "libOpenSwathAlgo.so")]
+        import ctypes
+        ctypes.cdll.LoadLibrary(openswath_libraries[0])
+        ctypes.cdll.LoadLibrary(openms_libraries[0])
 
 
 # On Windows, Python >= 3.8 no longer uses PATH to resolve an extension module's
