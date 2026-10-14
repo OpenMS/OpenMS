@@ -460,6 +460,29 @@ START_SECTION(([EXTRA] 'score_cutoff' filters peptide identifications in their s
   {
     TEST_REAL_SIMILAR(point.first - point.second, 10.0)
   }
+
+  // with 'use_feature_rt', a feature whose identifications all fail the cut-off is no alignment point (its RT was
+  // stored under an empty sequence, which such features of the other maps shared)
+  cutoff_params.setValue("use_feature_rt", "true");
+  cutoff_aligner.setParameters(cutoff_params);
+  const auto failing_last = [&](double shift)
+  {
+    FeatureMap map;
+    for (Size i = 0; i < sequences.size(); ++i)
+    {
+      Feature feature;
+      feature.setRT(100.0 * double(i + 1) + shift);
+      feature.setMZ(500.0 + double(i));
+      feature.getPeptideIdentifications().push_back(
+        identification(sequences[i], feature.getRT(), "Posterior Error Probability", false, i + 1 == sequences.size() ? 0.5 : 0.01));
+      map.push_back(feature);
+    }
+    return map;
+  };
+  maps = {failing_last(0.0), failing_last(10.0)};
+  cutoff_aligner.align(maps, transforms, 0);
+  ABORT_IF(transforms.size() != 2)
+  TEST_EQUAL(transforms[1].getDataPoints().size(), sequences.size() - 1)
 }
 END_SECTION
 

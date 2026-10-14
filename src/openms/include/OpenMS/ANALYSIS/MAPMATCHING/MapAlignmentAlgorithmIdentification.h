@@ -257,17 +257,16 @@ protected:
       {
         if (use_feature_rt_)
         {
-          // find the peptide ID closest in RT to the feature centroid:
+          // find the peptide ID closest in RT to the feature centroid (among those that pass the score cut-off):
           std::string sequence;
           double rt_distance = std::numeric_limits<double>::max();
-          bool any_hit = false;
+          bool any_passing = false;
           for (PeptideIdentificationList::const_iterator pep_it =
                  feat_it->getPeptideIdentifications().begin(); pep_it !=
                  feat_it->getPeptideIdentifications().end(); ++pep_it)
           {
             if (!pep_it->getHits().empty())
             {
-              any_hit = true;
               double current_distance = fabs(pep_it->getRT() -
                                              feat_it->getRT());
               if (current_distance < rt_distance)
@@ -277,12 +276,14 @@ protected:
                 {
                   sequence = best_hit->getSequence().toString();
                   rt_distance = current_distance;
+                  any_passing = true;
                 }
               }
             }
           }
 
-          if (any_hit) rt_data[sequence].push_back(feat_it->getRT());
+          // a feature without a passing identification has no sequence (and is no alignment point)
+          if (any_passing) rt_data[sequence].push_back(feat_it->getRT());
         }
         else
         {
