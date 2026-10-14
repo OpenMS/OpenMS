@@ -13,6 +13,17 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 
 ------------------------------------------------------------------------------------------
+----                                OpenMS 3.8.0     (under development)              ----
+------------------------------------------------------------------------------------------
+
+OpenMS Library:
+  - Removed the COIN-OR and GLPK LP solver backends, deprecated in 3.7.0; HiGHS is the only LP/MIP solver (#10551).
+    LP_SOLVER=COIN/GLPK now fail at configure time, the vcpkg features lp-coin/lp-glpk and the GLPK overlay port are
+    gone, and the config.h macros OPENMS_HAS_COINOR, OPENMS_HAS_HIGHS and OPENMS_GLPK_VERSION* were removed.
+    LPWrapper API: SOLVER only has SOLVER_HIGHS, WriteFormat no longer has FORMAT_GLPK, and SolverParam only keeps
+    the fields HiGHS uses (mip_gap, time_limit, enable_presolve).
+
+------------------------------------------------------------------------------------------
 ----                                OpenMS 3.7.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 

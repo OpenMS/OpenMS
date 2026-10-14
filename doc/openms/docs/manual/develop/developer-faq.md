@@ -120,10 +120,9 @@ View the description for each option by calling `ccmake`.
 
 ### Which LP solver does OpenMS use?
 
-OpenMS uses [HiGHS](https://highs.dev) by default (`-D LP_SOLVER=HIGHS`). It is taken from vcpkg or the system if
-available, and fetched and built automatically otherwise. COIN-OR (`-D LP_SOLVER=COIN`) and GLPK (`-D LP_SOLVER=GLPK`)
-are still available but deprecated and will be removed in the next release. Refer to the documentation of the
-`LPWrapper` class for details.
+OpenMS uses [HiGHS](https://highs.dev) as its LP/MIP solver. It is taken from vcpkg or the system if available (HiGHS 1.11
+or newer), and fetched and linked statically otherwise. Support for COIN-OR and GLPK was removed. Refer to the
+documentation of the `LPWrapper` class for details.
 
 ### How do I switch to debug or release configuration?
 

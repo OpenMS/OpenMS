@@ -751,7 +751,7 @@ The following formats are supported:
     // -----------------------------------------------------------------------
     // LPWrapper (and its SolverParam / nested enums) is intentionally NOT wrapped.
     //
-    // It is a low-level internal wrapper around the LP/MILP backend (GLPK/COIN-OR/HiGHS)
+    // It is a low-level internal wrapper around the LP/MILP backend (HiGHS)
     // used only by C++ algorithms (MRMFeatureSelector, ILPDCWrapper). It has no Python
     // consumers, and its solve()/getStatus() contract is easy to misuse (see issue #9944:
     // a discarded solver status silently turns solver failures into all-zero results).

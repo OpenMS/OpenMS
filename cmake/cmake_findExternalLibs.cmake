@@ -53,106 +53,60 @@ if (LIBSVM_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# LP Solver selection
-# LP_SOLVER option: HIGHS (default), COIN or GLPK.
+# LP solver: HiGHS (COIN-OR and GLPK support was removed, see #10551)
 # HiGHS is taken from the system/vcpkg if found, otherwise fetched via FetchContent.
-# COIN and GLPK are deprecated and will be removed in the next release (see #10551).
-# AUTO (the former default) is kept as an alias for HIGHS, so existing build trees switch over.
-set(LP_SOLVER "HIGHS" CACHE STRING "LP solver to use: HIGHS (default), COIN (deprecated) or GLPK (deprecated)")
-set_property(CACHE LP_SOLVER PROPERTY STRINGS HIGHS COIN GLPK)
-if (LP_SOLVER STREQUAL "AUTO")
-  message(STATUS "LP_SOLVER=AUTO now selects HiGHS")
-  set(LP_SOLVER "HIGHS")
-endif()
-if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "GLPK")
-  message(DEPRECATION "LP_SOLVER=${LP_SOLVER} is deprecated and will be removed in the next OpenMS release. Use the default, HIGHS.")
-elseif (NOT LP_SOLVER STREQUAL "HIGHS")
-  message(FATAL_ERROR "Invalid LP_SOLVER '${LP_SOLVER}'. Use HIGHS (default), COIN or GLPK.")
+if (DEFINED LP_SOLVER AND NOT LP_SOLVER MATCHES "^(HIGHS|AUTO)$")
+  message(FATAL_ERROR "LP_SOLVER=${LP_SOLVER} is no longer supported: COIN-OR and GLPK support was removed and HiGHS "
+                      "is the only LP solver. Remove LP_SOLVER from your CMake cache/command line.")
 endif()
 
-if (LP_SOLVER STREQUAL "COIN")
-  find_package(COIN QUIET)
-  if (COIN_FOUND)
-    set(OPENMS_HAS_COINOR 1)
-    set(LPTARGET "CoinOR::CoinOR")
-    message(STATUS "LP solver: COIN-OR")
-  else()
-    message(FATAL_ERROR "LP_SOLVER set to COIN but COIN-OR was not found.")
-  endif()
-endif()
-
-if (LP_SOLVER STREQUAL "GLPK")
-  find_package(GLPK QUIET)
-  if (GLPK_FOUND)
-    set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
-    set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
-    set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
-    set(LPTARGET "GLPK::GLPK")
-    message(STATUS "LP solver: GLPK ${GLPK_VERSION_STRING}")
-  else()
-    message(FATAL_ERROR "LP_SOLVER set to GLPK but GLPK was not found.")
-  endif()
-endif()
-
-if (LP_SOLVER STREQUAL "HIGHS")
-  # Try to find a system-installed (or vcpkg) HiGHS first.
-  # 1.11 is the first release with the probing presolve rule LPWrapper switches off (LPWrapper.cpp guards the
-  # enumeration rule, added in 1.13, by version).
-  find_package(highs 1.11 QUIET CONFIG)
-  if (highs_FOUND)
-    set(OPENMS_HAS_HIGHS 1)
-    set(LPTARGET "highs::highs")
-    message(STATUS "LP solver: HiGHS ${highs_VERSION} (system)")
-  else()
-    # Fetch HiGHS via FetchContent
-    include(FetchContent)
-    FetchContent_Declare(
-      highs
-      GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
-      GIT_TAG        v1.14.0
-      GIT_SHALLOW    TRUE
-    )
-    # Settings for the HiGHS subproject only (normal variables, restored afterwards; HiGHS' option()s honor them):
-    # - static + PIC: HiGHS is linked into libOpenMS, so no extra shared library has to be installed or shipped
-    #   alongside it (OpenMS sets BUILD_SHARED_LIBS=ON for libOpenMS itself)
-    # - no LTO: OpenMS is a CXX-only project, so the C compiler HiGHS enables may differ from the C++ compiler
-    #   (e.g. clang vs. gcc), and their LTO objects cannot be linked together
-    # - only the library: no tests, examples or the highs executable
-    set(_openms_highs_saved_vars BUILD_SHARED_LIBS CMAKE_POSITION_INDEPENDENT_CODE CMAKE_INTERPROCEDURAL_OPTIMIZATION
-                                 BUILD_TESTING BUILD_EXAMPLES BUILD_CXX_EXE HIGHS_BUILD_TESTING)
-    foreach(_var IN LISTS _openms_highs_saved_vars)
-      if (DEFINED ${_var})
-        set(_openms_highs_saved_${_var} "${${_var}}")
-      endif()
-    endforeach()
-    set(BUILD_SHARED_LIBS OFF)
-    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
-    set(BUILD_TESTING OFF)
-    set(BUILD_EXAMPLES OFF)
-    set(BUILD_CXX_EXE OFF)
-    set(HIGHS_BUILD_TESTING OFF)
-    FetchContent_MakeAvailable(highs)
-    foreach(_var IN LISTS _openms_highs_saved_vars)
-      if (DEFINED _openms_highs_saved_${_var})
-        set(${_var} "${_openms_highs_saved_${_var}}")
-        unset(_openms_highs_saved_${_var})
-      else()
-        unset(${_var})
-      endif()
-    endforeach()
-    set(OPENMS_HAS_HIGHS 1)
-    set(LPTARGET "highs")
-    message(STATUS "LP solver: HiGHS (FetchContent)")
-  endif()
-endif()
-
-
-# Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)
-if (NOT DEFINED CF_OPENMS_GLPK_VERSION_MAJOR)
-  set(CF_OPENMS_GLPK_VERSION_MAJOR 0)
-  set(CF_OPENMS_GLPK_VERSION_MINOR 0)
-  set(CF_OPENMS_GLPK_VERSION "0.0")
+# Try to find a system-installed (or vcpkg) HiGHS first.
+# 1.11 is the first release with the probing presolve rule LPWrapper switches off (LPWrapper.cpp guards the
+# enumeration rule, added in 1.13, by version).
+find_package(highs 1.11 QUIET CONFIG)
+if (highs_FOUND)
+  set(LPTARGET "highs::highs")
+  message(STATUS "LP solver: HiGHS ${highs_VERSION} (system)")
+else()
+  # Fetch HiGHS via FetchContent
+  include(FetchContent)
+  FetchContent_Declare(
+    highs
+    GIT_REPOSITORY https://github.com/ERGO-Code/HiGHS.git
+    GIT_TAG        v1.14.0
+    GIT_SHALLOW    TRUE
+  )
+  # Settings for the HiGHS subproject only (normal variables, restored afterwards; HiGHS' option()s honor them):
+  # - static + PIC: HiGHS is linked into libOpenMS, so no extra shared library has to be installed or shipped
+  #   alongside it (OpenMS sets BUILD_SHARED_LIBS=ON for libOpenMS itself)
+  # - no LTO: OpenMS is a CXX-only project, so the C compiler HiGHS enables may differ from the C++ compiler
+  #   (e.g. clang vs. gcc), and their LTO objects cannot be linked together
+  # - only the library: no tests, examples or the highs executable
+  set(_openms_highs_saved_vars BUILD_SHARED_LIBS CMAKE_POSITION_INDEPENDENT_CODE CMAKE_INTERPROCEDURAL_OPTIMIZATION
+                               BUILD_TESTING BUILD_EXAMPLES BUILD_CXX_EXE HIGHS_BUILD_TESTING)
+  foreach(_var IN LISTS _openms_highs_saved_vars)
+    if (DEFINED ${_var})
+      set(_openms_highs_saved_${_var} "${${_var}}")
+    endif()
+  endforeach()
+  set(BUILD_SHARED_LIBS OFF)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+  set(BUILD_TESTING OFF)
+  set(BUILD_EXAMPLES OFF)
+  set(BUILD_CXX_EXE OFF)
+  set(HIGHS_BUILD_TESTING OFF)
+  FetchContent_MakeAvailable(highs)
+  foreach(_var IN LISTS _openms_highs_saved_vars)
+    if (DEFINED _openms_highs_saved_${_var})
+      set(${_var} "${_openms_highs_saved_${_var}}")
+      unset(_openms_highs_saved_${_var})
+    else()
+      unset(${_var})
+    endif()
+  endforeach()
+  set(LPTARGET "highs")
+  message(STATUS "LP solver: HiGHS (FetchContent)")
 endif()
 
 #------------------------------------------------------------------------------

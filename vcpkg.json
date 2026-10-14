@@ -142,21 +142,8 @@
         }
       ]
     },
-    "lp-glpk": {
-      "description": "Select GLPK (deprecated) as linear programming solver backend via -DLP_SOLVER=GLPK.",
-      "dependencies": [
-        {
-          "name": "glpk",
-          "default-features": false
-        }
-      ]
-    },
     "lp-highs": {
-      "description": "Deprecated no-op: HiGHS is now the default linear programming solver backend and a regular dependency."
-    },
-    "lp-coin": {
-      "description": "Select COIN-OR (deprecated) as linear programming solver backend via -DLP_SOLVER=COIN.",
-      "dependencies": ["coin-or-cbc", "coin-or-cgl", "coin-or-clp", "coin-or-osi", "coinutils"]
+      "description": "Deprecated no-op: HiGHS is the only linear programming solver backend and a regular dependency."
     }
   }
 }
