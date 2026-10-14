@@ -187,13 +187,15 @@ build, 16 threads) on a 60-minute Orbitrap TMT run (6,103 MS2 spectra, 78 MB mzM
 | *Erwinia*, open search (±500 Da) | 0.5 M | 0.9 GB | 3.9 s | 0.46 GB, 5.7 s |
 | human (20,652 proteins), tryptic | 4.0 M | 2.0 GB | 8.6 s | 1.6 GB, 6.2 s |
 | human, semi-tryptic | | more than 4 GB: stops | | 28 GB, 47 s |
-| human, semi-tryptic, `database:chunk_size` 2000 | 77 M | 2.4 GB | 24 s | |
+| human, semi-tryptic, `database:chunk_size` 2000 | 77 M | 3.8 GB | 24 s | 1.2 GB, 43 s |
 
 (Native: the ProSE tool of June 2026 in a container, which adds about a second of startup.)
 `database:chunk_size` builds and searches the index in parts and so keeps larger searches under
 4 GB; `low_memory` does the same for non-specific searches. A 64-bit module (Memory64) would
 raise the limit (Chrome and Firefox allow up to 16 GB; Safari does not support Memory64 yet,
-as far as known), but it is not built yet. More threads than about
+as far as known). Measured with a local wasm64 build, it did not pay off for ProSE: 10 to 20%
+slower, 1.5 to 3 times the memory, and the semi-tryptic human search above still needed
+chunking (it needs more than 16 GB without); Embind would also pass `size_t` as BigInt. More threads than about
 8 to 16 hardly shortened these searches: decoy generation, parts of the index build and reading
 the spectra are serial.
 
