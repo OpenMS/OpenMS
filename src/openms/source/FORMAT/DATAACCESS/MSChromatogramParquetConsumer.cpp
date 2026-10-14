@@ -642,6 +642,7 @@ namespace OpenMS
       intensity_data_builder_       = arrow::BinaryBuilder();
       rt_compression_builder_       = arrow::Int64Builder();
       intensity_compression_builder_= arrow::Int64Builder();
+      const size_t batch_bytes = accumulated_binary_bytes_;
       accumulated_rows_             = 0;
       accumulated_binary_bytes_     = 0;
 
@@ -662,7 +663,7 @@ namespace OpenMS
                                       "XIC table schema validation failed: " + validation.toString(), "");
       }
 
-      submitTable_(std::move(table));
+      submitTable_(std::move(table), batch_bytes);
     }
 
     /**
@@ -670,18 +671,22 @@ namespace OpenMS
 
       Writing a batch means compressing it (ZSTD), and the caller holds the lock that serializes
       all chromatogram output. A single thread writes the batches in the order in which they are
-      submitted, so the file is the same as when every batch is written in place; the queue is
-      bounded, so a slow disk still holds the producers back.
+      submitted, so the file is the same as when every batch is written in place. The queue is
+      bounded by the size of the encoded arrays it holds, so a slow disk still holds the
+      producers back; the bound is large enough for the burst at the end of a scheduler wave of
+      OpenSwathWorkflow, when all threads deliver their chromatograms at once (a bound of 64
+      batches made them wait for the compression again).
     */
-    void submitTable_(std::shared_ptr<arrow::Table> table)
+    void submitTable_(std::shared_ptr<arrow::Table> table, const size_t batch_bytes)
     {
       std::unique_lock<std::mutex> lock(writer_mutex_);
-      writer_cv_.wait(lock, [this]() { return writer_error_ != nullptr || pending_tables_.size() < max_pending_tables_; });
+      writer_cv_.wait(lock, [this]() { return writer_error_ != nullptr || pending_tables_.empty() || pending_bytes_ < max_pending_bytes_; });
       if (writer_error_)
       {
         std::rethrow_exception(writer_error_); // kept, so that finalize() reports it as well
       }
-      pending_tables_.push_back(std::move(table));
+      pending_tables_.push_back({std::move(table), batch_bytes});
+      pending_bytes_ += batch_bytes;
       table_submitted_ = true;
       if (!writer_thread_.joinable())
       {
@@ -696,7 +701,7 @@ namespace OpenMS
     {
       while (true)
       {
-        std::shared_ptr<arrow::Table> table;
+        PendingTable batch;
         {
           std::unique_lock<std::mutex> lock(writer_mutex_);
           writer_cv_.wait(lock, [this]() { return writer_stop_ || !pending_tables_.empty(); });
@@ -704,22 +709,28 @@ namespace OpenMS
           {
             return; // stop requested and everything is written
           }
-          table = std::move(pending_tables_.front());
+          batch = std::move(pending_tables_.front());
           pending_tables_.pop_front();
         }
-        writer_cv_.notify_all(); // room for the next batch
         try
         {
-          writeTable_(*table);
+          writeTable_(*batch.table);
         }
         catch (...)
         {
           std::lock_guard<std::mutex> lock(writer_mutex_);
           writer_error_ = std::current_exception();
           pending_tables_.clear();
+          pending_bytes_ = 0;
           writer_cv_.notify_all();
           return;
         }
+        batch.table.reset();
+        {
+          std::lock_guard<std::mutex> lock(writer_mutex_);
+          pending_bytes_ -= batch.bytes;
+        }
+        writer_cv_.notify_all(); // room for further batches
       }
     }
 
@@ -829,11 +840,17 @@ namespace OpenMS
     std::thread writer_thread_;
     std::mutex writer_mutex_;
     std::condition_variable writer_cv_;
-    std::deque<std::shared_ptr<arrow::Table>> pending_tables_;
+    struct PendingTable
+    {
+      std::shared_ptr<arrow::Table> table;
+      size_t bytes = 0; ///< size of the encoded RT and intensity arrays of the batch
+    };
+    std::deque<PendingTable> pending_tables_;
+    size_t pending_bytes_ = 0; ///< encoded arrays queued or being written
     bool writer_stop_ = false;
     bool table_submitted_ = false; ///< a batch (possibly empty) was handed over, so the file will exist
     std::exception_ptr writer_error_;
-    static constexpr size_t max_pending_tables_ = 64;
+    static constexpr size_t max_pending_bytes_ = 512ULL * 1024 * 1024;
     std::shared_ptr<arrow::Schema> schema_;
   };
 
