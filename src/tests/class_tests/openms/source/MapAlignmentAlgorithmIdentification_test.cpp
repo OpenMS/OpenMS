@@ -411,6 +411,96 @@ START_SECTION((template <typename DataType> void setReference(DataType& data)))
 END_SECTION
 
 
+START_SECTION(([EXTRA] setReference() filters the reference with 'min_score', as align() does))
+{
+  // Feature maps whose identifications have lower-is-better scores. The last one of the reference is above the cut-off.
+  const std::vector<std::string> sequences = {"PEPTIDEK", "PEPTIDER", "ELVISLIVESK", "DLGEEHFK", "LVNELTEFAK",
+                                              "YLYEIAR", "AEFVEVTK", "QTALVELLK", "HLVDEPQNLIK", "GACLLPK"};
+  const auto feature_map = [&](double shift, double last_score) {
+    FeatureMap map;
+    for (Size i = 0; i < sequences.size(); ++i)
+    {
+      Feature feature;
+      feature.setRT(100.0 * double(i + 1) + shift);
+      feature.setMZ(500.0 + double(i));
+      PeptideIdentification peptide;
+      peptide.setRT(feature.getRT());
+      peptide.setMZ(feature.getMZ());
+      peptide.setScoreType("Posterior Error Probability");
+      peptide.setHigherScoreBetter(false);
+      peptide.insertHit(PeptideHit(i + 1 == sequences.size() ? last_score : 0.01, 1, 2, AASequence::fromString(sequences[i])));
+      feature.getPeptideIdentifications().push_back(peptide);
+      map.push_back(feature);
+    }
+    return map;
+  };
+  MapAlignmentAlgorithmIdentification cutoff_aligner;
+  Param cutoff_params = cutoff_aligner.getParameters();
+  cutoff_params.setValue("score_cutoff", "true");
+  cutoff_params.setValue("min_score", 0.05);
+  cutoff_aligner.setParameters(cutoff_params);
+  // setReference() is called before align(), so 'min_score' was not read yet: the reference kept no identification
+  // (none has a score of at most 0) and setReference() threw
+  cutoff_aligner.setReference(feature_map(0.0, 0.5));
+  std::vector<FeatureMap> maps = {feature_map(10.0, 0.01)};
+  std::vector<TransformationDescription> transforms;
+  cutoff_aligner.align(maps, transforms);
+  ABORT_IF(transforms.size() != 1)
+  // the identifications of the reference within the cut-off: all but the last
+  TEST_EQUAL(transforms[0].getDataPoints().size(), sequences.size() - 1)
+  for (const auto& point : transforms[0].getDataPoints())
+  {
+    TEST_REAL_SIMILAR(point.first - point.second, 10.0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] setReference() tells adducts apart according to 'use_adducts', as align() does))
+{
+  // identifications of oligos, all with a sodium adduct
+  const std::vector<std::string> sequences = {"ACGU", "AACCGGUU", "GGGAAA", "UUUCCC", "ACACAC"};
+  const auto id_data = [&](double shift) {
+    IdentificationData data;
+    auto& run = data.addRun("NASE", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+    IdentificationData::ScoreDefinition hyperscore;
+    hyperscore.name = "hyperscore";
+    run.setPrimaryScore(run.addScore(hyperscore));
+    IdentificationData::SourceFile file;
+    file.path = "test.mzML";
+    const auto source = run.addSource(file);
+    for (Size i = 0; i < sequences.size(); ++i)
+    {
+      IdentificationData::Observation observation;
+      observation.data_id = "scan=" + StringUtils::toStr(i + 1);
+      observation.rt = 100.0 * double(i + 1) + shift;
+      observation.mz = 500.0 + double(i);
+      IdentificationData::MatchData match;
+      match.encoding = IdentificationData::Encoding::NA_SEQUENCE;
+      match.representation = sequences[i];
+      match.charge = -2;
+      // the adduct of the ion, as NucleicAcidSearchEngine stores "Na:+" for charge -2: [M+Na-3H]2-
+      match.details.emplace().adduct = AdductInfo("Na:+", EmpiricalFormula("Na") + EmpiricalFormula("H") * -3, -2);
+      run.addMatch(run.addIdentification(source, observation), match, {10.0});
+    }
+    return data;
+  };
+  // 'use_adducts' is "true" by default; setReference() is called before align(), which read it so far
+  MapAlignmentAlgorithmIdentification adduct_aligner;
+  adduct_aligner.setReference(id_data(0.0));
+  std::vector<IdentificationData> inputs;
+  inputs.push_back(id_data(10.0));
+  std::vector<TransformationDescription> transforms;
+  adduct_aligner.align(inputs, transforms);
+  ABORT_IF(transforms.size() != 1)
+  // the reference and the input share all adducted oligos
+  TEST_EQUAL(transforms[0].getDataPoints().size(), sequences.size())
+  for (const auto& point : transforms[0].getDataPoints())
+  {
+    TEST_REAL_SIMILAR(point.first - point.second, 10.0)
+  }
+}
+END_SECTION
+
 // can't test protected methods...
 
 // START_SECTION((void computeMedians_(SeqToList&, SeqToValue&, bool)))

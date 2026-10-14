@@ -77,6 +77,8 @@ public:
       use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       score_cutoff_ = param_.getValue("score_cutoff").toBool();
       score_type_ = StringUtils::toStr(param_.getValue("score_type"));
+      min_score_ = param_.getValue("min_score");
+      use_adducts_ = param_.getValue("use_adducts").toBool();
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
 

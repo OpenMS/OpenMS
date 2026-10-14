@@ -64,10 +64,14 @@ namespace OpenMS
     cleavage_regex_ = "";
     if (StringUtils::toLower(sense) == "c")
     {
-      cleavage_regex_ += "(?<=[" + cut_before + "]";
-      if (!nocut_after.empty())
+      cleavage_regex_ += "(?<=[" + cut_before + "])";
+      if (nocut_after.size() == 1)
       {
-        cleavage_regex_ += "(?!" + nocut_after + "])";
+        cleavage_regex_ += "(?!" + nocut_after + ")"; // e.g. Trypsin: (?<=[KRX])(?!P)
+      }
+      else if (!nocut_after.empty())
+      {
+        cleavage_regex_ += "(?![" + nocut_after + "])";
       }
     }
     else if (StringUtils::toLower(sense) == "n")
@@ -76,7 +80,7 @@ namespace OpenMS
       {
         cleavage_regex_ += "(?<![" + nocut_after + "])";
       }
-      cleavage_regex_ += "(?=[" + cut_before + "]";
+      cleavage_regex_ += "(?=[" + cut_before + "])";
     }
     else
     {

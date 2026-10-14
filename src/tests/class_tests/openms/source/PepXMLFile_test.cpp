@@ -76,7 +76,7 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
   TEST_EQUAL(proteins.size(), 1);
   TEST_FALSE(peptides.empty());
   TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
-  TEST_FALSE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
+  TEST_STRING_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getRegEx(), "(?<=[KRX])"); // see #10569
 }
 END_SECTION
 
