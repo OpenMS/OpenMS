@@ -23,9 +23,9 @@ The bindings cover a selection of the OpenMS API, named as in C++ and pyOpenMS:
 | Chemistry | `AASequence`, `EmpiricalFormula`, `IsotopeDistribution`, `CoarseIsotopePatternGenerator`, `FineIsotopePatternGenerator`, `ResidueDB`, `ModificationsDB`, `ProteaseDB`, `ProteaseDigestion`, `TheoreticalSpectrumGenerator` |
 | Signal processing | `PeakPickerHiRes`, `GaussFilter`, `SavitzkyGolayFilter`, `Normalizer`, `ThresholdMower`, `WindowMower`, `NLargest`, `SpectrumAlignment`, `SpectrumAlignmentScore` |
 | Features | `Feature`, `FeatureMap`, `ConsensusMap`, `MassTraceDetection`, `ElutionPeakDetection`, `FeatureFindingMetabo` |
-| Identification | `PeptideHit`, `PeptideIdentification(List)`, `ProteinHit`, `ProteinIdentification(List)`, `SimpleSearchEngineAlgorithm` |
+| Identification | `PeptideHit` (with `getPeakAnnotations()`), `PeptideIdentification(List)`, `ProteinHit`, `ProteinIdentification(List)`, `SimpleSearchEngineAlgorithm`, `ProSEAlgorithm`, `annotateSpectrum()` |
 | Parameters | `Param`, and on every algorithm `getParameters()`/`setParameters()`, `getParameterValues()`/`setParameterValues({...})` |
-| Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, the file system `FS` |
+| Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, `getThreadingInfo()`, `getMemoryInfo()`, the file system `FS` |
 
 `openms.d.ts` declares all of them for TypeScript, including the shapes of the plain objects
 they return (e.g. `getPeaks(): { mz: Float64Array; intensity: Float32Array }`).
@@ -104,7 +104,11 @@ const result = OpenMS.FS.readFile("/tmp/features.featureXML");   // Uint8Array
 - Node.js: mount a directory, `FS.mount(FS.filesystems.NODEFS, { root: "/data" }, "/data")`.
 - Web Workers: mount `File` objects,
   `FS.mount(FS.filesystems.WORKERFS, { files: [file] }, "/input")`; OpenMS then reads
-  them in pieces.
+  them in pieces. In the threaded build, not for files that OpenMS reads on a helper thread
+  while the calling thread computes (ProSE reads the spectra that way): the file system lives
+  on the calling thread, so each read of the helper waits for it, and WORKERFS reads are slow.
+  A ProSE search of a 78 MB mzML file on 16 threads took 29 s from WORKERFS, 2 s from a copy
+  in memory (`FS.writeFile`).
 
 Gzip- and bzip2-compressed mzML files are read as usual.
 
@@ -138,6 +142,58 @@ picker.pickExperiment(profileExperiment, centroided);
 `getDefaults().getEntries()` lists every parameter with its type, default, description,
 allowed values and limits, e.g. to build a settings form. Invalid values are rejected
 when the parameters are set.
+
+### Database search with ProSE
+
+`ProSEAlgorithm.search(spectra, database, proteins, peptides)` searches an mzML file against a
+FASTA file as the ProSE tool does for one input file: the search with PSM-level FDR
+(`FDR:PSM`), then, if `FDR:protein` is set and the database has decoys, protein inference with
+picked-protein FDR. (Percolator rescoring is not available: it runs an external program.) It
+fills the two lists and returns a summary: the statistics of the run and of the fragment index,
+and for open searches the modification analysis (delta-mass histogram, mapped PTMs).
+
+```js
+const prose = new OpenMS.ProSEAlgorithm();
+prose.setParameterValues({ "fragment:mass_tolerance": 0.02, "modifications:fixed": ["Carbamidomethyl (C)"] });
+prose.setProgressCallback((p) => postMessage(p));   // { event, label, depth, begin, end, value }
+const proteins = new OpenMS.ProteinIdentificationList(), peptides = new OpenMS.PeptideIdentificationList();
+const summary = prose.search("/input/run.mzML", "/input/db.fasta", proteins, peptides);
+summary.run.targetPSMs; summary.search.indexedPeptides; summary.modificationAnalysis?.ptms.entries;
+```
+
+The progress callback is called while the search runs, on the thread that set it: in a Web
+Worker, forward the reports to the page with `postMessage()`. Each hit carries the fragment ions
+ProSE matched (`hit.getPeakAnnotations()`, on the preprocessed spectrum); `annotateSpectrum(spectrum,
+peptide, charge, { tolerance, unit, ions, losses })` matches the ions of a peptide to the peaks of
+a spectrum as measured, for spectrum viewers. `getMemoryInfo().heapSize` after a search is its
+memory high-water mark (WebAssembly memory does not shrink).
+
+`examples/prose/` is a web application around it: settings generated from ProSE's parameters,
+progress, summary, score and mass-error distributions, delta masses of open searches, PSM and
+protein tables, and for each PSM the sequence with its fragment coverage, the annotated spectrum
+mirrored against the theoretical one and the fragment mass errors; idXML and TSV downloads. It
+runs OpenMS in a Web Worker with all cores on cross-origin isolated pages. `examples/node/prose.mjs`
+runs a search from the command line and reports time and memory.
+
+Memory is the limit of a browser search: the module can address 4 GB, and a search that needs
+more stops the module (a WebAssembly trap; start a new one). Measured with Node.js (threaded
+build, 16 threads) on a 60-minute Orbitrap TMT run (6,103 MS2 spectra, 78 MB mzML):
+
+| Database, search | Indexed peptides | Memory | Time | Native ProSE (memory, time) |
+|---|---|---|---|---|
+| *Erwinia* (4,499 proteins), tryptic | 0.5 M | 0.9 GB | 2.9 s | 0.25 GB, 2.5 s |
+| *Erwinia*, open search (±500 Da) | 0.5 M | 0.9 GB | 3.9 s | 0.46 GB, 5.7 s |
+| human (20,652 proteins), tryptic | 4.0 M | 2.0 GB | 8.6 s | 1.6 GB, 6.2 s |
+| human, semi-tryptic | | more than 4 GB: stops | | 28 GB, 47 s |
+| human, semi-tryptic, `database:chunk_size` 2000 | 77 M | 2.4 GB | 24 s | |
+
+(Native: the ProSE tool of June 2026 in a container, which adds about a second of startup.)
+`database:chunk_size` builds and searches the index in parts and so keeps larger searches under
+4 GB; `low_memory` does the same for non-specific searches. A 64-bit module (Memory64) would
+raise the limit (Chrome and Firefox allow up to 16 GB; Safari does not support Memory64 yet,
+as far as known), but it is not built yet. More threads than about
+8 to 16 hardly shortened these searches: decoy generation, parts of the index build and reading
+the spectra are serial.
 
 ### Errors
 

@@ -1,0 +1,68 @@
+/* The ProSE application; builds on ../browser/style.css. */
+
+body { max-width: 1180px; }
+
+.inputs .drop-zone { padding: 20px 16px; }
+.drop-zone.loaded { border-style: solid; border-color: var(--accent); color: var(--fg); }
+
+label.inline { flex-direction: row; align-items: center; gap: 6px; }
+
+.parameters { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 16px; margin: 8px 0 12px; }
+.parameters label { min-width: 0; }
+.parameters label > input:not([type="checkbox"]), .parameters label > select, .parameters label > textarea { width: 100%; }
+.parameters label.checkbox { flex-direction: row; align-items: center; gap: 6px; }
+.parameters textarea { min-height: 2.6em; resize: vertical; font-family: inherit; font-size: 0.9rem; }
+.parameters .advanced { display: none; }
+.show-advanced .parameters .advanced { display: flex; }
+.parameters label[title] { cursor: help; }
+details summary { cursor: pointer; color: var(--accent); margin: 8px 0; }
+details h3 { font-size: 0.95rem; margin: 16px 0 4px; color: var(--muted); }
+
+button.secondary { background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
+
+.progress { display: flex; align-items: center; gap: 12px; margin: 8px 0; font-size: 0.9rem; color: var(--muted); }
+.progress .bar { flex: 0 0 320px; height: 8px; background: var(--panel); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.progress .bar div { height: 100%; width: 0; background: var(--accent); transition: width 0.3s; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.card { background: var(--panel); border-radius: 8px; padding: 10px 12px; }
+.card .value { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.card .name { font-size: 0.8rem; color: var(--muted); }
+
+.plot .bar-target { fill: var(--series-1); opacity: 0.75; }
+.plot .bar-decoy { fill: var(--series-2); opacity: 0.75; }
+.plot .bar { fill: var(--series-1); }
+.plot .bar.known { fill: var(--series-2); }
+.plot .peak { stroke: var(--muted); stroke-width: 1; opacity: 0.55; }
+.plot .peak.b, .plot .peak.a, .plot .peak.c { stroke: var(--series-1); stroke-width: 1.8; opacity: 1; }
+.plot .peak.y, .plot .peak.x, .plot .peak.z { stroke: var(--series-2); stroke-width: 1.8; opacity: 1; }
+.plot .peak.theoretical { opacity: 0.7; }
+.plot .point.b, .plot .point.a, .plot .point.c { fill: var(--series-1); }
+.plot .point.y, .plot .point.x, .plot .point.z { fill: var(--series-2); }
+.plot text.ion-label.b, .plot text.ion-label.a, .plot text.ion-label.c { fill: var(--series-1); }
+.plot text.ion-label.y, .plot text.ion-label.x, .plot text.ion-label.z { fill: var(--series-2); }
+.plot .legend text { fill: var(--fg); }
+.plot .zero { stroke: var(--muted); stroke-dasharray: 3 3; }
+
+table.sortable th { cursor: pointer; user-select: none; }
+table.sortable th[aria-sort="ascending"]::after { content: " ▲"; font-size: 0.7em; }
+table.sortable th[aria-sort="descending"]::after { content: " ▼"; font-size: 0.7em; }
+table.data td.decoy { color: var(--series-2); }
+table.data td.sequence { font-family: ui-monospace, monospace; }
+.table-wrap.short { max-height: 220px; margin-top: 0; }
+
+/* Sequence with fragment coverage (as in FLASHViewer and the OpenMS Streamlit apps) */
+.sequence-view { display: flex; flex-wrap: wrap; gap: 0; padding: 12px 8px; background: var(--panel); border-radius: 8px; margin: 8px 0; }
+.sequence-view .residue { position: relative; width: 34px; height: 46px; display: flex; align-items: center; justify-content: center;
+  font: 600 18px ui-monospace, monospace; }
+.sequence-view .residue.modified { color: var(--accent); text-decoration: underline dotted; cursor: help; }
+.sequence-view .residue .index { position: absolute; bottom: 0; left: 2px; font-size: 9px; color: var(--muted); font-weight: 400; }
+/* The cleavage after residue k: b(k) as a bracket at the top, hooking left (the N-terminal part);
+   y(n-k) at the bottom, hooking right (the C-terminal part). */
+.sequence-view .residue.b::after, .sequence-view .residue.y::before {
+  content: ""; position: absolute; right: -2px; width: 8px; height: 12px; border-right: 2px solid;
+}
+.sequence-view .residue.b::after { top: 2px; border-top: 2px solid; border-color: var(--series-1); }
+.sequence-view .residue.y::before { bottom: 2px; right: -8px; border-right: none; border-left: 2px solid; border-bottom: 2px solid;
+  border-color: var(--series-2); }
+.sequence-view .coverage { width: 100%; font-size: 0.8rem; color: var(--muted); margin-top: 6px; }

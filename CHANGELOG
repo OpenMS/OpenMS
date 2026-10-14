@@ -422,6 +422,10 @@ Build System:
     where threads are available (Node.js; browsers on cross-origin isolated pages). The
     WebAssembly build uses HiGHS as LP solver and has no network access, external programs, vendor
     formats or GUI (src/openms_wasm/README.md) (#10564).
+  - WebAssembly: JavaScript bindings of the search engine ProSE (ProSEAlgorithm: search with
+    statistics, modification analysis of open searches, progress reports, q-values) and of
+    spectrum annotation (annotateSpectrum, PeptideHit.getPeakAnnotations), and a web
+    application around ProSE (src/openms_wasm/examples/prose).
   - New CMake option WITH_CURL (default ON): without libcurl, NetworkGetRequest and
     MascotRemoteQuery report an error when run, and the update check is off.
   - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX
