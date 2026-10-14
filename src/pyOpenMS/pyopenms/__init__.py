@@ -21,7 +21,7 @@ Please cite:
 """
 from __future__ import annotations
 
-import glob
+import glob as _glob
 import os
 import sys
 import warnings
@@ -189,11 +189,11 @@ if sys.platform.startswith("linux"):
     # load local shared libraries before we import pyopenms*.so, else
     # those are not found. setting LD_LIBRARY_PATH does not work,
     # see: http://stackoverflow.com/questions/1178094
-    openms_libraries = glob.glob(os.path.join(here, "libOpenMS.so.*"))
+    openms_libraries = _glob.glob(os.path.join(here, "libOpenMS.so.*"))
     if not openms_libraries:
         openms_libraries = [os.path.join(here, "libOpenMS.so")]
     if os.path.exists(openms_libraries[0]):
-        openswath_libraries = glob.glob(os.path.join(here, "libOpenSwathAlgo.so.*"))
+        openswath_libraries = _glob.glob(os.path.join(here, "libOpenSwathAlgo.so.*"))
         if not openswath_libraries:
             openswath_libraries = [os.path.join(here, "libOpenSwathAlgo.so")]
         import ctypes
