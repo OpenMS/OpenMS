@@ -37,6 +37,7 @@
 #include <deque>
 #include <exception>
 #include <filesystem>
+#include <functional>
 #include <limits>
 #include <map>
 #include <mutex>
@@ -387,6 +388,37 @@ struct ThermoRawScanReader::Impl
     read.noise = options.noise_data;
     return read;
   }
+  /// Instrument configuration id of a scan; a new analyzer / ionization combination is registered.
+  const std::string& configurationId(const tb::ScanHeader& h)
+  {
+    const std::string analyzer = tb::mass_analyzer_name(h.analyzer), ionization = tb::ionization_mode_name(h.ionization);
+    const std::string configuration_key = analyzer + ":" + ionization;
+    auto configuration = configurations.find(configuration_key);
+    if (configuration == configurations.end())
+    {
+      const std::string id = configurations.empty() ? "ic_0" : "thermo_ic_" + std::to_string(configurations.size());
+      configuration = configurations.emplace(configuration_key, id).first;
+      Instrument config = instrument;
+      IonSource ion_source;
+      ion_source.setIonizationMethod(mapIonization(ionization));
+      ion_source.setOrder(1);
+      ion_source.setMetaValue("ionization accession", openms::thermo_bridge::cv_ionization_mode(ionization).accession);
+      config.getIonSources().push_back(ion_source);
+      MassAnalyzer mass_analyzer;
+      mass_analyzer.setType(mapAnalyzer(analyzer, model));
+      mass_analyzer.setOrder(2);
+      mass_analyzer.setMetaValue("mass analyzer accession", openms::thermo_bridge::cv_mass_analyzer(analyzer, model).accession);
+      config.getMassAnalyzers().push_back(mass_analyzer);
+      IonDetector detector;
+      detector.setType(analyzer == "MassAnalyzerASTMS" ? IonDetector::Type::CONVERSIONDYNODEELECTRONMULTIPLIER
+                                                       : detectorForAnalyzer(mass_analyzer.getType()));
+      detector.setOrder(3);
+      config.getIonDetectors().push_back(detector);
+      new_configurations.emplace_back(id, std::move(config));
+    }
+    return configuration->second;
+  }
+
   ThermoScan scan;
   std::string order;
   bool neutral = false;
@@ -660,32 +692,7 @@ const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan, bool 
   // The precursor parser has to see every scan in acquisition order, also those that are not converted.
   if (d.neutral) { d.precursors.clear(); }
   else { d.precursors = d.precursor_parser.precursors(d.scan); }
-  const std::string analyzer = tb::mass_analyzer_name(h.analyzer), ionization = tb::ionization_mode_name(h.ionization);
-  const std::string configuration_key = analyzer + ":" + ionization;
-  auto configuration = d.configurations.find(configuration_key);
-  if (configuration == d.configurations.end())
-  {
-    const std::string id = d.configurations.empty() ? "ic_0" : "thermo_ic_" + std::to_string(d.configurations.size());
-    configuration = d.configurations.emplace(configuration_key, id).first;
-    Instrument config = d.instrument;
-    IonSource ion_source;
-    ion_source.setIonizationMethod(mapIonization(ionization));
-    ion_source.setOrder(1);
-    ion_source.setMetaValue("ionization accession", openms::thermo_bridge::cv_ionization_mode(ionization).accession);
-    config.getIonSources().push_back(ion_source);
-    MassAnalyzer mass_analyzer;
-    mass_analyzer.setType(mapAnalyzer(analyzer, d.model));
-    mass_analyzer.setOrder(2);
-    mass_analyzer.setMetaValue("mass analyzer accession", openms::thermo_bridge::cv_mass_analyzer(analyzer, d.model).accession);
-    config.getMassAnalyzers().push_back(mass_analyzer);
-    IonDetector detector;
-    detector.setType(analyzer == "MassAnalyzerASTMS" ? IonDetector::Type::CONVERSIONDYNODEELECTRONMULTIPLIER
-                                                     : detectorForAnalyzer(mass_analyzer.getType()));
-    detector.setOrder(3);
-    config.getIonDetectors().push_back(detector);
-    d.new_configurations.emplace_back(id, std::move(config));
-  }
-  d.configuration_id = configuration->second;
+  d.configuration_id = d.configurationId(h);
   const int level = h.ms_level();
   d.info.scan = scan;
   d.info.ms_level = level > 0 ? level : 0;
@@ -693,6 +700,42 @@ const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan, bool 
   d.info.precursor_mz = d.precursors.empty() ? std::numeric_limits<double>::quiet_NaN() : d.precursors.front().selected_mz;
   d.info.tic = std::isfinite(h.tic) ? h.tic : std::numeric_limits<double>::quiet_NaN();
   return d.info;
+}
+
+void ThermoRawScanReader::scanHeaders(int first, int last, bool precursors, const std::function<bool(const ScanInfo&)>& visit)
+{
+  Impl& d = *impl_;
+  tb::ReadOptions read;
+  read.peaks = false;
+  read.trailers = false;
+  read.trailer_text = precursors;
+  ThermoRawFileMetadata parser;
+  ThermoScan parsed;
+  tb::ScanBatch batch;
+  ScanInfo info;
+  // Chunks keep the batch buffers small while amortizing the per-call overhead of the bridge.
+  constexpr int chunk = 256;
+  for (int from = first; from <= last; from += chunk)
+  {
+    d.raw->read_scans(from, std::min(last, from + chunk - 1), batch, read);
+    for (const tb::ScanHeader& h : batch.headers)
+    {
+      d.configurationId(h);
+      const int level = h.ms_level();
+      info.scan = h.scan_number;
+      info.ms_level = level > 0 ? level : 0;
+      info.rt = h.retention_time * 60.0;
+      info.tic = std::isfinite(h.tic) ? h.tic : std::numeric_limits<double>::quiet_NaN();
+      info.precursor_mz = std::numeric_limits<double>::quiet_NaN();
+      if (precursors && h.ms_order != tb::MsOrder::Nl && h.ms_order != tb::MsOrder::Ng)
+      {
+        toThermoScan(h, d.raw->trailer_layout(), parsed);
+        const auto resolved = parser.precursors(parsed);
+        if (! resolved.empty()) { info.precursor_mz = resolved.front().selected_mz; }
+      }
+      if (! visit(info)) { return; }
+    }
+  }
 }
 
 void ThermoRawScanReader::addInstrumentConfigurations(ExperimentalSettings& settings)
@@ -930,10 +973,12 @@ void ThermoRawScanReader::readDetectors(std::vector<MSChromatogram>& chromatogra
   for (const auto& controller : d.metadata.at("controllers"))
   {
     if (text(controller, "name") != "Pda") { continue; }
-    d.raw->select_instrument(controller.at("type").get<int>(), controller.at("number").get<int>());
-    for (int scan = d.raw->first_scan_number(); scan <= d.raw->last_scan_number(); ++scan)
+    // A separate accessor keeps the MS controller selected for header() and convert().
+    openms::thermo_bridge::RawFile pda = d.raw->thread_accessor();
+    pda.select_instrument(controller.at("type").get<int>(), controller.at("number").get<int>());
+    for (int scan = pda.first_scan_number(); scan <= pda.last_scan_number(); ++scan)
     {
-      const Json meta = Json::parse(d.raw->scan_metadata_json(scan));
+      const Json meta = Json::parse(pda.scan_metadata_json(scan));
       MSSpectrum spectrum;
       spectrum.setNativeID(text(meta, "native_id"));
       spectrum.setRT(meta.at("retention_time").get<double>() * 60.0);
@@ -952,7 +997,7 @@ void ThermoRawScanReader::readDetectors(std::vector<MSChromatogram>& chromatogra
       {
         spectrum.getInstrumentSettings().getScanWindows().push_back(window);
       }
-      const auto data = d.raw->spectrum_data(scan, false);
+      const auto data = pda.spectrum_data(scan, false);
       if (! data.mz.empty())
       {
         const auto [lo, hi] = std::minmax_element(data.mz.begin(), data.mz.end());
