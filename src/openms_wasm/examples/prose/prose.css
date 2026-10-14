@@ -14,6 +14,8 @@ label.inline { flex-direction: row; align-items: center; gap: 6px; }
 .parameters textarea { min-height: 2.6em; resize: vertical; font-family: inherit; font-size: 0.9rem; }
 .parameters .advanced { display: none; }
 .show-advanced .parameters .advanced { display: flex; }
+details h3.advanced-section { display: none; }
+.show-advanced details h3.advanced-section { display: block; }
 .parameters label[title] { cursor: help; }
 details summary { cursor: pointer; color: var(--accent); margin: 8px 0; }
 details h3 { font-size: 0.95rem; margin: 16px 0 4px; color: var(--muted); }
@@ -21,6 +23,8 @@ details h3 { font-size: 0.95rem; margin: 16px 0 4px; color: var(--muted); }
 button.secondary { background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
 
 .progress { display: flex; align-items: center; gap: 12px; margin: 8px 0; font-size: 0.9rem; color: var(--muted); }
+/* (display: flex would override the hidden attribute) */
+.progress[hidden] { display: none; }
 .progress .bar { flex: 0 0 320px; height: 8px; background: var(--panel); border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
 .progress .bar div { height: 100%; width: 0; background: var(--accent); transition: width 0.3s; }
 
