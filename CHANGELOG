@@ -19,7 +19,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
 
 OpenMS Library:
-  - HiGHS is now the default LP/MIP solver (LP_SOLVER=HIGHS; the former default AUTO is an alias for it). COIN-OR and
+  - HiGHS is now the default LP/MIP solver (LP_SOLVER=HIGHS; the former default AUTO is an alias for it). A HiGHS >= 1.11
+    from vcpkg or the system is used if found, otherwise HiGHS is fetched and linked statically into libOpenMS. COIN-OR and
     GLPK (LP_SOLVER=COIN/GLPK, vcpkg features lp-coin/lp-glpk) are deprecated and will be removed in the next release (#10551).
     The HiGHS backend of LPWrapper now solves MIPs to proven optimality by default (mip_gap was ignored when 0), resets
     the time limit on every solve, batches integrality changes and skips the probing/enumeration presolve rules, which

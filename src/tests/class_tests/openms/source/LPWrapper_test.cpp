@@ -173,6 +173,38 @@ START_SECTION((void setColumnType(Int index, VariableType type)))
   TEST_REAL_SIMILAR(lp_types.getColumnValue(x), 1.0)
   TEST_REAL_SIMILAR(lp_types.getColumnValue(y), 1.5)
   TEST_EQUAL(lp_types.getColumnType(x), LPWrapper::INTEGER)
+
+  // types set right before writing must end up in the file (no getColumnType() in between)
+  LPWrapper lp_write;
+  lp_write.addColumn();
+  lp_write.addColumn();
+  lp_write.setColumnBounds(0, 0.0, 5.0, LPWrapper::DOUBLE_BOUNDED);
+  lp_write.setColumnBounds(1, 0.0, 5.0, LPWrapper::DOUBLE_BOUNDED);
+  lp_write.addRow(std::vector<Int>{0, 1}, std::vector<double>{1.0, 1.0}, std::string("r"), 0.0, 3.0, LPWrapper::UPPER_BOUND_ONLY);
+  lp_write.setColumnType(0, LPWrapper::INTEGER);
+  std::string write_filename;
+  NEW_TMP_FILE(write_filename);
+  write_filename += ".mps"; // HiGHS uses the extension to determine the format
+  lp_write.writeProblem(write_filename, LPWrapper::FORMAT_MPS);
+  LPWrapper lp_read;
+  lp_read.readProblem(write_filename, "MPS");
+  TEST_EQUAL(lp_read.getNumberOfColumns(), 2)
+  TEST_EQUAL(lp_read.getColumnType(0), LPWrapper::INTEGER)
+  TEST_EQUAL(lp_read.getColumnType(1), LPWrapper::CONTINUOUS)
+
+#ifdef OPENMS_HAS_HIGHS
+  // types staged before readProblem() must not be applied to the newly read model
+  LPWrapper lp_reread;
+  lp_reread.addColumn();
+  lp_reread.addColumn();
+  lp_reread.setColumnType(0, LPWrapper::CONTINUOUS);
+  lp_reread.setColumnType(1, LPWrapper::CONTINUOUS);
+  lp_reread.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"), "MPS");
+  TEST_EQUAL(lp_reread.getColumnType(0), LPWrapper::INTEGER)
+  TEST_EQUAL(lp_reread.getColumnType(1), LPWrapper::INTEGER)
+
+  TEST_EXCEPTION(Exception::IndexOverflow, lp_reread.setColumnType(2, LPWrapper::INTEGER))
+#endif
 }
 END_SECTION
 

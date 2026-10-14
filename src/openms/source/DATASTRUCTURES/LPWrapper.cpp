@@ -787,7 +787,8 @@ namespace OpenMS
     // Configure HiGHS options based on solver_param
     flushIntegrality_();
     highs_->setOptionValue("output_flag", verbose_level > 1);
-    // set (or reset) on every call, so a limit from a previous solve() does not carry over
+    // set (or reset) on every call, so a limit from a previous solve() does not carry over; the limit applies per
+    // solve(), since HiGHS' run clock accumulates over run() calls and is zeroed below
     highs_->setOptionValue("time_limit", solver_param.time_limit < (std::numeric_limits<Int>::max)()
                                            ? solver_param.time_limit / 1000.0 // convert ms to seconds
                                            : kHighsInf);
@@ -797,9 +798,14 @@ namespace OpenMS
     // Skip the probing and enumeration presolve rules. On the large binary set-packing ILPs OpenMS builds
     // (e.g. decharging), they spend most of the runtime building clique tables (50k-node instance:
     // 70 s -> 5 s, same optimum). Only switching off both helps; the remaining presolve rules stay on.
-    highs_->setOptionValue("presolve_rule_off", (HighsInt)((1 << kPresolveRuleProbing) | (1 << kPresolveRuleEnumeration)));
+    HighsInt presolve_rule_off = 1 << kPresolveRuleProbing;
+#if HIGHS_VERSION_MAJOR > 1 || HIGHS_VERSION_MINOR >= 13 // the enumeration rule was added in HiGHS 1.13
+    presolve_rule_off |= 1 << kPresolveRuleEnumeration;
+#endif
+    highs_->setOptionValue("presolve_rule_off", presolve_rule_off);
 
     // Solve
+    highs_->zeroAllClocks();
     HighsStatus status = highs_->run();
 
     // Store solution

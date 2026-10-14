@@ -371,6 +371,8 @@ public:
 
       @param[in] index
       @param[in] type 1- continuous, 2- integer, 3- binary variable
+
+      @exception Exception::IndexOverflow if @p index is not a valid column index (HiGHS backend)
      */
     void setColumnType(Int index, VariableType type);
 
