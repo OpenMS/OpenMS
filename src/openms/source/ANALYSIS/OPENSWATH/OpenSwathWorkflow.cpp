@@ -105,7 +105,7 @@ namespace OpenMS
         writer_(writer),
         buffer_budget_bytes_(std::max(buffer_budget_bytes, OSW_MIN_WRITE_BUFFER_BYTES))
       {
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) || defined(__EMSCRIPTEN_PTHREADS__)
         worker_ = std::thread([this]() { writerLoop_(); });
 #endif
       }
@@ -122,8 +122,8 @@ namespace OpenMS
           return;
         }
 
-#ifdef __EMSCRIPTEN__
-        // WebAssembly (without pthreads) has no writer thread: write the rows right away
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+        // WebAssembly without threads has no writer thread: write the rows right away
         {
           std::lock_guard<std::mutex> lock(mutex_);
           if (finish_requested_)

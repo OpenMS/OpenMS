@@ -1,7 +1,7 @@
 {
-  "name": "@openms/openms-wasm",
+  "name": "@OPENMS_WASM_PACKAGE_NAME@",
   "version": "@OPENMS_PACKAGE_VERSION@",
-  "description": "OpenMS, the C++ library for computational mass spectrometry, compiled to WebAssembly for web applications and Node.js",
+  "description": "@OPENMS_WASM_PACKAGE_DESCRIPTION@",
   "keywords": ["mass-spectrometry", "proteomics", "metabolomics", "webassembly", "openms"],
   "homepage": "https://www.openms.org",
   "repository": {

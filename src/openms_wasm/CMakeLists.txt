@@ -18,6 +18,8 @@
 #                 (with OpenMS' shared data, share/OpenMS, at /share/OpenMS of its file system)
 #   openms.d.ts   TypeScript declarations
 #   package.json, README.md, LICENSE
+# The package is @openms/openms-wasm, or @openms/openms-wasm-mt when built with threads
+# (OPENMS_WASM_THREADS, preset wasm32-emscripten-mt-release): same files, same API.
 #------------------------------------------------------------------------------
 
 project("OpenMS_wasm")
@@ -119,6 +121,23 @@ elseif(OPENMS_WASM_SHARE STREQUAL "PRELOAD")
 endif()
 # Relink when the data or the link options change.
 set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${_share_stamp}")
+
+## Threads: threads.js chooses the number of threads (Module.numThreads, OMP_NUM_THREADS)
+## and the number of Web Workers started with the module (openmsThreadPoolSize): none
+## in Node.js, which starts them on demand, and none on browser pages without shared
+## memory (not cross-origin isolated), where the module then runs single-threaded. A
+## fixed pool size would make the module hang at startup on such pages.
+if(OPENMS_WASM_THREADS)
+  target_link_options(openms_wasm PRIVATE
+    "--pre-js" "${CMAKE_CURRENT_SOURCE_DIR}/threads.js"
+    "-sPTHREAD_POOL_SIZE=openmsThreadPoolSize")
+  set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/threads.js")
+  set(OPENMS_WASM_PACKAGE_NAME "@openms/openms-wasm-mt")
+  set(OPENMS_WASM_PACKAGE_DESCRIPTION "OpenMS, the C++ library for computational mass spectrometry, compiled to multi-threaded WebAssembly (OpenMP) for web applications and Node.js")
+else()
+  set(OPENMS_WASM_PACKAGE_NAME "@openms/openms-wasm")
+  set(OPENMS_WASM_PACKAGE_DESCRIPTION "OpenMS, the C++ library for computational mass spectrometry, compiled to WebAssembly for web applications and Node.js")
+endif()
 
 #------------------------------------------------------------------------------
 # The npm package around the module

@@ -72,6 +72,7 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
 
   // processing
   register_type<Alignment>("[number, number][]");
+  register_type<ThreadingInfo>("ThreadingInfo", "{ threaded: boolean; available: boolean; numThreads: number }");
 
   // files
   register_type<PeakFileOptions>("PeakFileOptions",

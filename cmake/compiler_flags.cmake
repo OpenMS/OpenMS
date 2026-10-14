@@ -105,13 +105,17 @@ function(openms_add_compiler_flags target_name)
     target_compile_options(${target_name} PUBLIC -mssse3)
   endif()
 
-  # WebAssembly (cmake/emscripten.cmake): the exception handling mode is part of the
-  # usage requirements, as every object linked into a module has to use the same; the
-  # build itself already compiles everything with it. WebAssembly SIMD for the SSE
-  # code paths (via SIMDe), like -mssse3 above.
+  # WebAssembly (cmake/emscripten.cmake): the exception handling mode (and -pthread in a
+  # build with threads) is part of the usage requirements, as every object linked into a
+  # module has to use the same; the build itself already compiles everything with it.
+  # WebAssembly SIMD for the SSE code paths (via SIMDe), like -mssse3 above.
   if(EMSCRIPTEN)
     target_compile_options(${target_name} PUBLIC ${OPENMS_EMSCRIPTEN_EH_FLAG})
     target_link_options(${target_name} PUBLIC ${OPENMS_EMSCRIPTEN_EH_FLAG})
+    if(OPENMS_WASM_THREADS)
+      target_compile_options(${target_name} PUBLIC -pthread)
+      target_link_options(${target_name} PUBLIC -pthread)
+    endif()
     if(OPENMS_WASM_SIMD)
       target_compile_options(${target_name} PUBLIC -msimd128)
     endif()

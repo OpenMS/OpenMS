@@ -144,10 +144,35 @@ when the parameters are set.
 An OpenMS exception becomes a JavaScript `Error` whose message names it, e.g.
 `ParseError: ... while parsing 'PEPT[X'`.
 
+### Threads
+
+`@openms/openms-wasm` runs on a single thread: the parts of OpenMS parallelized with OpenMP
+run sequentially. `@openms/openms-wasm-mt` is the same module (same files, same API) built
+with threads: OpenMP regions (e.g. mzML decoding, feature finding, database search) and the
+helper threads of OpenMS run on WebAssembly threads, Web Workers (Node.js: worker threads)
+that share the module's memory.
+
+```js
+import createOpenMS from "@openms/openms-wasm-mt";
+const OpenMS = await createOpenMS({ numThreads: 4 });   // optional
+OpenMS.getThreadingInfo();   // { threaded: true, available: true, numThreads: 4 }
+```
+
+- **Node.js** needs nothing else. Without `numThreads`, OpenMS uses `OMP_NUM_THREADS` of the
+  process, else all logical cores.
+- **Browsers** allow shared memory only on cross-origin isolated pages: serve the page with
+  `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`
+  (`credentialless` also works in Chrome and Firefox, not in Safari). Elsewhere the module
+  runs single-threaded (`available: false`, `numThreads: 1`). The default there is half
+  the logical cores, at most 4; the Web Workers for these threads are started with the
+  module. Load the module in a Web Worker: on the page's main thread, waiting threads
+  busy-wait and block the page. Browser use of the threaded module is not validated yet.
+
+`getThreadingInfo()` exists in both packages (`threaded: false` in `@openms/openms-wasm`).
+
 ### Limits
 
-The module is a 32-bit (wasm32) program: it can address up to 4 GB. It runs on a single
-thread; the parts of OpenMS parallelized with OpenMP run sequentially. It cannot start
+The module is a 32-bit (wasm32) program: it can address up to 4 GB. It cannot start
 other programs (search engine adapters, R, Java), has no network access of its own
 (`NetworkGetRequest` reports an error; fetch data in JavaScript and write it to the file
 system), and cannot read vendor formats (Thermo RAW, Bruker .d): convert them to mzML
@@ -170,6 +195,12 @@ cmake --preset wasm32-emscripten-release      # build/wasm32-emscripten-release
 cmake --build build/wasm32-emscripten-release --target openms_wasm -j$(nproc)
 ctest --test-dir build/wasm32-emscripten-release -R openms_wasm --output-on-failure
 ```
+
+The multi-threaded package (`@openms/openms-wasm-mt`) comes from the preset
+`wasm32-emscripten-mt-release` (build directory `build/wasm32-emscripten-mt-release`): it sets
+`OPENMS_WASM_THREADS=ON` and builds the dependencies a second time, for the
+`wasm32-emscripten-mt` triplet (with `-pthread`), as a module with threads can only be linked
+from objects compiled for it.
 
 The npm package is written to `build/wasm32-emscripten-release/openms-wasm/`
 (`openms.mjs`, `openms.wasm`, `openms.d.ts`, `package.json`); `npm pack`

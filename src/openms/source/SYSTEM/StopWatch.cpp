@@ -127,8 +127,9 @@ namespace OpenMS
 
 #ifdef __EMSCRIPTEN__
     // Emscripten's times() reports no CPU time (a JavaScript engine does not expose it). Its
-    // process CPU-time clock is the elapsed time of the (single-threaded) module, the closest
-    // available measure: count it as user time, in the ticks times() would use.
+    // process CPU-time clock is the elapsed time of the module (also with threads: it does not
+    // add up the threads), the closest available measure: count it as user time, in the
+    // ticks times() would use.
     struct timespec cpu_time;
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &cpu_time);
     t.user_ticks = (TimeType)(cpu_time.tv_sec * (long long)cpu_speed_ + cpu_time.tv_nsec * (long long)cpu_speed_ / 1000000000LL);

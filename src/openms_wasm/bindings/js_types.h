@@ -70,6 +70,7 @@ namespace OpenMS::WASM::JS
 
   // processing
   OPENMS_WASM_JS_TYPE(Alignment);
+  OPENMS_WASM_JS_TYPE(ThreadingInfo);
 
   // files
   OPENMS_WASM_JS_TYPE(PeakFileOptions);

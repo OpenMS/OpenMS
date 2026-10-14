@@ -256,6 +256,16 @@
             }
         },
         {
+            "name": "wasm32-emscripten-mt-release",
+            "displayName": "WebAssembly (Emscripten) Release, multi-threaded",
+            "description": "Like wasm32-emscripten-release, but with threads: OpenMP (Emscripten's libomp) and std::thread on WebAssembly threads (Web Workers sharing memory). The dependencies are built for the wasm32-emscripten-mt triplet. The JavaScript module is published as @openms/openms-wasm-mt; in browsers it needs a cross-origin isolated page for more than one thread (see src/openms_wasm/README.md).",
+            "inherits": "wasm32-emscripten-release",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "wasm32-emscripten-mt",
+                "OPENMS_WASM_THREADS": "ON"
+            }
+        },
+        {
             "name": "linux-x64-ci",
             "displayName": "Linux x64 CI",
             "description": "OpenMS CI preset with vcpkg dependencies on Linux x64",
@@ -354,6 +364,10 @@
         {
             "name": "wasm32-emscripten-release",
             "configurePreset": "wasm32-emscripten-release"
+        },
+        {
+            "name": "wasm32-emscripten-mt-release",
+            "configurePreset": "wasm32-emscripten-mt-release"
         },
         {
             "name": "linux-x64-ci",

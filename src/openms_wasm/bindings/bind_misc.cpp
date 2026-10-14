@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// Version, shared data and logging.
+// Version, shared data, logging and threads.
 
 #include "binding_utils.h"
 
@@ -14,7 +14,13 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <emscripten/threading.h>
+
 #include <iostream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace emscripten;
 
@@ -58,6 +64,26 @@ namespace OpenMS::WASM
       auto [log, console] = logChannel(channel);
       return log->hasStream(*console);
     }
+
+    /// Whether the module is built with threads, whether it can start them (browsers: on a
+    /// cross-origin isolated page) and the number of threads OpenMS computes with.
+    JS::ThreadingInfo threadingInfo()
+    {
+      val info = val::object();
+#ifdef __EMSCRIPTEN_PTHREADS__
+      info.set("threaded", true);
+      info.set("available", emscripten_has_threading_support());
+#else
+      info.set("threaded", false);
+      info.set("available", false);
+#endif
+#ifdef _OPENMP
+      info.set("numThreads", omp_get_max_threads());
+#else
+      info.set("numThreads", 1);
+#endif
+      return info;
+    }
   } // namespace
 } // namespace OpenMS::WASM
 
@@ -71,4 +97,5 @@ EMSCRIPTEN_BINDINGS(openms_misc)
   function("getOpenMSDataPath", OMS_FN(&dataPath));
   function("setLogEnabled", OMS_FN(&setLogEnabled));
   function("isLogEnabled", OMS_FN(&isLogEnabled));
+  function("getThreadingInfo", OMS_FN(&threadingInfo));
 }

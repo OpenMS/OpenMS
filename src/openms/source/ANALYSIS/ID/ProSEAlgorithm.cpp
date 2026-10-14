@@ -4455,8 +4455,8 @@ namespace OpenMS
     std::future<PeakMap> loadMS2SpectraAsync(const std::string& filename)
     {
       const int threads = readerThreads(true);
-#ifdef __EMSCRIPTEN__
-      // WebAssembly (without pthreads) has no helper thread: load when the result is collected
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
+      // WebAssembly without threads has no helper thread: load when the result is collected
       constexpr std::launch policy = std::launch::deferred;
 #else
       constexpr std::launch policy = std::launch::async;

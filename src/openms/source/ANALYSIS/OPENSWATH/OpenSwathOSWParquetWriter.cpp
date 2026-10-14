@@ -293,9 +293,9 @@ namespace OpenMS
           << "}\n";
     }
 
-    // The Parquet files of a run are written concurrently. A WebAssembly build has no
-    // threads: there, each write runs when waitForWriteTasks_() collects it.
-#ifdef __EMSCRIPTEN__
+    // The Parquet files of a run are written concurrently. A WebAssembly build without
+    // threads runs each write when waitForWriteTasks_() collects it.
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
     constexpr std::launch write_launch_policy = std::launch::deferred;
 #else
     constexpr std::launch write_launch_policy = std::launch::async;
