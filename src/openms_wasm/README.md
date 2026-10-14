@@ -229,12 +229,16 @@ pass `locateFile`), or not at all (`NONE`).
 The OpenMS class tests can be run on the WebAssembly library as well: configure with
 `-DENABLE_CLASS_TESTING=ON`, build the tests you want (each links the whole library) and
 run them with `ctest`; they run in Node.js and use the files of the build machine. All of
-them pass except those that exercise what the module does not have: threads
+them pass except those that exercise what the module does not have: other programs and the
+network (`ExternalProcess`, `TOPPExternalToolBase`, `Network`; `File` looks for programs next
+to its own), the TOPP tool registry (`ToolHandler`: it lists the tools of the build, and the
+WebAssembly build has none), and, in the single-threaded build, threads
 (`GlobalExceptionHandler`, `LogConfigHandler`, `LogStream`, `UniqueIdGenerator`, `File`,
-`TOPPBase`: they start `std::thread`s), other programs and the network (`ExternalProcess`,
-`TOPPExternalToolBase`, `Network`; `File` also looks for programs next to its own), and the
-TOPP tool registry (`ToolHandler`: it lists the tools of the build, and the WebAssembly
-build has none).
+`TOPPBase`: they start `std::thread`s; they pass in the multi-threaded build).
+
+A parallel region of the multi-threaded build may capture at most 32 variables (a limit
+of LLVM's OpenMP runtime on WebAssembly); a larger one exits the module ("Too many args to
+microtask"). Wrapping the body of such a loop into a lambda keeps it at one.
 
 The WebAssembly build installs no CMake package (`OpenMSConfig.cmake`): its libraries are
 static and privately link bundled libraries that are not installed. To compile C++ code of
