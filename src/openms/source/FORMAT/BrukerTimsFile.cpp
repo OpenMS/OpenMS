@@ -2325,6 +2325,125 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // The MS1 spectra of the DDA and DIA loaders
+  // =====================================================================
+  // Turns the MS1 frames ms1_frame_ids[i] into spectra: aggregated with neighbouring frames, centroided, or as
+  // they are. Frames that become spectra as they are are decoded ahead, in parallel (RawFrameReader), in the
+  // order announced with readInOrder(); without it they are decoded one by one.
+  class MS1SpectrumReader
+  {
+  public:
+    MS1SpectrumReader(TimsDataHandle& handle, const std::vector<uint32_t>& ms1_frame_ids, const BrukerTimsFile::Config& config) :
+      handle_(handle),
+      ms1_frame_ids_(ms1_frame_ids),
+      config_(config),
+      as_is_(config.ms1_n_neighbors <= 0 && !isCentroidingEnabled(config))
+    {
+      if (config.load_ms1 && config.ms1_n_neighbors > 0) aggregator_.reserve(300'000);
+    }
+
+    /// The frames (indices into ms1_frame_ids) in the order in which read() will be called for them
+    void readInOrder(const std::vector<size_t>& indices)
+    {
+      if (!as_is_) return;
+      std::vector<std::pair<uint32_t, int>> frames;
+      frames.reserve(indices.size());
+      for (const size_t i : indices) frames.emplace_back(ms1_frame_ids_[i], 1);
+      raw_ = std::make_unique<RawFrameReader>(handle_, std::move(frames));
+    }
+
+    /// readInOrder() for the first @p n frames, in the order of ms1_frame_ids
+    void readFirst(size_t n)
+    {
+      std::vector<size_t> indices(n);
+      std::iota(indices.begin(), indices.end(), size_t{0});
+      readInOrder(indices);
+    }
+
+    /// The spectrum of frame ms1_frame_ids[@p i]
+    void read(size_t i, MSSpectrum& spec)
+    {
+      if (raw_)
+      {
+        raw_->next(ms1_frame_ids_[i], spec);
+      }
+      else if (config_.ms1_n_neighbors > 0)
+      {
+        loadAggregatedMS1Spectrum(handle_, ms1_frame_ids_, i, config_, aggregator_, centroider_, spec);
+      }
+      else
+      {
+        loadMS1Spectrum(handle_, handle_.get_frame(ms1_frame_ids_[i]), spec, config_, centroider_, decoded_);
+      }
+    }
+
+    /// Frees the frames decoded ahead
+    void finish() { raw_.reset(); }
+
+    /// Logs once if centroiding cut spectra at ms1_centroid_max_peaks
+    void reportCapSummary() { centroider_.reportCapSummary(static_cast<size_t>(config_.ms1_centroid_max_peaks)); }
+
+  private:
+    TimsDataHandle& handle_;
+    const std::vector<uint32_t>& ms1_frame_ids_;
+    const BrukerTimsFile::Config& config_;
+    const bool as_is_; ///< no aggregation, no centroiding
+    FrameCentroider centroider_;
+    FrameAggregator aggregator_{0.01}; // finer bin for MS1
+    DecodedFrame decoded_;
+    std::unique_ptr<RawFrameReader> raw_;
+  };
+
+  // =====================================================================
+  // The spectra of the SWATH windows of a diaPASEF MS2 frame
+  // =====================================================================
+  // The spectrum of window @p win in @p frame, without peaks: retention time, MS level, native ID, precursor
+  // (the isolation window) and the ion mobility limits of the window. load(), transform() and
+  // loadDIAStreaming() give the same, with and without aggregation over retention time.
+  static void initDIAWindowSpectrum(const TimsFrame& frame, const DIAWindow& win, MSSpectrum& spec)
+  {
+    spec.setRT(frame.time);
+    spec.setMSLevel(2);
+    spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+    spec.setNativeID("frame=" + StringUtils::toStr(frame.id) + " windowGroup=" + StringUtils::toStr(win.window_group) + " scan=" + StringUtils::toStr(win.scan_begin));
+
+    Precursor prec;
+    prec.setMZ(win.mz_center);
+    prec.setIsolationWindowLowerOffset(win.mz_width / 2.0);
+    prec.setIsolationWindowUpperOffset(win.mz_width / 2.0);
+    spec.setPrecursors({prec});
+
+    spec.setMetaValue("ion mobility lower limit", win.im_lower);
+    spec.setMetaValue("ion mobility upper limit", win.im_upper);
+  }
+
+  // Per scan of a decoded frame: whether it lies within the ion mobility limits of @p win. The limits are
+  // inclusive, so a scan on the boundary of two windows belongs to both.
+  static void markScansInWindow(const DecodedFrame& decoded, const DIAWindow& win, std::vector<char>& in_window)
+  {
+    in_window.resize(decoded.scan_im.size());
+    for (size_t scan = 0; scan < decoded.scan_im.size(); ++scan)
+    {
+      in_window[scan] = decoded.scan_im[scan] >= win.im_lower && decoded.scan_im[scan] <= win.im_upper;
+    }
+  }
+
+  // Appends the peaks of a frame decoded with order_by_mz that lie in the scans marked by markScansInWindow(),
+  // in m/z order, to @p spec, and their ion mobilities to @p im_array
+  static void addWindowPeaksByMZ(const DecodedFrame& decoded, const std::vector<char>& in_window,
+                                 MSSpectrum& spec, DataArrays::FloatDataArray& im_array)
+  {
+    for (const uint32_t p : decoded.mz_order)
+    {
+      const uint32_t scan = decoded.scan_ids[p];
+      if (!in_window[scan]) continue;
+      spec.emplace_back(decoded.mzs[p], static_cast<float>(decoded.intensities[p]));
+      im_array.push_back(static_cast<float>(decoded.scan_im[scan]));
+    }
+  }
+
+  // =====================================================================
   // loadDIAStreaming: stream DIA spectra to consumer one-at-a-time
   // =====================================================================
   void BrukerTimsFile::loadDIAStreaming(const std::string& path, FullSwathFileConsumer& consumer)
@@ -2345,10 +2464,6 @@ namespace OpenMS
                                              handle->max_frame_id());
 
     // --- MS1 frames ---
-    FrameCentroider centroider;
-    FrameAggregator ms1_aggregator(0.01);
-    DecodedFrame decoded;
-
     std::vector<uint32_t> ms1_frame_ids;
     for (uint32_t fid = handle->min_frame_id(); fid <= handle->max_frame_id(); ++fid)
     {
@@ -2357,35 +2472,15 @@ namespace OpenMS
         ms1_frame_ids.push_back(fid);
     }
     warnPartialMS1AggregationConfig(eff, ms1_frame_ids.size());
-    if (eff.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
 
     const size_t ms1_to_emit = eff.load_ms1 ? ms1_frame_ids.size() : 0;
-    // MS1 frames that become spectra as they are (no aggregation, no centroiding) are decoded in parallel
-    std::unique_ptr<RawFrameReader> raw_ms1;
-    if (eff.ms1_n_neighbors <= 0 && !isCentroidingEnabled(eff))
-    {
-      std::vector<std::pair<uint32_t, int>> order;
-      for (size_t i = 0; i < ms1_to_emit; ++i) order.emplace_back(ms1_frame_ids[i], 1);
-      raw_ms1 = std::make_unique<RawFrameReader>(*handle, std::move(order));
-    }
+    MS1SpectrumReader ms1_reader(*handle, ms1_frame_ids, eff);
+    ms1_reader.readFirst(ms1_to_emit);
     startProgress(0, ms1_to_emit, "Streaming DIA-PASEF MS1 frames");
     for (size_t i = 0; i < ms1_to_emit; ++i)
     {
       MSSpectrum spec;
-      if (raw_ms1)
-      {
-        raw_ms1->next(ms1_frame_ids[i], spec);
-      }
-      else if (eff.ms1_n_neighbors > 0)
-      {
-        loadAggregatedMS1Spectrum(*handle, ms1_frame_ids, i, eff,
-                                  ms1_aggregator, centroider, spec);
-      }
-      else
-      {
-        TimsFrame& frame = handle->get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(*handle, frame, spec, eff, centroider, decoded);
-      }
+      ms1_reader.read(i, spec);
       // Sort peaks by m/z (and the associated IM float data array alongside).
       // TIMS save_to_buffs returns peaks in (scan_id, m/z-within-scan) order,
       // which is NOT globally m/z-sorted. Downstream consumers
@@ -2398,7 +2493,8 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
-    centroider.reportCapSummary(static_cast<size_t>(eff.ms1_centroid_max_peaks));
+    ms1_reader.finish();
+    ms1_reader.reportCapSummary();
 
     if (!eff.load_ms2) return; // MS1 only: no MS2 frame is decoded
 
@@ -2433,6 +2529,7 @@ namespace OpenMS
 
     startProgress(0, total_work, "Streaming DIA-PASEF MS2 frames");
     Size progress_count = 0;
+    DecodedFrame decoded;
     std::vector<char> in_window; // per scan of the frame: within the ion mobility limits of the window?
 
     for (const auto& [group, frame_ids] : group_to_frames)
@@ -2454,41 +2551,11 @@ namespace OpenMS
           if (frame.num_peaks == 0) continue;
 
           MSSpectrum spec;
-          spec.setRT(frame.time);
-          spec.setMSLevel(2);
-          spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-          spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-          spec.setNativeID("frame=" + StringUtils::toStr(frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
-
-          Precursor prec;
-          prec.setMZ(win->mz_center);
-          prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
-          prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
-          spec.setPrecursors({prec});
-
-          spec.setMetaValue("ion mobility lower limit", win->im_lower);
-          spec.setMetaValue("ion mobility upper limit", win->im_upper);
-
+          initDIAWindowSpectrum(frame, *win, spec);
           DataArrays::FloatDataArray im_array;
           IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-
-          in_window.resize(decoded.scan_im.size());
-          for (size_t scan = 0; scan < decoded.scan_im.size(); ++scan)
-          {
-            in_window[scan] = decoded.scan_im[scan] >= win->im_lower && decoded.scan_im[scan] <= win->im_upper;
-          }
-          for (const uint32_t p : decoded.mz_order)
-          {
-            const uint32_t scan = decoded.scan_ids[p];
-            if (in_window[scan])
-            {
-              Peak1D peak;
-              peak.setMZ(decoded.mzs[p]);
-              peak.setIntensity(static_cast<double>(decoded.intensities[p]));
-              spec.push_back(peak);
-              im_array.push_back(static_cast<float>(decoded.scan_im[scan]));
-            }
-          }
+          markScansInWindow(decoded, *win, in_window);
+          addWindowPeaksByMZ(decoded, in_window, spec, im_array);
 
           if (!spec.empty())
           {
@@ -2807,31 +2874,11 @@ namespace OpenMS
     Size progress_count = 0;
 
     // --- MS1 frames ---
-    FrameCentroider centroider;
-    FrameAggregator ms1_aggregator(0.01);
-    DecodedFrame decoded;
-    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    // MS1 frames that become spectra as they are (no aggregation, no centroiding) are decoded in parallel
-    // by raw_ms1, which is set up below once the order of the frames is known
-    const bool ms1_as_is = config.ms1_n_neighbors <= 0 && !isCentroidingEnabled(config);
-    std::unique_ptr<RawFrameReader> raw_ms1;
+    MS1SpectrumReader ms1_reader(handle, ms1_frame_ids, config);
     const auto emit_ms1 = [&](size_t i)
     {
       MSSpectrum spec;
-      if (raw_ms1)
-      {
-        raw_ms1->next(ms1_frame_ids[i], spec);
-      }
-      else if (config.ms1_n_neighbors > 0)
-      {
-        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
-                                  ms1_aggregator, centroider, spec);
-      }
-      else
-      {
-        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
-      }
+      ms1_reader.read(i, spec);
       sink(spec);
       setProgress(++progress_count);
     };
@@ -2842,14 +2889,9 @@ namespace OpenMS
     const bool in_rt_order = emitsInRTOrder(handle, config, /*is_dia=*/false);
     if (!config.load_ms2 || !in_rt_order)
     {
-      if (ms1_as_is)
-      {
-        std::vector<std::pair<uint32_t, int>> order;
-        for (size_t i = 0; i < ms1_to_emit; ++i) order.emplace_back(ms1_frame_ids[i], 1);
-        raw_ms1 = std::make_unique<RawFrameReader>(handle, std::move(order));
-      }
+      ms1_reader.readFirst(ms1_to_emit);
       for (size_t i = 0; i < ms1_to_emit; ++i) emit_ms1(i);
-      raw_ms1.reset();
+      ms1_reader.finish();
     }
 
     if (!config.load_ms2)
@@ -2857,7 +2899,7 @@ namespace OpenMS
       // MS1 only: no MS2 frame is decoded. The OLS recalibration below is fitted on MS2
       // frames and applied after the MS1 frames were read, so it would not change the result.
       endProgress();
-      centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+      ms1_reader.reportCapSummary();
       return;
     }
 
@@ -3394,15 +3436,12 @@ namespace OpenMS
         events.push_back({rt_sum / static_cast<double>(entries.size()), 0, &entries, prec_id});
       }
       std::stable_sort(events.begin(), events.end(), [](const Event& a, const Event& b) { return a.rt < b.rt; });
-      if (ms1_as_is)
+      std::vector<size_t> ms1_order;
+      for (const Event& event : events)
       {
-        std::vector<std::pair<uint32_t, int>> order;
-        for (const Event& event : events)
-        {
-          if (event.entries == nullptr) order.emplace_back(ms1_frame_ids[event.ms1_index], 1);
-        }
-        raw_ms1 = std::make_unique<RawFrameReader>(handle, std::move(order));
+        if (event.entries == nullptr) ms1_order.push_back(event.ms1_index);
       }
+      ms1_reader.readInOrder(ms1_order);
       for (const Event& event : events)
       {
         if (event.entries == nullptr)
@@ -3417,7 +3456,8 @@ namespace OpenMS
       }
     }
     endProgress();
-    centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+    ms1_reader.finish();
+    ms1_reader.reportCapSummary();
   }
 
 
@@ -3443,43 +3483,18 @@ namespace OpenMS
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // --- MS1 frames ---
-    FrameCentroider centroider;
-    FrameAggregator ms1_aggregator(0.01);  // finer bin for MS1 (see design spec)
-    DecodedFrame decoded;
     const size_t ms1_to_emit = config.load_ms1 ? ms1_frame_ids.size() : 0;
-    if (config.load_ms1 && config.ms1_n_neighbors > 0) ms1_aggregator.reserve(300'000);
-    // MS1 frames that become spectra as they are (no aggregation, no centroiding) are decoded in parallel
-    // by raw_ms1, which is set up once the order of the frames is known
-    const bool ms1_as_is = config.ms1_n_neighbors <= 0 && !isCentroidingEnabled(config);
-    std::unique_ptr<RawFrameReader> raw_ms1;
+    MS1SpectrumReader ms1_reader(handle, ms1_frame_ids, config);
     const auto emit_ms1 = [&](size_t i)
     {
       MSSpectrum spec;
-      if (raw_ms1)
-      {
-        raw_ms1->next(ms1_frame_ids[i], spec);
-      }
-      else if (config.ms1_n_neighbors > 0)
-      {
-        loadAggregatedMS1Spectrum(handle, ms1_frame_ids, i, config,
-                                  ms1_aggregator, centroider, spec);
-      }
-      else
-      {
-        TimsFrame& frame = handle.get_frame(ms1_frame_ids[i]);
-        loadMS1Spectrum(handle, frame, spec, config, centroider, decoded);
-      }
+      ms1_reader.read(i, spec);
       sink(spec);
     };
     // All MS1 frames in a row, for the cases in which they are not interleaved with MS2 spectra
     const auto emit_all_ms1 = [&]()
     {
-      if (ms1_as_is)
-      {
-        std::vector<std::pair<uint32_t, int>> order;
-        for (size_t i = 0; i < ms1_to_emit; ++i) order.emplace_back(ms1_frame_ids[i], 1);
-        raw_ms1 = std::make_unique<RawFrameReader>(handle, std::move(order));
-      }
+      ms1_reader.readFirst(ms1_to_emit);
       startProgress(0, ms1_to_emit, "Loading DIA-PASEF MS1 frames");
       for (size_t i = 0; i < ms1_to_emit; ++i)
       {
@@ -3487,9 +3502,8 @@ namespace OpenMS
         setProgress(i);
       }
       endProgress();
-      raw_ms1.reset();
-      if (config.load_ms1)
-        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+      ms1_reader.finish();
+      if (config.load_ms1) ms1_reader.reportCapSummary();
     };
 
     if (!config.load_ms2)
@@ -3613,20 +3627,7 @@ namespace OpenMS
             // Build spectrum from center frame metadata
             TimsFrame& center_frame = handle.get_frame(frame_ids[i]);
             MSSpectrum spec;
-            spec.setRT(center_frame.time);
-            spec.setMSLevel(2);
-            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-            spec.setNativeID("frame=" + StringUtils::toStr(center_frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
-
-            Precursor prec;
-            prec.setMZ(win->mz_center);
-            prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
-            prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
-            spec.setPrecursors({prec});
-
-            spec.setMetaValue("ion mobility lower limit", win->im_lower);
-            spec.setMetaValue("ion mobility upper limit", win->im_upper);
+            initDIAWindowSpectrum(center_frame, *win, spec);
 
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
@@ -3738,15 +3739,13 @@ namespace OpenMS
         }
       }
       std::stable_sort(events.begin(), events.end(), [](const Event& a, const Event& b) { return a.time < b.time; });
-      if (ms1_as_is)
+      std::vector<size_t> ms1_order;
+      for (const Event& event : events)
       {
-        std::vector<std::pair<uint32_t, int>> order;
-        for (const Event& event : events)
-        {
-          if (event.windows == nullptr) order.emplace_back(ms1_frame_ids[event.ms1_index], 1);
-        }
-        raw_ms1 = std::make_unique<RawFrameReader>(handle, std::move(order));
+        if (event.windows == nullptr) ms1_order.push_back(event.ms1_index);
       }
+      ms1_reader.readInOrder(ms1_order);
+      DecodedFrame decoded;
 
       for (const Event& event : events)
       {
@@ -3769,39 +3768,14 @@ namespace OpenMS
             if (frame.num_peaks == 0) continue;
 
             MSSpectrum spec;
-            spec.setRT(frame.time);
-            spec.setMSLevel(2);
-            spec.setDriftTimeUnit(DriftTimeUnit::VSSC);
-            spec.setType(SpectrumSettings::SpectrumType::CENTROID);
-            spec.setNativeID("frame=" + StringUtils::toStr(frame.id) + " windowGroup=" + StringUtils::toStr(win->window_group) + " scan=" + StringUtils::toStr(win->scan_begin));
-
-            Precursor prec;
-            prec.setMZ(win->mz_center);
-            prec.setIsolationWindowLowerOffset(win->mz_width / 2.0);
-            prec.setIsolationWindowUpperOffset(win->mz_width / 2.0);
-            spec.setPrecursors({prec});
-
-            spec.setMetaValue("ion mobility lower limit", win->im_lower);
-            spec.setMetaValue("ion mobility upper limit", win->im_upper);
-
+            initDIAWindowSpectrum(frame, *win, spec);
             DataArrays::FloatDataArray im_array;
             IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-
-            in_window.resize(decoded.scan_im.size());
-            for (size_t scan = 0; scan < decoded.scan_im.size(); ++scan)
-            {
-              in_window[scan] = decoded.scan_im[scan] >= win->im_lower && decoded.scan_im[scan] <= win->im_upper;
-            }
+            markScansInWindow(decoded, *win, in_window);
 
             if (emit_as_is)
             {
-              for (const uint32_t p : decoded.mz_order)
-              {
-                const uint32_t scan = decoded.scan_ids[p];
-                if (!in_window[scan]) continue;
-                spec.emplace_back(decoded.mzs[p], static_cast<float>(static_cast<double>(decoded.intensities[p])));
-                im_array.push_back(static_cast<float>(decoded.scan_im[scan]));
-              }
+              addWindowPeaksByMZ(decoded, in_window, spec, im_array);
               if (spec.empty()) continue;
               spec.setIMPeakType(IMPeakType::IM_PROFILE);
               spec.getFloatDataArrays().push_back(std::move(im_array));
@@ -3884,8 +3858,8 @@ namespace OpenMS
         }
       }
       endProgress();
-      if (config.load_ms1)
-        centroider.reportCapSummary(static_cast<size_t>(config.ms1_centroid_max_peaks));
+      ms1_reader.finish();
+      if (config.load_ms1) ms1_reader.reportCapSummary();
     }
   }
 
