@@ -8,9 +8,11 @@
 
 #include <OpenMS/FORMAT/HANDLERS/ThermoRawFileMetadata.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <cmath>
+#include <set>
 #include <stdexcept>
 #include <utility>
 
@@ -124,6 +126,8 @@ std::vector<ThermoPrecursor> ThermoRawFileMetadata::precursors(const ThermoScan&
   const int scan_number = scan.scan_number;
   const int level = scan.ms_level;
   const auto& reactions = scan.reactions;
+  if (first_seen_ == 0) { first_seen_ = scan_number; }
+  prune_(scan_number);
   State state;
   state.level = level;
   state.native_id = scan.native_id;
@@ -137,6 +141,13 @@ std::vector<ThermoPrecursor> ThermoRawFileMetadata::precursors(const ThermoScan&
   const int fallback = parentFromFilter_(key);
   const auto master = number(trailer_.value(scan, master_key_));
   int parent = master && *master > 0 && *master < scan_number ? static_cast<int>(*master) : fallback;
+  if (parent == static_cast<int>(master.value_or(0)) && parent >= first_seen_ && parent < forgotten_below_ && ! warned_forgotten_
+      && scans_.find(parent) == scans_.end())
+  {
+    warned_forgotten_ = true;
+    OPENMS_LOG_WARN << "Thermo RAW: scan " << scan_number << " references master scan " << parent << ", more than "
+                    << retentionWindow() << " scans before it; its precursor is resolved without the master scan.\n";
+  }
   auto parent_it = scans_.find(parent);
   // A master scan of the same MS order is a sibling (Tribrid decision trees, or several
   // activations of one isolation such as HCD / ETD / EThcD scans of the same precursor).
@@ -236,6 +247,42 @@ std::size_t ThermoRawFileMetadata::lastReaction_(const std::vector<ThermoReactio
   std::size_t index = reactions.size() - 1;
   if (index > 0 && supplemental_(reactions[index - 1], reactions[index])) { --index; }
   return index;
+}
+
+void ThermoRawFileMetadata::prune_(int current)
+{
+  // Prune in batches, so the amortized cost per scan stays constant.
+  if (scans_.size() < 2 * static_cast<std::size_t>(retentionWindow())) { return; }
+  const int cutoff = current - retentionWindow();
+  std::set<int> keep;
+  auto keepChain = [&](int scan) {
+    while (scan != 0 && keep.insert(scan).second)
+    {
+      const auto it = scans_.find(scan);
+      if (it == scans_.end()) { break; }
+      scan = it->second.parent;
+    }
+  };
+  for (auto it = filters_.begin(); it != filters_.end();)
+  {
+    // The most recent MS1 scan stays known, however long ago it was acquired.
+    if (it->second < cutoff && ! it->first.empty()) { it = filters_.erase(it); }
+    else
+    {
+      keepChain(it->second);
+      ++it;
+    }
+  }
+  for (auto it = scans_.lower_bound(cutoff); it != scans_.end(); ++it)
+  {
+    keepChain(it->first);
+  }
+  for (auto it = scans_.begin(); it != scans_.end() && it->first < cutoff;)
+  {
+    if (keep.count(it->first) == 0) { it = scans_.erase(it); }
+    else { ++it; }
+  }
+  forgotten_below_ = cutoff;
 }
 
 int ThermoRawFileMetadata::parentFromFilter_(const std::string& key) const

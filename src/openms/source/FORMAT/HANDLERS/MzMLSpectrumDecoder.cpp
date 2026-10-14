@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
+#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -535,6 +536,10 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
+    // Xerces has to be initialised; CONCEPT/Init.cpp does so on loading the library, but a
+    // static library (WebAssembly) links that object file only if something else calls into it
+    static const bool xerces_initialized = (Internal::xercesInitialize(), true);
+    (void)xerces_initialized;
     xercesc::MemBufInputSource myxml_buf(reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
     std::unique_ptr<xercesc::XercesDOMParser> parser = std::make_unique<xercesc::XercesDOMParser>(); // make sure it is deleted even in case of exceptions
     parser->setDoNamespaces(false);

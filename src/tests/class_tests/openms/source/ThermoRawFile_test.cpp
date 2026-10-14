@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/IonSource.h>
 #include <OpenMS/METADATA/MassAnalyzer.h>
@@ -32,6 +33,45 @@
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  /// Collects a streamed run and checks the order of the consumer calls.
+  struct RecordingConsumer : Interfaces::IMSDataConsumer
+  {
+    MSExperiment exp;
+    Size expected_spectra = 0, expected_chromatograms = 0;
+    int stage = 0; // 1: expected size, 2: settings, 3: spectra, 4: chromatograms
+    bool order_ok = true;
+
+    void advance(int to)
+    {
+      if (to < stage || (stage < 2 && to > 2) || (stage == 0 && to == 2)) { order_ok = false; }
+      stage = to;
+    }
+    void setExpectedSize(Size spectra, Size chromatograms) override
+    {
+      advance(1);
+      expected_spectra = spectra;
+      expected_chromatograms = chromatograms;
+    }
+    void setExperimentalSettings(const ExperimentalSettings& settings) override
+    {
+      advance(2);
+      exp.getExperimentalSettings() = settings;
+    }
+    void consumeSpectrum(SpectrumType& s) override
+    {
+      advance(3);
+      exp.addSpectrum(s);
+    }
+    void consumeChromatogram(ChromatogramType& c) override
+    {
+      advance(4);
+      exp.addChromatogram(c);
+    }
+  };
+}
 
 START_TEST(ThermoRawFile, "$Id$")
 
@@ -492,6 +532,99 @@ START_SECTION(FileHandler::loadExperiment passes PeakFileOptions to the reader)
     if (s.empty()) { ++empty; }
   }
   TEST_EQUAL(empty, no_peaks.size())
+}
+END_SECTION
+
+START_SECTION(void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer))
+{
+  TEST_EXCEPTION(Exception::NullPointer, ThermoRawFile().transform(THERMO_RAW_TEST_DATA, nullptr))
+
+  ThermoRawFile::Options base;
+  base.centroid = true;
+  base.checksum = false;
+  auto load = [](const ThermoRawFile::Options& options) {
+    ThermoRawFile file;
+    file.setOptions(options);
+    MSExperiment exp;
+    file.load(THERMO_RAW_TEST_DATA, exp);
+    return exp;
+  };
+  // transform() into a collecting consumer must give load(), announced in advance and in RT order
+  auto testTransform = [&](const ThermoRawFile::Options& options) {
+    RecordingConsumer collected;
+    ThermoRawFile file;
+    file.setOptions(options);
+    file.transform(THERMO_RAW_TEST_DATA, &collected);
+    const MSExperiment loaded = load(options);
+    TEST_TRUE(collected.order_ok)
+    TEST_EQUAL(collected.expected_spectra, collected.exp.size())
+    TEST_EQUAL(collected.expected_chromatograms, collected.exp.getChromatograms().size())
+    TEST_TRUE(collected.exp.isSorted(false))
+    TEST_EQUAL(collected.exp.size(), loaded.size())
+    TEST_TRUE(collected.exp == loaded)
+  };
+
+  testTransform(base);
+  ThermoRawFile::Options acquired = base;
+  acquired.centroid = false;
+  testTransform(acquired);
+  ThermoRawFile::Options ms2 = base;
+  ms2.ms_levels = {2};
+  testTransform(ms2);
+  ThermoRawFile::Options ms1 = base;
+  ms1.ms_levels = {1};
+  testTransform(ms1);
+  const MSExperiment full = load(base);
+  ThermoRawFile::Options rt = base;
+  rt.rt_min = full[100].getRT();
+  rt.rt_max = full[200].getRT();
+  testTransform(rt);
+  ThermoRawFile::Options scans = base;
+  scans.first_scan = 51;
+  scans.last_scan = 151;
+  testTransform(scans);
+  ThermoRawFile::Options precursor = base;
+  precursor.precursor_mz_min = 500.0;
+  precursor.precursor_mz_max = 600.0;
+  testTransform(precursor);
+  ThermoRawFile::Options metadata = base;
+  metadata.metadata_only = true;
+  metadata.skip_chromatograms = true;
+  testTransform(metadata);
+  ThermoRawFile::Options extras = base;
+  extras.charge_data = true;
+  extras.noise_data = true;
+  extras.checksum = true;
+  testTransform(extras);
+}
+END_SECTION
+
+START_SECTION(void FileHandler::transformExperiment(const std::string& filename, Interfaces::IMSDataConsumer* consumer, ...))
+{
+  // The same PeakFileOptions give the same spectra as loadExperiment, the peak-level filters included
+  FileHandler handler;
+  handler.getOptions().addMSLevel(2);
+  handler.getOptions().setMZRange(DRange<1>(DPosition<1>(200.0), DPosition<1>(800.0)));
+  handler.getOptions().setSkipChromatograms(true);
+  MSExperiment loaded;
+  handler.loadExperiment(THERMO_RAW_TEST_DATA, loaded, {FileTypes::RAW});
+  RecordingConsumer collected;
+  handler.transformExperiment(THERMO_RAW_TEST_DATA, &collected, {FileTypes::RAW});
+  TEST_TRUE(collected.order_ok)
+  TEST_TRUE(loaded.size() > 0)
+  TEST_EQUAL(collected.exp.size(), loaded.size())
+  TEST_EQUAL(collected.exp.getChromatograms().size(), 0)
+  TEST_TRUE(collected.exp == loaded)
+
+  // with the source file rewritten (absolute path, file name)
+  MSExperiment loaded_rewritten;
+  FileHandler().loadExperiment(THERMO_RAW_TEST_DATA, loaded_rewritten, {FileTypes::RAW}, ProgressLogger::NONE, true);
+  RecordingConsumer rewritten;
+  FileHandler().transformExperiment(THERMO_RAW_TEST_DATA, &rewritten, {FileTypes::RAW}, ProgressLogger::NONE, true);
+  TEST_EQUAL(rewritten.exp.getSourceFiles().size(), 1)
+  TEST_TRUE(rewritten.exp == loaded_rewritten)
+
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(THERMO_RAW_TEST_DATA, &collected, {FileTypes::MZML}))
 }
 END_SECTION
 #endif

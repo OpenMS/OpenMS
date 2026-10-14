@@ -588,11 +588,12 @@ protected:
       if (FileHandler::getType(f) == FileTypes::RAW)
       {
         OPENMS_LOG_INFO << "Converting Thermo .raw to temp mzML for Sage: " << f << std::endl;
-        MSExperiment exp_raw;
-        FileHandler fh_raw;
-        fh_raw.loadExperiment(f, exp_raw, {FileTypes::RAW}, log_type_);
         auto tmp_mzml = TempFiles::getTemporaryFile() + ".mzML";
-        MzMLFile().store(tmp_mzml, exp_raw);
+        {
+          // Stream scan by scan, so the run is never held in memory
+          PlainMSDataWritingConsumer writer(tmp_mzml);
+          FileHandler().transformExperiment(f, &writer, {FileTypes::RAW}, log_type_);
+        }
         sage_tmp_basename_to_original[File::basename(tmp_mzml)] = f;
         f = tmp_mzml;
       }
