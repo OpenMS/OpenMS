@@ -256,6 +256,7 @@ runtime.
             // the reader does not use a spectrum again after the consumer had it, so the value
             // need not be restored after each callback
             NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(path, &wrapper);
         }, "path"_a, "consumer"_a,
         "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
@@ -263,6 +264,7 @@ runtime.
         .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer,
                              const OpenMS::BrukerTimsFile::Config& config) {
             NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
             self.transform(path, &wrapper, config);
         }, "path"_a, "consumer"_a, "config"_a,
         "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
