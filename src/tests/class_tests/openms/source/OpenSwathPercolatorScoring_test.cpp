@@ -157,6 +157,50 @@ START_SECTION(OpenSwathPercolatorScoring())
 }
 END_SECTION
 
+START_SECTION([EXTRA] training on the best peak group per precursor plus a sample of the others)
+{
+  // a cap far below the number of peak groups: training uses a subset, all peak groups are scored
+  std::string capped_osw;
+  NEW_TMP_FILE(capped_osw);
+  capped_osw += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", capped_osw);
+  const Int64 n_features = querySqliteInt64_(capped_osw, "SELECT COUNT(*) FROM FEATURE_MS2;");
+  const Int64 n_precursors = querySqliteInt64_(capped_osw, "SELECT COUNT(DISTINCT PRECURSOR_ID) FROM FEATURE;");
+  TEST_TRUE(n_features > n_precursors + 5) // otherwise nothing would be left out
+
+  OpenSwathPercolatorScoring capped;
+  Param p = capped.getParameters();
+  p.setValue("percolator:subset_max_train", 5);
+  capped.setParameters(p);
+  const auto capped_summary = capped.score(capped_osw, OpenSwathPercolatorScoring::Level::MS2);
+  TEST_EQUAL(static_cast<Int64>(capped_summary.total_rows), n_features)
+  TEST_EQUAL(querySqliteInt64_(capped_osw, "SELECT COUNT(*) FROM SCORE_MS2;"), n_features)
+  TEST_EQUAL(querySqliteInt64_(capped_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE QVALUE < 0 OR QVALUE > 1;"), 0)
+  TEST_EQUAL(querySqliteInt64_(capped_osw, "SELECT COUNT(*) FROM SCORE_MS2 WHERE RANK < 1;"), 0)
+
+  // the same seed draws the same sample: the scores are reproducible
+  std::string capped_again_osw;
+  NEW_TMP_FILE(capped_again_osw);
+  capped_again_osw += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", capped_again_osw);
+  capped.score(capped_again_osw, OpenSwathPercolatorScoring::Level::MS2);
+  executeSqlite_(capped_osw, "ATTACH DATABASE '" + capped_again_osw + "' AS again; "
+                 "CREATE TABLE score_differences AS SELECT COUNT(*) AS N FROM SCORE_MS2 a "
+                 "JOIN again.SCORE_MS2 b ON a.FEATURE_ID = b.FEATURE_ID WHERE a.SCORE != b.SCORE;");
+  TEST_EQUAL(querySqliteInt64_(capped_osw, "SELECT N FROM score_differences;"), 0)
+
+  // a main score that is not among the features: all peak groups are used, no error
+  std::string unknown_score_osw;
+  NEW_TMP_FILE(unknown_score_osw);
+  unknown_score_osw += ".osw";
+  copyFixture_("PyProphet_inference_test.osw", unknown_score_osw);
+  p.setValue("training_main_score", "var_no_such_score");
+  capped.setParameters(p);
+  const auto unknown_summary = capped.score(unknown_score_osw, OpenSwathPercolatorScoring::Level::MS2);
+  TEST_EQUAL(static_cast<Int64>(unknown_summary.total_rows), n_features)
+}
+END_SECTION
+
 START_SECTION(ScoreSummary score(const std::string& input_path, Level level, const std::string& output_path))
 {
   OpenSwathPercolatorScoring scorer;

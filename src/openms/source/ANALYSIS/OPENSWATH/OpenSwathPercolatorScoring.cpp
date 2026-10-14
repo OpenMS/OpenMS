@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <random>
 #include <limits>
 #include <map>
 #include <memory>
@@ -53,6 +54,7 @@ namespace OpenMS
     double transition_peakgroup_max_pep = 0.7;
     double transition_max_isotope_overlap = 0.5;
     double transition_min_log_sn = 0.0;
+    std::string training_main_score = "var_library_corr";
   };
 
   namespace
@@ -1685,6 +1687,12 @@ namespace OpenMS
     defaults_.setValue("transition:min_log_sn", impl_->transition_min_log_sn,
                        "Transition scoring: minimum log signal-to-noise score retained for rescoring.");
 
+    defaults_.setValue("training_main_score", impl_->training_main_score,
+                       "Peak-group score that selects the best peak group of each precursor for the Percolator training "
+                       "set of ms1, ms2 and ms1ms2 rescoring (prefix '-' if lower values are better). The training set holds "
+                       "these peak groups plus at most percolator:subset_max_train others drawn at random "
+                       "(0: train on all peak groups); the model then scores all peak groups. If the score is not among "
+                       "the features, all peak groups are used.");
     defaults_.insert("percolator:", impl_->percolator.getDefaults());
     defaultsToParam_();
     updateMembers_();
@@ -1698,7 +1706,113 @@ namespace OpenMS
     impl_->transition_peakgroup_max_pep = static_cast<double>(param_.getValue("transition:peakgroup_max_pep"));
     impl_->transition_max_isotope_overlap = static_cast<double>(param_.getValue("transition:max_isotope_overlap"));
     impl_->transition_min_log_sn = static_cast<double>(param_.getValue("transition:min_log_sn"));
+    impl_->training_main_score = param_.getValue("training_main_score").toString();
     impl_->percolator.setParameters(param_.copy("percolator:", true));
+  }
+
+  namespace
+  {
+    /**
+      @brief The rows Percolator is trained on for peak-group (ms1/ms2/ms1ms2) rescoring.
+
+      Training on all peak groups takes most of the rescoring time, and a plain random sample does
+      not work: only a small part of the peak groups are true (about 1,500 of 2.9 M per Orbitrap
+      Astral DIA run), so a sample of 100,000 contains too few of them to train on. The training
+      set is therefore the best peak group of every precursor of every run by @p main_score, which
+      holds the likely true ones, plus a random sample of at most @p max_others of the other peak
+      groups. The trained model is applied to all peak groups afterwards.
+
+      @return @p input itself if @p max_others is 0 (train on everything), if the main score is not
+              among the features, or if the sample would not leave anything out; otherwise @p subset
+    */
+    const RescoreInput& trainingInput_(const RescoreInput& input, const String& main_score, const Size max_others,
+                                       const UInt64 seed, RescoreInput& subset)
+    {
+      const Size n_rows = input.features.size();
+      if (max_others == 0 || input.cv_group_keys.size() != n_rows)
+      {
+        return input;
+      }
+      String main_name = main_score;
+      double direction = 1.0;
+      if (StringUtils::hasPrefix(main_name, "-"))
+      {
+        direction = -1.0;
+        main_name = main_name.substr(1);
+      }
+      const auto name_it = std::find(input.feature_names.begin(), input.feature_names.end(), main_name);
+      if (name_it == input.feature_names.end())
+      {
+        OPENMS_LOG_INFO << "OpenSWATH Percolator training: '" << main_name
+                        << "' is not among the features, training on all " << n_rows << " rows.\n";
+        return input;
+      }
+      const Size main_col = static_cast<Size>(name_it - input.feature_names.begin());
+
+      // best row of every group (a group is one precursor in one run, see cv_group_key); ties keep the first
+      std::unordered_map<int, Size> best_of_group;
+      for (Size i = 0; i < n_rows; ++i)
+      {
+        const auto it = best_of_group.find(input.cv_group_keys[i]);
+        if (it == best_of_group.end())
+        {
+          best_of_group.emplace(input.cv_group_keys[i], i);
+        }
+        else if (direction * input.features[i][main_col] > direction * input.features[it->second][main_col])
+        {
+          it->second = i;
+        }
+      }
+      std::vector<char> take(n_rows, 0);
+      for (const auto& group_row : best_of_group)
+      {
+        take[group_row.second] = 1;
+      }
+      std::vector<Size> others;
+      others.reserve(n_rows - best_of_group.size());
+      for (Size i = 0; i < n_rows; ++i)
+      {
+        if (!take[i])
+        {
+          others.push_back(i);
+        }
+      }
+      if (others.size() <= max_others)
+      {
+        return input; // everything would be taken
+      }
+      // partial Fisher-Yates: the first max_others entries become a uniform sample
+      std::mt19937_64 rng(seed);
+      for (Size k = 0; k < max_others; ++k)
+      {
+        std::uniform_int_distribution<Size> pick(k, others.size() - 1);
+        std::swap(others[k], others[pick(rng)]);
+        take[others[k]] = 1;
+      }
+
+      subset = RescoreInput();
+      subset.feature_names = input.feature_names;
+      const Size n_subset = best_of_group.size() + max_others;
+      subset.features.reserve(n_subset);
+      for (Size i = 0; i < n_rows; ++i) // keep the order of the input
+      {
+        if (!take[i])
+        {
+          continue;
+        }
+        subset.features.push_back(input.features[i]);
+        subset.is_decoy.push_back(input.is_decoy[i]);
+        subset.cv_group_keys.push_back(input.cv_group_keys[i]);
+        if (!input.scan_numbers.empty()) subset.scan_numbers.push_back(input.scan_numbers[i]);
+        if (!input.spec_file_numbers.empty()) subset.spec_file_numbers.push_back(input.spec_file_numbers[i]);
+        if (!input.exp_masses.empty()) subset.exp_masses.push_back(input.exp_masses[i]);
+        if (!input.calc_masses.empty()) subset.calc_masses.push_back(input.calc_masses[i]);
+      }
+      OPENMS_LOG_INFO << "OpenSWATH Percolator training on " << subset.features.size() << " of " << n_rows
+                      << " peak groups: the best of each precursor by " << main_score << " (" << best_of_group.size()
+                      << ") and " << max_others << " others drawn at random.\n";
+      return subset;
+    }
   }
 
   OpenSwathPercolatorScoring::ScoreSummary OpenSwathPercolatorScoring::score(const std::string& input_path,
@@ -1714,6 +1828,19 @@ namespace OpenMS
     OPENMS_LOG_INFO << "OpenSWATH Percolator scoring (" << levelName_(level)
                     << ") on '" << input_path << "'\n";
 
+    // Peak groups are trained on a subset (see trainingInput_); transitions on all rows.
+    const Param percolator_param = impl_->percolator.getParameters();
+    const Size max_others = static_cast<Size>(static_cast<int>(percolator_param.getValue("subset_max_train")));
+    const UInt64 seed = static_cast<UInt64>(static_cast<int>(percolator_param.getValue("seed")));
+    auto trainingInputForLevel_ = [&](const PreparedInput& input, RescoreInput& subset) -> const RescoreInput&
+    {
+      if (level == Level::TRANSITION)
+      {
+        return input.input;
+      }
+      return trainingInput_(input.input, impl_->training_main_score, max_others, seed, subset);
+    };
+
     PreparedInput prepared;
     if (StringUtils::hasSuffix(input_path, ".osw"))
     {
@@ -1723,7 +1850,8 @@ namespace OpenMS
                                     impl_->transition_peakgroup_max_pep,
                                     impl_->transition_max_isotope_overlap,
                                     impl_->transition_min_log_sn);
-      const PercolatorModel model = impl_->percolator.train(prepared.input);
+      RescoreInput training_subset;
+      const PercolatorModel model = impl_->percolator.train(trainingInputForLevel_(prepared, training_subset));
       const RescoreOutput output = impl_->percolator.score(prepared.input, model);
       const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
       const auto results = computePeakGroupResults_(prepared, output, exported_scores);
@@ -1737,7 +1865,8 @@ namespace OpenMS
                                    impl_->transition_peakgroup_max_pep,
                                    impl_->transition_max_isotope_overlap,
                                    impl_->transition_min_log_sn);
-    const PercolatorModel model = impl_->percolator.train(prepared.input);
+    RescoreInput training_subset;
+      const PercolatorModel model = impl_->percolator.train(trainingInputForLevel_(prepared, training_subset));
     const RescoreOutput output = impl_->percolator.score(prepared.input, model);
     const auto exported_scores = computeOpenSwathDScores_(prepared, computeRawModelScores_(prepared, model));
     const auto results = computePeakGroupResults_(prepared, output, exported_scores);
