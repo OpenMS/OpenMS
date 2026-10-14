@@ -9,8 +9,10 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideTSVDataProvider.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 
 using namespace std;
 
@@ -22,7 +24,7 @@ namespace OpenMS
 
     // Parse a single row from a TSV file into a RibonucleotideEntry.
     // Extracted from RibonucleotideDB::parseRow_().
-    RibonucleotideEntry parseRow_(const std::string& row, Size line_count)
+    RibonucleotideEntry parseRow_(const std::string& row, Size line_count, std::optional<Size> baseloss_column)
     {
       vector<std::string> parts;
       StringUtils::split(row, '\t', parts);
@@ -124,6 +126,13 @@ namespace OpenMS
           ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
         }
       }
+      // Custom sugars cannot be inferred reliably from modification codes.
+      // An explicit formula takes precedence over the legacy ribose/deoxyribose guesses.
+      if (baseloss_column && *baseloss_column < parts.size() &&
+          !parts[*baseloss_column].empty() && parts[*baseloss_column] != "-")
+      {
+        ribo->setBaselossFormula(EmpiricalFormula(parts[*baseloss_column]));
+      }
       entry.ribo = std::move(ribo);
       return entry;
     }
@@ -162,6 +171,15 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, msg);
     }
 
+    vector<std::string> columns;
+    StringUtils::split(line, '\t', columns);
+    const auto baseloss_header = std::find(columns.begin(), columns.end(), "baseloss_formula");
+    std::optional<Size> baseloss_column;
+    if (baseloss_header != columns.end())
+    {
+      baseloss_column = std::distance(columns.begin(), baseloss_header);
+    }
+
     const std::string prime = "\xE2\x80\xB2"; // UTF-8 encoding of Unicode "prime" character U+2032
 
     std::vector<RibonucleotideEntry> result;
@@ -179,7 +197,7 @@ namespace OpenMS
       }
       try
       {
-        RibonucleotideEntry entry = parseRow_(line, line_count);
+        RibonucleotideEntry entry = parseRow_(line, line_count, baseloss_column);
         result.push_back(std::move(entry));
       }
       catch (Exception::BaseException& e)
