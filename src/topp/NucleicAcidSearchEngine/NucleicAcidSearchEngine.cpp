@@ -24,6 +24,7 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 // file types
+#include <OpenMS/FORMAT/BedRModFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -173,6 +174,17 @@ protected:
 
     registerOutputFile_("lfq_out", "<file>", "", "Output file: targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
     setValidFormats_("lfq_out", vector<std::string>(1, "tsv"));
+
+    registerOutputFile_("bedrmod_out", "<file>", "", "Output file: bedRMod v2 RNA modification track", false);
+    setValidFormats_("bedrmod_out", {"bedrmod"});
+
+    registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for bedRMod export ('mod'/'name', 'chebi_id' and/or 'modomics_short_name' columns; required for unsupported custom modification names)", false, true);
+    setValidFormats_("bedrmod_chebi_mapping", {"csv"});
+    registerTOPPSubsection_("bedrmod", "Reference metadata for bedRMod export");
+    for (const std::string key : {"organism", "assembly", "annotation_source", "annotation_version"})
+    {
+      registerStringOption_("bedrmod:" + key, "<value>", "NA", "Explicit reference " + key + " for bedRMod export (NA when unknown)", false);
+    }
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("theo_ms2_out", ListUtils::create<std::string>("mzML"));
@@ -1254,6 +1266,8 @@ protected:
     std::string out = getStringOption_("out");
     std::string id_out = getStringOption_("id_out");
     std::string db_out = getStringOption_("db_out");
+    const std::string bedrmod_out = getStringOption_("bedrmod_out");
+    const std::string bedrmod_chebi_mapping = getStringOption_("bedrmod_chebi_mapping");
     std::string lfq_out = getStringOption_("lfq_out");
     std::string theo_ms2_out = getStringOption_("theo_ms2_out");
     std::string exp_ms2_out = getStringOption_("exp_ms2_out");
@@ -1962,6 +1976,19 @@ protected:
     if (!lfq_out.empty())
     {
       generateLFQInput_(id_data, lfq_out);
+    }
+
+    if (!bedrmod_out.empty())
+    {
+      map<std::string, std::string> reference_metadata;
+      for (const std::string key : {"organism", "assembly", "annotation_source", "annotation_version"})
+      {
+        reference_metadata[key] = getStringOption_("bedrmod:" + key);
+      }
+      reference_metadata["sequencing_platform"] = "ddMS2";
+      reference_metadata["basecalling"] = "NASE";
+      reference_metadata["bioinformatics_workflow"] = "NASE; caller-selected FDR cutoff and report:top_hits; score=min q-value (lower is better)";
+      BedRModFile().store(bedrmod_out, id_data, bedrmod_chebi_mapping, reference_metadata);
     }
 
     return EXECUTION_OK;
