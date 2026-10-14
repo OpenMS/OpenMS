@@ -40,12 +40,27 @@ END_SECTION
 START_SECTION((bool hasEnzyme(const std::string &name) const))
     TEST_EQUAL(ptr->hasEnzyme("Try"), false)
     TEST_EQUAL(ptr->hasEnzyme("Trypsin"), true)
+    // names and synonyms are also registered lowercased (#10571)
+    TEST_EQUAL(ptr->hasEnzyme("trypsin"), true)
+    TEST_EQUAL(ptr->hasEnzyme("Glu-C"), true)
+    TEST_EQUAL(ptr->hasEnzyme("glu-c"), true)
+    TEST_EQUAL(ptr->hasEnzyme("Clostripain"), true)
+    TEST_EQUAL(ptr->hasEnzyme("clostripain"), true)
+    TEST_EQUAL(ptr->hasEnzyme("GLU-C"), false)
 END_SECTION
 
 START_SECTION((const DigestionEnzymeProtein* getEnzyme(const std::string &name) const))
     TEST_EQUAL(ptr->getEnzyme("Trypsin")->getName(), "Trypsin")
     // test the synonyms
     TEST_EQUAL(ptr->getEnzyme("Clostripain")->getName(), "Arg-C")
+    TEST_EQUAL(ptr->getEnzyme("clostripain")->getName(), "Arg-C")
+    TEST_EQUAL(ptr->getEnzyme("Glu-C")->getName(), "glutamyl endopeptidase")
+    TEST_EQUAL(ptr->getEnzyme("glu-c")->getName(), "glutamyl endopeptidase")
+    // lowercased synonyms must not re-point existing names
+    TEST_EQUAL(ptr->getEnzyme("Glu-C+P")->getName(), "Glu-C+P")
+    TEST_EQUAL(ptr->getEnzyme("glu-c+p")->getName(), "Glu-C+P")
+    TEST_EQUAL(ptr->getEnzyme("Arg-C")->getName(), "Arg-C")
+    TEST_EQUAL(ptr->getEnzyme("arg-c")->getName(), "Arg-C")
     TEST_EXCEPTION(Exception::ElementNotFound, ptr->getEnzyme("DOESNOTEXIST"))
 END_SECTION
 

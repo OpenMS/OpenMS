@@ -69,7 +69,7 @@ namespace OpenMS
     //@{
     /// returns a pointer to the enzyme with name (supports synonym names)
     /// @throw Exception::ElementNotFound if enzyme is unknown
-    /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
+    /// @note enzyme names and synonyms are registered in regular and in toLowercase() style, if unsure use toLowercase
     const DigestionEnzymeType* getEnzyme(const std::string& name) const
     {
       auto pos = enzyme_names_.find(name);
@@ -159,13 +159,12 @@ namespace OpenMS
       {
         const DigestionEnzymeType* old = existing->second;
         const_enzymes_.erase(old);
-        // remove old name/synonym entries
-        std::string old_name = old->getName();
-        enzyme_names_.erase(old_name);
-        enzyme_names_.erase(StringUtils::toLower(old_name));
-        for (const auto& syn : old->getSynonyms())
+        // remove old name/synonym entries (as written and lowercased), but only those
+        // that point to the enzyme being replaced
+        for (auto it = enzyme_names_.begin(); it != enzyme_names_.end(); )
         {
-          enzyme_names_.erase(syn);
+          if (it->second == old) it = enzyme_names_.erase(it);
+          else ++it;
         }
         // remove old regex entry
         if (!old->getRegEx().empty())
@@ -179,10 +178,15 @@ namespace OpenMS
       const_enzymes_.insert(enzyme);
       // add to internal indices (by name and its synonyms)
       enzyme_names_[name] = enzyme;
-      enzyme_names_[StringUtils::toLower(name)] = enzyme;
-      for (std::set<std::string>::const_iterator it = enzyme->getSynonyms().begin(); it != enzyme->getSynonyms().end(); ++it)
+      enzyme_names_[StringUtils::toLowered(name)] = enzyme;
+      for (const auto& syn : enzyme->getSynonyms())
       {
-        enzyme_names_[*it] = enzyme;
+        enzyme_names_[syn] = enzyme;
+      }
+      // lowercased synonyms (see getEnzyme()); never re-point an existing entry
+      for (const auto& syn : enzyme->getSynonyms())
+      {
+        enzyme_names_.emplace(StringUtils::toLowered(syn), enzyme);
       }
       // ... and by regex
       if (enzyme->getRegEx() != "")
