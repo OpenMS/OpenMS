@@ -196,6 +196,8 @@ protected:
     registerFlag_("force_MaxQuant_compatibility", "[mzXML output only] Make sure that MaxQuant can read the mzXML and set the msManufacturer to 'Thermo Scientific'.", true);
     registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
     registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
+    registerFlag_("raw_checksum", "[Thermo raw input, in-process reader only] Record the SHA-1 checksum of the raw file as source file provenance. "
+      "This reads the whole raw file once more, which adds about 5-15% to the conversion time.", true);
 
     registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<std::string>("true,false"));
@@ -369,7 +371,7 @@ protected:
     setValidFormats_("RawToMzML:ThermoRaw_executable", {"exe"});
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem (external reader only).", true);
-    registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+    registerFlag_("RawToMzML:include_noise", "Include vendor sampled noise m/z, noise intensity and baseline arrays in mzML output when available. These preserve noise measurements, not calculated per-peak signal-to-noise ratios.", true);
     // Packages always contain the in-process reader (WITH_THERMO_RAW is ON on every supported
     // platform), which needs a .NET 8 runtime. 'external' needs ThermoRawFileParser.exe on the PATH
     // and, on linux and mac, mono, which the packages there do not provide, so linux and mac default
@@ -564,6 +566,7 @@ protected:
         ThermoRawFile::Options raw_options = raw_file.getOptions();
         raw_options.centroid = !getFlag_("RawToMzML:no_peak_picking");
         raw_options.noise_data = getFlag_("RawToMzML:include_noise");
+        raw_options.checksum = getFlag_("raw_checksum");
         raw_file.setOptions(raw_options);
         try
         {
