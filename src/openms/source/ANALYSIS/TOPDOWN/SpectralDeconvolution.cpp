@@ -13,7 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <boost/dynamic_bitset.hpp>
-#include <optional>
+#include <utility>
 #ifdef _OPENMP
   #include <omp.h>
 #endif
@@ -209,14 +209,30 @@ namespace OpenMS
   }
 
   // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
-  void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group)
+  void SpectralDeconvolution::setQueryMasses(const std::vector<std::pair<double, int>>& mz_charge)
   {
-    performSpectrumDeconvolution(spec, scan_number, precursor_peak_group, {});
+    for (const auto& query : mz_charge)
+    {
+      if (!std::isfinite(query.first) || query.first <= 0)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Query m/z must be finite and positive.");
+      }
+    }
+    query_mz_charge_ = mz_charge;
   }
 
-  void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group,
-                                                           const std::vector<Precursor>& precursors)
+  void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec, const int scan_number, const PeakGroup& precursor_peak_group)
   {
+    const auto queries = std::exchange(query_mz_charge_, {});
+    std::vector<Precursor> precursors;
+    for (const auto& query : queries)
+    {
+      Precursor precursor;
+      precursor.setMZ(query.first);
+      precursor.setCharge(query.second);
+      precursors.push_back(precursor);
+    }
     if (!precursors.empty() && spec.getMSLevel() != 1)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -719,7 +735,7 @@ namespace OpenMS
   }
 
   // With the mass bins from updateMassBins_, select peaks from the same mass in the original input spectrum
-  void SpectralDeconvolution::getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges, bool directed)
+  void SpectralDeconvolution::getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges)
   {
     double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     double tol = tolerance_[ms_level_ - 1];
@@ -732,8 +748,6 @@ namespace OpenMS
     std::vector<Size> mass_bins;
     for (Size bin = bitsets_.impl->binned_log_masses_.find_first(); bin != bitsets_.impl->binned_log_masses_.npos;
          bin = bitsets_.impl->binned_log_masses_.find_next(bin)) mass_bins.push_back(bin);
-    std::vector<std::optional<PeakGroup>> groups(directed ? mass_bins.size() : 0);
-    const int threads = getThreadCount_(mass_bins.size(), directed);
     auto peak_bin_numbers = std::vector<Size>(log_mz_peak_size);
     // per peak, store the m/z bin number for fast processing
     for (int i = 0; i < log_mz_peak_size; i++)
@@ -742,7 +756,6 @@ namespace OpenMS
     }
 
     // main iteration. per_mass_abs_charge_ranges gives the range of charges for each mass bin
-  #pragma omp parallel for if(directed) num_threads(threads) schedule(dynamic, 16) default(none) shared(directed, groups, mass_bins, bin_mul_factor, tol, charge_range, per_mass_abs_charge_ranges, current_peak_index, peak_bin_numbers, log_mz_peak_size, mass_bin_size)
     for (SignedSize group_index = 0; group_index < SignedSize(mass_bins.size()); ++group_index)
     {
       const Size mass_bin_index = mass_bins[group_index];
@@ -768,8 +781,7 @@ namespace OpenMS
         if (mass_bin_index < (size_t)bin_offset) { continue; }
 
         Size b_index = mass_bin_index - bin_offset; // m/z bin
-        int cpi = directed ? int(std::lower_bound(peak_bin_numbers.begin(), peak_bin_numbers.end(), b_index) - peak_bin_numbers.begin())
-                           : current_peak_index[j];           // in this charge which peak is to be considered?
+        int cpi = current_peak_index[j];           // in this charge which peak is to be considered?
         double max_intensity = -1;
 
         while (cpi < log_mz_peak_size - 1) // scan through peaks from cpi
@@ -787,7 +799,7 @@ namespace OpenMS
           cpi++;
         }
 
-        if (!directed) current_peak_index[j] = cpi;
+        current_peak_index[j] = cpi;
         if (max_peak_index < 0) { continue; }
 
         // Search for local max.
@@ -892,20 +904,9 @@ namespace OpenMS
           pg.setScanNumber(deconvolved_spectrum_.getScanNumber());
           pg.sort();
 
-          if (directed) groups[group_index].emplace(std::move(pg));
-          else deconvolved_spectrum_.push_back(pg);
+          deconvolved_spectrum_.push_back(pg);
         }
       }
-    }
-    if (directed)
-    {
-      // Pack in original mass-bin order independently of worker completion order.
-      std::vector<PeakGroup> ordered;
-      for (auto& group : groups)
-      {
-        if (group) ordered.emplace_back(std::move(*group));
-      }
-      deconvolved_spectrum_.setPeakGroups(ordered);
     }
   }
 
@@ -1019,7 +1020,7 @@ namespace OpenMS
     {
       getCandidatePeakGroups_(per_mass_abs_charge_ranges);
     }
-    scoreAndFilterPeakGroups_(ms_level_ == 1 && !precursors.empty());
+    scoreAndFilterPeakGroups_();
   }
 
   bool SpectralDeconvolution::isPeakGroupInExcludedMassForDecoyRuns_(const PeakGroup& peak_group, double tol, int offset) const
@@ -1104,8 +1105,8 @@ namespace OpenMS
     }
     restrictCandidateMassBins_(intervals);
     const auto seed_bins = bitsets_.impl->binned_log_masses_;
-    getCandidatePeakGroups_(charge_ranges, true);
-    const auto scored = scorePeakGroups_(true);
+    getCandidatePeakGroups_(charge_ranges);
+    const auto scored = scorePeakGroups_();
     // Charge-error rejection compares groups that share an observed signal peak.
     // Include every alternative charge interpretation of the queried groups'
     // evidence before applying the ordinary global filters. Do not mark these
@@ -1161,27 +1162,16 @@ namespace OpenMS
     restrictCandidateMassBins_(std::move(intervals));
     bitsets_.impl->binned_log_masses_ |= seed_bins;
     deconvolved_spectrum_.clear();
-    getCandidatePeakGroups_(charge_ranges, true);
+    getCandidatePeakGroups_(charge_ranges);
   }
 
-  int SpectralDeconvolution::getThreadCount_(Size group_count, bool directed)
-  {
-#ifdef _OPENMP
-    const int maximum = omp_get_max_threads();
-    return directed ? std::min(maximum, std::max(1, int(group_count / 256))) : maximum;
-#else
-    return 1;
-#endif
-  }
-
-  std::vector<Size> SpectralDeconvolution::scorePeakGroups_(bool directed)
+  std::vector<Size> SpectralDeconvolution::scorePeakGroups_()
   {
     double tol = tolerance_[ms_level_ - 1];
-    const int threads = getThreadCount_(deconvolved_spectrum_.size(), directed);
     std::vector<unsigned char> selected(deconvolved_spectrum_.size(), 0);
     double snr_threshold = min_snr_[ms_level_ - 1];
 
-  #pragma omp parallel for num_threads(threads) default(none) shared(tol, selected, snr_threshold, std::cout)
+  #pragma omp parallel for default(none) shared(tol, selected, snr_threshold, std::cout)
     for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
     {
       int offset = 0;
@@ -1260,12 +1250,12 @@ namespace OpenMS
     return indices;
   }
 
-  void SpectralDeconvolution::scoreAndFilterPeakGroups_(bool directed)
+  void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   {
     double snr_threshold = min_snr_[ms_level_ - 1];
     double tol = tolerance_[ms_level_ - 1];
     auto selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
-    for (Size i : scorePeakGroups_(directed)) selected[i] = true;
+    for (Size i : scorePeakGroups_()) selected[i] = true;
     Size selected_count = selected.count();
     if (selected_count == 0)
     {
@@ -1298,11 +1288,10 @@ namespace OpenMS
     removeChargeErrorPeakGroups_(deconvolved_spectrum_, target_decoy_type_);
 
     // final harmonics removal
-    const int threads = getThreadCount_(deconvolved_spectrum_.size(), directed);
     selected = boost::dynamic_bitset<>(deconvolved_spectrum_.size());
     filtered_peak_groups = std::vector<PeakGroup>();
 
-  #pragma omp parallel for num_threads(threads) default(none) shared(tol, selected, harmonic_charges_)
+  #pragma omp parallel for default(none) shared(tol, selected, harmonic_charges_)
     for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
     {
       const auto& peak_group = deconvolved_spectrum_[i];

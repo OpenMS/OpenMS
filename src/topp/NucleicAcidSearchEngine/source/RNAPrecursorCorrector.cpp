@@ -203,19 +203,21 @@ namespace OpenMS
         const auto& precursor = experiment[ms2_indices[index]].getPrecursors()[0];
         queries.emplace(std::make_pair(precursor.getMZ(), precursor.getCharge()), precursor);
       }
-      std::vector<Precursor> selected;
-      for (const auto& [key, precursor] : queries) selected.push_back(precursor);
+      std::vector<std::pair<double, int>> selected;
+      for (const auto& [key, precursor] : queries) selected.push_back(key);
       const auto& ms1 = experiment[parent];
       if (ms1.isSorted())
       {
-        detector_.performSpectrumDeconvolution(ms1, int(parent), PeakGroup(), selected);
+        detector_.setQueryMasses(selected);
+        detector_.performSpectrumDeconvolution(ms1, int(parent), PeakGroup());
       }
       else
       {
         // FLASH requires m/z order. Preserve the original parent and its data arrays.
         auto sorted_ms1 = ms1;
         sorted_ms1.sortByPosition();
-        detector_.performSpectrumDeconvolution(sorted_ms1, int(parent), PeakGroup(), selected);
+        detector_.setQueryMasses(selected);
+        detector_.performSpectrumDeconvolution(sorted_ms1, int(parent), PeakGroup());
       }
       std::map<std::pair<double, int>, Result> corrections;
       for (const auto& [key, precursor] : queries)

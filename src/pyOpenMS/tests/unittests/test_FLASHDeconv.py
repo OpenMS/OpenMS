@@ -1209,7 +1209,8 @@ class TestDirectedSpectralDeconvolution(unittest.TestCase):
         query = pyopenms.Precursor()
         query.setMZ(mz[1])
         query.setCharge(-2)
-        detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup(), [query])
+        detector.setQueryMasses([(query.getMZ(), query.getCharge())])
+        detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup())
         directed = detector.getDeconvolvedSpectrum()
         self.assertGreater(directed.size(), 0)
         self.assertEqual(directed.size(), original.size())
@@ -1220,11 +1221,14 @@ class TestDirectedSpectralDeconvolution(unittest.TestCase):
         self.assertTrue(np.array_equal(actual_mz, mz))
         self.assertTrue(np.array_equal(actual_intensity, spectrum.get_peaks()[1]))
         # Empty queries remain the existing API and no query state leaks.
-        detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup(), [])
+        detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup())
         self.assertEqual(detector.getDeconvolvedSpectrum().size(), original.size())
+        with self.assertRaisesRegex(Exception, "finite and positive"):
+            detector.setQueryMasses([(float("nan"), 2)])
         spectrum.setMSLevel(2)
         with self.assertRaisesRegex(Exception, "MS1"):
-            detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup(), [query])
+            detector.setQueryMasses([(query.getMZ(), query.getCharge())])
+            detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup())
 
 
 if __name__ == '__main__':
