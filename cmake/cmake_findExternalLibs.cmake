@@ -54,12 +54,23 @@ endif()
 
 #------------------------------------------------------------------------------
 # LP Solver selection
-# LP_SOLVER option: COIN, GLPK, HIGHS, or AUTO (default)
-# AUTO tries COIN-OR first, then GLPK, then HiGHS via FetchContent
-set(LP_SOLVER "AUTO" CACHE STRING "LP solver to use: AUTO, COIN, GLPK, or HIGHS")
-set_property(CACHE LP_SOLVER PROPERTY STRINGS AUTO COIN GLPK HIGHS)
+# LP_SOLVER option: HIGHS (default), COIN or GLPK.
+# HiGHS is taken from the system/vcpkg if found, otherwise fetched via FetchContent.
+# COIN and GLPK are deprecated and will be removed in the next release (see #10551).
+# AUTO (the former default) is kept as an alias for HIGHS, so existing build trees switch over.
+set(LP_SOLVER "HIGHS" CACHE STRING "LP solver to use: HIGHS (default), COIN (deprecated) or GLPK (deprecated)")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS HIGHS COIN GLPK)
+if (LP_SOLVER STREQUAL "AUTO")
+  message(STATUS "LP_SOLVER=AUTO now selects HiGHS")
+  set(LP_SOLVER "HIGHS")
+endif()
+if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "GLPK")
+  message(DEPRECATION "LP_SOLVER=${LP_SOLVER} is deprecated and will be removed in the next OpenMS release. Use the default, HIGHS.")
+elseif (NOT LP_SOLVER STREQUAL "HIGHS")
+  message(FATAL_ERROR "Invalid LP_SOLVER '${LP_SOLVER}'. Use HIGHS (default), COIN or GLPK.")
+endif()
 
-if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "AUTO")
+if (LP_SOLVER STREQUAL "COIN")
   find_package(COIN QUIET)
   if (COIN_FOUND)
     set(OPENMS_HAS_COINOR 1)
@@ -70,7 +81,7 @@ if (LP_SOLVER STREQUAL "COIN" OR LP_SOLVER STREQUAL "AUTO")
   endif()
 endif()
 
-if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
+if (LP_SOLVER STREQUAL "GLPK")
   find_package(GLPK QUIET)
   if (GLPK_FOUND)
     set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
@@ -83,7 +94,7 @@ if (NOT LPTARGET AND (LP_SOLVER STREQUAL "GLPK" OR LP_SOLVER STREQUAL "AUTO"))
   endif()
 endif()
 
-if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
+if (LP_SOLVER STREQUAL "HIGHS")
   # Try to find a system-installed HiGHS first
   find_package(highs QUIET CONFIG)
   if (highs_FOUND)
@@ -123,7 +134,7 @@ if (NOT LPTARGET AND (LP_SOLVER STREQUAL "HIGHS" OR LP_SOLVER STREQUAL "AUTO"))
 endif()
 
 if (NOT LPTARGET)
-  message(FATAL_ERROR "No LP solver found. Set LP_SOLVER to COIN, GLPK, or HIGHS, or ensure one is available.")
+  message(FATAL_ERROR "No LP solver found for LP_SOLVER=${LP_SOLVER}.")
 endif()
 
 # Set default GLPK version variables if GLPK was not found (needed for config.h.in substitution)

@@ -51,7 +51,7 @@ namespace OpenMS
 
     This class provides a unified interface to different linear programming solvers,
     including GLPK (GNU Linear Programming Kit), COIN-OR, and HiGHS (selected via the
-    LP_SOLVER CMake variable: AUTO, COIN, GLPK, or HIGHS).
+    LP_SOLVER CMake variable: HIGHS (default), or the deprecated COIN and GLPK).
     
     Linear programming is a method to find the best outcome in a mathematical model
     whose requirements are represented by linear relationships. It is used for
@@ -192,8 +192,8 @@ public:
     /**
       @brief Default constructor
       
-      Initializes a new LP problem with the default solver (COIN-OR, HiGHS, or GLPK,
-      depending on which LP solver was selected at build time via LP_SOLVER).
+      Initializes a new LP problem with the solver selected at build time via LP_SOLVER
+      (HiGHS by default, or the deprecated COIN-OR or GLPK).
     */
     LPWrapper();
     
