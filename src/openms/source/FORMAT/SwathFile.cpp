@@ -40,6 +40,7 @@
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/IMSExperimentRandomAccess.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <algorithm>
 #include <map>
 #include <numeric>
@@ -258,7 +259,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Loading Thermo RAW file " << file << " using readoptions " << readoptions << '\n';
     if (readoptions == "onDisc")
     {
-      return loadThermoRawOnDisc_(file, exp_meta, plugin_consumer);
+      return loadOnDisc(file, exp_meta, plugin_consumer);
     }
     std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : "";
 
@@ -307,35 +308,6 @@ namespace OpenMS
     return swath_maps;
   }
 
-  std::vector<OpenSwath::SwathMap> SwathFile::loadThermoRawOnDisc_(const std::string& file,
-                                                                   std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                                                   Interfaces::IMSDataConsumer* plugin_consumer)
-  {
-    return loadOnDisc(openThermoRawOnDisc_(file), exp_meta, plugin_consumer);
-  }
-
-  std::vector<FAIMSSwathMapGroup> SwathFile::loadThermoRawByFAIMSCV(const std::string& file,
-                                                                    std::shared_ptr<ExperimentalSettings>& exp_meta,
-                                                                    Interfaces::IMSDataConsumer* plugin_consumer)
-  {
-    OPENMS_LOG_INFO << "Loading Thermo RAW file " << file << " by FAIMS CV using readoptions onDisc\n";
-    return loadOnDiscByFAIMSCV(openThermoRawOnDisc_(file), exp_meta, plugin_consumer);
-  }
-
-  std::shared_ptr<IMSExperimentRandomAccess> SwathFile::openThermoRawOnDisc_(const std::string& file)
-  {
-    // Same reader options as FileHandler uses for the other read options (centroided, no chromatograms)
-    ThermoRawFile::Options options;
-    options.centroid = true;
-    options.checksum = false;
-    options.skip_chromatograms = true;
-
-    startProgress(0, 1, "Indexing " + file);
-    auto experiment = std::make_shared<OnDiscThermoRawExperiment>();
-    experiment->openFile(file, options);
-    endProgress();
-    return experiment;
-  }
 #endif
 
   namespace
@@ -508,6 +480,66 @@ namespace OpenMS
       setProgress(i);
     }
     endProgress();
+  }
+
+  std::shared_ptr<IMSExperimentRandomAccess> SwathFile::openOnDisc_(const std::string& file)
+  {
+    const FileTypes::Type type = FileHandler::getType(file);
+    std::shared_ptr<IMSExperimentRandomAccess> experiment;
+    startProgress(0, 1, "Indexing " + file);
+    if (type == FileTypes::MZML)
+    {
+      auto mzml = std::make_shared<OnDiscMSExperiment>();
+      if (!mzml->openFile(file))
+      {
+        endProgress();
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file,
+          "readOptions 'onDisc' needs an indexed mzML file (e.g. written by FileConverter); use 'normal' or 'cache' otherwise.");
+      }
+      experiment = mzml;
+    }
+#ifdef WITH_THERMO_RAW
+    else if (type == FileTypes::RAW)
+    {
+      // Same reader options as FileHandler uses for the other read options (centroided, no chromatograms)
+      ThermoRawFile::Options options;
+      options.centroid = true;
+      options.checksum = false;
+      options.skip_chromatograms = true;
+      auto raw = std::make_shared<OnDiscThermoRawExperiment>();
+      raw->openFile(file, options);
+      experiment = raw;
+    }
+#endif
+    // Bruker .d (TDF) is not supported yet; it needs an IMSExperimentRandomAccess backend.
+    else
+    {
+      endProgress();
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "readOptions 'onDisc' supports indexed mzML"
+#ifdef WITH_THERMO_RAW
+        " and Thermo .raw"
+#endif
+        " input, not this file type.", file);
+    }
+    endProgress();
+    return experiment;
+  }
+
+  std::vector<OpenSwath::SwathMap> SwathFile::loadOnDisc(const std::string& file,
+                                                         std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                         Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    OPENMS_LOG_INFO << "Loading " << file << " using readoptions onDisc\n";
+    return loadOnDisc(openOnDisc_(file), exp_meta, plugin_consumer);
+  }
+
+  std::vector<FAIMSSwathMapGroup> SwathFile::loadOnDiscByFAIMSCV(const std::string& file,
+                                                                 std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                                 Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    OPENMS_LOG_INFO << "Loading " << file << " by FAIMS CV using readoptions onDisc\n";
+    return loadOnDiscByFAIMSCV(openOnDisc_(file), exp_meta, plugin_consumer);
   }
 
   std::vector<OpenSwath::SwathMap> SwathFile::loadOnDisc(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,

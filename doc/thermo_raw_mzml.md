@@ -187,7 +187,9 @@ completely at open and kept in memory.
 indices, for example one SWATH window. `lightClone()` clones the experiment, so
 clones can be used from different threads.
 
-`OpenSwathWorkflow -readOptions onDisc` uses these classes for .raw input. The
+`OpenSwathWorkflow -readOptions onDisc` uses these classes for .raw input
+(and `OnDiscMSExperiment` for indexed mzML; `SwathFile::loadOnDisc()` chooses
+the backend by file type). The
 spectra are sorted into SWATH windows from the index, and each window reads its
 spectra from the file during extraction. Nothing is loaded or cached in advance.
 The results are the same as with `normal`. Two restrictions apply:
@@ -195,7 +197,7 @@ The results are the same as with `normal`. Two restrictions apply:
 - OpenSwathWorkflow does not process FAIMS compensation voltages separately with
   any read option. With `onDisc`, input with more than one CV is rejected instead
   of merging the CVs into one set of SWATH windows; single-CV input works.
-  `SwathFile::loadOnDiscByFAIMSCV()` (or `loadThermoRawByFAIMSCV()`) splits MS1
+  `SwathFile::loadOnDiscByFAIMSCV()` splits MS1
   and MS2 spectra by CV, as `IMDataConverter::splitByFAIMSCV()` does, and
   builds the SWATH maps within each CV.
 - The spectra are read from the file again during extraction, so a plugin

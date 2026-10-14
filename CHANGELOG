@@ -160,7 +160,9 @@ OpenMS Library:
     OpenSwath::ISpectrumAccess; SwathFile::loadThermoRaw() supports readoptions "onDisc" (#10522).
     SwathFile::loadOnDisc() and loadOnDiscByFAIMSCV() build the SWATH maps on any
     IMSExperimentRandomAccess, the latter split by FAIMS compensation voltage like
-    IMDataConverter::splitByFAIMSCV(). Plugin consumers may only observe the spectra with "onDisc".
+    IMDataConverter::splitByFAIMSCV(). Their file overloads choose the random-access backend by file
+    type (indexed mzML: OnDiscMSExperiment, Thermo .raw: OnDiscThermoRawExperiment). Plugin consumers
+    may only observe the spectra with "onDisc".
   - pyOpenMS: ThermoRawFile.transform() streams into a Python consumer; OnDiscThermoRawExperiment is
     wrapped with indexing, iteration and RT lookup (#10522).
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
@@ -445,7 +447,7 @@ TOPP tools:
       - Thermo .raw input is streamed into the SWATH maps instead of being loaded completely and
         copied, and the full map is no longer kept alive as run metadata; -out_qc (SwathQC) now also
         receives the spectra of .raw input (#10522).
-      - -readOptions onDisc for Thermo .raw input reads the spectra of each SWATH window from the file
+      - -readOptions onDisc for indexed mzML and Thermo .raw input reads the spectra of each SWATH window from the file
         during extraction instead of holding them in memory; results are identical to 'normal'.
         Input with more than one FAIMS compensation voltage is rejected (#10522).
     SageAdapter, CometAdapter:

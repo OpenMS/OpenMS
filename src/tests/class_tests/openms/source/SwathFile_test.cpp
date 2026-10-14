@@ -520,6 +520,57 @@ START_SECTION(([EXTRA] plugin consumers with readoptions normal, cache and onDis
 }
 END_SECTION
 
+START_SECTION((std::vector<OpenSwath::SwathMap> loadOnDisc(const std::string& file, std::shared_ptr<ExperimentalSettings>& exp_meta, Interfaces::IMSDataConsumer* plugin_consumer)))
+{
+  Size nr_swathes = 3;
+  std::string file;
+  NEW_TMP_FILE(file)
+  storeSwathFile(file, nr_swathes);
+  const std::string tmp = SystemSettings::getTempDirectory() + "/";
+
+  // Indexed mzML: same maps and spectra as readoptions "normal"
+  std::shared_ptr<ExperimentalSettings> meta;
+  auto maps_on_disc = SwathFile().loadOnDisc(file, meta);
+  TEST_NOT_EQUAL(meta.get(), nullptr)
+  auto maps_normal = SwathFile().loadMzML(file, tmp, meta, "normal");
+  TEST_EQUAL(maps_on_disc.size(), nr_swathes + 1)
+  TEST_EQUAL(maps_on_disc.size(), maps_normal.size())
+  for (Size m = 0; m < std::min(maps_on_disc.size(), maps_normal.size()); ++m)
+  {
+    TEST_EQUAL(maps_on_disc[m].ms1, maps_normal[m].ms1)
+    TEST_REAL_SIMILAR(maps_on_disc[m].lower, maps_normal[m].lower)
+    TEST_REAL_SIMILAR(maps_on_disc[m].upper, maps_normal[m].upper)
+    TEST_EQUAL(maps_on_disc[m].sptr->getNrSpectra(), maps_normal[m].sptr->getNrSpectra())
+    for (Size i = 0; i < std::min(maps_on_disc[m].sptr->getNrSpectra(), maps_normal[m].sptr->getNrSpectra()); ++i)
+    {
+      TEST_TRUE(maps_on_disc[m].sptr->getSpectrumById(int(i))->getIntensityArray()->data == maps_normal[m].sptr->getSpectrumById(int(i))->getIntensityArray()->data)
+      TEST_TRUE(maps_on_disc[m].sptr->getSpectrumById(int(i))->getMZArray()->data == maps_normal[m].sptr->getSpectrumById(int(i))->getMZArray()->data)
+    }
+  }
+
+  // The FAIMS variant on a file without CVs: one group with CV NaN and the same maps
+  auto groups = SwathFile().loadOnDiscByFAIMSCV(file, meta);
+  TEST_EQUAL(groups.size(), 1)
+  ABORT_IF(groups.size() != 1)
+  TEST_TRUE(std::isnan(groups[0].faims_cv))
+  TEST_EQUAL(groups[0].swath_maps.size(), maps_on_disc.size())
+
+  // mzML without an index cannot be read on access
+  std::string file_unindexed;
+  NEW_TMP_FILE(file_unindexed)
+  PeakMap exp;
+  MzMLFile().load(file, exp);
+  MzMLFile mzml;
+  mzml.getOptions().setWriteIndex(false);
+  mzml.store(file_unindexed, exp);
+  TEST_EXCEPTION(Exception::ParseError, SwathFile().loadOnDisc(file_unindexed, meta))
+
+  // File types without a random-access backend
+  TEST_EXCEPTION(Exception::InvalidValue, SwathFile().loadOnDisc(tmp + "SwathFile_test_unsupported.mzXML", meta))
+  TEST_EXCEPTION(Exception::InvalidValue, SwathFile().loadOnDiscByFAIMSCV(tmp + "SwathFile_test_unsupported.sqMass", meta))
+}
+END_SECTION
+
 START_SECTION((std::vector< OpenSwath::SwathMap > loadMzXML(std::string file, std::string tmp, std::shared_ptr<ExperimentalSettings>& exp_meta, std::string readoptions="normal") ) )
 {
   NOT_TESTABLE // mzXML is not supported
