@@ -41,6 +41,61 @@ namespace OpenMS
 
   using Interfaces::IMSDataConsumer;
 
+  namespace
+  {
+    /// The SWATH consumer for @p readoptions ("normal", "cache" or "split"), with @p settings set.
+    std::shared_ptr<FullSwathFileConsumer> makeSwathConsumer_(const std::string& readoptions,
+                                                              const std::vector<OpenSwath::SwathMap>& known_window_boundaries,
+                                                              const std::string& tmp,
+                                                              const std::string& tmp_fname,
+                                                              int nr_ms1_spectra,
+                                                              const std::vector<int>& swath_counter,
+                                                              const ExperimentalSettings& settings)
+    {
+      std::shared_ptr<FullSwathFileConsumer> consumer;
+      if (readoptions == "normal")
+      {
+        consumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
+      }
+      else if (readoptions == "cache")
+      {
+        consumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      }
+      else if (readoptions == "split")
+      {
+        // WARNING: swath_maps will be empty when querying retrieveSwathMaps()
+        consumer = std::make_shared<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Unknown or unsupported option " + readoptions);
+      }
+      consumer->setExperimentalSettings(settings);
+      return consumer;
+    }
+
+    /**
+      @brief Passes only the spectra and chromatograms on.
+
+      The receiving consumers were already given the metadata (and, where needed, extra meta
+      values) by the caller; this keeps a reader from replacing it (cf. MzMLFile::transform()
+      with skip_first_pass).
+    */
+    class DataOnlyConsumer : public IMSDataConsumer
+    {
+    public:
+      explicit DataOnlyConsumer(IMSDataConsumer& next) : next_(next) {}
+      void consumeSpectrum(SpectrumType& s) override { next_.consumeSpectrum(s); }
+      void consumeChromatogram(ChromatogramType& c) override { next_.consumeChromatogram(c); }
+      void setExpectedSize(Size, Size) override {}
+      void setExperimentalSettings(const ExperimentalSettings&) override {}
+
+    private:
+      IMSDataConsumer& next_;
+    };
+  }
+
   /// Loads a Swath run from a list of split mzML files
   std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list,
         const std::string& tmp,
@@ -156,27 +211,7 @@ namespace OpenMS
 
     std::shared_ptr<FullSwathFileConsumer> dataConsumer;
     startProgress(0, 1, "Loading data file " + file);
-    if (readoptions == "normal")
-    {
-      dataConsumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
-      dataConsumer->setExperimentalSettings(*exp_meta.get());
-    }
-    else if (readoptions == "cache")
-    {
-      dataConsumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      dataConsumer->setExperimentalSettings(*exp_meta.get());
-    }
-    else if (readoptions == "split")
-    {
-      // WARNING: swath_maps will be empty when querying retrieveSwathMaps()
-      dataConsumer = std::make_shared<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      dataConsumer->setExperimentalSettings(*exp_meta.get());
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Unknown or unsupported option " + readoptions);
-    }
+    dataConsumer = makeSwathConsumer_(readoptions, known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter, *exp_meta);
 
     std::vector<Interfaces::IMSDataConsumer *> consumer_list;
     // only use plugin if non-empty
@@ -199,6 +234,62 @@ namespace OpenMS
     return swath_maps;
   }
 
+#ifdef WITH_THERMO_RAW
+  std::vector<OpenSwath::SwathMap> SwathFile::loadThermoRaw(const std::string& file,
+                                                            const std::string& tmp,
+                                                            std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                            const std::string& readoptions,
+                                                            Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    OPENMS_LOG_INFO << "Loading Thermo RAW file " << file << " using readoptions " << readoptions << '\n';
+    std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : "";
+
+    // Read through FileHandler like the other tools (centroided spectra, source file as for a load)
+    FileHandler fh;
+    fh.getOptions().setSkipChromatograms(true); // the SWATH consumers do not take chromatograms
+
+    // First pass: the spectra without peaks, for the SWATH windows and as run metadata
+    startProgress(0, 1, "Loading metadata of " + file);
+    auto exp_stripped = std::make_shared<PeakMap>();
+    {
+      FileHandler meta_fh = fh;
+      meta_fh.getOptions().setMetadataOnly(true);
+      meta_fh.loadExperiment(file, *exp_stripped, {FileTypes::RAW});
+    }
+    exp_meta = exp_stripped;
+
+    std::vector<int> swath_counter;
+    int nr_ms1_spectra;
+    std::vector<OpenSwath::SwathMap> known_window_boundaries;
+    countScansInSwath_(exp_stripped->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
+    OPENMS_LOG_INFO << "Determined there to be " << swath_counter.size()
+                    << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
+    endProgress();
+
+    startProgress(0, 1, "Loading data file " + file);
+    std::shared_ptr<FullSwathFileConsumer> dataConsumer =
+      makeSwathConsumer_(readoptions, known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter, *exp_meta);
+
+    std::vector<Interfaces::IMSDataConsumer*> consumer_list;
+    if (plugin_consumer)
+    {
+      exp_meta->setMetaValue("nr_ms1_spectra", nr_ms1_spectra); // required for SwathQC::getExpSettingsFunc()
+      plugin_consumer->setExperimentalSettings(*exp_meta);
+      exp_meta->removeMetaValue("nr_ms1_spectra");
+      consumer_list.push_back(plugin_consumer);
+    }
+    consumer_list.push_back(dataConsumer.get());
+    MSDataChainingConsumer chaining_consumer(consumer_list);
+    DataOnlyConsumer data_only(chaining_consumer);
+    fh.transformExperiment(file, &data_only, {FileTypes::RAW});
+
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    dataConsumer->retrieveSwathMaps(swath_maps);
+    endProgress();
+    return swath_maps;
+  }
+#endif
+
   /// Loads a Swath run from a pre-loaded in-memory MSExperiment
   std::vector<OpenSwath::SwathMap> SwathFile::loadFromMSExperiment(
       const std::shared_ptr<PeakMap>& exp,
@@ -210,8 +301,10 @@ namespace OpenMS
                     << " spectra using readoptions " << readoptions << '\n';
     std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : "";
 
-    // The provided experiment already contains all metadata + data.
-    exp_meta = exp;
+    // Keep only the run-level metadata, not a second reference to the spectra.
+    auto metadata = std::make_shared<PeakMap>();
+    metadata->getExperimentalSettings() = exp->getExperimentalSettings();
+    exp_meta = metadata;
 
     std::vector<int> swath_counter;
     int nr_ms1_spectra;
