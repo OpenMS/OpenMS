@@ -153,6 +153,26 @@ START_SECTION((void setColumnType(Int index, VariableType type)))
 {
   lp.setColumnType(0,LPWrapper::INTEGER);
   TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER);
+
+  // types set before further columns/rows are added must be kept; later columns stay continuous
+  LPWrapper lp_types;
+  Int x = lp_types.addColumn();
+  lp_types.setColumnBounds(x, 0.0, 10.0, LPWrapper::DOUBLE_BOUNDED);
+  lp_types.setColumnType(x, LPWrapper::INTEGER);
+  lp_types.setObjective(x, 1.0);
+  Int y = lp_types.addColumn();
+  lp_types.setColumnBounds(y, 0.0, 10.0, LPWrapper::DOUBLE_BOUNDED);
+  lp_types.setObjective(y, 1.0);
+  lp_types.setObjectiveSense(LPWrapper::MAX);
+  lp_types.addRow(std::vector<Int>(1, x), std::vector<double>(1, 2.0), std::string("x"), 0.0, 3.0, LPWrapper::UPPER_BOUND_ONLY); // 2x <= 3
+  lp_types.addRow(std::vector<Int>(1, y), std::vector<double>(1, 2.0), std::string("y"), 0.0, 3.0, LPWrapper::UPPER_BOUND_ONLY); // 2y <= 3
+  TEST_EQUAL(lp_types.getColumnType(x), LPWrapper::INTEGER)
+  TEST_EQUAL(lp_types.getColumnType(y), LPWrapper::CONTINUOUS)
+  LPWrapper::SolverParam param_types;
+  lp_types.solve(param_types);
+  TEST_REAL_SIMILAR(lp_types.getColumnValue(x), 1.0)
+  TEST_REAL_SIMILAR(lp_types.getColumnValue(y), 1.5)
+  TEST_EQUAL(lp_types.getColumnType(x), LPWrapper::INTEGER)
 }
 END_SECTION
 

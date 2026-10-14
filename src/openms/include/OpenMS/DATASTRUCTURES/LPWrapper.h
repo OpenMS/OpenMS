@@ -14,6 +14,7 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
+#include <cstdint>
 #include <limits>
 #include <memory>
 
@@ -535,6 +536,11 @@ protected:
 #elif defined(OPENMS_HAS_HIGHS)
     std::unique_ptr<Highs> highs_;     ///< HiGHS solver instance
     std::vector<double> solution_;     ///< Solution vector when using HiGHS
+    /// Column integrality staged by setColumnType() (values of HighsVarType; empty = nothing pending).
+    /// Highs::changeColIntegrality() is expensive per call, so changes are applied in one batch by flushIntegrality_().
+    mutable std::vector<uint8_t> staged_integrality_;
+    /// Apply staged_integrality_ to the HiGHS model (const: also needed by writeProblem())
+    void flushIntegrality_() const;
 #else
     glp_prob * lp_problem_ = nullptr;  ///< GLPK problem object for the LP problem
 #endif
