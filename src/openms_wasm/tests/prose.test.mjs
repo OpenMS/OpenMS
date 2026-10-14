@@ -117,6 +117,18 @@ test("ProSEAlgorithm: Percolator rescoring, in-process", () => {
   assert.equal(small.percolator.applied, false);
   assert.match(small.percolator.skipped, /100/);
 
+  // on by default; { rescore: false } turns it off
+  for (const [options, expected] of [[undefined, "object"], [{ rescore: false }, "null"]]) {
+    const summary = using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+      (prose, proteins, peptides) => {
+        prose.setParameterValues(prose1);
+        return options === undefined
+          ? prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides)
+          : prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides, options);
+      });
+    assert.equal(summary.percolator === null ? "null" : typeof summary.percolator, expected, JSON.stringify(options));
+  }
+
   // the data and settings of TOPP_ProSE_11_rescore (ProSE_6_fdr.ini): rescored, q-values as scores, filtered at FDR:PSM
   using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
     (prose, proteins, peptides) => {

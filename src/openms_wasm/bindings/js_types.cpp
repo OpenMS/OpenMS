@@ -124,7 +124,7 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "entries: { name: string; theoreticalMass: number; observedMass: number; massDeviation: number; count: number; "
     "uniquePeptides: number; chargeStates: number; percentage: number; targetResidues: string; residueCounts: Record<string, number> }[] } "
     "} | null }");
-  register_type<ProSEOptions>("ProSEOptions", "{ rescore?: boolean } | null | undefined");
+  register_type<ProSEOptions>("ProSEOptions", "{ /** Percolator rescoring (default: true) */ rescore?: boolean } | null | undefined");
   register_type<AnnotationOptions>("AnnotationOptions",
     "{ tolerance?: number; unit?: 'Da' | 'ppm'; maxCharge?: number; ions?: ('a' | 'b' | 'c' | 'x' | 'y' | 'z')[]; "
     "losses?: boolean; precursor?: boolean } | null | undefined");

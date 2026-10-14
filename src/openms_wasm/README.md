@@ -148,9 +148,9 @@ when the parameters are set.
 `ProSEAlgorithm.search(spectra, database, proteins, peptides)` searches an mzML file against a
 FASTA file as the ProSE tool does for one input file: the search with PSM-level FDR
 (`FDR:PSM`), then, if `FDR:protein` is set and the database has decoys, protein inference with
-picked-protein FDR. `search(..., { rescore: true })` rescores the PSMs with Percolator first,
-in-process as the tool's `-rescore` does (needs decoys and at least 100 PSMs; the FDR filters
-then use its q-values). It fills the two lists and returns a summary: the statistics of the run
+picked-protein FDR. By default it rescores the PSMs with Percolator first, in-process as the
+tool's `-rescore` does (needs decoys and at least 100 PSMs, else it is skipped; the FDR filters
+then use its q-values); `search(..., { rescore: false })` keeps ProSE's scores. It fills the two lists and returns a summary: the statistics of the run
 and of the fragment index, Percolator's outcome, and for open searches the modification analysis
 (delta-mass histogram, mapped PTMs).
 

@@ -372,13 +372,14 @@ namespace OpenMS::WASM
     /// Searches the spectra of @p spectra_path (mzML) against the proteins of @p database_path
     /// (FASTA) as the ProSE tool does for one input file: the search with PSM-level FDR
     /// (FDR:PSM), then, if FDR:protein is set and the database has decoys, protein inference
-    /// with picked-protein FDR. Options: {rescore: true} rescores the PSMs with Percolator
+    /// with picked-protein FDR. By default (options {rescore: false} turn it off) it rescores the PSMs with Percolator
     /// (in-process) as the tool's -rescore does: the PSM and protein FDR then use its q-values.
     JS::ProSESummary proseSearchWithOptions(ProSEAlgorithm& algo, const std::string& spectra_path, const std::string& database_path,
                                             ProteinIdentificationList& proteins, PeptideIdentificationList& peptides,
                                             const JS::ProSEOptions& options)
     {
-      const bool rescore = !isNullish(options) && !isNullish(options["rescore"]) && options["rescore"].as<bool>();
+      // Percolator rescoring is on unless {rescore: false}
+      const bool rescore = isNullish(options) || isNullish(options["rescore"]) || options["rescore"].as<bool>();
       const Param user_params = algo.getParameters();
       const double psm_fdr = static_cast<double>(user_params.getValue("FDR:PSM"));
       const double protein_fdr = static_cast<double>(user_params.getValue("FDR:protein"));

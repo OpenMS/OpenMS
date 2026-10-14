@@ -6,6 +6,7 @@
 //     --set <name>=<value>    a ProSE parameter, e.g. --set "fragment:mass_tolerance=0.02"; lists with commas:
 //                             --set "modifications:fixed=Carbamidomethyl (C)"
 //     --out <file.idXML>      write the identifications
+//     --no-rescore            keep ProSE's scores (default: rescore the PSMs with Percolator)
 //     --json                  print the summary as JSON
 //
 // Run from the package directory (or adjust the import to "@openms/openms-wasm").
@@ -17,12 +18,13 @@ import createOpenMS from "../../openms.mjs";
 const args = process.argv.slice(2);
 const positional = [];
 const settings = {};
-let threads, out, json = false;
+let threads, out, json = false, rescore = true;
 for (let i = 0; i < args.length; ++i) {
   const a = args[i];
   if (a === "--threads") threads = Number(args[++i]);
   else if (a === "--out") out = args[++i];
   else if (a === "--json") json = true;
+  else if (a === "--no-rescore") rescore = false;
   else if (a === "--set") {
     const [name, ...rest] = args[++i].split("=");
     settings[name] = rest.join("=");
@@ -75,7 +77,7 @@ if (!json && process.stderr.isTTY) {
 }
 
 const searchStarted = performance.now();
-const summary = prose.search(spectra, database, proteins, peptides);
+const summary = prose.search(spectra, database, proteins, peptides, { rescore });
 const searchSeconds = (performance.now() - searchStarted) / 1000;
 if (!json && process.stderr.isTTY) process.stderr.write("\r\x1b[K");
 
@@ -106,6 +108,7 @@ const report = {
   secondsWithStartup: (performance.now() - started) / 1000,
   heapMB: memory.heapSize / 2 ** 20,
   openSearch: summary.openSearch,
+  percolator: summary.percolator,
 };
 for (const o of [prose, proteins, peptides]) o.delete();
 

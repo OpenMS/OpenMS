@@ -96,7 +96,7 @@ const handlers = {
     };
   },
 
-  async search({ spectraFile, databaseFile, parameters, rescore = false }) {
+  async search({ spectraFile, databaseFile, parameters, rescore = true }) {
     releaseState();
     await writeInputs([spectraFile, databaseFile]);
     const spectraPath = `/input/${spectraFile.name}`;
