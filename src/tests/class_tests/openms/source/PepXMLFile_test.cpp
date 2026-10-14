@@ -558,6 +558,64 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
 
 END_SECTION
 
+START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expect scores, issue #10570))
+{
+  // X! Tandem results as written by IDFileConverter (from idXML), three PSMs:
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_xtandem.pepxml");
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PepXMLFile().load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  TEST_EQUAL(proteins[0].getSearchEngine(), "X! Tandem")
+  ABORT_IF(peptides.size() != 3)
+  // the reader keeps the expect score as hit score and as "MS:1001330", but not as "E-Value":
+  TEST_EQUAL(peptides[0].getHits()[0].metaValueExists("E-Value"), false)
+  TEST_REAL_SIMILAR(static_cast<double>(peptides[0].getHits()[0].getMetaValue("MS:1001330")), 0.79432823472)
+
+  // the stored file can be read back (it used to contain '<search_score name="expect" value=""/>'):
+  std::string file_out;
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  vector<ProteinIdentification> proteins_new;
+  PeptideIdentificationList peptides_new;
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  TEST_EQUAL(proteins_new.size(), 1)
+  ABORT_IF(peptides_new.size() != peptides.size())
+  for (Size i = 0; i < peptides.size(); ++i)
+  {
+    TEST_EQUAL(peptides_new[i].getScoreType(), "expect")
+    TEST_EQUAL(peptides_new[i].isHigherScoreBetter(), false)
+    ABORT_IF(peptides_new[i].getHits().size() != 1)
+    const PeptideHit& hit = peptides[i].getHits()[0];
+    const PeptideHit& hit_new = peptides_new[i].getHits()[0];
+    TEST_EQUAL(hit_new.getSequence(), hit.getSequence())
+    TEST_REAL_SIMILAR(hit_new.getScore(), hit.getScore())
+    TEST_REAL_SIMILAR(static_cast<double>(hit_new.getMetaValue("MS:1001330")), static_cast<double>(hit.getMetaValue("MS:1001330")))
+  }
+  TEST_REAL_SIMILAR(peptides_new[2].getHits()[0].getScore(), 0.30199517204)
+
+  // without any expect value (here: X! Tandem hyperscores only), no (empty) expect score is written,
+  // and the file can still be read:
+  for (PeptideIdentification& pep : peptides)
+  {
+    pep.setScoreType("XTandem");
+    for (PeptideHit& hit : pep.getHits())
+    {
+      hit.setScore(static_cast<double>(hit.getMetaValue("hyperscore")));
+      hit.removeMetaValue("MS:1001330");
+    }
+  }
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  std::ifstream written(file_out);
+  std::string content((std::istreambuf_iterator<char>(written)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(StringUtils::hasSubstring(content, "name=\"hyperscore\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "name=\"expect\""), false)
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  TEST_EQUAL(peptides_new.size(), 3)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)

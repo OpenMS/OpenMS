@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <initializer_list>
 
 using namespace std;
 
@@ -561,6 +562,21 @@ namespace OpenMS
       f << "\t<analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << "\n";
     }
 
+    // Writes a "search_score" with the value of the first of 'keys' that is set as meta value of 'hit'.
+    // Writes nothing if none is set, as an empty "value" attribute cannot be read back (issue #10570).
+    auto writeScoreFromMetaValue = [&f](const PeptideHit& hit, const std::string& name, std::initializer_list<const char*> keys)
+    {
+      for (const char* key : keys)
+      {
+        if (hit.metaValueExists(key))
+        {
+          f << "\t\t\t<search_score" << " name=\"" << name << "\" value=\"" << hit.getMetaValue(key) << "\"" << "/>\n";
+          return true;
+        }
+      }
+      return false;
+    };
+
     // Scan index and scan number will be reconstructed if no spectrum lookup is possible to retrieve the values.
     // The scan index is generally zero-based and the scan number generally one-based.
     Int count(0);
@@ -840,20 +856,24 @@ namespace OpenMS
                 f << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               }
             }
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+            // "MS:1001330" is set when reading pepXML, "E-Value" when reading X! Tandem XML (e.g. via idXML)
+            if (!writeScoreFromMetaValue(h, "expect", {"MS:1001330", "E-Value"}) && pep.getScoreType() == "expect")
+            {
+              f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getScore() << "\"" << "/>\n";
+            }
           }
           else if (search_engine_name == "Comet")
           {
-            f << "\t\t\t<search_score" << R"( name="xcorr" value=")" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
-            f << "\t\t\t<search_score" << R"( name="deltacn" value=")" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
-            f << "\t\t\t<search_score" << R"( name="deltacnstar" value=")" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
-            f << "\t\t\t<search_score" << R"( name="spscore" value=")" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
-            f << "\t\t\t<search_score" << R"( name="sprank" value=")" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
+            writeScoreFromMetaValue(h, "xcorr", {"MS:1002252"}); // name: Comet:xcorr
+            writeScoreFromMetaValue(h, "deltacn", {"MS:1002253"}); // name: Comet:deltacn
+            writeScoreFromMetaValue(h, "deltacnstar", {"MS:1002254"}); // name: Comet:deltacnstar
+            writeScoreFromMetaValue(h, "spscore", {"MS:1002255"}); // name: Comet:spscore
+            writeScoreFromMetaValue(h, "sprank", {"MS:1002256"}); // name: Comet:sprank
+            writeScoreFromMetaValue(h, "expect", {"MS:1002257"}); // name: Comet:expect
           }
           else if (search_engine_name == "MASCOT")
           {
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("EValue") << "\"" << "/>\n";
+            writeScoreFromMetaValue(h, "expect", {"MS:1001172", "EValue"}); // name: Mascot:expectation value
             f << "\t\t\t<search_score" << R"( name="ionscore" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "OMSSA")
