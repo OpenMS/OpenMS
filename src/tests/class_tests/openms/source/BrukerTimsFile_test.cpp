@@ -22,6 +22,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
@@ -850,6 +851,17 @@ START_SECTION(static DataFormat detectFormat(const std::string& path))
   TEST_STRING_EQUAL(format(make("run.d", {"readme.txt", "sub/analysis.tdf"})), "NONE") // not in the .d itself
   TEST_STRING_EQUAL(format(tmp.getPath() + "/missing.d"), "NONE")
   TEST_STRING_EQUAL(format(make("dir", {"file.d"}) + "/file.d"), "NONE") // a file, not a directory
+#ifndef OPENMS_WINDOWSPLATFORM
+  // a directory that cannot be searched does not throw (FileHandler::getType() relies on that)
+  {
+    const std::string locked = make("locked.d", {"analysis.tdf"});
+    std::filesystem::permissions(to_path(locked), std::filesystem::perms::none);
+    std::error_code ec;
+    const bool searchable = std::filesystem::exists(to_path(locked + "/analysis.tdf"), ec); // e.g. as root
+    TEST_STRING_EQUAL(format(locked), searchable ? "TDF" : "NONE")
+    std::filesystem::permissions(to_path(locked), std::filesystem::perms::owner_all);
+  }
+#endif
 
   // --- ZIP archives: the files have to be in a directory '*.d' ---
   TEST_STRING_EQUAL(format(zip(make("archive", {"run.d/analysis.tdf", "run.d/analysis.tdf_bin"}))), "TDF")
@@ -865,6 +877,13 @@ START_SECTION(static DataFormat detectFormat(const std::string& path))
   // not a ZIP archive, whatever its name says
   const std::string not_a_zip = make("dir", {"broken.d.zip"}) + "/broken.d.zip";
   TEST_STRING_EQUAL(format(not_a_zip), "UNREADABLE_ARCHIVE")
+  // a ZIP archive without entries (just the end of central directory record) can be read, and holds nothing
+  const std::string empty_zip = tmp.getPath() + "/empty.d.zip";
+  {
+    std::ofstream os(empty_zip.c_str(), std::ios::binary);
+    os << std::string("PK\x05\x06", 4) << std::string(18, '\0');
+  }
+  TEST_STRING_EQUAL(format(empty_zip), "NONE")
 }
 END_SECTION
 

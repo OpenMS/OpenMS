@@ -1391,17 +1391,21 @@ namespace OpenMS
       else if (file_name == "analysis.baf") baf = true;
     };
 
-    if (File::isDirectory(path))
+    // The error_code overloads: a directory that cannot be searched, or a stale network mount, is no Bruker
+    // data that can be read, and FileHandler::getType() relies on this not throwing
+    std::error_code ec;
+    const std::filesystem::path fs_path = to_path(path);
+    if (std::filesystem::is_directory(fs_path, ec))
     {
       for (const char* file_name : {"analysis.tdf", "analysis.tdf_bin", "analysis.tsf", "analysis.tsf_bin", "analysis.baf"})
       {
-        if (File::exists(path + "/" + file_name)) note(file_name);
+        if (std::filesystem::exists(fs_path / file_name, ec)) note(file_name);
       }
     }
-    else if (File::exists(path) && StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
+    else if (std::filesystem::exists(fs_path, ec) && StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
     {
-      const std::vector<std::string> entries = ZipArchiveFile::listEntries(path);
-      if (entries.empty()) return DataFormat::UNREADABLE_ARCHIVE;
+      std::vector<std::string> entries;
+      if (!ZipArchiveFile::listEntries(path, entries)) return DataFormat::UNREADABLE_ARCHIVE;
       // As unpack_() finds the data after extraction: files of a directory '*.d', nothing below '__MACOSX'
       for (const std::string& entry : entries)
       {

@@ -165,6 +165,10 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
     TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN) // the .d family requires WITH_OPENTIMS
 #endif
     File::remove(dzip);
+    // an archive that can be read but has no entries (just the end of central directory record) holds no .d
+    { std::ofstream os(dzip.c_str(), std::ios::binary); os << std::string("PK\005\006", 4) << std::string(18, '\0'); }
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN)
+    File::remove(dzip);
   }
 
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getType("/bli/bla/bluff"))
