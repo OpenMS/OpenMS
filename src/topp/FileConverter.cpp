@@ -726,6 +726,7 @@ protected:
         // Prepare the consumer
         PlainMSDataWritingConsumer consumer(out);
         consumer.getOptions().setWriteIndex(write_scan_index);
+        consumer.getOptions().setForceTPPCompatability(force_TPP_compatibility);
         bool skip_full_count = false;
         // numpress compression
         if (lossy_compression)

@@ -4992,6 +4992,16 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   add_test("TOPP_FileConverter_DDA_d_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_lowmemory.tmp.mzML -bruker:load_ms1 false -process_lowmemory)
   add_test("TOPP_FileConverter_DDA_d_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d.tmp.mzML)
   set_tests_properties("TOPP_FileConverter_DDA_d_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d;TOPP_FileConverter_DDA_d_lowmemory")
+  # the same with -force_TPP_compatibility, which changes how precursors are written
+  add_test("TOPP_FileConverter_DDA_d_TPP" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_TPP.tmp.mzML -bruker:load_ms1 false -force_TPP_compatibility)
+  add_test("TOPP_FileConverter_DDA_d_TPP_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_TPP_lowmemory.tmp.mzML -bruker:load_ms1 false -force_TPP_compatibility -process_lowmemory)
+  add_test("TOPP_FileConverter_DDA_d_TPP_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_TPP_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_TPP.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_DDA_d_TPP_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d_TPP;TOPP_FileConverter_DDA_d_TPP_lowmemory")
+  # neither MS1 nor MS2: a run without spectra, also when written as it is read
+  add_test("TOPP_FileConverter_DDA_d_nothing" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing.tmp.mzML -bruker:load_ms1 false -bruker:load_ms2 false)
+  add_test("TOPP_FileConverter_DDA_d_nothing_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing_lowmemory.tmp.mzML -bruker:load_ms1 false -bruker:load_ms2 false -process_lowmemory)
+  add_test("TOPP_FileConverter_DDA_d_nothing_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_DDA_d_nothing_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d_nothing;TOPP_FileConverter_DDA_d_nothing_lowmemory")
 
   # Typical timsTOF Pro DDA-PASEF parameters: 20 ppm precursor, 20 ppm fragment,
   # Trypsin/P, 2 missed cleavages, Carbamidomethyl (C) fixed,
