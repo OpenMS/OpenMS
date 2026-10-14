@@ -28,6 +28,9 @@ START_TEST(MRMFeatureAccessOpenMS, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+#include <memory>
+#include <vector>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -292,6 +295,66 @@ START_SECTION(([SignalToNoiseOpenMS] double getValueAtRT(double RT)))
   MSChromatogram empty;
   SignalToNoiseOpenMS<MSChromatogram> sn_empty(empty, 30.0, 30, false);
   TEST_REAL_SIMILAR(sn_empty.getValueAtRT(5.0), -1.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA][SignalToNoiseOpenMS] reused estimators give the values of a fresh one))
+{
+  // Estimators are taken from a per-thread pool: what one computed for an earlier chromatogram,
+  // or with other parameters, must not show in the values for the next one.
+  auto makeChromatogram = [](int n, double baseline, int apex, double height)
+  {
+    MSChromatogram chrom;
+    for (int i = 0; i < n; ++i)
+    {
+      ChromatogramPeak p;
+      p.setRT(i * 1.0);
+      p.setIntensity(baseline + (i % 3));
+      chrom.push_back(p);
+    }
+    chrom[apex].setIntensity(height);
+    return chrom;
+  };
+  const MSChromatogram a = makeChromatogram(60, 10.0, 15, 1000.0);
+  const MSChromatogram b = makeChromatogram(25, 200.0, 20, 5000.0);
+
+  // reference values from the first estimators of this section (nothing of a or b computed before)
+  std::vector<double> ref_a, ref_b, ref_a_other;
+  {
+    SignalToNoiseOpenMS<MSChromatogram> sn_a(a, 30.0, 30, false);
+    SignalToNoiseOpenMS<MSChromatogram> sn_b(b, 30.0, 30, false);
+    SignalToNoiseOpenMS<MSChromatogram> sn_a_other(a, 10.0, 12, false);
+    for (double rt = 0.0; rt < 60.0; rt += 1.0) { ref_a.push_back(sn_a.getValueAtRT(rt)); ref_a_other.push_back(sn_a_other.getValueAtRT(rt)); }
+    for (double rt = 0.0; rt < 25.0; rt += 1.0) { ref_b.push_back(sn_b.getValueAtRT(rt)); }
+  }
+  // other parameters change the estimate, otherwise the checks below would be vacuous
+  TEST_EQUAL(ref_a == ref_a_other, false)
+
+  // the estimators above are back in the pool: use them in another order and with other parameters
+  for (int round = 0; round < 3; ++round)
+  {
+    SignalToNoiseOpenMS<MSChromatogram> sn_b(b, 30.0, 30, false);
+    SignalToNoiseOpenMS<MSChromatogram> sn_a_other(a, 10.0, 12, false);
+    SignalToNoiseOpenMS<MSChromatogram> sn_a(a, 30.0, 30, false);
+    std::vector<double> got_a, got_b, got_a_other;
+    for (double rt = 0.0; rt < 60.0; rt += 1.0) { got_a.push_back(sn_a.getValueAtRT(rt)); got_a_other.push_back(sn_a_other.getValueAtRT(rt)); }
+    for (double rt = 0.0; rt < 25.0; rt += 1.0) { got_b.push_back(sn_b.getValueAtRT(rt)); }
+    TEST_EQUAL(got_a == ref_a, true)
+    TEST_EQUAL(got_b == ref_b, true)
+    TEST_EQUAL(got_a_other == ref_a_other, true)
+  }
+
+  // more estimators alive at once than the pool keeps
+  std::vector<std::unique_ptr<SignalToNoiseOpenMS<MSChromatogram>>> many;
+  for (int i = 0; i < 100; ++i)
+  {
+    many.push_back(std::make_unique<SignalToNoiseOpenMS<MSChromatogram>>(i % 2 == 0 ? a : b, 30.0, 30, false));
+  }
+  TEST_REAL_SIMILAR(many[98]->getValueAtRT(15.0), ref_a[15])
+  TEST_REAL_SIMILAR(many[99]->getValueAtRT(20.0), ref_b[20])
+  many.clear();
+  SignalToNoiseOpenMS<MSChromatogram> sn_after(a, 30.0, 30, false);
+  TEST_REAL_SIMILAR(sn_after.getValueAtRT(15.0), ref_a[15])
 }
 END_SECTION
 
