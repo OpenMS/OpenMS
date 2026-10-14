@@ -19,6 +19,41 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
 
 OpenMS Library:
+  - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
+    all passing through one OpenMP critical section, which serialized threads that read or set meta values.
+    Lookups of registered names use a per-thread copy of the name table and take no lock at all.
+  - PERF: OpenSwathWorkflow/OpenDIA output no longer stalls the scoring threads: XIC Parquet chromatograms are
+    compressed by the thread that extracted them (MSChromatogramParquetConsumer::encodeChromatogram(),
+    consumeEncodedChromatograms()) and only appended inside the output lock, and the buffered OSW writer writes
+    queued rows as they are instead of merging them under its queue lock. Output is unchanged.
+  - PERF: ChromatogramExtractorAlgorithm reaches a target m/z that is far ahead in a spectrum by binary search
+    instead of walking there peak by peak (MS1 extraction of one isolation window's precursors). Output is unchanged.
+  - PERF: ChromatogramExtractorAlgorithm reserves each chromatogram for the spectra inside its RT window instead of
+    growing it point by point, and ChromatogramExtractor::return_chromatogram moves the converted chromatograms into
+    the output. OpenDIA peak memory on an Astral DIA run with 600k precursors and 32 threads: 25.6 GB instead of 32.6 GB.
+  - PERF: OpenDIA returns the memory freed by extraction and scoring to the system before rescoring (glibc), so that
+    rescoring, inference and export no longer run on top of it: 26.8 GB instead of 34.8 GB peak for three Astral runs.
+  - PERF: OpenDIA/CalibrationWorkflow apply the RT extraction window estimated by the calibration to the precursor (MS1)
+    traces as well (plus 15 s on either side), instead of leaving them at the uncalibrated default. Scores are unchanged;
+    on Astral DIA runs the peak memory drops from 25.5 GB to 19-20 GB and the XIC output to about half its size.
+  - PERF: OpenSwathOSWWriter::OSWValue takes 16 instead of 40 bytes (text values, which are rare, are held out of
+    line), so the rows queued for the OSW writer need less than half the memory and block the scoring threads less.
+  - PERF: MSChromatogramParquetConsumer writes its row batches (ZSTD compression) on a thread of its own, in the order
+    in which they are completed, instead of inside the lock that serializes chromatogram output. The rows are unchanged.
+  - PERF: OpenSwathPercolatorScoring reads the peak groups of an OSW file with one scan per table and joins and sorts
+    them in memory, instead of one SQL join with an ORDER BY (176 s instead of 219 s rescoring for 2.9 M peak groups).
+  - OpenSwathPercolatorScoring (OpenDIA rescoring) trains Percolator on the best peak group of every precursor (new
+    parameter training_main_score, default var_library_corr) plus at most percolator:subset_max_train other peak groups
+    drawn at random, and scores all peak groups with the model; before, percolator:subset_max_train had no effect and
+    training used all peak groups. percolator:subset_max_train = 0 restores that. Results change slightly; on three
+    Orbitrap Astral DIA runs rescoring takes 3:41 min instead of 9:56 min (4,471 instead of 4,377 precursors at 1% FDR,
+    64 instead of 67 entrapment hits).
+  - PERF: OSWFile::readOpenSwathExportRows aggregates the transition intensities only for the exported peak groups
+    instead of for every peak group of the file (OpenDIA/OpenSwathExport result export: 30 s instead of 72 s).
+  - PERF: SignalToNoiseOpenMS takes its estimator from a per-thread pool instead of constructing one, with its whole
+    parameter set, for every chromatogram (4% less CPU time in OpenSWATH/OpenDIA scoring).
+  - PERF: SWATH maps that were cached to disk (readOptions cache/cacheWorkingInMemory of OpenSwathWorkflow and
+    OpenDIA) get their access objects in parallel: 12 s instead of 48 s for the 300 windows of an Astral DIA run.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
