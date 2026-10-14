@@ -10,60 +10,6 @@
 
 namespace OpenMS
 {
-  void MapConversion::convert(UInt64 const input_map_index,
-                              PeakMap& input_map,
-                              ConsensusMap& output_map,
-                              Size n)
-  {
-    output_map.clear(true);
-
-    // see @todo above
-    output_map.setUniqueId();
-
-    input_map.updateRanges();
-    std::vector<Peak2D> tmp;
-    tmp.reserve(input_map.getSize()); // an upper bound only, see below
-
-    // TODO Avoid tripling the memory consumption by this call
-    input_map.get2DData(tmp);
-
-    // Clamp n only now, against the number of peaks actually collected.
-    // input_map.getSize() is the wrong bound: it counts the peaks of every
-    // spectrum at every MS level plus all chromatogram points, whereas
-    // get2DData() collects MS1 peaks only. With n > tmp.size() the middle
-    // iterator of the partial_sort and the copy loop below would run past
-    // the end of tmp (out-of-bounds reads and writes, consensus features
-    // built from garbage).
-    if (n > tmp.size())
-    {
-      n = tmp.size();
-    }
-    output_map.reserve(n);
-
-    // most intense first; equal intensities are ordered by RT, then m/z, so that the selected peaks and their
-    // order do not depend on the standard library's partial_sort implementation
-    std::partial_sort(tmp.begin(),
-                      tmp.begin() + n,
-                      tmp.end(),
-                      [](const Peak2D& left, const Peak2D& right)
-                      {
-                        if (left.getIntensity() != right.getIntensity()) return left.getIntensity() > right.getIntensity();
-                        if (left.getRT() != right.getRT()) return left.getRT() < right.getRT();
-                        return left.getMZ() < right.getMZ();
-                      });
-
-    for (Size element_index = 0; element_index < n; ++element_index)
-    {
-      output_map.push_back(ConsensusFeature(input_map_index,
-                                            tmp[element_index],
-                                            element_index));
-      output_map.back().setUniqueId();
-    }
-
-    output_map.getColumnHeaders()[input_map_index].size = n;
-    output_map.updateRanges();
-  }
-
   void MapConversion::convert(ConsensusMap const& input_map,
                               const bool keep_uids,
                               FeatureMap& output_map)

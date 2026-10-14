@@ -97,7 +97,8 @@ For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_com
 
 Many different format conversions are supported, and some may be more useful than others. Depending on the
 file formats involved, information can be lost during conversion, e.g. when converting featureXML to mzData.
-In such cases a warning is shown.
+In such cases a warning is shown. Spectra cannot be converted to consensusXML or consensusparquet; detect features
+first (e.g. with a FeatureFinder tool).
 
 The input and output file types are determined from	the file extensions or from the first few lines of the
 files. If file type determination is not possible, the input or output file type has to be given explicitly.
@@ -496,6 +497,17 @@ protected:
     {
       writeLogError_("Error: Could not determine output file type! Please adjust the 'out_type' parameter of this tool.");
       return PARSE_ERROR;
+    }
+
+    // consensus features need features (or consensus features) as input; peaks would give consensus features without ids
+    const bool consensus_input_type = in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET || in_type == FileTypes::TSV ||
+                                      in_type == FileTypes::PEPLIST || in_type == FileTypes::KROENIK || in_type == FileTypes::CONSENSUSXML ||
+                                      in_type == FileTypes::CONSENSUSPARQUET || in_type == FileTypes::EDTA;
+    if ((out_type == FileTypes::CONSENSUSXML || out_type == FileTypes::CONSENSUSPARQUET) && !consensus_input_type)
+    {
+      writeLogError_("Error: Cannot convert " + FileTypes::typeToName(in_type) + " to " + FileTypes::typeToName(out_type) +
+                     ". Only feature and consensus data can be converted to consensus data; detect features first (e.g. with a FeatureFinder tool).");
+      return INCOMPATIBLE_INPUT_DATA;
     }
 
     bool TIC_DTA2D = getFlag_("TIC_DTA2D");
@@ -966,19 +978,7 @@ protected:
         }
         MapConversion::convert(0, fm, cm);
       }
-      // nothing to do for consensus input
-      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET || in_type == FileTypes::EDTA)
-      {
-      }
-      else // experimental data
-      {
-        MapConversion::convert(0, exp, cm);
-        // convert() gives the map and every consensus feature a valid unique ID, so only 'reassign' changes them
-        if (uid_postprocessing == "reassign")
-        {
-          cm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-        }
-      }
+      // nothing to do for consensus input; other input types were rejected above
       for (auto& pepID : cm.getUnassignedPeptideIdentifications())
       {
         pepID.setMetaValue("map_index", 0);

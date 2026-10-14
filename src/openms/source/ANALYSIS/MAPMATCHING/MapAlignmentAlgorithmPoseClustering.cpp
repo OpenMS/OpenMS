@@ -12,6 +12,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+#include <algorithm>
+
 using namespace std;
 
 namespace OpenMS
@@ -42,6 +44,60 @@ namespace OpenMS
 
   MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering() = default;
 
+  void MapAlignmentAlgorithmPoseClustering::selectPeaks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output, Size n)
+  {
+    output.clear(true);
+
+    std::vector<Peak2D> peaks;
+    peaks.reserve(map.getSize()); // an upper bound only, see below
+
+    // TODO Avoid tripling the memory consumption by this call
+    map.get2DData(peaks);
+
+    // Clamp n only now, against the number of peaks actually collected.
+    // map.getSize() is the wrong bound: it counts the peaks of every
+    // spectrum at every MS level plus all chromatogram points, whereas
+    // get2DData() collects MS1 peaks only. With n > peaks.size() the middle
+    // iterator of the partial_sort and the copy loop below would run past
+    // the end of peaks (out-of-bounds reads and writes, consensus features
+    // built from garbage).
+    if (n > peaks.size())
+    {
+      n = peaks.size();
+    }
+    output.reserve(n);
+
+    // most intense first; equal intensities are ordered by RT, then m/z, so that the selected peaks and their
+    // order do not depend on the standard library's partial_sort implementation
+    std::partial_sort(peaks.begin(),
+                      peaks.begin() + n,
+                      peaks.end(),
+                      [](const Peak2D& left, const Peak2D& right)
+                      {
+                        if (left.getIntensity() != right.getIntensity()) return left.getIntensity() > right.getIntensity();
+                        if (left.getRT() != right.getRT()) return left.getRT() < right.getRT();
+                        return left.getMZ() < right.getMZ();
+                      });
+
+    for (Size element_index = 0; element_index < n; ++element_index)
+    {
+      output.push_back(ConsensusFeature(map_index, peaks[element_index], element_index));
+    }
+
+    output.getColumnHeaders()[map_index].size = n;
+    output.updateRanges();
+  }
+
+  void MapAlignmentAlgorithmPoseClustering::setReference(const FeatureMap& map)
+  {
+    MapConversion::convert(0, map, reference_, max_num_peaks_considered_);
+  }
+
+  void MapAlignmentAlgorithmPoseClustering::setReference(const PeakMap& map)
+  {
+    selectPeaks_(0, map, reference_, max_num_peaks_considered_);
+  }
+
   void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap& map, TransformationDescription& trafo)
   {
     ConsensusMap map_scene;
@@ -52,8 +108,7 @@ namespace OpenMS
   void MapAlignmentAlgorithmPoseClustering::align(const PeakMap& map, TransformationDescription& trafo)
   {
     ConsensusMap map_scene;
-    PeakMap map2(map);
-    MapConversion::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
+    selectPeaks_(1, map, map_scene, max_num_peaks_considered_);
     align(map_scene, trafo);
   }
 

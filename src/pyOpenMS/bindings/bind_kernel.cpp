@@ -432,7 +432,6 @@ The template parameters for the base RangeManager are ordered differently than i
         .def(nb::init<const OpenMS::MapConversion &>())
         .def("__copy__", [](const OpenMS::MapConversion& self) { return OpenMS::MapConversion(self); })
         .def("__deepcopy__", [](const OpenMS::MapConversion& self, nb::dict) { return OpenMS::MapConversion(self); }, "memo"_a)
-        .def_static("convert", [](size_t input_map_index, OpenMS::MSExperiment& input_map, OpenMS::ConsensusMap& output_map, size_t n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
         .def_static("convert", [](const OpenMS::ConsensusMap& input_map, bool keep_uids, OpenMS::FeatureMap& output_map) { return OpenMS::MapConversion::convert(input_map, keep_uids, output_map); }, "input_map"_a, "keep_uids"_a, "output_map"_a)
         .def_static("convert", [](size_t input_map_index, const OpenMS::FeatureMap& input_map, OpenMS::ConsensusMap& output_map, size_t n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
         ;

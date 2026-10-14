@@ -703,10 +703,11 @@ add_test("TOPP_FileConverter_36" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_36_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_36.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_36_output.consensusXML)
 set_tests_properties("TOPP_FileConverter_36_out1" PROPERTIES DEPENDS "TOPP_FileConverter_36")
 
-# TOPP_FileConverter_37: spectra -> consensusXML keeps every MS1 peak: FileFilter_44_input.mzML has two MS1 spectra with 18 peaks each, so all 36 peaks are written (the old limit was the spectrum count, 2), each with its own unique ID
+# TOPP_FileConverter_37: spectra cannot be converted to consensusXML (each peak would become a consensus feature
+# without a unique id, #10520); the tool refuses before loading the input. PASS_REGULAR_EXPRESSION ignores the exit
+# code, so the message itself is the check.
 add_test("TOPP_FileConverter_37" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_44_input.mzML -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_37.tmp.consensusXML -out_type consensusXML)
-add_test("TOPP_FileConverter_37_out1" ${DIFF} -whitelist "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_37.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_37_output.consensusXML)
-set_tests_properties("TOPP_FileConverter_37_out1" PROPERTIES DEPENDS "TOPP_FileConverter_37")
+set_tests_properties("TOPP_FileConverter_37" PROPERTIES PASS_REGULAR_EXPRESSION "Cannot convert mzML to consensusXML")
 # TOPP_FileConverter_38/39: an output name whose compression suffix the writer does not produce is refused
 # instead of holding plain data. 38: the low-memory mode streams plain mzML, so '.mzML.gz' is refused there
 # (the in-memory path writes gzip); 39: MGF is always written plain. PASS_REGULAR_EXPRESSION ignores the

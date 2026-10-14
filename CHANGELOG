@@ -31,6 +31,15 @@ OpenMS Library:
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
+  - Feature ids (#10520): FeatureFinderAlgorithmPicked and SeedListGenerator::convertSeedList give every
+    feature a valid unique id (FeatureFinderAlgorithmPicked when the feature is found, so the FAIMS merge
+    in FeatureFinderCentroided sees valid ids). The new FeatureUniqueIds::check() (also in pyOpenMS) throws
+    Exception::InvalidValue for invalid or duplicate ids of the features (including subordinates) or
+    consensus features of a map.
+  - API: MapConversion::convert(PeakMap -> ConsensusMap) is removed (also from pyOpenMS): its consensus
+    features had no unique ids. MapAlignmentAlgorithmPoseClustering selects the most intense MS1 peaks of a
+    PeakMap itself (without copying the map); its setReference() template is replaced by overloads for
+    FeatureMap and PeakMap.
   - FIX: MetaboliteSpectralMatching HyperScore rejects negative and non-finite fragment tolerances before scoring, including empty spectra; zero-tolerance exact matching remains supported.
   - FIX: OMS schema 6 preserves IdentificationData processing actions and distinct same-second search provenance; schemas 1-5 remain readable.
   - FIX: IdentificationData chooses a reproducible representative for exact best-score ties without target/decoy preference.
@@ -415,6 +424,9 @@ TOPP tools:
       - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
         default, which cost a second read of the whole file (5-15% of the conversion time); the new
         flag -raw_checksum restores it. Without it the mzML sourceFile has an empty SHA-1 (#10522).
+      - Spectra (e.g. mzML) can no longer be converted to consensusXML or consensusparquet: each peak
+        became a consensus feature. The tool exits with an error (INCOMPATIBLE_INPUT_DATA) before loading
+        the input (#10520).
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.

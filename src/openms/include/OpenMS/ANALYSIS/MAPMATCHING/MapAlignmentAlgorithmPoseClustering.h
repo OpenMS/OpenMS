@@ -56,17 +56,28 @@ public:
     void align(const PeakMap& map, TransformationDescription& trafo);
     void align(const ConsensusMap& map, TransformationDescription& trafo);
 
-    /// Sets the reference for the alignment
-    template <typename MapType>
-    void setReference(const MapType& map)
-    {
-      MapType map2 = map; // todo: avoid copy (MSExperiment version of convert() demands non-const version)
-      MapConversion::convert(0, map2, reference_, max_num_peaks_considered_);
-    }
+    /// Sets the reference for the alignment: the first 'max_num_peaks_considered' features of @p map
+    void setReference(const FeatureMap& map);
+
+    /// Sets the reference for the alignment: the 'max_num_peaks_considered' most intense MS1 peaks of @p map
+    void setReference(const PeakMap& map);
 
 protected:
 
     void updateMembers_() override;
+
+    /**
+      @brief Copies the @p n most intense MS1 peaks of @p map into @p output, as consensus features of map @p map_index
+
+      @p output is cleared first. Only the peaks of MS level 1 spectra are used; spectra of other MS levels and
+      chromatograms do not contribute. The peaks are ordered by descending intensity; equal intensities are ordered
+      by RT, then m/z. @p n is capped by the number of MS1 peaks, so @c Size(-1) keeps all of them. The column header
+      @c size for @p map_index is the number of peaks copied.
+
+      The consensus features only carry the positions and intensities the alignment needs: they have no unique ids,
+      and the single handle of each stores the index of the peak in @p output.
+    */
+    static void selectPeaks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output, Size n);
 
     PoseClusteringAffineSuperimposer superimposer_;
 

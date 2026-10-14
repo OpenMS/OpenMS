@@ -17,8 +17,11 @@ namespace OpenMS
 {
 
   /**
-    @brief Static helpers that convert between the three OpenMS container
-           types (@c PeakMap, @c FeatureMap, @c ConsensusMap).
+    @brief Static helpers that convert between @c FeatureMap and @c ConsensusMap.
+
+    There is no conversion from a @c PeakMap: consensus features built from
+    peaks have no meaningful element ids. MapAlignmentAlgorithmPoseClustering
+    selects the peaks it aligns itself.
 
     Each overload replaces the contents of the destination, gives it a
     container-level unique id, and leaves it in a state where the standard
@@ -35,45 +38,6 @@ namespace OpenMS
   class OPENMS_DLLAPI MapConversion
   {
 public:
-
-    /**
-      @brief Copy the most intense MS1 peaks of a @c PeakMap into a
-             @c ConsensusMap.
-
-      The output's previous contents are dropped and it is given a fresh
-      container unique id (@c PeakMap has no container-level unique id, so
-      one is generated). Only the peaks of MS level 1 spectra are
-      considered (the selection made by @c MSExperiment::get2DData());
-      spectra of other MS levels and chromatograms do not contribute. The
-      @p n MS1 peaks with the highest intensity are written to the output
-      as @c ConsensusFeature entries tagged with @p input_map_index; their
-      order in the output is by descending intensity. Every consensus
-      feature gets a fresh, valid unique id; its single feature handle
-      stores the index of the peak among the selected peaks as its id
-      (so the first handle has the invalid id 0). The column header
-      @c size for @p input_map_index reflects the number of peaks written.
-
-      @note @p n is capped by the number of MS1 peaks in @p input_map, not
-            by @c input_map.getSize(), which also counts the peaks of
-            other MS levels and all chromatogram points. An input without
-            MS1 peaks (e.g. MS2-only data) yields an empty output.
-
-      @param[in]     input_map_index Index assigned to the input map in the
-                                     resulting @c ConsensusMap column headers.
-      @param[in,out] input_map       Source peaks; its range queries are
-                                     left consistent with its contents as a
-                                     side effect.
-      @param[out]    output_map      Resulting @c ConsensusMap; previous
-                                     contents are replaced.
-      @param[in]     n               Maximum number of MS1 peaks to copy. Any
-                                     value at or above the number of MS1
-                                     peaks (including the default
-                                     @c Size(-1)) keeps all MS1 peaks.
-    */
-    static void convert(UInt64 const input_map_index,
-                        PeakMap& input_map,
-                        ConsensusMap& output_map,
-                        Size n = -1);
 
     /**
       @brief Convert a @c ConsensusMap to a @c FeatureMap.
@@ -106,8 +70,7 @@ public:
       unassigned peptide identifications are preserved on the output.
 
       @note Because features are taken in input order, @p n is mainly useful
-            after pre-sorting @p input_map (e.g. by intensity); it exists for
-            symmetry with the @c PeakMap overload above.
+            after pre-sorting @p input_map (e.g. by intensity).
 
       @note The column header @c size for @p input_map_index is set to
             @c input_map.size() -- the full input size -- even when @p n
