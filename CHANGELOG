@@ -158,9 +158,10 @@ OpenMS Library:
     determine input file type"); FileHandler::getType() now takes it as Bruker .d and the readers throw
     a ParseError that names the format. TDF data that is not zstd-compressed (TimsCompressionType other
     than 2) gets a ParseError naming the value instead of "... is not readable for the current user".
-    A '.d.zip' archive is typed by its list of entries: one without a .d directory is no longer taken
-    for Bruker data, and nothing is extracted before the reader rejects an archive.
-    New: BrukerTimsFile::detectFormat() and checkDataFormat().
+    A '.d.zip' archive is typed by its list of entries: one without a .d directory (or without entries)
+    is no longer taken for Bruker data, and nothing is extracted before the reader rejects an archive.
+    New: BrukerTimsFile::detectFormat() and checkDataFormat(), and ZipArchiveFile::listEntries() with a
+    result that tells an archive without entries from one that cannot be read.
   - BrukerTimsFile::transform() hands the spectra to the consumer as they are read, in the order and form
     load() returns them, instead of loading the whole run first; the memory it needs no longer grows with
     the run. (Exceptions, loaded completely as before: DIA with MS2 aggregation over retention time, and
@@ -170,6 +171,9 @@ OpenMS Library:
     spectrumList when the file is closed, if another number of spectra was written than it was told to
     expect (a filter, or a reader that leaves empty spectra out). The tag is rewritten in place and
     padded with blanks, so the index stays valid. Before, the count stayed at the expected number.
+    If it got the settings of a run but no spectrum or chromatogram, it now writes the mzML document of
+    a run without spectra, as MzMLFile::store() does, instead of an empty file (e.g. -process_lowmemory
+    conversions in which every spectrum is filtered out).
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
@@ -435,6 +439,8 @@ TOPP tools:
         written as they are read, and the mzML file is the one the conversion in memory gives. A 110 min
         ddaPASEF run (5.6 GB .d, 1.9 billion peaks) converts in under 5 minutes with 170 MB of heap memory
         (the resident memory, 4.8 GB at its peak, is the memory-mapped analysis.tdf_bin).
+      - FIX: -force_TPP_compatibility had no effect with -process_lowmemory (mzML output from mzML, mzXML
+        and now Bruker .d input).
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
