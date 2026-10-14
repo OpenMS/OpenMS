@@ -45,7 +45,7 @@ set(SQLITE_OMIT_LOAD_EXTENSION ON CACHE BOOL "Enable omit load extension")
 ## Not available in WebAssembly; openms_emscripten_check_options() rejects them.
 set(_openms_emscripten_unsupported_options
   WITH_GUI              # Qt widgets
-  MT_ENABLE_OPENMP      # no OpenMP runtime for WebAssembly (and no threads without pthreads)
+  MT_ENABLE_OPENMP      # Emscripten's libomp needs a pthreads build (-pthread for all code); this one is single-threaded
   WITH_THERMO_RAW       # needs the .NET runtime
   WITH_OPENTIMS         # Bruker .d directories are read with threads and sqlite's mmap
   WITH_ONNX             # ONNX Runtime is not built for WebAssembly
