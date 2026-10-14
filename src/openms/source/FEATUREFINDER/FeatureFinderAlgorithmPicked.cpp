@@ -842,6 +842,9 @@ namespace OpenMS
           //re-set label
           f.second.setMetaValue(3, feature_nr_global);
           ++feature_nr_global;
+          // assign the id on insertion: the overlap resolution below sorts and filters the whole map and copies
+          // features into subordinates, and callers may depend on the ids (e.g. the FAIMS merge)
+          f.second.setUniqueId();
           (*features_).push_back(f.second);
 
           std::vector<Size> curr_seed = seeds_in_features[seed_nr];
@@ -1102,15 +1105,7 @@ namespace OpenMS
     setParameters(param);
     setData_(std::move(input_map), features);
     setSeeds(seeds);
-    const Size features_before = features.size();
     run_();
-
-    // every found feature gets a valid unique id, before any id-dependent step (e.g. the FAIMS merge) of the caller;
-    // the map's own id and the features already in the map keep their ids
-    for (Size i = features_before; i < features.size(); ++i)
-    {
-      features[i].setUniqueId();
-    }
   }
 
   void FeatureFinderAlgorithmPicked::updateMembers_()
