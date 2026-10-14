@@ -1132,14 +1132,18 @@ namespace OpenMS
   /// Writes the abort reason to the log file and counts occurrences for each reason
   void FeatureFinderAlgorithmPicked::abort_(const Seed& seed, const std::string& reason)
   {
-    if (debug_)
+    // called by all threads of the parallel seed extension in run_()
+#pragma omp critical(FeatureFinderAlgorithmPicked_ABORT)
     {
-      log_ << "Abort: " << reason << '\n';
-    }
-    aborts_[reason]++;
-    if (debug_)
-    {
-      abort_reasons_[seed] = reason;
+      if (debug_)
+      {
+        log_ << "Abort: " << reason << '\n';
+      }
+      aborts_[reason]++;
+      if (debug_)
+      {
+        abort_reasons_[seed] = reason;
+      }
     }
   }
 

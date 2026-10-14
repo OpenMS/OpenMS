@@ -141,8 +141,17 @@ public:
     followed by further SPS selections and then the precursors of every ancestor scan, so
     an MS3 scan lists its MS2 parent's precursor as well. Only each scan's own precursors
     are retained internally; ancestors are resolved through parent links on request.
+
+    Memory stays bounded: the state of scans more than retentionWindow() scans before the
+    current one is forgotten, unless it is an ancestor of a retained scan, and so are filter
+    keys last seen before that. A master scan reference to a forgotten scan is reported with a
+    warning and resolved like an unknown parent. Real acquisitions reference parents within a
+    duty cycle, far below the window.
   */
   std::vector<ThermoPrecursor> precursors(const ThermoScan& scan);
+
+  /// Number of preceding scans whose state is always retained to resolve master scan references.
+  static constexpr int retentionWindow() { return 4096; }
 
 private:
   /// What is retained per seen scan to resolve later scans' parents.
@@ -154,8 +163,14 @@ private:
     std::string native_id;     ///< spectrum reference for descendants
     std::vector<ThermoPrecursor> own; ///< this scan's own precursor descriptors
   };
-  std::map<int, State> scans_;         ///< seen scans by scan number
-  std::map<std::string, int> filters_; ///< most recent scan per filter key ("" for MS1)
+  std::map<int, State> scans_;         ///< retained scans by scan number
+  std::map<std::string, int> filters_; ///< most recent scan per filter key ("" for MS1), pruned with scans_
+  int first_seen_ = 0;                 ///< first scan passed to precursors()
+  int forgotten_below_ = 0;            ///< scans before this one may have been forgotten
+  bool warned_forgotten_ = false;      ///< a forgotten master scan was reported
+
+  /// Forget scans that no later scan can reference (see precursors()).
+  void prune_(int current);
   ThermoTrailerIndex trailer_;         ///< per-file positions of the trailer labels read below
   ThermoTrailerIndex::Key master_key_, charge_key_, mono_key_, sps_masses_key_;
   std::vector<ThermoTrailerIndex::Key> width_keys_; ///< "MS<level> Isolation Width:" by level

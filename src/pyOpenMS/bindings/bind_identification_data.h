@@ -925,7 +925,9 @@ inline void bind(nb::module_& m)
   nb::class_<OpenMS::IdentificationDataConverter>(m, "IdentificationDataConverter",
                                                   "Conversions of IdentificationData that keep the RNA and compound conventions of mzTab")
     .def_static("exportMzTab", &OpenMS::IdentificationDataConverter::exportMzTab, nb::arg("data"),
-                "Return an mzTab document of the dataset (store it with MzTabFile().store)")
+                nb::arg("observation_meta_keys") = std::set<std::string> {}, nb::arg("match_meta_keys") = std::set<std::string> {},
+                "Return an mzTab document of the dataset (store it with MzTabFile().store); the metadata keys of queries and "
+                "matches that are named are exported as opt_global_<key> columns of oligonucleotide matches")
     .def_static("exportMapIdentifications",
                 nb::overload_cast<const OpenMS::FeatureMap&>(&OpenMS::IdentificationDataConverter::exportMapIdentifications),
                 nb::arg("map"), "The identifications of the map as peptide and protein identifications (MapPeptideIdentifications)")

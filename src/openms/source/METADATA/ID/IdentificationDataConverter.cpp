@@ -824,7 +824,8 @@ void IdentificationDataConverter::updateReferencedMatches(ID& data, const Peptid
   }
 }
 
-MzTab IdentificationDataConverter::exportMzTab(const ID& data)
+MzTab IdentificationDataConverter::exportMzTab(const ID& data, const std::set<std::string>& observation_meta_keys,
+                                               const std::set<std::string>& match_meta_keys)
 {
   data.validate();
   if (std::all_of(data.getRuns().begin(), data.getRuns().end(), [](const auto& run) { return run.getMoleculeKind() == ID::MoleculeKind::PEPTIDE; }))
@@ -916,9 +917,20 @@ MzTab IdentificationDataConverter::exportMzTab(const ID& data)
           engine.setName(settings.software);
           engine.setValue(settings.software_version);
           row.search_engine.set({engine});
-          if (match.details && match.details->adduct) row.opt_.push_back({"opt_adduct", MzTabString(match.details->adduct->getName())});
-          if (match.metaValueExists("isotope_offset"))
-            row.opt_.push_back({"opt_isotope_offset", MzTabString(match.getMetaValue("isotope_offset").toString())});
+          // only the metadata the caller selected, in the format's generic columns; the adduct is a field of the match
+          MetaInfoInterface optional_meta;
+          std::set<std::string> optional_keys = observation_meta_keys;
+          optional_keys.insert(match_meta_keys.begin(), match_meta_keys.end());
+          for (const auto& key : observation_meta_keys)
+            if (query.metaValueExists(key)) optional_meta.setMetaValue(key, query.getMetaValue(key));
+          for (const auto& key : match_meta_keys)
+            if (match.metaValueExists(key)) optional_meta.setMetaValue(key, match.getMetaValue(key));
+          if (match.details && match.details->adduct)
+          {
+            optional_keys.insert("adduct");
+            optional_meta.setMetaValue("adduct", match.details->adduct->getName());
+          }
+          MzTab::addMetaInfoToOptionalColumns(optional_keys, row.opt_, "global", optional_meta);
           matches.push_back(std::move(row));
           for (const auto& evidence : match.sequence_evidence)
           {

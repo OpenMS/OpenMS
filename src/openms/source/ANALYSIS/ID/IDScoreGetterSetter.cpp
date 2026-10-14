@@ -10,6 +10,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <cmath>
+
 using namespace std;
 
 namespace OpenMS
@@ -245,7 +247,8 @@ namespace OpenMS
   * You have to assume that groups will always have the same scores as the ProteinHits
   * Like a hit, a group gets the value of the closest calibrated score that is equal or better
   * (in the direction old_higher_better of its current score). A score better than every calibrated one
-  * gets the best q-value, or the FDR of accepting no group (1) if @p q_value is false.
+  * gets the best q-value, or the FDR of accepting no group (1) if @p q_value is false. A group
+  * without a score (NaN) gets the value of the worst calibrated score.
   */
   void IDScoreGetterSetter::setScores_(const map<double, double> &scores_to_FDR,
                                       vector <ProteinIdentification::ProteinGroup> &grps,
@@ -262,6 +265,14 @@ namespace OpenMS
     }
     for (auto &grp : grps)
     {
+      // A group without a score (NaN) took no part in the competition: it gets the value of the
+      // worst calibrated score. Explicitly, as NaN is outside the ordering of the map: looking it
+      // up is undefined, and libstdc++ and libc++ do return different elements.
+      if (std::isnan(grp.probability))
+      {
+        grp.probability = old_higher_better ? scores_to_FDR.begin()->second : scores_to_FDR.rbegin()->second;
+        continue;
+      }
       auto it = old_higher_better ? scores_to_FDR.lower_bound(grp.probability) : scores_to_FDR.upper_bound(grp.probability);
       if (it == (old_higher_better ? scores_to_FDR.end() : scores_to_FDR.begin())) // better than every calibrated score
       {

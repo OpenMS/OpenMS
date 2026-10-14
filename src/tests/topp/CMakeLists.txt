@@ -783,6 +783,18 @@ if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
     "-DFORBIDDEN=name=\"SHA-1\" value=\"\""
     -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
   set_tests_properties("TOPP_FileConverter_RAW_checksum_written" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_checksum")
+  # -process_lowmemory streams the scans into the mzML writer and gives the in-memory conversion. Only the run-level
+  # fileContent differs: the streaming writer takes it from the first spectrum, so it lacks "MSn spectrum" (and the
+  # index offsets shift by that line). The term is removed from the in-memory output's fileContent before comparing.
+  add_test("TOPP_FileConverter_RAW_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -process_lowmemory -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory.tmp.mzML)
+  add_test("TOPP_FileConverter_RAW_lowmemory_prepare" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML
+    -DOUTPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory_expected.tmp.mzML
+    "-DTERM=MSn spectrum"
+    -P ${DATA_DIR_TOPP}/remove_file_content_term.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_lowmemory_prepare" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  add_test("TOPP_FileConverter_RAW_lowmemory_out1" ${DIFF} -whitelist "<offset" "indexListOffset" "fileChecksum" -in1 ${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory_expected.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_RAW_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_lowmemory;TOPP_FileConverter_RAW_lowmemory_prepare")
   if (NOT WIN32) # creating symbolic links needs extra privileges on Windows
     # Workflow systems (Nextflow, Galaxy) stage inputs as symbolic links, which Thermo's RawFileReader
     # cannot open itself (#10451). The source file must keep the linked name.
