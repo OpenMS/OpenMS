@@ -166,7 +166,9 @@ OpenMS.getThreadingInfo();   // { threaded: true, available: true, numThreads: 4
   runs single-threaded (`available: false`, `numThreads: 1`). The default there is half
   the logical cores, at most 4; the Web Workers for these threads are started with the
   module. Load the module in a Web Worker: on the page's main thread, waiting threads
-  busy-wait and block the page. Browser use of the threaded module is not validated yet.
+  busy-wait and block the page. In Chromium, the database search below took 1832 ms on 1
+  thread, 1342 ms on 2 and 1233 ms on 4 (in a Worker, on an isolated page); Firefox and
+  Safari are not tested yet.
 
 `getThreadingInfo()` exists in both packages (`threaded: false` in `@openms/openms-wasm`).
 
@@ -235,6 +237,17 @@ to its own), the TOPP tool registry (`ToolHandler`: it lists the tools of the bu
 WebAssembly build has none), and, in the single-threaded build, threads
 (`GlobalExceptionHandler`, `LogConfigHandler`, `LogStream`, `UniqueIdGenerator`, `File`,
 `TOPPBase`: they start `std::thread`s; they pass in the multi-threaded build).
+
+`tests/browser/run.mjs` tests the module in Chromium (with Playwright, as CI does): on
+pages with and without cross-origin isolation, on the page and in a Web Worker, it checks
+that the module starts, the threads it reports, the results of feature finding and a database
+search, and that a Worker keeps the page responsive; `--benchmark` adds a larger search at
+1, 2 and 4 threads.
+
+```bash
+npm install --prefix /tmp/pw playwright-core && node /tmp/pw/node_modules/playwright-core/cli.js install chromium
+PLAYWRIGHT_MODULE=/tmp/pw/node_modules/playwright-core node tests/browser/run.mjs build/wasm32-emscripten-mt-release/openms-wasm
+```
 
 A parallel region of the multi-threaded build may capture at most 32 variables (a limit
 of LLVM's OpenMP runtime on WebAssembly); a larger one exits the module ("Too many args to

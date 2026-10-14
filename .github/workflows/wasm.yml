@@ -1,9 +1,12 @@
-# OpenMS for WebAssembly: builds the library and its JavaScript bindings with Emscripten
-# (CMake preset wasm32-emscripten-release, see src/openms_wasm/README.md), runs the tests
-# of the bindings in Node.js and uploads the npm package (with the demo web application).
+# OpenMS for WebAssembly: builds the library and its JavaScript bindings with Emscripten,
+# single-threaded (CMake preset wasm32-emscripten-release, package @openms/openms-wasm) and
+# multi-threaded (preset wasm32-emscripten-mt-release, package @openms/openms-wasm-mt; see
+# src/openms_wasm/README.md), runs the tests of the bindings in Node.js and uploads the npm
+# packages (with the demo web application).
 #
-# The dependencies are built by vcpkg for the wasm32-emscripten triplet; the binary cache
-# lives on the rsync archive like the one of the native builds (.github/actions/dependencies).
+# The dependencies are built by vcpkg for the wasm32-emscripten (wasm32-emscripten-mt)
+# triplet; the binary caches live on the rsync archive like the one of the native builds
+# (.github/actions/dependencies).
 #
 # Trigger: changes to the WebAssembly build in pull requests, the nightly branch, releases,
 # or manual dispatch.
@@ -25,6 +28,7 @@ on:
       - "src/openms_wasm/**"
       - "vcpkg-overlays/emscripten/**"
       - "vcpkg-overlays/triplets/wasm32-emscripten.cmake"
+      - "vcpkg-overlays/triplets/wasm32-emscripten-mt.cmake"
       - "vcpkg-overlays/toolchains/wasm32-emscripten.cmake"
       - "vcpkg.json"
       - "CMakePresets.json"
@@ -38,7 +42,20 @@ env:
 
 jobs:
   build-and-test:
+    name: build-and-test (${{ matrix.variant.name }})
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - name: single-threaded
+            preset: wasm32-emscripten-release
+            triplet: wasm32-emscripten
+            artifact: openms-wasm
+          - name: multi-threaded
+            preset: wasm32-emscripten-mt-release
+            triplet: wasm32-emscripten-mt
+            artifact: openms-wasm-mt
 
     steps:
       - uses: actions/checkout@v6
@@ -74,7 +91,7 @@ jobs:
         with:
           name: vcpkg-cache
           path: ${{ github.workspace }}/.vcpkg-cache
-          key: wasm32-emscripten-${{ env.EMSDK_VERSION }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/emscripten/**', 'vcpkg-overlays/triplets/wasm32-emscripten.cmake', 'vcpkg-overlays/toolchains/wasm32-emscripten.cmake') }}
+          key: ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-overlays/emscripten/**', format('vcpkg-overlays/triplets/{0}.cmake', matrix.variant.triplet), 'vcpkg-overlays/toolchains/wasm32-emscripten.cmake') }}
           ssh_key: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           ssh_host: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
           ssh_port: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
@@ -91,17 +108,17 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: .ccache
-          key: wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
+          key: ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
-            wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-
-            wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-develop-
-            wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-
+            ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-
+            ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-develop-
+            ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-
 
       - name: Configure
         shell: bash
         run: |
           export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache" CCACHE_MAXSIZE=2G
-          cmake --preset wasm32-emscripten-release \
+          cmake --preset ${{ matrix.variant.preset }} \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
@@ -109,33 +126,43 @@ jobs:
         shell: bash
         run: |
           export CCACHE_DIR="$GITHUB_WORKSPACE/.ccache"
-          cmake --build build/wasm32-emscripten-release --target openms_wasm -j"$(nproc)"
+          cmake --build build/${{ matrix.variant.preset }} --target openms_wasm -j"$(nproc)"
           ccache --show-stats
-          ls -la build/wasm32-emscripten-release/openms-wasm
+          ls -la build/${{ matrix.variant.preset }}/openms-wasm
 
       - name: Save ccache
         if: always()
         uses: actions/cache/save@v5
         with:
           path: .ccache
-          key: wasm32-emscripten-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
+          key: ${{ matrix.variant.triplet }}-${{ env.EMSDK_VERSION }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
 
       - name: Test the JavaScript bindings
         shell: bash
-        run: ctest --test-dir build/wasm32-emscripten-release -R openms_wasm --output-on-failure
+        run: ctest --test-dir build/${{ matrix.variant.preset }} -R openms_wasm --output-on-failure
+
+      - name: Test in Chromium
+        shell: bash
+        run: |
+          # the module on pages with and without cross-origin isolation, on the page and in a
+          # Web Worker (src/openms_wasm/tests/browser/run.mjs); Playwright with its Chromium
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-audit --no-fund playwright-core@1.56.1
+          node "$RUNNER_TEMP/playwright/node_modules/playwright-core/cli.js" install chromium
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/playwright/node_modules/playwright-core" \
+            node src/openms_wasm/tests/browser/run.mjs build/${{ matrix.variant.preset }}/openms-wasm
 
       - name: Pack the npm package
         shell: bash
         run: |
-          cd build/wasm32-emscripten-release/openms-wasm
+          cd build/${{ matrix.variant.preset }}/openms-wasm
           npm pack
           ls -la *.tgz
 
       - uses: actions/upload-artifact@v7
         with:
-          name: openms-wasm
+          name: ${{ matrix.variant.artifact }}
           path: |
-            build/wasm32-emscripten-release/openms-wasm/*.tgz
-            build/wasm32-emscripten-release/openms-wasm/examples
-            build/wasm32-emscripten-release/openms-wasm/openms.*
+            build/${{ matrix.variant.preset }}/openms-wasm/*.tgz
+            build/${{ matrix.variant.preset }}/openms-wasm/examples
+            build/${{ matrix.variant.preset }}/openms-wasm/openms.*
           if-no-files-found: error
