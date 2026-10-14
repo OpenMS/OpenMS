@@ -414,6 +414,16 @@ TOPP tools:
     exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 Build System:
+  - WebAssembly: the OpenMS library builds with Emscripten (CMake presets wasm32-emscripten-release
+    and wasm32-emscripten-mt-release, vcpkg triplets wasm32-emscripten and wasm32-emscripten-mt),
+    with JavaScript bindings and TypeScript declarations for web applications and Node.js
+    (src/openms_wasm). The npm package @openms/openms-wasm holds a single-threaded and a
+    multi-threaded build (OpenMP on WebAssembly threads) and a loader that starts the threaded one
+    where threads are available (Node.js; browsers on cross-origin isolated pages). The
+    WebAssembly build uses HiGHS as LP solver and has no network access, external programs, vendor
+    formats or GUI (src/openms_wasm/README.md) (#10564).
+  - New CMake option WITH_CURL (default ON): without libcurl, NetworkGetRequest and
+    MascotRemoteQuery report an error when run, and the update check is off.
   - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX
     Runtime release and ship libonnxruntime and the PeptDeep models (amd64 and arm64).
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the

@@ -65,9 +65,11 @@ jobs:
       - name: Install build tools
         shell: bash
         run: |
-          # flex and bison: the Apache Thrift port (Parquet) needs them on the build machine
+          # flex and bison: the Apache Thrift port (Parquet) needs them on the build machine;
+          # rsync and rclone: the binary cache action below writes with rsync and reads over
+          # HTTP with rclone (as in tools/ci/deps-ubuntu.sh)
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ninja-build flex bison ccache
+          sudo apt-get install -y --no-install-recommends ninja-build flex bison ccache rsync rclone
 
       - name: Install the Emscripten SDK
         shell: bash
