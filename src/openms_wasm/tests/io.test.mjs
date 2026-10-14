@@ -140,3 +140,34 @@ test("FeatureXMLFile", () => {
     });
   });
 });
+
+test("MSExperiment.getSpectrumSummary: m/z range of peaks not sorted by m/z", () => {
+  using([new OpenMS.MSExperiment(), new OpenMS.MSSpectrum()], (exp, spectrum) => {
+    spectrum.setPeaks([500, 100, 300], [1, 2, 3]);
+    exp.addSpectrum(spectrum);
+    const summary = exp.getSpectrumSummary();
+    assert.equal(summary.length, 1);
+    assert.equal(summary[0].minMZ, 100);
+    assert.equal(summary[0].maxMZ, 500);
+  });
+});
+
+test("MSExperiment.get2DPeakData: MS level 0 is all levels", () => {
+  using([new OpenMS.MSExperiment(), new OpenMS.MSSpectrum(), new OpenMS.MSSpectrum()], (exp, ms1, ms2) => {
+    ms1.setRT(1);
+    ms1.setMSLevel(1);
+    ms1.setPeaks([100], [10]);
+    ms2.setRT(2);
+    ms2.setMSLevel(2);
+    ms2.setPeaks([200], [20]);
+    exp.addSpectrum(ms1);
+    exp.addSpectrum(ms2);
+    // (minRT, maxRT, minMZ, maxMZ, msLevel)
+    const all = exp.get2DPeakData(0, 10, 0, 1000, 0);
+    assert.deepEqual(Array.from(all.rt), [1, 2]);
+    assert.deepEqual(Array.from(all.mz), [100, 200]);
+    const ms2Only = exp.get2DPeakData(0, 10, 0, 1000, 2);
+    assert.deepEqual(Array.from(ms2Only.rt), [2]);
+    assert.deepEqual(Array.from(ms2Only.mz), [200]);
+  });
+});

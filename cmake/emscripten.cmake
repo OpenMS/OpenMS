@@ -94,6 +94,12 @@ function(openms_emscripten_check_options)
                           "configure with OPENMS_WASM_THREADS=ON (CMake preset wasm32-emscripten-mt-release).")
     endif()
   endif()
+  ## The OpenMP default of the threaded build does not override a cached MT_ENABLE_OPENMP=OFF.
+  if(OPENMS_WASM_THREADS AND NOT MT_ENABLE_OPENMP)
+    message(FATAL_ERROR "OPENMS_WASM_THREADS needs OpenMP, but MT_ENABLE_OPENMP is OFF (usually kept in the cache "
+                        "of a build directory configured without threads first): configure with "
+                        "-DMT_ENABLE_OPENMP=ON, or use a fresh build directory.")
+  endif()
 endfunction()
 
 #------------------------------------------------------------------------------

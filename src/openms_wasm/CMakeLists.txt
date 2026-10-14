@@ -153,8 +153,17 @@ add_custom_command(TARGET openms_wasm POST_BUILD
 #------------------------------------------------------------------------------
 # Tests: the bindings, run with Node.js (node --test)
 
+## HINTS are directories; EMSDK_NODE (emsdk_env.sh) and NODE_JS_EXECUTABLE (Emscripten's
+## toolchain file) are paths of the node binary.
+set(_openms_wasm_node_hints)
+foreach(_node IN ITEMS "$ENV{EMSDK_NODE}" "${NODE_JS_EXECUTABLE}")
+  if(_node)
+    get_filename_component(_node_dir "${_node}" DIRECTORY)
+    list(APPEND _openms_wasm_node_hints "${_node_dir}")
+  endif()
+endforeach()
 find_program(OPENMS_WASM_NODE_EXECUTABLE NAMES node
-  HINTS "$ENV{EMSDK_NODE}" "${NODE_JS_EXECUTABLE}"
+  HINTS ${_openms_wasm_node_hints}
   DOC "Node.js for the tests of the OpenMS WebAssembly module")
 if(OPENMS_WASM_NODE_EXECUTABLE)
   file(GLOB _openms_wasm_tests CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.test.mjs")

@@ -324,8 +324,10 @@ namespace OpenMS::WASM
           const auto bp = s.getBasePeak();
           o.set("basePeakMZ", bp->getMZ());
           o.set("basePeakIntensity", bp->getIntensity());
-          o.set("minMZ", s.front().getMZ());
-          o.set("maxMZ", s.back().getMZ());
+          // not front()/back(): spectra need not be sorted by m/z (setPeaks(), addPeak(), MGF files)
+          const auto [min_peak, max_peak] = std::minmax_element(s.begin(), s.end(), Peak1D::MZLess());
+          o.set("minMZ", min_peak->getMZ());
+          o.set("maxMZ", max_peak->getMZ());
         }
         if (!s.getPrecursors().empty())
         {
@@ -337,14 +339,14 @@ namespace OpenMS::WASM
       return rows;
     }
 
-    /// All peaks of @p ms_level in an RT/m/z window as three columns (for heat maps etc.).
+    /// All peaks of @p ms_level (0: all levels) in an RT/m/z window as three columns (for heat maps etc.).
     JS::PeakData2D experimentGet2DPeakData(const MSExperiment& e, double min_rt, double max_rt, double min_mz, double max_mz, UInt ms_level)
     {
       std::vector<double> rt, mz;
       std::vector<float> intensity;
       for (auto it = e.RTBegin(min_rt); it != e.end() && it->getRT() <= max_rt; ++it)
       {
-        if (it->getMSLevel() != ms_level) continue;
+        if (ms_level != 0 && it->getMSLevel() != ms_level) continue;
         for (auto p = it->MZBegin(min_mz); p != it->end() && p->getMZ() <= max_mz; ++p)
         {
           rt.push_back(it->getRT());

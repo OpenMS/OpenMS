@@ -65,10 +65,17 @@ function axes(svg, xMin, xMax, yMax, xLabel) {
   return { x, y };
 }
 
+/// The largest of @p values. (Math.max(...values) exceeds the call stack for large arrays, e.g. profile spectra.)
+function maxOf(values) {
+  let max = -Infinity;
+  for (const v of values) if (v > max) max = v;
+  return max;
+}
+
 function stickPlot(svg, mz, intensity, { labels = [], classes = [] } = {}) {
   if (mz.length === 0) { svg.replaceChildren(); return; }
   const pad = (mz[mz.length - 1] - mz[0]) * 0.05 || 1;
-  const yMax = Math.max(...intensity) * (labels.length ? 1.15 : 1.02);
+  const yMax = maxOf(intensity) * (labels.length ? 1.15 : 1.02);
   const { x, y } = axes(svg, mz[0] - pad, mz[mz.length - 1] + pad, yMax, "m/z");
   let lastLabelEnd = -Infinity; // labels are left out where they would overlap the previous one
   for (let i = 0; i < mz.length; ++i) {
@@ -83,7 +90,7 @@ function stickPlot(svg, mz, intensity, { labels = [], classes = [] } = {}) {
 
 function linePlot(svg, xs, ys, xLabel) {
   if (xs.length === 0) { svg.replaceChildren(); return; }
-  const { x, y } = axes(svg, xs[0], xs[xs.length - 1], Math.max(...ys) * 1.02, xLabel);
+  const { x, y } = axes(svg, xs[0], xs[xs.length - 1], maxOf(ys) * 1.02, xLabel);
   const points = Array.from(xs, (v, i) => `${x(v).toFixed(1)},${y(ys[i]).toFixed(1)}`).join(" ");
   svg.append(el("polyline", { class: "line", points }));
 }
@@ -209,14 +216,14 @@ async function openFile(file) {
   experiment?.delete();
   experiment = new OpenMS.MSExperiment();
   const started = performance.now();
+  const handler = new OpenMS.FileHandler();
   try {
-    const handler = new OpenMS.FileHandler();
     handler.loadExperiment(path, experiment);
-    handler.delete();
   } catch (e) {
     status(`Could not read ${file.name}: ${e.message}`);
     return;
   } finally {
+    handler.delete();
     OpenMS.FS.unlink(path);
   }
   fileName = file.name.replace(/\.(mzML|mzXML|mgf)(\.gz)?$/i, "");
@@ -318,7 +325,13 @@ $("action-features").addEventListener("click", (event) => busy(event.target, "De
 }));
 
 $("action-download").addEventListener("click", () => {
-  const text = new OpenMS.MzMLFile().storeBuffer(experiment);
+  const mzmlFile = new OpenMS.MzMLFile();
+  let text;
+  try {
+    text = mzmlFile.storeBuffer(experiment);
+  } finally {
+    mzmlFile.delete();
+  }
   const url = URL.createObjectURL(new Blob([text], { type: "application/xml" }));
   const a = Object.assign(document.createElement("a"), { href: url, download: `${fileName || "experiment"}.mzML` });
   a.click();
