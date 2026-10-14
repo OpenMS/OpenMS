@@ -54,6 +54,7 @@ option(OPENMS_WASM_THREADS "Build OpenMS for WebAssembly with threads (OpenMP, s
 ## Not available in WebAssembly; openms_emscripten_check_options() rejects them.
 set(_openms_emscripten_unsupported_options
   WITH_GUI              # Qt widgets
+  WITH_THERMO_RAW       # needs the .NET runtime
   WITH_OPENTIMS         # Bruker .d directories are read with threads and sqlite's mmap
   WITH_ONNX             # ONNX Runtime is not built for WebAssembly
   WITH_CURL             # no sockets; a browser fetches through JavaScript
