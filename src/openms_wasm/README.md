@@ -170,6 +170,13 @@ OpenMS.getThreadingInfo();   // { threaded: true, available: true, numThreads: 4
 
 `getThreadingInfo()` exists in both packages (`threaded: false` in `@openms/openms-wasm`).
 
+What threads gain depends on how much of a workflow OpenMS parallelizes. Measured with
+Node.js on 4 cores (best of 3 runs): a database search (SimpleSearchEngine, 1684 spectra of
+a BSA run against an E. coli target-decoy database) took 1458 ms on 1 thread, 1013 ms on 2
+and 880 ms on 4 (1601 ms in `@openms/openms-wasm`); loading that mzML file (about 200 ms)
+and the feature finding of FeatureFinderMetabo_3 (about 220 ms) took the same time on 1 to
+4 threads.
+
 ### Limits
 
 The module is a 32-bit (wasm32) program: it can address up to 4 GB. It cannot start
