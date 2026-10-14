@@ -132,12 +132,13 @@ if(OPENMS_WASM_THREADS)
   ## No nested parallelism: every thread of a team is a Web Worker, and in a browser the
   ## workers have to be started before a team needs them (src/openms_wasm sizes that pool).
   set(MT_ENABLE_NESTED_OPENMP OFF CACHE BOOL "Enable nested parallelism.")
-  ## mimalloc instead of Emscripten's default allocator (dlmalloc), which serializes all
-  ## threads on one lock: with it, a database search (SimpleSearchEngine) ran 1.8x slower
-  ## on 2 threads and 3.4x slower on 4 threads than on 1; with mimalloc it is 1.4x and 1.7x
-  ## faster, and faster on 1 thread too.
-  add_link_options("-sMALLOC=mimalloc")
 endif()
+
+## mimalloc instead of Emscripten's default allocator (dlmalloc). With threads, dlmalloc
+## serializes all of them on one lock: a database search (SimpleSearchEngine) ran 1.8x slower
+## on 2 threads and 3.4x slower on 4 threads than on 1; with mimalloc it is 1.4x and 1.7x
+## faster. It is faster on one thread as well.
+add_link_options("-sMALLOC=mimalloc")
 
 ## The JavaScript bindings (src/openms_wasm): the module web applications load.
 option(OPENMS_WASM_BINDINGS "Build the JavaScript bindings of the OpenMS library (src/openms_wasm)" ON)
