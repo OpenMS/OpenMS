@@ -9,7 +9,9 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <limits>
+#include <map>
 using namespace OpenMS;
 using ID = IdentificationData;
 namespace
@@ -163,6 +165,45 @@ START_SECTION(([EXTRA] RNA mzTab calculated m/z includes the assigned adduct))
   // sodium in place of a proton
   TEST_REAL_SIMILAR(rows[0].calc_mass_to_charge.get(), (NASequence::fromString("ACUGp").getMonoWeight(NASequence::Full, -2)
                                                         + EmpiricalFormula("Na").getMonoWeight() - EmpiricalFormula("H").getMonoWeight()) / 2);
+}
+END_SECTION
+START_SECTION(([EXTRA] caller-selected observation and match metadata use generic optional columns))
+{
+  auto data = fixture(ID::MoleculeKind::OLIGONUCLEOTIDE);
+  auto& run = data.getRun("search");
+  const auto& query = run.getSources()[0].identifications[0];
+  ID::Observation observation = query.getObservation();
+  observation.setMetaValue("precursor_percentage", 25.0);
+  observation.setMetaValue("shared_value", "observation");
+  observation.setMetaValue("unselected", "not exported");
+  run.replaceObservation(query.getId(), observation);
+  const auto& match = query.getMatches()[0];
+  ID::MatchData data_with_meta = match.getData();
+  data_with_meta.charge = -2;
+  data_with_meta.setMetaValue("isotope_offset", 1);
+  data_with_meta.setMetaValue("shared_value", "match");
+  data_with_meta.details.emplace().adduct = AdductInfo("Na:+", EmpiricalFormula("Na") + EmpiricalFormula("H") * -3, -2);
+  run.replaceMatch(match.getId(), data_with_meta, run.getScores(match));
+  const auto table = IdentificationDataConverter::exportMzTab(data,
+    {"precursor_percentage", "shared_value", "missing_key"}, {"isotope_offset", "shared_value"});
+  const auto rows = table.getOSMSectionRows();
+  TEST_EQUAL(rows.size(), 1)
+  ABORT_IF(rows.empty())
+  std::map<std::string, MzTabString> columns;
+  for (const auto& column : rows[0].opt_) columns.emplace(column.first, column.second);
+  TEST_EQUAL(columns.size(), 5)
+  TEST_REAL_SIMILAR(StringUtils::toDouble(columns.at("opt_global_precursor_percentage").get()), 25.0)
+  TEST_EQUAL(columns.at("opt_global_isotope_offset").get(), "1")
+  TEST_EQUAL(columns.at("opt_global_adduct").get(), "Na:+")
+  TEST_EQUAL(columns.at("opt_global_shared_value").get(), "match")
+  TEST_TRUE(columns.at("opt_global_missing_key").isNull())
+  TEST_FALSE(columns.contains("opt_global_unselected"))
+  TEST_FALSE(run.getSources()[0].identifications[0].getMatches()[0].metaValueExists("precursor_percentage"))
+  // without selected keys, a match has only its adduct column
+  const auto plain = IdentificationDataConverter::exportMzTab(data).getOSMSectionRows();
+  ABORT_IF(plain.size() != 1)
+  TEST_EQUAL(plain[0].opt_.size(), 1)
+  TEST_EQUAL(plain[0].opt_[0].first, "opt_global_adduct")
 }
 END_SECTION
 START_SECTION((feature ownership survives copies and reduced - data export including empty queries))

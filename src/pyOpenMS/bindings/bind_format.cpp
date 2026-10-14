@@ -4,6 +4,7 @@
 #include "all_casters.h"
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/BedRModFile.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
@@ -102,6 +103,13 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_format, m) {
     m.doc() = "pyOpenMS format bindings";
+    nb::class_<OpenMS::BedRModFile>(m, "BedRModFile", "Export RNA modifications with explicit bedRMod reference metadata")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::BedRModFile&>())
+        .def("store", &OpenMS::BedRModFile::store, "out_file"_a, "id_data"_a,
+             "chebi_mapping_file"_a = "", "reference_metadata"_a = std::map<std::string, std::string>{},
+             "Write aggregated RNA modification sites; unspecified metadata is NA. Custom codes require a validated modomics_short_name CSV mapping.",
+             nb::call_guard<nb::gil_scoped_release>());
 
 #ifdef WITH_THERMO_RAW
     // -----------------------------------------------------------------------
@@ -757,6 +765,7 @@ Computes a SHA-1 hash of the file content
         .value("PEPLIST", OpenMS::FileTypes::Type::PEPLIST)
         .value("HARDKLOER", OpenMS::FileTypes::Type::HARDKLOER)
         .value("KROENIK", OpenMS::FileTypes::Type::KROENIK)
+        .value("BEDRMOD", OpenMS::FileTypes::Type::BEDRMOD)
         .value("FASTA", OpenMS::FileTypes::Type::FASTA)
         .value("EDTA", OpenMS::FileTypes::Type::EDTA)
         .value("CSV", OpenMS::FileTypes::Type::CSV)
