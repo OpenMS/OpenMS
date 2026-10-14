@@ -17,6 +17,10 @@ CCACHE_VERSION=4.14.1
 CCACHE_SHA256=6219f3865ca59aec41ee4b678df171d5d35855ecb2b6dbbbd20690b3a68af7b4
 
 install_dir="${RUNNER_TOOL_CACHE:-C:/tools}/openms-ci-tools"
+# RUNNER_TOOL_CACHE is a Windows path (C:\...), which bash cannot put on PATH.
+if command -v cygpath >/dev/null; then
+  install_dir=$(cygpath -u "$install_dir")
+fi
 mkdir -p "$install_dir"
 
 # fetch <url> <sha256> <name of the directory inside the zip>
