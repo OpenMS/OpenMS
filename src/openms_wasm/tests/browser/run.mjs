@@ -148,13 +148,19 @@ for (const s of scenarios) {
     if (r.search.status !== "EXECUTION_OK" || JSON.stringify(peptides) !== JSON.stringify(expectedPeptides)) {
       problems.push(`search: ${r.search.status}, ${JSON.stringify(peptides)}`);
     }
+    if (r.prose.status !== "EXECUTION_OK" || JSON.stringify(r.prose.hits) !== JSON.stringify(expectedPeptides)) {
+      problems.push(`ProSE: ${r.prose.status}, ${JSON.stringify(r.prose.hits)}`);
+    }
+    if (!r.prose.progressLabels.includes("Building fragment index...")) {
+      problems.push(`ProSE progress: ${JSON.stringify(r.prose.progressLabels)}`);
+    }
     // in a Web Worker, OpenMS must not block the page (the window host blocks it by design)
     if (s.host === "worker" && outcome.maxStallMs > 500) problems.push(`page blocked for ${outcome.maxStallMs} ms`);
   }
 
   failures += problems.length ? 1 : 0;
   const t = r?.timings ?? {};
-  const details = r ? `threads ${r.info.numThreads}; start ${t.start} ms, features ${t.featureFinding} ms, search ${t.search} ms` +
+  const details = r ? `threads ${r.info.numThreads}; start ${t.start} ms, features ${t.featureFinding} ms, search ${t.search} ms, ProSE ${t.prose} ms` +
     (r.benchmark ? `, benchmark search ${t.benchmarkSearch} ms (${r.benchmark.psms} PSMs)` : "") +
     `; page blocked at most ${outcome.maxStallMs} ms` : "";
   console.log(`${problems.length ? "FAIL" : "ok  "} ${name}: ${details}`);

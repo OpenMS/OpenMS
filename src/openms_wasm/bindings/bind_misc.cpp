@@ -14,6 +14,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <emscripten/heap.h>
 #include <emscripten/threading.h>
 
 #include <iostream>
@@ -84,6 +85,16 @@ namespace OpenMS::WASM
 #endif
       return info;
     }
+
+    /// The size of the module's memory and the most it can grow to, in bytes. WebAssembly memory
+    /// grows but never shrinks: after a computation, heapSize is its high-water mark.
+    JS::MemoryInfo memoryInfo()
+    {
+      val info = val::object();
+      info.set("heapSize", static_cast<double>(emscripten_get_heap_size()));
+      info.set("heapMax", static_cast<double>(emscripten_get_heap_max()));
+      return info;
+    }
   } // namespace
 } // namespace OpenMS::WASM
 
@@ -98,4 +109,5 @@ EMSCRIPTEN_BINDINGS(openms_misc)
   function("setLogEnabled", OMS_FN(&setLogEnabled));
   function("isLogEnabled", OMS_FN(&isLogEnabled));
   function("getThreadingInfo", OMS_FN(&threadingInfo));
+  function("getMemoryInfo", OMS_FN(&memoryInfo));
 }
