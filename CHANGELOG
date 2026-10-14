@@ -19,6 +19,11 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
 
 OpenMS Library:
+  - ProSEAlgorithm::rescoreWithPercolator rescores the PSMs of a search run in-process with Percolator, as ProSE -rescore
+    does (same Percolator settings, best hit per spectrum, the runs marked as post-processed by Percolator), and returns
+    whether it did and, if not, why (fewer than 100 PSMs, no decoy PSMs, Percolator failed). ProSEAlgorithm::applyDeferredPsmFDR
+    applies the PSM-level FDR afterwards, on Percolator's q-values or, for PSMs that were not rescored, on q-values of the
+    search engine scores. The ProSE tool uses both, so other callers (e.g. the WebAssembly bindings) share its implementation.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.

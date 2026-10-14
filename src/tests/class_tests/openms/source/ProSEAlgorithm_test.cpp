@@ -8,6 +8,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
@@ -4801,6 +4802,224 @@ START_SECTION((void annotatePsmQValues(PeptideIdentificationList& peptide_ids) c
     {
       TEST_EQUAL(no_two_decoys[i].getHits() == expected[i].getHits(), true)
     }
+  }
+}
+END_SECTION
+
+// Search results shared by the rescoreWithPercolator() and applyDeferredPsmFDR() sections: the ProSE search of
+// TOPP_ProSE_11_rescore, before and after Percolator rescoring.
+std::vector<ProteinIdentification> percolator_search_proteins;
+PeptideIdentificationList percolator_search_peptides;
+std::vector<ProteinIdentification> percolator_rescored_proteins;
+PeptideIdentificationList percolator_rescored_peptides;
+
+START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, int threads)))
+{
+  // n PSMs of one run with peptide evidences, every third one a decoy (if decoys)
+  auto make_ids = [](Size n, bool decoys, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)
+  {
+    proteins.assign(1, ProteinIdentification());
+    proteins[0].setIdentifier("run");
+    proteins[0].setSearchEngine("ProSE");
+    peptides.clear();
+    for (Size i = 0; i < n; ++i)
+    {
+      const bool decoy = decoys && i % 3 == 0;
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setScoreType("ln(hyperscore)");
+      id.setHigherScoreBetter(true);
+      PeptideHit hit(20.0 - 0.01 * i, 1, 2, AASequence::fromString(decoy ? "KEDITPEP" : "PEPTIDEK"));
+      hit.setTargetDecoyType(decoy ? PeptideHit::TargetDecoyType::DECOY : PeptideHit::TargetDecoyType::TARGET);
+      id.setHits({hit});
+      peptides.push_back(id);
+    }
+  };
+  auto unchanged = [](const std::vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides,
+                      const std::vector<ProteinIdentification>& proteins_before, const PeptideIdentificationList& peptides_before)
+  {
+    return proteins == proteins_before && peptides == peptides_before;
+  };
+
+  std::vector<ProteinIdentification> proteins, proteins_before;
+  PeptideIdentificationList peptides, peptides_before;
+
+  // too few PSMs
+  make_ids(99, true, proteins, peptides);
+  proteins_before = proteins;
+  peptides_before = peptides;
+  ProSEAlgorithm::PercolatorRescoring rescoring = ProSEAlgorithm::rescoreWithPercolator(proteins, peptides, 1);
+  TEST_FALSE(rescoring.applied)
+  TEST_EQUAL(rescoring.skipped_reason, "Only 99 PSMs, Percolator rescoring needs at least 100.")
+  TEST_TRUE(unchanged(proteins, peptides, proteins_before, peptides_before))
+
+  // no run
+  make_ids(150, true, proteins, peptides);
+  proteins.clear();
+  peptides_before = peptides;
+  rescoring = ProSEAlgorithm::rescoreWithPercolator(proteins, peptides, 1);
+  TEST_FALSE(rescoring.applied)
+  TEST_EQUAL(rescoring.skipped_reason, "No search run (protein identification) to rescore the PSMs of.")
+  TEST_TRUE(peptides == peptides_before)
+
+  // no decoys
+  make_ids(150, false, proteins, peptides);
+  proteins_before = proteins;
+  peptides_before = peptides;
+  rescoring = ProSEAlgorithm::rescoreWithPercolator(proteins, peptides, 0);
+  TEST_FALSE(rescoring.applied)
+  TEST_TRUE(rescoring.skipped_reason.starts_with("No decoy PSMs"))
+  TEST_TRUE(unchanged(proteins, peptides, proteins_before, peptides_before))
+
+  // Percolator fails: without peptide evidences no PSM gets the PIN features
+  make_ids(150, true, proteins, peptides);
+  proteins_before = proteins;
+  peptides_before = peptides;
+  rescoring = ProSEAlgorithm::rescoreWithPercolator(proteins, peptides, 1);
+  TEST_FALSE(rescoring.applied)
+  TEST_TRUE(rescoring.skipped_reason.starts_with("Percolator failed: "))
+  TEST_TRUE(unchanged(proteins, peptides, proteins_before, peptides_before))
+
+  // A real search, as TOPP_ProSE_11_rescore (ProSE_6_fdr.ini) without its FDR: Percolator gets all PSMs.
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("decoys", "generate");
+  p.setValue("precursor:mass_tolerance_lower", 20.0);
+  p.setValue("precursor:mass_tolerance_upper", 20.0);
+  p.setValue("precursor:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:mass_tolerance", 10.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  algo.setParameters(p);
+  algo.setLogType(ProgressLogger::NONE);
+  const auto ec = algo.search(OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML"),
+                              OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/DatabaseSuitability_database.fasta"),
+                              percolator_search_proteins, percolator_search_peptides);
+  TEST_TRUE(ec == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_EQUAL(percolator_search_proteins.size(), 1)
+  TEST_TRUE(percolator_search_peptides.size() >= 100)
+  ABORT_IF(percolator_search_proteins.size() != 1 || percolator_search_peptides.size() < 100)
+
+  percolator_rescored_proteins = percolator_search_proteins;
+  percolator_rescored_peptides = percolator_search_peptides;
+  rescoring = ProSEAlgorithm::rescoreWithPercolator(percolator_rescored_proteins, percolator_rescored_peptides, 2);
+  TEST_TRUE(rescoring.applied)
+  TEST_EQUAL(rescoring.skipped_reason, "")
+  TEST_EQUAL(percolator_rescored_peptides.size(), percolator_search_peptides.size())
+
+  // q-values as main scores, the best hit per spectrum, and Percolator's SVM score and PEP as meta values
+  Size hits = 0, decoy_hits = 0, accepted = 0;
+  bool scores_are_q_values = true, svm_and_pep = true;
+  for (const PeptideIdentification& id : percolator_rescored_peptides)
+  {
+    TEST_EQUAL(id.getScoreType(), "q-value")
+    TEST_FALSE(id.isHigherScoreBetter())
+    TEST_TRUE(id.getHits().size() <= 1)
+    for (const PeptideHit& hit : id.getHits())
+    {
+      ++hits;
+      decoy_hits += hit.isDecoy();
+      accepted += !hit.isDecoy() && hit.getScore() <= 0.01;
+      scores_are_q_values = scores_are_q_values && hit.getScore() >= 0.0 && hit.getScore() <= 1.0;
+      svm_and_pep = svm_and_pep && hit.metaValueExists("MS:1001492") && hit.metaValueExists("MS:1001493");
+    }
+  }
+  TEST_TRUE(hits > 0)
+  TEST_TRUE(decoy_hits > 0) // no FDR filter yet
+  TEST_TRUE(accepted > 0)
+  TEST_TRUE(scores_are_q_values)
+  TEST_TRUE(svm_and_pep)
+
+  // the run is marked as post-processed by Percolator
+  const ProteinIdentification& run = percolator_rescored_proteins[0];
+  TEST_EQUAL(run.getSearchEngine(), "Percolator")
+  TEST_EQUAL(run.getSearchEngineVersion(), "3.08-vendored")
+  TEST_EQUAL(run.getMetaValue("percolator").toString(), "ProSE")
+  const ProteinIdentification::SearchParameters& sp = run.getSearchParameters();
+  TEST_EQUAL(sp.getMetaValue("Percolator:peptide_level_fdrs").toString(), "false")
+  TEST_EQUAL(sp.getMetaValue("Percolator:protein_level_fdrs").toString(), "false")
+  TEST_EQUAL(sp.getMetaValue("Percolator:post_processing_tdc").toString(), "true")
+  TEST_EQUAL(sp.getMetaValue("Percolator:train_best_positive").toString(), "true")
+  TEST_EQUAL(static_cast<int>(sp.getMetaValue("Percolator:subset_max_train")), 0)
+  TEST_TRUE(sp.metaValueExists("Percolator:testFDR"))
+  TEST_TRUE(sp.metaValueExists("Percolator:trainFDR"))
+  TEST_TRUE(sp.metaValueExists("Percolator:maxiter"))
+  TEST_TRUE(sp.metaValueExists("Percolator:seed"))
+  // the search engine's own search parameters are kept
+  TEST_EQUAL(sp.db, percolator_search_proteins[0].getSearchParameters().db)
+  TEST_TRUE(sp.metaValueExists("extra_features"))
+}
+END_SECTION
+
+START_SECTION((bool applyDeferredPsmFDR(const std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, bool rescored, double psm_fdr) const))
+{
+  ABORT_IF(percolator_search_peptides.empty() || percolator_rescored_peptides.empty())
+  ProSEAlgorithm algo;
+  auto all_hits_within = [](const PeptideIdentificationList& peptides, double fdr)
+  {
+    Size hits = 0;
+    for (const PeptideIdentification& id : peptides)
+    {
+      for (const PeptideHit& hit : id.getHits())
+      {
+        if (id.getScoreType() != "q-value" || hit.getScore() > fdr) { return Size(0); }
+        ++hits;
+      }
+    }
+    return hits;
+  };
+
+  // rescored: filtered on Percolator's q-values, targets and decoys alike
+  {
+    PeptideIdentificationList peptides = percolator_rescored_peptides;
+    Size expected = 0;
+    for (const PeptideIdentification& id : peptides)
+    {
+      for (const PeptideHit& hit : id.getHits()) { expected += hit.getScore() <= 0.05; }
+    }
+    TEST_TRUE(algo.applyDeferredPsmFDR(percolator_rescored_proteins, peptides, true, 0.05))
+    TEST_TRUE(expected > 0)
+    TEST_EQUAL(all_hits_within(peptides, 0.05), expected)
+  }
+
+  // not rescored: q-values from the search engine scores first (annotatePsmQValues), then the filter
+  {
+    PeptideIdentificationList peptides = percolator_search_peptides;
+    PeptideIdentificationList expected = percolator_search_peptides;
+    algo.annotatePsmQValues(expected);
+    IDFilter::filterHitsByScore(expected, 0.05);
+    TEST_TRUE(algo.applyDeferredPsmFDR(percolator_search_proteins, peptides, false, 0.05))
+    TEST_TRUE(all_hits_within(peptides, 0.05) > 0)
+    TEST_TRUE(peptides == expected)
+  }
+
+  // not rescored and no decoy proteins: nothing changes
+  {
+    std::vector<ProteinIdentification> proteins = percolator_search_proteins;
+    std::vector<ProteinHit> targets;
+    for (const ProteinHit& hit : proteins[0].getHits())
+    {
+      if (hit.getMetaValue("target_decoy").toString() != "decoy") { targets.push_back(hit); }
+    }
+    TEST_TRUE(targets.size() < proteins[0].getHits().size())
+    proteins[0].setHits(targets);
+    PeptideIdentificationList peptides = percolator_search_peptides;
+    TEST_FALSE(algo.applyDeferredPsmFDR(proteins, peptides, false, 0.05))
+    TEST_TRUE(peptides == percolator_search_peptides)
+  }
+
+  // no FDR, no runs or no PSMs: nothing changes
+  {
+    PeptideIdentificationList peptides = percolator_rescored_peptides;
+    TEST_FALSE(algo.applyDeferredPsmFDR(percolator_rescored_proteins, peptides, true, 0.0))
+    TEST_TRUE(peptides == percolator_rescored_peptides)
+    TEST_FALSE(algo.applyDeferredPsmFDR({}, peptides, true, 0.05))
+    TEST_TRUE(peptides == percolator_rescored_peptides)
+    PeptideIdentificationList none;
+    TEST_FALSE(algo.applyDeferredPsmFDR(percolator_rescored_proteins, none, true, 0.05))
   }
 }
 END_SECTION

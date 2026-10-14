@@ -315,6 +315,77 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      */
     void annotatePsmQValues(PeptideIdentificationList& peptide_ids) const;
 
+    /// Outcome of rescoreWithPercolator()
+    struct PercolatorRescoring
+    {
+      /// True if the PSMs were rescored
+      bool applied = false;
+      /// Why the PSMs were not rescored, as a sentence to show to the user (empty if @c applied)
+      std::string skipped_reason;
+    };
+
+    /**
+     * @brief Rescore the PSMs of one search run in-process with Percolator, as the ProSE TOPP tool does with -rescore.
+     *
+     * Trains Percolator (Percolator::rescorePSMs) on the standard PIN feature set
+     * (PercolatorInfile::getStandardFeatureSet) plus the search engine features of the run (the
+     * search parameters' 'extra_features', or 'score' without them), with train_best_positive,
+     * target-decoy competition (post_processing_tdc), all PSMs for training (subset_max_train 0)
+     * and nonparametric PEPs, as the percolator executable. Percolator q-values become the main
+     * score (score type "q-value"; the SVM score and PEP are kept as meta values), only the best
+     * hit per spectrum is kept, and the runs are marked as post-processed by Percolator (search
+     * engine "Percolator", version "3.08-vendored", meta value 'percolator' and the
+     * "Percolator:*" search parameter meta values PercolatorAdapter writes).
+     *
+     * Shared by the ProSE TOPP tool and other callers (e.g. the WebAssembly bindings), so the
+     * Percolator settings live in one place. A search to be rescored should defer its FDR
+     * filtering (FDR:PSM and FDR:protein 0), so that Percolator gets all target and decoy PSMs;
+     * applyDeferredPsmFDR() and applyCompleteSetProteinFDR() apply the FDR afterwards.
+     *
+     * The PSMs are not rescored, and stay unchanged, with fewer than 100 PSMs, without decoy PSMs
+     * or if Percolator fails; @c skipped_reason of the result then says why. Nothing is logged
+     * about the skip, so that the caller can report it with its context (e.g. the input file).
+     *
+     * @param[in,out] protein_ids The runs of the search; the first one gives the enzyme and the
+     *                            search engine features. Marked as post-processed by Percolator if
+     *                            the PSMs were rescored.
+     * @param[in,out] peptide_ids Target and decoy PSMs of the run (with 'target_decoy' annotations
+     *                            and peptide evidences, as from PeptideIndexing).
+     * @param[in] threads Threads Percolator may use: it trains one model per cross-validation fold,
+     *                    so more than 3 do not help (values above 3 use 3, values <= 0 use 3).
+     *
+     * @return Whether the PSMs were rescored, and if not, why.
+     */
+    static PercolatorRescoring rescoreWithPercolator(std::vector<ProteinIdentification>& protein_ids,
+                                                     PeptideIdentificationList& peptide_ids,
+                                                     int threads);
+
+    /**
+     * @brief Apply the PSM-level FDR that a search with Percolator rescoring deferred.
+     *
+     * For PSMs that rescoreWithPercolator() rescored (@p rescored), the scores are Percolator
+     * q-values already. Otherwise they get q-values by annotatePsmQValues() first (FDR:PSM_groups
+     * of this instance), provided the run has decoy proteins (protein hits with 'target_decoy'
+     * "decoy"). The PSMs are then filtered at @p psm_fdr (IDFilter::filterHitsByScore); target and
+     * decoy PSMs are filtered alike, decoys are not removed (that is the protein FDR's
+     * finalization, see applyCompleteSetProteinFDR()).
+     *
+     * Shared by the ProSE TOPP tool (-rescore) and other callers, as rescoreWithPercolator().
+     *
+     * @param[in] protein_ids The runs of the search; the first one tells whether there are decoys.
+     * @param[in,out] peptide_ids PSMs of the run, rescored by rescoreWithPercolator() or with their
+     *                            search engine scores.
+     * @param[in] rescored Whether rescoreWithPercolator() rescored @p peptide_ids (its @c applied).
+     * @param[in] psm_fdr PSM q-value threshold.
+     *
+     * @return False if nothing was filtered: @p psm_fdr <= 0, no runs or no PSMs, or PSMs that were
+     *         not rescored without decoy proteins to estimate the FDR with.
+     */
+    bool applyDeferredPsmFDR(const std::vector<ProteinIdentification>& protein_ids,
+                             PeptideIdentificationList& peptide_ids,
+                             bool rescored,
+                             double psm_fdr) const;
+
     /**
      * @brief Search with comprehensive results including modification analysis tables
      *
