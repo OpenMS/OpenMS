@@ -2576,6 +2576,22 @@ namespace OpenMS
     return !(eff.load_ms2 && eff.calibrate && dynamic_cast< ::OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get()) != nullptr);
   }
 
+  // Whether the retention times of the frames in the active range do not decrease with their ids. Some loaders
+  // emit in order of frame ids (MS1 only, DIA without SWATH windows, FRAME), which is the order of retention
+  // time only then. Acquisitions write frames in order of time, so this holds for all real data.
+  static bool frameTimesAscending(TimsDataHandle& handle, const BrukerTimsFile::Config& eff)
+  {
+    double last_time = -std::numeric_limits<double>::infinity();
+    for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
+    {
+      if (!frameInRange(fid, eff) || !handle.has_frame(fid)) continue;
+      const double time = handle.get_frame(fid).time;
+      if (time < last_time) return false;
+      last_time = time;
+    }
+    return true;
+  }
+
   // =====================================================================
   // load() overloads
   // =====================================================================
@@ -2672,7 +2688,8 @@ namespace OpenMS
         loadDDA_(*handle, sink, eff);
     };
 
-    if (emitsInRTOrder(*handle, eff, is_dia))
+    // Checked before the first spectrum goes to the consumer: a writer that has started cannot take it back
+    if (emitsInRTOrder(*handle, eff, is_dia) && frameTimesAscending(*handle, eff))
     {
       // The spectra go to the consumer as they are read, in the order and form load() returns them
       double last_rt = -std::numeric_limits<double>::infinity();
@@ -2680,6 +2697,7 @@ namespace OpenMS
       {
         if (spec.getRT() < last_rt)
         {
+          // cannot happen after the checks above, unless a loader and emitsInRTOrder() disagree
           throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "BrukerTimsFile::transform(): spectra are read in order of retention time");
         }
