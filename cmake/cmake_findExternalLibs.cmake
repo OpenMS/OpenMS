@@ -113,7 +113,18 @@ if (LP_SOLVER STREQUAL "HIGHS")
     set(HIGHS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    # HiGHS enables LTO on its own unless CMAKE_INTERPROCEDURAL_OPTIMIZATION is defined. OpenMS is a CXX-only
+    # project, so the C compiler HiGHS enables may differ from the C++ compiler (e.g. clang vs. gcc), and their
+    # LTO objects cannot be linked together. Only use LTO for HiGHS if requested for OpenMS (ENABLE_IPO).
+    if (NOT DEFINED CMAKE_INTERPROCEDURAL_OPTIMIZATION)
+      set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+      set(_openms_unset_ipo TRUE)
+    endif()
     FetchContent_MakeAvailable(highs)
+    if (_openms_unset_ipo)
+      unset(CMAKE_INTERPROCEDURAL_OPTIMIZATION)
+      unset(_openms_unset_ipo)
+    endif()
     # OpenMS defaults to hidden C++ symbol visibility globally. HiGHS does not
     # annotate its C++ API for export, so a shared HiGHS build must opt out of
     # hidden visibility or libOpenMS cannot link against those symbols.
