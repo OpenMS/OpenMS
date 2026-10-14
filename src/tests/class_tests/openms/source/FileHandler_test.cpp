@@ -13,6 +13,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
@@ -873,5 +874,44 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
 VALIDATE_TMP_FILES
+
+START_SECTION(([EXTRA] transformExperiment applies PeakFileOptions to mzML and mzXML like loadExperiment))
+{
+  for (const std::string& file : {std::string(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), std::string(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"))})
+  {
+    PeakMap all;
+    FileHandler().loadExperiment(file, all);
+    TEST_EQUAL(all.size() > 2, true)
+    std::vector<PeakFileOptions> option_sets(5);
+    option_sets[0].setMSLevels({1});
+    option_sets[1].setRTRange(DRange<1>(DPosition<1>(all[1].getRT() - 0.01), DPosition<1>(all[2].getRT() + 0.01)));
+    option_sets[2].setMZRange(DRange<1>(DPosition<1>(0.0), DPosition<1>(all[0].empty() ? 1.0 : all[0][all[0].size() / 2].getMZ())));
+    option_sets[3].setMetadataOnly(true);
+    option_sets[4].setSkipChromatograms(true);
+    option_sets[4].setFillData(false);
+    for (const PeakFileOptions& options : option_sets)
+    {
+      FileHandler loader;
+      loader.setOptions(options);
+      PeakMap loaded;
+      loader.loadExperiment(file, loaded);
+
+      FileHandler streamer;
+      streamer.setOptions(options);
+      MSDataStoringConsumer streamed;
+      streamer.transformExperiment(file, &streamed);
+
+      const PeakMap& data = streamed.getData();
+      TEST_EQUAL(data.size(), loaded.size())
+      ABORT_IF(data.size() != loaded.size())
+      for (Size i = 0; i < data.size(); ++i)
+      {
+        TEST_EQUAL(data[i] == loaded[i], true)
+      }
+      TEST_EQUAL(data.getNrChromatograms(), loaded.getNrChromatograms())
+    }
+  }
+}
+END_SECTION
 
 END_TEST

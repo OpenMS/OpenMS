@@ -195,7 +195,9 @@ public:
       (MzXMLFile::transform) and Thermo .raw (ThermoRawFile::transform, OpenMS built with WITH_THERMO_RAW).
       The PeakFileOptions are applied as by loadExperiment(); .raw files are read centroided and with the
       scan-level options passed to the reader, as by loadExperiment(). Unlike loadExperiment(), mzML spectra
-      that hold chromatogram data (SRM) are not converted to chromatograms.
+      that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
+      to IMSDataConsumer::setExpectedSize() come from the file and ignore the selection; for .raw they are the
+      numbers of selected spectra and chromatograms.
 
       @param[in] filename The file to read
       @param[in] consumer Receives the data (not owned)
