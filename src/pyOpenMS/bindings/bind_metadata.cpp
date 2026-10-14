@@ -5,6 +5,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/METADATA/CVTerm.h>
@@ -44,6 +45,12 @@ NB_MODULE(_pyopenms_metadata, m) {
     // index-based value iterators (see index_value_iterator.h)
     pyopenms_iter::bind_index_value_iterator<OpenMS::PeptideIdentificationList>(m, "_PeptideIdentificationListIter");
     m.doc() = "pyOpenMS metadata bindings";
+    // IdentificationData can be populated from a NASE OMS result using OMSFile.
+    nb::class_<OpenMS::IdentificationData>(m, "IdentificationData", "Identification data container; use OMSFile to load NASE results")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::IdentificationData&>())
+        .def("empty", &OpenMS::IdentificationData::empty)
+        .def("clear", &OpenMS::IdentificationData::clear);
 
     // -----------------------------------------------------------------------
     // AQS_runConcentration (AbsoluteQuantitationStandards::runConcentration)

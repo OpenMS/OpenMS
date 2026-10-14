@@ -36,6 +36,12 @@ OpenMS Library:
     The HiGHS backend of LPWrapper now solves MIPs to proven optimality by default (mip_gap was ignored when 0), resets
     the time limit on every solve, batches integrality changes and skips the probing/enumeration presolve rules, which
     makes large decharging ILPs about 15x faster.
+  - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
+    closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
+  - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
+    parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
+    lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
+    did not match the inputs (no alignment points).
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
@@ -157,6 +163,11 @@ OpenMS Library:
     metadata-only, fill-data and skip-chromatograms to the reader (MS2-only tools no longer decode
     MS1 scans; fill-data off now loads spectra without peaks) and no longer computes the SHA-1 of the
     RAW file. Instrument configuration ids no longer depend on which scans are loaded.
+  - ThermoRawFile::transform() streams a .raw file into an IMSDataConsumer in acquisition order with
+    the same spectra as load() and constant memory (only the parent MS1 scans that later precursor
+    intensity estimates need are kept). FileHandler::transformExperiment() streams mzML, mzXML and
+    Thermo .raw files into a consumer and applies the PeakFileOptions like loadExperiment(). SwathFile
+    gains loadThermoRaw(); loadFromMSExperiment() keeps only the experimental settings as metadata (#10522).
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
@@ -432,6 +443,15 @@ TOPP tools:
       - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
         default, which cost a second read of the whole file (5-15% of the conversion time); the new
         flag -raw_checksum restores it. Without it the mzML sourceFile has an empty SHA-1 (#10522).
+      - -process_lowmemory streams Thermo .raw input (in-process reader) scan by scan into mzML and
+        cachedMzML outputs in constant memory; it was ignored for .raw before. Other output types
+        still load the file into memory (with a warning) (#10522).
+    OpenSwathWorkflow:
+      - Thermo .raw input is streamed into the SWATH maps instead of being loaded completely and
+        copied, and the full map is no longer kept alive as run metadata; -out_qc (SwathQC) now also
+        receives the spectra of .raw input (#10522).
+    SageAdapter, CometAdapter:
+      - Thermo .raw input is streamed into the temporary mzML instead of being loaded into memory (#10522).
     IDFileConverter:
       - TSV import: the hits of a line get their rank as score (score type 'rank', lower is
         better) instead of no score.
@@ -916,6 +936,8 @@ Dependencies:
     input files in MaRaCluster's index step, single-threaded, before it clusters them:
     1.04.1's Windows build crashes in about one run in ten when it converts several files
     in parallel (OpenMS/THIRDPARTY#113, #10259).
+  - PepXMLFile accepts the optional pepXML `no_cut` attribute when reading unknown enzymes,
+    including files written by OpenMS (#10321).
 
 PyOpenMS:
   - BREAKING: boolean parameters are Python bools (#10116). Reading/writing Params
