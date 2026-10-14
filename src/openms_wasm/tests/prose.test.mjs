@@ -107,6 +107,42 @@ test("ProSEAlgorithm.annotatePsmQValues: q-values without filtering", () => {
     });
 });
 
+test("ProSEAlgorithm: Percolator rescoring, in-process", () => {
+  // too few PSMs: skipped, with the reason; the search engine scores stay
+  const small = using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+    (prose, proteins, peptides) => {
+      prose.setParameterValues({ ...prose1, "decoys": "generate" });
+      return prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides, { rescore: true });
+    });
+  assert.equal(small.percolator.applied, false);
+  assert.match(small.percolator.skipped, /100/);
+
+  // the data and settings of TOPP_ProSE_11_rescore (ProSE_6_fdr.ini): rescored, q-values as scores, filtered at FDR:PSM
+  using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+    (prose, proteins, peptides) => {
+      prose.setParameterValues({
+        "enzyme": "Trypsin", "decoys": "generate",
+        "precursor:mass_tolerance_lower": 20, "precursor:mass_tolerance_upper": 20, "precursor:mass_tolerance_unit": "ppm",
+        "fragment:mass_tolerance": 10, "fragment:mass_tolerance_unit": "ppm",
+        "modifications:fixed": ["Carbamidomethyl (C)"], "modifications:variable": ["Oxidation (M)"],
+        "FDR:PSM": 0.05, "FDR:protein": 0.05,
+      });
+      const summary = prose.search("/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML", "/topp/THIRDPARTY/DatabaseSuitability_database.fasta",
+        proteins, peptides, { rescore: true });
+      assert.equal(summary.status, "EXECUTION_OK");
+      assert.equal(summary.percolator.applied, true, summary.percolator.skipped ?? "");
+      const ids = peptides.toArray().filter((id) => id.hits.length > 0);
+      assert.ok(ids.length > 0);
+      for (const id of ids) {
+        assert.equal(id.scoreType, "q-value");
+        assert.ok(id.hits[0].score <= 0.05, `q-value ${id.hits[0].score} passes FDR:PSM`);
+      }
+      assert.equal(proteins.toArray()[0].searchEngine, "Percolator");
+      // the parameters are as set (the search ran with the FDR filters deferred)
+      assert.equal(prose.getParameterValues()["FDR:PSM"], 0.05);
+    });
+});
+
 test("ProSEAlgorithm reports its progress", () => {
   const reports = [];
   const { summary } = search(prose1, (p) => reports.push(p));

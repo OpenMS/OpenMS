@@ -91,6 +91,7 @@ namespace OpenMS::WASM::JS
   // ProSE
   OPENMS_WASM_JS_TYPE(ProgressCallback);
   OPENMS_WASM_JS_TYPE(ProSESummary);
+  OPENMS_WASM_JS_TYPE(ProSEOptions);
   OPENMS_WASM_JS_TYPE(AnnotationOptions);
   OPENMS_WASM_JS_TYPE(SpectrumAnnotation);
 

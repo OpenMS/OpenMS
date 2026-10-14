@@ -230,7 +230,8 @@ $("settings").addEventListener("submit", async (event) => {
   const timer = setInterval(() => status(`Searching… ${((performance.now() - started) / 1000).toFixed(0)} s`), 500);
   onProgress = showProgress;
   try {
-    results = await call("search", { spectraFile: files.spectra, databaseFile: files.database, parameters: formValues() });
+    results = await call("search", { spectraFile: files.spectra, databaseFile: files.database, parameters: formValues(),
+                                     rescore: $("rescore").checked });
     results.hasQValues = results.psms.some((p) => p.qValue !== null);
     clearInterval(timer);
     const s = results.summary;
@@ -305,15 +306,22 @@ function showResults() {
     card("indexed peptides", summary.search.indexedPeptides.toLocaleString()),
     card("index build", seconds(summary.search.secondsIndexBuild)),
     card("search total", seconds(summary.search.secondsTotal)),
+    ...(summary.percolator ? [card("Percolator", summary.percolator.applied ? seconds(summary.percolator.seconds) : "skipped")] : []),
     card("memory (peak)", `${(memory.heapSize / 2 ** 20).toFixed(0)} MB`),
     card("threads", String(threading.numThreads)),
   );
 
-  const score = (p) => p.hyperscore;
+  // the score the PSMs were ranked by: Percolator's if it rescored them
+  const rescored = summary.percolator?.applied === true;
+  const score = (p) => (rescored ? p.percolatorScore : p.hyperscore);
   histogram($("score-plot"), [
     { name: "targets", cls: "bar-target", values: psms.filter((p) => !p.decoy).map(score) },
     { name: "decoys", cls: "bar-decoy", values: psms.filter((p) => p.decoy).map(score) },
-  ].filter((s) => s.values.length > 0), { xLabel: "ln(hyperscore)" });
+  ].filter((s) => s.values.length > 0), { xLabel: rescored ? "Percolator score" : "ln(hyperscore)" });
+  if (summary.percolator && !summary.percolator.applied) {
+    $("error").textContent = `Percolator rescoring was skipped: ${summary.percolator.skipped}. The PSMs keep ProSE's scores.`;
+    $("error").hidden = false;
+  }
   histogram($("precursor-error-plot"), [{ name: "PSMs", cls: "bar-target", values: accepted.map((p) => p.precursorErrorPPM) }],
     { xLabel: "precursor error (ppm)" });
 

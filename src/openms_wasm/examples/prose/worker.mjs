@@ -48,7 +48,7 @@ function psmRows(peptides) {
     if (!hit) return [];
     const meta = hit.metaValues;
     const scoreType = id.scoreType;
-    const hyperscoreKey = Object.keys(meta).find((k) => /hyperscore\)?_score$/.test(k));
+    const hyperscoreKey = Object.keys(meta).find((k) => k === "ln(hyperscore)" || /hyperscore\)?_score$/.test(k));
     return [{
       index,
       spectrum: id.spectrumReference,
@@ -63,6 +63,8 @@ function psmRows(peptides) {
       decoy: meta.target_decoy === "decoy",
       proteins: hit.proteinAccessions.join(";"),
       precursorErrorPPM: meta.precursor_mz_error_ppm ?? null,
+      percolatorScore: meta.percolator_score ?? null,
+      pep: meta.percolator_pep ?? null,
       deltaMass: meta.DeltaMass ?? null,
       matchedPeaks: meta.num_matched_peaks ?? null,
     }];
@@ -94,7 +96,7 @@ const handlers = {
     };
   },
 
-  async search({ spectraFile, databaseFile, parameters }) {
+  async search({ spectraFile, databaseFile, parameters, rescore = false }) {
     releaseState();
     await writeInputs([spectraFile, databaseFile]);
     const spectraPath = `/input/${spectraFile.name}`;
@@ -109,7 +111,8 @@ const handlers = {
     try {
       prose.setParameterValues(parameters);
       prose.setProgressCallback((p) => postMessage({ type: "progress", ...p }));
-      summary = prose.search(spectraPath, databasePath, proteins, peptides);
+      // rescore: Percolator, in-process, as the ProSE tool's -rescore (q-values as scores)
+      summary = prose.search(spectraPath, databasePath, proteins, peptides, { rescore });
       // q-values for the FDR filter of the page: with FDR:PSM = 0, ProSE reports its scores only
       if (summary.haveDecoys && peptides.size() > 0) {
         const first = peptides.get(0);
