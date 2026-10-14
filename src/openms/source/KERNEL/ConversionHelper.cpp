@@ -57,6 +57,7 @@ namespace OpenMS
       output_map.push_back(ConsensusFeature(input_map_index,
                                             tmp[element_index],
                                             element_index));
+      output_map.back().setUniqueId();
     }
 
     output_map.getColumnHeaders()[input_map_index].size = n;

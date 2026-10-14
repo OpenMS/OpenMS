@@ -17,6 +17,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/KERNEL/FeatureUniqueIds.h>
 
 #include <utility>
 
@@ -62,6 +63,8 @@ START_SECTION((virtual void run()))
   ffpp.run(std::move(input), output, param, FeatureMap());
 
   TEST_EQUAL(output.size(), 8);
+  // every feature has a valid, map-unique id (#10520)
+  FeatureUniqueIds::check(output);
 
   // test some of the metavalue number_of_datapoints
   TEST_EQUAL(output[0].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 88);

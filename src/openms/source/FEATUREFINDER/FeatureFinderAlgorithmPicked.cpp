@@ -1030,15 +1030,14 @@ namespace OpenMS
       //store map of abort reasons for failed seeds
       FeatureMap abort_map;
       abort_map.reserve(abort_reasons_.size());
-      Size counter = 0;
-      for (std::map<Seed, std::string>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
+      for (std::map<Seed, std::string>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2)
       {
         Feature f;
         f.setRT(map_[it2->first.spectrum].getRT());
         f.setMZ(map_[it2->first.spectrum][it2->first.peak].getMZ());
         f.setIntensity(map_[it2->first.spectrum][it2->first.peak].getIntensity());
         f.setMetaValue("label", it2->second);
-        f.setUniqueId(counter); // ID = index
+        f.setUniqueId();
         abort_map.push_back(f);
       }
       abort_map.setUniqueId();
@@ -1103,6 +1102,9 @@ namespace OpenMS
     setData_(std::move(input_map), features);
     setSeeds(seeds);
     run_();
+
+    // every returned feature gets a valid unique id, before any id-dependent step (e.g. the FAIMS merge) of the caller
+    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   }
 
   void FeatureFinderAlgorithmPicked::updateMembers_()

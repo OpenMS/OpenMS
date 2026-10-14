@@ -95,18 +95,14 @@ namespace OpenMS
                                           FeatureMap& features)
   {
     features.clear(true); // "true" should really be a default value here...
-    Size counter = 0;
-    for (SeedList::const_iterator seed_it = seeds.begin();
-         seed_it != seeds.end(); ++seed_it, ++counter)
+    for (const auto& seed : seeds)
     {
       Feature feature;
-      feature.setRT(seed_it->getX());
-      feature.setMZ(seed_it->getY());
-      feature.setUniqueId(counter);
+      feature.setRT(seed.getX());
+      feature.setMZ(seed.getY());
+      feature.setUniqueId();
       features.push_back(feature);
     }
-    // // assign unique ids:
-    // features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   }
 
   void SeedListGenerator::convertSeedList(const FeatureMap& features,

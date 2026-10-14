@@ -15,6 +15,7 @@
 #include <OpenMS/FEATUREFINDER/SeedListGenerator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/FeatureUniqueIds.h>
 
 
 using namespace OpenMS;
@@ -129,6 +130,7 @@ START_SECTION((void convertSeedList(const SeedList& seeds, FeatureMap& features)
 	TEST_EQUAL(features[1].getMZ(), 222.222);
 	TEST_EQUAL(features[2].getRT(), 3.3);
 	TEST_EQUAL(features[2].getMZ(), 333.333);
+	FeatureUniqueIds::check(features);
 }
 END_SECTION
 

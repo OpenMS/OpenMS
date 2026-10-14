@@ -12,6 +12,7 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/KERNEL/FeatureUniqueIds.h>
 ///////////////////////////
 
 #include <algorithm>
@@ -95,6 +96,7 @@ START_SECTION((static void convert(UInt64 const input_map_index, PeakMap & input
   }
 
   TEST_EQUAL(cm.back().getIntensity(),912);
+  FeatureUniqueIds::check(cm);
 
 }
 END_SECTION
