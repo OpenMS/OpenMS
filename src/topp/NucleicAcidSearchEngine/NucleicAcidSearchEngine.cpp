@@ -43,6 +43,7 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include "ModifiedNASequenceGenerator.h"
+#include "RNADeisotoper.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -225,8 +226,14 @@ protected:
     registerOutputFile_("out_preprocessed", "<file>", "", "Optional MS2 spectra after preprocessing", false, true);
     setValidFormats_("out_preprocessed", {"mzML"});
     registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
-    registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector or none", false, true);
-    setValidStrings_("preprocessing:deisotoping", {"legacy", "none"});
+    registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector, none, or FLASHDeconv RNA averagine (profile or centroided input; requires ppm fragment tolerance)", false, true);
+    setValidStrings_("preprocessing:deisotoping", {"legacy", "none", "flash"});
+    registerTOPPSubsection_("preprocessing:flash", "FLASHDeconv RNA isotope detection options");
+    registerDoubleOption_("preprocessing:flash:min_cos", "<value>", 0.85, "Minimum charge-specific RNA averagine isotope cosine", false, true);
+    setMinFloat_("preprocessing:flash:min_cos", 0.5);
+    setMaxFloat_("preprocessing:flash:min_cos", 1.0);
+    registerDoubleOption_("preprocessing:flash:min_snr", "<value>", 0.25, "Minimum charge-specific isotope envelope SNR", false, true);
+    setMinFloat_("preprocessing:flash:min_snr", 0.25);
     registerFlag_("preprocessing:filter_window_mower", "Apply WindowMower filter to remove noise peaks by m/z windows", true);
     registerTOPPSubsection_("preprocessing:window_mower", "WindowMower filter parameters");
     registerDoubleOption_("preprocessing:window_mower:windowsize", "<size>", 100.0, "Size of the sliding window along the m/z axis for WindowMower", false, true);
@@ -678,6 +685,13 @@ protected:
     return 100.0 * residual_intensity / base_peak_intensity;
   }
 
+  double flashMassUpperBound_(double mz, Int charge, bool negative_mode) const
+  {
+    // Cover the same neutral-mass range and isotope margin in MS1 and MS2.
+    const double carrier = negative_mode ? -Constants::PROTON_MASS_U : Constants::PROTON_MASS_U;
+    return (mz - carrier) * std::abs(charge) + 100.0;
+  }
+
   /// Replace this run's derived metric; never reuse a stale input annotation.
   static void updatePrecursorPercentage_(MSSpectrum& spectrum, bool enabled,
                                         double mass_tolerance, bool tolerance_ppm)
@@ -690,15 +704,12 @@ protected:
     }
   }
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping, double flash_min_cos, double flash_min_snr)
   {
     // filter MS2 map
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
-
-    Normalizer normalizer;
-    normalizer.filterPeakMap(exp);
 
     // sort by rt
     exp.sortSpectra(false);
@@ -719,18 +730,54 @@ protected:
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
+    std::unique_ptr<RNADeisotoper> flash_template;
+    if (deisotoping == "flash")
+    {
+      double max_mass = 0.0;
+      for (const auto& spec : exp)
+      {
+        if (!spec.getPrecursors().empty() && spec.getPrecursors()[0].getCharge() != 0)
+        {
+          const auto& prec = spec.getPrecursors()[0];
+          max_mass = std::max(max_mass, flashMassUpperBound_(prec.getMZ(), prec.getCharge(), negative_mode));
+        }
+        else if (include_unknown_charge && !spec.empty())
+        {
+          max_mass = std::max(max_mass, flashMassUpperBound_(std::max_element(spec.begin(), spec.end(), [](const auto& a, const auto& b) { return a.getMZ() < b.getMZ(); })->getMZ(), max_charge, negative_mode));
+        }
+      }
+      if (max_mass == 0.0) max_mass = 1000.0; // No spectrum supplied a mass bound.
+      flash_template = std::make_unique<RNADeisotoper>(fragment_mass_tolerance, std::abs(max_charge), !negative_mode, max_mass, flash_min_cos, flash_min_snr);
+    }
 #pragma omp parallel reduction(+: n_zero_charge, n_inferred_charge)
     {
+    std::unique_ptr<RNADeisotoper> flash;
+    if (flash_template) flash = std::make_unique<RNADeisotoper>(*flash_template);
 #pragma omp for
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
          ++exp_index)
     {
       MSSpectrum& spec = exp[exp_index];
+      // Keep the post-ThresholdMower base peak as the normalization divisor.
+      // FLASH must see raw intensities; native IDs need not be unique or present.
+      double normalization_scale = 0.0;
+      for (const auto& peak : spec) normalization_scale = std::max(normalization_scale, double(peak.getIntensity()));
+      const auto normalize = [&spec, normalization_scale]()
+      {
+        if (normalization_scale > 0.0)
+        {
+          for (auto& peak : spec) peak.setIntensity(peak.getIntensity() / normalization_scale);
+        }
+      };
 
       // sort by mz
       spec.sortByPosition();
 
-      if (spec.getPrecursors().empty()) continue; // this shouldn't happen
+      if (spec.getPrecursors().empty())
+      {
+        normalize();
+        continue; // this shouldn't happen
+      }
       Int precursor_charge = abs(spec.getPrecursors()[0].getCharge());
       if (precursor_charge == 0) // no charge information
       {
@@ -821,6 +868,13 @@ protected:
       {
         deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
       }
+      else if (flash && (spec.getPrecursors()[0].getCharge() != 0 || include_unknown_charge))
+      {
+        flash->filter(spec, int(exp_index), single_charge_spectra);
+      }
+
+      normalize();
+
       // remove noise
       if (use_window_mower)
       {
@@ -1436,6 +1490,20 @@ protected:
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");
+    const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
+    const double flash_min_cos = getDoubleOption_("preprocessing:flash:min_cos");
+    const double flash_min_snr = getDoubleOption_("preprocessing:flash:min_snr");
+    if (deisotoping == "none" && single_charge_spectra)
+    {
+      OPENMS_LOG_ERROR << "Decharging requires isotope charge assignment; select legacy or FLASH deisotoping." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (deisotoping == "flash" && !search_param.fragment_tolerance_ppm)
+    {
+      OPENMS_LOG_ERROR << "FLASH deisotoping requires ppm fragment tolerance." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
     if (use_adducts)
     {
       for (const std::string& adduct_name : potential_adducts)
@@ -1638,7 +1706,6 @@ protected:
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
-    const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
     bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
     double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
     int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
@@ -1658,7 +1725,7 @@ protected:
                        use_nlargest, nlargest_n,
                        remove_precursor, precursor_mass_tolerance,
                        precursor_tolerance_ppm, precursor_peak_isotopes,
-                       deisotoping);
+                       deisotoping, flash_min_cos, flash_min_snr);
     const std::string out_preprocessed = getStringOption_("out_preprocessed");
     if (!out_preprocessed.empty())
     {

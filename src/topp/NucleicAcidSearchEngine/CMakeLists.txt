@@ -16,9 +16,11 @@ endif()
 
 set(tool_sources
   source/ModifiedNASequenceGenerator.cpp
+  source/RNADeisotoper.cpp
 )
 set(tool_headers
   include/ModifiedNASequenceGenerator.h
+  include/RNADeisotoper.h
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})

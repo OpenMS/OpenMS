@@ -20,3 +20,6 @@ openms_add_tool_class_test(NASEDigestion_test
   SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../source/ModifiedNASequenceGenerator.cpp
   INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(NASEDigestion_test OpenMS_CLI)
+
+target_sources(NASEDigestion_test PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNADeisotoper.cpp)
