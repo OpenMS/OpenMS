@@ -62,7 +62,7 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
   file.load(filename, proteins, peptides);
   TEST_EQUAL(proteins.size(), 1);
   TEST_FALSE(peptides.empty());
-  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,,,C");
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme");
   TEST_TRUE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
 }
 END_SECTION
@@ -609,13 +609,15 @@ END_SECTION
 
 START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expect scores, issue #10570))
 {
-  // X! Tandem results as written by IDFileConverter (from idXML), three PSMs:
+  // X! Tandem results as written by IDFileConverter (from idXML; header of IDFileConverter_17_output.pepXML), three PSMs:
   std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_xtandem.pepxml");
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
   PepXMLFile().load(filename, proteins, peptides);
   TEST_EQUAL(proteins.size(), 1)
   TEST_EQUAL(proteins[0].getSearchEngine(), "X! Tandem")
+  // '<specificity cut="" .../>' carries no cleavage information:
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme")
   ABORT_IF(peptides.size() != 3)
   // the reader keeps the expect score as hit score and as "MS:1001330", but not as "E-Value":
   TEST_EQUAL(peptides[0].getHits()[0].metaValueExists("E-Value"), false)
@@ -628,7 +630,8 @@ START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expec
   vector<ProteinIdentification> proteins_new;
   PeptideIdentificationList peptides_new;
   PepXMLFile().load(file_out, proteins_new, peptides_new);
-  TEST_EQUAL(proteins_new.size(), 1)
+  ABORT_IF(proteins_new.size() != 1)
+  TEST_EQUAL(proteins_new[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme")
   ABORT_IF(peptides_new.size() != peptides.size())
   for (Size i = 0; i < peptides.size(); ++i)
   {

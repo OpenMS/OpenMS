@@ -2031,14 +2031,16 @@ namespace OpenMS
       std::string no_cut_after;
       optionalAttributeAsString_(no_cut_after, attributes, "no_cut");
       std::string sense = attributeAsString_(attributes, "sense");
-      const std::string enzyme_name = "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense;
       if (cut_before.empty())
       {
-        // OpenMS writes an empty cut for an unknown enzyme with no cleavage positions.
-        params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(enzyme_name, "", std::set<std::string>()));
+        // No cleavage information (OpenMS writes an empty cut for "unknown_enzyme"): keep "unknown_enzyme",
+        // which code checking for a missing enzyme expects, instead of a "user-defined" name that grows
+        // with every pepXML write/read pass.
+        params_.digestion_enzyme = DigestionEnzymeProtein();
       }
       else
       {
+        const std::string enzyme_name = "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense;
         params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
             enzyme_name, cut_before, no_cut_after, sense));
       }
