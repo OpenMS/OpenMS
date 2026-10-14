@@ -31,7 +31,7 @@ namespace OpenMS
     /**
       @brief Throws Exception::InvalidValue if a feature or subordinate of @p map has an invalid id, or if two of them share an id
 
-      The message names the number of invalid ids or the first duplicated id.
+      The message names the number of invalid ids or one of the duplicated ids.
     */
     static void check(const FeatureMap& map);
 
