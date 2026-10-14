@@ -22,6 +22,7 @@
 namespace OpenMS
 {
   class ExperimentalSettings;
+  class IMSExperimentRandomAccess;
 
   /**
     @brief One FAIMS compensation-voltage group represented as ordinary OpenSWATH maps.
@@ -170,7 +171,11 @@ public:
       With readoptions "onDisc", the file is indexed once (OnDiscThermoRawExperiment) and the maps are
       SpectrumAccessOnDisc views on it, which read the spectra from the .raw file when they are
       accessed: nothing is loaded or cached up front. The spectra and SWATH windows are the same as
-      with the other read options.
+      with the other read options. With "onDisc", @p plugin_consumer must only observe the spectra
+      (e.g. SwathQC): the maps read the spectra from the file again, so an
+      Exception::IllegalArgument is thrown if it modifies a spectrum. Like the other read options,
+      the flat map list has no FAIMS compensation voltage; "onDisc" rejects input with more than
+      one CV, use loadThermoRawByFAIMSCV() for it.
 
       @param[in] file Path to a Thermo .raw file
       @param[in] tmp Temporary directory (for readoptions "cache" and "split")
@@ -184,15 +189,83 @@ public:
                                                    std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                    const std::string& readoptions = "normal",
                                                    Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
+
+    /**
+      @brief Loads a Thermo .raw file with readoptions "onDisc", one group of SWATH maps per FAIMS CV
+
+      See loadOnDiscByFAIMSCV().
+
+      @param[in] file Path to a Thermo .raw file
+      @param[out] exp_meta Run metadata
+      @param[in] plugin_consumer Optional consumer that observes every spectrum (it must not modify them)
+      @return SWATH maps per FAIMS compensation voltage
+    */
+    std::vector<FAIMSSwathMapGroup> loadThermoRawByFAIMSCV(const std::string& file,
+                                                           std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                           Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 #endif
 
+    /**
+      @brief SWATH maps that read the spectra on access from a random-access experiment ("onDisc")
+
+      The SWATH windows are determined from the spectrum metadata as for the other read options; each
+      map is a SpectrumAccessOnDisc view with its own handle (clone()) on @p experiment.
+
+      @param[in] experiment Open random-access experiment
+      @param[out] exp_meta Run metadata
+      @param[in] plugin_consumer Optional consumer that observes every spectrum once. The maps read the
+                 spectra again, so it must not modify them.
+      @return Swath maps for MS2 and MS1
+
+      @throws Exception::NullPointer if @p experiment is null
+      @throws Exception::IllegalArgument if the input has more than one FAIMS compensation voltage
+              (use loadOnDiscByFAIMSCV()) or if @p plugin_consumer modifies a spectrum
+    */
+    std::vector<OpenSwath::SwathMap> loadOnDisc(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,
+                                                std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
+
+    /**
+      @brief Like loadOnDisc(), but partitions MS1 and MS2 spectra by FAIMS compensation voltage first
+
+      The assignment follows IMDataConverter::splitByFAIMSCV(): a spectrum with drift time unit
+      FAIMS_COMPENSATION_VOLTAGE goes to the CV in its drift time, an MS2+ spectrum without a CV to the
+      most recent CV before it, other spectra are skipped. SWATH windows are then determined within
+      each CV. Without FAIMS data, one group with CV NaN holds all spectra.
+
+      @param[in] experiment Open random-access experiment
+      @param[out] exp_meta Run metadata
+      @param[in] plugin_consumer Optional consumer that observes every spectrum once (it must not modify them)
+      @return SWATH maps per FAIMS compensation voltage, in ascending CV order
+
+      @throws Exception::NullPointer if @p experiment is null
+      @throws Exception::IllegalArgument if @p plugin_consumer modifies a spectrum
+    */
+    std::vector<FAIMSSwathMapGroup> loadOnDiscByFAIMSCV(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,
+                                                        std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                        Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
+
 protected:
+
+    /// SpectrumAccessOnDisc maps for the spectra @p indices of @p experiment (@p metadata: all spectra without peaks)
+    std::vector<OpenSwath::SwathMap> buildOnDiscMaps_(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,
+                                                      const PeakMap& metadata,
+                                                      const std::vector<Size>& indices);
+
+    /// Passes every spectrum to @p plugin_consumer; throws Exception::IllegalArgument if it modifies one
+    void passOnDiscToPlugin_(IMSExperimentRandomAccess& experiment,
+                             const PeakMap& metadata,
+                             ExperimentalSettings& exp_meta,
+                             Interfaces::IMSDataConsumer* plugin_consumer);
 
 #ifdef WITH_THERMO_RAW
     /// loadThermoRaw() with readoptions "onDisc"
     std::vector<OpenSwath::SwathMap> loadThermoRawOnDisc_(const std::string& file,
                                                           std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                           Interfaces::IMSDataConsumer* plugin_consumer);
+
+    /// Indexes a Thermo .raw file for random access (centroided, no chromatograms)
+    std::shared_ptr<IMSExperimentRandomAccess> openThermoRawOnDisc_(const std::string& file);
 #endif
 
     /// Cache a file to disk

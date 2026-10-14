@@ -336,7 +336,7 @@ protected:
 
     registerFlag_("append_oswpq", "If out_features is an oswpq archive, optionally append to the existing .oswpq archive instead of overwriting. This may be useful if you run separate instances of OpenSwathWorkflow for separate input files. (default: overwrite)", true);
 
-    registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory. 'onDisc' (Thermo .raw input only) indexes the file and reads the spectra from it when they are needed, without loading or caching the data.", false, true);
+    registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory. 'onDisc' (Thermo .raw input only) indexes the file and reads the spectra from it when they are needed, without loading or caching the data; input with more than one FAIMS compensation voltage is rejected.", false, true);
     setValidStrings_("readOptions", ListUtils::create<std::string>("normal,cache,cacheWorkingInMemory,workingInMemory,onDisc"));
 
     registerStringOption_("tempDirectory", "<tmp>", SystemSettings::getTempDirectory(), "Temporary directory to store cached files for example", false, true);

@@ -71,7 +71,8 @@ START_SECTION(explicit SpectrumAccessOnDisc(std::shared_ptr<IMSExperimentRandomA
   TEST_NOT_EQUAL(ptr, null_ptr)
   TEST_EQUAL(ptr->getNrSpectra(), in_memory->size())
   TEST_EQUAL(ptr->getNrChromatograms(), in_memory->getNrChromatograms())
-  TEST_EXCEPTION(Exception::NullPointer, SpectrumAccessOnDisc(shared_ptr<IMSExperimentRandomAccess>()))
+  const std::shared_ptr<IMSExperimentRandomAccess> no_experiment;
+  TEST_EXCEPTION(Exception::NullPointer, SpectrumAccessOnDisc{no_experiment})
 }
 END_SECTION
 

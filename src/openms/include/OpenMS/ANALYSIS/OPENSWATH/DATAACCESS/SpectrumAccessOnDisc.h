@@ -39,7 +39,7 @@ namespace OpenMS
     OpenSwath::SpectrumAccessPtr sptr = std::make_shared<SpectrumAccessOnDisc>(experiment, window);
     @endcode
 
-    @ingroup Analysis_OpenSWATH
+    @ingroup TargetedQuantitation
   */
   class OPENMS_DLLAPI SpectrumAccessOnDisc :
     public OpenSwath::ISpectrumAccess
