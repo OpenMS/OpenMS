@@ -7,6 +7,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
@@ -18,12 +19,16 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
 
-#include <algorithm>
 #include <cmath>
-#include <limits>
+#include <functional>
 #include <map>
 #include <set>
-#include <vector>
+#include <string>
+#include <utility>
+
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -245,129 +250,248 @@ START_SECTION(FileHandler::loadExperiment applies the vendor peak picking)
 }
 END_SECTION
 
-START_SECTION(Options::ms_levels and rt_min_sec/rt_max_sec select scans without changing them)
+START_SECTION([EXTRA] sampled noise survives RAW to mzML independently of spectrum peaks)
 {
-  // A selective load returns the spectra of a full load for the selected scans, each one unchanged. The scans
-  // that are not loaded still contribute what the loaded ones depend on: their metadata (precursor
-  // reconstruction, instrument configurations) and, as parent scans, their peaks (precursor intensity).
-  ThermoRawFile file;
-  ThermoRawFile::Options options = file.getOptions();
-  TEST_EQUAL(options.ms_levels.empty(), true)
-  TEST_EQUAL(options.rt_min_sec, 0.0)
-  TEST_EQUAL(options.rt_max_sec, std::numeric_limits<double>::infinity())
-  options.centroid = true;
-  file.setOptions(options);
-  MSExperiment full;
-  file.load(THERMO_RAW_TEST_DATA, full);
-  TEST_EQUAL(full.getNrChromatograms(), 1)
-
-  // the two RT limits are retention times of scans, to test that both ends of the range are inclusive
-  const double rt_lo = full[full.size() / 3].getRT();
-  const double rt_hi = full[2 * full.size() / 3].getRT();
-  const double no_limit = std::numeric_limits<double>::infinity();
-
-  struct Selection
+  const vector<string> noise_names = {"sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array"};
+  for (bool centroid : {false, true})
   {
-    std::vector<int> ms_levels;
-    double rt_min;
-    double rt_max;
-  };
-  const std::vector<Selection> selections = {{{1}, 0.0, no_limit},     {{2}, 0.0, no_limit},  {{2, 1}, 0.0, no_limit}, {{}, rt_lo, rt_hi},
-                                             {{1}, rt_lo, rt_hi},      {{2}, rt_lo, rt_hi},   {{}, rt_hi, rt_hi},      {{3}, 0.0, no_limit},
-                                             {{}, rt_hi, rt_lo}};
-  std::vector<Size> selected_sizes;
-  Size with_precursor_intensity = 0;
-  for (const Selection& selection : selections)
-  {
-    options.ms_levels = selection.ms_levels;
-    options.rt_min_sec = selection.rt_min;
-    options.rt_max_sec = selection.rt_max;
+    ThermoRawFile file;
+    auto options = file.getOptions();
+    options.centroid = centroid;
+    options.checksum = false;
+    options.last_scan = 100;
+    options.noise_data = true;
     file.setOptions(options);
-    MSExperiment selected;
-    file.load(THERMO_RAW_TEST_DATA, selected);
+    MSExperiment original;
+    file.load(THERMO_RAW_TEST_DATA, original);
 
-    std::vector<const MSSpectrum*> expected;
-    for (const MSSpectrum& s : full)
+    Size with_noise = 0;
+    for (const auto& spectrum : original)
     {
-      const auto& levels = selection.ms_levels;
-      if (!levels.empty() && std::find(levels.begin(), levels.end(), static_cast<int>(s.getMSLevel())) == levels.end()) { continue; }
-      if (s.getRT() < selection.rt_min || s.getRT() > selection.rt_max) { continue; }
-      expected.push_back(&s);
-    }
-    TEST_EQUAL(selected.size(), expected.size())
-    Size different = 0;
-    for (Size i = 0; i < selected.size() && i < expected.size(); ++i)
-    {
-      if (!(selected[i] == *expected[i])) { ++different; }
-      for (const Precursor& precursor : selected[i].getPrecursors())
+      const bool present = spectrum.metaValueExists(noise_names[0]);
+      for (const auto& name : noise_names)
       {
-        if (precursor.getIntensity() > 0) { ++with_precursor_intensity; }
+        TEST_EQUAL(spectrum.metaValueExists(name), present)
+        if (present)
+        {
+          TEST_EQUAL(spectrum.getMetaValue(name).toDoubleList().size(),
+                     spectrum.getMetaValue(noise_names[0]).toDoubleList().size())
+        }
+      }
+      if (present)
+      {
+        ++with_noise;
+        TEST_FALSE(spectrum.getMetaValue(noise_names[0]).toDoubleList().empty())
       }
     }
-    TEST_EQUAL(different, 0)
-    // The run as a whole is described as in the full load: the TIC covers all scans, and the instrument
-    // and its configurations do not depend on which scans were loaded.
-    TEST_TRUE(selected.getChromatograms() == full.getChromatograms())
-    TEST_TRUE(selected.getExperimentalSettings() == full.getExperimentalSettings())
-    selected_sizes.push_back(selected.size());
+    TEST_TRUE(with_noise > 0)
+
+    MzMLFile mzml;
+    string encoded;
+    mzml.storeBuffer(encoded, original);
+    for (const auto& accession : {"MS:1002743", "MS:1002744", "MS:1002745"})
+    {
+      TEST_TRUE(encoded.find(accession) != string::npos)
+    }
+    MSExperiment reloaded;
+    mzml.loadBuffer(encoded, reloaded);
+    TEST_EQUAL(reloaded.size(), original.size())
+    for (Size i = 0; i < original.size() && i < reloaded.size(); ++i)
+    {
+      for (const auto& name : noise_names)
+      {
+        TEST_EQUAL(reloaded[i].metaValueExists(name), original[i].metaValueExists(name))
+        if (original[i].metaValueExists(name))
+        {
+          TEST_EQUAL(reloaded[i].getMetaValue(name).toDoubleList(), original[i].getMetaValue(name).toDoubleList())
+        }
+      }
+    }
+
+    options.noise_data = false;
+    file.setOptions(options);
+    MSExperiment without_noise;
+    file.load(THERMO_RAW_TEST_DATA, without_noise);
+    TEST_EQUAL(without_noise.size(), original.size())
+    for (Size i = 0; i < original.size() && i < without_noise.size(); ++i)
+    {
+      TEST_EQUAL(without_noise[i].size(), original[i].size())
+      for (Size j = 0; j < original[i].size() && j < without_noise[i].size(); ++j)
+      {
+        TEST_EQUAL(without_noise[i][j], original[i][j])
+      }
+      for (const auto& name : noise_names)
+      {
+        TEST_FALSE(without_noise[i].metaValueExists(name))
+      }
+    }
   }
-  // the selections are not trivial: MS1 only, MS2 only, both, an RT range, ..., one scan, nothing
-  TEST_EQUAL(selected_sizes[0] > 0 && selected_sizes[1] > 0, true)
-  TEST_EQUAL(selected_sizes[0] + selected_sizes[1], full.size())
-  TEST_EQUAL(selected_sizes[2], full.size())
-  TEST_EQUAL(selected_sizes[3] > 0 && selected_sizes[3] < full.size(), true)
-  TEST_EQUAL(selected_sizes[4] > 0 && selected_sizes[5] > 0, true)
-  TEST_EQUAL(selected_sizes[4] + selected_sizes[5], selected_sizes[3])
-  TEST_EQUAL(selected_sizes[6], 1)
-  TEST_EQUAL(selected_sizes[7], 0)
-  TEST_EQUAL(selected_sizes[8], 0)
-  // MS2 scans were loaded without their parent MS1 scans, whose peaks give the precursor intensity
-  TEST_EQUAL(with_precursor_intensity > 0, true)
 }
 END_SECTION
 
-START_SECTION(FileHandler::loadExperiment has the reader skip what the PeakFileOptions exclude)
+START_SECTION([EXTRA] ThermoRawFile::Options scan selection - metadata_only - skip_chromatograms)
 {
-  // The MS levels and the retention time range of the PeakFileOptions reach the reader, which then does not
-  // read the peak data of the excluded scans. The result is that of loading everything and filtering afterwards.
-  MSExperiment full;
-  FileHandler().loadExperiment(THERMO_RAW_TEST_DATA, full, {FileTypes::RAW});
-  const double rt_lo = full[full.size() / 3].getRT();
-  const double rt_hi = full[2 * full.size() / 3].getRT(); // a scan at the upper limit is not in the half-open range
-
-  struct Filter
-  {
-    std::vector<Int> ms_levels;
-    bool rt_range;
+  // Every selection must give the matching subset of a full load, with identical spectra:
+  // precursors (and their intensity, estimated from the parent scan) included.
+  auto scanNumber = [](const MSSpectrum& s) { return std::stoi(s.getNativeID().substr(s.getNativeID().rfind('=') + 1)); };
+  ThermoRawFile::Options base;
+  base.centroid = true;
+  base.checksum = false;
+  auto load = [&](const ThermoRawFile::Options& options) {
+    ThermoRawFile file;
+    file.setOptions(options);
+    MSExperiment exp;
+    file.load(THERMO_RAW_TEST_DATA, exp);
+    return exp;
   };
-  for (const Filter& filter : {Filter{{1}, false}, Filter{{2}, false}, Filter{{}, true}, Filter{{2}, true}})
-  {
-    FileHandler handler;
-    if (!filter.ms_levels.empty()) { handler.getOptions().setMSLevels(filter.ms_levels); }
-    if (filter.rt_range) { handler.getOptions().setRTRange(DRange<1>(rt_lo, rt_hi)); }
-    MSExperiment filtered;
-    handler.loadExperiment(THERMO_RAW_TEST_DATA, filtered, {FileTypes::RAW});
+  auto testSubset = [](const MSExperiment& selected, const MSExperiment& full, const std::function<bool(const MSSpectrum&)>& keep) {
+    Size expected = 0, same = 0;
+    for (const MSSpectrum& s : full.getSpectra())
+    {
+      if (! keep(s)) { continue; }
+      if (expected < selected.size() && selected[expected] == s) { ++same; }
+      ++expected;
+    }
+    TEST_EQUAL(selected.size(), expected)
+    TEST_EQUAL(same, expected)
+  };
 
-    std::vector<const MSSpectrum*> expected;
-    for (const MSSpectrum& s : full)
-    {
-      const auto& levels = filter.ms_levels;
-      if (!levels.empty() && std::find(levels.begin(), levels.end(), static_cast<Int>(s.getMSLevel())) == levels.end()) { continue; }
-      if (filter.rt_range && (s.getRT() < rt_lo || s.getRT() >= rt_hi)) { continue; }
-      expected.push_back(&s);
-    }
-    TEST_EQUAL(expected.empty(), false)
-    TEST_EQUAL(expected.size() < full.size(), true)
-    TEST_EQUAL(filtered.size(), expected.size())
-    Size different = 0;
-    for (Size i = 0; i < filtered.size() && i < expected.size(); ++i)
-    {
-      if (!(filtered[i] == *expected[i])) { ++different; }
-    }
-    TEST_EQUAL(different, 0)
-    TEST_TRUE(filtered.getChromatograms() == full.getChromatograms())
-    TEST_TRUE(filtered.getExperimentalSettings() == full.getExperimentalSettings())
+  const MSExperiment full = load(base);
+  TEST_EQUAL(full.size() > 200, true)
+  TEST_EQUAL(full.getChromatograms().size(), 1)
+
+  ThermoRawFile::Options ms2 = base;
+  ms2.ms_levels = {2};
+  const MSExperiment only_ms2 = load(ms2);
+  TEST_EQUAL(only_ms2.empty(), false)
+  testSubset(only_ms2, full, [](const MSSpectrum& s) { return s.getMSLevel() == 2; });
+  // the TIC still covers all scans
+  TEST_EQUAL(only_ms2.getChromatograms().size(), 1)
+  TEST_EQUAL(only_ms2.getChromatograms()[0] == full.getChromatograms()[0], true)
+
+  const int first = scanNumber(full[50]), last = scanNumber(full[150]);
+  ThermoRawFile::Options scans = base;
+  scans.first_scan = first;
+  scans.last_scan = last;
+  testSubset(load(scans), full, [&](const MSSpectrum& s) { return scanNumber(s) >= first && scanNumber(s) <= last; });
+
+  const double rt_min = full[100].getRT(), rt_max = full[200].getRT();
+  ThermoRawFile::Options rt = base;
+  rt.rt_min = rt_min;
+  rt.rt_max = rt_max;
+  const MSExperiment rt_range = load(rt);
+  testSubset(rt_range, full, [&](const MSSpectrum& s) { return s.getRT() >= rt_min && s.getRT() < rt_max; });
+  // the TIC is read in full from the vendor chromatogram when the load stops early
+  TEST_EQUAL(rt_range.getChromatograms().size(), 1)
+  TEST_EQUAL(rt_range.getChromatograms()[0].size(), full.getChromatograms()[0].size())
+
+  // MS1 spectra and spectra without precursor are kept, as by PeakFileOptions::setPrecursorMZRange
+  for (const auto& [lo, hi] : {std::pair{400.0, 500.0}, std::pair{500.0, 600.0}, std::pair{659.0, 660.0}})
+  {
+    ThermoRawFile::Options precursor = base;
+    precursor.precursor_mz_min = lo;
+    precursor.precursor_mz_max = hi;
+    const MSExperiment selected = load(precursor);
+    testSubset(selected, full, [lo, hi](const MSSpectrum& s) {
+      return s.getMSLevel() <= 1 || s.getPrecursors().empty() || (s.getPrecursors()[0].getMZ() >= lo && s.getPrecursors()[0].getMZ() < hi);
+    });
+    TEST_EQUAL(selected.size() < full.size(), true)
   }
+
+  ThermoRawFile::Options metadata = base;
+  metadata.metadata_only = true;
+  metadata.skip_chromatograms = true;
+  const MSExperiment headers = load(metadata);
+  TEST_EQUAL(headers.size(), full.size())
+  TEST_EQUAL(headers.getChromatograms().size(), 0)
+  Size empty = 0, same_id = 0, same_precursor = 0;
+  for (Size i = 0; i < headers.size() && i < full.size(); ++i)
+  {
+    if (headers[i].empty()) { ++empty; }
+    if (headers[i].getNativeID() == full[i].getNativeID() && headers[i].getRT() == full[i].getRT()
+        && headers[i].getMSLevel() == full[i].getMSLevel()) { ++same_id; }
+    if (headers[i].getPrecursors().size() == full[i].getPrecursors().size()
+        && (full[i].getPrecursors().empty() || headers[i].getPrecursors()[0].getMZ() == full[i].getPrecursors()[0].getMZ())) { ++same_precursor; }
+  }
+  TEST_EQUAL(empty, headers.size())
+  TEST_EQUAL(same_id, headers.size())
+  TEST_EQUAL(same_precursor, headers.size())
+}
+END_SECTION
+
+START_SECTION([EXTRA] read-ahead on worker threads gives the single-threaded result)
+{
+#ifdef _OPENMP
+  const int threads = omp_get_max_threads();
+  auto load = [](int n, const ThermoRawFile::Options& options) {
+    omp_set_num_threads(n);
+    ThermoRawFile file;
+    file.setOptions(options);
+    MSExperiment exp;
+    file.load(THERMO_RAW_TEST_DATA, exp);
+    return exp;
+  };
+  ThermoRawFile::Options options;
+  options.checksum = false;
+  const MSExperiment single = load(1, options);
+  const MSExperiment ahead = load(4, options);
+  TEST_TRUE(single.size() > 0)
+  TEST_TRUE(single == ahead)
+  // Stopping early (last_scan) and header-only scans (MS-level filter) on the read-ahead path.
+  options.last_scan = 150;
+  TEST_TRUE(load(1, options) == load(4, options))
+  options.last_scan = 0;
+  options.ms_levels = {2};
+  TEST_TRUE(load(1, options) == load(4, options))
+  omp_set_num_threads(threads);
+#endif
+}
+END_SECTION
+
+START_SECTION(FileHandler::loadExperiment passes PeakFileOptions to the reader)
+{
+  ThermoRawFile::Options base;
+  base.centroid = true;
+  base.checksum = false;
+  ThermoRawFile file;
+  file.setOptions(base);
+  MSExperiment full;
+  file.load(THERMO_RAW_TEST_DATA, full);
+
+  const double rt_min = full[100].getRT(), rt_max = full[300].getRT();
+  FileHandler handler;
+  handler.getOptions().addMSLevel(2);
+  handler.getOptions().setRTRange(DRange<1>(DPosition<1>(rt_min), DPosition<1>(rt_max)));
+  MSExperiment loaded;
+  handler.loadExperiment(THERMO_RAW_TEST_DATA, loaded, {FileTypes::RAW});
+  Size expected = 0, same = 0;
+  for (const MSSpectrum& s : full.getSpectra())
+  {
+    if (s.getMSLevel() != 2 || s.getRT() < rt_min || s.getRT() >= rt_max) { continue; }
+    if (expected < loaded.size() && loaded[expected] == s) { ++same; }
+    ++expected;
+  }
+  TEST_EQUAL(expected > 0, true)
+  TEST_EQUAL(loaded.size(), expected)
+  TEST_EQUAL(same, expected)
+  // no checksum is computed by default
+  TEST_EQUAL(loaded.getSourceFiles().size(), 1)
+  TEST_EQUAL(loaded.getSourceFiles()[0].getChecksum(), "")
+
+  // fill data off: spectra without peaks; skip chromatograms is honoured
+  FileHandler headers;
+  headers.getOptions().setFillData(false);
+  headers.getOptions().setSkipChromatograms(true);
+  MSExperiment no_peaks;
+  headers.loadExperiment(THERMO_RAW_TEST_DATA, no_peaks, {FileTypes::RAW});
+  TEST_EQUAL(no_peaks.size(), full.size())
+  TEST_EQUAL(no_peaks.getChromatograms().size(), 0)
+  Size empty = 0;
+  for (const MSSpectrum& s : no_peaks.getSpectra())
+  {
+    if (s.empty()) { ++empty; }
+  }
+  TEST_EQUAL(empty, no_peaks.size())
 }
 END_SECTION
 #endif

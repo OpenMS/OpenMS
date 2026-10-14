@@ -188,6 +188,7 @@ set(kernel_executables_list
 set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
+  BedRModFile_test
   BrukerTimsFile_test
   BrukerTimsImagingFile_test
   PASEFHillCentroider_test
@@ -281,6 +282,7 @@ set(format_executables_list
   PercolatorAdapter_parity_test
   PercolatorInfile_test
   PercolatorOutfile_test
+  PercolatorPosteriorEstimator_test
   ProtXMLFile_test
   QcMLFile_test
   SVOutStream_test

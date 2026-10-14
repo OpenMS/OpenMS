@@ -173,6 +173,8 @@ public:
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
+      The MS level, RT range, precursor m/z range, metadata-only, fill-data and skip-chromatograms options are passed to the reader, so skipped scans are not decoded
+      (fill-data off loads spectra without peaks, like metadata-only). The SourceFile carries no SHA-1 checksum unless @p rewrite_source_file and @p compute_hash are set.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -438,12 +440,13 @@ private:
     /**
       @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
 
-      Used by the vendor-format paths (Thermo .raw, Bruker .d), whose loaders do not take
-      PeakFileOptions. Filters MS level, RT range, precursor m/z range, per-peak m/z and
-      intensity ranges, and strips peak data when metadata-only is requested. Calls
-      updateRanges() at the end. loadExperiment() already has the loaders skip the MS levels
-      and, where that gives the same spectra, the retention times the options exclude, so
-      that this data is not decoded at all; the filters here make the result exact.
+      Used by the vendor-format paths. Bruker .d: loadExperiment() has the reader skip the
+      MS levels and, where that gives the same spectra, the retention times the options
+      exclude, so that this data is not decoded; the filters here make the result exact.
+      Thermo .raw: the scan-level filters are passed to ThermoRawFile, only the per-peak
+      filters are applied here. Filters MS level, RT range, precursor m/z range, per-peak
+      m/z and intensity ranges, and strips peak data when metadata-only is requested.
+      Calls updateRanges() at the end.
     */
     void applyPostLoadOptions_(MSExperiment& exp) const;
 

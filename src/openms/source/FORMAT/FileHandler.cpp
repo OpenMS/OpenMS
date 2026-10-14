@@ -727,6 +727,12 @@ namespace OpenMS
       return FileTypes::PSMS;
     }
 
+    // bedRMod file format
+    if (first_line.find("fileformat=bedRMod") != std::string::npos)
+    {
+      return FileTypes::BEDRMOD;
+    }
+
     // EDTA file
     // hard to tell... so we don't even try...
 
@@ -1002,18 +1008,27 @@ namespace OpenMS
         f.setLogType(log);
         ThermoRawFile::Options raw_options = f.getOptions();
         raw_options.centroid = true;
-        // Do not decode the scans the PeakFileOptions exclude anyway.
+        // The SHA-1 reads the whole file again; the source file checksum is set below if requested.
+        raw_options.checksum = false;
+        // Push the scan-level PeakFileOptions down, so skipped scans and peaks are never decoded.
         if (options_.hasMSLevels()) { raw_options.ms_levels = options_.getMSLevels(); }
         if (options_.hasRTRange())
         {
-          raw_options.rt_min_sec = options_.getRTRange().minPosition()[0];
-          raw_options.rt_max_sec = options_.getRTRange().maxPosition()[0];
+          raw_options.rt_min = options_.getRTRange().minPosition()[0];
+          raw_options.rt_max = options_.getRTRange().maxPosition()[0];
         }
+        if (options_.hasPrecursorMZRange())
+        {
+          raw_options.precursor_mz_min = options_.getPrecursorMZRange().minPosition()[0];
+          raw_options.precursor_mz_max = options_.getPrecursorMZRange().maxPosition()[0];
+        }
+        raw_options.metadata_only = options_.getMetadataOnly() || ! options_.getFillData();
+        raw_options.skip_chromatograms = options_.getSkipChromatograms();
         f.setOptions(raw_options);
         f.load(filename, exp);
 
-        // Apply the remaining PeakFileOptions filters (and the exact RT range, which is inclusive in the reader).
-        applyPostLoadOptions_(exp);
+        // Only the peak-level filters (m/z, intensity) are left to apply post-load.
+        if (options_.hasMZRange() || options_.hasIntensityRange()) { applyPostLoadOptions_(exp); }
       }
       break;
 #endif

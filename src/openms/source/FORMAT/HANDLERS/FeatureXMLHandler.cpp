@@ -802,6 +802,8 @@ namespace OpenMS::Internal
     }
     else if (tag == "IdentificationRun")
     {
+      // older files may contain an empty file list, which names no files
+      prot_id_.removeEmptyPrimaryMSRunPaths();
       map_->getProteinIdentifications().push_back(prot_id_);
       prot_id_ = ProteinIdentification();
       last_meta_  = nullptr;

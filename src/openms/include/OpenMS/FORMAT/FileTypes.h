@@ -102,6 +102,7 @@ namespace OpenMS
       BRUKER_TDF,         ///< Bruker .d directory. Only TDF data (timsTOF with ion mobility) can be read; TSF and BAF data are recognized (BrukerTimsFile::detectFormat()) and rejected when loaded
       IMZML,              ///< imzML mass spectrometry imaging file (.imzML + .ibd)
       YAML,               ///< YAML Ain't Markup Language file (.yaml)
+      BEDRMOD,            ///< bedRMod file (.bedrmod, also accepts .bed)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

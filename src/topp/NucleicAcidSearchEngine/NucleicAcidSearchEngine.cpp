@@ -14,6 +14,8 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/MATH/StatisticFunctions.h> // for "median"
 
+#include <tuple>
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -22,6 +24,7 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 // file types
+#include <OpenMS/FORMAT/BedRModFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -40,6 +43,8 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include "ModifiedNASequenceGenerator.h"
+#include "RNADeisotoper.h"
+#include "RNAPrecursorCorrector.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -106,6 +111,14 @@ For example, "mA?" stands for methyladenosine ("mA", see above) or 2'-O-methylad
 When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
 
 
+Exact score ties at @p report:top_hits remain a complete group. Exported ties use
+the library's deterministic molecule, charge and adduct value order. A representative selected downstream
+is reproducible but does not establish unique modification localization.
+When using @p digest, search tolerances and modifications in the output describe
+the current run while database and digestion provenance remain from the cache.
+LFQ targets use a finite intensity-weighted retention time, falling back to the
+median of finite observations when no valid positive intensity weights exist.
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
 <B>INI file documentation of this tool:</B>
@@ -164,6 +177,17 @@ protected:
     registerOutputFile_("lfq_out", "<file>", "", "Output file: targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
     setValidFormats_("lfq_out", vector<std::string>(1, "tsv"));
 
+    registerOutputFile_("bedrmod_out", "<file>", "", "Output file: bedRMod v2 RNA modification track", false);
+    setValidFormats_("bedrmod_out", {"bedrmod"});
+
+    registerInputFile_("bedrmod_chebi_mapping", "<file>", "", "Optional CSV mapping file for bedRMod export ('mod'/'name', 'chebi_id' and/or 'modomics_short_name' columns; required for unsupported custom modification names)", false, true);
+    setValidFormats_("bedrmod_chebi_mapping", {"csv"});
+    registerTOPPSubsection_("bedrmod", "Reference metadata for bedRMod export");
+    for (const std::string key : {"organism", "assembly", "annotation_source", "annotation_version"})
+    {
+      registerStringOption_("bedrmod:" + key, "<value>", "NA", "Explicit reference " + key + " for bedRMod export (NA when unknown)", false);
+    }
+
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("theo_ms2_out", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("exp_ms2_out", "<file>", "", "Output file: experimental MS2 spectra for precursor mass matches", false, true);
@@ -191,6 +215,17 @@ protected:
     IntList isotopes = {0, 1, 2, 3, 4};
     registerIntList_("precursor:isotopes", "<list>", isotopes, "Correct for mono-isotopic peak misassignments. E.g.: 1 = precursor may be misassigned to the first isotopic peak. Ignored if 'use_avg_mass' is set.", false, false);
 
+    registerFlag_("precursor:correct_with_flash", "Infer MS2 monoisotopic precursor m/z using FLASH RNA on the complete parent MS1. Confident corrected or monoisotopic scans search only additional isotope offset 0 around the corrected m/z. The configured 'precursor:isotopes' list is used only for unresolved or ambiguous scans. Requires monoisotopic masses and ppm precursor tolerance.", false);
+    registerTOPPSubsection_("precursor:flash", "FLASH RNA parent-MS1 precursor correction options");
+    registerDoubleOption_("precursor:flash:mass_tolerance", "<ppm>", 0.0, "MS1 isotope detection and selected-ion matching tolerance in ppm (0 = use precursor:mass_tolerance)", false, true);
+    setMinFloat_("precursor:flash:mass_tolerance", 0.0);
+    registerDoubleOption_("precursor:flash:min_cos", "<value>", 0.85, "Minimum charge-specific RNA averagine isotope cosine for an MS1 precursor envelope", false, true);
+    setMinFloat_("precursor:flash:min_cos", 0.5);
+    setMaxFloat_("precursor:flash:min_cos", 1.0);
+    registerDoubleOption_("precursor:flash:min_snr", "<value>", 0.25, "Minimum charge-specific SNR for an MS1 precursor envelope", false, true);
+    setMinFloat_("precursor:flash:min_snr", 0.25);
+    registerOutputFile_("out_precursor_corrections", "<file>", "", "Tab-delimited FLASH precursor correction audit, one row per MS2 (requires precursor:correct_with_flash)", false, true);
+
     registerTOPPSubsection_("fragment", "Fragment (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
 
@@ -203,8 +238,14 @@ protected:
     registerOutputFile_("out_preprocessed", "<file>", "", "Optional MS2 spectra after preprocessing", false, true);
     setValidFormats_("out_preprocessed", {"mzML"});
     registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
-    registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector or none", false, true);
-    setValidStrings_("preprocessing:deisotoping", {"legacy", "none"});
+    registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector, none, or FLASHDeconv RNA averagine (profile or centroided input; requires ppm fragment tolerance)", false, true);
+    setValidStrings_("preprocessing:deisotoping", {"legacy", "none", "flash"});
+    registerTOPPSubsection_("preprocessing:flash", "FLASHDeconv RNA isotope detection options");
+    registerDoubleOption_("preprocessing:flash:min_cos", "<value>", 0.85, "Minimum charge-specific RNA averagine isotope cosine", false, true);
+    setMinFloat_("preprocessing:flash:min_cos", 0.5);
+    setMaxFloat_("preprocessing:flash:min_cos", 1.0);
+    registerDoubleOption_("preprocessing:flash:min_snr", "<value>", 0.25, "Minimum charge-specific isotope envelope SNR", false, true);
+    setMinFloat_("preprocessing:flash:min_snr", 0.25);
     registerFlag_("preprocessing:filter_window_mower", "Apply WindowMower filter to remove noise peaks by m/z windows", true);
     registerTOPPSubsection_("preprocessing:window_mower", "WindowMower filter parameters");
     registerDoubleOption_("preprocessing:window_mower:windowsize", "<size>", 100.0, "Size of the sliding window along the m/z axis for WindowMower", false, true);
@@ -274,9 +315,14 @@ protected:
     setValidStrings_("oligo:enzyme", all_enzymes);
 
     registerTOPPSubsection_("report", "Reporting Options");
-    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
+    registerIntOption_("report:top_hits", "<num>", 1, "Number of top-scoring hits per spectrum to retain; all exact ties at the cutoff are included (0 for all hits)", false, true);
     setMinInt_("report:top_hits", 0);
 
+    registerFlag_("report:precursor_percentage", "Report the strongest peak in the configured precursor m/z window as a percentage of the raw MS2 base peak intensity. Uses its independent report tolerance; wide windows can include isotope peaks. This does not integrate an isotope envelope or measure preprocessing removal, and is omitted unless there is exactly one precursor.", false);
+    registerDoubleOption_("report:precursor_percentage_mass_tolerance", "<tolerance>", 10.0, "Mass tolerance for finding the residual precursor peak in the raw MS2 spectrum", false, true);
+    setMinFloat_("report:precursor_percentage_mass_tolerance", 0.0);
+    registerStringOption_("report:precursor_percentage_mass_tolerance_unit", "<unit>", "ppm", "Unit for the residual precursor peak mass tolerance", false, true);
+    setValidStrings_("report:precursor_percentage_mass_tolerance_unit", {"Da", "ppm"});
     registerDoubleOption_("report:require_coverage", "<fraction>", 0.0, "Minimum fraction of internal oligonucleotide positions that must be covered by fragment ions (0.0 = no requirement, 1.0 = full coverage required). Coverage requires at least one fragment of type a, a-B, b, c, d, w, x, y, or z at each position.", false, true);
     setMinFloat_("report:require_coverage", 0.0);
     setMaxFloat_("report:require_coverage", 1.0);
@@ -625,15 +671,57 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping)
+  /// Return no value for spectra without one selected precursor or a positive base peak.
+  static optional<double> calculatePrecursorPercentage_(const MSSpectrum& spectrum,
+                                                        double mass_tolerance,
+                                                        bool tolerance_ppm)
+  {
+    if (spectrum.getPrecursors().size() != 1) return nullopt;
+
+    double precursor_mz = spectrum.getPrecursors()[0].getMZ();
+    if (!isfinite(precursor_mz) || precursor_mz <= 0.0) return nullopt;
+    double tolerance = tolerance_ppm ? precursor_mz * mass_tolerance * 1e-6 : mass_tolerance;
+    double base_peak_intensity = 0.0;
+    double residual_intensity = 0.0;
+    for (const Peak1D& peak : spectrum)
+    {
+      double intensity = peak.getIntensity();
+      if (!isfinite(intensity)) continue;
+      base_peak_intensity = max(base_peak_intensity, intensity);
+      if (abs(peak.getMZ() - precursor_mz) <= tolerance)
+      {
+        residual_intensity = max(residual_intensity, intensity);
+      }
+    }
+    if (base_peak_intensity <= 0.0) return nullopt;
+    return 100.0 * residual_intensity / base_peak_intensity;
+  }
+
+  double flashMassUpperBound_(double mz, Int charge, bool negative_mode) const
+  {
+    // Cover the same neutral-mass range and isotope margin in MS1 and MS2.
+    const double carrier = negative_mode ? -Constants::PROTON_MASS_U : Constants::PROTON_MASS_U;
+    return (mz - carrier) * std::abs(charge) + 100.0;
+  }
+
+  /// Replace this run's derived metric; never reuse a stale input annotation.
+  static void updatePrecursorPercentage_(MSSpectrum& spectrum, bool enabled,
+                                        double mass_tolerance, bool tolerance_ppm)
+  {
+    spectrum.removeMetaValue("precursor_percentage");
+    if (enabled)
+    {
+      const auto percentage = calculatePrecursorPercentage_(spectrum, mass_tolerance, tolerance_ppm);
+      if (percentage) spectrum.setMetaValue("precursor_percentage", *percentage);
+    }
+  }
+
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping, double flash_min_cos, double flash_min_snr)
   {
     // filter MS2 map
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
-
-    Normalizer normalizer;
-    normalizer.filterPeakMap(exp);
 
     // sort by rt
     exp.sortSpectra(false);
@@ -654,18 +742,54 @@ protected:
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
 
+    std::unique_ptr<RNADeisotoper> flash_template;
+    if (deisotoping == "flash")
+    {
+      double max_mass = 0.0;
+      for (const auto& spec : exp)
+      {
+        if (!spec.getPrecursors().empty() && spec.getPrecursors()[0].getCharge() != 0)
+        {
+          const auto& prec = spec.getPrecursors()[0];
+          max_mass = std::max(max_mass, flashMassUpperBound_(prec.getMZ(), prec.getCharge(), negative_mode));
+        }
+        else if (include_unknown_charge && !spec.empty())
+        {
+          max_mass = std::max(max_mass, flashMassUpperBound_(std::max_element(spec.begin(), spec.end(), [](const auto& a, const auto& b) { return a.getMZ() < b.getMZ(); })->getMZ(), max_charge, negative_mode));
+        }
+      }
+      if (max_mass == 0.0) max_mass = 1000.0; // No spectrum supplied a mass bound.
+      flash_template = std::make_unique<RNADeisotoper>(fragment_mass_tolerance, std::abs(max_charge), !negative_mode, max_mass, flash_min_cos, flash_min_snr);
+    }
 #pragma omp parallel reduction(+: n_zero_charge, n_inferred_charge)
     {
+    std::unique_ptr<RNADeisotoper> flash;
+    if (flash_template) flash = std::make_unique<RNADeisotoper>(*flash_template);
 #pragma omp for
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
          ++exp_index)
     {
       MSSpectrum& spec = exp[exp_index];
+      // Keep the post-ThresholdMower base peak as the normalization divisor.
+      // FLASH must see raw intensities; native IDs need not be unique or present.
+      double normalization_scale = 0.0;
+      for (const auto& peak : spec) normalization_scale = std::max(normalization_scale, double(peak.getIntensity()));
+      const auto normalize = [&spec, normalization_scale]()
+      {
+        if (normalization_scale > 0.0)
+        {
+          for (auto& peak : spec) peak.setIntensity(peak.getIntensity() / normalization_scale);
+        }
+      };
 
       // sort by mz
       spec.sortByPosition();
 
-      if (spec.getPrecursors().empty()) continue; // this shouldn't happen
+      if (spec.getPrecursors().empty())
+      {
+        normalize();
+        continue; // this shouldn't happen
+      }
       Int precursor_charge = abs(spec.getPrecursors()[0].getCharge());
       if (precursor_charge == 0) // no charge information
       {
@@ -756,6 +880,13 @@ protected:
       {
         deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
       }
+      else if (flash && (spec.getPrecursors()[0].getCharge() != 0 || include_unknown_charge))
+      {
+        flash->filter(spec, int(exp_index), single_charge_spectra);
+      }
+
+      normalize();
+
       // remove noise
       if (use_window_mower)
       {
@@ -817,26 +948,21 @@ protected:
   void resolveAmbiguousMods_(HitsByScore& hits)
   {
     OPENMS_PRECONDITION(hits.size() > 1, "more than one hit expected");
-    auto previous_it = hits.begin();
-    // If the current hit is an ambiguity variant of the previous one, combine
-    // both into one hit. For example, if we have two hits with these sequences:
+    // If the current hit is an ambiguity variant of an earlier hit in the same
+    // hypothesis, combine both into one hit. For example, these sequences:
     // 1. "AUC[mA]Gp", 2. "AUC[Am]Gp"
     // The result should be: 1. "AUC[mA?]Gp" (note ambiguity code), 2. removed.
-    for (auto hit_it = ++hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    const auto merge_variants = [&](AnnotatedHit& previous_hit, const AnnotatedHit& current_hit)
     {
-      double previous_score = previous_it->first;
-      NASequence& previous_seq = previous_it->second.sequence;
-      const NASequence& current_seq = hit_it->second.sequence;
-      if ((hit_it->first != previous_score) ||
-          (current_seq.size() != previous_seq.size()) ||
+      NASequence& previous_seq = previous_hit.sequence;
+      const NASequence& current_seq = current_hit.sequence;
+      if ((current_seq.size() != previous_seq.size()) ||
           (current_seq.getFivePrimeMod() != previous_seq.getFivePrimeMod()) ||
           (current_seq.getThreePrimeMod() != previous_seq.getThreePrimeMod()) ||
-          (hit_it->second.oligo_ref != previous_it->second.oligo_ref) ||
-          (hit_it->second.precursor_ref != previous_it->second.precursor_ref)) // different hypotheses
+          (current_hit.oligo_ref != previous_hit.oligo_ref) ||
+          (current_hit.precursor_ref != previous_hit.precursor_ref)) // different hypotheses
       {
-        previous_it = hit_it;
-        ++hit_it;
-        continue;
+        return false;
       }
       bool remove_current = true;
       NASequence replacement; // potential replacement sequence for previous hit
@@ -870,16 +996,82 @@ protected:
       if (remove_current) // current hit is redundant -> remove it
       {
         if (!replacement.empty()) previous_seq = replacement;
+        return true;
+      }
+      return false;
+    };
+
+    // Sequence sorting can interleave different precursors and unrelated tied
+    // sequences. Keep all earlier representatives for each exact-score hypothesis.
+    map<IdentificationData::IdentifiedOligoRef,
+        map<const PrecursorInfo*, vector<HitsByScore::iterator>>> representatives;
+    double score = hits.begin()->first;
+    for (auto hit_it = hits.begin(); hit_it != hits.end(); /* no ++ here! */)
+    {
+      if (hit_it->first != score)
+      {
+        representatives.clear();
+        score = hit_it->first;
+      }
+      auto& earlier_hits = representatives[hit_it->second.oligo_ref][hit_it->second.precursor_ref];
+      const bool merged = any_of(earlier_hits.begin(), earlier_hits.end(), [&](const auto& previous_it)
+      {
+        return merge_variants(previous_it->second, hit_it->second);
+      });
+      if (merged)
+      {
         hit_it = hits.erase(hit_it);
       }
       else
       {
-        previous_it = hit_it;
+        earlier_hits.push_back(hit_it);
         ++hit_it;
       }
     }
   }
 
+
+  /// @brief Sort tied hits by molecule, precursor, and adduct values before registration.
+  void sortHitsByValue_(HitsByScore& hits) const
+  {
+    vector<pair<double, AnnotatedHit>> ordered_hits(hits.begin(), hits.end());
+    auto hit_key = [](const AnnotatedHit& hit)
+    {
+      const auto& precursor = *hit.precursor_ref;
+      const std::string adduct = precursor.adduct ? (*precursor.adduct)->getName() : std::string();
+      return make_tuple(hit.sequence.toString(), hit.oligo_ref->sequence.toString(),
+                        precursor.charge, precursor.isotope, adduct,
+                        precursor.adduct ? (*precursor.adduct)->getEmpiricalFormula().toString() : std::string(),
+                        precursor.adduct ? (*precursor.adduct)->getCharge() : 0,
+                        precursor.adduct ? (*precursor.adduct)->getMolMultiplier() : UInt(0),
+                        hit.precursor_error_ppm);
+    };
+    sort(ordered_hits.begin(), ordered_hits.end(), [&](const auto& lhs, const auto& rhs)
+    {
+      if (lhs.first != rhs.first)
+      {
+        return lhs.first > rhs.first;
+      }
+      return hit_key(lhs.second) < hit_key(rhs.second);
+    });
+    hits.clear();
+    hits.insert(ordered_hits.begin(), ordered_hits.end());
+  }
+
+  /// @brief Retain complete score groups at the report cutoff, independent of arrival order.
+  void retainTopHit_(HitsByScore& hits, double score, AnnotatedHit hit, Size top_hits) const
+  {
+    if ((top_hits == 0) || (hits.size() < top_hits) || (score >= hits.rbegin()->first))
+    {
+      hits.emplace(score, std::move(hit));
+      if (top_hits > 0)
+      {
+        auto cutoff = hits.begin();
+        std::advance(cutoff, std::min<Size>(top_hits, hits.size()) - 1);
+        hits.erase(hits.upper_bound(cutoff->first), hits.end());
+      }
+    }
+  }
 
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
@@ -904,13 +1096,21 @@ protected:
       obs.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
       obs.setMetaValue("precursor_intensity",
                          spectrum.getPrecursors()[0].getIntensity());
+      if (spectrum.metaValueExists("precursor_percentage"))
+      {
+        obs.setMetaValue("precursor_percentage", spectrum.getMetaValue("precursor_percentage"));
+      }
       IdentificationData::ObservationRef obs_ref;
 #pragma omp critical (id_data_access)
       obs_ref = id_data.registerObservation(obs);
 
+      sortHitsByValue_(annotated_hits[scan_index]);
+
       if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
       {
         resolveAmbiguousMods_(annotated_hits[scan_index]);
+        // Merged ambiguity codes can change the value order of the surviving hits.
+        sortHitsByValue_(annotated_hits[scan_index]);
       }
 
       // create full oligo hit structure from annotated hits
@@ -938,6 +1138,13 @@ protected:
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
         match.adduct_opt = hit.precursor_ref->adduct;
+        for (const auto& key : {"flash_precursor_status", "flash_precursor_original_mz",
+             "flash_precursor_original_charge", "flash_precursor_parent", "flash_precursor_parent_source",
+             "flash_precursor_mz", "flash_precursor_mono_mass", "flash_precursor_isotope",
+             "flash_precursor_cosine", "flash_precursor_snr", "flash_precursor_mono_observed"})
+        {
+          if (exp[scan_index].metaValueExists(key)) match.setMetaValue(key, exp[scan_index].getMetaValue(key));
+        }
 #pragma omp critical (id_data_access)
         id_data.registerObservationMatch(match);
       }
@@ -1107,15 +1314,42 @@ protected:
       vector<double> rts;
       for (const auto& charge_pair : entry.second)
       {
-        charges.push_back(charge_pair.first);
         // use intensity-weighted mean of precursor RTs as "apex" RT:
         double weighted_rt = 0.0, total_weight = 0.0;
         for (const auto& rt_pair : charge_pair.second)
         {
-          weighted_rt += rt_pair.first * rt_pair.second;
-          total_weight += rt_pair.first;
+          if (std::isfinite(rt_pair.first) && rt_pair.first > 0.0 && std::isfinite(rt_pair.second))
+          {
+            weighted_rt += rt_pair.first * rt_pair.second;
+            total_weight += rt_pair.first;
+          }
         }
-        rts.push_back(weighted_rt / total_weight);
+        if (total_weight > 0.0 && std::isfinite(total_weight) && std::isfinite(weighted_rt))
+        {
+          rts.push_back(weighted_rt / total_weight);
+          charges.push_back(charge_pair.first);
+        }
+        else
+        {
+          vector<double> observed_rts;
+          for (const auto& rt_pair : charge_pair.second)
+          {
+            if (std::isfinite(rt_pair.second))
+            {
+              observed_rts.push_back(rt_pair.second);
+            }
+          }
+          if (!observed_rts.empty())
+          {
+            rts.push_back(Math::median(observed_rts.begin(), observed_rts.end(), false));
+            charges.push_back(charge_pair.first);
+          }
+        }
+      }
+      if (rts.empty())
+      {
+        OPENMS_LOG_WARN << "Skipping LFQ target with no finite retention time: " << name << endl;
+        continue;
       }
       tsv << name << ef << 0 << ListUtils::concatenate(charges, ",");
       // overall target RT is median over all charge states:
@@ -1152,6 +1386,8 @@ protected:
     std::string out = getStringOption_("out");
     std::string id_out = getStringOption_("id_out");
     std::string db_out = getStringOption_("db_out");
+    const std::string bedrmod_out = getStringOption_("bedrmod_out");
+    const std::string bedrmod_chebi_mapping = getStringOption_("bedrmod_chebi_mapping");
     std::string lfq_out = getStringOption_("lfq_out");
     std::string theo_ms2_out = getStringOption_("theo_ms2_out");
     std::string exp_ms2_out = getStringOption_("exp_ms2_out");
@@ -1273,6 +1509,20 @@ protected:
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");
+    const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
+    const double flash_min_cos = getDoubleOption_("preprocessing:flash:min_cos");
+    const double flash_min_snr = getDoubleOption_("preprocessing:flash:min_snr");
+    if (deisotoping == "none" && single_charge_spectra)
+    {
+      OPENMS_LOG_ERROR << "Decharging requires isotope charge assignment; select legacy or FLASH deisotoping." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (deisotoping == "flash" && !search_param.fragment_tolerance_ppm)
+    {
+      OPENMS_LOG_ERROR << "FLASH deisotoping requires ppm fragment tolerance." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
     if (use_adducts)
     {
       for (const std::string& adduct_name : potential_adducts)
@@ -1286,14 +1536,92 @@ protected:
       }
     }
 
+    const bool correct_precursor = getFlag_("precursor:correct_with_flash");
+    const std::string precursor_report = getStringOption_("out_precursor_corrections");
+    if (correct_precursor && use_avg_mass)
+    {
+      OPENMS_LOG_ERROR << "FLASH precursor correction requires monoisotopic masses; disable use_avg_mass." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (correct_precursor && !search_param.precursor_tolerance_ppm)
+    {
+      OPENMS_LOG_ERROR << "FLASH precursor correction requires ppm precursor tolerance." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (!correct_precursor && !precursor_report.empty())
+    {
+      OPENMS_LOG_ERROR << "The precursor correction audit requires precursor:correct_with_flash." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
     // load MS2 map
     MSExperiment spectra;
     FileHandler f;
     PeakFileOptions options;
     options.clearMSLevels();
+    if (correct_precursor) options.addMSLevel(1);
     options.addMSLevel(2);
     f.setOptions(options);
     f.loadExperiment(in_mzml, spectra, {FileTypes::MZML, FileTypes::BRUKER_TDF, FileTypes::RAW}, log_type_);
+    const bool report_precursor_percentage = getFlag_("report:precursor_percentage");
+    const double report_precursor_tolerance = getDoubleOption_("report:precursor_percentage_mass_tolerance");
+    const bool report_precursor_tolerance_ppm = getStringOption_("report:precursor_percentage_mass_tolerance_unit") == "ppm";
+    for (MSSpectrum& spectrum : spectra)
+    {
+      if (!correct_precursor)
+      {
+        // FLASH annotations belong to the run that produced them. Disabling
+        // correction must use the configured isotope list and fresh provenance.
+        std::vector<std::string> keys;
+        spectrum.getKeys(keys);
+        for (const auto& key : keys)
+        {
+          if (key.starts_with("flash_precursor_")) spectrum.removeMetaValue(key);
+        }
+      }
+      updatePrecursorPercentage_(spectrum, report_precursor_percentage,
+        report_precursor_tolerance, report_precursor_tolerance_ppm);
+    }
+    if (correct_precursor)
+    {
+      double tolerance = getDoubleOption_("precursor:flash:mass_tolerance");
+      if (tolerance == 0) tolerance = search_param.precursor_mass_tolerance;
+      if (tolerance <= 0)
+      {
+        OPENMS_LOG_ERROR << "FLASH precursor correction requires a positive MS1 ppm tolerance." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      const int min_abs = std::min(std::abs(min_charge), std::abs(max_charge));
+      const int max_abs = std::max(std::abs(min_charge), std::abs(max_charge));
+      double max_mass = 0.0;
+      for (const auto& spec : spectra)
+      {
+        if (spec.getMSLevel() != 2) continue;
+        for (const auto& p : spec.getPrecursors())
+        {
+          const int z = p.getCharge() == 0 ? max_abs : std::abs(p.getCharge());
+          max_mass = std::max(max_mass, flashMassUpperBound_(p.getMZ(), z, negative_mode));
+        }
+      }
+      if (max_mass == 0.0) max_mass = 1000.0; // No precursor supplied a mass bound.
+      RNAPrecursorCorrector corrector(tolerance, min_abs, max_abs, !negative_mode, max_mass,
+        getDoubleOption_("precursor:flash:min_cos"), getDoubleOption_("precursor:flash:min_snr"));
+      const auto corrections = corrector.correct(spectra);
+      std::map<std::string, Size> counts;
+      for (const auto& row : corrections) ++counts[row.status];
+      OPENMS_LOG_INFO << "FLASH RNA precursor correction: " << corrections.size() << " MS2 scans checked";
+      for (const auto& [status, count] : counts) OPENMS_LOG_INFO << "; " << status << "=" << count;
+      OPENMS_LOG_INFO << endl;
+      if (!precursor_report.empty()) RNAPrecursorCorrector::storeReport(precursor_report, corrections);
+      // MS1 scans have served their purpose; preserve the existing MS2-only
+      // search indexing and the experiment's file metadata.
+      std::vector<MSSpectrum> ms2;
+      for (auto& spec : spectra)
+      {
+        if (spec.getMSLevel() == 2) ms2.push_back(std::move(spec));
+      }
+      spectra.setSpectra(std::move(ms2));
+    }
     spectra.sortSpectra(true);
 
     // input file meta data:
@@ -1323,6 +1651,7 @@ protected:
       id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
     IdentificationData::ProcessingStep step(software_ref, {file_ref});
+    step.actions.insert(DataProcessing::IDENTIFICATION);
     IdentificationData::ProcessingStepRef step_ref;
 
     // get digested sequences:
@@ -1332,6 +1661,8 @@ protected:
       search_param.database = in_db;
       search_param.missed_cleavages = getIntOption_("oligo:missed_cleavages");
       search_param.digestion_enzyme = configured_enzyme;
+      search_param.min_length = getIntOption_("oligo:min_size");
+      search_param.max_length = getIntOption_("oligo:max_size");
       IdentificationData::SearchParamRef search_ref =
         id_data.registerDBSearchParam(search_param);
       step_ref = id_data.registerProcessingStep(step, search_ref);
@@ -1424,6 +1755,25 @@ protected:
         }
       }
 
+      // Preserve digestion/database provenance, but record the parameters used
+      // by this search rather than the tolerances of the cached digest producer.
+      IdentificationData::DBSearchParam current_search = search_param;
+      current_search.database = search_ref->database;
+      current_search.database_version = search_ref->database_version;
+      current_search.taxonomy = search_ref->taxonomy;
+      current_search.digestion_enzyme = search_ref->digestion_enzyme;
+      current_search.enzyme_term_specificity = search_ref->enzyme_term_specificity;
+      current_search.missed_cleavages = search_ref->missed_cleavages;
+      current_search.min_length = search_ref->min_length;
+      current_search.max_length = search_ref->max_length;
+      std::vector<std::string> cached_keys;
+      search_ref->getKeys(cached_keys);
+      for (const auto& key : cached_keys)
+      {
+        if (key.starts_with("digestion:")) current_search.setMetaValue(key, search_ref->getMetaValue(key));
+      }
+      search_ref = id_data.registerDBSearchParam(current_search);
+      // Fresh and cached searches both record the identification action.
       step_ref = id_data.registerProcessingStep(step, search_ref);
       // reference this step in all following ID data items:
       id_data.setCurrentProcessingStep(step_ref);
@@ -1445,7 +1795,6 @@ protected:
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
-    const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
     bool use_window_mower = getFlag_("preprocessing:filter_window_mower");
     double window_size = getDoubleOption_("preprocessing:window_mower:windowsize");
     int window_peakcount = getIntOption_("preprocessing:window_mower:peakcount");
@@ -1465,7 +1814,7 @@ protected:
                        use_nlargest, nlargest_n,
                        remove_precursor, precursor_mass_tolerance,
                        precursor_tolerance_ppm, precursor_peak_isotopes,
-                       deisotoping);
+                       deisotoping, flash_min_cos, flash_min_snr);
     const std::string out_preprocessed = getStringOption_("out_preprocessed");
     if (!out_preprocessed.empty())
     {
@@ -1520,6 +1869,11 @@ protected:
       }
 
       double precursor_mz = precursors[0].getMZ();
+      const bool flash_matched = correct_precursor && s_it->metaValueExists("flash_precursor_status") &&
+        (s_it->getMetaValue("flash_precursor_status") == "corrected" ||
+         s_it->getMetaValue("flash_precursor_status") == "monoisotopic");
+      const IntList scan_isotopes = flash_matched ? IntList{0} : precursor_isotopes;
+
 
       for (Int precursor_charge : possible_charges)
       {
@@ -1529,7 +1883,7 @@ protected:
         // misassignment) and map it to MS scan index etc.:
         for (const auto& adduct_pair : adduct_masses)
         {
-          for (Int isotope_number : precursor_isotopes)
+          for (Int isotope_number : scan_isotopes)
           {
             double precursor_mass =
               calculatePrecursorMass_(precursor_mz, precursor_charge,
@@ -1722,7 +2076,10 @@ protected:
               theo_ms2_spectra.addSpectrum(theo_spectrum);
             }
 
-            if (!std::isfinite(score) || score < 1e-16) continue; // no finite hit
+            if (!std::isfinite(score) || score < 1e-16)
+            {
+              continue; // no finite hit
+            }
 
             // Check fragment coverage if required
             double min_coverage = getDoubleOption_("report:require_coverage");
@@ -1746,37 +2103,16 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              HitsByScore::iterator pos = scan_hits.end();
-              if ((report_top_hits == 0) ||
-                  (scan_hits.size() < report_top_hits))
+              if (report_top_hits == 0 || scan_hits.size() < report_top_hits || score >= scan_hits.rbegin()->first)
               {
-                pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-              }
-              else // already have enough hits for this spectrum - replace one?
-              {
-                double worst_score = (--scan_hits.end())->first;
-                if (score >= worst_score)
-                {
-                  pos = scan_hits.insert(make_pair(score, AnnotatedHit()));
-                  // prune list of hits if possible (careful about tied scores):
-                  Size n_worst = scan_hits.count(worst_score);
-                  if (scan_hits.size() - n_worst >= report_top_hits)
-                  {
-                    scan_hits.erase(worst_score);
-                  }
-                }
-              }
-              // add oligo hit data only if necessary (good enough score):
-              if (pos != scan_hits.end())
-              {
-                AnnotatedHit& ah = pos->second;
-                ah.oligo_ref = oligo_ref;
-                ah.sequence = candidate;
-                // @TODO: is "observed - calculated" the right way around?
-                ah.precursor_error_ppm =
+                AnnotatedHit new_hit;
+                new_hit.oligo_ref = oligo_ref;
+                new_hit.sequence = candidate;
+                new_hit.precursor_error_ppm =
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
-                ah.annotations = annotations;
-                ah.precursor_ref = &(prec_it->second);
+                new_hit.annotations = annotations;
+                new_hit.precursor_ref = &(prec_it->second);
+                retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
               }
             }
           }
@@ -1820,7 +2156,9 @@ protected:
       OMSFile(log_type_).store(db_out, id_data);
     }
 
-    MzTab results = IdentificationDataConverter::exportMzTab(id_data);
+    MzTab results = IdentificationDataConverter::exportMzTab(id_data,
+      getFlag_("report:precursor_percentage") ? set<std::string>{"precursor_percentage"} : set<std::string>{},
+      {"isotope_offset"});
     OPENMS_LOG_DEBUG << "Nucleic acid rows: "
                      << results.getNucleicAcidSectionRows().size()
                      << "\nOligonucleotide rows: "
@@ -1833,7 +2171,7 @@ protected:
     // dummy "peptide" results:
     if (!id_out.empty())
     {
-      if (!digest.empty())
+      if (!in_digest.empty())
       {
         // RNA seqs. were imported from a previous search run - need to "tag"
         // them with the current processing step so they get exported properly:
@@ -1856,6 +2194,19 @@ protected:
     if (!lfq_out.empty())
     {
       generateLFQInput_(id_data, lfq_out);
+    }
+
+    if (!bedrmod_out.empty())
+    {
+      map<std::string, std::string> reference_metadata;
+      for (const std::string key : {"organism", "assembly", "annotation_source", "annotation_version"})
+      {
+        reference_metadata[key] = getStringOption_("bedrmod:" + key);
+      }
+      reference_metadata["sequencing_platform"] = "ddMS2";
+      reference_metadata["basecalling"] = "NASE";
+      reference_metadata["bioinformatics_workflow"] = "NASE; caller-selected FDR cutoff and report:top_hits; score=min q-value (lower is better)";
+      BedRModFile().store(bedrmod_out, id_data, bedrmod_chebi_mapping, reference_metadata);
     }
 
     return EXECUTION_OK;

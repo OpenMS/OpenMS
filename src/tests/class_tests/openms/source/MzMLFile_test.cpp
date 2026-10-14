@@ -1952,8 +1952,8 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
   // Three independently sampled points versus two spectrum peaks; double precision matters.
   const vector<double> noise_mz = {498.123456789012, 500.345678901234, 502.567890123456};
   parent.setMetaValue("sampled noise m/z array", noise_mz);
-  parent.setMetaValue("sampled noise intensity array", vector<double>{1, 2, 3});
-  parent.setMetaValue("sampled noise baseline array", vector<double>{0.1, 0.2, 0.3});
+  parent.setMetaValue("sampled noise intensity array", vector<double>{1.123456789012, 2.345678901234, 3.567890123456});
+  parent.setMetaValue("sampled noise baseline array", vector<double>{0.123456789012, 0.234567890123, 0.345678901234});
   MSSpectrum::IntegerDataArray charges;
   charges.setName("charge array"); charges.push_back(1); charges.push_back(2);
   parent.getIntegerDataArrays().push_back(charges);
@@ -2028,6 +2028,8 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
   TEST_EQUAL(loaded.getInstrumentConfigurations().size(), 1)
   TEST_EQUAL(loaded.getInstrumentConfigurations().at("astral").getMassAnalyzers()[0].getMetaValue("mass analyzer accession"), "MS:1003379")
   TEST_EQUAL(loaded[0].getMetaValue("sampled noise m/z array").toDoubleList(), noise_mz)
+  TEST_EQUAL(loaded[0].getMetaValue("sampled noise intensity array").toDoubleList(), parent.getMetaValue("sampled noise intensity array").toDoubleList())
+  TEST_EQUAL(loaded[0].getMetaValue("sampled noise baseline array").toDoubleList(), parent.getMetaValue("sampled noise baseline array").toDoubleList())
   TEST_EQUAL(loaded[0].getFloatDataArrays().size(), 0)
   TEST_EQUAL(loaded[0].getIntegerDataArrays()[0].size(), 2)
   TEST_EQUAL(loaded[0].getIntegerDataArrays()[0][0], 2) // charge follows sorted peak
@@ -2047,8 +2049,20 @@ START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloadi
   string encoded_again;
   file.storeBuffer(encoded_again, loaded);
   TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002743"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002744"))
+  TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002745"))
   TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1000617"))
   TEST_TRUE(StringUtils::hasSubstring(encoded_again, "MS:1002678"))
+
+  MzMLFile filtered_file;
+  filtered_file.getOptions().setMZRange(makeRange(500.0, 502.0));
+  PeakMap filtered;
+  filtered_file.loadBuffer(encoded, filtered);
+  TEST_EQUAL(filtered[0].size(), 1)
+  for (const auto& name : {"sampled noise m/z array", "sampled noise intensity array", "sampled noise baseline array"})
+  {
+    TEST_EQUAL(filtered[0].getMetaValue(name).toDoubleList(), parent.getMetaValue(name).toDoubleList())
+  }
 
   // A zero-valued measurement is distinct from an absent intensity: the "peak intensity"
   // meta value forces the export of a zero intensity (as ThermoRawFileParser does). Editing
