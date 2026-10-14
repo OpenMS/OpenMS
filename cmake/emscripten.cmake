@@ -137,7 +137,8 @@ endif()
 ## mimalloc instead of Emscripten's default allocator (dlmalloc). With threads, dlmalloc
 ## serializes all of them on one lock: a database search (SimpleSearchEngine) ran 1.8x slower
 ## on 2 threads and 3.4x slower on 4 threads than on 1; with mimalloc it is 1.4x and 1.7x
-## faster. It is faster on one thread as well.
+## faster. Single-threaded it is about as fast or faster: search 1549 instead of 1601 ms,
+## loading a 14 MB mzML file 184 instead of 238 ms. The module grows by about 0.3 MB.
 add_link_options("-sMALLOC=mimalloc")
 
 ## The JavaScript bindings (src/openms_wasm): the module web applications load.
