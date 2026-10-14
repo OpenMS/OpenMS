@@ -90,6 +90,10 @@ namespace OpenMS
         @param[in] exp Experimental settings to be used for this file (from this
           and the first spectrum/chromatogram, the class will deduce most of
           the header of the mzML file)
+
+        If no spectrum or chromatogram follows, the file closes as an mzML
+        document of the run without spectra and chromatograms, as
+        MzMLFile::store() writes one (without this call: an empty file).
       */
       void setExperimentalSettings(const ExperimentalSettings& exp) override;
 
@@ -101,7 +105,7 @@ namespace OpenMS
         If another number of spectra was written in the end, the spectrumList
         tag is corrected when the file is closed (in place: it is padded with
         blanks if the number is shorter; a number with more digits than the
-        expected one does not fit, and the tag then keeps the expected number).
+        one in the tag does not fit, and the tag then keeps that number).
         The count of the chromatogramList is not corrected: it will be wrong
         if the expected number of chromatograms is.
 
@@ -201,6 +205,10 @@ namespace OpenMS
       Size chromatograms_expected_;
       /// Where the count of the spectrumList tag was written (-1: not written)
       std::streamoff spectra_count_pos_ = -1;
+      /// The count written into the spectrumList tag (the number of spectra expected then)
+      Size spectra_count_written_ = 0;
+      /// Whether setExperimentalSettings() was called: then a file is written even if no spectrum or chromatogram is
+      bool settings_set_ = false;
       /// Whether to add dataprocessing term to the data before writing
       bool add_dataprocessing_;
 
