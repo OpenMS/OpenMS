@@ -2,7 +2,10 @@
 //
 //   node tests/browser/run.mjs <package directory> [--benchmark]
 //
-// The package directory holds openms.mjs (@openms/openms-wasm or @openms/openms-wasm-mt).
+// The package directory holds openms.mjs (the package of one build: @openms/openms-wasm or
+// @openms/openms-wasm-mt) or index.mjs (the assembled package @openms/openms-wasm with both
+// builds: its loader has to start the threaded build on isolated pages, else the
+// single-threaded one, with a warning when more than one thread was requested).
 // Two local web servers serve it with the test pages and data: one with the headers that
 // make a page cross-origin isolated (COOP/COEP; shared memory, hence threads, available),
 // one without. Each scenario loads the module on the page or in a Web Worker and checks:
@@ -25,11 +28,14 @@ const sourceRoot = path.resolve(here, "../../../..");
 const args = process.argv.slice(2);
 const packageDir = path.resolve(args.find((a) => !a.startsWith("--")) ?? "");
 const benchmark = args.includes("--benchmark");
-if (!fs.existsSync(path.join(packageDir, "openms.mjs"))) {
-  console.error("usage: node run.mjs <directory of openms.mjs> [--benchmark]");
+const assembled = fs.existsSync(path.join(packageDir, "index.mjs"));
+if (!assembled && !fs.existsSync(path.join(packageDir, "openms.mjs"))) {
+  console.error("usage: node run.mjs <directory of openms.mjs or of the assembled package> [--benchmark]");
   process.exit(2);
 }
-const threadedBuild = JSON.parse(fs.readFileSync(path.join(packageDir, "package.json"), "utf8")).name.endsWith("-mt");
+const packageName = JSON.parse(fs.readFileSync(path.join(packageDir, "package.json"), "utf8")).name;
+const threadedBuild = !assembled && packageName.endsWith("-mt");
+const withThreads = assembled || threadedBuild;
 
 //------------------------------------------------------------------------------
 // Web servers
@@ -75,18 +81,23 @@ const scenarios = [
   { isolated: true, host: "worker", numThreads: 1 },
   { isolated: true, host: "window", numThreads: 2 },
 ];
-if (threadedBuild) scenarios.push({ isolated: true, host: "worker", numThreads: 4 });
+if (withThreads) scenarios.push({ isolated: true, host: "worker", numThreads: 4 });
 if (benchmark) {
-  for (const n of threadedBuild ? [1, 2, 4] : [1]) {
+  for (const n of withThreads ? [1, 2, 4] : [1]) {
     scenarios.push({ isolated: true, host: "worker", numThreads: n, benchmark: true });
   }
 }
 
 /// The threads a scenario has to report.
 function expectedThreads(s, cores) {
-  if (!threadedBuild) return { threaded: false, available: false, numThreads: 1 };
+  if (!withThreads || (assembled && !s.isolated)) return { threaded: false, available: false, numThreads: 1 };
   if (!s.isolated) return { threaded: true, available: false, numThreads: 1 };
   return { threaded: true, available: true, numThreads: s.numThreads ?? Math.min(4, Math.ceil(cores / 2)) };
+}
+
+/// The warning the loader has to give: more than one thread requested where there are none.
+function expectedWarnings(s) {
+  return assembled && !s.isolated && s.numThreads > 1 ? 1 : 0;
 }
 
 //------------------------------------------------------------------------------
@@ -95,7 +106,7 @@ const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE ?? "playwright");
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 const servers = { true: await serve(true), false: await serve(false) };
-console.log(`${threadedBuild ? "@openms/openms-wasm-mt" : "@openms/openms-wasm"} in ${browser.browserType().name()} ${browser.version()}`);
+console.log(`${packageName}${assembled ? " (assembled, loader)" : ""} in ${browser.browserType().name()} ${browser.version()}`);
 
 let failures = 0;
 let reference;
@@ -105,7 +116,7 @@ for (const s of scenarios) {
   const context = await browser.newContext();
   const page = await context.newPage();
   page.on("pageerror", (e) => problems.push(`page error: ${e.message}`));
-  const query = new URLSearchParams({ module: "/pkg/openms.mjs", host: s.host });
+  const query = new URLSearchParams({ module: assembled ? "/pkg/index.mjs" : "/pkg/openms.mjs", host: s.host });
   if (s.numThreads) query.set("numThreads", s.numThreads);
   if (s.benchmark) query.set("benchmark", "1");
   const port = servers[s.isolated].address().port;
@@ -127,6 +138,9 @@ for (const s of scenarios) {
       if (r.info[key] !== expected[key]) problems.push(`getThreadingInfo().${key} is ${r.info[key]}, expected ${expected[key]}`);
     }
     if (outcome.page.crossOriginIsolated !== s.isolated) problems.push(`crossOriginIsolated is ${outcome.page.crossOriginIsolated}`);
+    if (r.warnings.length !== expectedWarnings(s) || r.warnings.some((w) => !w.includes("not cross-origin isolated"))) {
+      problems.push(`warnings: ${JSON.stringify(r.warnings)}`);
+    }
     if (r.featureTable.mz.length !== 13) problems.push(`${r.featureTable.mz.length} features, expected 13`);
     reference ??= r.featureTable;
     if (JSON.stringify(r.featureTable) !== JSON.stringify(reference)) problems.push("features differ from the first scenario");

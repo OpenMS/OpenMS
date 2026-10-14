@@ -1,8 +1,8 @@
 # OpenMS for WebAssembly: builds the library and its JavaScript bindings with Emscripten,
 # single-threaded (CMake preset wasm32-emscripten-release, package @openms/openms-wasm) and
 # multi-threaded (preset wasm32-emscripten-mt-release, package @openms/openms-wasm-mt; see
-# src/openms_wasm/README.md), runs the tests of the bindings in Node.js and uploads the npm
-# packages (with the demo web application).
+# src/openms_wasm/README.md), runs the tests of the bindings in Node.js and Chromium, and
+# assembles the npm package @openms/openms-wasm from both builds and the loader that picks one.
 #
 # The dependencies are built by vcpkg for the wasm32-emscripten (wasm32-emscripten-mt)
 # triplet; the binary caches live on the rsync archive like the one of the native builds
@@ -161,8 +161,63 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.variant.artifact }}
-          path: |
-            build/${{ matrix.variant.preset }}/openms-wasm/*.tgz
-            build/${{ matrix.variant.preset }}/openms-wasm/examples
-            build/${{ matrix.variant.preset }}/openms-wasm/openms.*
+          path: build/${{ matrix.variant.preset }}/openms-wasm
+          if-no-files-found: error
+
+  # The npm package @openms/openms-wasm: both builds and the loader that picks one
+  # (src/openms_wasm/assemble_package.cmake).
+  package:
+    needs: build-and-test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: openms-wasm
+          path: builds/st
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: openms-wasm-mt
+          path: builds/mt
+
+      - name: Assemble the package
+        shell: bash
+        run: |
+          cmake -DSINGLE=builds/st -DMULTI=builds/mt -DOUTPUT=package \
+            -P src/openms_wasm/assemble_package.cmake
+
+      - name: Test in Node.js
+        shell: bash
+        run: |
+          # the loader, and all tests of the bindings through it (the threaded build, in Node.js)
+          cd src/openms_wasm
+          OPENMS_WASM_PACKAGE="$GITHUB_WORKSPACE/package" \
+          OPENMS_WASM_MODULE="$GITHUB_WORKSPACE/package/index.mjs" \
+          OPENMS_TEST_DATA="$GITHUB_WORKSPACE/src/tests/class_tests/openms/data" \
+            node --test --test-reporter=spec tests/*.test.mjs
+
+      - name: Test in Chromium
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-audit --no-fund playwright-core@1.56.1
+          node "$RUNNER_TEMP/playwright/node_modules/playwright-core/cli.js" install chromium
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/playwright/node_modules/playwright-core" \
+            node src/openms_wasm/tests/browser/run.mjs package
+
+      - name: Pack the npm package
+        shell: bash
+        run: |
+          cd package
+          npm pack
+          ls -la *.tgz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: openms-wasm-package
+          path: package/*.tgz
           if-no-files-found: error

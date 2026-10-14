@@ -1,0 +1,45 @@
+{
+  "name": "@openms/openms-wasm",
+  "version": "@OPENMS_WASM_VERSION@",
+  "description": "OpenMS, the C++ library for computational mass spectrometry, compiled to WebAssembly for web applications and Node.js, with threads where the environment allows them",
+  "keywords": ["mass-spectrometry", "proteomics", "metabolomics", "webassembly", "openms"],
+  "homepage": "https://www.openms.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenMS/OpenMS.git",
+    "directory": "src/openms_wasm"
+  },
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "main": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.mjs"
+    },
+    "./st": {
+      "types": "./openms.d.ts",
+      "default": "./st/openms.mjs"
+    },
+    "./mt": {
+      "types": "./openms.d.ts",
+      "default": "./mt/openms.mjs"
+    },
+    "./st/*": "./st/*",
+    "./mt/*": "./mt/*"
+  },
+  "files": [
+    "index.mjs",
+    "index.d.ts",
+    "openms.d.ts",
+    "st/",
+    "mt/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false
+}

@@ -1,5 +1,6 @@
 // The work the browser tests do with the OpenMS module, on the page or in a Web Worker
-// (worker.mjs): load the module, report its threads, find features and search a database.
+// (worker.mjs): load the module (or the loader of the assembled package), report its
+// threads, find features and search a database.
 // Everything returned is plain data, to compare between runs.
 
 export async function runWorkload({ moduleUrl, numThreads, dataUrl, benchmark = false }) {
@@ -14,7 +15,19 @@ export async function runWorkload({ moduleUrl, numThreads, dataUrl, benchmark = 
   const { default: createOpenMS } = await import(moduleUrl);
   const options = { print: () => {}, printErr: () => {} };
   if (numThreads !== undefined) options.numThreads = numThreads;
-  const m = await createOpenMS(options);
+  // the warnings of the loader (index.mjs), e.g. that threads are unavailable
+  const warnings = [];
+  const warn = console.warn;
+  console.warn = (...a) => {
+    if (String(a[0]).startsWith("OpenMS:")) warnings.push(a.join(" "));
+    warn(...a);
+  };
+  let m;
+  try {
+    m = await createOpenMS(options);
+  } finally {
+    console.warn = warn;
+  }
   lap("start");
   m.setLogEnabled("info", false);
   m.setLogEnabled("warn", false);
@@ -83,5 +96,5 @@ export async function runWorkload({ moduleUrl, numThreads, dataUrl, benchmark = 
     lap("benchmarkSearch");
   }
 
-  return { info, featureTable, search: searchResult, benchmark: benchmarkResult, timings };
+  return { info, warnings, featureTable, search: searchResult, benchmark: benchmarkResult, timings };
 }

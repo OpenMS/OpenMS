@@ -146,36 +146,48 @@ An OpenMS exception becomes a JavaScript `Error` whose message names it, e.g.
 
 ### Threads
 
-`@openms/openms-wasm` runs on a single thread: the parts of OpenMS parallelized with OpenMP
-run sequentially. `@openms/openms-wasm-mt` is the same module (same files, same API) built
-with threads: OpenMP regions (e.g. mzML decoding, feature finding, database search) and the
-helper threads of OpenMS run on WebAssembly threads, Web Workers (Node.js: worker threads)
-that share the module's memory.
+The package holds the module twice, with the same API: `st/` single-threaded (the parts of
+OpenMS parallelized with OpenMP run sequentially) and `mt/` with threads (OpenMP regions, e.g.
+mzML decoding, feature finding, database search, and the helper threads of OpenMS run on
+WebAssembly threads: Web Workers, in Node.js worker threads, that share the module's memory).
+`createOpenMS()` starts the threaded build where threads are available:
+
+- **Node.js**: always, nothing to set up.
+- **Browsers**: on cross-origin isolated pages, i.e. served with the headers
+  `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`
+  (`credentialless` also works in Chrome and Firefox, not in Safari): only they may share
+  memory between threads. Elsewhere the single-threaded build.
+
+Which one you got, and with how many threads:
 
 ```js
-import createOpenMS from "@openms/openms-wasm-mt";
-const OpenMS = await createOpenMS({ numThreads: 4 });   // optional
-OpenMS.getThreadingInfo();   // { threaded: true, available: true, numThreads: 4 }
+import createOpenMS, { threadSupport } from "@openms/openms-wasm";
+
+threadSupport();   // before loading: { supported: false, reason: "the page is not cross-origin isolated (...)" }
+const OpenMS = await createOpenMS({ numThreads: 4 });   // numThreads is optional
+OpenMS.getThreadingInfo();   // { threaded: false, available: false, numThreads: 1 }
 ```
 
-- **Node.js** needs nothing else. Without `numThreads`, OpenMS uses `OMP_NUM_THREADS` of the
-  process, else all logical cores.
-- **Browsers** allow shared memory only on cross-origin isolated pages: serve the page with
-  `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`
-  (`credentialless` also works in Chrome and Firefox, not in Safari). Elsewhere the module
-  runs single-threaded (`available: false`, `numThreads: 1`). The default there is half
-  the logical cores, at most 4; the Web Workers for these threads are started with the
-  module. Load the module in a Web Worker: on the page's main thread, waiting threads
-  busy-wait and block the page. In Chromium, the database search below took 1832 ms on 1
-  thread, 1342 ms on 2 and 1233 ms on 4 (in a Worker, on an isolated page); Firefox and
-  Safari are not tested yet.
+- `getThreadingInfo()`: `threaded`, the build that runs; `available`, whether it can start
+  threads; `numThreads`, the threads OpenMS computes with.
+- `threadSupport()` gives the same decision before loading, with the reason.
+- Asking for more than one thread (`numThreads`) where there are none logs one console
+  warning with the reason.
+- `createOpenMS({ threads: false })` (or `true`) forces a build; `@openms/openms-wasm/st` and
+  `@openms/openms-wasm/mt` import one directly, without the loader. (The threaded build also
+  runs without shared memory, on one thread.)
 
-`getThreadingInfo()` exists in both packages (`threaded: false` in `@openms/openms-wasm`).
+`numThreads` defaults to `OMP_NUM_THREADS` of the process, else all logical cores, in
+Node.js, and to half the logical cores, at most 4, in browsers, where the Web Workers for
+these threads are started with the module. Load the module in a Web Worker: on the page's
+main thread, waiting threads busy-wait and block the page. In Chromium, the database search
+below took 1832 ms on 1 thread, 1342 ms on 2 and 1233 ms on 4 (in a Worker, on an isolated
+page); Firefox and Safari are not tested yet.
 
 What threads gain depends on how much of a workflow OpenMS parallelizes. Measured with
 Node.js on 4 cores (best of 3 runs): a database search (SimpleSearchEngine, 1684 spectra of
 a BSA run against an E. coli target-decoy database) took 1458 ms on 1 thread, 1013 ms on 2
-and 880 ms on 4 (1601 ms in `@openms/openms-wasm`); loading that mzML file (about 200 ms)
+and 880 ms on 4 (1601 ms in the single-threaded build); loading that mzML file (about 200 ms)
 and the feature finding of FeatureFinderMetabo_3 (about 220 ms) took the same time on 1 to
 4 threads.
 
@@ -205,11 +217,18 @@ cmake --build build/wasm32-emscripten-release --target openms_wasm -j$(nproc)
 ctest --test-dir build/wasm32-emscripten-release -R openms_wasm --output-on-failure
 ```
 
-The multi-threaded package (`@openms/openms-wasm-mt`) comes from the preset
-`wasm32-emscripten-mt-release` (build directory `build/wasm32-emscripten-mt-release`): it sets
-`OPENMS_WASM_THREADS=ON` and builds the dependencies a second time, for the
-`wasm32-emscripten-mt` triplet (with `-pthread`), as a module with threads can only be linked
-from objects compiled for it.
+The threaded build comes from the preset `wasm32-emscripten-mt-release` (build directory
+`build/wasm32-emscripten-mt-release`): it sets `OPENMS_WASM_THREADS=ON` and builds the
+dependencies a second time, for the `wasm32-emscripten-mt` triplet (with `-pthread`), as a
+module with threads can only be linked from objects compiled for it. Each build writes a
+package of its own module (`@openms/openms-wasm`, `@openms/openms-wasm-mt`); the published
+package, with both builds and the loader, is assembled from the two:
+
+```bash
+cmake -DSINGLE=build/wasm32-emscripten-release/openms-wasm \
+      -DMULTI=build/wasm32-emscripten-mt-release/openms-wasm \
+      -DOUTPUT=build/openms-wasm-package -P src/openms_wasm/assemble_package.cmake
+```
 
 The npm package is written to `build/wasm32-emscripten-release/openms-wasm/`
 (`openms.mjs`, `openms.wasm`, `openms.d.ts`, `package.json`); `npm pack`
