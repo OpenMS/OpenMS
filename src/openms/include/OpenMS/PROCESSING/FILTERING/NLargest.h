@@ -47,8 +47,7 @@ public:
 
     // @}
 
-    /// Keeps only the @p n largest (most intense) peaks; the surviving peaks are
-    /// restored to ascending m/z (position) order before returning.
+    ///
     template <typename SpectrumType>
     void filterSpectrum(SpectrumType & spectrum)
     {
@@ -64,9 +63,6 @@ public:
         indices.push_back(i);
       }
       spectrum.select(indices);
-
-      // Restore natural m/z order after selecting peaks by descending intensity.
-      spectrum.sortByPosition();
     }
 
     void filterPeakSpectrum(PeakSpectrum & spectrum);

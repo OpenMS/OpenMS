@@ -428,6 +428,16 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: IDFilter -score:peptide with -score:type_peptide filtered the protein hits instead of the peptide
+    hits, so the PSMs were not filtered. IDFilter::filterHitsByScore() with a score type now removes the hits
+    of an identification that has this score neither as main nor as secondary score, as documented; before,
+    it kept them.
+  - FIX: MorphologicalFilter shared its scratch buffers between all threads. MapAlignerPoseClustering aligns
+    maps in parallel and its superimposer applies a tophat filter, so with three or more input maps the
+    alignments could read each other's data. The buffers are thread-local now.
+  - FIX: estimateNoiseFromRandomScans() (TOPPView's intensity cutoff when opening a file) sampled spectra
+    by their position in the list of non-empty spectra of the MS level instead of their index in the
+    experiment, so it read spectra of other MS levels, or an empty spectrum.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
