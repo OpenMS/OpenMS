@@ -17,7 +17,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
-// issue #9488, ANSW-77: explicit includes for the ppm-tolerance test below
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
@@ -241,7 +240,7 @@ START_SECTION(void annotateSpectra(
 }
 END_SECTION
 
-START_SECTION([EXTRA] annotateSpectra ppm-mode m/z tolerance scales with m/z (issue #9488, ANSW-77))
+START_SECTION([EXTRA] annotateSpectra ppm-mode m/z tolerance scales with m/z)
 {
   // helper: build a single-transition TargetedExperiment at precursor m/z = target_mz,
   // and one MSSpectrum whose precursor m/z is target_mz + offset. The matching window is

@@ -173,7 +173,7 @@ START_SECTION((static void storeJSON(const std::string& filename)))
 }
 END_SECTION
 
-START_SECTION([EXTRA] getSpectraProcessingFunc uniform subsampling over ALL MS1 spectra (issue #9488, ANSW-5))
+START_SECTION([EXTRA] getSpectraProcessingFunc subsamples uniformly over all MS1 spectra)
 {
   // The test data has 3 MS1 spectra. Subsampling 2-of-3 must select the UNIFORMLY
   // spaced indices 0 and 2 (confirmed by isSubsampledSpectrum_), NOT the front-loaded

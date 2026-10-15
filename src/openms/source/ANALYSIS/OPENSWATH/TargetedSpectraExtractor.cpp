@@ -367,10 +367,7 @@ namespace OpenMS
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
-      // issue #9488, ANSW-77: in ppm mode the tolerance is relative to the measured m/z, so
-      // convert to an absolute window via ppm * m/z / 1e6 (== Math::ppmToMass). The previous
-      // `mz_tolerance_ / 1e6` forgot the m/z factor, yielding a window ~1e6x too small. Da mode
-      // is already absolute. (When spectrum_mz == 0 the m/z check below is inhibited anyway.)
+      // In ppm mode the tolerance is relative to the precursor m/z
       const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : Math::ppmToMass(mz_tolerance_, spectrum_mz);
 
       // When spectrum_mz is 0, the mz check on transitions is inhibited
@@ -463,9 +460,10 @@ namespace OpenMS
 
     // Build indices of peaks to keep (properly handles all DataArrays via select())
     std::vector<Size> indices_to_keep;
-    const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : fwhm_threshold_ / 1e6;
     for (Size i = 0; i < picked_spectrum.size(); ++i)
     {
+      // In ppm mode the threshold is relative to the peak's m/z
+      const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : Math::ppmToMass(fwhm_threshold_, picked_spectrum[i].getMZ());
       if (picked_spectrum[i].getIntensity() >= peak_height_min_ &&
           picked_spectrum[i].getIntensity() <= peak_height_max_ &&
           picked_spectrum.getFloatDataArrays()[0][i] >= fwhm_threshold)

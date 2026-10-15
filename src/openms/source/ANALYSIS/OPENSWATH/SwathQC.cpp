@@ -61,9 +61,7 @@ namespace OpenSwath
       // only look at MS1 spectra (for now)
       if (spec.getMSLevel() != 1) return;
 
-      // issue #9488, ANSW-5: advance the index for EVERY MS1 spectrum seen (even rejected
-      // ones) so that uniform subsampling uses the true running index, not just the count
-      // of accepted spectra. Snapshot the index BEFORE incrementing (isSubsampledSpectrum_ is 0-based).
+      // Subsample by the index among all MS1 spectra (0-based), not among the accepted ones
       const size_t current_ms1_idx = ms1_spectra_seen_;
       ++ms1_spectra_seen_;
 
