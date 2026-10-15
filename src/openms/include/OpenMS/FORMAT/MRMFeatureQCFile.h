@@ -42,7 +42,7 @@ public:
     @param[in,out] mrmfqc The output class which will contain the criteria
     @param[in] is_component_group true if the user intends to load ComponentGroupQCs data, false otherwise
   */
-  void load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const;
+  void load(const std::string& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const;
 
   /*
     @brief Stores an MRMFeatureQC file.
@@ -53,7 +53,7 @@ public:
     @param[in] mrmfqc The output class which will contain the criteria
     @param[in] is_component_group true if the user intends to store ComponentGroupQCs data, false otherwise
   */
-  void store(const String& filename, const MRMFeatureQC& mrmfqc, const bool is_component_group);
+  void store(const std::string& filename, const MRMFeatureQC& mrmfqc, const bool is_component_group);
 protected:
   /**
     @brief Save values from a line to a `ComponentQCs`.
@@ -66,7 +66,7 @@ protected:
   */
   void pushValuesFromLine_(
     const StringList& line,
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     std::vector<MRMFeatureQC::ComponentQCs>& c_qcs
   ) const;
 
@@ -81,7 +81,7 @@ protected:
   */
   void pushValuesFromLine_(
     const StringList& line,
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     std::vector<MRMFeatureQC::ComponentGroupQCs>& cg_qcs
   ) const;
 
@@ -100,10 +100,10 @@ protected:
     @param[out] meta_values_qc The map containing the metavalues and pairs
   */
   void setPairValue_(
-    const String& key,
-    const String& value,
-    const String& boundary,
-    std::map<String, std::pair<double,double>>& meta_values_qc
+    const std::string& key,
+    const std::string& value,
+    const std::string& boundary,
+    std::map<std::string, std::pair<double,double>>& meta_values_qc
   ) const;
 
   /**
@@ -121,9 +121,9 @@ protected:
     @return The found information (if found and valid) converted to `Int`. Otherwise `default_value`.
   */
   Int getCastValue_(
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
+    const std::string& header,
     const Int default_value
   ) const;
 
@@ -142,9 +142,9 @@ protected:
     @return The found information (if found and valid) converted to `double`. Otherwise `default_value`.
   */
   double getCastValue_(
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
+    const std::string& header,
     const double default_value
   ) const;
 
@@ -162,11 +162,11 @@ protected:
     @param[in] default_value A default value to return in case the information is not found or invalid
     @return The found information (if found and valid) converted to `String`. Otherwise `default_value`.
   */
-  String getCastValue_(
-    const std::map<String, Size>& headers,
+  std::string getCastValue_(
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
-    const String& default_value
+    const std::string& header,
+    const std::string& default_value
   ) const;
 
   };

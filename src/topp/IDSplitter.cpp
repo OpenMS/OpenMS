@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -80,16 +81,16 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<std::string>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data without identifications). Either 'out' or 'id_out' are required. They can be used together.", false);
-    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<std::string>("featureXML,consensusXML"));
     registerOutputFile_("id_out", "<file>", "", "Output file (identifications). Either 'out' or 'id_out' are required. They can be used together.", false);
-    setValidFormats_("id_out", ListUtils::create<String>("idXML"));
+    setValidFormats_("id_out", ListUtils::create<std::string>("idXML"));
   }
 
   ExitCodes main_(int, const char **) override
   {
-    String in = getStringOption_("in"), out = getStringOption_("out"),
+    std::string in = getStringOption_("in"), out = getStringOption_("out"),
            id_out = getStringOption_("id_out");
 
     if (out.empty() && id_out.empty())

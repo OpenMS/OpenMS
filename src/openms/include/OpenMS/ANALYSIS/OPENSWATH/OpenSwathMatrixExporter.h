@@ -33,7 +33,7 @@ namespace OpenMS
                                             const OpenSwathMatrixExportConfig& config);
 
     /// Write a previously built matrix to TSV or Parquet.
-    static void writeMatrix(const String& filename,
+    static void writeMatrix(const std::string& filename,
                             const OpenSwathQuantMatrix& matrix,
                             const OpenSwathMatrixExportConfig& config);
   };

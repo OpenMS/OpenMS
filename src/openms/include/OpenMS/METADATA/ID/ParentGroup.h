@@ -8,11 +8,10 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
+
 #include <OpenMS/METADATA/ID/ParentSequence.h>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
@@ -28,25 +27,18 @@ namespace OpenMS
       std::set<ParentSequenceRef> parent_refs;
     };
 
-    typedef boost::multi_index_container<
-      ParentGroup,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-        boost::multi_index::member<
-          ParentGroup, std::set<ParentSequenceRef>,
-          &ParentGroup::parent_refs>>>
-      > ParentGroups;
+    using ParentGroups = IDDataContainer<ParentGroup, std::set<ParentSequenceRef>, std::set<ParentSequenceRef>, &ParentGroup::parent_refs>;
     typedef IteratorWrapper<ParentGroups::iterator> ParentGroupRef;
 
     /** @brief Set of groups of ambiguously identified parent sequences (e.g. results of running a protein inference algorithm)
     */
     struct ParentGroupSet: public ScoredProcessingResult
     {
-      String label; // @TODO: use "label" as a uniqueness constraint?
+      std::string label; // @TODO: use "label" as a uniqueness constraint?
       ParentGroups groups;
 
       explicit ParentGroupSet(
-        const String& label = "",
+        const std::string& label = "",
         const ParentGroups& groups = ParentGroups()):
         label(label), groups(groups)
       {

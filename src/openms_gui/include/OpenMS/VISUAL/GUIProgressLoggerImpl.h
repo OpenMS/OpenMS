@@ -29,7 +29,7 @@ public:
     /**
       @brief Implement ProgressLoggerImpl::startProgress().
     */
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const override;
+    void startProgress(const SignedSize begin, const SignedSize end, const std::string& label, const int /* current_recursion_depth */) const override;
 
     /**
       @brief Implement ProgressLoggerImpl::setProgress().

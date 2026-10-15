@@ -11,8 +11,10 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDataProvider.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <algorithm>
+#include <cctype>
 #include <set>
 #include <map>
 #include <memory>
@@ -69,32 +71,34 @@ namespace OpenMS
     //@{
     /// returns a pointer to the enzyme with name (supports synonym names)
     /// @throw Exception::ElementNotFound if enzyme is unknown
-    /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
-    const DigestionEnzymeType* getEnzyme(const String& name) const
+    /// @note Names and synonyms are matched as written first, then ignoring case, whitespace, '-' and '_'
+    ///       (e.g. "Glu-C", "glu_c" and "GluC" all find glutamyl endopeptidase). Other characters are significant,
+    ///       as e.g. '/' and '+' change the specificity ("Trypsin/P" is not "Trypsin").
+    const DigestionEnzymeType* getEnzyme(const std::string& name) const
     {
-      auto pos = enzyme_names_.find(name);
-      if (pos == enzyme_names_.end())
+      const DigestionEnzymeType* enzyme = findEnzyme_(name);
+      if (enzyme == nullptr)
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
       }
-      return pos->second;
+      return enzyme;
     }
 
     /// returns a pointer to the enzyme with cleavage regex
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
-    const DigestionEnzymeType* getEnzymeByRegEx(const String& cleavage_regex) const
+    const DigestionEnzymeType* getEnzymeByRegEx(const std::string& cleavage_regex) const
     {
       if (!hasRegEx(cleavage_regex))
       {
         // @TODO: why does this use a different exception than "getEnzyme"?
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         String("Enzyme with regex " + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
+                                         std::string("Enzyme with regex " + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
       }
       return enzyme_regex_.at(cleavage_regex);
     }
 
     /// returns all the enzyme names (does NOT include synonym names)
-    void getAllNames(std::vector<String>& all_names) const
+    void getAllNames(std::vector<std::string>& all_names) const
     {
       all_names.clear();
       for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
@@ -107,22 +111,22 @@ namespace OpenMS
     /** @name Predicates
     */
     //@{
-    /// returns true if the db contains a enzyme with the given name (supports synonym names)
-    bool hasEnzyme(const String& name) const
+    /// returns true if the db contains a enzyme with the given name (supports synonym names; matched as in getEnzyme())
+    bool hasEnzyme(const std::string& name) const
     {
-      return (enzyme_names_.find(name) != enzyme_names_.end());
+      return (findEnzyme_(name) != nullptr);
     }
 
     /// returns true if the db contains a enzyme with the given regex
-    bool hasRegEx(const String& cleavage_regex) const
+    bool hasRegEx(const std::string& cleavage_regex) const
     {
-      return (enzyme_regex_.find(cleavage_regex) != enzyme_regex_.end());
+      return (enzyme_regex_.contains(cleavage_regex));
     }
 
     /// returns true if the db contains the enzyme of the given pointer
     bool hasEnzyme(const DigestionEnzymeType* enzyme) const
     {
-      return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
+      return (const_enzymes_.contains(enzyme) );
     }
     //@}
 
@@ -151,22 +155,20 @@ namespace OpenMS
     /// If an enzyme with the same name already exists, it is replaced.
     void addEnzyme_(const DigestionEnzymeType* enzyme)
     {
-      String name = enzyme->getName();
+      std::string name = enzyme->getName();
 
       // if an enzyme with the same name exists, remove the old one first
-      auto existing = enzyme_names_.find(name);
-      if (existing != enzyme_names_.end())
+      // (compare names only: a synonym or lookup key of another enzyme must not remove that enzyme)
+      auto existing = std::find_if(const_enzymes_.begin(), const_enzymes_.end(),
+                                   [&name](const DigestionEnzymeType* e) { return e->getName() == name; });
+      if (existing != const_enzymes_.end())
       {
-        const DigestionEnzymeType* old = existing->second;
-        const_enzymes_.erase(old);
-        // remove old name/synonym entries
-        String old_name = old->getName();
-        enzyme_names_.erase(old_name);
-        enzyme_names_.erase(old_name.toLower());
-        for (const auto& syn : old->getSynonyms())
-        {
-          enzyme_names_.erase(syn);
-        }
+        const DigestionEnzymeType* old = *existing;
+        const_enzymes_.erase(existing);
+        // remove old name/synonym entries, but only those that point to the enzyme being replaced
+        auto points_to_old = [old](const auto& entry) { return entry.second == old; };
+        std::erase_if(enzyme_names_, points_to_old);
+        std::erase_if(enzyme_keys_, points_to_old);
         // remove old regex entry
         if (!old->getRegEx().empty())
         {
@@ -177,12 +179,17 @@ namespace OpenMS
 
       // add to internal storage
       const_enzymes_.insert(enzyme);
-      // add to internal indices (by name and its synonyms)
+      // add to internal indices (by name and its synonyms, as written ...
       enzyme_names_[name] = enzyme;
-      enzyme_names_[name.toLower()] = enzyme;
-      for (std::set<String>::const_iterator it = enzyme->getSynonyms().begin(); it != enzyme->getSynonyms().end(); ++it)
+      for (const auto& syn : enzyme->getSynonyms())
       {
-        enzyme_names_[*it] = enzyme;
+        enzyme_names_[syn] = enzyme;
+      }
+      // ... and as lookup keys, see getEnzyme(); a synonym never re-points an existing key)
+      enzyme_keys_[lookupKey_(name)] = enzyme;
+      for (const auto& syn : enzyme->getSynonyms())
+      {
+        enzyme_keys_.emplace(lookupKey_(syn), enzyme);
       }
       // ... and by regex
       if (enzyme->getRegEx() != "")
@@ -207,9 +214,33 @@ namespace OpenMS
       }
     }
 
-    std::map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
+    /// key for lenient name lookup (see getEnzyme()): lowercase, without whitespace, '-' and '_'
+    static std::string lookupKey_(const std::string& name)
+    {
+      std::string key;
+      key.reserve(name.size());
+      for (unsigned char c : name)
+      {
+        if (std::isspace(c) || c == '-' || c == '_') continue;
+        key += static_cast<char>(std::tolower(c));
+      }
+      return key;
+    }
 
-    std::map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
+    /// returns the enzyme with the given name or synonym (see getEnzyme()), or nullptr if unknown
+    const DigestionEnzymeType* findEnzyme_(const std::string& name) const
+    {
+      auto pos = enzyme_names_.find(name);
+      if (pos != enzyme_names_.end()) return pos->second;
+      pos = enzyme_keys_.find(lookupKey_(name));
+      return (pos != enzyme_keys_.end()) ? pos->second : nullptr;
+    }
+
+    std::map<std::string, const DigestionEnzymeType*> enzyme_names_; ///< index by names and synonyms (as written)
+
+    std::map<std::string, const DigestionEnzymeType*> enzyme_keys_; ///< index by lookupKey_() of names and synonyms
+
+    std::map<std::string, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
 
     std::set<const DigestionEnzymeType*> const_enzymes_; ///< set of enzymes
 

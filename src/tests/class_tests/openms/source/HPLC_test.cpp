@@ -86,34 +86,34 @@ START_SECTION(void setTemperature(Int temperature))
   TEST_EQUAL(tmp.getTemperature(),5);  
 END_SECTION
 
-START_SECTION(String getComment() const)
+START_SECTION(std::string getComment() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getComment(),"");  
 END_SECTION
 
-START_SECTION(void setComment(String comment))
+START_SECTION(void setComment(std::string comment))
   HPLC tmp;
   tmp.setComment("comment");
   TEST_EQUAL(tmp.getComment(),"comment");  
 END_SECTION
 
-START_SECTION(const String& getInstrument() const)
+START_SECTION(const std::string& getInstrument() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getInstrument(),"");  
 END_SECTION
 
-START_SECTION(void setInstrument(const String& instrument))
+START_SECTION(void setInstrument(const std::string& instrument))
   HPLC tmp;
   tmp.setInstrument("instrument");
   TEST_EQUAL(tmp.getInstrument(),"instrument");  
 END_SECTION
 
-START_SECTION(const String& getColumn() const)
+START_SECTION(const std::string& getColumn() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getColumn(),"");  
 END_SECTION
 
-START_SECTION(void setColumn(const String& column))
+START_SECTION(void setColumn(const std::string& column))
   HPLC tmp;
   tmp.setColumn("column");
   TEST_EQUAL(tmp.getColumn(),"column");  

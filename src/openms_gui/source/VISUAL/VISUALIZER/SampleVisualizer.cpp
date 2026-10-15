@@ -58,9 +58,9 @@ namespace OpenMS
     sampleorganism_->setText(temp_.getOrganism().c_str());
     samplecomment_->setText(temp_.getComment().c_str());
 
-    samplemass_->setText(String(temp_.getMass()).c_str());
-    samplevolume_->setText(String(temp_.getVolume()).c_str());
-    sampleconcentration_->setText(String(temp_.getConcentration()).c_str());
+    samplemass_->setText(StringUtils::toStr(temp_.getMass()).c_str());
+    samplevolume_->setText(StringUtils::toStr(temp_.getVolume()).c_str());
+    sampleconcentration_->setText(StringUtils::toStr(temp_.getConcentration()).c_str());
   }
 
   void SampleVisualizer::store()

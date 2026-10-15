@@ -216,7 +216,7 @@ START_SECTION((MassAnalyzer(const MassAnalyzer& source)))
   tmp.setScanRate(47.15);
   tmp.setScanTime(47.16);
   tmp.setTOFTotalPathLength(47.17);
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",std::string("label"));
   tmp.setOrder(45);
 	
 	MassAnalyzer tmp2(tmp);
@@ -234,7 +234,7 @@ START_SECTION((MassAnalyzer(const MassAnalyzer& source)))
 	TEST_REAL_SIMILAR(tmp.getScanRate(),47.15);
 	TEST_REAL_SIMILAR(tmp.getScanTime(),47.16);
 	TEST_REAL_SIMILAR(tmp.getTOFTotalPathLength(),47.17);
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getOrder(),45)
 END_SECTION
 
@@ -255,7 +255,7 @@ START_SECTION((MassAnalyzer& operator= (const MassAnalyzer& source)))
   tmp.setScanRate(47.15);
   tmp.setScanTime(47.16);
   tmp.setTOFTotalPathLength(47.17);
-	tmp.setMetaValue("label",String("label"));
+	tmp.setMetaValue("label",std::string("label"));
   tmp.setOrder(45);
 	
 	MassAnalyzer tmp2;
@@ -274,7 +274,7 @@ START_SECTION((MassAnalyzer& operator= (const MassAnalyzer& source)))
 	TEST_REAL_SIMILAR(tmp2.getScanRate(),47.15);
 	TEST_REAL_SIMILAR(tmp2.getScanTime(),47.16);
 	TEST_REAL_SIMILAR(tmp2.getTOFTotalPathLength(),47.17);
-	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(std::string(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getOrder(),45)
 
 	tmp2 = MassAnalyzer();

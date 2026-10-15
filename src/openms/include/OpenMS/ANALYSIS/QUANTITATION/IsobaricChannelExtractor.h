@@ -27,7 +27,7 @@ namespace OpenMS
     int signal_not_unique{0};  ///< counts if more than one peak was found within the search window of each reporter position
   };
 
-  typedef std::map<String, ChannelQC> ChannelQCSet;
+  typedef std::map<std::string, ChannelQC> ChannelQCSet;
 
   /**
     @brief Extracts individual channels from MS/MS spectra for isobaric labeling experiments.
@@ -96,7 +96,7 @@ public:
     * @param[out] consensus_map ConsensusMap to register channels in  
     * @param[in] filename Optional filename to associate with channels  
     */  
-    void registerChannelsInOutputMap(ConsensusMap& consensus_map, const String& filename = "");
+    void registerChannelsInOutputMap(ConsensusMap& consensus_map, const std::string& filename = "");
 
     /**
      * @brief Prints statistics about the channel errors with OPENMS_LOG_INFO.
@@ -170,7 +170,7 @@ private:
     const IsobaricQuantitationMethod* quant_method_;
 
     /// Used to select only specific types of spectra for the channel extraction.
-    String selected_activation_;
+    std::string selected_activation_;
 
     /// Allowed deviation between the expected and observed reporter ion m/z.
     Peak2D::CoordinateType reporter_mass_shift_;
@@ -242,7 +242,7 @@ private:
       @param[in] s The spectrum
       @return Entry from Precursor::NamesOfActivationMethod or empty string.
     */
-    String getActivationMethod_(const PeakMap::SpectrumType& s) const
+    std::string getActivationMethod_(const PeakMap::SpectrumType& s) const
     {
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {

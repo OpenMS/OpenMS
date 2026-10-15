@@ -7,7 +7,6 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(CMAKE_AUTOUIC ON) # convert .ui files to ui_....h files using CMake + Qt's UIC
 set(CMAKE_AUTOMOC ON)
@@ -23,14 +22,20 @@ include(add_mac_bundle.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
-# add the library
+# add the library: the GUI layer of the installed package (export set
+# OpenMSGUITargets, install components library_gui and cmake_gui, headers in
+# OpenMS_GUI_headers); it links the CLI layer, which links the core layer.
 openms_add_library(TARGET_NAME OpenMS_GUI
                    SOURCE_FILES ${OpenMSVisual_sources}
                    HEADER_FILES ${OpenMSVisual_sources_h}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   BASE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES
+                   PRIVATE_LINK_LIBRARIES Boost::boost
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
-                   DLL_EXPORT_PATH "OpenMS/VISUAL/")
+                   # Qt is a PUBLIC dependency of the GUI layer only: <QString>, <QtWidgets/QDialog>
+                   ALLOWED_PUBLIC_INCLUDES "Q[A-Za-z0-9_]*" "Qt[A-Za-z]+/.*"
+                   DLL_EXPORT_PATH "OpenMS/VISUAL/"
+                   EXPORT_SET ${OPENMS_GUI_EXPORT_SET})
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
@@ -73,7 +78,7 @@ foreach(i ${GUI_executables})
   if (MSVC AND EXISTS ${resource_file})
     message(STATUS "Setting resource file ${resource_file} for ${i}")
     add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
-    install_tool(${i})
+    install_tool(${i} COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
   elseif (APPLE AND EXISTS ${resource_dir})
     add_mac_app_bundle(${i})
   else()
@@ -83,7 +88,7 @@ foreach(i ${GUI_executables})
       message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
     endif()
     add_executable(${i} ${GUI_DIR}/${i}.cpp)
-    install_tool(${i})
+    install_tool(${i} COMPONENT ${OPENMS_GUI_APPLICATIONS_COMPONENT})
   endif()
 
   ## append visual lib as dependency for GUI tools
@@ -91,21 +96,29 @@ foreach(i ${GUI_executables})
 endforeach(i)
 
 # GUI TOPP tools also need direct OpenMS link for TOPPBase etc.
-foreach(i ExecutePipeline ImageCreator INIUpdater)
-  target_link_libraries(${i} OpenMS)
+## these two are TOPP tools (TOPPBase-derived) with a Qt front end
+foreach(i ExecutePipeline ImageCreator)
+  target_link_libraries(${i} OpenMS_CLI)
 endforeach()
 
-# Add GUI-based TOPP tools to the TOPP_TOOLS list for CWL/INI generation
-set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator INIUpdater)
-set(TOPP_TOOLS ${TOPP_TOOLS} ${GUI_TOPP_TOOLS}
-    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+# The TOPP tools that need the GUI library, declared the same way as the tools of
+# src/topp/executables.cmake so they reach the tool registry and the CWL/INI generation
+# exactly in a WITH_GUI build. One list drives both the declarations and the dependency
+# below, so a tool cannot be built here without being registered. These are a subset of
+# GUI_executables, which also holds the GUI applications that are not TOPP tools
+# (TOPPView, TOPPAS, INIFileEditor).
+set(GUI_TOPP_TOOLS ExecutePipeline ImageCreator)
+foreach(_gui_topp_tool ${GUI_TOPP_TOOLS})
+  openms_topp_tool(${_gui_topp_tool} "Misc")
+endforeach()
 
 # Make the TOPP collection target depend on GUI TOPP tools
 if(TARGET TOPP)
   add_dependencies(TOPP ${GUI_TOPP_TOOLS})
 endif()
 
-  ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
+  ## install platform plugins, and a qt.conf in bin/ that points to them: ExecutePipeline creates
+  ## a QApplication, so it needs the platform plugin even without a window.
   if(WIN32)
       install(IMPORTED_RUNTIME_ARTIFACTS "Qt6::QWindowsIntegrationPlugin"
               DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
@@ -116,6 +129,15 @@ endif()
       install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
         DESTINATION ${INSTALL_BIN_DIR}
         COMPONENT QtPlatformPlugin)
+  elseif(APPLE AND "${PACKAGE_TYPE}" STREQUAL "pkg")
+      ## add_mac_bundle.cmake installs the cocoa plugin to ${INSTALL_PLUGIN_DIR} in component Dependencies.
+      ## The qt.conf of each app bundle points there; bin/ gets its own. (A dmg keeps the plugins inside
+      ## each bundle, so bin/ has nothing to point to there.)
+      file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        "[Paths]\nPlugins = ${QT_PLUGIN_PATH_REL_TO_BIN}\n")
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        DESTINATION ${INSTALL_BIN_DIR}
+        COMPONENT Dependencies)
   endif()
 
 add_custom_target(GUI)

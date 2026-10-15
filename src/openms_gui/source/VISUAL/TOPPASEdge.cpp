@@ -6,6 +6,8 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
@@ -67,9 +69,9 @@ namespace OpenMS
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
 
-  String TOPPASEdge::toString()
+  std::string TOPPASEdge::toString()
   {
-    String s = String("Edge: ") + fromQString(getSourceOutParamName()) + " target-in: " + fromQString(getTargetInParamName()) + "\n";
+    std::string s =std::string("Edge: ") + fromQString(getSourceOutParamName()) + " target-in: " + fromQString(getTargetInParamName()) + "\n";
     return s;
   }
   TOPPASEdge& TOPPASEdge::operator=(const TOPPASEdge& rhs)
@@ -94,12 +96,12 @@ namespace OpenMS
     if (from_)
     {
       from_->removeOutEdge(this);
-      disconnect(from_, SIGNAL(somethingHasChanged()), this, SLOT(sourceHasChanged()));
+      disconnect(from_, &TOPPASVertex::somethingHasChanged, this, &TOPPASEdge::sourceHasChanged);
     }
     if (to_)
     {
       to_->removeInEdge(this);
-      disconnect(this, SIGNAL(somethingHasChanged()), to_, SLOT(inEdgeHasChanged()));
+      disconnect(this, &TOPPASEdge::somethingHasChanged, to_, &TOPPASVertex::inEdgeHasChanged);
     }
   }
 
@@ -365,18 +367,14 @@ namespace OpenMS
     }
     else
     {
-      // check file type compatibility
+      // check file type compatibility. Compare by format, so a producer declaring 'fasta' connects to a
+      // consumer declaring 'fa'; unrecognized custom extensions still only match their own spelling.
       bool found_match = false;
-      for (StringList::iterator s_it = source_param_types.begin(); s_it != source_param_types.end(); ++s_it)
+      for (const auto& source_ext : source_param_types)
       {
-        String ext_1 = *s_it;
-        ext_1.toLower();
-        found_match = false;
-        for (StringList::iterator t_it = target_param_types.begin(); t_it != target_param_types.end(); ++t_it)
+        for (const auto& target_ext : target_param_types)
         {
-          String ext_2 = *t_it;
-          ext_2.toLower();
-          if (ext_1 == ext_2)
+          if (FileTypes::sameFormat(source_ext, target_ext))
           {
             found_match = true;
             break;
@@ -430,20 +428,42 @@ namespace OpenMS
     for (const QString& q_file_name : file_names)
     {
       bool type_mismatch = true;
-      const String file_name = fromQString(q_file_name);
-      String::SizeType extension_start_index = file_name.rfind(".");
-      if (extension_start_index != String::npos)
+      const std::string file_name = fromQString(q_file_name);
+      // Resolve the whole name through the FileTypes registry: this understands aliases ('db.fa'),
+      // compound extensions ('x.pep.xml') and sees through a compression suffix to the inner type.
+      const FileTypes::Type file_type = FileNameUtils::getTypeByFileName(file_name);
+      if (file_type != FileTypes::UNKNOWN)
       {
-        String extension = file_name.substr(extension_start_index + 1);
-        extension.toLower();
-        for (StringList::iterator it = target_param_types.begin(); it != target_param_types.end(); ++it)
+        // A compression suffix is not by itself a licence to connect: only readers that decompress
+        // transparently accept one, so '.mgf.gz' stays a mismatch even where '.mgf' would be fine.
+        const FileTypes::Type compression = FileNameUtils::compressionType(file_name);
+        if (compression == FileTypes::UNKNOWN || FileTypes::supportsCompressedReading(file_type, compression))
         {
-          String other_ext = *it;
-          other_ext.toLower();
-          if (extension == other_ext || extension == "gz" || extension == "bz2")
+          for (const auto& target_ext : target_param_types)
           {
-            type_mismatch = false;
-            break;
+            // the file's type is already resolved, so one lookup per declared format is enough
+            if (FileTypes::nameToType(target_ext) == file_type)
+            {
+              type_mismatch = false;
+              break;
+            }
+          }
+        }
+      }
+      else
+      {
+        // unknown ending: fall back to the literal suffix, so tools declaring a custom extension still connect
+        const size_t extension_start_index = file_name.rfind(".");
+        if (extension_start_index != std::string::npos)
+        {
+          const std::string extension = StringUtils::substr(file_name, extension_start_index + 1);
+          for (const auto& target_ext : target_param_types)
+          {
+            if (FileTypes::sameFormat(target_ext, extension))
+            {
+              type_mismatch = false;
+              break;
+            }
           }
         }
       }

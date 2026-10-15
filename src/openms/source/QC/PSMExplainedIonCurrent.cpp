@@ -85,7 +85,7 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     if (exp_spectrum.empty() || theo_spectrum.empty())
     {
-      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty."
+      OPENMS_LOG_WARN << "The spectrum with RT: " + StringUtils::toStr(exp_spectrum.getRT()) + " is empty."
                       << "\n";
       return DBL_MAX;
     }
@@ -102,7 +102,7 @@ namespace OpenMS
 
     if (sum_of_intensities <= 0)
     {
-      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " has only peaks with intensity 0."
+      OPENMS_LOG_WARN << "The spectrum with RT: " + StringUtils::toStr(exp_spectrum.getRT()) + " has only peaks with intensity 0."
                       << "\n";
       return DBL_MAX;
     }
@@ -250,9 +250,9 @@ namespace OpenMS
     results_.push_back(result);
   }
 
-  const String& PSMExplainedIonCurrent::getName() const
+  const std::string& PSMExplainedIonCurrent::getName() const
   {
-    static const String& name = "PSMExplainedIonCurrent";
+    static const std::string& name = "PSMExplainedIonCurrent";
     return name;
   }
 

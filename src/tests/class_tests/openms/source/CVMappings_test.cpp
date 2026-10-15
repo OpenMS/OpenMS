@@ -190,7 +190,7 @@ START_SECTION((void addCVReference(const CVReference &cv_reference)))
 }
 END_SECTION
 
-START_SECTION((bool hasCVReference(const String &identifier)))
+START_SECTION((bool hasCVReference(const std::string &identifier)))
 {
  	TEST_EQUAL(ptr->hasCVReference("Ref1"), true)
 	TEST_EQUAL(ptr->hasCVReference("Ref2"), true)

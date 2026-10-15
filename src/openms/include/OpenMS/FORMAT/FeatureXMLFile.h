@@ -51,16 +51,16 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, FeatureMap& feature_map);
+    void load(const std::string& filename, FeatureMap& feature_map);
 
-    Size loadSize(const String& filename);
+    Size loadSize(const std::string& filename);
 
     /**
         @brief stores the map @p feature_map in file with name @p filename.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String& filename, const FeatureMap& feature_map);
+    void store(const std::string& filename, const FeatureMap& feature_map);
 
     /// Mutable access to the options for loading/storing
     FeatureFileOptions& getOptions();

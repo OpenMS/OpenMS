@@ -8,6 +8,7 @@
 
 
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -62,6 +63,7 @@ namespace OpenMS
   void CalibrationData::clear()
   {
     data_.clear();
+    groups_.clear();
   }
 
   void CalibrationData::setUsePPM( bool usePPM )
@@ -143,7 +145,7 @@ namespace OpenMS
 
   OpenMS::StringList CalibrationData::getMetaValues()
   {
-    return ListUtils::create<String>("mz_ref,ppm_error,weight");
+    return ListUtils::create<std::string>("mz_ref,ppm_error,weight");
   }
 
   OpenMS::CalibrationData CalibrationData::median( double rt_left, double rt_right ) const

@@ -26,13 +26,13 @@ using namespace OpenMS;
 
 namespace
 {
-  void copySharedExportFixture_(const String& filename)
+  void copySharedExportFixture_(const std::string& filename)
   {
     File::remove(filename);
     TEST_EQUAL(File::copy(OPENMS_GET_TEST_DATA_PATH("PyProphet_inference_test.osw"), filename), true)
   }
 
-  std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+  std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     TEST_EQUAL(infile_result.ok(), true)
@@ -60,7 +60,7 @@ namespace
     return table;
   }
 
-  void dropTable_(const String& filename, const String& table_name)
+  void dropTable_(const std::string& filename, const std::string& table_name)
   {
     SqliteConnector conn(filename, SqliteConnector::SqlOpenMode::READWRITE);
     conn.executeStatement("DROP TABLE " + table_name + ";");
@@ -71,7 +71,7 @@ START_TEST(OpenSwathExport, "$Id$")
 
 START_SECTION(OSW-backed OpenSWATH export readers and writers)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedExportFixture_(tmp_osw);
 
@@ -92,7 +92,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
   TEST_EQUAL(matrix.identifier_rows.empty(), false)
   TEST_EQUAL(matrix.sample_column_names.empty(), false)
 
-  String results_tsv;
+  std::string results_tsv;
   NEW_TMP_FILE(results_tsv);
   OpenSwathResultsExporter::write(results_tsv, result_rows, {});
   TEST_EQUAL(File::exists(results_tsv), true)
@@ -105,7 +105,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
     TEST_EQUAL(header.find("m_score_gene_global") != std::string::npos, true)
   }
 
-  String empty_results_tsv;
+  std::string empty_results_tsv;
   NEW_TMP_FILE(empty_results_tsv);
   OpenSwathResultsExporter::write(empty_results_tsv, empty_result_rows, {});
   TEST_EQUAL(File::exists(empty_results_tsv), true)
@@ -119,7 +119,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
     TEST_EQUAL(static_cast<bool>(std::getline(is, first_data_line)), false)
   }
 
-  String matrix_tsv;
+  std::string matrix_tsv;
   NEW_TMP_FILE(matrix_tsv);
   OpenSwathMatrixExporter::writeMatrix(matrix_tsv, matrix, matrix_config);
   TEST_EQUAL(File::exists(matrix_tsv), true)
@@ -144,7 +144,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
   TEST_EQUAL(transition_table.rows.empty(), false)
   TEST_EQUAL(transition_table.feature_transition_column_names.empty(), false)
 
-  String feature_parquet;
+  std::string feature_parquet;
   NEW_TMP_FILE(feature_parquet);
   feature_parquet += ".parquet";
   OpenSwathParquetExporter::writeFeatureScores(feature_parquet, feature_table);
@@ -160,7 +160,7 @@ START_SECTION(OSW-backed OpenSWATH export readers and writers)
     TEST_NOT_EQUAL(feature_arrow->GetColumnByName("PROTEIN_ID"), nullptr)
   }
 
-  String transition_parquet;
+  std::string transition_parquet;
   NEW_TMP_FILE(transition_parquet);
   transition_parquet += ".parquet";
   OpenSwathParquetExporter::writeTransitionScores(transition_parquet, transition_table);
@@ -179,7 +179,7 @@ END_SECTION
 
 START_SECTION(OpenSwathMatrixExporter rejects invalid top_n and malformed matrix shapes)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedExportFixture_(tmp_osw);
 
@@ -211,7 +211,7 @@ END_SECTION
 
 START_SECTION(OSWFile transition parquet reader validates TRANSITION_PRECURSOR_MAPPING presence)
 {
-  String tmp_osw;
+  std::string tmp_osw;
   NEW_TMP_FILE(tmp_osw);
   copySharedExportFixture_(tmp_osw);
   dropTable_(tmp_osw, "TRANSITION_PRECURSOR_MAPPING");

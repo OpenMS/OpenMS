@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm>
 #include <string>
@@ -149,13 +149,13 @@ public:
      *
     */
     void encodeNP(const std::vector<double> & in,
-                  String & result,
+                  std::string & result,
                   bool zlib_compression,
                   const NumpressConfig & config);
 
     /// encodeNP from a float (convert first to double)
     void encodeNP(const std::vector<float> & in,
-                  String & result,
+                  std::string & result,
                   bool zlib_compression,
                   const NumpressConfig & config);
 
@@ -177,7 +177,7 @@ public:
      * @throw throws Exception::ConversionError if the string cannot be converted
      *
     */
-    void decodeNP(const String & in,
+    void decodeNP(const std::string & in,
                   std::vector<double> & out,
                   bool zlib_compression,
                   const NumpressConfig & config);
@@ -201,7 +201,7 @@ public:
      *
     */
     void encodeNPRaw(const std::vector<double> & in,
-                     String & result,
+                     std::string & result,
                      const NumpressConfig & config);
 
     /**

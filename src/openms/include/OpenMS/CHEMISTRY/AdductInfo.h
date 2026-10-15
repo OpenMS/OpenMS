@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 namespace OpenMS
@@ -112,7 +112,7 @@ namespace OpenMS
       @throws Exception::InvalidParameter if @p charge is 0, @p mol_multiplier
              is 0, or @p adduct already carries a non-zero charge.
     */
-    AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier = 1);
+    AdductInfo(const std::string& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier = 1);
 
     /**
       @brief Compute the neutral monomer mass M from an observed m/z.
@@ -190,7 +190,7 @@ namespace OpenMS
       the parsed source string, when constructed via #parseAdductString).
       @return Const reference to the stored name; mainly for diagnostics.
     */
-    const String& getName() const;
+    const std::string& getName() const;
 
     /**
       @brief Neutral EmpiricalFormula of the adduct part alone
@@ -230,7 +230,7 @@ namespace OpenMS
              constructor invariants (e.g. zero charge or a zero n-mer
              multiplier).
      */
-    static AdductInfo parseAdductString(const String& adduct);
+    static AdductInfo parseAdductString(const std::string& adduct);
 
     /**
       @brief Equality on all four fields (name, formula, charge, n-mer
@@ -241,7 +241,7 @@ namespace OpenMS
     bool operator==(const AdductInfo& other) const;
 
   private:
-    String name_;             ///< original adduct string, kept for diagnostics
+    std::string name_;             ///< original adduct string, kept for diagnostics
     EmpiricalFormula ef_;     ///< neutral formula of the adduct part (no M, no n-mer multiplier)
     double mass_;             ///< cached monoisotopic mass of @c ef_ (avoids recomputation)
     int charge_;              ///< signed ion charge; non-zero (positive = cation, negative = anion)

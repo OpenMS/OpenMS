@@ -107,7 +107,7 @@ END_SECTION
 
 START_SECTION((void add(const Adduct &a, UInt side)))
 {
-	//Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob
+	//Adduct(Int charge, Int amount, double singleMass, std::string formula, double log_prob
 	Adduct a1(123, 43, 123.456, "S", -0.3453, 0);
 	Adduct a2(123,  3, 123.456, "S", -0.3453, 0);
 
@@ -308,7 +308,7 @@ START_SECTION((StringList getLabels(const UInt side) const))
 }
 END_SECTION
 
-START_SECTION((String getAdductsAsString() const))
+START_SECTION((std::string getAdductsAsString() const))
 {
   Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
 	Adduct a2(1, -1, 1.007, "H1", -0.13, 0);
@@ -321,7 +321,7 @@ START_SECTION((String getAdductsAsString() const))
 }
 END_SECTION
 
-START_SECTION((String getAdductsAsString(UInt side) const))
+START_SECTION((std::string getAdductsAsString(UInt side) const))
 {
   Adduct a1(1, 2, 123.456f, "NH4", -0.3453f, 0);
 	Adduct a2(1, -1, 1.007, "H1", -0.13, 0);

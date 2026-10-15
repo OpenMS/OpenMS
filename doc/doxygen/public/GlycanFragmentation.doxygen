@@ -1,0 +1,108 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
+// --------------------------------------------------------------------------
+
+/**
+@page glycan_fragmentation Glycan and glycopeptide fragment generation
+
+@ref OpenMS::TheoreticalGlycanSpectrumGenerator accepts
+@ref OpenMS::ProForma::GlycanComposition directly, including formula residues.
+It generates positive, protonated diagnostic ions and bounded composition B/Y
+fragments without requiring GNOme resolution. C/Z ions are optional. Composition
+fragments describe possible retained compositions; they do not infer linkages.
+The inclusive size range limits retained residues in both B and Y fragments.
+Y0 (the reducing end or bare peptide) is included separately; intact Y precursors
+are excluded. Formula residues are supported for fragment masses but do not imply
+the stereochemistry needed to assign named diagnostic ions.
+
+@code
+using Generator = OpenMS::TheoreticalGlycanSpectrumGenerator;
+Generator::Composition composition;
+composition.components = {{std::string("HexNAc"), 2}, {std::string("Hex"), 5}};
+Generator generator;
+auto fragments = generator.getFragments(composition);
+auto spectrum = Generator::toSpectrum(fragments);
+@endcode
+
+The diagnostic panel includes HexNAc (204.0867 and the 186/168/144/138/126 series),
+Hex, Hex+HexNAc, fucose/deoxyhexose, Neu5Ac/NeuAc and Neu5Gc/NeuGc.
+The aliases dHex and d-Hex yield the canonical d-Hex diagnostic annotation.
+Fuc and generic d-Hex remain distinct interpretations even though their masses match.
+Diagnostic ions default to charge 1, with a separate configurable charge range.
+Single global or residue-specific neutral losses can be configured for glycan
+series. Losses must fit the retained fragment's elemental composition.
+
+@section glycan_trees Structural fragments
+
+@ref OpenMS::GlycanStructure is an explicit rooted tree. The reducing-end residue
+is node zero; each new residue is linked to an existing parent. Linkage labels
+are optional metadata. No structure parser or ontology download is needed.
+The generator enumerates connected fragments, bounded by max_cleavages (default 2).
+Internal fragments are B ions with both a root cleavage and branch cleavages.
+Y ions can contain several branch cleavages. Each cut is identified by the node
+on its non-reducing side, so isobaric branch assignments remain distinguishable.
+C adds water at the B root; Z removes water for each Y cleavage. Cross-ring and
+mixed Y/Z branch-cleavage combinations are not generated.
+
+@code
+OpenMS::GlycanStructure tree;
+tree.addMonosaccharide(std::string("HexNAc"));
+tree.addMonosaccharide(std::string("HexNAc"), 0, "beta1-4");
+tree.addMonosaccharide(std::string("Hex"), 1);
+tree.addMonosaccharide(std::string("Fuc"), 0, "alpha1-6");
+auto structural = generator.getFragments(tree);
+@endcode
+
+@section glycan_peptides Peptide fragments and attachment sites
+
+getGlycopeptideFragments takes a peptide without its glycan modification, a
+composition or tree, a zero-based attachment index and an activation method.
+It currently models one localized glycan. Other peptide modifications are kept.
+HCD b/y ions default to stripped or one-HexNAc retention where available.
+ETD c/z ions retain the full glycan, and ETD omits glycan cleavage/diagnostic ions.
+EThcD generates b/y/c/z ions with intact glycan retention alongside glycan
+cleavage ions; per-series overrides can add stripped/stub products. These are
+configurable theoretical possibilities, not predicted intensities.
+Backbone ions named peptide:zN use the radical z+1 form (Residue::Zp1Ion) for
+both ETD and EThcD. Their neutral masses exceed the CID-type z masses by one
+hydrogen atom (about 1.007825 Da); this convention does not affect glycan Z ions.
+
+Per-series PeptideRetention overrides allow intact, stripped and explicit stub
+compositions. For example, specify HexNAc1Fuc1 to retain a fucosylated stub.
+A stub must be a subset of the input composition; specifying it is the caller's
+assertion that it is a plausible core. Fucose location cannot be inferred from
+composition alone. Backbone fragments that exclude the attachment are emitted
+only once and receive no glycan mass.
+
+@code
+auto peptide = OpenMS::AASequence::fromString("ANST");
+auto glycopeptide = generator.getGlycopeptideFragments(
+  peptide, composition, 1, Generator::FragmentationMethod::HCD);
+@endcode
+
+@section glycan_output Output and resource limits
+
+Each Fragment records neutral mass, charge, retained composition, attachment and
+cleavage indices. getMZ() adds protons and divides by charge. toSpectrum() creates
+a fresh sorted MS2 spectrum, with aligned IonNames and Charges arrays and unit
+intensities. Because mzPAF has no glycan series, IonNames uses named-compound
+annotations through OpenMS::MzPAF, not peptide b/y notation. Composition and
+tree labels are explicit; attachment names use one-based residue positions.
+getAnnotation() rejects empty names and names containing whitespace, square
+brackets or NUL characters to prevent loss or corruption during mzPAF parsing.
+
+max_fragments counts final charge/loss interpretations and max_states bounds
+enumeration work. Exceeding either throws InvalidParameter without returning a
+partial spectrum. Structural trees and composition enumeration each support at
+most 256 nodes or distinct component types respectively to bound recursion.
+Diagnostic-only generation does not enumerate subcompositions. Empty free-glycan
+inputs return no fragments. Negative counts, charged residue formulas, unknown
+symbols and invalid sites fail explicitly.
+
+The same API is available in pyOpenMS as GlycanComposition, GlycanStructure and
+TheoreticalGlycanSpectrumGenerator, using snake_case method names.
+*/

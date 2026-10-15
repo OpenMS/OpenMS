@@ -63,13 +63,13 @@ class OPENMS_DLLAPI PrecursorCorrection
      180.9	610.0001	    610	        -0.0001
      183.92	611.0035	    611.0033	  -0.0002
      
-     @param[out] out_csv: constant String for csv output.
+     @param[out] out_csv: constant std::string for csv output.
      @param[in] delta_mzs: delta m/z column values.
      @param[in] mzs: m/z column vector (uncorrectedMZ)
      @param[in] rts: retention time column vector 
      
      */
-     static void writeHist(const String& out_csv,
+     static void writeHist(const std::string& out_csv,
                            const std::vector<double> & delta_mzs,
                            const std::vector<double> & mzs,
                            const std::vector<double> & rts);
@@ -151,22 +151,6 @@ class OPENMS_DLLAPI PrecursorCorrection
                                                    int debug_level = 0);
 
   protected:
-
-      /**
-      @brief Check if precursor is located in the bounding box of a features convex hull.
-      Here the bounding box of the feature is extended by the retention time tolerance and
-      afterwards the precursor location is validated.
-
-      @param[in] feature: constant Feature.
-      @param[in] rt: constant double retention time.
-      @param[in] pc_mz: constant double precursor mass to charge.
-      @param[in] rt_tolerance: constant double retention time tolerance in seconds.
-      @return static boolean to check if the precursor is located in the bounding box of a features convex hull.
-      */
-      static bool overlaps_(const Feature& feature,
-                            const double rt,
-                            const double pc_mz,
-                            const double rt_tolerance);
 
       /**
       @brief Check precursor and feature compatibility

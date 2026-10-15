@@ -252,7 +252,7 @@ namespace OpenMS
       {
         calculateMDVAccuracy(normalized_featureMap.at(feature_idx),
                              feature_name,
-                             fragment_isotopomer_theoretical_formulas.find((std::string)normalized_featureMap.at(feature_idx).getMetaValue("PeptideRef"))->second);
+                             fragment_isotopomer_theoretical_formulas.find(StringUtils::toStr(normalized_featureMap.at(feature_idx).getMetaValue("PeptideRef")))->second);
       }
       else
       {

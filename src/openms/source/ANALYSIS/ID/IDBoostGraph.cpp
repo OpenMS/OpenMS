@@ -36,6 +36,38 @@ using Internal::IDBoostGraph;
 namespace OpenMS
 {
 
+  namespace
+  {
+    /// Returns true for a target ProteinHit, false for a decoy. Throws if the target/decoy
+    /// status is unknown (the "target_decoy" meta value is not set; run PeptideIndexer first)
+    /// instead of silently treating a missing value as a decoy.
+    bool isTargetProteinOrThrow_(const ProteinHit* ph)
+    {
+      const ProteinHit::TargetDecoyType td = ph->getTargetDecoyType();
+      if (td == ProteinHit::TargetDecoyType::UNKNOWN)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ProteinHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
+      }
+      return td == ProteinHit::TargetDecoyType::TARGET;
+    }
+
+    /// Validate target/decoy annotations before entering code that may run in an OpenMP region,
+    /// where exceptions cannot safely propagate back to the caller.
+    void validateTargetDecoyAnnotations_(const IDBoostGraph::Graph& graph)
+    {
+      IDBoostGraph::Graph::vertex_iterator vertex_it, vertex_end;
+      boost::tie(vertex_it, vertex_end) = boost::vertices(graph);
+      for (; vertex_it != vertex_end; ++vertex_it)
+      {
+        if (graph[*vertex_it].which() == 0) // protein
+        {
+          isTargetProteinOrThrow_(boost::get<ProteinHit*>(graph[*vertex_it]));
+        }
+      }
+    }
+  }
+
   /// Hasher for sets of uints using boost::hash_range
   struct MyUIntSetHasher
   {
@@ -57,7 +89,7 @@ namespace OpenMS
         nrReplicates_(nrReplicates)
     {}
 
-    void insert(String& seq, Size replicate, int charge, vertex_t pepVtx)
+    void insert(std::string& seq, Size replicate, int charge, vertex_t pepVtx)
     {
       int chargeToPut = charge - minCharge_;
       OPENMS_PRECONDITION(replicate < nrReplicates_, "Replicate OOR")
@@ -154,7 +186,7 @@ namespace OpenMS
   }
 
   unordered_map<unsigned, unsigned> convertMapLabelFree_(
-      const map<pair<String, unsigned>, unsigned>& fileToRun,
+      const map<pair<std::string, unsigned>, unsigned>& fileToRun,
       const StringList& files)
   {
     unordered_map<unsigned, unsigned> indexToRun;
@@ -168,9 +200,9 @@ namespace OpenMS
   }
 
   unordered_map<unsigned, unsigned> convertMap_(
-      const map<pair<String, unsigned>, unsigned>& fileLabToPrefractionationGroup,
+      const map<pair<std::string, unsigned>, unsigned>& fileLabToPrefractionationGroup,
       const ConsensusMap::ColumnHeaders& idxToFileLabMappings,
-      const String& experiment_type)
+      const std::string& experiment_type)
   {
     unordered_map<unsigned, unsigned> indexToRun;
     for (const auto& mapping : idxToFileLabMappings)
@@ -233,7 +265,7 @@ namespace OpenMS
 
     if (spectrum.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
     {
-      idx = spectrum.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
+      idx = (Size)(Int)spectrum.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       auto find_it = indexToPrefractionationGroup.find(idx);
       if (find_it == indexToPrefractionationGroup.end())
       {
@@ -297,7 +329,7 @@ namespace OpenMS
       //proteins.getPrimaryMSRunPath(files); // files merged in the protein identification run to be inferred
       const ConsensusMap::ColumnHeaders& colHeaders = cmap.getColumnHeaders(); // all possible files and labels in the experiment
       //TODO use exp. design to merge fractions
-      map<pair<String, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
+      map<pair<std::string, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
       nrPrefractionationGroups_ = fileLabelToPrefractionationGroup.size();
       indexToPrefractionationGroup = convertMap_(fileLabelToPrefractionationGroup, colHeaders, cmap.getExperimentType()); // convert to index in the peptide ids
     }
@@ -318,7 +350,7 @@ namespace OpenMS
     if (use_unassigned_ids) roughNrIds += cmap.getUnassignedPeptideIdentifications().size();
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, roughNrIds, "Building graph with run information...");
-    const String& protRun = proteins.getIdentifier();
+    const std::string& protRun = proteins.getIdentifier();
     for (auto& feat : cmap)
     {
       for (auto& spectrum : feat.getPeptideIdentifications())
@@ -357,7 +389,7 @@ namespace OpenMS
     {
       StringList files;
       proteins.getPrimaryMSRunPath(files);
-      map<pair<String, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
+      map<pair<std::string, unsigned>, unsigned> fileLabelToPrefractionationGroup = ed.getPathLabelToPrefractionationMapping(false);
       nrPrefractionationGroups_ = fileLabelToPrefractionationGroup.size();
       //TODO if only given proteins and peptide IDs we automatically assume label-free since I don't know
       // where the label would be stored.
@@ -378,7 +410,7 @@ namespace OpenMS
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, idedSpectra.size(), "Building graph with run info...");
-    const String& protRun = proteins.getIdentifier();
+    const std::string& protRun = proteins.getIdentifier();
     for (auto& spectrum : idedSpectra)
     {
       if (spectrum.getIdentifier() == protRun)
@@ -410,7 +442,7 @@ namespace OpenMS
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, idedSpectra.size(), "Building graph...");
-    const String& protRun = proteins.getIdentifier();
+    const std::string& protRun = proteins.getIdentifier();
     for (auto& spectrum : idedSpectra)
     {
       if (spectrum.getIdentifier() == protRun)
@@ -446,7 +478,7 @@ namespace OpenMS
     if (use_unassigned_ids) roughNrIds += cmap.getUnassignedPeptideIdentifications().size();
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, roughNrIds, "Building graph...");
-    const String& protRun = proteins.getIdentifier();
+    const std::string& protRun = proteins.getIdentifier();
     for (auto& feature : cmap)
     {
       for (auto& id : feature.getPeptideIdentifications())
@@ -498,7 +530,7 @@ namespace OpenMS
     bool invalid_protein_sequence = false;
     Size count_j_proteins(0);
     Size prot_count(0);
-    String prot = "";
+    std::string prot = "";
     while (true)
     {
       has_active_data = proteins.activateCache(); // swap in last cache
@@ -512,10 +544,10 @@ namespace OpenMS
       for (Size i = 0; i < prot_count; ++i)
       {
         prot = proteins.chunkAt(i).sequence;
-        prot.remove('*');
+        StringUtils::remove(prot, '*');
 
         // check for invalid sequences with modifications
-        if (prot.has('[') || prot.has('('))
+        if (StringUtils::has(prot, '[') || StringUtils::has(prot, '('))
         {
           invalid_protein_sequence = true; // not omp-critical because its write-only
           // we cannot throw an exception here, since we'd need to catch it within the parallel region
@@ -524,12 +556,12 @@ namespace OpenMS
         // convert  L/J to I; also replace 'J' in proteins
         if (IL_equivalent)
         {
-          prot.substitute('L', 'I');
-          prot.substitute('J', 'I');
+          StringUtils::substitute(prot, 'L', 'I');
+          StringUtils::substitute(prot, 'J', 'I');
         }
         else
         { // warn if 'J' is found (it eats into aaa_max)
-          if (prot.has('J'))
+          if (StringUtils::has(prot, 'J'))
           {
             ++count_j_proteins;
           }
@@ -730,7 +762,7 @@ namespace OpenMS
       }
       pl.endProgress();
     }
-    OPENMS_LOG_INFO << "Annotated " << String(protIDs_.getIndistinguishableProteins().size()) << " indist. protein groups.\n";
+    OPENMS_LOG_INFO << "Annotated " << StringUtils::toStr(protIDs_.getIndistinguishableProteins().size()) << " indist. protein groups.\n";
   }
 
   void IDBoostGraph::calculateAndAnnotateIndistProteins(bool addSingletons)
@@ -952,6 +984,20 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Graph empty. Build it first.");
     }
 
+    // Fail on the caller thread before the component loop enters an OpenMP region. Exceptions
+    // thrown by a worker are not allowed to escape an OpenMP worksharing-loop iteration.
+    if (ccs_.empty())
+    {
+      validateTargetDecoyAnnotations_(g);
+    }
+    else
+    {
+      for (const Graph& component : ccs_)
+      {
+        validateTargetDecoyAnnotations_(component);
+      }
+    }
+
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
 
@@ -1002,7 +1048,7 @@ namespace OpenMS
     Graph::vertex_iterator ui, ui_end;
     boost::tie(ui,ui_end) = boost::vertices(fg);
 
-    set<String> accs_to_remove;
+    set<std::string> accs_to_remove;
     queue<vertex_t> q;
     vector<vertex_t> groups_or_singles;
     vector<vertex_t> singles;
@@ -1095,7 +1141,7 @@ namespace OpenMS
             auto& ev = peptidePtr->getPeptideEvidences();
             for (const auto& e : ev)
             {
-              if (accs_to_remove.find(e.getProteinAccession()) == accs_to_remove.end())
+              if (!accs_to_remove.contains(e.getProteinAccession()))
               {
                 newev.emplace_back(e);
               }
@@ -1179,7 +1225,7 @@ namespace OpenMS
               if (curr_cc[*adjIt].which() == 6)
               {
                 PeptideHit *phitp = boost::get<PeptideHit *>(curr_cc[*adjIt]);
-                String seq = phitp->getSequence().toUnmodifiedString();
+                std::string seq = phitp->getSequence().toUnmodifiedString();
 
                 //TODO I think it is also best to completely focus on the extended Model here and assume that
                 // this information is present. If we allow mixtures of graphical models it gets complex
@@ -1398,7 +1444,7 @@ namespace OpenMS
           for (auto const &proteinVID : pepsToGrps.second)
           {
             //check if decoy to count the decoys
-            bool target = boost::get<ProteinHit*>(curr_cc[proteinVID])->getMetaValue("target_decoy").toString()[0] == 't';
+            bool target = isTargetProteinOrThrow_(boost::get<ProteinHit*>(curr_cc[proteinVID]));
             if (target) nr_targets++;
             //ProteinHit *proteinPtr = boost::get<ProteinHit*>(curr_cc[proteinVID]);
             //pg.accessions.push_back(proteinPtr->getAccession());
@@ -1543,7 +1589,7 @@ namespace OpenMS
                 const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
                 scores_and_tgt.emplace_back(
                     ph->getScore(),
-                    static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
+                    static_cast<double>(isTargetProteinOrThrow_(ph))); // target = 1; decoy = 0;
             }
           }
         };
@@ -1581,7 +1627,7 @@ namespace OpenMS
                 const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
                 scores_and_tgt_fraction.emplace_back(
                     ph->getScore(),
-                    static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
+                    static_cast<double>(isTargetProteinOrThrow_(ph))); // target = 1; decoy = 0;
               }
             }
             else if (graph[*ui].which() == 1) //protein group, always include
@@ -1635,7 +1681,7 @@ namespace OpenMS
                 {
                   const ProteinHit* ph = boost::get<ProteinHit*>(fg[prot]);
                   // target = 1/penalty; decoy = 0;
-                  target_fraction = static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't');
+                  target_fraction = static_cast<double>(isTargetProteinOrThrow_(ph));
                   target_fraction /= target_contribution_penalty;
                   auto it_inserted = prot_to_current_max.emplace(prot, target_fraction);
                   if (!it_inserted.second)
@@ -1731,4 +1777,3 @@ namespace OpenMS
     }
   }
 }
-

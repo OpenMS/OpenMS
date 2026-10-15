@@ -32,12 +32,12 @@ START_SECTION(~AcquisitionInfo())
 	delete ptr;
 END_SECTION
 
-START_SECTION(const String& getMethodOfCombination() const)
+START_SECTION(const std::string& getMethodOfCombination() const)
   AcquisitionInfo tmp;
   TEST_EQUAL(tmp.getMethodOfCombination(),"");
 END_SECTION
 
-START_SECTION(void setMethodOfCombination(const String& method_of_combination))
+START_SECTION(void setMethodOfCombination(const std::string& method_of_combination))
   AcquisitionInfo tmp;
   tmp.setMethodOfCombination("TEST");
   TEST_EQUAL(tmp.getMethodOfCombination(),"TEST");

@@ -12,7 +12,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
@@ -72,9 +72,14 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       @brief Search the MS2 spectra in @p in_spectra against the protein database in @p in_db.
 
       Spectra and database are loaded from disk; the result is written into the two
-      output arguments. Existing contents of @p prot_ids and @p pep_ids are not
-      cleared by this call. The current parameter set (see the class brief) controls
-      tolerances, modifications, enzyme, FDR, etc.
+      output arguments. The two outputs are NOT treated symmetrically and this call is
+      NOT additive: @p prot_ids is overwritten (replaced by a single fresh
+      ProteinIdentification run for this search), whereas new PSMs are appended to
+      @p pep_ids. In addition, the run identifier of the freshly created protein run is
+      stamped onto EVERY element of @p pep_ids (including pre-existing entries), so do
+      not reuse a @p pep_ids vector that already holds PSMs from another run — pass
+      freshly constructed (empty) vectors. The current parameter set (see the class
+      brief) controls tolerances, modifications, enzyme, FDR, etc.
 
       @param[in]  in_spectra Path to the spectrum input (mzML or any format readable by @ref FileHandler).
       @param[in]  in_db      Path to the protein FASTA database to search against.
@@ -82,8 +87,8 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       @param[out] pep_ids    Peptide-spectrum matches (PSMs) produced by the search.
       @return Status code; see @ref ExitCodes.
     */
-    ExitCodes search(const String& in_spectra,
-      const String& in_db,
+    ExitCodes search(const std::string& in_spectra,
+      const std::string& in_db,
       std::vector<ProteinIdentification>& prot_ids,
       PeptideIdentificationList& pep_ids) const;
   protected:
@@ -99,7 +104,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     */
     struct AnnotatedHit_
     {
-      StringView sequence; ///< unmodified peptide sequence (view into the digested protein)
+      std::string_view sequence; ///< unmodified peptide sequence (view into the digested protein)
       SignedSize peptide_mod_index; ///< enumeration index of the modification variant (for re-materialisation)
       // Layout: doubles first, then floats, then int, then uint16_t — minimizes padding
       double score = 0; ///< main score (higher is better)
@@ -115,6 +120,12 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       {
         if (a.score != b.score) return a.score > b.score;
         if (b.peptide_mod_index != a.peptide_mod_index) return a.peptide_mod_index < b.peptide_mod_index;
+        // Preserve the historical shortlex order (shorter sequence first, then lexicographic)
+        // that OpenMS::StringView::operator< provided before its removal. PeptideIdentification::sort()
+        // is a stable_sort by score only, so this tie-break order survives into the idXML output;
+        // do NOT simplify to a plain 'a.sequence < b.sequence' (that would be lexicographic and reorder
+        // equal-score hits of differing length). See StringView removal.
+        if (a.sequence.size() != b.sequence.size()) return a.sequence.size() < b.sequence.size();
         return a.sequence < b.sequence;
       }
     };
@@ -178,15 +189,15 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       Int peptide_missed_cleavages,
       double precursor_mass_tolerance,
       double fragment_mass_tolerance,
-      const String& precursor_mass_tolerance_unit_ppm,
-      const String& fragment_mass_tolerance_unit_ppm,
+      const std::string& precursor_mass_tolerance_unit_ppm,
+      const std::string& fragment_mass_tolerance_unit_ppm,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
-      const String& enzyme,
-      const String& database_name) const;
+      const std::string& enzyme,
+      const std::string& database_name) const;
 
     double precursor_mass_tolerance_;       ///< Precursor mass tolerance (value); unit in @c precursor_mass_tolerance_unit_
-    String precursor_mass_tolerance_unit_;  ///< "ppm" or "Da"
+    std::string precursor_mass_tolerance_unit_;  ///< "ppm" or "Da"
 
     Size precursor_min_charge_;             ///< Minimum precursor charge considered
     Size precursor_max_charge_;             ///< Maximum precursor charge considered
@@ -195,7 +206,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
 
     double fragment_mass_tolerance_;        ///< Fragment mass tolerance (value); unit in @c fragment_mass_tolerance_unit_
 
-    String fragment_mass_tolerance_unit_;   ///< "ppm" or "Da"
+    std::string fragment_mass_tolerance_unit_;   ///< "ppm" or "Da"
 
     StringList modifications_fixed_;        ///< UniMod names of fixed modifications
 
@@ -203,7 +214,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
 
     Size modifications_max_variable_mods_per_peptide_; ///< Cap on simultaneous variable modifications per peptide
 
-    String enzyme_;                         ///< Enzyme name as recognised by @ref EnzymaticDigestion
+    std::string enzyme_;                         ///< Enzyme name as recognised by @ref EnzymaticDigestion
 
     bool decoys_;                           ///< If true, generate target/decoy results
 
@@ -216,7 +227,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     Size peptide_missed_cleavages_;         ///< Allowed missed cleavages in digestion
     EnzymaticDigestion::Specificity peptide_enzyme_specificity_{EnzymaticDigestion::SPEC_FULL}; ///< full / semi / none
 
-    String peptide_motif_;                  ///< Optional regex motif; only peptides matching are considered
+    std::string peptide_motif_;                  ///< Optional regex motif; only peptides matching are considered
 
     Size report_top_hits_;                  ///< Number of top-scoring PSMs reported per spectrum
 };

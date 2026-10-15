@@ -18,7 +18,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  String Internal::OpenMSOSInfo::getActiveSIMDExtensions()
+  std::string Internal::OpenMSOSInfo::getActiveSIMDExtensions()
   {
     StringList ret;
 #ifdef SIMDE_ARCH_ARM_NEON

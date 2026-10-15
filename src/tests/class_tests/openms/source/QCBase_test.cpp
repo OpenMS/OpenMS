@@ -12,6 +12,8 @@
 ///////////////////////////
 
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/DataProcessingUtils.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
@@ -72,13 +74,42 @@ START_TEST(SpectraMap, "$Id$")
     TEST_EQUAL(spec_map.empty(),true);
   END_SECTION
   
-  START_SECTION(QCBase::SpectraMap::at(const String& identifier))
+  START_SECTION(QCBase::SpectraMap::at(const std::string& identifier))
     NOT_TESTABLE;
   END_SECTION
   
   START_SECTION(QCBase::SpectraMap::size())
     NOT_TESTABLE;
   END_SECTION
-  
-END_TEST
 
+  START_SECTION([EXTRA] names_of_requires has one entry per Requires value)
+  {
+    // regression: isRunnable() indexes names_of_requires by the Requires enum value up to SIZE_OF_REQUIRES.
+    // Requires::ID was previously missing from the array, causing an out-of-bounds read.
+    TEST_EQUAL(QCBase::names_of_requires[(Size)QCBase::Requires::NOTHING], "fail")
+    TEST_EQUAL(QCBase::names_of_requires[(Size)QCBase::Requires::TRAFOALIGN], "trafoAlign.trafoXML")
+    TEST_EQUAL(QCBase::names_of_requires[(Size)QCBase::Requires::ID], "id.idXML")
+  }
+  END_SECTION
+
+START_SECTION((isLabeledExperiment preserves the IsobaricAnalyzer provenance convention))
+  ConsensusMap map;
+  TEST_FALSE(QCBase::isLabeledExperiment(map))
+  TEST_FALSE(DataProcessingUtils::hasIsobaricAnalyzer(map.getDataProcessing()))
+  DataProcessing processing;
+  map.getDataProcessing().push_back(processing);
+  for (const std::string name : {"", "FeatureFinder", "isobaricanalyzer", "IsobaricAnalyzer extra"})
+  {
+    map.getDataProcessing()[0].getSoftware().setName(name);
+    TEST_FALSE(QCBase::isLabeledExperiment(map))
+    TEST_FALSE(DataProcessingUtils::hasIsobaricAnalyzer(map.getDataProcessing()))
+  }
+  processing.getSoftware().setName("IsobaricAnalyzer");
+  map.getDataProcessing().push_back(processing);
+  map.getDataProcessing().push_back(DataProcessing());
+  TEST_TRUE(QCBase::isLabeledExperiment(map))
+  TEST_TRUE(DataProcessingUtils::hasIsobaricAnalyzer(map.getDataProcessing()))
+  TEST_EQUAL(map.getDataProcessing().size(), 3)
+END_SECTION
+
+END_TEST

@@ -20,21 +20,21 @@ namespace OpenMS
     delay_in_seconds_(1.0)
   {
     // Connect the slot for monitoring file changes
-    connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(toQString(s)); });
+    connect(this, &FileWatcher::fileChanged, [this](const std::string& s) { monitorFileChanged_(toQString(s)); });
   }
 
   FileWatcher::~FileWatcher() = default;
 
   void FileWatcher::monitorFileChanged_(const QString & name)
   {
-    //cout << "File changed: " << String(name) << endl;
+    //cout << "File changed: " << StringUtils::toStr(name) << endl;
     // Look up if there is already a timer for this file
     QTimer * timer = nullptr;
     for (map<QString, QString>::const_iterator it = timers_.begin(); it != timers_.end(); ++it)
     {
       if (it->second == name)     //we found the timer name and id
       {
-        //cout << " - Found timer name: " << String(it->second) << endl;
+        //cout << " - Found timer name: " << StringUtils::toStr(it->second) << endl;
         //search for the timer instance with the corresponding Id
         timer = findChild<QTimer *>(it->first);
       }
@@ -50,7 +50,7 @@ namespace OpenMS
       timer->setInterval((int)(1000.0 * delay_in_seconds_));
       timer->setSingleShot(true);
       timer->setObjectName(QString::number(++timer_id));
-      connect(timer, SIGNAL(timeout()), this, SLOT(timerTriggered_()));
+      connect(timer, &QTimer::timeout, this, &FileWatcher::timerTriggered_);
       timer->start();
       timers_[QString::number(timer_id)] = name;
       //cout << timer_id << endl;
@@ -70,8 +70,8 @@ namespace OpenMS
     //get the timer instance
     QTimer * timer = qobject_cast<QTimer *>(sender());
     //emit the final for the file corresponding to the timer name
-    //cout << " - timer name: " << String(timer->objectName()) << endl;
-    //cout << " - timer file: " << String(timers_[timer->objectName()]) << endl;
+    //cout << " - timer name: " << StringUtils::toStr(timer->objectName()) << endl;
+    //cout << " - timer file: " << StringUtils::toStr(timers_[timer->objectName()]) << endl;
     emit fileChanged(fromQString(timers_[timer->objectName()]));
     //erase the timer name from the list
     timers_.erase(timer->objectName());

@@ -347,9 +347,9 @@ START_SECTION((double getAverageWeight(NASequence::NASFragmentType type = NASequ
 }
 END_SECTION
 
-START_SECTION((static NASequence fromString(const String& s)))
+START_SECTION((static NASequence fromString(const std::string& s)))
 {
-  NASequence seq = NASequence::fromString(String("CUA"));
+  NASequence seq = NASequence::fromString(std::string("CUA"));
   TEST_STRING_EQUAL(seq.toString(), "CUA");
 }
 END_SECTION
@@ -380,10 +380,10 @@ START_SECTION((string toString()))
     {
       //check that we can get the code from the entry, then convert it to a string and back
       auto ribocode = NASequence().fromString("[" + (*it)->getCode() + "]"); // get the code, which may or may not have brackets
-      String asString = ribocode.toString();
-      if (asString.hasPrefix("[")) // if we were multicharacter toString adds brackets
+      std::string asString = ribocode.toString();
+      if (StringUtils::hasPrefix(asString, "[")) // if we were multicharacter toString adds brackets
       {
-        asString = asString.substr(1, asString.size() - 2);
+        asString = StringUtils::substr(asString, 1, asString.size() - 2);
       }
       TEST_STRING_EQUAL(asString, (*it)->getCode());
     }
@@ -439,7 +439,7 @@ END_SECTION
 
 START_SECTION((Iterator begin()))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -451,7 +451,7 @@ END_SECTION
 
 START_SECTION((ConstIterator begin() const))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -463,7 +463,7 @@ END_SECTION
 
 START_SECTION((Iterator end()))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -475,7 +475,7 @@ END_SECTION
 
 START_SECTION((ConstIterator end() const))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -487,7 +487,7 @@ END_SECTION
 
 START_SECTION((ConstIterator cbegin() const))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
@@ -499,7 +499,7 @@ END_SECTION
 
 START_SECTION((ConstIterator cend() const))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
@@ -545,7 +545,7 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] const_reference operator*() const))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
@@ -593,7 +593,7 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] bool operator!=(const ConstIterator &rhs) const))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
@@ -605,7 +605,7 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator& operator++()))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
@@ -617,7 +617,7 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator& operator--()))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=3;
   for (NASequence::ConstIterator it = seq.end()-1; it != seq.begin(); --it, --i)
@@ -629,7 +629,7 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator& operator=(const ConstIterator& rhs)))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
@@ -669,7 +669,7 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] const_reference operator*() const))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -723,7 +723,7 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] bool operator!=(const Iterator& rhs) const))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -735,7 +735,7 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator& operator++()))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
@@ -747,7 +747,7 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator& operator--()))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=3;
   for (NASequence::Iterator it = seq.end()-1; it != seq.begin(); --it, --i)
@@ -759,7 +759,7 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator& operator=(const Iterator& rhs)))
 {
-  String result[] = {"A","U","C","G"};
+  std::string result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   Size i=0;
   for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)

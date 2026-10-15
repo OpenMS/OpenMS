@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 ///////////////////////////
 
@@ -63,7 +64,7 @@ spectra.push_back(spectrum);
 
 SpectrumMetaDataLookup lookup;
 
-START_SECTION((template <typename SpectrumContainer> void readSpectra(const SpectrumContainer&, const String&, bool)))
+START_SECTION((template <typename SpectrumContainer> void readSpectra(const SpectrumContainer&, const std::string&, bool)))
 {
   lookup.readSpectra(spectra, SpectrumLookup::default_scan_regexp, true);
   TEST_EQUAL(lookup.empty(), false);
@@ -90,7 +91,7 @@ START_SECTION((void getSpectrumMetaData(Size, SpectrumMetaData&) const))
 }
 END_SECTION
 
-START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaData&, const boost::regex&, const map<Size, double>&)))
+START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaData&, const RegularExpression&, const map<Size, double>&)))
 {
   SpectrumMetaDataLookup::SpectrumMetaData meta;
   SpectrumMetaDataLookup::getSpectrumMetaData(spectrum, meta);
@@ -103,7 +104,7 @@ START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaDa
 
   map<Size, double> precursor_rts;
   precursor_rts[1] = 1.0;
-  boost::regex scan_regexp("=(?<SCAN>\\d+)$");
+  RegularExpression scan_regexp("=(?<SCAN>\\d+)$");
   SpectrumMetaDataLookup::getSpectrumMetaData(spectrum, meta, scan_regexp,
                                               precursor_rts);
   TEST_EQUAL(meta.precursor_rt, 1.0);
@@ -111,7 +112,7 @@ START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaDa
 }
 END_SECTION
 
-START_SECTION((void getSpectrumMetaData(const String&, SpectrumMetaData&, MetaDataFlags) const))
+START_SECTION((void getSpectrumMetaData(const std::string&, SpectrumMetaData&, MetaDataFlags) const))
 {
   SpectrumMetaDataLookup::SpectrumMetaData meta;
   lookup.addReferenceFormat(SpectrumLookup::default_scan_regexp);
@@ -230,16 +231,16 @@ END_SECTION
 
 
 START_SECTION((bool addMissingSpectrumReferences(PeptideIdentificationList& peptides, 
-  const String& filename, 
+  const std::string& filename, 
   bool stop_on_error, 
   bool override_spectra_data, 
   bool override_spectra_references, 
-  vector<ProteinIdentification> proteins)))
+  vector<ProteinIdentification>& proteins)))
 {
   PeptideIdentificationList peptides(1);
   peptides[0].setRT(5.1);
   peptides[0].setSpectrumReference( "index=666");
-  String filename = "this_file_does_not_exist.mzML";
+  std::string filename = "this_file_does_not_exist.mzML";
   SpectrumMetaDataLookup lookup;
   // missing file -> exception, no non-effective executions
   TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(
@@ -260,6 +261,19 @@ START_SECTION((bool addMissingSpectrumReferences(PeptideIdentificationList& pept
 
   TEST_EQUAL(peptides[0].getSpectrumReference(), "index=0"); // gets updated
   TEST_EQUAL(peptides[1].getSpectrumReference(), "index=2");
+
+  // The caller's protein runs get the new "spectra_data" (they were passed by value before).
+  vector<ProteinIdentification> proteins(1);
+  proteins[0].setPrimaryMSRunPath(StringList{"other.mzML"});
+  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, true, false, proteins);
+  StringList spectra_data;
+  proteins[0].getPrimaryMSRunPath(spectra_data);
+  TEST_EQUAL(spectra_data.size(), 1)
+  TEST_EQUAL(spectra_data[0], "file://" + filename)
+  proteins[0].setPrimaryMSRunPath(StringList{"other.mzML"});
+  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, false, false, proteins);
+  proteins[0].getPrimaryMSRunPath(spectra_data);
+  TEST_EQUAL(spectra_data[0], "other.mzML") // no override requested
 }
 END_SECTION
 

@@ -48,18 +48,21 @@ find_path(COIN_VCPKG_INCLUDE_DIR coin-or/CoinUtilsConfig.h
   ${COIN_ROOT_DIR}/include
 )
 
-# find for contrib and system
+# find for system packages (e.g. Debian's coinor-*-dev, which keep the headers in coin/)
 find_path(COIN_SYS_INCLUDE_DIR coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsConfig.h
   HINTS
   ${COIN_ROOT_DIR}/include
 )
 
-if (COIN_SYS_INCLUDE_DIR)
+if(VCPKG_TOOLCHAIN AND COIN_VCPKG_INCLUDE_DIR)
+  set(COIN_INCLUDE_DIR ${COIN_VCPKG_INCLUDE_DIR})
+  unset(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN CACHE)
+elseif(COIN_SYS_INCLUDE_DIR)
   set(COIN_INCLUDE_DIR ${COIN_SYS_INCLUDE_DIR})
   set(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN 1 CACHE BOOL "If the subdir for including coin-or headers is 'coin' (1) or 'coin-or' (undefined).")
 elseif (COIN_VCPKG_INCLUDE_DIR)
   set(COIN_INCLUDE_DIR ${COIN_VCPKG_INCLUDE_DIR})
-  unset(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN)
+  unset(OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN CACHE)
 endif() # find_package_handle_standard_args will handle missingness
 
 # helper macro to find specific coin sub-libraries
@@ -73,18 +76,74 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
       set(HNAME ${_libname_camel}Config.h)
     endif()
 
-    # find release version
-    find_library(COIN_${_libname}_LIBRARY_RELEASE
-      NAMES ${_lib_file_names}
-      HINTS ${COIN_ROOT_DIR}/lib/coin
-            ${COIN_ROOT_DIR}/lib
-    )
-    # .. and debug version
-    find_library(COIN_${_libname}_LIBRARY_DEBUG
-      NAMES ${_lib_file_names_debug}
-      HINTS ${COIN_ROOT_DIR}/lib/coin
-      HINTS ${COIN_ROOT_DIR}/lib
-    )
+    if(VCPKG_TOOLCHAIN AND _VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+      # Take the libraries from the vcpkg tree only. The headers already come from
+      # there (COIN_VCPKG_INCLUDE_DIR above), and mixing the two providers is what
+      # a plain search produces here: find_library() also scans the directories in
+      # %PATH% on Windows, so any other coin-or on PATH (for example a leftover
+      # build of the retired OpenMS contrib, whose instructions put its lib/ there)
+      # wins and the version skew only shows up much later as unresolved symbols
+      # at link time (e.g. CglCutGenerator::needsOriginalModel).
+      #
+      # NO_DEFAULT_PATH rather than HINTS on purpose: HINTS are consulted *after*
+      # CMAKE_PREFIX_PATH, which vcpkg populates with both <triplet> and
+      # <triplet>/debug, so a hint cannot stop the debug tree from satisfying the
+      # release search. Naming each directory explicitly keeps the two
+      # configurations apart. With a release-only triplet there is no debug/lib and
+      # the debug variable stays NOTFOUND, which select_library_configurations()
+      # below resolves to the release library for both.
+      #
+      # NAMES_PER_DIR: by default find_library() takes one name at a time and scans
+      # every directory for it, so a "libCgl" (the naming of the retired contrib)
+      # would be preferred over the vcpkg-style "Cgl" regardless of directory order.
+      #
+      # find_library() reuses an existing (non-NOTFOUND) cache entry without looking
+      # at PATHS again, so a build directory that is reconfigured for another triplet
+      # or provider would silently keep the libraries of the previous configuration.
+      # Drop cached values that do not live in the current vcpkg triplet tree.
+      foreach(_cfg RELEASE DEBUG)
+        if(COIN_${_libname}_LIBRARY_${_cfg})
+          cmake_path(IS_PREFIX _VCPKG_INSTALLED_DIR "${COIN_${_libname}_LIBRARY_${_cfg}}" NORMALIZE _coin_in_vcpkg)
+          if(_coin_in_vcpkg)
+            cmake_path(RELATIVE_PATH COIN_${_libname}_LIBRARY_${_cfg} BASE_DIRECTORY "${_VCPKG_INSTALLED_DIR}" OUTPUT_VARIABLE _coin_rel)
+            if(NOT _coin_rel MATCHES "^${VCPKG_TARGET_TRIPLET}/")
+              set(_coin_in_vcpkg FALSE)
+            endif()
+          endif()
+          if(NOT _coin_in_vcpkg)
+            message(STATUS "Discarding stale COIN_${_libname}_LIBRARY_${_cfg}='${COIN_${_libname}_LIBRARY_${_cfg}}' (not in ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})")
+            unset(COIN_${_libname}_LIBRARY_${_cfg} CACHE)
+          endif()
+          unset(_coin_in_vcpkg)
+          unset(_coin_rel)
+        endif()
+      endforeach()
+      find_library(COIN_${_libname}_LIBRARY_RELEASE
+        NAMES ${_lib_file_names}
+        NAMES_PER_DIR
+        PATHS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib"
+        NO_DEFAULT_PATH
+      )
+      find_library(COIN_${_libname}_LIBRARY_DEBUG
+        NAMES ${_lib_file_names_debug}
+        NAMES_PER_DIR
+        PATHS "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib"
+        NO_DEFAULT_PATH
+      )
+    else()
+      # find release version
+      find_library(COIN_${_libname}_LIBRARY_RELEASE
+        NAMES ${_lib_file_names}
+        HINTS ${COIN_ROOT_DIR}/lib/coin
+              ${COIN_ROOT_DIR}/lib
+      )
+      # .. and debug version
+      find_library(COIN_${_libname}_LIBRARY_DEBUG
+        NAMES ${_lib_file_names_debug}
+        HINTS ${COIN_ROOT_DIR}/lib/coin
+        HINTS ${COIN_ROOT_DIR}/lib
+      )
+    endif()
 
     find_path(
       ${_libname}_INCLUDE_DIR
@@ -117,7 +176,7 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
 
     # create final library to be exported
     select_library_configurations(COIN_${_libname})
-    if(NOT TARGET COIN_${_libname})
+    if(NOT TARGET CoinOR::${_libname})
       add_library(CoinOR::${_libname} UNKNOWN IMPORTED) # TODO we could try to infer shared/static instead of UNKNOWN
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION "${COIN_${_libname}_LIBRARY_RELEASE}")
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION_DEBUG "${COIN_${_libname}_LIBRARY_DEBUG}")
@@ -130,17 +189,21 @@ macro(_coin_find_lib _libname _libname_camel _lib_file_names _lib_file_names_deb
 endmacro()
 
 
+set(_coin_define_link_deps FALSE)
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
+  set(_coin_define_link_deps TRUE)
   if (VCPKG_TOOLCHAIN)
-    # Currently coin-or from vcpkg requires BLAS and LAPACK
+    # Currently coin-or from vcpkg requires BLAS and LAPACK (and CoinUtils zlib and
+    # bzip2); they are attached to CoinOR::COINUTILS below.
     # TODO: Find a better way to do this. Ideal would be if Coin exports a CMake config
     #  Maybe we can parse a header file? Or try_compile?
     #  The current approach fails if VCPKG toolchain is used but CMake somehow finds
     #  an external coin-or. Should be rare to impossible.
-    find_package(BLAS)
-    find_package(LAPACK)
-    target_link_libraries(CoinOR::CoinOR INTERFACE BLAS::BLAS LAPACK::LAPACK)
+    find_package(BLAS REQUIRED)
+    find_package(LAPACK REQUIRED)
+    find_package(ZLIB REQUIRED)
+    find_package(BZip2 REQUIRED)
   endif()
 endif()
 
@@ -150,6 +213,24 @@ _coin_find_lib("CLP" "Clp" "libClp;Clp" "libClpd;Clp")
 _coin_find_lib("COINUTILS" "CoinUtils" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
 _coin_find_lib("OSI" "Osi" "libOsi;Osi" "libOsid;Osi")
 _coin_find_lib("OSI_CLP" "Clp" "libOsiClp;OsiClp" "libOsiClpd;OsiClp")
+
+# The dependencies between the libraries, so that CMake orders them on the link line.
+# Shared libraries record their own dependencies, but static ones (the static vcpkg
+# triplets of the Linux wheels) are only searched for the symbols still undefined
+# when the linker reaches them: with LAPACK ahead of CoinUtils, libOpenMS.so linked
+# with dgetrf_ unresolved and failed to load.
+if(_coin_define_link_deps)
+  set_property(TARGET CoinOR::OSI APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::COINUTILS)
+  set_property(TARGET CoinOR::CLP APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::COINUTILS)
+  set_property(TARGET CoinOR::OSI_CLP APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::CLP CoinOR::OSI)
+  set_property(TARGET CoinOR::CGL APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::OSI_CLP CoinOR::CLP CoinOR::OSI)
+  set_property(TARGET CoinOR::CBC APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::CGL CoinOR::OSI_CLP CoinOR::CLP CoinOR::OSI)
+  if (VCPKG_TOOLCHAIN)
+    set_property(TARGET CoinOR::COINUTILS APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+      LAPACK::LAPACK BLAS::BLAS ZLIB::ZLIB BZip2::BZip2)
+  endif()
+endif()
+unset(_coin_define_link_deps)
 
 # TODO allow for COMPONENTS and version parsing/checking
 include(FindPackageHandleStandardArgs)

@@ -78,7 +78,7 @@ namespace OpenMS
     Result compute(const MSExperiment& exp, float bin_size = 0, UInt ms_level = 1);
 
     /// Name of this QC metric (@c "TIC").
-    const String& getName() const override;
+    const std::string& getName() const override;
 
     const std::vector<MSChromatogram>& getResults() const;
 
@@ -101,6 +101,6 @@ namespace OpenMS
     void addMetaDataMetricsToMzTab(MzTabMetaData& meta, const std::vector<Result>& tics);
 
   private:
-    const String name_ = "TIC";
+    const std::string name_ = "TIC";
   };
 } // namespace OpenMS

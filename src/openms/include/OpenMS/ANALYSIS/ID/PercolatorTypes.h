@@ -9,8 +9,8 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <vector>
 

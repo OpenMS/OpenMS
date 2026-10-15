@@ -26,12 +26,14 @@ MapAlignmentEvaluationAlgorithm.h
 MapAlignmentEvaluationAlgorithmPrecision.h
 MapAlignmentEvaluationAlgorithmRecall.h
 MapAlignmentTransformer.h
+PipEchoAlgorithm.h
 PoseClusteringAffineSuperimposer.h
 PoseClusteringShiftSuperimposer.h
 QTClusterFinder.h
 StablePairFinder.h
 TransformationDescription.h
 TransformationModel.h
+TransformationModelDefaults.h
 TransformationModelBSpline.h
 TransformationModelLinear.h
 TransformationModelLowess.h
@@ -48,4 +50,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\ANALYSIS\\MAPMATCHING" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

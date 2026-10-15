@@ -71,7 +71,7 @@ START_TEST(Arrow, "$Id$")
 
 START_SECTION(RunParquetRoundtrip())
 {
-  String in_parquet, out_parquet;
+  std::string in_parquet, out_parquet;
   NEW_TMP_FILE(in_parquet);
   NEW_TMP_FILE(out_parquet);
   TEST_EQUAL(RunParquetRoundtrip(in_parquet, out_parquet).ok(), true)

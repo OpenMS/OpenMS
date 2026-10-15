@@ -388,15 +388,15 @@ START_SECTION((virtual double getArea()))
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)))
+START_SECTION((virtual std::string getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)))
 {
-  String formula = egh_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
+  std::string formula = egh_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
   // should look like -- f(x)= 0 + (((4.5 + 3.93096e-15 * (x - 680.1 )) > 0) ? 8 * exp(-1 * (x - 680.1)**2 / ( 4.5 + 3.93096e-15 * (x - 680.1 ))) : 0) --
-  TEST_EQUAL(formula.hasPrefix("f(x)= 0 + ((("), true)
-  TEST_EQUAL(formula.hasSubstring(" )) > 0) ? "), true)
-  TEST_EQUAL(formula.hasSubstring(" * exp(-1 * ("), true)
-  TEST_EQUAL(formula.hasSubstring(")**2 / ( "), true)
-  TEST_EQUAL(formula.hasSuffix(" ))) : 0)"), true)
+  TEST_EQUAL(StringUtils::hasPrefix(formula, "f(x)= 0 + ((("), true)
+  TEST_EQUAL(StringUtils::hasSubstring(formula, " )) > 0) ? "), true)
+  TEST_EQUAL(StringUtils::hasSubstring(formula, " * exp(-1 * ("), true)
+  TEST_EQUAL(StringUtils::hasSubstring(formula, ")**2 / ( "), true)
+  TEST_EQUAL(StringUtils::hasSuffix(formula, " ))) : 0)"), true)
 }
 END_SECTION
 

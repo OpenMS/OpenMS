@@ -34,9 +34,9 @@ namespace OpenMS
 
   void ProteinHitVisualizer::update_()
   {
-    proteinhit_score_->setText(String(temp_.getScore()).c_str());
+    proteinhit_score_->setText(StringUtils::toStr(temp_.getScore()).c_str());
     proteinhit_score_->setReadOnly(true);
-    proteinhit_rank_->setText(String(temp_.getRank()).c_str());
+    proteinhit_rank_->setText(StringUtils::toStr(temp_.getRank()).c_str());
     proteinhit_rank_->setReadOnly(true);
     proteinhit_accession_->setText(temp_.getAccession().c_str());
     proteinhit_accession_->setReadOnly(true);

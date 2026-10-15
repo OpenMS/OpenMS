@@ -39,21 +39,21 @@ END_SECTION
 const ProteaseDB* db = ProteaseDB::getInstance();
 e_ptr = new DigestionEnzymeProtein(*db->getEnzyme("Trypsin"));
 
-String RKP("(?<=[RKP])(?!P)");
+std::string RKP("(?<=[RKP])(?!P)");
 
 START_SECTION(DigestionEnzymeProtein(const DigestionEnzymeProtein& enzyme))
   DigestionEnzymeProtein copy(*e_ptr);
   TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(DigestionEnzymeProtein(const String& name,
-                                     const String& cleavage_regex,
-                                     const std::set<String> & synonyms,
-                                     String regex_description,
+START_SECTION(DigestionEnzymeProtein(const std::string& name,
+                                     const std::string& cleavage_regex,
+                                     const std::set<std::string> & synonyms,
+                                     std::string regex_description,
                                      EmpiricalFormula n_term_gain,
                                      EmpiricalFormula c_term_gain,
-                                     String psi_id,
-                                     String xtandem_id,
+                                     std::string psi_id,
+                                     std::string xtandem_id,
                                      Int comet_id,
                                      Int msgf_id,
                                      Int omssa_id))
@@ -76,52 +76,52 @@ START_SECTION(DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein& en
   TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(void setName(const String& name))
+START_SECTION(void setName(const std::string& name))
   DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setName("PepsinA");
   TEST_NOT_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(const String& getName() const)
+START_SECTION(const std::string& getName() const)
   TEST_EQUAL(e_ptr->getName(), "PepsinA")
 END_SECTION
 
-START_SECTION(void setSynonyms(const std::set<String>& synonyms))
+START_SECTION(void setSynonyms(const std::set<std::string>& synonyms))
   DigestionEnzymeProtein copy(*e_ptr);
-  set<String> syn;
+  set<std::string> syn;
   syn.insert("BLI");
   syn.insert("BLA");
   e_ptr->setSynonyms(syn);
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(void addSynonym(const String& synonym))
+START_SECTION(void addSynonym(const std::string& synonym))
   DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->addSynonym("Tryp");
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(const std::set<String>& getSynonyms() const)
+START_SECTION(const std::set<std::string>& getSynonyms() const)
   TEST_EQUAL(e_ptr->getSynonyms().size(), 3)
 END_SECTION
 
-START_SECTION(void setRegEx(const String& cleavage_regex))
+START_SECTION(void setRegEx(const std::string& cleavage_regex))
   DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setRegEx(RKP);
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(const String& getRegEx() const)
+START_SECTION(const std::string& getRegEx() const)
   TEST_EQUAL(e_ptr->getRegEx(), RKP)
 END_SECTION
 
-START_SECTION(void setRegExDescription(String value))
+START_SECTION(void setRegExDescription(std::string value))
   DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setRegExDescription("cutting after R K unless followed by P");
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(String getRegExDescription() const)
+START_SECTION(std::string getRegExDescription() const)
   TEST_EQUAL(e_ptr->getRegExDescription(), "cutting after R K unless followed by P")
 END_SECTION
 
@@ -145,23 +145,23 @@ START_SECTION(EmpiricalFormula getCTermGain() const)
   TEST_EQUAL(e_ptr->getCTermGain(), EmpiricalFormula("OH2"))
 END_SECTION
 
-START_SECTION(void setPSIID(String value))
+START_SECTION(void setPSIID(std::string value))
   DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setPSIID("MS:000");
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(String getPSIID() const)
+START_SECTION(std::string getPSIID() const)
 	TEST_EQUAL(e_ptr->getPSIID(), "MS:000")
 END_SECTION
 
-START_SECTION(void setXTandemID(String value))
+START_SECTION(void setXTandemID(std::string value))
   DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setXTandemID("[]|[]");
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(String getXTandemID() const)
+START_SECTION(std::string getXTandemID() const)
   TEST_EQUAL(e_ptr->getXTandemID(), "[]|[]")
 END_SECTION
 
@@ -189,7 +189,7 @@ START_SECTION(bool operator==(const DigestionEnzymeProtein& enzyme) const)
 
   r = *e_ptr;
   TEST_EQUAL(r == *e_ptr, true)
-  set<String> syns;
+  set<std::string> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);
   TEST_EQUAL(r == *e_ptr, false)
@@ -234,7 +234,7 @@ START_SECTION(bool operator!=(const DigestionEnzymeProtein& enzyme) const)
 
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
-  set<String> syns;
+  set<std::string> syns;
   syns.insert("new_syn");
   r.setSynonyms(syns);
   TEST_EQUAL(r != *e_ptr, true)
@@ -265,11 +265,11 @@ START_SECTION(bool operator!=(const DigestionEnzymeProtein& enzyme) const)
   TEST_EQUAL(r != *e_ptr, true)
 END_SECTION
 
-START_SECTION(bool operator==(String cleavage_regex) const)
+START_SECTION(bool operator==(std::string cleavage_regex) const)
   TEST_EQUAL(*e_ptr == RKP, true)
 END_SECTION
 
-START_SECTION(bool operator!=(String cleavage_regex) const)
+START_SECTION(bool operator!=(std::string cleavage_regex) const)
   TEST_EQUAL(*e_ptr != "?<=[P]", true)
 END_SECTION
 

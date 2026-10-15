@@ -90,7 +90,7 @@ public:
       std::vector<Size> indices;
       for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
       {
-        if (positions.find(it->getMZ()) != positions.end())
+        if (positions.contains(it->getMZ()))
         {
           Size index(it - spectrum.begin());
           indices.push_back(index);

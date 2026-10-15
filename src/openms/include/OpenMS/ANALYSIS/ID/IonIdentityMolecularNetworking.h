@@ -88,6 +88,6 @@ namespace OpenMS
         @param[in] consensus_map Annotated consensus map (call @ref annotateConsensusMap first).
         @param[in] output_file   Destination CSV path (overwritten if it exists).
       */
-      static void writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file);
+      static void writeSupplementaryPairTable(const ConsensusMap& consensus_map, const std::string& output_file);
   };
 } // closing namespace OpenMS

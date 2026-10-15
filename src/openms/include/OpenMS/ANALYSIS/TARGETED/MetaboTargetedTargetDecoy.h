@@ -31,9 +31,9 @@ namespace OpenMS
     {
     public:
 
-      String identifier; ///> unique identifier (e.g. m_id)
-      String target_compound_ref; ///> identifier which allows to reference back to the target (e.g. target_transitions_id)
-      String decoy_compound_ref; ///> identifier which allows to reference back to the decoy (e.g. decoy_transitions_id)
+      std::string identifier; ///> unique identifier (e.g. m_id)
+      std::string target_compound_ref; ///> identifier which allows to reference back to the target (e.g. target_transitions_id)
+      std::string decoy_compound_ref; ///> identifier which allows to reference back to the decoy (e.g. decoy_transitions_id)
       std::vector<double> target_product_masses; ///> masses of target transitions
       std::vector<double> decoy_product_masses; ///> masses of decoy transitions
     };
@@ -55,7 +55,7 @@ namespace OpenMS
     @param[in] mz_tol m/z tolerarance for target and decoy transition masses to be considered overlapping
     @param[in] mz_tol_unit m/z tolerance unit ("ppm" or "Da")
     */
-    static void resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const String& mz_tol_unit);
+    static void resolveOverlappingTargetDecoyMassesByDecoyMassShift(TargetedExperiment& t_exp, std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping>& mappings, const double& mass_to_add, const double& mz_tol, const std::string& mz_tol_unit);
 
     /**
     @brief Generate a decoy for targets where fragmentation tree re-rooting was not possible, by adding a specifiable mass to the target fragments.
@@ -73,7 +73,7 @@ namespace OpenMS
 
     @param[in] t_exp TransitionExperiment holds compound and transition information
     */
-    static std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > constructTransitionsMap_(const TargetedExperiment& t_exp);
+    static std::map<std::string, std::vector<OpenMS::ReactionMonitoringTransition> > constructTransitionsMap_(const TargetedExperiment& t_exp);
   };
 
 } // namespace OpenMS

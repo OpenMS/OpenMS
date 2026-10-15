@@ -238,7 +238,7 @@ namespace OpenMS
     void setMSmallMoleculeEvidenceSectionRows(const MzTabMSmallMoleculeEvidenceSectionRows& m_smesd);
 
     /// Set comment rows
-    void setCommentRows(const std::map<Size, String>& com);
+    void setCommentRows(const std::map<Size, std::string>& com);
 
     /// Set empty rows
     void setEmptyRows(const std::vector<Size>& empty);
@@ -247,20 +247,20 @@ namespace OpenMS
     const std::vector<Size>& getEmptyRows() const;
 
     /// Get comment rows
-    const std::map<Size, String>& getCommentRows() const;
+    const std::map<Size, std::string>& getCommentRows() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getMSmallMoleculeOptionalColumnNames() const;
+    std::vector<std::string> getMSmallMoleculeOptionalColumnNames() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getMSmallMoleculeFeatureOptionalColumnNames() const;
+    std::vector<std::string> getMSmallMoleculeFeatureOptionalColumnNames() const;
 
     /// Extract opt_ (custom, optional column names)
-    std::vector<String> getMSmallMoleculeEvidenceOptionalColumnNames() const;
+    std::vector<std::string> getMSmallMoleculeEvidenceOptionalColumnNames() const;
 
-    static void addMetaInfoToOptionalColumns(const std::set<String>& keys,
+    static void addMetaInfoToOptionalColumns(const std::set<std::string>& keys,
                                              std::vector<MzTabOptionalColumnEntry>& opt,
-                                             const String& id, const MetaInfoInterface& meta);
+                                             const std::string& id, const MetaInfoInterface& meta);
 
   /**
   * @brief Export FeatureMap with Identifications to MzTabM
@@ -275,17 +275,17 @@ namespace OpenMS
     MzTabMSmallMoleculeFeatureSectionRows m_small_molecule_feature_data_;
     MzTabMSmallMoleculeEvidenceSectionRows m_small_molecule_evidence_data_;
     std::vector<Size> empty_rows_; ///< index of empty rows
-    std::map<Size, String> comment_rows_; ///< comments
-    std::vector<String> sml_optional_column_names_;
-    std::vector<String> smf_optional_column_names_;
-    std::vector<String> sme_optional_column_names_;
+    std::map<Size, std::string> comment_rows_; ///< comments
+    std::vector<std::string> sml_optional_column_names_;
+    std::vector<std::string> smf_optional_column_names_;
+    std::vector<std::string> sme_optional_column_names_;
 
-    static String getAdductString_(const IdentificationDataInternal::ObservationMatchRef& match_ref);
+    static std::string getAdductString_(const IdentificationDataInternal::ObservationMatchRef& match_ref);
 
     static void getFeatureMapMetaValues_(const FeatureMap& feature_map,
-                                         std::set<String>& feature_user_value_keys,
-                                         std::set<String>& observationmatch_user_value_keys,
-                                         std::set<String>& compound_user_value_keys);
+                                         std::set<std::string>& feature_user_value_keys,
+                                         std::set<std::string>& observationmatch_user_value_keys,
+                                         std::set<std::string>& compound_user_value_keys);
 
   };
 } // namespace OpenMS

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -17,6 +18,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <vector>
 
 using namespace std;
@@ -29,7 +31,10 @@ namespace OpenMS
     IdentificationData& id_data, const vector<ProteinIdentification>& proteins,
     const PeptideIdentificationList& peptides)
   {
-    map<String, ID::ProcessingStepRef> id_to_step;
+    // every peptide identification needs its protein identification run (the processing step it is assigned to)
+    ProteinRunReferences::check(proteins, peptides);
+
+    map<std::string, ID::ProcessingStepRef> id_to_step;
     ProgressLogger progresslogger;
     progresslogger.setLogType(ProgressLogger::CMD);
 
@@ -67,10 +72,10 @@ namespace OpenMS
 
       ID::ProcessingStep step(software_ref);
       // ideally, this should give us the raw files:
-      vector<String> primary_files;
+      vector<std::string> primary_files;
       prot.getPrimaryMSRunPath(primary_files, true);
       // ... and this should give us mzML files:
-      vector<String> spectrum_files;
+      vector<std::string> spectrum_files;
       prot.getPrimaryMSRunPath(spectrum_files);
       // if there's the same number of each, hope they're in the same order:
       bool match_files = (primary_files.size() == spectrum_files.size());
@@ -95,8 +100,8 @@ namespace OpenMS
 
       ProgressLogger sublogger;
       sublogger.setLogType(ProgressLogger::CMD);
-      String run_label = "(run " + String(proteins_counter) + "/" +
-        String(proteins.size()) + ")";
+      std::string run_label = "(run " + StringUtils::toStr(proteins_counter) + "/" +
+        StringUtils::toStr(proteins.size()) + ")";
 
       // ProteinHit:
       sublogger.startProgress(0, prot.getHits().size(),
@@ -142,7 +147,7 @@ namespace OpenMS
           sublogger.setProgress(groups_counter);
           ID::ParentGroup new_group;
           new_group.scores[score_ref] = group.probability;
-          for (const String& acc : group.accessions)
+          for (const std::string& acc : group.accessions)
           {
             // note: protein referenced from indistinguishable group was already registered
             ID::ParentSequenceRef ref = id_data.getParentSequences().find(acc);
@@ -173,7 +178,7 @@ namespace OpenMS
           sublogger.setProgress(groups_counter);
           ID::ParentGroup new_group;
           new_group.scores[score_ref] = group.probability;
-          for (const String& acc : group.accessions)
+          for (const std::string& acc : group.accessions)
           {
             // note: protein referenced from general protein group was already registered
             ID::ParentSequenceRef ref = id_data.getParentSequences().find(acc);
@@ -199,12 +204,16 @@ namespace OpenMS
     {
       peptides_counter++;
       progresslogger.setProgress(peptides_counter);
-      const String& id = pep.getIdentifier();
+      const std::string& id = pep.getIdentifier();
       ID::ProcessingStepRef step_ref = id_to_step.at(id);
       ID::InputFileRef inputfile;
-      if (!pep.getBaseName().empty())
+      // Legacy fallback: older data may annotate the source file directly on the
+      // PeptideIdentification via the (deprecated) "base_name" meta value.
+      const std::string legacy_base_name = pep.metaValueExists(Constants::UserParam::BASE_NAME) ?
+        StringUtils::toStr(pep.getMetaValue(Constants::UserParam::BASE_NAME)) : std::string();
+      if (!legacy_base_name.empty())
       {
-        inputfile = id_data.registerInputFile(ID::InputFile(pep.getBaseName()));
+        inputfile = id_data.registerInputFile(ID::InputFile(legacy_base_name));
       }
       else
       {
@@ -222,7 +231,7 @@ namespace OpenMS
                   __FILE__,
                   __LINE__,
                   OPENMS_PRETTY_FUNCTION,
-                  String("Multiple file origins in ProteinIdentification Run but no '") + Constants::UserParam::ID_MERGE_INDEX + String("' metavalue in PeptideIdentification.")
+                  std::string("Multiple file origins in ProteinIdentification Run but no '") + Constants::UserParam::ID_MERGE_INDEX + std::string("' metavalue in PeptideIdentification.")
                   );
             }
           }
@@ -236,7 +245,7 @@ namespace OpenMS
           inputfile = id_data.registerInputFile(ID::InputFile("UNKNOWN_INPUT_FILE_" + id));
         }
       }
-      String data_id; // an identifier unique to the input file
+      std::string data_id; // an identifier unique to the input file
       if (pep.metaValueExists("spectrum_reference"))
       {  // use spectrum native id if present
         data_id = pep.getSpectrumReference();
@@ -245,12 +254,12 @@ namespace OpenMS
       {
         if (pep.hasRT() && pep.hasMZ())
         {
-          data_id = String("RT=") + String(float(pep.getRT())) + "_MZ=" +
-            String(float(pep.getMZ()));
+          data_id ="RT=" + StringUtils::toStr(float(pep.getRT())) + "_MZ=" +
+            StringUtils::toStr(float(pep.getMZ()));
         }
         else
         {
-          data_id = "UNKNOWN_OBSERVATION_" + String(unknown_obs_counter);
+          data_id = "UNKNOWN_OBSERVATION_" + StringUtils::toStr(unknown_obs_counter);
           ++unknown_obs_counter;
         }
       }
@@ -279,7 +288,7 @@ namespace OpenMS
         peptide.addProcessingStep(step_ref);
         for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
         {
-          const String& accession = evidence.getProteinAccession();
+          const std::string& accession = evidence.getProteinAccession();
 
           if (accession.empty()) continue;
 
@@ -291,8 +300,8 @@ namespace OpenMS
             id_data.registerParentSequence(parent);
 
           ID::ParentMatch parent_match(evidence.getStart(), evidence.getEnd(),
-                                       evidence.getAABefore(),
-                                       evidence.getAAAfter());
+                                       std::string(1, evidence.getAABefore()),
+                                       std::string(1, evidence.getAAAfter()));
           peptide.parent_matches[parent_ref].insert(parent_match);
         }
         ID::IdentifiedPeptideRef peptide_ref =
@@ -322,7 +331,7 @@ namespace OpenMS
             id_data.registerScoreType(main_score);
           software.assigned_scores.push_back(main_score_ref);
           sub_applied.scores[main_score_ref] = ana_res.main_score;
-          for (const pair<const String, double>& sub_pair : ana_res.sub_scores)
+          for (const pair<const std::string, double>& sub_pair : ana_res.sub_scores)
           {
             ID::ScoreType sub_score;
             sub_score.cv_term.setName(sub_pair.first);
@@ -368,7 +377,7 @@ namespace OpenMS
     // score type is stored in "PeptideIdent.", not "PeptideHit":
 
     map<pair<ID::ObservationRef, std::optional<ID::ProcessingStepRef>>,
-        pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;
+        pair<vector<pair<PeptideHit, const ID::ObservationMatch*>>, ID::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
 
@@ -437,7 +446,7 @@ namespace OpenMS
         }
         auto key = make_pair(input_match.observation_ref,
                              applied.processing_step_opt);
-        psm_data[key].first.push_back(hit_copy);
+        psm_data[key].first.emplace_back(hit_copy, &input_match);
         psm_data[key].second = scores[0].first; // primary score type
       }
     }
@@ -454,13 +463,25 @@ namespace OpenMS
       if (obs.rt == obs.rt) peptide.setRT(obs.rt);
       if (obs.mz == obs.mz) peptide.setMZ(obs.mz);
       peptide.setSpectrumReference( obs.data_id);
-      peptide.setHits(obsref_stepopt2vechits_scoretype.second.first);
       const ID::ScoreType& score_type = *obsref_stepopt2vechits_scoretype.second.second;
+      auto ordered_hits = obsref_stepopt2vechits_scoretype.second.first;
+      std::stable_sort(ordered_hits.begin(), ordered_hits.end(), [&](const auto& left, const auto& right)
+      {
+        if (left.first.getScore() != right.first.getScore())
+        {
+          return score_type.isBetterScore(left.first.getScore(), right.first.getScore());
+        }
+        return ID::observationMatchLess(*left.second, *right.second);
+      });
+      for (const auto& ordered : ordered_hits)
+      {
+        peptide.insertHit(ordered.first);
+      }
       peptide.setScoreType(score_type.cv_term.getName());
       peptide.setHigherScoreBetter(score_type.higher_better);
       if (obsref_stepopt2vechits_scoretype.first.second) // processing step given
       {
-        peptide.setIdentifier(String(Size(&(**obsref_stepopt2vechits_scoretype.first.second))));
+        peptide.setIdentifier(StringUtils::toStr(Size(&(**obsref_stepopt2vechits_scoretype.first.second))));
       }
       else
       {
@@ -497,7 +518,7 @@ namespace OpenMS
       // generate hits in different ID runs for different processing steps:
       for (const ID::AppliedProcessingStep& applied : parent.steps_and_scores)
       {
-        if (applied.scores.empty() && !steps.count(applied.processing_step_opt))
+        if (applied.scores.empty() && !steps.contains(applied.processing_step_opt))
         {
           continue; // no scores and no associated peptides -> skip
         }
@@ -544,7 +565,7 @@ namespace OpenMS
       else
       {
         ID::ProcessingStepRef step_ref = *step_ref_opt;
-        protein.setIdentifier(String(Size(&(*step_ref))));
+        protein.setIdentifier(StringUtils::toStr(Size(&(*step_ref))));
         protein.setDateTime(step_ref->date_time);
         exportMSRunInformation_(step_ref, protein);
         const Software& software = *step_ref->software_ref;
@@ -609,8 +630,8 @@ namespace OpenMS
   }
 
 
-  MzTab IdentificationDataConverter::exportMzTab(const IdentificationData&
-                                                 id_data)
+  MzTab IdentificationDataConverter::exportMzTab(const IdentificationData& id_data,
+    const set<std::string>& observation_meta_keys, const set<std::string>& match_meta_keys)
   {
     MzTabMetaData meta;
     Size counter = 1;
@@ -633,7 +654,7 @@ namespace OpenMS
       file_map[it] = counter;
       ++counter;
     }
-    set<String> fixed_mods, variable_mods;
+    set<std::string> fixed_mods, variable_mods;
     for (const auto& search_param : id_data.getDBSearchParams())
     {
       fixed_mods.insert(search_param.fixed_mods.begin(),
@@ -642,7 +663,7 @@ namespace OpenMS
                            search_param.variable_mods.end());
     }
     counter = 1;
-    for (const String& mod : fixed_mods)
+    for (const std::string& mod : fixed_mods)
     {
       MzTabModificationMetaData mod_meta;
       mod_meta.modification.setName(mod);
@@ -650,7 +671,7 @@ namespace OpenMS
       ++counter;
     }
     counter = 1;
-    for (const String& mod : variable_mods)
+    for (const std::string& mod : variable_mods)
     {
       MzTabModificationMetaData mod_meta;
       mod_meta.modification.setName(mod);
@@ -702,7 +723,7 @@ namespace OpenMS
         const AASequence& seq = molecule_var.getIdentifiedPeptideRef()->sequence;
         double calc_mass = seq.getMonoWeight(Residue::Full, obs_match.charge);
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
-                                       psms, psm_scores, file_map);
+                                       psms, psm_scores, file_map, observation_meta_keys, match_meta_keys);
         // "PSM_ID" field is set at the end, after sorting
       }
       else if (molecule_type == ID::MoleculeType::RNA)
@@ -710,8 +731,12 @@ namespace OpenMS
         const NASequence& seq = molecule_var.getIdentifiedOligoRef()->sequence;
         double calc_mass = seq.getMonoWeight(NASequence::Full,
                                              obs_match.charge);
+        if (obs_match.adduct_opt)
+        {
+          calc_mass += (*obs_match.adduct_opt)->getMassShift();
+        }
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
-                                       osms, osm_scores, file_map);
+                                       osms, osm_scores, file_map, observation_meta_keys, match_meta_keys);
       }
     }
 
@@ -758,14 +783,14 @@ namespace OpenMS
 
   void IdentificationDataConverter::importSequences(
     IdentificationData& id_data, const vector<FASTAFile::FASTAEntry>& fasta,
-    ID::MoleculeType type, const String& decoy_pattern)
+    ID::MoleculeType type, const std::string& decoy_pattern)
   {
     for (const FASTAFile::FASTAEntry& entry : fasta)
     {
       ID::ParentSequence parent(entry.identifier, type, entry.sequence,
                                 entry.description);
       if (!decoy_pattern.empty() &&
-          entry.identifier.hasSubstring(decoy_pattern))
+          StringUtils::hasSubstring(entry.identifier, decoy_pattern))
       {
         parent.is_decoy = true;
       }
@@ -818,7 +843,7 @@ namespace OpenMS
         ID::ProcessingSoftwareRef sw_ref =
           (*applied.processing_step_opt)->software_ref;
         // mention each search engine only once:
-        if (!sw_refs.count(sw_ref))
+        if (!sw_refs.contains(sw_ref))
         {
           MzTabParameter param;
           param.setName(sw_ref->getName());
@@ -837,7 +862,7 @@ namespace OpenMS
       for (const pair<ID::ScoreTypeRef, double>& score_pair :
              applied.getScoresInOrder())
       {
-        if (!score_map.count(score_pair.first)) // new score type
+        if (!score_map.contains(score_pair.first)) // new score type
         {
           score_map.insert(make_pair(score_pair.first, score_map.size() + 1));
         }
@@ -868,21 +893,21 @@ namespace OpenMS
   void IdentificationDataConverter::addMzTabMoleculeParentContext_(
     const ID::ParentMatch& match, MzTabOligonucleotideSectionRow& row)
   {
-    if (match.left_neighbor == String(ID::ParentMatch::LEFT_TERMINUS))
+    if (match.left_neighbor ==StringUtils::toStr(ID::ParentMatch::LEFT_TERMINUS))
     {
       row.pre.set("-");
     }
     else if (match.left_neighbor !=
-             String(ID::ParentMatch::UNKNOWN_NEIGHBOR))
+             StringUtils::toStr(ID::ParentMatch::UNKNOWN_NEIGHBOR))
     {
       row.pre.set(match.left_neighbor);
     }
-    if (match.right_neighbor == String(ID::ParentMatch::RIGHT_TERMINUS))
+    if (match.right_neighbor ==StringUtils::toStr(ID::ParentMatch::RIGHT_TERMINUS))
     {
       row.post.set("-");
     }
     else if (match.right_neighbor !=
-             String(ID::ParentMatch::UNKNOWN_NEIGHBOR))
+             StringUtils::toStr(ID::ParentMatch::UNKNOWN_NEIGHBOR))
     {
       row.post.set(match.right_neighbor);
     }
@@ -929,7 +954,7 @@ namespace OpenMS
     dbsp.fragment_mass_tolerance = pisp.fragment_mass_tolerance;
     dbsp.precursor_tolerance_ppm = pisp.precursor_mass_tolerance_ppm;
     dbsp.fragment_tolerance_ppm = pisp.fragment_mass_tolerance_ppm;
-    const String& enzyme_name = pisp.digestion_enzyme.getName();
+    const std::string& enzyme_name = pisp.digestion_enzyme.getName();
     if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
     {
       dbsp.digestion_enzyme = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
@@ -986,7 +1011,7 @@ namespace OpenMS
     {
       // @TODO: check if files are mzMLs?
       protein.addPrimaryMSRunPath(input_ref->name);
-      for (const String& primary_file : input_ref->primary_files)
+      for (const std::string& primary_file : input_ref->primary_files)
       {
         protein.addPrimaryMSRunPath(primary_file, true);
       }
@@ -997,6 +1022,9 @@ namespace OpenMS
   void IdentificationDataConverter::importFeatureIDs(FeatureMap& features,
                                                      bool clear_original)
   {
+    // check before the features are modified
+    ProteinRunReferences::check(features);
+
     // collect all peptide IDs:
     PeptideIdentificationList peptides = features.getUnassignedPeptideIdentifications();
     // get peptide IDs from each feature and its subordinates, add meta values:
@@ -1013,11 +1041,11 @@ namespace OpenMS
     for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
          ref != id_data.getObservationMatches().end(); ++ref)
     {
-      vector<String> meta_keys;
+      vector<std::string> meta_keys;
       ref->getKeys(meta_keys);
-      for (const String& key : meta_keys)
+      for (const std::string& key : meta_keys)
       {
-        if (key.hasPrefix("IDConverter_trace_"))
+        if (StringUtils::hasPrefix(key, "IDConverter_trace_"))
         {
           IntList indexes = ref->getMetaValue(key);
           Feature* feat_ptr = &features.at(indexes[0]);
@@ -1047,7 +1075,7 @@ namespace OpenMS
       peptides.push_back(pep);
       // store trace of feature indexes so we can map the converted ID back;
       // key needs to be unique in case the same ID matches multiple features:
-      String key = "IDConverter_trace_" + String(id_counter);
+      std::string key = "IDConverter_trace_" + StringUtils::toStr(id_counter);
       for (PeptideHit& hit : peptides.back().getHits())
       {
         hit.setMetaValue(key, indexes);
@@ -1099,14 +1127,14 @@ namespace OpenMS
       for (Size j = 0; j < all_hits.size(); ++j)
       {
         PeptideHit& hit = all_hits[j];
-        vector<String> meta_keys;
+        vector<std::string> meta_keys;
         hit.getKeys(meta_keys);
-        for (const String& key : meta_keys)
+        for (const std::string& key : meta_keys)
         { // ID-data stores a trace (path through the feature-subfeature hierarchy) which is used
           // for a lookup to attach the converted IDs back to the specific feature.
-          if (key.hasPrefix("IDConverter_trace_"))
+          if (StringUtils::hasPrefix(key, "IDConverter_trace_"))
           {
-            IntList indexes = hit.getMetaValue(key);
+            IntList indexes = hit.getMetaValue(key).toIntList();
             hit.removeMetaValue(key);
             Feature* feat_ptr = &features.at(indexes[0]);
             for (Size k = 1; k < indexes.size(); ++k)
@@ -1168,7 +1196,7 @@ namespace OpenMS
       // so we can export it:
       ID::InputFile file("ConvertedFromFeature");
       ID::InputFileRef file_ref = id_data.registerInputFile(file);
-      ID::Observation obs(String(feature.getUniqueId()), file_ref,
+      ID::Observation obs(StringUtils::toStr(feature.getUniqueId()), file_ref,
                           feature.getRT(), feature.getMZ());
       ID::ObservationRef obs_ref = id_data.registerObservation(obs);
       ID::ObservationMatch match(feature.getPrimaryID(), obs_ref,
@@ -1180,7 +1208,7 @@ namespace OpenMS
     {
       // store trace of feature indexes so we can map the converted ID back;
       // key needs to be unique in case the same ID matches multiple features:
-      String key = "IDConverter_trace_" + String(id_counter);
+      std::string key = "IDConverter_trace_" + StringUtils::toStr(id_counter);
       id_data.setMetaValue(ref, key, indexes);
       ++id_counter;
     }
@@ -1202,6 +1230,9 @@ namespace OpenMS
     // and 'peptides_' (features) to 'id_data_' (consensus map) and 'primary_id_'/'id_matches_' (features);
     // use meta values to temporarily store which features IDs are assigned to
 
+    // check before the consensus features are modified
+    ProteinRunReferences::check(consensus);
+
     // collect all peptide IDs:
     PeptideIdentificationList peptides = consensus.getUnassignedPeptideIdentifications();
     // get peptide IDs from each consensus feature, add meta values:
@@ -1214,7 +1245,7 @@ namespace OpenMS
         peptides.push_back(pep);
         // store feature index so we can map the converted ID back;
         // key needs to be unique in case the same ID matches multiple features:
-        String key = "IDConverter_trace_" + String(id_counter);
+        std::string key = "IDConverter_trace_" + StringUtils::toStr(id_counter);
         for (PeptideHit& hit : peptides.back().getHits())
         {
           hit.setMetaValue(key, i);
@@ -1231,11 +1262,11 @@ namespace OpenMS
     for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
          ref != id_data.getObservationMatches().end(); ++ref)
     {
-      vector<String> meta_keys;
+      vector<std::string> meta_keys;
       ref->getKeys(meta_keys);
-      for (const String& key : meta_keys)
+      for (const std::string& key : meta_keys)
       {
-        if (key.hasPrefix("IDConverter_trace_"))
+        if (StringUtils::hasPrefix(key, "IDConverter_trace_"))
         {
           Size index = ref->getMetaValue(key);
           ConsensusFeature& feat = consensus.at(index);
@@ -1274,7 +1305,7 @@ namespace OpenMS
         // so we can export it:
         ID::InputFile file("ConvertedFromFeature");
         ID::InputFileRef file_ref = id_data.registerInputFile(file);
-        ID::Observation obs(String(feature.getUniqueId()), file_ref,
+        ID::Observation obs(StringUtils::toStr(feature.getUniqueId()), file_ref,
                             feature.getRT(), feature.getMZ());
         ID::ObservationRef obs_ref = id_data.registerObservation(obs);
         ID::ObservationMatch match(feature.getPrimaryID(), obs_ref,
@@ -1286,7 +1317,7 @@ namespace OpenMS
       {
         // store trace of feature indexes so we can map the converted ID back;
         // key needs to be unique in case the same ID matches multiple features:
-        String key = "IDConverter_trace_" + String(id_counter);
+        std::string key = "IDConverter_trace_" + StringUtils::toStr(id_counter);
         id_data.setMetaValue(ref, key, i);
         ++id_counter;
       }
@@ -1313,14 +1344,14 @@ namespace OpenMS
       for (Size j = 0; j < all_hits.size(); ++j)
       {
         PeptideHit& hit = all_hits[j];
-        vector<String> meta_keys;
+        vector<std::string> meta_keys;
         hit.getKeys(meta_keys);
-        for (const String& key : meta_keys)
+        for (const std::string& key : meta_keys)
         { // ID-data stores a trace (feature index) which is used for a lookup
           // to attach the converted IDs back to the specific feature.
-          if (key.hasPrefix("IDConverter_trace_"))
+          if (StringUtils::hasPrefix(key, "IDConverter_trace_"))
           {
-            Size index = hit.getMetaValue(key);
+            Size index = (Size)hit.getMetaValue(key);
             hit.removeMetaValue(key);
             ConsensusFeature* feat_ptr = &consensus.at(index);
             features_to_hits[feat_ptr].insert(j);

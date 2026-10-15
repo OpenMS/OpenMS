@@ -17,7 +17,7 @@
 namespace OpenMS
 {
 
-  String writeXMLEscape(const String& to_escape)
+  std::string writeXMLEscape(const std::string& to_escape)
   {
     return Internal::XMLHandler::writeXMLEscape(to_escape);
   }
@@ -27,7 +27,7 @@ namespace OpenMS
   {
   }
 
-  void ParamXMLFile::store(const String& filename, const Param& param) const
+  void ParamXMLFile::store(const std::string& filename, const Param& param) const
   {
     //open file
     std::ofstream os_;
@@ -65,7 +65,7 @@ namespace OpenMS
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
-    String indentation = "  ";
+    std::string indentation = "  ";
     Param::ParamIterator it = param.begin();
     while (it != param.end())
     {
@@ -75,11 +75,11 @@ namespace OpenMS
       {
         if (it2.opened) //opened node
         {
-          String d = it2.description;
-          //d.substitute('"','\'');
-          d.substitute("\n", "#br#");
-          //d.substitute("<","&lt;");
-          //d.substitute(">","&gt;");
+          std::string d = it2.description;
+          //StringUtils::substitute(d, '"','\'');
+          StringUtils::substitute(d, "\n", "#br#");
+          //StringUtils::substitute(d, "<","&lt;");
+          //StringUtils::substitute(d, ">","&gt;");
           os << indentation  << "<NODE name=\"" << writeXMLEscape(it2.name) << "\" description=\"" << writeXMLEscape(d) << "\">" << "\n";
           indentation += "  ";
         }
@@ -111,17 +111,17 @@ namespace OpenMS
           break;
 
         case ParamValue::STRING_VALUE:
-          if (tag_list.find("input file") != tag_list.end())
+          if (tag_list.contains("input file"))
           {
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="input-file")";
             tag_list.erase("input file");
           }
-          else if (tag_list.find("output file") != tag_list.end())
+          else if (tag_list.contains("output file"))
           {
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="output-file")";
             tag_list.erase("output file");
           }
-          else if (tag_list.find("output prefix") != tag_list.end())
+          else if (tag_list.contains("output prefix"))
           {
             os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << R"(" type="output-prefix")";
             tag_list.erase("output prefix");
@@ -141,12 +141,12 @@ namespace OpenMS
           break;
 
         case ParamValue::STRING_LIST:
-          if (tag_list.find("input file") != tag_list.end())
+          if (tag_list.contains("input file"))
           {
             os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="input-file")";
             tag_list.erase("input file");
           }
-          else if (tag_list.find("output file") != tag_list.end())
+          else if (tag_list.contains("output file"))
           {
             os << indentation << "<ITEMLIST name=\"" << writeXMLEscape(it->name) << R"(" type="output-file")";
             tag_list.erase("output file");
@@ -170,15 +170,15 @@ namespace OpenMS
         }
 
         //replace all critical characters in description
-        String d = it->description;
-        //d.substitute("\"","'");
-        d.substitute("\n", "#br#");
-        //d.substitute("<","&lt;");
-        //d.substitute(">","&gt;");
+        std::string d = it->description;
+        //StringUtils::substitute(d, "\"","'");
+        StringUtils::substitute(d, "\n", "#br#");
+        //StringUtils::substitute(d, "<","&lt;");
+        //StringUtils::substitute(d, ">","&gt;");
         os << " description=\"" << writeXMLEscape(d) << "\"";
 
         // required
-        if (tag_list.find("required") != tag_list.end())
+        if (tag_list.contains("required"))
         {
           os << " required=\"true\"";
           tag_list.erase("required");
@@ -189,7 +189,7 @@ namespace OpenMS
         }
 
         // advanced
-        if (tag_list.find("advanced") != tag_list.end())
+        if (tag_list.contains("advanced"))
         {
           os << " advanced=\"true\"";
           tag_list.erase("advanced");
@@ -202,7 +202,7 @@ namespace OpenMS
         // tags
         if (!tag_list.empty())
         {
-          String list;
+          std::string list;
           for (std::set<std::string>::const_iterator tag_it = tag_list.begin(); tag_it != tag_list.end(); ++tag_it)
           {
             if (!list.empty())
@@ -216,7 +216,7 @@ namespace OpenMS
         // for boolean Flags they are implicitly given
         if (!stringParamIsFlag)
         {
-          String restrictions = "";
+          std::string restrictions;
           switch (value_type)
           {
             case ParamValue::INT_VALUE:
@@ -228,12 +228,12 @@ namespace OpenMS
               {
                 if (min_set)
                 {
-                  restrictions += String(it->min_int);
+                  restrictions +=StringUtils::toStr(it->min_int);
                 }
                 restrictions += ':';
                 if (max_set)
                 {
-                  restrictions += String(it->max_int);
+                  restrictions +=StringUtils::toStr(it->max_int);
                 }
               }
             }
@@ -248,12 +248,12 @@ namespace OpenMS
               {
                 if (min_set)
                 {
-                  restrictions += String(it->min_float);
+                  restrictions +=StringUtils::toStr(it->min_float);
                 }
                 restrictions += ':';
                 if (max_set)
                 {
-                  restrictions += String(it->max_float);
+                  restrictions +=StringUtils::toStr(it->max_float);
                 }
               }
             }
@@ -263,7 +263,7 @@ namespace OpenMS
             case ParamValue::STRING_LIST:
               if (!it->valid_strings.empty())
               {
-                restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
+                restrictions = StringUtils::concatenate(it->valid_strings, ",");
               }
               break;
 
@@ -273,9 +273,9 @@ namespace OpenMS
           // for files we store the restrictions as supported_formats
           if (!restrictions.empty())
           {
-            if (it->tags.find("input file") != it->tags.end() 
-              || it->tags.find("output file") != it->tags.end()
-              || it->tags.find("output prefix") != it->tags.end())
+            if (it->tags.contains("input file") 
+              || it->tags.contains("output file")
+              || it->tags.contains("output prefix"))
             {
               os << " supported_formats=\"" << writeXMLEscape(restrictions) << "\"";
             }
@@ -354,7 +354,7 @@ namespace OpenMS
     os << "</PARAMETERS>" << std::endl; // forces a flush
   }
 
-  void ParamXMLFile::load(const String& filename, Param& param)
+  void ParamXMLFile::load(const std::string& filename, Param& param)
   {
     Internal::ParamXMLHandler handler(param, filename, schema_version_);
     parse_(filename, &handler);

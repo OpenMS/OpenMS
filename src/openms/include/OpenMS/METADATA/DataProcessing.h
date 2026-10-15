@@ -11,7 +11,7 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/Software.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 
 #include <set>
 #include <memory>

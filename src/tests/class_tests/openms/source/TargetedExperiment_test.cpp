@@ -208,13 +208,71 @@ START_SECTION((const std::vector<Protein>& getProteins() const ))
 }
 END_SECTION
 
-START_SECTION((bool hasProtein(const String & ref) const))
+START_SECTION((bool hasProtein(const std::string & ref) const))
 {
-  TargetedExperiment t; 
+  TargetedExperiment t;
   TargetedExperiment::Protein p;
   p.id = "myProtein";
   t.addProtein(p);
   TEST_EQUAL(t.hasProtein("myProtein"), true)
+}
+END_SECTION
+
+START_SECTION((const Protein& getProteinByRef(const std::string& ref) const))
+{
+  TargetedExperiment t;
+  TargetedExperiment::Protein p;
+  p.id = "myProtein";
+  t.addProtein(p);
+  TEST_EQUAL(t.getProteinByRef("myProtein").id, "myProtein")
+  // unknown ref must throw instead of inserting/dereferencing a null pointer (regression)
+  TEST_EXCEPTION(Exception::ElementNotFound, t.getProteinByRef("does_not_exist"))
+
+  // same fix applies to the peptide and compound accessors
+  TargetedExperiment::Peptide pep;
+  pep.id = "myPep";
+  t.addPeptide(pep);
+  TEST_EQUAL(t.getPeptideByRef("myPep").id, "myPep")
+  TEST_EXCEPTION(Exception::ElementNotFound, t.getPeptideByRef("does_not_exist"))
+
+  TargetedExperiment::Compound comp;
+  comp.id = "myComp";
+  t.addCompound(comp);
+  TEST_EQUAL(t.getCompoundByRef("myComp").id, "myComp")
+  TEST_EXCEPTION(Exception::ElementNotFound, t.getCompoundByRef("does_not_exist"))
+
+  // --- cache invalidation after mutation (regression) ---
+  // A by-ref lookup lazily builds an internal reference cache. Mutators must mark
+  // it dirty, and a rebuild must clear() stale pointers, otherwise a later lookup
+  // can return a dangling pointer into freed vector storage.
+  {
+    TargetedExperiment te2;
+    TargetedExperiment::Compound c1; c1.id = "c1";
+    te2.addCompound(c1);
+    TEST_EQUAL(te2.getCompoundByRef("c1").id, "c1") // builds the compound cache
+
+    // addCompound after a lookup must invalidate the cache, else "c2" is not found
+    TargetedExperiment::Compound c2; c2.id = "c2";
+    te2.addCompound(c2);
+    TEST_EQUAL(te2.getCompoundByRef("c2").id, "c2")
+
+    // setCompounds replacing the contents must drop the now-removed "c1" on rebuild
+    TargetedExperiment::Compound c3; c3.id = "c3";
+    std::vector<TargetedExperiment::Compound> only_c3(1, c3);
+    te2.setCompounds(only_c3);
+    TEST_EQUAL(te2.getCompoundByRef("c3").id, "c3")
+    TEST_EXCEPTION(Exception::ElementNotFound, te2.getCompoundByRef("c1"))
+
+    // proteins: rebuild after replacement must also drop stale entries (clear())
+    TargetedExperiment::Protein p1; p1.id = "p1";
+    te2.addProtein(p1);
+    TEST_EQUAL(te2.getProteinByRef("p1").id, "p1") // builds the protein cache
+    TargetedExperiment::Protein p2; p2.id = "p2";
+    std::vector<TargetedExperiment::Protein> only_p2(1, p2);
+    te2.setProteins(only_p2);
+    TEST_EQUAL(te2.getProteinByRef("p2").id, "p2")
+    TEST_EXCEPTION(Exception::ElementNotFound, te2.getProteinByRef("p1"))
+  }
 }
 END_SECTION
 
@@ -246,7 +304,7 @@ START_SECTION((const std::vector<Compound>& getCompounds() const ))
 }
 END_SECTION
 
-START_SECTION((bool hasCompound(const String & ref) const))
+START_SECTION((bool hasCompound(const std::string & ref) const))
 {
   TargetedExperiment t; 
   TargetedExperiment::Compound c;
@@ -294,7 +352,7 @@ START_SECTION((void addPeptide(const Peptide &rhs)))
 }
 END_SECTION
 
-START_SECTION((bool hasPeptide(const String & ref) const))
+START_SECTION((bool hasPeptide(const std::string & ref) const))
 {
   TargetedExperiment t; 
   TargetedExperiment::Peptide p;
@@ -457,7 +515,7 @@ START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment:
   peptide.mods.push_back(modification);
 
   OpenMS::AASequence aas = TargetedExperimentHelper::getAASequence(peptide);
-  OpenMS::String modified_sequence = "TES(Phospho)TPEPTIDE";
+  std::string modified_sequence = "TES(Phospho)TPEPTIDE";
   TEST_EQUAL(aas.toUnmodifiedString(),peptide.sequence)
   //TEST_EQUAL(aas.toString(),modified_sequence)
 
@@ -470,7 +528,7 @@ START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment:
   peptide2.mods.push_back(modification2);
 
   OpenMS::AASequence aas2 = TargetedExperimentHelper::getAASequence(peptide2);
-  OpenMS::String modified_sequence2 = "TESTPEPTIDER(Label:13C(6)15N(4))";
+  std::string modified_sequence2 = "TESTPEPTIDER(Label:13C(6)15N(4))";
   TEST_EQUAL(aas2.toUnmodifiedString(),peptide2.sequence)
 
   OpenMS::TargetedExperiment::Peptide peptide3;
@@ -482,7 +540,7 @@ START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment:
   peptide3.mods.push_back(modification3);
 
   OpenMS::AASequence aas3 = TargetedExperimentHelper::getAASequence(peptide3);
-  OpenMS::String modified_sequence3 = "TESTM(Oxidation)PEPTIDE";
+  std::string modified_sequence3 = "TESTM(Oxidation)PEPTIDE";
   TEST_EQUAL(aas3.toUnmodifiedString(),peptide3.sequence)
 }
 END_SECTION

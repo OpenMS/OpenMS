@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
@@ -17,9 +18,10 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <fstream>
@@ -38,7 +40,7 @@ namespace
 
   std::string joinProteinAccessions_(const std::vector<std::string>& accessions)
   {
-    OpenMS::String joined;
+    std::string joined;
     for (OpenMS::Size i = 0; i < accessions.size(); ++i)
     {
       if (i > 0) joined += ";";
@@ -71,7 +73,7 @@ namespace
     std::map<int, Size> transition_charge_counts_decoy;
   };
 
-  std::string jsonEscape_(const OpenMS::String& input)
+  std::string jsonEscape_(const std::string& input)
   {
     return OpenMS::ParquetFile::jsonEscape(input);
   }
@@ -104,7 +106,7 @@ namespace
     return oss.str();
   }
 
-  void writeLibraryMetadata_(const OpenMS::String& library_dir, const OpenMS::String& library_name, const OpenMSLibraryStats& stats)
+  void writeLibraryMetadata_(const std::string& library_dir, const std::string& library_name, const OpenMSLibraryStats& stats)
   {
     (void)library_name;
     const Size proteins_target = stats.proteins_total - stats.proteins_decoy;
@@ -113,7 +115,7 @@ namespace
     const Size compounds_target = stats.compounds_total - stats.compounds_decoy;
     const Size transitions_target = stats.transitions_total - stats.transitions_decoy;
 
-    const OpenMS::String metadata_path = library_dir + "/metadata.json";
+    const std::string metadata_path = library_dir + "/metadata.json";
     std::ofstream out(metadata_path.c_str(), std::ios::out | std::ios::trunc);
     if (!out.is_open())
     {
@@ -153,7 +155,6 @@ namespace
     double drift_time = -1.0;
     int charge = 0;
     bool decoy = false;
-    std::string traml_id;
     std::string modified_sequence;
     std::string unmodified_sequence;
     std::vector<std::string> protein_accessions;
@@ -200,19 +201,32 @@ namespace
 namespace OpenMS
 {
   void TransitionParquetFile::convertParquetToTargetedExperiment(
-    const String& oswpq_dir, OpenSwath::LightTargetedExperiment& targeted_exp) const
+    const std::string& oswpq_dir,
+    OpenSwath::LightTargetedExperiment& targeted_exp) const
+  {
+    convertParquetToTargetedExperiment(oswpq_dir, targeted_exp, nullptr);
+  }
+
+  void TransitionParquetFile::convertParquetToTargetedExperiment(
+    const std::string& oswpq_dir,
+    OpenSwath::LightTargetedExperiment& targeted_exp,
+    OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const
   {
     // Reset the output container to avoid appending to a caller-owned
     // object that may contain stale data from previous calls. The caller
     // expects this function to populate `targeted_exp` from the parquet
     // files, not to append to it.
     targeted_exp = OpenSwath::LightTargetedExperiment{};
-    std::unique_ptr<File::TempDir> temp_dir;
+    if (source_ids != nullptr)
+    {
+      *source_ids = OpenSwathLibraryIDNormalizer::SourceIDMapping{};
+    }
+    std::unique_ptr<TempDir> temp_dir;
 
     // Try to open parquet entries directly from the archive using a RandomAccessFile.
     // If that fails (e.g., compressed entry or libzip not available), fall back to
     // extracting the entry to a temporary file and reading from disk.
-    auto open_table_from_entry = [&](const String& entry) -> std::shared_ptr<arrow::Table>
+    auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
     {
       auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
       if (ra_res.ok())
@@ -221,7 +235,7 @@ namespace OpenMS
         return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
       }
       // Fallback to extract
-      const String path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
+      const std::string path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
       if (!File::exists(path))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -252,8 +266,8 @@ namespace OpenMS
     auto charge_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::CHARGE);
     auto library_rt_col = ParquetFile::getColumn(precursors_table, OSWPrecursorSchema::LIBRARY_RT);
     auto drift_time_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::LIBRARY_DRIFT_TIME);
-    auto traml_id_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::TRAML_ID);
     auto decoy_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::DECOY);
+    auto precursor_traml_id_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::TRAML_ID);
     auto modified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::MODIFIED_SEQUENCE);
     auto unmodified_sequence_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::UNMODIFIED_SEQUENCE);
     auto protein_accessions_col = ParquetFile::getOptionalColumn(precursors_table, OSWPrecursorSchema::PROTEIN_ACCESSIONS);
@@ -270,29 +284,54 @@ namespace OpenMS
       info.library_rt = ParquetFile::getDouble(library_rt_col, row, 0.0, true);
       info.drift_time = ParquetFile::getDouble(drift_time_col, row, -1.0, true);
       info.decoy = ParquetFile::getBool(decoy_col, row, false, true);
-      info.traml_id = ParquetFile::getString(traml_id_col, row);
       info.modified_sequence = ParquetFile::getString(modified_sequence_col, row);
       info.unmodified_sequence = ParquetFile::getString(unmodified_sequence_col, row);
       info.protein_accessions = ParquetFile::getStringList(protein_accessions_col, row);
 
-      precursor_map.emplace(precursor_id, std::move(info));
+      const auto [precursor_it, inserted] = precursor_map.emplace(precursor_id, std::move(info));
+      if (!inserted)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Duplicate precursor_id in OSWPQ precursor table",
+                                      StringUtils::toStr(precursor_id));
+      }
+
+      if (source_ids != nullptr)
+      {
+        const std::string source_id = ParquetFile::getString(precursor_traml_id_col, row);
+        if (!source_id.empty())
+        {
+          const std::string canonical_id = StringUtils::toStr(precursor_id);
+          const auto [mapping_it, mapping_inserted] = source_ids->precursor_source_to_canonical.emplace(source_id, canonical_id);
+          if (!mapping_inserted && mapping_it->second != canonical_id)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Ambiguous OSWPQ precursor traml_id maps to multiple precursor_id values",
+                                          source_id);
+          }
+          const auto [reverse_it, reverse_inserted] = source_ids->precursor_canonical_to_source.emplace(canonical_id, source_id);
+          if (!reverse_inserted && reverse_it->second != source_id)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "OSWPQ precursor_id has multiple traml_id provenance values",
+                                          canonical_id);
+          }
+        }
+      }
     }
 
-    std::unordered_map<std::string, int> compound_map;
     std::unordered_map<std::string, int> protein_map;
-    compound_map.reserve(precursor_map.size());
 
     for (const auto& entry : precursor_map)
     {
       const int64_t precursor_id = entry.first;
       const PrecursorInfo& info = entry.second;
-      const String precursor_id_str(precursor_id);
+      const std::string precursor_id_str = StringUtils::toStr(precursor_id);
 
-    OpenSwath::LightCompound compound;
-    // Preserve source traml_id when available to maintain round-trip identity
-    // fidelity. If traml_id is empty, fall back to the numeric precursor id.
-    const String compound_id = info.traml_id.empty() ? precursor_id_str : String(info.traml_id);
-    compound.id = compound_id;
+      OpenSwath::LightCompound compound;
+      // OSWPQ precursor_id is the persistent operational identifier. traml_id is
+      // provenance metadata and must not replace the canonical foreign key.
+      compound.id = precursor_id_str;
       compound.drift_time = info.drift_time;
       compound.rt = info.library_rt;
       compound.charge = info.charge;
@@ -304,11 +343,10 @@ namespace OpenMS
       }
 
       targeted_exp.compounds.push_back(std::move(compound));
-      compound_map[precursor_id_str] = 0;
 
       for (const auto& accession : info.protein_accessions)
       {
-        if (protein_map.find(accession) == protein_map.end())
+        if (!protein_map.contains(accession))
         {
           OpenSwath::LightProtein protein;
           protein.id = accession;
@@ -320,8 +358,8 @@ namespace OpenMS
     }
 
     auto transition_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TRANSITION_ID);
-    auto transition_traml_id_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::TRAML_ID);
     auto transition_precursor_id_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRECURSOR_ID);
+    auto transition_traml_id_col = ParquetFile::getOptionalColumn(transitions_table, OSWTransitionSchema::TRAML_ID);
     auto product_mz_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::PRODUCT_MZ);
     auto fragment_charge_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::CHARGE);
     auto fragment_type_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::TYPE);
@@ -332,10 +370,6 @@ namespace OpenMS
     auto quantifying_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::QUANTIFYING);
     auto transition_intensity_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::LIBRARY_INTENSITY);
     auto transition_decoy_col = ParquetFile::getColumn(transitions_table, OSWTransitionSchema::DECOY);
-
-    std::unordered_set<std::string> used_transition_names;
-    used_transition_names.reserve(transitions_table->num_rows());
-    bool warned_duplicate_transition = false;
 
     for (int64_t row = 0; row < transitions_table->num_rows(); ++row)
     {
@@ -348,31 +382,22 @@ namespace OpenMS
       }
 
       const int64_t transition_id = ParquetFile::getInt64(transition_id_col, row, 0, false);
-      const std::string traml_id = ParquetFile::getString(transition_traml_id_col, row);
-      std::string transition_name = traml_id.empty() ? String(transition_id) : String(traml_id);
-      if (!used_transition_names.insert(transition_name).second)
+      const std::string transition_name = StringUtils::toStr(transition_id);
+      if (source_ids != nullptr)
       {
-        if (!warned_duplicate_transition)
+        const std::string source_transition_id = ParquetFile::getString(transition_traml_id_col, row);
+        if (!source_transition_id.empty())
         {
-          OPENMS_LOG_WARN << "Duplicate transition nativeID detected in Parquet library. "
-                          << "Falling back to transition_id for uniqueness." << std::endl;
-          warned_duplicate_transition = true;
-        }
-        transition_name = String(transition_id);
-        if (!used_transition_names.insert(transition_name).second)
-        {
-          transition_name += "_" + std::to_string(row);
-          used_transition_names.insert(transition_name);
+          source_ids->transition_canonical_to_source.emplace(transition_name, source_transition_id);
         }
       }
       const std::string fragment_type = ParquetFile::getString(fragment_type_col, row);
       const std::string annotation = ParquetFile::getString(fragment_annotation_col, row);
 
       OpenSwath::LightTransition transition;
+      // OSWPQ transition_id/precursor_id are the canonical operational keys.
       transition.transition_name = transition_name;
-      // Use precursor traml_id as peptide_ref when present to preserve source IDs
-      const String peptide_ref = precursor_it->second.traml_id.empty() ? String(precursor_id) : String(precursor_it->second.traml_id);
-      transition.peptide_ref = peptide_ref;
+      transition.peptide_ref = StringUtils::toStr(precursor_id);
       transition.library_intensity = ParquetFile::getDouble(transition_intensity_col, row, 0.0, true);
       transition.precursor_mz = precursor_it->second.precursor_mz;
       transition.product_mz = ParquetFile::getDouble(product_mz_col, row, 0.0, false);
@@ -387,24 +412,56 @@ namespace OpenMS
 
       targeted_exp.transitions.push_back(std::move(transition));
     }
+
+    OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
   }
 
   void TransitionParquetFile::convertLightTargetedExperimentToParquet(
-    const String& oswpq_path, const OpenSwath::LightTargetedExperiment& targeted_exp) const
+    const std::string& oswpq_path,
+    const OpenSwath::LightTargetedExperiment& targeted_exp) const
   {
+    if (OpenSwathLibraryIDNormalizer::hasCanonicalIDs(targeted_exp))
+    {
+      convertLightTargetedExperimentToParquet(oswpq_path, targeted_exp, nullptr);
+      return;
+    }
+
+    if (OpenSwathLibraryIDNormalizer::hasCanonicalIDFormat(targeted_exp))
+    {
+      // The input already uses canonical decimal syntax, so a failed invariant is
+      // malformed canonical data rather than source-style IDs. Preserve the error
+      // instead of silently renumbering the caller's operational ID domain.
+      OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
+    }
+
+    // Compatibility for direct callers that still pass source/native Light IDs.
+    // Canonical OpenSWATH workflows use the overload below and therefore preserve
+    // zero/sparse operational IDs exactly.
+    OpenSwath::LightTargetedExperiment normalized = targeted_exp;
+    auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(normalized);
+    convertLightTargetedExperimentToParquet(oswpq_path, normalized, &source_ids);
+  }
+
+  void TransitionParquetFile::convertLightTargetedExperimentToParquet(
+    const std::string& oswpq_path,
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
+    const OpenSwathLibraryIDNormalizer::SourceIDMapping* source_ids) const
+  {
+    OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
+
     const bool output_is_dir = File::isDirectory(oswpq_path);
-    std::unique_ptr<File::TempDir> temp_dir;
-    String base_dir = oswpq_path;
+    std::unique_ptr<TempDir> temp_dir;
+    std::string base_dir = oswpq_path;
     if (!output_is_dir)
     {
-      temp_dir = std::make_unique<File::TempDir>();
+      temp_dir = std::make_unique<TempDir>();
       base_dir = temp_dir->getPath() + "/oswpq_output";
       File::makeDir(base_dir);
     }
 
-    const String library_dir = base_dir + "/library";
+    const std::string library_dir = base_dir + "/library";
     File::makeDir(library_dir);
-    String library_name = File::basename(oswpq_path);
+    std::string library_name = File::basename(oswpq_path);
     if (library_name.empty())
     {
       library_name = "openms_library";
@@ -425,54 +482,17 @@ namespace OpenMS
 
     OpenMSLibraryStats stats;
 
-    int64_t next_precursor_id = 1;
-    std::unordered_set<int64_t> used_precursor_ids;
     for (const auto& compound : targeted_exp.compounds)
     {
-      if (compound_to_precursor.find(compound.id) != compound_to_precursor.end())
-      {
-        continue;
-      }
-
-      int64_t precursor_id = 0;
-      bool parsed_numeric = false;
-      try
-      {
-        precursor_id = OpenMS::String(compound.id).toInt64();
-        parsed_numeric = true;
-      }
-      catch (OpenMS::Exception::ConversionError&)
-      {
-        // will assign auto id below
-      }
-
-      if (parsed_numeric)
-      {
-        if (precursor_id <= 0 || used_precursor_ids.find(precursor_id) != used_precursor_ids.end())
-        {
-          precursor_id = next_precursor_id++;
-        }
-        else
-        {
-          if (precursor_id >= next_precursor_id)
-          {
-            next_precursor_id = precursor_id + 1;
-          }
-        }
-      }
-      else
-      {
-        precursor_id = next_precursor_id++;
-      }
-
-      used_precursor_ids.insert(precursor_id);
-      compound_to_precursor[compound.id] = precursor_id;
+      // validateCanonicalIDs() above guarantees canonical decimal form, uniqueness,
+      // and non-negativity. Persistent writers must preserve this operational ID.
+      compound_to_precursor.emplace(compound.id, StringUtils::toInt64(compound.id));
     }
 
     std::unordered_map<std::string, double> precursor_mz;
     for (const auto& transition : targeted_exp.transitions)
     {
-      if (precursor_mz.find(transition.peptide_ref) == precursor_mz.end())
+      if (!precursor_mz.contains(transition.peptide_ref))
       {
         precursor_mz[transition.peptide_ref] = transition.precursor_mz;
       }
@@ -492,8 +512,7 @@ namespace OpenMS
     for (const auto& compound : targeted_exp.compounds)
     {
       const int64_t precursor_id = compound_to_precursor[compound.id];
-      const bool is_decoy = compound_decoy[compound.id] ||
-        OpenMS::String(compound.id).hasPrefix("DECOY_");
+      const bool is_decoy = compound_decoy[compound.id];
       stats.compounds_total++;
       stats.precursors_total++;
       if (compound.isPeptide())
@@ -522,14 +541,23 @@ namespace OpenMS
       if (mz_it == precursor_mz.end())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "No precursor_mz found for compound '" + String(compound.id) + "'");
+                                            "No precursor_mz found for compound '" + std::string(compound.id) + "'");
       }
       ParquetFile::appendOrThrow(precursor_mz_builder.Append(mz_it->second), "precursor_mz");
       ParquetFile::appendOrThrow(precursor_charge_builder.Append(compound.charge), "charge");
       ParquetFile::appendOrThrow(library_rt_builder.Append(compound.rt), "library_rt");
       ParquetFile::appendOrThrow(drift_time_builder.Append(compound.drift_time), "library_drift_time");
       ParquetFile::appendOrThrow(decoy_builder.Append(is_decoy), "decoy");
-      ParquetFile::appendOrThrow(traml_id_builder.Append(compound.id), "traml_id");
+      std::string source_precursor_id = compound.id;
+      if (source_ids != nullptr)
+      {
+        const auto source_it = source_ids->precursor_canonical_to_source.find(compound.id);
+        if (source_it != source_ids->precursor_canonical_to_source.end())
+        {
+          source_precursor_id = source_it->second;
+        }
+      }
+      ParquetFile::appendOrThrow(traml_id_builder.Append(source_precursor_id), "traml_id");
       ParquetFile::appendOrThrow(modified_sequence_builder.Append(compound.sequence), "modified_sequence");
 
       std::string unmodified_sequence;
@@ -551,7 +579,7 @@ namespace OpenMS
     for (const auto& protein : targeted_exp.proteins)
     {
       stats.proteins_total++;
-      if (OpenMS::String(protein.id).hasPrefix("DECOY_"))
+      if (StringUtils::hasPrefix(protein.id, "DECOY_"))
       {
         stats.proteins_decoy++;
       }
@@ -596,19 +624,28 @@ namespace OpenMS
     arrow::DoubleBuilder transition_intensity_builder;
     arrow::BooleanBuilder transition_decoy_builder;
 
-    int64_t transition_id = 1;
     for (const auto& transition : targeted_exp.transitions)
     {
       auto precursor_it = compound_to_precursor.find(transition.peptide_ref);
       if (precursor_it == compound_to_precursor.end())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Transition references unknown peptide_ref '" + String(transition.peptide_ref) + "'");
+                                            "Transition references unknown peptide_ref '" + std::string(transition.peptide_ref) + "'");
       }
       const int64_t precursor_ref = precursor_it->second;
-      ParquetFile::appendOrThrow(transition_id_builder.Append(transition_id++), "transition_id");
+      const int64_t transition_id = StringUtils::toInt64(transition.transition_name);
+      ParquetFile::appendOrThrow(transition_id_builder.Append(transition_id), "transition_id");
       ParquetFile::appendOrThrow(transition_precursor_id_builder.Append(precursor_ref), "precursor_id");
-      ParquetFile::appendOrThrow(transition_traml_id_builder.Append(transition.transition_name), "traml_id");
+      std::string source_transition_id = transition.transition_name;
+      if (source_ids != nullptr)
+      {
+        const auto source_transition_it = source_ids->transition_canonical_to_source.find(transition.transition_name);
+        if (source_transition_it != source_ids->transition_canonical_to_source.end())
+        {
+          source_transition_id = source_transition_it->second;
+        }
+      }
+      ParquetFile::appendOrThrow(transition_traml_id_builder.Append(source_transition_id), "traml_id");
       ParquetFile::appendOrThrow(product_mz_builder.Append(transition.product_mz), "product_mz");
       ParquetFile::appendOrThrow(fragment_charge_builder.Append(static_cast<int32_t>(transition.fragment_charge)), "charge");
       ParquetFile::appendOrThrow(fragment_type_builder.Append(transition.getFragmentType()), "type");
@@ -692,8 +729,8 @@ namespace OpenMS
       // archive on partial failures.
       const std::filesystem::path dirpath = std::filesystem::u8path(std::string(base_dir));
       const std::filesystem::path outpath = std::filesystem::u8path(std::string(oswpq_path));
-      const String output_zip_abs = File::absolutePath(oswpq_path);
-      const String staging_zip = output_zip_abs + ".tmp";
+      const std::string output_zip_abs = File::absolutePath(oswpq_path);
+      const std::string staging_zip = output_zip_abs + ".tmp";
 
       if (File::exists(staging_zip))
       {
@@ -706,7 +743,7 @@ namespace OpenMS
         const auto full = it->path();
         std::string rel = std::filesystem::relative(full, dirpath).generic_string();
         // Ensure forward slashes (zip expects '/'). generic_string() already uses '/'.
-        ZipArchiveFile::addOrReplaceFromFile(staging_zip, String(rel), String(full.string()));
+        ZipArchiveFile::addOrReplaceFromFile(staging_zip,std::string(rel),std::string(full.string()));
       }
       // After adding/replacing files in the staging archive, write a sidecar index
       // and then atomically move the staging archive into place.

@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm>
 #include <cmath>
@@ -220,14 +220,16 @@ namespace OpenMS
 
     /**
        @brief Calculates the first quantile of a range of values
-       
+
        The range is divided into half and the median for the first half is returned.
+       For a range of size 1 or 2 the lower half is empty, so the minimum is returned
+       (consistent with the size-3 and size-4 results of this method).
 
        @param[in] begin Start of range
        @param[in] end End of range (past-the-end iterator)
        @param[in] sorted Is the range already sorted? If not, it will be sorted.
 
-       @exception Exception::InvalidRange is thrown if the range is NULL
+       @exception Exception::InvalidRange is thrown if the range is empty
 
        @ingroup MathFunctionsStatistics
     */
@@ -243,6 +245,10 @@ namespace OpenMS
       }
 
       Size size = std::distance(begin, end);
+      if (size < 3) // lower half is empty for size 1 or 2: the first quantile is the minimum
+      {
+        return static_cast<double>(*begin);
+      }
       if (size % 2 == 0)
       {
         return median(begin, begin + (size/2)-1, true); //-1 to exclude median values
@@ -254,12 +260,14 @@ namespace OpenMS
        @brief Calculates the third quantile of a range of values
 
        The range is divided into half and the median for the second half is returned.
+       For a range of size 1 or 2 the upper half is empty, so the maximum is returned
+       (consistent with the size-3 and size-4 results of this method).
 
        @param[in] begin Start of range
        @param[in] end End of range (past-the-end iterator)
        @param[in] sorted Is the range already sorted? If not, it will be sorted.
 
-       @exception Exception::InvalidRange is thrown if the range is NULL
+       @exception Exception::InvalidRange is thrown if the range is empty
 
        @ingroup MathFunctionsStatistics
     */
@@ -274,6 +282,10 @@ namespace OpenMS
       }
 
       Size size = std::distance(begin, end);
+      if (size < 3) // upper half is empty for size 1 or 2: the third quantile is the maximum
+      {
+        return static_cast<double>(*(begin + (size - 1)));
+      }
       return median(begin + (size/2)+1, end, true); //+1 to exclude median values
     }
 
@@ -318,7 +330,7 @@ namespace OpenMS
       if (q < 0.0 || q > 1.0)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "q must be in [0,1]", String(q));
+                                      "q must be in [0,1]",StringUtils::toStr(q));
       }
       if (n == 1) return static_cast<double>(*begin);
 
@@ -572,16 +584,11 @@ namespace OpenMS
                          double mean = std::numeric_limits<double>::max())
     {
       checkIteratorsNotNULL(begin, end);
-      double sum_value = 0.0;
       if (mean == std::numeric_limits<double>::max())
       {
         mean = Math::mean(begin, end);
       }
-      for (IteratorType iter=begin; iter!=end; ++iter)
-      {
-        sum_value += *iter - mean;
-      }
-      return sum_value / std::distance(begin, end);
+      return MeanAbsoluteDeviation(begin, end, mean);
     }
 
     /**
@@ -940,7 +947,8 @@ namespace OpenMS
         {
           sort(data.begin(), data.end());
           mean = Math::mean(data.begin(), data.end());
-          variance = Math::variance(data.begin(), data.end(), mean);
+          // variance divides by (n-1) and is undefined for a single value; report 0.0 as in the empty case
+          variance = (count > 1) ? Math::variance(data.begin(), data.end(), mean) : 0.0;
           min = data.front();
           lowerq = Math::quantile1st(data.begin(), data.end(), true);
           median = Math::median(data.begin(), data.end(), true);

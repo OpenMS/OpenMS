@@ -192,7 +192,7 @@ END_SECTION
 
 MissedCleavages mc;
 
-START_SECTION(const String& getName() const override) {TEST_EQUAL(mc.getName(), "MissedCleavages")} END_SECTION
+START_SECTION(const std::string& getName() const override) {TEST_EQUAL(mc.getName(), "MissedCleavages")} END_SECTION
 
 
   START_SECTION(QCBase::Status requirements() const override) {TEST_EQUAL(QCBase::Status(QCBase::Requires::POSTFDRFEAT) == mc.requirements(), true)} END_SECTION

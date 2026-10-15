@@ -6,6 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <boost/regex.hpp>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -14,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
@@ -21,7 +23,7 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <string_view>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/PROCESSING/FILTERING/NLargest.h>
@@ -31,6 +33,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -42,6 +45,7 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
 #include <algorithm>
+#include <array>
 #include <map>
 #ifdef _OPENMP
   #include <omp.h>
@@ -52,6 +56,28 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // Characters a candidate peptide may contain: one-letter codes of residues with a known
+    // elemental formula. Excludes the ambiguous codes B, X and Z, stop codons ('*') and any other
+    // symbol. AASequence parses '*' as a weightless X, so such a peptide cannot be scored.
+    const std::array<bool, 256>& searchableResidues()
+    {
+      static const std::array<bool, 256> table = []
+      {
+        std::array<bool, 256> searchable{};
+        const ResidueDB* rdb = ResidueDB::getInstance();
+        for (char c = 'A'; c <= 'Z'; ++c)
+        {
+          const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
+          searchable[static_cast<unsigned char>(c)] = (r != nullptr && !r->getFormula().isEmpty());
+        }
+        return searchable;
+      }();
+      return table;
+    }
+  }
+
   SimpleSearchEngineAlgorithm::SimpleSearchEngineAlgorithm() :
     DefaultParamHandler("SimpleSearchEngineAlgorithm"),
     ProgressLogger()
@@ -85,7 +111,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("fragment", "Fragments (Product Ion) Options");
 
-    vector<String> all_mods;
+    vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
     defaults_.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
@@ -95,7 +121,7 @@ namespace OpenMS
     defaults_.setValue("modifications:variable_max_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");
     defaults_.setSectionDescription("modifications", "Modifications Options");
 
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
 
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
@@ -140,7 +166,12 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
-    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:PSM", 0.0,
+                       "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR). Set to 0 to disable PSM-level FDR: no q-values are "
+                       "computed, and every PSM keeps 'ln(hyperscore)' as main score. Above 0, the q-value replaces the main score (the "
+                       "search engine score is kept as meta value 'ln(hyperscore)_score'), only the best hit of each spectrum is kept, "
+                       "and decoy hits are removed. Requires 'decoys' to be 'true'; otherwise a threshold above 0 is skipped with a "
+                       "warning.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
@@ -163,7 +194,7 @@ namespace OpenMS
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit").toString();
 
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
-    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
+    set<std::string> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
     if (fixed_unique.size() != modifications_fixed_.size())
     {
       OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
@@ -171,7 +202,7 @@ namespace OpenMS
     }    
 
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
-    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
+    set<std::string> var_unique(modifications_variable_.begin(), modifications_variable_.end());
     if (var_unique.size() != modifications_variable_.size())
     {
       OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
@@ -220,19 +251,44 @@ namespace OpenMS
 
     NLargest nlargest_filter = NLargest(400);
 
-#pragma omp parallel for default(none) shared(exp, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
+    // Deisotoping requires a fragment tolerance the Deisotoper supports (<= 100 ppm
+    // / <= 0.1 Da); it throws otherwise, and an exception escaping the OpenMP region
+    // below would call std::terminate(). Decide once here and skip deisotoping for
+    // low-resolution (e.g. ion-trap CID) data instead of aborting (OpenMS#9619).
+    const bool do_deisotope = Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+    if (!do_deisotope)
+    {
+      OPENMS_LOG_WARN << "[SimpleSearchEngine] Fragment tolerance " << fragment_mass_tolerance
+                      << (fragment_mass_tolerance_unit_ppm ? " ppm" : " Da")
+                      << " exceeds the deisotoping limit (100 ppm / 0.1 Da); skipping MS2 "
+                      << "deisotoping (expected for low-resolution data)." << endl;
+    }
+
+#pragma omp parallel for default(none) shared(exp, do_deisotope, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, window_mower_filter, nlargest_filter)
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       // sort by mz
       exp[exp_index].sortByPosition();
 
-      // deisotope
-      Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
-        fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-        1, 3,   // min / max charge 
-        false,  // keep only deisotoped
-        3, 10,  // min / max isopeaks 
-        true);  // convert fragment m/z to mono-charge
+      // deisotope (skipped for low-resolution data; see do_deisotope above)
+      // Isotope intensities must fall from the monoisotopic peak on (start_intensity_check = 1).
+      // With the library default of 2, a small peak one isotope spacing below a fragment ion
+      // became the envelope's monoisotopic peak and the ion itself was removed as its isotope.
+      // TMT/TMTpro-labelled fragments carry such a peak (reagent isotope impurity), and dense
+      // spectra often hold one by chance. ProSE makes the same call (OpenMS#10391).
+      if (do_deisotope)
+      {
+        Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
+          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
+          1, 3,   // min / max charge
+          false,  // keep only deisotoped
+          3, 10,  // min / max isopeaks
+          true,   // convert fragment m/z to mono-charge
+          false,  // annotate charge
+          false,  // annotate isotopic peak counts
+          true,   // decreasing isotope intensities
+          1);     // start the intensity check at the monoisotopic peak
+      }
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -256,12 +312,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       Int peptide_missed_cleavages,
       double precursor_mass_tolerance,
       double fragment_mass_tolerance,
-      const String& precursor_mass_tolerance_unit_ppm,
-      const String& fragment_mass_tolerance_unit_ppm,
+      const std::string& precursor_mass_tolerance_unit_ppm,
+      const std::string& fragment_mass_tolerance_unit_ppm,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
-      const String& enzyme,
-      const String& database_name) const
+      const std::string& enzyme,
+      const std::string& database_name) const
   {
     // remove all but top n scoring
 #pragma omp parallel for default(none) shared(annotated_hits, top_hits)
@@ -336,7 +392,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ph.setMetaValue("isotope_error", ah.isotope_error);
 
           // get unmodified string
-          AASequence aas = AASequence::fromString(ah.sequence.getString());
+          AASequence aas = AASequence::fromString(std::string(ah.sequence));
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
@@ -344,7 +400,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
+          const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index];
           ph.setScore(ah.score);
           ph.setSequence(fixed_and_variable_modified_peptide);
 
@@ -444,7 +500,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
               if (annotation_longest_ion_run && ion_names[theo_idx].size() >= 2)
               {
-                const String& name = ion_names[theo_idx];
+                const std::string& name = ion_names[theo_idx];
                 const char c = name[0];
                 const bool is_prefix = (c == 'a' || c == 'b' || c == 'c');
                 const bool is_suffix = (c == 'x' || c == 'y' || c == 'z');
@@ -455,7 +511,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
                   while (pos < name.size() && name[pos] >= '0' && name[pos] <= '9') ++pos;
                   if (pos > 1)
                   {
-                    int ordinal = String(name.substr(1, pos - 1)).toInt();
+                    int ordinal = StringUtils::toInt32(StringUtils::substr(name, 1, pos - 1));
                     (is_prefix ? prefix_ordinals : suffix_ordinals).push_back(ordinal);
                   }
                 }
@@ -493,9 +549,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           }
 
           // store PSM
-          phs.push_back(ph);
+          phs.push_back(std::move(ph));
         }
-        pi.setHits(phs);
+        pi.setHits(std::move(phs));
         pi.sort();
 
 #pragma omp critical (peptide_ids_access)
@@ -524,13 +580,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
     DateTime now = DateTime::now();
-    String identifier("SSE_" + now.get());
+    std::string identifier("SSE_" + now.get());
     protein_ids[0].setIdentifier(identifier);
     for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = database_name;
-    search_parameters.charges = String(precursor_min_charge) + ":" + String(precursor_max_charge);
+    search_parameters.charges =StringUtils::toStr(precursor_min_charge) + ":" + StringUtils::toStr(precursor_max_charge);
 
     ProteinIdentification::PeakMassType mass_type = ProteinIdentification::PeakMassType::MONOISOTOPIC;
     search_parameters.mass_type = mass_type;
@@ -611,7 +667,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     return multimap_mass_2_scan_index;
   }
 
-  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const String& in_spectra, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
+  SimpleSearchEngineAlgorithm::ExitCodes SimpleSearchEngineAlgorithm::search(const std::string& in_spectra, const std::string& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
     boost::regex peptide_motif_regex(peptide_motif_);
 
@@ -663,6 +719,18 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
+    // A stop codon ('*') that ends a sequence, as in databases translated from genomes (e.g. SGD),
+    // is not a residue: remove it so the C-terminal peptide stays searchable and decoys are built
+    // from the protein alone. Peptides that contain a stop codon inside the sequence are skipped.
+    for (FASTAFile::FASTAEntry& e : fasta_db)
+    {
+      while (!e.sequence.empty() && e.sequence.back() == '*') { e.sequence.pop_back(); }
+    }
+    // An entry left without residues has nothing to search, and decoy generation needs residues.
+    fasta_db.erase(std::remove_if(fasta_db.begin(), fasta_db.end(),
+                                  [](const FASTAFile::FASTAEntry& e) { return e.sequence.empty(); }),
+                   fasta_db.end());
+
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
@@ -701,9 +769,12 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    set<StringView> processed_petides;
+    set<std::string_view> processed_petides;
 
     Size count_proteins(0), count_peptides(0);
+
+    const std::array<bool, 256>& searchable = searchableResidues();
+    const auto is_unsearchable = [&searchable](char c) { return !searchable[static_cast<unsigned char>(c)]; };
 
 #pragma omp parallel for schedule(static)
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
@@ -717,13 +788,15 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         setProgress(count_proteins);
       }
 
-      vector<StringView> current_digest;
+      vector<std::string_view> current_digest;
       digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, peptide_min_size_, peptide_max_size_);
 
       for (auto const & c : current_digest)
       { 
-        const String current_peptide = c.getString();
-        if (current_peptide.find_first_of("XBZ") != std::string::npos)
+        const std::string current_peptide = std::string(c);
+        // skip peptides containing unknown or ambiguous AA codes (X, B, Z), stop codons ('*')
+        // or other symbols
+        if (std::any_of(current_peptide.begin(), current_peptide.end(), is_unsearchable))
         {
           continue;
         }
@@ -738,7 +811,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         #pragma omp critical (processed_peptides_access)
         {
           // peptide (and all modified variants) already processed so skip it
-          if (processed_petides.find(c) != processed_petides.end())
+          if (processed_petides.contains(c))
           {
             already_processed = true;
           }

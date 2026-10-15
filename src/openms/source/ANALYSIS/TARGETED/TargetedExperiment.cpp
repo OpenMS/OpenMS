@@ -7,7 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
@@ -170,7 +172,7 @@ namespace OpenMS
     exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
     source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
 
-    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    for (std::map<std::string, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
     {
       for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
       {
@@ -205,7 +207,7 @@ namespace OpenMS
     appendRVector(std::move(rhs.exclude_targets_), exclude_targets_);
     appendRVector(std::move(rhs.source_files_), source_files_);
 
-    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    for (std::map<std::string, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
     {
       for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
       {
@@ -345,7 +347,7 @@ namespace OpenMS
     targets_.addCVTerm(cv_term);
   }
 
-  void TargetedExperiment::setTargetMetaValue(const String & name, const DataValue & value)
+  void TargetedExperiment::setTargetMetaValue(const std::string & name, const DataValue & value)
   {
     targets_.setMetaValue(name, value);
   }
@@ -397,23 +399,29 @@ namespace OpenMS
     return proteins_;
   }
 
-  const TargetedExperiment::Protein & TargetedExperiment::getProteinByRef(const String & ref) const
+  const TargetedExperiment::Protein & TargetedExperiment::getProteinByRef(const std::string & ref) const
   {
     if (protein_reference_map_dirty_)
     {
       createProteinReferenceMap_();
     }
-    OPENMS_PRECONDITION(protein_reference_map_.find(ref) != protein_reference_map_.end(), "Could not find protein in map")
-    return *(protein_reference_map_[ref]);
+    // use find() instead of operator[]: on an unknown ref, operator[] would insert a null pointer and the
+    // subsequent dereference would be undefined behavior (the OPENMS_PRECONDITION is a no-op in release builds).
+    auto it = protein_reference_map_.find(ref);
+    if (it == protein_reference_map_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ref);
+    }
+    return *(it->second);
   }
 
-  bool TargetedExperiment::hasProtein(const String & ref) const
+  bool TargetedExperiment::hasProtein(const std::string & ref) const
   {
     if (protein_reference_map_dirty_)
     {
       createProteinReferenceMap_();
     }
-    return protein_reference_map_.find(ref) != protein_reference_map_.end();
+    return protein_reference_map_.contains(ref);
   }
 
   void TargetedExperiment::addProtein(const Protein & protein)
@@ -425,6 +433,7 @@ namespace OpenMS
   void TargetedExperiment::setCompounds(const std::vector<Compound> & compounds)
   {
     compounds_ = compounds;
+    compound_reference_map_dirty_ = true;
   }
 
   const std::vector<TargetedExperiment::Compound> & TargetedExperiment::getCompounds() const
@@ -435,6 +444,7 @@ namespace OpenMS
   void TargetedExperiment::addCompound(const Compound & rhs)
   {
     compounds_.push_back(rhs);
+    compound_reference_map_dirty_ = true;
   }
 
   void TargetedExperiment::setPeptides(const std::vector<Peptide> & peptides)
@@ -454,42 +464,52 @@ namespace OpenMS
     return peptides_;
   }
 
-  const TargetedExperiment::Peptide & TargetedExperiment::getPeptideByRef(const String & ref) const
+  const TargetedExperiment::Peptide & TargetedExperiment::getPeptideByRef(const std::string & ref) const
   {
     if (peptide_reference_map_dirty_)
     {
       createPeptideReferenceMap_();
     }
-    OPENMS_PRECONDITION(hasPeptide(ref), "Cannot return peptide that does not exist, check with hasPeptide() first")
-    return *(peptide_reference_map_[ref]);
+    // use find() instead of operator[] to avoid inserting a null pointer (and dereferencing it) for an unknown ref
+    auto it = peptide_reference_map_.find(ref);
+    if (it == peptide_reference_map_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ref);
+    }
+    return *(it->second);
   }
 
-  const TargetedExperiment::Compound & TargetedExperiment::getCompoundByRef(const String & ref) const
+  const TargetedExperiment::Compound & TargetedExperiment::getCompoundByRef(const std::string & ref) const
   {
     if (compound_reference_map_dirty_)
     {
       createCompoundReferenceMap_();
     }
-    OPENMS_PRECONDITION(hasCompound(ref), "Cannot return compound that does not exist, check with hasCompound() first")
-    return *(compound_reference_map_[ref]);
+    // use find() instead of operator[] to avoid inserting a null pointer (and dereferencing it) for an unknown ref
+    auto it = compound_reference_map_.find(ref);
+    if (it == compound_reference_map_.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ref);
+    }
+    return *(it->second);
   }
 
-  bool TargetedExperiment::hasPeptide(const String & ref) const
+  bool TargetedExperiment::hasPeptide(const std::string & ref) const
   {
     if (peptide_reference_map_dirty_)
     {
       createPeptideReferenceMap_();
     }
-    return peptide_reference_map_.find(ref) != peptide_reference_map_.end();
+    return peptide_reference_map_.contains(ref);
   }
 
-  bool TargetedExperiment::hasCompound(const String & ref) const
+  bool TargetedExperiment::hasCompound(const std::string & ref) const
   {
     if (compound_reference_map_dirty_)
     {
       createCompoundReferenceMap_();
     }
-    return compound_reference_map_.find(ref) != compound_reference_map_.end();
+    return compound_reference_map_.contains(ref);
   }
 
   void TargetedExperiment::addPeptide(const Peptide & rhs)
@@ -581,52 +601,52 @@ namespace OpenMS
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
     // check that all proteins ids are unique
-    std::map<String, int> unique_protein_map;
+    std::map<std::string, int> unique_protein_map;
     for (ProteinVectorType::const_iterator prot_it = getProteins().begin(); prot_it != getProteins().end(); ++prot_it)
     {
       // Create new transition group if it does not yet exist
-      if (unique_protein_map.find(prot_it->id) != unique_protein_map.end())
+      if (unique_protein_map.contains(prot_it->id))
       {
-        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + std::string(prot_it->id) << std::endl;
         return true;
       }
       unique_protein_map[prot_it->id] = 0;
     }
 
     // check that all peptide ids are unique
-    std::map<String, int> unique_peptide_map;
+    std::map<std::string, int> unique_peptide_map;
     for (PeptideVectorType::const_iterator pep_it = getPeptides().begin(); pep_it != getPeptides().end(); ++pep_it)
     {
       // Create new transition group if it does not yet exist
-      if (unique_peptide_map.find(pep_it->id) != unique_peptide_map.end())
+      if (unique_peptide_map.contains(pep_it->id))
       {
-        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + std::string(pep_it->id) << std::endl;
         return true;
       }
       unique_peptide_map[pep_it->id] = 0;
     }
 
     // check that all compound ids are unique
-    std::map<String, int> unique_compounds_map;
+    std::map<std::string, int> unique_compounds_map;
     for (CompoundVectorType::const_iterator comp_it = getCompounds().begin(); comp_it != getCompounds().end(); ++comp_it)
     {
       // Create new transition group if it does not yet exist
-      if (unique_compounds_map.find(comp_it->id) != unique_compounds_map.end())
+      if (unique_compounds_map.contains(comp_it->id))
       {
-        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + std::string(comp_it->id) << std::endl;
         return true;
       }
       unique_compounds_map[comp_it->id] = 0;
     }
 
     // check that all transition ids are unique
-    std::map<String, int> unique_transition_map;
+    std::map<std::string, int> unique_transition_map;
     for (TransitionVectorType::const_iterator tr_it = getTransitions().begin(); tr_it != getTransitions().end(); ++tr_it)
     {
       // Create new transition group if it does not yet exist
-      if (unique_transition_map.find(tr_it->getNativeID()) != unique_transition_map.end())
+      if (unique_transition_map.contains(tr_it->getNativeID()))
       {
-        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + std::string(tr_it->getNativeID()) << std::endl;
         return true;
       }
       unique_transition_map[tr_it->getNativeID()] = 0;
@@ -635,9 +655,9 @@ namespace OpenMS
     // Check that each peptide has only valid proteins
     for (Size i = 0; i < getPeptides().size(); i++)
     {
-      for (std::vector<String>::const_iterator prot_it = getPeptides()[i].protein_refs.begin(); prot_it != getPeptides()[i].protein_refs.end(); ++prot_it)
+      for (std::vector<std::string>::const_iterator prot_it = getPeptides()[i].protein_refs.begin(); prot_it != getPeptides()[i].protein_refs.end(); ++prot_it)
       {
-        if (unique_protein_map.find(*prot_it) == unique_protein_map.end()) 
+        if (!unique_protein_map.contains(*prot_it)) 
         {
           OPENMS_LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
           return true;
@@ -651,7 +671,7 @@ namespace OpenMS
       const ReactionMonitoringTransition& tr = getTransitions()[i];
       if (!tr.getPeptideRef().empty())
       {
-        if (unique_peptide_map.find(tr.getPeptideRef()) == unique_peptide_map.end()) 
+        if (!unique_peptide_map.contains(tr.getPeptideRef())) 
         {
           OPENMS_LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
           return true;
@@ -659,7 +679,7 @@ namespace OpenMS
       }
       else if (!tr.getCompoundRef().empty())
       {
-        if (unique_compounds_map.find(tr.getCompoundRef()) == unique_compounds_map.end()) 
+        if (!unique_compounds_map.contains(tr.getCompoundRef())) 
         {
           OPENMS_LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
           return true;
@@ -677,6 +697,7 @@ namespace OpenMS
 
   void TargetedExperiment::createProteinReferenceMap_() const
   {
+    protein_reference_map_.clear(); // drop stale pointers from a previous build
     for (Size i = 0; i < getProteins().size(); i++)
     {
       protein_reference_map_[getProteins()[i].id] = &getProteins()[i];
@@ -686,6 +707,7 @@ namespace OpenMS
 
   void TargetedExperiment::createPeptideReferenceMap_() const
   {
+    peptide_reference_map_.clear(); // drop stale pointers from a previous build
     for (Size i = 0; i < getPeptides().size(); i++)
     {
       peptide_reference_map_[getPeptides()[i].id] = &getPeptides()[i];
@@ -695,6 +717,7 @@ namespace OpenMS
 
   void TargetedExperiment::createCompoundReferenceMap_() const
   {
+    compound_reference_map_.clear(); // drop stale pointers from a previous build
     for (Size i = 0; i < getCompounds().size(); i++)
     {
       compound_reference_map_[getCompounds()[i].id] = &getCompounds()[i];
@@ -702,10 +725,10 @@ namespace OpenMS
     compound_reference_map_dirty_ = false;
   }
 
-  bool formatCount(const size_t count, const size_t all, const String& name, StringList& sink)
+  bool formatCount(const size_t count, const size_t all, const std::string& name, StringList& sink)
   {
     if (count == 0) return false; // nothing to report... 0%....
-    sink.push_back(String(count * 100.0 / all, false) + "% (" + name + ")");
+    sink.push_back(StringUtils::toStr(count * 100.0 / all, false) + "% (" + name + ")");
     return true;
   }
 

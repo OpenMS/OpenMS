@@ -119,12 +119,12 @@ namespace OpenMS
     return 2.506628 * height_ * sigma_;
   }
 
-  String GaussTraceFitter::getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)
+  std::string GaussTraceFitter::getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)
   {
     std::stringstream s;
-    s << String(function_name)  << "(x)= " << baseline << " + ";
+    s << StringUtils::toStr(function_name)  << "(x)= " << baseline << " + ";
     s << (trace.theoretical_int *  height_) << " * exp(-0.5*(x-" << (rt_shift + x0_) << ")**2/(" << sigma_ << ")**2)";
-    return String(s.str());
+    return s.str();
   }
 
   void GaussTraceFitter::getOptimizedParameters_(const std::vector<double>& x_init)
@@ -229,7 +229,7 @@ namespace OpenMS
     Size max_index = 0; // index of max. smoothed intensity
     if (N <= LEN + 1) // not enough distinct x values for smoothing
     {
-      // throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-MovingAverage", "Too few time points for smoothing with window size " + String(2 * LEN + 1));
+      // throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-MovingAverage", "Too few time points for smoothing with window size " + StringUtils::toStr(2 * LEN + 1));
       for (Size i = 0; i < N; ++i)
       {
         smoothed[i] = totals[i + LEN];

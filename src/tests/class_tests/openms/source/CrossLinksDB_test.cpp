@@ -52,7 +52,7 @@ START_SECTION(const ResidueModification& getModification(Size index) const)
         TEST_EQUAL(!ptr->getModification(0)->getId().empty(), true)
 END_SECTION
 
-START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
+START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const std::string& mod_name, const std::string& residue, ResidueModification::TermSpecificity term_spec) const))
 {
   set<const ResidueModification*> mods;
   ptr->searchModifications(mods, "DSS", "K", ResidueModification::ANYWHERE);
@@ -146,9 +146,9 @@ START_SECTION((void searchModifications(std::set<const ResidueModification*>& mo
 END_SECTION
 
 
-START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)))
+START_SECTION((void searchModificationsByDiffMonoMass(std::vector<std::string>& mods, double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec)))
 {
-  vector<String> mods;
+  vector<std::string> mods;
   // these two cross-linkers have exactly the same mass / structure after the cross-linking reaction
   ptr->searchModificationsByDiffMonoMass(mods, 138.06807961, 0.00001, "K");
   TEST_EQUAL(find(mods.begin(), mods.end(), "DSS (K)") != mods.end(), true);
@@ -160,8 +160,8 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
 
   // terminal mod:
   ptr->searchModificationsByDiffMonoMass(mods, 138.068, 0.01, "", ResidueModification::N_TERM);
-  set<String> uniq_mods;
-  for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+  set<std::string> uniq_mods;
+  for (vector<std::string>::const_iterator it = mods.begin(); it != mods.end(); ++it)
   {
     uniq_mods.insert(*it);
   }
@@ -175,7 +175,7 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
 
   ptr->searchModificationsByDiffMonoMass(mods, 138.068, 0.01);
   uniq_mods.clear();
-  for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+  for (vector<std::string>::const_iterator it = mods.begin(); it != mods.end(); ++it)
   {
     uniq_mods.insert(*it);
   }
@@ -191,7 +191,7 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
 }
 END_SECTION
 
-START_SECTION((const ResidueModification& getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
+START_SECTION((const ResidueModification& getModification(const std::string& mod_name, const std::string& residue, ResidueModification::TermSpecificity term_spec) const))
 {
   TEST_EQUAL(ptr->getModification("EDC (E)")->getFullId(), "EDC (E)");
   TEST_EQUAL(ptr->getModification("EDC (E)")->getId(), "EDC");
@@ -206,7 +206,7 @@ START_SECTION((const ResidueModification& getModification(const String& mod_name
 }
 END_SECTION
 
-START_SECTION((Size findModificationIndex(const String& mod_name) const))
+START_SECTION((Size findModificationIndex(const std::string& mod_name) const))
 {
   Size index = numeric_limits<Size>::max();
   index = ptr->findModificationIndex("EDC (T)");
@@ -215,9 +215,9 @@ START_SECTION((Size findModificationIndex(const String& mod_name) const))
 END_SECTION
 
 
-START_SECTION((void getAllSearchModifications(std::vector<String>& modifications)))
+START_SECTION((void getAllSearchModifications(std::vector<std::string>& modifications)))
 {
-  vector<String> mods;
+  vector<std::string> mods;
   ptr->getAllSearchModifications(mods);
   TEST_EQUAL(find(mods.begin(), mods.end(), "EDC (S)") != mods.end(), true);
   TEST_EQUAL(find(mods.begin(), mods.end(), "DSS (K)") != mods.end(), true);

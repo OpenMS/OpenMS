@@ -14,13 +14,15 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/util/XMLUniDefs.hpp>
+#include <xercesc/util/XMLString.hpp>
+#include <xercesc/framework/MemoryManager.hpp>
 
 
 using namespace xercesc;
 namespace OpenMS
 {
 
-  CompressedInputSource::CompressedInputSource(const String & file_path, const String & header, MemoryManager * const manager) :
+  CompressedInputSource::CompressedInputSource(const std::string & file_path, const std::string & header, MemoryManager * const manager) :
     xercesc::InputSource(manager),
     head_(header)
   {
@@ -67,7 +69,7 @@ namespace OpenMS
     }
   }
 
-  CompressedInputSource::CompressedInputSource(const XMLCh * const file, const String & header, MemoryManager * const manager) :
+  CompressedInputSource::CompressedInputSource(const XMLCh * const file, const std::string & header, MemoryManager * const manager) :
     xercesc::InputSource(manager),
     head_(header)
   {

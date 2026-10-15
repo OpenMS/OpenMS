@@ -67,7 +67,7 @@ namespace OpenMS
     {
       if (pep.metaValueExists(Constants::UserParam::FAIMS_CV))
       {
-        double pep_cv = pep.getMetaValue(Constants::UserParam::FAIMS_CV);
+        double pep_cv = (double)pep.getMetaValue(Constants::UserParam::FAIMS_CV);
         if (std::abs(pep_cv - target_cv) < cv_tolerance)
         {
           filtered.push_back(pep);

@@ -15,7 +15,7 @@
 namespace OpenMS
 {
 
-  static const std::map<String, std::vector<CVTerm> > empty_cvterm_map = std::map<String, std::vector<CVTerm> >();
+  static const std::map<std::string, std::vector<CVTerm> > empty_cvterm_map = std::map<std::string, std::vector<CVTerm> >();
 
   CVTermListInterface::CVTermListInterface() :
       MetaInfoInterface(),
@@ -91,7 +91,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  void CVTermListInterface::replaceCVTerms(std::map<String, std::vector<CVTerm> > & cv_terms)
+  void CVTermListInterface::replaceCVTerms(std::map<std::string, std::vector<CVTerm> > & cv_terms)
   {
     createIfNotExists_();
     cvt_ptr_->replaceCVTerms(cv_terms);
@@ -122,25 +122,25 @@ namespace OpenMS
     cvt_ptr_->replaceCVTerm(cv_term);
   }
 
-  void CVTermListInterface::replaceCVTerms(const std::vector<CVTerm>& cv_terms, const String& accession)
+  void CVTermListInterface::replaceCVTerms(const std::vector<CVTerm>& cv_terms, const std::string& accession)
   {
     createIfNotExists_();
     cvt_ptr_->replaceCVTerms(cv_terms, accession);
   }
 
-  void CVTermListInterface::replaceCVTerms(const std::map<String, std::vector<CVTerm> >& cv_term_map)
+  void CVTermListInterface::replaceCVTerms(const std::map<std::string, std::vector<CVTerm> >& cv_term_map)
   {
     createIfNotExists_();
     cvt_ptr_->replaceCVTerms(cv_term_map);
   }
 
-  void CVTermListInterface::consumeCVTerms(const std::map<String, std::vector<CVTerm> >& cv_term_map)
+  void CVTermListInterface::consumeCVTerms(const std::map<std::string, std::vector<CVTerm> >& cv_term_map)
   {
     createIfNotExists_();
     cvt_ptr_->consumeCVTerms(cv_term_map);
   }
 
-  const std::map<String, std::vector<CVTerm> >& CVTermListInterface::getCVTerms() const
+  const std::map<std::string, std::vector<CVTerm> >& CVTermListInterface::getCVTerms() const
   {
     if (!cvt_ptr_)
     {
@@ -160,7 +160,7 @@ namespace OpenMS
   }
 
   /// checks whether the term has a value
-  bool CVTermListInterface::hasCVTerm(const String& accession) const
+  bool CVTermListInterface::hasCVTerm(const std::string& accession) const
   {
     if (!cvt_ptr_)
     {

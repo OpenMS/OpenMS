@@ -83,7 +83,7 @@ public:
   */
   static bool exportToParquet(
     const ConsensusMap& cmap,
-    const String& directory,
+    const std::string& directory,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   // ==================== Import methods ====================
@@ -130,7 +130,7 @@ public:
     @return true on success, false on error
   */
   static bool importFromParquet(
-    const String& directory,
+    const std::string& directory,
     ConsensusMap& cmap);
 };
 

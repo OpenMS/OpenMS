@@ -39,14 +39,14 @@ namespace OpenMS
   {
   }
 
-  DigestionEnzymeProtein::DigestionEnzymeProtein(const String& name,
-                                                 const String& cleavage_regex,
-                                                 const std::set<String>& synonyms,
-                                                 String regex_description,
+  DigestionEnzymeProtein::DigestionEnzymeProtein(const std::string& name,
+                                                 const std::string& cleavage_regex,
+                                                 const std::set<std::string>& synonyms,
+                                                 std::string regex_description,
                                                  EmpiricalFormula n_term_gain,
                                                  EmpiricalFormula c_term_gain,
-                                                 String psi_id,
-                                                 String xtandem_id,
+                                                 std::string psi_id,
+                                                 std::string xtandem_id,
                                                  Int comet_id,
                                                  Int msgf_id,
                                                  Int omssa_id) :
@@ -83,22 +83,22 @@ namespace OpenMS
     return c_term_gain_;
   }
 
-  void DigestionEnzymeProtein::setPSIID(const String& value)
+  void DigestionEnzymeProtein::setPSIID(const std::string& value)
   {
     psi_id_ = value;
   }
 
-  String DigestionEnzymeProtein::getPSIID() const
+  std::string DigestionEnzymeProtein::getPSIID() const
   {
     return psi_id_;
   }
 
-  void DigestionEnzymeProtein::setXTandemID(const String& value)
+  void DigestionEnzymeProtein::setXTandemID(const std::string& value)
   {
     xtandem_id_ = value;
   }
 
-  String DigestionEnzymeProtein::getXTandemID() const
+  std::string DigestionEnzymeProtein::getXTandemID() const
   {
     return xtandem_id_;
   }
@@ -146,12 +146,12 @@ namespace OpenMS
   }
 
   // Note: comparison operators are not inherited. TODO rename it and make virtual
-  bool DigestionEnzymeProtein::operator==(const String& cleavage_regex) const
+  bool DigestionEnzymeProtein::operator==(const std::string& cleavage_regex) const
   {
     return cleavage_regex_ == cleavage_regex;
   }
 
-  bool DigestionEnzymeProtein::operator!=(const String& cleavage_regex) const
+  bool DigestionEnzymeProtein::operator!=(const std::string& cleavage_regex) const
   {
     return cleavage_regex_ != cleavage_regex;
   }
@@ -166,45 +166,45 @@ namespace OpenMS
     return this->getName() < enzyme.getName();
   }
 
-  bool DigestionEnzymeProtein::setValueFromFile(const String& key, const String& value)
+  bool DigestionEnzymeProtein::setValueFromFile(const std::string& key, const std::string& value)
   {
     if (DigestionEnzyme::setValueFromFile(key, value))
     {
       return true;
     }
-    if (key.hasSuffix(":NTermGain"))
+    if (StringUtils::hasSuffix(key, ":NTermGain"))
     {
       setNTermGain(EmpiricalFormula(value));
       return true;
     }
-    if (key.hasSuffix(":CTermGain"))
+    if (StringUtils::hasSuffix(key, ":CTermGain"))
     {
       setCTermGain(EmpiricalFormula(value));
       return true;
     }
-    if (key.hasSuffix(":PSIID"))
+    if (StringUtils::hasSuffix(key, ":PSIID"))
     {
       setPSIID(value);
       return true;
     }
-    if (key.hasSuffix(":XTandemID"))
+    if (StringUtils::hasSuffix(key, ":XTandemID"))
     {
       setXTandemID(value);
       return true;
     }
-    if (key.hasSuffix(":CometID"))
+    if (StringUtils::hasSuffix(key, ":CometID"))
     {
-      setCometID(value.toInt());
+      setCometID(StringUtils::toInt32(value));
       return true;
     }
-    if (key.hasSuffix(":OMSSAID"))
+    if (StringUtils::hasSuffix(key, ":OMSSAID"))
     {
-      setOMSSAID(value.toInt());
+      setOMSSAID(StringUtils::toInt32(value));
       return true;
     }
-    if (key.hasSuffix(":MSGFID"))
+    if (StringUtils::hasSuffix(key, ":MSGFID"))
     {
-      setMSGFID(value.toInt());
+      setMSGFID(StringUtils::toInt32(value));
       return true;
     }
     return false;

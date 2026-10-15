@@ -14,9 +14,14 @@
 #include <OpenMS/CHEMISTRY/ProForma.h>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -79,6 +84,29 @@ vector<string> loadTestCases(const string& filename)
 }
 
 ///////////////////////////
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4a(const std::string& id, char origin, const std::string& formula, double mass = 0.0)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    if (!formula.empty())
+    {
+      d.setDiffFormula(EmpiricalFormula(formula));
+      d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    }
+    else
+    {
+      d.setDiffMonoMass(mass);
+    }
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+}
 
 START_TEST(ProFormaParser, "$Id$")
 
@@ -266,7 +294,7 @@ START_SECTION(ProForma::parse - cross-link labels)
   TEST_EQUAL(elem2.modifications.size(), 1)
 
   // Verify roundtrip - label-only [#XL1] should be preserved
-  String roundtrip = ProForma::toString(pf);
+  std::string roundtrip = ProForma::toString(pf);
   TEST_EQUAL(roundtrip, "EMEVTK[XLMOD:02001#XL1]SESPEK[#XL1]")
 }
 END_SECTION
@@ -516,7 +544,7 @@ START_SECTION(ProForma::parseIon - chimeric spectra with plus)
   TEST_EQUAL(ion.chains[1].sequence.size(), 10)
 
   // Verify roundtrip
-  String output = ProForma::toString(ion);
+  std::string output = ProForma::toString(ion);
   TEST_EQUAL(output, "EMEVEESPEK+ELVISLIVER")
 }
 END_SECTION
@@ -539,7 +567,7 @@ START_SECTION(ProForma::parseIon - chimeric spectra with charges)
   TEST_EQUAL(*charge1, 3)
 
   // Verify roundtrip
-  String output = ProForma::toString(ion);
+  std::string output = ProForma::toString(ion);
   TEST_EQUAL(output, "EMEVEESPEK/2+ELVISLIVER/3")
 }
 END_SECTION
@@ -604,7 +632,7 @@ START_SECTION(ProForma::parseIon - gene prefix)
   TEST_EQUAL(ion.chains[1].name.value(), "Keratin")
 
   // Verify roundtrip
-  String output = ProForma::toString(ion);
+  std::string output = ProForma::toString(ion);
   TEST_EQUAL(output, "(>Trypsin)AANSIPYQVSLNS+(>Keratin)AKEQFERQTA")
 }
 END_SECTION
@@ -617,7 +645,7 @@ START_SECTION(ProForma::parse - gene prefix single chain)
   TEST_EQUAL(pf.sequence.size(), 7)
 
   // Verify roundtrip
-  String output = ProForma::toString(pf);
+  std::string output = ProForma::toString(pf);
   TEST_EQUAL(output, "(>sp|P12345|PROT_HUMAN)PEPTIDE")
 }
 END_SECTION
@@ -800,7 +828,7 @@ START_SECTION(ProForma::parse - position constraints on modifications)
   }
 
   // Test roundtrip
-  String output = ProForma::toString(pf);
+  std::string output = ProForma::toString(pf);
   TEST_EQUAL(output, "PEPTI(MERMERMERM)[Oxidation|Position:M][Oxidation|Position:M]DE")
 }
 END_SECTION
@@ -826,7 +854,7 @@ START_SECTION(ProForma::parse - position constraints with multiple residues)
   TEST_EQUAL(pos->residues[2], 'Y')
 
   // Test roundtrip
-  String output = ProForma::toString(pf);
+  std::string output = ProForma::toString(pf);
   TEST_EQUAL(output, "PEPTIDE[Phospho|Position:STY]")
 }
 END_SECTION
@@ -1118,7 +1146,7 @@ END_SECTION
 START_SECTION(ProForma::toString - simple sequences)
 {
   Peptidoform pf = ProForma::parse("PEPTIDE");
-  String result = ProForma::toString(pf);
+  std::string result = ProForma::toString(pf);
   TEST_EQUAL(result, "PEPTIDE")
 }
 END_SECTION
@@ -1126,7 +1154,7 @@ END_SECTION
 START_SECTION(ProForma::toString - modifications)
 {
   Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
-  String result = ProForma::toString(pf);
+  std::string result = ProForma::toString(pf);
   TEST_EQUAL(result, "EM[UNIMOD:35]K")
 }
 END_SECTION
@@ -1134,7 +1162,7 @@ END_SECTION
 START_SECTION(ProForma::toString - terminal modifications)
 {
   Peptidoform pf = ProForma::parse("[Acetyl]-PEPTIDE-[Amidated]");
-  String result = ProForma::toString(pf);
+  std::string result = ProForma::toString(pf);
   TEST_EQUAL(result, "[Acetyl]-PEPTIDE-[Amidated]")
 }
 END_SECTION
@@ -1163,7 +1191,7 @@ START_SECTION(Roundtrip tests from positive fixture)
   for (const auto& test : test_cases)
   {
     Peptidoform pf = ProForma::parse(test);
-    String result = ProForma::toString(pf);
+    std::string result = ProForma::toString(pf);
     // Re-parse and compare structure
     Peptidoform pf2 = ProForma::parse(result);
     TEST_EQUAL(pf.sequence.size(), pf2.sequence.size())
@@ -1197,7 +1225,7 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
 {
   // Test 1: Position way beyond input.size() should be clamped
   {
-    String input = "ABC";
+    std::string input = "ABC";
     size_t out_of_bounds_position = 100;
 
     ProForma::ParseError err(
@@ -1209,15 +1237,15 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
     );
 
     TEST_EQUAL(err.getPosition(), input.size())
-    String formatted = err.getFormattedMessage();
+    std::string formatted = err.getFormattedMessage();
     TEST_EQUAL(formatted.empty(), false)
     // Should show end of input marker since position is at end
-    TEST_EQUAL(formatted.hasSubstring("END OF INPUT"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(formatted, "END OF INPUT"), true)
   }
 
   // Test 2: Position exactly at input.size() (boundary case)
   {
-    String input = "ABCDEF";
+    std::string input = "ABCDEF";
     size_t boundary_position = input.size(); // Position 6, exactly at end
 
     ProForma::ParseError err(
@@ -1235,7 +1263,7 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
 
   // Test 3: Empty input with position 0
   {
-    String input = "";
+    std::string input;
     size_t position = 0;
 
     ProForma::ParseError err(
@@ -1253,7 +1281,7 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
 
   // Test 4: Different error code (verify error code is preserved)
   {
-    String input = "PEP[";
+    std::string input = "PEP[";
     size_t position = 3;
 
     ProForma::ParseError err(
@@ -1265,8 +1293,8 @@ START_SECTION(ProForma::ParseError - position clamping for noexcept safety)
     );
 
     TEST_EQUAL(err.getErrorCode(), ErrorCode::UNCLOSED_BRACKET)
-    String formatted = err.getFormattedMessage();
-    TEST_EQUAL(formatted.hasSubstring("Unclosed bracket"), true)
+    std::string formatted = err.getFormattedMessage();
+    TEST_EQUAL(StringUtils::hasSubstring(formatted, "Unclosed bracket"), true)
   }
 }
 END_SECTION
@@ -1280,7 +1308,7 @@ START_SECTION(JSON serialization - Peptidoform)
   Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
 
   // Serialize to JSON
-  String json = ProForma::toJSON(pf);
+  std::string json = ProForma::toJSON(pf);
   TEST_EQUAL(json.empty(), false)
 
   // Deserialize back
@@ -1294,7 +1322,7 @@ START_SECTION(JSON serialization - PeptidoformIon)
   PeptidoformIon ion = ProForma::parseIon("PEPTIDE//SEQUENCE/2");
 
   // Serialize to JSON
-  String json = ProForma::toJSON(ion);
+  std::string json = ProForma::toJSON(ion);
   TEST_EQUAL(json.empty(), false)
 
   // Deserialize back
@@ -1313,7 +1341,7 @@ START_SECTION(WriteMode - lossless preserves original mass format)
   Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
   // Lossless mode should preserve the original text
-  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
   TEST_EQUAL(lossless, "EM[+15.99]K")
 }
 END_SECTION
@@ -1324,7 +1352,7 @@ START_SECTION(WriteMode - canonical uses fixed precision)
   Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
   // Canonical mode should use fixed 4 decimal places
-  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
+  std::string canonical = ProForma::toString(pf, WriteMode::CANONICAL);
   TEST_EQUAL(canonical, "EM[+15.9900]K")
 }
 END_SECTION
@@ -1335,7 +1363,7 @@ START_SECTION(WriteMode - canonical normalizes mass precision)
   Peptidoform pf = ProForma::parse("EM[+15.99491234]K");
 
   // Canonical mode should normalize to 4 decimal places
-  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
+  std::string canonical = ProForma::toString(pf, WriteMode::CANONICAL);
   TEST_EQUAL(canonical, "EM[+15.9949]K")
 }
 END_SECTION
@@ -1345,8 +1373,8 @@ START_SECTION(WriteMode - CV accessions in both modes)
   // CV accessions should be the same in both modes
   Peptidoform pf = ProForma::parse("EM[UNIMOD:35]K");
 
-  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
-  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
+  std::string lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string canonical = ProForma::toString(pf, WriteMode::CANONICAL);
 
   // Both should produce the same output for CV accessions
   TEST_EQUAL(lossless, "EM[UNIMOD:35]K")
@@ -1359,8 +1387,8 @@ START_SECTION(WriteMode - named modifications in both modes)
   // Named modifications should be the same in both modes
   Peptidoform pf = ProForma::parse("EM[Oxidation]K");
 
-  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
-  String canonical = ProForma::toString(pf, WriteMode::CANONICAL);
+  std::string lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string canonical = ProForma::toString(pf, WriteMode::CANONICAL);
 
   // Both should produce the same output for named mods
   TEST_EQUAL(lossless, "EM[Oxidation]K")
@@ -1373,8 +1401,8 @@ START_SECTION(WriteMode - default is LOSSLESS)
   // Default mode should be lossless
   Peptidoform pf = ProForma::parse("EM[+15.99]K");
 
-  String default_output = ProForma::toString(pf);
-  String lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
+  std::string default_output = ProForma::toString(pf);
+  std::string lossless = ProForma::toString(pf, WriteMode::LOSSLESS);
 
   TEST_EQUAL(default_output, lossless)
 }
@@ -1543,6 +1571,51 @@ START_SECTION(toAASequence - BEST_EFFORT policy ignores unsupported)
 }
 END_SECTION
 
+START_SECTION([EXTRA] toAASequence - mass-delta mods without CV accession - lossy contract)
+{
+  // A mass-delta modification (e.g. M[+15.9949]) carries no UNIMOD/PSI-MOD
+  // accession. toAASequence resolves it by mass to the matching named
+  // modification when one exists (lossless), and otherwise drops it under
+  // BEST_EFFORT (lossy) or throws under FAIL_ON_LOSS. This pins that contract.
+
+  // (1) matchable side-chain mass delta -> resolved to Oxidation
+  {
+    Peptidoform pf = ProForma::parse("EM[+15.9949]K");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toUnmodifiedString(), "EMK")
+    TEST_EQUAL(seq.toString(), "EM(Oxidation)K")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("EM(Oxidation)K").getMonoWeight())
+  }
+
+  // (2) matchable mass delta on S -> Phospho
+  {
+    Peptidoform pf = ProForma::parse("PES[+79.96633]TIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), "PES(Phospho)TIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PES(Phospho)TIDE").getMonoWeight())
+  }
+
+  // (3) matchable N-terminal mass delta -> Acetyl
+  {
+    Peptidoform pf = ProForma::parse("[+42.0106]-PEPTIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), ".(Acetyl)PEPTIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("(Acetyl)PEPTIDE").getMonoWeight())
+  }
+
+  // (4) unmatchable mass delta: BEST_EFFORT drops it (lossy); FAIL_ON_LOSS throws
+  {
+    Peptidoform pf = ProForma::parse("PEM[+0.12345]TIDE");
+    AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+    TEST_EQUAL(seq.toString(), "PEMTIDE")            // mass delta dropped
+    TEST_EQUAL(seq.toUnmodifiedString(), "PEMTIDE")
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEMTIDE").getMonoWeight())
+    TEST_EXCEPTION(Exception::ConversionError,
+                   ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS))
+  }
+}
+END_SECTION
+
 START_SECTION(fromAASequence - simple sequence)
 {
   // Create AASequence and convert to Peptidoform
@@ -1585,7 +1658,7 @@ START_SECTION(fromAASequence - roundtrip)
   Peptidoform pf = ProForma::fromAASequence(orig);
 
   // Convert to string
-  String proforma_str = ProForma::toString(pf);
+  std::string proforma_str = ProForma::toString(pf);
 
   // Parse back
   Peptidoform pf2 = ProForma::parse(proforma_str);
@@ -1602,7 +1675,7 @@ END_SECTION
 START_SECTION(ProForma to AASequence roundtrip)
 {
   // Test roundtrip: ProForma -> Peptidoform -> AASequence -> Peptidoform -> ProForma
-  String orig = "EM[UNIMOD:35]K";
+  std::string orig = "EM[UNIMOD:35]K";
 
   // Parse
   Peptidoform pf = ProForma::parse(orig);
@@ -1615,6 +1688,511 @@ START_SECTION(ProForma to AASequence roundtrip)
 
   // The result should be similar (may use different notation for the same mod)
   TEST_EQUAL(pf2.sequence.size(), pf.sequence.size())
+}
+END_SECTION
+
+START_SECTION([EXTRA] QPX/Parquet lane peptidoform round-trip preserves modifications)
+{
+  // QPXFile and FeatureMapArrowIO serialize each PSM peptidoform as a canonical ProForma
+  // string and reconstruct the AASequence on read, using exactly this chain:
+  //   write: ProForma::toString(ProForma::fromAASequence(seq), WriteMode::CANONICAL)
+  //   read:  ProForma::toAASequence(ProForma::parse(str), ConversionPolicy::BEST_EFFORT)
+  // Pin that chain here so a silent modification drop/mangle in the Parquet/QPX lane (which
+  // feeds the new quant outputs) is caught at the unit level, not only in end-to-end data.
+  // Asserting positions-modified (rather than exact toString) mirrors the other round-trip
+  // sections above: notation may normalize, but a dropped modification must fail the test.
+  std::vector<std::string> seqs;
+  seqs.push_back("PEPTIDER");                  // unmodified backbone
+  seqs.push_back("PEPM(Oxidation)TIDEK");      // variable mod (UNIMOD:35)
+  seqs.push_back("PEPT(Phospho)IDESK");        // phospho (UNIMOD:21)
+  seqs.push_back("PEPC(Carbamidomethyl)IDEK"); // fixed mod (UNIMOD:4)
+
+  for (const std::string& s : seqs)
+  {
+    AASequence orig = AASequence::fromString(s);
+
+    // write side (CANONICAL) then read side (BEST_EFFORT) -- exactly as QPXFile does
+    std::string canonical = ProForma::toString(ProForma::fromAASequence(orig), WriteMode::CANONICAL);
+    AASequence result = ProForma::toAASequence(ProForma::parse(canonical), ConversionPolicy::BEST_EFFORT);
+
+    // backbone and length must survive unchanged
+    TEST_EQUAL(result.toUnmodifiedString(), orig.toUnmodifiedString())
+    TEST_EQUAL(result.size(), orig.size())
+
+    // monoisotopic mass must match -- catches a modification being dropped or changed
+    // to a different mass, which the per-position isModified() check below would miss
+    TEST_REAL_SIMILAR(result.getMonoWeight(), orig.getMonoWeight())
+
+    // every residue that was modified must remain modified at the same position
+    if (result.size() == orig.size())
+    {
+      for (Size i = 0; i < orig.size(); ++i)
+      {
+        TEST_EQUAL(result[i].isModified(), orig[i].isModified())
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - a Formula tag resolves to a modification carrying that chemistry)
+{
+  // a Formula tag used to resolve to nullptr and BEST_EFFORT dropped it silently
+  Peptidoform pf = ProForma::parse("PEPM[Formula:O]TIDE");
+  AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+
+  TEST_EQUAL(seq.toUnmodifiedString(), "PEPMTIDE")
+  TEST_TRUE(seq[3].isModified())
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEPM(Oxidation)TIDE").getMonoWeight())
+
+  // setDiffFormula() alone leaves getDiffMonoMass() at 0.0
+  const ResidueModification* mod = seq[3].getModification();
+  TEST_TRUE(mod != nullptr)
+  if (mod != nullptr) // fail above, do not crash
+  {
+    TEST_FALSE(mod->getDiffFormula().isEmpty())
+    TEST_REAL_SIMILAR(mod->getDiffMonoMass(), EmpiricalFormula("O").getMonoWeight())
+    TEST_NOT_EQUAL(mod->getDiffMonoMass(), 0.0)
+  }
+
+  // the formula, not just the mass
+  TEST_EQUAL(seq.getFormula().toString(), AASequence::fromString("PEPM(Oxidation)TIDE").getFormula().toString())
+
+  // ... and it is now representable, so FAIL_ON_LOSS must not throw
+  AASequence strict = ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS);
+  TEST_REAL_SIMILAR(strict.getMonoWeight(), seq.getMonoWeight())
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - one database entry per formula whatever the spelling)
+{
+  // keyed on the canonical formula: equivalent spellings collapse onto one entry
+  AASequence a = ProForma::toAASequence(ProForma::parse("PEPA[Formula:C2H2O]TIDE"), ConversionPolicy::BEST_EFFORT);
+  Size n_after_first = ModificationsDB::getInstance()->getNumberOfModifications();
+
+  AASequence b = ProForma::toAASequence(ProForma::parse("PEPA[Formula:C2H2O1]TIDE"), ConversionPolicy::BEST_EFFORT);
+  AASequence c = ProForma::toAASequence(ProForma::parse("PEPA[Formula:H2C2O1]TIDE"), ConversionPolicy::BEST_EFFORT);
+
+  // assert resolution first, or the comparisons below pass vacuously on null pointers
+  TEST_TRUE(a[3].getModification() != nullptr)
+  TEST_TRUE(a[3].getModification() == b[3].getModification())
+  TEST_TRUE(a[3].getModification() == c[3].getModification())
+  TEST_EQUAL(ModificationsDB::getInstance()->getNumberOfModifications(), n_after_first)
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - an unusable Formula tag stays unresolved)
+{
+  // a charge has no representation in ResidueModification
+  Peptidoform charged = ProForma::parse("PEPT[Formula:Zn1:z+2]IDE");
+  AASequence seq = ProForma::toAASequence(charged, ConversionPolicy::BEST_EFFORT);
+  TEST_FALSE(seq[3].isModified())
+  TEST_EXCEPTION(Exception::ConversionError, ProForma::toAASequence(charged, ConversionPolicy::FAIL_ON_LOSS))
+
+  // A terminal formula tag does resolve, and to the same mass as the equivalent UNIMOD entry.
+  AASequence nterm = ProForma::toAASequence(ProForma::parse("[Formula:C2H2O]-PEPTIDE"), ConversionPolicy::BEST_EFFORT);
+  TEST_TRUE(nterm.hasNTerminalModification())
+  TEST_REAL_SIMILAR(nterm.getMonoWeight(),
+                    ProForma::toAASequence(ProForma::parse("[UNIMOD:1]-PEPTIDE"), ConversionPolicy::BEST_EFFORT).getMonoWeight())
+}
+END_SECTION
+
+START_SECTION([EXTRA] getAASequenceConversionIssues - an INFO alternative is not an alternative)
+{
+  // "[Formula:X|INFO:name]" names one modification, it does not offer a choice
+  auto issues = ProForma::getAASequenceConversionIssues(ProForma::parse("PEPM[Formula:O|INFO:my note]TIDE"));
+  TEST_TRUE(issues.empty()) // the Formula resolves and the INFO is an annotation: nothing to report
+  AASequence with_note = ProForma::toAASequence(ProForma::parse("PEPM[Formula:O|INFO:my note]TIDE"), ConversionPolicy::FAIL_ON_LOSS);
+  TEST_TRUE(with_note[3].isModified())
+
+  // A genuine choice between two chemistries must still be reported.
+  auto real_alt = ProForma::getAASequenceConversionIssues(ProForma::parse("PEPM[Oxidation|Phospho]TIDE"));
+  bool found = false;
+  for (const auto& issue : real_alt)
+  {
+    if (issue.type == ProForma::ConversionIssueType::ALTERNATIVE_MODS) found = true;
+  }
+  TEST_TRUE(found)
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - several brackets on one residue combine their chemistry)
+{
+  // one modification per residue: the diff formulas are summed, not only the masses (combineMods would
+  // lose the formula); the identities are lost, so FAIL_ON_LOSS must refuse
+  const AASequence base = AASequence::fromString("PEPMTIDE");
+  const double O = EmpiricalFormula("O").getMonoWeight();
+
+  std::vector<std::pair<std::string, Size> > cases;
+  cases.push_back(std::make_pair(std::string("PEPM[Oxidation][Formula:O]TIDE"), (Size)2));
+  // identical brackets must each count (a std::set of the pointers would collapse them)
+  cases.push_back(std::make_pair(std::string("PEPM[Formula:O][Formula:O][Formula:O]TIDE"), (Size)3));
+  cases.push_back(std::make_pair(std::string("PEPM[Oxidation][Oxidation]TIDE"), (Size)2));
+
+  for (const auto& c : cases)
+  {
+    Peptidoform pf_case = ProForma::parse(c.first);
+    AASequence seq = ProForma::toAASequence(pf_case, ConversionPolicy::BEST_EFFORT);
+
+    // the two mass paths must agree - that disagreement is what this handling exists to remove
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), ProForma::getMonoWeight(pf_case))
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), base.getMonoWeight() + (double)c.second * O)
+
+    // ... and the formula must gain exactly that many oxygens, not zero
+    EmpiricalFormula expected = base.getFormula(Residue::Full, 0);
+    for (Size i = 0; i < c.second; ++i) expected += EmpiricalFormula("O");
+    TEST_EQUAL(seq.getFormula(Residue::Full, 0).toString(), expected.toString())
+  }
+
+  // cancelling components yield no modification, not the last bracket alone
+  {
+    Peptidoform cancel = ProForma::parse("PEPM[Formula:H2O][Formula:H-2O-1]TIDE");
+    AASequence seq = ProForma::toAASequence(cancel, ConversionPolicy::BEST_EFFORT);
+    TEST_FALSE(seq[3].isModified())
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), ProForma::getMonoWeight(cancel))
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), base.getMonoWeight())
+    TEST_EXCEPTION(Exception::ConversionError, ProForma::toAASequence(cancel, ConversionPolicy::FAIL_ON_LOSS))
+  }
+  // ... while a loss-type component (negative element counts) combines like any other.
+  {
+    Peptidoform loss = ProForma::parse("PEPM[Formula:O][Formula:H-2]TIDE");
+    AASequence seq = ProForma::toAASequence(loss, ConversionPolicy::BEST_EFFORT);
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), ProForma::getMonoWeight(loss))
+    EmpiricalFormula expected = base.getFormula(Residue::Full, 0) + EmpiricalFormula("O") + EmpiricalFormula("H-2");
+    TEST_EQUAL(seq.getFormula(Residue::Full, 0).toString(), expected.toString())
+  }
+
+  Peptidoform pf = ProForma::parse("PEPM[Oxidation][Formula:O]TIDE");
+  bool reported = false;
+  for (const auto& issue : ProForma::getAASequenceConversionIssues(pf))
+  {
+    if (issue.type == ProForma::ConversionIssueType::UNSUPPORTED_FEATURE) reported = true;
+  }
+  TEST_TRUE(reported)
+  TEST_EXCEPTION(Exception::ConversionError, ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS))
+
+  // same at the termini: now that both brackets resolve, the loss must be reported on its own
+  Peptidoform nterm = ProForma::parse("[UNIMOD:1][Formula:O]-PEPTIDE");
+  bool nterm_reported = false;
+  for (const auto& issue : ProForma::getAASequenceConversionIssues(nterm))
+  {
+    if (issue.type == ProForma::ConversionIssueType::UNSUPPORTED_FEATURE) nterm_reported = true;
+  }
+  TEST_TRUE(nterm_reported)
+  TEST_EXCEPTION(Exception::ConversionError, ProForma::toAASequence(nterm, ConversionPolicy::FAIL_ON_LOSS))
+}
+END_SECTION
+
+START_SECTION([EXTRA] fromAASequence - an anonymous modification must not serialise as an empty bracket)
+{
+  // an anonymous modification (empty getId()) used to be written as a nameless NamedMod: the literal "[]"
+  AASequence seq = AASequence::fromString("AEADNLDDK[+306.025304840900048]K");
+  std::string lossless = ProForma::toString(ProForma::fromAASequence(seq), WriteMode::LOSSLESS);
+
+  TEST_NOT_EQUAL(lossless, "AEADNLDDK[]K")
+  TEST_TRUE(lossless.find("[]") == std::string::npos)
+
+  // the string must be valid ProForma
+  Peptidoform reparsed = ProForma::parse(lossless);
+  TEST_REAL_SIMILAR(ProForma::getMonoWeight(reparsed), seq.getMonoWeight())
+
+  // identity across processes is not guaranteed here: a bare mass delta resolves via ModificationsDB,
+  // which this test itself populated above (the lossy contract pinned in "mass-delta mods without CV accession")
+  AASequence back = ProForma::toAASequence(reparsed, ConversionPolicy::BEST_EFFORT);
+  TEST_EQUAL(back.toUnmodifiedString(), seq.toUnmodifiedString())
+}
+END_SECTION
+
+START_SECTION([EXTRA] fromAASequence - a formula-carrying anonymous modification round-trips its chemistry)
+{
+  // a modification that came in as a Formula tag goes back out as one
+  AASequence seq = ProForma::toAASequence(ProForma::parse("PEPM[Formula:O]TIDE"), ConversionPolicy::BEST_EFFORT);
+  std::string written = ProForma::toString(ProForma::fromAASequence(seq), WriteMode::CANONICAL);
+  TEST_TRUE(written.find("Formula:") != std::string::npos)
+
+  AASequence back = ProForma::toAASequence(ProForma::parse(written), ConversionPolicy::BEST_EFFORT);
+  TEST_TRUE(back[3].isModified())
+  if (back[3].getModification() != nullptr)
+  {
+    TEST_FALSE(back[3].getModification()->getDiffFormula().isEmpty())
+  }
+  TEST_REAL_SIMILAR(back.getMonoWeight(), seq.getMonoWeight())
+  TEST_EQUAL(back.getFormula().toString(), seq.getFormula().toString())
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - the parquet peptidoform encoding is chemically complete on its own)
+{
+  // a Formula tag carrying the chemistry plus an INFO tag carrying the tool-defined name: must convert
+  // without issues and yield both the right mass and the right formula (OpenNuXL adduct, PXD048145)
+  const std::string encoded = "AEADNLDDK[Formula:C9H11N2O8P|INFO:NuXL:U-H2O]K";
+  Peptidoform pf = ProForma::parse(encoded);
+
+  // lossless round trip of the string itself
+  TEST_EQUAL(ProForma::toString(pf, WriteMode::LOSSLESS), encoded)
+
+  // nothing is lost, so the strict policy must accept it
+  TEST_TRUE(ProForma::getAASequenceConversionIssues(pf).empty())
+  AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS);
+
+  TEST_EQUAL(seq.toUnmodifiedString(), "AEADNLDDKK")
+  TEST_TRUE(seq[8].isModified())
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), 1423.5504442334)
+  TEST_EQUAL(seq.getFormula(Residue::Full, 0).toString(), "C54H86N15O28P1")
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - a Formula tag on an unknown residue must not crash)
+{
+  // lowercase letters parse, but ResidueDB::getResidue(unsigned char) returns null for them
+  Peptidoform pf = ProForma::parse("pepm[Formula:O]tide");
+  auto issues = ProForma::getAASequenceConversionIssues(pf); // must return, not crash
+  TEST_FALSE(issues.empty())
+}
+END_SECTION
+
+START_SECTION([EXTRA] fromAASequence - extreme mass deltas stay parseable)
+{
+  // getDiffMonoMassString switches to scientific notation below 1e-2 / above 1e4, which parseMassDelta_ cannot read
+  std::vector<std::string> seqs;
+  seqs.push_back("PEPT[+0.00335]IDE");     // below 1e-2
+  seqs.push_back("PEPT[+12345.6789]IDE");  // above 1e4
+  seqs.push_back("PEPT[-0.00335]IDE");     // negative, below 1e-2
+
+  for (const std::string& str : seqs)
+  {
+    AASequence seq = AASequence::fromString(str);
+    std::string written = ProForma::toString(ProForma::fromAASequence(seq), WriteMode::LOSSLESS);
+    TEST_TRUE(written.find('e') == std::string::npos)
+    Peptidoform reparsed = ProForma::parse(written); // must not throw
+    TEST_REAL_SIMILAR(ProForma::getMonoWeight(reparsed), seq.getMonoWeight())
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - the order of tags inside one bracket does not change the result)
+{
+  // alternatives[0] used to be resolved blindly: INFO first dropped 306 Da
+  Peptidoform formula_first = ProForma::parse("AEADNLDDK[Formula:C9H11N2O8P|INFO:NuXL:U-H2O]K");
+  Peptidoform info_first    = ProForma::parse("AEADNLDDK[INFO:NuXL:U-H2O|Formula:C9H11N2O8P]K");
+
+  AASequence a = ProForma::toAASequence(formula_first, ConversionPolicy::BEST_EFFORT);
+  AASequence b = ProForma::toAASequence(info_first, ConversionPolicy::BEST_EFFORT);
+
+  TEST_EQUAL(a.toString(), b.toString())
+  TEST_REAL_SIMILAR(a.getMonoWeight(), b.getMonoWeight())
+  TEST_REAL_SIMILAR(b.getMonoWeight(), 1423.5504442334)
+  TEST_TRUE(ProForma::getAASequenceConversionIssues(info_first).empty())
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - combination trusts the diff masses and only a consistent formula)
+{
+  // a database entry can carry a formula inconsistent with its mass (e.g. UNIMOD:12); the combination
+  // must trust the masses. Synthetic entry, so the test does not depend on that defect persisting.
+  {
+    ResidueModification bad;
+    bad.setId("TestInconsistentFormula");
+    bad.setOrigin('C');
+    bad.setTermSpecificity(ResidueModification::ANYWHERE);
+    bad.setFullId();
+    bad.setDiffFormula(EmpiricalFormula("C2H2O")); // 42.01 Da ...
+    bad.setDiffMonoMass(100.0);                    // ... but claims 100 Da
+    ModificationsDB::getInstance()->addModification(bad);
+  }
+  Peptidoform pf = ProForma::parse("PEPC[TestInconsistentFormula][Formula:O]TIDE");
+  AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+  const double expected = AASequence::fromString("PEPCTIDE").getMonoWeight() + 100.0 + EmpiricalFormula("O").getMonoWeight();
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), expected)                 // masses, not the bogus formula
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), ProForma::getMonoWeight(pf))
+  TEST_TRUE(seq[3].isModified())
+
+  // A component WITHOUT any formula must not make the others vanish: the mass still combines.
+  {
+    ResidueModification massonly;
+    massonly.setId("TestMassOnlyComponent");
+    massonly.setOrigin('T');
+    massonly.setTermSpecificity(ResidueModification::ANYWHERE);
+    massonly.setFullId();
+    massonly.setDiffMonoMass(10.0);
+    ModificationsDB::getInstance()->addModification(massonly);
+  }
+  Peptidoform pf2 = ProForma::parse("PEPT[Formula:O][TestMassOnlyComponent]IDE");
+  AASequence seq2 = ProForma::toAASequence(pf2, ConversionPolicy::BEST_EFFORT);
+  TEST_REAL_SIMILAR(seq2.getMonoWeight(), AASequence::fromString("PEPTIDE").getMonoWeight() + EmpiricalFormula("O").getMonoWeight() + 10.0)
+  TEST_REAL_SIMILAR(seq2.getMonoWeight(), ProForma::getMonoWeight(pf2))
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - a label-only terminal bracket must not hide the chemistry behind it)
+{
+  // applying n_term_mods[0] blindly took the label bracket and silently lost the Formula tag
+  Peptidoform pf = ProForma::parse("[#XL1][Formula:C2H2O]-PEPTIDE");
+  AASequence seq = ProForma::toAASequence(pf, ConversionPolicy::BEST_EFFORT);
+  TEST_TRUE(seq.hasNTerminalModification())
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), ProForma::getMonoWeight(pf))
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEPTIDE").getMonoWeight() + EmpiricalFormula("C2H2O").getMonoWeight())
+}
+END_SECTION
+
+START_SECTION([EXTRA] getAASequenceConversionIssues - unresolved chemistry behind an empty INFO is still reported)
+{
+  // the suppression looked at alternatives[0] only: an empty INFO in front hid the unresolved glycan
+  Peptidoform pf = ProForma::parse("PEPT[INFO:|Glycan:Hex]IDE");
+  bool unresolved = false;
+  for (const auto& issue : ProForma::getAASequenceConversionIssues(pf))
+  {
+    if (issue.type == ProForma::ConversionIssueType::UNRESOLVED_MOD) unresolved = true;
+  }
+  TEST_TRUE(unresolved)
+  TEST_FALSE(ProForma::isRepresentableAsAASequence(pf))
+
+  // ... and a genuinely label-only bracket is still not an unresolved modification.
+  bool label_unresolved = false;
+  for (const auto& issue : ProForma::getAASequenceConversionIssues(ProForma::parse("PEPTK[#XL1]IDE")))
+  {
+    if (issue.type == ProForma::ConversionIssueType::UNRESOLVED_MOD) label_unresolved = true;
+  }
+  TEST_FALSE(label_unresolved)
+}
+END_SECTION
+
+START_SECTION([EXTRA] getAASequenceConversionIssues - a residue-incompatible accession is an issue not an exception)
+{
+  // getModification throws InvalidValue when the accession is not valid for the residue; it must not escape
+  Peptidoform on_m = ProForma::parse("PEPM[UNIMOD:447]TIDE"); // Deoxy: not defined on M
+  std::vector<ProForma::ConversionIssue> issues;
+  TEST_EXCEPTION(Exception::ConversionError, ProForma::toAASequence(on_m, ConversionPolicy::FAIL_ON_LOSS))
+  issues = ProForma::getAASequenceConversionIssues(on_m); // must return, not throw
+  bool unresolved = false;
+  for (const auto& issue : issues)
+  {
+    if (issue.type == ProForma::ConversionIssueType::UNRESOLVED_MOD) unresolved = true;
+  }
+  TEST_TRUE(unresolved)
+  // same with an annotation in front, which now selects the accession as the chemistry tag
+  issues = ProForma::getAASequenceConversionIssues(ProForma::parse("PEPM[INFO:x|UNIMOD:447]TIDE"));
+  TEST_FALSE(issues.empty())
+}
+END_SECTION
+
+START_SECTION([EXTRA] getMonoWeight - tag order inside a bracket does not change the mass either)
+{
+  // the mass helper read alternatives[0] and so depended on the order
+  const double a = ProForma::getMonoWeight(ProForma::parse("PEPT[INFO:x|Formula:Zn1:z+2]IDE"));
+  const double b = ProForma::getMonoWeight(ProForma::parse("PEPT[Formula:Zn1:z+2|INFO:x]IDE"));
+  TEST_REAL_SIMILAR(a, b)
+}
+END_SECTION
+
+START_SECTION([EXTRA] fromAASequence - a huge mass delta is written in full rather than as zero)
+{
+  // A 64-byte buffer made std::to_chars fail for 1e64 and the fallback silently wrote "+0".
+  AASequence seq = AASequence::fromString("PEPTIDE");
+  seq.setModificationByDiffMonoMass(3, 1e64);
+  std::string written = ProForma::toString(ProForma::fromAASequence(seq), WriteMode::LOSSLESS);
+  TEST_TRUE(written.find("[+0]") == std::string::npos)
+  TEST_TRUE(written.find("[+1") != std::string::npos)
+  TEST_TRUE(written.find('e') == std::string::npos)
+  Peptidoform back = ProForma::parse(written); // must parse
+  TEST_TRUE(ProForma::getMonoWeight(back) > 1e63)
+}
+END_SECTION
+
+START_SECTION([EXTRA] fromAASequence - a tool-defined modification is written as its chemistry plus an INFO tag)
+{
+  TEST_TRUE(defineMod4a("Test4a:Adduct", 'K', "C9H11N2O8P") != nullptr)
+  AASequence seq = AASequence::fromString("AEADNLDDK(Test4a:Adduct)K");
+  TEST_EQUAL(ProForma::toString(ProForma::fromAASequence(seq), WriteMode::CANONICAL), "AEADNLDDK[Formula:C9H11N2O8P1|INFO:Test4a:Adduct]K")
+  TEST_EQUAL(ProForma::toString(ProForma::fromAASequence(seq), WriteMode::LOSSLESS), "AEADNLDDK[Formula:C9H11N2O8P1|INFO:Test4a:Adduct]K")
+
+  // without a formula the chemistry is the mass delta
+  TEST_TRUE(defineMod4a("Test4a:MassOnlyDef", 'S', "", 123.4567) != nullptr)
+  AASequence seq2 = AASequence::fromString("PEPS(Test4a:MassOnlyDef)IDE");
+  TEST_EQUAL(ProForma::toString(ProForma::fromAASequence(seq2), WriteMode::LOSSLESS), "PEPS[+123.4567|INFO:Test4a:MassOnlyDef]IDE")
+
+  // vocabulary entries are unaffected
+  TEST_EQUAL(ProForma::toString(ProForma::fromAASequence(AASequence::fromString("PEPM(Oxidation)TIDE")), WriteMode::CANONICAL), "PEPM[UNIMOD:35]TIDE")
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - the INFO name restores the identity of a tool-defined modification)
+{
+  TEST_TRUE(defineMod4a("Test4a:Identity", 'K', "C9H11N2O8P") != nullptr)
+  AASequence seq = AASequence::fromString("AEADNLDDK(Test4a:Identity)K");
+  const std::string written = ProForma::toString(ProForma::fromAASequence(seq), WriteMode::CANONICAL);
+  Peptidoform pf = ProForma::parse(written);
+  TEST_TRUE(ProForma::getAASequenceConversionIssues(pf).empty())
+
+  AASequence back = ProForma::toAASequence(pf, ConversionPolicy::FAIL_ON_LOSS);
+  TEST_EQUAL(back.toString(), seq.toString()) // the name, not a mass bracket
+  TEST_TRUE(back[8].getModification() == seq[8].getModification())
+  TEST_EQUAL(back.getFormula().toString(), seq.getFormula().toString())
+  TEST_REAL_SIMILAR(back.getMonoWeight(), seq.getMonoWeight())
+
+  // tag order inside the bracket does not matter
+  AASequence back2 = ProForma::toAASequence(ProForma::parse("AEADNLDDK[INFO:Test4a:Identity|Formula:C9H11N2O8P1]K"), ConversionPolicy::FAIL_ON_LOSS);
+  TEST_EQUAL(back2.toString(), seq.toString())
+
+  // the mass-delta spelling of a formula-less definition resolves by name as well
+  TEST_TRUE(defineMod4a("Test4a:IdentityMass", 'S', "", 123.4567) != nullptr)
+  AASequence back3 = ProForma::toAASequence(ProForma::parse("PEPS[+123.4567|INFO:Test4a:IdentityMass]IDE"), ConversionPolicy::FAIL_ON_LOSS);
+  TEST_EQUAL(back3.toString(), "PEPS(Test4a:IdentityMass)IDE")
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - the definition wins over disagreeing inline chemistry and says so)
+{
+  TEST_TRUE(defineMod4a("Test4a:Disagree", 'K', "C2H2O") != nullptr)
+  std::ostringstream captured;
+  OPENMS_LOG_WARN.insert(captured);
+  AASequence seq = ProForma::toAASequence(ProForma::parse("PEPK[Formula:O|INFO:Test4a:Disagree]TIDE"), ConversionPolicy::BEST_EFFORT);
+  OPENMS_LOG_WARN.remove(captured);
+
+  TEST_TRUE(seq[3].getModification() != nullptr)
+  if (seq[3].getModification() != nullptr)
+  {
+    TEST_EQUAL(seq[3].getModification()->getId(), "Test4a:Disagree")
+  }
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEPKTIDE").getMonoWeight() + EmpiricalFormula("C2H2O").getMonoWeight())
+  TEST_TRUE(captured.str().find("disagrees") != std::string::npos)
+
+  // agreeing chemistry is silent
+  std::ostringstream quiet;
+  OPENMS_LOG_WARN.insert(quiet);
+  ProForma::toAASequence(ProForma::parse("PEPK[Formula:C2H2O|INFO:Test4a:Disagree]TIDE"), ConversionPolicy::BEST_EFFORT);
+  OPENMS_LOG_WARN.remove(quiet);
+  TEST_TRUE(quiet.str().find("disagrees") == std::string::npos)
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - free text naming a vocabulary entry does not override the chemistry)
+{
+  TEST_FALSE(ModificationsDB::getInstance()->hasDefinedModification("Oxidation"))
+  std::ostringstream captured;
+  OPENMS_LOG_WARN.insert(captured);
+  AASequence seq = ProForma::toAASequence(ProForma::parse("PEPM[Formula:C2H2O|INFO:Oxidation]TIDE"), ConversionPolicy::BEST_EFFORT);
+  OPENMS_LOG_WARN.remove(captured);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEPMTIDE").getMonoWeight() + EmpiricalFormula("C2H2O").getMonoWeight())
+  TEST_TRUE(captured.str().find("disagrees") == std::string::npos)
+}
+END_SECTION
+
+START_SECTION([EXTRA] toAASequence - a Formula tag yields an anonymous modification)
+{
+  AASequence seq = ProForma::toAASequence(ProForma::parse("PEPM[Formula:O]TIDE"), ConversionPolicy::BEST_EFFORT);
+  TEST_TRUE(seq[3].getModification() != nullptr)
+  if (seq[3].getModification() != nullptr)
+  {
+    TEST_EQUAL(seq[3].getModification()->getProvenance(), ResidueModification::MASS_ONLY)
+    TEST_TRUE(seq[3].getModification()->getId().empty())
+  }
+  AASequence combined = ProForma::toAASequence(ProForma::parse("PEPM[Oxidation][Formula:O]TIDE"), ConversionPolicy::BEST_EFFORT);
+  TEST_TRUE(combined[3].getModification() != nullptr)
+  if (combined[3].getModification() != nullptr)
+  {
+    TEST_EQUAL(combined[3].getModification()->getProvenance(), ResidueModification::MASS_ONLY)
+  }
 }
 END_SECTION
 

@@ -102,8 +102,8 @@ namespace OpenMS
         // -> remove the MetaValue to be consistent.
         if (id.metaValueExists("old_map_index"))
         {
-          Size old_map_index = id.getMetaValue("old_map_index");
-          Size file_index = id.getMetaValue("map_index");
+          Size old_map_index = (Size)id.getMetaValue("old_map_index");
+          Size file_index = (Size)id.getMetaValue("map_index");
           Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
           id.setMetaValue("map_index", new_idx);
           id.removeMetaValue("old_map_index");
@@ -121,8 +121,8 @@ namespace OpenMS
       // -> remove the MetaValue to be consistent.
       if (id.metaValueExists("old_map_index"))
       {
-        Size old_map_index = id.getMetaValue("old_map_index");
-        Size file_index = id.getMetaValue("map_index");
+        Size old_map_index = (Size)id.getMetaValue("old_map_index");
+        Size file_index = (Size)id.getMetaValue("map_index");
         Size new_idx = mapid_table[make_pair(file_index, old_map_index)];
         id.setMetaValue("map_index", new_idx);
         id.removeMetaValue("old_map_index");

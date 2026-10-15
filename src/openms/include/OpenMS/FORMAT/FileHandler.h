@@ -8,8 +8,9 @@
 
 #pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -19,14 +20,20 @@
 // as references/pointers in method signatures, so full definitions are not needed.
 namespace OpenMS
 {
+  class TransformationDescription;
   class PeakFileOptions;
   class MSSpectrum;
   class MSExperiment;
+  class MSImagingExperiment;
   class FeatureMap;
   class ConsensusMap;
   class TargetedExperiment;
   class ProteinIdentification;
   class PeptideIdentificationList;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
 
   /**
     @brief Facilitates file handling by file type recognition.
@@ -56,7 +63,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
-    static FileTypes::Type getType(const String& filename);
+    static FileTypes::Type getType(const std::string& filename);
 
 
     /**
@@ -68,7 +75,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
-    static FileTypes::Type getTypeByFileName(const String& filename);
+    static FileTypes::Type getTypeByFileName(const std::string& filename);
 
 
     /**
@@ -80,7 +87,7 @@ public:
        @param[in] filename The filename to check
        @param[in] type The expected file type
     */
-    static bool hasValidExtension(const String& filename, const FileTypes::Type type);
+    static bool hasValidExtension(const std::string& filename, const FileTypes::Type type);
 
 
     /**
@@ -95,7 +102,7 @@ public:
       @return the stripped filename
 
     */
-    static String stripExtension(const String& filename);
+    static std::string stripExtension(const std::string& filename);
 
 
     /**
@@ -111,7 +118,7 @@ public:
       @return the updated string
 
     */
-    static String swapExtension(const String& filename, const FileTypes::Type new_type);
+    static std::string swapExtension(const std::string& filename, const FileTypes::Type new_type);
 
     
     /**
@@ -126,7 +133,7 @@ public:
                             The string can be empty (yields UNKNOWN for this type)
       @return A consistent file type or UNKNOWN upon conflict
     */
-    static FileTypes::Type getConsistentOutputfileType(const String& output_filename, const String& requested_type);
+    static FileTypes::Type getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type);
 
 
     /**
@@ -136,7 +143,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
-    static FileTypes::Type getTypeByContent(const String& filename);
+    static FileTypes::Type getTypeByContent(const std::string& filename);
 
     /// @brief Returns if the file type is supported in this build of the library
     static bool isSupported(FileTypes::Type type);
@@ -169,12 +176,66 @@ public:
       @param[in] rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
+      @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
+      The MS level, RT range, precursor m/z range, metadata-only, fill-data and skip-chromatograms options are passed to the reader, so skipped scans are not decoded
+      (fill-data off loads spectra without peaks, like metadata-only). The SourceFile carries no SHA-1 checksum unless @p rewrite_source_file and @p compute_hash are set.
+
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+    void loadExperiment(const std::string& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
+
+    /**
+      @brief Streams a file into a consumer, spectrum by spectrum, without holding the whole experiment in memory
+
+      The consumer receives IMSDataConsumer::setExpectedSize() and IMSDataConsumer::setExperimentalSettings()
+      first, then the spectra and chromatograms. Supported are mzML (MzMLFile::transform), mzXML
+      (MzXMLFile::transform) and Thermo .raw (ThermoRawFile::transform, OpenMS built with WITH_THERMO_RAW).
+      The PeakFileOptions are applied as by loadExperiment(); .raw files are read centroided and with the
+      scan-level options passed to the reader, as by loadExperiment(). Unlike loadExperiment(), mzML spectra
+      that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
+      to IMSDataConsumer::setExpectedSize() come from the file and ignore the selection; for .raw they are the
+      numbers of selected spectra and chromatograms.
+
+      @param[in] filename The file to read
+      @param[in] consumer Receives the data (not owned)
+      @param[in] allowed_types Supported file types; if empty, any streamable type
+      @param[in] log Progress logging mode
+      @param[in] rewrite_source_file Set the SourceFile name and path to @p filename (as loadExperiment())
+      @param[in] compute_hash If source files are rewritten, store the SHA-1 of @p filename in the SourceFile
+
+      @exception Exception::NullPointer is thrown if @p consumer is null
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing or the type is not in @p allowed_types
+      @exception Exception::InvalidFileType is thrown if the file type cannot be streamed
+    */
+    void transformExperiment(const std::string& filename, Interfaces::IMSDataConsumer* consumer,
+                             const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+                             ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
+                             const bool compute_hash = false);
+
+    /**
+      @brief Loads a mass spectrometry imaging file into an MSImagingExperiment
+
+      Imaging data is always loaded into an MSImagingExperiment.
+      Supported here are imzML (via ImzMLFile) and Bruker
+      timsTOF MALDI imaging .d folders (via BrukerTimsImagingFile, OpenMS built with WITH_OPENTIMS).
+
+      @param[in] filename The file name of the file to load.
+      @param[out] exp The imaging experiment to load the data into; replaced (not appended).
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any imaging type that we have a handler for.
+      @param[in] log Progress logging mode
+
+      @exception Exception::InvalidFileType is thrown if the file is not an imaging format
+      @exception Exception::ParseError is thrown if the type is not in @p allowed_types
+      @exception Exception::InvalidValue is thrown for a .d folder that is not MALDI imaging
+    */
+    void loadImagingExperiment(const std::string& filename,
+                               MSImagingExperiment& exp,
+                               const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+                               ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Stores an MSExperiment to a file
@@ -188,7 +249,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeExperiment(const std::string& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
         /**
       @brief Loads a single MSSpectrum from a file
@@ -200,7 +261,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
+    void loadSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
 
         /**
       @brief Stores a single MSSpectrum to a file
@@ -211,7 +272,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
+    void storeSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types = {});
 
     /**
       @brief Loads a file into a FeatureMap
@@ -224,7 +285,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadFeatures(const std::string& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store a FeatureMap
@@ -245,7 +306,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
       @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
-    void storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeFeatures(const std::string& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads a file into a ConsensusMap
@@ -258,7 +319,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadConsensusFeatures(const std::string& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store a ConsensusFeatureMap
@@ -279,7 +340,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
       @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
-    void storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeConsensusFeatures(const std::string& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads an identification file into a proteinIdentifications and peptideIdentifications
@@ -293,7 +354,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadIdentifications(const std::string& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Stores proteins and peptides into an Identification File
@@ -315,7 +376,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
       @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
-    void storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeIdentifications(const std::string& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Load transitions of a spectral library
@@ -328,7 +389,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadTransitions(const std::string& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store transitions of a spectral library
@@ -340,7 +401,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeTransitions(const std::string& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
         /**
       @brief Loads a file into Transformations
@@ -354,7 +415,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    void loadTransformations(const String& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = {});
+    void loadTransformations(const std::string& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = {});
 
     /**
       @brief Store Transformations
@@ -365,7 +426,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeTransformations(const String& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = {});
+    void storeTransformations(const std::string& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = {});
 
     /**
       @brief Store QC info
@@ -387,17 +448,17 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeQC(const String& input_file,
-               const String& filename,
+    void storeQC(const std::string& input_file,
+               const std::string& filename,
                const MSExperiment& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
                const ConsensusMap& consensus_map,
-               const String& contact_name = "",
-               const String& contact_address = "",
-               const String& description = "",
-               const String& label = "label",
+               const std::string& contact_name = "",
+               const std::string& contact_address = "",
+               const std::string& description = "",
+               const std::string& label = "label",
                const bool remove_duplicate_features = false,
                const std::vector<FileTypes::Type> allowed_types = {});
 
@@ -406,17 +467,17 @@ public:
 
       @return The SHA-1 hash of the given file.
     */
-    static String computeFileHash(const String& filename);
+    static std::string computeFileHash(const std::string& filename);
 
 private:
     /**
       @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
 
-      Used by vendor-format paths (Thermo .raw, Bruker .d) whose loaders read all
-      scans/peaks regardless of PeakFileOptions. Filters MS level, RT range, precursor
+      Used by vendor-format paths whose loaders read all scans/peaks regardless of
+      PeakFileOptions (Bruker .d), and for the per-peak filters on Thermo .raw (the
+      scan-level filters are passed to ThermoRawFile). Filters MS level, RT range, precursor
       m/z range, per-peak m/z and intensity ranges, and strips peak data when
-      metadata-only is requested. Calls updateRanges() at the end. Until these filters
-      are pushed into the respective loader classes, both vendor paths share this.
+      metadata-only is requested. Calls updateRanges() at the end.
     */
     void applyPostLoadOptions_(MSExperiment& exp) const;
 
@@ -425,4 +486,3 @@ private:
   };
 
 } //namespace
-

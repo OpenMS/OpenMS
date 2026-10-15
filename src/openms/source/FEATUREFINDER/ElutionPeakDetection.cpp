@@ -109,7 +109,7 @@ namespace OpenMS
     if (mt_length != tr.getSize())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
+          "MassTrace was not smoothed before! Aborting...",StringUtils::toStr(smoothed_ints_vec.size()));
     }
 
     // first make sure that everything is cleared
@@ -372,7 +372,8 @@ namespace OpenMS
       ++count_mt;
     }
 
-    std::cout << "pw low: " << filt_mtraces[0].estimateFWHM(true) << " " << " pw high: " << filt_mtraces[filt_mtraces.size() - 1].estimateFWHM(true) << '\n';
+    // (removed stray debug output that printed to std::cout and indexed filt_mtraces[0] /
+    //  filt_mtraces[size()-1] without an empty check -> out-of-bounds when no trace passed the width filter)
 
     return;
   }
@@ -531,7 +532,7 @@ namespace OpenMS
         if (pw_ok && snr_ok)
         {
           // set label of sub-trace
-          new_mt.setLabel(mt.getLabel() + "." + String(min_idx + 1));
+          new_mt.setLabel(mt.getLabel() + "." + StringUtils::toStr(min_idx + 1));
           new_mt.updateSmoothedMaxRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();

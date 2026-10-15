@@ -12,6 +12,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -199,7 +200,7 @@ namespace OpenMS
     typedef PeakMap::SpectrumType::ConstIterator const_spec_iterator;
 
     // compute distance between isotopic peaks based on the precursor charge.
-    const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(ms2_spec->getPrecursors()[0].getCharge());
+    const double charge_dist = Constants::C13C12_MASSDIFF_U / static_cast<double>(ms2_spec->getPrecursors()[0].getCharge());
 
     // the actual boundary values
     const double strict_lower_mz = ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset();
@@ -229,15 +230,19 @@ namespace OpenMS
       // find nearest peak in precursor window
       const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
 
-      // handle border cases
-
-      // check if next peak has smaller dist
-      const_spec_iterator np_it2 = np_it;
-      ++np_it;
-
-      if (std::fabs(np_it2->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+      // Compare the peaks below and above the expected position, staying inside the window.
+      if (np_it != lower_bound)
       {
-        np_it = np_it2;
+        const_spec_iterator previous_it = np_it;
+        --previous_it;
+        if (np_it == upper_bound || std::fabs(previous_it->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+        {
+          np_it = previous_it;
+        }
+      }
+      if (np_it == upper_bound)
+      {
+        break; // This half of the isolation window contains no peaks.
       }
 
       // compute difference between found peak and expected
@@ -287,15 +292,19 @@ namespace OpenMS
       // find nearest peak in precursor window
       const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
 
-      // handle border cases
-
-      // check if next peak has smaller dist
-      const_spec_iterator np_it2 = np_it;
-      ++np_it;
-
-      if (std::fabs(np_it2->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+      // Compare the peaks below and above the expected position, staying inside the window.
+      if (np_it != lower_bound)
       {
-        np_it = np_it2;
+        const_spec_iterator previous_it = np_it;
+        --previous_it;
+        if (np_it == upper_bound || std::fabs(previous_it->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+        {
+          np_it = previous_it;
+        }
+      }
+      if (np_it == upper_bound)
+      {
+        break; // This half of the isolation window contains no peaks.
       }
 
       // compute difference between found peak and expected
@@ -431,7 +440,7 @@ namespace OpenMS
       selected_activation_ = Precursor::NamesOfActivationMethod[static_cast<size_t>(Precursor::ActivationMethod::HCID)] + "," + Precursor::NamesOfActivationMethod[static_cast<size_t>(Precursor::ActivationMethod::HCD)];
     }
 
-    HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
+    HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<std::string>(selected_activation_));
 
     // Walk through the spectra and count, per MS-level, the total number of MSn scans, the number of
     // scans passing the activation-method filter, and a per-level breakdown of the activation modes
@@ -444,7 +453,7 @@ namespace OpenMS
     // to select the scans *within* the chosen quantification level. See OpenMS issue #7165.
     std::map<UInt, UInt> ms_level_total;                            // all MSn scans per level
     std::map<UInt, UInt> ms_level_pass;                             // scans passing the activation filter per level
-    std::map<UInt, std::map<String, UInt>> level_activation_modes;  // per-level activation-mode counts
+    std::map<UInt, std::map<std::string, UInt>> level_activation_modes;  // per-level activation-mode counts
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       if (it->getMSLevel() == 1) continue; // never report MS1
@@ -458,16 +467,16 @@ namespace OpenMS
     }
 
     // helper to format the activation-mode breakdown of a given MS level, e.g. "HCD (106), CID (3)"
-    auto formatActivationModes = [&level_activation_modes](UInt lvl) -> String
+    auto formatActivationModes = [&level_activation_modes](UInt lvl) -> std::string
     {
       const auto lvl_it = level_activation_modes.find(lvl);
       if (lvl_it == level_activation_modes.end()) return "<none>";
-      String s;
+      std::string s;
       bool first = true;
       for (const auto& am : lvl_it->second)
       {
         if (!first) s += ", ";
-        s += (am.first.empty() ? "<none>" : am.first) + " (" + String(am.second) + ")";
+        s += (am.first.empty() ? "<none>" : am.first) + " (" + StringUtils::toStr(am.second) + ")";
         first = false;
       }
       return s;
@@ -508,13 +517,13 @@ namespace OpenMS
       // produce nonsensical results (e.g. SPS-MS3, where the reporter ions reside in the MS3 scans).
       // Fail loudly instead of silently returning wrong quantities. See OpenMS issue #7165.
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "None of the " + String(ms_level_total[quant_ms_level]) + " MS" + String(quant_ms_level) +
+        "None of the " + StringUtils::toStr(ms_level_total[quant_ms_level]) + " MS" + StringUtils::toStr(quant_ms_level) +
         " scans (the highest MS level present, which is used for isobaric quantification) match the selected activation '" +
-        selected_activation_ + "', but lower MS-level scans do. For SPS-MS" + String(quant_ms_level) +
-        " experiments the reporter ions reside in the MS" + String(quant_ms_level) + " scans; quantifying a lower MS level "
-        "would give wrong results. Activation modes of the MS" + String(quant_ms_level) + " scans: " + formatActivationModes(quant_ms_level) +
+        selected_activation_ + "', but lower MS-level scans do. For SPS-MS" + StringUtils::toStr(quant_ms_level) +
+        " experiments the reporter ions reside in the MS" + StringUtils::toStr(quant_ms_level) + " scans; quantifying a lower MS level "
+        "would give wrong results. Activation modes of the MS" + StringUtils::toStr(quant_ms_level) + " scans: " + formatActivationModes(quant_ms_level) +
         ". Please set 'select_activation' to 'auto' (HCD/HCID), 'any' (disable filtering), or the activation method matching your MS" +
-        String(quant_ms_level) + " scans.");
+        StringUtils::toStr(quant_ms_level) + " scans.");
     }
 
     OPENMS_LOG_INFO << "Using MS-level " << quant_ms_level << " for quantification.\n";
@@ -583,7 +592,7 @@ namespace OpenMS
 
         if (it_last_MS2 == ms_exp_data.end())
         { // this only happens if an MS3 spec does not have a preceding MS2
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + StringUtils::toStr(it->getRT()));
         }
       }
       else
@@ -594,7 +603,7 @@ namespace OpenMS
       // check if MS1 precursor info is available
       if (it_last_MS2->getPrecursors().empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + StringUtils::toStr(it->getRT()));
       }
 
       // store RT of MS2 scan and MZ of MS1 precursor ion as centroid of ConsensusFeature
@@ -672,7 +681,7 @@ namespace OpenMS
       // check featureHandles are not empty
       if (overall_intensity <= 0)
       {
-        cf.setMetaValue("all_empty", String("true"));
+        cf.setMetaValue("all_empty",std::string("true"));
       }
       // add purity information if we could compute it
       if (precursor_purity > 0.0)
@@ -704,7 +713,7 @@ namespace OpenMS
     registerChannelsInOutputMap(consensus_map);
   }
 
-  void IsobaricChannelExtractor::registerChannelsInOutputMap(ConsensusMap& consensus_map, const String& filename)
+  void IsobaricChannelExtractor::registerChannelsInOutputMap(ConsensusMap& consensus_map, const std::string& filename)
   {
     // register the individual channels in the output consensus map
     Int index = 0;
@@ -834,8 +843,10 @@ namespace OpenMS
       cl_it != quant_method_->getChannelInformation().end();
       ++cl_it)
     {
-      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
-      if (stats.find(cl_it->name) != stats.end())
+      { std::string ch_n = cl_it->name; StringUtils::fillRight(ch_n, ' ', 4);
+        std::string ch_c = StringUtils::toStr(cl_it->center).substr(0, 7); StringUtils::fillRight(ch_c, ' ', 7);
+        OPENMS_LOG_INFO << "  ch " << ch_n << " (~" << ch_c << "): "; }
+      if (stats.contains(cl_it->name))
       {
         // sort
         double median = Math::median(stats[cl_it->name].mz_deltas.begin(), stats[cl_it->name].mz_deltas.end(), false);
@@ -877,7 +888,9 @@ namespace OpenMS
       cl_it != quant_method_->getChannelInformation().end();
       ++cl_it)
     {
-      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
+      { std::string ch_n = cl_it->name; StringUtils::fillRight(ch_n, ' ', 4);
+        std::string ch_c = StringUtils::toStr(cl_it->center).substr(0, 7); StringUtils::fillRight(ch_c, ' ', 7);
+        OPENMS_LOG_INFO << "  ch " << ch_n << " (~" << ch_c << "): "; }
       auto& cur_deltas = stats[channel_nr].mz_deltas;
       Size old_size = cur_deltas.size();
       // filter out NaN in mz_deltas
@@ -886,6 +899,15 @@ namespace OpenMS
       }), cur_deltas.end());
 
       Size missing = old_size - cur_deltas.size();
+
+      // A channel without any reporter signal (e.g. a run that is not labelled with this method) has no
+      // deltas; Math::median would throw on the empty range.
+      if (cur_deltas.empty())
+      {
+        OPENMS_LOG_INFO << "<no signal> | #missing: " << missing << "\n";
+        ++channel_nr;
+        continue;
+      }
 
       // sort
       double median = Math::median(cur_deltas.begin(), cur_deltas.end(), false);

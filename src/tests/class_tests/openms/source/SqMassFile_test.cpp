@@ -135,7 +135,7 @@ END_SECTION
 
 TOLERANCE_RELATIVE(1.0005)
 
-START_SECTION(void load(const String& filename, MapType& map))
+START_SECTION(void load(const std::string& filename, MapType& map))
 {
   MSExperiment exp;
   SqMassFile().load(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), exp);
@@ -174,7 +174,7 @@ END_SECTION
 TOLERANCE_ABSOLUTE(1e-5)
 TOLERANCE_RELATIVE(1+1e-5)
 
-START_SECTION(void store(const String& filename, MapType& map))
+START_SECTION(void store(const std::string& filename, MapType& map))
 {
   MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
@@ -229,7 +229,7 @@ START_SECTION(void store(const String& filename, MapType& map))
 }
 END_SECTION
 
-START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
+START_SECTION([EXTRA_LOSSY] void store(const std::string& filename, MapType& map))
 {
   MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
@@ -344,7 +344,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
 }
 END_SECTION
 
-START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map))
+START_SECTION([EXTRA_FULL_META] void store(const std::string& filename, MapType& map))
 {
   MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
@@ -459,6 +459,43 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
   cmpDataRT(exp, exp2, 0.05, 1.00000001);  // max 0.05 seconds error in RT
 }
 END_SECTION
+
+START_SECTION([EXTRA_FULL_META] native IDs without '=' survive a full-metadata round trip)
+{
+  // the mzML snapshot renames such IDs to "spectrum=<index>"; reading used to fail with
+  // "Native id for spectrum / chromatogram does not match"
+  MSExperiment exp_orig;
+  for (int i = 1; i <= 2; ++i)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(10.0 * i);
+    spec.setNativeID("scan_" + std::to_string(i));
+    spec.push_back(Peak1D(100.0 * i, 1000.0f));
+    spec.push_back(Peak1D(200.0 * i, 2000.0f));
+    exp_orig.addSpectrum(spec);
+  }
+
+  SqMassFile::SqMassConfig config;
+  config.write_full_meta = true;
+  SqMassFile file;
+  file.setConfig(config);
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  file.store(tmp_filename, exp_orig);
+
+  MSExperiment exp;
+  file.load(tmp_filename, exp);
+
+  TEST_EQUAL(exp.getNrSpectra(), 2)
+  ABORT_IF(exp.getNrSpectra() != 2)
+  TEST_EQUAL(exp.getSpectrum(0).getNativeID(), "scan_1")
+  TEST_EQUAL(exp.getSpectrum(1).getNativeID(), "scan_2")
+  TEST_EQUAL(exp.getSpectrum(1).size(), 2)
+  TEST_REAL_SIMILAR(exp.getSpectrum(1)[1].getMZ(), 400.0)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -54,22 +54,22 @@ START_SECTION(bool operator==(const Ribonucleotide& ribonucleotide) const)
              Ribonucleotide("unknown ribonucleotide", ".", "", ".", EmpiricalFormula(), '.', 0.0, 0.0, Ribonucleotide::ANYWHERE, EmpiricalFormula("C5H10O5")));
 END_SECTION
 
-START_SECTION(String getName() const)
+START_SECTION(std::string getName() const)
   Ribonucleotide empty = Ribonucleotide();
   TEST_EQUAL(empty.getName(), "unknown ribonucleotide");
 END_SECTION
 
-START_SECTION(String getCode() const)
+START_SECTION(std::string getCode() const)
   Ribonucleotide empty = Ribonucleotide();
   TEST_EQUAL(empty.getCode(), ".");
 END_SECTION
 
-START_SECTION(String getNewCode() const)
+START_SECTION(std::string getNewCode() const)
   Ribonucleotide empty = Ribonucleotide();
   TEST_EQUAL(empty.getNewCode(), "");
 END_SECTION
 
-START_SECTION(String getHTMLCode() const)
+START_SECTION(std::string getHTMLCode() const)
   Ribonucleotide empty = Ribonucleotide();
   TEST_EQUAL(empty.getHTMLCode(), ".");
 END_SECTION
@@ -117,13 +117,13 @@ START_SECTION(setCode(string code))
   TEST_EQUAL(empty.getCode(), "x");
 END_SECTION
 
-START_SECTION(setNewCode(String newCode))
+START_SECTION(setNewCode(std::string newCode))
   Ribonucleotide empty = Ribonucleotide();
   empty.setNewCode("y");
   TEST_EQUAL(empty.getNewCode(), "y");
 END_SECTION
 
-START_SECTION(setHTMLCode(String hmtlCode))
+START_SECTION(setHTMLCode(std::string hmtlCode))
   Ribonucleotide empty = Ribonucleotide();
   empty.setHTMLCode("z");
   TEST_EQUAL(empty.getHTMLCode(), "z");

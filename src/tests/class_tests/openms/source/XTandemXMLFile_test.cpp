@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -43,9 +44,9 @@ END_SECTION
 
 XTandemXMLFile xml_file;
 
-START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, ModificationDefinitionsSet& mod_def_set))
+START_SECTION(void load(const std::string& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, ModificationDefinitionsSet& mod_def_set))
 {
-	ModificationDefinitionsSet mod_set(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
+	ModificationDefinitionsSet mod_set(ListUtils::create<std::string>(""), ListUtils::create<std::string>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
 
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test.xml"), protein_identification, peptide_identifications, mod_set);
 	TEST_EQUAL(peptide_identifications.size(), 303);

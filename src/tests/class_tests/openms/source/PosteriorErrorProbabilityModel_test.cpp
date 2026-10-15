@@ -73,7 +73,7 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
  	{
  		if(!it->empty())
  		{
- 			rand_score_vector.push_back(it->toDouble());
+ 			rand_score_vector.push_back(StringUtils::toDouble(*it));
  		}
  	}
 
@@ -217,21 +217,21 @@ START_SECTION((double getSmallestScore() const))
 TEST_REAL_SIMILAR(ptr->getSmallestScore(), -0.39)
 END_SECTION
 
-START_SECTION((const String getGumbelGnuplotFormula(const GaussFitter::GaussFitResult& params) const))
-String gumbel = ptr->getGumbelGnuplotFormula(ptr->getIncorrectlyAssignedFitResult());
+START_SECTION((const std::string getGumbelGnuplotFormula(const GaussFitter::GaussFitResult& params) const))
+std::string gumbel = ptr->getGumbelGnuplotFormula(ptr->getIncorrectlyAssignedFitResult());
 //approx. f(x) = (1/0.907832") * exp(( 1.48185 - x)/0.907832) * exp(-exp(( 1.48185 - x)/0.907832))"
 	cout<<gumbel<<endl;
-	TEST_EQUAL(gumbel.hasSubstring("(1/0.90"), true)
-	TEST_EQUAL(gumbel.hasSubstring("exp(( 1.47"), true)
-	TEST_EQUAL(gumbel.hasSubstring(") * exp(-exp(("), true)
+	TEST_EQUAL(StringUtils::hasSubstring(gumbel, "(1/0.90"), true)
+	TEST_EQUAL(StringUtils::hasSubstring(gumbel, "exp(( 1.47"), true)
+	TEST_EQUAL(StringUtils::hasSubstring(gumbel, ") * exp(-exp(("), true)
 END_SECTION
 				
-START_SECTION((const String getGaussGnuplotFormula(const GaussFitter::GaussFitResult& params) const))
-String gauss = ptr->getGaussGnuplotFormula(ptr->getCorrectlyAssignedFitResult());
+START_SECTION((const std::string getGaussGnuplotFormula(const GaussFitter::GaussFitResult& params) const))
+std::string gauss = ptr->getGaussGnuplotFormula(ptr->getCorrectlyAssignedFitResult());
 //g(x)=0.444131 * exp(-(x - 5.05539) ** 2 / 2 / (0.898253) ** 2)
-	TEST_EQUAL(gauss.hasSubstring(" * exp(-(x - "), true)
-	TEST_EQUAL(gauss.hasSubstring(") ** 2 / 2 / ("), true)
-	TEST_EQUAL(gauss.hasSubstring(") ** 2)"), true)
+	TEST_EQUAL(StringUtils::hasSubstring(gauss, " * exp(-(x - "), true)
+	TEST_EQUAL(StringUtils::hasSubstring(gauss, ") ** 2 / 2 / ("), true)
+	TEST_EQUAL(StringUtils::hasSubstring(gauss, ") ** 2)"), true)
 END_SECTION
 
     START_SECTION(fitWithGumbel)
@@ -257,7 +257,7 @@ END_SECTION
           {
             if(!it->empty())
             {
-              rand_score_vector.push_back(it->toDouble());
+              rand_score_vector.push_back(StringUtils::toDouble(*it));
             }
           }
 
@@ -303,7 +303,7 @@ END_SECTION
         }
     END_SECTION
 
-START_SECTION((const String getBothGnuplotFormula(const GaussFitter::GaussFitResult& incorrect, const GaussFitter::GaussFitResult& correct) const))
+START_SECTION((const std::string getBothGnuplotFormula(const GaussFitter::GaussFitResult& incorrect, const GaussFitter::GaussFitResult& correct) const))
 NOT_TESTABLE
 delete ptr;
 END_SECTION

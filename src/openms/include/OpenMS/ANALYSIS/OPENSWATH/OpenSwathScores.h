@@ -11,7 +11,7 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <vector>
 
 namespace OpenMS
@@ -180,7 +180,7 @@ namespace OpenMS
   struct OPENMS_DLLAPI OpenSwath_Ind_Scores
   {
     int ind_num_transitions = 0;
-    std::vector<OpenMS::String> ind_transition_names;
+    std::vector<std::string> ind_transition_names;
     std::vector<double> ind_isotope_correlation;
     std::vector<double> ind_isotope_overlap;
     std::vector<double> ind_massdev_score;

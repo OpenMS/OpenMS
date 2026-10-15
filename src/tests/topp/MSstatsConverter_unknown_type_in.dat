@@ -1,0 +1,3 @@
+This file is deliberately unidentifiable: neither its extension nor its content
+matches any format OpenMS knows, so FileHandler::getType() returns UNKNOWN.
+See TOPP_MSstatsConverter_unknown_input_type.

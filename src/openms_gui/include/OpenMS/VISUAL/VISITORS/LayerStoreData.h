@@ -47,12 +47,12 @@ namespace OpenMS
     /// @param[in] filename A relative or absolute path+filename. Its suffix determines the format.
     /// @param[in] lt Show a progress bar in the GUI?
     /// @throw Exception::UnableToCreateFile if the extension of @p filename is neither in getSupportedFileFormats() nor UNKNOWN.
-    virtual void saveToFile(const String& filename, const ProgressLogger::LogType lt) const = 0;
+    virtual void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const = 0;
 
   protected:
 
     /// extracts the supported extension (converting UNKNOWN to first item in storage_formats_) or throws an Exception::UnableToCreateFile
-    FileTypes::Type getSupportedExtension_(const String& filename) const;
+    FileTypes::Type getSupportedExtension_(const std::string& filename) const;
 
     FileTypeList storage_formats_; ///< file formats which can hold the data from the layer; The first item should be the preferred/default format
   };
@@ -69,7 +69,7 @@ namespace OpenMS
     {}
 
     // docu in base class
-    void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
+    void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
     /**
      * \brief Stores data from a 1D canvas and remembers the data internally
@@ -106,7 +106,7 @@ namespace OpenMS
     }
 
     // docu in base class
-    void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
+    void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
     void storeFullExperiment(const PeakMap& exp);
 
@@ -125,7 +125,7 @@ namespace OpenMS
     }
 
     // docu in base class
-    void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
+    void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
     void storeVisibleFM(const FeatureMap& fm, const RangeAllType& visible_range, const DataFilters& layer_filters);
 
@@ -146,7 +146,7 @@ namespace OpenMS
     }
 
     // docu in base class
-    void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
+    void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
     void storeFullFM(const FeatureMap& fm);
 
@@ -165,7 +165,7 @@ namespace OpenMS
     }
 
     // docu in base class
-    void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
+    void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
     void storeVisibleCM(const ConsensusMap& cm, const RangeAllType& visible_range, const DataFilters& layer_filters);
 
@@ -186,7 +186,7 @@ namespace OpenMS
     }
 
     // docu in base class
-    void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
+    void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
     void storeFullCM(const ConsensusMap& cm);
 
@@ -207,7 +207,7 @@ namespace OpenMS
     }
 
     // docu in base class
-    void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
+    void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
     void storeVisibleIdent(const IPeptideIds::PepIds& ids, const RangeAllType& visible_range, const DataFilters& layer_filters);
 
@@ -228,7 +228,7 @@ namespace OpenMS
     }
 
     // docu in base class
-    void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
+    void saveToFile(const std::string& filename, const ProgressLogger::LogType lt) const override;
 
     void storeFullIdent(const IPeptideIds::PepIds& ids);
 

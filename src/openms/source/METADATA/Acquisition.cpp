@@ -23,12 +23,12 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const String & Acquisition::getIdentifier() const
+  const std::string & Acquisition::getIdentifier() const
   {
     return identifier_;
   }
 
-  void Acquisition::setIdentifier(const String & identifier)
+  void Acquisition::setIdentifier(const std::string & identifier)
   {
     identifier_ = identifier;
   }

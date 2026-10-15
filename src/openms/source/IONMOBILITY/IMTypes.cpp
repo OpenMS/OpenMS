@@ -9,8 +9,10 @@
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+
+#include <algorithm>
+#include <iterator>
 
 #include <cmath>
 #include <cstdlib>
@@ -85,70 +87,6 @@ namespace OpenMS
     return NamesOfIMPeakType[(int)im_peak_type];
   }
 
-  IMFormat IMTypes::determineIMFormat(const MSExperiment& exp, int ms_level)
-  {
-    std::set<IMFormat> occs;
-    for (const auto& spec : exp.getSpectra())
-    {
-      if (spec.getMSLevel() != ms_level) continue;
-      occs.insert(determineIMFormat(spec));
-    }
-    occs.erase(IMFormat::NONE);
-
-    if (occs.empty())
-    {
-      return IMFormat::NONE;
-    }
-
-    if (occs.size() == 1)
-    {
-      auto format = *occs.begin();
-      if (format != IMFormat::IM_PEAK && format != IMFormat::IM_SPECTRUM)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "subfunction returned invalid value(s)", "Number of different values: " + String(occs.size()));
-      }
-      return format;
-    }
-    else
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "MSExperiment contains MS" + String(ms_level) + " spectra with different IM formats. "
-        "Handle per-spectrum.", "Number of different formats: " + String(occs.size()));
-    }
-  }
-
-  IMFormat IMTypes::determineIMFormat(const MSSpectrum& spec)
-  {
-    // First check if format is already set and not UNKNOWN
-    IMFormat current_format = spec.getIMFormat();
-    if (current_format != IMFormat::UNKNOWN)
-    {
-      return current_format;
-    }
-    
-    // If format is UNKNOWN, determine it
-    bool has_float_data = spec.containsIMData(); // cache value; query is 'expensive'
-    bool has_drift_time = spec.getDriftTime() != DRIFTTIME_NOT_SET;
-
-    if (has_float_data)
-    {
-      if (has_drift_time)
-      {
-        OPENMS_LOG_DEBUG << "both drift time and IM data array found in spectrum " << spec.getNativeID() << "\n. Support for both is experimental." << std::endl;
-      }
-      return IMFormat::IM_PEAK;
-    }
-    else if (has_drift_time)
-    {
-      if (spec.getDriftTimeUnit() == DriftTimeUnit::NONE)
-      {
-        OPENMS_LOG_WARN << "Warning: no drift time unit set for spectrum " << spec.getNativeID() << "\n";
-      }
-      return IMFormat::IM_SPECTRUM;
-    }
-    return IMFormat::NONE;
-  }
-
   DIM_UNIT IMTypes::fromIMUnit(const DriftTimeUnit from)
   {
     switch (from)
@@ -187,7 +125,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "oneOverK0ToCCS requires one_over_k0 > 0, mz > 0 and charge != 0",
-        "1/K0=" + String(one_over_k0) + ", mz=" + String(mz) + ", charge=" + String(charge));
+        "1/K0=" + StringUtils::toStr(one_over_k0) + ", mz=" + StringUtils::toStr(mz) + ", charge=" + StringUtils::toStr(charge));
     }
     const double mu = reducedMass_(mz, charge, buffer_gas_mass);
     return MASON_SCHAMP_CONSTANT * std::abs(charge) / std::sqrt(mu) * one_over_k0;
@@ -199,7 +137,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "ccsToOneOverK0 requires ccs > 0, mz > 0 and charge != 0",
-        "CCS=" + String(ccs) + ", mz=" + String(mz) + ", charge=" + String(charge));
+        "CCS=" + StringUtils::toStr(ccs) + ", mz=" + StringUtils::toStr(mz) + ", charge=" + StringUtils::toStr(charge));
     }
     const double mu = reducedMass_(mz, charge, buffer_gas_mass);
     return ccs * std::sqrt(mu) / (MASON_SCHAMP_CONSTANT * std::abs(charge));

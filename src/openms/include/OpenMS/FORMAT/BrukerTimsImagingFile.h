@@ -14,7 +14,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 
@@ -76,8 +76,13 @@ namespace OpenMS
               multiple distinct @c ZIndexPos values (out of scope for the 2D
               MSImagingGeometry; load each section separately).
       @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty.
+      @note Partial result: any @c MaldiFrameInfo pixel whose frame id is not
+            present among the loaded spectra (e.g. because @c inner_config
+            restricts the loaded frame range) is silently skipped — it is only
+            counted into a single warn-level log line and does NOT cause
+            @c load() to fail. The resulting image may therefore be incomplete.
     */
-    void load(const String& path, MSImagingExperiment& exp);
+    void load(const std::string& path, MSImagingExperiment& exp);
 
     /**
       @brief Loads a MALDI imaging .d folder into @p exp.
@@ -90,8 +95,13 @@ namespace OpenMS
               @c strict_imaging_only is true, or if the dataset contains
               multiple distinct @c ZIndexPos values.
       @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty.
+      @note Partial result: any @c MaldiFrameInfo pixel whose frame id is not
+            present among the loaded spectra (e.g. because @c inner_config
+            restricts the loaded frame range) is silently skipped — it is only
+            counted into a single warn-level log line and does NOT cause
+            @c load() to fail. The resulting image may therefore be incomplete.
     */
-    void load(const String& path, MSImagingExperiment& exp, const Config& config);
+    void load(const std::string& path, MSImagingExperiment& exp, const Config& config);
 
     /**
       @brief Cheap, non-throwing probe for MALDI imaging mode.
@@ -104,7 +114,7 @@ namespace OpenMS
       @param[in] path The path to the Bruker .d directory.
       @return true iff @c GlobalMetadata.MaldiApplicationType == "Imaging".
     */
-    static bool isImagingDataset(const String& path);
+    static bool isImagingDataset(const std::string& path);
 
     /**
       @brief Reads @c MaldiFrameInfo and returns rows in @c Frame.Id order.
@@ -118,7 +128,7 @@ namespace OpenMS
       @throws Exception::FileNotReadable if @c analysis.tdf cannot be opened.
       @throws Exception::ParseError if @c MaldiFrameInfo is missing or empty.
     */
-    static std::vector<MaldiPixel> readMaldiFrameInfo(const String& d_folder);
+    static std::vector<MaldiPixel> readMaldiFrameInfo(const std::string& d_folder);
 
     /**
       @brief Reads a single @c GlobalMetadata key.
@@ -128,7 +138,7 @@ namespace OpenMS
               the @c GlobalMetadata table does not exist.
       @throws Exception::FileNotReadable if @c analysis.tdf cannot be opened.
     */
-    static String readGlobalMetadataValue(const String& d_folder, const String& key);
+    static std::string readGlobalMetadataValue(const std::string& d_folder, const std::string& key);
 
   private:
     /// Computes the 2D bounding box of the observed pixel coordinates.
@@ -137,7 +147,7 @@ namespace OpenMS
                                     UInt& width, UInt& height);
 
     /// Resolves @c analysis.tdf inside a .d folder. Throws FileNotReadable if absent.
-    static String resolveTdfPath_(const String& d_folder);
+    static std::string resolveTdfPath_(const std::string& d_folder);
   };
 
 } // namespace OpenMS

@@ -63,11 +63,11 @@ namespace OpenMS
     const std::vector<std::string>* ids = nullptr;
 
     template <typename Getter>
-    void initializeFromLookupIds(const std::vector<String>& lookup_ids, Getter&& getter)
+    void initializeFromLookupIds(const std::vector<std::string>& lookup_ids, Getter&& getter)
     {
       feature_ptrs.reserve(lookup_ids.size());
       feature_index.reserve(lookup_ids.size());
-      for (const String& id : lookup_ids)
+      for (const std::string& id : lookup_ids)
       {
         feature_index.emplace_back(id, feature_ptrs.size());
         feature_ptrs.push_back(&getter(id));
@@ -82,7 +82,7 @@ namespace OpenMS
       for (const std::string& id : lookup_ids)
       {
         feature_index.emplace_back(id, feature_ptrs.size());
-        feature_ptrs.push_back(&getter(String(id)));
+        feature_ptrs.push_back(&getter(id));
       }
     }
 
@@ -216,13 +216,13 @@ namespace OpenMS
     feature_lane_(std::make_unique<FeatureLane_>()),
     precursor_feature_lane_(std::make_unique<FeatureLane_>())
   {
-    std::vector<String> ids;
+    std::vector<std::string> ids;
     mrmfeature.getFeatureIDs(ids);
-    feature_lane_->initializeFromLookupIds(ids, [&](const String& id) -> const Feature& { return mrmfeature.getFeature(id); });
+    feature_lane_->initializeFromLookupIds(ids, [&](const std::string& id) -> const Feature& { return mrmfeature.getFeature(id); });
 
-    std::vector<String> p_ids;
+    std::vector<std::string> p_ids;
     mrmfeature.getPrecursorFeatureIDs(p_ids);
-    precursor_feature_lane_->initializeFromLookupIds(p_ids, [&](const String& id) -> const Feature& { return mrmfeature.getPrecursorFeature(id); });
+    precursor_feature_lane_->initializeFromLookupIds(p_ids, [&](const std::string& id) -> const Feature& { return mrmfeature.getPrecursorFeature(id); });
   }
 
   MRMFeatureOpenMS::MRMFeatureOpenMS(MRMFeature& mrmfeature,
@@ -232,15 +232,15 @@ namespace OpenMS
     feature_lane_(std::make_unique<FeatureLane_>()),
     precursor_feature_lane_(std::make_unique<FeatureLane_>())
   {
-    feature_lane_->initializeFromStringIds(feature_ids, [&](const String& id) -> const Feature& { return mrmfeature.getFeature(id); });
-    precursor_feature_lane_->initializeFromStringIds(precursor_feature_ids, [&](const String& id) -> const Feature& { return mrmfeature.getPrecursorFeature(id); });
+    feature_lane_->initializeFromStringIds(feature_ids, [&](const std::string& id) -> const Feature& { return mrmfeature.getFeature(id); });
+    precursor_feature_lane_->initializeFromStringIds(precursor_feature_ids, [&](const std::string& id) -> const Feature& { return mrmfeature.getPrecursorFeature(id); });
   }
 
   MRMFeatureOpenMS::MRMFeatureOpenMS(MRMFeature& mrmfeature,
                                      const std::vector<std::string>& feature_ids,
                                      const std::vector<std::string>& precursor_feature_ids,
-                                     const std::vector<String>& feature_lookup_ids,
-                                     const std::vector<String>& precursor_feature_lookup_ids) :
+                                     const std::vector<std::string>& feature_lookup_ids,
+                                     const std::vector<std::string>& precursor_feature_lookup_ids) :
     mrmfeature_(mrmfeature),
     feature_lane_(std::make_unique<FeatureLane_>()),
     precursor_feature_lane_(std::make_unique<FeatureLane_>())
@@ -263,7 +263,7 @@ namespace OpenMS
         "Feature storage needs to match feature lookup id cache.");
     }
     feature_lane_->initializeAlignedDirect(fragment_features, feature_ids);
-    precursor_feature_lane_->initializeFromLookupIds(precursor_feature_lookup_ids, [&](const String& id) -> const Feature& { return mrmfeature.getPrecursorFeature(id); });
+    precursor_feature_lane_->initializeFromLookupIds(precursor_feature_lookup_ids, [&](const std::string& id) -> const Feature& { return mrmfeature.getPrecursorFeature(id); });
     precursor_feature_lane_->setAlignedIds(precursor_feature_ids);
   }
 

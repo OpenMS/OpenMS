@@ -30,7 +30,7 @@ START_TEST(IDRipper, "$Id$")
 ///load input data
 std::vector< ProteinIdentification > protein_identifications;
 PeptideIdentificationList identifications;
-String document_id;
+std::string document_id;
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"), protein_identifications, identifications, document_id);
 PeptideIdentification identification = identifications[0];
 ProteinIdentification protein_identification = protein_identifications[0];
@@ -56,7 +56,7 @@ START_SECTION((virtual ~IDRipper()))
 }
 END_SECTION
 
-START_SECTION((void rip(std::map< String, std::pair< std::vector< ProteinIdentification >, std::vector< PeptideIdentification > > > &ripped, std::vector< ProteinIdentification > &proteins, std::vector< PeptideIdentification > &peptides)))
+START_SECTION((void rip(std::map<std::string, std::pair< std::vector< ProteinIdentification >, std::vector< PeptideIdentification > > > &ripped, std::vector< ProteinIdentification > &proteins, std::vector< PeptideIdentification > &peptides)))
 {
   // TODO
 }

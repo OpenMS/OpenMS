@@ -7,6 +7,7 @@ BSpline2d.h
 BSplineSmoothingSpline.h
 CubicSpline2d.h
 EmgGradientDescent.h
+LinearResampling.h
 SplineBisection.h
 )
 

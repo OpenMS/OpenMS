@@ -9,7 +9,7 @@
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
@@ -79,12 +79,12 @@ namespace OpenMS
 
   bool ElementDB::hasElement(const string& name) const
   {
-    return (names_.find(name) != names_.end()) || (symbols_.find(name) != symbols_.end());
+    return (names_.contains(name)) || (symbols_.contains(name));
   }
 
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
-    return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
+    return atomic_numbers_.contains(atomic_number);
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -124,7 +124,7 @@ namespace OpenMS
     auto elem = container.find(key);
     if (elem != container.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(key), "Already exists!");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr(key), "Already exists!");
     }
     container[key] = replacement.get();
   }
@@ -509,7 +509,7 @@ namespace OpenMS
 
     map<unsigned int, double> iridium_abundance = {{191u, 0.3723}, {193u, 0.6277}};
     map<unsigned int, double> iridium_mass = {{191u, 190.960591}, {193u, 192.962924}};
-    buildElement_("Iridium", "Ir", 77u, rhenium_abundance, rhenium_mass);
+    buildElement_("Iridium", "Ir", 77u, iridium_abundance, iridium_mass);
 
 
     // Pt-190 is radioactive but with a very long half-life. Since its natural occurence is very low, we neglect it by default (m=189.959930 abund.frac.=0.00014)
@@ -604,7 +604,7 @@ namespace OpenMS
     if (old->getAtomicNumber() != new_e->getAtomicNumber())
     { // -- this would invalidate the lookup, since e_ptr->getAtomicNumbers().at(12)->getAtomicNumber() == 14
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
-                                    "Replacing element with atomic number " + String(old->getAtomicNumber()) + " has different new atomic number: " + String(new_e->getAtomicNumber()));
+                                    "Replacing element with atomic number " + StringUtils::toStr(old->getAtomicNumber()) + " has different new atomic number: " + StringUtils::toStr(new_e->getAtomicNumber()));
     }
     // ... overwrite
     *(const_cast<Element*>(old)) = *new_e;
@@ -614,7 +614,7 @@ namespace OpenMS
   {
     // overwrite existing element if it already exists
     // find() has to be protected here in a parallel context
-    if (atomic_numbers_.find(an) != atomic_numbers_.end())
+    if (atomic_numbers_.contains(an))
     {
       // in order to ensure that existing elements are still valid and memory
       // addresses do not change, we have to modify the Element in place

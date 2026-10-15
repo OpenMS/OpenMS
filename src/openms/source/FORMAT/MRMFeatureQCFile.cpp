@@ -15,11 +15,11 @@
 
 namespace OpenMS
 {
-  void MRMFeatureQCFile::load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const
+  void MRMFeatureQCFile::load(const std::string& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const
   {
     CsvFile csv(filename, ',', false, -1);
     StringList sl;
-    std::map<String, Size> headers;
+    std::map<std::string, Size> headers;
     if (csv.rowCount() > 0) // avoid accessing a row in an empty file
     {
       csv.getRow(0, sl);
@@ -50,7 +50,7 @@ namespace OpenMS
 
   void MRMFeatureQCFile::pushValuesFromLine_(
     const StringList& line,
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     std::vector<MRMFeatureQC::ComponentQCs>& c_qcs
   ) const
   {
@@ -63,14 +63,14 @@ namespace OpenMS
     c.intensity_u = getCastValue_(headers, line, "intensity_u", 1e12);
     c.overall_quality_l = getCastValue_(headers, line, "overall_quality_l", 0.0);
     c.overall_quality_u = getCastValue_(headers, line, "overall_quality_u", 1e12);
-    for (const std::pair<const String, Size>& h : headers) // parse the parameters
+    for (const std::pair<const std::string, Size>& h : headers) // parse the parameters
     {
-      const String& header = h.first;
+      const std::string& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)"))) // capture the metavalue name and the boundary and save them to m[1] and m[2]
       {
-        setPairValue_(String(m[1]), line[i], String(m[2]), c.meta_value_qc);
+        setPairValue_(std::string(m[1]), line[i],std::string(m[2]), c.meta_value_qc);
       }
     }
     c_qcs.push_back(c);
@@ -78,7 +78,7 @@ namespace OpenMS
 
   void MRMFeatureQCFile::pushValuesFromLine_(
     const StringList& line,
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     std::vector<MRMFeatureQC::ComponentGroupQCs>& cg_qcs
   ) const
   {
@@ -111,27 +111,27 @@ namespace OpenMS
     cg.ion_ratio_l = getCastValue_(headers, line, "ion_ratio_l", 0.0);
     cg.ion_ratio_u = getCastValue_(headers, line, "ion_ratio_u", 1e12);
     cg.ion_ratio_feature_name = getCastValue_(headers, line, "ion_ratio_feature_name", "");
-    for (const std::pair<const String, Size>& h : headers) // parse the parameters
+    for (const std::pair<const std::string, Size>& h : headers) // parse the parameters
     {
-      const String& header = h.first;
+      const std::string& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)"))) // capture the metavalue name and the boundary and save them to m[1] and m[2]
       {
-        setPairValue_(String(m[1]), line[i], String(m[2]), cg.meta_value_qc);
+        setPairValue_(std::string(m[1]), line[i],std::string(m[2]), cg.meta_value_qc);
       }
     }
     cg_qcs.push_back(cg);
   }
 
   void MRMFeatureQCFile::setPairValue_(
-    const String& key,
-    const String& value,
-    const String& boundary,
-    std::map<String, std::pair<double,double>>& meta_values_qc
+    const std::string& key,
+    const std::string& value,
+    const std::string& boundary,
+    std::map<std::string, std::pair<double,double>>& meta_values_qc
   ) const
   {
-    std::map<String, std::pair<double,double>>::iterator it = meta_values_qc.find(key);
+    std::map<std::string, std::pair<double,double>>::iterator it = meta_values_qc.find(key);
     const double cast_value = value.empty() ? (boundary == "l" ? 0.0 : 1e12) : std::stod(value);
     if (it != meta_values_qc.end())
     {
@@ -147,45 +147,45 @@ namespace OpenMS
   }
 
   Int MRMFeatureQCFile::getCastValue_(
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
+    const std::string& header,
     const Int default_value
   ) const
   {
-    std::map<String, Size>::const_iterator it = headers.find(header);
+    std::map<std::string, Size>::const_iterator it = headers.find(header);
     return it != headers.end() && !line[it->second].empty()
       ? std::stoi(line[it->second])
       : default_value;
   }
 
   double MRMFeatureQCFile::getCastValue_(
-    const std::map<String, Size>& headers,
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
+    const std::string& header,
     const double default_value
   ) const
   {
-    std::map<String, Size>::const_iterator it = headers.find(header);
+    std::map<std::string, Size>::const_iterator it = headers.find(header);
     return it != headers.end() && !line[it->second].empty()
       ? std::stod(line[it->second])
       : default_value;
   }
 
-  String MRMFeatureQCFile::getCastValue_(
-    const std::map<String, Size>& headers,
+  std::string MRMFeatureQCFile::getCastValue_(
+    const std::map<std::string, Size>& headers,
     const StringList& line,
-    const String& header,
-    const String& default_value
+    const std::string& header,
+    const std::string& default_value
   ) const
   {
-    std::map<String, Size>::const_iterator it = headers.find(header);
+    std::map<std::string, Size>::const_iterator it = headers.find(header);
     return it != headers.end() && !line[it->second].empty()
       ? line[it->second]
       : default_value;
   }
 
-  void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc, const bool is_component_group)
+  void MRMFeatureQCFile::store(const std::string & filename, const MRMFeatureQC & mrmfqc, const bool is_component_group)
   {
     if (is_component_group) 
     {
@@ -210,34 +210,34 @@ namespace OpenMS
       {
         StringList row(headers.size());
         row[0] = component_qc.component_group_name;
-        row[1] = component_qc.retention_time_l;
-        row[2] = component_qc.retention_time_u;
-        row[3] = component_qc.intensity_l;
-        row[4] = component_qc.intensity_u;
-        row[5] = component_qc.overall_quality_l;
-        row[6] = component_qc.overall_quality_u;
-        row[7] = component_qc.n_heavy_l;
-        row[8] = component_qc.n_heavy_u;
-        row[9] = component_qc.n_light_l;
-        row[10] = component_qc.n_light_u;
-        row[11] = component_qc.n_detecting_l;
-        row[12] = component_qc.n_detecting_u;
-        row[13] = component_qc.n_quantifying_l;
-        row[14] = component_qc.n_quantifying_u;
-        row[15] = component_qc.n_identifying_l;
-        row[16] = component_qc.n_identifying_u;
-        row[17] = component_qc.n_transitions_l;
-        row[18] = component_qc.n_transitions_u;
+        row[1] = StringUtils::toStr(component_qc.retention_time_l);
+        row[2] = StringUtils::toStr(component_qc.retention_time_u);
+        row[3] = StringUtils::toStr(component_qc.intensity_l);
+        row[4] = StringUtils::toStr(component_qc.intensity_u);
+        row[5] = StringUtils::toStr(component_qc.overall_quality_l);
+        row[6] = StringUtils::toStr(component_qc.overall_quality_u);
+        row[7] = StringUtils::toStr(component_qc.n_heavy_l);
+        row[8] = StringUtils::toStr(component_qc.n_heavy_u);
+        row[9] = StringUtils::toStr(component_qc.n_light_l);
+        row[10] = StringUtils::toStr(component_qc.n_light_u);
+        row[11] = StringUtils::toStr(component_qc.n_detecting_l);
+        row[12] = StringUtils::toStr(component_qc.n_detecting_u);
+        row[13] = StringUtils::toStr(component_qc.n_quantifying_l);
+        row[14] = StringUtils::toStr(component_qc.n_quantifying_u);
+        row[15] = StringUtils::toStr(component_qc.n_identifying_l);
+        row[16] = StringUtils::toStr(component_qc.n_identifying_u);
+        row[17] = StringUtils::toStr(component_qc.n_transitions_l);
+        row[18] = StringUtils::toStr(component_qc.n_transitions_u);
         row[19] = component_qc.ion_ratio_pair_name_1;
         row[20] = component_qc.ion_ratio_pair_name_2;
-        row[21] = component_qc.ion_ratio_l;
-        row[22] = component_qc.ion_ratio_u;
+        row[21] = StringUtils::toStr(component_qc.ion_ratio_l);
+        row[22] = StringUtils::toStr(component_qc.ion_ratio_u);
         row[23] = component_qc.ion_ratio_feature_name;
         size_t meta_data_iter = 24;
         for (const auto& meta_data : component_qc.meta_value_qc) {
-          row[meta_data_iter] = meta_data.second.first;
+          row[meta_data_iter] = StringUtils::toStr(meta_data.second.first);
           ++meta_data_iter;
-          row[meta_data_iter] = meta_data.second.second;
+          row[meta_data_iter] = StringUtils::toStr(meta_data.second.second);
           ++meta_data_iter;
         }
         addRow(row);
@@ -266,18 +266,18 @@ namespace OpenMS
       {
         StringList row(headers.size());
         row[0] = component_qc.component_name;
-        row[1] = component_qc.retention_time_l;
-        row[2] = component_qc.retention_time_u;
-        row[3] = component_qc.intensity_l;
-        row[4] = component_qc.intensity_u;
-        row[5] = component_qc.overall_quality_l;
-        row[6] = component_qc.overall_quality_u;
+        row[1] = StringUtils::toStr(component_qc.retention_time_l);
+        row[2] = StringUtils::toStr(component_qc.retention_time_u);
+        row[3] = StringUtils::toStr(component_qc.intensity_l);
+        row[4] = StringUtils::toStr(component_qc.intensity_u);
+        row[5] = StringUtils::toStr(component_qc.overall_quality_l);
+        row[6] = StringUtils::toStr(component_qc.overall_quality_u);
         size_t meta_data_iter = 7;
-        for (const auto& meta_data : component_qc.meta_value_qc) 
+        for (const auto& meta_data : component_qc.meta_value_qc)
         {
-          row[meta_data_iter] = meta_data.second.first;
+          row[meta_data_iter] = StringUtils::toStr(meta_data.second.first);
           ++meta_data_iter;
-          row[meta_data_iter] = meta_data.second.second;
+          row[meta_data_iter] = StringUtils::toStr(meta_data.second.second);
           ++meta_data_iter;
         }
         addRow(row);

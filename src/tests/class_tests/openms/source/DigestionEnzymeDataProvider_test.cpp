@@ -36,9 +36,9 @@ START_SECTION(InMemoryDigestionEnzymeDataProvider - DigestionEnzymeProtein)
 {
   vector<unique_ptr<DigestionEnzymeProtein>> enzymes;
   enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "TestProtease", "(?<=[K])", set<String>{"test_syn"}, "Test protease description"));
+    "TestProtease", "(?<=[K])", set<std::string>{"test_syn"}, "Test protease description"));
   enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "TestProtease2", "(?<=[R])", set<String>(), "Another test protease"));
+    "TestProtease2", "(?<=[R])", set<std::string>(), "Another test protease"));
 
   InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein> provider(std::move(enzymes));
   auto loaded = provider.loadEnzymes();
@@ -174,9 +174,9 @@ START_SECTION(ProteaseDB - construct from providers)
   // Add just two test enzymes via InMemoryDigestionEnzymeDataProvider
   vector<unique_ptr<DigestionEnzymeProtein>> enzymes;
   enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "CustomEnzyme1", "(?<=[K])", set<String>{"custom_syn"}, "Custom enzyme 1"));
+    "CustomEnzyme1", "(?<=[K])", set<std::string>{"custom_syn"}, "Custom enzyme 1"));
   enzymes.push_back(make_unique<DigestionEnzymeProtein>(
-    "CustomEnzyme2", "(?<=[R])", set<String>(), "Custom enzyme 2"));
+    "CustomEnzyme2", "(?<=[R])", set<std::string>(), "Custom enzyme 2"));
   providers.push_back(make_unique<InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein>>(std::move(enzymes)));
 
   ProteaseDB db(std::move(providers));
@@ -185,9 +185,36 @@ START_SECTION(ProteaseDB - construct from providers)
   TEST_EQUAL(db.hasEnzyme("custom_syn"), true) // synonym
   TEST_EQUAL(db.hasEnzyme("Trypsin"), false) // not loaded
 
-  vector<String> names;
+  vector<std::string> names;
   db.getAllNames(names);
   TEST_EQUAL(names.size(), 2)
+}
+END_SECTION
+
+START_SECTION(ProteaseDB - replacing enzymes and lenient lookup)
+{
+  vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers;
+  vector<unique_ptr<DigestionEnzymeProtein>> first, second;
+  first.push_back(make_unique<DigestionEnzymeProtein>(
+    "Enzyme-A", "(?<=[K])", set<std::string>{"Syn-A"}, "A"));
+  // named like a synonym of "Enzyme-A": must be added, not replace "Enzyme-A"
+  second.push_back(make_unique<DigestionEnzymeProtein>(
+    "Syn-A", "(?<=[R])", set<std::string>(), "B"));
+  // same name as "Enzyme-A": replaces it
+  second.push_back(make_unique<DigestionEnzymeProtein>(
+    "Enzyme-A", "(?<=[D])", set<std::string>(), "C"));
+  providers.push_back(make_unique<InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein>>(std::move(first)));
+  providers.push_back(make_unique<InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein>>(std::move(second)));
+
+  ProteaseDB db(std::move(providers));
+  vector<std::string> names;
+  db.getAllNames(names);
+  TEST_EQUAL(names.size(), 2)
+  TEST_EQUAL(db.getEnzyme("Enzyme-A")->getRegExDescription(), "C")
+  TEST_EQUAL(db.getEnzyme("enzyme a")->getRegExDescription(), "C")
+  TEST_EQUAL(db.getEnzyme("Syn-A")->getRegExDescription(), "B")
+  TEST_EQUAL(db.getEnzyme("SYNA")->getRegExDescription(), "B")
+  TEST_EQUAL(db.hasRegEx("(?<=[K])"), false)
 }
 END_SECTION
 
@@ -231,7 +258,7 @@ START_SECTION(RNaseDB - singleton loads from XML)
 {
   auto singleton = RNaseDB::getInstance();
   // The RNA enzyme XML should have loaded at least some enzymes
-  vector<String> names;
+  vector<std::string> names;
   singleton->getAllNames(names);
   TEST_EQUAL(names.size() > 0, true)
 }

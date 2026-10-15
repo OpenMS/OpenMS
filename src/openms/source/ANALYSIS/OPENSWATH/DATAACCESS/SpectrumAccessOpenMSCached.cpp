@@ -13,7 +13,7 @@
 namespace OpenMS
 {
 
-  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const String& filename) :
+  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const std::string& filename) :
     CachedmzML(filename)
   {
   }

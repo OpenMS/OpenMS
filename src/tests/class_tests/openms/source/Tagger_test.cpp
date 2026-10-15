@@ -14,6 +14,7 @@
 #include <OpenMS/CHEMISTRY/Tagger.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 using namespace OpenMS;
@@ -160,7 +161,7 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "GER") != tags.end(), true)
 
   // tagger searching for charge +2 with fixed modification
-  Tagger tagger4 = Tagger(2, 10, 5, 2, 2, ListUtils::create<String>("Oxidation (D)"));
+  Tagger tagger4 = Tagger(2, 10, 5, 2, 2, ListUtils::create<std::string>("Oxidation (D)"));
   tags.clear();
   tagger4.getTag(spec2, tags);
   TEST_EQUAL(tags.size(), 667);
@@ -189,7 +190,7 @@ START_SECTION(void getTag(const MSSpectrum& spec, std::set<std::string>& tags))
   TEST_EQUAL(std::find(tags.begin(), tags.end(), "GER") != tags.end(), true)
 
   // tagger searching for charge +2 with variable modification
-  Tagger tagger5 = Tagger(2, 10, 5, 2, 2, StringList(), ListUtils::create<String>("Oxidation (D)"));
+  Tagger tagger5 = Tagger(2, 10, 5, 2, 2, StringList(), ListUtils::create<std::string>("Oxidation (D)"));
   tags.clear();
   tagger5.getTag(spec2, tags);
   TEST_EQUAL(tags.size(), 739);

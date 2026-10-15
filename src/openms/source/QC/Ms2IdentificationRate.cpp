@@ -53,7 +53,7 @@ namespace OpenMS
   }
 
 
-  const String& Ms2IdentificationRate::getName() const
+  const std::string& Ms2IdentificationRate::getName() const
   {
     return name_;
   }
@@ -79,8 +79,8 @@ namespace OpenMS
       MzTabParameter ms2_ir {};
       ms2_ir.setCVLabel("MS2 identification rate");
       ms2_ir.setAccession("null");
-      ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
-      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
+      ms2_ir.setName("MS2_ID_Rate_" + StringUtils::toStr(i + 1));
+      ms2_ir.setValue(StringUtils::toStr(100 * ms2_irs[i].identification_rate));
       meta.custom[meta.custom.size()] = ms2_ir;
     }
   }

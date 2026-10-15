@@ -130,8 +130,8 @@ class AbsoluteQuantitation_test : public AbsoluteQuantitation
   public :
 
     int jackknifeOutlierCandidate_(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params)
     {
       return AbsoluteQuantitation::jackknifeOutlierCandidate_(component_concentrations,
@@ -141,8 +141,8 @@ class AbsoluteQuantitation_test : public AbsoluteQuantitation
     }
 
     int residualOutlierCandidate_(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params)
     {
       return AbsoluteQuantitation::residualOutlierCandidate_(component_concentrations,
@@ -177,9 +177,9 @@ START_SECTION((~AbsoluteQuantitation()))
   delete ptr;
 END_SECTION
 
-START_SECTION((double calculateRatio(const Feature & component_1, const Feature & component_2, const String feature_name)))
+START_SECTION((double calculateRatio(const Feature & component_1, const Feature & component_2, const std::string feature_name)))
   AbsoluteQuantitation absquant;
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
   double inf = std::numeric_limits<double>::infinity();
   // dummy features
   OpenMS::Feature component_1, component_2;
@@ -224,8 +224,8 @@ END_SECTION
 
 START_SECTION((double applyCalibration(const Feature & component,
   const Feature & IS_component,
-  const String & feature_name,
-  const String & transformation_model,
+  const std::string & feature_name,
+  const std::string & transformation_model,
   const Param & transformation_model_params)))
 
   AbsoluteQuantitation absquant;
@@ -236,12 +236,12 @@ START_SECTION((double applyCalibration(const Feature & component,
   component.setMetaValue("peak_apex_int",2.0);
   IS_component.setMetaValue("native_id","IS");
   IS_component.setMetaValue("peak_apex_int",1.0);
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
 
   // set-up the model and params
   // y = m*x + b
   // x = (y - b)/m
-  String transformation_model;
+  std::string transformation_model;
   Param param;
   // transformation_model = "TransformationModelLinear";
   transformation_model = "linear";
@@ -264,7 +264,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   // set-up the features and sub-features
   std::vector<Feature> unknown_feature_subordinates;
   Feature unknown_feature, component, IS_component;
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
   // component 1
   unknown_feature.setMetaValue("PeptideRef","component_group1");
   component.setMetaValue("native_id","component1");
@@ -304,7 +304,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
 
   // set-up the model and params
   AbsoluteQuantitationMethod aqm;
-  String transformation_model;
+  std::string transformation_model;
   Param param;
   // transformation_model = "TransformationModelLinear";
   transformation_model = "linear";
@@ -361,8 +361,8 @@ END_SECTION
 
 START_SECTION((void (
   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-  const String & feature_name,
-  const String & transformation_model,
+  const std::string & feature_name,
+  const std::string & transformation_model,
   const Param & transformation_model_params,
   std::vector<double> & biases,
   double & correlation_coefficient)))
@@ -407,12 +407,12 @@ START_SECTION((void (
   component_concentration.dilution_factor = 2.0;
   component_concentrations.push_back(component_concentration);
 
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
 
   // set-up the model and params
   // y = m*x + b
   // x = (y - b)/m
-  String transformation_model;
+  std::string transformation_model;
   Param param;
   // transformation_model = "TransformationModelLinear";
   transformation_model = "linear";
@@ -436,8 +436,8 @@ END_SECTION
 
 START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-    const String & feature_name,
-    const String & transformation_model,
+    const std::string & feature_name,
+    const std::string & transformation_model,
     const Param & transformation_model_params)))
 
   AbsoluteQuantitation absquant;
@@ -468,14 +468,14 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     component_concentrations.push_back(component_concentration);
   }
 
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
   Param transformation_model_params;
   transformation_model_params.setValue("x_datum_min", -1e12);
   transformation_model_params.setValue("x_datum_max", 1e12);
   transformation_model_params.setValue("y_datum_min", -1e12);
   transformation_model_params.setValue("y_datum_max", 1e12);
-  // String transformation_model = "TransformationModelLinear";
-  String transformation_model = "linear";
+  // std::string transformation_model = "TransformationModelLinear";
+  std::string transformation_model = "linear";
 
   Param param = absquant.fitCalibration(component_concentrations,
     feature_name,
@@ -524,8 +524,8 @@ END_SECTION
 
 START_SECTION((bool optimizeCalibrationCurveIterative(
   std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-  const String & feature_name,
-  const String & transformation_model,
+  const std::string & feature_name,
+  const std::string & transformation_model,
   const Param & transformation_model_params,
   Param & optimized_params)))
 
@@ -545,8 +545,8 @@ START_SECTION((bool optimizeCalibrationCurveIterative(
   absquant.setParameters(absquant_params);
 
   // set-up the function parameters
-  const String feature_name = "peak_apex_int";
-  const String transformation_model = "linear";
+  const std::string feature_name = "peak_apex_int";
+  const std::string transformation_model = "linear";
   Param transformation_model_params;
   transformation_model_params.setValue("x_weight", "ln(x)");
   transformation_model_params.setValue("y_weight", "ln(y)");
@@ -643,8 +643,8 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
 
   // set up the quantitation method
   AbsoluteQuantitationMethod aqm;
-  String feature_name = "peak_apex_int";
-  String transformation_model;
+  std::string feature_name = "peak_apex_int";
+  std::string transformation_model;
   Param param;
   transformation_model = "linear";
   param.setValue("slope",1.0);
@@ -681,13 +681,13 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
   absquant.setQuantMethods(quant_methods);
 
   // set up the standards
-  std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_concentrations;
+  std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_concentrations;
   components_concentrations["ser-L.ser-L_1.Light"] = make_serL_standards();
   components_concentrations["amp.amp_1.Light"] = make_amp_standards();
   components_concentrations["atp.atp_1.Light"] = make_atp_standards();
 
   absquant.optimizeCalibrationCurves(components_concentrations);
-  std::map<String, AbsoluteQuantitationMethod> quant_methods_map = absquant.getQuantMethodsAsMap();
+  std::map<std::string, AbsoluteQuantitationMethod> quant_methods_map = absquant.getQuantMethodsAsMap();
 
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.04);
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 40.0);
@@ -734,7 +734,7 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
 END_SECTION
 
 START_SECTION(void optimizeSingleCalibrationCurve(
-  const String& component_name,
+  const std::string& component_name,
   std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations
 ))
   // set up the quantitation method
@@ -752,7 +752,7 @@ START_SECTION(void optimizeSingleCalibrationCurve(
   aqm.setTransformationModelParams(param);
   // set-up the quant_method map
   std::vector<AbsoluteQuantitationMethod> quant_methods;
-  const String feature_name = "peak_apex_int";
+  const std::string feature_name = "peak_apex_int";
   // component_1
   aqm.setComponentName("ser-L.ser-L_1.Light");
   aqm.setISName("ser-L.ser-L_1.Heavy");
@@ -785,7 +785,7 @@ START_SECTION(void optimizeSingleCalibrationCurve(
   absquant.setQuantMethods(quant_methods);
 
   // set up the standards
-  std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_concentrations;
+  std::map<std::string, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_concentrations;
   components_concentrations["ser-L.ser-L_1.Light"] = make_serL_standards();
   components_concentrations["amp.amp_1.Light"] = make_amp_standards();
   components_concentrations["atp.atp_1.Light"] = make_atp_standards();
@@ -793,7 +793,7 @@ START_SECTION(void optimizeSingleCalibrationCurve(
   absquant.optimizeSingleCalibrationCurve("ser-L.ser-L_1.Light", components_concentrations.at("ser-L.ser-L_1.Light"));
   absquant.optimizeSingleCalibrationCurve("amp.amp_1.Light", components_concentrations.at("amp.amp_1.Light"));
   absquant.optimizeSingleCalibrationCurve("atp.atp_1.Light", components_concentrations.at("atp.atp_1.Light"));
-  std::map<String, AbsoluteQuantitationMethod> quant_methods_map = absquant.getQuantMethodsAsMap();
+  std::map<std::string, AbsoluteQuantitationMethod> quant_methods_map = absquant.getQuantMethodsAsMap();
 
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.04);
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 40.0);
@@ -879,8 +879,8 @@ END_SECTION
 
 START_SECTION((int jackknifeOutlierCandidate_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
+      const std::string & feature_name,
+      const std::string & transformation_model,
       const Param & transformation_model_params)))
 
   AbsoluteQuantitation_test absquant;
@@ -907,14 +907,14 @@ START_SECTION((int jackknifeOutlierCandidate_(
     component_concentrations.push_back(component_concentration);
   }
 
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
 
   // set-up the model and params
   // y = m*x + b
   // x = (y - b)/m
   Param transformation_model_params;
- //   String transformation_model = "TransformationModelLinear";
-  String transformation_model = "linear";
+ //   std::string transformation_model = "TransformationModelLinear";
+  std::string transformation_model = "linear";
 
   int c1 = absquant.jackknifeOutlierCandidate_(
     component_concentrations,
@@ -953,8 +953,8 @@ END_SECTION
 
 START_SECTION((int residualOutlierCandidate_(
   const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-  const String & feature_name,
-  const String & transformation_model,
+  const std::string & feature_name,
+  const std::string & transformation_model,
   const Param & transformation_model_params)))
 
   AbsoluteQuantitation_test absquant;
@@ -981,14 +981,14 @@ START_SECTION((int residualOutlierCandidate_(
     component_concentrations.push_back(component_concentration);
   }
 
-  String feature_name = "peak_apex_int";
+  std::string feature_name = "peak_apex_int";
 
   // set-up the model and params
   // y = m*x + b
   // x = (y - b)/m
   Param transformation_model_params;
-  // String transformation_model = "TransformationModelLinear";
-  String transformation_model = "linear";
+  // std::string transformation_model = "TransformationModelLinear";
+  std::string transformation_model = "linear";
 
   int c1 = absquant.residualOutlierCandidate_(
     component_concentrations,

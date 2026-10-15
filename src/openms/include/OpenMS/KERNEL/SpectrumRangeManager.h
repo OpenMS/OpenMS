@@ -97,7 +97,7 @@ namespace OpenMS
       {
         return it->second;
       }
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No ranges for this MS level", String(ms_level));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No ranges for this MS level",StringUtils::toStr(ms_level));
     }
 
     /**

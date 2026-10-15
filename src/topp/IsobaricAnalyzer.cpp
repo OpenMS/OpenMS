@@ -8,17 +8,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-// the available quantitation methods
+// the available quantitation methods (instantiated via IsobaricQuantitationMethod::create())
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -141,8 +132,8 @@ class TOPPIsobaricAnalyzer :
   public TOPPBase
 {
 private:
-  std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
-  std::map<String, String> quant_method_names_;
+  std::map<std::string, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+  std::map<std::string, std::string> quant_method_names_;
 
   void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr, std::string name)
   {
@@ -155,15 +146,12 @@ public:
   TOPPIsobaricAnalyzer() :
     TOPPBase("IsobaricAnalyzer", "Calculates isobaric quantitative values for peptides")
   {
-    addMethod_(make_unique<ItraqFourPlexQuantitationMethod>(), "iTRAQ 4-plex");
-    addMethod_(make_unique<ItraqEightPlexQuantitationMethod>(), "iTRAQ 8-plex");
-    addMethod_(make_unique<TMTSixPlexQuantitationMethod>(), "TMT 6-plex");
-    addMethod_(make_unique<TMTTenPlexQuantitationMethod>(), "TMT 10-plex");
-    addMethod_(make_unique<TMTElevenPlexQuantitationMethod>(), "TMT 11-plex");
-    addMethod_(make_unique<TMTSixteenPlexQuantitationMethod>(), "TMT 16-plex");
-    addMethod_(make_unique<TMTEighteenPlexQuantitationMethod>(), "TMT 18-plex");
-    addMethod_(make_unique<TMTThirtyTwoPlexQuantitationMethod>(), "TMT 32-plex");
-    addMethod_(make_unique<TMTThirtyFivePlexQuantitationMethod>(), "TMT 35-plex");
+    using MT = IsobaricQuantitationMethod::MethodType;
+    for (int i = static_cast<int>(MT::UNKNOWN) + 1; i < static_cast<int>(MT::SIZE_OF_METHODTYPE); ++i)
+    {
+      const MT mt = static_cast<MT>(i);
+      addMethod_(IsobaricQuantitationMethod::create(mt), std::string(IsobaricQuantitationMethod::methodDisplayName(mt)));
+    }
   }
 
 protected:
@@ -191,20 +179,21 @@ protected:
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
     for (const auto& qm : quant_methods_)
     {
-      registerSubsection_(qm.second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
+      registerSubsection_(qm.second->getMethodName(),std::string("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
   }
 
-  Param getSubsectionDefaults_(const String& section) const override
+  Param getSubsectionDefaults_(const std::string& section) const override
   {
-    ItraqFourPlexQuantitationMethod temp_quant;
+    // any concrete method works to obtain the extractor/quantifier defaults; pick an arbitrary one
+    auto temp_quant = IsobaricQuantitationMethod::create(IsobaricQuantitationMethod::MethodType::ITRAQ_4PLEX);
     if (section == "extraction")
     {
-      return IsobaricChannelExtractor(&temp_quant).getParameters();
+      return IsobaricChannelExtractor(temp_quant.get()).getParameters();
     }
     else if (section == "quantification")
     {
-      return IsobaricQuantifier(&temp_quant).getParameters();
+      return IsobaricQuantifier(temp_quant.get()).getParameters();
     }
     else
     {
@@ -224,8 +213,8 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    std::string in = getStringOption_("in");
+    std::string out = getStringOption_("out");
 
     //-------------------------------------------------------------
     // loading input

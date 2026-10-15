@@ -107,27 +107,27 @@ START_SECTION((bool operator != (const CVReference& rhs) const))
 }
 END_SECTION
 
-START_SECTION((void setName(const String &name)))
+START_SECTION((void setName(const std::string &name)))
 {
   ptr->setName("my_test_name");
 	TEST_STRING_EQUAL(ptr->getName(), "my_test_name")
 }
 END_SECTION
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const std::string& getName() const ))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void setIdentifier(const String &identifier)))
+START_SECTION((void setIdentifier(const std::string &identifier)))
 {
   ptr->setIdentifier("my_test_identifier");
 	TEST_STRING_EQUAL(ptr->getIdentifier(), "my_test_identifier")
 }
 END_SECTION
 
-START_SECTION((const String& getIdentifier() const ))
+START_SECTION((const std::string& getIdentifier() const ))
 {
   NOT_TESTABLE
 }

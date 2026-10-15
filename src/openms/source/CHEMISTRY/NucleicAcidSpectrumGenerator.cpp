@@ -74,22 +74,16 @@ namespace OpenMS
   }
 
 
-  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source) : DefaultParamHandler(source)
-  {
-  }
+  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source) = default;
 
 
-  NucleicAcidSpectrumGenerator& NucleicAcidSpectrumGenerator::operator=(const NucleicAcidSpectrumGenerator& source)
-  {
-    DefaultParamHandler::operator=(source);
-    return *this;
-  }
+  NucleicAcidSpectrumGenerator& NucleicAcidSpectrumGenerator::operator=(const NucleicAcidSpectrumGenerator& source) = default;
 
 
   NucleicAcidSpectrumGenerator::~NucleicAcidSpectrumGenerator() = default;
 
 
-  void NucleicAcidSpectrumGenerator::addFragmentPeaks_(MSSpectrum& spectrum, const vector<double>& fragment_masses, const String& ion_type, double offset, double intensity, Size start) const
+  void NucleicAcidSpectrumGenerator::addFragmentPeaks_(MSSpectrum& spectrum, const vector<double>& fragment_masses, const std::string& ion_type, double offset, double intensity, Size start) const
   {
     for (Size i = start; i < fragment_masses.size(); ++i)
     {
@@ -100,7 +94,7 @@ namespace OpenMS
     {
       for (Size i = start; i < fragment_masses.size(); ++i)
       {
-        String ion_name = ion_type + String(i + 1);
+        std::string ion_name = ion_type + StringUtils::toStr(i + 1);
         spectrum.getStringDataArrays()[0].push_back(ion_name);
       }
     }
@@ -132,6 +126,10 @@ namespace OpenMS
       else // first ribonucleotide
       {
         mass += initial_offset;
+        if (oligo.hasFivePrimeMod())
+        {
+          mass += oligo.getFivePrimeMod()->getMonoMass() - EmpiricalFormula("H").getMonoWeight();
+        }
       }
       Peak1D peak(mass, aB_intensity_);
       if (oligo[i]->isAmbiguous())
@@ -150,7 +148,7 @@ namespace OpenMS
     {
       for (Size i = start; i < fragment_masses.size(); ++i)
       {
-        String ion_name = "a" + String(i + 1) + "-B";
+        std::string ion_name = "a" + StringUtils::toStr(i + 1) + "-B";
         spectrum.getStringDataArrays()[0].push_back(ion_name);
         if (oligo[i]->isAmbiguous()) // two peaks were added
         {
@@ -422,6 +420,7 @@ namespace OpenMS
       Int charge = base_charge;
       while (charge_it != charges.rend())
       {
+        const Int requested_charge = *charge_it;
         MSSpectrum& spectrum = spectra[*charge_it];
         for (; charge >= *charge_it; --charge)
         {
@@ -437,11 +436,11 @@ namespace OpenMS
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U));
+          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / requested_charge + Constants::PROTON_MASS_U));
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            spectrum.getIntegerDataArrays()[0].push_back(requested_charge);
           }
         }
         spectrum.sortByPosition();
@@ -460,6 +459,7 @@ namespace OpenMS
       Int charge = base_charge;
       while (charge_it != charges.end())
       {
+        const Int requested_charge = *charge_it;
         MSSpectrum& spectrum = spectra[*charge_it];
         for (; charge <= *charge_it; ++charge)
         {
@@ -475,11 +475,11 @@ namespace OpenMS
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U);
+          spectrum.back().setMZ(spectrum.back().getMZ() / requested_charge + Constants::PROTON_MASS_U);
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            spectrum.getIntegerDataArrays()[0].push_back(requested_charge);
           }
         }
         spectrum.sortByPosition();

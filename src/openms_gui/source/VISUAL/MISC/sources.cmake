@@ -8,6 +8,7 @@ ExternalProcessMBox.cpp
 FilterableList.cpp
 FilterableList.ui
 GUIHelpers.cpp
+InteractiveSplashScreen.cpp
 )
 
 ### add path to the filenames

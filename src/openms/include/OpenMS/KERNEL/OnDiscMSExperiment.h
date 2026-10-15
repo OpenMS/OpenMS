@@ -91,7 +91,7 @@ public:
       @return Whether the parsing of the file was successful (if false, the
       file most likely was not an indexed mzML file)
     */
-    bool openFile(const String& filename, bool skipMetaData = false);
+    bool openFile(const std::string& filename, bool skipMetaData = false);
 
     /// Copy constructor
     OnDiscMSExperiment(const OnDiscMSExperiment& source) :
@@ -245,7 +245,7 @@ private:
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
-    void loadMetaData_(const String& filename);
+    void loadMetaData_(const std::string& filename);
 
     MSChromatogram getMetaChromatogramById_(const std::string& id);
 
@@ -254,7 +254,7 @@ private:
 protected:
 
     /// The filename of the underlying data file
-    String filename_;
+    std::string filename_;
     /// The index of the underlying data file
     Internal::IndexedMzMLHandler indexed_mzml_file_;
     /// The meta-data

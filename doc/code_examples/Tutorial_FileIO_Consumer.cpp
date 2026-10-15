@@ -21,7 +21,7 @@ public:
   int nr_spectra {};
 
   // Create new consumer
-  TICWritingConsumer(const String& filename) : MSDataWritingConsumer(filename) 
+  TICWritingConsumer(const std::string& filename) : MSDataWritingConsumer(filename) 
   {}
 
   // Add a data processing step for spectra before they are written to disk
@@ -36,7 +36,7 @@ public:
 
 int main(int argc, const char** argv)
 {
-  auto file_mzXML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_FileIO_indexed.mzML");
+  auto file_mzXML = OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_FileIO_indexed.mzML");
   
   // Create the consumer, set output file name, transform
   TICWritingConsumer consumer("Tutorial_FileIO_output.mzML");

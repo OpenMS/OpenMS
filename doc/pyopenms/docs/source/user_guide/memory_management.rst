@@ -8,6 +8,10 @@ use the :py:class:`~.OnDiscMSExperiment` for reading data.
   :linenos:
 
   import pyopenms as oms
+  from urllib.request import urlretrieve
+
+  gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
+  urlretrieve(gh + "/src/data/BSA1.mzML", "test.mzML")
 
   od_exp = oms.OnDiscMSExperiment()
   od_exp.openFile("test.mzML")

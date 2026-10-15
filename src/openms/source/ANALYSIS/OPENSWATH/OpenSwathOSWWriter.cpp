@@ -8,7 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 
 #include <sqlite3.h>
@@ -96,7 +96,7 @@ namespace OpenMS
       return columns;
     }
 
-    bool isNullLiteral(const String& value)
+    bool isNullLiteral(const std::string& value)
     {
       return value.empty() || value == "NULL" || value == "nan" || value == "-nan" ||
              value == "NaN" || value == "-NaN";
@@ -115,7 +115,7 @@ namespace OpenMS
       return true;
     }
 
-    bool parseInt64(const String& value, Int64& result)
+    bool parseInt64(const std::string& value, Int64& result)
     {
       errno = 0;
       char* end = nullptr;
@@ -128,7 +128,7 @@ namespace OpenMS
       return true;
     }
 
-    bool parseDouble(const String& value, double& result)
+    bool parseDouble(const std::string& value, double& result)
     {
       errno = 0;
       char* end = nullptr;
@@ -141,7 +141,7 @@ namespace OpenMS
       return true;
     }
 
-    OpenSwathOSWWriter::OSWValue makeOSWValueFromString(const String& value)
+    OpenSwathOSWWriter::OSWValue makeOSWValueFromString(const std::string& value)
     {
       if (isNullLiteral(value))
       {
@@ -167,35 +167,35 @@ namespace OpenMS
       return OpenSwathOSWWriter::OSWValue::text(value);
     }
 
-    String oswValueToString(const OpenSwathOSWWriter::OSWValue& value)
+    std::string oswValueToString(const OpenSwathOSWWriter::OSWValue& value)
     {
       switch (value.type)
       {
         case OpenSwathOSWWriter::OSWValue::Type::Null:
           return "NULL";
         case OpenSwathOSWWriter::OSWValue::Type::Int64:
-          return String(value.asInt());
+          return StringUtils::toStr(value.asInt());
         case OpenSwathOSWWriter::OSWValue::Type::Double:
-          return std::isnan(value.asDouble()) ? String("NULL") : String(value.asDouble());
+          return std::isnan(value.asDouble()) ? std::string("NULL") : StringUtils::toStr(value.asDouble());
         case OpenSwathOSWWriter::OSWValue::Type::Text:
           return value.asText();
       }
       return "NULL";
     }
 
-    String oswValueToSQLLiteral(const OpenSwathOSWWriter::OSWValue& value)
+    std::string oswValueToSQLLiteral(const OpenSwathOSWWriter::OSWValue& value)
     {
       if (value.type != OpenSwathOSWWriter::OSWValue::Type::Text)
       {
         return oswValueToString(value);
       }
 
-      String quoted = value.asText();
-      quoted.substitute("'", "''");
-      return String("'") + quoted + "'";
+      std::string quoted = value.asText();
+      StringUtils::substitute(quoted, "'", "''");
+      return std::string("'") + quoted + "'";
     }
 
-    OpenSwathOSWWriter::OSWValue oswValue(const String& value)
+    OpenSwathOSWWriter::OSWValue oswValue(const std::string& value)
     {
       return makeOSWValueFromString(value);
     }
@@ -383,7 +383,7 @@ namespace OpenMS
       return row;
     }
 
-    String makeInsertStatement(const char* table, const std::vector<const char*>& columns)
+    std::string makeInsertStatement(const char* table, const std::vector<const char*>& columns)
     {
       std::stringstream sql;
       sql << "INSERT INTO " << table << " (";
@@ -405,10 +405,10 @@ namespace OpenMS
         sql << "?";
       }
       sql << ");";
-      return String(sql.str());
+      return sql.str();
     }
 
-    void throwSQLiteError(sqlite3* db, const String& operation)
+    void throwSQLiteError(sqlite3* db, const std::string& operation)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         operation + " failed: " + sqlite3_errmsg(db));
@@ -420,7 +420,7 @@ namespace OpenMS
       if (row.size() != expected_columns)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "OSW row has " + String(row.size()) + " values, expected " + String(expected_columns));
+          "OSW row has " + StringUtils::toStr(row.size()) + " values, expected " + StringUtils::toStr(expected_columns));
       }
 
       for (Size i = 0; i < row.size(); ++i)
@@ -476,7 +476,7 @@ namespace OpenMS
       }
 
       sqlite3_stmt* stmt = nullptr;
-      SqliteConnector::prepareStatement(db, &stmt, makeInsertStatement(table, columns));
+      Internal::SqliteHelper::prepareStatement(db, &stmt, makeInsertStatement(table, columns));
       try
       {
         for (const auto& row : rows)
@@ -570,17 +570,12 @@ namespace OpenMS
   }
 
   OpenSwathOSWWriter::OSWValue::OSWValue(const char* value) :
-    OSWValue(value == nullptr ? String() : String(value))
-  {
-  }
-
-  OpenSwathOSWWriter::OSWValue::OSWValue(const String& value) :
-    OSWValue(makeOSWValueFromString(value))
+    OSWValue(value == nullptr ? std::string() : std::string(value))
   {
   }
 
   OpenSwathOSWWriter::OSWValue::OSWValue(const std::string& value) :
-    OSWValue(makeOSWValueFromString(String(value)))
+    OSWValue(makeOSWValueFromString(value))
   {
   }
 
@@ -652,10 +647,10 @@ namespace OpenMS
     return OSWValue();
   }
 
-  OpenSwathOSWWriter::OSWValue OpenSwathOSWWriter::OSWValue::text(const String& value)
+  OpenSwathOSWWriter::OSWValue OpenSwathOSWWriter::OSWValue::text(const std::string& value)
   {
     OSWValue result;
-    new (&result.storage.text_value) String(value);
+    new (&result.storage.text_value) std::string(value);
     result.type = Type::Text;
     return result;
   }
@@ -675,7 +670,7 @@ namespace OpenMS
     return storage.double_value;
   }
 
-  const String& OpenSwathOSWWriter::OSWValue::asText() const
+  const std::string& OpenSwathOSWWriter::OSWValue::asText() const
   {
     return storage.text_value;
   }
@@ -684,7 +679,7 @@ namespace OpenMS
   {
     if (type == Type::Text)
     {
-      storage.text_value.~String();
+      storage.text_value.~basic_string();
     }
     type = Type::Null;
     storage.int_value = 0;
@@ -704,7 +699,7 @@ namespace OpenMS
     }
     else if (rhs.type == Type::Text)
     {
-      new (&storage.text_value) String(rhs.storage.text_value);
+      new (&storage.text_value) std::string(rhs.storage.text_value);
       type = Type::Text;
     }
     else
@@ -732,9 +727,9 @@ namespace OpenMS
     }
     else if (rhs.type == Type::Text)
     {
-      new (&storage.text_value) String(std::move(rhs.storage.text_value));
+      new (&storage.text_value) std::string(std::move(rhs.storage.text_value));
       type = Type::Text;
-      rhs.storage.text_value.~String();
+      rhs.storage.text_value.~basic_string();
       rhs.type = Type::Null;
       rhs.storage.int_value = 0;
     }
@@ -793,7 +788,7 @@ namespace OpenMS
            estimateRowVectorMemory(feature_transition_rows);
   }
 
-  OpenSwathOSWWriter::OpenSwathOSWWriter(const String& output_filename, bool uis_scores) :
+  OpenSwathOSWWriter::OpenSwathOSWWriter(const std::string& output_filename, bool uis_scores) :
     output_filename_(output_filename),
     doWrite_(!output_filename.empty()),
     enable_uis_scoring_(uis_scores)
@@ -949,7 +944,7 @@ namespace OpenMS
   }
 
 
-  void OpenSwathOSWWriter::addRun(const UInt64 run_id, const String& input_filename)
+  void OpenSwathOSWWriter::addRun(const UInt64 run_id, const std::string& input_filename)
   {
     if (!doWrite_) return;
     SqliteConnector conn(output_filename_);
@@ -959,14 +954,14 @@ namespace OpenMS
     // every parameter, which stores integers as BLOB and breaks
     // "FEATURE.RUN_ID = RUN.ID" joins.
     sqlite3_stmt* stmt = nullptr;
-    SqliteConnector::prepareStatement(conn.getDB(), &stmt,
+    Internal::SqliteHelper::prepareStatement(Internal::SqliteHelper::getNativeHandle(conn), &stmt,
         "INSERT INTO RUN (ID, FILENAME) VALUES (?, ?);");
     int rc = sqlite3_bind_int64(stmt, 1, static_cast<sqlite3_int64>(rid));
     if (rc != SQLITE_OK)
     {
       sqlite3_finalize(stmt);
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("sqlite3_bind_int64 failed: ") + sqlite3_errmsg(conn.getDB()));
+        std::string("sqlite3_bind_int64 failed: ") + sqlite3_errmsg(Internal::SqliteHelper::getNativeHandle(conn)));
     }
 
     rc = sqlite3_bind_text(stmt, 2, input_filename.c_str(),
@@ -975,7 +970,7 @@ namespace OpenMS
     {
       sqlite3_finalize(stmt);
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("sqlite3_bind_text failed: ") + sqlite3_errmsg(conn.getDB()));
+        std::string("sqlite3_bind_text failed: ") + sqlite3_errmsg(Internal::SqliteHelper::getNativeHandle(conn)));
     }
 
     rc = sqlite3_step(stmt);
@@ -983,7 +978,7 @@ namespace OpenMS
     if (rc != SQLITE_DONE)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("sqlite3_step failed: ") + sqlite3_errmsg(conn.getDB()));
+        std::string("sqlite3_step failed: ") + sqlite3_errmsg(Internal::SqliteHelper::getNativeHandle(conn)));
     }
     run_id_ = rid;
   }
@@ -993,14 +988,106 @@ namespace OpenMS
     run_id_ = Internal::SqliteHelper::clearSignBit(run_id);
   }
 
-  String OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
+  UInt64 OpenSwathOSWWriter::countFeaturesForRun(const UInt64 run_id) const
+  {
+    if (!doWrite_)
+    {
+      return 0;
+    }
+
+    std::lock_guard<std::mutex> lock(conn_mutex_);
+    if (!conn_)
+    {
+      conn_ = std::make_unique<SqliteConnector>(output_filename_);
+      try
+      {
+        conn_->executeStatement("PRAGMA journal_mode=WAL");
+        conn_->executeStatement("PRAGMA synchronous=OFF");
+      }
+      catch (...) {}
+    }
+
+    sqlite3* db = Internal::SqliteHelper::getNativeHandle(*conn_);
+    if (!Internal::SqliteHelper::tableExists(db, "FEATURE"))
+    {
+      return 0;
+    }
+
+    sqlite3_stmt* stmt = nullptr;
+    Internal::SqliteHelper::prepareStatement(db, &stmt,
+      "SELECT COUNT(*) FROM FEATURE WHERE RUN_ID = ?1;");
+
+    const sqlite3_int64 rid = static_cast<sqlite3_int64>(
+      Internal::SqliteHelper::clearSignBit(run_id));
+    int rc = sqlite3_bind_int64(stmt, 1, rid);
+    if (rc != SQLITE_OK)
+    {
+      sqlite3_finalize(stmt);
+      throwSQLiteError(db, "sqlite3_bind_int64 while counting OSW features");
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW)
+    {
+      sqlite3_finalize(stmt);
+      throwSQLiteError(db, "sqlite3_step while counting OSW features");
+    }
+
+    const sqlite3_int64 count = sqlite3_column_int64(stmt, 0);
+    sqlite3_finalize(stmt);
+    return count > 0 ? static_cast<UInt64>(count) : 0;
+  }
+
+  void OpenSwathOSWWriter::clearRunData(const UInt64 run_id)
+  {
+    if (!doWrite_)
+    {
+      return;
+    }
+
+    std::lock_guard<std::mutex> lock(conn_mutex_);
+    if (!conn_)
+    {
+      conn_ = std::make_unique<SqliteConnector>(output_filename_);
+      try
+      {
+        conn_->executeStatement("PRAGMA journal_mode=WAL");
+        conn_->executeStatement("PRAGMA synchronous=OFF");
+      }
+      catch (...) {}
+    }
+
+    const std::string rid = StringUtils::toStr(Internal::SqliteHelper::clearSignBit(run_id));
+    conn_->executeStatement("BEGIN TRANSACTION");
+    try
+    {
+      conn_->executeStatement("DELETE FROM FEATURE_MS1 WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + rid + ");");
+      conn_->executeStatement("DELETE FROM FEATURE_MS2 WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + rid + ");");
+      conn_->executeStatement("DELETE FROM FEATURE_PRECURSOR WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + rid + ");");
+      conn_->executeStatement("DELETE FROM FEATURE_TRANSITION WHERE FEATURE_ID IN (SELECT ID FROM FEATURE WHERE RUN_ID = " + rid + ");");
+      conn_->executeStatement("DELETE FROM FEATURE WHERE RUN_ID = " + rid + ";");
+      conn_->executeStatement("DELETE FROM RUN WHERE ID = " + rid + ";");
+      conn_->executeStatement("END TRANSACTION");
+    }
+    catch (...)
+    {
+      try
+      {
+        conn_->executeStatement("ROLLBACK TRANSACTION");
+      }
+      catch (...) {}
+      throw;
+    }
+  }
+
+  std::string OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
   {
     return oswValueToString(oswValue(cachedMetaValue(feature, score_name)));
   }
 
-  std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, const std::string& score_name) const
+  std::vector<std::string> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, const std::string& score_name) const
   {
-    std::vector<String> separated_scores;
+    std::vector<std::string> separated_scores;
     const ScoreValueList score_values(feature, score_name);
     separated_scores.reserve(score_values.size());
     for (Size i = 0; i < score_values.size(); ++i)
@@ -1013,7 +1100,7 @@ namespace OpenMS
   OpenSwathOSWWriter::OSWData OpenSwathOSWWriter::prepareRows(const OpenSwath::LightCompound& /* pep */,
                                                               const OpenSwath::LightTransition* /* transition */,
                                                               const FeatureMap& output,
-                                                              const String& id) const
+                                                              const std::string& id) const
   {
     OSWData rows;
     rows.reserve(output.size());
@@ -1025,7 +1112,7 @@ namespace OpenMS
                                            const OpenSwath::LightCompound& /* pep */,
                                            const OpenSwath::LightTransition* /* transition */,
                                            const FeatureMap& output,
-                                           const String& id) const
+                                           const std::string& id) const
   {
     std::vector<FeatureTransitionRow> ms2_transition_rows_storage;
     std::vector<FeatureTransitionRow> uis_transition_rows;
@@ -1058,13 +1145,14 @@ namespace OpenMS
       const ScoreValueList masserror_ppm(feature_it, "masserror_ppm");
 
       const auto& subordinates = feature_it.getSubordinates();
+      Size ms2_subordinate_index = 0;
       for (Size i=0; i < subordinates.size(); i++)
       {
         const auto& sub_it = subordinates[i];
         if (cachedMetaValueExists(sub_it, "FeatureLevel") && cachedMetaValue(sub_it, "FeatureLevel") == "MS2")
         {
           OSWValue total_mi = oswValue(cachedMetaValue(sub_it, "total_mi")); // total_mi is not guaranteed to be set
-          OSWValue masserror_ppm_query = oswValueAt(masserror_ppm, i); // masserror_ppm is not guaranteed to be set
+          OSWValue masserror_ppm_query = oswValueAt(masserror_ppm, ms2_subordinate_index); // masserror_ppm is not guaranteed to be set
 
           FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
           transition_row[1] = oswValue(cachedMetaValue(sub_it, "native_id"));
@@ -1093,11 +1181,12 @@ namespace OpenMS
             transition_row[42] = oswValue(cachedMetaValue(sub_it, "points_across_half_height"));
           }
           ms2_transition_rows.push_back(std::move(transition_row));
+          ++ms2_subordinate_index;
         }
         else if (cachedMetaValueExists(sub_it, "FeatureLevel") && cachedMetaValue(sub_it, "FeatureLevel") == "MS1" && sub_it.getIntensity() > 0.0)
         {
-          std::vector<String> precursor_id;
-          oswValueToString(oswValue(cachedMetaValue(sub_it, "native_id"))).split(OpenMS::String("Precursor_i"), precursor_id);
+          std::vector<std::string> precursor_id;
+          StringUtils::split(oswValueToString(oswValue(cachedMetaValue(sub_it, "native_id"))), "Precursor_i", precursor_id);
           rows.feature_precursor_rows.push_back({
             feature_id,
             precursor_id.size() > 1 ? oswValue(precursor_id[1]) : OSWValue::null(),
@@ -1248,8 +1337,13 @@ namespace OpenMS
         if (cachedMetaValueExists(feature_it, "id_target_num_transitions"))
         {
           int id_target_num_transitions = cachedMetaValue(feature_it, "id_target_num_transitions");
+          const int available_target_transition_names = static_cast<int>(id_target_transition_names.size());
+          const int target_transition_count =
+            available_target_transition_names > 0 ?
+            std::min(id_target_num_transitions, available_target_transition_names) :
+            0;
 
-          for (int i = 0; i < id_target_num_transitions; ++i)
+          for (int i = 0; i < target_transition_count; ++i)
           {
             FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
             transition_row[1] = oswValueAt(id_target_transition_names, i);
@@ -1351,8 +1445,13 @@ namespace OpenMS
         if (cachedMetaValueExists(feature_it, "id_decoy_num_transitions"))
         {
           int id_decoy_num_transitions = cachedMetaValue(feature_it, "id_decoy_num_transitions");
+          const int available_decoy_transition_names = static_cast<int>(id_decoy_transition_names.size());
+          const int decoy_transition_count =
+            available_decoy_transition_names > 0 ?
+            std::min(id_decoy_num_transitions, available_decoy_transition_names) :
+            0;
 
-          for (int i = 0; i < id_decoy_num_transitions; ++i)
+          for (int i = 0; i < decoy_transition_count; ++i)
           {
             FeatureTransitionRow transition_row = makeTransitionRow(feature_id);
             transition_row[1] = oswValueAt(id_decoy_transition_names, i);
@@ -1417,10 +1516,10 @@ namespace OpenMS
     }
   }
 
-  String OpenSwathOSWWriter::prepareLine(const OpenSwath::LightCompound& pep,
+  std::string OpenSwathOSWWriter::prepareLine(const OpenSwath::LightCompound& pep,
                                          const OpenSwath::LightTransition* transition,
                                          const FeatureMap& output,
-                                         const String& id) const
+                                         const std::string& id) const
   {
     const OSWData rows = prepareRows(pep, transition, output, id);
     std::stringstream sql;
@@ -1429,7 +1528,7 @@ namespace OpenMS
     appendInsertSQL(sql, "FEATURE_PRECURSOR", featurePrecursorColumns(), rows.feature_precursor_rows);
     appendInsertSQL(sql, "FEATURE_MS2", featureMS2Columns(), rows.feature_ms2_rows);
     appendInsertSQL(sql, "FEATURE_TRANSITION", featureTransitionColumns(), rows.feature_transition_rows);
-    return String(sql.str());
+    return sql.str();
   }
 
   void OpenSwathOSWWriter::writeRows(const OSWData& osw_output)
@@ -1455,11 +1554,11 @@ namespace OpenMS
     conn_->executeStatement("BEGIN TRANSACTION");
     try
     {
-      writeTableRows(conn_->getDB(), "FEATURE", featureColumns(), osw_output.feature_rows);
-      writeTableRows(conn_->getDB(), "FEATURE_MS1", featureMS1Columns(), osw_output.feature_ms1_rows);
-      writeTableRows(conn_->getDB(), "FEATURE_PRECURSOR", featurePrecursorColumns(), osw_output.feature_precursor_rows);
-      writeTableRows(conn_->getDB(), "FEATURE_MS2", featureMS2Columns(), osw_output.feature_ms2_rows);
-      writeTableRows(conn_->getDB(), "FEATURE_TRANSITION", featureTransitionColumns(), osw_output.feature_transition_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE", featureColumns(), osw_output.feature_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE_MS1", featureMS1Columns(), osw_output.feature_ms1_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE_PRECURSOR", featurePrecursorColumns(), osw_output.feature_precursor_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE_MS2", featureMS2Columns(), osw_output.feature_ms2_rows);
+      writeTableRows(Internal::SqliteHelper::getNativeHandle(*conn_), "FEATURE_TRANSITION", featureTransitionColumns(), osw_output.feature_transition_rows);
     }
     catch (...)
     {
@@ -1473,7 +1572,7 @@ namespace OpenMS
     conn_->executeStatement("END TRANSACTION");
   }
 
-  void OpenSwathOSWWriter::writeLines(const std::vector<String>& to_osw_output)
+  void OpenSwathOSWWriter::writeLines(const std::vector<std::string>& to_osw_output)
   {
     std::lock_guard<std::mutex> lock(conn_mutex_);
     if (!conn_)

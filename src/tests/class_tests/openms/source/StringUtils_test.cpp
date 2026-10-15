@@ -10,8 +10,14 @@
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
 ///////////////////////////
+
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <clocale>
+#include <cmath>
+#include <limits>
 
 using namespace OpenMS;
 using namespace std;
@@ -28,23 +34,24 @@ START_SECTION(inline const char* skipWhitespace(const char* p, const char* p_end
   #define s16 "                "
   for (const char whitespace : whitespaces)
   {
-    String at1 = "0 2  3456789101112" x16;
-    at1.substitute(' ', whitespace);
+    std::string at1 = "0 2  3456789101112" x16;
+    StringUtils::substitute(at1, ' ', whitespace);
     TEST_EQUAL(skipWhitespace(at1), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 1)), 1);
     TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 2)), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1.data() + 3)), 2);
-    String at2 = s16 s16 "1" x16;
-    at2.substitute(' ', whitespace);
+    std::string at2 = s16 s16 "1" x16;
+    StringUtils::substitute(at2, ' ', whitespace);
     TEST_EQUAL(skipWhitespace(std::string_view(at2.data())), 32);
     TEST_EQUAL(skipWhitespace(std::string_view(at2.data() + 2)), 30);
-    String at1_noSSE = "0 2  34";
-    at1_noSSE.substitute(' ', whitespace);
+    std::string at1_noSSE = "0 2  34";
+    StringUtils::substitute(at1_noSSE, ' ', whitespace);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data())), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 1)), 1);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 2)), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 3)), 2);
   }
+  TEST_EQUAL(skipWhitespace(std::string_view()), 0);
 }
 END_SECTION
 
@@ -55,26 +62,27 @@ START_SECTION(inline const char* skipNonWhitespace(const char* p, const char* p_
   #define s16 "                "
   for (const char whitespace : whitespaces)
   {
-    String at1 = "0 2  3456789101112" x16;
-    at1.substitute(' ', whitespace);
+    std::string at1 = "0 2  3456789101112" x16;
+    StringUtils::substitute(at1, ' ', whitespace);
     TEST_EQUAL(skipNonWhitespace(at1), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 1)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 2)), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 3)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1.data() + 5)), 13 + 16);
-    String at2 = x16 x16 " " x16;
-    at2.substitute(' ', whitespace);
+    std::string at2 = x16 x16 " " x16;
+    StringUtils::substitute(at2, ' ', whitespace);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data())), 32);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data() + 31)), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at2.data() + 33)), 16);
-    String at1_noSSE = "0 2  34";
-    at1_noSSE.substitute(' ', whitespace);
+    std::string at1_noSSE = "0 2  34";
+    StringUtils::substitute(at1_noSSE, ' ', whitespace);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data())), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 1)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 2)), 1);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 3)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 5)), 2);
   }
+  TEST_EQUAL(skipNonWhitespace(std::string_view()), 0);
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
@@ -98,164 +106,164 @@ START_SECTION(~StringUtilsHelper())
 }
 END_SECTION
 
-START_SECTION((static String numberLength(double d, UInt n)))
+START_SECTION((static std::string numberLength(double d, UInt n)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String number(double d, UInt n)))
+START_SECTION((static std::string number(double d, UInt n)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& fillLeft(String &this_s, char c, UInt size)))
+START_SECTION((static std::string& fillLeft(String &this_s, char c, UInt size)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& fillRight(String &this_s, char c, UInt size)))
+START_SECTION((static std::string& fillRight(String &this_s, char c, UInt size)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool hasPrefix(const String &this_s, const String &string)))
+START_SECTION((static bool hasPrefix(const std::string &this_s, const std::string &string)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool hasSuffix(const String &this_s, const String &string)))
+START_SECTION((static bool hasSuffix(const std::string &this_s, const std::string &string)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool hasSubstring(const String &this_s, const String &string)))
+START_SECTION((static bool hasSubstring(const std::string &this_s, const std::string &string)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool has(const String &this_s, Byte byte)))
+START_SECTION((static bool has(const std::string &this_s, Byte byte)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String prefix(const String &this_s, size_t length)))
+START_SECTION((static std::string prefix(const std::string &this_s, size_t length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String suffix(const String &this_s, size_t length)))
+START_SECTION((static std::string suffix(const std::string &this_s, size_t length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String prefix(const String &this_s, Int length)))
+START_SECTION((static std::string prefix(const std::string &this_s, Int length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String suffix(const String &this_s, Int length)))
+START_SECTION((static std::string suffix(const std::string &this_s, Int length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String prefix(const String &this_s, char delim)))
+START_SECTION((static std::string prefix(const std::string &this_s, char delim)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String suffix(const String &this_s, char delim)))
+START_SECTION((static std::string suffix(const std::string &this_s, char delim)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String substr(const String &this_s, size_t pos, size_t n)))
+START_SECTION((static std::string substr(const std::string &this_s, size_t pos, size_t n)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String chop(const String &this_s, Size n)))
+START_SECTION((static std::string chop(const std::string &this_s, Size n)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& trim(String &this_s)))
+START_SECTION((static std::string& trim(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& quote(String &this_s, char q, String::QuotingMethod method)))
+START_SECTION((static std::string& quote(String &this_s, char q, OpenMS::QuotingMethod method)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& unquote(String &this_s, char q, String::QuotingMethod method)))
+START_SECTION((static std::string& unquote(String &this_s, char q, OpenMS::QuotingMethod method)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& simplify(String &this_s)))
+START_SECTION((static std::string& simplify(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String random(UInt length)))
+START_SECTION((static std::string random(UInt length)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& reverse(String &this_s)))
+START_SECTION((static std::string& reverse(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool split(const String &this_s, const char splitter, std::vector< String > &substrings, bool quote_protect)))
+START_SECTION((static bool split(const std::string &this_s, const char splitter, std::vector<std::string> &substrings, bool quote_protect)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool split(const String &this_s, const String &splitter, std::vector< String > &substrings)))
+START_SECTION((static bool split(const std::string &this_s, const std::string &splitter, std::vector<std::string> &substrings)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static bool split_quoted(const String &this_s, const String &splitter, std::vector< String > &substrings, char q, String::QuotingMethod method)))
+START_SECTION((static bool split_quoted(const std::string &this_s, const std::string &splitter, std::vector<std::string> &substrings, char q, OpenMS::QuotingMethod method)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static QString toQString(const String &this_s)))
+START_SECTION((static QString toQString(const std::string &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
 
-START_SECTION((static Int32 toInt32(const String &this_s)))
+START_SECTION((static Int32 toInt32(const std::string &this_s)))
 {
   // easy case
   TEST_EQUAL(StringUtils::toInt32("2147483647"), 2147483647)
@@ -278,7 +286,7 @@ END_SECTION
 
 
 
-START_SECTION((static Int64 toInt64(const String &this_s)))
+START_SECTION((static Int64 toInt64(const std::string &this_s)))
 {
   // easy case
   TEST_EQUAL(StringUtils::toInt64("9223372036854775807"), 9223372036854775807)
@@ -299,7 +307,7 @@ START_SECTION((static Int64 toInt64(const String &this_s)))
 }
 END_SECTION
 
-START_SECTION((static float toFloat(const String &this_s)))
+START_SECTION((static float toFloat(const std::string &this_s)))
 {
   // easy case
   TEST_REAL_SIMILAR(StringUtils::toFloat("1234.45"), 1234.45)
@@ -312,10 +320,14 @@ START_SECTION((static float toFloat(const String &this_s)))
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat(" 1234.45 911.0"))     // '911.0' is not explained...
   // incorrect type
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat(" abc "))
+  // subnormal value: underflows below the smallest *normal* float but is still representable --> must parse (no out-of-range)
+  TEST_TRUE(StringUtils::toFloat("1e-40") > 0.0f)
+  // overflow above FLT_MAX --> error
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toFloat("1e40"))
 }
 END_SECTION
 
-START_SECTION((static double toDouble(const String &this_s)))
+START_SECTION((static double toDouble(const std::string &this_s)))
 {
   // easy case
   TEST_REAL_SIMILAR(StringUtils::toDouble("1234.45"), 1234.45)
@@ -328,6 +340,11 @@ START_SECTION((static double toDouble(const String &this_s)))
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" 1234.45 911.0"))     // '911.0' is not explained...
   // incorrect type
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" abc "))
+  // subnormal value: underflows below the smallest *normal* double but is still representable --> must parse (no out-of-range)
+  TEST_EQUAL(StringUtils::toDouble("2.17388884170148e-321"), 2.17388884170148e-321)
+  TEST_TRUE(StringUtils::toDouble("4.9e-324") > 0.0) // ~smallest positive subnormal double
+  // overflow above DBL_MAX --> error
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble("1e400"))
 }
 END_SECTION
 
@@ -398,6 +415,14 @@ START_SECTION((template <typename IteratorT> static bool extractDouble(IteratorT
     TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), false);
     TEST_EQUAL((int)std::distance(ss.begin(), it), 0); // was the iterator advanced?
   }
+  {
+    // subnormal value (underflow): must be parsed, not rejected as out-of-range
+    std::string ss("2.17388884170148e-321 x");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_EQUAL(d, 2.17388884170148e-321);
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 21); // was the iterator advanced past the full number?
+  }
 }
 END_SECTION
 
@@ -456,51 +481,166 @@ START_SECTION((template <typename IteratorT> static bool extractInt(IteratorT& b
 END_SECTION
 
 
-START_SECTION((static String& toUpper(String &this_s)))
+START_SECTION((static std::string& toUpper(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& firstToUpper(String &this_s)))
+START_SECTION((static std::string& firstToUpper(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& toLower(String &this_s)))
+START_SECTION((static std::string& toLower(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& substitute(String &this_s, char from, char to)))
+START_SECTION((static std::string& substitute(String &this_s, char from, char to)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& substitute(String &this_s, const String &from, const String &to)))
+START_SECTION((static std::string& substitute(String &this_s, const std::string &from, const std::string &to)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& remove(String &this_s, char what)))
+START_SECTION((static std::string& remove(String &this_s, char what)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& ensureLastChar(String &this_s, char end)))
+START_SECTION((static std::string& ensureLastChar(String &this_s, char end)))
 {
   NOT_TESTABLE // tested in String_test.cpp
 }
 END_SECTION
 
-START_SECTION((static String& removeWhitespaces(String &this_s)))
+START_SECTION((static std::string& removeWhitespaces(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] non-finite values round-trip through toStr/toDouble/toFloat)
+{
+  // std::to_chars writes "inf", which has neither '.' nor 'e', so the "keep at least one digit after
+  // the decimal point" rule used to append ".0" and emit "inf.0" - a token the parsers reject. Any
+  // file carrying an infinity then failed to load in full.
+  const double dinf = std::numeric_limits<double>::infinity();
+  const float finf = std::numeric_limits<float>::infinity();
+
+  TEST_EQUAL(StringUtils::toStr(dinf), "inf")
+  TEST_EQUAL(StringUtils::toStr(-dinf), "-inf")
+  TEST_EQUAL(StringUtils::toStr(finf), "inf")
+  TEST_EQUAL(StringUtils::toStr(-finf), "-inf")
+  TEST_EQUAL(StringUtils::toStr(std::numeric_limits<double>::quiet_NaN()), "NaN")
+
+  // and back again
+  TEST_EQUAL(std::isinf(StringUtils::toDouble(StringUtils::toStr(dinf))), true)
+  TEST_EQUAL(StringUtils::toDouble(StringUtils::toStr(dinf)) > 0, true)
+  TEST_EQUAL(std::isinf(StringUtils::toDouble(StringUtils::toStr(-dinf))), true)
+  TEST_EQUAL(StringUtils::toDouble(StringUtils::toStr(-dinf)) < 0, true)
+  TEST_EQUAL(std::isinf(StringUtils::toFloat(StringUtils::toStr(finf))), true)
+  TEST_EQUAL(StringUtils::toFloat(StringUtils::toStr(-finf)) < 0, true)
+  TEST_EQUAL(std::isnan(StringUtils::toDouble(StringUtils::toStr(std::numeric_limits<double>::quiet_NaN()))), true)
+
+  // finite values are untouched by the added branch
+  TEST_EQUAL(StringUtils::toStr(5.0), "5.0")
+  TEST_EQUAL(StringUtils::toStr(-0.5), "-0.5")
+  TEST_EQUAL(StringUtils::toStr(0.0), "0.0")
+
+  // a list of them survives the DataValue encoding used by the XML writers
+  const DoubleList mixed {1.5, dinf, -dinf, std::numeric_limits<double>::quiet_NaN(), 2.5};
+  const StringList parts = ListUtils::create<std::string>(
+    StringUtils::substr(DataValue(mixed).toString(), 1, DataValue(mixed).toString().size() - 2), ',');
+  TEST_EQUAL(parts.size(), 5)
+  const DoubleList back = ListUtils::create<double>(parts);
+  TEST_REAL_SIMILAR(back[0], 1.5)
+  TEST_EQUAL(std::isinf(back[1]) && back[1] > 0, true)
+  TEST_EQUAL(std::isinf(back[2]) && back[2] < 0, true)
+  TEST_EQUAL(std::isnan(back[3]), true)
+  TEST_REAL_SIMILAR(back[4], 2.5)
+}
+END_SECTION
+
+START_SECTION([EXTRA] number parsing is independent of the global C locale)
+{
+  // QApplication calls setlocale(LC_ALL, ""), so GUI tools run with the user's locale. With a
+  // decimal-comma locale (e.g. de_DE), locale-dependent parsing (strtod) read "60.5" as 60 and
+  // loading mzML files in TOPPView failed with a ConversionError (seen with libc++ on macOS).
+  const char* cur = setlocale(LC_ALL, nullptr);
+  const std::string saved_loc = (cur != nullptr) ? std::string(cur) : std::string("C");
+
+  const char* comma_locale = nullptr;
+  for (const char* loc : {"de_DE.UTF-8", "de_DE.utf8", "de_DE", "fr_FR.UTF-8", "fr_FR.utf8", "fr_FR", "German_Germany.1252"})
+  {
+    if (setlocale(LC_ALL, loc) != nullptr && localeconv()->decimal_point[0] == ',')
+    {
+      comma_locale = loc;
+      break;
+    }
+  }
+
+  if (comma_locale == nullptr)
+  {
+    STATUS("No decimal-comma locale available, skipping locale-dependent checks.")
+  }
+  else
+  {
+    STATUS("Testing with locale " << comma_locale)
+    double d_val{};
+    float f_val{};
+    std::string err;
+    try
+    {
+      d_val = StringUtils::toDouble("60.5");
+      f_val = StringUtils::toFloat("60.5");
+    }
+    catch (const Exception::ConversionError& e)
+    {
+      err = e.what();
+    }
+    // query the result before restoring the locale, but restore before any TEST macro below
+    std::string s_list = "1.25 -3.5e2";
+    const char* p = s_list.data();
+    const char* p_end = s_list.data() + s_list.size();
+    double e1{}, e2{};
+    const bool ok1 = StringUtils::extractDouble(p, p_end, e1);
+    p = StringUtils::skipWhitespace(p, p_end);
+    const bool ok2 = StringUtils::extractDouble(p, p_end, e2);
+    const bool consumed_all = (p == p_end);
+    double str_val{};
+    try
+    {
+      str_val = StringUtils::toDouble(" 0.001 ");
+    }
+    catch (const Exception::ConversionError& e)
+    {
+      err += e.what();
+    }
+
+    setlocale(LC_ALL, saved_loc.c_str());
+
+    TEST_EQUAL(err, "")
+    TEST_EQUAL(d_val, 60.5)
+    TEST_EQUAL(f_val, 60.5f)
+    TEST_EQUAL(ok1, true)
+    TEST_EQUAL(e1, 1.25)
+    TEST_EQUAL(ok2, true)
+    TEST_EQUAL(e2, -350.0)
+    TEST_EQUAL(consumed_all, true)
+    TEST_EQUAL(str_val, 0.001)
+  }
+  setlocale(LC_ALL, saved_loc.c_str());
 }
 END_SECTION
 

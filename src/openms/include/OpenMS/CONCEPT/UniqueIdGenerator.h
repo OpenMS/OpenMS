@@ -9,55 +9,62 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/uniform_int.hpp>
+#include <string>
 
 
 namespace OpenMS
 {
 
-  class DateTime;
+/**
+  @brief  A generator for unique ids.
 
-  /**
-    @brief  A generator for unique ids.
+  The unique ids are nonzero 64-bit random unsigned integers.
+  All callers share one generator with process lifetime.
+  The random generator is std::mt19937_64 (MT19937-64), whose output sequence is
+  fully specified by the algorithm and therefore identical on every platform and
+  standard library. Zero engine outputs are skipped because they represent an
+  invalid unique id. Random values can still collide; map-level uniqueness
+  must be checked separately.
 
-    The unique ids are 64-bit random unsigned random integers.
-    The class is implemented as a singleton.
-    The random generator is implemented using boost::random.
+  A mutex guards every draw, so generation is thread-safe with or without
+  OpenMP. The ids are the consecutive outputs of the shared engine, except for
+  skipped zeros: for a given seed, the ids drawn up to any point are the same
+  set however many threads drew them. Only which thread receives which id
+  depends on scheduling.
 
-    @ingroup Concept
-  */
-  class OPENMS_DLLAPI UniqueIdGenerator
-  {
+  @ingroup Concept
+*/
+class OPENMS_DLLAPI UniqueIdGenerator
+{
 
 public:
+  /// Returns a new, nonzero unique id.
+  static UInt64 getUniqueId();
 
-    /// Returns a new unique id
-    static UInt64 getUniqueId();
+  /**
+    @brief Returns a new random UUID (version 4)
 
-    /// Initializes random generator using the given value.
-    static void setSeed(const UInt64);
+    Formatted as the standard 36-character string
+    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".
+  */
+  static std::string getUUID();
 
-    /// Get the seed
-    static UInt64 getSeed();
+  /**
+    @brief Reseed the shared generator.
+
+    @param[in] seed Seed for the Mersenne Twister engine.
+  */
+  static void setSeed(UInt64 seed);
+
+  /// Get the seed
+  static UInt64 getSeed();
 
 protected:
-    UniqueIdGenerator();
-    ~UniqueIdGenerator();
+  UniqueIdGenerator();
+  ~UniqueIdGenerator();
 
 private:
-    static UInt64 seed_;
-    static UniqueIdGenerator* instance_;
-    static boost::mt19937_64* rng_;
-    static boost::uniform_int<UInt64>* dist_;
-
-    static UniqueIdGenerator& getInstance_();
-    void init_();
-    UniqueIdGenerator(const UniqueIdGenerator& );//protect from c++ auto-generation
-  };
+  UniqueIdGenerator(const UniqueIdGenerator&); // protect from c++ auto-generation
+};
 
 } // namespace OpenMS
-

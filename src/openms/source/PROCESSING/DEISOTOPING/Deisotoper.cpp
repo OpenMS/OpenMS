@@ -20,6 +20,15 @@ namespace OpenMS
 {
 
 // static
+bool Deisotoper::isToleranceSupported(double fragment_tolerance, bool fragment_unit_ppm)
+{
+  // Mirror of the precondition enforced by deisotopeAndSingleCharge(): isotope
+  // spacing is only resolvable up to 100 ppm / 0.1 Da. Single source of truth for
+  // that limit so callers can gate on it instead of replicating the constants.
+  return fragment_unit_ppm ? (fragment_tolerance <= 100.0) : (fragment_tolerance <= 0.1);
+}
+
+// static
 void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   double fragment_tolerance,
   bool fragment_unit_ppm,
@@ -36,7 +45,7 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
-    if ((fragment_unit_ppm && fragment_tolerance > 100) || (!fragment_unit_ppm && fragment_tolerance > 0.1))
+    if (!isToleranceSupported(fragment_tolerance, fragment_unit_ppm))
     {
         throw Exception::IllegalArgument(
                 __FILE__,
@@ -113,9 +122,16 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
   double precursor_mass(0);
   if (old_spectrum.getPrecursors().size() == 1)
   {
-    has_precursor_data = true;
-    int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
-    precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS_U * precursor_charge);
+    // A charge of 0 means the precursor charge is unknown (see Precursor.h).
+    // Only apply the precursor-mass constraint when a known charge yields a
+    // valid positive neutral mass; otherwise the mass would be 0 (or negative)
+    // and every positive-mass fragment cluster would be wrongly rejected.
+    const int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
+    if (precursor_charge != 0)
+    {
+      precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS_U * precursor_charge);
+      has_precursor_data = (precursor_mass > 0);
+    }
   }
 
   for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
@@ -344,7 +360,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
-    if ((fragment_unit_ppm && fragment_tolerance > 100) || (!fragment_unit_ppm && fragment_tolerance > 0.1))
+    if (!isToleranceSupported(fragment_tolerance, fragment_unit_ppm))
     {
         throw Exception::IllegalArgument(
                 __FILE__,
@@ -408,9 +424,16 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
   double precursor_mass(0);
   if (old_spectrum.getPrecursors().size() == 1)
   {
-    has_precursor_data = true;
-    int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
-    precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS * precursor_charge);
+    // A charge of 0 means the precursor charge is unknown (see Precursor.h).
+    // Only apply the precursor-mass constraint when a known charge yields a
+    // valid positive neutral mass; otherwise the mass would be 0 (or negative)
+    // and every positive-mass fragment cluster would be wrongly rejected.
+    const int precursor_charge = old_spectrum.getPrecursors()[0].getCharge();
+    if (precursor_charge != 0)
+    {
+      precursor_mass = (old_spectrum.getPrecursors()[0].getMZ() * precursor_charge) - (Constants::PROTON_MASS_U * precursor_charge);
+      has_precursor_data = (precursor_mass > 0);
+    }
   }
 
   for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
@@ -435,7 +458,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
         // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
         if (has_precursor_data)
         {
-          double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS * q);
+          double current_theo_mass = (current_mz * q) - (Constants::PROTON_MASS_U * q);
           if (current_theo_mass > (precursor_mass + tolerance_dalton))
           {
             continue;

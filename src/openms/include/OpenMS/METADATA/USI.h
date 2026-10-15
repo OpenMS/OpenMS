@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/config.h>
 
 #include <optional>
@@ -75,11 +75,11 @@ namespace OpenMS
       @param index Numeric identifier of the spectrum
       @param interpretation Optional peptide interpretation (sequence/charge)
     */
-    USI(const String& collection,
-        const String& ms_run,
+    USI(const std::string& collection,
+        const std::string& ms_run,
         IndexType index_type,
-        const String& index,
-        const String& interpretation = "");
+        const std::string& index,
+        const std::string& interpretation = "");
 
     /**
       @brief Construct a USI from its string representation.
@@ -87,7 +87,7 @@ namespace OpenMS
       @param usi_string Complete USI string to parse
       @throw Exception::ParseError if the USI string is malformed
     */
-    explicit USI(const String& usi_string);
+    explicit USI(const std::string& usi_string);
 
     /// Copy constructor
     USI(const USI&) = default;
@@ -136,10 +136,10 @@ namespace OpenMS
 
       Validates that the string follows the USI specification format.
 
-      @param usi_string String to validate
+      @param usi_string std::string to validate
       @return True if the string is a valid USI, false otherwise
     */
-    static bool isValidUSI(const String& usi_string);
+    static bool isValidUSI(const std::string& usi_string);
 
     /**
       @brief Try to parse a USI string (non-throwing).
@@ -147,7 +147,7 @@ namespace OpenMS
       This is the preferred method when you want to validate and use a USI
       in a single operation, avoiding double-parsing.
 
-      @param usi_string String to parse
+      @param usi_string std::string to parse
       @return Parsed USI if valid, std::nullopt otherwise
 
       @code
@@ -162,22 +162,22 @@ namespace OpenMS
       }
       @endcode
     */
-    static std::optional<USI> tryParse(const String& usi_string);
+    static std::optional<USI> tryParse(const std::string& usi_string);
     //@}
 
     /// @name Accessors
     //@{
     /// Returns the collection (dataset identifier or library name)
-    const String& getCollection() const;
+    const std::string& getCollection() const;
 
     /// Sets the collection (dataset identifier or library name)
-    void setCollection(const String& collection);
+    void setCollection(const std::string& collection);
 
     /// Returns the MS run file name
-    const String& getMSRun() const;
+    const std::string& getMSRun() const;
 
     /// Sets the MS run file name
-    void setMSRun(const String& ms_run);
+    void setMSRun(const std::string& ms_run);
 
     /// Returns the index type
     IndexType getIndexType() const;
@@ -186,29 +186,29 @@ namespace OpenMS
     void setIndexType(IndexType index_type);
 
     /// Returns the spectrum index as a string
-    const String& getIndex() const;
+    const std::string& getIndex() const;
 
     /// Sets the spectrum index
-    void setIndex(const String& index);
+    void setIndex(const std::string& index);
 
     /// Returns the interpretation (peptide sequence/charge)
-    const String& getInterpretation() const;
+    const std::string& getInterpretation() const;
 
     /// Sets the interpretation (peptide sequence/charge)
-    void setInterpretation(const String& interpretation);
+    void setInterpretation(const std::string& interpretation);
 
     /// Returns true if an interpretation is present
     bool hasInterpretation() const;
     //@}
 
-    /// @name String conversion
+    /// @name std::string conversion
     //@{
     /**
       @brief Converts the USI to its string representation.
 
       @return Complete USI string
     */
-    String toString() const;
+    std::string toString() const;
 
     /**
       @brief Parse a USI string and populate this object.
@@ -216,7 +216,7 @@ namespace OpenMS
       @param usi_string USI string to parse
       @return True if parsing succeeded, false otherwise
     */
-    bool fromString(const String& usi_string);
+    bool fromString(const std::string& usi_string);
     //@}
 
     /// @name Static utility methods
@@ -233,10 +233,10 @@ namespace OpenMS
       @param interpretation Optional ProForma interpretation (e.g., "PEPTIDEK/2")
       @return Constructed USI object
     */
-    static USI createFromScanNumber(const String& dataset_id,
-                                    const String& filename,
+    static USI createFromScanNumber(const std::string& dataset_id,
+                                    const std::string& filename,
                                     int scan_number,
-                                    const String& interpretation = "");
+                                    const std::string& interpretation = "");
 
     /**
       @brief Create a USI from a native spectrum identifier.
@@ -246,9 +246,9 @@ namespace OpenMS
       @param native_id Native spectrum identifier from the instrument
       @return Constructed USI object
     */
-    static USI createFromNativeID(const String& dataset_id,
-                                  const String& filename,
-                                  const String& native_id);
+    static USI createFromNativeID(const std::string& dataset_id,
+                                  const std::string& filename,
+                                  const std::string& native_id);
 
     /**
       @brief Extract scan number from a native spectrum ID.
@@ -259,24 +259,24 @@ namespace OpenMS
       @param native_id Native spectrum identifier
       @return Scan number if extraction succeeded, std::nullopt otherwise
     */
-    static std::optional<int> extractScanNumberFromNativeID(const String& native_id);
+    static std::optional<int> extractScanNumberFromNativeID(const std::string& native_id);
 
     /**
       @brief Get the index type string representation.
 
       @param index_type Index type enum value
-      @return String representation ("scan", "index", or "nativeId")
+      @return std::string representation ("scan", "index", or "nativeId")
     */
-    static String indexTypeToString(IndexType index_type);
+    static std::string indexTypeToString(IndexType index_type);
 
     /**
       @brief Parse index type from string.
 
-      @param type_string String representation of index type
+      @param type_string std::string representation of index type
       @return Index type enum value
       @throw Exception::InvalidValue if the string is not a valid index type
     */
-    static IndexType indexTypeFromString(const String& type_string);
+    static IndexType indexTypeFromString(const std::string& type_string);
 
     /**
       @brief Extract basename from a file path (removes directory path).
@@ -288,33 +288,33 @@ namespace OpenMS
       @param filepath Full file path or URI
       @return Basename without path component
     */
-    static String extractBasename(const String& filepath);
+    static std::string extractBasename(const std::string& filepath);
     //@}
 
     /// @name CV term information
     //@{
     /// Returns the PSI-MS CV accession for USI (MS:1003063)
-    static const String& getCVAccession();
+    static const std::string& getCVAccession();
 
     /// Returns the PSI-MS CV name for USI
-    static const String& getCVName();
+    static const std::string& getCVName();
     //@}
 
   protected:
-    String collection_;      ///< Dataset identifier or library name
-    String ms_run_;          ///< MS run file name
+    std::string collection_;      ///< Dataset identifier or library name
+    std::string ms_run_;          ///< MS run file name
     IndexType index_type_;   ///< Type of spectrum index
-    String index_;           ///< Spectrum index value
-    String interpretation_;  ///< Optional peptide interpretation
+    std::string index_;           ///< Spectrum index value
+    std::string interpretation_;  ///< Optional peptide interpretation
 
     /// Prefix for all USIs
-    static const String USI_PREFIX;
+    static const std::string USI_PREFIX;
 
     /// CV accession for USI
-    static const String CV_ACCESSION;
+    static const std::string CV_ACCESSION;
 
     /// CV name for USI
-    static const String CV_NAME;
+    static const std::string CV_NAME;
   };
 
   /// Output stream operator

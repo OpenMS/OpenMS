@@ -120,7 +120,7 @@ protected:
 
 
   // mass shift names and their values
-  std::map<String, double> label_mass_shift_;
+  std::map<std::string, double> label_mass_shift_;
 
   // final results, maps of detected features
   FeatureMap feature_map_;

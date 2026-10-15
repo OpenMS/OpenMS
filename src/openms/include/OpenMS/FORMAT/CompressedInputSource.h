@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <xercesc/sax/InputSource.hpp>
 
@@ -48,7 +48,7 @@ public:
       @param[in] manager   Memory manager used for Xerces allocations.
                            Defaults to the platform-wide manager.
     */
-    CompressedInputSource(const   String & file_path, const String & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
+    CompressedInputSource(const   std::string & file_path, const std::string & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
 
     /**
       @brief Construct from a wide-character (@c XMLCh) path.
@@ -60,7 +60,7 @@ public:
       @param[in] manager   Memory manager used for Xerces allocations.
                            Defaults to the platform-wide manager.
     */
-    CompressedInputSource(const   XMLCh * const file_path, const String & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
+    CompressedInputSource(const   XMLCh * const file_path, const std::string & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
 
     /// Destructor.
     ~CompressedInputSource() override;
@@ -85,7 +85,7 @@ public:
     xercesc::BinInputStream * makeStream() const override;
 
 private:
-    String head_; ///< Header bytes captured at construction; @ref makeStream uses the first two characters to pick a decompressor.
+    std::string head_; ///< Header bytes captured at construction; @ref makeStream uses the first two characters to pick a decompressor.
 
     /// Default construction is deliberately suppressed (declared but not defined).
     CompressedInputSource();

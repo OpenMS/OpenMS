@@ -12,7 +12,6 @@
 
 namespace OpenMS
 {
-  class String;
   class SVOutStream;
 
   /**
@@ -31,7 +30,7 @@ namespace OpenMS
     ~MzTabMFile();
 
     /// Store MzTabM file
-    void store(const String& filename, const MzTabM& mztab_m) const;
+    void store(const std::string& filename, const MzTabM& mztab_m) const;
 
   protected:
 
@@ -49,7 +48,7 @@ namespace OpenMS
      @param[out] n_columns Stores the number of columns in the header
      @return StringList with SMH entries
     */
-    String generateMzTabMSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabMSmallMoleculeHeader_(const MzTabMMetaData& meta, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
     /**
      @brief Generates the MzTabM Small Molecule Section
@@ -58,7 +57,7 @@ namespace OpenMS
      @param[out] n_columns Stores the number of columns per row
      @return StringList with SML entries
     */
-    String generateMzTabMSmallMoleculeSectionRow_(const MzTabMSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabMSmallMoleculeSectionRow_(const MzTabMSmallMoleculeSectionRow& row, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
     /**
      @brief Generates the MzTabM Small Molecule Header
@@ -67,7 +66,7 @@ namespace OpenMS
      @param[out] n_columns Stores the number of columns in the header
      @return StringList with SFH entries
     */
-    String generateMzTabMSmallMoleculeFeatureHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabMSmallMoleculeFeatureHeader_(const MzTabMMetaData& meta, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
     /**
      @brief Generates the MzTabM Small Molecule Feature Section
@@ -76,7 +75,7 @@ namespace OpenMS
      @param[out] n_columns Stores the number of columns per row
      @return StringList with SMF entries
     */
-    String generateMzTabMSmallMoleculeFeatureSectionRow_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabMSmallMoleculeFeatureSectionRow_(const MzTabMSmallMoleculeFeatureSectionRow& row, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
     /**
      @brief Generates the MzTabM Small Molecule Header
@@ -85,7 +84,7 @@ namespace OpenMS
      @param[out] n_columns Stores the number of columns in the header
      @return StringList with SEH entries
     */
-    String generateMzTabMSmallMoleculeEvidenceHeader_(const MzTabMMetaData& meta, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabMSmallMoleculeEvidenceHeader_(const MzTabMMetaData& meta, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
 
     /**
      @brief Generates the MzTabM Small Molecule Evidence Section
@@ -94,7 +93,7 @@ namespace OpenMS
      @param[out] n_columns Stores the number of columns per row
      @return StringList with SME entries
     */
-    String generateMzTabMSmallMoleculeEvidenceSectionRow_(const MzTabMSmallMoleculeEvidenceSectionRow& row, const std::vector<String>& optional_columns, size_t& n_columns) const;
+    std::string generateMzTabMSmallMoleculeEvidenceSectionRow_(const MzTabMSmallMoleculeEvidenceSectionRow& row, const std::vector<std::string>& optional_columns, size_t& n_columns) const;
   };
 
 } // namespace OpenMS

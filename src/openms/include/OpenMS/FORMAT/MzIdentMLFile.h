@@ -54,14 +54,14 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid);
+    void load(const std::string& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid);
 
     /**
         @brief Stores the identifications in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const;
+    void store(const std::string& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const;
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -72,7 +72,7 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
+    bool isSemanticallyValid(const std::string& filename, StringList& errors, StringList& warnings);
 
     /**
         @brief Checks if a file validates against the mzIdentML schema that matches its declared version.
@@ -89,7 +89,7 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool isValid(const String& filename, std::ostream& os, String& used_version);
+    bool isValid(const std::string& filename, std::ostream& os, std::string& used_version);
 
     /**
         @brief Detect the mzIdentML version declared in @p filename (e.g. "1.1.0").
@@ -97,7 +97,7 @@ public:
         Reads the @c version attribute / target namespace from the document header. Falls back to the
         adapter's default version (1.3.0) if no version can be determined or no matching schema exists.
     */
-    String detectVersion(const String& filename) const;
+    std::string detectVersion(const std::string& filename) const;
 
 private:
 

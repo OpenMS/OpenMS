@@ -72,8 +72,12 @@ namespace OpenMS
         @brief Constructor
 
         @param[out] filename Filename for the output mzML
+
+        @exception Exception::UnableToCreateFile if @p filename ends in a compression suffix
+        (.gz, .bz2 or .zip): the consumer writes uncompressed mzML only. Use MzMLFile::store()
+        for gzip or bzip2 output.
       */
-      explicit MSDataWritingConsumer(const String& filename);
+      explicit MSDataWritingConsumer(const std::string& filename);
 
       /// Destructor
       ~MSDataWritingConsumer() override;
@@ -218,7 +222,7 @@ namespace OpenMS
 
     public:
 
-      explicit PlainMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      explicit PlainMSDataWritingConsumer(std::string filename) : MSDataWritingConsumer(filename) {}
     };
 
     /**
@@ -233,7 +237,7 @@ namespace OpenMS
     {
     public:
 
-      explicit NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      explicit NoopMSDataWritingConsumer(std::string filename) : MSDataWritingConsumer(filename) {}
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {}
       void consumeSpectrum(SpectrumType & /* s */) override {}
       void consumeChromatogram(ChromatogramType & /* c */) override {}

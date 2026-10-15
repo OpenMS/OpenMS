@@ -9,8 +9,9 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <memory>
 #include <string>
@@ -41,24 +42,29 @@ namespace OpenMS
       @throws Exception::FileNotWritable if the archive cannot be written.
       @throws Exception::NotImplemented if libzip support is unavailable.
     */
-    static void zipDirectory(const String& directory_path, const String& output_zip);
+    static void zipDirectory(const std::string& directory_path, const std::string& output_zip);
 
     /**
       @brief Unpack a zip archive into a temporary directory and return the usable path
 
-      Extracts the archive into a newly created File::TempDir and returns the path to
+      Extracts the archive into a newly created TempDir and returns the path to
       the unpacked directory. This function protects against path traversal and
       absolute paths in archive entries. If the provided path already points to a
       directory it is returned unchanged and no TempDir is created.
+
+      Before writing anything, archives with more than 100000 entries, or whose declared
+      uncompressed size exceeds 90% of the free space of the temporary directory (or if that
+      free space cannot be determined), are rejected.
+      Extraction stops at an entry that inflates beyond its declared size.
 
       @param[in] input_path Path to the zip archive (or a directory).
       @param[out] temp_dir A unique_ptr which will be set to the owned TempDir when an archive is extracted. If input_path is a directory this will remain unchanged.
       @return The path where the archive was unpacked (or input_path if already a directory).
       @throws Exception::FileNotFound if the input archive is not readable.
-      @throws Exception::InvalidValue on archive extraction errors.
+      @throws Exception::InvalidValue on archive extraction errors, including an archive over these limits.
       @throws Exception::NotImplemented if libzip support is unavailable.
     */
-    static String unzipDirectory(const String& input_path, std::unique_ptr<File::TempDir>& temp_dir);
+    static std::string unzipDirectory(const std::string& input_path, std::unique_ptr<TempDir>& temp_dir);
 
     /**
       @brief Add or replace an entry inside an existing zip archive from a file on disk
@@ -75,7 +81,7 @@ namespace OpenMS
       @throws Exception::InvalidValue on libzip errors.
       @throws Exception::NotImplemented if libzip support is unavailable.
     */
-    static void addOrReplaceFromFile(const String& archive_path, const String& entry_name, const String& source_file_path);
+    static void addOrReplaceFromFile(const std::string& archive_path, const std::string& entry_name, const std::string& source_file_path);
 
     /**
       @brief List entries in a zip archive (returns empty list if not available)
@@ -84,7 +90,7 @@ namespace OpenMS
       @return A vector of entry names contained in the archive. Returns an empty
               vector if the archive cannot be read or libzip is unavailable.
     */
-    static std::vector<String> listEntries(const String& archive_path);
+    static std::vector<std::string> listEntries(const std::string& archive_path);
 
     /**
       @brief Write a small JSON sidecar index for the archive listing entries and sizes.
@@ -102,7 +108,7 @@ namespace OpenMS
 
         If libzip is unavailable this method will throw Exception::NotImplemented.
     */
-    static void writeSidecarIndex(const String& archive_path);
+    static void writeSidecarIndex(const std::string& archive_path);
 
     /**
     @brief Extract a single entry from a zip archive into a temporary file and return its path
@@ -119,7 +125,7 @@ namespace OpenMS
       @throws Exception::FileNotFound if the archive or entry is not found
       @throws Exception::InvalidValue on extraction errors
     */
-    static String extractEntryToTempFile(const String& archive_path, const String& entry_name, std::unique_ptr<File::TempDir>& temp_dir);
+    static std::string extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<TempDir>& temp_dir);
 
   };
 

@@ -7,17 +7,21 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -48,11 +52,11 @@ namespace // anonymous
     std::shared_ptr<arrow::StructBuilder>& struct_b,
     const std::unordered_set<std::string>& excluded_keys)
   {
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     mii.getKeys(keys);
     for (const auto& key : keys)
     {
-      if (excluded_keys.count(key)) continue;
+      if (excluded_keys.contains(key)) continue;
       const DataValue& val = mii.getMetaValue(key);
       (void)struct_b->Append();
       (void)name_b->Append(key);
@@ -199,7 +203,7 @@ namespace // anonymous
 
       // metavalues
       json += ",\"metavalues\":[";
-      std::vector<String> keys;
+      std::vector<std::string> keys;
       dp.getKeys(keys);
       bool first_mv = true;
       for (const auto& key : keys)
@@ -254,7 +258,7 @@ namespace // anonymous
         raw += s[pos + 1];
         if (s[pos + 1] == 'u' && pos + 5 < s.size())
         {
-          raw += s.substr(pos + 2, 4);
+          raw += StringUtils::substr(s, pos + 2, 4);
           pos += 6;
         }
         else
@@ -376,15 +380,15 @@ namespace // anonymous
                 }
                 else if (mv_type == "double" || mv_type == "float")
                 {
-                  try { dp.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+                  try { dp.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
                 }
                 else if (mv_type == "int_list")
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
                     dp.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -393,8 +397,8 @@ namespace // anonymous
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
                     dp.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -403,10 +407,10 @@ namespace // anonymous
                 {
                   try
                   {
-                    String s(mv_value);
-                    if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-                    auto sl = ListUtils::create<String>(s);
-                    for (auto& e : sl) { e = e.trim(); }
+                    std::string s(mv_value);
+                    if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = StringUtils::substr(s, 1, s.size() - 2); }
+                    auto sl = ListUtils::create<std::string>(s);
+                    for (auto& e : sl) { e = StringUtils::trim(e); }
                     dp.setMetaValue(mv_name, DataValue(sl));
                   }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -459,7 +463,7 @@ namespace // anonymous
   std::string serializeMetaValues_(const MetaInfoInterface& mii)
   {
     std::string json = "[";
-    std::vector<String> keys;
+    std::vector<std::string> keys;
     mii.getKeys(keys);
     bool first = true;
     for (const auto& key : keys)
@@ -535,15 +539,15 @@ namespace // anonymous
         }
         else if (mv_type == "double" || mv_type == "float")
         {
-          try { target.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+          try { target.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
         }
         else if (mv_type == "int_list")
         {
           try
           {
-            String s(mv_value);
-            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
             target.setMetaValue(mv_name, DataValue(ListUtils::create<Int>(s)));
           }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -552,8 +556,8 @@ namespace // anonymous
         {
           try
           {
-            String s(mv_value);
-            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
             target.setMetaValue(mv_name, DataValue(ListUtils::create<double>(s)));
           }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -562,10 +566,10 @@ namespace // anonymous
         {
           try
           {
-            String s(mv_value);
-            if (s.hasPrefix("[") && s.hasSuffix("]")) { s = s.substr(1, s.size() - 2); }
-            auto sl = ListUtils::create<String>(s);
-            for (auto& e : sl) { e = e.trim(); }
+            std::string s(mv_value);
+            if (StringUtils::hasPrefix(s, "[") && StringUtils::hasSuffix(s, "]")) { s = s.substr(1, s.size() - 2); }
+            auto sl = ListUtils::create<std::string>(s);
+            for (auto& e : sl) { StringUtils::trim(e); }
             target.setMetaValue(mv_name, DataValue(sl));
           }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
@@ -581,7 +585,7 @@ namespace // anonymous
   /// Write an Arrow table to a Parquet file with QPX-style metadata.
   bool writeArrowTableToParquet_(
     std::shared_ptr<arrow::Table> table,
-    const String& filename,
+    const std::string& filename,
     const std::string& file_type,
     const ParquetWriteConfig& config,
     const std::unordered_map<std::string, std::string>& extra_metadata = {})
@@ -614,7 +618,6 @@ namespace // anonymous
     std::string uuid_str(buf);
 
     std::vector<std::pair<std::string, std::string>> md_pairs = {
-      {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", file_type},
       {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
@@ -684,11 +687,34 @@ namespace // anonymous
       *table, arrow::default_memory_pool(), outfile,
       config.row_group_size, writer_props, arrow_props);
 
+    // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+    // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+    // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+    // removing: on Windows an open handle blocks the unlink.
+    const auto abandon = [&](const std::string& what)
+    {
+      OPENMS_LOG_ERROR << "FeatureMapArrowIO: " << what << std::endl;
+      (void)outfile->Close();
+      if (!File::remove(filename))
+      {
+        OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to remove incomplete output "
+                         << filename << std::endl;
+      }
+      return false;
+    };
+
     if (!write_status.ok())
     {
-      OPENMS_LOG_ERROR << "FeatureMapArrowIO: Failed to write Parquet: "
-                       << write_status.ToString() << std::endl;
-      return false;
+      return abandon("Failed to write Parquet: " + write_status.ToString());
+    }
+
+    // Close explicitly rather than leaving it to the destructor, which swallows the error: the
+    // final flush is where a full disk surfaces, and reporting success there would hand back a
+    // truncated file.
+    auto close_status = outfile->Close();
+    if (!close_status.ok())
+    {
+      return abandon("Failed to close " + filename + ": " + close_status.ToString());
     }
 
     return true;
@@ -709,7 +735,7 @@ namespace // anonymous
   // ==================== Import helpers ====================
 
   /// Read a single Parquet file into an Arrow table.
-  std::shared_ptr<arrow::Table> readParquetTable_(const String& filename)
+  std::shared_ptr<arrow::Table> readParquetTable_(const std::string& filename)
   {
     auto infile_result = arrow::io::ReadableFile::Open(std::string(filename));
     if (!infile_result.ok())
@@ -780,7 +806,7 @@ namespace // anonymous
   }
 
   /// Get string value at a row, returning empty string if null.
-  String getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
+  std::string getStringValue_(const std::shared_ptr<arrow::Array>& array, int64_t row)
   {
     if (!array || array->IsNull(row)) return "";
     return std::static_pointer_cast<arrow::StringArray>(array)->GetString(row);
@@ -1207,12 +1233,14 @@ std::shared_ptr<arrow::Table> FeatureMapArrowIO::exportPSMsToArrow(
 
 bool FeatureMapArrowIO::exportToParquet(
   const FeatureMap& feature_map,
-  const String& directory,
+  const std::string& directory,
   const ParquetWriteConfig& config)
 {
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .featureparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(feature_map.getProteinIdentifications());
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(feature_map);
 
   // 1. Create output directory
   try
@@ -1243,6 +1271,10 @@ bool FeatureMapArrowIO::exportToParquet(
   feature_map_metadata["loaded_file_type"] = FileTypes::typeToName(feature_map.getLoadedFileType());
   feature_map_metadata["data_processing"] = serializeDataProcessing_(feature_map.getDataProcessing());
   feature_map_metadata["fmap_metavalues"] = serializeMetaValues_(feature_map);
+  // The map's own UniqueIdInterface value -- distinct from the per-feature unique ids in the
+  // table and from DocumentIdentifier above. Consumers key on it: ProteomicsLFQ copies it into
+  // the consensus column header of the run the map came from.
+  feature_map_metadata["map_unique_id"] = std::to_string(feature_map.getUniqueId());
 
   if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config, feature_map_metadata))
   {
@@ -1274,7 +1306,8 @@ bool FeatureMapArrowIO::exportToParquet(
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-          prot_ids, directory + "/search_params.parquet", config))
+          prot_ids, directory + "/search_params.parquet", config,
+          ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(feature_map))))
   {
     return false;
   }
@@ -1542,18 +1575,19 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
   };
 
   std::vector<PepIdGroup> groups;
-  int32_t current_p_id = -1;
+  std::unordered_map<int32_t, size_t> p_id_to_idx;
 
   for (int64_t row = 0; row < num_rows; ++row)
   {
     int32_t p_id = getInt32Value_(col_p_id, row, -1);
 
-    // Start a new group if P_ID changes.
-    // Note: This assumes rows with the same P_ID are contiguous in the table,
-    // which is guaranteed by QPXFile::exportToArrow. If the Parquet file has been
-    // externally sorted/filtered, non-contiguous rows with the same P_ID will be
-    // split into separate PeptideIdentification objects.
-    if (groups.empty() || p_id != current_p_id)
+    // Group PSM rows by P_ID using a first-seen lookup rather than assuming the
+    // rows are contiguous. A standard OpenMS export writes rows of one P_ID
+    // contiguously, but an externally sorted/filtered Parquet file may interleave
+    // them; grouping by value (as QPXFile and ConsensusMapArrowIO already do) keeps
+    // all hits of one logical PeptideIdentification together in either case.
+    auto [pid_it, pid_inserted] = p_id_to_idx.try_emplace(p_id, groups.size());
+    if (pid_inserted)
     {
       PepIdGroup group;
       group.feature_id_is_null = isNull_(col_feature_id, row);
@@ -1615,8 +1649,8 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
 
       groups.push_back(std::move(group));
-      current_p_id = p_id;
     }
+    const size_t gidx = pid_it->second;
 
     // Add a PeptideHit to the current group
     PeptideHit hit;
@@ -1624,7 +1658,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
     // Reconstruct sequence from peptidoform (ProForma) if available, else from sequence column
     if (col_peptidoform && !isNull_(col_peptidoform, row))
     {
-      String peptidoform_str = getStringValue_(col_peptidoform, row);
+      std::string peptidoform_str = getStringValue_(col_peptidoform, row);
       if (!peptidoform_str.empty())
       {
         try
@@ -1695,7 +1729,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       int64_t end = start + list_arr->value_length(row);
       for (int64_t k = start; k < end; ++k)
       {
-        String name = names_arr->GetString(k);
+        std::string name = names_arr->GetString(k);
         double value = values_arr->Value(k);
         hit.setMetaValue(name, value);
       }
@@ -1734,7 +1768,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       ArrowIOHelpers::readMetaValues(col_psm_metavalues, row, hit, psm_excluded_mvs);
     }
 
-    groups.back().pep_id.getHits().push_back(std::move(hit));
+    groups[gidx].pep_id.getHits().push_back(std::move(hit));
   }
 
   // Assign PeptideIdentifications to features or as unassigned
@@ -1754,9 +1788,16 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
       else
       {
-        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find feature with id "
-                        << group.feature_id << " for PSM. Adding as unassigned." << std::endl;
-        feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+        // Refuse rather than re-file the identification as unassigned. The two identification
+        // lists of a FeatureMap partition the PSMs, and which list a PSM is in is part of the
+        // result: FDR is estimated over both together, and every exporter reports them
+        // separately. Silently moving one across that boundary yields a map that parses
+        // cleanly and describes a different experiment from the one that was written, which
+        // is the failure mode that is hardest to notice afterwards.
+        OPENMS_LOG_ERROR << "FeatureMapArrowIO: PSM references feature unique id "
+                         << group.feature_id << ", which is not in features.parquet. The file is "
+                         << "inconsistent." << std::endl;
+        return false;
       }
     }
   }
@@ -1765,7 +1806,7 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
 }
 
 bool FeatureMapArrowIO::importFromParquet(
-  const String& directory,
+  const std::string& directory,
   FeatureMap& feature_map)
 {
   feature_map = FeatureMap{};
@@ -1817,6 +1858,22 @@ bool FeatureMapArrowIO::importFromParquet(
     {
       deserializeMetaValues_(schema_md->value(idx), feature_map);
     }
+
+    // The map's own unique id. Absent in files written before it was stored, which then keep
+    // the invalid id the map starts with, exactly as they did before.
+    idx = schema_md->FindKey("map_unique_id");
+    if (idx >= 0)
+    {
+      try
+      {
+        feature_map.setUniqueId(static_cast<UInt64>(std::stoull(schema_md->value(idx))));
+      }
+      catch (const std::exception&)
+      {
+        OPENMS_LOG_WARN << "FeatureMapArrowIO: could not read map_unique_id '"
+                        << schema_md->value(idx) << "'; leaving the map id unset." << std::endl;
+      }
+    }
   }
 
   if (!importFeaturesFromArrow(features_table, feature_map))
@@ -1831,6 +1888,8 @@ bool FeatureMapArrowIO::importFromParquet(
   {
     return false;
   }
+  // every peptide identification needs its protein identification run (checked on the stored identifiers)
+  ProteinRunReferences::check(feature_map);
 
   // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
   //    we own (per-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the stored
@@ -1840,10 +1899,18 @@ bool FeatureMapArrowIO::importFromParquet(
     auto& prot_ids = feature_map.getProteinIdentifications();
     auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
 
+    // features and their subordinates (which can carry peptide identifications, too)
+    std::function<void(Feature&)> renameFeature = [&](Feature& f)
+    {
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, f.getPeptideIdentifications());
+      for (auto& sub : f.getSubordinates())
+      {
+        renameFeature(sub);
+      }
+    };
     for (auto& feature : feature_map)
     {
-      ProteinIdentificationArrowIO::applyRunIdentifierRename(
-          rename, feature.getPeptideIdentifications());
+      renameFeature(feature);
     }
     ProteinIdentificationArrowIO::applyRunIdentifierRename(
         rename, feature_map.getUnassignedPeptideIdentifications());

@@ -20,8 +20,8 @@
 namespace OpenMS
 {
 
-std::vector<::OpenSwath::SwathMap> MRMFile::loadMzML(const String& file,
-                                                   const String& /*tmp*/, 
+std::vector<::OpenSwath::SwathMap> MRMFile::loadMzML(const std::string& file,
+                                                   const std::string& /*tmp*/, 
                                                    std::shared_ptr<ExperimentalSettings>& exp_meta)
 {
   OPENMS_LOG_INFO << "Loading SRM/MRM mzML " << file << std::endl;

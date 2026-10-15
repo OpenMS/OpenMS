@@ -8,9 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <xercesc/sax/ErrorHandler.hpp>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <iostream>
 
@@ -23,8 +21,7 @@ namespace OpenMS
 
     @ingroup FileIO
   */
-  class OPENMS_DLLAPI XMLValidator :
-    private xercesc::ErrorHandler
+  class OPENMS_DLLAPI XMLValidator
   {
 public:
     /// Constructor
@@ -42,24 +39,22 @@ public:
       @exception Exception::FileNotFound is thrown if the file cannot be found
       @exception Exception::ParseError is thrown if the parser could not be initialized
     */
-    bool isValid(const String& filename, const String& schema, std::ostream& os = std::cerr);
+    bool isValid(const std::string& filename, const std::string& schema, std::ostream& os = std::cerr);
 
 protected:
     /// Flag if the validated file is valid
     bool valid_;
     /// File name of validated file (for error messages)
-    String filename_;
+    std::string filename_;
     //output stream reference (for error messages)
     std::ostream* os_;
 
-    /// @name Implementation of Xerces ErrorHandler methods
-    //@{
-    void warning(const xercesc::SAXParseException& exception) override;
-    void error(const xercesc::SAXParseException& exception) override;
-    void fatalError(const xercesc::SAXParseException& exception) override;
-    void resetErrors() override;
-    //@}
+    /// Record a validation problem. Called by the internal Xerces ErrorHandler
+    /// bridge (defined in the .cpp); keeps Xerces out of this public header.
+    void logError_(const std::string& kind, const std::string& message, unsigned long line, unsigned long column);
+
+    /// The internal Xerces ErrorHandler bridge needs access to @c logError_.
+    friend class XMLValidatorErrorHandler_;
   };
 
 } // namespace OpenMS
-

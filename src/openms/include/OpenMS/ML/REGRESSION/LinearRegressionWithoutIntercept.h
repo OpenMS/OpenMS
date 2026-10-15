@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/OpenMSConfig.h>
 
 #include <cmath>
 #include <vector>

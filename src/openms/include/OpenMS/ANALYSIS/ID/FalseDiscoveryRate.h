@@ -130,7 +130,7 @@ public:
     void applyBasic(const std::vector<ProteinIdentification> & run_info, PeptideIdentificationList & ids);
 
     /// simpler reimplementation of the apply function above for PSMs or peptides.
-    void applyBasic(PeptideIdentificationList & ids, bool higher_score_better, int charge = 0, String identifier = "", bool only_best_per_pep = false);
+    void applyBasic(PeptideIdentificationList & ids, bool higher_score_better, int charge = 0, std::string identifier = "", bool only_best_per_pep = false);
     /// like applyBasic with "only_best_per_peptide" but it assigns a score to EVERY PSM sharing the peptide sequence with the
     /// best representative. Useful if all hits need to have a peptide score (e.g., for mzTab report). No support for specific charges, runs etc. yet
     void applyBasicPeptideLevel(PeptideIdentificationList & ids);
@@ -140,6 +140,7 @@ public:
     /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for proteins.
+    /// @p groups_too also calculates an FDR for the indistinguishable protein groups, if there are any.
     void applyBasic(ProteinIdentification & id, bool groups_too = true);
 
     /**
@@ -148,10 +149,10 @@ public:
      * target-decoy pair is used. A pair is calculated by checking accession equality after removing the decoy string.
      * If @p decoy_string is empty, we try to guess it. If you set @p decoy_string you should also set @p prefix and
      * say if the string is a prefix (true) or suffix (false).
-     * @p groups_too decides if also a (indistinguishable) group-level FDR will be calculated. Here a group score
-     * will be taken if not ALL proteins in the group were picked already. Targets preferred.
+     * @p groups_too decides if also a (indistinguishable) group-level FDR will be calculated, if there are any groups.
+     * Here a group score will be taken if not ALL proteins in the group were picked already. Targets preferred.
      */
-    void applyPickedProteinFDR(ProteinIdentification& id, String decoy_string = "", bool prefix = true, bool groups_too = true);
+    void applyPickedProteinFDR(ProteinIdentification& id, std::string decoy_string = "", bool prefix = true, bool groups_too = true);
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
@@ -159,7 +160,7 @@ public:
 
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run.
-    double rocN(const PeptideIdentificationList& ids, Size fp_cutoff, const String& identifier) const;
+    double rocN(const PeptideIdentificationList& ids, Size fp_cutoff, const std::string& identifier) const;
 
     /// calculates the AUC until the first @p fp_cutoff False positive pep IDs (takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
@@ -167,7 +168,7 @@ public:
 
     /// calculates the AUC until the first @p fp_cutoff False positive pep IDs.
     /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run with @p identifier.
-    double rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier, bool include_unassigned_peptides = false) const;
+    double rocN(const ConsensusMap& ids, Size fp_cutoff, const std::string& identifier, bool include_unassigned_peptides = false) const;
 
     //TODO the next two methods could potentially be merged for speed (they iterate over the same structure)
     //But since they have different cutoff types and it is more generic, I leave it like this.
@@ -200,7 +201,7 @@ public:
       struct Result
       {
         bool success; ///< did more than 30% of proteins have the *same* prefix or suffix
-        String name; ///< on success, what was the decoy string?
+        std::string name; ///< on success, what was the decoy string?
         bool is_prefix; ///< on success, was it a prefix or suffix
       };
 

@@ -123,71 +123,71 @@ START_SECTION(static void writeDeconvolvedMassesHeader(std::ostream& os, uint ms
   {
     ostringstream oss;
     FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(oss, 1, false, false);
-    String header = oss.str();
+    std::string header = oss.str();
 
-    TEST_EQUAL(header.hasSubstring("Index"), true)
-    TEST_EQUAL(header.hasSubstring("FileName"), true)
-    TEST_EQUAL(header.hasSubstring("ScanNum"), true)
-    TEST_EQUAL(header.hasSubstring("RetentionTime"), true)
-    TEST_EQUAL(header.hasSubstring("MonoisotopicMass"), true)
-    TEST_EQUAL(header.hasSubstring("AverageMass"), true)
-    TEST_EQUAL(header.hasSubstring("SumIntensity"), true)
-    TEST_EQUAL(header.hasSubstring("IsotopeCosine"), true)
-    TEST_EQUAL(header.hasSubstring("Qscore"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Index"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "FileName"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "ScanNum"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "RetentionTime"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "MonoisotopicMass"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "AverageMass"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "SumIntensity"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "IsotopeCosine"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Qscore"), true)
     // Should NOT contain precursor info for MS1
-    TEST_EQUAL(header.hasSubstring("PrecursorScanNum"), false)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PrecursorScanNum"), false)
     // Should NOT contain detail columns
-    TEST_EQUAL(header.hasSubstring("PeakMZs"), false)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PeakMZs"), false)
     // Should NOT contain decoy column
-    TEST_EQUAL(header.hasSubstring("TargetDecoyType"), false)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "TargetDecoyType"), false)
   }
 
   // Test MS1 header with detail
   {
     ostringstream oss;
     FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(oss, 1, true, false);
-    String header = oss.str();
+    std::string header = oss.str();
 
     // Should contain detail columns
-    TEST_EQUAL(header.hasSubstring("PeakMZs"), true)
-    TEST_EQUAL(header.hasSubstring("PeakIntensities"), true)
-    TEST_EQUAL(header.hasSubstring("PeakCharges"), true)
-    TEST_EQUAL(header.hasSubstring("PerChargeIntensity"), true)
-    TEST_EQUAL(header.hasSubstring("PerIsotopeIntensity"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PeakMZs"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PeakIntensities"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PeakCharges"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PerChargeIntensity"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PerIsotopeIntensity"), true)
   }
 
   // Test MS1 header with decoy reporting
   {
     ostringstream oss;
     FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(oss, 1, false, true);
-    String header = oss.str();
+    std::string header = oss.str();
 
-    TEST_EQUAL(header.hasSubstring("TargetDecoyType"), true)
-    TEST_EQUAL(header.hasSubstring("Qvalue"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "TargetDecoyType"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "Qvalue"), true)
   }
 
   // Test MS2 header (should contain precursor info)
   {
     ostringstream oss;
     FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(oss, 2, false, false);
-    String header = oss.str();
+    std::string header = oss.str();
 
-    TEST_EQUAL(header.hasSubstring("PrecursorScanNum"), true)
-    TEST_EQUAL(header.hasSubstring("PrecursorMz"), true)
-    TEST_EQUAL(header.hasSubstring("PrecursorCharge"), true)
-    TEST_EQUAL(header.hasSubstring("PrecursorMonoisotopicMass"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PrecursorScanNum"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PrecursorMz"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PrecursorCharge"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PrecursorMonoisotopicMass"), true)
   }
 
   // Test MS2 header with detail and decoy
   {
     ostringstream oss;
     FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(oss, 2, true, true);
-    String header = oss.str();
+    std::string header = oss.str();
 
-    TEST_EQUAL(header.hasSubstring("PrecursorScanNum"), true)
-    TEST_EQUAL(header.hasSubstring("PeakMZs"), true)
-    TEST_EQUAL(header.hasSubstring("TargetDecoyType"), true)
-    TEST_EQUAL(header.hasSubstring("PrecursorQvalue"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PrecursorScanNum"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PeakMZs"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "TargetDecoyType"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(header, "PrecursorQvalue"), true)
   }
 }
 END_SECTION
@@ -204,14 +204,14 @@ START_SECTION(static void writeTopFDHeader(std::ostream& os, const Param& param)
   params.setValue("another_param", "value");
 
   FLASHDeconvSpectrumFile::writeTopFDHeader(oss, params);
-  String header = oss.str();
+  std::string header = oss.str();
 
-  TEST_EQUAL(header.hasSubstring("#FLASHDeconv generated msalign file"), true)
-  TEST_EQUAL(header.hasSubstring("Parameters"), true)
-  TEST_EQUAL(header.hasSubstring("test_param"), true)
-  TEST_EQUAL(header.hasSubstring("42"), true)
-  TEST_EQUAL(header.hasSubstring("another_param"), true)
-  TEST_EQUAL(header.hasSubstring("value"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(header, "#FLASHDeconv generated msalign file"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(header, "Parameters"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(header, "test_param"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(header, "42"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(header, "another_param"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(header, "value"), true)
 }
 END_SECTION
 
@@ -227,10 +227,10 @@ START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vec
     std::vector<DeconvolvedSpectrum> empty_spectra;
 
     FLASHDeconvSpectrumFile::writeIsobaricQuantification(oss, empty_spectra);
-    String output = oss.str();
+    std::string output = oss.str();
 
     // Header is always written, even when no spectra have isobaric quantities
-    TEST_EQUAL(output.hasPrefix("Scan\tPrecursorScan\tPrecursorMZ\t"), true)
+    TEST_EQUAL(StringUtils::hasPrefix(output, "Scan\tPrecursorScan\tPrecursorMZ\t"), true)
   }
 
   // Test with MS2 spectra without isobaric quantities - should produce header only
@@ -241,10 +241,10 @@ START_SECTION(static void writeIsobaricQuantification(std::ostream& os, std::vec
     spectra.push_back(createTestDeconvolvedSpectrum(102, 2, 610.0));
 
     FLASHDeconvSpectrumFile::writeIsobaricQuantification(oss, spectra);
-    String output = oss.str();
+    std::string output = oss.str();
 
     // Header is always written, even when channel_count == 0 (no isobaric quantities present)
-    TEST_EQUAL(output.hasPrefix("Scan\tPrecursorScan\tPrecursorMZ\t"), true)
+    TEST_EQUAL(StringUtils::hasPrefix(output, "Scan\tPrecursorScan\tPrecursorMZ\t"), true)
   }
 }
 END_SECTION
@@ -253,7 +253,7 @@ END_SECTION
 // Test writeMzML
 /////////////////////////////////////////////////////////////
 
-START_SECTION(static void writeMzML(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const String& deconvolved_mzML_file, const String& annotated_mzML_file, int mzml_charge, DoubleList tols))
+START_SECTION(static void writeMzML(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::string& deconvolved_mzML_file, const std::string& annotated_mzML_file, int mzml_charge, DoubleList tols))
 {
   // Test with empty file names (should return early without error)
   {
@@ -272,7 +272,7 @@ END_SECTION
 // Test writeTopFD with synthesized data
 /////////////////////////////////////////////////////////////
 
-START_SECTION(static void writeTopFD(DeconvolvedSpectrum& dspec, std::ostream& os, const String& filename, const double qval_threshold, const uint min_ms_level, bool randomize_precursor_mass, bool randomize_fragment_mass))
+START_SECTION(static void writeTopFD(DeconvolvedSpectrum& dspec, std::ostream& os, const std::string& filename, const double qval_threshold, const uint min_ms_level, bool randomize_precursor_mass, bool randomize_fragment_mass))
 {
   // Test with MS1 spectrum
   {
@@ -280,16 +280,16 @@ START_SECTION(static void writeTopFD(DeconvolvedSpectrum& dspec, std::ostream& o
     DeconvolvedSpectrum dspec = createTestDeconvolvedSpectrum(100, 1, 600.0);
 
     FLASHDeconvSpectrumFile::writeTopFD(dspec, oss, "test.mzML", 1.0, 1, false, false);
-    String output = oss.str();
+    std::string output = oss.str();
 
     // Check msalign format markers
-    TEST_EQUAL(output.hasSubstring("BEGIN IONS"), true)
-    TEST_EQUAL(output.hasSubstring("END IONS"), true)
-    TEST_EQUAL(output.hasSubstring("FILE_NAME=test.mzML"), true)
-    TEST_EQUAL(output.hasSubstring("SCANS=100"), true)
-    TEST_EQUAL(output.hasSubstring("LEVEL=1"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "BEGIN IONS"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "END IONS"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "FILE_NAME=test.mzML"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "SCANS=100"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "LEVEL=1"), true)
     // MS1 should not have precursor info
-    TEST_EQUAL(output.hasSubstring("PRECURSOR_MZ"), false)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "PRECURSOR_MZ"), false)
   }
 
   // Test with MS2 spectrum
@@ -298,18 +298,18 @@ START_SECTION(static void writeTopFD(DeconvolvedSpectrum& dspec, std::ostream& o
     DeconvolvedSpectrum dspec = createTestDeconvolvedSpectrum(101, 2, 605.0);
 
     FLASHDeconvSpectrumFile::writeTopFD(dspec, oss, "test.mzML", 1.0, 1, false, false);
-    String output = oss.str();
+    std::string output = oss.str();
 
     // Check msalign format for MS2
-    TEST_EQUAL(output.hasSubstring("BEGIN IONS"), true)
-    TEST_EQUAL(output.hasSubstring("END IONS"), true)
-    TEST_EQUAL(output.hasSubstring("LEVEL=2"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "BEGIN IONS"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "END IONS"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "LEVEL=2"), true)
     // MS2 should have precursor info
-    TEST_EQUAL(output.hasSubstring("PRECURSOR_MZ"), true)
-    TEST_EQUAL(output.hasSubstring("PRECURSOR_CHARGE"), true)
-    TEST_EQUAL(output.hasSubstring("PRECURSOR_MASS"), true)
-    TEST_EQUAL(output.hasSubstring("MS_ONE_SCAN"), true)
-    TEST_EQUAL(output.hasSubstring("ACTIVATION"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "PRECURSOR_MZ"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "PRECURSOR_CHARGE"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "PRECURSOR_MASS"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "MS_ONE_SCAN"), true)
+    TEST_EQUAL(StringUtils::hasSubstring(output, "ACTIVATION"), true)
   }
 
   // Test empty spectrum (should produce no output due to min peak count)

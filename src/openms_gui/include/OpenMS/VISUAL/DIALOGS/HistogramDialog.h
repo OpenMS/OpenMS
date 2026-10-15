@@ -46,7 +46,7 @@ public:
     void setRightSplitter(float position);
 
     /// Sets the axis legend
-    void setLegend(const String & legend);
+    void setLegend(const std::string & legend);
     /// Sets log mode
     void setLogMode(bool log_mode);
 

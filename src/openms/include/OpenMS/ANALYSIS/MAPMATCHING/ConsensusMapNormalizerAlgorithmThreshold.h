@@ -79,7 +79,7 @@ public:
       @param[in] desc_filter     Regex applied to description strings; empty means "match anything".
       @return One normalisation factor per map (size equals @c map.getColumnHeaders().size()).
     */
-    static std::vector<double> computeCorrelation(const ConsensusMap & map, const double & ratio_threshold, const String & acc_filter, const String & desc_filter);
+    static std::vector<double> computeCorrelation(const ConsensusMap & map, const double & ratio_threshold, const std::string & acc_filter, const std::string & desc_filter);
 
     /**
       @brief Multiply every feature handle's intensity by its map's factor.

@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <set>
@@ -105,9 +105,9 @@ public:
 
       // @TODO: members are public, names shouldn't end in underscores
       double ratio_value_;
-      String denominator_ref_;
-      String numerator_ref_;
-      std::vector<String> description_;
+      std::string denominator_ref_;
+      std::string numerator_ref_;
+      std::vector<std::string> description_;
       //TODO ratio cv info
     };
 

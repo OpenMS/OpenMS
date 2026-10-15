@@ -50,7 +50,7 @@ public:
      * @param[in] acc_filter string describing the regular expression for filtering accessions
      * @param[in] desc_filter string describing the regular expression for filtering descriptions
      */
-    static void normalizeMaps(ConsensusMap & map, NormalizationMethod method, const String& acc_filter, const String& desc_filter);
+    static void normalizeMaps(ConsensusMap & map, NormalizationMethod method, const std::string& acc_filter, const std::string& desc_filter);
 
     /**
      * @brief computes medians of all maps and returns index of map with most features
@@ -60,7 +60,7 @@ public:
      * @param[in] desc_filter string describing the regular expression for filtering descriptions
      * @return index of map with largest number of features
      */
-    static Size computeMedians(const ConsensusMap & map, std::vector<double> & medians, const String& acc_filter, const String& desc_filter);
+    static Size computeMedians(const ConsensusMap & map, std::vector<double> & medians, const std::string& acc_filter, const std::string& desc_filter);
 
     /**
      * @brief returns whether consensus feature passes filters
@@ -71,7 +71,7 @@ public:
      * @param[in] acc_filter string describing the regular expression for filtering accessions
      * @param[in] desc_filter string describing the regular expression for filtering descriptions
      */
-    static bool passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const String& acc_filter, const String& desc_filter);
+    static bool passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const std::string& acc_filter, const std::string& desc_filter);
   };
 
 } // namespace OpenMS

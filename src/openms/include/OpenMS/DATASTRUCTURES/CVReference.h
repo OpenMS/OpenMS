@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <vector>
 
@@ -43,16 +43,16 @@ public:
     */
     //@{
     /// sets the name of the CV reference
-    void setName(const String& name);
+    void setName(const std::string& name);
 
     /// returns the name of the CV reference
-    const String& getName() const;
+    const std::string& getName() const;
 
     /// sets the CV identifier which is referenced
-    void setIdentifier(const String& identifier);
+    void setIdentifier(const std::string& identifier);
 
     /// returns the CV identifier which is referenced
-    const String& getIdentifier() const;
+    const std::string& getIdentifier() const;
     //@}
 
     /** @name Predicates
@@ -68,9 +68,9 @@ public:
 
 protected:
 
-    String name_;
+    std::string name_;
 
-    String identifier_;
+    std::string identifier_;
   };
 
 

@@ -14,7 +14,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  DefaultParamHandler::DefaultParamHandler(const String& name) :
+  DefaultParamHandler::DefaultParamHandler(const std::string& name) :
     param_(),
     defaults_(),
     subsections_(),
@@ -56,7 +56,7 @@ namespace OpenMS
       }
 
       //remove registered subsections
-      for (vector<String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
+      for (vector<std::string>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
       {
         tmp.removeAll(*it + ':');
       }
@@ -73,7 +73,7 @@ namespace OpenMS
   {
     //check if a description is given for all defaults
     bool description_missing = false;
-    String missing_parameters;
+    std::string missing_parameters;
     for (Param::ParamIterator it = defaults_.begin(); it != defaults_.end(); ++it)
     {
       //cout << "Name: " << it->getName() << endl;
@@ -107,24 +107,24 @@ namespace OpenMS
     return defaults_;
   }
 
-  const String& DefaultParamHandler::getName() const
+  const std::string& DefaultParamHandler::getName() const
   {
     return error_name_;
   }
 
-  void DefaultParamHandler::setName(const String& name)
+  void DefaultParamHandler::setName(const std::string& name)
   {
     error_name_ = name;
   }
 
-  const std::vector<String>& DefaultParamHandler::getSubsections() const
+  const std::vector<std::string>& DefaultParamHandler::getSubsections() const
   {
     return subsections_;
   }
 
-  void DefaultParamHandler::writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix)
+  void DefaultParamHandler::writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const std::string& prefix)
   {
-    String prefix_(prefix);
+    std::string prefix_(prefix);
     if (!prefix_.empty())
     {
       if (prefix_.compare(prefix_.size() - 1, 1, ":") != 0) // ends with colon?

@@ -63,17 +63,17 @@ END_SECTION
 START_SECTION((Int addRow(fewer args)))
 {
   lp.addColumn();
-  lp.addRow(indices,values,String("row1"));
+  lp.addRow(indices,values,std::string("row1"));
   TEST_EQUAL(lp.getNumberOfRows(),1);
   TEST_EQUAL(lp.getRowName(0),"row1");
 }
 END_SECTION
 
 
-START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< double > column_values, const String &name)))
+START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< double > column_values, const std::string &name)))
 {
-  lp.addRow(indices,values,String("row2"));
-  lp.addColumn(indices,values,String("col3"));
+  lp.addRow(indices,values,std::string("row2"));
+  lp.addColumn(indices,values,std::string("col3"));
   TEST_EQUAL(lp.getNumberOfColumns(),3);
   TEST_EQUAL(lp.getColumnName(2),"col3");
 }
@@ -81,52 +81,52 @@ END_SECTION
 
 START_SECTION((Int addRow(all args)))
 {
-  lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
+  lp.addRow(indices,values,std::string("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);
   TEST_EQUAL(lp.getRowName(2),"row3");
 }
 END_SECTION
 
-START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< double > &column_values, const String &name, double lower_bound, double upper_bound, Type type)))
+START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< double > &column_values, const std::string &name, double lower_bound, double upper_bound, Type type)))
 {
-  lp.addColumn(indices,values,String("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
+  lp.addColumn(indices,values,std::string("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfColumns(),4);
   TEST_EQUAL(lp.getColumnName(3),"col4");
 }
 END_SECTION
 
-START_SECTION((void setColumnName(Int index, const String &name)))
+START_SECTION((void setColumnName(Int index, const std::string &name)))
 {
   lp.setColumnName(0,"col1");
   TEST_EQUAL(lp.getColumnName(0),"col1");  
 }
 END_SECTION
 
-START_SECTION((String getColumnName(Int index)))
+START_SECTION((std::string getColumnName(Int index)))
 {
   TEST_EQUAL(lp.getColumnName(0),"col1"); 
 }
 END_SECTION
 
-START_SECTION((String getRowName(Int index)))
+START_SECTION((std::string getRowName(Int index)))
 {
   TEST_EQUAL(lp.getRowName(0),"row1"); 
 }
 END_SECTION
 
-START_SECTION((Int getRowIndex(const String &name)))
+START_SECTION((Int getRowIndex(const std::string &name)))
 {
   TEST_EQUAL(lp.getRowIndex("row1"),0); 
 }
 END_SECTION
 
-START_SECTION((Int getColumnIndex(const String &name)))
+START_SECTION((Int getColumnIndex(const std::string &name)))
 {
   TEST_EQUAL(lp.getColumnIndex("col1"),0); 
 }
 END_SECTION
 
-START_SECTION((void setRowName(Int index, const String &name)))
+START_SECTION((void setRowName(Int index, const std::string &name)))
 {
   lp.setRowName(0,"new_row1");
   TEST_EQUAL(lp.getRowName(0),"new_row1"); 
@@ -271,7 +271,7 @@ START_SECTION((double getElement(Int row_index, Int column_index)))
 END_SECTION
 
 
-START_SECTION((void readProblem(String filename, String format)))
+START_SECTION((void readProblem(std::string filename, std::string format)))
 {
   if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
     {
@@ -337,10 +337,10 @@ START_SECTION((void readProblem(String filename, String format)))
 }
 END_SECTION
 
-START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
+START_SECTION((void writeProblem(const std::string &filename, const WriteFormat format) const ))
 {
 #ifdef OPENMS_HAS_COINOR
-    String tmp_filename;
+    std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
     LPWrapper lp2;
@@ -361,7 +361,7 @@ START_SECTION((void writeProblem(const String &filename, const WriteFormat forma
     TEST_EQUAL(lp2.getElement(2,0),3)
     TEST_EQUAL(lp2.getElement(2,1),2)
 #elif defined(OPENMS_HAS_HIGHS)
-    String tmp_filename;
+    std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     tmp_filename += ".mps"; // HiGHS uses extension to determine format
     lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
@@ -383,7 +383,7 @@ START_SECTION((void writeProblem(const String &filename, const WriteFormat forma
     TEST_EQUAL(lp2.getElement(2,0),3)
     TEST_EQUAL(lp2.getElement(2,1),2)
 #else
-    String tmp_filename;
+    std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     lp.writeProblem(tmp_filename, LPWrapper::FORMAT_LP);
     LPWrapper lp2;
@@ -438,23 +438,24 @@ LPWrapper::SolverParam param4;
 lp4.solve(param4);
 START_SECTION((SolverStatus getStatus()))
 {
-  if(lp4.getSolver() == LPWrapper::SOLVER_GLPK)
-    {
-      TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
-    }
-#ifdef OPENMS_HAS_COINOR
-  else if (lp4.getSolver() == LPWrapper::SOLVER_COINOR)
-  {
-    TEST_EQUAL(lp4.getStatus(),LPWrapper::UNDEFINED)
-  }
-#endif
-#ifdef OPENMS_HAS_HIGHS
-  else if (lp4.getSolver() == LPWrapper::SOLVER_HIGHS)
-  {
-    TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
-  }
-#endif
+  // all backends report OPTIMAL for this simple, solvable integer problem
+  TEST_EQUAL(lp4.getStatus(),LPWrapper::OPTIMAL)
 
+  // an infeasible problem must not report a usable solution on any backend (see issue #9944)
+  LPWrapper lp5;
+  Int col = lp5.addColumn();
+  lp5.setColumnBounds(col, 0.0, 10.0, LPWrapper::DOUBLE_BOUNDED);
+  lp5.setColumnType(col, LPWrapper::INTEGER);
+  lp5.setObjective(col, 1.0);
+  lp5.setObjectiveSense(LPWrapper::MAX);
+  std::vector<Int> idx5(1, col);
+  std::vector<double> val5(1, 1.0);
+  lp5.addRow(idx5, val5, std::string("le1"), 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY); // x <= 1
+  lp5.addRow(idx5, val5, std::string("ge2"), 2.0, 0.0, LPWrapper::LOWER_BOUND_ONLY); // x >= 2 -> infeasible
+  LPWrapper::SolverParam param5;
+  lp5.solve(param5);
+  LPWrapper::SolverStatus status5 = lp5.getStatus();
+  TEST_EQUAL(status5 == LPWrapper::OPTIMAL || status5 == LPWrapper::FEASIBLE, false)
 }
 END_SECTION
 

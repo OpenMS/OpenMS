@@ -8,6 +8,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 // TODO move LoadSize into handler
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include "FeatureLinkerBase.cpp"
 
@@ -84,7 +85,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const override
+  Param getSubsectionDefaults_(const std::string & /*section*/) const override
   {
     FeatureGroupingAlgorithmUnlabeled algo;
     Param p = algo.getParameters();
@@ -100,7 +101,7 @@ protected:
     //-------------------------------------------------------------
     StringList ins;
     ins = getStringList_("in");
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
 
     //-------------------------------------------------------------
     // check for valid input

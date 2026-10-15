@@ -13,7 +13,7 @@
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <QtWidgets/QMdiArea>
 #include <QtWidgets/QMainWindow>
@@ -41,7 +41,7 @@ public:
 
 public slots:
     ///loads the xml-file into a Param object and loads Param into ParamEditor
-    bool openFile(const String & filename = "");
+    bool openFile(const std::string & filename = "");
     /// saves the users changes in a xml-file if the Param object is valid
     bool saveFile();
     /// like saveFile but with a file dialog to choose a filename
@@ -57,7 +57,7 @@ private:
     /// filename of xml-file to store the Param object
     QString filename_;
     /// path used as next default location of the load/store dialogs
-    String current_path_;
+    std::string current_path_;
   };
 }
 

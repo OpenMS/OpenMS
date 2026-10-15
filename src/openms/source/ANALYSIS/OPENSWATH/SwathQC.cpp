@@ -48,7 +48,7 @@ namespace OpenSwath
       else
       {
         // change the member, when the lambda gets called (acts like a callback function)
-        nr_ms1_spectra_ = es.getMetaValue("nr_ms1_spectra");
+        nr_ms1_spectra_ = (size_t)(Int)es.getMetaValue("nr_ms1_spectra");
       }
     };
     return f;
@@ -139,7 +139,7 @@ namespace OpenSwath
   }
 
 
-  void SwathQC::storeJSON(const OpenMS::String& filename)
+  void SwathQC::storeJSON(const std::string& filename)
   {
     using json = nlohmann::json;
 

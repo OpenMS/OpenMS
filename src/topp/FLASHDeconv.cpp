@@ -6,8 +6,11 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <fstream>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -43,7 +46,6 @@ public:
   TOPPFLASHDeconv():
       TOPPBase("FLASHDeconv",
                "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
-               true,
                {Citation {"Jeong K, Kim J, Gaikwad M et al.", "FLASHDeconv: Ultrafast, High-Quality Feature Deconvolution for Top-Down Proteomics",
                           "Cell Syst 2020 Feb 26;10(2):213-218.e6", "10.1016/j.cels.2020.01.003"}})
   {
@@ -62,55 +64,55 @@ protected:
     });
 
     registerOutputFile_("out", "<file>", "", "Default output tsv file containing deconvolved features");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_(
       "out_spec1", "<file>", "",
       "Output tsv file for deconvolved MS1 spectra. Use -out_spec2, ..., -out_spec4 for MS2, ..., MS4 spectra.", false);
-    setValidFormats_("out_spec1", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_spec1", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_spec2", "<file>", "", "Output TSV files for deconvolved MS2 spectra.", false, true);
-    setValidFormats_("out_spec2", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_spec2", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_spec3", "<file>", "", "Output TSV files for deconvolved MS3 spectra.", false, true);
-    setValidFormats_("out_spec3", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_spec3", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_spec4", "<file>", "", "Output TSV files for deconvolved MS4 spectra.", false, true);
-    setValidFormats_("out_spec4", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_spec4", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_mzml", "<file>", "", "Output mzML file containing deconvolved spectra (for all MS levels).", false);
-    setValidFormats_("out_mzml", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_mzml", ListUtils::create<std::string>("mzML"));
 
     registerOutputFile_("out_quant", "<file>", "", "Output tsv file with isobaric quantification results for MS2 spectra.", false);
-    setValidFormats_("out_quant", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_quant", ListUtils::create<std::string>("tsv"));
 
     registerOutputFile_("out_annotated_mzml", "<file>", "",
                         "Output annotated mzML file with monoisotopic mass, charge, and isotope index metadata for peaks. Unannotated peaks are also retained without metadata.",
                         false);
-    setValidFormats_("out_annotated_mzml", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_annotated_mzml", ListUtils::create<std::string>("mzML"));
 
     registerOutputFile_(
       "out_msalign1", "<file>", "",
       "Output msalign (TopFD and ProMex compatible) file for MS1 deconvolved spectra. Ensure filename ends with ms1.msalign for TopPIC GUI compatibility (e.g., result_ms1.msalign; refer to TopPIC input formats).",
       false);
-    setValidFormats_("out_msalign1", ListUtils::create<String>("msalign"), false);
+    setValidFormats_("out_msalign1", ListUtils::create<std::string>("msalign"), false);
 
     registerOutputFile_("out_msalign2", "<file>", "",
                         "Output msalign (TopFD and ProMex compatible) file for MS2 deconvolved spectra. Ensure filename ends with ms2.msalign for TopPIC GUI compatibility (e.g., result_ms2.msalign; refer to TopPIC input formats).",
                         false, true);
-    setValidFormats_("out_msalign2", ListUtils::create<String>("msalign"), false);
+    setValidFormats_("out_msalign2", ListUtils::create<std::string>("msalign"), false);
 
     registerOutputFile_("out_feature1", "<file>", "",
                         "Output feature file (TopFD compatible) for MS1 spectra. It is needed for TopPIC feature intensity output (refer to TopPIC input formats).",
                         false);
 
-    setValidFormats_("out_feature1", ListUtils::create<String>("feature"), false);
+    setValidFormats_("out_feature1", ListUtils::create<std::string>("feature"), false);
 
     registerOutputFile_("out_feature2", "<file>", "",
                         "Output feature file (TopFD compatible) for MS2 spectra. It is needed for TopPIC feature intensity output (refer to TopPIC input formats).",
                         false, true);
 
-    setValidFormats_("out_feature2", ListUtils::create<String>("feature"), false);
+    setValidFormats_("out_feature2", ListUtils::create<std::string>("feature"), false);
 
     registerFlag_("keep_empty_out", "Retain empty output files (e.g., *.tsv files with no features).");
 
@@ -143,7 +145,7 @@ protected:
   ///   -SD:*  -> spectral deconvolution parameters
   ///   -ft:*  -> feature tracing parameters
   ///   -iq:*  -> isobaric quantification parameters
-  Param getSubsectionDefaults_(const String& prefix) const override
+  Param getSubsectionDefaults_(const std::string& prefix) const override
   {
     auto fd_param = FLASHDeconvAlgorithm().getDefaults();
 
@@ -178,8 +180,8 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String in_file = getStringOption_("in");
-    String out_file = getStringOption_("out");
+    std::string in_file = getStringOption_("in");
+    std::string out_file = getStringOption_("out");
     bool keep_empty_out = getFlag_("keep_empty_out");
     auto out_spec_file
       = StringList {getStringOption_("out_spec1"), getStringOption_("out_spec2"), getStringOption_("out_spec3"), getStringOption_("out_spec4")};
@@ -187,12 +189,13 @@ protected:
     auto out_topfd_file = StringList {getStringOption_("out_msalign1"), getStringOption_("out_msalign2")};
     auto out_topfd_feature_file = StringList {getStringOption_("out_feature1"), getStringOption_("out_feature2")};
 
-    String out_mzml_file = getStringOption_("out_mzml");
-    String out_anno_mzml_file = getStringOption_("out_annotated_mzml");
-    String out_quant_file = getStringOption_("out_quant");
+    std::string out_mzml_file = getStringOption_("out_mzml");
+    std::string out_anno_mzml_file = getStringOption_("out_annotated_mzml");
+    std::string out_quant_file = getStringOption_("out_quant");
 
     bool write_detail = getFlag_("write_detail");
-    int mzml_charge = getIntOption_("mzml_mass_charge");
+    // The charge state CV param (MS:1000041) for mzML expects a positive number 
+    int mzml_charge = abs(getIntOption_("mzml_mass_charge"));
     double min_mz = getDoubleOption_("min_mz");
     double max_mz = getDoubleOption_("max_mz");
     double min_rt = getDoubleOption_("min_rt") * 60.0;
@@ -269,7 +272,7 @@ protected:
     for (const auto& it : map)
     {
       uint ms_level = it.getMSLevel();
-      if (per_ms_level_spec_count.find(ms_level) == per_ms_level_spec_count.end()) per_ms_level_spec_count[ms_level] = 0;
+      if (!per_ms_level_spec_count.contains(ms_level)) per_ms_level_spec_count[ms_level] = 0;
       per_ms_level_spec_count[ms_level]++;
     }
 
@@ -279,8 +282,8 @@ protected:
       scan_rt_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum.getOriginalSpectrum().getRT();
 
       if (deconvolved_spectrum.empty()) continue;
-      if (per_ms_level_deconv_spec_count.find(ms_level) == per_ms_level_deconv_spec_count.end()) per_ms_level_deconv_spec_count[ms_level] = 0;
-      if (per_ms_level_mass_count.find(ms_level) == per_ms_level_mass_count.end()) per_ms_level_mass_count[ms_level] = 0;
+      if (!per_ms_level_deconv_spec_count.contains(ms_level)) per_ms_level_deconv_spec_count[ms_level] = 0;
+      if (!per_ms_level_mass_count.contains(ms_level)) per_ms_level_mass_count[ms_level] = 0;
 
       per_ms_level_deconv_spec_count[ms_level]++;
       per_ms_level_mass_count[ms_level] += (int)deconvolved_spectrum.size();
@@ -323,7 +326,7 @@ protected:
       std::vector<ofstream> out_spec_streams = std::vector<ofstream>(out_spec_file.size());
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
-        if (out_spec_file[i].empty() || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
+        if (out_spec_file[i].empty() || (! keep_empty_out && !per_ms_level_deconv_spec_count.contains(i + 1)))
           continue;
         OPENMS_LOG_INFO << "writing spectrum tsv for MS level " << (i + 1) << " ..." << endl;
 
@@ -347,7 +350,7 @@ protected:
 
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
-        if (out_spec_file[i].empty() || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
+        if (out_spec_file[i].empty() || (! keep_empty_out && !per_ms_level_deconv_spec_count.contains(i + 1)))
           continue;
         out_spec_streams[i].close();
       }
@@ -382,7 +385,7 @@ protected:
       for (Size i = 0; i < out_topfd_feature_file.size(); i++)
       {
         if (out_topfd_feature_file[i].empty()
-            || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
+            || (! keep_empty_out && !per_ms_level_deconv_spec_count.contains(i + 1)))
           continue;
         OPENMS_LOG_INFO << "writing topfd *.feature for MS level " << (i + 1) << " ..." << endl;
 
@@ -405,7 +408,7 @@ protected:
 
       for (Size i = 0; i < out_topfd_file.size(); i++)
       {
-        if (out_topfd_file[i].empty() || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
+        if (out_topfd_file[i].empty() || (! keep_empty_out && !per_ms_level_deconv_spec_count.contains(i + 1)))
           continue;
         OPENMS_LOG_INFO << "writing topfd *.msalign for MS level " << (i + 1) << " ..." << endl;
 
@@ -429,7 +432,7 @@ protected:
 
       for (Size i = 0; i < out_topfd_file.size(); i++)
       {
-        if (out_topfd_file[i].empty() || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
+        if (out_topfd_file[i].empty() || (! keep_empty_out && !per_ms_level_deconv_spec_count.contains(i + 1)))
           continue;
         out_topfd_streams[i].close();
       }

@@ -145,7 +145,7 @@ START_TEST(ParamValue, "$Id$")
         END_SECTION
 
         START_SECTION((ParamValue(const vector<string> &)))
-                vector<string> sl = {"test string", "test String 2"};
+                vector<string> sl = {"test string", "test std::string 2"};
                 ParamValue d(sl);
                 TEST_TRUE(d == sl)
         END_SECTION
@@ -414,18 +414,33 @@ START_TEST(ParamValue, "$Id$")
                 ParamValue d(5.4L);
                 long double k = d;
                 TEST_REAL_SIMILAR(k,5.4L)
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue())
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue("5.4"))
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue(std::vector<double>{5.4}))
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue(std::vector<int>{5}))
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue(std::vector<std::string>{"5.4"}))
         END_SECTION
 
         START_SECTION((operator double() const))
                 ParamValue d(5.4);
                 double k = d;
                 TEST_REAL_SIMILAR(k,5.4)
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue())
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue("5.4"))
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue(std::vector<double>{5.4}))
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue(std::vector<int>{5}))
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue(std::vector<std::string>{"5.4"}))
         END_SECTION
 
         START_SECTION((operator float() const))
                 ParamValue d(5.4f);
                 float k = d;
                 TEST_REAL_SIMILAR(k,5.4f)
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue())
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue("5.4"))
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue(std::vector<double>{5.4}))
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue(std::vector<int>{5}))
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue(std::vector<std::string>{"5.4"}))
         END_SECTION
 
         START_SECTION((operator int() const ))
@@ -569,7 +584,7 @@ START_TEST(ParamValue, "$Id$")
                 TEST_EXCEPTION(Exception::ConversionError, a.toChar() )
         END_SECTION
 
-        START_SECTION((String toString(bool full_precision) const))
+        START_SECTION((std::string toString(bool full_precision) const))
                 ParamValue a;
                 TEST_EQUAL(a.toString(), "")
                 a = ParamValue("hello");
@@ -809,7 +824,7 @@ START_TEST(ParamValue, "$Id$")
                     ParamValue empty1, empty2;
                     TEST_EQUAL(hasher(empty1), hasher(empty2))
 
-                    // String values
+                    // std::string values
                     ParamValue str1("hello"), str2("hello"), str3("world");
                     TEST_EQUAL(hasher(str1), hasher(str2))
                     TEST_NOT_EQUAL(hasher(str1), hasher(str3))
@@ -824,7 +839,7 @@ START_TEST(ParamValue, "$Id$")
                     TEST_EQUAL(hasher(dbl1), hasher(dbl2))
                     TEST_NOT_EQUAL(hasher(dbl1), hasher(dbl3))
 
-                    // String list values
+                    // std::string list values
                     ParamValue sl1(vector<string>{"a", "b", "c"});
                     ParamValue sl2(vector<string>{"a", "b", "c"});
                     ParamValue sl3(vector<string>{"x", "y"});

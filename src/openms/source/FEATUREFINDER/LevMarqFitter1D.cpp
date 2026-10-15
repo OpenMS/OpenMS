@@ -68,7 +68,7 @@ namespace OpenMS
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Could not fit the gaussian to the data: Error " + String(status));
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Could not fit the gaussian to the data: Error " + StringUtils::toStr(status));
       }
       // Copy results back to x_init
       std::copy(x_eigen.data(), x_eigen.data() + x_eigen.size(), x_init.begin());

@@ -135,14 +135,14 @@ START_SECTION((void setMSLevel(UInt ms_level)))
 }
 END_SECTION
 
-START_SECTION((const String& getName() const))
+START_SECTION((const std::string& getName() const))
 {
   MSSpectrum s;
   TEST_STRING_EQUAL(s.getName(), "")
 }
 END_SECTION
 
-START_SECTION((void setName(const String &name)))
+START_SECTION((void setName(const std::string &name)))
 {
   MSSpectrum s;
   s.setName("bla");
@@ -313,6 +313,54 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   TEST_REAL_SIMILAR(s2.getFloatDataArrays()[0][1], 3.0)
   TEST_EQUAL(s2.getIntegerDataArrays()[0][1], 3)
   TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
+
+  // --- out-of-range indices are rejected rather than being undefined behaviour
+  //     (a Python-reachable out-of-bounds read; see issue #9807)
+  s2 = s;
+  const MSSpectrum before_oob = s2; // full snapshot (operator== compares peaks + all data arrays)
+  TEST_EXCEPTION(Exception::Precondition, s2.select(std::vector<Size>{0, 7}))
+  TEST_EQUAL(s2 == before_oob, true) // rejected select leaves the spectrum entirely untouched
+
+  // --- a strictly-increasing subset keeps its data arrays aligned
+  s2 = s;
+  s2.select(std::vector<Size>{0, 2, 4});
+  TEST_EQUAL(s2.size(), 3)
+  TEST_EQUAL(s2.getStringDataArrays()[0][0], "1")
+  TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
+  TEST_EQUAL(s2.getStringDataArrays()[0][2], "5")
+
+  // --- a mis-sized data array is rejected up front, before any peak is permuted
+  s2 = s;
+  s2.getIntegerDataArrays()[0].push_back(99); // now 6 entries for 5 peaks
+  const MSSpectrum before_missized = s2; // full snapshot, including the oversized array
+  TEST_EXCEPTION(Exception::Precondition, s2.select(std::vector<Size>{0, 1, 2}))
+  TEST_EQUAL(s2 == before_missized, true) // spectrum entirely unchanged
+}
+END_SECTION
+
+START_SECTION((MSSpectrum& selectUnchecked(const std::vector<Size>& indices)))
+{
+  MSSpectrum s;
+  s.push_back(p1);
+  s.push_back(p2);
+  s.push_back(p3);
+  MSSpectrum::StringDataArray asa{"1", "2", "3"};
+  s.getStringDataArrays().push_back(asa);
+
+  // reorders peaks and data arrays without a bounds check (indices are a valid permutation)
+  MSSpectrum s2 = s;
+  s2.selectUnchecked(std::vector<Size>{2, 0, 1});
+  TEST_EQUAL(s2.size(), 3)
+  TEST_EQUAL(s2.getStringDataArrays()[0][0], "3")
+  TEST_EQUAL(s2.getStringDataArrays()[0][1], "1")
+  TEST_EQUAL(s2.getStringDataArrays()[0][2], "2")
+
+  // the cheap data-array size check is still enforced
+  s2 = s;
+  s2.getStringDataArrays()[0].push_back("x"); // 4 entries for 3 peaks
+  const MSSpectrum before_missized = s2; // full snapshot, including the oversized array
+  TEST_EXCEPTION(Exception::Precondition, s2.selectUnchecked(std::vector<Size>{0, 1, 2}))
+  TEST_EQUAL(s2 == before_missized, true) // spectrum entirely unchanged
 }
 END_SECTION
 
@@ -536,7 +584,7 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
   TEST_FALSE(edit == empty);
 
   edit = empty;
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   TEST_FALSE(empty == edit);
 
   edit = empty;
@@ -596,7 +644,7 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
   TEST_TRUE(edit != empty);
 
   edit = empty;
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   TEST_TRUE(edit != empty);
 
   edit = empty;
@@ -712,7 +760,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
         //metadataarray values == mz values
         TEST_REAL_SIMILAR(it1->getIntensity(), *it);
         TEST_REAL_SIMILAR(*it2 , it1->getMZ());
-        TEST_STRING_EQUAL(*it3 , String::number(it1->getMZ(),2));
+        TEST_STRING_EQUAL(*it3 , StringUtils::number(it1->getMZ(),2));
         TEST_EQUAL(*it4 , (Int)floor(it1->getMZ()));
         ++it1;
         ++it2;
@@ -795,7 +843,7 @@ START_SECTION((void sortByPosition()))
     //metadataarray values == intensity values
     TEST_REAL_SIMILAR(it1->getIntensity(), *rit);
     TEST_REAL_SIMILAR(*it2 , *rit);
-    TEST_STRING_EQUAL(*it3 , String::number(*rit,0));
+    TEST_STRING_EQUAL(*it3 , StringUtils::number(*rit,0));
     TEST_EQUAL(*it4 , (Int)floor(*rit));
     ++it1;
     ++it2;
@@ -882,7 +930,7 @@ START_SECTION((void sortByPositionPresorted()))
     //metadataarray values == intensity values
     TEST_REAL_SIMILAR(it1->getIntensity(), *it);
     TEST_REAL_SIMILAR(*it2 , *it);
-    TEST_STRING_EQUAL(*it3 , String::number(*it,0));
+    TEST_STRING_EQUAL(*it3 , StringUtils::number(*it,0));
     TEST_EQUAL(*it4 , (Int)floor(*it));
     ++it1; ++it2; ++it3; ++it4;
   }
@@ -950,8 +998,18 @@ END_SECTION
 
 START_SECTION(template<class Predicate> void sort(const Predicate& lambda))
 {
-  // tested above
-  NOT_TESTABLE
+  // ordering behaviour is tested above; here we cover the up-front data-array size validation
+  // (a mis-sized array must throw before the predicate indexes it out of bounds)
+  MSSpectrum s;
+  s.push_back(p1);
+  s.push_back(p2);
+  s.push_back(p3);
+  s.getIntegerDataArrays().push_back(MSSpectrum::IntegerDataArray{1, 2}); // 2 entries for 3 peaks
+  const MSSpectrum before_missized = s; // full snapshot, including the undersized array
+
+  TEST_EXCEPTION(Exception::Precondition,
+                 s.sort([&s](Size i, Size j) { return s.getIntegerDataArrays()[0][i] < s.getIntegerDataArrays()[0][j]; }))
+  TEST_EQUAL(s == before_missized, true) // rejected sort leaves the spectrum untouched
 }
 END_SECTION
 
@@ -1424,7 +1482,7 @@ START_SECTION(void clear(bool clear_meta_data))
   MSSpectrum edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
-  edit.setMetaValue("label",String("bla"));
+  edit.setMetaValue("label",std::string("bla"));
   edit.setRT(5);
   edit.setDriftTime(6);
   edit.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);

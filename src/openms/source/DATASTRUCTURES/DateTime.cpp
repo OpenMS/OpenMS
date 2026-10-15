@@ -8,7 +8,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <cctype>
@@ -130,9 +130,9 @@ namespace OpenMS
     return fields_.valid;
   }
 
-  String DateTime::toString(const std::string& format) const
+  std::string DateTime::toString(const std::string& format) const
   {
-    if (!fields_.valid) return String();
+    if (!fields_.valid) return std::string();
 
     char buf[64];
 
@@ -182,17 +182,17 @@ namespace OpenMS
                                     "Unknown DateTime format string", format);
     }
 
-    return String(buf);
+    return std::string(buf);
   }
 
-  void DateTime::set(const String& date)
+  void DateTime::set(const std::string& date)
   {
     clear();
 
     int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, millisecond = 0;
     bool parsed = false;
 
-    if (date.has('.') && !date.has('T'))
+    if (StringUtils::has(date, '.') && !StringUtils::has(date, 'T'))
     {
       // German format: dd.MM.yyyy hh:mm:ss
       if (sscanf(date.c_str(), "%d.%d.%d %d:%d:%d", &day, &month, &year, &hour, &minute, &second) == 6)
@@ -200,7 +200,7 @@ namespace OpenMS
         parsed = true;
       }
     }
-    else if (date.has('/'))
+    else if (StringUtils::has(date, '/'))
     {
       // US format: MM/dd/yyyy hh:mm:ss
       if (sscanf(date.c_str(), "%d/%d/%d %d:%d:%d", &month, &day, &year, &hour, &minute, &second) == 6)
@@ -208,22 +208,22 @@ namespace OpenMS
         parsed = true;
       }
     }
-    else if (date.has('-'))
+    else if (StringUtils::has(date, '-'))
     {
-      if (date.has('T'))
+      if (StringUtils::has(date, 'T'))
       {
-        if (date.has('+'))
+        if (StringUtils::has(date, '+'))
         {
           // ISO with timezone suffix -- strip at '+'
-          String stripped = date.prefix('+');
-          if (stripped.has('.'))
+          std::string stripped = StringUtils::prefix(date, '+');
+          if (StringUtils::has(stripped, '.'))
           {
             // with milliseconds
             if (sscanf(stripped.c_str(), "%d-%d-%dT%d:%d:%d.%d", &year, &month, &day, &hour, &minute, &second, &millisecond) == 7)
             {
               // Normalize fractional seconds: e.g. ".4" -> 400, ".46" -> 460, ".468" -> 468
               auto dot_pos = stripped.find('.');
-              if (dot_pos != String::npos)
+              if (dot_pos != std::string::npos)
               {
                 int frac_digits = 0;
                 for (size_t i = dot_pos + 1; i < stripped.size() && std::isdigit(static_cast<unsigned char>(stripped[i])); ++i) ++frac_digits;
@@ -241,14 +241,14 @@ namespace OpenMS
             }
           }
         }
-        else if (date.has('.'))
+        else if (StringUtils::has(date, '.'))
         {
           // ISO 8601 with milliseconds, no timezone: yyyy-MM-ddThh:mm:ss.zzz
           if (sscanf(date.c_str(), "%d-%d-%dT%d:%d:%d.%d", &year, &month, &day, &hour, &minute, &second, &millisecond) == 7)
           {
             // Normalize fractional seconds: e.g. ".4" -> 400, ".46" -> 460, ".468" -> 468
             auto dot_pos = date.find('.');
-            if (dot_pos != String::npos)
+            if (dot_pos != std::string::npos)
             {
               int frac_digits = 0;
               for (size_t i = dot_pos + 1; i < date.size() && std::isdigit(static_cast<unsigned char>(date[i])); ++i) ++frac_digits;
@@ -267,7 +267,7 @@ namespace OpenMS
           }
         }
       }
-      else if (date.has('Z'))
+      else if (StringUtils::has(date, 'Z'))
       {
         // Legacy literal: yyyy-MM-ddZ  (Z is discarded, NOT UTC)
         if (sscanf(date.c_str(), "%d-%d-%dZ", &year, &month, &day) == 3)
@@ -282,7 +282,7 @@ namespace OpenMS
           }
         }
       }
-      else if (date.has('+'))
+      else if (StringUtils::has(date, '+'))
       {
         // Legacy literal: yyyy-MM-dd+hh:mm  (+ is separator, NOT timezone)
         if (sscanf(date.c_str(), "%d-%d-%d+%d:%d", &year, &month, &day, &hour, &minute) == 5)
@@ -348,8 +348,8 @@ namespace OpenMS
   {
     if (!isValidDate_((int)year, (int)month, (int)day) || !isValidTime_((int)hour, (int)minute, (int)second))
     {
-      String date_time = String(year) + "-" + String(month) + "-" + String(day)
-                         + " " + String(hour) + ":" + String(minute) + ":" + String(second);
+      std::string date_time =StringUtils::toStr(year) + "-" + StringUtils::toStr(month) + "-" + StringUtils::toStr(day)
+                         + " " + StringUtils::toStr(hour) + ":" + StringUtils::toStr(minute) + ":" + StringUtils::toStr(second);
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date_time, "Invalid date time");
     }
 
@@ -366,7 +366,8 @@ namespace OpenMS
   DateTime DateTime::now()
   {
     auto tp = chrono::system_clock::now();
-    time_t tt = chrono::system_clock::to_time_t(tp);
+    const auto whole_seconds = chrono::floor<chrono::seconds>(tp);
+    time_t tt = chrono::system_clock::to_time_t(whole_seconds);
     struct tm local{};
 #ifdef _WIN32
     localtime_s(&local, &tt);
@@ -381,7 +382,7 @@ namespace OpenMS
     d.fields_.hour = local.tm_hour;
     d.fields_.minute = local.tm_min;
     d.fields_.second = local.tm_sec;
-    d.fields_.millisecond = 0;
+    d.fields_.millisecond = static_cast<int>(chrono::duration_cast<chrono::milliseconds>(tp - whole_seconds).count());
     d.fields_.valid = true;
     return d;
   }
@@ -389,7 +390,8 @@ namespace OpenMS
   DateTime DateTime::nowUTC()
   {
     auto tp = chrono::system_clock::now();
-    time_t tt = chrono::system_clock::to_time_t(tp);
+    const auto whole_seconds = chrono::floor<chrono::seconds>(tp);
+    time_t tt = chrono::system_clock::to_time_t(whole_seconds);
     struct tm utc{};
 #ifdef _WIN32
     _gmtime64_s(&utc, &tt);
@@ -404,12 +406,12 @@ namespace OpenMS
     d.fields_.hour = utc.tm_hour;
     d.fields_.minute = utc.tm_min;
     d.fields_.second = utc.tm_sec;
-    d.fields_.millisecond = 0;
+    d.fields_.millisecond = static_cast<int>(chrono::duration_cast<chrono::milliseconds>(tp - whole_seconds).count());
     d.fields_.valid = true;
     return d;
   }
 
-  String DateTime::get() const
+  std::string DateTime::get() const
   {
     if (fields_.valid)
     {
@@ -434,26 +436,26 @@ namespace OpenMS
     fields_ = Fields{};
   }
 
-  void DateTime::setDate(const String& date)
+  void DateTime::setDate(const std::string& date)
   {
     int year = 0, month = 0, day = 0;
     bool parsed = false;
 
-    if (date.has('-'))
+    if (StringUtils::has(date, '-'))
     {
       if (sscanf(date.c_str(), "%d-%d-%d", &year, &month, &day) == 3)
       {
         parsed = true;
       }
     }
-    else if (date.has('.'))
+    else if (StringUtils::has(date, '.'))
     {
       if (sscanf(date.c_str(), "%d.%d.%d", &day, &month, &year) == 3)
       {
         parsed = true;
       }
     }
-    else if (date.has('/'))
+    else if (StringUtils::has(date, '/'))
     {
       if (sscanf(date.c_str(), "%d/%d/%d", &month, &day, &year) == 3)
       {
@@ -472,7 +474,7 @@ namespace OpenMS
     fields_.valid = true;
   }
 
-  void DateTime::setTime(const String& time)
+  void DateTime::setTime(const std::string& time)
   {
     int hour = 0, minute = 0, second = 0;
 
@@ -494,7 +496,7 @@ namespace OpenMS
     if (!isValidDate_((int)year, (int)month, (int)day))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  String(year) + "-" + String(month) + "-" + String(day), "Could not set date");
+                                  StringUtils::toStr(year) + "-" + StringUtils::toStr(month) + "-" + StringUtils::toStr(day), "Could not set date");
     }
 
     fields_.year = (int)year;
@@ -508,7 +510,7 @@ namespace OpenMS
     if (!isValidTime_((int)hour, (int)minute, (int)second))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  String(hour) + ":" + String(minute) + ":" + String(second), "Could not set time");
+                                  StringUtils::toStr(hour) + ":" + StringUtils::toStr(minute) + ":" + StringUtils::toStr(second), "Could not set time");
     }
 
     fields_.hour = (int)hour;
@@ -524,7 +526,7 @@ namespace OpenMS
     year = fields_.year;
   }
 
-  String DateTime::getDate() const
+  std::string DateTime::getDate() const
   {
     if (fields_.valid)
     {
@@ -540,7 +542,7 @@ namespace OpenMS
     second = fields_.second;
   }
 
-  String DateTime::getTime() const
+  std::string DateTime::getTime() const
   {
     if (fields_.valid)
     {

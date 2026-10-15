@@ -165,8 +165,16 @@ struct OPENMS_DLLAPI MultipleTesting
   /**
     @brief Compute model-based FDR estimates from posterior error probabilities.
 
+    @note All-or-nothing NaN propagation: if @p data_in contains ANY NaN value
+    (for floating-point @c T), the returned vector is filled entirely with NaN
+    of the same length and no exception is thrown. A single malformed PEP
+    therefore invalidates every FDR estimate in the result. This differs from
+    qValue(), which filters out non-finite entries and returns NaN only at their
+    positions. Callers must pre-validate inputs (e.g. drop or guard NaN PEPs) if
+    partial results are desired.
+
     @param data_in Vector of posterior error probabilities (PEPs)
-    @return Vector of FDR estimates
+    @return Vector of FDR estimates (all NaN if any input element is NaN)
   */
   template <class T>
   static std::vector<double> computeModelFDR(const std::vector<T>& data_in);

@@ -27,7 +27,7 @@ START_TEST(ProteaseDB, "$Id$")
 
 const ProteaseDB* ptr = nullptr;
 const ProteaseDB* nullPointer = nullptr;
-String RKP("(?<=[RX])(?!P)");
+std::string RKP("(?<=[RX])(?!P)");
 START_SECTION(const ProteaseDB* getInstance())
     ptr = ProteaseDB::getInstance();
     TEST_NOT_EQUAL(ptr, nullPointer)
@@ -37,24 +37,51 @@ START_SECTION(virtual ~ProteaseDB())
     NOT_TESTABLE
 END_SECTION
 
-START_SECTION((bool hasEnzyme(const String &name) const))
+START_SECTION((bool hasEnzyme(const std::string &name) const))
     TEST_EQUAL(ptr->hasEnzyme("Try"), false)
     TEST_EQUAL(ptr->hasEnzyme("Trypsin"), true)
+    // names and synonyms are also found ignoring case, whitespace, '-' and '_' (#10571)
+    TEST_EQUAL(ptr->hasEnzyme("trypsin"), true)
+    TEST_EQUAL(ptr->hasEnzyme("Glu-C"), true)
+    TEST_EQUAL(ptr->hasEnzyme("glu-c"), true)
+    TEST_EQUAL(ptr->hasEnzyme("GLU-C"), true)
+    TEST_EQUAL(ptr->hasEnzyme("GluC"), true)
+    TEST_EQUAL(ptr->hasEnzyme("Clostripain"), true)
+    TEST_EQUAL(ptr->hasEnzyme("clostripain"), true)
+    // ... but other characters are significant
+    TEST_EQUAL(ptr->hasEnzyme("TrypsinP"), false)
 END_SECTION
 
-START_SECTION((const DigestionEnzymeProtein* getEnzyme(const String &name) const))
+START_SECTION((const DigestionEnzymeProtein* getEnzyme(const std::string &name) const))
     TEST_EQUAL(ptr->getEnzyme("Trypsin")->getName(), "Trypsin")
     // test the synonyms
     TEST_EQUAL(ptr->getEnzyme("Clostripain")->getName(), "Arg-C")
+    TEST_EQUAL(ptr->getEnzyme("clostripain")->getName(), "Arg-C")
+    TEST_EQUAL(ptr->getEnzyme("Glu-C")->getName(), "glutamyl endopeptidase")
+    TEST_EQUAL(ptr->getEnzyme("glu-c")->getName(), "glutamyl endopeptidase")
+    // ignoring case, whitespace, '-' and '_' (spellings used by other search engines, e.g. Sequest's "GluC")
+    TEST_EQUAL(ptr->getEnzyme("GluC")->getName(), "glutamyl endopeptidase")
+    TEST_EQUAL(ptr->getEnzyme("Glu_C")->getName(), "glutamyl endopeptidase")
+    TEST_EQUAL(ptr->getEnzyme("LysC")->getName(), "Lys-C")
+    TEST_EQUAL(ptr->getEnzyme("LysC/P")->getName(), "Lys-C/P")
+    TEST_EQUAL(ptr->getEnzyme("No_cut")->getName(), "no cleavage")
+    TEST_EQUAL(ptr->getEnzyme("Unspecific Cleavage")->getName(), "unspecific cleavage")
+    // '/' and '+' change the specificity and are kept
+    TEST_EQUAL(ptr->getEnzyme("Glu-C+P")->getName(), "Glu-C+P")
+    TEST_EQUAL(ptr->getEnzyme("glu-c+p")->getName(), "Glu-C+P")
+    TEST_EQUAL(ptr->getEnzyme("trypsin/p")->getName(), "Trypsin/P")
+    TEST_EQUAL(ptr->getEnzyme("Arg-C")->getName(), "Arg-C")
+    TEST_EQUAL(ptr->getEnzyme("arg-c")->getName(), "Arg-C")
+    TEST_EXCEPTION(Exception::ElementNotFound, ptr->getEnzyme("TrypsinP"))
     TEST_EXCEPTION(Exception::ElementNotFound, ptr->getEnzyme("DOESNOTEXIST"))
 END_SECTION
 
-START_SECTION((bool hasRegEx(const String& cleavage_regex) const))
+START_SECTION((bool hasRegEx(const std::string& cleavage_regex) const))
     TEST_EQUAL(ptr->hasRegEx("(?<=[P])(?!P)"), false)
     TEST_EQUAL(ptr->hasRegEx(RKP), true)
 END_SECTION
 
-START_SECTION((const DigestionEnzymeProtein* getEnzymeByRegEx(const String& cleavage_regex) const))
+START_SECTION((const DigestionEnzymeProtein* getEnzymeByRegEx(const std::string& cleavage_regex) const))
     TEST_EQUAL(ptr->getEnzymeByRegEx(RKP)->getName(), "Arg-C")
 END_SECTION
 
@@ -79,8 +106,8 @@ START_SECTION(ConstEnzymeIterator endEnzyme() const)
     NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION((void getAllNames(std::vector<String>& all_names) const))
-    vector<String> names;
+START_SECTION((void getAllNames(std::vector<std::string>& all_names) const))
+    vector<std::string> names;
     ptr->getAllNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
     TEST_EQUAL(find(names.begin(), names.end(), "Tryptryp") != names.end(), false)
@@ -89,8 +116,8 @@ START_SECTION((void getAllNames(std::vector<String>& all_names) const))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
-START_SECTION((void getAllXTandemNames(std::vector<String>& all_names) const))
-    vector<String> names;
+START_SECTION((void getAllXTandemNames(std::vector<std::string>& all_names) const))
+    vector<std::string> names;
     ptr->getAllXTandemNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
     TEST_EQUAL(find(names.begin(), names.end(), "no cleavage") != names.end(), true)
@@ -99,8 +126,8 @@ START_SECTION((void getAllXTandemNames(std::vector<String>& all_names) const))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
-START_SECTION((void getAllOMSSANames(std::vector<String>& all_names) const))
-    vector<String> names;
+START_SECTION((void getAllOMSSANames(std::vector<std::string>& all_names) const))
+    vector<std::string> names;
     ptr->getAllOMSSANames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
     TEST_EQUAL(find(names.begin(), names.end(), "leukocyte elastase") != names.end(), false)

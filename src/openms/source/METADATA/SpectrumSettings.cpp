@@ -97,12 +97,12 @@ namespace OpenMS
     return im_peak_type_;
   }
   
-  const String & SpectrumSettings::getComment() const
+  const std::string & SpectrumSettings::getComment() const
   {
     return comment_;
   }
 
-  void SpectrumSettings::setComment(const String & comment)
+  void SpectrumSettings::setComment(const std::string & comment)
   {
     comment_ = comment;
   }
@@ -189,12 +189,12 @@ namespace OpenMS
     return os;
   }
 
-  const String & SpectrumSettings::getNativeID() const
+  const std::string & SpectrumSettings::getNativeID() const
   {
     return native_id_;
   }
 
-  void SpectrumSettings::setNativeID(const String & native_id)
+  void SpectrumSettings::setNativeID(const std::string & native_id)
   {
     native_id_ = native_id;
   }

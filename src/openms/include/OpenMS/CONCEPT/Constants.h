@@ -393,6 +393,63 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
+      // User parameter name for the standard score of the best candidate's score within
+      // the pool of all candidates scored for the same spectrum. 0 when fewer than two
+      // candidates were scored or when all of them tied.
+      inline const std::string HYPERSCORE_ZSCORE = "hyperscore_zscore";
+
+      // User parameter name for ln(1 + number of candidates scored for a spectrum).
+      // The +1 offset keeps the value defined for spectra without any candidate; it is
+      // order-preserving, so the feature stays monotone in the candidate count. The count
+      // is capped by the search engine's per-spectrum candidate limit, so this saturates.
+      inline const std::string LN_NUM_CANDIDATES = "ln_num_candidates";
+
+      // User parameter name for the matched ion current normalized by the spectrum's total ion current
+      inline const std::string MATCHED_ION_CURRENT_FRACTION = "matched_ion_current_fraction";
+
+      // User parameter name for the fraction of cleavage sites where both a prefix ion and its
+      // complementary suffix ion were matched
+      inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
+
+      /// Summed log-likelihood ratio of the fragment ion outcomes (presence, intensity rank, mass error) under a per-run learned ion model.
+      inline const std::string ION_PRIOR_LLR = "ion_prior_llr";
+
+      /// Fraction of the fragment ion presence predicted by a per-run learned ion model that was observed.
+      inline const std::string ION_PRIOR_EXPLAINED = "ion_prior_explained";
+
+      /// Fraction of the fragment ions a per-run learned ion model predicts as most likely present that were observed.
+      inline const std::string ION_PRIOR_TOPK_OBSERVED = "ion_prior_topk_observed";
+
+      /// Sum of local peak-density-based surprise over matched theoretical fragments.
+      inline const std::string CHANCE_MATCH_SURPRISE = "chance_match_surprise";
+
+      /// Matched-fragment evidence discounted by alternative assignments and local peak density.
+      inline const std::string MASS_COMPETITION_EVIDENCE = "mass_competition_evidence";
+
+      // --- PeptDeep (ONNX) prediction-derived PSM features -----------------------------
+      // All five compare a PSM against a deep-learning prediction for the same peptide,
+      // so they are only present when the search engine was run with a PeptDeep model.
+
+      // User parameter name for the cosine similarity between predicted and observed
+      // fragment intensities over the shared b/y ion set
+      inline const std::string MS2_COSINE = "ms2_cosine";
+
+      // User parameter name for the spectral angle 1 - 2*acos(cosine)/pi. Monotone in the
+      // cosine but spreads the crowded high-similarity end, as used by Prosit.
+      inline const std::string MS2_SPECTRAL_ANGLE = "ms2_spectral_angle";
+
+      // User parameter name for Pearson correlation between predicted and observed
+      // fragment intensities
+      inline const std::string MS2_PEARSON = "ms2_pearson";
+
+      // User parameter name for the fraction of confidently predicted fragment ions that
+      // were actually observed
+      inline const std::string MS2_FRAC_PRED_FOUND = "ms2_frac_pred_found";
+
+      // User parameter name for |observed RT - calibrated predicted RT|. The calibration
+      // maps predicted to observed retention time per run, so the value is in RT units.
+      inline const std::string RT_ABS_ERROR = "rt_abs_error";
+
       /** User parameter name to indicate a peptide q-value
               String
       */
@@ -592,7 +649,7 @@ namespace OpenMS
       inline const std::string   ADDUCT_GROUP = "Group";
 
       /** User parameter name for a list of ADDUCT_GROUP annotations in a ConsensusFeature. (Required for IIMN)
-              vector<String>
+              vector<std::string>
       */
       inline const std::string   IIMN_LINKED_GROUPS = "LinkedGroups";
 
@@ -660,6 +717,12 @@ namespace OpenMS
               String
       */
       inline const std::string   NUM_PEAKS = "num_peaks";
+
+      /** SearchParameters meta value carrying the definitions of modifications not in the shipped vocabularies.
+              String: ';'-joined ResidueModification definition records. A single string, not a
+              stringList: the parquet meta-value codec splits lists on ',' without escaping.
+      */
+      inline const std::string   MODIFICATION_DEFINITIONS = "modification_definitions";
     }
 
     //@}

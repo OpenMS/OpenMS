@@ -42,13 +42,13 @@ namespace OpenMS
       @param[in] prot_ids protein identifications from ID file (idXML)
       @param[in] pep_ids protein identifications from ID file (idXML)
     */
-    void store(const String& input_file,
-               const String& output_file,
+    void store(const std::string& input_file,
+               const std::string& output_file,
                const MSExperiment& exp,
-               const String& contact_name,
-               const String& contact_address,
-               const String& description,
-               const String& label,
+               const std::string& contact_name,
+               const std::string& contact_address,
+               const std::string& description,
+               const std::string& label,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids) const;

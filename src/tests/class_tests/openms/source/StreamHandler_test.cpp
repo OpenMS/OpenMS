@@ -7,10 +7,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/StreamHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 ///////////////////////////
 
 #include <sstream>
@@ -41,9 +45,9 @@ END_SECTION
 // main instance for the test
 StreamHandler handler;
 
-START_SECTION((Int registerStream(StreamType const type, const String &stream_name)))
+START_SECTION((Int registerStream(StreamType const type, const std::string &stream_name)))
 {
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
 
   handler.registerStream(StreamHandler::FILE, filename);
@@ -62,9 +66,9 @@ START_SECTION((Int registerStream(StreamType const type, const String &stream_na
 }
 END_SECTION
 
-START_SECTION((void unregisterStream(StreamType const type, const String &stream_name)))
+START_SECTION((void unregisterStream(StreamType const type, const std::string &stream_name)))
 {
-  String filename;
+  std::string filename;
   NEW_TMP_FILE(filename)
 
   // this one was registered twice
@@ -83,9 +87,9 @@ START_SECTION((void unregisterStream(StreamType const type, const String &stream
 }
 END_SECTION
 
-START_SECTION((ostream& getStream(StreamType const type, const String &stream_name)))
+START_SECTION((ostream& getStream(StreamType const type, const std::string &stream_name)))
 {
-  String file2;
+  std::string file2;
   NEW_TMP_FILE(file2);
 
   handler.registerStream(StreamHandler::FILE, file2);
@@ -104,9 +108,9 @@ START_SECTION((ostream& getStream(StreamType const type, const String &stream_na
   string_stream << "And another test!" << endl;
 
   ostringstream & ostr = static_cast<ostringstream&>(handler.getStream(StreamHandler::STRING, "getStream_testing_stream"));
-  String output(ostr.str());
+  std::string output(ostr.str());
   StringList results;
-  output.trim().split('\n',results);
+  StringUtils::trim(output); StringUtils::split(output, '\n', results);
 
   TEST_EQUAL(results.size(), 2)
   TEST_EQUAL(results[0], "This is a test!")
@@ -114,13 +118,30 @@ START_SECTION((ostream& getStream(StreamType const type, const String &stream_na
 }
 END_SECTION
 
-START_SECTION((bool hasStream(const StreamType type, const String &stream_name)))
+START_SECTION((bool hasStream(const StreamType type, const std::string &stream_name)))
 {
   handler.registerStream(StreamHandler::STRING, "this_is_a_test_stream");
 
   TEST_EQUAL(handler.hasStream(StreamHandler::STRING, "this_is_a_test_stream"), true)
   TEST_EQUAL(handler.hasStream(StreamHandler::FILE, "this_is_a_test_stream"), false)
   TEST_EQUAL(handler.hasStream(StreamHandler::STRING, "this_is_not_the_same_stream"), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] a stream is removed from the global log streams before it is deleted))
+{
+  std::ostream* deleted = nullptr;
+  {
+    StreamHandler local_handler;
+    local_handler.registerStream(StreamHandler::STRING, "attached_to_the_debug_log");
+    std::ostream& attached = local_handler.getStream(StreamHandler::STRING, "attached_to_the_debug_log");
+    getGlobalLogDebug().insert(attached);
+    OPENMS_LOG_DEBUG_NOFILE << "while attached" << std::endl;
+    TEST_TRUE(static_cast<std::ostringstream&>(attached).str().find("while attached") != std::string::npos)
+    deleted = &attached;
+  } // deletes the stream
+  TEST_FALSE(getGlobalLogDebug().hasStream(*deleted)) // compares addresses only
+  OPENMS_LOG_DEBUG_NOFILE << "after the handler" << std::endl; // wrote to the deleted stream before
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

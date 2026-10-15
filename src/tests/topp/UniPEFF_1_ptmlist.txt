@@ -1,0 +1,26 @@
+Minimal ptmlist.txt for the UniPEFF comprehensive test fixture.
+Only the PTMs referenced by comprehensive.xml are present; "Half cystine" is added
+in code (it is absent from the real ptmlist.txt too). The real, full file lives at
+https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/docs/ptmlist.txt
+_______________________________
+ID   Phosphoserine
+AC   PTM-0253
+DR   PSI-MOD; MOD:00046.
+DR   Unimod; 21.
+//
+ID   Phosphothreonine
+AC   PTM-0254
+DR   PSI-MOD; MOD:00047.
+DR   Unimod; 21.
+//
+ID   Test methylation unimod only
+AC   PTM-9001
+DR   Unimod; 34.
+//
+ID   Test generic mod no accession
+AC   PTM-9002
+//
+ID   Test palmitoyl cysteine
+AC   PTM-9003
+DR   PSI-MOD; MOD:00999.
+//

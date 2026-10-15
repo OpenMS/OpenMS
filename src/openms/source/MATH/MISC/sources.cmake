@@ -7,6 +7,7 @@ BSpline2d.cpp
 BSplineSmoothingSpline.cpp
 CubicSpline2d.cpp
 EmgGradientDescent.cpp
+LinearResampling.cpp
 SplineBisection.cpp
 )
 

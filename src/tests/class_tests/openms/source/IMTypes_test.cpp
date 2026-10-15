@@ -38,7 +38,7 @@ START_SECTION((~IMTypes()))
 	delete e_ptr;
 END_SECTION
 
-START_SECTION((DriftTimeUnit toDriftTimeUnit(const String& dtu_string)))
+START_SECTION((DriftTimeUnit toDriftTimeUnit(const std::string& dtu_string)))
   TEST_EQUAL(toDriftTimeUnit("<NONE>") == DriftTimeUnit::NONE, true)
   for (size_t i = 0; i < (size_t)DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT; ++i)
   {
@@ -47,7 +47,7 @@ START_SECTION((DriftTimeUnit toDriftTimeUnit(const String& dtu_string)))
   TEST_EXCEPTION(Exception::InvalidValue, toDriftTimeUnit("haha"));
 END_SECTION
 
-START_SECTION(const String& driftTimeUnitToString(const DriftTimeUnit value))
+START_SECTION(const std::string& driftTimeUnitToString(const DriftTimeUnit value))
   TEST_EQUAL(driftTimeUnitToString(DriftTimeUnit::NONE), "<NONE>")
   for (size_t i = 0; i < (size_t)DriftTimeUnit::SIZE_OF_DRIFTTIMEUNIT; ++i)
   {
@@ -57,7 +57,7 @@ START_SECTION(const String& driftTimeUnitToString(const DriftTimeUnit value))
 END_SECTION
 
 
-START_SECTION((IMFormat toIMFormat(const String& IM_format)))
+START_SECTION((IMFormat toIMFormat(const std::string& IM_format)))
   TEST_EQUAL(toIMFormat("none") == IMFormat::NONE, true)
   for (size_t i = 0; i < (size_t) IMFormat::SIZE_OF_IMFORMAT; ++i)
   {
@@ -66,7 +66,7 @@ START_SECTION((IMFormat toIMFormat(const String& IM_format)))
   TEST_EXCEPTION(Exception::InvalidValue, toIMFormat("haha"));
 END_SECTION
 
-START_SECTION(const String& imFormatToString(const IMFormat value))
+START_SECTION(const std::string& imFormatToString(const IMFormat value))
   TEST_EQUAL(imFormatToString(IMFormat::NONE), "none")
   for (size_t i = 0; i < (size_t)IMFormat::SIZE_OF_IMFORMAT; ++i)
   {

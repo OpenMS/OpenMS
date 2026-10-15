@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -19,7 +20,7 @@ using namespace std;
 
 Int main(int argc, const char** argv)
 {
-  String tutorial_data_path(OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_Spectrum1D.dta"));
+  std::string tutorial_data_path(OPENMS_DOC_PATH + std::string("/code_examples/data/Tutorial_Spectrum1D.dta"));
 
   QApplication app(argc, const_cast<char**>(argv));
 

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
@@ -69,7 +69,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename MapType>
-    void load(const String& filename, MapType& map)
+    void load(const std::string& filename, MapType& map)
     {
       startProgress(0, 0, "loading DTA2D file");
 
@@ -98,7 +98,7 @@ public:
       map.setLoadedFilePath(filename);
 
       // temporary variables to store the data in
-      std::vector<String> strings(3);
+      std::vector<std::string> strings(3);
       typename MapType::SpectrumType spec;
       spec.setRT(-1.0); //to make sure the first RT is different from the the initialized value
       typename MapType::SpectrumType::PeakType p;
@@ -114,7 +114,7 @@ public:
       bool time_in_minutes = false;
 
       // string to store the current line in
-      String line;
+      std::string line;
 
       // native ID (numbers from 0)
       UInt native_id = 0;
@@ -125,12 +125,12 @@ public:
       while (getline(is, line, '\n'))
       {
         ++line_number;
-        line.trim();
+        StringUtils::trim(line);
 
         if (line.empty()) continue;
 
         //test which delimiter is used in the line
-        if (line.has('\t'))
+        if (StringUtils::has(line, '\t'))
         {
           delimiter = '\t';
         }
@@ -140,10 +140,11 @@ public:
         }
 
         //is header line
-        if (line.hasPrefix("#"))
+        if (StringUtils::hasPrefix(line, "#"))
         {
-          line = line.substr(1).trim().toUpper();
-          line.split(delimiter, strings);
+          line = StringUtils::trimmed(line.substr(1));
+          StringUtils::toUpper(line);
+          StringUtils::split(line, delimiter, strings);
 
           // flags to check if dimension is set correctly
           bool rt_set = false;
@@ -189,19 +190,19 @@ public:
 
         try
         {
-          line.split(delimiter, strings);
+          StringUtils::split(line, delimiter, strings);
           if (strings.size() != 3)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 3 entries)", filename);
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + StringUtils::toStr(line_number) + "): \"") + line + "\" (got  " + StringUtils::toStr(strings.size()) + ", expected 3 entries)", filename);
           }
-          p.setIntensity(strings[int_dim].toFloat());
-          p.setMZ(strings[mz_dim].toDouble());
-          rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);
+          p.setIntensity(StringUtils::toFloat(strings[int_dim]));
+          p.setMZ(StringUtils::toDouble(strings[mz_dim]));
+          rt = (StringUtils::toDouble(strings[rt_dim])) * (time_in_minutes ? 60.0 : 1.0);
         }
         // conversion to double or something else could have gone wrong
         catch (Exception::BaseException& /*e*/)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\"", filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + StringUtils::toStr(line_number) + "): \"") + line + "\"", filename);
         }
 
         // Retention time changed -> new Spectrum
@@ -216,7 +217,7 @@ public:
           setProgress(0);
           spec.clear(true);
           spec.setRT(rt);
-          spec.setNativeID(String("index=") + native_id);
+          spec.setNativeID(std::string("index=") + native_id);
           ++native_id;
         }
 
@@ -255,7 +256,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename MapType>
-    void store(const String& filename, const MapType& map) const
+    void store(const std::string& filename, const MapType& map) const
     {
       startProgress(0, map.size(), "storing DTA2D file");
 
@@ -294,7 +295,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename MapType>
-    void storeTIC(const String& filename, const MapType& map) const
+    void storeTIC(const std::string& filename, const MapType& map) const
     {
       startProgress(0, map.size(), "storing DTA2D file");
 

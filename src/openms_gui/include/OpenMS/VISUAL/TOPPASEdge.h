@@ -12,6 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtWidgets/QGraphicsItem>
+#include <QtCore/QPointer>
 
 namespace OpenMS
 {
@@ -19,7 +20,6 @@ namespace OpenMS
   class TOPPASToolVertex;
   class TOPPASInputFileListVertex;
 
-  class String;
 
   /**
       @brief An edge representing a data flow in TOPPAS
@@ -64,7 +64,7 @@ public:
     TOPPASEdge & operator=(const TOPPASEdge & rhs);
 
     /// for debug output
-    String toString();
+    std::string toString();
 
     /// Returns the bounding rectangle of this item
     QRectF boundingRect() const override;
@@ -139,9 +139,9 @@ protected:
     QPointF borderPoint_(bool atTargetVertex = true) const;
 
     /// Pointer to the source of this edge
-    TOPPASVertex * from_;
+    QPointer<TOPPASVertex> from_;
     /// Pointer to the target of this edge
-    TOPPASVertex * to_;
+    QPointer<TOPPASVertex> to_;
     /// Position of hovering end while edge is being created
     QPointF hover_pos_;
     /// The color

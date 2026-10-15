@@ -39,7 +39,7 @@ START_SECTION(virtual ~MsInspectFile())
 }
 END_SECTION
 
-START_SECTION((template < typename FeatureMapType > void load(const String &filename, FeatureMapType &feature_map)))
+START_SECTION((template < typename FeatureMapType > void load(const std::string &filename, FeatureMapType &feature_map)))
 {
   MsInspectFile f;
   FeatureMap fm;
@@ -62,7 +62,7 @@ START_SECTION((template < typename FeatureMapType > void load(const String &file
 }
 END_SECTION
 
-START_SECTION((template < typename SpectrumType > void store(const String &filename, const SpectrumType &spectrum) const ))
+START_SECTION((template < typename SpectrumType > void store(const std::string &filename, const SpectrumType &spectrum) const ))
 {
   MsInspectFile f;
   MSSpectrum spec;

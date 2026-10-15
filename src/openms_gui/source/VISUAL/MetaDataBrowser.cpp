@@ -92,17 +92,17 @@ namespace OpenMS
       cancelbutton_ = new QPushButton("Cancel", dummy);
       grid->addWidget(saveallbutton_, 1, 1);
       grid->addWidget(cancelbutton_, 1, 2);
-      connect(saveallbutton_, SIGNAL(clicked()), this, SLOT(saveAll_()));
-      connect(cancelbutton_, SIGNAL(clicked()), this, SLOT(reject()));
+      connect(saveallbutton_, &QPushButton::clicked, this, &MetaDataBrowser::saveAll_);
+      connect(cancelbutton_, &QPushButton::clicked, this, &QDialog::reject);
     }
     else
     {
       closebutton_ = new QPushButton("Close", dummy);
       grid->addWidget(closebutton_, 1, 2);
-      connect(closebutton_, SIGNAL(clicked()), this, SLOT(reject()));
+      connect(closebutton_, &QPushButton::clicked, this, &QDialog::reject);
     }
 
-    connect(treeview_, SIGNAL(itemSelectionChanged()), this, SLOT(showDetails_()));
+    connect(treeview_, &QTreeWidget::itemSelectionChanged, this, &MetaDataBrowser::showDetails_);
 
     status_list_ = "";
 
@@ -110,7 +110,7 @@ namespace OpenMS
 
   void MetaDataBrowser::connectVisualizer_(BaseVisualizerGUI * ptr)
   {
-    connect(ptr, SIGNAL(sendStatus(std::string)), this, SLOT(setStatus(std::string)));
+    connect(ptr, &BaseVisualizerGUI::sendStatus, this, &MetaDataBrowser::setStatus);
   }
 
   bool MetaDataBrowser::isEditable() const
@@ -534,7 +534,7 @@ namespace OpenMS
     visualizer->load(meta);
 
     QStringList labels;
-    String name = String("MetaInfoDescription ") + meta.getName();
+    std::string name =std::string("MetaInfoDescription ") + meta.getName();
     labels << name.c_str() << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
@@ -581,7 +581,7 @@ namespace OpenMS
     PeptideHitVisualizer * visualizer = new PeptideHitVisualizer(isEditable(), this);
     visualizer->load(meta);
 
-    String name = String("Pep ") + meta.getSequence().toString() + " (" + meta.getScore() + ')';
+    std::string name =std::string("Pep ") + meta.getSequence().toString() + " (" + meta.getScore() + ')';
     QString qs_name(name.c_str());
 
     QStringList labels;
@@ -683,7 +683,7 @@ namespace OpenMS
     ProteinHitVisualizer * visualizer = new ProteinHitVisualizer(isEditable(), this);
     visualizer->load(meta);
 
-    String name = String("Prot ") + meta.getAccession() + " (" + meta.getScore() + ')';
+    std::string name =std::string("Prot ") + meta.getAccession() + " (" + meta.getScore() + ')';
     QString qs_name(name.c_str());
 
     QStringList labels;
@@ -735,7 +735,7 @@ namespace OpenMS
     visualizer->load(meta);
 
     QStringList labels;
-    labels << (String("Sample ") + meta.getName()).c_str() << QString::number(ws_->addWidget(visualizer));
+    labels << (std::string("Sample ") + meta.getName()).c_str() << QString::number(ws_->addWidget(visualizer));
     QTreeWidgetItem * item;
     if (parent == nullptr)
     {

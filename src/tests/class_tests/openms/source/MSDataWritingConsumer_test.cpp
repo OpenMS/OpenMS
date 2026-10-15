@@ -59,7 +59,7 @@ START_SECTION((virtual void consumeChromatogram(ChromatogramType &c)))
 }
 END_SECTION
 
-START_SECTION((MSDataWritingConsumer(String filename)))
+START_SECTION((MSDataWritingConsumer(std::string filename)))
 {
   // TODO
 }

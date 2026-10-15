@@ -75,7 +75,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace&, const char, const double, const double) override
+    std::string getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace&, const char, const double, const double) override
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
@@ -189,7 +189,7 @@ START_SECTION((virtual double getArea()))
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)=0))
+START_SECTION((virtual std::string getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)=0))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt;
   double shift = 0.0;

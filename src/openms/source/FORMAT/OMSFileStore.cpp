@@ -10,6 +10,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <SQLiteCpp/Database.h>
 #include <SQLiteCpp/Transaction.h>
@@ -22,15 +23,15 @@ using ID = OpenMS::IdentificationData;
 
 namespace OpenMS::Internal
 {
-  constexpr int version_number = 5; // increase this whenever the DB schema changes!
+  constexpr int version_number = 6; // increase this whenever the DB schema changes!
 
-  void raiseDBError_(const String& error, int line, const char* function,
-                     const String& context, const String& query)
+  void raiseDBError_(const std::string& error, int line, const char* function,
+                     const std::string& context, const std::string& query)
   {
-    String msg = context + ": " + error;
+    std::string msg = context + ": " + error;
     if (!query.empty())
     {
-      msg += String("\nQuery was: ") + query;
+      msg +=std::string("\nQuery was: ") + query;
     }
     throw Exception::FailedAPICall(__FILE__, line, function, msg);
   }
@@ -50,7 +51,7 @@ namespace OpenMS::Internal
     }
   }
 
-  OMSFileStore::OMSFileStore(const String& filename, LogType log_type)
+  OMSFileStore::OMSFileStore(const std::string& filename, LogType log_type)
   {
     setLogType(log_type);
     File::remove(filename); // nuke the file (SQLite cannot overwrite it)
@@ -67,9 +68,9 @@ namespace OpenMS::Internal
 
   OMSFileStore::~OMSFileStore() = default;
 
-  void OMSFileStore::createTable_(const String& name, const String& definition, bool may_exist)
+  void OMSFileStore::createTable_(const std::string& name, const std::string& definition, bool may_exist)
   {
-    String sql_create = "CREATE TABLE ";
+    std::string sql_create = "CREATE TABLE ";
     if (may_exist) sql_create += "IF NOT EXISTS ";
     sql_create += name + " (" + definition + ")";
     db_->exec(sql_create);
@@ -189,12 +190,12 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::createTableMetaInfo_(const String& parent_table, const String& key_column)
+  void OMSFileStore::createTableMetaInfo_(const std::string& parent_table, const std::string& key_column)
   {
     if (!db_->tableExists("DataValue_DataType")) createTableDataValue_DataType_();
 
-    String parent_ref = parent_table + " (" + key_column + ")";
-    String table = parent_table + "_MetaInfo";
+    std::string parent_ref = parent_table + " (" + key_column + ")";
+    std::string table = parent_table + "_MetaInfo";
     // for the data_type_id, empty values are represented using NULL
     createTable_(
       table,
@@ -218,7 +219,7 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::storeMetaInfo_(const MetaInfoInterface& info, const String& parent_table, Key parent_id)
+  void OMSFileStore::storeMetaInfo_(const MetaInfoInterface& info, const std::string& parent_table, Key parent_id)
   {
     if (info.isMetaEmpty()) return;
 
@@ -226,9 +227,9 @@ namespace OpenMS::Internal
     auto& query = *prepared_queries_[parent_table + "_MetaInfo"];
     query.bind(":parent_id", parent_id);
     // this is inefficient, but MetaInfoInterface doesn't support iteration:
-    vector<String> info_keys;
+    vector<std::string> info_keys;
     info.getKeys(info_keys);
-    for (const String& info_key : info_keys)
+    for (const std::string& info_key : info_keys)
     {
       query.bind(":name", info_key);
 
@@ -247,9 +248,9 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileStore::createTableAppliedProcessingStep_(const String& parent_table)
+  void OMSFileStore::createTableAppliedProcessingStep_(const std::string& parent_table)
   {
-    String table = parent_table + "_AppliedProcessingStep";
+    std::string table = parent_table + "_AppliedProcessingStep";
     createTable_(
       table,
       "parent_id INTEGER NOT NULL, "                                    \
@@ -277,7 +278,7 @@ namespace OpenMS::Internal
 
 
   void OMSFileStore::storeAppliedProcessingStep_(const ID::AppliedProcessingStep& step, Size step_order,
-                                                 const String& parent_table, Key parent_id)
+                                                 const std::string& parent_table, Key parent_id)
   {
     // this assumes the "..._AppliedProcessingStep" table exists already!
     auto& query = *prepared_queries_[parent_table + "_AppliedProcessingStep"];
@@ -359,7 +360,7 @@ namespace OpenMS::Internal
       query.bind(":experimental_design_id",
                       input.experimental_design_id);
       // @TODO: what if a primary file name contains ","?
-      String primary_files = ListUtils::concatenate(input.primary_files, ",");
+      std::string primary_files = ListUtils::concatenate(input.primary_files, ",");
       query.bind(":primary_files", primary_files);
       execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       input_file_keys_[&input] = id;
@@ -482,11 +483,11 @@ namespace OpenMS::Internal
       query.bind(":database", param.database);
       query.bind(":database_version", param.database_version);
       query.bind(":taxonomy", param.taxonomy);
-      String charges = ListUtils::concatenate(param.charges, ",");
+      std::string charges = ListUtils::concatenate(param.charges, ",");
       query.bind(":charges", charges);
-      String fixed_mods = ListUtils::concatenate(param.fixed_mods, ",");
+      std::string fixed_mods = ListUtils::concatenate(param.fixed_mods, ",");
       query.bind(":fixed_mods", fixed_mods);
-      String variable_mods = ListUtils::concatenate(param.variable_mods, ",");
+      std::string variable_mods = ListUtils::concatenate(param.variable_mods, ",");
       query.bind(":variable_mods", variable_mods);
       query.bind(":precursor_mass_tolerance", param.precursor_mass_tolerance);
       query.bind(":fragment_mass_tolerance", param.fragment_mass_tolerance);
@@ -521,9 +522,9 @@ namespace OpenMS::Internal
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "software_id INTEGER NOT NULL, "                                  \
       "date_time TEXT, "                                                \
-      "search_param_id INTEGER, "                                       \
+      "search_param_id INTEGER, "
+      "processing_actions TEXT, "                                       \
       "FOREIGN KEY (search_param_id) REFERENCES ID_DBSearchParam (id)");
-    // @TODO: add support for processing actions
     // @TODO: store primary files in a separate table (like input files)?
     // @TODO: store (optional) search param reference in a separate table?
 
@@ -531,7 +532,8 @@ namespace OpenMS::Internal
                   ":id, "                                       \
                   ":software_id, "                              \
                   ":date_time, "                                \
-                  ":search_param_id)");
+                  ":search_param_id, "
+                  ":processing_actions)");
     bool any_input_files = false;
     Key id = 1;
     // use iterator here because we need one to look up the DB search params:
@@ -542,7 +544,13 @@ namespace OpenMS::Internal
       if (!step.input_file_refs.empty()) any_input_files = true;
       query.bind(":id", id);
       query.bind(":software_id", processing_software_keys_[&(*step.software_ref)]);
-      query.bind(":date_time", step.date_time.get());
+      query.bind(":date_time", step.date_time.toString("yyyy-MM-ddThh:mm:ss.zzz"));
+      StringList action_names;
+      for (const auto action : step.actions)
+      {
+        action_names.push_back(DataProcessing::processingActionToString(action));
+      }
+      query.bind(":processing_actions", ListUtils::concatenate(action_names, ","));
       auto pos = id_data.getDBSearchSteps().find(step_ref);
       if (pos != id_data.getDBSearchSteps().end())
       {
@@ -1008,7 +1016,7 @@ namespace OpenMS::Internal
   {
     if (id_data.getObservationMatches().empty()) return;
 
-    String table_def =
+    std::string table_def =
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "identified_molecule_id INTEGER NOT NULL, "                       \
       "observation_id INTEGER NOT NULL, "                               \
@@ -1350,7 +1358,7 @@ namespace OpenMS::Internal
 
   template <class MapType>
   void OMSFileStore::storeMapMetaData_(const MapType& features,
-                                       const String& experiment_type)
+                                       const std::string& experiment_type)
   {
     createTable_("FEAT_MapMetaData",
                  "unique_id INTEGER PRIMARY KEY, "  \
@@ -1369,7 +1377,7 @@ namespace OpenMS::Internal
     query.bind(":unique_id", int64_t(features.getUniqueId()));
     query.bind(":identifier", features.getIdentifier());
     query.bind(":file_path", features.getLoadedFilePath());
-    String file_type = FileTypes::typeToName(features.getLoadedFileType());
+    std::string file_type = FileTypes::typeToName(features.getLoadedFileType());
     query.bind(":file_type", file_type);
     if (!experiment_type.empty())
     {
@@ -1386,8 +1394,8 @@ namespace OpenMS::Internal
   }
 
   // template specializations:
-  template void OMSFileStore::storeMapMetaData_<FeatureMap>(const FeatureMap&, const String&);
-  template void OMSFileStore::storeMapMetaData_<ConsensusMap>(const ConsensusMap&, const String&);
+  template void OMSFileStore::storeMapMetaData_<FeatureMap>(const FeatureMap&, const std::string&);
+  template void OMSFileStore::storeMapMetaData_<ConsensusMap>(const ConsensusMap&, const std::string&);
 
 
   void OMSFileStore::storeDataProcessing_(const vector<DataProcessing>& data_processing)
@@ -1415,7 +1423,7 @@ namespace OpenMS::Internal
       query.bind(":id", id);
       query.bind(":software_name", proc.getSoftware().getName());
       query.bind(":software_version", proc.getSoftware().getVersion());
-      String actions;
+      std::string actions;
       for (DataProcessing::ProcessingAction action : proc.getProcessingActions())
       {
         if (!actions.empty()) actions += ","; // @TODO: use different separator?

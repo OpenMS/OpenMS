@@ -12,10 +12,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <map>
+#include <string>
 
 namespace OpenMS
 {
-  class String;
 
   /**
     @brief Class represents a decomposition of a mass into amino acids
@@ -38,8 +38,8 @@ public:
     /// copy constructor
     MassDecomposition(const MassDecomposition& deco);
 
-    /// constructor with String as parameter
-    explicit MassDecomposition(const String& deco);
+    /// constructor with std::string as parameter
+    explicit MassDecomposition(const std::string& deco);
     //@}
 
     /**
@@ -53,10 +53,10 @@ public:
     MassDecomposition& operator+=(const MassDecomposition& d);
 
     /// returns the decomposition as a string
-    String toString() const;
+    std::string toString() const;
 
     /// returns the decomposition as a string; instead of frequencies the amino acids are repeated
-    String toExpandedString() const;
+    std::string toExpandedString() const;
 
     /// adds this decomposition and the decomposition given and returns a new composition
     MassDecomposition operator+(const MassDecomposition& rhs) const;
@@ -73,10 +73,10 @@ public:
     bool operator<(const MassDecomposition& rhs) const;
 
     /// equality operator
-    bool operator==(const String& deco) const;
+    bool operator==(const std::string& deco) const;
 
     /// returns true if tag is contained in the mass decomposition
-    bool containsTag(const String& tag) const;
+    bool containsTag(const std::string& tag) const;
 
     /// returns true if the mass decomposition if contained in this instance
     bool compatible(const MassDecomposition& deco) const;

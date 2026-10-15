@@ -29,7 +29,7 @@ class TestHandler
 {
   public:
     
-    explicit TestHandler(const String& name)
+    explicit TestHandler(const std::string& name)
       : DefaultParamHandler(name)
     {
       defaults_.setValue("int",0,"intdesc");
@@ -63,12 +63,12 @@ class TestHandler
       string_var = (string)(param_.getValue("string"));
     }
     
-    String string_var;
+    std::string string_var;
 };
 
 DefaultParamHandler* ptr = nullptr;
 DefaultParamHandler* nullPointer = nullptr;
-START_SECTION((DefaultParamHandler(const String& name)))
+START_SECTION((DefaultParamHandler(const std::string& name)))
   ptr = new DefaultParamHandler("dummy");
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -77,18 +77,18 @@ START_SECTION((~DefaultParamHandler()))
   delete ptr;
 END_SECTION
 
-START_SECTION((const String& getName() const))
+START_SECTION((const std::string& getName() const))
   DefaultParamHandler s("dummy2");
   TEST_EQUAL(s.getName(), "dummy2")
 END_SECTION
 
-START_SECTION((void setName(const String& name)))
+START_SECTION((void setName(const std::string& name)))
   DefaultParamHandler s("dummy2");
   s.setName("SetName");
   TEST_EQUAL(s.getName(), "SetName")
 END_SECTION
 
-START_SECTION((const std::vector<String>& getSubsections() const))
+START_SECTION((const std::vector<std::string>& getSubsections() const))
   DefaultParamHandler s("dummy2");
   TEST_EQUAL(s.getSubsections().size(),0)
 END_SECTION
@@ -169,7 +169,7 @@ START_SECTION((DefaultParamHandler(const DefaultParamHandler &rhs)))
   TEST_EQUAL(s2.string_var, "test")
 END_SECTION
 
-START_SECTION(static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix = ""))
+START_SECTION(static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const std::string& prefix = ""))
   MetaInfoInterface meta_values;
   Param p;
   p.setValue("int", 1);
