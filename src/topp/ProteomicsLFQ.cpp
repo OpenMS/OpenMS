@@ -20,7 +20,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
@@ -405,6 +404,8 @@ protected:
     ffi_defaults.remove("detect:peak_width"); // set from data
 
     Param ma_defaults = MapAlignmentAlgorithmTreeGuided().getDefaults();
+    // 'model_type' selects the RT model (both alignment orders); 'model:type' would be a second, unused switch
+    ma_defaults.remove("model:type");
 
     ma_defaults.setValue("align_algorithm:max_rt_shift", 0.1);
     ma_defaults.setValue("align_algorithm:use_unassigned_peptides", "false");
@@ -604,9 +605,9 @@ protected:
       Param mat_param = getParam_().copy("Alignment:", true);
       writeDebug_("Parameters passed to MapAlignmentAlgorithms", mat_param, 3);
 
-      Param model_params = MapAlignerBase::getModelDefaults("b_spline");
-      std::string model_type = model_params.getValue("type").toString();
-      model_params = model_params.copy(model_type + ":", true);
+      // RT model fitted to the alignment points: Alignment:model_type with its Alignment:model:<type>:* parameters
+      std::string model_type = mat_param.getValue("model_type").toString();
+      Param model_params = mat_param.copy("model:" + model_type + ":", true);
 
       try
       {
@@ -677,12 +678,14 @@ protected:
         OPENMS_LOG_INFO << endl;
       }
 
-      double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(), [](TrafoStat a, TrafoStat b) {
-                                    return a.percentiles_after[100] < b.percentiles_after[100];
-                                  })->percentiles_after[100];
-      // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
-      OPENMS_LOG_INFO << "Max alignment difference (seconds): " << max_alignment_diff << endl;
-      max_alignment_diff = std::max(max_alignment_diff, 120.0); // minimum 2 minutes
+      // The linking RT tolerance is sized from the RT differences of the alignment points after alignment: their 95th
+      // percentile, the largest over the runs. Not the maximum: a few outliers (e.g. wrong or chimeric identifications)
+      // decide the maximum, which on a 2 h gradient gave a tolerance of +-20 min and let the linker join unrelated features.
+      const Size window_percentile = 95;
+      double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(), [window_percentile](const TrafoStat& a, const TrafoStat& b) {
+                                    return a.percentiles_after.at(window_percentile) < b.percentiles_after.at(window_percentile);
+                                  })->percentiles_after.at(window_percentile);
+      OPENMS_LOG_INFO << "Alignment difference (seconds) at the " << window_percentile << "th percentile, largest over the runs: " << max_alignment_diff << endl;
       max_alignment_diff = std::min(max_alignment_diff, 600.0); // maximum 10 minutes
       return max_alignment_diff;
     }

@@ -453,6 +453,17 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+      - The RT tolerance of linking (QT linking, and the global RT window of PIP-ECHO) is
+        sized from the 95th percentile of the RT differences of the alignment points after alignment
+        (the largest over the runs) instead of their maximum, and no longer has a 2-minute minimum.
+        A few outlying points decided the maximum: on the ProteoBench DDA ion module (QExactive, 6 runs,
+        2 h gradients) the tolerance was +-20 min, and match-between-runs without PIP-ECHO raised the
+        median absolute E. coli fold-change error from 0.41 (identified only) to 0.62. With the 95th
+        percentile the tolerance is +-74 s, and match-between-runs adds 4,600 precursors (42,322 to
+        46,929) at the accuracy of identified only (median error 0.221, E. coli 0.41).
+      - FIX: -Alignment:model_type and -Alignment:model:<type>:* were ignored: the RT transformations
+        were always B-splines with default parameters. They now select the RT model and its parameters.
+        The second, unused switch -Alignment:model:type is removed; use -Alignment:model_type.
     QualityControl:
       - FIX: The identifications of a feature are sorted best first according to their score
         direction. Lower-is-better scores (q-value, PEP, E-value) put the worst identification
