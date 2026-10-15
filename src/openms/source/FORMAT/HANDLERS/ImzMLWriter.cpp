@@ -408,6 +408,17 @@ namespace
     return "OpenMS export";
   }
 
+  // Scan start time of a pixel in seconds, -1 if none: an RT the caller set (>= 0) wins,
+  // otherwise the imzml:scan_start_time MetaValue that ImzMLFile loads store it in.
+  double scanStartTime_(const MSSpectrum& s)
+  {
+    if (s.getRT() >= 0.0 || !s.metaValueExists("imzml:scan_start_time"))
+    {
+      return s.getRT();
+    }
+    return static_cast<double>(s.getMetaValue("imzml:scan_start_time"));
+  }
+
   void applyStoreOptions_(MSExperiment& exp, const PeakFileOptions& options)
   {
     if (options.hasMSLevels())
@@ -423,7 +434,7 @@ namespace
       const auto& rt_range = options.getRTRange();
       exp.getSpectra().erase(
         std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-                       [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
+                       [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(scanStartTime_(s))); }),
         exp.getSpectra().end());
     }
 
@@ -1363,10 +1374,15 @@ namespace
       writeCvParam_(os, "MS", "MS:1000795", "no combination");
       os << "\n";
       os << "\t\t\t\t\t<scan instrumentConfigurationRef=\"IC1\">\n";
+      const double scan_start_time = scanStartTime_(spec);
+      if (scan_start_time >= 0.0) // no time: omit the cvParam
+      {
+        os << "\t\t\t\t\t\t";
+        writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(scan_start_time),
+                      "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
+        os << "\n";
+      }
       os << "\t\t\t\t\t\t";
-      writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(spec.getRT()),
-                    "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
-      os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000050", "position x", OpenMS::StringConversions::toString(plan.pixel.x));
       os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000051", "position y", OpenMS::StringConversions::toString(plan.pixel.y));

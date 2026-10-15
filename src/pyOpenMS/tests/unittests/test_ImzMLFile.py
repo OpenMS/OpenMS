@@ -120,7 +120,7 @@ class TestImzMLFile(unittest.TestCase):
             od.close()
 
     def test_load_spectra_index(self):
-        meta, index = pyopenms.ImzMLFile().loadSpectraIndex(self.imzml_path)
+        meta, index, _spectra = pyopenms.ImzMLFile().loadSpectraIndex(self.imzml_path)
         self.assertEqual(meta.imaging_mode, "continuous")
         self.assertEqual(meta.max_count_x, 3)
         self.assertEqual(meta.max_count_y, 3)
@@ -178,7 +178,7 @@ class TestImzMLFile(unittest.TestCase):
         self.assertEqual(str(exp.getMetaValue("imzml:mz_data_type")), "float32")
         self.assertEqual(str(exp.getMetaValue("imzml:int_data_type")), "float32")
 
-        meta, index = pyopenms.ImzMLFile().loadSpectraIndex(self.imzml_path)
+        meta, index, _spectra = pyopenms.ImzMLFile().loadSpectraIndex(self.imzml_path)
         self._assert_experiment_matches_imzml_meta(exp, meta)
         self.assertEqual(len(index), exp.getNrSpectra())
 
@@ -211,7 +211,7 @@ class TestImzMLFile(unittest.TestCase):
         self.assertEqual(str(exp_p.getMetaValue("imzml:line_scan_direction")), "left-right")
         self.assertEqual(str(exp_p.getMetaValue("imzml:polarity")), "negative")
 
-        meta_p, index_p = pyopenms.ImzMLFile().loadSpectraIndex(self.processed_path)
+        meta_p, index_p, _spectra = pyopenms.ImzMLFile().loadSpectraIndex(self.processed_path)
         self._assert_experiment_matches_imzml_meta(exp_p, meta_p)
         self.assertEqual(len(index_p), exp_p.getNrSpectra())
 
@@ -230,6 +230,34 @@ class TestImzMLFile(unittest.TestCase):
             self.assertGreater(entry.mz_length, 0)
         finally:
             od.close()
+
+    def test_on_disc_and_metadata_only_match_in_memory_metadata(self):
+        img = pyopenms.MSImagingExperiment()
+        pyopenms.ImzMLFile().load(self.imzml_path, img)
+        ram = img.getMSExperiment()
+
+        od = pyopenms.OnDiscImzMLExperiment()
+        od.open(self.imzml_path)
+        self.assertEqual(od.getNrSpectra(), ram.getNrSpectra())
+        for i in range(ram.getNrSpectra()):
+            self.assertTrue(od.getSpectrum(i) == ram.getSpectrum(i))
+        settings = od.getExperimentalSettings()
+        self.assertEqual(str(settings.getMetaValue("imzml:imaging_mode")), str(ram.getMetaValue("imzml:imaging_mode")))
+        self.assertEqual(str(settings.getMetaValue("imzml:mz_data_type")), str(ram.getMetaValue("imzml:mz_data_type")))
+
+        f = pyopenms.ImzMLFile()
+        opts = f.getOptions()
+        opts.setMetadataOnly(True)
+        f.setOptions(opts)
+        md = pyopenms.MSImagingExperiment()
+        f.load(self.imzml_path, md)
+        self.assertEqual(md.getNumberOfSpectra(), ram.getNrSpectra())
+        self.assertEqual(md.getGeometry().getNumberOfPixels(), img.getGeometry().getNumberOfPixels())
+        for i in range(ram.getNrSpectra()):
+            spec = md.getMSExperiment().getSpectrum(i)
+            self.assertEqual(spec.size(), 0)
+            self.assertEqual(spec.getMetaValue("imzml:x"), ram.getSpectrum(i).getMetaValue("imzml:x"))
+            self.assertEqual(spec.getRT(), -1.0)
 
     def test_store_round_trip(self):
         import tempfile
@@ -472,7 +500,7 @@ class TestImzMLFile(unittest.TestCase):
             out_path = tmp.name
         try:
             f.store(out_path, exp)
-            _meta, index = pyopenms.ImzMLFile().loadSpectraIndex(out_path)
+            _meta, index, _spectra = pyopenms.ImzMLFile().loadSpectraIndex(out_path)
             self.assertEqual(index[0].mz_type, pyopenms.ImzMLDataType.FLOAT64)
             self.assertEqual(index[0].int_type, pyopenms.ImzMLDataType.FLOAT64)
         finally:
@@ -494,7 +522,7 @@ class TestImzMLFile(unittest.TestCase):
         exp.setInstrument(inst)
         if exp.getNrSpectra() > 0:
             spec = exp.getSpectrum(0)
-            spec.setRT(12.34)
+            spec.setMetaValue("imzml:scan_start_time", 12.34)
             spec.setMSLevel(1)
             exp[0] = spec
 
@@ -512,7 +540,9 @@ class TestImzMLFile(unittest.TestCase):
             self.assertAlmostEqual(float(reloaded.getMetaValue("imzml:max_dim_x")), 300.0)
             self.assertAlmostEqual(float(reloaded.getMetaValue("imzml:max_dim_y")), 300.0)
             if reloaded.getNrSpectra() > 0:
-                self.assertAlmostEqual(reloaded.getSpectrum(0).getRT(), 12.34, places=4)
+                # the stored scan start time comes back as imzml:scan_start_time, RT stays unset
+                self.assertAlmostEqual(reloaded.getSpectrum(0).getRT(), -1.0)
+                self.assertAlmostEqual(float(reloaded.getSpectrum(0).getMetaValue("imzml:scan_start_time")), 12.34, places=4)
                 self.assertEqual(reloaded.getSpectrum(0).getMSLevel(), 1)
         finally:
             os.remove(out_path)

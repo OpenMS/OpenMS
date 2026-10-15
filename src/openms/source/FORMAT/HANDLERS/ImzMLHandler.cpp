@@ -181,6 +181,15 @@ public:
       s.setMetaValue("imzml:y", static_cast<Int>(ims->y));
       s.setMetaValue("imzml:z", static_cast<Int>(ims->z));
 
+      // An imzML "scan start time" (MS:1000016) is the acquisition time of a pixel, not a
+      // chromatographic retention time: keep it (in seconds, as MzMLHandler converted it) as
+      // the MetaValue imzml:scan_start_time and leave RT unset (-1), as for files without it.
+      if (s.getRT() >= 0.0)
+      {
+        s.setMetaValue("imzml:scan_start_time", s.getRT());
+      }
+      s.setRT(-1.0);
+
       // Update dataset-level bounding box
       if (ims->x > handler_.meta_.max_count_x) handler_.meta_.max_count_x = ims->x;
       if (ims->y > handler_.meta_.max_count_y) handler_.meta_.max_count_y = ims->y;
@@ -236,8 +245,12 @@ public:
           s[i].setMZ(mz_vec[i]);
           s[i].setIntensity(int_vec[i]);
         }
+      }
 
-        // Record first-seen data types at dataset level
+      // Record first-seen data types at dataset level (also when the .ibd is not decoded:
+      // index-only, metadata-only and on-disc loads report the same ImzMLMeta)
+      if (ims->mz_meta.is_ext || ims->int_meta.is_ext)
+      {
         if (handler_.meta_.mz_data_type.empty())
           handler_.meta_.mz_data_type  = dtStr_(ims->mz_meta.dt);
         if (handler_.meta_.int_data_type.empty())
@@ -328,6 +341,9 @@ public:
       // MzMLHandler::populateSpectraWithData_() runs before this late .ibd aux fill:
       // it defaults UNKNOWN → IM_PROFILE from a still-empty named IM array, which we
       // may have just pruned. Sync the peak type with the arrays that actually remain.
+      // Without .ibd decoding (index-only, metadata-only) no aux array is read, so keep the
+      // parsed peak type (e.g. MS:1003441 IM_CENTROIDED); OnDiscImzMLExperiment applies this
+      // rule after it reads the arrays.
       if (s.containsIMData())
       {
         if (s.getIMPeakType() == IMPeakType::UNKNOWN)
@@ -335,7 +351,7 @@ public:
           s.setIMPeakType(IMPeakType::IM_PROFILE);
         }
       }
-      else
+      else if (handler_.decode_ibd_)
       {
         s.setIMPeakType(IMPeakType::UNKNOWN);
       }

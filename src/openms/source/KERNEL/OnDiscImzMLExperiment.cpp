@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
@@ -29,6 +30,9 @@ struct OnDiscImzMLExperiment::Impl
   FILE* ibd_ {nullptr};
   ImzMLMeta meta_;
   std::vector<ImzMLSpectrumIndex> index_;
+  // Per-spectrum metadata (no peaks) and dataset settings from the same parse as index_;
+  // spectra_[i] belongs to index_[i]. decodeSpectrum() starts from a copy of it.
+  MSExperiment spectra_;
 
   // Standard 2D imaging geometry (pixel grid + (x,y)->spectrum index), shared with
   // the in-memory path. Built eagerly in open(): it is an in-memory O(n) pass over
@@ -97,10 +101,7 @@ struct OnDiscImzMLExperiment::Impl
   MSSpectrum decodeSpectrum(std::size_t i) const
   {
     const ImzMLSpectrumIndex& e = index_[i];
-    MSSpectrum s;
-    s.setMetaValue("imzml:x", static_cast<Int>(e.x));
-    s.setMetaValue("imzml:y", static_cast<Int>(e.y));
-    s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+    MSSpectrum s = spectra_[i]; // metadata incl. imzml:x/y/z; peaks and aux arrays follow
 
     decodePeaksInto_(e, s);
     const std::size_t n = s.size();
@@ -154,11 +155,19 @@ struct OnDiscImzMLExperiment::Impl
       fda.assign(values.begin(), values.end());
     }
 
-    // Same default as MzMLHandler / ImzMLInterceptConsumer: per-peak IM from the
-    // .ibd is profile data unless a later centroiding step marks it otherwise.
-    if (s.containsIMData() && s.getIMPeakType() == IMPeakType::UNKNOWN)
+    // Same rule as ImzMLInterceptConsumer after its .ibd fill: per-peak IM is profile data
+    // unless the file declares otherwise (the parsed type comes with the spectrum metadata);
+    // without a remaining IM array the type is UNKNOWN.
+    if (s.containsIMData())
     {
-      s.setIMPeakType(IMPeakType::IM_PROFILE);
+      if (s.getIMPeakType() == IMPeakType::UNKNOWN)
+      {
+        s.setIMPeakType(IMPeakType::IM_PROFILE);
+      }
+    }
+    else
+    {
+      s.setIMPeakType(IMPeakType::UNKNOWN);
     }
 
     s.sortByPosition();
@@ -229,7 +238,7 @@ void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::strin
 
   ImzMLFile f;
   f.setLogType(ProgressLogger::NONE);
-  f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, ibd_path_override);
+  f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, pimpl_->spectra_, ibd_path_override);
 
   // Build the 2D imaging geometry up front (in-memory pass over the index, no .ibd
   // reads). Coordinate-grid problems surface here; only peak decode stays lazy.
@@ -261,6 +270,7 @@ void OnDiscImzMLExperiment::close() noexcept
   }
   pimpl_->is_open_ = false;
   pimpl_->geometry_.clear();
+  pimpl_->spectra_.clear(true);
 }
 
 bool OnDiscImzMLExperiment::isOpen() const noexcept
@@ -347,6 +357,11 @@ MSImagingGeometry& OnDiscImzMLExperiment::getGeometry()
 const ImzMLMeta& OnDiscImzMLExperiment::getImzMLMeta() const noexcept
 {
   return pimpl_->meta_;
+}
+
+const ExperimentalSettings& OnDiscImzMLExperiment::getExperimentalSettings() const
+{
+  return pimpl_->spectra_.getExperimentalSettings();
 }
 
 uint32_t OnDiscImzMLExperiment::gridWidth() const noexcept
