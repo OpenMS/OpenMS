@@ -419,6 +419,20 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: FeatureFinderMultiplexAlgorithm with knock_out: a partial pattern lacking the lightest channel
+    (e.g. medium and heavy of a triple SILAC peptide without light) kept the mass shifts of the complete
+    pattern, so the filtering only found it next to a peak at the absent light position; such peptides
+    came out as unrelated singlets. Knock-out patterns now start at shift 0 (relative to their lightest
+    present channel), and the quadruplex knock-out without its third channel is searched as well.
+  - FIX: FeatureFinderMultiplexAlgorithm fills getBlacklist() for centroided input, too (it was empty, so
+    MultiplexResolver reported overlapped dummy channels as absent instead of not quantifiable). Every
+    FeatureHandle of getConsensusMap() carries the unique id of its feature in getFeatureMap() (the
+    channel's mass trace hulls); getCentroidedExperiment() returns the peaks the detection worked on.
+  - MultiplexResolverAlgorithm: a pattern also has to label as many K, R (and L for Leu3) residues as
+    the identified sequence has. The label set of an unlabelled identification occurs in every pattern,
+    so e.g. a light singlet of a K-terminal peptide could be completed with Arg-shifted channels. New
+    checkIdentifications() tells which identifications of a multiplet agree with its mass shifts,
+    expectedChannelMZs() where the peptide of an identification appears in every channel.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -492,6 +506,33 @@ TOPP tools:
         ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
         exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported()
         (#10459).
+    MS1LabeledWorkflow:
+      - FIX: identifications were mapped onto a multiplet only within id_mapping:rt_tolerance (5 s) of
+        its apex and by their precursor m/z, so MS2 spectra acquired off the apex, and every spectrum
+        whose precursor was picked on another isotope (accepted by searches with isotope error
+        correction), stayed unassigned. They are now matched against the elution region of the
+        multiplet's channels (their mass traces, plus the tolerances), and id_mapping:mz_reference
+        defaults to 'peptide': the theoretical m/z of the identified, labelled peptidoform. The
+        channel of a spectrum match is the one closest to that m/z, too (an off-isotope precursor
+        could be closer to another channel and turn the multiplet into a conflict).
+      - FIX: of several identifications on a multiplet, those whose labels agree with its mass shifts
+        are preferred; a better-scoring one that contradicts them (e.g. a co-isolated peptide) made
+        the whole multiplet a quant/ID conflict.
+      - PARAM: algorithm:knock_out defaults to 'true': partial multiplets (e.g. a peptide seen in the
+        heavy channel only, or whose weaker channels fail the detection's filters) are quantified;
+        before, every multiplet with an undetected channel was dropped. Partial multiplets that only
+        flank a larger multiplet of the same peptide are merged into it. Supported for up to four
+        channels. -match_between_runs can be combined with it (only complete unidentified
+        multiplets are kept).
+      - PARAM: new -requantify (default 'true'): a channel the detection did not find is measured at
+        its expected position over the elution region of the multiplet, relative to its most intense
+        detected channel (like MaxQuant's re-quantify), and reported as absent only if it shows no
+        signal there. An identification of such a channel (e.g. the minor channel of a mixture, which
+        DDA fragments as well) joins the multiplet detected in the peptide's other channels.
+      - On a synthetic triple SILAC run (120 peptides; complete, partial and weak 1:0.15:0.15
+        multiplets; MS2 over the whole elution, precursors partly on M+1..M+3) 119 peptides are
+        quantified with the exact channel ratios. The previous per-run chain (apex mapping on precursor
+        m/z, complete multiplets only) quantified 27, i.e. not even half of the 60 complete ones.
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
