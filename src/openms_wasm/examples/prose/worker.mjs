@@ -24,11 +24,8 @@ function releaseState() {
   state = null;
 }
 
-/// Copies the user's files to /input of the module's (in-memory) file system. Not mounted with
-/// WORKERFS, although that reads them without a copy: in the threaded build, ProSE reads the
-/// spectra on a helper thread, whose file reads go through the module's main thread, which is
-/// busy with the search meanwhile; WORKERFS makes each of these reads slow (a search of a
-/// 78 MB mzML file on 16 threads took 29 s instead of 2 s).
+/// Copies the user's files to /input of the module's file system (WasmFS, in memory: every
+/// thread of the module reads it directly).
 async function writeInputs(files) {
   const { FS } = OpenMS;
   try {

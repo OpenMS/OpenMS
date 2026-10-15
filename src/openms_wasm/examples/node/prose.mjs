@@ -40,10 +40,9 @@ const OpenMS = await createOpenMS({ numThreads: threads, print: () => {}, printE
 OpenMS.setLogEnabled("info", false);
 OpenMS.setLogEnabled("warn", false);
 
-// the files' directories, visible to OpenMS without copying (NODEFS)
+// the files' directories, visible to OpenMS without copying
 const mount = (file, at) => {
-  OpenMS.FS.mkdir(at);
-  OpenMS.FS.mount(OpenMS.FS.filesystems.NODEFS, { root: path.dirname(path.resolve(file)) }, at);
+  OpenMS.mountHostDirectory(at, path.dirname(path.resolve(file)));
   return `${at}/${path.basename(file)}`;
 };
 const spectra = mount(positional[0], "/spectra");

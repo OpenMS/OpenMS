@@ -36,6 +36,16 @@ function checkMzMLFile1(exp) {
   });
 }
 
+test("mountHostDirectory and unmount", () => {
+  OpenMS.mountHostDirectory("/mounted", testDataDir);
+  assert.ok(OpenMS.FS.stat("/mounted/MzMLFile_1.mzML").size > 1000);
+  assert.ok(OpenMS.FS.readdir("/mounted").includes("MzMLFile_1.mzML"));
+  OpenMS.unmount("/mounted");
+  assert.throws(() => OpenMS.FS.stat("/mounted/MzMLFile_1.mzML"));
+  assert.throws(() => OpenMS.unmount("/mounted"), /mounted/);
+  assert.throws(() => OpenMS.mountHostDirectory("/no/such/parent/x", testDataDir), /no\/such\/parent/);
+});
+
 test("MzMLFile from the (mounted) file system", () => {
   using([new OpenMS.MzMLFile(), new OpenMS.MSExperiment()], (file, exp) => {
     file.load("/data/MzMLFile_1.mzML", exp);

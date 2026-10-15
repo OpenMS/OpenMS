@@ -106,10 +106,15 @@ target_link_options(openms_wasm PRIVATE
   "-sEXPORT_ES6=1"
   "-sEXPORT_NAME=createOpenMS"
   "-sENVIRONMENT=web,worker,node"
-  # the virtual file system, with Node.js directories (NODEFS) and browser File objects (WORKERFS) as mountable backends
+  # The virtual file system: WasmFS, the file system implemented in C++ inside the module, not
+  # the JavaScript one. In the threaded build, the JavaScript file system lives on the main
+  # thread and every file read of another thread waits for it; ProSE reads the spectra on a
+  # helper thread while the main thread's team builds the index, and so got them too late to
+  # restrict the index (a search against the human proteome took 8.7 s instead of 5.8 s). With
+  # WasmFS, threads read directly. Directories of the host (Node.js) are mounted with
+  # mountHostDirectory() (bindings/bind_misc.cpp); files of a browser are written to it.
+  "-sWASMFS=1"
   "-sFORCE_FILESYSTEM=1"
-  "-lnodefs.js"
-  "-lworkerfs.js"
   "-sEXPORTED_RUNTIME_METHODS=FS,ENV"
   # A library module: keep the runtime alive between calls.
   "-sEXIT_RUNTIME=0"
@@ -131,7 +136,10 @@ set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${_share_stamp}")
 if(OPENMS_WASM_THREADS)
   target_link_options(openms_wasm PRIVATE
     "--pre-js" "${CMAKE_CURRENT_SOURCE_DIR}/threads.js"
-    "-sPTHREAD_POOL_SIZE=openmsThreadPoolSize")
+    "-sPTHREAD_POOL_SIZE=openmsThreadPoolSize"
+    # threads.js starts the Workers of the threads from a Blob (Module.mainScriptUrlOrBlob), which
+    # the module only reads if named here (Emscripten's default list plus that one)
+    "-sINCOMING_MODULE_JS_API=ENVIRONMENT,arguments,canvas,dynamicLibraries,elementPointerLock,instantiateWasm,locateFile,monitorRunDependencies,noExitRuntime,noInitialRun,onAbort,onExit,onRuntimeInitialized,postRun,preInit,preRun,print,printErr,setStatus,statusMessage,stderr,stdin,stdout,thisProgram,wasm,websocket,mainScriptUrlOrBlob")
   set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/threads.js")
   set(OPENMS_WASM_PACKAGE_NAME "@openms/openms-wasm-mt")
   set(OPENMS_WASM_PACKAGE_DESCRIPTION "OpenMS, the C++ library for computational mass spectrometry, compiled to multi-threaded WebAssembly (OpenMP) for web applications and Node.js")

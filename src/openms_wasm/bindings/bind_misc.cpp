@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// Version, shared data, logging and threads.
+// Version, shared data, logging, threads, memory and the file system.
 
 #include "binding_utils.h"
 
@@ -16,7 +16,10 @@
 
 #include <emscripten/heap.h>
 #include <emscripten/threading.h>
+#include <emscripten/wasmfs.h>
 
+#include <cerrno>
+#include <cstring>
 #include <iostream>
 
 #ifdef _OPENMP
@@ -95,6 +98,47 @@ namespace OpenMS::WASM
       info.set("heapMax", static_cast<double>(emscripten_get_heap_max()));
       return info;
     }
+
+    //------------------------------------------------------------------------------
+    // File system (WasmFS, src/openms_wasm/CMakeLists.txt)
+
+    bool runsInNode()
+    {
+      const val process = val::global("process");
+      return !process.isUndefined() && !process["versions"].isUndefined() && !process["versions"]["node"].isUndefined();
+    }
+
+    /// Mounts directory @p host_directory of the host at @p mount_point of the module's file system
+    /// (created; its parent has to exist). Node.js only: OpenMS then reads and writes the files
+    /// of the host directly, without a copy.
+    void mountHostDirectory(const std::string& mount_point, const std::string& host_directory)
+    {
+      if (!runsInNode())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "mountHostDirectory() is available in Node.js only; in browsers, write the files with FS.writeFile()", mount_point);
+      }
+      backend_t backend = wasmfs_create_node_backend(host_directory.c_str());
+      if (backend == nullptr)
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, host_directory);
+      }
+      const int error = wasmfs_create_directory(mount_point.c_str(), 0777, backend);
+      if (error < 0)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mount_point, std::strerror(-error));
+      }
+    }
+
+    /// Removes the mount point @p mount_point (a directory created by mountHostDirectory()).
+    void unmountDirectory(const std::string& mount_point)
+    {
+      const int error = wasmfs_unmount(mount_point.c_str());
+      if (error < 0)
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mount_point, std::strerror(-error));
+      }
+    }
   } // namespace
 } // namespace OpenMS::WASM
 
@@ -110,4 +154,6 @@ EMSCRIPTEN_BINDINGS(openms_misc)
   function("isLogEnabled", OMS_FN(&isLogEnabled));
   function("getThreadingInfo", OMS_FN(&threadingInfo));
   function("getMemoryInfo", OMS_FN(&memoryInfo));
+  function("mountHostDirectory", OMS_FN(&mountHostDirectory));
+  function("unmount", OMS_FN(&unmountDirectory));
 }
