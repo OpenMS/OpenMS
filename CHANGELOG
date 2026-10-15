@@ -26,6 +26,8 @@ OpenMS Library:
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
+  - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
+    when binning auto percentiles. MeanIterative selects the actual maximum and safely handles all-zero spectra (#10521).
   - FIX: FeatureOverlapFilter::filter (and mergeFAIMSFeatures) no longer removes every feature
     without a unique id once one of them is merged; FAIMS feature merging kept 0 features.
   - FIX: MetaboliteSpectralMatching HyperScore rejects negative and non-finite fragment tolerances before scoring, including empty spectra; zero-tolerance exact matching remains supported.
