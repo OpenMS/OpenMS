@@ -1181,6 +1181,7 @@ namespace OpenMS
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
       enzyme_ = "unknown_enzyme";
+      params_.digestion_enzyme = DigestionEnzymeProtein();
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       // Record the spectra file as the run's primary MS run path now, so pepXML files
@@ -1895,8 +1896,16 @@ namespace OpenMS
 
       fixed_modifications_.clear();
       variable_modifications_.clear();
+      const auto digestion_enzyme = params_.digestion_enzyme;
       params_ = ProteinIdentification::SearchParameters();
-      params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
+      {
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      }
+      else
+      {
+        params_.digestion_enzyme = digestion_enzyme;
+      }
       std::string mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1986,34 +1995,49 @@ namespace OpenMS
 
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
-      if (ProteaseDB::getInstance()->hasEnzyme(StringUtils::toLower(enzyme_)))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      }
+      else
+      {
+        params_.digestion_enzyme = DigestionEnzymeProtein();
       }
     }
     else if (element == "specificity" && params_.digestion_enzyme.getName() == "unknown_enzyme") // parent: "sample_enzyme"
     { // special case: search parameter that occurs *before* "search_summary"!
       std::string cut_before = attributeAsString_(attributes, "cut");
-      std::string no_cut_after = attributeAsString_(attributes, "no_cut");
+      std::string no_cut_after;
+      optionalAttributeAsString_(no_cut_after, attributes, "no_cut");
       std::string sense = attributeAsString_(attributes, "sense");
-      params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
-          "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense,
-          cut_before, no_cut_after, sense));
+      const std::string enzyme_name = "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense;
+      if (cut_before.empty())
+      {
+        // OpenMS writes an empty cut for an unknown enzyme with no cleavage positions.
+        params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(enzyme_name, "", std::set<std::string>()));
+      }
+      else
+      {
+        params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
+            enzyme_name, cut_before, no_cut_after, sense));
+      }
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //TODO we should not overwrite the enzyme here! Luckily in most files it is the same
-      // enzyme as in sample_enzyme or something useless like "default".
       ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
-      enzyme_ = attributeAsString_(attributes, "enzyme");    
+      // The search parameters describe the search, so a known enzyme of the search constraint takes precedence over
+      // "sample_enzyme" (e.g. Comet: sample_enzyme "nonspecific", search constraint "Formic_Acid"). An unknown name
+      // (e.g. "default" from MSFragger) keeps the enzyme of "sample_enzyme".
+      enzyme_ = attributeAsString_(attributes, "enzyme");
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(StringUtils::toLower(enzyme_)));
+        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
         if (params_.digestion_enzyme.getName() != "unknown_enzyme" && enzyme_to_set != params_.digestion_enzyme)
         {
-          error(LOAD, "More than one enzyme found. This is currently not supported. Proceeding with last encountered only.");
+          error(LOAD, "Enzyme '" + enzyme_to_set.getName() + "' of 'enzymatic_search_constraint' differs from enzyme '"
+                      + params_.digestion_enzyme.getName() + "' (e.g. of 'sample_enzyme'). Using '" + enzyme_to_set.getName() + "'.");
         }
         params_.digestion_enzyme = enzyme_to_set;
       }
