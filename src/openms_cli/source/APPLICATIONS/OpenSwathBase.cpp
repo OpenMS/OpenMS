@@ -104,8 +104,9 @@ namespace OpenMS
         FileTypes::Type in_file_type = FileHandler::getTypeByFileName(f);
         if (in_file_type == FileTypes::MZML)
         {
-          // Dispatch to targeted loader which will choose SRM/MRM or SWATH path
-          auto maps = TargetedDataFileLoader::loadFile(f, tmp, exp_meta, readoptions, plugin_consumer);
+          // onDisc: indexed mzML read on access; otherwise the targeted loader chooses the SRM/MRM or SWATH path
+          auto maps = readoptions == "onDisc" ? swath_file.loadOnDisc(f, exp_meta, plugin_consumer)
+                                              : TargetedDataFileLoader::loadFile(f, tmp, exp_meta, readoptions, plugin_consumer);
           for (auto & m : maps)
           {
             swath_maps.push_back(m);
@@ -173,8 +174,9 @@ namespace OpenMS
       FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
       if (in_file_type == FileTypes::MZML)
       {
-        // Dispatch to targeted loader which will choose SRM/MRM or SWATH path
-        swath_maps = TargetedDataFileLoader::loadFile(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
+        // onDisc: indexed mzML read on access; otherwise the targeted loader chooses the SRM/MRM or SWATH path
+        swath_maps = readoptions == "onDisc" ? swath_file.loadOnDisc(file_list[0], exp_meta, plugin_consumer)
+                                             : TargetedDataFileLoader::loadFile(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
         // single-file: all maps originate from file_list[0]
         swath_map_sources.clear();
         for (Size i = 0; i < swath_maps.size(); ++i) swath_map_sources.push_back(file_list[0]);
