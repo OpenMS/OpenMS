@@ -428,6 +428,13 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: TMT 32-plex and 35-plex (IsobaricAnalyzer, IsobaricWorkflow) could not use isotope correction:
+    the correction_matrix parameter was ignored and the identity matrix used, which the isotope correction
+    rejects, so the tools failed with the default isotope_correction 'true'. Both methods now ship the
+    matrices of a Thermo Certificate of Analysis as defaults, in two parameters laid out like the two CoA
+    sheets: correction_matrix for the non-deuterated channels (8 columns, as for TMT 16-/18-plex) and
+    correction_matrix_deuterated for the deuterated channels (14 columns). A correction_matrix with one
+    14-column row per channel, as stored in OpenMS 3.6.0 INI files, is still accepted.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

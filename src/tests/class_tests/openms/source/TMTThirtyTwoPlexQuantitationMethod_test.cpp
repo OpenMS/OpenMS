@@ -143,6 +143,18 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
   for (Size i = 0; i < id.rows(); ++i)
     for (Size j = 0; j < id.cols(); ++j)
       TEST_REAL_SIMILAR(id(i,j), (i == j) ? 1.0 : 0.0)
+
+  // the layout of OpenMS 3.6.0 INI files, one 14-column row per channel in correction_matrix, is
+  // still accepted; correction_matrix_deuterated is then ignored. Channel 126 gets a +13C share of 5%
+  // (14-column position 8), which goes to 127C (channel index 2).
+  std::vector<std::string> legacy(32, "NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA/NA");
+  legacy[0] = "NA/NA/NA/NA/NA/NA/NA/NA/5.0/NA/NA/NA/NA/NA";
+  p.setValue("correction_matrix", legacy);
+  quant_meth.setParameters(p);
+  Matrix<double> m_legacy = quant_meth.getIsotopeCorrectionMatrix();
+  TEST_REAL_SIMILAR(m_legacy(0,0), 0.95)
+  TEST_REAL_SIMILAR(m_legacy(2,0), 0.05)
+  TEST_REAL_SIMILAR(m_legacy(3,3), 1.0)
 }
 END_SECTION
 
