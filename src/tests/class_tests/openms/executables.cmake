@@ -168,6 +168,7 @@ set(kernel_executables_list
   DimMapper_test
   DPeak_test
   FeatureMap_test
+  FeatureUniqueIds_test
   Feature_test
   MassTrace_test
   Mobilogram_test
