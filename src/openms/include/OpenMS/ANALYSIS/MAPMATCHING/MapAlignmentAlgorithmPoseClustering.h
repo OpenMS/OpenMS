@@ -25,8 +25,9 @@ namespace OpenMS
     Pose clustering analyzes pair distances to find the most probable
     transformation of retention times.
 
-    The algorithm chooses the x most intensity peaks/features per map.  This is
-    modeled via the parameter 'max_num_peaks_considered', which in turn
+    The algorithm uses up to 'max_num_peaks_considered' peaks/features per
+    map: the most intense features of a feature map, or MS1 peaks of a peak
+    map selected as set by 'peak_selection:method' (see below). This parameter
     influences the runtime and stability of the results.  Bigger values prolong
     computation, smaller values might lead to no or unstable trafos. Set to -1
     to use all features (might take very long for large maps).
@@ -100,9 +101,12 @@ protected:
 
       1. The MS1 peaks are binned into a grid of @p rt_bins x @p mz_bins cells over the RT and m/z range of the
          MS1 peaks. Each cell keeps only its most intense candidates, at first a multiple of its share of @p n, so
-         that memory stays proportional to @p n. Where that is too few (other cells are empty, or the candidates
-         belong to only a few analytes), steps 1 to 3 are repeated with twice as many candidates for each cell whose
-         candidates were cut off and that step 3 would take further peaks from.
+         that memory stays proportional to @p n. Steps 1 to 3 are repeated with more candidates for each cell whose
+         candidates were cut off where that was too few: step 3 would take further peaks from the cell (e.g. because
+         other cells are empty, or its candidates belong to only a few analytes), or a cut-off peak of the cell may
+         belong to the analyte of a peak selected from another cell (e.g. an elution profile that crosses the cell
+         border, with the apex cut off). The selection is thus practically the one with all MS1 peaks as candidates,
+         at a fraction of the memory.
       2. Going from the most intense candidate down, a candidate is accepted unless an accepted peak lies within
          @p rt_window (in seconds) of it at the same m/z, or at an isotope position m/z +/- k * 1.0033548378 / z
          (k = 1..3, z = 1..@p max_charge), within @p mz_tolerance_ppm. The accepted peaks are the apices of
@@ -130,7 +134,7 @@ protected:
       features keep their order in @p map. With @p n at or above the number of features (e.g. @c Size(-1)), the
       result equals that conversion.
 
-      @exception Exception::InvalidValue if a feature has a NaN intensity
+      @exception Exception::InvalidValue if a feature has a NaN intensity or a non-finite RT or m/z
     */
     static void selectFeatures_(UInt64 map_index, const FeatureMap& map, ConsensusMap& output, Size n);
 

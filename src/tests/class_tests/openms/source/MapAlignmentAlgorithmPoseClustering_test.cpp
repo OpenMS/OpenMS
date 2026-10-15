@@ -501,6 +501,44 @@ START_SECTION((static void selectSpreadPeaks_(UInt64 map_index, const PeakMap& m
   TestAligner::selectSpreadPeaks_(map_index, sparse, out, 1000, 20.0, 10.0, 1, 10, 10);
   TEST_EQUAL(out.size(), 41)
 
+  // an elution profile across a cell border: 60 intense single-peak analytes at m/z 300, 305, ..., 595 elute at
+  // RT 0..29 (two per spectrum), a weak analyte W at m/z 900 over RT 40..55 (apex 100 at RT 48), and a weak analyte R
+  // at RT 100, m/z 600. With two RT cells [0, 50) and [50, 100] and n = 2, the first cell keeps the 50 most intense
+  // analytes as candidates, without W's apex; W's tail (RT 50..55) in the second cell must not count as an analyte
+  PeakMap border;
+  for (int s = 0; s < 30; ++s)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(s);
+    for (int i = 2 * s; i < 2 * s + 2; ++i)
+    {
+      spec.push_back(Peak1D(300.0 + 5.0 * i, float(1000 + i)));
+    }
+    border.addSpectrum(spec);
+  }
+  for (int rt = 40; rt <= 55; ++rt)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(rt);
+    spec.push_back(Peak1D(900.0, float(100 - 10 * std::abs(rt - 48))));
+    border.addSpectrum(spec);
+  }
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(100.0);
+    spec.push_back(Peak1D(600.0, 10.0f));
+    border.addSpectrum(spec);
+  }
+  TestAligner::selectSpreadPeaks_(map_index, border, out, 2, 20.0, 10.0, 1, 2, 1);
+  TEST_EQUAL(out.size(), 2)
+  ABORT_IF(out.size() != 2)
+  TEST_REAL_SIMILAR(out[0].getIntensity(), 1059.0)
+  TEST_REAL_SIMILAR(out[1].getRT(), 100.0)
+  TEST_REAL_SIMILAR(out[1].getMZ(), 600.0)
+
   // a single spectrum (no RT range)
   PeakMap single;
   single.addSpectrum(sparse[5]);
@@ -637,6 +675,14 @@ START_SECTION((static void selectFeatures_(UInt64 map_index, const FeatureMap& m
   fm[2].setIntensity(std::numeric_limits<float>::quiet_NaN());
   TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectFeatures_(map_index, fm, out, 2))
   TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectFeatures_(map_index, fm, out, Size(-1)))
+
+  // as are non-finite RTs and m/z values
+  fm[2].setIntensity(300.0f);
+  fm[2].setRT(std::numeric_limits<double>::infinity());
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectFeatures_(map_index, fm, out, 2))
+  fm[2].setRT(20.0);
+  fm[2].setMZ(std::numeric_limits<double>::quiet_NaN());
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectFeatures_(map_index, fm, out, 2))
 }
 END_SECTION
 

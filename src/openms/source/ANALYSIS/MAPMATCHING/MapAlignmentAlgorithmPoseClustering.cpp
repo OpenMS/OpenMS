@@ -216,14 +216,16 @@ namespace OpenMS
     rt_bins = std::max<Size>(rt_bins, 1);
     mz_bins = std::max<Size>(mz_bins, 1);
     const Size cells = rt_bins * mz_bins;
+    // bin of a value in [min, max]; values outside fall into the first or last bin
+    const auto binOf = [](double value, double min, double max, Size bins)
+    {
+      if (max <= min || value <= min) return Size(0);
+      const double position = (value - min) / (max - min) * double(bins);
+      return position >= double(bins) ? bins - 1 : static_cast<Size>(position);
+    };
     const auto cellOf = [&](double rt, double mz)
     {
-      const auto bin = [](double value, double min, double max, Size bins)
-      {
-        if (max <= min) return Size(0);
-        return std::min(bins - 1, static_cast<Size>((value - min) / (max - min) * double(bins)));
-      };
-      return bin(rt, rt_min, rt_max, rt_bins) * mz_bins + bin(mz, mz_min, mz_max, mz_bins);
+      return binOf(rt, rt_min, rt_max, rt_bins) * mz_bins + binOf(mz, mz_min, mz_max, mz_bins);
     };
     const auto more_intense = [](const Peak2D& left, const Peak2D& right) { return moreIntense(left, right); };
 
@@ -274,9 +276,8 @@ namespace OpenMS
       return false;
     };
     // Each grid cell keeps its most intense peaks as candidates, at first a multiple of its share of n (one analyte
-    // contributes many peaks), so that memory stays proportional to n. A cell can need more: its share is wasted
-    // where other cells are empty, and its candidates can belong to only a few analytes. Such a cell's limit is
-    // doubled, and the selection repeated, while the round-robin reaches its last accepted peak.
+    // contributes many peaks), so that memory stays proportional to n. A cell can need more (see below); its limit
+    // is then raised and the selection repeated.
     constexpr Size candidates_per_selected_peak = 50;
     std::vector<Size> limit(cells, std::min(ms1_peaks, ((n + cells - 1) / cells) * candidates_per_selected_peak));
     std::vector<std::pair<Size, Size>> ranked; // (rank in cell, index into accepted)
@@ -312,6 +313,14 @@ namespace OpenMS
             pool.back() = candidate;
             std::push_heap(pool.begin(), pool.end(), more_intense);
           }
+        }
+      }
+      std::vector<Peak2D> least_intense(cells); // the least intense candidate of each truncated cell
+      for (Size cell = 0; cell < cells; ++cell)
+      {
+        if (truncated[cell])
+        {
+          least_intense[cell] = pools[cell].front();
         }
       }
       std::vector<Peak2D> candidates;
@@ -350,14 +359,71 @@ namespace OpenMS
       const bool all_taken = ranked.size() < n;
       ranked.resize(std::min(n, ranked.size()));
 
-      // a truncated cell may hold further analytes; they matter if the round-robin reaches the rank of the next one
+      // A truncated cell needs more candidates if
+      // (a) it may hold further analytes that the round-robin would take (it reaches the rank of the cell's next
+      //     accepted peak): wanted[cell] is the number of accepted peaks the cell should yield, or
+      // (b) one of its cut-off peaks may belong to the analyte of a selected peak of another cell: the selected peak
+      //     lies within reach (as in pass 3) and is not more intense than the cell's least intense candidate. It is
+      //     then e.g. the tail of an analyte whose apex was cut off.
       const Size last_rank = ranked.empty() ? 0 : ranked.back().first;
-      bool repeat = false;
+      std::vector<Size> wanted(cells, 0);
+      Size short_cells = 0;
       for (Size cell = 0; cell < cells; ++cell)
       {
         if (truncated[cell] && (all_taken || accepted_in_cell[cell] <= last_rank))
         {
-          limit[cell] = std::min(ms1_peaks, 2 * limit[cell]);
+          ++short_cells;
+        }
+      }
+      for (Size cell = 0; cell < cells && short_cells > 0; ++cell)
+      {
+        if (truncated[cell] && (all_taken || accepted_in_cell[cell] <= last_rank))
+        {
+          // if all accepted peaks are selected, the missing ones are shared among these cells; otherwise the cell
+          // should reach the last selected rank
+          wanted[cell] = all_taken ? accepted_in_cell[cell] + (n - ranked.size() + short_cells - 1) / short_cells : last_rank + 1;
+        }
+      }
+      std::vector<bool> cut_suppressor(cells, false);
+      const double isotope_span = max_charge > 0 ? double(max_isotope) * Constants::C13C12_MASSDIFF_U : 0.0;
+      for (const auto& entry : ranked)
+      {
+        const Peak2D& peak = accepted[entry.second];
+        const Size own_cell = cellOf(peak.getRT(), peak.getMZ());
+        const double tolerance = std::abs(peak.getMZ() + isotope_span) * mz_tolerance_ppm * 1e-6;
+        const Size rt_first = binOf(peak.getRT() - rt_window, rt_min, rt_max, rt_bins);
+        const Size rt_last = binOf(peak.getRT() + rt_window, rt_min, rt_max, rt_bins);
+        const Size mz_first = binOf(peak.getMZ() - isotope_span - tolerance, mz_min, mz_max, mz_bins);
+        const Size mz_last = binOf(peak.getMZ() + isotope_span + tolerance, mz_min, mz_max, mz_bins);
+        for (Size rt_bin = rt_first; rt_bin <= rt_last; ++rt_bin)
+        {
+          for (Size mz_bin = mz_first; mz_bin <= mz_last; ++mz_bin)
+          {
+            const Size cell = rt_bin * mz_bins + mz_bin;
+            if (cell != own_cell && truncated[cell] && !more_intense(peak, least_intense[cell]))
+            {
+              cut_suppressor[cell] = true;
+            }
+          }
+        }
+      }
+
+      bool repeat = false;
+      for (Size cell = 0; cell < cells; ++cell)
+      {
+        double factor = 0.0;
+        if (wanted[cell] > 0)
+        {
+          // in proportion to the shortfall, with a margin
+          factor = std::clamp(1.5 * double(wanted[cell]) / double(std::max<Size>(accepted_in_cell[cell], 1)), 2.0, 16.0);
+        }
+        else if (cut_suppressor[cell])
+        {
+          factor = 4.0;
+        }
+        if (factor > 0.0)
+        {
+          limit[cell] = std::min(ms1_peaks, static_cast<Size>(std::ceil(double(limit[cell]) * factor)));
           repeat = true;
         }
       }
@@ -402,6 +468,8 @@ namespace OpenMS
     for (const Feature& feature : map)
     {
       throwIfNaN(feature.getIntensity(), "A feature");
+      throwIfNotFinite(feature.getRT(), "A feature with a non-finite RT");
+      throwIfNotFinite(feature.getMZ(), "A feature with a non-finite m/z");
     }
     n = std::min(n, map.size());
 
