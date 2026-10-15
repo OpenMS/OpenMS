@@ -213,8 +213,9 @@ Normalization: @n
     them.
   - Choosing a normalization is a separate, explicit step. Three routes, in increasing distance
     from this tool: @n
-    - @ref TOPP_ConsensusMapNormalizer on -out_cxml (median, quantile, robust regression or
-      thresholded scaling); @n
+    - @ref TOPP_ConsensusMapNormalizer on -out_cxml (median, quantile, robust regression,
+      thresholded scaling, or 'rt_local', which also removes a drift of the signal along the
+      gradient), followed by @ref TOPP_MSstatsConverter for an MSstats file; @n
     - the ProteinQuantification:consensus:normalize parameter, which scales peptide abundances so
       that the median of each (fraction group, label) assay matches the overall median - i.e. it
       normalizes at the assay level rather than per fraction; @n
