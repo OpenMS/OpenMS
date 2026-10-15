@@ -97,6 +97,12 @@ order to select spectra and chromatograms for analysis. Only once selection on
 the meta data has been performed, will actual data be loaded into memory using
 the :py:meth:`~.OnDiscMSExperiment.getChromatogram` and :py:meth:`~.OnDiscMSExperiment.getSpectrum` functions.
 
+For fast filtering without reading peak data, :py:meth:`~.OnDiscMSExperiment.getSpectrumMetadata`,
+:py:meth:`~.OnDiscMSExperiment.getSpectrumRT` and :py:meth:`~.OnDiscMSExperiment.getSpectrumMSLevel` return
+the meta data of a single spectrum. They raise an exception for an invalid index or if the file was opened
+with ``skipMetaData``. Thermo ``.raw`` files offer the same random access through
+:py:class:`~.OnDiscThermoRawExperiment`.
+
 This approach is memory efficient in cases where computation should only occur
 on part of the data or the whole data may not fit into memory.
 

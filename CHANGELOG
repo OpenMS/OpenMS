@@ -189,6 +189,18 @@ OpenMS Library:
     The range filter copied only the SpectrumSettings / ChromatogramSettings, and the data arrays are now
     filtered together with the peaks. The returned spectrum's or chromatogram's m/z, RT and intensity ranges
     describe the kept peaks; a data array whose length does not match the peak list is emptied.
+  - FIX: OnDiscMSExperiment::getSpectrumMetadata(), getSpectrumRT() and getSpectrumMSLevel() throw
+    Exception::IndexOverflow for an index past the end (it was undefined behaviour) and
+    Exception::IllegalArgument when the file was opened with skipMetaData (they returned RT -1 and MS level 1).
+    SwathFile::loadOnDisc() and loadOnDiscByFAIMSCV() throw IllegalArgument for such an experiment instead of
+    crashing. OpenSwathWorkflow rejects -readOptions onDisc together with -split_file_input up front.
+  - FIX: MzTabFile reads and writes the colunit-<section> metadata as specified by mzTab 1.0 (the writer
+    emitted 'colunit-PSM' without a tab; the reader expected an index and failed on conforming lines) (#10524).
+  - FIX: MzMLSqliteHandler (sqMass) keeps the original spectrum native IDs of files written with write_full_meta;
+    such files could not be read back when a native ID lacked '=' (#10525).
+  - FIX: PepXMLFile::store writes no empty or misleading <specificity> (enzymes without cleavage rules,
+    unspecific cleavage) and 'search_engine' only on search_summary, as the pepXML schema requires (#10346).
+  - SignalToNoiseEstimatorMedianRapid is 1.4-2 times faster (#9782).
   - BrukerTimsFile applies the ModelType 2 correction of the MzCalibration table (columns C5..C14:
     a polynomial in m/z subtracted inside the calibrant range, as in Bruker's high precision
     calibration). When these columns are present and usable, m/z now matches the Bruker SDK inside
