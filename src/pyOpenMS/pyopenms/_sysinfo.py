@@ -36,7 +36,10 @@ elif sys.platform == "win32":
     try:
         import win32api
     except:
-        free_mem = lambda: 0 # memory will never change !
+        # Stub generators need a named callable; a lambda is emitted literally
+        # as <lambda>, which is not valid in a .pyi definition or re-export.
+        def free_mem() -> int:
+            return 0  # memory will never change!
     else:
         def free_mem():
             return win32api.GlobalMemoryStatus()['AvailPhys']
@@ -45,4 +48,5 @@ else:
     sys.stderr.write("Determination of memory status is not supported on this \n"
                      " platform, measuring for memoryleaks will never fail\n")
 
-    free_mem = lambda: 0 # memory will never change !
+    def free_mem() -> int:
+        return 0  # memory will never change!

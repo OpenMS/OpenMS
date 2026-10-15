@@ -17,7 +17,7 @@
 #include <cfloat>
 #include <vector>
 
-#include <boost/regex.hpp>
+#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
 
 namespace OpenMS
 {
@@ -219,7 +219,7 @@ namespace OpenMS
     std::vector<SuitabilityData> results_;
 
     /// pattern for finding a decoy string
-    const boost::regex decoy_pattern_;
+    const RegularExpression decoy_pattern_;
 
     /**
     * @brief Calculates the xcorr difference between the top two hits marked as decoy
@@ -254,18 +254,18 @@ namespace OpenMS
     double getDecoyCutOff_(const PeptideIdentificationList& pep_ids, double reranking_cutoff_percentile) const;
 
     /**
-    * @brief Tests if a PeptideHit is considered a deNovo hit
-    *
-    * To test this the function looks into the protein accessions.
-    * If only the deNovo protein is found, 'true' is returned.
-    * If at least one database protein is found, 'false' is returned.
-    *
-    * This function also uses boost::regex_search to make sure the deNovo accession doesn't contain a decoy string.
-    * This is needed for 'target+decoy' hits.
-    *
-    * @param[in] hit      PepHit in question
-    * @returns        true/false
-    */
+     * @brief Tests if a PeptideHit is considered a deNovo hit
+     *
+     * To test this the function looks into the protein accessions.
+     * If only the deNovo protein is found, 'true' is returned.
+     * If at least one database protein is found, 'false' is returned.
+     *
+     * This function also uses RegularExpression::search to make sure the deNovo accession doesn't contain a decoy string.
+     * This is needed for 'target+decoy' hits.
+     *
+     * @param[in] hit      PepHit in question
+     * @returns        true/false
+     */
     bool isNovoHit_(const PeptideHit& hit) const;
 
     /**
@@ -480,4 +480,3 @@ namespace OpenMS
     DBSuitability suit_;
   };
 }
-

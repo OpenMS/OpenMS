@@ -21,35 +21,9 @@
 #include <set>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {
-
-    // Specializations for character types, released by XMLString::release
-    template<> void shared_xerces_ptr<char>::doRelease_(char* item)
-    {
-      xercesc::XMLString::release(&item);
-    }
-
-    template<> void shared_xerces_ptr<XMLCh>::doRelease_(XMLCh* item)
-    {
-      xercesc::XMLString::release(&item);
-    }
-
-    // Specializations for character types, which needs to be
-    // released by XMLString::release
-    template <>
-    void unique_xerces_ptr<char>::doRelease_(char*& item)
-    {
-      xercesc::XMLString::release(&item);
-    }
-
-    template <>
-    void unique_xerces_ptr<XMLCh>::doRelease_(XMLCh*& item)
-    {
-      xercesc::XMLString::release(&item);
-    }
 
     XMLHandler::XMLHandler(const std::string & filename, const std::string & version) :
       file_(filename),
@@ -62,21 +36,6 @@ namespace OpenMS::Internal
 
     void XMLHandler::reset()
     {
-    }
-
-    void XMLHandler::fatalError(const SAXParseException & exception)
-    {
-      fatalError(LOAD, sm_.convert(exception.getMessage()), exception.getLineNumber(), exception.getColumnNumber());
-    }
-
-    void XMLHandler::error(const SAXParseException & exception)
-    {
-      error(LOAD, sm_.convert(exception.getMessage()), exception.getLineNumber(), exception.getColumnNumber());
-    }
-
-    void XMLHandler::warning(const SAXParseException & exception)
-    {
-      warning(LOAD, sm_.convert(exception.getMessage()), exception.getLineNumber(), exception.getColumnNumber());
     }
 
     void XMLHandler::fatalError(ActionMode mode, const std::string & msg, UInt line, UInt column) const
@@ -152,15 +111,16 @@ namespace OpenMS::Internal
 
     }
 
-    void XMLHandler::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+    // Native default implementations (overridden by migrated subclasses).
+    void XMLHandler::onStartElement(const char16_t * /*qname*/, const XMLAttributes & /*attributes*/)
     {
     }
 
-    void XMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const /*qname*/, const Attributes & /*attrs*/)
+    void XMLHandler::onEndElement(const char16_t * /*qname*/)
     {
     }
 
-    void XMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const /*qname*/)
+    void XMLHandler::onCharacters(const char16_t * /*chars*/, Size /*length*/)
     {
     }
 
@@ -366,219 +326,80 @@ namespace OpenMS::Internal
       std::vector<std::string> keys;
       meta.getKeys(keys);
 
-      std::string val;
       std::string p_prefix = std::string(indent, '\t') + "<" + writeXMLEscape(tag_name) + " type=\"";
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << p_prefix;
-
-        const DataValue& d = meta.getMetaValue(keys[i]);
-        // determine type
-        if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
-        {
-          os << "string";
-          val = writeXMLEscape(d);
-        }
-        else if (d.valueType() == DataValue::INT_VALUE)
-        {
-          os << "int";
-          val = StringUtils::toStr(d);
-        }
-        else if (d.valueType() == DataValue::DOUBLE_VALUE)
-        {
-          os << "float";
-          val = StringUtils::toStr(d);
-        }
-        else if (d.valueType() == DataValue::INT_LIST)
-        {
-          os << "intList";
-          val = d.toString();
-        }
-        else if (d.valueType() == DataValue::DOUBLE_LIST)
-        {
-          os << "floatList";
-          val = d.toString();
-        }
-        else if (d.valueType() == DataValue::STRING_LIST)
-        {
-          os << "stringList";
-          // List elements are separated by comma. In the rare case of comma inside individual strings
-          // we replace them by an escape symbol '\\|'. 
-          // This allows distinguishing commas as element separator and normal string character and reconstruct the list.
-          StringList sl = d.toStringList();
-          for (std::string& s : sl)
-          {
-            if (StringUtils::has(s, ',')) StringUtils::substitute(s, ",", "\\|");
-          }
-          val = "[" + writeXMLEscape(ListUtils::concatenate(sl, ",")) + "]";
-        }
-        else
-        {
-          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
-        os << "\" name=\"" << keys[i] << "\" value=\"" << val << "\"/>\n";
+        writeUserParamValue_(os, p_prefix, keys[i], meta.getMetaValue(keys[i]));
       }
     }
 
-    // https://github.com/OpenMS/OpenMS/issues/8122
-    #if defined(__GNUC__)
-    __attribute__((no_sanitize("address")))
-    #elif defined(_MSC_VER)
-    __declspec(no_sanitize_address)
-    #endif
-    size_t StringManager::strLength(const XMLCh* input_ptr)
+    void XMLHandler::writeUserParamValue_(std::ostream& os, const std::string& tag_start, const std::string& name, const DataValue& d)
     {
-      if (input_ptr == nullptr) {
-          return 0;
-      }
-  
-      XMLSize_t processed_chars = 0;
-      const XMLCh* pos_ptr = input_ptr;
-  
-      // find number of characters until we reach a 16-byte aligned address
-      uintptr_t ptr_value = reinterpret_cast<uintptr_t>(pos_ptr);
-      size_t misalignment = ptr_value & 15; // modulo 16 to find misalignment
-      int chars_to_align = misalignment ? (16 - misalignment) / sizeof(XMLCh) : 0;
-  
-      // process one by one until we reach a 16-byte aligned address (where a SIMD load can be used)
-      for (int i = 0; i < chars_to_align; ++i)
+      os << tag_start;
+
+      std::string val;
+      // determine type
+      if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
       {
-          if (*pos_ptr == 0) {
-              return i;
-          }
-          ++pos_ptr;
+        os << "string";
+        val = writeXMLEscape(d);
       }
-      processed_chars = chars_to_align;
-  
-      // SIMD loop: find the first zero character in blocks of 8 UTF-16 characters (16 bytes each)
-      const simde__m128i zero = simde_mm_setzero_si128();
-      while (true)
+      else if (d.valueType() == DataValue::INT_VALUE)
       {
-          simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
-          simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
-          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte 
-  
-          if (zero_mask != 0)
-          { // Found a zero character
-              auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
-              auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
-              return processed_chars + char_pos_zero;
-          }
-  
-          // 8 chars (each 2 bytes) had no zero
-          pos_ptr += 8;
-          processed_chars += 8;
+        os << "int";
+        val = StringUtils::toStr(d);
       }
-  
-      // never reached
-      return processed_chars;
-    }
-
-    void StringManager::compress64_(const XMLCh* inputIt, char* outputIt)
-    {
-      simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputIt));
-    
-      // Select every second byte (little-endian lower byte of each UTF-16 character)
-      const simde__m128i shuffleMask = simde_mm_setr_epi8(
-        0, 2, 4, 6, 8, 10, 12, 14,
-        -1, -1, -1, -1, -1, -1, -1, -1
-      );
-    
-      simde__m128i compressed = simde_mm_shuffle_epi8(bits, shuffleMask);
-    
-      // Store the lower 64 bits (8 ASCII characters)
-      simde_mm_storel_epi64(reinterpret_cast<simde__m128i*>(outputIt), compressed);
-    }
-
-    bool StringManager::isASCII(const XMLCh* chars, const XMLSize_t length)
-    {
-      if (length == 0)
+      else if (d.valueType() == DataValue::DOUBLE_VALUE)
       {
-        return true;
+        os << "float";
+        val = StringUtils::toStr(d);
       }
-
-      Size fullBlocks = length / 8;
-      Size remainder = length % 8;
-
-      const XMLCh* inputPtr = chars;
-      simde__m128i mask = simde_mm_set1_epi16(0xFF00);
-
-      // Process blocks of 8 UTF-16 characters using SIMD
-      for (Size i = 0; i < fullBlocks; ++i)
+      else if (d.valueType() == DataValue::INT_LIST)
       {
-        simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputPtr));
-        simde__m128i zero = simde_mm_setzero_si128();
-        simde__m128i andOp = simde_mm_and_si128(bits, mask);
-        simde__m128i cmp = simde_mm_cmpeq_epi16(andOp, zero);
-
-        if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
+        os << "intList";
+        val = d.toString();
+      }
+      else if (d.valueType() == DataValue::DOUBLE_LIST)
+      {
+        os << "floatList";
+        val = d.toString();
+      }
+      else if (d.valueType() == DataValue::STRING_LIST)
+      {
+        os << "stringList";
+        // List elements are separated by comma. In the rare case of comma inside individual strings
+        // we replace them by an escape symbol '\\|'.
+        // This allows distinguishing commas as element separator and normal string character and reconstruct the list.
+        StringList sl = d.toStringList();
+        for (std::string& s : sl)
         {
-          return false;
+          if (StringUtils::has(s, ',')) StringUtils::substitute(s, ",", "\\|");
         }
-
-        inputPtr += 8;
+        val = "[" + writeXMLEscape(ListUtils::concatenate(sl, ",")) + "]";
       }
-
-      // Check remaining characters individually
-      for (Size i = 0; i < remainder; ++i)
+      else
       {
-        if (inputPtr[i] & 0xFF00)
-        {
-          return false;
-        }
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
-
-      return true;
+      os << "\" name=\"" << name << "\" value=\"" << val << "\"/>\n";
     }
 
-    void StringManager::appendASCII(const XMLCh* chars, const XMLSize_t length, std::string& result)
-    {
-      // XMLCh are characters in UTF16 (usually stored as 16-bit unsigned
-      // short but this is not guaranteed).
-      // We know that the Base64 string here can only contain plain ASCII
-      // and all bytes except the least significant one will be zero. Thus
-      // we can convert to char directly (only keeping the least
-      // significant byte).
-    
-      Size fullBlocks = length / 8;
-      Size remainder = length % 8;
-    
-      const XMLCh* inputPtr = chars;
-    
-      Size currentSize = result.size();
-      result.resize(currentSize + length);
-      char* outputPtr = &result[currentSize];
-    
-      // Copy blocks of 8 characters at a time
-      for (Size i = 0; i < fullBlocks; ++i)
-      {
-        compress64_(inputPtr, outputPtr);
-        inputPtr += 8;
-        outputPtr += 8;
-      }
-    
-      // Copy any remaining characters individually
-      for (Size i = 0; i < remainder; ++i)
-      {
-        outputPtr[i] = static_cast<char>(inputPtr[i] & 0xFF);
-      }
-    }
 
     //*******************************************************************************************************************
 
-    DoubleList XMLHandler::attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const
+    DoubleList XMLHandler::attributeAsDoubleList_(const XMLAttributes & a, const char * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       return ListUtils::create<double>(StringUtils::substr(tmp, 1, tmp.size() - 2));
     }
 
-    IntList XMLHandler::attributeAsIntList_(const xercesc::Attributes & a, const char * name) const
+    IntList XMLHandler::attributeAsIntList_(const XMLAttributes & a, const char * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       return ListUtils::create<Int>(StringUtils::substr(tmp, 1, tmp.size() - 2));
     }
 
-    StringList XMLHandler::attributeAsStringList_(const xercesc::Attributes & a, const char * name) const
+    StringList XMLHandler::attributeAsStringList_(const XMLAttributes & a, const char * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       StringList tmp_list = ListUtils::create<std::string>(StringUtils::substr(tmp, 1, tmp.size() - 2)); // between [ and ]
@@ -593,19 +414,19 @@ namespace OpenMS::Internal
       return tmp_list;
     }
 
-    DoubleList XMLHandler::attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const
+    DoubleList XMLHandler::attributeAsDoubleList_(const XMLAttributes & a, const char16_t * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       return ListUtils::create<double>(StringUtils::substr(tmp, 1, tmp.size() - 2));
     }
 
-    IntList XMLHandler::attributeAsIntList_(const xercesc::Attributes & a, const XMLCh * name) const
+    IntList XMLHandler::attributeAsIntList_(const XMLAttributes & a, const char16_t * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       return ListUtils::create<Int>(StringUtils::substr(tmp, 1, tmp.size() - 2));
     }
 
-    StringList XMLHandler::attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const
+    StringList XMLHandler::attributeAsStringList_(const XMLAttributes & a, const char16_t * name) const
     {
       std::string tmp(expectList_(attributeAsString_(a, name)));
       StringList tmp_list = ListUtils::create<std::string>(StringUtils::substr(tmp, 1, tmp.size() - 2)); // between [ and ]
@@ -620,8 +441,5 @@ namespace OpenMS::Internal
       return tmp_list;
     }
 
-    StringManager::StringManager() = default;
-
-    StringManager::~StringManager() = default;
 
 } // namespace OpenMS::Internal

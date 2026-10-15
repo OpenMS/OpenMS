@@ -48,10 +48,10 @@ namespace OpenMS
       ~XQuestResultXMLHandler() override;
 
       // Docu in base class
-      void endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname) override;
+      void onEndElement(const char16_t* qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
+      void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
       /**
        * @brief Returns the minimum score encountered in the file.
@@ -171,10 +171,10 @@ namespace OpenMS
 
       /**
        * @brief Gets the link location of a xQuest xlinkPositionString.
-       * @param[in] attributes XML attributes of Xerces.
+       * @param[in] attributes XML attributes of the current element.
        * @param[out] pair Pair to be populated with the xlinkposition in xQuest.
        */
-      void getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair);
+      void getLinkPosition_(const XMLAttributes & attributes, std::pair<SignedSize, SignedSize> & pair);
 
       /**
        * @brief Sets the peptide evidence for Alpha and Beta.

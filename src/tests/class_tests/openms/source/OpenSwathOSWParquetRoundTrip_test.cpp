@@ -10,10 +10,12 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
@@ -40,12 +42,14 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
   TEST_EQUAL(light_exp.compounds.size() > 0, true)
 
   // Write to a single .oswpq archive (do NOT create a directory) to exercise archive writer path
-  File::TempDir tmp_dir;
+  TempDir tmp_dir;
   const std::string out_archive = tmp_dir.getPath() + "/roundtrip.oswpq";
+
+  const auto source_ids = OpenSwathLibraryIDNormalizer::normalizeSourceIDs(light_exp);
 
   OpenSwathOSWParquetWriter writer;
   FeatureMap empty_map;
-  writer.write(out_archive, light_exp, empty_map, 1,std::string("test_input"), false);
+  writer.write(out_archive, light_exp, empty_map, 1, std::string("test_input"), false, &source_ids);
 
   // Archive and embedded sidecar should exist (sidecar is written inside the zip)
   TEST_EQUAL(File::exists(out_archive), true)
@@ -58,7 +62,7 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
 
   // Verify the RAF path works: ZipRandomAccessFile::Open should succeed directly on the archive
   {
-    std::unique_ptr<File::TempDir> raf_tmp;
+    std::unique_ptr<TempDir> raf_tmp;
     auto ra_res = ZipRandomAccessFile::Open(out_archive, "library/precursors.parquet", raf_tmp);
 #if __has_include(<zip.h>)
     TEST_EQUAL(ra_res.ok(), true)
@@ -70,8 +74,11 @@ START_SECTION(void round-trip write/read .oswpq archive using RAF path)
   // Read back using TransitionParquetFile and verify the round-trip data
   TransitionParquetFile reader;
   OpenSwath::LightTargetedExperiment roundtrip_exp;
-  reader.convertParquetToTargetedExperiment(out_archive, roundtrip_exp);
+  OpenSwathLibraryIDNormalizer::SourceIDMapping roundtrip_source_ids;
+  reader.convertParquetToTargetedExperiment(out_archive, roundtrip_exp, &roundtrip_source_ids);
+  OpenSwathLibraryIDNormalizer::validateCanonicalIDs(roundtrip_exp);
 
+  TEST_EQUAL(roundtrip_source_ids.precursor_source_to_canonical.size(), source_ids.precursor_source_to_canonical.size())
   TEST_EQUAL(roundtrip_exp.compounds.size(), light_exp.compounds.size())
   TEST_EQUAL(roundtrip_exp.transitions.size(), light_exp.transitions.size())
 }

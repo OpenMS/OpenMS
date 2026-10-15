@@ -11,6 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ParquetFile.h>
+#include <OpenMS/SYSTEM/File.h>
 ///////////////////////////
 
 #include <arrow/api.h>
@@ -229,6 +230,32 @@ START_SECTION((template <typename BuilderT> static std::shared_ptr<arrow::Array>
   TEST_NOT_EQUAL(arr, nullptr)
   TEST_EQUAL(arr->length(), 1)
   TEST_EQUAL(ParquetFile::getInt64(arr, 0, -1, false), 77)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] writeTable leaves no file behind when the write fails))
+{
+  arrow::Int32Builder builder;
+  TEST_TRUE(builder.Append(1).ok())
+  std::shared_ptr<arrow::Array> values;
+  TEST_TRUE(builder.Finish(&values).ok())
+  const auto table = arrow::Table::Make(arrow::schema({arrow::field("value", arrow::int32())}), {values});
+
+  std::string good_file;
+  NEW_TMP_FILE(good_file)
+  ParquetFile::writeTable(table, good_file);
+  TEST_TRUE(File::exists(good_file))
+
+  // arrow::io::FileOutputStream::Open creates and truncates the file before the table is written,
+  // so a failure afterwards leaves a fragment carrying little more than the Parquet magic bytes -
+  // no footer, so a reader reports it as corrupt. writeTable throws rather than returning, so a
+  // caller writing several tables into a directory would otherwise leave the earlier ones plus one
+  // truncated file. A row group size of 0 is refused by Parquet for a non-empty table, which
+  // reaches that failure deterministically on every platform.
+  std::string failed_file;
+  NEW_TMP_FILE(failed_file)
+  TEST_EXCEPTION(Exception::InvalidValue, ParquetFile::writeTable(table, failed_file, 0))
+  TEST_FALSE(File::exists(failed_file))
 }
 END_SECTION
 

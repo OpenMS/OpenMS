@@ -15,7 +15,8 @@
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
-#include <boost/container/flat_map.hpp>
+#include <utility>
+#include <vector>
 #include <functional>
 
 namespace OpenMS
@@ -44,7 +45,7 @@ namespace OpenMS
   {
 public:
     /// Internal map type (UInt key to DataValue)
-    using MapType = boost::container::flat_map<UInt, DataValue>;
+    using MapType = std::vector<std::pair<UInt, DataValue>>;
     /// Mutable iterator type
     using iterator = MapType::iterator;
     /// Const iterator type
@@ -79,7 +80,7 @@ public:
      * If an entry with the same index already exists, it will be overwritten
      * with the value from @p rhs.
      *
-     * Uses an O(n+m) two-way merge algorithm since the underlying flat_map is sorted.
+     * Uses an O(n+m) two-way merge algorithm since the underlying vector is sorted.
      *
      * @param rhs The MetaInfo to merge from.
      * @return Reference to this object.
@@ -173,6 +174,9 @@ public:
     Size size() const { return index_to_value_.size(); }
 
 private:
+    iterator find_(UInt index);
+    const_iterator find_(UInt index) const;
+
 
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;

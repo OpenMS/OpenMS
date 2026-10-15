@@ -131,9 +131,12 @@ namespace OpenMS
      * Iterates through all elements, convolves them according to the number
      * of atoms from that element and sums up the result.
      *
-     * If the EmpiricalFormula has a charge 'q' != 0, then 'q' hydrogen atoms are added
-     * to the formula to match the result of EmpiricalFormula::getMonoWeight().
-     * Set `ef.charge = 0` to avoid this behavior.
+     * @deprecated Implicit charge handling: if the EmpiricalFormula has a charge 'q' != 0, then 'q'
+     * hydrogen atoms are currently added to the formula to match the result of
+     * EmpiricalFormula::getMonoWeight(). This is deprecated and will change in OpenMS 4.0, where the
+     * charge will be ignored and the neutral pattern returned (a one-time warning is logged when a
+     * non-zero charge is passed). Set `ef.charge = 0` to get the neutral pattern, or make the adduct
+     * explicit via EmpiricalFormula::addChargeAdduct(q) to keep the shifted pattern across the change.
      *  
      * @note The constructed isotope distribution is sorted by m/z which slows
      * down processing, consider using IsoSpec (IsoSpecWrapper /

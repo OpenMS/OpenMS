@@ -33,7 +33,7 @@ using namespace std;
 
 @brief PSMFeatureExtractor computes extra features for each input PSM
 
-@experimental Parts of this tool are still work in progress and usage and input requirements or output might change. (multiple_search_engine, Mascot support)
+@experimental Parts of this tool are still work in progress and usage and input requirements or output might change. (Mascot support)
 
 <center>
   <table>
@@ -56,6 +56,9 @@ compliant with TOPP SearchengineAdapter output. Also, PeptideIndexer compliant
 target/decoy annotation is mandatory.
 Currently supported search engines are Comet, X!Tandem, MSGF+, MSFragger, andes.
 Mascot support is available but in beta development.
+
+The tool processes exactly one search result at a time. To rescore results from
+several search engines jointly, combine them with @ref TOPP_ConsensusID instead.
 </p>
 
 @note if you have extra features you want to pass to percolator, use the extra
@@ -82,18 +85,13 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
+    registerInputFile_("in", "<file>", "", "Input file", true);
     setValidFormats_("in", ListUtils::create<std::string>("idXML,mzid,idparquet"));
     registerOutputFile_("out", "<file>", "", "Output file in idXML, mzid or idparquet format", true);
     setValidFormats_("out", ListUtils::create<std::string>("idXML,mzid,idparquet"));
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<std::string>("idXML,mzid,idparquet"));
     registerStringList_("extra", "<MetaData parameter>", vector<std::string>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
-    registerFlag_("multiple_search_engines", "Combine PSMs from different search engines by merging on scan level.");
-    registerFlag_("skip_db_check", "Manual override to skip the check if same settings for multiple search engines were applied. Only valid together with -multiple_search_engines flag.", true);
-    registerFlag_("concat", "Naive merging of PSMs from different search engines: concatenate multiple search results instead of merging on scan level. Only valid together with -multiple_search_engines flag.", true);
-    registerFlag_("impute", "Will instead of discarding all PSM not unanimously detected by all SE, impute missing values by their respective scores min/max observed. Only valid together with -multiple_search_engines flag.", true);
-    registerFlag_("limit_imputation", "Will impute missing scores with the worst numerical limit (instead of min/max observed) of the respective score. Only valid together with -multiple_search_engines flag.", true);
   }
   
   ExitCodes main_(int, const char**) override
@@ -107,29 +105,15 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const StringList in_list = getStringList_("in");
-    bool multiple_search_engines = getFlag_("multiple_search_engines");
-    OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
-    if (in_list.size() > 1 && !multiple_search_engines)
-    {
-      writeLogError_("Error: multiple input files given for -in, but -multiple_search_engines flag not specified. If the same search engine was used, feed the input files into PSMFeatureExtractor one by one.");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-    
+    const std::string in(getStringOption_("in"));
     const std::string out(getStringOption_("out"));
 
     //-------------------------------------------------------------
     // read input
     //-------------------------------------------------------------
-    bool skip_db_check = getFlag_("skip_db_check");
-    bool concatenate = getFlag_("concat");
-    StringList search_engines_used;
-    for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
     {
       PeptideIdentificationList peptide_ids;
       vector<ProteinIdentification> protein_ids;
-      std::string in = *fit;
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(in);
       OPENMS_LOG_INFO << "Loading input file: " << in << endl;
@@ -151,49 +135,15 @@ protected:
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
             "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
-            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
-            " all original single-run idXML inputs as list to this tool.",
+            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, feed the"
+            " original single-run idXML inputs into this tool one by one.",
             "# runs: " + StringUtils::toStr(protein_ids.size()));
       }
 
-      // will check if all ProteinIdentifications have the same search db unless it is the first, in which case all_protein_ids is empty yet.
-      if (multiple_search_engines && !skip_db_check && !all_protein_ids.empty())
-      {
-        ProteinIdentification::SearchParameters all_search_parameters = all_protein_ids.front().getSearchParameters();
-        ProteinIdentification::SearchParameters search_parameters = protein_ids.front().getSearchParameters();
-        if (search_parameters.db != all_search_parameters.db)
-        {
-          writeLogError_("Error: Input files are not searched with the same protein database, " + search_parameters.db + " vs. " + all_search_parameters.db + ". Set -skip_db_check flag to ignore this. Aborting!");
-          return INCOMPATIBLE_INPUT_DATA;
-        }
-      }
-      
-      if (!multiple_search_engines)
-      {
-        all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
-      }
-      else
-      {
-        std::string search_engine = protein_ids.front().getSearchEngine();
-        if (!ListUtils::contains(search_engines_used, search_engine))
-        {
-          search_engines_used.push_back(search_engine);
-        }
-        
-        if (concatenate)
-        {
-          // will concatenate the list
-          PercolatorFeatureSetHelper::concatMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
-        }
-        else
-        {
-          // will collapse the list (based on spectrum_reference)
-          PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
-        }
-      }
+      all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
       PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
     }
-    
+
     if (all_protein_ids.empty())
     {
       writeLogError_("Error: No protein hits found in input file. Aborting!");
@@ -204,27 +154,13 @@ protected:
     //-------------------------------------------------------------
     // extract search engine and prepare pin
     //-------------------------------------------------------------
-    std::string search_engine = all_protein_ids.front().getSearchEngine();
-    if (multiple_search_engines) search_engine = "multiple";
+    const std::string search_engine = all_protein_ids.front().getSearchEngine();
     OPENMS_LOG_DEBUG << "Registered search engine: " << search_engine << endl;
-    
+
     StringList extra_features = getStringList_("extra");
     StringList feature_set;
 
-    if (search_engine == "multiple")
-    {
-      if (getFlag_("concat"))
-      {
-        PercolatorFeatureSetHelper::addCONCATSEFeatures(all_peptide_ids, search_engines_used, feature_set);
-      }
-      else
-      {
-        bool impute = getFlag_("impute");
-        bool limits = getFlag_("limit_imputation");
-        PercolatorFeatureSetHelper::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set, !impute, limits);
-      }
-    }
-    else if (search_engine == "MS-GF+") 
+    if (search_engine == "MS-GF+")
     {
       PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
     }
@@ -261,21 +197,14 @@ protected:
       PercolatorFeatureSetHelper::checkExtraFeatures(it->getHits(), extra_features);  // will remove inconsistently available features
     }
     
-    if (all_protein_ids.size() > 1)
-    {
-      OPENMS_LOG_ERROR << "Multiple identifications in one file are not supported. Please resume with separate input files. Quitting." << std::endl;
-      return INCOMPATIBLE_INPUT_DATA;
-    }
-    else
-    {
-      ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
-      
-      search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
-      feature_set.insert(feature_set.end(), extra_features.begin(), extra_features.end());
-      search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
-      all_protein_ids.front().setSearchParameters(search_parameters);
-    }
-    
+    ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
+
+    search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
+    feature_set.insert(feature_set.end(), extra_features.begin(), extra_features.end());
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    all_protein_ids.front().setSearchParameters(search_parameters);
+
+
     // Storing the PeptideHits with calculated q-value, pep and svm score
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 

@@ -9,7 +9,6 @@
 #include <OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h>
 
 using namespace std;
-using namespace xercesc;
 
 namespace OpenMS::Internal
 {
@@ -37,20 +36,20 @@ namespace OpenMS::Internal
       os << "</PTMs>" << "\n";
     }
 
-    void PTMXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & /*attributes*/)
+    void PTMXMLHandler::onStartElement(const char16_t * const qname, const XMLAttributes & /*attributes*/)
     {
       tag_ =StringUtils::trimmed(std::string(sm_.convert(qname)));
       open_tag_ = true;
     }
 
-    void PTMXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const /*qname*/)
+    void PTMXMLHandler::onEndElement(const char16_t* /*qname*/)
     {
 //          tag_ =StringUtils::trimmed(StringUtils::toStr(sm_.convert(qname)));
       tag_ = "";
       open_tag_ = false;
     }
 
-    void PTMXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void PTMXMLHandler::onCharacters(const char16_t* chars, Size /*length*/)
     {
       if (open_tag_)
       {

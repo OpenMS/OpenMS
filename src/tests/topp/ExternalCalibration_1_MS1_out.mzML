@@ -201,12 +201,12 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.515009603368014" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="2020.191380806199959" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="Syntaxtest.1.1. File:&quot;Syntaxtest.raw&quot;, NativeID:&quot;controllerType=0 controllerNumber=1 scan=1&quot;"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-2000.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3610.81188" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-2000.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -241,12 +241,12 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="99.003988465907995" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1606.101503635810104" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="Syntaxtest.2.2.2 File:&quot;Syntaxtest.raw&quot;, NativeID:&quot;controllerType=0 controllerNumber=1 scan=2&quot;"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI d Full ms2 769.39@hcd50.00 [100.00-1590.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="2"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3611.09208" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI d Full ms2 769.39@hcd50.00 [100.00-1590.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="2"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="769.393789466471048"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -303,12 +303,12 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="99.003967358078" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1323.255909566430091" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="Syntaxtest.4.4.3 File:&quot;Syntaxtest.raw&quot;, NativeID:&quot;controllerType=0 controllerNumber=1 scan=4&quot;"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI d Full ms2 421.56@hcd50.00 [100.00-1310.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="4"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3611.39772" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI d Full ms2 421.56@hcd50.00 [100.00-1310.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="421.558584883602975"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -365,12 +365,12 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="99.003965872997" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1404.084755898149979" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="Syntaxtest.6.6.3 File:&quot;Syntaxtest.raw&quot;, NativeID:&quot;controllerType=0 controllerNumber=1 scan=6&quot;"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI d Full ms2 447.91@hcd50.00 [100.00-1390.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="6"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3611.7015" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI d Full ms2 447.91@hcd50.00 [100.00-1390.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="6"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="447.907085078448972"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -427,12 +427,12 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="99.003960624206996" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1277.817160198200099" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="Syntaxtest.8.8.3 File:&quot;Syntaxtest.raw&quot;, NativeID:&quot;controllerType=0 controllerNumber=1 scan=8&quot;"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI d Full ms2 407.58@hcd50.00 [100.00-1265.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="8"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3612.0051" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI d Full ms2 407.58@hcd50.00 [100.00-1265.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="8"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="407.579288484895983"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -489,12 +489,12 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="99.003986216033994" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1560.654632538949954" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="Syntaxtest.10.10.2 File:&quot;Syntaxtest.raw&quot;, NativeID:&quot;controllerType=0 controllerNumber=1 scan=10&quot;"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI d Full ms2 748.90@hcd50.00 [100.00-1545.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="10"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3612.31176" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI d Full ms2 748.90@hcd50.00 [100.00-1545.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="10"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="748.901794746371024"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -551,12 +551,12 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.515072861020997" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="2020.191740113800051" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="Syntaxtest.12.12. File:&quot;Syntaxtest.raw&quot;, NativeID:&quot;controllerType=0 controllerNumber=1 scan=12&quot;"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-2000.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3612.63552" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-2000.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -584,16 +584,6 @@
 		<chromatogramList count="1" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="TIC" index="0" defaultArrayLength="0">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="0">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -615,17 +605,17 @@
 <indexList count="2">
 	<index name="spectrum">
 		<offset idRef="controllerType=0 controllerNumber=1 scan=1">14762</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=2">49895</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=4">55540</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=6">61402</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=8">67462</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=10">74728</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=12">80607</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=2">49927</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4">55604</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=6">61498</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=8">67590</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=10">74888</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=12">80799</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC">113651</offset>
+		<offset idRef="TIC">113875</offset>
 	</index>
 </indexList>
-<indexListOffset>115057</indexListOffset>
+<indexListOffset>114892</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

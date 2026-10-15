@@ -133,7 +133,7 @@ namespace OpenMS
     bool add_metainfo_;
     bool add_isotopes_;
     bool add_internal_fragments_;
-    int isotope_model_;
+    int isotope_model_ = 0;
     bool add_precursor_peaks_;
     bool add_all_precursor_charges_ ;
     bool add_abundant_immonium_ions_;

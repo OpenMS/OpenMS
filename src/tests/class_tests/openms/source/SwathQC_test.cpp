@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 
 using namespace OpenMS;
@@ -66,7 +67,10 @@ swath_maps.back().ms1 = true;
 START_SECTION((static ChargeDistribution getChargeDistribution(const std::vector<SwathMap>& swath_maps, const size_t nr_samples, const double mz_tol)))
 {
   auto cd = SwathQC::getChargeDistribution(swath_maps, 10, 0.04);
-  SwathQC::ChargeDistribution cde = { {1,17}, {2,4}, {5,1}, {6,2}, {8,2}, {9,1}, {10,5} };
+  // expected values derive from PeakPickerHiRes_orbitrap_sn1_out.mzML, which is a
+  // peak-picked reference (S/N threshold 1) and changes when the picker's noise
+  // estimation changes
+  SwathQC::ChargeDistribution cde = { {1,12}, {6,1}, {10,4} };
   TEST_EQUAL(cd.size(), cde.size());
   if (cd != cde)
   {
@@ -144,39 +148,23 @@ START_SECTION((static void storeJSON(const std::string& filename)))
   }
 
   // getChargeDistribution(swath_maps, 10, 0.04);
-  std::string tmp_json = File::getTemporaryFile();
+  std::string tmp_json = TempFiles::getTemporaryFile();
   qc.storeJSON(tmp_json);
-  std::string tmp_expected = File::getTemporaryFile();
+  std::string tmp_expected = TempFiles::getTemporaryFile();
   TextFile tf;
   tf.addLine(R"({
   "ChargeDistributionMS1": [
     [
       1,
-      17
-    ],
-    [
-      2,
-      4
-    ],
-    [
-      5,
-      1
+      12
     ],
     [
       6,
-      2
-    ],
-    [
-      8,
-      2
-    ],
-    [
-      9,
       1
     ],
     [
       10,
-      5
+      4
     ]
   ]
 })");

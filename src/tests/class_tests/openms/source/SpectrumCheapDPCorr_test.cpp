@@ -15,6 +15,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
+#include <cstring>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -84,6 +86,71 @@ END_SECTION
 
 START_SECTION((Map<UInt, UInt> getPeakMap() const))
 	TEST_EQUAL(e_ptr->getPeakMap().size(), 121)
+END_SECTION
+
+START_SECTION([EXTRA] the 'keeppeaks' parameter reaches the consensus spectrum)
+{
+	DTAFile dta_file;
+	PeakSpectrum spec1;
+	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec1);
+	PeakSpectrum spec2;
+	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests_2.dta"), spec2);
+
+	// keeppeaks = 0 (default): peaks without an alignment partner are dropped
+	SpectrumCheapDPCorr corr;
+	corr(spec1, spec2);
+	const Size dropped = corr.lastconsensus().size();
+
+	// keeppeaks = 1: they are kept, so the consensus has more peaks
+	Param p = corr.getParameters();
+	p.setValue("keeppeaks", 1);
+	corr.setParameters(p);
+	corr(spec1, spec2);
+	const Size kept = corr.lastconsensus().size();
+
+	TEST_EQUAL(dropped, 9)
+	TEST_EQUAL(kept, 199)
+
+	// A wide 'variation' gives many peaks of these two spectra several possible partners, so
+	// operator() hands those blocks to dynprog_(), which has to honor keeppeaks as well.
+	auto count_ambiguous = [&](bool poison, bool keeppeaks) -> Size
+	{
+		alignas(SpectrumCheapDPCorr) unsigned char raw[sizeof(SpectrumCheapDPCorr)];
+		// Construct the object with placement new in storage filled with 0xFF (poison) or 0x00
+		// (reference). In the poisoned run, a member the constructor forgets to initialize holds 0xFF
+		// ('true' for a bool) instead of the zero that fresh memory usually happens to contain, so a
+		// missing initialization changes the result instead of passing by luck. keeppeaks_ used to be
+		// such a member (#10237): poisoned, dynprog_() kept 72 instead of 55 peaks.
+		std::memset(raw, poison ? 0xFF : 0x00, sizeof(raw));
+		SpectrumCheapDPCorr* poisoned_corr = new (raw) SpectrumCheapDPCorr();
+		Param poisoned_param = poisoned_corr->getParameters();
+		poisoned_param.setValue("keeppeaks", keeppeaks ? 1 : 0);
+		poisoned_param.setValue("variation", 0.02);
+		poisoned_corr->setParameters(poisoned_param);
+		(*poisoned_corr)(spec1, spec2);
+		const Size result = poisoned_corr->lastconsensus().size();
+		poisoned_corr->~SpectrumCheapDPCorr();
+		return result;
+	};
+	// the result must not depend on what was in memory before construction ...
+	TEST_EQUAL(count_ambiguous(false, false), count_ambiguous(true, false))
+	TEST_EQUAL(count_ambiguous(false, true), count_ambiguous(true, true))
+	// ... and dynprog_() must honor keeppeaks: a keeppeaks_ that is initialized to false but never
+	// set from the parameter passes the checks above, yet drops dynprog_()'s unaligned peaks even
+	// with keeppeaks=1
+	TEST_EQUAL(count_ambiguous(false, false), 55)
+	TEST_EQUAL(count_ambiguous(false, true), 146)
+
+	// a copy keeps the setting
+	SpectrumCheapDPCorr copy(corr);
+	copy(spec1, spec2);
+	TEST_EQUAL(copy.lastconsensus().size(), kept)
+
+	SpectrumCheapDPCorr assigned;
+	assigned = corr;
+	assigned(spec1, spec2);
+	TEST_EQUAL(assigned.lastconsensus().size(), kept)
+}
 END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& a) const)

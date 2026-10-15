@@ -6,6 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <boost/regex.hpp>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -14,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
@@ -43,6 +45,7 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
 #include <algorithm>
+#include <array>
 #include <map>
 #ifdef _OPENMP
   #include <omp.h>
@@ -53,6 +56,28 @@ using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    // Characters a candidate peptide may contain: one-letter codes of residues with a known
+    // elemental formula. Excludes the ambiguous codes B, X and Z, stop codons ('*') and any other
+    // symbol. AASequence parses '*' as a weightless X, so such a peptide cannot be scored.
+    const std::array<bool, 256>& searchableResidues()
+    {
+      static const std::array<bool, 256> table = []
+      {
+        std::array<bool, 256> searchable{};
+        const ResidueDB* rdb = ResidueDB::getInstance();
+        for (char c = 'A'; c <= 'Z'; ++c)
+        {
+          const Residue* r = rdb->getResidue(static_cast<unsigned char>(c));
+          searchable[static_cast<unsigned char>(c)] = (r != nullptr && !r->getFormula().isEmpty());
+        }
+        return searchable;
+      }();
+      return table;
+    }
+  }
+
   SimpleSearchEngineAlgorithm::SimpleSearchEngineAlgorithm() :
     DefaultParamHandler("SimpleSearchEngineAlgorithm"),
     ProgressLogger()
@@ -141,7 +166,12 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
-    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:PSM", 0.0,
+                       "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR). Set to 0 to disable PSM-level FDR: no q-values are "
+                       "computed, and every PSM keeps 'ln(hyperscore)' as main score. Above 0, the q-value replaces the main score (the "
+                       "search engine score is kept as meta value 'ln(hyperscore)_score'), only the best hit of each spectrum is kept, "
+                       "and decoy hits are removed. Requires 'decoys' to be 'true'; otherwise a threshold above 0 is skipped with a "
+                       "warning.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
@@ -241,6 +271,11 @@ namespace OpenMS
       exp[exp_index].sortByPosition();
 
       // deisotope (skipped for low-resolution data; see do_deisotope above)
+      // Isotope intensities must fall from the monoisotopic peak on (start_intensity_check = 1).
+      // With the library default of 2, a small peak one isotope spacing below a fragment ion
+      // became the envelope's monoisotopic peak and the ion itself was removed as its isotope.
+      // TMT/TMTpro-labelled fragments carry such a peak (reagent isotope impurity), and dense
+      // spectra often hold one by chance. ProSE makes the same call (OpenMS#10391).
       if (do_deisotope)
       {
         Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
@@ -248,7 +283,11 @@ namespace OpenMS
           1, 3,   // min / max charge
           false,  // keep only deisotoped
           3, 10,  // min / max isopeaks
-          true);  // convert fragment m/z to mono-charge
+          true,   // convert fragment m/z to mono-charge
+          false,  // annotate charge
+          false,  // annotate isotopic peak counts
+          true,   // decreasing isotope intensities
+          1);     // start the intensity check at the monoisotopic peak
       }
 
       // remove noise
@@ -680,6 +719,18 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
+    // A stop codon ('*') that ends a sequence, as in databases translated from genomes (e.g. SGD),
+    // is not a residue: remove it so the C-terminal peptide stays searchable and decoys are built
+    // from the protein alone. Peptides that contain a stop codon inside the sequence are skipped.
+    for (FASTAFile::FASTAEntry& e : fasta_db)
+    {
+      while (!e.sequence.empty() && e.sequence.back() == '*') { e.sequence.pop_back(); }
+    }
+    // An entry left without residues has nothing to search, and decoy generation needs residues.
+    fasta_db.erase(std::remove_if(fasta_db.begin(), fasta_db.end(),
+                                  [](const FASTAFile::FASTAEntry& e) { return e.sequence.empty(); }),
+                   fasta_db.end());
+
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
@@ -722,6 +773,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     Size count_proteins(0), count_peptides(0);
 
+    const std::array<bool, 256>& searchable = searchableResidues();
+    const auto is_unsearchable = [&searchable](char c) { return !searchable[static_cast<unsigned char>(c)]; };
+
 #pragma omp parallel for schedule(static)
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
@@ -740,7 +794,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (auto const & c : current_digest)
       { 
         const std::string current_peptide = std::string(c);
-        if (current_peptide.find_first_of("XBZ") != std::string::npos)
+        // skip peptides containing unknown or ambiguous AA codes (X, B, Z), stop codons ('*')
+        // or other symbols
+        if (std::any_of(current_peptide.begin(), current_peptide.end(), is_unsearchable))
         {
           continue;
         }

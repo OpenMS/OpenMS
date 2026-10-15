@@ -112,17 +112,10 @@ namespace OpenMS
   }
 
 
-  TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& rhs) = default;
 
 
-  TheoreticalSpectrumGenerator& TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator& rhs)
-  {
-    DefaultParamHandler::operator=(rhs);
-    return *this;
-  }
+  TheoreticalSpectrumGenerator& TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator& rhs) = default;
 
   TheoreticalSpectrumGenerator::~TheoreticalSpectrumGenerator() = default;
 
@@ -601,7 +594,7 @@ namespace OpenMS
       }
     }
 
-    for (Size l = 1; l < peptide.size() - 1 - 2; ++l) // start at a2/b2, stop at n-1 a/b ion with min length of 2
+    for (Size l = 1; l + 3 < peptide.size(); ++l) // start at a2/b2, stop at n-1 a/b ion with min length of 2 (additive form avoids unsigned underflow on short peptides)
     {
       double intensity(1);
 
@@ -1285,6 +1278,7 @@ namespace OpenMS
     add_internal_fragments_ = param_.getValue("add_internal_fragments").toBool();
     if (param_.getValue("isotope_model") == "coarse") isotope_model_ = 1;
     else if (param_.getValue("isotope_model") == "fine") isotope_model_ = 2;
+    else isotope_model_ = 0; // 'none': reset, otherwise a previous setting would linger
     sort_by_position_ = param_.getValue("sort_by_position").toBool();
     add_precursor_peaks_ = param_.getValue("add_precursor_peaks").toBool();
     add_all_precursor_charges_ = param_.getValue("add_all_precursor_charges").toBool();

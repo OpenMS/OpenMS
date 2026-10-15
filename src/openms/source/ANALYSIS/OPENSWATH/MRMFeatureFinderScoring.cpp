@@ -6,7 +6,10 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+
+#include <unordered_set>
 
 // data access
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -22,7 +25,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 #include <boost/range/adaptor/map.hpp>
@@ -229,19 +232,7 @@ namespace OpenMS
     prepareProteinPeptideMaps_(transition_exp);
 
     // Store the proteins from the input in the output feature map
-    std::vector<ProteinHit> protein_hits;
-    for (const ProteinType& prot : transition_exp.getProteins())
-    {
-      ProteinHit prot_hit = ProteinHit();
-      prot_hit.setSequence(prot.sequence);
-      prot_hit.setAccession(prot.id);
-      protein_hits.push_back(prot_hit);
-    }
-
-    ProteinIdentification prot_id = ProteinIdentification();
-    prot_id.setHits(protein_hits);
-    prot_id.setIdentifier(run_identifier);
-    output.getProteinIdentifications().push_back(prot_id);
+    addProteinIdentificationRun(transition_exp, output);
 
     //
     // Step 2
@@ -287,6 +278,35 @@ namespace OpenMS
 
     //output.sortByPosition(); // if the exact same order is needed
     return;
+  }
+
+  void MRMFeatureFinderScoring::addProteinIdentificationRun(const OpenSwath::LightTargetedExperiment& transition_exp, FeatureMap& output)
+  {
+    auto& runs = output.getProteinIdentifications();
+    auto run = std::find_if(runs.begin(), runs.end(),
+                            [](const ProteinIdentification& r) { return r.getIdentifier() == run_identifier; });
+    if (run == runs.end())
+    {
+      runs.emplace_back();
+      run = std::prev(runs.end());
+      run->setIdentifier(run_identifier);
+    }
+    // add the proteins the run does not have yet, in the order of the transition list
+    std::unordered_set<std::string> accessions;
+    for (const ProteinHit& hit : run->getHits())
+    {
+      accessions.insert(hit.getAccession());
+    }
+    for (const ProteinType& prot : transition_exp.getProteins())
+    {
+      if (accessions.insert(prot.id).second)
+      {
+        ProteinHit prot_hit;
+        prot_hit.setSequence(prot.sequence);
+        prot_hit.setAccession(prot.id);
+        run->insertHit(prot_hit);
+      }
+    }
   }
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
@@ -633,7 +653,7 @@ namespace OpenMS
     const bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
     const double detection_precursor_mz = !transition_group_detection.getTransitions().empty() ?
       transition_group_detection.getTransitions()[0].getPrecursorMZ() : -1.0;
-    const int group_size = boost::numeric_cast<int>(transition_group_detection.size());
+    const int group_size = checkedCast<int>(transition_group_detection.size());
     if (group_size == 0 && !ms1only)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -1216,13 +1236,18 @@ namespace OpenMS
     {
       pep_hit_.setCharge(pep.getChargeState());
     }
-    const double xx_lda_prescore = mrmfeature.metaValueExists("xx_lda_prelim_score") ?
+    // The hit's score is a preliminary score of the feature (higher is better); the score type names it.
+    const bool has_lda_prescore = mrmfeature.metaValueExists("xx_lda_prelim_score");
+    const double xx_lda_prescore = has_lda_prescore ?
       static_cast<double>(mrmfeature.getMetaValue("xx_lda_prelim_score")) : mrmfeature.getOverallQuality();
     pep_hit_.setScore(xx_lda_prescore);
+    pep_id_.setScoreType(has_lda_prescore ? "xx_lda_prelim_score" : "OverallQuality");
     if (swath_present && mrmfeature.metaValueExists("xx_swath_prelim_score"))
     {
       pep_hit_.setScore(mrmfeature.getMetaValue("xx_swath_prelim_score"));
+      pep_id_.setScoreType("xx_swath_prelim_score");
     }
+    pep_id_.setHigherScoreBetter(true);
 
     if (pep.isPeptide() && !pep.sequence.empty())
     {
@@ -1353,7 +1378,7 @@ namespace OpenMS
     chromatogram_map.reserve(nr_chromatograms);
     for (Size i = 0; i < nr_chromatograms; i++)
     {
-      chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
+      chromatogram_map[input->getChromatogramNativeID(i)] = checkedCast<int>(i);
     }
 
     // Iterate through all transitions and store the transition with the

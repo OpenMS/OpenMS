@@ -65,7 +65,7 @@ namespace OpenMS
       UInt offset(0);
       if (it != line.end())
       {
-        while (*(++it) != '"')
+        while (++it != line.end() && *it != '"')
         {
           if (*it == ',')
           {

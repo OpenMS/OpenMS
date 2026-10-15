@@ -142,6 +142,13 @@ private:
   /// *every* acceptor carries a valid IM score; that keeps the SVM predictor
   /// columns rectangular (SimpleSVM requires equal-length predictor vectors).
   bool use_im_ = false;
+
+  /// Whether the RT predictor is the CALIBRATED rt_score ([0,1] agreement) rather
+  /// than the raw rt_diff_error. Like ion mobility this is all-or-nothing: true
+  /// only when every acceptor carries a calibrated rt_score (>= 0), which happens
+  /// exactly on the local adaptive RT path with a calibrated RtScoreMode. The
+  /// baseline/global path leaves rt_score at the -1 sentinel -> raw rt_diff_error.
+  bool use_rt_score_ = false;
 };
 
 } // namespace OpenMS::PipEcho

@@ -25,8 +25,6 @@ If your PR is failing you can check out
   <summary>Click to expand</summary>
   
 - `/reformat` (experimental) applies the clang-format style changes as additional commit. Note: your branch must have a different name (e.g., yourrepo:feature/XYZ) than the receiving branch (e.g., OpenMS:develop). Otherwise, reformat fails to push.
-- setting the label "NoJenkins" will skip tests for this PR on jenkins (saves resources e.g., on edits that do not affect tests)
-- commenting with `rebuild jenkins` will retrigger Jenkins-based CI builds
   
 </details>
 

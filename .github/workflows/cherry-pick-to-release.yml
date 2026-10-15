@@ -1,0 +1,34 @@
+name: Cherry-pick to release
+
+on:
+  pull_request_target:
+    types: [closed, labeled]   # closed => label-then-merge; labeled => label-after-merge
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Merged develop PR number to backport (manual / backfill)"
+        required: true
+
+permissions:
+  contents: write          # push the backport branch
+  pull-requests: write     # open, label, and assign the backport PR
+
+jobs:
+  backport:
+    runs-on: ubuntu-latest
+    # Act only on a merged develop PR carrying the patch label.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      ( github.event.pull_request.merged == true &&
+        github.event.pull_request.base.ref == 'develop' &&
+        contains(github.event.pull_request.labels.*.name, vars.PATCH_LABEL || 'patch') )
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Cherry-pick onto the current release branch
+        uses: ./.github/actions/cherry-pick
+        with:
+          pr-number: ${{ github.event.pull_request.number || inputs.pr_number }}
+          target-branch: ${{ vars.CURRENT_RELEASE_BRANCH }}  

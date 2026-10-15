@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Helpers.h>
 
 #include <utility>
@@ -319,7 +320,13 @@ namespace OpenMS
 
   const ReactionMonitoringTransition::Prediction & ReactionMonitoringTransition::getPrediction() const
   {
-    OPENMS_PRECONDITION(hasPrecursorCVTerms(), "ReactionMonitoringTransition has no Prediction object, check first with hasPrediction()")
+    // Always throw on a missing Prediction (a runtime check, not an OPENMS_PRECONDITION), so the contract is
+    // identical across build configurations. The previous code guarded the wrong member (hasPrecursorCVTerms()).
+    if (prediction_ == nullptr)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "ReactionMonitoringTransition has no Prediction object; check with hasPrediction() before calling getPrediction().");
+    }
     return *prediction_;
   }
 

@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -34,7 +34,14 @@ namespace OpenMS
     Data are split across two files on disk:
 
     - @c .imzML — XML metadata (mzML 1.1.0 schema + IMS CV terms)
-    - @c .ibd   — external m/z and intensity arrays
+    - @c .ibd   — external m/z, intensity, and optional auxiliary arrays
+      (e.g. PSI-MS @c MS:1003006 ion mobility → @c FloatDataArray)
+
+    After load, spectra that carry per-peak ion mobility expose it via
+    @p MSSpectrum::containsIMData() / @p getFloatDataArrays() — the same
+    contract used by mzML ion-mobility data and by viewers. Aux arrays must
+    match the peak count; mismatched lengths are skipped with a warning, as are
+    aux arrays without a supported binary data type.
 
     The @c .ibd path is derived from the @c .imzML path (same basename,
     extension replaced with @c .ibd, case-insensitive).
@@ -43,10 +50,11 @@ namespace OpenMS
     decodes IMS-specific terms and reads peak data from the @c .ibd file.
 
     @b Loading modes
-    - In-memory: @p load(filename, MSImagingExperiment&) decodes the spectra and
-      builds @p MSImagingGeometry for random access by (x, y) in RAM (zero-based
-      coordinates; imzML file coordinates are 1-based). Use
-      @p MSImagingExperiment::getMSExperiment() for the flat spectra.
+    - In-memory: @p load(filename, MSImagingExperiment&) decodes the spectra,
+      derives @p MSImagingGeometry directly from the parsed per-spectrum coordinate
+      index, and provides zero-based (x, y) random access in RAM (imzML file
+      coordinates are 1-based). Use @p MSImagingExperiment::getMSExperiment()
+      for the flat spectra.
     - Streaming: @p load(filename, IMSDataConsumer&) forwards decoded spectra to
       the consumer without retaining them in @p ImzMLFile. Delivery is batched
       after the @c spectrumList XML section is parsed (same as @p MzMLHandler),
@@ -61,6 +69,13 @@ namespace OpenMS
     data types when present in the file.
     Per-spectrum pixel coordinates use @p imzml:x, @p imzml:y, @p imzml:z.
 
+    @b IBD integrity check
+    Every load path verifies that the first 16 bytes of the companion @c .ibd match
+    the UUID declared via @c IMS:1000080 in the @c .imzML XML.  A mismatch (or a missing
+    / unparsable UUID in the XML) is reported as a @b warning rather than a hard error,
+    so that legacy and non-conformant datasets still load.  Callers that require strict
+    conformance should inspect the warning log.
+
     @ingroup FileIO
 
     @see MzMLFile, OnDiscImzMLExperiment, MSImagingExperiment, ImzMLMeta, ImzMLSpectrumIndex
@@ -73,14 +88,19 @@ namespace OpenMS
 
     /** @name Constructors and destructor */
     //@{
+    /// Default constructor
     ImzMLFile();
+    /// Destructor
     ~ImzMLFile() override = default;
     //@}
 
     /** @name Options */
     //@{
+    /// Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();
+    /// Non-mutable access to the options for loading/storing
     const PeakFileOptions& getOptions() const;
+    /// Set options for loading/storing
     void setOptions(const PeakFileOptions& options);
     //@}
 
@@ -89,10 +109,13 @@ namespace OpenMS
     /**
       @brief Load an imzML file into an MSImagingExperiment for in-memory random access.
 
-      Performs a full load, then builds @p MSImagingGeometry from @p imzml:x/y
-      MetaValues on each spectrum (imzML 1-based coordinates are mapped to
-      zero-based pixel indices). Only spectra with @p imzml:z = 1 are indexed
-      (2-D datasets).
+      Performs a full load and derives @p MSImagingGeometry directly from the
+      parsed per-spectrum coordinate index — the same path used by
+      @p loadSpectraIndex and @p OnDiscImzMLExperiment. Coordinates are converted
+      from imzML's 1-based convention to zero-based pixel indices; only spectra
+      with z = 1 are indexed (2-D datasets). Out-of-grid or &lt; 1 coordinates
+      are skipped with a warning, and so are duplicate coordinates (only the first
+      spectrum per pixel enters the geometry).
 
       Use @p MSImagingExperiment::getSpectrum(x, y) to fetch spectra by pixel
       without re-reading the @c .ibd file.
@@ -102,7 +125,6 @@ namespace OpenMS
 
       @throws Exception::FileNotFound if the @c .imzML or @c .ibd cannot be opened.
       @throws Exception::ParseError   if the XML is malformed.
-      @throws Exception::InvalidValue if pixel coordinates are invalid or duplicate.
     */
     void load(const std::string& filename, MSImagingExperiment& exp);
 
@@ -112,12 +134,18 @@ namespace OpenMS
       Reads dataset dimensions from @p imzml:max_count_x/y MetaValues when
       present and registers each spectrum that carries @p imzml:x/y (and
       @p imzml:z = 1). Coordinates are converted from imzML's 1-based convention
-      to zero-based geometry indices.
+      to zero-based geometry indices. Out-of-grid or &lt; 1 coordinates are
+      warned and skipped. Duplicate coordinates are likewise warned and dropped
+      from the geometry (only the first spectrum per pixel is mapped; every
+      spectrum stays reachable by index), matching what the loaders accept for
+      the same dataset.
+
+      Prefer the index-based overload when a spectrum index is available (used
+      by the loaders). This MetaValue-based path is for experiments already
+      loaded into an @p MSExperiment (e.g. via @p FileHandler).
 
       @param[in] exp  Experiment previously loaded from imzML (e.g. via @p load or @p FileHandler).
       @param[out] geom Geometry to populate (cleared first).
-
-      @throws Exception::InvalidValue on invalid or duplicate pixel coordinates.
     */
     static void buildImagingGeometry(const MSExperiment& exp, MSImagingGeometry& geom);
 
@@ -129,13 +157,13 @@ namespace OpenMS
       @p imzml:x/y MetaValues), mirroring how BrukerTimsImagingFile populates its geometry.
       Each index entry's 1-based (x, y) with z = 1 is registered as a zero-based pixel bound
       to that spectrum; dimensions and pixel size come from @p meta. Out-of-grid or < 1
-      coordinates are warned and skipped; duplicates raise Exception::InvalidValue.
+      coordinates are warned and skipped.
 
       @param[in]  index Per-spectrum index entries (e.g. from @p loadSpectraIndex or the loader).
       @param[in]  meta  Dataset metadata (grid dimensions, pixel size).
-      @param[out] geom  Geometry to populate (cleared first).
-
-      @throws Exception::InvalidValue on duplicate pixel coordinates.
+      @param[out] geom  Geometry to populate (cleared first). Duplicate pixel coordinates are
+                        warned about; only the first spectrum per pixel enters the geometry, and
+                        all spectra stay reachable by linear index.
     */
     static void buildImagingGeometry(const std::vector<ImzMLSpectrumIndex>& index,
                                      const ImzMLMeta& meta,
@@ -202,11 +230,14 @@ namespace OpenMS
       written when present. @p PeakFileOptions control binary precision and
       optional spectrum/peak filtering during export.
 
+      Spectra sharing a pixel coordinate are written out as-is with a warning, matching
+      what @p load accepts for the same dataset.
+
       @param[in] filename Path to the output @c .imzML file.
       @param[in] exp      Experiment with spectra and optional imzML MetaValues.
 
       @throws Exception::MissingInformation if @p exp has no spectra or lacks imzml:x/y.
-      @throws Exception::InvalidValue if pixel coordinates are invalid or duplicate.
+      @throws Exception::InvalidValue if pixel coordinates are invalid.
       @throws Exception::InvalidParameter if continuous export is requested but spectra are incompatible.
       @throws Exception::UnableToCreateFile if output files cannot be written.
       @throws Exception::ParseError if binary array serialization fails.
@@ -228,7 +259,7 @@ namespace OpenMS
       @param[in] exp      Imaging experiment to store.
 
       @throws Exception::InvalidValue if a geometry pixel references a spectrum index outside
-              the experiment, or pixel coordinates are invalid or duplicate.
+              the experiment, or if pixel coordinates are invalid.
       @throws Exception::UnableToCreateFile if output files cannot be written.
     */
     void store(const std::string& filename, const MSImagingExperiment& exp) const;

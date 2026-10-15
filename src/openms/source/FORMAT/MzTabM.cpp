@@ -184,7 +184,7 @@ namespace OpenMS
     {
       if (software.metaValueExists("reliability"))
       {
-        reliability = MzTabString(std::string(software.getMetaValue("reliability")));
+        reliability = MzTabString(software.getMetaValue("reliability").toString());
       }
       MzTabParameter p_software;
       ControlledVocabulary::CVTerm cvterm;

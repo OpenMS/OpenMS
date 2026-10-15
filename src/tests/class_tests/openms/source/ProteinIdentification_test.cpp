@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -971,6 +972,54 @@ START_SECTION((get*DataArrayByName throws ElementNotFound for missing name))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getIntegerDataArrayByName("missing_int"))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getStringDataArrayByName("missing_str"))
   TEST_EXCEPTION(Exception::ElementNotFound, cpg.getFloatDataArrayByName("missing_float"))
+}
+END_SECTION
+
+START_SECTION((void setPrimaryMSRunPath(const StringList& s, bool raw = false)))
+{
+  ProteinIdentification run;
+  run.setPrimaryMSRunPath(StringList({"a.mzML", "b.mzML"}));
+  StringList files;
+  run.getPrimaryMSRunPath(files);
+  TEST_EQUAL(files == StringList({"a.mzML", "b.mzML"}), true)
+  // an empty list names no files and is not stored
+  run.setPrimaryMSRunPath(StringList());
+  TEST_EQUAL(run.metaValueExists("spectra_data"), false)
+  run.setPrimaryMSRunPath(StringList({"a.raw"}), true);
+  run.setPrimaryMSRunPath(StringList(), true);
+  TEST_EQUAL(run.metaValueExists("spectra_data_raw"), false)
+  ProteinIdentification without_files;
+  without_files.setPrimaryMSRunPath(StringList());
+  TEST_EQUAL(without_files.metaValueExists("spectra_data"), false)
+}
+END_SECTION
+
+START_SECTION((void addPrimaryMSRunPath(const StringList& s, bool raw = false)))
+{
+  ProteinIdentification run;
+  run.addPrimaryMSRunPath(StringList());
+  TEST_EQUAL(run.metaValueExists("spectra_data"), false)
+  run.addPrimaryMSRunPath(StringList({"a.mzML"}));
+  run.addPrimaryMSRunPath(StringList());
+  run.addPrimaryMSRunPath("b.mzML");
+  TEST_EQUAL(run.nrPrimaryMSRunPaths(), 2)
+}
+END_SECTION
+
+START_SECTION((void removeEmptyPrimaryMSRunPaths()))
+{
+  ProteinIdentification run;
+  run.setMetaValue("spectra_data", StringList());
+  run.setMetaValue("spectra_data_raw", StringList());
+  run.removeEmptyPrimaryMSRunPaths();
+  TEST_EQUAL(run.metaValueExists("spectra_data"), false)
+  TEST_EQUAL(run.metaValueExists("spectra_data_raw"), false)
+  // lists that name files stay
+  run.setPrimaryMSRunPath(StringList({"a.mzML"}));
+  run.setPrimaryMSRunPath(StringList({"a.raw"}), true);
+  run.removeEmptyPrimaryMSRunPaths();
+  TEST_EQUAL(run.nrPrimaryMSRunPaths(), 1)
+  TEST_EQUAL(run.nrPrimaryMSRunPaths(true), 1)
 }
 END_SECTION
 

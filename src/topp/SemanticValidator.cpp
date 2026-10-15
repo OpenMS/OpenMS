@@ -32,8 +32,8 @@ using namespace std;
 This tool is able to semantically validate an XML file against a CV-mapping
 file. The CV-mapping file describes the validity of CV-terms for a given
 tag inside the XML. The CV-mapping file conforms to the CvMapping XML
-schema (found at /share/OpenMS/SCHEMAS/CvMapping.xsd or
-http://www.psidev.info/sites/default/files/CvMapping.xsd). 
+schema (http://www.psidev.info/sites/default/files/CvMapping.xsd, also
+archived at https://github.com/OpenMS/OpenMS/tree/release/3.5.0/share/OpenMS/SCHEMAS/CvMapping.xsd).
 
 Example files that can be semantically validated using this tool are mzML,
 TraML, mzIdentML, mzData or any XML file.
