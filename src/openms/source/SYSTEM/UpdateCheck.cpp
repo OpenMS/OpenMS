@@ -140,7 +140,18 @@ namespace OpenMS
           {
             if (VersionInfo::getVersionStruct() < server_version)
             {
-              OPENMS_LOG_INFO << "Version " + version + " of " + tool_name + " is available at www.OpenMS.de" << endl;
+              // Report the newer version being offered (server_version), not the caller's
+              // own current version (the `version` parameter) -- announcing the version
+              // already installed as if it were the available update tells the user
+              // nothing new.
+              std::string offered_version = std::to_string(server_version.version_major) + "." +
+                std::to_string(server_version.version_minor) + "." +
+                std::to_string(server_version.version_patch);
+              if (!server_version.pre_release_identifier.empty())
+              {
+                offered_version += "-" + server_version.pre_release_identifier;
+              }
+              OPENMS_LOG_INFO << "Version " + offered_version + " of " + tool_name + " is available at www.OpenMS.de" << endl;
             }
           }
         }
