@@ -146,6 +146,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       bool applied = false;
       /// Why the PSMs were not rescored, as a sentence to show to the user (empty if @c applied or not attempted)
       std::string skipped_reason;
+      /// A caveat of an applied rescoring, as a sentence to show to the user (empty if none): Percolator's
+      /// sanity check replaced the learned model by the best single feature (Percolator::usedDefaultDirection())
+      std::string warning;
     };
 
     /**

@@ -4917,6 +4917,7 @@ START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<Prot
   rescoring = ProSEAlgorithm::rescoreWithPercolator(percolator_rescored_proteins, percolator_rescored_peptides, 2);
   TEST_TRUE(rescoring.applied)
   TEST_EQUAL(rescoring.skipped_reason, "")
+  TEST_EQUAL(rescoring.warning, "") // the learned model passed Percolator's sanity check
   TEST_EQUAL(percolator_rescored_peptides.size(), percolator_search_peptides.size())
 
   // q-values as main scores, the best hit per spectrum, and Percolator's SVM score and PEP as meta values

@@ -4081,8 +4081,10 @@ namespace OpenMS
     }
     if (!has_decoys)
     {
-      outcome.skipped_reason = "No decoy PSMs for the target/decoy competition of Percolator. "
-                               "Use decoys 'auto' or 'generate', or provide a FASTA with decoy proteins.";
+      // The search's decoy mode is not known here: name both causes.
+      outcome.skipped_reason = "No decoy PSMs for the target/decoy competition of Percolator. A search without "
+                               "decoys needs decoys 'auto' or 'generate', or a FASTA with decoy proteins; with "
+                               "decoys, no spectrum of this run matched one (e.g. a small run).";
       return outcome;
     }
 
@@ -4122,6 +4124,13 @@ namespace OpenMS
       return outcome;
     }
     IDFilter::keepNBestHits(peptide_ids, 1);
+    if (perc.usedDefaultDirection())
+    {
+      outcome.warning = "Percolator's sanity check rejected the learned model (on the held-out folds it found no target "
+                        "PSM at q < " + StringUtils::toStr(static_cast<double>(pp.getValue("test_fdr")))
+                        + ", or fewer than the best single feature; typical for blank runs and runs with few confident "
+                          "PSMs), so the PSMs are scored with that feature alone.";
+    }
 
     // Mark the runs as post-processed by Percolator, as PercolatorAdapter does.
     for (ProteinIdentification& run : protein_ids)

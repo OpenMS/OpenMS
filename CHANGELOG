@@ -25,9 +25,14 @@ OpenMS Library:
     q-values (or, for a run that was not rescored, on q-values of the search engine scores); the file-based search() applies
     FDR:protein on the rescored PSMs. rescoreWithPercolator keeps the Percolator settings of ProSE's former -rescore (best hit per spectrum,
     the runs marked as post-processed by Percolator) and returns whether it rescored and, if not, why (fewer than 100 PSMs, no
-    decoy PSMs, Percolator failed); SearchResult::percolator reports that outcome per run, also in pyOpenMS. Runs that were
+    decoy PSMs, Percolator failed); SearchResult::percolator reports that outcome per run, also in pyOpenMS, and its 'warning'
+    names a rescoring whose learned model Percolator's sanity check replaced by the best single feature. Runs that were
     rescored and runs that were not are not pooled into the multi-file aggregate (different search engines). 'rescore' false
     restores the previous results. The ProSE tool and other callers (e.g. the WebAssembly bindings) share this implementation.
+  - Percolator::usedDefaultDirection() tells whether the last rescore()/train() kept the learned model or Percolator's sanity
+    check replaced it by the default direction ("Resetting score vector" of the percolator binary): no target at q < test_fdr
+    on the held-out folds, or fewer targets than the best single feature. Typical for blank runs and small inputs (q-values
+    count the decoys + 1, so a fold needs about 1 / test_fdr targets above its first decoy).
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
   - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
@@ -428,7 +433,8 @@ TOPP tools:
         -percolator_executable is removed: ProSE no longer starts PercolatorAdapter (and with it the
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
-        HyperScores with a warning. With -out_merged, input files of which only some were rescored
+        HyperScores with a warning. ProSE also warns for a file whose learned Percolator model the
+        sanity check replaced by the best single feature (e.g. a blank run). With -out_merged, input files of which only some were rescored
         are not merged: ProSE writes the per-file outputs and exits with an error
         (INCOMPATIBLE_INPUT_DATA). A merged idXML that cannot be written now also fails the run
         (CANNOT_WRITE_OUTPUT_FILE); before, ProSE logged the error and exited successfully.

@@ -3657,6 +3657,7 @@ only in decoy proteins, or in both. The target/decoy information is crucial for 
         .def("__deepcopy__", [](const OpenMS::ProSEAlgorithm::PercolatorRescoring& self, nb::dict) { return OpenMS::ProSEAlgorithm::PercolatorRescoring(self); }, "memo"_a)
         .def_rw("applied", &OpenMS::ProSEAlgorithm::PercolatorRescoring::applied)
         .def_rw("skipped_reason", &OpenMS::ProSEAlgorithm::PercolatorRescoring::skipped_reason)
+        .def_rw("warning", &OpenMS::ProSEAlgorithm::PercolatorRescoring::warning)
         ;
 
     // SearchResult struct (nested in ProSEAlgorithm)

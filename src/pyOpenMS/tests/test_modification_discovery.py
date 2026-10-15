@@ -266,6 +266,7 @@ def test_synthetic_modification_discovery():
     assert algo.getParameters().getValue("rescore") in (True, "true")
     assert result.percolator.applied is False
     assert result.percolator.skipped_reason.startswith("No decoy PSMs")
+    assert result.percolator.warning == ""
 
     # 5. Check delta mass bins for expected modifications
     dm_entries = result.modification_analysis.delta_mass_stats.entries

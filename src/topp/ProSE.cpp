@@ -336,6 +336,10 @@ class ProSE :
           if (result.percolator.applied)
           {
             ++n_rescored;
+            if (!result.percolator.warning.empty())
+            {
+              OPENMS_LOG_WARN << "Percolator rescoring of " << in_list[i] << ": " << result.percolator.warning << endl;
+            }
           }
           else
           {
