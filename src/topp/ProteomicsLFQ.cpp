@@ -658,7 +658,6 @@ protected:
       }
 
       // determine maximum RT shift after transformation that includes all high confidence IDs
-      using TrafoStat = TransformationDescription::TransformationStatistics;
       for (auto& s : alignment_stats)
       {
         OPENMS_LOG_INFO << "Alignment differences (second) for percentiles (before & after): " << endl;
@@ -681,11 +680,24 @@ protected:
       // The linking RT tolerance is sized from the RT differences of the alignment points after alignment: their 95th
       // percentile, the largest over the runs. Not the maximum: a few outliers (e.g. wrong or chimeric identifications)
       // decide the maximum, which on a 2 h gradient gave a tolerance of +-20 min and let the linker join unrelated features.
+      // Runs without alignment points (e.g. the reference, or every run after a failed alignment with -force) have no
+      // statistics and do not count; without any, the tolerance stays at the former default of 2 minutes.
       const Size window_percentile = 95;
-      double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(), [window_percentile](const TrafoStat& a, const TrafoStat& b) {
-                                    return a.percentiles_after.at(window_percentile) < b.percentiles_after.at(window_percentile);
-                                  })->percentiles_after.at(window_percentile);
-      OPENMS_LOG_INFO << "Alignment difference (seconds) at the " << window_percentile << "th percentile, largest over the runs: " << max_alignment_diff << endl;
+      double max_alignment_diff = -1.0;
+      for (Size i = 0; i < transformations.size(); ++i)
+      {
+        if (transformations[i].getDataPoints().empty()) continue;
+        max_alignment_diff = std::max(max_alignment_diff, alignment_stats[i].percentiles_after.at(window_percentile));
+      }
+      if (max_alignment_diff < 0.0)
+      {
+        max_alignment_diff = 120.0;
+        OPENMS_LOG_INFO << "No run has alignment points. Alignment difference (seconds): " << max_alignment_diff << endl;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "Alignment difference (seconds) at the " << window_percentile << "th percentile, largest over the runs: " << max_alignment_diff << endl;
+      }
       max_alignment_diff = std::min(max_alignment_diff, 600.0); // maximum 10 minutes
       return max_alignment_diff;
     }
