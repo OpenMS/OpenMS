@@ -752,6 +752,64 @@ START_SECTION([EXTRA] prepareSpectra_/prepareChroms_ reject an ACTIVATION_METHOD
 }
 END_SECTION
 
+START_SECTION([EXTRA] prepareChroms_ rejects an ACTIVATION_METHOD below -1; both reject values beyond 32 bits)
+{
+  // Same file with one chromatogram and one spectrum; every precursor gets the same corrupted value.
+  MSExperiment exp_orig;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
+  std::vector<MSChromatogram> chroms(1, exp_orig.getChromatograms()[0]);
+  MSSpectrum spec;
+  spec.setMSLevel(2);
+  spec.setRT(1.0);
+  Precursor prec;
+  prec.setMZ(500.0);
+  spec.setPrecursors({prec});
+  std::vector<MSSpectrum> spectra(1, spec);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::filesystem::remove(tmp_filename);
+
+  MzMLSqliteHandler handler(tmp_filename, 12345);
+  handler.createTables();
+  handler.writeChromatograms(chroms);
+  handler.writeSpectra(spectra);
+
+  SqliteConnector conn(tmp_filename);
+  std::vector<int> indices = {0};
+  std::vector<MSChromatogram> chroms_read;
+  std::vector<MSSpectrum> spectra_read;
+
+  // A value below -1 on a chromatogram precursor (prepareChroms_).
+  conn.executeStatement("UPDATE PRECURSOR SET ACTIVATION_METHOD = -2");
+  handler.readChromatograms(chroms_read, indices, false);
+  TEST_EQUAL(chroms_read.size(), 1)
+  TEST_EQUAL(chroms_read[0].getPrecursor().getActivationMethods().empty(), true)
+
+  // 2^32 + 1: read as a 32-bit int it wraps to 1 (PSD), a valid method; it must be rejected.
+  conn.executeStatement("UPDATE PRECURSOR SET ACTIVATION_METHOD = 4294967297");
+  chroms_read.clear();
+  handler.readChromatograms(chroms_read, indices, false);
+  TEST_EQUAL(chroms_read.size(), 1)
+  TEST_EQUAL(chroms_read[0].getPrecursor().getActivationMethods().empty(), true)
+  handler.readSpectra(spectra_read, indices, false);
+  TEST_EQUAL(spectra_read.size(), 1)
+  TEST_EQUAL(spectra_read[0].getPrecursors().size(), 1)
+  TEST_EQUAL(spectra_read[0].getPrecursors()[0].getActivationMethods().empty(), true)
+
+  // A valid stored method is still read, so the checks above are not vacuous.
+  conn.executeStatement("UPDATE PRECURSOR SET ACTIVATION_METHOD = 1");
+  chroms_read.clear();
+  handler.readChromatograms(chroms_read, indices, false);
+  TEST_EQUAL(chroms_read.size(), 1)
+  TEST_EQUAL(chroms_read[0].getPrecursor().getActivationMethods().count(Precursor::ActivationMethod::PSD), 1)
+  spectra_read.clear();
+  handler.readSpectra(spectra_read, indices, false);
+  TEST_EQUAL(spectra_read.size(), 1)
+  TEST_EQUAL(spectra_read[0].getPrecursors()[0].getActivationMethods().count(Precursor::ActivationMethod::PSD), 1)
+}
+END_SECTION
+
 // reset error tolerances to default values
 TOLERANCE_ABSOLUTE(1e-5)
 TOLERANCE_RELATIVE(1+1e-5)
