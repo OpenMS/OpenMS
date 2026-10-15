@@ -461,6 +461,9 @@ OpenMS Library:
   - FIX: estimateNoiseFromRandomScans() (TOPPView's intensity cutoff when opening a file) sampled spectra
     by their position in the list of non-empty spectra of the MS level instead of their index in the
     experiment, so it read spectra of other MS levels, or an empty spectrum.
+  - FIX: TheoreticalSpectrumGenerator with add_internal_fragments never generated the internal fragment that
+    ends next to the C-terminal residue (e.g. ID of PEPTIDE), and none at all for peptides of 4 residues.
+    OpenNuXL, which annotates spectra with internal fragments, now reports these fragments too.
   - FIX: TMT 32-plex and 35-plex (IsobaricAnalyzer, IsobaricWorkflow) could not use isotope correction:
     the correction_matrix parameter was ignored and the identity matrix used, which the isotope correction
     rejects, so the tools failed with the default isotope_correction 'true'. Both methods now ship the
