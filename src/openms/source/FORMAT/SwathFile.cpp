@@ -32,7 +32,6 @@
 #endif
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
-#ifdef WITH_THERMO_RAW
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
 #ifdef WITH_THERMO_RAW
 #include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
@@ -45,7 +44,6 @@
 #include <map>
 #include <numeric>
 #include <set>
-#endif
 #include <cmath>
 
 #include <memory> // for make_shared
