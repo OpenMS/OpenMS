@@ -453,6 +453,9 @@ OpenMS Library:
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
   - FIX: OpenSwathWorkflow and OpenDIA with -out_chrom .xic: an error while writing the Parquet file (e.g. a
     full disk) was only logged, and the tool exited with 0 and a missing or truncated .xic file. The run now fails.
+  - FIX: TheoreticalSpectrumGenerator with add_internal_fragments never generated the internal fragment that
+    ends next to the C-terminal residue (e.g. ID of PEPTIDE), and none at all for peptides of 4 residues.
+    OpenNuXL, which annotates spectra with internal fragments, now reports these fragments too.
   - FIX: TMT 32-plex and 35-plex (IsobaricAnalyzer, IsobaricWorkflow) could not use isotope correction:
     the correction_matrix parameter was ignored and the identity matrix used, which the isotope correction
     rejects, so the tools failed with the default isotope_correction 'true'. Both methods now ship the
