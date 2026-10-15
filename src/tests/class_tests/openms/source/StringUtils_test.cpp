@@ -12,6 +12,13 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 ///////////////////////////
 
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <clocale>
+#include <cmath>
+#include <limits>
+
 using namespace OpenMS;
 using namespace std;
 using namespace StringUtils;
@@ -44,6 +51,7 @@ START_SECTION(inline const char* skipWhitespace(const char* p, const char* p_end
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 2)), 0);
     TEST_EQUAL(skipWhitespace(std::string_view(at1_noSSE.data() + 3)), 2);
   }
+  TEST_EQUAL(skipWhitespace(std::string_view()), 0);
 }
 END_SECTION
 
@@ -74,6 +82,7 @@ START_SECTION(inline const char* skipNonWhitespace(const char* p, const char* p_
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 3)), 0);
     TEST_EQUAL(skipNonWhitespace(std::string_view(at1_noSSE.data() + 5)), 2);
   }
+  TEST_EQUAL(skipNonWhitespace(std::string_view()), 0);
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
@@ -517,6 +526,121 @@ END_SECTION
 START_SECTION((static std::string& removeWhitespaces(String &this_s)))
 {
   NOT_TESTABLE // tested in String_test.cpp
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] non-finite values round-trip through toStr/toDouble/toFloat)
+{
+  // std::to_chars writes "inf", which has neither '.' nor 'e', so the "keep at least one digit after
+  // the decimal point" rule used to append ".0" and emit "inf.0" - a token the parsers reject. Any
+  // file carrying an infinity then failed to load in full.
+  const double dinf = std::numeric_limits<double>::infinity();
+  const float finf = std::numeric_limits<float>::infinity();
+
+  TEST_EQUAL(StringUtils::toStr(dinf), "inf")
+  TEST_EQUAL(StringUtils::toStr(-dinf), "-inf")
+  TEST_EQUAL(StringUtils::toStr(finf), "inf")
+  TEST_EQUAL(StringUtils::toStr(-finf), "-inf")
+  TEST_EQUAL(StringUtils::toStr(std::numeric_limits<double>::quiet_NaN()), "NaN")
+
+  // and back again
+  TEST_EQUAL(std::isinf(StringUtils::toDouble(StringUtils::toStr(dinf))), true)
+  TEST_EQUAL(StringUtils::toDouble(StringUtils::toStr(dinf)) > 0, true)
+  TEST_EQUAL(std::isinf(StringUtils::toDouble(StringUtils::toStr(-dinf))), true)
+  TEST_EQUAL(StringUtils::toDouble(StringUtils::toStr(-dinf)) < 0, true)
+  TEST_EQUAL(std::isinf(StringUtils::toFloat(StringUtils::toStr(finf))), true)
+  TEST_EQUAL(StringUtils::toFloat(StringUtils::toStr(-finf)) < 0, true)
+  TEST_EQUAL(std::isnan(StringUtils::toDouble(StringUtils::toStr(std::numeric_limits<double>::quiet_NaN()))), true)
+
+  // finite values are untouched by the added branch
+  TEST_EQUAL(StringUtils::toStr(5.0), "5.0")
+  TEST_EQUAL(StringUtils::toStr(-0.5), "-0.5")
+  TEST_EQUAL(StringUtils::toStr(0.0), "0.0")
+
+  // a list of them survives the DataValue encoding used by the XML writers
+  const DoubleList mixed {1.5, dinf, -dinf, std::numeric_limits<double>::quiet_NaN(), 2.5};
+  const StringList parts = ListUtils::create<std::string>(
+    StringUtils::substr(DataValue(mixed).toString(), 1, DataValue(mixed).toString().size() - 2), ',');
+  TEST_EQUAL(parts.size(), 5)
+  const DoubleList back = ListUtils::create<double>(parts);
+  TEST_REAL_SIMILAR(back[0], 1.5)
+  TEST_EQUAL(std::isinf(back[1]) && back[1] > 0, true)
+  TEST_EQUAL(std::isinf(back[2]) && back[2] < 0, true)
+  TEST_EQUAL(std::isnan(back[3]), true)
+  TEST_REAL_SIMILAR(back[4], 2.5)
+}
+END_SECTION
+
+START_SECTION([EXTRA] number parsing is independent of the global C locale)
+{
+  // QApplication calls setlocale(LC_ALL, ""), so GUI tools run with the user's locale. With a
+  // decimal-comma locale (e.g. de_DE), locale-dependent parsing (strtod) read "60.5" as 60 and
+  // loading mzML files in TOPPView failed with a ConversionError (seen with libc++ on macOS).
+  const char* cur = setlocale(LC_ALL, nullptr);
+  const std::string saved_loc = (cur != nullptr) ? std::string(cur) : std::string("C");
+
+  const char* comma_locale = nullptr;
+  for (const char* loc : {"de_DE.UTF-8", "de_DE.utf8", "de_DE", "fr_FR.UTF-8", "fr_FR.utf8", "fr_FR", "German_Germany.1252"})
+  {
+    if (setlocale(LC_ALL, loc) != nullptr && localeconv()->decimal_point[0] == ',')
+    {
+      comma_locale = loc;
+      break;
+    }
+  }
+
+  if (comma_locale == nullptr)
+  {
+    STATUS("No decimal-comma locale available, skipping locale-dependent checks.")
+  }
+  else
+  {
+    STATUS("Testing with locale " << comma_locale)
+    double d_val{};
+    float f_val{};
+    std::string err;
+    try
+    {
+      d_val = StringUtils::toDouble("60.5");
+      f_val = StringUtils::toFloat("60.5");
+    }
+    catch (const Exception::ConversionError& e)
+    {
+      err = e.what();
+    }
+    // query the result before restoring the locale, but restore before any TEST macro below
+    std::string s_list = "1.25 -3.5e2";
+    const char* p = s_list.data();
+    const char* p_end = s_list.data() + s_list.size();
+    double e1{}, e2{};
+    const bool ok1 = StringUtils::extractDouble(p, p_end, e1);
+    p = StringUtils::skipWhitespace(p, p_end);
+    const bool ok2 = StringUtils::extractDouble(p, p_end, e2);
+    const bool consumed_all = (p == p_end);
+    double str_val{};
+    try
+    {
+      str_val = StringUtils::toDouble(" 0.001 ");
+    }
+    catch (const Exception::ConversionError& e)
+    {
+      err += e.what();
+    }
+
+    setlocale(LC_ALL, saved_loc.c_str());
+
+    TEST_EQUAL(err, "")
+    TEST_EQUAL(d_val, 60.5)
+    TEST_EQUAL(f_val, 60.5f)
+    TEST_EQUAL(ok1, true)
+    TEST_EQUAL(e1, 1.25)
+    TEST_EQUAL(ok2, true)
+    TEST_EQUAL(e2, -350.0)
+    TEST_EQUAL(consumed_all, true)
+    TEST_EQUAL(str_val, 0.001)
+  }
+  setlocale(LC_ALL, saved_loc.c_str());
 }
 END_SECTION
 

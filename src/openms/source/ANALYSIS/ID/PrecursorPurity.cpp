@@ -7,9 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/MathFunctions.h>
+
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -30,7 +34,7 @@ namespace OpenMS
       int charge = precursor_info.getCharge();
       if (charge == 0) charge = 1; // assume charge 1 for ions without charge
       // compute distance between isotopic peaks based on the precursor charge.
-      const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(charge);
+      const double charge_dist = Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
 
       // the actual boundary values
       const double strict_lower_mz = precursor_info.getMZ() - precursor_info.getIsolationWindowLowerOffset();
@@ -65,15 +69,19 @@ namespace OpenMS
         // find nearest peak in precursor window
         const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
 
-        // handle border cases
-
-        // check if next peak has smaller dist
-        const_spec_iterator np_it2 = np_it;
-        ++np_it;
-
-        if (std::fabs(np_it2->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+        // Compare the peaks below and above the expected position, staying inside the window.
+        if (np_it != lower_bound)
         {
-          np_it = np_it2;
+          const_spec_iterator previous_it = np_it;
+          --previous_it;
+          if (np_it == upper_bound || std::fabs(previous_it->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+          {
+            np_it = previous_it;
+          }
+        }
+        if (np_it == upper_bound)
+        {
+          break; // This half of the isolation window contains no peaks.
         }
 
         // compute difference between found peak and expected
@@ -117,15 +125,19 @@ namespace OpenMS
         // find nearest peak in precursor window
         const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
 
-        // handle border cases
-
-        // check if next peak has smaller dist
-        const_spec_iterator np_it2 = np_it;
-        ++np_it;
-
-        if (std::fabs(np_it2->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+        // Compare the peaks below and above the expected position, staying inside the window.
+        if (np_it != lower_bound)
         {
-          np_it = np_it2;
+          const_spec_iterator previous_it = np_it;
+          --previous_it;
+          if (np_it == upper_bound || std::fabs(previous_it->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
+          {
+            np_it = previous_it;
+          }
+        }
+        if (np_it == upper_bound)
+        {
+          break; // This half of the isolation window contains no peaks.
         }
 
         // compute difference between found peak and expected
@@ -403,5 +415,43 @@ namespace OpenMS
     } // end of parallelized spectra loop
     return purityscores;
   } // end of function def
+
+  Size PrecursorPurity::countSPSPrecursorsMatchingPeptideFragments(const std::vector<Precursor>& sps_precursors, const AASequence& peptide, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, int max_fragment_charge)
+  {
+    if (sps_precursors.empty() || peptide.empty())
+    {
+      return 0;
+    }
+    if (max_fragment_charge < 1)
+    {
+      max_fragment_charge = 1;
+    }
+
+    // generate theoretical b- and y-ion m/z values (default TheoreticalSpectrumGenerator ion types)
+    // for all charge states up to max_fragment_charge; the returned vector is sorted ascending
+    TheoreticalSpectrumGenerator tsg;
+    std::vector<float> theo_mzs;
+    tsg.getPrefixAndSuffixIonsMZ(theo_mzs, peptide, max_fragment_charge);
+
+    if (theo_mzs.empty())
+    {
+      return 0;
+    }
+
+    Size matching = 0;
+    for (const Precursor& prec : sps_precursors)
+    {
+      const double mz = prec.getMZ();
+      const double tolerance = fragment_mass_tolerance_unit_ppm ? Math::ppmToMassAbs(fragment_mass_tolerance, mz) : fragment_mass_tolerance;
+
+      // find the first theoretical peak that is not smaller than (mz - tolerance)
+      auto it = std::lower_bound(theo_mzs.begin(), theo_mzs.end(), static_cast<float>(mz - tolerance));
+      if (it != theo_mzs.end() && *it <= static_cast<float>(mz + tolerance))
+      {
+        ++matching;
+      }
+    }
+    return matching;
+  }
 
 }

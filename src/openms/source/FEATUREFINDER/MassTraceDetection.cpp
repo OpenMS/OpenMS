@@ -10,7 +10,7 @@
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 
-#include <boost/dynamic_bitset.hpp>
+#include <vector>
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
@@ -342,14 +342,13 @@ namespace OpenMS
       return candidate;
     }
 
-    bool MassTraceDetection::isPeakAcceptable_(
-        const PeakCandidate& candidate,
-        double centroid_mz,
-        double ftl_sd,
-        double centroid_im,
-        Size spectrum_idx,
-        const std::vector<Size>& spec_offsets,
-        const boost::dynamic_bitset<>& peak_visited) const
+    bool MassTraceDetection::isPeakAcceptable_(const PeakCandidate& candidate,
+                                               double centroid_mz,
+                                               double ftl_sd,
+                                               double centroid_im,
+                                               Size spectrum_idx,
+                                               const std::vector<Size>& spec_offsets,
+                                               const std::vector<bool>& peak_visited) const
     {
       if (!candidate.found)
       {
@@ -475,7 +474,7 @@ namespace OpenMS
                                   std::vector<MassTrace>& found_masstraces,
                                   const Size max_traces)
     {
-      boost::dynamic_bitset<> peak_visited(total_peak_count);
+      std::vector<bool> peak_visited(total_peak_count);
       Size trace_number(1);
 
       // Detect ion mobility and FWHM metadata arrays in the dataset

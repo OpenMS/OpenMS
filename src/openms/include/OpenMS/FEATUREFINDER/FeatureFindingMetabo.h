@@ -15,12 +15,12 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
+#include <memory>
 #include <vector>
-
-struct svm_model;
 
 namespace OpenMS
 {
+  class SimpleSVM;
 
   /**
     @brief Internal structure used in @ref FeatureFindingMetabo that keeps
@@ -268,10 +268,16 @@ private:
     /** @brief Perform retention time scoring of two multiple mass traces
      *
      * Computes the similarity of the two peak shapes using cosine similarity
-     * (see computeCosineSim_) if some conditions are fulfilled. Mainly the
-     * overlap between the two peaks at FHWM needs to exceed a certain
-     * threshold. The threshold is set at 0.7 (i.e. 70 % overlap) as also
-     * described in Kenar et al.
+     * (see computeCosineSim_) if some conditions are fulfilled. The RT overlap
+     * of the two peaks at FWHM must exceed the fraction given by the
+     * 'min_isotope_rt_overlap' parameter. By default ('isotope_rt_overlap_reference'
+     * = "longer") the overlap is measured against the longer trace with a
+     * threshold of 0.7 (i.e. 70 % overlap), as described in Kenar et al. When
+     * 'isotope_rt_overlap_reference' is set to "shorter", the overlap is measured
+     * against the shorter trace instead (better for low-intensity isotope traces
+     * that are much shorter than the monoisotopic trace) and, additionally, the
+     * apex (most intense peak) of the longer trace must fall within the RT range
+     * of the shorter trace.
      *
      * @note this only works for equally sampled mass traces, e.g. they need to
      * come from the same map (not for SRM measurements for example).
@@ -306,8 +312,8 @@ private:
     */
     void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
-    /// SVM parameters
-    svm_model* isotope_filt_svm_ = nullptr;
+    /// SVM model (wraps LIBSVM) used to filter isotope patterns; loaded via loadIsotopeModel_()
+    std::unique_ptr<SimpleSVM> isotope_filt_svm_;
     std::vector<double> svm_feat_centers_;
     std::vector<double> svm_feat_scales_;
 
@@ -324,6 +330,8 @@ private:
 
     bool report_summed_ints_;
     bool enable_RT_filtering_;
+    double min_isotope_rt_overlap_;
+    bool isotope_rt_overlap_use_shorter_;
     std::string isotope_filtering_model_;
     bool use_smoothed_intensities_;
     bool report_smoothed_intensities_;

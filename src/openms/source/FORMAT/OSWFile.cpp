@@ -13,6 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <sqlite3.h>
 
 #include <algorithm>
@@ -145,7 +146,7 @@ namespace OpenMS
     {
       std::vector<std::string> columns;
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, "PRAGMA table_info('" + table_name + "');");
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, "PRAGMA table_info('" + table_name + "');");
       Sql::SqlState state = Sql::nextRow(stmt);
       while (state == Sql::SqlState::SQL_ROW)
       {
@@ -350,7 +351,7 @@ namespace OpenMS
       }
 
       // Execute SQL select statement
-      conn.prepareStatement(&stmt, select_sql);
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, select_sql);
       sqlite3_step(stmt);
 
       int cols = sqlite3_column_count(stmt);
@@ -538,7 +539,7 @@ namespace OpenMS
 
       std::string select_sql = "select PROTEIN.ID as prot_id, PROTEIN_ACCESSION as prot_accession from PROTEIN order by prot_id";
       sqlite3_stmt* stmt;
-      conn_.prepareStatement(&stmt, select_sql);
+      Internal::SqliteHelper::prepareStatement(conn_, &stmt, select_sql);
       enum CBIG
       { // indices of respective columns in the query above
         I_PROTID,
@@ -823,7 +824,7 @@ namespace OpenMS
 
 
       sqlite3_stmt* stmt;
-      conn_.prepareStatement(&stmt, select_sql);
+      Internal::SqliteHelper::prepareStatement(conn_, &stmt, select_sql);
 
       Sql::SqlState rc = Sql::nextRow(stmt);
       if (sqlite3_column_count(stmt) != SIZE_OF_ColProteinSelect)
@@ -871,7 +872,7 @@ namespace OpenMS
 
       const std::string query = "SELECT ID, FILENAME FROM RUN ORDER BY ID;";
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, query);
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
 
       std::map<Int64, std::string> run_names;
       Sql::SqlState state = Sql::nextRow(stmt);
@@ -903,7 +904,7 @@ namespace OpenMS
       std::string select_sql = "SELECT RUN.ID FROM RUN;";
 
       sqlite3_stmt* stmt;
-      conn.prepareStatement(&stmt, select_sql);
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, select_sql);
       Sql::SqlState state = Sql::SqlState::SQL_ROW;
       UInt64 id;
       while ((state = Sql::nextRow(stmt, state)) == Sql::SqlState::SQL_ROW)
@@ -1010,8 +1011,8 @@ namespace OpenMS
       }
 
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, query);
-      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.ipf_max_peakgroup_pep),
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
+      checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 1, config.ipf_max_peakgroup_pep),
                              "Failed to bind ipf_max_peakgroup_pep for precursor query");
 
       std::vector<IPFPrecursorRow> rows;
@@ -1058,7 +1059,7 @@ namespace OpenMS
           "GROUP BY SCORE_TRANSITION.FEATURE_ID "
           "ORDER BY SCORE_TRANSITION.FEATURE_ID;";
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt, num_query);
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, num_query);
         Sql::SqlState state = Sql::nextRow(stmt);
         while (state == Sql::SqlState::SQL_ROW)
         {
@@ -1078,7 +1079,7 @@ namespace OpenMS
           "WHERE TRANSITION.TYPE != '' AND TRANSITION.DECOY = 0 "
           "ORDER BY TRANSITION.ID, TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID;";
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt, bitmask_query);
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, bitmask_query);
         Sql::SqlState state = Sql::nextRow(stmt);
         while (state == Sql::SqlState::SQL_ROW)
         {
@@ -1104,9 +1105,9 @@ namespace OpenMS
 
       sqlite3_stmt* evidence_stmt = nullptr;
       sqlite3_stmt* candidate_stmt = nullptr;
-      conn.prepareStatement(&evidence_stmt, evidence_query);
-      conn.prepareStatement(&candidate_stmt, candidate_query);
-      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(evidence_stmt, 1, config.ipf_max_transition_pep),
+      Internal::SqliteHelper::prepareStatement(conn, &evidence_stmt, evidence_query);
+      Internal::SqliteHelper::prepareStatement(conn, &candidate_stmt, candidate_query);
+      checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(evidence_stmt, 1, config.ipf_max_transition_pep),
                              "Failed to bind ipf_max_transition_pep for transition query");
 
       struct CompactEvidenceRow
@@ -1232,10 +1233,10 @@ namespace OpenMS
         "ORDER BY ALIGNMENT_GROUP_ID, FEATURE_LIST.FEATURE_ID;";
 
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, query);
-      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.ipf_min_alignment_mapping_confidence),
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
+      checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 1, config.ipf_min_alignment_mapping_confidence),
                              "Failed to bind ipf_min_alignment_mapping_confidence for candidate alignment query");
-      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 2, config.ipf_min_alignment_mapping_confidence),
+      checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 2, config.ipf_min_alignment_mapping_confidence),
                              "Failed to bind ipf_min_alignment_mapping_confidence for candidate alignment query");
 
       std::vector<IPFAlignmentRow> rows;
@@ -1279,8 +1280,8 @@ namespace OpenMS
         "ORDER BY ALIGNMENT_GROUP_ID, FEATURE_LIST.FEATURE_ID;";
 
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, query);
-      checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, ipf_max_alignment_pep),
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
+      checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 1, ipf_max_alignment_pep),
                              "Failed to bind ipf_max_alignment_pep for historical alignment query");
 
       std::vector<IPFAlignmentRow> rows;
@@ -1300,7 +1301,7 @@ namespace OpenMS
     {
       const std::string target_filename = prepareOutputFile_(filename_, output_filename);
       SqliteConnector conn(target_filename, SqliteConnector::SqlOpenMode::READWRITE);
-      sqlite3* db = conn.getDB();
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
 
       conn.executeStatement("DROP TABLE IF EXISTS SCORE_IPF;");
       conn.executeStatement(
@@ -1313,7 +1314,7 @@ namespace OpenMS
       );
 
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt,
+      Internal::SqliteHelper::prepareStatement(conn, &stmt,
         "INSERT INTO SCORE_IPF (FEATURE_ID, PEPTIDE_ID, PRECURSOR_PEAKGROUP_PEP, QVALUE, PEP) "
         "VALUES (?, ?, ?, ?, ?);");
 
@@ -1457,7 +1458,7 @@ namespace OpenMS
         "ORDER BY RUN_ID, ENTITY_ID;";
 
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, query);
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
 
       std::vector<LevelContextInputRow> rows;
       Sql::SqlState state = Sql::nextRow(stmt);
@@ -1496,7 +1497,7 @@ namespace OpenMS
 
       const std::string target_filename = prepareOutputFile_(filename_, output_filename);
       SqliteConnector conn(target_filename, SqliteConnector::SqlOpenMode::READWRITE);
-      sqlite3* db = conn.getDB();
+      sqlite3* db = Internal::SqliteHelper::getNativeHandle(conn);
 
       const std::string table_name = scoreTableName_(level);
       const std::string entity_column = entityIdColumnName_(level);
@@ -1514,8 +1515,8 @@ namespace OpenMS
 
       sqlite3_stmt* delete_stmt = nullptr;
       sqlite3_stmt* insert_stmt = nullptr;
-      conn.prepareStatement(&delete_stmt, "DELETE FROM " + table_name + " WHERE CONTEXT = ?;");
-      conn.prepareStatement(&insert_stmt,
+      Internal::SqliteHelper::prepareStatement(conn, &delete_stmt, "DELETE FROM " + table_name + " WHERE CONTEXT = ?;");
+      Internal::SqliteHelper::prepareStatement(conn, &insert_stmt,
         "INSERT INTO " + table_name + " (CONTEXT, RUN_ID, " + entity_column + ", SCORE, PVALUE, QVALUE, PEP) "
         "VALUES (?, ?, ?, ?, ?, ?, ?);");
 
@@ -1599,12 +1600,12 @@ namespace OpenMS
                           const bool augmented_mode) -> std::vector<OpenSwathExportRow>
       {
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt, query);
-        checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.max_rs_peakgroup_qvalue),
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
+        checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 1, config.max_rs_peakgroup_qvalue),
                                "Failed to bind max_rs_peakgroup_qvalue for export query");
         if (peptidoform_mode)
         {
-          checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 2, config.ipf_max_peptidoform_pep),
+          checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 2, config.ipf_max_peptidoform_pep),
                                  "Failed to bind ipf_max_peptidoform_pep for export query");
         }
 
@@ -1745,13 +1746,13 @@ namespace OpenMS
       if (config.ipf_mode == OpenSwathIPFExportMode::Augmented && has_score_ipf)
       {
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt,
+        Internal::SqliteHelper::prepareStatement(conn, &stmt,
           "SELECT SCORE_IPF.FEATURE_ID, PEPTIDE.MODIFIED_SEQUENCE, SCORE_IPF.PRECURSOR_PEAKGROUP_PEP, SCORE_IPF.PEP, SCORE_IPF.QVALUE "
           "FROM SCORE_IPF "
           "INNER JOIN PEPTIDE ON SCORE_IPF.PEPTIDE_ID = PEPTIDE.ID "
           "WHERE SCORE_IPF.PEP < ? "
           "ORDER BY SCORE_IPF.FEATURE_ID, SCORE_IPF.PEP, PEPTIDE.MODIFIED_SEQUENCE;");
-        checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.ipf_max_peptidoform_pep),
+        checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 1, config.ipf_max_peptidoform_pep),
                                "Failed to bind ipf_max_peptidoform_pep for augmented export");
         std::unordered_map<Int64, OpenSwathExportRow> ipf_best;
         Sql::SqlState state = Sql::nextRow(stmt);
@@ -1786,7 +1787,7 @@ namespace OpenMS
       auto assignStringMap = [&](const std::string& query, auto&& assign_fn)
       {
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt, query);
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
         Sql::SqlState state = Sql::nextRow(stmt);
         while (state == Sql::SqlState::SQL_ROW)
         {
@@ -1849,10 +1850,10 @@ namespace OpenMS
           "INNER JOIN TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID "
           "GROUP BY FEATURE_TRANSITION.FEATURE_ID;";
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt, transition_query);
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, transition_query);
         if (conn.tableExists("SCORE_TRANSITION"))
         {
-          checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.max_transition_pep),
+          checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 1, config.max_transition_pep),
                                  "Failed to bind max_transition_pep for export transition aggregation");
         }
         Sql::SqlState state = Sql::nextRow(stmt);
@@ -2009,7 +2010,7 @@ namespace OpenMS
       if (config.use_alignment && hasLegacyExportAlignment_(conn))
       {
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt,
+        Internal::SqliteHelper::prepareStatement(conn, &stmt,
           "SELECT DENSE_RANK() OVER (ORDER BY FEATURE_MS2_ALIGNMENT.PRECURSOR_ID, FEATURE_MS2_ALIGNMENT.ALIGNMENT_ID) AS ALIGNMENT_GROUP_ID, "
           "       FEATURE_MS2_ALIGNMENT.ALIGNED_FEATURE_ID, "
           "       CAST(FEATURE_MS2_ALIGNMENT.REFERENCE_FEATURE_ID AS INTEGER), "
@@ -2025,9 +2026,9 @@ namespace OpenMS
           "WHERE FEATURE_MS2_ALIGNMENT.LABEL = 1 "
           "  AND ALIGN_SCORE.PEP < ? "
           "  AND REF_SCORE_MS2.QVALUE < ?;");
-        checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 1, config.max_alignment_pep),
+        checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 1, config.max_alignment_pep),
                                "Failed to bind max_alignment_pep for export alignment query");
-        checkSqliteReturnCode_(conn.getDB(), sqlite3_bind_double(stmt, 2, config.max_rs_peakgroup_qvalue),
+        checkSqliteReturnCode_(Internal::SqliteHelper::getNativeHandle(conn), sqlite3_bind_double(stmt, 2, config.max_rs_peakgroup_qvalue),
                                "Failed to bind max_rs_peakgroup_qvalue for export alignment query");
 
         struct AlignmentInfo
@@ -2342,7 +2343,7 @@ namespace OpenMS
         + "ORDER BY PRECURSOR.ID, FEATURE.ID;";
 
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, query);
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
       Sql::SqlState state = Sql::nextRow(stmt);
       while (state == Sql::SqlState::SQL_ROW)
       {
@@ -2576,7 +2577,7 @@ namespace OpenMS
         "ORDER BY TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID, TRANSITION.ID, FEATURE_TRANSITION.FEATURE_ID;";
 
       sqlite3_stmt* stmt = nullptr;
-      conn.prepareStatement(&stmt, query);
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, query);
       Sql::SqlState state = Sql::nextRow(stmt);
       while (state == Sql::SqlState::SQL_ROW)
       {
@@ -2658,7 +2659,7 @@ namespace OpenMS
 
       std::string select_transitions = "SELECT " + ListUtils::concatenate(colnames_tr, ",") + " FROM TRANSITION ORDER BY ID;";
       sqlite3_stmt* stmt;
-      conn_.prepareStatement(&stmt, select_transitions);
+      Internal::SqliteHelper::prepareStatement(conn_, &stmt, select_transitions);
       Sql::SqlState rc = Sql::nextRow(stmt);
       while (rc == Sql::SqlState::SQL_ROW)
       {

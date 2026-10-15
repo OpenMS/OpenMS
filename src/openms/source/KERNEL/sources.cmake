@@ -16,6 +16,7 @@ DPeak.cpp
 Feature.cpp
 FeatureHandle.cpp
 FeatureMap.cpp
+FeatureUniqueIds.cpp
 MassTrace.cpp
 MobilityPeak1D.cpp
 MobilityPeak2D.cpp
@@ -30,6 +31,7 @@ OnDiscImzMLExperiment.cpp
 Peak1D.cpp
 Peak2D.cpp
 PeakIndex.cpp
+PeakTypeEstimator.cpp
 RangeManager.cpp
 RichPeak2D.cpp
 SpectrumHelper.cpp

@@ -83,11 +83,19 @@ namespace OpenMS
   /**
     @brief Per-spectrum binary index entry for an imzML dataset.
 
-    Records the byte offset and element count for both the m/z and intensity
+    Records the byte offset and element count for the m/z and intensity
     arrays in the companion .ibd file, together with the pixel (x,y,z)
-    coordinates.  Built during ImzMLHandler parsing and stored inside
-    OnDiscImzMLExperiment so that random-access spectrum decoding requires
-    only a single fseek + fread per call.
+    coordinates and zlib-compression flags (@c MS:1000574).  Built during
+    ImzMLHandler parsing and stored inside OnDiscImzMLExperiment so that
+    random-access spectrum decoding requires only a single fseek + fread
+    per call. Compressed m/z, intensity, and auxiliary arrays (any child of
+    @c MS:1000572 other than uncompressed @c MS:1000576) are rejected at
+    decode time (inflate / numpress of external arrays is not supported).
+
+    Optional @p aux entries describe additional external arrays (ion mobility
+    and other @c FloatDataArray values). Both in-memory @p ImzMLFile::load and
+    @p OnDiscImzMLExperiment::getSpectrum() attach those as @c FloatDataArray
+    on the returned spectrum when present.
 
     @ingroup FileIO
   */
@@ -96,6 +104,25 @@ namespace OpenMS
     /// Scalar type identifier for binary array elements.
     enum class DataType : uint8_t { FLOAT32, FLOAT64, INT32, INT64, UNKNOWN };
 
+    /**
+      @brief Index entry for one auxiliary (non-m/z, non-intensity) external array.
+
+      Used for ion mobility and other per-peak FloatDataArrays so on-disc and
+      in-memory loaders expose the same viewer contract (@c containsIMData(),
+      equal length to peaks).
+    */
+    struct AuxArray
+    {
+      std::string name;                 ///< Ontology / free-text array name (FloatDataArray::getName)
+      std::string accession;            ///< MS accession (e.g. MS:1003006), may be empty
+      std::string unit_accession;       ///< unitAccession on the array-identity cvParam (may be empty)
+      uint64_t offset {0};              ///< IMS:1000102
+      uint64_t length {0};              ///< IMS:1000103 element count
+      uint64_t encoded_bytes {0};       ///< IMS:1000104 byte length on disk
+      DataType type {DataType::UNKNOWN};
+      bool compressed {false};          ///< Child of MS:1000572 other than MS:1000576 (unsupported)
+    };
+
     int32_t  index      {0};               ///< 0-based document order
     uint32_t x          {0};               ///< Pixel column (1-based, IMS:1000050)
     uint32_t y          {0};               ///< Pixel row    (1-based, IMS:1000051)
@@ -103,9 +130,12 @@ namespace OpenMS
     uint64_t mz_offset  {0};              ///< Byte offset of m/z array (IMS:1000102)
     uint64_t mz_length  {0};              ///< Element count             (IMS:1000103)
     DataType mz_type    {DataType::UNKNOWN};
+    bool mz_compressed {false};           ///< Compressed (not MS:1000576) on m/z array
     uint64_t int_offset {0};              ///< Byte offset of intensity array
     uint64_t int_length {0};              ///< Element count
     DataType int_type   {DataType::UNKNOWN};
+    bool int_compressed {false};          ///< Compressed (not MS:1000576) on intensity array
+    std::vector<AuxArray> aux;            ///< Extra external arrays (IM, …) in document order
   };
 
   /**
@@ -146,6 +176,38 @@ namespace OpenMS
                              ImzMLSpectrumIndex::DataType dt,
                              std::vector<float>& out,
                              const std::string& ibd_path);
+
+    /**
+      @brief Read an auxiliary (non-m/z, non-intensity) array from the .ibd file.
+
+      imzML permits additional @c binaryDataArray entries per spectrum beyond the
+      mandatory m/z and intensity pair — most notably ion mobility arrays such as
+      @c MS:1003006 "mean inverse reduced ion mobility array". Values are returned
+      as @c float because OpenMS stores auxiliary spectrum data in
+      @p MSSpectrum::FloatDataArray.
+
+      @param[in] ibd        Open binary file handle.
+      @param[in] offset     Byte offset (IMS:1000102).
+      @param[in] count      Element count (IMS:1000103).
+      @param[in] dt         Scalar type of stored values.
+      @param[out] out       Decoded values as float (FloatDataArray storage).
+      @param[in] ibd_path   Path used in error messages.
+      @param[in] array_name Array name used in error messages (e.g. the CV term name).
+
+      @note Compressed external arrays (any child of MS:1000572 other than
+      uncompressed MS:1000576) are not decoded; callers must reject them before
+      invoking this method. @c IMS:1000104 is then required to know how many
+      compressed bytes to read.
+
+      @throws Exception::ParseError if seek or read fails.
+    */
+    static void readAuxArray(FILE* ibd,
+                             uint64_t offset,
+                             uint64_t count,
+                             ImzMLSpectrumIndex::DataType dt,
+                             std::vector<float>& out,
+                             const std::string& ibd_path,
+                             const std::string& array_name);
 
     /**
       @brief Write a float32 array to the companion .ibd file (little-endian).

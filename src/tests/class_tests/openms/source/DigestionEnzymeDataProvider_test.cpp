@@ -191,6 +191,33 @@ START_SECTION(ProteaseDB - construct from providers)
 }
 END_SECTION
 
+START_SECTION(ProteaseDB - replacing enzymes and lenient lookup)
+{
+  vector<unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>> providers;
+  vector<unique_ptr<DigestionEnzymeProtein>> first, second;
+  first.push_back(make_unique<DigestionEnzymeProtein>(
+    "Enzyme-A", "(?<=[K])", set<std::string>{"Syn-A"}, "A"));
+  // named like a synonym of "Enzyme-A": must be added, not replace "Enzyme-A"
+  second.push_back(make_unique<DigestionEnzymeProtein>(
+    "Syn-A", "(?<=[R])", set<std::string>(), "B"));
+  // same name as "Enzyme-A": replaces it
+  second.push_back(make_unique<DigestionEnzymeProtein>(
+    "Enzyme-A", "(?<=[D])", set<std::string>(), "C"));
+  providers.push_back(make_unique<InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein>>(std::move(first)));
+  providers.push_back(make_unique<InMemoryDigestionEnzymeDataProvider<DigestionEnzymeProtein>>(std::move(second)));
+
+  ProteaseDB db(std::move(providers));
+  vector<std::string> names;
+  db.getAllNames(names);
+  TEST_EQUAL(names.size(), 2)
+  TEST_EQUAL(db.getEnzyme("Enzyme-A")->getRegExDescription(), "C")
+  TEST_EQUAL(db.getEnzyme("enzyme a")->getRegExDescription(), "C")
+  TEST_EQUAL(db.getEnzyme("Syn-A")->getRegExDescription(), "B")
+  TEST_EQUAL(db.getEnzyme("SYNA")->getRegExDescription(), "B")
+  TEST_EQUAL(db.hasRegEx("(?<=[K])"), false)
+}
+END_SECTION
+
 START_SECTION(ProteaseDB - singleton matches DI with default providers)
 {
   // The singleton and a DI-constructed DB with the same providers should agree

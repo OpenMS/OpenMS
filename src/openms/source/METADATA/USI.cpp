@@ -278,7 +278,7 @@ namespace OpenMS
       std::string regex_str = SpectrumNativeIDParser::getRegExFromNativeID(native_id);
       if (!regex_str.empty())
       {
-        boost::regex scan_regexp(regex_str);
+        RegularExpression scan_regexp(regex_str);
         Int scan = SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, true);
         if (scan >= 0)
         {

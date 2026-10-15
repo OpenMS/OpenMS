@@ -111,19 +111,19 @@ public:
 protected:
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
+      void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
       // Docu in base class
-      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
+      void onEndElement(const char16_t* qname) override;
 
       // Docu in base class
-      void characters(const XMLCh * const chars, const XMLSize_t /*length*/) override;
+      void onCharacters(const char16_t* chars, Size /*length*/) override;
 
       /// Returns the current element path
       virtual std::string getPath_(UInt remove_from_end = 0) const;
 
       /// Parses the CV term accession (required), name (required) and value (optional) from the XML attributes
-      virtual void getCVTerm_(const xercesc::Attributes & attributes, CVTerm & parsed_term);
+      virtual void getCVTerm_(const XMLAttributes & attributes, CVTerm & parsed_term);
 
       //~ forward dekl. of a inner struct/class not possible in C++ - or our Library is overtemplated
       //~ /// make a SemanticValidator::CVTerm from a ControlledVocabulary::CVTerm (without any value or unit), needed for writing only cvs at the right places in the xml (i.e. with cvmapping)

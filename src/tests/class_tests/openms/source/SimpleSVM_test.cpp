@@ -539,6 +539,135 @@ START_SECTION([EXTRA] setup() and predict() reject predictors with inconsistent 
 END_SECTION
 
 
+START_SECTION((void loadModel(const std::string& filename)))
+{
+  // loading a non-existent model file fails cleanly
+  SimpleSVM bad_svm;
+  TEST_EXCEPTION(Exception::ParseError, bad_svm.loadModel("this_model_does_not_exist.svm"));
+}
+END_SECTION
+
+START_SECTION((void saveModel(const std::string& filename) const))
+{
+  // saving without a trained/loaded model is a precondition error
+  SimpleSVM untrained_save;
+  string tmp;
+  NEW_TMP_FILE(tmp);
+  TEST_EXCEPTION(Exception::Precondition, untrained_save.saveModel(tmp));
+}
+END_SECTION
+
+START_SECTION((double predict(const std::vector<double>& features) const))
+{
+  // predicting without a trained/loaded model is a precondition error
+  SimpleSVM untrained_predict;
+  TEST_EXCEPTION(Exception::Precondition, untrained_predict.predict(std::vector<double>{0.1, 0.2}));
+
+  // Train a separable two-class model on two informative features. The feature
+  // values span [0, 1] exactly, so setup()'s min-max scaling is the identity and
+  // the (already scaled) prediction vectors below can be given directly.
+  SimpleSVM::PredictorMap train;
+  std::vector<double> f1, f2;
+  for (int k = 0; k < 10; ++k) { f1.push_back(0.02 * k);        f2.push_back(0.02 * k); }        // class 0
+  for (int k = 0; k < 10; ++k) { f1.push_back(0.82 + 0.02 * k); f2.push_back(0.82 + 0.02 * k); } // class 1
+  train["f1"] = f1;
+  train["f2"] = f2;
+  std::map<Size, double> y;
+  for (Size i = 0; i < 10; ++i) { y[i] = 0.0; }
+  for (Size i = 10; i < 20; ++i) { y[i] = 1.0; }
+
+  Param param;
+  param.setValue("kernel", "linear");
+  param.setValue("log2_C", ListUtils::create<double>("0,3,6"));
+
+  SimpleSVM trained;
+  trained.setParameters(param);
+  trained.setup(train, y);
+
+  // dense, already-scaled feature vectors from both class regions
+  std::vector<std::vector<double>> tests = {
+    {0.05, 0.05}, {0.15, 0.15}, {0.85, 0.85}, {0.95, 0.95}};
+
+  // Round-trip: save the trained model, load it into a fresh SimpleSVM, and
+  // confirm the vector-based predict() yields identical labels.
+  string model_file;
+  NEW_TMP_FILE(model_file);
+  trained.saveModel(model_file);
+
+  SimpleSVM loaded;
+  loaded.loadModel(model_file);
+
+  for (const auto& f : tests)
+  {
+    double label_trained = trained.predict(f);
+    double label_loaded = loaded.predict(f);
+    TEST_EQUAL(label_trained, label_loaded)
+    TEST_EQUAL((label_loaded == 0.0) || (label_loaded == 1.0), true)
+  }
+
+  // The problem is separable, so the low/high feature vectors recover the classes.
+  TEST_EQUAL(loaded.predict(tests.front()), 0.0)
+  TEST_EQUAL(loaded.predict(tests.back()), 1.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] loadModel() drops training-derived state (no stale scaling_/predictor_names_))
+{
+  // loadModel() must leave no stale training state behind: after reloading a model
+  // into an object that was previously trained via setup(), getScaling() becomes
+  // empty and getFeatureWeights() -- which needs predictor names -- errors cleanly
+  // instead of indexing an empty predictor_names_ vector.
+  SimpleSVM::PredictorMap train;
+  std::vector<double> f1, f2;
+  for (int k = 0; k < 10; ++k) { f1.push_back(0.02 * k);        f2.push_back(0.02 * k); }
+  for (int k = 0; k < 10; ++k) { f1.push_back(0.82 + 0.02 * k); f2.push_back(0.82 + 0.02 * k); }
+  train["f1"] = f1;
+  train["f2"] = f2;
+  std::map<Size, double> y;
+  for (Size i = 0; i < 10; ++i) { y[i] = 0.0; }
+  for (Size i = 10; i < 20; ++i) { y[i] = 1.0; }
+
+  Param param;
+  param.setValue("kernel", "linear");
+  param.setValue("log2_C", ListUtils::create<double>("0,3,6"));
+
+  SimpleSVM svm_reset;
+  svm_reset.setParameters(param);
+  svm_reset.setup(train, y);
+
+  // trained state is present
+  TEST_EQUAL(svm_reset.getScaling().empty(), false)
+  std::map<std::string, double> fw;
+  svm_reset.getFeatureWeights(fw); // works while predictor names are present
+  TEST_EQUAL(fw.empty(), false)
+
+  string model_file;
+  NEW_TMP_FILE(model_file);
+  svm_reset.saveModel(model_file);
+
+  // reload into the SAME object -> training-derived state must be dropped
+  svm_reset.loadModel(model_file);
+  TEST_EQUAL(svm_reset.getScaling().empty(), true)
+  std::map<std::string, double> fw2;
+  TEST_EXCEPTION(Exception::Precondition, svm_reset.getFeatureWeights(fw2))
+
+  // the vector-based predict() still works on the reloaded model
+  TEST_EQUAL(svm_reset.predict(std::vector<double>{0.05, 0.05}), 0.0)
+  TEST_EQUAL(svm_reset.predict(std::vector<double>{0.95, 0.95}), 1.0)
+
+  // writeXvalResults() must not read out of bounds on a loaded model: the log2_*
+  // grids are cleared together with performance_, so it writes only the header row.
+  string xval_file;
+  NEW_TMP_FILE(xval_file);
+  svm_reset.writeXvalResults(xval_file);
+  ifstream xval_ifs(xval_file.c_str());
+  string xval_line;
+  Size xval_lines = 0;
+  while (getline(xval_ifs, xval_line)) { ++xval_lines; }
+  TEST_EQUAL(xval_lines, 1) // header only, no result rows
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

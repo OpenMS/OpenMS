@@ -266,6 +266,7 @@ namespace OpenMS
       @brief Register a database search step with associated parameters
 
       @return Reference to the registered processing step
+      @throws Exception::InvalidValue The same step is already associated with different search parameters
     */
     ProcessingStepRef registerProcessingStep(
       const ProcessingStep& step, SearchParamRef search_ref);
@@ -451,8 +452,24 @@ namespace OpenMS
     /// Cancel the effect of @ref setCurrentProcessingStep().
     void clearCurrentProcessingStep();
 
+    /**
+      @brief Compare molecule, charge and adduct values for reproducible exact-score ties.
+
+      The current value order gives neither target nor decoy status a preference.
+      This comparator is shared by best-match selection and ID export.
+      @param[in] left First match
+      @param[in] right Second match
+      @return Whether the first match precedes the second in value order
+    */
+    static bool observationMatchLess(const ObservationMatch& left, const ObservationMatch& right);
+
     /*!
       @brief Return the best match for each observation, according to a given score type
+
+      Exact score ties are resolved lexicographically by molecule type, sequence or
+      compound identifier, charge, and adduct values, not allocation/registration
+      order. Target/decoy status is not used to prefer a tied match. This policy
+      selects a reproducible representative; it does not establish unique localization.
 
       @param[in] score_ref Score type to use
       @param[in] require_score Exclude matches without score of this type, even if they are the only matches for their observations?

@@ -446,6 +446,34 @@ START_SECTION(exportChromatogramsToArrowCDataInterface - with RT filter)
 }
 END_SECTION
 
+
+START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
+{
+  MSExperiment exp;
+  MSSpectrum spec;
+  spec.setRT(1.0);
+  spec.setMSLevel(1);
+  spec.push_back(Peak1D(100.0, 200.0f));
+  exp.addSpectrum(spec);
+
+  std::string good_file;
+  NEW_TMP_FILE(good_file)
+  TEST_TRUE(MSExperimentArrowExport::exportSpectraToParquet(exp, good_file))
+  TEST_TRUE(File::exists(good_file))
+
+  // arrow::io::FileOutputStream::Open creates and truncates the file before the table is written,
+  // so a failure afterwards leaves a fragment with no Parquet footer, which a reader reports as
+  // corrupt. A row group size of 0 is refused by Parquet for a non-empty table, which reaches
+  // that failure deterministically on every platform.
+  ParquetWriteConfig no_row_group;
+  no_row_group.row_group_size = 0;
+  std::string failed_file;
+  NEW_TMP_FILE(failed_file)
+  TEST_FALSE(MSExperimentArrowExport::exportSpectraToParquet(exp, failed_file, ArrowSpectraExportConfig{}, no_row_group))
+  TEST_FALSE(File::exists(failed_file))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // Config struct tests
 /////////////////////////////////////////////////////////////

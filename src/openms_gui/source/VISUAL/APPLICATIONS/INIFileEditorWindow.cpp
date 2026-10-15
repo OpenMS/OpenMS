@@ -48,12 +48,12 @@ namespace OpenMS
     file->addAction("&Open", this, [this]() { openFile(); })->setShortcut(Qt::CTRL | Qt::Key_O);
     file->addSeparator();
     file->addAction("&Save", this, &INIFileEditorWindow::saveFile)->setShortcut(Qt::CTRL | Qt::Key_S);
-    file->addAction("Save &As", this, SLOT(saveFileAs()));
+    file->addAction("Save &As", this, &INIFileEditorWindow::saveFileAs);
     file->addSeparator();
-    file->addAction("&Quit", this, SLOT(close()));
+    file->addAction("&Quit", this, &QWidget::close);
 
     // we connect the "changes state"(changes made/no changes) signal from the ParamEditor to the window title updating slot
-    connect(editor_, SIGNAL(modified(bool)), this, SLOT(updateWindowTitle(bool)));
+    connect(editor_, &ParamEditor::modified, this, &INIFileEditorWindow::updateWindowTitle);
 
     setMinimumSize(600, 600);
   }

@@ -259,7 +259,7 @@ namespace OpenMS
     {
       next_sep = strchr(first_sep, '\0');
      
-      if (first_sep + 1 < next_sep) // non-empty string
+      if (first_sep < next_sep) // non-empty string (also keeps length-1 segments)
       { 
         out.emplace_back(first_sep, next_sep - first_sep);
       }

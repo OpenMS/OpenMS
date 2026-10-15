@@ -59,14 +59,14 @@ jobs:
     - name: Call CI
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
-        gh workflow run openms-ci-full --ref nightly
+        gh workflow run release.yml --ref nightly
       env:
         GH_TOKEN: ${{ github.token }}
 
     - name: Build Develop for cache
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
       run: |
-        gh workflow run openms-ci-full --ref develop
+        gh workflow run test.yml --ref develop
       env:
         GH_TOKEN: ${{ github.token }}
         

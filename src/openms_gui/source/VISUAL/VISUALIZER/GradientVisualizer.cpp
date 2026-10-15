@@ -59,9 +59,9 @@ namespace OpenMS
 
     finishAdding_();
     addSeparator_();
-    connect(add_timepoint_button_, SIGNAL(clicked()), this, SLOT(addTimepoint_()));
-    connect(add_eluent_button_, SIGNAL(clicked()), this, SLOT(addEluent_()));
-    connect(removebutton_, SIGNAL(clicked()), this, SLOT(deleteData_()));
+    connect(add_timepoint_button_, &QPushButton::clicked, this, &GradientVisualizer::addTimepoint_);
+    connect(add_eluent_button_, &QPushButton::clicked, this, &GradientVisualizer::addEluent_);
+    connect(removebutton_, &QPushButton::clicked, this, &GradientVisualizer::deleteData_);
 
     //Input validator
     timepoint_vali_ = new QIntValidator(new_timepoint_);

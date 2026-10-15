@@ -75,9 +75,6 @@ foreach(i ${header_dataaccess_list})
 	list(APPEND header_dataaccess ${header_directory}/${i})
 endforeach(i)
 
-list(APPEND OpenSwathAlgoFiles ${header_algo})
-list(APPEND OpenSwathAlgoFiles ${header_dataaccess})
-
 # define list of headers related to openswathalgo needed for
 # installation and export
 set(OpenSwathAlgoHeaders ${header_algo} ${header_dataaccess})

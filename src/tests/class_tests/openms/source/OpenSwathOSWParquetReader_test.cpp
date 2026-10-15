@@ -11,6 +11,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetReader.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <iostream>
 #include <cmath>
 
@@ -66,7 +67,7 @@ END_SECTION
 START_SECTION(void load(const std::string& oswpq_dir))
 {
   // Create a minimal .oswpq directory with library, runs and features
-  File::TempDir tmp_dir;
+  TempDir tmp_dir;
   const std::string base_dir = tmp_dir.getPath() + "/test.oswpq";
   const std::string library_dir = base_dir + "/library";
   const std::string runs_dir = base_dir + "/runs";

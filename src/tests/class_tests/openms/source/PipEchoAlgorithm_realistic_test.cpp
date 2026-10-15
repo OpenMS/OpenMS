@@ -131,25 +131,31 @@ namespace
                                 std::size_t n_runs,
                                 std::size_t target_total,
                                 double p_present,
-                                double p_ident)
+                                double p_ident,
+                                double rt_lo = 300.0,        // gradient start (s)
+                                double rt_hi = 2300.0,       // gradient end (s)
+                                double jitter_sigma = 1.5,   // post-alignment local RT scatter (s)
+                                double run_shift_step = 2.0) // per-run systematic shift step (s)
   {
     std::mt19937 rng(seed);
     std::uniform_real_distribution<double> u01(0.0, 1.0);
     // A moderately dense RT span and a tight m/z band (mimicking co-eluting
     // tryptic peptides) so the grid neighbourhood actually contains the
-    // mass-similar partners that MBR decoy generation needs (see below).
-    std::uniform_real_distribution<double> u_rt(300.0, 2300.0);
+    // mass-similar partners that MBR decoy generation needs (see below). The RT
+    // span / jitter / shift are parameterized so the stress matrix can emit
+    // short vs long gradients (span + scatter + shift scaled together).
+    std::uniform_real_distribution<double> u_rt(rt_lo, rt_hi);
     std::uniform_real_distribution<double> u_noise_mz(380.0, 700.0);
     std::uniform_int_distribution<int> u_len(9, 20);
-    std::normal_distribution<double> rt_jitter(0.0, 1.5);      // aligned runs
+    std::normal_distribution<double> rt_jitter(0.0, jitter_sigma);  // aligned runs
     std::normal_distribution<double> ppm_jitter(0.0, 2.0);     // m/z, ppm
     std::normal_distribution<double> log2_int(20.0, 1.8);      // ~1e6 median
     std::normal_distribution<double> int_mult(0.0, 0.3);       // per-obs (log2)
 
     const std::string aas = "ACDEFGHIKLMNPQRSTVWY";
-    // Runs are pre-aligned: only a tiny systematic shift remains.
+    // Runs are pre-aligned: only a systematic shift remains (scaled by gradient).
     std::vector<double> run_shift(n_runs, 0.0);
-    for (std::size_t r = 0; r < n_runs; ++r) { run_shift[r] = (double(r) - double(n_runs) / 2.0) * 2.0; }
+    for (std::size_t r = 0; r < n_runs; ++r) { run_shift[r] = (double(r) - double(n_runs) / 2.0) * run_shift_step; }
 
     auto draw_charge = [&]() -> Int {
       double u = u01(rng);
@@ -250,7 +256,10 @@ namespace
     for (std::size_t i = 0; i < n_noise; ++i)
     {
       std::size_t r = std::uniform_int_distribution<size_t>(0, n_runs - 1)(rng);
-      double rt = u_rt(rng);
+      // Apply the same per-run systematic shift as the peptide-derived features
+      // (line above) so the noise/false-transfer RTs share the acceptor RT
+      // distribution across all stress-matrix regimes.
+      double rt = u_rt(rng) + run_shift[r];
       double mz;
       Int charge;
       // A realistic fraction of background ions interfere at a real peptide's
@@ -421,6 +430,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       Param p = algo.getParameters();
       p.setValue("fdr", fdr);
       p.setValue("random_seed", 0); // deterministic decoy selection
+      p.setValue("local_rt:enabled", "false"); // baseline sweep exercises the global window
       algo.setParameters(p);
 
       ConsensusMap cm;
@@ -505,6 +515,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       Param p = a2.getParameters();
       p.setValue("fdr", 0.05);
       p.setValue("random_seed", 0);
+      p.setValue("local_rt:enabled", "false"); // match the global-window sweep output above
       a2.setParameters(p);
       ConsensusMap cm2;
       a2.group(ds.maps, cm2);
@@ -534,6 +545,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       p.setValue("fdr", 0.05);
       p.setValue("random_seed", 0);
       p.setValue("max_training_points", 500); // well below the per-fold training size
+      p.setValue("local_rt:enabled", "false"); // cap behaviour validated on the global-window baseline
       algo.setParameters(p);
 
       ConsensusMap cm;
@@ -555,6 +567,7 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
       p2.setValue("fdr", 0.05);
       p2.setValue("random_seed", 0);
       p2.setValue("max_training_points", 500);
+      p2.setValue("local_rt:enabled", "false"); // match the baseline run above
       a2.setParameters(p2);
       ConsensusMap cm2;
       a2.group(ds.maps, cm2);
@@ -566,6 +579,108 @@ START_SECTION([EXTRA] realistic MBR controls the transfer FDR and recovers true 
                && (cm[i].size() == cm2[i].size());
       }
       TEST_TRUE(same)
+    }
+
+    // ---- Local adaptive RT window: same FDR control + sensitivity ----
+    // The local-RT path re-centers the candidate search on a local RT prediction
+    // and widens the window adaptively; it must keep the realised FDR bounded
+    // against ground truth and still recover a useful fraction of true transfers
+    // (here the sparse 3-run set forces the adaptive widening to engage).
+    {
+      PipEchoAlgorithm algo;
+      Param p = algo.getParameters();
+      p.setValue("fdr", 0.05);
+      p.setValue("random_seed", 0);
+      p.setValue("local_rt:enabled", "true");
+      p.setValue("local_rt:auto", "false"); // manual (fixed) window; auto is now the default
+      algo.setParameters(p);
+
+      ConsensusMap cm;
+      algo.group(ds.maps, cm);
+      TransferStats s = analyzeTransfers(cm, ds.truth, 0.05);
+      double realized = s.n_transfers > 0 ? double(s.n_false) / double(s.n_transfers) : 0.0;
+      std::cout << "[local_rt fdr=0.05] transfers=" << s.n_transfers
+                << " correct=" << s.n_correct << " false=" << s.n_false
+                << " realized_FDR=" << realized << "\n";
+
+      TEST_TRUE(realized <= std::max(3.0 * 0.05, 0.05 + 0.05))         // FDR stays bounded
+      TEST_TRUE(s.n_transfers > 0)                                     // not "drop everything"
+      TEST_TRUE(double(s.n_correct) >= 0.3 * double(ds.n_recoverable)) // sensitivity preserved
+      TEST_TRUE(s.all_q_within_cutoff)
+    }
+
+    // ---- Local adaptive RT window in AUTO mode: scales derived from the data ----
+    // Auto-mode estimates the window scales (cap/floor/locality) from the anchor
+    // RT-shift scatter and density; it must keep the realised FDR bounded and
+    // sensitivity intact without any hand-tuned window values.
+    {
+      PipEchoAlgorithm algo;
+      Param p = algo.getParameters();
+      p.setValue("fdr", 0.05);
+      p.setValue("random_seed", 0);
+      p.setValue("local_rt:enabled", "true");
+      p.setValue("local_rt:auto", "true");
+      algo.setParameters(p);
+
+      ConsensusMap cm;
+      algo.group(ds.maps, cm);
+      TransferStats s = analyzeTransfers(cm, ds.truth, 0.05);
+      double realized = s.n_transfers > 0 ? double(s.n_false) / double(s.n_transfers) : 0.0;
+      std::cout << "[local_rt AUTO fdr=0.05] transfers=" << s.n_transfers
+                << " correct=" << s.n_correct << " false=" << s.n_false
+                << " realized_FDR=" << realized << "\n";
+
+      TEST_TRUE(realized <= std::max(3.0 * 0.05, 0.05 + 0.05))
+      TEST_TRUE(s.n_transfers > 0)
+      TEST_TRUE(double(s.n_correct) >= 0.3 * double(ds.n_recoverable))
+      TEST_TRUE(s.all_q_within_cutoff)
+    }
+
+    // ---- Auto-mode STRESS MATRIX: short / long / sparse / low-sigma gradients ----
+    // Auto sizing must keep the realised FDR bounded AND recover transfers across
+    // very different gradient regimes with ONE config (no per-regime tuning). Each
+    // variant scales RT span, local scatter, run shift, anchor density and FWHM
+    // together. That all four pass with the same config -- while the derived windows
+    // differ (see the logged 'auto windows' lines) -- is the cross-gradient
+    // adaptation evidence: a single FIXED window cannot satisfy all of them.
+    struct GCfg { const char* name; double rt_lo, rt_hi, jitter, shift, p_ident, fwhm; };
+    const std::vector<GCfg> gmatrix = {
+      {"short",     300.0,  2300.0,  1.5,  2.0, 0.50,  2.0},  // dense, tight
+      {"long",      300.0, 10300.0, 12.0, 15.0, 0.50, 15.0},  // 5x span, looser scatter/shift/peak
+      {"sparse",    300.0,  2300.0,  3.0,  2.0, 0.30,  3.0},  // few IDs -> widening must recover decoys
+      {"low_sigma", 300.0,  2300.0,  0.3,  0.5, 0.50,  1.0},  // very well aligned (over-tight risk)
+    };
+    for (const GCfg& g : gmatrix)
+    {
+      Dataset d = buildSyntheticDataset(GEN_SEED, N_PEPTIDES, N_RUNS, TARGET_TOTAL,
+                                        P_PRESENT, g.p_ident, g.rt_lo, g.rt_hi, g.jitter, g.shift);
+      PipEchoAlgorithm algo;
+      Param p = algo.getParameters();
+      p.setValue("fdr", 0.05);
+      p.setValue("random_seed", 0);
+      p.setValue("local_rt:enabled", "true");
+      p.setValue("local_rt:auto", "true");
+      p.setValue("local_rt:median_fwhm", g.fwhm);
+      // The global window (= adaptive-widening ceiling) must scale with the gradient,
+      // exactly as ProteomicsLFQ sets it (2*max_align + 2*fwhm). The bare default
+      // (100 s) is far too tight for a long gradient and would cap widening below the
+      // decoy-estimability point -- a host-config concern, not an auto-sizing one.
+      p.setValue("distance_RT:max_difference", std::max(100.0, 0.05 * (g.rt_hi - g.rt_lo)));
+      algo.setParameters(p);
+
+      ConsensusMap cm;
+      algo.group(d.maps, cm);
+      TransferStats s = analyzeTransfers(cm, d.truth, 0.05);
+      double realized = s.n_transfers > 0 ? double(s.n_false) / double(s.n_transfers) : 0.0;
+      std::cout << "[matrix " << g.name << "] span=" << (g.rt_hi - g.rt_lo) << "s jitter="
+                << g.jitter << "s p_ident=" << g.p_ident << " | transfers=" << s.n_transfers
+                << " correct=" << s.n_correct << " false=" << s.n_false
+                << " realized_FDR=" << realized << " recoverable=" << d.n_recoverable << "\n";
+
+      TEST_TRUE(realized <= std::max(3.0 * 0.05, 0.05 + 0.05))          // FDR bounded in every regime
+      TEST_TRUE(s.n_transfers > 0)                                      // auto recovers (not drop-all)
+      TEST_TRUE(double(s.n_correct) >= 0.3 * double(d.n_recoverable))   // sensitivity in every regime
+      TEST_TRUE(s.all_q_within_cutoff)
     }
   }
 }

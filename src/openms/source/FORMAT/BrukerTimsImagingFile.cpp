@@ -10,7 +10,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -76,7 +76,7 @@ namespace OpenMS
     if (!conn.tableExists("GlobalMetadata")) { return ""; }
 
     sqlite3_stmt* stmt = nullptr;
-    conn.prepareStatement(&stmt, "SELECT Value FROM GlobalMetadata WHERE Key = ?1 LIMIT 1;");
+    Internal::SqliteHelper::prepareStatement(conn, &stmt, "SELECT Value FROM GlobalMetadata WHERE Key = ?1 LIMIT 1;");
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
 
     std::string result;
@@ -101,7 +101,7 @@ namespace OpenMS
     }
 
     sqlite3_stmt* stmt = nullptr;
-    conn.prepareStatement(&stmt, "SELECT Frame, XIndexPos, YIndexPos FROM MaldiFrameInfo ORDER BY Frame;");
+    Internal::SqliteHelper::prepareStatement(conn, &stmt, "SELECT Frame, XIndexPos, YIndexPos FROM MaldiFrameInfo ORDER BY Frame;");
 
     std::vector<MaldiPixel> rows;
     while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -169,7 +169,7 @@ namespace OpenMS
       if (conn.columnExists("MaldiFrameInfo", "ZIndexPos"))
       {
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt, "SELECT COUNT(DISTINCT ZIndexPos) FROM MaldiFrameInfo;");
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, "SELECT COUNT(DISTINCT ZIndexPos) FROM MaldiFrameInfo;");
         int distinct_z = 0;
         if (sqlite3_step(stmt) == SQLITE_ROW) { distinct_z = sqlite3_column_int(stmt, 0); }
         sqlite3_finalize(stmt);

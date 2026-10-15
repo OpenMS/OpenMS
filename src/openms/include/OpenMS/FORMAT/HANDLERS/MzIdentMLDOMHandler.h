@@ -128,11 +128,20 @@ protected:
       void parsePeptideElements_(xercesc::DOMNodeList* peptideElements);
       //AASequence parsePeptideSiblings_(xercesc::DOMNodeList* peptideSiblings);
       AASequence parsePeptideSiblings_(xercesc::DOMElement* peptide);
+      /// Best-effort inference of a modification's mzIdentML @c location (0 = N-terminus, @p peptide_length + 1 = C-terminus)
+      /// for the case where the optional @c location attribute is absent. The position is derived from the terminal
+      /// specificity of the referenced modification(s) in the ModificationsDB. Returns -1 if no unique terminal
+      /// position can be inferred, i.e. when the modification may also occur internally, or when the @c Modification
+      /// names a concrete @c residues amino acid (a residue-specific/internal modification whose exact position is
+      /// unknown without @c location).
+      SignedSize inferModificationLocation_(xercesc::DOMElement* modification_element, Size peptide_length) const;
       void parsePeptideEvidenceElements_(xercesc::DOMNodeList* peptideEvidenceElements);
       void parseSpectrumIdentificationElements_(xercesc::DOMNodeList* spectrumIdentificationElements);
       void parseSpectrumIdentificationProtocolElements_(xercesc::DOMNodeList* spectrumIdentificationProtocolElements);
       void parseInputElements_(xercesc::DOMNodeList* inputElements);
       void parseSpectrumIdentificationListElements_(xercesc::DOMNodeList* spectrumIdentificationListElements);
+      /// The protein identification run of a SpectrumIdentificationList; throws Exception::InvalidParameter if no SpectrumIdentification references the list
+      ProteinIdentification& runOfList_(const std::string& spectrum_identification_list_ref);
       void parseSpectrumIdentificationItemSetXLMS(std::set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, xercesc::DOMElement* element_res, const std::string& spectrumID);
       void parseSpectrumIdentificationItemElement_(xercesc::DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref);
       void parseProteinDetectionHypothesisElement_(xercesc::DOMElement* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);

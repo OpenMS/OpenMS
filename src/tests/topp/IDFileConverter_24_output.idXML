@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unspecific cleavage" missed_cleavages="2" precursor_peak_tolerance="50" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.25" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="formic_acid" missed_cleavages="2" precursor_peak_tolerance="50" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.25" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
@@ -54,15 +54,11 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="MS:1002252" value="0.998"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.998"/>
 				<UserParam type="float" name="MS:1002253" value="0.045"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.045"/>
 				<UserParam type="float" name="MS:1002254" value="1.0e-03"/>
-				<UserParam type="float" name="COMET:deltacnstar" value="1.0e-03"/>
 				<UserParam type="float" name="MS:1002255" value="41.799999999999997"/>
-				<UserParam type="float" name="COMET:spscore" value="41.799999999999997"/>
 				<UserParam type="float" name="MS:1002256" value="84.0"/>
-				<UserParam type="float" name="COMET:sprank" value="84.0"/>
 				<UserParam type="float" name="MS:1002257" value="27.899999999999999"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
@@ -80,15 +76,11 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="float" name="MS:1002252" value="0.998"/>
-				<UserParam type="float" name="COMET:xcorr" value="0.998"/>
 				<UserParam type="float" name="MS:1002253" value="0.045"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.045"/>
 				<UserParam type="float" name="MS:1002254" value="0.0"/>
-				<UserParam type="float" name="COMET:deltacnstar" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="41.799999999999997"/>
-				<UserParam type="float" name="COMET:spscore" value="41.799999999999997"/>
 				<UserParam type="float" name="MS:1002256" value="84.0"/>
-				<UserParam type="float" name="COMET:sprank" value="84.0"/>
 				<UserParam type="float" name="MS:1002257" value="27.899999999999999"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -100,15 +92,11 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="float" name="MS:1002252" value="1.474"/>
-				<UserParam type="float" name="COMET:xcorr" value="1.474"/>
 				<UserParam type="float" name="MS:1002253" value="0.018"/>
 				<UserParam type="float" name="COMET:deltaCn" value="0.018"/>
 				<UserParam type="float" name="MS:1002254" value="0.0"/>
-				<UserParam type="float" name="COMET:deltacnstar" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="100.200000000000003"/>
-				<UserParam type="float" name="COMET:spscore" value="100.200000000000003"/>
 				<UserParam type="float" name="MS:1002256" value="16.0"/>
-				<UserParam type="float" name="COMET:sprank" value="16.0"/>
 				<UserParam type="float" name="MS:1002257" value="3.44"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
