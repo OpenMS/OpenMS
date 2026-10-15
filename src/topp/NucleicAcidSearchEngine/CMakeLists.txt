@@ -17,11 +17,13 @@ endif()
 set(tool_sources
   source/ModifiedNASequenceGenerator.cpp
   source/RNADeisotoper.cpp
+  source/RNADirectedDeconvolution.cpp
   source/RNAPrecursorCorrector.cpp
 )
 set(tool_headers
   include/ModifiedNASequenceGenerator.h
   include/RNADeisotoper.h
+  include/RNADirectedDeconvolution.h
   include/RNAPrecursorCorrector.h
 )
 

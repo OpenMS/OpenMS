@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <initializer_list>
 
 using namespace std;
 
@@ -436,12 +437,17 @@ namespace OpenMS
 
     f << R"(<?xml version="1.0" encoding="UTF-8"?>)" << "\n";
     f << R"(<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">)" << "\n";
-    f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
+    // 'search_engine' belongs to 'search_summary' below; 'msms_run_summary' has no such attribute
+    f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\">" << "\n";
     std::string enzyme_name = search_params.digestion_enzyme.getName();
     f << "\t<sample_enzyme name=\"";
     f << StringUtils::toLower(enzyme_name) << "\">" << "\n";
-    f << "\t\t<specificity cut=\"";
-    if (!search_params.digestion_enzyme.getRegEx().empty())
+    std::string cut, no_cut;
+    // 'unspecific cleavage' cuts after every residue (RegEx "(?<=[A-Z])"); the regex parsing
+    // below would read that as a single-residue rule cutting only after alanine ('A', the first
+    // of the two unrelated letters in the character class), which is schema-valid but wrong.
+    const bool unspecific_cleavage = (enzyme_name == "unspecific cleavage");
+    if (!unspecific_cleavage && !search_params.digestion_enzyme.getRegEx().empty())
     {
       vector<std::string> sub_regex;
       StringUtils::split(search_params.digestion_enzyme.getRegEx(), ")", sub_regex);
@@ -449,14 +455,25 @@ namespace OpenMS
       static const boost::regex e("(.*?)([A-Z]+)(.*?)");
       if (boost::regex_match(sub_regex[0], results, e))
       {
-        f << results[2];
+        cut = results[2];
       }
-      if (StringUtils::hasSubstring(sub_regex[1], "!P"))
+      if (sub_regex.size() > 1 && StringUtils::hasSubstring(sub_regex[1], "!P"))
       {
-        f << "\" no_cut=\"P";
+        no_cut = "P";
       }
     }
-    f << R"(" sense="C"/>)" << "\n";
+    // an enzyme without cleavage rules (e.g. the default 'unknown_enzyme', or 'unspecific
+    // cleavage', which has no single cleavage residue to express as 'cut') has nothing to cut
+    // after; pepXML allows a 'sample_enzyme' without 'specificity', but not an empty 'cut'
+    if (!cut.empty())
+    {
+      f << "\t\t<specificity cut=\"" << cut << "\"";
+      if (!no_cut.empty())
+      {
+        f << " no_cut=\"" << no_cut << "\"";
+      }
+      f << R"( sense="C"/>)" << "\n";
+    }
     f << "\t</sample_enzyme>" << "\n";
 
     f << "\t<search_summary base_name=\"" << base_name;
@@ -560,6 +577,22 @@ namespace OpenMS
     {
       f << "\t<analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << "\n";
     }
+
+    // Writes a "search_score" with the value of the first of 'keys' that is set (and not empty) as meta value of 'hit'.
+    // Writes nothing if there is none, as an empty "value" attribute cannot be read back (issue #10570).
+    auto writeScoreFromMetaValue = [&f](const PeptideHit& hit, const std::string& name, std::initializer_list<const char*> keys)
+    {
+      for (const char* key : keys)
+      {
+        const std::string value = hit.getMetaValue(key).toString(); // empty if 'key' is not set
+        if (!value.empty())
+        {
+          f << "\t\t\t<search_score" << " name=\"" << name << "\" value=\"" << value << "\"" << "/>\n";
+          return true;
+        }
+      }
+      return false;
+    };
 
     // Scan index and scan number will be reconstructed if no spectrum lookup is possible to retrieve the values.
     // The scan index is generally zero-based and the scan number generally one-based.
@@ -840,20 +873,24 @@ namespace OpenMS
                 f << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               }
             }
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+            // "MS:1001330" is set when reading pepXML, "E-Value" when reading X! Tandem XML (e.g. via idXML)
+            if (!writeScoreFromMetaValue(h, "expect", {"MS:1001330", "E-Value"}) && pep.getScoreType() == "expect")
+            {
+              f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getScore() << "\"" << "/>\n";
+            }
           }
           else if (search_engine_name == "Comet")
           {
-            f << "\t\t\t<search_score" << R"( name="xcorr" value=")" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
-            f << "\t\t\t<search_score" << R"( name="deltacn" value=")" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
-            f << "\t\t\t<search_score" << R"( name="deltacnstar" value=")" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
-            f << "\t\t\t<search_score" << R"( name="spscore" value=")" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
-            f << "\t\t\t<search_score" << R"( name="sprank" value=")" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
+            writeScoreFromMetaValue(h, "xcorr", {"MS:1002252"}); // name: Comet:xcorr
+            writeScoreFromMetaValue(h, "deltacn", {"MS:1002253"}); // name: Comet:deltacn
+            writeScoreFromMetaValue(h, "deltacnstar", {"MS:1002254"}); // name: Comet:deltacnstar
+            writeScoreFromMetaValue(h, "spscore", {"MS:1002255"}); // name: Comet:spscore
+            writeScoreFromMetaValue(h, "sprank", {"MS:1002256"}); // name: Comet:sprank
+            writeScoreFromMetaValue(h, "expect", {"MS:1002257"}); // name: Comet:expect
           }
           else if (search_engine_name == "MASCOT")
           {
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("EValue") << "\"" << "/>\n";
+            writeScoreFromMetaValue(h, "expect", {"MS:1001172", "EValue"}); // name: Mascot:expectation value
             f << "\t\t\t<search_score" << R"( name="ionscore" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "OMSSA")
@@ -1227,7 +1264,7 @@ namespace OpenMS
         {
           peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
         }
-        else if (search_engine_ == "Mascot")
+        else if (search_engine_ == "Mascot" || search_engine_ == "MASCOT") // "MASCOT": written by TPP and by PepXMLFile::store
         {
           peptide_hit_.setMetaValue("MS:1001172", value); // name: Mascot:expectation value
         }
@@ -2010,14 +2047,16 @@ namespace OpenMS
       std::string no_cut_after;
       optionalAttributeAsString_(no_cut_after, attributes, "no_cut");
       std::string sense = attributeAsString_(attributes, "sense");
-      const std::string enzyme_name = "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense;
       if (cut_before.empty())
       {
-        // OpenMS writes an empty cut for an unknown enzyme with no cleavage positions.
-        params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(enzyme_name, "", std::set<std::string>()));
+        // No cleavage information (OpenMS writes an empty cut for "unknown_enzyme"): keep "unknown_enzyme",
+        // which code checking for a missing enzyme expects, instead of a "user-defined" name that grows
+        // with every pepXML write/read pass.
+        params_.digestion_enzyme = DigestionEnzymeProtein();
       }
       else
       {
+        const std::string enzyme_name = "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense;
         params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
             enzyme_name, cut_before, no_cut_after, sense));
       }

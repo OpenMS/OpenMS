@@ -3929,8 +3929,6 @@ Constructors
         .def("__copy__", [](const OpenMS::SpectralDeconvolution& self) { return OpenMS::SpectralDeconvolution(self); })
         .def("__deepcopy__", [](const OpenMS::SpectralDeconvolution& self, nb::dict) { return OpenMS::SpectralDeconvolution(self); }, "memo"_a)
         .def("performSpectrumDeconvolution", [](OpenMS::SpectralDeconvolution& self, const OpenMS::MSSpectrum& spec, int scan_number, const OpenMS::PeakGroup& precursor_peak_group) { return self.performSpectrumDeconvolution(spec, scan_number, precursor_peak_group); }, "spec"_a, "scan_number"_a, "precursor_peak_group"_a)
-        .def("setQueryMasses", &OpenMS::SpectralDeconvolution::setQueryMasses, "mz_charge"_a,
-             "Set non-protecting m/z and signed-charge queries consumed by the next MS1 deconvolution; empty queries use ordinary FLASH")
         .def("getDeconvolvedSpectrum", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::DeconvolvedSpectrum { return self.getDeconvolvedSpectrum(); }, "Returns a copy of the deconvolved spectrum after performSpectrumDeconvolution() is called")
         .def("getAveragine", [](OpenMS::SpectralDeconvolution& self) -> OpenMS::FLASHHelperClasses::PrecalculatedAveragine { return self.getAveragine(); }, "Get calculated averagine. Call after calculateAveragine() is called.")
         .def("setAveragine", [](OpenMS::SpectralDeconvolution& self, const OpenMS::FLASHHelperClasses::PrecalculatedAveragine& avg) { return self.setAveragine(avg); }, "avg"_a, "Set the precalculated averagine")
