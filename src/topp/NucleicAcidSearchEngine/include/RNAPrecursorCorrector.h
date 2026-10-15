@@ -13,10 +13,11 @@ namespace OpenMS
 {
   /** @brief Correct MS2 precursor m/z from FLASH RNA envelopes in the parent MS1 scan.
 
-    Match the reported selected ion to an observed isotope at the reported charge.
+    Construct precursor-related FLASH envelopes using the complete parent MS1.
+    Match the selected ion to an observed isotope at the reported charge.
     Unknown charges can be inferred from a unique envelope. Missing monoisotopes
-    are allowed when FLASH still assigns a unique high-quality envelope.
-    Isotope shifts are subtracted from the instrument's selected-ion m/z.
+    are allowed. FLASH supplies the isotope index; subtract its mass shift from
+    the instrument's selected-ion m/z to preserve the original mass precision.
     Ambiguous or unmatched precursors retain their original m/z and charge.
     Accepted corrections preserve the input charge sign convention.
   */
@@ -29,6 +30,7 @@ namespace OpenMS
       double original_mz = 0, corrected_mz = 0, mono_mass = 0, cosine = 0, snr = 0;
       double selected_error_ppm = 0;
       int original_charge = 0, charge = 0, isotope = -1;
+      Size parent_peak_count = 0, parent_query_count = 0;
       bool mono_observed = false;
 
       /// Whether a unique confident isotope or monoisotope was assigned.
@@ -62,7 +64,9 @@ namespace OpenMS
     /**
       @brief Correct selected-ion values without moving acquisition isolation windows.
 
-      Correct every MS2 in acquisition order, deconvolving each referenced MS1 once.
+      Batch all selected ions sharing a parent MS1 and deconvolve that parent once.
+      Retain correction results only, without caching raw MS1 copies or envelopes.
+      MS1 peaks may be unsorted; any sorting uses a copy and preserves the original scan.
       Prefer spectrum_ref; invalid references fall back to the preceding MS1 and are reported.
       Replace earlier FLASH annotations; unresolved results omit accepted-only fields.
       @param[in,out] experiment Original MS1/MS2 experiment in acquisition order.
