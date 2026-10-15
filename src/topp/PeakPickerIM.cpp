@@ -17,6 +17,8 @@
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
+#include <exception>
+
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #endif
@@ -73,7 +75,7 @@ class TOPPPeakPickerIM : public TOPPBase
 {
 public:
   TOPPPeakPickerIM() :
-      TOPPBase("PeakPickerIM", "Applies PeakPickerIM to an mzML or Bruker .d file", false)
+      TOPPBase("PeakPickerIM", "Applies PeakPickerIM to an mzML or Bruker .d file")
   {}
 
 protected:

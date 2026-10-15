@@ -6,7 +6,6 @@
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<UserParam type="string" name="ConsensusIDBaseSearch" value="Mascot:"/>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<mapList count="2">

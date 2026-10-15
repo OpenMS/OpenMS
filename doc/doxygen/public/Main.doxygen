@@ -52,6 +52,7 @@
           <LI> @subpage install_linux
           <LI> @subpage install_mac
           <LI> @subpage install_win
+          <LI> @subpage install_vcpkg
         </UL>
 
         Development:
@@ -68,6 +69,7 @@
           <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/latest/index.html" target="_blank">Developer Python Guide (online)</a>
           <LI> @subpage external_code
           <LI> @ref TargetedQuantitation_Tutorial - MRM/SRM and SWATH/DIA quantitation workflow
+          <LI> @ref glycan_fragmentation - Glycan and glycopeptide fragment generation
         </UL>
 
       </TD>

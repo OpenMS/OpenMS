@@ -88,12 +88,12 @@ namespace OpenMS
     // search parameters are also not available
   }
 
-  void OMSSAXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
+  void OMSSAXMLFile::onStartElement(const char16_t* const qname, const Internal::XMLAttributes& /*attributes*/)
   {
     tag_ = StringUtils::trimmed(std::string(sm_.convert(qname)));
   }
 
-  void OMSSAXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void OMSSAXMLFile::onEndElement(const char16_t* qname)
   {
     tag_ = StringUtils::trimmed(std::string(sm_.convert(qname)));
 
@@ -159,7 +159,7 @@ namespace OpenMS
     tag_ = "";
   }
 
-  void OMSSAXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+  void OMSSAXMLFile::onCharacters(const char16_t* chars, Size /*length*/)
   {
     if (tag_.empty()) return;
 

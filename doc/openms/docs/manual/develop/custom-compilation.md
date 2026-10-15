@@ -13,6 +13,10 @@ cmake -DCMAKE_C_COMPILER=/path/to/c-compiler/binary/gcc -DCMAKE_CXX_COMPILER=/pa
 cmake -DCMAKE_C_COMPILER=/path/to/c-compiler/binary/clang -DCMAKE_CXX_COMPILER=/path/to/c++-compiler/binary/clang++
 ```
 
+```{note}
+When building OpenMS with `clang` on GNU/Linux, make sure the OpenMP runtime and development headers are installed as well. On Debian-based distributions this is typically provided by `libomp-dev`. Other distributions may use a different package name.
+```
+
 To compile OpenMS with clang and a specific GCC stdlib, instead of the system default one:
 
 Use this cmake option to specify an additional compiling option for clang:
@@ -30,5 +34,4 @@ This combination does not work for all versions of clang and gcc.
 - Clang 9.0.0 and GCC 8.3.0 stdlib compiles, but some tests fail.
 - Clang 6.0.0 and GCC 7.4.0 stdlib (Ubuntu 18.04 default versions) works
 ```
-
 

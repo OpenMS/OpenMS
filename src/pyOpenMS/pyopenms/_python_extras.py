@@ -15,6 +15,15 @@ class ParamValue:
     EMPTY_VALUE = 6
 
     def __init__(self, value=None):
+        # OpenMS has no boolean value type: a boolean parameter is the string 'true' or
+        # 'false' (see Param.ParamEntry.isBool). Normalise here so valueType(), toString()
+        # and toBool() all agree with the C++ side instead of each deriving its own answer.
+        if isinstance(value, bool):
+            value = "true" if value else "false"
+        # Same rule as the type casters: a bool is not a list element type. Checking here,
+        # not in valueType(), also covers direct toIntVector()/toDoubleVector() calls.
+        elif isinstance(value, list) and any(isinstance(v, bool) for v in value):
+            raise TypeError("ParamValue lists cannot contain bool elements: %r" % (value,))
         self._value = value
 
     def isEmpty(self):
@@ -25,8 +34,6 @@ class ParamValue:
             return self.EMPTY_VALUE
         elif isinstance(self._value, str):
             return self.STRING_VALUE
-        elif isinstance(self._value, bool):
-            return self.INT_VALUE
         elif isinstance(self._value, int):
             return self.INT_VALUE
         elif isinstance(self._value, float):
@@ -48,11 +55,14 @@ class ParamValue:
         return str(self._value)
 
     def toBool(self):
-        if isinstance(self._value, bool):
-            return self._value
-        if isinstance(self._value, str):
-            return self._value.lower() in ("true", "1", "yes")
-        return bool(self._value)
+        # Same rule as C++ ParamValue::toBool(): exactly 'true' or 'false', nothing else.
+        if self._value == "true":
+            return True
+        if self._value == "false":
+            return False
+        raise ValueError(
+            "Could not convert %r to bool. Valid strings are 'true' and 'false'." % (self._value,)
+        )
 
     def toInt(self):
         return int(self._value)
@@ -83,21 +93,19 @@ class SimpleOpenMSSpectraFactory:
 
     @staticmethod
     def getSpectrumAccessOpenMSPtr(exp):
-      is_cached = False
+        # Deferred import: this module is loaded from pyopenms/__init__.py, so the
+        # binding names are not importable at module level. (Both branches below
+        # raised NameError before this import existed -- nothing ever called them.)
+        from . import SpectrumAccessOpenMS, SpectrumAccessOpenMSCached
 
-      for i in range(exp.size()):
-        for dp in exp[i].getDataProcessing():
-          if dp.metaValueExists("cached_data"):
-            is_cached = True
-
-      for chrom in exp.getChromatograms():
-        for dp in chrom.getDataProcessing():
-          if dp.metaValueExists("cached_data"):
-            is_cached = True
-
-      if is_cached:
-        return SpectrumAccessOpenMSCached( exp.getLoadedFilePath() )
-      else:
-        return SpectrumAccessOpenMS( exp )
+        # Scans C++-side: exp[i] and getChromatograms() hand out owned copies
+        # (see OWNERSHIP.md), so probing the marker from Python would copy
+        # every spectrum in the run just to read DataProcessing metadata.
+        if exp._contains_cached_data_marker():
+            # Same contract as the C++ factory: the metadata file the
+            # experiment was loaded from must have its ".cached" side-car
+            # next to it, or the constructor raises.
+            return SpectrumAccessOpenMSCached(exp.getLoadedFilePath())
+        return SpectrumAccessOpenMS(exp)
 
 

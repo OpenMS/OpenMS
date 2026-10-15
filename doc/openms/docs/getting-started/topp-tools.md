@@ -6,7 +6,7 @@ TOPP Tools
 
 - [Executed from the command line](/getting-started/topp-tools.md#command-line-interface) or,
 - Applied individually using OpenMS graphical applications.
-- Applied in sequence as a workflow using a workflow editor such as KNIME, Nextflow or Galaxy.
+- Applied in sequence as a workflow using a workflow editor such as Nextflow or Galaxy.
 
 Before you choose one of the above options, there are few concepts that need to be understood.
 
@@ -19,10 +19,17 @@ OpenMS only accepts files in certain formats, including but not limited to:
 - **featureXML**: The OpenMS format for quantitation results.
 - **consensusXML**: The OpenMS format for grouping features in one map or across several maps.
 - **idXML**: The OpenMS format for protein and peptide identification.
+- **Parquet bundles** (`.idparquet`, `.featureparquet`, `.consensusparquet`): the content of idXML, featureXML and
+  consensusXML as Apache Parquet tables.
+
+The XML formats except mzIdentML can also be read compressed (`.gz`, `.bz2`, `.zip`); see
+[File formats](file-formats.md).
 
 Documented schemas of the OpenMS formats can be found [here](https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS).
 
-If your data is not in the above formats, you may need to use a file conversion TOPP tool.
+Many tools also read Thermo Fisher `.raw` files and Bruker timsTOF `.d` directories, also zipped as `.d.zip`,
+directly; see [Vendor formats](vendor-formats.md). For data in other formats, you may need to use a file conversion
+TOPP tool.
 
 Command Line Interface
 ----------------------
@@ -162,13 +169,15 @@ The following tools are offered:
 
   OpenMS provides tools to measure the quality of LC-MS data. For more information, view the [Quality control](types-of-topp-tools/quality-control.md) section.
 
-For the full list of TOPP tools, visit the [API reference](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_documentation.html) website.
+For the full list of TOPP tools, visit the [API reference](https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_documentation.html) website.
 
 
 ```{toctree}
 :maxdepth: 1
 
+vendor-formats.md
 types-of-topp-tools/file-handling.md
+file-formats.md
 types-of-topp-tools/picking-peaks.md
 types-of-topp-tools/calibration.md
 types-of-topp-tools/map-alignment.md

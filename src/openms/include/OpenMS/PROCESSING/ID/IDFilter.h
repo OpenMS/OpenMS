@@ -456,7 +456,7 @@ namespace OpenMS
 
         if (accession_resolver_.exists(evidence))
         {
-          return digestion_.isValidProduct(AASequence::fromString(accession_resolver_.getValue(evidence).sequence), evidence.getStart(), evidence.getEnd() - evidence.getStart(),
+          return digestion_.isValidProduct(AASequence::fromString(accession_resolver_.getValue(evidence).sequence), evidence.getStart(), evidence.getEnd() - evidence.getStart() + 1, // end is inclusive
                                            ignore_missed_cleavages_, methionine_cleavage_);
         }
         else
@@ -1454,16 +1454,21 @@ namespace OpenMS
     */
     static void keepBestMatchPerObservation(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref);
 
-    /*!
+    /**
       @brief Filter observation matches (e.g. PSMs) in IdentificationData by score
 
       Matches with scores of the required type that are worse than the cut-off are removed.
       Matches without a score of the required type are also removed.
+      Stored scores must be finite. PSM-level and distinct peptide-level q-values
+      (MS:1002354 and MS:1001868) must additionally lie in [0, 1]. Other score types
+      may have valid negative scores. All stored scores of the required type across
+      every processing step are validated before filtering; invalid scores cause an exception and leave the data unchanged.
       The data structure will be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
-      @param[in] id_data Data to be filtered
+      @param[in,out] id_data Data to be filtered
       @param[in] score_ref Reference to the score type used for filtering
-      @param[in] cutoff Score cut-off for filtering
+      @param[in] cutoff Inclusive score cut-off for filtering
+      @throws Exception::InvalidValue A stored score is non-finite or a q-value lies outside [0, 1]
     */
     static void filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff);
 

@@ -23,3 +23,58 @@ pyopenms\.RNaseDB$:
 
 pyopenms\.RibonucleotideDB$:
     def RibonucleotideDB() -> _pyopenms_chemistry.RibonucleotideDB: ...
+
+# Classes exported under a second name, and nested enums exported at module
+# level. stubgen imports such a type under its __name__ from the module that
+# defines it, as in "from pyopenms._pyopenms_experiment import MSExperiment as
+# PeakMap". Type checkers do not treat an import under another name as a
+# re-export, so mypy reported "does not explicitly export". A nested enum is not
+# a top-level name of its module either, so a checker typed FileType and the
+# others as Any. An assignment of the real class is exported and resolves.
+pyopenms\.PeakMap$:
+    PeakMap = MSExperiment
+
+pyopenms\.PeakSpectrum$:
+    PeakSpectrum = MSSpectrum
+
+pyopenms\.Kernel_MassTrace$:
+    Kernel_MassTrace = MassTrace
+
+pyopenms\.TM_DataPoint$:
+    TM_DataPoint = TransformationModel_DataPoint
+
+pyopenms\.MZTrafoModel_MODELTYPE$:
+    MZTrafoModel_MODELTYPE = MZTrafoModel.MODELTYPE
+
+pyopenms\.FileType$:
+    FileType = FileTypes.FileType
+
+pyopenms\.IDType$:
+    IDType = Scores.IDType
+
+pyopenms\.LogType$:
+    LogType = ProgressLogger.LogType
+
+pyopenms\.AnnotationState$:
+    AnnotationState = BaseFeature.AnnotationState
+
+pyopenms\.BoundaryCondition$:
+    BoundaryCondition = BSpline2d.BoundaryCondition
+
+pyopenms\.DecoyTransitionType$:
+    DecoyTransitionType = ReactionMonitoringTransition.DecoyTransitionType
+
+pyopenms\.DimensionDescription$:
+    DimensionDescription = Peak2D.DimensionDescription
+
+pyopenms\.Measure$:
+    Measure = IDMapper.Measure
+
+pyopenms\.NormalizationMethod$:
+    NormalizationMethod = ConsensusMapNormalizerAlgorithmMedian.NormalizationMethod
+
+pyopenms\.OriginAnnotationFormat$:
+    OriginAnnotationFormat = IDRipper.OriginAnnotationFormat
+
+pyopenms\.ChecksumType$:
+    ChecksumType = SourceFile.ChecksumType

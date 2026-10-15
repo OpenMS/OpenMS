@@ -10,14 +10,17 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -365,7 +368,7 @@ namespace // anonymous
                 }
                 else if (mv_type == "double" || mv_type == "float")
                 {
-                  try { dp.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+                  try { dp.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
                 }
                 else if (mv_type == "int_list")
@@ -516,7 +519,7 @@ namespace // anonymous
         }
         else if (mv_type == "double" || mv_type == "float")
         {
-          try { target.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+          try { target.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
         }
         else if (mv_type == "int_list")
@@ -694,7 +697,6 @@ namespace // anonymous
     std::string uuid_str(buf);
 
     std::vector<std::pair<std::string, std::string>> md_pairs = {
-      {"qpx_version", "1.0"},
       {"creator", "OpenMS"},
       {"file_type", file_type},
       {"creation_date", DateTime::nowUTC().toString("yyyy-MM-ddThh:mm:ssZ")},
@@ -761,11 +763,34 @@ namespace // anonymous
       *table, arrow::default_memory_pool(), outfile,
       config.row_group_size, writer_props, arrow_props);
 
+    // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+    // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+    // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+    // removing: on Windows an open handle blocks the unlink.
+    const auto abandon = [&](const std::string& what)
+    {
+      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: " << what << std::endl;
+      (void)outfile->Close();
+      if (!File::remove(filename))
+      {
+        OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to remove incomplete output "
+                         << filename << std::endl;
+      }
+      return false;
+    };
+
     if (!write_status.ok())
     {
-      OPENMS_LOG_ERROR << "ConsensusMapArrowIO: Failed to write Parquet: "
-                       << write_status.ToString() << std::endl;
-      return false;
+      return abandon("Failed to write Parquet: " + write_status.ToString());
+    }
+
+    // Close explicitly rather than leaving it to the destructor, which swallows the error: the
+    // final flush is where a full disk surfaces, and reporting success there would hand back a
+    // truncated file.
+    auto close_status = outfile->Close();
+    if (!close_status.ok())
+    {
+      return abandon("Failed to close " + filename + ": " + close_status.ToString());
     }
 
     return true;
@@ -1086,6 +1111,8 @@ bool ConsensusMapArrowIO::exportToParquet(
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .consensusparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(cmap.getProteinIdentifications());
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(cmap);
 
   // 1. Create output directory
   try
@@ -1147,7 +1174,8 @@ bool ConsensusMapArrowIO::exportToParquet(
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-          prot_ids, directory + "/search_params.parquet", config))
+          prot_ids, directory + "/search_params.parquet", config,
+          ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(cmap))))
   {
     return false;
   }
@@ -1417,10 +1445,19 @@ bool ConsensusMapArrowIO::importFromParquet(
   // 3. Import PSMs (links to consensus features already in the map)
   auto psms_table = readParquetTable_(directory + "/psms.parquet");
   if (!psms_table) { return false; }
+  const Size stored_runs = cmap.getProteinIdentifications().size();
   if (!importPSMsFromArrow(psms_table, cmap))
   {
     return false;
   }
+  // every peptide identification needs its protein identification run: the PSM table import appends a shell run
+  // for each run identifier the stored runs lack, which is a dangling reference in this file
+  if (cmap.getProteinIdentifications().size() > stored_runs)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProteinRunReferences::missingRunMessage(cmap.getProteinIdentifications()[stored_runs].getIdentifier()));
+  }
+  ProteinRunReferences::check(cmap);
 
   // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
   //    we own (per-consensus-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the

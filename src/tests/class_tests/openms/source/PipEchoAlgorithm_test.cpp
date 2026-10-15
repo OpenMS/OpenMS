@@ -103,6 +103,10 @@ START_SECTION([EXTRA] parameter defaults)
   // SVM training-set cap (0 = unlimited); bounds grid-search cost on large runs.
   TEST_TRUE(p.exists("max_training_points"))
   TEST_EQUAL(int(p.getValue("max_training_points")), 50000)
+  // Local adaptive RT window is ON by default (with auto window sizing); set
+  // 'local_rt:enabled=false' for the legacy global-window behaviour.
+  TEST_EQUAL(p.getValue("local_rt:enabled").toString(), "true")
+  TEST_EQUAL(p.getValue("local_rt:auto").toString(), "true")
 }
 END_SECTION
 
@@ -131,6 +135,7 @@ START_SECTION((virtual void group(const std::vector<FeatureMap>& features, Conse
   // regardless of how few decoys this tiny input generates, so we can exercise
   // the transfer-provenance meta values without needing >= min_decoys decoys.
   param.setValue("fdr", 1.0);
+  param.setValue("local_rt:enabled", "false"); // this case validates the global-window baseline
   algo.setParameters(param);
 
   ConsensusMap consensus;
@@ -210,6 +215,7 @@ START_SECTION([EXTRA] conservative fallback drops transfers when the FDR is not 
   // FDR-estimability gate (0 decoys < min_decoys, and fdr < 1.0). A tighter
   // cutoff like 0.01 would pass even without the gate, hiding regressions.
   param.setValue("fdr", 0.5);
+  param.setValue("local_rt:enabled", "false"); // this case validates the global-window baseline
   algo.setParameters(param);
 
   ConsensusMap consensus;
@@ -277,6 +283,7 @@ START_SECTION([EXTRA] ion mobility disambiguates competing acceptors when presen
   PipEchoAlgorithm algo;
   Param param = algo.getParameters();
   param.setValue("fdr", 1.0); // escape hatch: keep the transfer regardless of decoy count
+  param.setValue("local_rt:enabled", "false"); // IM disambiguation validated on the global-window baseline
   algo.setParameters(param);
 
   ConsensusMap consensus;

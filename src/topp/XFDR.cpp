@@ -65,7 +65,7 @@ public TOPPBase
 public:
 
   TOPPXFDR() :
-    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", true)
+    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications")
   {
   }
 

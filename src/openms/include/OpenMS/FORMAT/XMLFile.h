@@ -32,7 +32,7 @@ namespace OpenMS
       Compression is detected on @ref parse_ by reading the first two bytes of the file
       and matching one of three magic numbers: @c "BZ" (bzip2), @c 0x1F8B (gzip),
       @c "PK" (zip). On @ref save_, compression is selected by filename suffix
-      (@c .gz, @c .bz2) instead.
+      (@c .gz, @c .bz2, in any letter case) instead; ZIP archives are not written.
 
       @ingroup FileIO
     */
@@ -117,7 +117,8 @@ protected:
 
         If @p filename ends with <tt>.gz</tt>, the output is written with gzip compression.
         If @p filename ends with <tt>.bz2</tt>, the output is written with bzip2 compression.
-        Otherwise, uncompressed output is written.
+        The suffix is matched in any letter case (see FileNameUtils::compressionType()).
+        Otherwise, uncompressed output is written; that includes a <tt>.zip</tt> name.
 
         @param[in] filename The output filename (extension determines compression: .gz, .bz2, or none)
         @param[in] handler The XML handler containing the content to write

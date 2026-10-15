@@ -106,14 +106,12 @@ namespace OpenMS
     // This covers the documented/default sentinel -1 as well as the legacy
     // 0 value (which would otherwise divide by zero). A real dot product is
     // non-negative, so only these degenerate sentinels take the recompute path.
-    if (dot_product > 0)
+    const double denominator = (dot_product > 0) ? dot_product : (*this)(bin1, bin2);
+    if (denominator <= 0.0)
     {
-      return (double)numerator / dot_product;
+      return 0.0;
     }
-    else
-    {
-      return (double)numerator / (*this)(bin1, bin2);
-    }
+    return (double)numerator / denominator;
   }
 
   double SpectraSTSimilarityScore::delta_D(double top_hit, double runner_up)

@@ -6,6 +6,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include "../DATASTRUCTURES/RegularExpressionInternal.h"
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
@@ -15,6 +16,7 @@ using namespace std;
 
 namespace OpenMS
 {
+  using Internal::RegularExpressionAccess;
   const std::string& SpectrumLookup::default_scan_regexp = R"(=(?<SCAN>\d+)$)";
 
   const std::string& SpectrumLookup::regexp_names_ = "INDEX0 INDEX1 SCAN ID RT";
@@ -126,14 +128,14 @@ namespace OpenMS
                                        msg);
     }
 
-    boost::regex re(regexp);
+    RegularExpression re(regexp);
     reference_formats.push_back(re);
   }
 
 
   Size SpectrumLookup::findByRegExpMatch_(const std::string& spectrum_ref,
                                           const std::string& regexp, 
-                                          const boost::smatch& match) const
+                                          const Internal::RegularExpressionMatch& match) const
   {
     if (match["INDEX0"].matched)
     {
@@ -188,10 +190,10 @@ namespace OpenMS
 
   Size SpectrumLookup::findByReference(const std::string& spectrum_ref) const
   {
-    for (const boost::regex& reg : reference_formats)
+    for (const RegularExpression& reg : reference_formats)
     {
-      boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, reg);
+      Internal::RegularExpressionMatch match;
+      bool found = boost::regex_search(spectrum_ref, static_cast<boost::smatch&>(match), RegularExpressionAccess::get(reg));
       if (found)
       {
         return findByRegExpMatch_(spectrum_ref, reg.str(), match);
@@ -214,7 +216,7 @@ namespace OpenMS
   }
 
   Int SpectrumLookup::extractScanNumber(const std::string& native_id,
-                                        const boost::regex& scan_regexp,
+                                        const RegularExpression& scan_regexp,
                                         bool no_error)
   {
     return SpectrumNativeIDParser::extractScanNumber(native_id, scan_regexp, no_error);

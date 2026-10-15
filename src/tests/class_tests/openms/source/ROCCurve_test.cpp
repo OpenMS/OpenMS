@@ -77,6 +77,23 @@ START_SECTION((double cutoffNeg(double fraction=0.95)))
   double con = rcp->cutoffNeg();
   bool inBounds( con >=0 && con <= 1 );
   TEST_EQUAL(inBounds,true)
+
+  // deterministic check that cutoffNeg picks a NEGATIVE-class score (issue #9488, ML-21)
+  ROCCurve rc2;
+  // negatives at low scores, positives at high scores
+  rc2.insertPair(0.10, false);
+  rc2.insertPair(0.20, false);
+  rc2.insertPair(0.30, false);
+  rc2.insertPair(0.40, false);
+  rc2.insertPair(0.70, true);
+  rc2.insertPair(0.80, true);
+  rc2.insertPair(0.90, true);
+  rc2.insertPair(0.95, true);
+  // with the fix, cutoffNeg(0.95) walks negatives only and returns a
+  // negative-class score (<= 0.40), never a positive-class score (>= 0.70)
+  double con2 = rc2.cutoffNeg(0.95);
+  bool fromNeg = (con2 <= 0.40 + 1e-9 && con2 >= 0.0);
+  TEST_EQUAL(fromNeg, true)
 END_SECTION
 
 START_SECTION((ROCCurve(const ROCCurve& source)))

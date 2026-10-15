@@ -36,6 +36,14 @@ namespace OpenMS
     the MSSpectrum via the "SEQ" meta value as a StringList (always, even for a single SEQ)
     and written back out as one SEQ= line per entry.
 
+    Every BEGIN IONS/END IONS block is read independently: the spectrum is reset before each
+    block, so a field that is absent from a block (e.g. CHARGE, RTINSECONDS, the PEPMASS
+    intensity, MSLEVEL or a library field such as NAME or SMILES) keeps its default value and is
+    not inherited from the previous block. Parameters in the file header, i.e. outside of
+    BEGIN IONS/END IONS (e.g. CHARGE=1,2,3), are not applied to the spectra. A block without
+    peak lines is stored as an empty spectrum (with its precursor and meta data), so the
+    'index=N' native ID of every spectrum matches the position of its block in the file.
+
     @htmlinclude OpenMS_MascotGenericFile.parameters
 
     @ingroup FileIO
@@ -89,10 +97,7 @@ public:
       UInt spectrum_number(0);
       Size line_number(0); // carry line number for error messages within getNextSpectrum()
 
-      typename MapType::SpectrumType spectrum;
-      spectrum.setMSLevel(2);
-      spectrum.getPrecursors().resize(1);
-      spectrum.setType(SpectrumSettings::SpectrumType::CENTROID); // MGF is always centroided, by definition
+      typename MapType::SpectrumType spectrum; // (re-)initialized for every block by getNextSpectrum_()
       while (getNextSpectrum_(is, spectrum, line_number, spectrum_number))
       {
         exp.addSpectrum(spectrum);
@@ -136,22 +141,27 @@ protected:
     /// writes the MSExperiment
     void writeMSExperiment_(std::ostream& os, const std::string& filename, const PeakMap& experiment);
 
-    /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a MGF file
+    /**
+      @brief reads the next spectrum block (the section between 'BEGIN IONS' and 'END IONS') of a MGF file into @p spectrum
+
+      @p spectrum is reset before the block is parsed, so no field of a previously read block carries over.
+      A block without peak lines yields an empty spectrum.
+
+      @return true if a block was read, false if the end of the file was reached
+    */
     template <typename SpectrumType>
     bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
     {
-      spectrum.resize(0);
+      // Start every block from a pristine spectrum: clear(true) removes the peaks and data arrays,
+      // all SpectrumSettings (precursors, native ID, meta values such as TITLE/SEQ/NAME, ...) and
+      // resets RT, drift time and MS level. Every field below is only set when its line is present
+      // (e.g. CHARGE is commonly omitted), so nothing from the previous block may survive here.
+      spectrum.clear(true);
+      spectrum.setMSLevel(2);
+      spectrum.getPrecursors().resize(1);
+      spectrum.setType(SpectrumSettings::SpectrumType::CENTROID); // MGF is always centroided, by definition
       spectrum.setNativeID(std::string("index=") + (spectrum_number));
 
-      if (spectrum.metaValueExists("TITLE"))
-      {
-        spectrum.removeMetaValue("TITLE");
-      }
-      if (spectrum.metaValueExists("SEQ"))
-      {
-        // SEQ is a per-query field; do not let it bleed across spectra
-        spectrum.removeMetaValue("SEQ");
-      }
       typename SpectrumType::PeakType p;
 
       std::string line;
@@ -171,6 +181,13 @@ protected:
             StringUtils::trim(line); // remove whitespaces, line-endings etc
 
             if (line.empty()) continue;
+
+            if (line == "END IONS")
+            {
+              // block without peak lines: return it as an empty spectrum instead of silently
+              // merging it with the next block (or dropping it if it is the last one in the file)
+              return true;
+            }
 
             if (isdigit(line[0])) // actual data .. this comes first, since its the most common case
             {

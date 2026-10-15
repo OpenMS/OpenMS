@@ -72,6 +72,10 @@ namespace OpenMS
         @brief Constructor
 
         @param[out] filename Filename for the output mzML
+
+        @exception Exception::UnableToCreateFile if @p filename ends in a compression suffix
+        (.gz, .bz2 or .zip): the consumer writes uncompressed mzML only. Use MzMLFile::store()
+        for gzip or bzip2 output.
       */
       explicit MSDataWritingConsumer(const std::string& filename);
 

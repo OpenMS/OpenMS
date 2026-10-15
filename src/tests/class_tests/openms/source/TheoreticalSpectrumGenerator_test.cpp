@@ -45,6 +45,21 @@ START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& s
   ptr = new TheoreticalSpectrumGenerator();
   TheoreticalSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // getParameters() cannot see the members updateMembers_() caches, so also check
+  // that a copy of a configured generator produces the same spectrum
+  TheoreticalSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  TheoreticalSpectrumGenerator configured_copy(configured);
+
+  AASequence seq = AASequence::fromString("IFSQVGK");
+  PeakSpectrum from_source, from_copy;
+  configured.getSpectrum(from_source, seq, 1, 1);
+  configured_copy.getSpectrum(from_copy, seq, 1, 1);
+  TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
 START_SECTION(~TheoreticalSpectrumGenerator())
@@ -58,6 +73,20 @@ START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectru
   TheoreticalSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same for assignment
+  TheoreticalSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  TheoreticalSpectrumGenerator assigned;
+  assigned = configured;
+
+  PeakSpectrum from_source, from_assigned;
+  configured.getSpectrum(from_source, peptide, 1, 1);
+  assigned.getSpectrum(from_assigned, peptide, 1, 1);
+  TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 
 START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge = 1, Int max_charge = 1))
@@ -946,6 +975,40 @@ START_SECTION([EXTRA] b-ion and a-ion neutral-loss m/z values)
   // non-vacuous: both ladders must actually contribute water-loss ions
   TEST_EQUAL(b_checked > 0, true)
   TEST_EQUAL(a_checked > 0, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] add_internal_fragments on very short peptides does not hang (unsigned underflow regression))
+{
+  // Regression for the unsigned underflow in addInternalFragmentPeaks_():
+  // the old loop bound 'l < peptide.size() - 1 - 2' underflows to a huge value
+  // for peptides shorter than length 4, causing an effectively infinite loop.
+  // With the additive bound 'l + 3 < peptide.size()' these calls simply return.
+  // Reaching the end of this section (i.e. NOT hanging) is the regression assertion.
+  TheoreticalSpectrumGenerator t_gen;
+  Param params = t_gen.getParameters();
+  params.setValue("add_internal_fragments", "true");
+  t_gen.setParameters(params);
+
+  PeakSpectrum spec;
+  t_gen.getSpectrum(spec, AASequence::fromString("AC"), 1, 1); // length 2
+  t_gen.getSpectrum(spec, AASequence::fromString("A"), 1, 1);  // length 1
+  // if we get here the loop terminated for short peptides
+  TEST_TRUE(true)
+
+  // a normal-length peptide must still produce internal fragments:
+  // turning add_internal_fragments on must add peaks compared to off.
+  Param params_off = t_gen.getParameters();
+  params_off.setValue("add_internal_fragments", "false");
+  t_gen.setParameters(params_off);
+  PeakSpectrum spec_off;
+  t_gen.getSpectrum(spec_off, AASequence::fromString("PEPTIDEK"), 1, 1);
+
+  t_gen.setParameters(params); // internal fragments on
+  PeakSpectrum spec_on;
+  t_gen.getSpectrum(spec_on, AASequence::fromString("PEPTIDEK"), 1, 1);
+
+  TEST_TRUE(spec_on.size() > spec_off.size())
 }
 END_SECTION
 

@@ -79,8 +79,8 @@ END_SECTION
 START_SECTION((static std::vector<std::string> getAllIDScoreNames()))
 {
   std::vector<std::string> names = Scores::getAllIDScoreNames();
-  // pins the current registry: 9 RAW + 6 RAW_EVAL + 1 PP + 5 PEP + 3 FDR + 5 QVAL
-  TEST_EQUAL(names.size(), 29)
+  // pins the current registry: 9 RAW + 9 RAW_EVAL + 1 PP + 5 PEP + 3 FDR + 5 QVAL
+  TEST_EQUAL(names.size(), 32)
   std::set<std::string> s(names.begin(), names.end());
   TEST_EQUAL(s.count("q-value"), 1)
   TEST_EQUAL(s.count("expect"), 1)
@@ -94,7 +94,7 @@ START_SECTION((static const std::set<std::string>& getIDNamesForType(IDType type
 {
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW).size(), 9)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW).count("hyperscore"), 1)
-  TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).size(), 6)
+  TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).size(), 9)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::RAW_EVAL).count("expect"), 1)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::PP).size(), 1)
   TEST_EQUAL(Scores::getIDNamesForType(IDType::PEP).size(), 5)
@@ -116,6 +116,13 @@ START_SECTION((static bool findIDTypeByName(const std::string& name, IDType& typ
   TEST_EQUAL(t == IDType::QVAL, true)
   TEST_EQUAL(Scores::findIDTypeByName("Posterior Error Probability", t), true)
   TEST_EQUAL(t == IDType::PEP, true)
+  // search engine scores by PSI-MS accession (X!Tandem:expect, OMSSA:evalue, OMSSA:pvalue): lower is better
+  for (const char* accession : {"MS:1001330", "MS:1001328", "MS:1001329"})
+  {
+    t = IDType::RAW;
+    TEST_EQUAL(Scores::findIDTypeByName(accession, t), true)
+    TEST_EQUAL(t == IDType::RAW_EVAL, true)
+  }
 
   // unknown name -> false
   TEST_EQUAL(Scores::findIDTypeByName("definitely_not_a_score", t), false)

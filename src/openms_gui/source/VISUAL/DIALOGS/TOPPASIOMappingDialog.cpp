@@ -33,8 +33,8 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     edge_ = parent;
-    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
-    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui_->ok_button, &QPushButton::clicked, this, &TOPPASIOMappingDialog::checkValidity_);
+    connect(ui_->cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
     fillComboBoxes_();
   }

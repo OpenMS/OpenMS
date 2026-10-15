@@ -38,8 +38,10 @@ class LogisticRegression : public BaseSpline {
       BaseSpline::setData(xx);
       y = yy;
       m = mm;
+      mergeTiesAndPad();  // OpenMS
     }
   protected:
+    void mergeTiesAndPad();
     virtual void calcPZW();
     virtual void initg();
     virtual void limitg();

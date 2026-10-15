@@ -13,6 +13,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <string>
 
 class TimsDataHandle;
@@ -27,6 +28,15 @@ namespace OpenMS
    * Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
    * Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
    * for MS1 and DIA MS2, and scalar drift times for DDA MS2.
+   *
+   * Every method taking a path also accepts a zipped .d directory ('.d.zip'), which is
+   * unpacked into a temporary directory for the duration of the call. The .d directory may be
+   * nested in the archive: the shallowest one holding analysis.tdf is read, and __MACOSX
+   * folders are skipped. readDIAMetadata() keeps its extraction until the next call on the same
+   * object: if that call reads the same archive, it reads the kept files instead of unpacking
+   * the archive again, so a consumer sized from the metadata receives the spectra of the same
+   * files. Any call other than readDIAMetadata() removes the kept files, as does destroying the
+   * object.
    *
    * In FRAME export mode, raw TOF indices and intensities are returned without
    * any signal processing. TOF-to-m/z and scan-to-IM conversions are applied,
@@ -51,7 +61,9 @@ namespace OpenMS
     struct Config
     {
       double calibration_tolerance = 0.0;  ///< m/z recalibration tolerance in Da (0 = default 0.1 Da)
-      bool calibrate = false;              ///< Enable m/z recalibration (off by default; may fail on some datasets)
+      bool calibrate = false;              ///< Enable DDA OLS m/z recalibration (off by default; may fail on some datasets).
+                                           ///< Only applies to the linear m/z model: skipped when m/z comes from the
+                                           ///< MzCalibration table (see tims_calibration_strategy).
 
       bool load_ms1 = true;                ///< Load MS1 spectra. Disable (false) for MS2-only workflows
                                            ///< (peptide database search) where MS1 surveys are not needed —
@@ -121,9 +133,10 @@ namespace OpenMS
       /// MS2 centroiding algorithm for both DIA-PASEF and DDA-PASEF.
       ///
       /// DIA-MS2: Off / Greedy2D / HillBased. Greedy2D maps to the legacy
-      /// 2D Gaussian + local-maxima path (equivalent to dia_ms2_centroid=true).
-      /// HillBased fires only inside the aggregated DIA path (requires
-      /// dia_ms2_n_neighbors > 0); without aggregation, DIA-MS2 stays raw.
+      /// 2D Gaussian + local-maxima path (equivalent to dia_ms2_centroid=true)
+      /// and requires RT-neighbor aggregation. HillBased operates across IM scans
+      /// within each DIA-PASEF frame and can run with dia_ms2_n_neighbors == 0;
+      /// positive neighbor counts additionally aggregate frames across RT first.
       /// Takes precedence over the legacy dia_ms2_centroid boolean.
       ///
       /// DDA-MS2: Off / HillBased. HillBased replaces the default TOF-domain
@@ -158,7 +171,7 @@ namespace OpenMS
       bool   isotopic_prefilter         = false;
       double isotopic_prefilter_tol_ppm = 50.0;  ///< ppm tolerance for isotopic-partner matching (broad by design — survives per-scan calibration jitter; 50 ppm @ m/z 1000 = 0.05 Da).
 
-      int dia_ms2_n_neighbors = 0;  ///< DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled / raw per-frame export, 1 = 3-frame sum, 2 = 5-frame sum). Kept at 0 by default so the raw DIA-MS2 export path is the out-of-the-box behavior — this knob switches the entire DIA-MS2 export pipeline (sum + denoise) regardless of centroiding algo, so flipping it changes output for every caller. Set to 2 alongside ms2_centroid_algo=hillbased + min_hill_length=2 + mz_ppm=20 for the DIA-PASEF hill recipe; set to 1/2 with algo=off for raw RT-summed export.
+      int dia_ms2_n_neighbors = 0;  ///< DIA MS2 frame aggregation: number of adjacent frames on each side (0 = no RT aggregation, 1 = 3-frame sum, 2 = 5-frame sum). Kept at 0 by default so no cross-RT summing occurs. HillBased MS2 centroiding can still run at 0 using the IM scans within each frame; positive values aggregate neighboring frames before optional denoising/centroiding. Set to 1/2 with algo=off for raw RT-summed export.
       int dia_ms2_min_support = 1;  ///< DIA MS2 denoising: minimum occupied neighbors in 3x3 (mz x IM) grid to retain a point (center excluded)
       bool dia_ms2_centroid = false; ///< DIA MS2 2D peak picking: apply Gaussian smoothing + local maxima detection to produce IM_CENTROIDED spectra
 
@@ -178,8 +191,25 @@ namespace OpenMS
       enum ExportMode { AUTO, SPECTRUM, FRAME };
       ExportMode export_mode = AUTO;       ///< AUTO detects DDA vs DIA; SPECTRUM forces per-precursor; FRAME returns raw 4D frames
 
-      /// Strategy for converting TIMS scan indices to 1/K0 values.
-      /// AUTO (default): tries Bruker SDK → rational (TimsCalibration table) → linear.
+      /**
+        @brief Strategy for converting TIMS scan indices to 1/K0 values, and TOF indices to m/z.
+
+        1/K0 — AUTO (default): tries Bruker SDK → rational (TimsCalibration table) → linear.
+
+        m/z — every strategy except LINEAR uses the MzCalibration table of analysis.tdf with the
+        per-frame temperature correction (MzCalibrationTof2MzConverter): exact for ModelType 1;
+        for ModelType 2 with usable correction columns (C5..C14) exact inside the calibrant range
+        and within a few ppm of the Bruker SDK just outside it (without them, the base curve is
+        used, which is within a few ppm everywhere). If the table is missing or
+        unsupported, and always with LINEAR, m/z comes from the linear approximation in
+        sqrt(m/z) over the acquisition range (GlobalMetadata), which can be off by tens of ppm.
+
+        Bruker SDK (optional, never required except by BRUKER_SDK): with AUTO or BRUKER_SDK and an
+        SDK given by bruker_sdk_path or OPENMS_BRUKER_SDK_PATH, both m/z and 1/K0 come from the SDK
+        (logged as "TIMS calibration: Bruker SDK (m/z + 1/K0)"). If it cannot be loaded, AUTO logs a
+        warning and continues with the calibration tables above; BRUKER_SDK throws. The SDK exists
+        only for x86-64 Linux and Windows.
+      */
       enum class TimsCalibrationStrategy { AUTO, BRUKER_SDK, RATIONAL, LINEAR };
       TimsCalibrationStrategy tims_calibration_strategy = TimsCalibrationStrategy::AUTO;
 
@@ -190,7 +220,7 @@ namespace OpenMS
       PressureCompensation pressure_compensation = PressureCompensation::NONE;
 
       /// Path to Bruker SDK library (timsdata.dll / libtimsdata.so).
-      /// Empty string (default): discover from OPENMS_BRUKER_SDK_PATH env var.
+      /// Empty string (default): discover from OPENMS_BRUKER_SDK_PATH env var; neither set = no SDK.
       std::string bruker_sdk_path;
     };
 
@@ -203,7 +233,7 @@ namespace OpenMS
     };
 
     /// Read DIA SWATH boundaries and spectrum counts from a .d directory (SQL only, no peak data).
-    /// Also populates exp_settings with source file metadata.
+    /// Also populates exp_settings with source file metadata, the start of the acquisition and the instrument.
     DIAStreamingMetadata readDIAMetadata(const std::string& path, ExperimentalSettings& exp_settings);
     /// @overload with explicit configuration
     DIAStreamingMetadata readDIAMetadata(const std::string& path, ExperimentalSettings& exp_settings,
@@ -242,8 +272,22 @@ namespace OpenMS
     /// Detect DDA vs DIA by checking for SWATH windows
     bool isDIA_(const std::string& tdf_path) const;
 
-    /// Populate SourceFile metadata from the .d path (no peak data read)
-    void loadExperimentalSettings_(const std::string& path, ExperimentalSettings& settings);
+    /// Populate SourceFile metadata from the input @p path and the run and instrument metadata from the analysis.tdf of
+    /// the .d directory @p d_path (the unpacked directory for a .d.zip; no peak data read)
+    void loadExperimentalSettings_(const std::string& path, const std::string& d_path, ExperimentalSettings& settings);
+
+    /// A '.d.zip' archive unpacked into a temporary directory (defined in the .cpp)
+    struct UnpackedArchive;
+
+    /// Unpack @p path if it is a '.d.zip' archive; returns nullptr for a .d directory
+    static std::shared_ptr<UnpackedArchive> unpack_(const std::string& path);
+
+    /// The files to read @p path from: those kept by readDIAMetadata() if it unpacked the same
+    /// path, else a new extraction (nullptr for a .d directory). Nothing stays kept afterwards.
+    std::shared_ptr<UnpackedArchive> takeUnpacked_(const std::string& path);
+
+    /// The archive the last readDIAMetadata() unpacked, kept for the call that follows
+    std::shared_ptr<UnpackedArchive> unpacked_;
   };
 
 } // namespace OpenMS

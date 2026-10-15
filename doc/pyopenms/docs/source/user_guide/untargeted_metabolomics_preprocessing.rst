@@ -35,9 +35,6 @@ For each :term:`mzML` file do mass trace, elution peak and features detection.
         )  # load each mzML file to an OpenMS file format (MSExperiment)
 
         # mass trace detection
-        mass_traces = (
-            []
-        )  # introduce an empty list where the mass traces will be loaded
         mtd = oms.MassTraceDetection()
         mtd_par = (
             mtd.getDefaults()
@@ -47,31 +44,29 @@ For each :term:`mzML` file do mass trace, elution peak and features detection.
             "noise_threshold_int", 1.0e04
         )  # data-dependent (usually works for orbitraps)
         mtd.setParameters(mtd_par)  # set the new parameters
-        mtd.run(exp, mass_traces, 0)  # run mass trace detection
+        mass_traces = mtd.run(exp)  # run mass trace detection
 
         # elution peak detection
-        mass_traces_deconvol = []
         epd = oms.ElutionPeakDetection()
         epd_par = epd.getDefaults()
         epd_par.setValue(
             "width_filtering", "fixed"
         )  # The fixed setting filters out mass traces outside the [min_fwhm: 1.0, max_fwhm: 60.0] interval
         epd.setParameters(epd_par)
-        epd.detectPeaks(mass_traces, mass_traces_deconvol)
+        mass_traces_deconvol = epd.detectPeaks(mass_traces)
 
         # feature detection
         feature_map = oms.FeatureMap()  # output features
-        chrom_out = []  # output chromatograms
         ffm = oms.FeatureFindingMetabo()
         ffm_par = ffm.getDefaults()
         ffm_par.setValue(
             "remove_single_traces", "true"
         )  # remove mass traces without satellite isotopic traces
         ffm.setParameters(ffm_par)
-        ffm.run(mass_traces_deconvol, feature_map, chrom_out)
+        ffm.run(mass_traces_deconvol, feature_map)  # fills feature_map
         feature_map.setUniqueIds()  # Assigns a new, valid unique id per feature
         feature_map.setPrimaryMSRunPath(
-            [file.encode()]
+            [file]
         )  # Sets the file path to the primary MS run (usually the mzML file)
         feature_maps.append(feature_map)
 
@@ -99,9 +94,8 @@ Align features retention times based on the :term:`feature map` with the highest
     aligner.setReference(feature_maps[ref_index])
 
     for feature_map in feature_maps[:ref_index] + feature_maps[ref_index + 1 :]:
-        trafo = oms.TransformationDescription()  # save the transformed data points
-        aligner.align(feature_map, trafo)
-        trafos[feature_map.getMetaValue("spectra_data")[0].decode()] = trafo
+        trafo = aligner.align(feature_map)  # save the transformed data points
+        trafos[feature_map.getMetaValue("spectra_data")[0]] = trafo
         transformer = oms.MapAlignmentTransformer()
         transformer.transformRetentionTimes(feature_map, trafo, True)
 
@@ -140,7 +134,7 @@ Map :term:`MS2` spectra to features as :py:class:`~.PeptideIdentification` objec
         for i, feature_map in enumerate(feature_maps):
             if feature_map.getMetaValue("spectra_data")[
                 0
-            ].decode() == exp.getMetaValue("mzML_path"):
+            ] == exp.getMetaValue("mzML_path"):
                 peptide_ids = oms.PeptideIdentificationList()
                 protein_ids = []
                 mapper.annotate(
@@ -198,7 +192,7 @@ Detect adducts (optional, only for SIRIUS and GNPS Ion Identity Molecular Networ
     # for SIRIUS store the feature maps as featureXML files!
     for feature_map in feature_maps:
         oms.FeatureXMLFile().store(
-            feature_map.getMetaValue("spectra_data")[0].decode()[:-4]
+            feature_map.getMetaValue("spectra_data")[0][:-4]
             + "featureXML",
             feature_map,
         )
@@ -216,7 +210,7 @@ Link features in a :py:class:`~.ConsensusMap`.
     for i, feature_map in enumerate(feature_maps):
         file_description = file_descriptions.get(i, oms.ColumnHeader())
         file_description.filename = os.path.basename(
-            feature_map.getMetaValue("spectra_data")[0].decode()
+            feature_map.getMetaValue("spectra_data")[0]
         )
         file_description.size = feature_map.size()
         file_descriptions[i] = file_description
@@ -231,4 +225,4 @@ To get a final feature matrix in a table format, export the :term:`:consensus fe
 .. code-block:: python
     :linenos:
 
-    df = consensus_map.get_df()
+    df = consensus_map.to_df()

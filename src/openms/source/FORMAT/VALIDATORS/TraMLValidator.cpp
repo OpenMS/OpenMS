@@ -8,7 +8,6 @@
 
 #include <OpenMS/FORMAT/VALIDATORS/TraMLValidator.h>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS::Internal

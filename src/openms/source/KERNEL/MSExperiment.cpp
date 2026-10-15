@@ -12,18 +12,51 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/MATH/MISC/LinearResampling.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <limits>
+#include <numeric>
 #include <unordered_set>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+namespace
+{
+  /// Reorders @p data so that afterwards data[i] holds the element that was at order[i].
+  /// The permutation is applied cycle by cycle, so only one element is held aside at a time.
+  template <typename ContainerType>
+  void applyPermutation(ContainerType& data, const std::vector<OpenMS::Size>& order)
+  {
+    std::vector<bool> done(data.size(), false);
+    for (OpenMS::Size i = 0; i < data.size(); ++i)
+    {
+      if (done[i] || order[i] == i)
+      {
+        done[i] = true;
+        continue;
+      }
+      auto hole = std::move(data[i]);
+      OpenMS::Size pos = i;
+      while (true)
+      {
+        const OpenMS::Size from = order[pos];
+        done[pos] = true;
+        if (from == i) // the cycle is closed
+        {
+          data[pos] = std::move(hole);
+          break;
+        }
+        data[pos] = std::move(data[from]);
+        pos = from;
+      }
+    }
+  }
+} // namespace
 
 namespace OpenMS
 {
@@ -791,7 +824,23 @@ namespace OpenMS
   */
   void MSExperiment::sortSpectra(bool sort_mz)
   {
-    std::sort(spectra_.begin(), spectra_.end(), SpectrumType::RTLess());
+    // std::sort gives no guarantee for spectra with equal retention time, so every map that has
+    // ties - an ion mobility frame, a FAIMS split, Bruker TIMS data - came out in an order that
+    // depends on the standard library, and consumers that walk the spectra in order (e.g.
+    // MassTraceDetection) saw them shuffled (#10054, #10051). Sorting a permutation of indices
+    // and applying it keeps tied spectra in their input order. It is also faster than sorting the
+    // spectra themselves, which moves an MSSpectrum (752 bytes on Linux/g++) per swap: measured on
+    // 200k spectra with 2000 distinct retention times, 0.14 s against 0.35 s for std::sort and
+    // 0.69 s for std::stable_sort, and without the O(n) buffer of std::stable_sort.
+    std::vector<Size> order(spectra_.size());
+    std::iota(order.begin(), order.end(), 0);
+    const auto rt_less = typename SpectrumType::RTLess();
+    std::sort(order.begin(), order.end(), [this, &rt_less](Size a, Size b) {
+      if (rt_less(spectra_[a], spectra_[b])) return true;
+      if (rt_less(spectra_[b], spectra_[a])) return false;
+      return a < b; // equal retention time: keep the input order
+    });
+    applyPermutation(spectra_, order);
 
     if (sort_mz)
     {
@@ -1259,11 +1308,7 @@ namespace OpenMS
     }
     if (rt_bin_size > 0)
     {
-      LinearResamplerAlign lra;
-      Param param = lra.getParameters();
-      param.setValue("spacing", rt_bin_size);
-      lra.setParameters(param);
-      lra.raster(TIC);
+      Internal::LinearResampling(rt_bin_size).raster(TIC);
     }
     return TIC;
   }
@@ -1387,4 +1432,3 @@ namespace OpenMS
     return os;
   }
 } //namespace OpenMS
-

@@ -17,6 +17,8 @@
 
 namespace OpenMS
 {
+  class AASequence;
+
   /**
       @brief Precursor purity or noise estimation
 
@@ -102,6 +104,23 @@ namespace OpenMS
      * @return std::vector<double> precursor intensity vs. total intensity for every precursor window in @p ms2_spec_idx
      */
     static std::vector<double> computeInterpolatedPrecursorPurity(int ms2_spec_idx, int precursor_spec_idx, int next_ms1_spec_idx, const MSExperiment & exp, double max_precursor_isotope_deviation);
+
+    /**
+     * @brief Counts how many SPS precursor windows of an MS3 spectrum contain a fragment ion of the identified peptide.
+     *
+     * In an SPS-MS3 (Synchronous Precursor Selection) experiment, several fragment ions of the MS2 spectrum are
+     * co-isolated and fragmented together to produce the MS3 (reporter) scan. This function counts how many of these
+     * selected precursor windows (the Precursor objects of the MS3 spectrum) correspond to a theoretical b- or y-ion
+     * of the identified peptide, i.e. how many of the SPS ions originate from true fragments of the peptide.
+     *
+     * @param[in] sps_precursors The list of Precursor objects (SPS windows) of the MS3 spectrum
+     * @param[in] peptide The identified peptide sequence used to generate theoretical b/y fragment ions
+     * @param[in] fragment_mass_tolerance The tolerance for matching a precursor m/z to a theoretical fragment m/z
+     * @param[in] fragment_mass_tolerance_unit_ppm The unit of the fragment mass tolerance (true = ppm, false = Da)
+     * @param[in] max_fragment_charge The maximum fragment ion charge state to consider (values < 1 are treated as 1)
+     * @return the number of SPS precursor windows matching a theoretical b/y fragment ion of the peptide
+     */
+    static Size countSPSPrecursorsMatchingPeptideFragments(const std::vector<Precursor>& sps_precursors, const AASequence& peptide, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, int max_fragment_charge = 1);
 
   private:
     // simple helper to combine the metrics contained in two PurityScores
