@@ -4939,6 +4939,24 @@ foreach(_part a b)
   set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
     PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
 endforeach()
+# Percolator rescores the first file but not the second (too few PSMs): their runs cannot be pooled,
+# so -out_merged fails the run (WILL_FAIL), after the per-file outputs were written.
+add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+      ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES WILL_FAIL 1)
+add_test("TOPP_ProSE_11_rescore_mixed_info_a" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_a" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
+  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+add_test("TOPP_ProSE_11_rescore_mixed_info_b" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_b" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
+  PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
 # Too few PSMs to train on: the file is not rescored, keeps its HyperScores and ProSE still succeeds.
 add_test("TOPP_ProSE_11_rescore_skip" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini

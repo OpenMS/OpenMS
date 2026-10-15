@@ -324,6 +324,7 @@ class ProSE :
 
       // Percolator rescoring outcome per file (Search:rescore): the search rescored the PSMs of each
       // file before its PSM-level FDR; a file it could not rescore keeps its search engine scores.
+      bool rescored_only_some = false; // their runs cannot be pooled for -out_merged
       if (rescore)
       {
         Size n_searched = 0, n_rescored = 0;
@@ -347,6 +348,7 @@ class ProSE :
           OPENMS_LOG_WARN << "Percolator rescoring is on (Search:rescore) but no input file could be rescored; "
                           << "all outputs carry the search engine scores." << endl;
         }
+        rescored_only_some = n_rescored > 0 && n_rescored < n_searched;
       }
 
       // Protein-level FDR. FDR does not compose across runs, so picked-protein FDR is
@@ -722,8 +724,20 @@ class ProSE :
       // try/catch so any failure here does NOT discard per-file outputs that
       // already completed above. Per-file outputs (-out_idxml / -out_qpx /
       // -out_parquet) are not modified by this block — they retain run-level
-      // information.
-      if (!out_merged.empty() && in_list.size() > 1)
+      // information. A merged idXML that cannot be written fails the run after the
+      // report, like the merged Parquet files above.
+      ExitCodes merged_idxml_error = EXECUTION_OK;
+      if (!out_merged.empty() && in_list.size() > 1 && rescored_only_some)
+      {
+        // The rescored runs report Percolator as search engine and carry its q-values, the others
+        // ProSE's scores: the algorithm did not pool them, and IDMergerAlgorithm rejects them.
+        OPENMS_LOG_ERROR << "Cannot write the merged output -> " << out_merged << ": Percolator rescored only some "
+                         << "of the input files (see the warnings above), and their PSMs cannot be pooled with the "
+                         << "search engine scores of the others. Per-file outputs were written. Use "
+                         << "'-Search:rescore false', or leave out the files that could not be rescored." << endl;
+        merged_idxml_error = INCOMPATIBLE_INPUT_DATA;
+      }
+      else if (!out_merged.empty() && in_list.size() > 1)
       {
         try
         {
@@ -743,8 +757,8 @@ class ProSE :
           // insertRuns(pf.protein_ids, pf.peptide_ids) calls over the identical per-file results
           // and then setPrimaryMSRunPath(in_spectra_files) — so re-merging here would only build
           // a third copy of every PSM. Consume the aggregate by move instead. (An empty aggregate
-          // means every file failed, or that Percolator rescored only some files, whose runs the
-          // algorithm does not pool; fall through to the merger, which then fails as before.)
+          // means every file failed; fall through to the merger. Files of which Percolator rescored
+          // only some, whose runs the algorithm does not pool either, do not get here, see above.)
           // The only run-level value IDMergerAlgorithm derives from its inputs is 'id_merge_index'
           // = the first-occurrence rank of a run's primary MS run path (the merged run's own path
           // is overwritten unconditionally right after this block). That rank is unchanged by the
@@ -846,7 +860,8 @@ class ProSE :
           OPENMS_LOG_ERROR << "Failed to write merged idXML output -> " << out_merged
                            << ": " << e.what()
                            << ". Per-file outputs were written (check above for any per-file errors)." << endl;
-          // Do NOT propagate; per-file outputs are already on disk.
+          // Do NOT propagate yet; per-file outputs are already on disk and the report follows.
+          merged_idxml_error = CANNOT_WRITE_OUTPUT_FILE;
         }
       }
       else if (!out_merged.empty() && in_list.size() == 1)
@@ -873,7 +888,7 @@ class ProSE :
         };
         add_manifest("idXML", written_idxml);
         add_manifest("pin", written_pin);
-        if (!out_merged.empty() && in_list.size() > 1) { add_manifest("merged idXML", {out_merged}); }
+        if (!out_merged.empty() && in_list.size() > 1 && merged_idxml_error == EXECUTION_OK) { add_manifest("merged idXML", {out_merged}); }
         if (!out_qpx_dir.empty()) { add_manifest("QPX parquet", {out_qpx_dir}); }
         if (!out_parquet_dir.empty()) { add_manifest("OpenMS parquet", {out_parquet_dir}); }
         if (!out_mod_analysis_dir.empty() && open_search_mode) { add_manifest("mod-analysis tables", {out_mod_analysis_dir}); }
@@ -1022,6 +1037,11 @@ class ProSE :
       {
         OPENMS_LOG_ERROR << "ProSE failed to write one or more merged Parquet files." << endl;
         return INTERNAL_ERROR;
+      }
+      if (merged_idxml_error != EXECUTION_OK)
+      {
+        OPENMS_LOG_ERROR << "ProSE failed to write the merged idXML output -> " << out_merged << "." << endl;
+        return merged_idxml_error;
       }
       return EXECUTION_OK;
     }

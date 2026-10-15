@@ -4201,10 +4201,15 @@ namespace OpenMS
           sw_fdr.stop();
           stats.seconds_fdr = sw_fdr.getClockTime();
         }
-        else
+        else if (!has_decoys)
         {
           OPENMS_LOG_WARN << "FDR:PSM is set but the search has no decoys (decoys=ignore). "
                              "Use decoys=auto to search/generate decoys and enable FDR. Skipping FDR filtering." << std::endl;
+        }
+        else if (!peptide_ids.empty()) // a run without PSMs has nothing to filter, as without rescoring
+        {
+          OPENMS_LOG_WARN << "FDR:PSM is set but no PSM of the run matched a decoy protein, so there are no q-values "
+                             "to filter on. Skipping FDR filtering." << std::endl;
         }
       }
       return rescoring;

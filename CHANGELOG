@@ -28,14 +28,13 @@ OpenMS Library:
     decoy PSMs, Percolator failed); SearchResult::percolator reports that outcome per run, also in pyOpenMS. Runs that were
     rescored and runs that were not are not pooled into the multi-file aggregate (different search engines). 'rescore' false
     restores the previous results. The ProSE tool and other callers (e.g. the WebAssembly bindings) share this implementation.
-  - FIX: Percolator nonparametric PEPs (e.g. ProSE's Percolator rescoring): fewer than 4 score bins, or bin medians closer than 1e-15,
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
   - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
     parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
     lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
     did not match the inputs (no alignment points).
-  - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
+  - FIX: Percolator nonparametric PEPs (e.g. ProSE's Percolator rescoring): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
   - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
@@ -430,7 +429,9 @@ TOPP tools:
         percolator executable) for every input file. Each input file is still rescored on its own;
         a file with fewer than 100 PSMs or without decoys, or for which Percolator fails, keeps its
         HyperScores with a warning. With -out_merged, input files of which only some were rescored
-        are not merged (the merged output fails with an error, as before).
+        are not merged: ProSE writes the per-file outputs and exits with an error
+        (INCOMPATIBLE_INPUT_DATA). A merged idXML that cannot be written now also fails the run
+        (CANNOT_WRITE_OUTPUT_FILE); before, ProSE logged the error and exited successfully.
       - PARAM: Search:peptdeep:enable (default false) adds five features per PSM from
         AlphaPeptDeep predictions of its peptide, used by Search:rescore and written to -out_pin:
         ms2_cosine, ms2_spectral_angle, ms2_pearson and ms2_frac_pred_found compare predicted
