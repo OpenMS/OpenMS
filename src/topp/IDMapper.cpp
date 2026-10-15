@@ -52,7 +52,7 @@ using namespace std;
 </table>
 </CENTER>
 
-The mapping is based on retention times and mass-to-charge values. Roughly, a peptide identification is assigned to a (consensus) feature if its position lies within the boundaries of the feature
+The mapping is based on retention times and mass-to-charge values (isobaric labeling data is mapped by spectrum native ID instead, see below). Roughly, a peptide identification is assigned to a (consensus) feature if its position lies within the boundaries of the feature
 or close enough to the feature centroid. Peptide identifications that don't match anywhere are still recorded in the resulting map, as "unassigned peptides". Protein identifications are annotated
 to the whole map, i.e. not to any particular (consensus) feature.
 
@@ -69,6 +69,14 @@ if @p feature:use_centroid_rt or @p feature:use_centroid_mz are true.
 <B>Annotation of consensus maps (consensusXML input):</B>\n
 Peptide positions are always matched against centroid positions. By default, the consensus centroids are used. However, if @p consensus:use_subelements is set, the centroids of sub-features are
 considered instead. In this case, a peptide identification is mapped to a consensus feature if any of its sub-features matches.
+
+<B>Annotation of isobaric labeling data (TMT/iTRAQ consensusXML, e.g. from @ref TOPP_IsobaricAnalyzer):</B>\n
+If the consensus features carry the native ID of their spectrum (meta value @p scan_id, or @p id_scan_id for the identifying MS2 spectrum of MS3 methods), identifications are mapped by native ID
+instead of RT and m/z. A consensus feature receives the identification whose spectrum reference equals its native ID, compared within the same MS run (the @p spectra_data file of the
+identification run against the input file of the consensus map). If the search engine reported only scan numbers as spectrum references (e.g. @ref TOPP_SageAdapter), the scan number is
+extracted from the native ID and compared instead. There is no fallback to RT/m/z matching: @p rt_tolerance, @p mz_tolerance, @p mz_reference, @p ignore_charge and
+@p consensus:use_subelements are ignored, and an identification is only assigned to the consensus feature quantified from its own spectrum. Identifications without such a consensus feature
+are not kept as unassigned peptides. The identification file must contain spectrum references, otherwise the tool aborts.
 
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
