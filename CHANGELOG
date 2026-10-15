@@ -16,9 +16,36 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.7.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
-- NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
-
 OpenMS Library:
+  - Added PeptDeepLibraryPredictor, which turns peptide precursors into an OpenSWATH assay library
+    (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
+    optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
+    channels). It only predicts; digestion, filtering and decoys stay with the calling
+    workflow. Available in builds with WITH_ONNX (#10380).
+  - Added OpenSwathLibraryPreparation, which holds the library preparation (normalization to PQP,
+    assay generation, decoy generation) shared by OpenSwathAssayGenerator, OpenSwathDecoyGenerator
+    and OpenDIA (#10373).
+  - Added BedRModFile (FileTypes::BEDRMOD, also in pyOpenMS), which exports RNA modification sites
+    as bedRMod v2 (#10529).
+  - FIX: FLASH (SpectralDeconvolution, FLASHHelperClasses): averagine isotope trimming subtracted the
+    power of isotopes that were not removed, and the isotope cosine assumed a unit-norm averagine
+    vector. The cosine now normalizes both vectors and is clamped to [0, 1]; a cosine above 1
+    produced negative noise power in PeakGroup::updateSNR_ (#10543).
+  - FIX: Fixes found by running the class tests on a WebAssembly build (#10558): the
+    MetaboliteSpectralMatching comparator objects (PrecursorMZLess, SpectralMatchScoreGreater) are
+    inline variables (duplicate symbols with two translation units); a protein group without a score
+    gets the worst calibrated FDR value explicitly (a NaN lookup in a std::map was undefined);
+    toStr(long double) no longer prints the binary expansion of the double under libc++;
+    IndexedMzMLDecoder and MzMLSpectrumDecoder initialise Xerces before DOM parsing; DataValue stores
+    integers as Int64 (they were truncated on 32-bit targets).
+  - FIX: MzMLSqliteHandler (sqMass) throws Exception::IllegalArgument when the m/z (or retention time)
+    and intensity arrays of a spectrum or chromatogram differ in length. Before, depending on which
+    array SQLite returned first, data was silently dropped or the shorter array was read past its
+    end (#10471).
+  - FIX: Percolator (in-process rescoring of PercolatorAdapter and ProSE -rescore): the static flag
+    PosteriorEstimator::includeNegativesInResult is atomic. It was written and read by the threads of
+    the parallel cross-validation at the same time (data race, found with ThreadSanitizer); results
+    do not change (#10474).
   - FIX: ProteaseDB and RNaseDB also find enzyme names and synonyms ignoring case, whitespace, '-' and '_' (e.g. 'glu-c',
     'GluC' and 'Glu_C' find glutamyl endopeptidase, 'LysC/P' finds Lys-C/P); other characters such as '/' and '+' stay
     significant. pepXML files with sample_enzyme or enzymatic_search_constraint 'Glu-C' load with glutamyl endopeptidase
@@ -398,19 +425,48 @@ Dependencies:
     returned the segmented scan masses there, not noise samples.
 
 TOPP tools:
+  New tools:
+    - OpenDIA: high-level DIA workflow in one call: library preparation (prepared PQP/TSV/OSWPQ/TraML
+      library or empirical transition list, mode chosen automatically from the presence of decoys),
+      OpenSWATH extraction and scoring, in-process Percolator rescoring, peptide/protein/gene inference
+      and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
+      removed on success unless workflow:keep_intermediate_files is set (#10373).
   Changes:
     NucleicAcidSearchEngine:
       - Resolve interleaved ambiguity variants within their original precursor/source hypotheses, record current cached-digest search parameters, and produce finite LFQ retention times. Exact cutoff tie retention is unchanged; exported ties now follow the shared library value order.
+      - Enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications
+        before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase
+        products in pyOpenMS.
+      - PARAM: New scoring:method (hyperscore, mvh) with MVH options (scoring:num_intensity_classes,
+        scoring:tic_fraction, scoring:single_peak_credit), scoring:use_mass_accuracy,
+        scoring:blacklist_tolerance (ion blacklist) and report:require_coverage (minimum fraction of
+        internal positions covered by fragment ions) (#10526).
+      - PARAM: New configurable MS2 preprocessing: preprocessing:deisotoping (legacy, none, flash), the
+        WindowMower and NLargest filters (preprocessing:window_mower:*, preprocessing:nlargest:n),
+        precursor peak removal, and out_preprocessed to write the preprocessed spectra.
+        preprocessing:window_mower:movetype 'jump' reproduces the historical preprocessing (#10526).
+      - PARAM: New preprocessing:deisotoping flash: FLASHDeconv RNA averagine isotope detection of
+        fragment spectra (preprocessing:flash:min_cos, preprocessing:flash:min_snr; requires a ppm
+        fragment tolerance) (#10531).
+      - PARAM: New precursor:correct_with_flash infers the monoisotopic precursor m/z of each MS2 from
+        the complete parent MS1 with FLASH RNA (precursor:flash:mass_tolerance, min_cos, min_snr);
+        out_precursor_corrections writes an audit table (#10532).
+      - PARAM: New report:precursor_percentage reports the strongest peak in the precursor window as a
+        percentage of the raw MS2 base peak intensity (report:precursor_percentage_mass_tolerance and
+        _unit) (#10530).
+      - PARAM: New bedrmod_out exports RNA modification sites as a bedRMod v2 track
+        (bedrmod_chebi_mapping, bedrmod:* reference metadata) (#10529).
     All tools:
       - FIX: -debug activates console debug logging in the main thread even when its
         thread-local logger was initialized before parameter parsing. Debug levels from INI
         files also take effect. A subsequent run in the same process removes the console
         destination from both the global configuration and the current thread before it parses
         its command line, and adds it again only if its debug level is above 0 (#10478).
-	  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
-	    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
-	    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
-	    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
+      - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
+        CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
+        ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
+        exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported()
+        (#10459).
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
@@ -464,6 +520,19 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+      - FIX: -feat_dir checkpoints record -protein_quantification. Detection keeps the peptide
+        uniqueness annotation that strictly_unique_peptides filters on only in that mode, so a
+        strict combine accepted checkpoints detected in another mode and then dropped the peptide
+        hits lacking it (all of them, ending in "No protein is supported by a strictly unique
+        peptide"). Such a combine is now refused and names the setting; detecting and combining
+        runs have to use the same -protein_quantification (#10481, #10486).
+    FileInfo:
+      - FIX: a duplicate FASTA header or sequence was not reported when an entry in between had the
+        same std::hash value; each hash now keeps all of its entries (#10499).
+      - FIX: the consensusXML statistics (-s) for qualities were computed over twice the number of
+        consensus features, half of the values zero; they now cover each feature once (#10498).
+      - FIX: crashed on an idXML or mzIdentML with a peptide identification without hits; such
+        spectra are now skipped as unidentified (#10497).
     QualityControl:
       - FIX: The identifications of a feature are sorted best first according to their score
         direction. Lower-is-better scores (q-value, PEP, E-value) put the worst identification
@@ -472,12 +541,12 @@ TOPP tools:
         Identifications without hits are sorted last instead of being read past their end. The
         identifications that ID conflict resolution removes from a consensus feature are now
         listed best first among the unassigned ones (-out_cm, PSM section of -out).
-  - FIX: '-write_cwl' and '-write_nested_cwl' no longer abort every TOPP tool in builds without
-    CWL support (ENABLE_TDL=OFF, the default). They report that the build lacks it and exit with
-    ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
-    exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported().
 
 Build System:
+  - Installing with WITH_ONNX=ON also installs the versioned files and symlinks of ONNX Runtime
+    (libonnxruntime.so.1, libonnxruntime.1.dylib, ...) next to libonnxruntime.so/.dylib. Before, a
+    non-vcpkg ONNX Runtime left a dangling unversioned symlink and no SONAME file, so an installed
+    libOpenMS could not load ONNX Runtime (#10465).
   - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX
     Runtime release and ship libonnxruntime and the PeptDeep models (amd64 and arm64).
   - Debian package: for each library package that Debian and Ubuntu 24.04 renamed in the
@@ -916,8 +985,8 @@ Dependencies:
     opentims_ROOT selects a system installation before downloading. WITH_THERMO_RAW is
     ON by default on every supported platform; .NET 8+ is required at runtime (#9147,
     #9148, #9389, #9736, #10206).
-  - WITH_WNETALIGN (default OFF) fetches wnetalign/wnet/pylmcf when enabled. WITH_ONNX
-    (default OFF) requires an external ONNX Runtime installation (#8992, #9453, #10255).
+  - WITH_WNETALIGN (default OFF, #10255) fetches wnetalign/wnet/pylmcf when enabled. WITH_ONNX
+    (default OFF) requires an external ONNX Runtime installation (#8992, #9453).
   - HiGHS joins COIN-OR and GLPK as LP backends. LP_SOLVER=AUTO tries COIN-OR, GLPK,
     then downloads HiGHS (#9246).
   - ENABLE_TDL now defaults to OFF; set it to ON for CWL support (#9067).
