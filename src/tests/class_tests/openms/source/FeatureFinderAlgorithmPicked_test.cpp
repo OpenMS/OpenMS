@@ -17,8 +17,27 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/KERNEL/FeatureUniqueIds.h>
 
 #include <utility>
+
+namespace
+{
+  // FeatureUniqueIds::check() as a boolean, so a violation is reported by a TEST_* macro instead of aborting the test
+  template <typename MapType>
+  bool hasValidUniqueIds(const MapType& map)
+  {
+    try
+    {
+      OpenMS::FeatureUniqueIds::check(map);
+      return true;
+    }
+    catch (const OpenMS::Exception::InvalidValue&)
+    {
+      return false;
+    }
+  }
+}
 
 START_TEST(FeatureFinderAlgorithmPicked, "$Id$")
 
@@ -62,6 +81,8 @@ START_SECTION((virtual void run()))
   ffpp.run(std::move(input), output, param, FeatureMap());
 
   TEST_EQUAL(output.size(), 8);
+  // every feature has a valid, map-unique id (#10520)
+  TEST_TRUE(hasValidUniqueIds(output));
 
   // test some of the metavalue number_of_datapoints
   TEST_EQUAL(output[0].getMetaValue(Constants::UserParam::NUM_OF_DATAPOINTS), 88);

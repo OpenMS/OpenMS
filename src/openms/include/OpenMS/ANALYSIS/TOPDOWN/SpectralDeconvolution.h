@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <iostream>
 
@@ -62,23 +63,6 @@ namespace OpenMS
       @param[in] precursor_peak_group precursor peak group
     */
     void performSpectrumDeconvolution(const MSSpectrum& spec, int scan_number, const PeakGroup& precursor_peak_group);
-
-    /** @brief Set m/z and signed-charge queries for the next MS1 deconvolution.
-
-      The complete spectrum remains available for isotope recruitment, noise,
-      harmonics and global competition. Unlike setTargetMasses(), queries do
-      not prioritize or protect hypotheses. Charge zero considers all configured
-      charges; other charges are interpreted by magnitude. An empty list uses
-      ordinary untargeted FLASH. Queries are consumed at the start of the next
-      call, including calls that fail or produce no groups.
-      Competition uses the union of the batch's query and evidence intervals.
-      Callers requiring identical context across subsets should use the same
-      query batch or ordinary untargeted FLASH.
-      @param[in] mz_charge Query m/z and charge pairs.
-      @throws Exception::IllegalArgument If a query m/z is nonfinite or nonpositive.
-      Nonempty queries on non-MS1 spectra are rejected by performSpectrumDeconvolution().
-    */
-    void setQueryMasses(const std::vector<std::pair<double, int>>& mz_charge);
 
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
@@ -147,6 +131,34 @@ namespace OpenMS
   protected:
     void updateMembers_() override;
 
+    /// Neutral apex-mass intervals used to restrict candidate construction.
+    using MassRanges = std::vector<std::pair<double, double>>;
+
+    /// Read-only construction settings; spectrum peaks and candidate bins remain private.
+    struct CandidateSelectionContext
+    {
+      const PrecalculatedAveragine& averagine; ///< Configured averagine.
+      double tolerance; ///< Relative m/z tolerance.
+      double isotope_distance; ///< Isotope spacing in Da.
+      double max_mass; ///< Current maximum neutral mass.
+      int min_charge; ///< Minimum charge magnitude.
+      int max_charge; ///< Current maximum charge magnitude.
+      bool positive; ///< Ionization mode.
+    };
+
+    /** @brief Optionally restrict construction, without protecting candidates from filtering.
+      The default returns nullopt for ordinary full-spectrum deconvolution.
+      An override returning initial intervals is called again with scored seed
+      groups to refine those intervals. Seed bins remain included. All passes
+      use the complete spectrum and the ordinary shared construction/scoring.
+      @param[in] context Read-only construction settings.
+      @param[in] evidence Null for the initial pass; scored seed groups for refinement.
+      @param[in] valid Indices of seed groups passing the shared scoring step.
+      @return Candidate mass intervals, or nullopt to retain all candidate bins.
+    */
+    virtual std::optional<MassRanges> selectCandidateMassRanges_(const CandidateSelectionContext& context,
+      const DeconvolvedSpectrum* evidence, const std::vector<Size>& valid) const;
+
   private:
     /// FLASHDeconv parameters
 
@@ -206,14 +218,8 @@ namespace OpenMS
     /// Restrict mass bins using merged apex-mass intervals.
     void restrictCandidateMassBins_(std::vector<std::pair<double, double>> intervals);
 
-    /// Construct queried hypotheses and retain alternative charge explanations of their evidence.
-    void getPrecursorCandidatePeakGroups_(const Matrix<int>& charge_ranges, const std::vector<Precursor>& precursors);
-
     /// Refine and score groups independently, returning valid indices in construction order.
     std::vector<Size> scorePeakGroups_();
-
-    /// Queries consumed by the next deconvolution call.
-    std::vector<std::pair<double, int>> query_mz_charge_;
 
     /// monoisotopic masses that are targeted for FLASHIda global targeting mode
     std::vector<double> target_mono_masses_;
@@ -288,7 +294,7 @@ namespace OpenMS
     double getMzFromMzBin_(Size mass_bin, double bin_mul_factor) const;
 
     /// Generate peak groups from the input spectrum
-    void generatePeakGroupsFromSpectrum_(const std::vector<Precursor>& precursors);
+    void generatePeakGroupsFromSpectrum_();
 
     /// filter out overlapping masses
     static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
