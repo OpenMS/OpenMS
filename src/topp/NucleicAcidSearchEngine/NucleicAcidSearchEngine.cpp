@@ -215,7 +215,7 @@ protected:
     IntList isotopes = {0, 1, 2, 3, 4};
     registerIntList_("precursor:isotopes", "<list>", isotopes, "Correct for mono-isotopic peak misassignments. E.g.: 1 = precursor may be misassigned to the first isotopic peak. Ignored if 'use_avg_mass' is set.", false, false);
 
-    registerFlag_("precursor:correct_with_flash", "Infer MS2 monoisotopic precursor m/z using FLASH RNA on the complete parent MS1. Confident corrected or monoisotopic scans search only additional isotope offset 0 around the corrected m/z. The configured 'precursor:isotopes' list is used only for unresolved or ambiguous scans. Requires monoisotopic masses and ppm precursor tolerance.", false);
+    registerFlag_("precursor:correct_with_flash", "Infer MS2 monoisotopic precursor m/z using precursor-directed FLASH RNA on the complete parent MS1. Confident corrected or monoisotopic scans search only additional isotope offset 0 around the corrected m/z. The configured 'precursor:isotopes' list is used only for unresolved or ambiguous scans. Requires monoisotopic masses and ppm precursor tolerance.", false);
     registerTOPPSubsection_("precursor:flash", "FLASH RNA parent-MS1 precursor correction options");
     registerDoubleOption_("precursor:flash:mass_tolerance", "<ppm>", 0.0, "MS1 isotope detection and selected-ion matching tolerance in ppm (0 = use precursor:mass_tolerance)", false, true);
     setMinFloat_("precursor:flash:mass_tolerance", 0.0);
@@ -1140,6 +1140,7 @@ protected:
         match.adduct_opt = hit.precursor_ref->adduct;
         for (const auto& key : {"flash_precursor_status", "flash_precursor_original_mz",
              "flash_precursor_original_charge", "flash_precursor_parent", "flash_precursor_parent_source",
+             "flash_precursor_parent_peaks", "flash_precursor_parent_queries",
              "flash_precursor_mz", "flash_precursor_mono_mass", "flash_precursor_isotope",
              "flash_precursor_cosine", "flash_precursor_snr", "flash_precursor_mono_observed"})
         {

@@ -17,6 +17,12 @@
 using namespace OpenMS;
 using namespace std;
 
+class TestableSignalToNoiseEstimatorMeanIterative : public SignalToNoiseEstimatorMeanIterative<MSSpectrum>
+{
+public:
+  double maxIntensity() const { return max_intensity_; }
+};
+
 // #define DEBUG_TEST
 // #undef  DEBUG_TEST
 
@@ -31,6 +37,50 @@ START_SECTION((SignalToNoiseEstimatorMeanIterative()))
         ptr = new SignalToNoiseEstimatorMeanIterative<>;
 	TEST_NOT_EQUAL(ptr, nullPointer)
         SignalToNoiseEstimatorMeanIterative<> sne;
+END_SECTION
+
+START_SECTION([EXTRA] auto_mode 1 bins small intensities and handles a zero maximum)
+{
+  MSSpectrum s;
+  const float intensities[] = {0.0f, 0.25f, 0.5f, 0.75f, 1.0f};
+  for (Size i = 0; i < 5; ++i)
+  {
+    s.push_back(Peak1D(100.0 + i, intensities[i]));
+  }
+
+  TestableSignalToNoiseEstimatorMeanIterative sne;
+  Param p = sne.getParameters();
+  p.setValue("auto_mode", 1);
+  p.setValue("auto_max_percentile", 80);
+  p.setValue("win_len", 1000.0);
+  p.setValue("min_required_elements", 1);
+  sne.setParameters(p);
+  sne.init(s);
+
+  // Bins 0, 25, 50 and 75 contain the first four peaks; the 80th percentile
+  // therefore estimates the maximum as (75 + 0.5) * 0.01.
+  TEST_REAL_SIMILAR(sne.maxIntensity(), 0.755)
+  for (Size i = 0; i < 5; ++i)
+  {
+    TEST_REAL_SIMILAR(sne.getSignalToNoise(i), intensities[i])
+  }
+
+  MSSpectrum zero_spectrum;
+  for (Size i = 0; i < 5; ++i)
+  {
+    zero_spectrum.push_back(Peak1D(100.0 + i, 0.0f));
+  }
+  sne.init(zero_spectrum);
+  TEST_REAL_SIMILAR(sne.maxIntensity(), 0.5)
+  for (Size i = 0; i < 5; ++i)
+  {
+    TEST_REAL_SIMILAR(sne.getSignalToNoise(i), 0.0)
+  }
+
+  MSSpectrum empty;
+  sne.init(empty);
+  TEST_EQUAL(empty.size(), 0)
+}
 END_SECTION
 
 

@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/FeatureUniqueIds.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
@@ -431,9 +432,25 @@ The template parameters for the base RangeManager are ordered differently than i
         .def(nb::init<const OpenMS::MapConversion &>())
         .def("__copy__", [](const OpenMS::MapConversion& self) { return OpenMS::MapConversion(self); })
         .def("__deepcopy__", [](const OpenMS::MapConversion& self, nb::dict) { return OpenMS::MapConversion(self); }, "memo"_a)
-        .def_static("convert", [](size_t input_map_index, OpenMS::MSExperiment& input_map, OpenMS::ConsensusMap& output_map, size_t n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
         .def_static("convert", [](const OpenMS::ConsensusMap& input_map, bool keep_uids, OpenMS::FeatureMap& output_map) { return OpenMS::MapConversion::convert(input_map, keep_uids, output_map); }, "input_map"_a, "keep_uids"_a, "output_map"_a)
         .def_static("convert", [](size_t input_map_index, const OpenMS::FeatureMap& input_map, OpenMS::ConsensusMap& output_map, size_t n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
+        ;
+
+    // -----------------------------------------------------------------------
+    // FeatureUniqueIds
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureUniqueIds>(m, "FeatureUniqueIds",
+        R"doc(
+Checks that every feature of a map has a valid unique id that no other feature of the map shares.
+
+Every Feature and ConsensusFeature in a map should have a valid (non-zero) unique id that is unique
+within the map, subordinates included. The checks raise an error for invalid or duplicate ids.
+Feature handles are not checked.
+)doc")
+        .def_static("check", [](const OpenMS::FeatureMap& map) { OpenMS::FeatureUniqueIds::check(map); }, "map"_a,
+            "Raises if a feature or subordinate has an invalid unique id, or if two of them share an id")
+        .def_static("check", [](const OpenMS::ConsensusMap& map) { OpenMS::FeatureUniqueIds::check(map); }, "map"_a,
+            "Raises if a consensus feature has an invalid unique id, or if two of them share an id")
         ;
 
     // -----------------------------------------------------------------------
