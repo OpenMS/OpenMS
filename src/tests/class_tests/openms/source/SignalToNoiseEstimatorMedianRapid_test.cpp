@@ -119,6 +119,52 @@ START_SECTION( (NoiseEstimator estimateNoise(std::vector<double>& mz_array, std:
     TEST_REAL_SIMILAR(e.get_noise_even(550), 4.909  ) // numpy.median( int[33:] )
   }
 
+  // Empty windows: a gap in the m/z array leaves a window without any data point.
+  // computeMedian_ returns 0 for such a window, which triggers the imputed
+  // fallback value (mean + 3*stdev)/60 computed over the *whole* intensity array.
+  {
+    // m/z 200..290 and 400..490 are populated, so the window [300, 400) is empty.
+    static const double arr_mz[] =
+    {
+      200, 210, 220, 230, 240, 250, 260, 270, 280, 290,
+      400, 410, 420, 430, 440, 450, 460, 470, 480, 490
+    };
+    static const double arr_int[] =
+    {
+      5, 3, 7, 9, 1, 4, 6, 8, 2, 10,
+      5, 3, 7, 9, 1, 4, 6, 8, 2, 10
+    };
+    std::vector<double> mz_gap (arr_mz, arr_mz + sizeof(arr_mz) / sizeof(arr_mz[0]) );
+    std::vector<double> int_gap (arr_int, arr_int + sizeof(arr_int) / sizeof(arr_int[0]) );
+
+    // mean = 5.5, stdev = 2.8722813233, fallback = (5.5 + 3*2.8722813233)/60
+    SignalToNoiseEstimatorMedianRapid sne(100);
+    SignalToNoiseEstimatorMedianRapid::NoiseEstimator e = sne.estimateNoise(mz_gap, int_gap);
+    TEST_REAL_SIMILAR(e.get_noise_even(250), 5.5)           // median of the first block
+    TEST_REAL_SIMILAR(e.get_noise_even(350), 0.23528073283) // empty window -> imputed fallback
+    TEST_REAL_SIMILAR(e.get_noise_even(450), 5.5)           // median of the second block
+    TEST_REAL_SIMILAR(e.get_noise_odd(350), 5.0)
+    TEST_REAL_SIMILAR(e.get_noise_value(350), (0.23528073283 + 5.0) / 2.0)
+  }
+
+  // All intensities zero: every median is 0, so the fallback is imputed - but the
+  // fallback itself evaluates to 0 here. Guards against a fallback cache that uses
+  // the value (instead of a flag) as its "already computed" sentinel, and against a
+  // division by zero in clients, since get_noise_value clamps to 1.0.
+  {
+    std::vector<double> mz_zero, int_zero;
+    for (size_t i = 0; i < 20; ++i)
+    {
+      mz_zero.push_back(200.0 + 10.0 * i);
+      int_zero.push_back(0.0);
+    }
+
+    SignalToNoiseEstimatorMedianRapid sne(100);
+    SignalToNoiseEstimatorMedianRapid::NoiseEstimator e = sne.estimateNoise(mz_zero, int_zero);
+    TEST_REAL_SIMILAR(e.get_noise_even(250), 0.0)
+    TEST_REAL_SIMILAR(e.get_noise_value(250), 1.0)
+  }
+
 }
 END_SECTION
 

@@ -781,7 +781,7 @@ namespace OpenMS
     {
       OpenSwath::LightProtein decoy_protein = protein;
       decoy_protein.id = decoy_tag + protein.id;
-      decoy_proteins.push_back(decoy_protein);
+      decoy_proteins.push_back(std::move(decoy_protein));
     }
 
     std::vector<size_t> item_list, selection_list;
@@ -809,14 +809,14 @@ namespace OpenMS
       selection_list = item_list;
     }
 
-    // Create map of all peptide sequences to detect duplicates
-    std::unordered_map<std::string, std::string> allPeptideSequences;
+    // Create set of all peptide sequences to detect duplicates
+    std::unordered_set<std::string> allPeptideSequences;
     for (const auto& idx : selection_list)
     {
       const auto& compound = exp.compounds[idx];
       if (compound.isPeptide())
       {
-        allPeptideSequences[compound.sequence + std::to_string(compound.charge)] = compound.id;
+        allPeptideSequences.insert(compound.sequence + std::to_string(compound.charge));
       }
     }
 
@@ -856,7 +856,7 @@ namespace OpenMS
       if (!decoy_compound.isPeptide())
       {
         // For metabolites, just copy with decoy tag
-        decoy_compounds.push_back(decoy_compound);
+        decoy_compounds.push_back(std::move(decoy_compound));
         continue;
       }
 
@@ -961,14 +961,14 @@ namespace OpenMS
         exclusion_peptides.insert(decoy_compound.id);
         continue;
       }
-      // Add to map with modified sequence (matching Heavy path line 612)
+      // Add to set with modified sequence (matching Heavy path line 612)
       OPENMS_LOG_DEBUG << "[peptide] adding " << decoy_compound.id << " to master list of peptides\n";
-      allPeptideSequences[decoy_key] = decoy_compound.id;
+      allPeptideSequences.insert(std::move(decoy_key));
 
       // Update modifications
-      decoy_compound.modifications = decoy_mods;
+      decoy_compound.modifications = std::move(decoy_mods);
 
-      decoy_compounds.push_back(decoy_compound);
+      decoy_compounds.push_back(std::move(decoy_compound));
     }
     endProgress();
 
@@ -1021,7 +1021,7 @@ namespace OpenMS
           decoy_tr.transition_name = decoy_tag + tr->transition_name;
           decoy_tr.peptide_ref = decoy_peptide_ref;
           decoy_tr.setDecoy(true);
-          decoy_transitions.push_back(decoy_tr);
+          decoy_transitions.push_back(std::move(decoy_tr));
         }
         continue;
       }
@@ -1107,7 +1107,7 @@ namespace OpenMS
               }
             }
           }
-          decoy_transitions.push_back(decoy_tr);
+          decoy_transitions.push_back(std::move(decoy_tr));
         }
         else
         {
@@ -1127,34 +1127,33 @@ namespace OpenMS
                        }),
         decoy_transitions.end());
 
-    // Filter compounds
-    std::vector<OpenSwath::LightCompound> filtered_compounds;
+    // Filter compounds and proteins in place (order-preserving, no second copy)
+    decoy_compounds.erase(
+        std::remove_if(decoy_compounds.begin(), decoy_compounds.end(),
+                       [&exclusion_peptides](const OpenSwath::LightCompound& compound) {
+                         return exclusion_peptides.contains(compound.id);
+                       }),
+        decoy_compounds.end());
+
     std::unordered_set<std::string> protein_ids;
     for (const auto& compound : decoy_compounds)
     {
-      if (!exclusion_peptides.contains(compound.id))
+      for (const auto& prot_ref : compound.protein_refs)
       {
-        filtered_compounds.push_back(compound);
-        for (const auto& prot_ref : compound.protein_refs)
-        {
-          protein_ids.insert(prot_ref);
-        }
+        protein_ids.insert(prot_ref);
       }
     }
 
-    // Filter proteins
-    std::vector<OpenSwath::LightProtein> filtered_proteins;
-    for (const auto& protein : decoy_proteins)
-    {
-      if (protein_ids.contains(protein.id))
-      {
-        filtered_proteins.push_back(protein);
-      }
-    }
+    decoy_proteins.erase(
+        std::remove_if(decoy_proteins.begin(), decoy_proteins.end(),
+                       [&protein_ids](const OpenSwath::LightProtein& protein) {
+                         return !protein_ids.contains(protein.id);
+                       }),
+        decoy_proteins.end());
 
     dec.transitions = std::move(decoy_transitions);
-    dec.compounds = std::move(filtered_compounds);
-    dec.proteins = std::move(filtered_proteins);
+    dec.compounds = std::move(decoy_compounds);
+    dec.proteins = std::move(decoy_proteins);
   }
 
 }

@@ -7,19 +7,24 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+
+#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <boost/lexical_cast.hpp>
 
 #include <sys/stat.h>
+#include <algorithm>
 #include <cerrno>
 #include <limits>
 #include <xercesc/util/XMLString.hpp>
@@ -48,6 +53,21 @@ namespace OpenMS::Internal
     {
       return s.empty() ? 0.0 : StringUtils::toDouble(s);
     }
+
+    // Search engine specific scores (MS:1001143 and children) count as higher-is-better unless the PSI-MS
+    // vocabulary annotates them otherwise (has_order) or, for the many terms without such an annotation,
+    // OpenMS' score registry knows them as e-values, PEPs or q-values (e.g. Comet:expectation value).
+    bool isLowerBetterEngineScore_(const ControlledVocabulary::CVTerm& term)
+    {
+      const bool has_order = std::any_of(term.unparsed.begin(), term.unparsed.end(),
+        [](const std::string& line) { return StringUtils::hasPrefix(line, "relationship: has_order"); });
+      if (has_order)
+      {
+        return !ControlledVocabulary::CVTerm::isHigherBetterScore(term);
+      }
+      Scores::IDType type = Scores::IDType::RAW;
+      return Scores::findIDTypeByName(term.id, type) && !Scores::isHigherBetter(type);
+    }
   }
 
     //TODO remodel CVTermList
@@ -66,7 +86,7 @@ namespace OpenMS::Internal
 
       try
       {
-        XMLPlatformUtils::Initialize(); // Initialize Xerces infrastructure
+        Internal::xercesInitialize(); // Initialize Xerces infrastructure (serialised)
       }
       catch (XMLException& e)
       {
@@ -99,7 +119,7 @@ namespace OpenMS::Internal
 
       try
       {
-        XMLPlatformUtils::Initialize(); // Initialize Xerces infrastructure
+        Internal::xercesInitialize(); // Initialize Xerces infrastructure (serialised)
       }
       catch (XMLException& e)
       {
@@ -148,7 +168,7 @@ namespace OpenMS::Internal
       // Terminate Xerces
       try
       {
-        XMLPlatformUtils::Terminate(); // Terminate after release of memory
+        Internal::xercesTerminate(); // Terminate after release of memory (serialised)
       }
       catch (xercesc::XMLException& e)
       {
@@ -1212,7 +1232,7 @@ namespace OpenMS::Internal
 //              std::string identi = search_engine+"_"+si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getDate()+"T"
 //                      +si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getTime();
 //              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setIdentifier(identi);
-              auto& pro = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]);
+              auto& pro = runOfList_(si_it->second.spectrum_identification_list_ref);
               pro.setSearchEngine(search_engine);
               pro.setSearchEngineVersion(search_engine_version);
               sp.db = pro.getSearchParameters().db; // was previously set, but main parts of sp are set here
@@ -1299,6 +1319,18 @@ namespace OpenMS::Internal
       }
     }
 
+    ProteinIdentification& MzIdentMLDOMHandler::runOfList_(const std::string& spectrum_identification_list_ref)
+    {
+      const auto run = si_pro_map_.find(spectrum_identification_list_ref);
+      if (run == si_pro_map_.end())
+      {
+        // no SpectrumIdentification (search run) references this list
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          ProteinRunReferences::missingRunMessage(spectrum_identification_list_ref) + " (SpectrumIdentificationList)");
+      }
+      return pro_id_->at(run->second);
+    }
+
     void MzIdentMLDOMHandler::parseSpectrumIdentificationListElements_(DOMNodeList* spectrumIdentificationListElements)
     {
       const  XMLSize_t node_count = spectrumIdentificationListElements->getLength();
@@ -1358,11 +1390,11 @@ namespace OpenMS::Internal
                   xl_val_set.insert("0");
                   xl_val_map.insert(make_pair("0", 0));
                 }
+                // (each identification of a cross-link spectrum match gets the run there)
                 for (set<std::string>::const_iterator set_it = xl_val_set.begin(); set_it != xl_val_set.end(); ++set_it)
                 {
                   parseSpectrumIdentificationItemSetXLMS(set_it, xl_val_map, element_res, spectrumID);
                 }
-                pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
               }
               else // general case
               {
@@ -1386,7 +1418,7 @@ namespace OpenMS::Internal
 
               } // end of "not-XLMS-results"
 
-              pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
+              pep_id_->back().setIdentifier(runOfList_(id).getIdentifier());
 
               pep_id_->back().sort();
 
@@ -1807,7 +1839,7 @@ namespace OpenMS::Internal
           }
           reg_sii = reg_sii->getNextElementSibling();
         }
-        current_pep_id.setIdentifier(pro_id_->at(si_pro_map_[sil]).getIdentifier());
+        current_pep_id.setIdentifier(runOfList_(sil).getIdentifier());
         current_pep_id.sort();
         pep_id_->push_back(current_pep_id);
         return;
@@ -2052,26 +2084,21 @@ namespace OpenMS::Internal
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
 
-            if (pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).findHit(db.accession)
-                == pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().end())
+            ProteinIdentification& run = runOfList_(spectrumIdentificationList_ref);
+            if (run.findHit(db.accession) == run.getHits().end())
             { // butt ugly! TODO @ mths for ProteinInference
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).insertHit(ProteinHit());
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setSequence(db.sequence);
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setAccession(db.accession);
-              if (idec)
-              {
-                pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setMetaValue("isDecoy", "true");
-              }
-              else
-              {
-                pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setMetaValue("isDecoy", "false");
-              }
+              run.insertHit(ProteinHit());
+              run.getHits().back().setSequence(db.sequence);
+              run.getHits().back().setAccession(db.accession);
+              run.getHits().back().setMetaValue("isDecoy", idec ? "true" : "false");
             }
           }
           phs[pep].addPeptideEvidence(pev);
         }
       }
       current_pep_id.setHits(phs);
+      // each cross-link spectrum match is a peptide identification of its own and needs the run
+      current_pep_id.setIdentifier(runOfList_(spectrumIdentificationList_ref).getIdentifier());
       pep_id_->push_back(current_pep_id);
       pep_id_->back().sort();
     }
@@ -2126,7 +2153,16 @@ namespace OpenMS::Internal
 
       long double score = 0;
       const auto& [param_cv, param_user] = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
+      // The first recognized score in accession order is used, except that a lower-is-better search engine
+      // specific score (e.g. Comet:expectation value or X!Tandem:expect) yields to a PSM-level q-value, which is
+      // then used even if other scores lie between the two in accession order.
+      const bool has_psm_q_value = std::any_of(param_cv.getCVTerms().begin(), param_cv.getCVTerms().end(),
+        [this](const auto& term)
+        {
+          return (q_score_child_terms_.contains(term.first) || term.first == "MS:1002354") && term.first != "MS:1002055";
+        });
       bool scoretype = false;
+      bool use_q_value = false;
       for (map<std::string, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
       {
         if (q_score_child_terms_.contains(scoreit->first) || scoreit->first == "MS:1002354")
@@ -2140,11 +2176,21 @@ namespace OpenMS::Internal
             break;
           }
         }
+        else if (use_q_value)
+        {
+          continue;
+        }
         else if (scoreit->first != "MS:1001143" && // the parent term itself has no numeric value; handled in the special case below
                  specific_score_child_terms_.contains(scoreit->first))
         {
+          const bool lower_better = isLowerBetterEngineScore_(cv_.getTerm(scoreit->first));
+          if (lower_better && has_psm_q_value)
+          {
+            use_q_value = true;
+            continue;
+          }
           score = toDoubleOrZero_(scoreit->second.front().getValue().toString()); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
+          spectrum_identification.setHigherScoreBetter(!lower_better);
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
           break;
@@ -2262,20 +2308,13 @@ namespace OpenMS::Internal
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
 
-            if (pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).findHit(db.accession)
-                == pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().end())
+            ProteinIdentification& run = runOfList_(spectrumIdentificationList_ref);
+            if (run.findHit(db.accession) == run.getHits().end())
             { // butt ugly! TODO @ mths for ProteinInference
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).insertHit(ProteinHit());
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setSequence(db.sequence);
-              pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setAccession(db.accession);
-              if (idec)
-              {
-                pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setMetaValue("isDecoy", "true");
-              }
-              else
-              {
-                pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().back().setMetaValue("isDecoy", "false");
-              }
+              run.insertHit(ProteinHit());
+              run.getHits().back().setSequence(db.sequence);
+              run.getHits().back().setAccession(db.accession);
+              run.getHits().back().setMetaValue("isDecoy", idec ? "true" : "false");
             }
           }
           hit.addPeptideEvidence(pev);
@@ -2375,6 +2414,82 @@ namespace OpenMS::Internal
 //      protein_identification.getHits().back().setScore(boost::lexical_cast<double>(params.first.getCVTerms()["MS:1001171"].front().getValue())); //or any other score
     }
 
+    SignedSize MzIdentMLDOMHandler::inferModificationLocation_(DOMElement* modification_element, Size peptide_length) const
+    {
+      // The 'location' attribute of a <Modification> is optional in mzIdentML (schema use="optional").
+      // Several search engines omit it for terminal modifications. As a best-effort recovery, look up the
+      // referenced modification(s) in the ModificationsDB and derive the position from their terminal
+      // specificity: 0 for the N-terminus or peptide_length + 1 for the C-terminus. Returns -1 if no
+      // terminal position can be inferred.
+      //
+      // The N-terminus is preferred because N-terminal modifications (e.g. acetylation, the case reported
+      // in #5443) are by far the most common ones for which producers drop the 'location'. The C-terminus
+      // is only assigned for modifications that are *exclusively* C-terminal: a modification that may also
+      // sit on an internal residue (e.g. Oxidation, which has a rare 'Any C-term' variant next to its common
+      // 'Anywhere' ones) has a genuinely unknown position when 'location' is missing and is left unassigned.
+
+      // A location-less modification that names a concrete residue (mzIdentML 'residues' attribute, e.g.
+      // "K") is residue-specific, not terminal: even knowing the residue type, its exact position is still
+      // unknown without 'location' (the residue may occur several times), so we must not force it onto a
+      // terminus. Only the terminus marker "." (or an absent/empty value) is compatible with terminal
+      // placement. This matches real data: in mzIdentML from Mascot (and search engines generally) internal
+      // modifications carry residues="<AA>", while the terminal modifications for which 'location' is
+      // sometimes dropped carry residues="." or no 'residues' attribute at all.
+      const std::string residues = StringManager::convert(modification_element->getAttribute(CONST_XMLCH("residues")));
+      if (!residues.empty() && residues != ".")
+      {
+        return -1;
+      }
+
+      const ModificationsDB* mod_db = ModificationsDB::getInstance();
+      for (DOMElement* cvp = modification_element->getFirstElementChild(); cvp != nullptr; cvp = cvp->getNextElementSibling())
+      {
+        const std::string mod_name = StringManager::convert(cvp->getAttribute(CONST_XMLCH("name")));
+        // guard with has() first: searchModifications() would otherwise log a "not found" warning for
+        // non-modification cvParams (e.g. neutral loss terms) that legitimately appear as children here.
+        if (mod_name.empty() || !mod_db->has(mod_name))
+        {
+          continue;
+        }
+
+        std::set<const ResidueModification*> mods;
+        mod_db->searchModifications(mods, mod_name);
+
+        bool can_be_n_terminal = false; // has an N_TERM / PROTEIN_N_TERM variant
+        bool can_be_c_terminal = false; // has a  C_TERM / PROTEIN_C_TERM variant
+        bool can_be_internal = false;   // has an ANYWHERE variant (i.e. may sit on an internal residue)
+        for (const ResidueModification* mod : mods)
+        {
+          switch (mod->getTermSpecificity())
+          {
+            case ResidueModification::N_TERM:
+            case ResidueModification::PROTEIN_N_TERM:
+              can_be_n_terminal = true;
+              break;
+            case ResidueModification::C_TERM:
+            case ResidueModification::PROTEIN_C_TERM:
+              can_be_c_terminal = true;
+              break;
+            case ResidueModification::ANYWHERE:
+              can_be_internal = true;
+              break;
+            default:
+              break;
+          }
+        }
+
+        if (can_be_n_terminal)
+        {
+          return 0; // N-terminus
+        }
+        if (can_be_c_terminal && !can_be_internal)
+        {
+          return static_cast<SignedSize>(peptide_length) + 1; // C-terminus (only if not also internal)
+        }
+      }
+      return -1; // position could not be inferred
+    }
+
     AASequence MzIdentMLDOMHandler::parsePeptideSiblings_(DOMElement* peptide)
     {
       DOMNodeList* peptideSiblings = peptide->getChildNodes();
@@ -2390,19 +2505,23 @@ namespace OpenMS::Internal
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
           if (XMLString::equals(element_sib->getTagName(), CONST_XMLCH("PeptideSequence")))
           {
-            DOMNode* tn = element_sib->getFirstChild();
-            if (tn->getNodeType() == DOMNode::TEXT_NODE)
-            {
-              DOMText* data = dynamic_cast<DOMText*>(tn);
-              const XMLCh* val = data->getWholeText();
-              as = StringManager::convert(val);
-            }
-            else
-            {
-              throw std::runtime_error("ERROR : Non Text Node");
-            }
+            // The text content of the element joins the text of all its children (CDATA sections included,
+            // comments excluded) and is an empty string when the element has no children, as in the
+            // '<PeptideSequence/>' the writer emits for a hit with an empty sequence. Inspecting the first
+            // child node instead dereferenced a null pointer for such elements and discarded sequences
+            // that start with a comment or are held in a CDATA section.
+            as = StringManager::convert(element_sib->getTextContent());
           }
         }
+      }
+      // Trim once, before the substitution positions are applied, so that they count residues only.
+      StringUtils::trim(as);
+      if (as.empty())
+      {
+        // The caller catches this, logs the problem and stores an empty sequence for the peptide.
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    StringManager::convert(peptide->getAttribute(CONST_XMLCH("id"))),
+                                    "Peptide has no amino acid sequence.");
       }
       //2. Substitutions
       for (XMLSize_t c = 0; c < node_count; ++c)
@@ -2417,11 +2536,30 @@ namespace OpenMS::Internal
 
             std::string location = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("location")));
             char originalResidue = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("originalResidue")))[0];
-            char replacementResidue = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("replacementResidue")))[0];
+            std::string replacementResidueStr = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("replacementResidue")));
+            if (replacementResidueStr.empty())
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          StringManager::convert(peptide->getAttribute(CONST_XMLCH("id"))),
+                                          "SubstitutionModification is missing the replacementResidue attribute.");
+            }
+            char replacementResidue = replacementResidueStr[0];
 
             if (!location.empty())
             {
-              as[StringUtils::toInt32(location) - 1] = replacementResidue;
+              // location is a 1-based residue position. A location of 0 (or any
+              // value below 1) makes "toInt32(location) - 1" negative, which wraps
+              // to a huge size_type and writes one byte before as's character
+              // buffer; a location past as.size() writes beyond it. Both are
+              // undefined behaviour on std::string::operator[] (CPP-169).
+              SignedSize pos = StringUtils::toInt32(location);
+              if (pos < 1 || static_cast<Size>(pos) > as.size())
+              {
+                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            StringManager::convert(peptide->getAttribute(CONST_XMLCH("id"))),
+                                            "SubstitutionModification location '" + location + "' is out of range for a " + StringUtils::toStr(as.size()) + "-residue sequence.");
+              }
+              as[pos - 1] = replacementResidue;
             }
             else if (StringUtils::hasSubstring(as, originalResidue)) //no location - every occurrence will be replaced
             {
@@ -2435,7 +2573,6 @@ namespace OpenMS::Internal
         }
       }
       //3. Modifications
-      StringUtils::trim(as);
       AASequence aas = AASequence::fromString(as);
       for (XMLSize_t c = 0; c < node_count; ++c)
       {
@@ -2446,14 +2583,36 @@ namespace OpenMS::Internal
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
           if (XMLString::equals(element_sib->getTagName(), CONST_XMLCH("Modification")))
           {
-            SignedSize index = -2;
-            try
+            // 'location' is optional in mzIdentML: the 1-based position of the modified residue,
+            // with 0 = N-terminus and (peptide length + 1) = C-terminus.
+            const std::string location_str = StringManager::convert(element_sib->getAttribute(CONST_XMLCH("location")));
+            SignedSize index = -2; // sentinel: no valid location determined (yet)
+            if (!location_str.empty())
             {
-              index = static_cast<SignedSize>(StringUtils::toInt32(StringManager::convert(element_sib->getAttribute(CONST_XMLCH("location")))));
+              try
+              {
+                index = static_cast<SignedSize>(StringUtils::toInt32(location_str));
+              }
+              catch (...)
+              {
+                OPENMS_LOG_WARN << "Found unreadable modification location '" << location_str << "'." << endl;
+              }
             }
-            catch (...)
+
+            // Some search engines omit 'location' for terminal modifications (e.g. N-terminal acetylation).
+            // Previously the missing/invalid location left 'index' at a negative sentinel, which was then used
+            // as an (invalid) residue position and crashed the reader with an IndexOverflow exception (#5443).
+            // If the location is missing, unreadable, or out of range, try to infer a terminal position from
+            // the modification's terminal specificity; otherwise skip the modification instead of crashing.
+            if (index < 0 || index > static_cast<SignedSize>(aas.size()) + 1)
             {
-              OPENMS_LOG_WARN << "Found unreadable modification location." << endl;
+              const SignedSize inferred_index = inferModificationLocation_(element_sib, aas.size());
+              if (inferred_index < 0)
+              {
+                OPENMS_LOG_WARN << "Skipping modification with missing or invalid 'location' attribute; its position could not be inferred." << endl;
+                continue;
+              }
+              index = inferred_index;
             }
 
             //double monoisotopicMassDelta = StringManager::convert(element_dbs->getAttribute(CONST_XMLCH("monoisotopicMassDelta")));
@@ -2700,6 +2859,7 @@ namespace OpenMS::Internal
                       {
                         unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setProvenance(ResidueModification::MASS_ONLY);
                         new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
                         new_mod->setMonoMass(mass_delta + Residue::getInternalToNTerm().getMonoWeight());
@@ -2718,11 +2878,12 @@ namespace OpenMS::Internal
                       std::string residue_id = ".c[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
-                      // ownership to ModDB
-                      if (!mod_db->has(residue_name))
+                      // ownership to ModDB (check residue_id, which is what gets registered)
+                      if (!mod_db->has(residue_id))
                       {
                         unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setProvenance(ResidueModification::MASS_ONLY);
                         new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
                         new_mod->setMonoMass(mass_delta + Residue::getInternalToCTerm().getMonoWeight());
@@ -2745,6 +2906,7 @@ namespace OpenMS::Internal
                         // create new modification
                         unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setProvenance(ResidueModification::MASS_ONLY);
                         new_mod->setFullName(modification_name); // display name
 
                         // We will set origin to make sure the same modification will be used

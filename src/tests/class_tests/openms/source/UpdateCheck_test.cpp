@@ -14,6 +14,8 @@
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
@@ -31,7 +33,7 @@ START_TEST(UpdateCheck, "$Id$")
 
 START_SECTION((static void run(const std::string& tool_name, const std::string& version, int debug_level)))
 {
-  // UpdateCheck stamps a per-tool ".ver" file into File::getOpenMSConfigDir(). When that directory
+  // UpdateCheck stamps a per-tool ".ver" file into SystemSettings::getOpenMSConfigDir(). When that directory
   // cannot be created (a read-only / unwritable config location), run() must log a warning and return
   // *before* issuing any network request: it must not throw or crash, and the tool must continue.
   //
@@ -42,7 +44,7 @@ START_SECTION((static void run(const std::string& tool_name, const std::string& 
   const char* xdg_backup = getenv("XDG_CONFIG_HOME");
 
   // create a real temporary *file* and use it as the (bogus) config-home directory
-  std::string blocker = File::getTemporaryFile();
+  std::string blocker = TempFiles::getTemporaryFile();
   {
     std::ofstream f(blocker.c_str());
     f << "not a directory";

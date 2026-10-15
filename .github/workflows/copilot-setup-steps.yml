@@ -62,10 +62,14 @@ jobs:
           mkdir -p "${{ github.workspace }}/.ccache"
           CCACHE_DIR="${{ github.workspace }}/.ccache" ccache -s || echo "Warning: ccache stats unavailable"
 
-      - name: Initialize THIRDPARTY submodule
+      - name: Initialize vcpkg and THIRDPARTY submodules
         shell: bash
         run: |
-          git submodule update --init THIRDPARTY
+          # vcpkg provides the toolchain file of the CMake presets; bootstrapping
+          # only downloads the vcpkg executable. The dependencies themselves are
+          # built on the first configure.
+          git submodule update --init vcpkg THIRDPARTY
+          ./vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
           mkdir -p _thirdparty
           cp -R "THIRDPARTY/Linux/$(uname -m)"/* _thirdparty/ || { echo "Failed to copy THIRDPARTY/Linux files"; exit 1; }
@@ -81,9 +85,10 @@ jobs:
           echo "Ninja: $(ninja --version)"
           echo "ccache dir: ${{ github.workspace }}/.ccache"
           echo ""
-          echo "To build OpenMS, run something like:"
-          echo "  mkdir build && cd build"
-          echo "  cmake -G Ninja -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \\"
-          echo "    -DCMAKE_CXX_COMPILER=g++-13 \\"
-          echo "    -DCCACHE_DIR=${{ github.workspace }}/.ccache .."
-          echo "  ninja"
+          echo "To build OpenMS with the vcpkg preset (the first configure builds all"
+          echo "vcpkg dependencies, which takes a while; Qt is not installed, so disable the GUI):"
+          echo "  export CCACHE_DIR=${{ github.workspace }}/.ccache"
+          echo "  cmake --preset linux-x64-release -DWITH_GUI=OFF \\"
+          echo "    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+          echo "  cmake --build --preset linux-x64-release"
+          echo "  ctest --preset linux-x64-release"

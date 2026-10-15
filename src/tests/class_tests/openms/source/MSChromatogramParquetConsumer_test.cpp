@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/XICParquetFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -142,7 +143,7 @@ START_SECTION(MSChromatogramParquetConsumer_destructor_no_throw)
   OpenSwath::LightTargetedExperiment light_exp;
   OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
 
-  std::string out = File::getTempDirectory() + "/openms_missing_dir/xic_out.xic";
+  std::string out = SystemSettings::getTempDirectory() + "/openms_missing_dir/xic_out.xic";
   bool caught = false;
   try
   {

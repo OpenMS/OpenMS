@@ -12,6 +12,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
+#include <stdexcept>
+
 using namespace std;
 using namespace OpenMS;
 
@@ -32,6 +34,10 @@ namespace OpenMSExternal
     FileHandler().storeFeatures(tmpfilename, fm, {FileTypes::FEATUREXML});
 
     FeatureMap fm2;
-    FileHandler().storeFeatures(tmpfilename, fm2, {FileTypes::FEATUREXML});
+    FileHandler().loadFeatures(tmpfilename, fm2, {FileTypes::FEATUREXML});
+    if (fm2.size() != fm.size())
+    {
+      throw std::runtime_error("featureXML round trip lost features");
+    }
   }
 }

@@ -108,6 +108,20 @@ def _get_docutils_errors(docstring):
     ]
 
 
+# Sphinx cross-reference roles. Python is the default domain, so these are
+# normally written without the ``py:`` prefix (``:meth:`foo```), which the plain
+# docutils parser used here does not know. Listed explicitly rather than
+# accepting every unknown role, so that a misspelt role is still reported.
+_SPHINX_ROLES = frozenset({
+    # Python domain
+    "mod", "func", "data", "const", "class", "meth", "attr", "exc", "obj",
+    # standard cross-reference roles
+    "ref", "doc", "term", "envvar", "option", "keyword", "token",
+})
+
+_UNKNOWN_ROLE_RE = re.compile(r'unknown interpreted text role "([^"]+)"')
+
+
 def _is_acceptable_error(error, docstring):
     """Filter RST errors that are expected in generated docstrings."""
     err = error.lower()
@@ -115,8 +129,13 @@ def _is_acceptable_error(error, docstring):
         return True
     if "field list" in err:
         return True
-    if 'unknown interpreted text role "py:' in err:
-        return True
+    role = _UNKNOWN_ROLE_RE.search(err)
+    if role:
+        role_name = role.group(1)
+        if role_name.startswith("py:"):
+            role_name = role_name[3:]
+        if role_name in _SPHINX_ROLES:
+            return True
     if 'unknown directive type "py:' in err:
         return True
     if 'unknown directive type "deprecated"' in err:
@@ -253,7 +272,7 @@ class TestDocstringCoverage:
                     with_doc += 1
         pct = 100.0 * with_doc / total if total else 0
         print(f"\nMethod docstring coverage: {with_doc}/{total} ({pct:.1f}%)")
-        # Most nanobind methods get auto-docstrings from wrap-doc
+        # Most nanobind methods get auto-generated signature docstrings
         assert with_doc >= total * 0.8, (
             f"Only {with_doc}/{total} methods ({pct:.1f}%) have docstrings. "
             f"Expected at least 80%."

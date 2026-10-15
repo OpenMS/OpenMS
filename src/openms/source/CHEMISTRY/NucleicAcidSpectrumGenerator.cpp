@@ -74,16 +74,10 @@ namespace OpenMS
   }
 
 
-  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source) : DefaultParamHandler(source)
-  {
-  }
+  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source) = default;
 
 
-  NucleicAcidSpectrumGenerator& NucleicAcidSpectrumGenerator::operator=(const NucleicAcidSpectrumGenerator& source)
-  {
-    DefaultParamHandler::operator=(source);
-    return *this;
-  }
+  NucleicAcidSpectrumGenerator& NucleicAcidSpectrumGenerator::operator=(const NucleicAcidSpectrumGenerator& source) = default;
 
 
   NucleicAcidSpectrumGenerator::~NucleicAcidSpectrumGenerator() = default;
@@ -132,6 +126,10 @@ namespace OpenMS
       else // first ribonucleotide
       {
         mass += initial_offset;
+        if (oligo.hasFivePrimeMod())
+        {
+          mass += oligo.getFivePrimeMod()->getMonoMass() - EmpiricalFormula("H").getMonoWeight();
+        }
       }
       Peak1D peak(mass, aB_intensity_);
       if (oligo[i]->isAmbiguous())
@@ -422,6 +420,7 @@ namespace OpenMS
       Int charge = base_charge;
       while (charge_it != charges.rend())
       {
+        const Int requested_charge = *charge_it;
         MSSpectrum& spectrum = spectra[*charge_it];
         for (; charge >= *charge_it; --charge)
         {
@@ -437,11 +436,11 @@ namespace OpenMS
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U));
+          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / requested_charge + Constants::PROTON_MASS_U));
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            spectrum.getIntegerDataArrays()[0].push_back(requested_charge);
           }
         }
         spectrum.sortByPosition();
@@ -460,6 +459,7 @@ namespace OpenMS
       Int charge = base_charge;
       while (charge_it != charges.end())
       {
+        const Int requested_charge = *charge_it;
         MSSpectrum& spectrum = spectra[*charge_it];
         for (; charge <= *charge_it; ++charge)
         {
@@ -475,11 +475,11 @@ namespace OpenMS
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U);
+          spectrum.back().setMZ(spectrum.back().getMZ() / requested_charge + Constants::PROTON_MASS_U);
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            spectrum.getIntegerDataArrays()[0].push_back(requested_charge);
           }
         }
         spectrum.sortByPosition();

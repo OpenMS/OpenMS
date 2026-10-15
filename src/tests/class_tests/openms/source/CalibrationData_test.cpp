@@ -82,8 +82,10 @@ END_SECTION
 START_SECTION(void clear())
   CalibrationData cd2(cd);
   TEST_EQUAL(cd2.empty(), false)
+  TEST_EQUAL(cd2.getNrOfGroups(), 2) // groups 66 and 77 present before clear()
   cd2.clear();
   TEST_EQUAL(cd2.empty(), true)
+  TEST_EQUAL(cd2.getNrOfGroups(), 0) // clear() must also drop phantom groups
 END_SECTION
       
 START_SECTION(void setUsePPM(bool usePPM))

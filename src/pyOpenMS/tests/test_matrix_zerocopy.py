@@ -9,8 +9,8 @@ def test_matrix_double_zerocopy():
     # 2. Map it to OpenMS using your new fromNdArray logic
     openms_mat = poms.MatrixDouble.fromNdArray(np_arr)
 
-    # 3. Get the view back using your new get_matrix_view logic
-    view_arr = openms_mat.get_matrix_view()
+    # 3. Get the view back using your new matrix_view logic
+    view_arr = openms_mat.matrix_view()
 
     # 4. VERIFY ZERO-COPY & MEMORY LAYOUT (Bi-directional sharing)
     openms_mat.setValue(1, 0, 99.0)
@@ -22,9 +22,9 @@ def test_matrix_double_zerocopy():
     assert view_arr.flags['F_CONTIGUOUS'] == True
 
 def test_matrix_view_empty():
-    """get_matrix_view() should return empty array for empty matrix."""
+    """matrix_view() should return empty array for empty matrix."""
     mat = poms.MatrixDouble()
-    arr = mat.get_matrix_view()
+    arr = mat.matrix_view()
     assert isinstance(arr, np.ndarray)
     assert arr.size == 0
 

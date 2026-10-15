@@ -68,8 +68,7 @@ class SimpleSearchEngine :
   public:
     SimpleSearchEngine() :
       TOPPBase("SimpleSearchEngine",
-        "Annotates MS/MS spectra using SimpleSearchEngine.",
-        true)
+        "Annotates MS/MS spectra using SimpleSearchEngine.")
     {
     }
 

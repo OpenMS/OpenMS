@@ -4,6 +4,8 @@ Tests for missing methods on existing classes (Task 3).
 Verifies that methods present in the Cython 3.5 API
 are available in the nanobind build.
 """
+import os
+
 import pytest
 import pyopenms
 
@@ -613,6 +615,30 @@ class TestControlledVocabularyMethods:
         cv = pyopenms.ControlledVocabulary()
         assert hasattr(cv, 'getTermByName')
 
+    def test_get_term_returns_cvterm(self):
+        """getTerm() and getTermByName() return a ControlledVocabulary.CVTerm, as in 3.5.0."""
+        obo = os.path.join(pyopenms.File.getOpenMSDataPath(), 'CV', 'psi-ms.obo')
+        if not os.path.exists(obo):
+            pytest.skip('psi-ms.obo is not installed')
+        cv = pyopenms.ControlledVocabulary()
+        cv.loadFromOBO('psims', obo)
+        term = cv.getTerm('MS:1002252')
+        assert isinstance(term, pyopenms.ControlledVocabulary.CVTerm)
+        assert term.id == 'MS:1002252'
+        assert term.name == 'Comet:xcorr'
+        assert repr(term) == "CVTerm(id='MS:1002252', name='Comet:xcorr')"
+        by_name = cv.getTermByName('Comet:xcorr')
+        assert isinstance(by_name, pyopenms.ControlledVocabulary.CVTerm)
+        assert by_name.id == 'MS:1002252'
+
+    def test_cvterm_is_nested(self):
+        """The term class and its XRefType enum are nested in ControlledVocabulary."""
+        assert pyopenms.ControlledVocabulary.CVTerm.__name__ == 'CVTerm'
+        assert hasattr(pyopenms.ControlledVocabulary.CVTerm.XRefType, 'XSD_STRING')
+        # 3.5.0 names, dropped in 3.6.0
+        assert not hasattr(pyopenms, 'CVTerm_ControlledVocabulary')
+        assert not hasattr(pyopenms, 'XRefType_CVTerm_ControlledVocabulary')
+
     def test_get_all_child_terms(self):
         cv = pyopenms.ControlledVocabulary()
         assert hasattr(cv, 'getAllChildTerms')
@@ -658,6 +684,13 @@ class TestEmpiricalFormulaMethods:
     def test_get_conditional_fragment_isotope_dist(self):
         ef = pyopenms.EmpiricalFormula("C6H12O6")
         assert hasattr(ef, 'getConditionalFragmentIsotopeDist')
+
+    def test_add_charge_adduct(self):
+        ef = pyopenms.EmpiricalFormula("C6H12O6")
+        ef.setCharge(2)
+        ef.addChargeAdduct(ef.getCharge())
+        assert ef.getCharge() == 0
+        assert ef.getNumberOf(pyopenms.ElementDB.getInstance().getElement("H")) == 14
 
 
 class TestAASequenceIadd:

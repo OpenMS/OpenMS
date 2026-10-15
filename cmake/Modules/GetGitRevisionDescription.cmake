@@ -129,9 +129,14 @@ function(git_get_exact_tag _var)
 	set(${_var} "${out}" PARENT_SCOPE)
 endfunction()
 
+## An optional 4th argument reports whether every git call succeeded. The metadata
+## strings cannot signal that on their own: a branch may be named like a sentinel.
 function(git_short_info _refspecvar _hashvar _lc_datevar)
 	if(NOT GIT_FOUND)
 		find_package(Git QUIET)
+	endif()
+	if(ARGC GREATER 3)
+		set(${ARGV3} FALSE PARENT_SCOPE)
 	endif()
 	get_git_head_revision(refspec hash)
 	if(NOT GIT_FOUND)
@@ -146,6 +151,8 @@ function(git_short_info _refspecvar _hashvar _lc_datevar)
 		set(${_lc_datevar} "HEAD-HASH-NOTFOUND" PARENT_SCOPE)
 		return()
 	endif()
+
+	set(_ok TRUE)
 
 	execute_process(COMMAND
 		"${GIT_EXECUTABLE}"
@@ -162,6 +169,7 @@ function(git_short_info _refspecvar _hashvar _lc_datevar)
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
+		set(_ok FALSE)
 	endif()
 
 	set(${_hashvar} "${out}" PARENT_SCOPE)
@@ -181,6 +189,7 @@ function(git_short_info _refspecvar _hashvar _lc_datevar)
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
+		set(_ok FALSE)
 	endif()
 
 	set(${_refspecvar} "${out}" PARENT_SCOPE)
@@ -201,7 +210,55 @@ function(git_short_info _refspecvar _hashvar _lc_datevar)
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 	if(NOT res EQUAL 0)
 		set(out "${out}-${res}-NOTFOUND")
+		set(_ok FALSE)
 	endif()
 
 	set(${_lc_datevar} "${out}" PARENT_SCOPE)
+
+	if(ARGC GREATER 3)
+		set(${ARGV3} ${_ok} PARENT_SCOPE)
+	endif()
+endfunction()
+
+## Reads what git archive filled into <_file>, the source tree's .git_archival.txt (export-subst
+## in .gitattributes): the commit, its date and the nearest release tag (git describe; empty if
+## there is none). <_foundvar> is TRUE only in a source tree made by git archive; in a checkout
+## the file still holds its $Format placeholders. Hash and date come in the formats of
+## git_short_info. src/tests/git_archival/run.cmake tests it.
+function(git_archival_info _file _describevar _hashvar _lc_datevar _foundvar)
+	set(${_foundvar} FALSE PARENT_SCOPE)
+	if(NOT EXISTS "${_file}")
+		return()
+	endif()
+	file(STRINGS "${_file}" lines)
+	set(hash "")
+	set(lc_date "")
+	set(describe "")
+	foreach(line IN LISTS lines)
+		if(line MATCHES "^node: ([0-9a-f]+)$")
+			set(hash "${CMAKE_MATCH_1}")
+		elseif(line MATCHES "^node-date: (.+)$")
+			set(lc_date "${CMAKE_MATCH_1}")
+		elseif(line MATCHES "^describe-name: (.*)$")
+			set(describe "${CMAKE_MATCH_1}")
+		endif()
+	endforeach()
+	if(NOT hash)
+		return()
+	endif()
+	## git before 2.35 knows no describe options and leaves the placeholder as it is
+	if(describe MATCHES "^%\\(")
+		message(WARNING "${_file}: the git that made this archive did not fill in describe-name "
+		                "(that needs git 2.35 or later), so the build cannot tell a release.")
+		set(describe "")
+	endif()
+	string(SUBSTRING "${hash}" 0 7 hash)
+	## 2026-09-30T08:25:00+02:00 (%cI) -> 2026-09-30 08:25:00 +0200 (%ai); since git 2.45, %cI
+	## writes UTC as Z
+	string(REGEX REPLACE "Z$" "+00:00" lc_date "${lc_date}")
+	string(REGEX REPLACE "^([0-9-]+)T([0-9:]+)([+-][0-9][0-9]):?([0-9][0-9])$" "\\1 \\2 \\3\\4" lc_date "${lc_date}")
+	set(${_describevar} "${describe}" PARENT_SCOPE)
+	set(${_hashvar} "${hash}" PARENT_SCOPE)
+	set(${_lc_datevar} "${lc_date}" PARENT_SCOPE)
+	set(${_foundvar} TRUE PARENT_SCOPE)
 endfunction()

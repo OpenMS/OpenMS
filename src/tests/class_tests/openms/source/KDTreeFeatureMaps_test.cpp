@@ -50,6 +50,7 @@ KDTreeFeatureMaps* nullPointer = nullptr;
 START_SECTION((KDTreeFeatureMaps()))
   ptr = new KDTreeFeatureMaps();
   TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_EQUAL(ptr->numMaps(), 0)
 END_SECTION
 
 START_SECTION((virtual ~KDTreeFeatureMaps()))
@@ -139,6 +140,16 @@ START_SECTION((void clear()))
   kd_data_3.clear();
   TEST_EQUAL(kd_data_3.size(), 0)
   TEST_EQUAL(kd_data_3.treeSize(), 0)
+
+  // after clear(), the internal rt_ cache must be reset too:
+  // re-adding a feature with a distinct RT must report exactly that RT,
+  // not a stale value left over from before clear() (regression).
+  Feature g;
+  g.setMZ(200);
+  g.setRT(42);
+  kd_data_3.addFeature(0, &g);
+  TEST_EQUAL(kd_data_3.size(), 1)
+  TEST_REAL_SIMILAR(kd_data_3.rt(0), 42)
 END_SECTION
 
 START_SECTION((void optimizeTree()))

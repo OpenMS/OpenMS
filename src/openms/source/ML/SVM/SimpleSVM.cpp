@@ -16,7 +16,7 @@
 #include <OpenMS/ML/GRIDSEARCH/GridSearch.h>
 
 // Include libSVM in implementation file only
-// svm.h is copied into the contrib binary include directory during build
+// svm.h comes from the libsvm include directory (see FindLIBSVM.cmake)
 #include "svm.h"
 
 #include <cstdlib>

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -45,22 +46,41 @@ namespace OpenMS
 
     /// @brief Shared featurization for PeptDeep RT, CCS, and MS2 ONNX predictors.
     ///
-    /// Modified peptides are intentionally rejected for now. The generated mod_x
-    /// tensor is zero-filled and therefore represents unmodified peptides only.
+    /// Dynamically handles both unmodified and modified peptides, parsing modifications
+    /// natively into a 109-element elemental feature tensor using empirical formulas.
     class OPENMS_DLLAPI PeptDeepInputBuilder
     {
     public:
-      static PeptDeepInputBatch buildUnmodifiedPeptideBatch(
-        const std::vector<std::string>& peptides,
+      /// @brief Builds a baseline tensor batch containing amino acid indices and modification features.
+      /// @param[in] parsed_peptides A vector of pre-parsed AASequence objects.
+      /// @param[in] config Configuration dictating padding and terminal token policies.
+      /// @return A PeptDeepInputBatch populated with sequence lengths, aa_indices, and mod_x.
+      /// @throws Exception::IllegalArgument If the batch is empty, any peptide sequence is empty, or an encoded peptide exceeds fixed sequence length.
+      static PeptDeepInputBatch buildPeptideBatch(
+        const std::vector<OpenMS::AASequence>& parsed_peptides,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
 
-      static PeptDeepInputBatch buildUnmodifiedChargedBatch(
-        const std::vector<std::string>& peptides,
+      /// @brief Builds a tensor batch incorporating precursor charge states (primarily for CCS).
+      /// @param[in] parsed_peptides A vector of pre-parsed AASequence objects.
+      /// @param[in] charges A vector of precursor charges corresponding to the peptides.
+      /// @param[in] config Configuration dictating padding and terminal token policies.
+      /// @return A PeptDeepInputBatch populated with baseline features and scaled charges.
+      /// @throws Exception::IllegalArgument If the size of the vectors do not match, the batch is empty, any peptide sequence is empty, or an encoded peptide exceeds fixed sequence length.
+      static PeptDeepInputBatch buildPrecursorBatch(
+        const std::vector<OpenMS::AASequence>& parsed_peptides,
         const std::vector<float>& charges,
         const PeptDeepInputConfig& config = PeptDeepInputConfig());
 
-      static PeptDeepInputBatch buildUnmodifiedInstrumentBatch(
-        const std::vector<std::string>& peptides,
+      /// @brief Builds a full tensor batch including Normalized Collision Energies and instrument details (for MS2).
+      /// @param[in] parsed_peptides A vector of pre-parsed AASequence objects.
+      /// @param[in] charges A vector of precursor charges corresponding to the peptides.
+      /// @param[in] nces A vector of Normalized Collision Energies (NCE).
+      /// @param[in] instrument_indices A vector of instrument identifier indices.
+      /// @param[in] config Configuration dictating padding and terminal token policies.
+      /// @return A fully populated PeptDeepInputBatch ready for MS2 ONNX inference.
+      /// @throws Exception::IllegalArgument If the size of the vectors do not match, the batch is empty, any peptide sequence is empty, or an encoded peptide exceeds fixed sequence length.
+      static PeptDeepInputBatch buildProductMetaBatch(
+        const std::vector<OpenMS::AASequence>& parsed_peptides,
         const std::vector<float>& charges,
         const std::vector<float>& nces,
         const std::vector<int64_t>& instrument_indices,

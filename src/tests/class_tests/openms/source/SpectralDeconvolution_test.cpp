@@ -14,6 +14,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
+#include <limits>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -135,5 +137,66 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_len)))
+{
+  IsotopeDistribution b;
+  b.set({Peak1D(0.0, 4.0), Peak1D(1.0, 3.0)});
+  TEST_REAL_SIMILAR(SpectralDeconvolution::getCosine({4.0f, 3.0f}, 0, 2, b, 0, 2), 1.0)
+  TEST_REAL_SIMILAR(SpectralDeconvolution::getCosine({3.0f, 4.0f}, 0, 2, b, 0, 2), 24.0 / 25.0)
+  TEST_EQUAL(SpectralDeconvolution::getCosine({0.0f, 0.0f}, 0, 2, b, 0, 2), 0.0)
+}
+END_SECTION
+
+START_SECTION((void setQueryMasses(const std::vector<std::pair<double, int>>&)))
+{
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  const auto original = fd_algo.getDeconvolvedSpectrum();
+  TEST_FALSE(original.empty())
+  std::vector<Precursor> queries;
+  for (const auto& group : original)
+  {
+    for (const auto& peak : group)
+    {
+      if (peak.isotopeIndex >= 0)
+      {
+        Precursor query;
+        query.setMZ(peak.mz);
+        query.setCharge(peak.abs_charge);
+        queries.push_back(query);
+        break;
+      }
+    }
+  }
+  std::vector<std::pair<double, int>> mz_charge;
+  for (const auto& precursor : queries) mz_charge.emplace_back(precursor.getMZ(), precursor.getCharge());
+  fd_algo.setQueryMasses(mz_charge);
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().getOriginalSpectrum(), input[3])
+  const auto directed = fd_algo.getDeconvolvedSpectrum();
+  TEST_EQUAL(directed.size(), original.size())
+  for (Size i = 0; i < std::min(directed.size(), original.size()); ++i)
+  {
+    TEST_EQUAL(directed[i].getMonoMass(), original[i].getMonoMass())
+    TEST_EQUAL(directed[i].size(), original[i].size())
+  }
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+  TEST_EXCEPTION(Exception::IllegalArgument, fd_algo.setQueryMasses({{0.0, 2}}))
+  TEST_EXCEPTION(Exception::IllegalArgument, fd_algo.setQueryMasses({{std::numeric_limits<double>::infinity(), 2}}))
+  fd_algo.setQueryMasses(mz_charge);
+  auto msn = input[3];
+  msn.setMSLevel(2);
+  TEST_EXCEPTION(Exception::IllegalArgument, fd_algo.performSpectrumDeconvolution(msn, 4, PeakGroup()))
+  // Queries must also be consumed by failed and empty-spectrum calls.
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+  fd_algo.setQueryMasses(mz_charge);
+  MSSpectrum empty;
+  empty.setMSLevel(1);
+  fd_algo.performSpectrumDeconvolution(empty, 0, PeakGroup());
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+}
+END_SECTION
 END_TEST
 

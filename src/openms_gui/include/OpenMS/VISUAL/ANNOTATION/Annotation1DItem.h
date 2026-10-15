@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h> // for OPENMS_GUI_DLLAPI
+
 #include <OpenMS/VISUAL/MISC/CommonDefs.h> // for PointXYType
 
 #include <QtCore/QRectF>
@@ -32,7 +34,7 @@ namespace OpenMS
             have or be capable of.
 
     */
-  class Annotation1DItem
+  class OPENMS_GUI_DLLAPI Annotation1DItem
   {
   public:
     /// Destructor

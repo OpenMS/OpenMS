@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <filesystem>
 
@@ -78,7 +79,7 @@ namespace
 
 START_TEST(BrukerTimsImagingFile, "$Id$")
 
-File::TempDir tmp(false);
+TempDir tmp(false);
 
 START_SECTION(static bool isImagingDataset(const String& path))
 {

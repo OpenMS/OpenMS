@@ -84,7 +84,7 @@ namespace OpenMS
     linear_gradient_.fromString(param_.getValue("dot:gradient"));
 
     // connect preferences change to the right slot
-    connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParametersChanged_()));
+    connect(this, &PlotCanvas::preferencesChange, this, &Plot2DCanvas::currentLayerParametersChanged_);
   }
 
   Plot2DCanvas::~Plot2DCanvas() = default;
@@ -868,7 +868,7 @@ namespace OpenMS
             }
             else
             {
-              status += (std::string)dv;
+              status += dv.toString();
             }
           }
         }
