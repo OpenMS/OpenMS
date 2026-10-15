@@ -328,7 +328,7 @@ namespace OpenMS
     {
       s +=std::string("-");
     }
-    s =StringUtils::toStr(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
+    s += StringUtils::toStr(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }
 
