@@ -186,17 +186,29 @@ public:
     /**
       @brief returns a single spectrum without peaks and data arrays
 
-      Without meta data (openFile() with skipMetaData), the spectrum is read from the file.
+      Needs the meta data: a file opened with skipMetaData has no RT, MS level or precursors in memory.
       PeakFileOptions filters are not applied.
 
       @param[in] id The index of the spectrum
+      @exception Exception::IndexOverflow if @p id >= getNrSpectra()
+      @exception Exception::IllegalArgument if the file was opened with skipMetaData
     */
     MSSpectrum getSpectrumMetadata(Size id) override;
 
-    /// Retention time of spectrum @p id (reads the spectrum if there is no meta data)
+    /**
+      @brief Retention time of spectrum @p id, from the meta data
+
+      @exception Exception::IndexOverflow if @p id >= getNrSpectra()
+      @exception Exception::IllegalArgument if the file was opened with skipMetaData
+    */
     double getSpectrumRT(Size id) const override;
 
-    /// MS level of spectrum @p id (reads the spectrum if there is no meta data)
+    /**
+      @brief MS level of spectrum @p id, from the meta data
+
+      @exception Exception::IndexOverflow if @p id >= getNrSpectra()
+      @exception Exception::IllegalArgument if the file was opened with skipMetaData
+    */
     UInt getSpectrumMSLevel(Size id) const override;
 
     /// A copy with its own file stream (see the copy constructor)
