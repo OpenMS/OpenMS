@@ -158,6 +158,29 @@ public:
                                                     std::shared_ptr<ExperimentalSettings>& exp_meta);
 #endif
 
+#ifdef WITH_THERMO_RAW
+    /**
+      @brief Loads a Swath run from a Thermo .raw file by streaming it scan by scan
+
+      Like loadMzML(): a first pass reads the spectrum metadata only (no peaks) to determine the
+      SWATH windows, then ThermoRawFile::transform() streams the scans into the SWATH consumer
+      (and @p plugin_consumer), so that the run is never held in memory as a whole (except with
+      readoptions "normal", which keeps the SWATH maps in memory). Chromatograms are not read.
+
+      @param[in] file Path to a Thermo .raw file
+      @param[in] tmp Temporary directory (for readoptions "cache" and "split")
+      @param[out] exp_meta Run metadata and the spectra without peaks
+      @param[in] readoptions "normal" (in-memory), "cache" (disk-cached) or "split" (mzML per window)
+      @param[in] plugin_consumer Optional consumer that also receives every spectrum
+      @return Swath maps for MS2 and MS1 (empty for "split")
+    */
+    std::vector<OpenSwath::SwathMap> loadThermoRaw(const std::string& file,
+                                                   const std::string& tmp,
+                                                   std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                   const std::string& readoptions = "normal",
+                                                   Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
+#endif
+
 protected:
 
     /// Cache a file to disk

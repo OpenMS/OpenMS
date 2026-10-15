@@ -15,6 +15,7 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
+#include <algorithm>
 #include <type_traits> // to check if movable
 
 ///////////////////////////
@@ -159,6 +160,11 @@ START_SECTION((ProcessingStepRef registerProcessingStep(const ProcessingStep& st
   data.registerProcessingStep(step, param_ref);
   TEST_EQUAL(data.getProcessingSteps().size(), 2);
   TEST_EQUAL(data.getDBSearchSteps().size(), 1);
+  ID::DBSearchParam changed = *param_ref;
+  changed.precursor_mass_tolerance += 1.0;
+  auto changed_ref = data.registerDBSearchParam(changed);
+  TEST_EXCEPTION(Exception::InvalidValue, data.registerProcessingStep(step, changed_ref))
+  TEST_TRUE(data.getDBSearchSteps().at(step_ref) == param_ref)
 }
 END_SECTION
 
@@ -603,7 +609,7 @@ START_SECTION((IdentificationData(const IdentificationData& other)))
 }
 END_SECTION
 
-START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref) const))
+START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeRef score_ref, bool require_score = false) const))
 {
   // add a second observation and match (without score):
   ID::Observation obs("spectrum_2", file_ref, 200.0, 2000.0);
@@ -627,6 +633,44 @@ START_SECTION((vector<ObservationMatchRef> getBestMatchPerObservation(ScoreTypeR
   {
     TEST_EQUAL(results[0] == match_ref4, true);
     TEST_EQUAL(results[1] == match_ref2, true);
+  }
+
+  // Exact ties must select the same molecule regardless of registration order.
+  for (bool reverse : {false, true})
+  {
+    for (bool higher_better : {false, true})
+    {
+      ID ids;
+      auto input = ids.registerInputFile(ID::InputFile("ties.mzML"));
+      auto observation = ids.registerObservation(ID::Observation("scan=1", input));
+      auto score = ids.registerScoreType(ID::ScoreType("test", higher_better));
+      vector<string> sequences = {"AAG", "AGG"};
+      if (reverse)
+      {
+        std::reverse(sequences.begin(), sequences.end());
+      }
+      for (const auto& sequence : sequences)
+      {
+        auto molecule = ids.registerIdentifiedOligo(ID::IdentifiedOligo(NASequence::fromString(sequence)));
+        ID::ObservationMatch hit(molecule, observation, -2);
+        hit.addScore(score, 10.0);
+        ids.registerObservationMatch(hit);
+      }
+      auto best = ids.getBestMatchPerObservation(score, true);
+      TEST_EQUAL(best.size(), 1);
+      ABORT_IF(best.size() != 1);
+      TEST_EQUAL(best[0]->identified_molecule_var.toString(), "AAG");
+      // A genuinely better score must win over the lexical tie-breaker.
+      for (auto hit = ids.getObservationMatches().begin(); hit != ids.getObservationMatches().end(); ++hit)
+      {
+        if (hit->identified_molecule_var.toString() == "AGG")
+        {
+          ids.addScore(hit, score, higher_better ? 11.0 : 9.0);
+        }
+      }
+      best = ids.getBestMatchPerObservation(score, true);
+      TEST_EQUAL(best[0]->identified_molecule_var.toString(), "AGG");
+    }
   }
 }
 END_SECTION

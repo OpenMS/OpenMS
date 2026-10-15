@@ -212,25 +212,23 @@ protected:
         auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() < b.getIntensity();});
         typename PeakType::IntensityType maxInt = maxIt->getIntensity();
 
-        double bin_size = maxInt > 0 ? maxInt / 100 : 1.0; // no division by zero if no intensity is positive
+        double bin_size = maxInt > 0 ? static_cast<double>(maxInt) / 100.0 : 1.0; // no division by zero if no intensity is positive
 
         // fill histogram
         for(const auto& peak : c)
         {
-            ++histogram_auto[(int) std::max(0.0, std::min((peak.getIntensity() - 1) / bin_size, 99.0))];
+            ++histogram_auto[(int) std::max(0.0, std::min(peak.getIntensity() / bin_size, 99.0))];
         }
 
         // add up element counts in histogram until ?th percentile is reached
-        int elements_below_percentile = (int) (auto_max_percentile_ * c.size() / 100);
+        int elements_below_percentile = std::max(1, (int) (auto_max_percentile_ * c.size() / 100));
         int elements_seen = 0;
         int i = -1;
-        PeakIterator run = scan_first_;
 
-        while (run != scan_last_ && elements_seen < elements_below_percentile)
+        while (i < 99 && elements_seen < elements_below_percentile)
         {
           ++i;
           elements_seen += histogram_auto[i];
-          ++run;
         }
 
         max_intensity_ = (((double)i) + 0.5) * bin_size;

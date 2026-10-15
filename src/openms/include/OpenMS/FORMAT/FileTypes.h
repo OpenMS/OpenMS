@@ -102,6 +102,7 @@ namespace OpenMS
       BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)
       IMZML,              ///< imzML mass spectrometry imaging file (.imzML + .ibd)
       YAML,               ///< YAML Ain't Markup Language file (.yaml)
+      BEDRMOD,            ///< bedRMod file (.bedrmod, also accepts .bed)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

@@ -54,6 +54,19 @@ hand-editing sources and committing them, to keep sync self-healing.
   `PosteriorEstimator::includeNegativesInResult` a `std::atomic<bool>`:
   `Scores::calcQvals` sets it from the OpenMP cross-validation loops, a data race
   on a plain `bool`.
+- `patches/03-pep-padding-ties.patch` — keeps the PEP spline's points strictly
+  increasing, which `BaseSpline::initiateQR` needs (it asserts `dx > 0` in Debug
+  builds and divides by zero in Release builds, giving meaningless PEPs).
+  `BaseSpline` keeps the distances in sparse vectors that treat |dx| <= 1e-15 as 0.
+  The new `LogisticRegression::mergeTiesAndPad` (called from `setData`, after the
+  log/logit transform is chosen from the real bin medians) merges points closer
+  than 1e-12 (relative) in the transformed coordinates, and pads to the 4 points
+  the spline needs, spaced like the data, in the same coordinates.
+  `PosteriorEstimator::estimate` no longer pads the raw medians: upstream added at
+  most 1e-20, lost to rounding unless the median is about 0, and padding raw
+  scores in [0, 1] past 1 switched the spline from the logit to the log
+  transform. Seen with ProSE `-rescore`. Still present in upstream master as of
+  2026-10-12.
 
 ### Regenerating the patch
 
