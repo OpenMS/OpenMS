@@ -15,6 +15,7 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <algorithm>
 #include <cmath>
@@ -638,7 +639,21 @@ START_SECTION((static void selectFeatures_(UInt64 map_index, const FeatureMap& m
     f.setUniqueId(i + 1);
     fm.push_back(f);
   }
-  fm.getProteinIdentifications().resize(1);
+  // an identification on the first and on the last feature
+  MapPeptideIdentifications identifications;
+  identifications.proteins.resize(1);
+  identifications.proteins[0].setIdentifier("search");
+  for (Size i : {Size(0), Size(4)})
+  {
+    PeptideIdentification peptide;
+    peptide.setIdentifier("search");
+    peptide.setRT(fm[i].getRT());
+    peptide.setMZ(fm[i].getMZ());
+    peptide.setScoreType("score");
+    peptide.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString(i == 0 ? "PEPTIDEK" : "PEPTIDER")));
+    identifications.features[{i}].push_back(peptide);
+  }
+  IdentificationDataConverter::importMapIdentifications(fm, identifications);
 
   ConsensusMap out;
   // the two most intense features (not the first two), in map order
@@ -652,7 +667,14 @@ START_SECTION((static void selectFeatures_(UInt64 map_index, const FeatureMap& m
   TEST_EQUAL(out[0].begin()->getMapIndex(), map_index)
   TEST_EQUAL(out.getColumnHeaders()[map_index].size, 5) // the input size, as in MapConversion::convert()
   TEST_EQUAL(out.getUniqueId(), 42)
-  TEST_EQUAL(out.getProteinIdentifications().size(), 1)
+  // the identification of the selected feature stays (the pair finder reads it), that of the other one is removed
+  const auto linked = out[1].getLinkedIdentifications(out.getIdentificationData());
+  TEST_EQUAL(linked.size(), 1)
+  ABORT_IF(linked.size() != 1)
+  TEST_EQUAL(linked[0].getBestMatch()->representation, "PEPTIDER")
+  Size matches = 0;
+  for (const auto& run : out.getIdentificationData().getRuns()) matches += run.getNumberOfMatches();
+  TEST_EQUAL(matches, 1)
 
   // equal intensities: earlier RT first
   fm[3].setIntensity(500.0f); // ties with fm[4]
