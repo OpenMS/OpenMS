@@ -780,6 +780,50 @@ START_SECTION(real Thermo FAIMS-DIA RAW -> FAIMS-aware SWATH maps)
        << ", total DIA windows=" << total_swath_windows << '\n';
 }
 END_SECTION
+
+START_SECTION([EXTRA] SwathFile::loadThermoRaw with readoptions onDisc equals normal)
+{
+  // The onDisc maps read the spectra from the file; they must expose what the in-memory maps hold.
+  std::shared_ptr<ExperimentalSettings> meta_normal, meta_on_disc;
+  const std::string tmp = SystemSettings::getTempDirectory() + "/";
+  std::vector<OpenSwath::SwathMap> normal = SwathFile().loadThermoRaw(THERMO_FAIMS_DIA_TEST_DATA, tmp, meta_normal, "normal");
+  std::vector<OpenSwath::SwathMap> on_disc = SwathFile().loadThermoRaw(THERMO_FAIMS_DIA_TEST_DATA, tmp, meta_on_disc, "onDisc");
+  TEST_EQUAL(on_disc.size(), normal.size())
+  TEST_TRUE(*meta_on_disc == *meta_normal)
+  Size mismatches = 0, compared = 0;
+  for (Size m = 0; m < std::min(normal.size(), on_disc.size()); ++m)
+  {
+    const OpenSwath::SwathMap& a = normal[m];
+    const OpenSwath::SwathMap& b = on_disc[m];
+    TEST_EQUAL(b.ms1, a.ms1)
+    TEST_EQUAL(b.lower, a.lower)
+    TEST_EQUAL(b.upper, a.upper)
+    TEST_EQUAL(b.center, a.center)
+    TEST_EQUAL(b.imLower, a.imLower)
+    TEST_EQUAL(b.imUpper, a.imUpper)
+    TEST_EQUAL(b.sptr->getNrSpectra(), a.sptr->getNrSpectra())
+    if (b.sptr->getNrSpectra() != a.sptr->getNrSpectra()) { continue; }
+    const int n = static_cast<int>(a.sptr->getNrSpectra());
+    for (int i : {0, n / 2, n - 1})
+    {
+      if (i < 0) { continue; }
+      ++compared;
+      const OpenSwath::SpectrumMeta ma = a.sptr->getSpectrumMetaById(i), mb = b.sptr->getSpectrumMetaById(i);
+      const OpenSwath::SpectrumPtr sa = a.sptr->getSpectrumById(i), sb = b.sptr->getSpectrumById(i);
+      if (ma.RT != mb.RT || ma.ms_level != mb.ms_level ||
+          sa->getMZArray()->data != sb->getMZArray()->data ||
+          sa->getIntensityArray()->data != sb->getIntensityArray()->data)
+      {
+        ++mismatches;
+      }
+    }
+    const double rt = a.sptr->getSpectrumMetaById(n / 2).RT;
+    TEST_TRUE(b.sptr->getSpectraByRT(rt, 10.0) == a.sptr->getSpectraByRT(rt, 10.0))
+  }
+  TEST_EQUAL(compared > 0, true)
+  TEST_EQUAL(mismatches, 0)
+}
+END_SECTION
 #endif
 
 END_TEST

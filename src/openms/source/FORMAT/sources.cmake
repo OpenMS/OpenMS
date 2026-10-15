@@ -142,7 +142,7 @@ if (WITH_OPENTIMS)
 endif()
 
 if (WITH_THERMO_RAW)
-  list(APPEND sources_list ThermoRawFile.cpp)
+  list(APPEND sources_list OnDiscThermoRawExperiment.cpp ThermoRawFile.cpp)
 endif()
 
 ### add path to the filenames
