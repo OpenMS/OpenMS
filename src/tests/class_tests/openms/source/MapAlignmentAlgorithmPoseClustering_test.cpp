@@ -13,10 +13,13 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -27,6 +30,7 @@ class TestAligner : public MapAlignmentAlgorithmPoseClustering
 {
 public:
   using MapAlignmentAlgorithmPoseClustering::selectPeaks_;
+  using MapAlignmentAlgorithmPoseClustering::selectSpreadPeaks_;
   using MapAlignmentAlgorithmPoseClustering::selectFeatures_;
 };
 
@@ -315,6 +319,158 @@ START_SECTION([EXTRA] selectPeaks_ rejects NaN intensities)
   nan_map[0].setMSLevel(2);
   TestAligner::selectPeaks_(map_index, nan_map, out, Size(-1));
   TEST_EQUAL(out.size(), 0)
+}
+END_SECTION
+
+/////
+// selectSpreadPeaks_() picks one peak per analyte, spread over the map
+
+START_SECTION((static void selectSpreadPeaks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output, Size n, double rt_window, double mz_tolerance_ppm, Size max_charge, Size rt_bins, Size mz_bins)))
+{
+  // analyte A at m/z 500 elutes over RT 0..9 (apex 1000 at RT 5) with its first isotope (60%); analyte B at m/z 800
+  // elutes at the same time (apex 300); analyte C has A's m/z but elutes much later (RT 100)
+  const double isotope = Constants::C13C12_MASSDIFF_U;
+  PeakMap elution;
+  for (int s = 0; s < 10; ++s)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(s);
+    const float a = 1000.0f - 100.0f * std::abs(s - 5);
+    spec.push_back(Peak1D(500.0, a));
+    spec.push_back(Peak1D(500.0 + isotope, 0.6f * a));
+    spec.push_back(Peak1D(800.0, 300.0f - 30.0f * std::abs(s - 5)));
+    elution.addSpectrum(spec);
+  }
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(100.0);
+    spec.push_back(Peak1D(500.0, 200.0f));
+    elution.addSpectrum(spec);
+  }
+
+  // the most intense peaks are all from A
+  ConsensusMap out;
+  TestAligner::selectPeaks_(map_index, elution, out, 3);
+  TEST_EQUAL(out.size(), 3)
+  ABORT_IF(out.size() != 3)
+  TEST_REAL_SIMILAR(out[0].getMZ(), 500.0)
+  TEST_REAL_SIMILAR(out[1].getMZ(), 500.0)
+  TEST_REAL_SIMILAR(out[2].getMZ(), 500.0)
+
+  // one peak (the apex) per analyte
+  TestAligner::selectSpreadPeaks_(map_index, elution, out, 3, 20.0, 10.0, 2, 1, 1);
+  TEST_EQUAL(out.size(), 3)
+  ABORT_IF(out.size() != 3)
+  TEST_REAL_SIMILAR(out[0].getRT(), 5.0)
+  TEST_REAL_SIMILAR(out[0].getMZ(), 500.0)
+  TEST_REAL_SIMILAR(out[0].getIntensity(), 1000.0)
+  TEST_REAL_SIMILAR(out[1].getRT(), 5.0)
+  TEST_REAL_SIMILAR(out[1].getMZ(), 800.0)
+  TEST_REAL_SIMILAR(out[2].getRT(), 100.0)
+  TEST_REAL_SIMILAR(out[2].getMZ(), 500.0)
+  TEST_EQUAL(out.getColumnHeaders()[map_index].size, 3)
+  TEST_EQUAL(out[0].size(), 1)
+  TEST_EQUAL(out[0].begin()->getMapIndex(), map_index)
+
+  // fewer analytes than n: fewer peaks
+  TestAligner::selectSpreadPeaks_(map_index, elution, out, 10, 20.0, 10.0, 2, 1, 1);
+  TEST_EQUAL(out.size(), 3)
+
+  // without isotope suppression, A's isotope counts as an analyte of its own
+  TestAligner::selectSpreadPeaks_(map_index, elution, out, 10, 20.0, 10.0, 0, 1, 1);
+  TEST_EQUAL(out.size(), 4)
+  ABORT_IF(out.size() != 4)
+  TEST_REAL_SIMILAR(out[1].getMZ(), 500.0 + isotope)
+
+  // isotopes of charge 2 are half as far apart: suppressed with max_charge 2, not with max_charge 1
+  PeakMap charge2;
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.push_back(Peak1D(600.0, 1000.0f));
+    spec.push_back(Peak1D(600.0 + isotope / 2.0, 800.0f));
+    charge2.addSpectrum(spec);
+  }
+  TestAligner::selectSpreadPeaks_(map_index, charge2, out, 5, 20.0, 10.0, 2, 1, 1);
+  TEST_EQUAL(out.size(), 1)
+  TestAligner::selectSpreadPeaks_(map_index, charge2, out, 5, 20.0, 10.0, 1, 1, 1);
+  TEST_EQUAL(out.size(), 2)
+
+  // spreading: four intense analytes early (RT 10..40), two weak ones late (RT 70, 90)
+  PeakMap early_late;
+  const std::vector<std::pair<double, std::pair<double, float>>> analytes{
+    {10.0, {300.0, 1000.0f}}, {20.0, {400.0, 900.0f}}, {30.0, {500.0, 800.0f}}, {40.0, {600.0, 700.0f}},
+    {70.0, {350.0, 20.0f}}, {90.0, {450.0, 10.0f}}};
+  for (const auto& analyte : analytes)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(analyte.first);
+    spec.push_back(Peak1D(analyte.second.first, analyte.second.second));
+    early_late.addSpectrum(spec);
+  }
+  // one RT bin: the four most intense (all early)
+  TestAligner::selectSpreadPeaks_(map_index, early_late, out, 4, 5.0, 10.0, 2, 1, 1);
+  TEST_EQUAL(out.size(), 4)
+  ABORT_IF(out.size() != 4)
+  TEST_REAL_SIMILAR(out[3].getIntensity(), 700.0)
+  // two RT bins: two from each half, round-robin
+  TestAligner::selectSpreadPeaks_(map_index, early_late, out, 4, 5.0, 10.0, 2, 2, 1);
+  TEST_EQUAL(out.size(), 4)
+  ABORT_IF(out.size() != 4)
+  TEST_REAL_SIMILAR(out[0].getIntensity(), 1000.0)
+  TEST_REAL_SIMILAR(out[1].getIntensity(), 900.0)
+  TEST_REAL_SIMILAR(out[2].getIntensity(), 20.0)
+  TEST_REAL_SIMILAR(out[3].getIntensity(), 10.0)
+
+  // empty, MS2 only, n = 0
+  TestAligner::selectSpreadPeaks_(map_index, PeakMap(), out, 5, 20.0, 10.0, 2, 10, 10);
+  TEST_EQUAL(out.size(), 0)
+  TEST_EQUAL(out.getColumnHeaders()[map_index].size, 0)
+  PeakMap ms2;
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(2);
+    spec.push_back(Peak1D(500.0, 5.0f));
+    ms2.addSpectrum(spec);
+  }
+  TestAligner::selectSpreadPeaks_(map_index, ms2, out, 5, 20.0, 10.0, 2, 10, 10);
+  TEST_EQUAL(out.size(), 0)
+  TestAligner::selectSpreadPeaks_(map_index, early_late, out, 0, 20.0, 10.0, 2, 10, 10);
+  TEST_EQUAL(out.size(), 0)
+
+  // NaN intensities are rejected
+  PeakMap nan_map;
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.push_back(Peak1D(500.0, std::numeric_limits<float>::quiet_NaN()));
+    nan_map.addSpectrum(spec);
+  }
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectSpreadPeaks_(map_index, nan_map, out, 5, 20.0, 10.0, 2, 1, 1))
+}
+END_SECTION
+
+START_SECTION([EXTRA] align(PeakMap) with peak_selection:method 'spread')
+{
+  MzMLFile f;
+  std::vector<PeakMap> maps(2);
+  f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), maps[0]);
+  f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), maps[1]);
+
+  MapAlignmentAlgorithmPoseClustering aligner;
+  Param param = aligner.getParameters();
+  param.setValue("peak_selection:method", "spread");
+  aligner.setParameters(param);
+  aligner.setReference(maps[0]);
+
+  TransformationDescription trafo;
+  aligner.align(maps[1], trafo);
+  TEST_EQUAL(trafo.getModelType(), "linear");
+  STATUS("data points with 'spread': " << trafo.getDataPoints().size());
+  TEST_EQUAL(trafo.getDataPoints().empty(), false);
 }
 END_SECTION
 

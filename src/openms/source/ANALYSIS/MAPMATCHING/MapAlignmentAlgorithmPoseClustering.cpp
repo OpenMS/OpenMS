@@ -13,10 +13,16 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
+
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numeric>
 #include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 using namespace std;
 
@@ -32,6 +38,27 @@ namespace OpenMS
     defaults_.setValue("max_num_peaks_considered", 1000, "The maximal number of peaks/features to be considered per map. To use all, set to '-1'.");
     defaults_.setMinInt("max_num_peaks_considered", -1);
 
+    defaults_.setValue("peak_selection:method", "intensity",
+                       "How the 'max_num_peaks_considered' MS1 peaks of a peak map (e.g. mzML input) are selected. "
+                       "'intensity': the most intense peaks; one intense analyte contributes many peaks (its elution profile and isotope pattern). "
+                       "'spread': at most one peak per analyte (the most intense one of its elution profile and isotope pattern), "
+                       "spread over the RT and m/z range of the map. Feature maps always use their most intense features.");
+    defaults_.setValidStrings("peak_selection:method", {"intensity", "spread"});
+    defaults_.setValue("peak_selection:rt_window", 20.0,
+                       "('spread' only) A peak within this RT distance (in seconds) of a selected peak at the same m/z, "
+                       "or at an isotope position of it, belongs to the same analyte and is not selected. Use about the width of a chromatographic peak.");
+    defaults_.setMinFloat("peak_selection:rt_window", 0.0);
+    defaults_.setValue("peak_selection:mz_tolerance", 10.0, "('spread' only) m/z tolerance (in ppm) for the same m/z and for isotope positions.");
+    defaults_.setMinFloat("peak_selection:mz_tolerance", 0.0);
+    defaults_.setValue("peak_selection:max_charge", 4,
+                       "('spread' only) Isotope positions m/z +/- k * 1.0033548378 / z (k = 1..3) are suppressed for the charges z = 1..max_charge. 0 suppresses no isotopes.");
+    defaults_.setMinInt("peak_selection:max_charge", 0);
+    defaults_.setValue("peak_selection:rt_bins", 10, "('spread' only) Number of RT bins over which the selected peaks are spread.");
+    defaults_.setMinInt("peak_selection:rt_bins", 1);
+    defaults_.setValue("peak_selection:mz_bins", 10, "('spread' only) Number of m/z bins over which the selected peaks are spread.");
+    defaults_.setMinInt("peak_selection:mz_bins", 1);
+    defaults_.setSectionDescription("peak_selection", "Selection of the MS1 peaks of peak maps");
+
     defaultsToParam_();
   }
 
@@ -44,6 +71,13 @@ namespace OpenMS
     pairfinder_.setLogType(getLogType());
 
     max_num_peaks_considered_ = param_.getValue("max_num_peaks_considered");
+
+    spread_peaks_ = (param_.getValue("peak_selection:method").toString() == "spread");
+    spread_rt_window_ = param_.getValue("peak_selection:rt_window");
+    spread_mz_tolerance_ppm_ = param_.getValue("peak_selection:mz_tolerance");
+    spread_max_charge_ = static_cast<Size>(int(param_.getValue("peak_selection:max_charge")));
+    spread_rt_bins_ = static_cast<Size>(int(param_.getValue("peak_selection:rt_bins")));
+    spread_mz_bins_ = static_cast<Size>(int(param_.getValue("peak_selection:mz_bins")));
   }
 
   MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering() = default;
@@ -132,6 +166,189 @@ namespace OpenMS
     output.updateRanges();
   }
 
+  void MapAlignmentAlgorithmPoseClustering::selectSpreadPeaks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output, Size n,
+                                                               double rt_window, double mz_tolerance_ppm, Size max_charge,
+                                                               Size rt_bins, Size mz_bins)
+  {
+    output.clear(true);
+
+    // pass 1: RT and m/z range of the MS1 peaks (spans the grid)
+    Size ms1_peaks = 0;
+    double rt_min = std::numeric_limits<double>::max(), rt_max = std::numeric_limits<double>::lowest();
+    double mz_min = std::numeric_limits<double>::max(), mz_max = std::numeric_limits<double>::lowest();
+    for (const MSSpectrum& spectrum : map)
+    {
+      if (spectrum.getMSLevel() != 1 || spectrum.empty())
+      {
+        continue;
+      }
+      for (const Peak1D& peak : spectrum)
+      {
+        throwIfNaN(peak.getIntensity(), "An MS1 peak");
+        mz_min = std::min(mz_min, peak.getMZ());
+        mz_max = std::max(mz_max, peak.getMZ());
+      }
+      ms1_peaks += spectrum.size();
+      rt_min = std::min(rt_min, spectrum.getRT());
+      rt_max = std::max(rt_max, spectrum.getRT());
+    }
+    n = std::min(n, ms1_peaks);
+    rt_bins = std::max<Size>(rt_bins, 1);
+    mz_bins = std::max<Size>(mz_bins, 1);
+    const Size cells = rt_bins * mz_bins;
+    const auto cellOf = [&](double rt, double mz)
+    {
+      const auto bin = [](double value, double min, double max, Size bins)
+      {
+        if (max <= min) return Size(0);
+        return std::min(bins - 1, static_cast<Size>((value - min) / (max - min) * double(bins)));
+      };
+      return bin(rt, rt_min, rt_max, rt_bins) * mz_bins + bin(mz, mz_min, mz_max, mz_bins);
+    };
+    const auto more_intense = [](const Peak2D& left, const Peak2D& right) { return moreIntense(left, right); };
+
+    // pass 2: the most intense candidates of each cell (a multiple of the cell's share of n, since one analyte
+    // contributes many peaks), in heaps whose front is the least intense candidate
+    std::vector<Peak2D> candidates;
+    if (n > 0)
+    {
+      constexpr Size candidates_per_selected_peak = 50;
+      const Size per_cell = std::min(ms1_peaks, ((n + cells - 1) / cells) * candidates_per_selected_peak);
+      std::vector<std::vector<Peak2D>> pools(cells);
+      for (const MSSpectrum& spectrum : map)
+      {
+        if (spectrum.getMSLevel() != 1)
+        {
+          continue;
+        }
+        for (const Peak1D& peak : spectrum)
+        {
+          Peak2D candidate;
+          candidate.setRT(spectrum.getRT());
+          candidate.setMZ(peak.getMZ());
+          candidate.setIntensity(peak.getIntensity());
+          std::vector<Peak2D>& pool = pools[cellOf(candidate.getRT(), candidate.getMZ())];
+          if (pool.size() < per_cell)
+          {
+            pool.push_back(candidate);
+            std::push_heap(pool.begin(), pool.end(), more_intense);
+          }
+          else if (more_intense(candidate, pool.front()))
+          {
+            std::pop_heap(pool.begin(), pool.end(), more_intense);
+            pool.back() = candidate;
+            std::push_heap(pool.begin(), pool.end(), more_intense);
+          }
+        }
+      }
+      for (std::vector<Peak2D>& pool : pools)
+      {
+        candidates.insert(candidates.end(), pool.begin(), pool.end());
+        std::vector<Peak2D>().swap(pool);
+      }
+      std::sort(candidates.begin(), candidates.end(), more_intense);
+    }
+
+    // pass 3: from the most intense candidate down, accept a candidate unless an accepted peak of the same analyte
+    // (same m/z or an isotope position, within rt_window) exists; accepted peaks are found through a hash grid with
+    // cells at least as large as the RT window and the m/z tolerance
+    std::vector<Peak2D> accepted;
+    const double rt_cell = rt_window > 0.0 ? rt_window : 1.0;
+    const double mz_cell = std::max(std::abs(mz_max) * mz_tolerance_ppm * 1e-6, 1e-6);
+    std::unordered_map<UInt64, std::vector<Size>> grid;
+    const auto key = [&](Int64 rt_key, Int64 mz_key) { return (UInt64(rt_key) << 32) ^ UInt64(mz_key); };
+    std::vector<double> offsets{0.0};
+    constexpr Size max_isotope = 3;
+    for (Size z = 1; z <= max_charge; ++z)
+    {
+      for (Size k = 1; k <= max_isotope; ++k)
+      {
+        offsets.push_back(double(k) * Constants::C13C12_MASSDIFF_U / double(z));
+        offsets.push_back(-double(k) * Constants::C13C12_MASSDIFF_U / double(z));
+      }
+    }
+    const auto sameAnalyteAccepted = [&](const Peak2D& candidate)
+    {
+      const auto rt_low = static_cast<Int64>(std::floor((candidate.getRT() - rt_window) / rt_cell));
+      const auto rt_high = static_cast<Int64>(std::floor((candidate.getRT() + rt_window) / rt_cell));
+      for (double offset : offsets)
+      {
+        const double mz = candidate.getMZ() + offset;
+        const double tolerance = std::abs(mz) * mz_tolerance_ppm * 1e-6;
+        const auto mz_low = static_cast<Int64>(std::floor((mz - tolerance) / mz_cell));
+        const auto mz_high = static_cast<Int64>(std::floor((mz + tolerance) / mz_cell));
+        for (Int64 rt_key = rt_low; rt_key <= rt_high; ++rt_key)
+        {
+          for (Int64 mz_key = mz_low; mz_key <= mz_high; ++mz_key)
+          {
+            const auto it = grid.find(key(rt_key, mz_key));
+            if (it == grid.end()) continue;
+            for (Size index : it->second)
+            {
+              if (std::abs(accepted[index].getRT() - candidate.getRT()) <= rt_window &&
+                  std::abs(accepted[index].getMZ() - mz) <= tolerance)
+              {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      return false;
+    };
+    for (const Peak2D& candidate : candidates)
+    {
+      if (sameAnalyteAccepted(candidate))
+      {
+        continue;
+      }
+      grid[key(static_cast<Int64>(std::floor(candidate.getRT() / rt_cell)),
+               static_cast<Int64>(std::floor(candidate.getMZ() / mz_cell)))].push_back(accepted.size());
+      accepted.push_back(candidate);
+    }
+
+    // round-robin over the grid cells: rank the accepted peaks within their cell (they are in intensity order) and
+    // take the n peaks of lowest rank, the more intense first within a rank
+    std::vector<Size> next_rank(cells, 0);
+    std::vector<std::pair<Size, Size>> ranked; // (rank in cell, index into accepted)
+    ranked.reserve(accepted.size());
+    for (Size i = 0; i < accepted.size(); ++i)
+    {
+      ranked.emplace_back(next_rank[cellOf(accepted[i].getRT(), accepted[i].getMZ())]++, i);
+    }
+    std::sort(ranked.begin(), ranked.end());
+    ranked.resize(std::min(n, ranked.size()));
+
+    std::vector<Peak2D> selected;
+    selected.reserve(ranked.size());
+    for (const auto& entry : ranked)
+    {
+      selected.push_back(accepted[entry.second]);
+    }
+    std::sort(selected.begin(), selected.end(), more_intense);
+
+    output.reserve(selected.size());
+    for (Size element_index = 0; element_index < selected.size(); ++element_index)
+    {
+      output.push_back(ConsensusFeature(map_index, selected[element_index], element_index));
+    }
+    output.getColumnHeaders()[map_index].size = selected.size();
+    output.updateRanges();
+  }
+
+  void MapAlignmentAlgorithmPoseClustering::selectPeakLandmarks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output) const
+  {
+    if (spread_peaks_)
+    {
+      selectSpreadPeaks_(map_index, map, output, max_num_peaks_considered_, spread_rt_window_, spread_mz_tolerance_ppm_,
+                         spread_max_charge_, spread_rt_bins_, spread_mz_bins_);
+    }
+    else
+    {
+      selectPeaks_(map_index, map, output, max_num_peaks_considered_);
+    }
+  }
+
   void MapAlignmentAlgorithmPoseClustering::selectFeatures_(UInt64 map_index, const FeatureMap& map, ConsensusMap& output, Size n)
   {
     for (const Feature& feature : map)
@@ -176,7 +393,7 @@ namespace OpenMS
 
   void MapAlignmentAlgorithmPoseClustering::setReference(const PeakMap& map)
   {
-    selectPeaks_(0, map, reference_, max_num_peaks_considered_);
+    selectPeakLandmarks_(0, map, reference_);
   }
 
   void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap& map, TransformationDescription& trafo)
@@ -189,7 +406,7 @@ namespace OpenMS
   void MapAlignmentAlgorithmPoseClustering::align(const PeakMap& map, TransformationDescription& trafo)
   {
     ConsensusMap map_scene;
-    selectPeaks_(1, map, map_scene, max_num_peaks_considered_);
+    selectPeakLandmarks_(1, map, map_scene);
     align(map_scene, trafo);
   }
 

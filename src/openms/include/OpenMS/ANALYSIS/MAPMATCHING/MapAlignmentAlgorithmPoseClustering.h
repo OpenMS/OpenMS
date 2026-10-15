@@ -31,6 +31,11 @@ namespace OpenMS
     computation, smaller values might lead to no or unstable trafos. Set to -1
     to use all features (might take very long for large maps).
 
+    For peak maps, 'peak_selection:method' 'spread' selects at most one peak per
+    analyte (instead of many peaks of the elution profile and isotope pattern of
+    a few intense analytes), spread over the RT and m/z range; see
+    selectSpreadPeaks_().
+
     For further details see:
     @n Eva Lange et al.
     @n A Geometric Approach for the Alignment of Liquid Chromatography-Mass Spectrometry Data
@@ -59,7 +64,7 @@ public:
     /// Sets the reference for the alignment: the 'max_num_peaks_considered' most intense features of @p map
     void setReference(const FeatureMap& map);
 
-    /// Sets the reference for the alignment: the 'max_num_peaks_considered' most intense MS1 peaks of @p map
+    /// Sets the reference for the alignment: 'max_num_peaks_considered' MS1 peaks of @p map, selected as set by 'peak_selection:method'
     void setReference(const PeakMap& map);
 
 protected:
@@ -83,6 +88,36 @@ protected:
     static void selectPeaks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output, Size n);
 
     /**
+      @brief Copies up to @p n MS1 peaks of @p map into @p output that represent different analytes, spread over the
+             RT and m/z range of @p map
+
+      Many peaks belong to the same analyte: the peaks of its elution profile (the same m/z in consecutive spectra)
+      and of its isotope pattern. Taking the most intense peaks (selectPeaks_()) therefore picks a few intense
+      analytes many times, which the superimposer and the pair finder cannot use. This selection keeps one peak per
+      analyte and spreads the peaks over the map:
+
+      1. The MS1 peaks are binned into a grid of @p rt_bins x @p mz_bins cells over the RT and m/z range of the
+         MS1 peaks. Each cell keeps only its most intense candidates (a multiple of its share of @p n), so memory
+         stays proportional to @p n.
+      2. Going from the most intense candidate down, a candidate is accepted unless an accepted peak lies within
+         @p rt_window (in seconds) of it at the same m/z, or at an isotope position m/z +/- k * 1.0033548378 / z
+         (k = 1..3, z = 1..@p max_charge), within @p mz_tolerance_ppm. The accepted peaks are the apices of
+         different analytes.
+      3. The accepted peaks are taken round-robin over the grid cells (the most intense of each cell first, then the
+         second most intense of each cell, ...), until @p n peaks are selected.
+
+      Fewer than @p n peaks are selected if fewer analytes are found. The selected peaks are ordered by descending
+      intensity (equal intensities by RT, then m/z), and @p output is otherwise set up as by selectPeaks_().
+
+      @exception Exception::InvalidValue if an MS1 peak has a NaN intensity
+    */
+    static void selectSpreadPeaks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output, Size n,
+                                   double rt_window, double mz_tolerance_ppm, Size max_charge, Size rt_bins, Size mz_bins);
+
+    /// Selects the peaks of @p map to align, by selectPeaks_() or selectSpreadPeaks_() as set by 'peak_selection:method'
+    void selectPeakLandmarks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output) const;
+
+    /**
       @brief Copies the @p n most intense features of @p map into @p output, as consensus features of map @p map_index
 
       Like MapConversion::convert(UInt64, const FeatureMap&, ConsensusMap&, Size), but selects the most intense
@@ -101,6 +136,14 @@ protected:
     ConsensusMap reference_;
 
     Int max_num_peaks_considered_;
+
+    /// 'peak_selection:' parameters
+    bool spread_peaks_ = false;
+    double spread_rt_window_ = 20.0;
+    double spread_mz_tolerance_ppm_ = 10.0;
+    Size spread_max_charge_ = 4;
+    Size spread_rt_bins_ = 10;
+    Size spread_mz_bins_ = 10;
 
 private:
 
