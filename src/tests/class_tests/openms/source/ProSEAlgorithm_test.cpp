@@ -2506,7 +2506,198 @@ END_SECTION
 
 START_SECTION((SearchResult searchWithModificationAnalysis(const std::string &, const std::string &, const std::string &) const))
 {
-  NOT_TESTABLE // tested via TOPP tool
+  // A single input is a complete experiment: both single-file overloads apply FDR:protein as search(file) does
+  // (protein inference, picked-protein FDR, decoys removed), after the modification analysis.
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  std::string tmp_mzml;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  std::string tmp_fasta;
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FASTAFile().store(tmp_fasta, fasta_db);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("FDR:PSM", 0.05);
+  p.setValue("FDR:protein", 0.5);
+  algo.setParameters(p);
+
+  const auto accessions = [](const std::vector<ProteinIdentification>& runs)
+  {
+    std::vector<std::string> acc;
+    for (const ProteinHit& hit : runs.at(0).getHits()) { acc.push_back(hit.getAccession() + "=" + std::to_string(hit.getScore())); }
+    std::sort(acc.begin(), acc.end());
+    return runs.at(0).getScoreType() + ":" + ListUtils::concatenate(acc, ",");
+  };
+  const auto matched = [](const PeptideIdentificationList& peptide_ids)
+  {
+    return static_cast<Size>(std::count_if(peptide_ids.begin(), peptide_ids.end(), [](const auto& pid) { return !pid.getHits().empty(); }));
+  };
+  const auto decoy_psms = [](const PeptideIdentificationList& peptide_ids)
+  {
+    Size n = 0;
+    for (const auto& pid : peptide_ids) { for (const auto& hit : pid.getHits()) { n += hit.isDecoy(); } }
+    return n;
+  };
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(tmp_mzml, tmp_fasta, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(decoy_psms(pep_ids), 0)
+  TEST_EQUAL(prot_ids.at(0).getHits().size(), 10) // P01-P10
+
+  ProSEAlgorithm::SearchResult from_file = algo.searchWithModificationAnalysis(tmp_mzml, tmp_fasta);
+  TEST_EQUAL(from_file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(from_file.is_open_search, true)
+  TEST_EQUAL(accessions(from_file.protein_ids), accessions(prot_ids))
+  TEST_EQUAL(decoy_psms(from_file.peptide_ids), 0)
+  // the statistics describe the returned identifications (after protein FDR)
+  TEST_EQUAL(from_file.stats.decoy_psms, 0)
+  TEST_EQUAL(from_file.stats.matched_spectra, matched(from_file.peptide_ids))
+
+  PeakMap spectra_baseline = spectra; // the in-memory overload takes its spectra by non-const reference
+  ProSEAlgorithm::SearchResult in_memory = algo.searchWithModificationAnalysis(spectra, fasta_db);
+  TEST_EQUAL(in_memory.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(accessions(in_memory.protein_ids), accessions(prot_ids))
+  TEST_EQUAL(decoy_psms(in_memory.peptide_ids), 0)
+  TEST_EQUAL(in_memory.stats.decoy_psms, 0)
+  TEST_EQUAL(in_memory.stats.matched_spectra, matched(in_memory.peptide_ids))
+
+  // The modification analysis runs before protein FDR, so its tables equal those of the same search
+  // without FDR:protein, although the identifications differ (the baseline keeps the decoy PSMs).
+  const auto tables = [](const ProSEAlgorithm::SearchResult& r)
+  {
+    const auto& dm = r.modification_analysis.delta_mass_stats;
+    const auto& ptm = r.modification_analysis.ptm_stats;
+    std::vector<std::string> rows;
+    for (const auto& e : dm.entries)
+    {
+      std::ostringstream row;
+      row << std::setprecision(10) << "dm " << e.delta_mass << ' ' << e.count << ' ' << e.unique_peptides << ' '
+          << e.num_charge_states << ' ' << e.percentage << ' ' << e.mapped_modification;
+      rows.push_back(row.str());
+    }
+    for (const auto& e : ptm.entries)
+    {
+      std::ostringstream row;
+      row << std::setprecision(10) << "ptm " << e.name << ' ' << e.theoretical_mass << ' ' << e.observed_mass << ' '
+          << e.count << ' ' << e.unique_peptides << ' ' << e.num_charge_states << ' ' << e.percentage << ' ' << e.target_residues;
+      for (const auto& rc : e.residue_counts) { row << ' ' << rc.first << '=' << rc.second; }
+      rows.push_back(row.str());
+    }
+    std::sort(rows.begin(), rows.end());
+    std::ostringstream totals;
+    totals << std::setprecision(10) << dm.total_psms << ' ' << dm.modified_psms << ' ' << dm.unmodified_psms << ' '
+           << dm.mean_delta_mass << ' ' << dm.median_delta_mass << ' ' << ptm.total_modified_psms << ' '
+           << ptm.unknown_modification_psms << ' ' << ptm.num_unique_modifications << '|';
+    return totals.str() + ListUtils::concatenate(rows, ";");
+  };
+  p.setValue("FDR:protein", 0.0);
+  ProSEAlgorithm baseline_algo;
+  baseline_algo.setParameters(p);
+  ProSEAlgorithm::SearchResult baseline_file = baseline_algo.searchWithModificationAnalysis(tmp_mzml, tmp_fasta);
+  TEST_EQUAL(baseline_file.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_TRUE(decoy_psms(baseline_file.peptide_ids) > 0)
+  TEST_EQUAL(tables(from_file), tables(baseline_file))
+  ProSEAlgorithm::SearchResult baseline_memory = baseline_algo.searchWithModificationAnalysis(spectra_baseline, fasta_db);
+  TEST_EQUAL(baseline_memory.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_TRUE(decoy_psms(baseline_memory.peptide_ids) > 0)
+  TEST_EQUAL(tables(in_memory), tables(baseline_memory))
+}
+END_SECTION
+
+START_SECTION((void setKeepPreFdrPsms(bool keep)))
+{
+  // The multi-file search returns the PSMs of each file from before FDR:PSM only when asked to, and only
+  // those of that file: a snapshot left by an earlier search of the same object must not be handed out.
+  std::vector<FASTAFile::FASTAEntry> fasta_db;
+  PeakMap spectra;
+  buildSyntheticProteinFDRData(fasta_db, spectra);
+  std::string tmp_mzml;
+  NEW_TMP_FILE(tmp_mzml)
+  tmp_mzml += ".mzML";
+  FileHandler().storeExperiment(tmp_mzml, spectra, {FileTypes::MZML});
+  std::string tmp_fasta;
+  NEW_TMP_FILE(tmp_fasta)
+  tmp_fasta += ".fasta";
+  FASTAFile().store(tmp_fasta, fasta_db);
+
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("precursor:mass_tolerance_lower", 500.0);
+  p.setValue("precursor:mass_tolerance_upper", 500.0);
+  p.setValue("precursor:mass_tolerance_unit", "Da");
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+  p.setValue("decoys", "generate");
+  p.setValue("FDR:PSM", 0.05);
+  algo.setParameters(p);
+
+  const auto decoy_psms = [](const PeptideIdentificationList& peptide_ids)
+  {
+    Size n = 0;
+    for (const auto& pid : peptide_ids) { for (const auto& hit : pid.getHits()) { n += hit.isDecoy(); } }
+    return n;
+  };
+  const std::vector<std::string> files = {tmp_mzml};
+
+  // default: no copy
+  ProSEAlgorithm::MultiFileSearchResult plain = algo.searchWithModificationAnalysis(files, tmp_fasta);
+  ABORT_IF(plain.per_file.size() != 1)
+  TEST_EQUAL(plain.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(plain.per_file[0].pre_fdr_peptide_ids.empty(), true)
+
+  // asked for: the PSMs before FDR:PSM, decoys included
+  algo.setKeepPreFdrPsms(true);
+  ProSEAlgorithm::MultiFileSearchResult kept = algo.searchWithModificationAnalysis(files, tmp_fasta);
+  ABORT_IF(kept.per_file.size() != 1)
+  TEST_EQUAL(kept.per_file[0].peptide_ids.size(), plain.per_file[0].peptide_ids.size())
+  TEST_EQUAL(kept.per_file[0].pre_fdr_peptide_ids.size() >= kept.per_file[0].peptide_ids.size(), true)
+  TEST_EQUAL(decoy_psms(kept.per_file[0].pre_fdr_peptide_ids) > 0, true)
+  // oracle: the same file searched without FDR:PSM (search scores, not q-values; nothing filtered)
+  const auto psms = [](const PeptideIdentificationList& peptide_ids)
+  {
+    std::vector<std::string> out;
+    for (const auto& pid : peptide_ids)
+    {
+      for (const auto& hit : pid.getHits())
+      {
+        out.push_back(pid.getSpectrumReference() + " " + hit.getSequence().toString() + " " + std::to_string(hit.getScore()) + (hit.isDecoy() ? " decoy" : ""));
+      }
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+  };
+  ProSEAlgorithm no_fdr;
+  Param p0 = p;
+  p0.setValue("FDR:PSM", 0.0);
+  no_fdr.setParameters(p0);
+  std::vector<ProteinIdentification> prot_0;
+  PeptideIdentificationList pep_0;
+  TEST_EQUAL(no_fdr.search(tmp_mzml, tmp_fasta, prot_0, pep_0) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(psms(kept.per_file[0].pre_fdr_peptide_ids) == psms(pep_0), true)
+  TEST_EQUAL(psms(kept.per_file[0].peptide_ids) == psms(pep_0), false) // FDR:PSM did change the result
+
+  // a search of the same object with the copy on, then the copy off: the next result has no copy
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  TEST_EQUAL(algo.search(spectra, fasta_db, prot_ids, pep_ids) == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  algo.setKeepPreFdrPsms(false);
+  ProSEAlgorithm::MultiFileSearchResult after = algo.searchWithModificationAnalysis(files, tmp_fasta);
+  ABORT_IF(after.per_file.size() != 1)
+  TEST_EQUAL(after.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK, true)
+  TEST_EQUAL(after.per_file[0].pre_fdr_peptide_ids.size(), 0)
 }
 END_SECTION
 

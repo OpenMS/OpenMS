@@ -11,8 +11,10 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/test_config.h>
 #include <algorithm>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <thread>
 
 // Legacy -> native -> legacy round trips of the golden outputs of TOPP tools. Every identification of an
 // output must come back exactly as it was, in the same order, after an import, a native bundle and an export.
@@ -132,15 +134,30 @@ std::string difference(const std::vector<ProteinIdentification>& proteins, const
   return result;
 }
 
+/// Remove a bundle. Loading closes all of its files, but on Windows another process (e.g. a virus scanner) can still
+/// hold a file that was just written or read, and the removal fails until it lets go; retry for a few seconds.
+void removeBundle(const std::string& path)
+{
+  std::error_code error;
+  for (int attempt = 0; attempt < 50; ++attempt)
+  {
+    error.clear();
+    fs::remove_all(path, error);
+    if (! error) return;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  throw fs::filesystem_error("remove_all", path, error);
+}
+
 /// Native bundle round trip of @p data, which must not change it.
 ID throughBundle(const ID& data)
 {
   const auto path = temporary(".idparquet");
-  fs::remove_all(path);
+  removeBundle(path);
   IdentificationDataFile::store(path, data);
   ID reloaded;
   IdentificationDataFile::load(path, reloaded);
-  fs::remove_all(path);
+  removeBundle(path);
   if (! (reloaded == data)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The native bundle changed the dataset", path);
   return reloaded;
 }

@@ -146,7 +146,7 @@ if (WITH_OPENTIMS)
 endif()
 
 if (WITH_THERMO_RAW)
-  list(APPEND sources_list_h ThermoRawFile.h)
+  list(APPEND sources_list_h OnDiscThermoRawExperiment.h ThermoRawFile.h)
 endif()
 
 ### add path to the filenames

@@ -10,20 +10,24 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
 
   /**
-    @brief Static helpers that convert between the three OpenMS container
-           types (@c PeakMap, @c FeatureMap, @c ConsensusMap).
+    @brief Static helpers that convert between @c FeatureMap and @c ConsensusMap.
 
-    Each overload replaces the contents of the destination, gives it a
-    container-level unique id, and leaves it in a state where the standard
-    range queries reflect the new contents without further bookkeeping by
-    the caller.
+    There is no conversion from a @c PeakMap: the handle of a consensus
+    feature built from a peak could only refer to the peak's index, not to
+    an element with a unique id. MapAlignmentAlgorithmPoseClustering selects
+    the peaks it aligns itself.
+
+    Each overload replaces the contents of the destination and leaves it in
+    a state where the standard range queries reflect the new contents
+    without further bookkeeping by the caller. The container unique id of
+    the destination is copied from the source or freshly drawn, depending
+    on the overload.
 
     The conversions are not symmetric: which fields are preserved
     (container / element unique ids, protein and unassigned peptide
@@ -35,42 +39,6 @@ namespace OpenMS
   class OPENMS_DLLAPI MapConversion
   {
 public:
-
-    /**
-      @brief Copy the most intense MS1 peaks of a @c PeakMap into a
-             @c ConsensusMap.
-
-      The output's previous contents are dropped and it is given a fresh
-      container unique id (@c PeakMap has no container-level unique id, so
-      one is generated). Only the peaks of MS level 1 spectra are
-      considered (the selection made by @c MSExperiment::get2DData());
-      spectra of other MS levels and chromatograms do not contribute. The
-      @p n MS1 peaks with the highest intensity are written to the output
-      as @c ConsensusFeature entries tagged with @p input_map_index; their
-      order in the output is by descending intensity. The column header
-      @c size for @p input_map_index reflects the number of peaks written.
-
-      @note @p n is capped by the number of MS1 peaks in @p input_map, not
-            by @c input_map.getSize(), which also counts the peaks of
-            other MS levels and all chromatogram points. An input without
-            MS1 peaks (e.g. MS2-only data) yields an empty output.
-
-      @param[in]     input_map_index Index assigned to the input map in the
-                                     resulting @c ConsensusMap column headers.
-      @param[in,out] input_map       Source peaks; its range queries are
-                                     left consistent with its contents as a
-                                     side effect.
-      @param[out]    output_map      Resulting @c ConsensusMap; previous
-                                     contents are replaced.
-      @param[in]     n               Maximum number of MS1 peaks to copy. Any
-                                     value at or above the number of MS1
-                                     peaks (including the default
-                                     @c Size(-1)) keeps all MS1 peaks.
-    */
-    static void convert(UInt64 const input_map_index,
-                        PeakMap& input_map,
-                        ConsensusMap& output_map,
-                        Size n = -1);
 
     /**
       @brief Convert a @c ConsensusMap to a @c FeatureMap.
@@ -110,8 +78,7 @@ public:
       subordinates are removed, unlinked ones are kept.
 
       @note Because features are taken in input order, @p n is mainly useful
-            after pre-sorting @p input_map (e.g. by intensity); it exists for
-            symmetry with the @c PeakMap overload above.
+            after pre-sorting @p input_map (e.g. by intensity).
 
       @note The column header @c size for @p input_map_index is set to
             @c input_map.size() -- the full input size -- even when @p n
@@ -130,6 +97,20 @@ public:
                         FeatureMap const& input_map,
                         ConsensusMap& output_map,
                         Size n = -1);
+
+    /**
+      @brief Convert the features of a @c FeatureMap at @p selected to a @c ConsensusMap.
+
+      As convert(UInt64, const FeatureMap&, ConsensusMap&, Size), but the features at the indices @p selected (in this
+      order) are written instead of the first @p n: their identifications get @c map_index, those linked only by the
+      other features or subordinates are removed.
+
+      @exception Exception::IndexOverflow if an index of @p selected is not below @c input_map.size()
+    */
+    static void convert(UInt64 const input_map_index,
+                        FeatureMap const& input_map,
+                        ConsensusMap& output_map,
+                        const std::vector<Size>& selected);
   };
 } // namespace OpenMS
 

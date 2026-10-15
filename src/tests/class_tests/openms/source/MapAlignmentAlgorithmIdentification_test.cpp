@@ -15,7 +15,9 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
+#include <functional>
 #include <iostream>
+#include <tuple>
 
 using namespace std;
 using namespace OpenMS;
@@ -468,6 +470,109 @@ START_SECTION([EXTRA] align() of feature and consensus maps uses their identific
 END_SECTION
 
 
+START_SECTION(([EXTRA] 'score_cutoff' filters identifications in their score direction))
+{
+  const std::vector<std::string> sequences = {"PEPTIDEK", "PEPTIDER", "ELVISLIVESK", "DLGEEHFK", "LVNELTEFAK",
+                                              "YLYEIAR", "AEFVEVTK", "QTALVELLK", "HLVDEPQNLIK", "GACLLPK"};
+  const auto identification = [](const std::string& sequence, double rt, const std::string& score_type, bool higher_better, double score)
+  {
+    PeptideIdentification peptide;
+    peptide.setRT(rt);
+    peptide.setMZ(500.0);
+    peptide.setScoreType(score_type);
+    peptide.setHigherScoreBetter(higher_better);
+    peptide.setIdentifier("search");
+    peptide.insertHit(PeptideHit(score, 1, 2, AASequence::fromString(sequence)));
+    return peptide;
+  };
+  MapAlignmentAlgorithmIdentification cutoff_aligner;
+  Param cutoff_params = cutoff_aligner.getParameters();
+  cutoff_params.setValue("score_cutoff", "true");
+  cutoff_params.setValue("min_score", 0.05);
+  cutoff_aligner.setParameters(cutoff_params);
+
+  // peptide identifications (idXML input): the second run has one PEP above the cut-off
+  std::vector<PeptideIdentificationList> runs(2);
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    const double rt = 100.0 * double(i + 1);
+    runs[0].push_back(identification(sequences[i], rt, "Posterior Error Probability", false, 0.01));
+    runs[1].push_back(identification(sequences[i], rt + 10.0, "Posterior Error Probability", false, i + 1 == sequences.size() ? 0.5 : 0.01));
+  }
+  std::vector<TransformationDescription> transforms;
+  cutoff_aligner.align(runs, transforms, 0);
+  ABORT_IF(transforms.size() != 2)
+  // the identification above the cut-off is not an alignment point (it was before the cut-off applied to idXML input)
+  TEST_EQUAL(transforms[1].getDataPoints().size(), sequences.size() - 1)
+  for (const auto& point : transforms[1].getDataPoints())
+  {
+    TEST_REAL_SIMILAR(point.first - point.second, 10.0)
+  }
+
+  // feature maps: their identifications are identification data, whose runs share one primary score, so its
+  // direction applies to all of them; the first feature of the second map has no identification at all
+  const auto feature_map = [&](double shift, bool unidentified_first, const std::function<PeptideIdentification(Size, double)>& identify)
+  {
+    FeatureMap map;
+    MapPeptideIdentifications identifications;
+    identifications.proteins.resize(1);
+    identifications.proteins[0].setIdentifier("search");
+    if (unidentified_first)
+    {
+      Feature unidentified;
+      unidentified.setRT(50.0 + shift);
+      unidentified.setMZ(400.0);
+      map.push_back(unidentified);
+    }
+    for (Size i = 0; i < sequences.size(); ++i)
+    {
+      Feature feature;
+      feature.setRT(100.0 * double(i + 1) + shift);
+      feature.setMZ(500.0 + double(i));
+      feature.setUniqueId();
+      identifications.features[{map.size()}].push_back(identify(i, feature.getRT()));
+      map.push_back(feature);
+    }
+    IdentificationDataConverter::importMapIdentifications(map, identifications);
+    return map;
+  };
+  // in either direction, all identifications pass the cut-off (none would in the other direction)
+  for (const auto& [score_type, higher_better, score] : std::vector<std::tuple<std::string, bool, double>>{
+         {"Posterior Error Probability", false, 0.01}, {"hyperscore", true, 30.0}})
+  {
+    const auto identify = [&](Size i, double rt) { return identification(sequences[i], rt, score_type, higher_better, score); };
+    std::vector<FeatureMap> maps = {feature_map(0.0, false, identify), feature_map(10.0, true, identify)};
+    cutoff_aligner.align(maps, transforms, 0);
+    ABORT_IF(transforms.size() != 2)
+    TEST_EQUAL(transforms[1].getDataPoints().size(), sequences.size())
+    for (const auto& point : transforms[1].getDataPoints())
+    {
+      TEST_REAL_SIMILAR(point.first - point.second, 10.0)
+    }
+  }
+  // a map cannot mix score directions: the import rejects identifications whose scores differ (cf. the score contract)
+  const auto mixed = [&](Size i, double rt)
+  {
+    return i == 0 ? identification(sequences[i], rt, "hyperscore", true, 30.0)
+                  : identification(sequences[i], rt, "Posterior Error Probability", false, 0.01);
+  };
+  TEST_EXCEPTION(Exception::InvalidValue, feature_map(0.0, false, mixed))
+
+  // with 'use_feature_rt', a feature whose identifications all fail the cut-off is no alignment point (its RT was
+  // stored under an empty sequence, which such features of the other maps shared)
+  cutoff_params.setValue("use_feature_rt", "true");
+  cutoff_aligner.setParameters(cutoff_params);
+  const auto failing_last = [&](Size i, double rt)
+  {
+    return identification(sequences[i], rt, "Posterior Error Probability", false, i + 1 == sequences.size() ? 0.5 : 0.01);
+  };
+  std::vector<FeatureMap> maps = {feature_map(0.0, false, failing_last), feature_map(10.0, false, failing_last)};
+  cutoff_aligner.align(maps, transforms, 0);
+  ABORT_IF(transforms.size() != 2)
+  TEST_EQUAL(transforms[1].getDataPoints().size(), sequences.size() - 1)
+}
+END_SECTION
+
 START_SECTION((template <typename DataType> void setReference(DataType& data)))
 {
   // alignment with external reference:
@@ -489,6 +594,102 @@ START_SECTION((template <typename DataType> void setReference(DataType& data)))
 }
 END_SECTION
 
+
+START_SECTION(([EXTRA] setReference() filters the reference with 'min_score', as align() does))
+{
+  // Feature maps whose identifications have lower-is-better scores. The last one of the reference is above the cut-off.
+  const std::vector<std::string> sequences = {"PEPTIDEK", "PEPTIDER", "ELVISLIVESK", "DLGEEHFK", "LVNELTEFAK",
+                                              "YLYEIAR", "AEFVEVTK", "QTALVELLK", "HLVDEPQNLIK", "GACLLPK"};
+  const auto feature_map = [&](double shift, double last_score) {
+    FeatureMap map;
+    MapPeptideIdentifications identifications;
+    identifications.proteins.resize(1);
+    identifications.proteins[0].setIdentifier("search");
+    for (Size i = 0; i < sequences.size(); ++i)
+    {
+      Feature feature;
+      feature.setRT(100.0 * double(i + 1) + shift);
+      feature.setMZ(500.0 + double(i));
+      feature.setUniqueId();
+      PeptideIdentification peptide;
+      peptide.setIdentifier("search");
+      peptide.setRT(feature.getRT());
+      peptide.setMZ(feature.getMZ());
+      peptide.setScoreType("Posterior Error Probability");
+      peptide.setHigherScoreBetter(false);
+      peptide.insertHit(PeptideHit(i + 1 == sequences.size() ? last_score : 0.01, 1, 2, AASequence::fromString(sequences[i])));
+      identifications.features[{i}].push_back(peptide);
+      map.push_back(feature);
+    }
+    IdentificationDataConverter::importMapIdentifications(map, identifications);
+    return map;
+  };
+  MapAlignmentAlgorithmIdentification cutoff_aligner;
+  Param cutoff_params = cutoff_aligner.getParameters();
+  cutoff_params.setValue("score_cutoff", "true");
+  cutoff_params.setValue("min_score", 0.05);
+  cutoff_aligner.setParameters(cutoff_params);
+  // setReference() is called before align(), so 'min_score' was not read yet: the reference kept no identification
+  // (none has a score of at most 0) and setReference() threw
+  cutoff_aligner.setReference(feature_map(0.0, 0.5));
+  std::vector<FeatureMap> maps = {feature_map(10.0, 0.01)};
+  std::vector<TransformationDescription> transforms;
+  cutoff_aligner.align(maps, transforms);
+  ABORT_IF(transforms.size() != 1)
+  // the identifications of the reference within the cut-off: all but the last
+  TEST_EQUAL(transforms[0].getDataPoints().size(), sequences.size() - 1)
+  for (const auto& point : transforms[0].getDataPoints())
+  {
+    TEST_REAL_SIMILAR(point.first - point.second, 10.0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] setReference() tells adducts apart according to 'use_adducts', as align() does))
+{
+  // identifications of oligos, all with a sodium adduct
+  const std::vector<std::string> sequences = {"ACGU", "AACCGGUU", "GGGAAA", "UUUCCC", "ACACAC"};
+  const auto id_data = [&](double shift) {
+    IdentificationData data;
+    auto& run = data.addRun("NASE", IdentificationData::MoleculeKind::OLIGONUCLEOTIDE);
+    IdentificationData::ScoreDefinition hyperscore;
+    hyperscore.name = "hyperscore";
+    run.setPrimaryScore(run.addScore(hyperscore));
+    IdentificationData::SourceFile file;
+    file.path = "test.mzML";
+    const auto source = run.addSource(file);
+    for (Size i = 0; i < sequences.size(); ++i)
+    {
+      IdentificationData::Observation observation;
+      observation.data_id = "scan=" + StringUtils::toStr(i + 1);
+      observation.rt = 100.0 * double(i + 1) + shift;
+      observation.mz = 500.0 + double(i);
+      IdentificationData::MatchData match;
+      match.encoding = IdentificationData::Encoding::NA_SEQUENCE;
+      match.representation = sequences[i];
+      match.charge = -2;
+      // the adduct of the ion, as NucleicAcidSearchEngine stores "Na:+" for charge -2: [M+Na-3H]2-
+      match.details.emplace().adduct = AdductInfo("Na:+", EmpiricalFormula("Na") + EmpiricalFormula("H") * -3, -2);
+      run.addMatch(run.addIdentification(source, observation), match, {10.0});
+    }
+    return data;
+  };
+  // 'use_adducts' is "true" by default; setReference() is called before align(), which read it so far
+  MapAlignmentAlgorithmIdentification adduct_aligner;
+  adduct_aligner.setReference(id_data(0.0));
+  std::vector<IdentificationData> inputs;
+  inputs.push_back(id_data(10.0));
+  std::vector<TransformationDescription> transforms;
+  adduct_aligner.align(inputs, transforms);
+  ABORT_IF(transforms.size() != 1)
+  // the reference and the input share all adducted oligos
+  TEST_EQUAL(transforms[0].getDataPoints().size(), sequences.size())
+  for (const auto& point : transforms[0].getDataPoints())
+  {
+    TEST_REAL_SIMILAR(point.first - point.second, 10.0)
+  }
+}
+END_SECTION
 
 // can't test protected methods...
 

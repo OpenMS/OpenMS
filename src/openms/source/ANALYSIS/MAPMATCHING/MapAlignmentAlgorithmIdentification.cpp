@@ -333,7 +333,7 @@ namespace OpenMS
       if (!pep_it->getHits().empty())
       {
         const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
-        if (better_(best_hit->getScore(), min_score_))
+        if (passesScoreCutoff_(*pep_it, *best_hit))
         {
           const std::string& seq = best_hit->getSequence().toString();
           rt_data[seq].push_back(pep_it->getRT());
@@ -579,29 +579,15 @@ namespace OpenMS
   bool MapAlignmentAlgorithmIdentification::getMapRetentionTimes_(const MapType& features, SeqToList& rt_data)
   {
     const auto& data = features.getIdentificationData();
-    const auto primary = data.getPrimaryScoreDefinition();
-    if (!score_cutoff_)
-    {
-      better_ = [](double, double)
-      {return true;};
-    }
-    else if (primary && primary->higher_better)
-    {
-      better_ = [](double a, double b)
-      { return a >= b; };
-    }
-    else
-    {
-      better_ = [](double a, double b)
-      { return a <= b; };
-    }
 
-    // the best match of an identification, if its primary score passes the cutoff
+    // the best match of an identification, if its primary score passes the cut-off (in the direction of the run's
+    // primary score definition)
     const auto passing = [&](const IdentificationData::QueryMatches& entry) -> const IdentificationData::Match* {
       const auto* best = entry.getBestMatch();
-      if (!best) return nullptr;
-      const auto score = entry.run->getScore(best->getId(), *entry.run->getPrimaryScore());
-      return better_(*score, min_score_) ? best : nullptr;
+      if (!best || !score_cutoff_) return best;
+      const auto primary = *entry.run->getPrimaryScore();
+      const double score = *entry.run->getScore(best->getId(), primary);
+      return (entry.run->getScoreDefinition(primary).higher_better ? score >= min_score_ : score <= min_score_) ? best : nullptr;
     };
     const auto collect = [&](const std::vector<IdentificationData::QueryMatches>& entries) {
       for (const auto& entry : entries)
@@ -616,15 +602,13 @@ namespace OpenMS
       const auto entries = feature.getLinkedIdentifications(data);
       if (use_feature_rt_)
       {
-        // find the identification closest in RT to the feature centroid:
+        // find the identification closest in RT to the feature centroid (among those that pass the score cut-off):
         std::string sequence;
         double rt_distance = std::numeric_limits<double>::max();
-        bool any_hit = false;
+        bool any_passing = false;
         for (const auto& entry : entries)
         {
-          if (entry.matches.empty()) continue;
-          any_hit = true;
-          if (!entry.query->rt) continue;
+          if (entry.matches.empty() || !entry.query->rt) continue;
           double current_distance = fabs(*entry.query->rt - feature.getRT());
           if (current_distance < rt_distance)
           {
@@ -632,11 +616,13 @@ namespace OpenMS
             {
               sequence = moleculeKey_(*best);
               rt_distance = current_distance;
+              any_passing = true;
             }
           }
         }
 
-        if (any_hit) rt_data[sequence].push_back(feature.getRT());
+        // a feature without a passing identification has no sequence (and is no alignment point)
+        if (any_passing) rt_data[sequence].push_back(feature.getRT());
       }
       else
       {

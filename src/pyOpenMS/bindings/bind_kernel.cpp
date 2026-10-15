@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/FeatureUniqueIds.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
@@ -432,9 +433,25 @@ The template parameters for the base RangeManager are ordered differently than i
         .def(nb::init<const OpenMS::MapConversion &>())
         .def("__copy__", [](const OpenMS::MapConversion& self) { return OpenMS::MapConversion(self); })
         .def("__deepcopy__", [](const OpenMS::MapConversion& self, nb::dict) { return OpenMS::MapConversion(self); }, "memo"_a)
-        .def_static("convert", [](size_t input_map_index, OpenMS::MSExperiment& input_map, OpenMS::ConsensusMap& output_map, size_t n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
         .def_static("convert", [](const OpenMS::ConsensusMap& input_map, bool keep_uids, OpenMS::FeatureMap& output_map) { return OpenMS::MapConversion::convert(input_map, keep_uids, output_map); }, "input_map"_a, "keep_uids"_a, "output_map"_a)
         .def_static("convert", [](size_t input_map_index, const OpenMS::FeatureMap& input_map, OpenMS::ConsensusMap& output_map, size_t n) { return OpenMS::MapConversion::convert(input_map_index, input_map, output_map, n); }, "input_map_index"_a, "input_map"_a, "output_map"_a, "n"_a)
+        ;
+
+    // -----------------------------------------------------------------------
+    // FeatureUniqueIds
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureUniqueIds>(m, "FeatureUniqueIds",
+        R"doc(
+Checks that every feature of a map has a valid unique id that no other feature of the map shares.
+
+Every Feature and ConsensusFeature in a map should have a valid (non-zero) unique id that is unique
+within the map, subordinates included. The checks raise an error for invalid or duplicate ids.
+Feature handles are not checked.
+)doc")
+        .def_static("check", [](const OpenMS::FeatureMap& map) { OpenMS::FeatureUniqueIds::check(map); }, "map"_a,
+            "Raises if a feature or subordinate has an invalid unique id, or if two of them share an id")
+        .def_static("check", [](const OpenMS::ConsensusMap& map) { OpenMS::FeatureUniqueIds::check(map); }, "map"_a,
+            "Raises if a consensus feature has an invalid unique id, or if two of them share an id")
         ;
 
     // -----------------------------------------------------------------------
@@ -1911,6 +1928,14 @@ experimental settings) but no actual peak data.
         .def("size", [](const OpenMS::OnDiscMSExperiment& self) { return self.size(); }, "Returns the number of spectra available")
         .def("empty", [](const OpenMS::OnDiscMSExperiment& self) { return self.empty(); }, "Returns whether the experiment contains no spectra")
         .def("isSortedByRT", [](const OpenMS::OnDiscMSExperiment& self) { return self.isSortedByRT(); }, "Checks if all spectra are sorted with respect to ascending RT")
+        .def("getSpectrumMetadata", [](OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumMetadata(id); }, "id"_a,
+             "Returns a single spectrum without peaks and data arrays (needs the meta data: raises if the file was opened with skipMetaData)")
+        .def("getSpectrumRT", [](const OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumRT(id); }, "id"_a,
+             "Retention time of a spectrum, from the meta data (raises if the file was opened with skipMetaData)")
+        .def("getSpectrumMSLevel", [](const OpenMS::OnDiscMSExperiment& self, size_t id) { return self.getSpectrumMSLevel(id); }, "id"_a,
+             "MS level of a spectrum, from the meta data (raises if the file was opened with skipMetaData)")
+        .def("findFirstRT", [](const OpenMS::OnDiscMSExperiment& self, double rt) { return self.findFirstRT(rt); }, "rt"_a,
+             "Index of the first spectrum with RT >= rt (size() if there is none); needs spectra sorted by RT")
         // Aliases for Cython API compatibility: getSpectrumById/getChromatogramById take a native ID string
         .def("getSpectrumById", [](OpenMS::OnDiscMSExperiment& self, const std::string& id) { return self.getSpectrumByNativeId(id); }, "id"_a,
             R"doc(

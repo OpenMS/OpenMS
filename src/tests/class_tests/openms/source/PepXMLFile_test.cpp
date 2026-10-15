@@ -62,7 +62,7 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
   file.load(filename, proteins, peptides);
   TEST_EQUAL(proteins.size(), 1);
   TEST_FALSE(peptides.empty());
-  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,,,C");
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme");
   TEST_TRUE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
 }
 END_SECTION
@@ -76,7 +76,7 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
   TEST_EQUAL(proteins.size(), 1);
   TEST_FALSE(peptides.empty());
   TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
-  TEST_FALSE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
+  TEST_STRING_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getRegEx(), "(?<=[KRX])"); // see #10569
 }
 END_SECTION
 
@@ -605,6 +605,134 @@ START_SECTION(([EXTRA] checking pepxml transformation to reusable identification
     TEST_EQUAL(find(var_mods.begin(), var_mods.end(), reread_var_mods[i]) != var_mods.end(), true)
   }
 
+END_SECTION
+
+START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expect scores, issue #10570))
+{
+  // X! Tandem results as written by IDFileConverter (from idXML; header of IDFileConverter_17_output.pepXML), three PSMs:
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_xtandem.pepxml");
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PepXMLFile().load(filename, proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  TEST_EQUAL(proteins[0].getSearchEngine(), "X! Tandem")
+  // '<specificity cut="" .../>' carries no cleavage information:
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme")
+  ABORT_IF(peptides.size() != 3)
+  // the reader keeps the expect score as hit score and as "MS:1001330", but not as "E-Value":
+  TEST_EQUAL(peptides[0].getHits()[0].metaValueExists("E-Value"), false)
+  TEST_REAL_SIMILAR(static_cast<double>(peptides[0].getHits()[0].getMetaValue("MS:1001330")), 0.79432823472)
+
+  // the stored file can be read back (it used to contain '<search_score name="expect" value=""/>'):
+  std::string file_out;
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  vector<ProteinIdentification> proteins_new;
+  PeptideIdentificationList peptides_new;
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  ABORT_IF(proteins_new.size() != 1)
+  TEST_EQUAL(proteins_new[0].getSearchParameters().digestion_enzyme.getName(), "unknown_enzyme")
+  ABORT_IF(peptides_new.size() != peptides.size())
+  for (Size i = 0; i < peptides.size(); ++i)
+  {
+    TEST_EQUAL(peptides_new[i].getScoreType(), "expect")
+    TEST_EQUAL(peptides_new[i].isHigherScoreBetter(), false)
+    ABORT_IF(peptides_new[i].getHits().size() != 1)
+    const PeptideHit& hit = peptides[i].getHits()[0];
+    const PeptideHit& hit_new = peptides_new[i].getHits()[0];
+    TEST_EQUAL(hit_new.getSequence(), hit.getSequence())
+    TEST_REAL_SIMILAR(hit_new.getScore(), hit.getScore())
+    TEST_REAL_SIMILAR(static_cast<double>(hit_new.getMetaValue("MS:1001330")), static_cast<double>(hit.getMetaValue("MS:1001330")))
+  }
+  TEST_REAL_SIMILAR(peptides_new[2].getHits()[0].getScore(), 0.30199517204)
+
+  // without any expect value (here: X! Tandem hyperscores only, "MS:1001330" empty), no (empty) expect score is written,
+  // and the file can still be read:
+  for (PeptideIdentification& pep : peptides)
+  {
+    pep.setScoreType("XTandem");
+    for (PeptideHit& hit : pep.getHits())
+    {
+      hit.setScore(static_cast<double>(hit.getMetaValue("hyperscore")));
+      hit.setMetaValue("MS:1001330", "");
+    }
+  }
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  std::ifstream written(file_out);
+  std::string content((std::istreambuf_iterator<char>(written)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(StringUtils::hasSubstring(content, "name=\"hyperscore\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "name=\"expect\""), false)
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  TEST_EQUAL(peptides_new.size(), 3)
+
+  // an empty "MS:1001330" does not hide the "E-Value" fallback:
+  for (PeptideIdentification& pep : peptides)
+  {
+    for (PeptideHit& hit : pep.getHits())
+    {
+      hit.setMetaValue("E-Value", 0.5);
+    }
+  }
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  ABORT_IF(peptides_new.size() != 3 || peptides_new[0].getHits().empty())
+  TEST_EQUAL(peptides_new[0].getScoreType(), "expect")
+  TEST_REAL_SIMILAR(peptides_new[0].getHits()[0].getScore(), 0.5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load Mascot results - expect scores survive repeated round trips, issue #10570))
+{
+  vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("Mascot_run");
+  proteins[0].setSearchEngine("Mascot");
+  PeptideIdentificationList peptides(1);
+  peptides[0].setIdentifier("Mascot_run");
+  peptides[0].setRT(100.0);
+  peptides[0].setMZ(464.2347);
+  peptides[0].setScoreType("Mascot");
+  peptides[0].setHigherScoreBetter(true);
+  PeptideHit hit(35.0, 0, 2, AASequence::fromString("PEPTIDEK"));
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("PROT1");
+  evidence.setAABefore('K');
+  evidence.setAAAfter('A');
+  hit.addPeptideEvidence(evidence);
+  hit.setMetaValue("MS:1001172", 0.01); // Mascot:expectation value
+  peptides[0].insertHit(hit);
+
+  // store writes the engine as "MASCOT"; the reader has to recognize that to keep "MS:1001172" for the next store:
+  for (Size pass = 1; pass <= 2; ++pass)
+  {
+    std::string file_out;
+    NEW_TMP_FILE(file_out);
+    PepXMLFile().store(file_out, proteins, peptides);
+    PepXMLFile().load(file_out, proteins, peptides);
+    TEST_EQUAL(proteins.size(), 1)
+    ABORT_IF(peptides.size() != 1 || peptides[0].getHits().size() != 1)
+    TEST_EQUAL(peptides[0].getScoreType(), "expect")
+    const PeptideHit& hit_new = peptides[0].getHits()[0];
+    TEST_EQUAL(hit_new.getSequence().toString(), "PEPTIDEK")
+    TEST_REAL_SIMILAR(hit_new.getScore(), 0.01)
+    TEST_EQUAL(hit_new.metaValueExists("MS:1001172"), true)
+    TEST_REAL_SIMILAR(static_cast<double>(hit_new.getMetaValue("MS:1001172", 0.0)), 0.01)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - enzyme synonyms with uppercase letters)
+{
+  // "sample_enzyme" and "enzymatic_search_constraint" give the enzyme as "Glu-C", a synonym of "glutamyl endopeptidase" (#10571)
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_enzyme_synonym.pepxml"), proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  TEST_EQUAL(peptides.size(), 1)
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "glutamyl endopeptidase")
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

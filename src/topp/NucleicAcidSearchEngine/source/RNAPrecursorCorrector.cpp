@@ -146,12 +146,13 @@ namespace OpenMS
         duplicate_ids.insert(experiment[i].getNativeID());
       }
     }
-    std::map<Size, DeconvolvedSpectrum> cache;
+    std::map<Size, std::vector<Size>> parent_queries;
+    std::vector<Size> ms2_indices;
     std::vector<Result> results;
     Size last_ms1 = experiment.size();
     for (Size i = 0; i < experiment.size(); ++i)
     {
-      auto& spec = experiment[i];
+      const auto& spec = experiment[i];
       if (spec.getMSLevel() == 1)
       {
         last_ms1 = i;
@@ -163,11 +164,11 @@ namespace OpenMS
       result.status = "invalid_precursor";
       if (spec.getPrecursors().size() == 1)
       {
-        auto& precursor = spec.getPrecursors()[0];
+        const auto& precursor = spec.getPrecursors()[0];
         result.original_mz = result.corrected_mz = precursor.getMZ();
         result.original_charge = result.charge = precursor.getCharge();
         Size parent = last_ms1;
-        std::string parent_source = "preceding_ms1";
+        result.parent_source = "preceding_ms1";
         if (precursor.metaValueExists("spectrum_ref"))
         {
           const std::string ref = precursor.getMetaValue("spectrum_ref").toString();
@@ -176,42 +177,83 @@ namespace OpenMS
               experiment[found->second].getMSLevel() == 1)
           {
             parent = found->second;
-            parent_source = "spectrum_ref";
+            result.parent_source = "spectrum_ref";
           }
-          else parent_source = "invalid_reference_fallback";
+          else result.parent_source = "invalid_reference_fallback";
         }
         if (parent == experiment.size()) result.status = "no_ms1";
         else
         {
-          if (!cache.contains(parent))
+          result.parent = experiment[parent].getNativeID();
+          result.parent_peak_count = experiment[parent].size();
+          if (std::isfinite(precursor.getMZ()) && precursor.getMZ() > 0)
           {
-            auto ms1 = experiment[parent];
-            ms1.sortByPosition();
-            detector_.performSpectrumDeconvolution(ms1, int(parent), PeakGroup());
-            auto groups = detector_.getDeconvolvedSpectrum();
-            groups.setOriginalSpectrum(MSSpectrum()); // Cache envelopes without a second raw MS1 copy.
-            cache.emplace(parent, std::move(groups));
-          }
-          result = match(cache.at(parent), precursor);
-          if (result.accepted())
-          {
-            // Preserve the acquisition window even if its center equalled the
-            // original selected ion. Only the selected-ion m/z is corrected.
-            if (!precursor.metaValueExists("isolation window target m/z"))
-            {
-              precursor.setMetaValue("isolation window target m/z", precursor.getMZ());
-            }
-            precursor.setMZ(result.corrected_mz);
-            precursor.setCharge(result.charge);
-            if (precursor.metaValueExists("selected ion m/z"))
-            {
-              precursor.setMetaValue("selected ion m/z", result.corrected_mz);
-            }
+            parent_queries[parent].push_back(results.size());
           }
         }
-        result.spectrum = spec.getNativeID();
-        result.parent = parent == experiment.size() ? "" : experiment[parent].getNativeID();
-        result.parent_source = parent_source;
+      }
+      ms2_indices.push_back(i);
+      results.push_back(std::move(result));
+    }
+    for (const auto& [parent, indices] : parent_queries)
+    {
+      std::map<std::pair<double, int>, Precursor> queries;
+      for (Size index : indices)
+      {
+        const auto& precursor = experiment[ms2_indices[index]].getPrecursors()[0];
+        queries.emplace(std::make_pair(precursor.getMZ(), precursor.getCharge()), precursor);
+      }
+      std::vector<std::pair<double, int>> selected;
+      for (const auto& [key, precursor] : queries) selected.push_back(key);
+      const auto& ms1 = experiment[parent];
+      if (ms1.isSorted())
+      {
+        detector_.deconvolve(ms1, int(parent), selected);
+      }
+      else
+      {
+        // FLASH requires m/z order. Preserve the original parent and its data arrays.
+        auto sorted_ms1 = ms1;
+        sorted_ms1.sortByPosition();
+        detector_.deconvolve(sorted_ms1, int(parent), selected);
+      }
+      std::map<std::pair<double, int>, Result> corrections;
+      for (const auto& [key, precursor] : queries)
+      {
+        corrections.emplace(key, match(detector_.getDeconvolvedSpectrum(), precursor));
+      }
+      for (Size index : indices)
+      {
+        auto& old = results[index];
+        const auto& precursor = experiment[ms2_indices[index]].getPrecursors()[0];
+        auto corrected = corrections.at(std::make_pair(precursor.getMZ(), precursor.getCharge()));
+        corrected.spectrum = old.spectrum;
+        corrected.parent = old.parent;
+        corrected.parent_source = old.parent_source;
+        corrected.parent_peak_count = experiment[parent].size();
+        corrected.parent_query_count = queries.size();
+        old = std::move(corrected);
+      }
+    }
+    // Apply only after all parent batches have completed, preserving acquisition
+    // order, the original selected-ion precision, and the isolation window.
+    for (Size i = 0; i < results.size(); ++i)
+    {
+      const auto& result = results[i];
+      auto& spec = experiment[ms2_indices[i]];
+      if (result.accepted())
+      {
+        auto& precursor = spec.getPrecursors()[0];
+        if (!precursor.metaValueExists("isolation window target m/z"))
+        {
+          precursor.setMetaValue("isolation window target m/z", precursor.getMZ());
+        }
+        precursor.setMZ(result.corrected_mz);
+        precursor.setCharge(result.charge);
+        if (precursor.metaValueExists("selected ion m/z"))
+        {
+          precursor.setMetaValue("selected ion m/z", result.corrected_mz);
+        }
       }
       // Replace the owned annotations, including accepted-only fields, so an
       // unresolved rerun cannot retain a previous correction's m/z or quality.
@@ -226,6 +268,8 @@ namespace OpenMS
       spec.setMetaValue("flash_precursor_original_charge", result.original_charge);
       spec.setMetaValue("flash_precursor_parent", result.parent);
       spec.setMetaValue("flash_precursor_parent_source", result.parent_source);
+      spec.setMetaValue("flash_precursor_parent_peaks", result.parent_peak_count);
+      spec.setMetaValue("flash_precursor_parent_queries", result.parent_query_count);
       if (result.accepted())
       {
         spec.setMetaValue("flash_precursor_mz", result.corrected_mz);
@@ -235,7 +279,6 @@ namespace OpenMS
         spec.setMetaValue("flash_precursor_snr", result.snr);
         spec.setMetaValue("flash_precursor_mono_observed", result.mono_observed ? "true" : "false");
       }
-      results.push_back(result);
     }
     return results;
   }
@@ -243,7 +286,7 @@ namespace OpenMS
   void RNAPrecursorCorrector::storeReport(const std::string& filename, const std::vector<Result>& results)
   {
     TextFile report;
-    report.addLine("spectrum\tparent\tparent_source\tstatus\toriginal_mz\tcorrected_mz\toriginal_charge\tcharge\tisotope\tmono_mass\tcosine\tsnr\tselected_error_ppm\tmono_observed");
+    report.addLine("spectrum\tparent\tparent_source\tstatus\toriginal_mz\tcorrected_mz\toriginal_charge\tcharge\tisotope\tmono_mass\tcosine\tsnr\tselected_error_ppm\tmono_observed\tparent_peaks\tparent_queries");
     const auto quote = [](const std::string& value)
     {
       std::string escaped = "\"";
@@ -261,7 +304,8 @@ namespace OpenMS
         StringUtils::toStr(r.original_charge) + "\t" + StringUtils::toStr(r.charge) + "\t" +
         StringUtils::toStr(r.isotope) + "\t" + StringUtils::toStr(r.mono_mass) + "\t" +
         StringUtils::toStr(r.cosine) + "\t" + StringUtils::toStr(r.snr) + "\t" +
-        StringUtils::toStr(r.selected_error_ppm) + "\t" + (r.mono_observed ? "true" : "false"));
+        StringUtils::toStr(r.selected_error_ppm) + "\t" + (r.mono_observed ? "true" : "false") + "\t" +
+        StringUtils::toStr(r.parent_peak_count) + "\t" + StringUtils::toStr(r.parent_query_count));
     }
     report.store(filename);
   }

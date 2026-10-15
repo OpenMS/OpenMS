@@ -16,6 +16,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <memory>
+#include <optional>
+#include <utility>
 #include <iostream>
 
 namespace OpenMS
@@ -129,6 +131,34 @@ namespace OpenMS
   protected:
     void updateMembers_() override;
 
+    /// Neutral apex-mass intervals used to restrict candidate construction.
+    using MassRanges = std::vector<std::pair<double, double>>;
+
+    /// Read-only construction settings; spectrum peaks and candidate bins remain private.
+    struct CandidateSelectionContext
+    {
+      const PrecalculatedAveragine& averagine; ///< Configured averagine.
+      double tolerance; ///< Relative m/z tolerance.
+      double isotope_distance; ///< Isotope spacing in Da.
+      double max_mass; ///< Current maximum neutral mass.
+      int min_charge; ///< Minimum charge magnitude.
+      int max_charge; ///< Current maximum charge magnitude.
+      bool positive; ///< Ionization mode.
+    };
+
+    /** @brief Optionally restrict construction, without protecting candidates from filtering.
+      The default returns nullopt for ordinary full-spectrum deconvolution.
+      An override returning initial intervals is called again with scored seed
+      groups to refine those intervals. Seed bins remain included. All passes
+      use the complete spectrum and the ordinary shared construction/scoring.
+      @param[in] context Read-only construction settings.
+      @param[in] evidence Null for the initial pass; scored seed groups for refinement.
+      @param[in] valid Indices of seed groups passing the shared scoring step.
+      @return Candidate mass intervals, or nullopt to retain all candidate bins.
+    */
+    virtual std::optional<MassRanges> selectCandidateMassRanges_(const CandidateSelectionContext& context,
+      const DeconvolvedSpectrum* evidence, const std::vector<Size>& valid) const;
+
   private:
     /// FLASHDeconv parameters
 
@@ -184,6 +214,12 @@ namespace OpenMS
       ~Bitsets();
     };
     Bitsets bitsets_;
+
+    /// Restrict mass bins using merged apex-mass intervals.
+    void restrictCandidateMassBins_(std::vector<std::pair<double, double>> intervals);
+
+    /// Refine and score groups independently, returning valid indices in construction order.
+    std::vector<Size> scorePeakGroups_();
 
     /// monoisotopic masses that are targeted for FLASHIda global targeting mode
     std::vector<double> target_mono_masses_;
