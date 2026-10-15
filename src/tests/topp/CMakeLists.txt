@@ -703,10 +703,12 @@ add_test("TOPP_FileConverter_36" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_36_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_36.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_36_output.consensusXML)
 set_tests_properties("TOPP_FileConverter_36_out1" PROPERTIES DEPENDS "TOPP_FileConverter_36")
 
-# TOPP_FileConverter_37: spectra -> consensusXML keeps every MS1 peak: FileFilter_44_input.mzML has two MS1 spectra with 18 peaks each, so all 36 peaks are written (the old limit was the spectrum count, 2), each with its own unique ID
+# TOPP_FileConverter_37: spectra cannot be converted to consensusXML (each peak would become a consensus feature
+# whose handle refers to a peak index, not to an element with a unique id, #10520); the tool refuses before loading
+# the input. PASS_REGULAR_EXPRESSION ignores the exit
+# code, so the message itself is the check.
 add_test("TOPP_FileConverter_37" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_44_input.mzML -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_37.tmp.consensusXML -out_type consensusXML)
-add_test("TOPP_FileConverter_37_out1" ${DIFF} -whitelist "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_37.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_37_output.consensusXML)
-set_tests_properties("TOPP_FileConverter_37_out1" PROPERTIES DEPENDS "TOPP_FileConverter_37")
+set_tests_properties("TOPP_FileConverter_37" PROPERTIES PASS_REGULAR_EXPRESSION "Cannot convert mzML to consensusXML")
 # TOPP_FileConverter_38/39: an output name whose compression suffix the writer does not produce is refused
 # instead of holding plain data. 38: the low-memory mode streams plain mzML, so '.mzML.gz' is refused there
 # (the in-memory path writes gzip); 39: MGF is always written plain. PASS_REGULAR_EXPRESSION ignores the
@@ -3156,15 +3158,15 @@ set_tests_properties("TOPP_OpenNuXL_legacy_mass_delta_check" PROPERTIES DEPENDS 
 #------------------------------------------------------------------------------
 # SeedListGenerator tests
 add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out_prefix tmp_path/SeedListGenerator_1_output_tmp)
-add_test("TOPP_SeedListGenerator_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_1_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_1_output.featureXML )
+add_test("TOPP_SeedListGenerator_1_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_1_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_1_output.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_1_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_1")
 add_test("TOPP_SeedListGenerator_2" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/IDMapper_1_output.featureXML -out_prefix tmp_path/SeedListGenerator_2_output_tmp)
-add_test("TOPP_SeedListGenerator_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_2_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_2_output.featureXML )
+add_test("TOPP_SeedListGenerator_2_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_2_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_2_output.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_2_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_2")
 add_test("TOPP_SeedListGenerator_3" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/ConsensusXMLFile_1.consensusXML -out_prefix tmp_path/SeedListGenerator_3_output_tmp)
-add_test("TOPP_SeedListGenerator_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_3_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output1.featureXML )
+add_test("TOPP_SeedListGenerator_3_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_3_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output1.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_3_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_3")
-add_test("TOPP_SeedListGenerator_3_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_3_output_tmp_1.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output2.featureXML )
+add_test("TOPP_SeedListGenerator_3_out2" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_3_output_tmp_1.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output2.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_3_out2" PROPERTIES DEPENDS "TOPP_SeedListGenerator_3")
 
 #------------------------------------------------------------------------------
@@ -4974,6 +4976,58 @@ add_test("TOPP_ProSE_11_rescore_skip_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_skip"
   PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
+# Test 12: -out_pin holds the PSMs before any FDR filter. With FDR:PSM and FDR:protein (ProSE_6_fdr.ini, one input) the
+# .pin equals that of the same search without FDR (decoys kept, search engine scores; with Search:rescore, the default,
+# the rescored PSMs), and -out_pin does not change the idXML (Test 6, Test 11).
+foreach(_rescore OFF ON)
+  set(_f ProSE_12_pin)
+  set(_opt -Search:rescore false)
+  set(_ref ProSE_6_fdr)
+  if(_rescore)
+    set(_f ProSE_12_pin_rescore)
+    set(_opt)
+    set(_ref ProSE_11_rescore)
+  endif()
+  add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini ${_opt}
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -out_idxml ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -out_pin ${TESTS_TEMP_DIR}/${_f}.tmp.tsv)
+  add_test("TOPP_${_f}_nofdr" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini ${_opt}
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -Search:FDR:PSM 0 -Search:FDR:protein 0 -out_pin ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
+  add_test("TOPP_${_f}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}.tmp.tsv -in2 ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_f}_nofdr")
+  add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/${_ref}_out.tmp.idXML
+    -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
+  set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_ref}")
+endforeach()
+# Test 12 (open search): -out_pin changes no other output. FDR:PSM 0.0005 removes the PSMs ranked below the one decoy,
+# so the idXML and the modification-analysis tables count fewer PSMs than the .pin, which equals the .pin without FDR.
+set(_open -Search:rescore false -Search:precursor:mass_tolerance_lower 100 -Search:precursor:mass_tolerance_upper 300
+  -Search:precursor:mass_tolerance_unit Da -Search:FDR:protein 0)
+foreach(_v pin nopin nofdr)
+  set(_opt -Search:FDR:PSM 0.0005 -out_idxml ${TESTS_TEMP_DIR}/ProSE_12_open_${_v}.tmp.idXML -out_mod_analysis_dir ${TESTS_TEMP_DIR}/ProSE_12_open_${_v})
+  if(_v STREQUAL "pin")
+    list(APPEND _opt -out_pin ${TESTS_TEMP_DIR}/ProSE_12_open_pin.tmp.tsv)
+  elseif(_v STREQUAL "nofdr")
+    set(_opt -Search:FDR:PSM 0 -out_pin ${TESTS_TEMP_DIR}/ProSE_12_open_nofdr.tmp.tsv)
+  endif()
+  add_test("TOPP_ProSE_12_open_${_v}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini ${_open} ${_opt}
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta)
+endforeach()
+add_test("TOPP_ProSE_12_open_pin_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_12_open_pin.tmp.tsv -in2 ${TESTS_TEMP_DIR}/ProSE_12_open_nofdr.tmp.tsv)
+set_tests_properties("TOPP_ProSE_12_open_pin_out" PROPERTIES DEPENDS "TOPP_ProSE_12_open_pin;TOPP_ProSE_12_open_nofdr")
+add_test("TOPP_ProSE_12_open_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_12_open_pin.tmp.idXML -in2 ${TESTS_TEMP_DIR}/ProSE_12_open_nopin.tmp.idXML
+  -whitelist "IdentificationRun date" "search_engine_version")
+set_tests_properties("TOPP_ProSE_12_open_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_12_open_pin;TOPP_ProSE_12_open_nopin")
+foreach(_t DeltaMassStats OutputTable PTMStats)
+  add_test("TOPP_ProSE_12_open_${_t}_out" ${DIFF}
+    -in1 ${TESTS_TEMP_DIR}/ProSE_12_open_pin/DatabaseSuitability_in_spec_ModificationAnalysis_${_t}.tsv
+    -in2 ${TESTS_TEMP_DIR}/ProSE_12_open_nopin/DatabaseSuitability_in_spec_ModificationAnalysis_${_t}.tsv)
+  set_tests_properties("TOPP_ProSE_12_open_${_t}_out" PROPERTIES DEPENDS "TOPP_ProSE_12_open_pin;TOPP_ProSE_12_open_nopin")
+endforeach()
 
 # PeptDeep prediction features: 'peptdeep:enable' is an explicit request, so it must either report
 # how many PSMs received predicted features or fail -- never continue silently without them.

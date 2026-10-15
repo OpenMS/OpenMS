@@ -170,6 +170,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       RunStatistics stats;
       /// Outcome of the Percolator rescoring of this run (parameter 'rescore')
       PercolatorRescoring percolator;
+      PeptideIdentificationList pre_fdr_peptide_ids; ///< the PSMs before FDR:PSM; only filled with setKeepPreFdrPsms(true)
     };
 
     /**
@@ -414,6 +415,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * - Maps delta masses to known modifications
      * - Generates PTM statistics with residue localization
      * - Writes TSV output files if output_base_name is provided
+     * - Applies FDR:protein as search() does, after the modification analysis
      *
      * @param in_spectra Input path to the spectra file (mzML or Bruker .d) containing MS/MS spectra
      * @param in_db Input path to the protein sequence database in FASTA format
@@ -610,6 +612,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const std::vector<std::string>& output_base_names = {},
         const std::string& aggregate_base_name = "",
         bool build_pooled_aggregate = true) const;
+
+    /// With @p keep = true, the multi-file searchWithModificationAnalysis() overloads also return the PSMs of each
+    /// file before FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a Percolator .pin); with 'rescore', as
+    /// Percolator rescored them. Default: false (no copy).
+    void setKeepPreFdrPsms(bool keep)
+    {
+      keep_pre_fdr_psms_ = keep;
+      if (!keep) { pre_fdr_peptide_ids_ = PeptideIdentificationList(); }
+    }
 
   protected:
     void updateMembers_() override;
@@ -1193,6 +1204,10 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Percolator rescoring outcome of the most recent search(spectra, ctx, ...) call, bridged to
     /// SearchResult::percolator as last_run_stats_ is to SearchResult::stats.
     mutable PercolatorRescoring last_percolator_;
+    bool keep_pre_fdr_psms_ = false; ///< see setKeepPreFdrPsms()
+    /// The PSMs of the most recent search(spectra, ctx, ...) before FDR:PSM (only with keep_pre_fdr_psms_), bridged to
+    /// the caller like last_run_stats_.
+    mutable PeptideIdentificationList pre_fdr_peptide_ids_;
 
     /// Scalar tolerance passed to OpenSearchModificationAnalysis on the most recent
     /// search() call. Stored for test observability: because the calibration writeback
@@ -1329,12 +1344,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Helper: the PSM-level FDR of one search run, the last step of every search path. With
     /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()) and then
     /// applies FDR:PSM with applyDeferredPsmFDR(); otherwise applies FDR:PSM to the search engine
-    /// scores (if @p has_decoys). Fills the FDR fields of @p stats.
+    /// scores (if @p has_decoys). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
+    /// receives the PSMs right before FDR:PSM, i.e. after the rescoring (see setKeepPreFdrPsms()).
     /// @return The outcome of the rescoring (not applied, no reason with 'rescore' off).
     PercolatorRescoring applyPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                      PeptideIdentificationList& peptide_ids,
                                      bool has_decoys,
-                                     RunStatistics& stats) const;
+                                     RunStatistics& stats,
+                                     PeptideIdentificationList* pre_fdr_psms = nullptr) const;
 
     /// Helper: fill a RunStatistics with identification counts, distributions and
     /// per-run tolerance estimation for one searched file (post-FDR). Silent;
