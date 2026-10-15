@@ -145,7 +145,7 @@ namespace OpenMS
         for (Size i = 0; i < n; ++i)
         {
           const Size lo = (i >= settings.neighbors) ? i - settings.neighbors : 0;
-          const Size hi = std::min(n, i + settings.neighbors + 1);
+          const Size hi = (n - i > settings.neighbors) ? i + settings.neighbors + 1 : n;
           cells[ref[i]].offset = windowMedian(cells, ref, lo, hi, i, buffer);
         }
       }
@@ -159,7 +159,7 @@ namespace OpenMS
       const Size pos = std::lower_bound(ref.begin(), ref.end(), c.rt,
                                         [&cells](Size a, double rt) { return cells[a].rt < rt; }) - ref.begin();
       const Size lo = (pos >= settings.neighbors) ? pos - settings.neighbors : 0;
-      const Size hi = std::min(ref.size(), pos + settings.neighbors);
+      const Size hi = (ref.size() - pos > settings.neighbors) ? pos + settings.neighbors : ref.size();
       c.offset = windowMedian(cells, ref, lo, hi, ref.size(), buffer);
     }
 

@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <functional>
+#include <limits>
 
 using namespace OpenMS;
 using namespace std;
@@ -85,6 +86,14 @@ START_SECTION((static std::vector<std::vector<double>> computeOffsets(const Cons
     TEST_REAL_SIMILAR(offsets[0][1], 0.5)
     TEST_REAL_SIMILAR(offsets[30][2], 1.5)
     TEST_REAL_SIMILAR(offsets[59][3], -1.5)
+
+    // a window larger than the map covers the whole map
+    Settings s;
+    s.neighbors = std::numeric_limits<Size>::max();
+    offsets = ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(map, s, "", "");
+    TEST_REAL_SIMILAR(offsets[0][1], 0.5)
+    TEST_REAL_SIMILAR(offsets[30][2], 1.5)
+    TEST_REAL_SIMILAR(offsets[59][3], -1.5)
   }
 
   // a feature in fewer than min_maps maps is not a reference, but takes the offset of its map's neighbours
@@ -94,6 +103,13 @@ START_SECTION((static std::vector<std::vector<double>> computeOffsets(const Cons
     vector<vector<double>> offsets = ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(map, Settings(), "", "");
     TEST_REAL_SIMILAR(offsets[29][1], 4.0 / 3.0)
     TEST_REAL_SIMILAR(offsets[30][0], 4.0 / 3.0)  // its only handle, in map 1
+
+    // the same near the start of the map, with a window larger than the map
+    map = makeMap(3, 60, [](Size f, Size m) { return (f == 1 && m != 1) ? 0.0 : (m == 1 ? 4.0 : 1.0); });
+    Settings s;
+    s.neighbors = std::numeric_limits<Size>::max();
+    offsets = ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(map, s, "", "");
+    TEST_REAL_SIMILAR(offsets[1][0], 4.0 / 3.0)
   }
 
   // a map with fewer than min_reference reference features is not normalized; the others are
