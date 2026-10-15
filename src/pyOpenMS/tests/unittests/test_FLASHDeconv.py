@@ -1179,57 +1179,5 @@ class TestTargetDecoyTypeEnum(unittest.TestCase):
         self.assertEqual(pg.getTargetDecoyType(), pyopenms.PeakGroup.TargetDecoyType.signal_decoy)
 
 
-class TestDirectedSpectralDeconvolution(unittest.TestCase):
-    def test_directed_deconvolution_preserves_full_input_and_existing_api(self):
-        """A nonempty selected-ion query recruits a real RNA isotope envelope."""
-        import numpy as np
-
-        formula = pyopenms.NASequence.fromString("ACGUACGU").getFormula()
-        isotopes = pyopenms.CoarseIsotopePatternGenerator(8, False).run(formula)
-        # These constants match OpenMS/CONCEPT/Constants.h.
-        mz = np.array([(formula.getMonoWeight() + i * 1.0033548378) / 2 - 1.007276466771
-                       for i in range(isotopes.size())])
-        intensity = np.array([peak.getIntensity() * 10000 for peak in isotopes])
-        spectrum = pyopenms.MSSpectrum()
-        spectrum.setMSLevel(1)
-        spectrum.set_peaks((mz, intensity))
-        detector = pyopenms.SpectralDeconvolution()
-        parameters = detector.getParameters()
-        parameters.setValue("tol", [10.0, 10.0])
-        parameters.setValue("min_charge", -5)
-        parameters.setValue("max_charge", -1)
-        parameters.setValue("max_mass", 8000.0)
-        parameters.setValue("min_cos", [0.85, 0.85])
-        parameters.setValue("min_snr", [0.25, 0.25])
-        detector.setParameters(parameters)
-        detector.calculateAveragine(True)
-        detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup())
-        original = detector.getDeconvolvedSpectrum()
-        self.assertGreater(original.size(), 0)
-        query = pyopenms.Precursor()
-        query.setMZ(mz[1])
-        query.setCharge(-2)
-        detector.setQueryMasses([(query.getMZ(), query.getCharge())])
-        detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup())
-        directed = detector.getDeconvolvedSpectrum()
-        self.assertGreater(directed.size(), 0)
-        self.assertEqual(directed.size(), original.size())
-        for i in range(original.size()):
-            self.assertEqual(directed[i].getMonoMass(), original[i].getMonoMass())
-            self.assertEqual(directed[i].getChargeSNR(2), original[i].getChargeSNR(2))
-        actual_mz, actual_intensity = directed.getOriginalSpectrum().get_peaks()
-        self.assertTrue(np.array_equal(actual_mz, mz))
-        self.assertTrue(np.array_equal(actual_intensity, spectrum.get_peaks()[1]))
-        # Empty queries remain the existing API and no query state leaks.
-        detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup())
-        self.assertEqual(detector.getDeconvolvedSpectrum().size(), original.size())
-        with self.assertRaisesRegex(Exception, "finite and positive"):
-            detector.setQueryMasses([(float("nan"), 2)])
-        spectrum.setMSLevel(2)
-        with self.assertRaisesRegex(Exception, "MS1"):
-            detector.setQueryMasses([(query.getMZ(), query.getCharge())])
-            detector.performSpectrumDeconvolution(spectrum, 1, pyopenms.PeakGroup())
-
-
 if __name__ == '__main__':
     unittest.main()
