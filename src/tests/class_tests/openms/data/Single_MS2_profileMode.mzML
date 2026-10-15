@@ -24,7 +24,7 @@
 					<cvParam cvRef="MS" accession="MS:1000008" name="ionization type" />
 				</source>
 				<analyzer order="1234">
-						<cvParam cvRef="MS" accession="MS:1000288" name="cyclotron" />
+					<cvParam cvRef="MS" accession="MS:1000443" name="mass analyzer type" />
 					<userParam name="warning" type="xsd:string" value="invented mass analyzer, to fulfill mzML schema" />
 				</analyzer>
 				<detector order="0">

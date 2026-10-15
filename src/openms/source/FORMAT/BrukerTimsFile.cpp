@@ -8,22 +8,30 @@
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/METADATA/Instrument.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <opentims++/opentims.h>
 #include <opentims++/tof2mz_converter.h>
 #include <opentims++/scan2inv_ion_mobility_converter.h>
+#include <OpenMS/FORMAT/MzCalibrationTof2MzConverter.h>
 #include <OpenMS/FORMAT/RationalScan2ImConverter.h>
 #include <SQLiteCpp/SQLiteCpp.h>
 
 #include <memory>
 #include <algorithm>
+#include <filesystem>
 #include <numeric>
 #include <vector>
 #include <cmath>
@@ -1433,9 +1441,86 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Zipped .d directories ('.d.zip')
+  // =====================================================================
+  // opentims only opens directories, so a '.d.zip' archive is unpacked into a temporary
+  // directory that exists as long as this struct.
+  struct BrukerTimsFile::UnpackedArchive
+  {
+    std::string archive;          ///< the archive path as the caller gave it
+    std::unique_ptr<TempDir> dir; ///< owns the extracted files
+    std::string d_path;           ///< the (possibly nested) .d directory inside dir
+  };
+
+  std::shared_ptr<BrukerTimsFile::UnpackedArchive> BrukerTimsFile::unpack_(const std::string& path)
+  {
+    if (File::isDirectory(path) || !StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
+    {
+      return nullptr;
+    }
+    auto unpacked = std::make_shared<UnpackedArchive>();
+    unpacked->archive = path;
+    const std::string root = ZipArchiveFile::unzipDirectory(path, unpacked->dir);
+    // Find the .d directory inside the extracted archive. It may be nested. The iteration order
+    // is unspecified, and archives made on macOS also hold a __MACOSX/<name>.d with AppleDouble
+    // files only, so take the shallowest .d that holds analysis.tdf or analysis.tdf_bin (as
+    // FileHandler::getType() requires of a directory), and the first by name among equals.
+    std::filesystem::path found;
+    int found_depth = std::numeric_limits<int>::max();
+    for (auto it = std::filesystem::recursive_directory_iterator(to_path(root));
+         it != std::filesystem::recursive_directory_iterator(); ++it)
+    {
+      if (!it->is_directory())
+      {
+        continue;
+      }
+      const std::filesystem::path& dir = it->path();
+      if (dir.filename() == "__MACOSX")
+      {
+        it.disable_recursion_pending();
+        continue;
+      }
+      std::error_code ec;
+      if (dir.extension() == ".d"
+          && (std::filesystem::exists(dir / "analysis.tdf", ec) || std::filesystem::exists(dir / "analysis.tdf_bin", ec)))
+      {
+        it.disable_recursion_pending();
+        if (it.depth() < found_depth || (it.depth() == found_depth && dir < found))
+        {
+          found = dir;
+          found_depth = it.depth();
+        }
+      }
+    }
+    if (found.empty())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        path, "ZIP archive does not contain a .d directory with analysis.tdf");
+    }
+    unpacked->d_path = found.string();
+    return unpacked;
+  }
+
+  std::shared_ptr<BrukerTimsFile::UnpackedArchive> BrukerTimsFile::takeUnpacked_(const std::string& path)
+  {
+    std::shared_ptr<UnpackedArchive> kept;
+    kept.swap(unpacked_);
+    if (kept && kept->archive == path)
+    {
+      return kept;
+    }
+    kept.reset(); // free its disk space before unpacking another archive
+    return unpack_(path);
+  }
+
+  // =====================================================================
   // Helper: open TimsDataHandle with tiered calibration strategy
   // =====================================================================
   using Config = BrukerTimsFile::Config;
+
+  /// Bruker attribution required by the TDF-SDK licence (section 4.4) wherever the SDK is used.
+  static const char* const BRUKER_SDK_ATTRIBUTION =
+    "This software uses Software software. Copyright \xC2\xA9 2019 by Bruker Daltonik GmbH. All rights reserved.";
 
   static std::unique_ptr<TimsDataHandle> openTimsDataHandle(
     const std::string& path, const Config& config = Config())
@@ -1475,6 +1560,22 @@ namespace OpenMS
                       << std::endl;
     }
 
+    // m/z: use the MzCalibration table with per-frame temperature correction unless the
+    // linear GlobalMetadata model was requested. An optional Bruker SDK (below) replaces it.
+    if (strategy != Strategy::LINEAR)
+    {
+      if (auto mz_converter = tryCreateMzCalibrationConverter(path_string))
+      {
+        handle->tof2mz_converter = std::move(mz_converter);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "TIMS m/z calibration: MzCalibration table not usable, using the linear "
+                           "approximation from GlobalMetadata (errors of tens of ppm are possible)"
+                        << std::endl;
+      }
+    }
+
     // 2. Try Bruker SDK (AUTO or BRUKER_SDK)
     if (strategy == Strategy::AUTO || strategy == Strategy::BRUKER_SDK)
     {
@@ -1490,12 +1591,15 @@ namespace OpenMS
         try
         {
           auto pcs = mapPressureCompensation(config.pressure_compensation);
-          handle->scan2inv_ion_mobility_converter =
-            BrukerScan2InvIonMobilityConverterFactory::instance(sdk_path)
-              .produce(*handle, pcs);
-          OPENMS_LOG_INFO << "TIMS calibration: Bruker SDK"
+          // the SDK is the vendor reference for both m/z and 1/K0; only switch once both work
+          auto tof2mz = BrukerTof2MzConverterFactory::instance(sdk_path).produce(*handle, pcs);
+          auto scan2im = BrukerScan2InvIonMobilityConverterFactory::instance(sdk_path).produce(*handle, pcs);
+          handle->tof2mz_converter = std::move(tof2mz);
+          handle->scan2inv_ion_mobility_converter = std::move(scan2im);
+          OPENMS_LOG_INFO << "TIMS calibration: Bruker SDK (m/z + 1/K0)"
                           << (pcs != NoPressureCompensation ? " (pressure_comp=on)" : "")
-                          << std::endl;
+                          << " [" << sdk_path << "]" << std::endl;
+          OPENMS_LOG_INFO << BRUKER_SDK_ATTRIBUTION << std::endl;
           return handle;
         }
         catch (const std::exception& e)
@@ -1505,8 +1609,10 @@ namespace OpenMS
             throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               std::string("Bruker SDK failed: ") + e.what());
           }
-          OPENMS_LOG_DEBUG << "Bruker SDK not available (" << e.what()
-                          << "), trying rational" << std::endl;
+          // the SDK is optional: say so visibly, then continue without it
+          OPENMS_LOG_WARN << "Bruker SDK '" << sdk_path << "' could not be used (" << e.what()
+                          << "); continuing without it (m/z and 1/K0 from the analysis.tdf calibration tables)"
+                          << std::endl;
         }
       }
       else if (strategy == Strategy::BRUKER_SDK)
@@ -1858,9 +1964,9 @@ namespace OpenMS
   }
 
   // =====================================================================
-  // loadExperimentalSettings_: populate SourceFile metadata
+  // loadExperimentalSettings_: populate SourceFile, run and instrument metadata
   // =====================================================================
-  void BrukerTimsFile::loadExperimentalSettings_(const std::string& path, ExperimentalSettings& settings)
+  void BrukerTimsFile::loadExperimentalSettings_(const std::string& path, const std::string& d_path, ExperimentalSettings& settings)
   {
     SourceFile sf;
     sf.setNameOfFile(File::basename(path));
@@ -1869,6 +1975,76 @@ namespace OpenMS
     sf.setNativeIDType("Bruker TDF nativeID format");
     sf.setNativeIDTypeAccession("MS:1002818");
     settings.getSourceFiles().push_back(sf);
+
+    // start of the acquisition and the instrument, from the GlobalMetadata table (as msconvert reads them). The settings
+    // may hold the values of another run, so values this run does not provide are reset.
+    std::map<std::string, std::string> global;
+    try
+    {
+      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Statement query(db, "SELECT Key, Value FROM GlobalMetadata");
+      while (query.executeStep())
+      {
+        global[query.getColumn(0).getString()] = query.getColumn(1).getString();
+      }
+    }
+    catch (const std::exception& e)
+    {
+      OPENMS_LOG_WARN << "Warning: could not read the acquisition metadata of '" << path << "': " << e.what() << std::endl;
+    }
+    auto value = [&global](const std::string& key)
+    {
+      const auto it = global.find(key);
+      return it == global.end() ? std::string() : it->second;
+    };
+
+    settings.setDateTime(DateTime());
+    settings.removeMetaValue("mzml_start_time_stamp");
+    const std::string date = value("AcquisitionDateTime"); // ISO 8601 with time zone, e.g. "2023-09-19T13:29:04.090-04:00"
+    if (date.size() >= 19)
+    {
+      try
+      {
+        // DateTime only resolves seconds; the full timestamp is kept for the mzML startTimeStamp (as for Thermo .raw)
+        settings.setDateTime(DateTime::fromString(date.substr(0, 19), "yyyy-MM-ddThh:mm:ss"));
+        settings.setMetaValue("mzml_start_time_stamp", date);
+      }
+      catch (const Exception::BaseException&)
+      {
+        OPENMS_LOG_WARN << "Warning: could not parse the acquisition date '" << date << "' of '" << path << "'" << std::endl;
+      }
+    }
+
+    Instrument& instrument = settings.getInstrument();
+    instrument.setVendor(value("InstrumentVendor"));
+    // The instrument name is the model's PSI-MS name for current instruments (e.g. 'timsTOF Pro 2'), but not for all
+    // (e.g. 'impacTEM-pt'). Otherwise the timsTOF series is reported, as msconvert does for every timsTOF (instrument
+    // family 9). The mzML writer knows a model only by its PSI-MS name.
+    const std::string name = value("InstrumentName");
+    instrument.setModel(name);
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    const ControlledVocabulary::CVTerm* model = cv.checkAndGetTermByName(name);
+    if (model != nullptr && cv.isChildOf(model->id, "MS:1000031"))
+    {
+      instrument.setName(model->name);
+    }
+    else if (value("InstrumentFamily") == "9" && cv.exists("MS:1003123"))
+    {
+      instrument.setName(cv.getTerm("MS:1003123").name); // Bruker Daltonics timsTOF series
+    }
+    else
+    {
+      instrument.setName(name);
+    }
+    const std::string serial_number = value("InstrumentSerialNumber");
+    if (serial_number.empty())
+    {
+      instrument.removeMetaValue("instrument serial number");
+    }
+    else
+    {
+      instrument.setMetaValue("instrument serial number", serial_number);
+    }
   }
 
   // =====================================================================
@@ -1883,8 +2059,12 @@ namespace OpenMS
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
       const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
-    std::string tdf_path = path + "/analysis.tdf";
+    // Keep the extraction for the call that follows, typically loadDIAStreaming(): the consumer
+    // is sized from this metadata, so its spectra must come from the same files.
+    unpacked_ = takeUnpacked_(path);
+    const std::string d_path = unpacked_ ? unpacked_->d_path : path;
+    auto handle = openTimsDataHandle(d_path, config);
+    std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     if (!isDIA(db))
@@ -1893,7 +2073,7 @@ namespace OpenMS
         "readDIAMetadata() requires a DIA dataset, but '" + path + "' appears to be DDA.");
     }
 
-    loadExperimentalSettings_(path, exp_settings);
+    loadExperimentalSettings_(path, d_path, exp_settings);
 
     // Read DIA windows (with IM conversion via handle's calibration)
     auto windows = readDIAWindows(db, *handle->scan2inv_ion_mobility_converter);
@@ -1963,7 +2143,8 @@ namespace OpenMS
   void BrukerTimsFile::loadDIAStreaming(
       const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
+    const auto unpacked = takeUnpacked_(path); // the files readDIAMetadata() read, if it read path
+    auto handle = openTimsDataHandle(unpacked ? unpacked->d_path : path, config);
     std::string tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
@@ -2127,9 +2308,11 @@ namespace OpenMS
   void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
   {
     exp.clear(true);
-    auto handle = openTimsDataHandle(path, config);
+    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
+    const std::string d_path = unpacked ? unpacked->d_path : path;
+    auto handle = openTimsDataHandle(d_path, config);
 
-    std::string tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = d_path + "/analysis.tdf";
 
     // Resolve RT range (if any) to an effective frame_id range; also
     // validates the user-supplied frame_id/rt ranges and emits warnings.
@@ -2157,7 +2340,7 @@ namespace OpenMS
       loadDIA_(*handle, exp, eff);
     }
 
-    loadExperimentalSettings_(path, exp);
+    loadExperimentalSettings_(path, d_path, exp);
 
     // Sort by RT, interleaved across MS levels
     exp.sortSpectra(true);
@@ -2174,9 +2357,11 @@ namespace OpenMS
 
   void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
-    auto handle = openTimsDataHandle(path, config);
+    const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
+    const std::string d_path = unpacked ? unpacked->d_path : path;
+    auto handle = openTimsDataHandle(d_path, config);
 
-    std::string tdf_path = path + "/analysis.tdf";
+    std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
     const auto eff = resolveEffectiveConfig(db, config,
@@ -2233,7 +2418,7 @@ namespace OpenMS
 
     // Populate source file metadata (same as load())
     ExperimentalSettings settings;
-    loadExperimentalSettings_(path, settings);
+    loadExperimentalSettings_(path, d_path, settings);
     consumer->setExperimentalSettings(settings);
 
     // NOTE: This loads into a temporary experiment then feeds to consumer.
@@ -2446,7 +2631,14 @@ namespace OpenMS
 
     // OLS recalibration for DDA (when config.calibrate == true)
     const double cal_tol = (config.calibration_tolerance > 0.0) ? config.calibration_tolerance : 0.1;
-    if (config.calibrate)
+    const bool open_source_mz = dynamic_cast< ::OpenSourceTof2MzConverter*>(handle.tof2mz_converter.get()) != nullptr;
+    if (config.calibrate && !open_source_mz)
+    {
+      // The OLS fit is linear in sqrt(m/z); it would replace a more accurate stored calibration
+      OPENMS_LOG_INFO << "OLS m/z recalibration skipped: m/z comes from "
+                      << handle.tof2mz_converter->description() << "." << std::endl;
+    }
+    if (config.calibrate && open_source_mz)
     {
       // Collect (tof_index, sqrt(monoisotopic_mz)) pairs for regression
       std::vector<double> tof_vals;
@@ -2538,11 +2730,17 @@ namespace OpenMS
       std::vector<uint32_t> all_tofs;
       std::vector<uint64_t> all_intensities;
       std::vector<double> all_im;
+      // m/z of each raw peak as converted for its own frame (exact per-frame calibration)
+      std::vector<double> all_frame_mz;
       double rt_sum = 0.0;
+      // Valid frame used to convert merged TOF centroids back to m/z. The Bruker SDK
+      // calibrates per frame and rejects frame id 0, so it must be a real frame.
+      uint32_t ref_frame_id = 0;
 
       for (const DDAPrecursorInfo* entry : entries)
       {
         if (!handle.has_frame(entry->frame_id)) continue;
+        if (ref_frame_id == 0) ref_frame_id = entry->frame_id;
 
         const FrameData& fd = getFrameData(entry->frame_id);
         rt_sum += fd.rt;
@@ -2554,6 +2752,7 @@ namespace OpenMS
           all_tofs.push_back(fd.tofs[p]);
           all_intensities.push_back(static_cast<uint64_t>(fd.intensities[p]));
           all_im.push_back(fd.inv_ion_mobilities[p]);
+          all_frame_mz.push_back(fd.mzs[p]);
         }
       }
 
@@ -2576,11 +2775,10 @@ namespace OpenMS
       const auto dda_ms2_algo = effectiveMS2Algo(config, /*emit_warnings=*/false);
       if (dda_ms2_algo == BrukerTimsFile::Config::CentroidAlgo::HILL_BASED)
       {
-        std::vector<double> hb_mz(all_tofs.size());
+        std::vector<double> hb_mz = std::move(all_frame_mz);
         std::vector<double> hb_int(all_tofs.size());
         for (std::size_t i = 0; i < all_tofs.size(); ++i)
         {
-          handle.tof2mz_converter->convert(0, &hb_mz[i], &all_tofs[i], 1);
           hb_int[i] = static_cast<double>(all_intensities[i]);
         }
         Internal::PASEFHillCentroider::Params p;
@@ -2730,17 +2928,23 @@ namespace OpenMS
       all_intensity_d.reserve(all_tofs.size());
       kept_im.reserve(all_tofs.size());
 
+      std::vector<uint32_t> kept_tofs;
+      kept_tofs.reserve(all_tofs.size());
       for (size_t i = 0; i < all_tofs.size(); ++i)
       {
         if (keep[i])
         {
-          // Convert TOF to m/z using the registered converter
-          double mz = 0;
-          handle.tof2mz_converter->convert(0, &mz, &all_tofs[i], 1);
-          all_mz.push_back(mz);
+          kept_tofs.push_back(all_tofs[i]);
           all_intensity_d.push_back(static_cast<double>(all_intensities[i]));
           kept_im.push_back(all_im[i]);
         }
+      }
+      // Convert TOF to m/z with the registered converter, in one batch
+      all_mz.resize(kept_tofs.size());
+      if (!kept_tofs.empty())
+      {
+        handle.tof2mz_converter->convert(ref_frame_id, all_mz.data(), kept_tofs.data(),
+                                         static_cast<uint32_t>(kept_tofs.size()));
       }
 
       if (all_mz.empty())

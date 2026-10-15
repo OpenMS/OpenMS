@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>  // ProgressLogger::LogType (nested enum; cannot be forward-declared)
 #include <OpenMS/CONCEPT/Types.h>           // Int / UInt / UInt64
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/MATH/StatisticFunctions.h> // Math::SummaryStatistics
@@ -251,6 +252,8 @@ namespace OpenMS
       bool check_corrupt = false; ///< -c
       bool validate = false;      ///< -v
       bool check_index = false;   ///< -i
+      /// progress-logging verbosity forwarded to the underlying loaders (== CLI -no_progress)
+      ProgressLogger::LogType log_type = ProgressLogger::NONE; ///< NONE keeps library/pyOpenMS silent
     };
 
     // ---------------------------------------------------------------------

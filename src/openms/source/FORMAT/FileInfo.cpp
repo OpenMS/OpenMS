@@ -25,7 +25,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/KERNEL/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
@@ -854,6 +854,7 @@ namespace OpenMS
     {
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
+      file.setLogType(options.log_type);
 
       // loading input
       file.load(in, entries);
@@ -927,7 +928,7 @@ namespace OpenMS
 
           }
           // add our own hash
-          m_headers[id_hash] = { std::distance(entries.begin(), loopiter) };
+          m_headers[id_hash].push_back(std::distance(entries.begin(), loopiter));
         }
 
         {
@@ -945,7 +946,7 @@ namespace OpenMS
 
           }
           // add our own hash
-          m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
+          m_seqs[id_seq].push_back(std::distance(entries.begin(), loopiter));
         }
 
         // Collect sequence length for statistics
@@ -1080,7 +1081,7 @@ namespace OpenMS
       ff.getFeatOptions().setLoadSubordinates(false); // SO's currently not needed here
 
       // reading input
-      ff.loadFeatures(in, feat, {FileTypes::FEATUREXML});
+      ff.loadFeatures(in, feat, {FileTypes::FEATUREXML}, options.log_type);
 
       feat.updateRanges();
 
@@ -1145,7 +1146,7 @@ namespace OpenMS
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
       // reading input
-      FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML}, options.log_type);
 
       cons.updateRanges();
 
@@ -1324,7 +1325,7 @@ namespace OpenMS
       // reading input
       if (in_type == FileTypes::MZIDENTML)
       {
-        FileHandler().loadIdentifications(in, id_data.proteins, id_data.peptides, {FileTypes::MZIDENTML});
+        FileHandler().loadIdentifications(in, id_data.proteins, id_data.peptides, {FileTypes::MZIDENTML}, options.log_type);
       }
       else
       {
@@ -1343,7 +1344,7 @@ namespace OpenMS
       Size average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
       for (Size i = 0; i < id_data.peptides.size(); ++i)
       {
-        if (!id_data.peptides[i].empty())
+        if (!id_data.peptides[i].getHits().empty())
         {
           ++spectrum_count;
           average_peptide_hits += id_data.peptides[i].getHits().size();
@@ -1518,6 +1519,7 @@ namespace OpenMS
     {
       TargetedExperiment targeted_exp;
       TransitionPQPFile pqp_reader;
+      pqp_reader.setLogType(options.log_type);
       pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, true);
       const auto summary = targeted_exp.getSummary();
       os << summary;
@@ -1529,7 +1531,7 @@ namespace OpenMS
     }
     else // peaks
     {
-      fh.loadExperiment(in, exp, {in_type}, ProgressLogger::NONE, false, false);
+      fh.loadExperiment(in, exp, {in_type}, options.log_type, false, false);
 
       // update range information and retrieve which MS levels were recorded
       exp.updateRanges();
@@ -2258,9 +2260,9 @@ namespace OpenMS
 
         vector<double> intensities;
         intensities.reserve(size);
-        vector<double> qualities(size);
+        vector<double> qualities;
         qualities.reserve(size);
-        vector<double> widths(size);
+        vector<double> widths;
         widths.reserve(size);
 
         vector<double> rt_delta_by_elems;

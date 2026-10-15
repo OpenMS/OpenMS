@@ -16,7 +16,7 @@
  <ul>
  <li>The coding style (brackets, variable names, etc.) must conform to the conventions.</li>
  <li>The class and all the members should be properly documented.</li>
- <li>Check your code with the tool  <code>tools/checker.php</code>. Call <code>php tools/checker.php</code> for detailed instructions.</li>
+ <li>Check your code style by using the <code>.clang-format</code> file in the repository root.</li>
  </ul>
 
  Please open a pull request and follow the <a href="https://openms.readthedocs.io/en/latest/contribute-to-openms/pull-request-checklist.html">pull request guidelines</a>.
@@ -28,7 +28,7 @@
 
  @subsection where_are_the_binary_installers_created Where are the binary installers created?
 
- View the binary installers at the <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/nightly/">build archive</a>.
+ View the binary installers at the <a href="https://archive.openms.de/openms/OpenMSInstaller/nightly/">build archive</a>.
 
  Please verify the creation date of the individual installers, as there may have been an error while creating the installer.
 
@@ -42,13 +42,12 @@
 
  User definable <code>CMake</code> cache variables allow the user to pass options to <code>CMake</code> which will influence the build system. The most important option that should be given when calling <code>CMake</code> is:
 
- <code>CMAKE_PREFIX_PATH</code>, which is where <code>CMake</code> will search for additional libraries if they are not found in the default system paths. By default we add <code>OpenMS/contrib</code>.
+ <code>CMAKE_PREFIX_PATH</code>, which is where <code>CMake</code> will search for additional libraries if they are not found in the default system paths.
 
- If you have installed all libraries on your system already, there is no need to change <code>CMAKE_PREFIX_PATH</code>. For
- <code>contrib</code> libraries, set the variable <code>CMAKE_PREFIX_PATH</code>.
-
- On Windows, the <code>contrib</code> folder is required, as there are no system developer packages. To pass this variable to
- <code>CMake</code> use the <code>-D</code> switch e.g. <code>cmake -D CMAKE_PREFIX_PATH:PATH="D:\\somepath\\contrib"</code>.
+ If you configure with one of the CMake presets (e.g. `cmake --preset linux-x64-release`), vcpkg provides the third-party libraries and
+ you do not need to set <code>CMAKE_PREFIX_PATH</code> for them; see @ref install_vcpkg. Qt on Windows is the exception: it is installed separately,
+ so pass its location with the <code>-D</code> switch, e.g. `cmake --preset windows-x64-debug -D CMAKE_PREFIX_PATH="C:\dev\qt6\6.7.1\msvc2022_64\lib\cmake\Qt6"`.
+ If you build without vcpkg against libraries installed elsewhere than the default system paths, add their installation prefixes to <code>CMAKE_PREFIX_PATH</code>.
 
  Everything else can be edited using <code>ccmake</code> afterwards.
 
@@ -63,7 +62,7 @@
  In <code>AUTO</code> mode, COIN-OR is tried first, then GLPK, then HiGHS (fetched automatically via FetchContent if not found).
  Refer to the documentation of the <code>LPWrapper</code> class on how to abstract your code.
 
- <h2><a class="anchor" id="changed_contrib_path"></a>I changed the <code>contrib</code> path, but re-running <code>CMake</code> won't change the library paths?</h2>
+ <h2><a class="anchor" id="changed_library_path"></a>I changed a library path (e.g. <code>CMAKE_PREFIX_PATH</code>), but re-running <code>CMake</code> won't change the library paths?</h2>
 
  Once a library is found and its location is stored in a cache variable, it will only be searched again if the
  corresponding entry in the cache file is set to false.
@@ -279,8 +278,8 @@
     This usually happens when your PATH contains multiple versions of DLL's on which TOPP/%OpenMS depends.
     Candidates are all QT (QtGui4.dll, QtCore4.dll, ...) or Xerces-C (xerces-c_3_0) libraries.
     Usually other external programs (Miktex, Mendeley etc) put their own binary directory (which contains these incompatible DLL's) before 
-    the contrib directory in your %PATH%.<br>
-    <b>Solution</b>: put the contrib directory at the very beginning of your %PATH%. The other tools should be unaffected as DLL's are first searched in the path of the executable (where their DLL's should be as well). We do that for %OpenMS as well, but only in the binary installer packages, not for the developer version.</li>
+    the directory holding the DLL's your build needs (e.g. the <tt>bin</tt> directory of your Qt installation) in your %PATH%.<br>
+    <b>Solution</b>: put that directory at the very beginning of your %PATH%. The other tools should be unaffected as DLL's are first searched in the path of the executable (where their DLL's should be as well). We do that for %OpenMS as well, but only in the binary installer packages, not for the developer version.</li>
  </ol>
 
  @subsection how_to_profile_code How to profile code

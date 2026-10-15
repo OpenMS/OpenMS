@@ -10,7 +10,6 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
-#include <boost/numeric/conversion/cast.hpp>
 
 namespace OpenMS
 {

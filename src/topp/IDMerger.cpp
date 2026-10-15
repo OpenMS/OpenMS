@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <algorithm>
 
@@ -418,7 +419,7 @@ protected:
       for (auto file_it = ++peptides_by_file.begin(); file_it != peptides_by_file.end();
             ++file_it)
       {
-        set<std::string> accessions; // keep track to avoid duplicates
+        set<pair<std::string, std::string>> accessions; // (run, accession): keep track to avoid duplicates in a run
         for (auto pep_it = file_it->begin(); pep_it != file_it->end(); ++pep_it)
         {
           if (pep_it->getHits().empty()) continue;
@@ -429,6 +430,26 @@ protected:
           if (sequences.contains(hit.getSequence())) continue;
           OPENMS_LOG_DEBUG << "new peptide!" << endl;
           pep_it->getHits().resize(1); // restrict to best hit for simplicity
+
+          // the peptide identification needs its protein identification run (search run), whether or not one of
+          // its proteins is found there; copy the run's meta data if we haven't yet:
+          const std::string& id = pep_it->getIdentifier();
+          OPENMS_LOG_DEBUG << "identifier: " << id << endl;
+          if (!proteins_by_id.contains(id))
+          {
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(id));
+          }
+          ProteinIdentification& protein = proteins_by_id[id];
+          if (!selected_proteins.contains(id))
+          {
+            OPENMS_LOG_DEBUG << "adding protein identification" << endl;
+            selected_proteins_order.push_back(id);
+            selected_proteins[id] = protein;
+            selected_proteins[id].getHits().clear();
+            // remove potentially invalid information:
+            selected_proteins[id].getProteinGroups().clear();
+            selected_proteins[id].getIndistinguishableProteins().clear();
+          }
           peptides.push_back(*pep_it);
 
           set<std::string> protein_accessions = hit.extractProteinAccessionsSet();
@@ -437,42 +458,23 @@ protected:
           for (std::string const & acc : protein_accessions)
           {
             OPENMS_LOG_DEBUG << "accession: " << acc << endl;
-            // skip ahead if accession is not new:
-            if (accessions.contains(acc))
+            // skip ahead if accession is not new (in this run):
+            if (accessions.contains({id, acc}))
             {
               continue;
             }
             OPENMS_LOG_DEBUG << "new accession!" << endl;
-            // first find the right protein identification:
-            const std::string& id = pep_it->getIdentifier();
-            OPENMS_LOG_DEBUG << "identifier: " << id << endl;
-            if (!proteins_by_id.contains(id))
-            {
-              writeLogError_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
-              continue;
-            }
-            ProteinIdentification& protein = proteins_by_id[id];
             // now find the protein hit:
             auto hit_it = protein.findHit(acc);
             if (hit_it == protein.getHits().end())
             {
-              writeLogError_("Error: accession '" + acc + "' not found in "
-                                                          "protein identification '" + id + "'. Skipping.");
-              continue;
-            }
-            // we may need to copy protein ID meta data, if we haven't yet:
-            if (!selected_proteins.contains(id))
-            {
-              OPENMS_LOG_DEBUG << "adding protein identification" << endl;
-              selected_proteins_order.push_back(id);
-              selected_proteins[id] = protein;
-              selected_proteins[id].getHits().clear();
-              // remove potentially invalid information:
-              selected_proteins[id].getProteinGroups().clear();
-              selected_proteins[id].getIndistinguishableProteins().clear();
+              // the peptide could not be written without its protein in its run (loaded files always have it)
+              throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "No accession " + acc + " found in run '" + id + "' for PSM " + hit.getSequence().toString() + "_" +
+                StringUtils::toStr(hit.getCharge()) + ". Every protein of a peptide evidence needs to be a protein hit of the peptide identification's run.");
             }
             selected_proteins[id].insertHit(*hit_it);
-            accessions.insert(acc);
+            accessions.insert({id, acc});
             // NOTE: we're only adding the first protein hit for each
             // accession, not taking into account scores or any meta data
           }

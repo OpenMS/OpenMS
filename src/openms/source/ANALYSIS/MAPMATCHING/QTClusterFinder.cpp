@@ -6,7 +6,9 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <boost/heap/fibonacci_heap.hpp>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/ML/CLUSTERING/HashGrid.h>
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -26,6 +28,17 @@ using std::unordered_set;
 
 namespace OpenMS
 {
+struct QTClusterFinder::Heap : boost::heap::fibonacci_heap<QTCluster>
+{
+};
+struct QTClusterFinder::HeapHandles : std::vector<Heap::handle_type>
+{
+};
+struct QTClusterFinder::Grid : HashGrid<OpenMS::GridFeature*>
+{
+  using HashGrid<OpenMS::GridFeature*>::HashGrid;
+};
+
   QTClusterFinder::QTClusterFinder() :
     BaseGroupFinder(), feature_distance_(FeatureDistance())
   {
@@ -264,9 +277,20 @@ namespace OpenMS
     }
     std::sort(massrange.begin(), massrange.end());
 
+    // No features in any input map: nothing to link. Return the already-cleared
+    // (empty) result. This must happen BEFORE the nr_partitions_ == 1 branch, because
+    // run_internal_() -> setParameters_() throws on the resulting invalid maximum m/z,
+    // and before the partition loop, which would dereference the empty mass range via
+    // front()/back()/size()-1. (The <2-maps case is validated by the caller,
+    // FeatureGroupingAlgorithmQT::group_.)
+    if (massrange.empty())
+    {
+      return;
+    }
+
     if (nr_partitions_ == 1)
     {
-      // Only one partition 
+      // Only one partition
       run_internal_(input_maps, result_map, true);
     }
     else
@@ -402,7 +426,7 @@ namespace OpenMS
     Heap cluster_heads;
 
     // handles to cluster heads to reach them (index == cluster.id_) in cluster_heads for updating
-    vector<Heap::handle_type> handles;
+    HeapHandles handles;
 
     // "cold" cluster bodies, where most of their data lies
     vector<QTCluster::BulkData> cluster_data;
@@ -447,7 +471,7 @@ namespace OpenMS
                                               ConsensusFeature& feature,
                                               ElementMapping& element_mapping,
                                               const Grid& grid,
-                                              const vector<Heap::handle_type>& handles)
+                                              const HeapHandles& handles)
   {
     // pop until the top is valid
     while (cluster_heads.top().isInvalid())
@@ -535,7 +559,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
       if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP).toString());
       }
     }
     if (elements[best_quality_index].feature->getFeature().metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
@@ -552,10 +576,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   }
 
   void QTClusterFinder::updateClustering_(ElementMapping& element_mapping,
-                                          const Grid& grid, 
+                                          const Grid& grid,
                                           const QTCluster::Elements& elements,
                                           Heap& cluster_heads,
-                                          const vector<Heap::handle_type>& handles,
+                                          const HeapHandles& handles,
                                           Size best_id)
   {
     // remove the current best from the heap and consolidate the heap from previous lazy updates
@@ -758,7 +782,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   void QTClusterFinder::computeClustering_(const Grid& grid,
                                            Heap& cluster_heads,
                                            vector<QTCluster::BulkData>& cluster_data,
-                                           vector<Heap::handle_type>& handles,
+                                           HeapHandles& handles,
                                            ElementMapping& element_mapping)
   {
     cluster_heads.clear();

@@ -20,6 +20,8 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <map>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <boost/regex.hpp>
@@ -450,6 +452,9 @@ protected:
           writeLogWarn_(std::string("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
         }
 
+        // new native ID of every spectrum of this file, to keep precursor references to them valid
+        std::map<std::string, std::string> renamed_ids;
+
         // handle special raw data options:
         for (MSSpectrum& spec : in)
         {
@@ -484,12 +489,31 @@ protected:
           }
 
           spec.setRT(rt_final);
-          spec.setNativeID("spectrum=" + StringUtils::toStr(native_id));
+          const std::string new_id = "spectrum=" + StringUtils::toStr(native_id);
+          renamed_ids.emplace(spec.getNativeID(), new_id);
+          spec.setNativeID(new_id);
           if (ms_level > 0)
           {
             spec.setMSLevel(ms_level);
           }
           ++native_id;
+        }
+
+        // precursors reference the spectrum they were selected from by its native ID (mzML spectrumRef)
+        for (MSSpectrum& spec : in)
+        {
+          for (Precursor& precursor : spec.getPrecursors())
+          {
+            if (!precursor.metaValueExists("spectrum_ref"))
+            {
+              continue;
+            }
+            const auto it = renamed_ids.find(precursor.getMetaValue("spectrum_ref").toString());
+            if (it != renamed_ids.end())
+            {
+              precursor.setMetaValue("spectrum_ref", it->second);
+            }
+          }
         }
 
         // if we have only one spectrum, we can annotate it directly, for more spectra, we just name the source file leaving the spectra unannotated (to avoid a long and redundant list of sourceFiles)

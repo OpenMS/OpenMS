@@ -12,6 +12,9 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <atomic>
 
 namespace OpenMS
 {
@@ -24,6 +27,20 @@ namespace OpenMS
     }
     if (formula.getCharge() > 0)
     {
+      // DEPRECATED (OpenMS 3.x): a non-zero charge implicitly adds 'charge'-many H atoms to shift the pattern.
+      // This will change in OpenMS 4.0, where the charge is ignored and the neutral pattern is returned.
+      // run() is const and may be called from parallel regions, so the warn-once flag must be atomic.
+      static std::atomic<bool> warned_once{false};
+      if (!warned_once.exchange(true))
+      {
+        OPENMS_LOG_WARN << "Warning: FineIsotopePatternGenerator::run() was called with a non-zero charge ("
+                        << formula.getCharge() << "). The generator currently adds 'charge'-many hydrogen atoms to "
+                        << "shift the isotope pattern. This is deprecated and will change in OpenMS 4.0, where the "
+                        << "charge will be ignored and the neutral pattern returned. To keep the current behavior, make "
+                        << "the adduct explicit via EmpiricalFormula::addChargeAdduct(charge) and run() on the resulting "
+                        << "(neutral) formula. To obtain the neutral pattern now, set the charge to 0. "
+                        << "(This warning is shown once.)" << std::endl;
+      }
 
       // add hydrogen atoms to the formula to match the charge
       EmpiricalFormula charged_formula = formula;

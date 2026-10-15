@@ -36,6 +36,38 @@ using Internal::IDBoostGraph;
 namespace OpenMS
 {
 
+  namespace
+  {
+    /// Returns true for a target ProteinHit, false for a decoy. Throws if the target/decoy
+    /// status is unknown (the "target_decoy" meta value is not set; run PeptideIndexer first)
+    /// instead of silently treating a missing value as a decoy.
+    bool isTargetProteinOrThrow_(const ProteinHit* ph)
+    {
+      const ProteinHit::TargetDecoyType td = ph->getTargetDecoyType();
+      if (td == ProteinHit::TargetDecoyType::UNKNOWN)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ProteinHit lacks the 'target_decoy' meta value (run PeptideIndexer first); cannot compute FDR.");
+      }
+      return td == ProteinHit::TargetDecoyType::TARGET;
+    }
+
+    /// Validate target/decoy annotations before entering code that may run in an OpenMP region,
+    /// where exceptions cannot safely propagate back to the caller.
+    void validateTargetDecoyAnnotations_(const IDBoostGraph::Graph& graph)
+    {
+      IDBoostGraph::Graph::vertex_iterator vertex_it, vertex_end;
+      boost::tie(vertex_it, vertex_end) = boost::vertices(graph);
+      for (; vertex_it != vertex_end; ++vertex_it)
+      {
+        if (graph[*vertex_it].which() == 0) // protein
+        {
+          isTargetProteinOrThrow_(boost::get<ProteinHit*>(graph[*vertex_it]));
+        }
+      }
+    }
+  }
+
   /// Hasher for sets of uints using boost::hash_range
   struct MyUIntSetHasher
   {
@@ -952,6 +984,20 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Graph empty. Build it first.");
     }
 
+    // Fail on the caller thread before the component loop enters an OpenMP region. Exceptions
+    // thrown by a worker are not allowed to escape an OpenMP worksharing-loop iteration.
+    if (ccs_.empty())
+    {
+      validateTargetDecoyAnnotations_(g);
+    }
+    else
+    {
+      for (const Graph& component : ccs_)
+      {
+        validateTargetDecoyAnnotations_(component);
+      }
+    }
+
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
 
@@ -1398,7 +1444,7 @@ namespace OpenMS
           for (auto const &proteinVID : pepsToGrps.second)
           {
             //check if decoy to count the decoys
-            bool target = boost::get<ProteinHit*>(curr_cc[proteinVID])->getMetaValue("target_decoy").toString()[0] == 't';
+            bool target = isTargetProteinOrThrow_(boost::get<ProteinHit*>(curr_cc[proteinVID]));
             if (target) nr_targets++;
             //ProteinHit *proteinPtr = boost::get<ProteinHit*>(curr_cc[proteinVID]);
             //pg.accessions.push_back(proteinPtr->getAccession());
@@ -1543,7 +1589,7 @@ namespace OpenMS
                 const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
                 scores_and_tgt.emplace_back(
                     ph->getScore(),
-                    static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
+                    static_cast<double>(isTargetProteinOrThrow_(ph))); // target = 1; decoy = 0;
             }
           }
         };
@@ -1581,7 +1627,7 @@ namespace OpenMS
                 const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
                 scores_and_tgt_fraction.emplace_back(
                     ph->getScore(),
-                    static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
+                    static_cast<double>(isTargetProteinOrThrow_(ph))); // target = 1; decoy = 0;
               }
             }
             else if (graph[*ui].which() == 1) //protein group, always include
@@ -1635,7 +1681,7 @@ namespace OpenMS
                 {
                   const ProteinHit* ph = boost::get<ProteinHit*>(fg[prot]);
                   // target = 1/penalty; decoy = 0;
-                  target_fraction = static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't');
+                  target_fraction = static_cast<double>(isTargetProteinOrThrow_(ph));
                   target_fraction /= target_contribution_penalty;
                   auto it_inserted = prot_to_current_max.emplace(prot, target_fraction);
                   if (!it_inserted.second)
@@ -1731,4 +1777,3 @@ namespace OpenMS
     }
   }
 }
-

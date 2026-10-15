@@ -68,8 +68,8 @@
 				<pt x="275.75" y="160.074747981591997" />
 				<pt x="275.5" y="160.074746944823005" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="2">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="2.47953607880854" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB39534]"/>
 					<UserParam type="stringList" name="description" value="[Panaxydol chlorohydrin]"/>
 					<UserParam type="string" name="modifications" value="M+H+Na;2+"/>
@@ -77,7 +77,7 @@
 					<UserParam type="float" name="mz_error_ppm" value="-2.47953607880854"/>
 					<UserParam type="float" name="mz_error_Da" value="-3.969127357095204e-04"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="2">
+				<PeptideHit score="2.24182582410076" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB28803,HMDB:HMDB28971,HMDB:HMDB28987,HMDB:HMDB29155]"/>
 					<UserParam type="stringList" name="description" value="[Glutaminyl-Methionine,Methionyl-Glutamine,Methionyl-Gamma-glutamate,Gamma-glutamyl-Methionine]"/>
 					<UserParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
@@ -85,7 +85,7 @@
 					<UserParam type="float" name="mz_error_ppm" value="-2.241825824100759"/>
 					<UserParam type="float" name="mz_error_Da" value="-3.588610857150343e-04"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="2">
+				<PeptideHit score="4.27813295178491" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB33355,HMDB:HMDB34110]"/>
 					<UserParam type="stringList" name="description" value="[Dehydroaporheine,Murrayacine]"/>
 					<UserParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
@@ -93,7 +93,7 @@
 					<UserParam type="float" name="mz_error_ppm" value="-4.278132951784907"/>
 					<UserParam type="float" name="mz_error_Da" value="-6.848250857274252e-04"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="2">
+				<PeptideHit score="2.24180926936209" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB28982,HMDB:HMDB29045]"/>
 					<UserParam type="stringList" name="description" value="[Methionyl-Serine,Serinyl-Methionine]"/>
 					<UserParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
@@ -101,7 +101,7 @@
 					<UserParam type="float" name="mz_error_ppm" value="-2.241809269362091"/>
 					<UserParam type="float" name="mz_error_Da" value="-3.588584357032687e-04"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="1">
+				<PeptideHit score="4.27814950645615" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB01190]"/>
 					<UserParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -109,7 +109,7 @@
 					<UserParam type="float" name="mz_error_ppm" value="-4.278149506456153"/>
 					<UserParam type="float" name="mz_error_Da" value="-6.848277357391908e-04"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="1">
+				<PeptideHit score="4.10961015143698" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15400]"/>
 					<UserParam type="stringList" name="description" value="[Hydralazine]"/>
 					<UserParam type="string" name="modifications" value="M;1+"/>
@@ -408,8 +408,8 @@
 				<pt x="301.5" y="162.075457604903988" />
 				<pt x="301.25" y="162.075141390115988" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="4.19995386045077" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB01190]"/>
 					<UserParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -417,7 +417,7 @@
 					<UserParam type="float" name="mz_error_ppm" value="-4.199953860450771"/>
 					<UserParam type="float" name="mz_error_Da" value="-6.72310513721186e-04"/>
 				</PeptideHit>
-				<PeptideHit score="0" sequence="" charge="1">
+				<PeptideHit score="4.18780645333146" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15400]"/>
 					<UserParam type="stringList" name="description" value="[Hydralazine]"/>
 					<UserParam type="string" name="modifications" value="M;1+"/>
@@ -701,7 +701,7 @@
 				<pt x="313.25" y="162.135471024520001" />
 				<pt x="313.0" y="162.135512495312014" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
@@ -1101,8 +1101,8 @@
 				<pt x="281.25" y="163.060958097314" />
 				<pt x="281.0" y="163.061399761246008" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="1">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="3.26443251694974" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB32394,HMDB:HMDB36073,HMDB:HMDB41009]"/>
 					<UserParam type="stringList" name="description" value="[6-Methylcoumarin,Viburtinal,7-Methyl-2-benzofurancarboxaldehyde]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
@@ -1172,7 +1172,7 @@
 				<pt x="257.25" y="161.132490074972992" />
 				<pt x="257.0" y="161.132154679943994" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
@@ -1373,7 +1373,7 @@
 				<pt x="278.25" y="164.039161803902005" />
 				<pt x="278.0" y="164.039176318679012" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
@@ -1538,7 +1538,7 @@
 				<pt x="312.75" y="164.077397355578" />
 				<pt x="312.5" y="164.077411351969999" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
@@ -2321,7 +2321,7 @@
 				<pt x="256.75" y="167.072754372819986" />
 				<pt x="256.5" y="167.072641883296996" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
@@ -2530,8 +2530,8 @@
 				<pt x="279.25" y="165.056099230053007" />
 				<pt x="279.0" y="165.056276517687991" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="2">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="2.08288389896333" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB14564,HMDB:HMDB15202]"/>
 					<UserParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
 					<UserParam type="string" name="modifications" value="M+2Na;2+"/>
@@ -2604,8 +2604,8 @@
 				<pt x="253.25" y="165.056446029549988" />
 				<pt x="253.0" y="165.056428922847999" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="" charge="2">
+			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
+				<PeptideHit score="3.51941211892098" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB14564,HMDB:HMDB15202]"/>
 					<UserParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
 					<UserParam type="string" name="modifications" value="M+2Na;2+"/>

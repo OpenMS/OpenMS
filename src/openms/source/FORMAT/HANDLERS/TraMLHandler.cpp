@@ -41,16 +41,16 @@ namespace OpenMS::Internal
     TraMLHandler::~TraMLHandler()
     = default;
 
-    void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+    void TraMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attributes)
     {
-      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh* s_id = xercesc::XMLString::transcode("id");
-      static const XMLCh* s_sequence = xercesc::XMLString::transcode("sequence");
-      static const XMLCh* s_fullName = xercesc::XMLString::transcode("fullName");
-      static const XMLCh* s_version = xercesc::XMLString::transcode("version");
-      static const XMLCh* s_URI = xercesc::XMLString::transcode("URI");
+      static const char16_t* s_type = u"type";
+      static const char16_t* s_value = u"value";
+      static const char16_t* s_name = u"name";
+      static const char16_t* s_id = u"id";
+      static const char16_t* s_sequence = u"sequence";
+      static const char16_t* s_fullName = u"fullName";
+      static const char16_t* s_version = u"version";
+      static const char16_t* s_URI = u"URI";
 
       tag_ = sm_.convert(qname);
       open_tags_.push_back(tag_);
@@ -103,11 +103,11 @@ namespace OpenMS::Internal
       if (tag_ == "cvParam")
       {
         // These are here because of cppcheck
-        static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
-        static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-        static const XMLCh* s_unit_name = xercesc::XMLString::transcode("unitName");
-        static const XMLCh* s_unit_cvref = xercesc::XMLString::transcode("unitCvRef");
-        static const XMLCh* s_unit_ref = xercesc::XMLString::transcode("cvRef");
+        static const char16_t* s_accession = u"accession";
+        static const char16_t* s_unit_accession = u"unitAccession";
+        static const char16_t* s_unit_name = u"unitName";
+        static const char16_t* s_unit_cvref = u"unitCvRef";
+        static const char16_t* s_unit_ref = u"cvRef";
 
         std::string value, cv_ref, unit_accession, unit_name, unit_cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
@@ -272,7 +272,7 @@ namespace OpenMS::Internal
       return;
     }
 
-    void TraMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+    void TraMLHandler::onCharacters(const char16_t* chars, Size /*length*/)
     {
       if (open_tags_.back() == "Sequence")
       {
@@ -282,7 +282,7 @@ namespace OpenMS::Internal
       return;
     }
 
-    void TraMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+    void TraMLHandler::onEndElement(const char16_t* qname)
     {
       tag_ = sm_.convert(qname);
 
@@ -698,7 +698,7 @@ namespace OpenMS::Internal
           }
           if (it->theoretical_mass > 0.0)
           {
-            os << R"(      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value=")" << 
+            os << R"(      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical neutral mass" value=")" <<
             it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
           }
           if (!it->molecular_formula.empty())
@@ -1024,6 +1024,15 @@ namespace OpenMS::Internal
               break;
             case Residue::ZIon:
               os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001230\" name=\"frag: z ion\"/>\n";
+              break;
+            case Residue::DIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001236\" name=\"frag: d ion\"/>\n";
+              break;
+            case Residue::VIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001237\" name=\"frag: v ion\"/>\n";
+              break;
+            case Residue::WIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001238\" name=\"frag: w ion\"/>\n";
               break;
             case Residue::Precursor:
               os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001523\" name=\"frag: precursor ion\"/>\n";
@@ -1433,6 +1442,18 @@ namespace OpenMS::Internal
         else if (cv_term.getAccession() == "MS:1001230")
         {
           actual_interpretation_.iontype = TargetedExperiment::IonType::ZIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001236")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::DIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001237")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::VIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001238")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::WIon;
         }
         else if (cv_term.getAccession() == "MS:1001523")
         {

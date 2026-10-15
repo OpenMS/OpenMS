@@ -10,44 +10,6 @@
 
 namespace OpenMS
 {
-  void MapConversion::convert(UInt64 const input_map_index,
-                              PeakMap& input_map,
-                              ConsensusMap& output_map,
-                              Size n)
-  {
-    output_map.clear(true);
-
-    // see @todo above
-    output_map.setUniqueId();
-
-    input_map.updateRanges();
-    if (n > input_map.getSize())
-    {
-      n = input_map.getSize();
-    }
-    output_map.reserve(n);
-    std::vector<Peak2D> tmp;
-    tmp.reserve(input_map.getSize());
-
-    // TODO Avoid tripling the memory consumption by this call
-    input_map.get2DData(tmp);
-
-    std::partial_sort(tmp.begin(),
-                      tmp.begin() + n,
-                      tmp.end(),
-                      [](auto &left, auto &right) {Peak2D::IntensityLess cmp; return cmp(right, left);});
-
-    for (Size element_index = 0; element_index < n; ++element_index)
-    {
-      output_map.push_back(ConsensusFeature(input_map_index,
-                                            tmp[element_index],
-                                            element_index));
-    }
-
-    output_map.getColumnHeaders()[input_map_index].size = n;
-    output_map.updateRanges();
-  }
-
   void MapConversion::convert(ConsensusMap const& input_map,
                               const bool keep_uids,
                               FeatureMap& output_map)

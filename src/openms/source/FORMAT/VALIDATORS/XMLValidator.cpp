@@ -6,6 +6,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -13,12 +14,34 @@
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
+#include <xercesc/sax/ErrorHandler.hpp>
+#include <xercesc/sax/SAXParseException.hpp>
+#include <xercesc/util/XMLString.hpp>
 
 using namespace xercesc;
 using namespace std;
 
 namespace OpenMS
 {
+  // Internal bridge: adapts the Xerces ErrorHandler interface to XMLValidator so
+  // that Xerces types stay out of the public XMLValidator header.
+  class XMLValidatorErrorHandler_ : public xercesc::ErrorHandler
+  {
+  public:
+    explicit XMLValidatorErrorHandler_(XMLValidator& v) : v_(v) {}
+    void warning(const SAXParseException& e) override { report_("warning", e); }
+    void error(const SAXParseException& e) override { report_("error", e); }
+    void fatalError(const SAXParseException& e) override { report_("error", e); }
+    void resetErrors() override { v_.valid_ = true; }
+  private:
+    void report_(const std::string& kind, const SAXParseException& e)
+    {
+      v_.logError_(kind, Internal::StringManager::convert(reinterpret_cast<const char16_t*>(e.getMessage())),
+                   (unsigned long)e.getLineNumber(), (unsigned long)e.getColumnNumber());
+    }
+    XMLValidator& v_;
+  };
+
   XMLValidator::XMLValidator() :
     valid_(true),
     os_(nullptr)
@@ -36,10 +59,10 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    // initialize parser
+    // initialize parser (serialised with the other users of Xerces, which may parse on other threads)
     try
     {
-      XMLPlatformUtils::Initialize();
+      Internal::xercesInitialize();
     }
     catch (const XMLException & toCatch)
     {
@@ -55,8 +78,9 @@ namespace OpenMS
     parser->setFeature(XMLUni::fgXercesSchema, true);
     parser->setFeature(XMLUni::fgXercesSchemaFullChecking, true);
 
-    //set this class as error handler
-    parser->setErrorHandler(this);
+    //set the internal Xerces error-handler bridge
+    XMLValidatorErrorHandler_ error_handler(*this);
+    parser->setErrorHandler(&error_handler);
     parser->setContentHandler(nullptr);
     parser->setEntityResolver(nullptr);
 
@@ -81,36 +105,11 @@ namespace OpenMS
     return valid_;
   }
 
-  void XMLValidator::warning(const SAXParseException & exception)
+  void XMLValidator::logError_(const std::string& kind, const std::string& message, unsigned long line, unsigned long column)
   {
-    char * message = XMLString::transcode(exception.getMessage());
-    std::string error_message =std::string("Validation warning in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
+    std::string error_message = std::string("Validation ") + kind + " in file '" + filename_ + "' line " + (UInt)line + " column " + (UInt)column + ": " + message;
     (*os_) << error_message << endl;
     valid_ = false;
-    XMLString::release(&message);
-  }
-
-  void XMLValidator::error(const SAXParseException & exception)
-  {
-    char * message = XMLString::transcode(exception.getMessage());
-    std::string error_message =std::string("Validation error in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
-    (*os_) << error_message << endl;
-    valid_ = false;
-    XMLString::release(&message);
-  }
-
-  void XMLValidator::fatalError(const SAXParseException & exception)
-  {
-    char * message = XMLString::transcode(exception.getMessage());
-    std::string error_message =std::string("Validation error in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
-    (*os_) << error_message << endl;
-    valid_ = false;
-    XMLString::release(&message);
-  }
-
-  void XMLValidator::resetErrors()
-  {
-    valid_ = true;
   }
 
 } // namespace OpenMS

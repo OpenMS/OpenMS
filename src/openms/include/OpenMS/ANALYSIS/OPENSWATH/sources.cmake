@@ -25,8 +25,10 @@ set(sources_list_h
   MRMRTNormalizer.h
   MRMScoring.h
   MRMTransitionGroupPicker.h
-  OpenSwathGeneInference.h
   OpenSwathHelper.h
+  OpenSwathLibraryIDNormalizer.h
+  OpenSwathLibraryPreparation.h
+  OpenSwathPeptidoformInference.h
   OpenSwathExportConfig.h
   OpenSwathExportData.h
   OpenSwathMatrixExporter.h
@@ -40,15 +42,13 @@ set(sources_list_h
   OpenSwathOSWParquetWriter.h
   OpenSwathOSWWriter.h
   OpenSwathResultsExporter.h
+  TransitionListEvidenceFilter.h
   OpenSwathWorkflow.h
   OpenSwathWorkflowScheduler.h
   PeakMapExtractor.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
   PeakPickerMobilogram.h
-  OpenSwathPeptideInference.h
-  OpenSwathPeptidoformInference.h
-  OpenSwathProteinInference.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h
@@ -58,6 +58,10 @@ set(sources_list_h
   TransitionParquetFile.h
   TransitionPQPFile.h
 )
+
+if(WITH_ONNX)
+  list(APPEND sources_list_h PeptDeepLibraryPredictor.h)
+endif()
 
 ### add path to the filenames
 set(sources_h)

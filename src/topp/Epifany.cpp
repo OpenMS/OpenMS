@@ -104,7 +104,7 @@ protected:
     //TODO support separate runs
     registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
     setValidFormats_("in", {"idXML","consensusXML"});
-    registerInputFile_("exp_design", "<file>", "", "(Currently unused) Input: experimental design", false);
+    registerInputFile_("exp_design", "<file>", "", "Input: experimental design. Only read when the input is consensusXML, where it merges protein identifications across the fractions and replicates of each sample; without it every ID run is merged into one. Ignored for idXML input.", false);
     setValidFormats_("exp_design", ListUtils::create<std::string>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", {"idXML","consensusXML"});

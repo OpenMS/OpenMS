@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <ostream>
 
 namespace OpenMS
 {

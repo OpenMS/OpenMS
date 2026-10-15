@@ -10,7 +10,6 @@ set(sources_list
   DIAHelper.cpp
   DIAPrescoring.cpp
   DIAScoring.cpp
-  OpenSwathGeneInference.cpp
   IonMobilityScoring.cpp
   LevelContextInference.cpp
   MasstraceCorrelator.cpp
@@ -27,6 +26,9 @@ set(sources_list
   MRMScoring.cpp
   MRMTransitionGroupPicker.cpp
   OpenSwathHelper.cpp
+  OpenSwathLibraryIDNormalizer.cpp
+  OpenSwathLibraryPreparation.cpp
+  OpenSwathPeptidoformInference.cpp
   OpenSwathMatrixExporter.cpp
   OpenSwathParquetExporter.cpp
   OpenSwathScores.cpp
@@ -37,14 +39,12 @@ set(sources_list
   OpenSwathOSWWriter.cpp
   PeakMapExtractor.cpp
   OpenSwathResultsExporter.cpp
+  TransitionListEvidenceFilter.cpp
   OpenSwathWorkflow.cpp
   OpenSwathWorkflowScheduler.cpp
   PeakIntegrator.cpp
   PeakPickerChromatogram.cpp
   PeakPickerMobilogram.cpp
-  OpenSwathPeptideInference.cpp
-  OpenSwathPeptidoformInference.cpp
-  OpenSwathProteinInference.cpp
   SwathMapMassCorrection.cpp
   SwathWindowLoader.cpp
   SwathQC.cpp
@@ -54,6 +54,10 @@ set(sources_list
   TransitionParquetFile.cpp
   TransitionPQPFile.cpp
 )
+
+if(WITH_ONNX)
+  list(APPEND sources_list PeptDeepLibraryPredictor.cpp)
+endif()
 
 ### add path to the filenames
 set(sources)

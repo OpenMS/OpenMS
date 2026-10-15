@@ -37,12 +37,42 @@ END_SECTION
 START_SECTION(NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source))
   NucleicAcidSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // getParameters() cannot see the members updateMembers_() caches, so also check
+  // that a copy of a configured generator produces the same spectrum
+  NucleicAcidSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  NucleicAcidSpectrumGenerator configured_copy(configured);
+
+  NASequence oligo = NASequence::fromString("[m1A]UCCACAGp");
+  MSSpectrum from_source, from_copy;
+  configured.getSpectrum(from_source, oligo, -1, -1);
+  configured_copy.getSpectrum(from_copy, oligo, -1, -1);
+  TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
-START_SECTION(NucleicAcidSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& source))
+START_SECTION(NucleicAcidSpectrumGenerator& operator=(const NucleicAcidSpectrumGenerator& source))
   NucleicAcidSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same for assignment
+  NucleicAcidSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  NucleicAcidSpectrumGenerator assigned;
+  assigned = configured;
+
+  NASequence oligo = NASequence::fromString("[m1A]UCCACAGp");
+  MSSpectrum from_source, from_assigned;
+  configured.getSpectrum(from_source, oligo, -1, -1);
+  assigned.getSpectrum(from_assigned, oligo, -1, -1);
+  TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 
 START_SECTION(~NucleicAcidSpectrumGenerator())
@@ -352,6 +382,52 @@ START_SECTION((void getMultipleSpectra(std::map<Int, MSSpectrum>& spectra, const
   {
     TEST_EQUAL(compare[index] == pair.second, true);
     index++;
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] getSpectrum and getMultipleSpectra preserve terminal masses and precursor charges))
+{
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  parameters.setValue("add_metainfo", "true");
+  parameters.setValue("add_a-B_ions", "true");
+  parameters.setValue("add_first_prefix_ion", "true");
+  parameters.setValue("add_precursor_peaks", "true");
+  parameters.setValue("add_all_precursor_charges", "false");
+  generator.setParameters(parameters);
+  const auto sequence = NASequence::fromString("pACGU");
+  for (Int charge : {-1, 1})
+  {
+    MSSpectrum spectrum;
+    generator.getSpectrum(spectrum, sequence, charge, charge);
+    bool found = false;
+    for (Size i = 0; i < spectrum.size(); ++i)
+    {
+      if (spectrum.getStringDataArrays()[0][i] == "a1-B")
+      {
+        found = true;
+        TEST_REAL_SIMILAR(spectrum[i].getMZ(), sequence.getPrefix(1).getMonoWeight(NASequence::AminusB, charge));
+      }
+    }
+    TEST_TRUE(found);
+    std::map<Int, MSSpectrum> multiple;
+    generator.getMultipleSpectra(multiple, sequence, {2 * charge, 3 * charge}, charge);
+    for (const auto& [requested, spectrum] : multiple)
+    {
+      Size precursors = 0;
+      for (Size i = 0; i < spectrum.size(); ++i)
+      {
+        if (spectrum.getStringDataArrays()[0][i] != "M")
+        {
+          continue;
+        }
+        ++precursors;
+        TEST_EQUAL(spectrum.getIntegerDataArrays()[0][i], requested);
+        TEST_REAL_SIMILAR(spectrum[i].getMZ(), sequence.getMonoWeight(NASequence::Full, requested) / abs(requested));
+      }
+      TEST_EQUAL(precursors, 1);
+    }
   }
 }
 END_SECTION

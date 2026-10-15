@@ -15,15 +15,11 @@ You can run OpenMS TOPP tools from the command line using your custom scripts, o
 workflow systems designed to make workflow creation and maintenance more fun, find out more in :ref:`workflows`.
 
 .. list-table::
-   :widths: 20 20 20 20 20
+   :widths: 25 25 25 25
    :class: borderless only-light
    :align: center
 
-   * - .. image:: /_images/introduction/KNIMELogoTM.svg
-         :target: ../getting-started/knime-get-started.html
-         :width: 90%
-
-     - .. image:: /_images/introduction/nextflow2014_no-bg.png
+   * - .. image:: /_images/introduction/nextflow2014_no-bg.png
          :target: ../getting-started/nextflow-get-started.html
          :width: 90%
 
@@ -41,15 +37,11 @@ workflow systems designed to make workflow creation and maintenance more fun, fi
 
 
 .. list-table::
-   :widths: 20 20 20 20 20
+   :widths: 25 25 25 25
    :class: borderless only-dark
    :align: center
 
-   * - .. image:: /_images/introduction/KNIMELogoTM_white.svg
-         :target: ../getting-started/knime-get-started.html
-         :width: 90%
-
-     - .. image:: /_images/introduction/nextflow2014_no-bg-bright.png
+   * - .. image:: /_images/introduction/nextflow2014_no-bg-bright.png
          :target: ../getting-started/nextflow-get-started.html
          :width: 90%
 

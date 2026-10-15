@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_200" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="1">
+		<map id="0" name="sample.mzML" unique_id="201" label="" size="1">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_202" quality="0.0">
+			<centroid rt="10.0" mz="400.0" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="101" rt="10.0" mz="400.0" it="100.0"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
