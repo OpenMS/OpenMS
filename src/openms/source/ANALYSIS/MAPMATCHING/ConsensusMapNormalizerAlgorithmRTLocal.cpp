@@ -29,7 +29,7 @@ namespace OpenMS
     {
       Size feature = 0;        ///< index of the consensus feature
       Size handle = 0;         ///< position of the handle within the consensus feature
-      Size map = 0;            ///< map index
+      Size map = 0;            ///< position of the map among the column headers
       double rt = 0.0;
       double log2_int = 0.0;
       double offset = 0.0;     ///< current log2 offset
@@ -59,15 +59,11 @@ namespace OpenMS
                                         "'neighbors', 'rounds', 'min_maps' and 'min_reference' must be at least 1.");
     }
 
-    // map indices need not be consecutive (FileFilter keeps them when it extracts maps): number the maps densely
-    std::map<UInt64, Size> index_of_map;
-    vector<UInt64> id_of_map;
-    for (const auto& header : map.getColumnHeaders())
-    {
-      index_of_map[header.first] = id_of_map.size();
-      id_of_map.push_back(header.first);
-    }
-    const Size n_maps = id_of_map.size();
+    // map indices need not be consecutive (FileFilter keeps them when it extracts maps): number the maps by their position
+    const std::map<UInt64, Size> position_of_map = ConsensusMapNormalizerAlgorithmMedian::mapPositions_(map);
+    const Size n_maps = position_of_map.size();
+    vector<UInt64> id_of_map(n_maps);
+    for (const auto& [id, position] : position_of_map) id_of_map[position] = id;
     vector<vector<double>> offsets(map.size());
     vector<Cell> cells;
     vector<vector<Size>> cells_of_feature(map.size());
@@ -83,16 +79,10 @@ namespace OpenMS
       {
         if (fh.getIntensity() > 0.0)
         {
-          const auto dense_index = index_of_map.find(fh.getMapIndex());
-          if (dense_index == index_of_map.end())
-          {
-            throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                             "map index " + std::to_string(fh.getMapIndex()) + " has no column header");
-          }
           Cell c;
           c.feature = f;
           c.handle = handle;
-          c.map = dense_index->second;
+          c.map = ConsensusMapNormalizerAlgorithmMedian::mapPosition_(position_of_map, fh.getMapIndex());
           c.rt = fh.getRT();
           c.log2_int = std::log2(double(fh.getIntensity()));
           if (cells_of_feature[f].empty() || cells[cells_of_feature[f].back()].map != c.map) ++n_feature_maps;
