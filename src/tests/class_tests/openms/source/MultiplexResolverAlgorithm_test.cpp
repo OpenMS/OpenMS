@@ -284,12 +284,12 @@ START_SECTION((std::vector<bool> checkIdentifications(const ConsensusFeature& co
 
   const std::vector<bool> consistent = resolver.checkIdentifications(cf);
   TEST_EQUAL(consistent.size(), 6)
-  TEST_EQUAL(consistent[0], true)
-  TEST_EQUAL(consistent[1], false)
-  TEST_EQUAL(consistent[2], true)
-  TEST_EQUAL(consistent[3], false)
-  TEST_EQUAL(consistent[4], false)
-  TEST_EQUAL(consistent[5], false)
+  TEST_TRUE(consistent[0])
+  TEST_FALSE(consistent[1])
+  TEST_TRUE(consistent[2])
+  TEST_FALSE(consistent[3])
+  TEST_FALSE(consistent[4])
+  TEST_FALSE(consistent[5])
 
   // the same verdict as resolve() reaches for the first identification
   ConsensusMap in;
