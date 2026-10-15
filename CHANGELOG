@@ -71,6 +71,11 @@ OpenMS Library:
   - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
+  - FIX: ConsensusMapNormalizerAlgorithmMedian, -Quantile and -Threshold accept maps whose indices are not consecutive, as
+    'FileFilter -consensus:map' leaves them. Median and Quantile threw ElementNotFound for them, and Threshold
+    (ConsensusMapNormalizer -algorithm_type robust_regression) read past the end of its per-map vectors and crashed. The
+    per-map vectors (medians, ratios, intensity vectors) are numbered by the position of a map among the column headers,
+    which is the map index for maps numbered 0 ... N-1.
   - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
     parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
     lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
@@ -236,6 +241,20 @@ OpenMS Library:
     intensity estimates need are kept). FileHandler::transformExperiment() streams mzML, mzXML and
     Thermo .raw files into a consumer and applies the PeakFileOptions like loadExperiment(). SwathFile
     gains loadThermoRaw(); loadFromMSExperiment() keeps only the experimental settings as metadata (#10522).
+  - Random access to Thermo .raw files: OnDiscThermoRawExperiment keeps the file open with an index of
+    the selected scans and converts single spectra on request, identical to the corresponding spectra of
+    ThermoRawFile::load() with the same Options; clone() gives handles for concurrent reads. It and
+    OnDiscMSExperiment implement the new IMSExperimentRandomAccess interface (OnDiscMSExperiment gains
+    getSpectrumMetadata(), getSpectrumRT(), getSpectrumMSLevel() and findFirstRT()).
+    SpectrumAccessOnDisc exposes any IMSExperimentRandomAccess (or an RT-sorted subset of it) as an
+    OpenSwath::ISpectrumAccess; SwathFile::loadThermoRaw() supports readoptions "onDisc" (#10522).
+    SwathFile::loadOnDisc() and loadOnDiscByFAIMSCV() build the SWATH maps on any
+    IMSExperimentRandomAccess, the latter split by FAIMS compensation voltage like
+    IMDataConverter::splitByFAIMSCV(). Their file overloads choose the random-access backend by file
+    type (indexed mzML: OnDiscMSExperiment, Thermo .raw: OnDiscThermoRawExperiment). Plugin consumers
+    may only observe the spectra with "onDisc".
+  - pyOpenMS: ThermoRawFile.transform() streams into a Python consumer; OnDiscThermoRawExperiment is
+    wrapped with indexing, iteration and RT lookup (#10522).
   - PeptideIndexing sorts its peptide-protein matches once after the parallel database search,
     instead of after every thread/chunk merge. Matching results are unchanged.
   - Percolator::rescorePSMs rescores PeptideIdentifications in place on the standard Percolator
@@ -443,6 +462,16 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: TheoreticalSpectrumGenerator with add_internal_fragments never generated the internal fragment that
+    ends next to the C-terminal residue (e.g. ID of PEPTIDE), and none at all for peptides of 4 residues.
+    OpenNuXL, which annotates spectra with internal fragments, now reports these fragments too.
+  - FIX: TMT 32-plex and 35-plex (IsobaricAnalyzer, IsobaricWorkflow) could not use isotope correction:
+    the correction_matrix parameter was ignored and the identity matrix used, which the isotope correction
+    rejects, so the tools failed with the default isotope_correction 'true'. Both methods now ship the
+    matrices of a Thermo Certificate of Analysis as defaults, in two parameters laid out like the two CoA
+    sheets: correction_matrix for the non-deuterated channels (8 columns, as for TMT 16-/18-plex) and
+    correction_matrix_deuterated for the deuterated channels (14 columns). A correction_matrix with one
+    14-column row per channel, as stored in OpenMS 3.6.0 INI files, is still accepted.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -573,6 +602,9 @@ TOPP tools:
       - Thermo .raw input is streamed into the SWATH maps instead of being loaded completely and
         copied, and the full map is no longer kept alive as run metadata; -out_qc (SwathQC) now also
         receives the spectra of .raw input (#10522).
+      - -readOptions onDisc for indexed mzML and Thermo .raw input reads the spectra of each SWATH window from the file
+        during extraction instead of holding them in memory; results are identical to 'normal'.
+        Input with more than one FAIMS compensation voltage is rejected (#10522).
     SageAdapter, CometAdapter:
       - Thermo .raw input is streamed into the temporary mzML instead of being loaded into memory (#10522).
     IDFileConverter:
