@@ -125,7 +125,7 @@ namespace OpenMS
 
     // backfitting
     vector<double> buffer;
-    buffer.reserve(2 * settings.neighbors);
+    buffer.reserve(std::min<Size>(cells.size(), 2 * settings.neighbors));
     for (Size round = 0; round < settings.rounds; ++round)
     {
       for (Size f = 0; f < map.size(); ++f)
