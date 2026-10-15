@@ -72,14 +72,16 @@ START_SECTION((void align(const PeakMap& map, TransformationDescription& trafo))
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), maps[0]);
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), maps[1]);
 
+  // default peak selection ('spread'): one peak per analyte over the whole RT range
   MapAlignmentAlgorithmPoseClustering aligner;
+  TEST_EQUAL(aligner.getParameters().getValue("peak_selection:method").toString(), "spread")
   aligner.setReference(maps[0]);
 
   TransformationDescription trafo;
   aligner.align(maps[1], trafo);
 
   TEST_EQUAL(trafo.getModelType(), "linear");
-  TEST_EQUAL(trafo.getDataPoints().size(), 307);
+  TEST_EQUAL(trafo.getDataPoints().size(), 625);
   
   // @TODO: can we get the slope/intercept without fitting a model again?
   TransformationModelLinear lm(trafo.getDataPoints(),
@@ -88,8 +90,8 @@ START_SECTION((void align(const PeakMap& map, TransformationDescription& trafo))
   std::string x_weight, y_weight;
   double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
   lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
-  TEST_REAL_SIMILAR(slope, 1.01164);
-  TEST_REAL_SIMILAR(intercept, -32.0912);
+  TEST_REAL_SIMILAR(slope, 1.00778);
+  TEST_REAL_SIMILAR(intercept, -21.0484);
 }
 END_SECTION
 
@@ -319,6 +321,28 @@ START_SECTION([EXTRA] selectPeaks_ rejects NaN intensities)
   nan_map[0].setMSLevel(2);
   TestAligner::selectPeaks_(map_index, nan_map, out, Size(-1));
   TEST_EQUAL(out.size(), 0)
+
+  // non-finite RTs and m/z values are rejected as well, except for the RT of empty spectra
+  PeakMap inf_rt;
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    ms1.setRT(std::numeric_limits<double>::infinity());
+    ms1.push_back(Peak1D(500.0, 10.0f));
+    inf_rt.addSpectrum(ms1);
+  }
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectPeaks_(map_index, inf_rt, out, 1))
+  inf_rt[0].clear(false);
+  TestAligner::selectPeaks_(map_index, inf_rt, out, 1);
+  TEST_EQUAL(out.size(), 0)
+  PeakMap nan_mz;
+  {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    ms1.push_back(Peak1D(std::numeric_limits<double>::quiet_NaN(), 10.0f));
+    nan_mz.addSpectrum(ms1);
+  }
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectPeaks_(map_index, nan_mz, out, 1))
 }
 END_SECTION
 
@@ -425,6 +449,64 @@ START_SECTION((static void selectSpreadPeaks_(UInt64 map_index, const PeakMap& m
   TEST_REAL_SIMILAR(out[2].getIntensity(), 20.0)
   TEST_REAL_SIMILAR(out[3].getIntensity(), 10.0)
 
+  // empty MS1 spectra do not stretch the grid: with an empty spectrum at RT 5000, the two RT bins still split RT 10..90
+  {
+    PeakMap with_empty = early_late;
+    MSSpectrum empty;
+    empty.setMSLevel(1);
+    empty.setRT(5000.0);
+    with_empty.addSpectrum(empty);
+    TestAligner::selectSpreadPeaks_(map_index, with_empty, out, 4, 5.0, 10.0, 2, 2, 1);
+    TEST_EQUAL(out.size(), 4)
+    ABORT_IF(out.size() != 4)
+    TEST_REAL_SIMILAR(out[2].getIntensity(), 20.0)
+    TEST_REAL_SIMILAR(out[3].getIntensity(), 10.0)
+  }
+
+  // most grid cells empty: 40 analytes at m/z 400, 404, ..., 556 elute over RT 0..10 (apex at RT 5, each half as
+  // intense as the one before), and one weak peak at RT 1000, m/z 2000 stretches the 10 x 10 grid, so that all
+  // analytes fall into one cell. The first candidates of that cell (50 per share of n) belong to only 6 analytes;
+  // more candidates are taken until the selection is complete.
+  PeakMap sparse;
+  for (int s = 0; s <= 10; ++s)
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(s);
+    for (int i = 0; i < 40; ++i)
+    {
+      spec.push_back(Peak1D(400.0 + 4.0 * i, float(1e6 * std::pow(0.5, i) * (1.0 - std::abs(s - 5) / 6.0))));
+    }
+    sparse.addSpectrum(spec);
+  }
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(1000.0);
+    spec.push_back(Peak1D(2000.0, 1.0f));
+    sparse.addSpectrum(spec);
+  }
+  // the apices of the 19 most intense analytes and, round-robin, the peak of the other cell
+  TestAligner::selectSpreadPeaks_(map_index, sparse, out, 20, 20.0, 10.0, 1, 10, 10);
+  TEST_EQUAL(out.size(), 20)
+  ABORT_IF(out.size() != 20)
+  for (Size i = 0; i < 19; ++i)
+  {
+    TEST_REAL_SIMILAR(out[i].getRT(), 5.0)
+    TEST_REAL_SIMILAR(out[i].getMZ(), 400.0 + 4.0 * double(i))
+  }
+  TEST_REAL_SIMILAR(out[19].getRT(), 1000.0)
+  TEST_REAL_SIMILAR(out[19].getMZ(), 2000.0)
+  // all analytes
+  TestAligner::selectSpreadPeaks_(map_index, sparse, out, 1000, 20.0, 10.0, 1, 10, 10);
+  TEST_EQUAL(out.size(), 41)
+
+  // a single spectrum (no RT range)
+  PeakMap single;
+  single.addSpectrum(sparse[5]);
+  TestAligner::selectSpreadPeaks_(map_index, single, out, 1000, 20.0, 10.0, 1, 10, 10);
+  TEST_EQUAL(out.size(), 40)
+
   // empty, MS2 only, n = 0
   TestAligner::selectSpreadPeaks_(map_index, PeakMap(), out, 5, 20.0, 10.0, 2, 10, 10);
   TEST_EQUAL(out.size(), 0)
@@ -450,27 +532,54 @@ START_SECTION((static void selectSpreadPeaks_(UInt64 map_index, const PeakMap& m
     nan_map.addSpectrum(spec);
   }
   TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectSpreadPeaks_(map_index, nan_map, out, 5, 20.0, 10.0, 2, 1, 1))
+
+  // as are non-finite RTs and m/z values
+  PeakMap inf_rt;
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.setRT(std::numeric_limits<double>::infinity());
+    spec.push_back(Peak1D(500.0, 10.0f));
+    inf_rt.addSpectrum(spec);
+  }
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectSpreadPeaks_(map_index, inf_rt, out, 5, 20.0, 10.0, 2, 10, 10))
+  PeakMap inf_mz;
+  {
+    MSSpectrum spec;
+    spec.setMSLevel(1);
+    spec.push_back(Peak1D(std::numeric_limits<double>::infinity(), 10.0f));
+    inf_mz.addSpectrum(spec);
+  }
+  TEST_EXCEPTION(Exception::InvalidValue, TestAligner::selectSpreadPeaks_(map_index, inf_mz, out, 5, 20.0, 10.0, 2, 10, 10))
 }
 END_SECTION
 
-START_SECTION([EXTRA] align(PeakMap) with peak_selection:method 'spread')
+START_SECTION([EXTRA] align(PeakMap) with peak_selection:method 'intensity')
 {
   MzMLFile f;
   std::vector<PeakMap> maps(2);
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), maps[0]);
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), maps[1]);
 
+  // the most intense peaks (the selection before 'spread'); most of the matched pairs lie within RT 3200..3400
   MapAlignmentAlgorithmPoseClustering aligner;
   Param param = aligner.getParameters();
-  param.setValue("peak_selection:method", "spread");
+  param.setValue("peak_selection:method", "intensity");
   aligner.setParameters(param);
   aligner.setReference(maps[0]);
 
   TransformationDescription trafo;
   aligner.align(maps[1], trafo);
   TEST_EQUAL(trafo.getModelType(), "linear");
-  STATUS("data points with 'spread': " << trafo.getDataPoints().size());
-  TEST_EQUAL(trafo.getDataPoints().empty(), false);
+  TEST_EQUAL(trafo.getDataPoints().size(), 307);
+
+  TransformationModelLinear lm(trafo.getDataPoints(), trafo.getModelParameters());
+  double slope, intercept;
+  std::string x_weight, y_weight;
+  double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
+  lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
+  TEST_REAL_SIMILAR(slope, 1.01164);
+  TEST_REAL_SIMILAR(intercept, -32.0912);
 }
 END_SECTION
 

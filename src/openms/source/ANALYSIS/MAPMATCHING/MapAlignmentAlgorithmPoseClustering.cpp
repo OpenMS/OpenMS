@@ -38,12 +38,13 @@ namespace OpenMS
     defaults_.setValue("max_num_peaks_considered", 1000, "The maximal number of peaks/features to be considered per map. To use all, set to '-1'.");
     defaults_.setMinInt("max_num_peaks_considered", -1);
 
-    defaults_.setValue("peak_selection:method", "intensity",
+    defaults_.setValue("peak_selection:method", "spread",
                        "How the 'max_num_peaks_considered' MS1 peaks of a peak map (e.g. mzML input) are selected. "
-                       "'intensity': the most intense peaks; one intense analyte contributes many peaks (its elution profile and isotope pattern). "
                        "'spread': at most one peak per analyte (the most intense one of its elution profile and isotope pattern), "
-                       "spread over the RT and m/z range of the map. Feature maps always use their most intense features.");
-    defaults_.setValidStrings("peak_selection:method", {"intensity", "spread"});
+                       "spread over the RT and m/z range of the map. "
+                       "'intensity': the most intense peaks (the selection of OpenMS 3.6 and earlier); one intense analyte contributes many peaks "
+                       "(its elution profile and isotope pattern). Feature maps always use their most intense features.");
+    defaults_.setValidStrings("peak_selection:method", {"spread", "intensity"});
     defaults_.setValue("peak_selection:rt_window", 20.0,
                        "('spread' only) A peak within this RT distance (in seconds) of a selected peak at the same m/z, "
                        "or at an isotope position of it, belongs to the same analyte and is not selected. Use about the width of a chromatographic peak.");
@@ -55,8 +56,10 @@ namespace OpenMS
     defaults_.setMinInt("peak_selection:max_charge", 0);
     defaults_.setValue("peak_selection:rt_bins", 10, "('spread' only) Number of RT bins over which the selected peaks are spread.");
     defaults_.setMinInt("peak_selection:rt_bins", 1);
+    defaults_.setMaxInt("peak_selection:rt_bins", 1000);
     defaults_.setValue("peak_selection:mz_bins", 10, "('spread' only) Number of m/z bins over which the selected peaks are spread.");
     defaults_.setMinInt("peak_selection:mz_bins", 1);
+    defaults_.setMaxInt("peak_selection:mz_bins", 1000);
     defaults_.setSectionDescription("peak_selection", "Selection of the MS1 peaks of peak maps");
 
     defaultsToParam_();
@@ -102,6 +105,16 @@ namespace OpenMS
                                       std::string(what) + " with a NaN intensity cannot be aligned.", "NaN");
       }
     }
+
+    // NaN or infinite positions break the ordering and the RT x m/z binning
+    void throwIfNotFinite(double value, const char* what)
+    {
+      if (!std::isfinite(value))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      std::string(what) + " cannot be aligned.", std::to_string(value));
+      }
+    }
   } // namespace
 
   void MapAlignmentAlgorithmPoseClustering::selectPeaks_(UInt64 map_index, const PeakMap& map, ConsensusMap& output, Size n)
@@ -130,9 +143,14 @@ namespace OpenMS
       {
         continue;
       }
+      if (!spectrum.empty())
+      {
+        throwIfNotFinite(spectrum.getRT(), "An MS1 spectrum with a non-finite RT");
+      }
       for (const Peak1D& peak : spectrum)
       {
         throwIfNaN(peak.getIntensity(), "An MS1 peak");
+        throwIfNotFinite(peak.getMZ(), "An MS1 peak with a non-finite m/z");
         if (n == 0)
         {
           continue;
@@ -182,9 +200,11 @@ namespace OpenMS
       {
         continue;
       }
+      throwIfNotFinite(spectrum.getRT(), "An MS1 spectrum with a non-finite RT");
       for (const Peak1D& peak : spectrum)
       {
         throwIfNaN(peak.getIntensity(), "An MS1 peak");
+        throwIfNotFinite(peak.getMZ(), "An MS1 peak with a non-finite m/z");
         mz_min = std::min(mz_min, peak.getMZ());
         mz_max = std::max(mz_max, peak.getMZ());
       }
@@ -207,55 +227,10 @@ namespace OpenMS
     };
     const auto more_intense = [](const Peak2D& left, const Peak2D& right) { return moreIntense(left, right); };
 
-    // pass 2: the most intense candidates of each cell (a multiple of the cell's share of n, since one analyte
-    // contributes many peaks), in heaps whose front is the least intense candidate
-    std::vector<Peak2D> candidates;
-    if (n > 0)
-    {
-      constexpr Size candidates_per_selected_peak = 50;
-      const Size per_cell = std::min(ms1_peaks, ((n + cells - 1) / cells) * candidates_per_selected_peak);
-      std::vector<std::vector<Peak2D>> pools(cells);
-      for (const MSSpectrum& spectrum : map)
-      {
-        if (spectrum.getMSLevel() != 1)
-        {
-          continue;
-        }
-        for (const Peak1D& peak : spectrum)
-        {
-          Peak2D candidate;
-          candidate.setRT(spectrum.getRT());
-          candidate.setMZ(peak.getMZ());
-          candidate.setIntensity(peak.getIntensity());
-          std::vector<Peak2D>& pool = pools[cellOf(candidate.getRT(), candidate.getMZ())];
-          if (pool.size() < per_cell)
-          {
-            pool.push_back(candidate);
-            std::push_heap(pool.begin(), pool.end(), more_intense);
-          }
-          else if (more_intense(candidate, pool.front()))
-          {
-            std::pop_heap(pool.begin(), pool.end(), more_intense);
-            pool.back() = candidate;
-            std::push_heap(pool.begin(), pool.end(), more_intense);
-          }
-        }
-      }
-      for (std::vector<Peak2D>& pool : pools)
-      {
-        candidates.insert(candidates.end(), pool.begin(), pool.end());
-        std::vector<Peak2D>().swap(pool);
-      }
-      std::sort(candidates.begin(), candidates.end(), more_intense);
-    }
-
-    // pass 3: from the most intense candidate down, accept a candidate unless an accepted peak of the same analyte
-    // (same m/z or an isotope position, within rt_window) exists; accepted peaks are found through a hash grid with
-    // cells at least as large as the RT window and the m/z tolerance
-    std::vector<Peak2D> accepted;
+    // accepted peaks of the same analyte are found through a hash grid with cells at least as large as the RT window
+    // and the m/z tolerance
     const double rt_cell = rt_window > 0.0 ? rt_window : 1.0;
     const double mz_cell = std::max(std::abs(mz_max) * mz_tolerance_ppm * 1e-6, 1e-6);
-    std::unordered_map<UInt64, std::vector<Size>> grid;
     const auto key = [&](Int64 rt_key, Int64 mz_key) { return (UInt64(rt_key) << 32) ^ UInt64(mz_key); };
     std::vector<double> offsets{0.0};
     constexpr Size max_isotope = 3;
@@ -267,6 +242,8 @@ namespace OpenMS
         offsets.push_back(-double(k) * Constants::C13C12_MASSDIFF_U / double(z));
       }
     }
+    std::vector<Peak2D> accepted;
+    std::unordered_map<UInt64, std::vector<Size>> grid;
     const auto sameAnalyteAccepted = [&](const Peak2D& candidate)
     {
       const auto rt_low = static_cast<Int64>(std::floor((candidate.getRT() - rt_window) / rt_cell));
@@ -296,28 +273,99 @@ namespace OpenMS
       }
       return false;
     };
-    for (const Peak2D& candidate : candidates)
-    {
-      if (sameAnalyteAccepted(candidate))
-      {
-        continue;
-      }
-      grid[key(static_cast<Int64>(std::floor(candidate.getRT() / rt_cell)),
-               static_cast<Int64>(std::floor(candidate.getMZ() / mz_cell)))].push_back(accepted.size());
-      accepted.push_back(candidate);
-    }
-
-    // round-robin over the grid cells: rank the accepted peaks within their cell (they are in intensity order) and
-    // take the n peaks of lowest rank, the more intense first within a rank
-    std::vector<Size> next_rank(cells, 0);
+    // Each grid cell keeps its most intense peaks as candidates, at first a multiple of its share of n (one analyte
+    // contributes many peaks), so that memory stays proportional to n. A cell can need more: its share is wasted
+    // where other cells are empty, and its candidates can belong to only a few analytes. Such a cell's limit is
+    // doubled, and the selection repeated, while the round-robin reaches its last accepted peak.
+    constexpr Size candidates_per_selected_peak = 50;
+    std::vector<Size> limit(cells, std::min(ms1_peaks, ((n + cells - 1) / cells) * candidates_per_selected_peak));
     std::vector<std::pair<Size, Size>> ranked; // (rank in cell, index into accepted)
-    ranked.reserve(accepted.size());
-    for (Size i = 0; i < accepted.size(); ++i)
+    while (n > 0)
     {
-      ranked.emplace_back(next_rank[cellOf(accepted[i].getRT(), accepted[i].getMZ())]++, i);
+      // pass 2: the most intense candidates of each cell, in heaps whose front is the least intense candidate
+      std::vector<std::vector<Peak2D>> pools(cells);
+      std::vector<bool> truncated(cells, false);
+      for (const MSSpectrum& spectrum : map)
+      {
+        if (spectrum.getMSLevel() != 1)
+        {
+          continue;
+        }
+        for (const Peak1D& peak : spectrum)
+        {
+          Peak2D candidate;
+          candidate.setRT(spectrum.getRT());
+          candidate.setMZ(peak.getMZ());
+          candidate.setIntensity(peak.getIntensity());
+          const Size cell = cellOf(candidate.getRT(), candidate.getMZ());
+          std::vector<Peak2D>& pool = pools[cell];
+          if (pool.size() < limit[cell])
+          {
+            pool.push_back(candidate);
+            std::push_heap(pool.begin(), pool.end(), more_intense);
+            continue;
+          }
+          truncated[cell] = true;
+          if (more_intense(candidate, pool.front()))
+          {
+            std::pop_heap(pool.begin(), pool.end(), more_intense);
+            pool.back() = candidate;
+            std::push_heap(pool.begin(), pool.end(), more_intense);
+          }
+        }
+      }
+      std::vector<Peak2D> candidates;
+      for (std::vector<Peak2D>& pool : pools)
+      {
+        candidates.insert(candidates.end(), pool.begin(), pool.end());
+        std::vector<Peak2D>().swap(pool);
+      }
+      std::sort(candidates.begin(), candidates.end(), more_intense);
+
+      // pass 3: from the most intense candidate down, accept a candidate unless an accepted peak of the same analyte
+      // (same m/z or an isotope position, within rt_window) exists
+      accepted.clear();
+      grid.clear();
+      for (const Peak2D& candidate : candidates)
+      {
+        if (sameAnalyteAccepted(candidate))
+        {
+          continue;
+        }
+        grid[key(static_cast<Int64>(std::floor(candidate.getRT() / rt_cell)),
+                 static_cast<Int64>(std::floor(candidate.getMZ() / mz_cell)))].push_back(accepted.size());
+        accepted.push_back(candidate);
+      }
+
+      // round-robin over the grid cells: rank the accepted peaks within their cell (they are in intensity order) and
+      // take the n peaks of lowest rank, the more intense first within a rank
+      std::vector<Size> accepted_in_cell(cells, 0);
+      ranked.clear();
+      ranked.reserve(accepted.size());
+      for (Size i = 0; i < accepted.size(); ++i)
+      {
+        ranked.emplace_back(accepted_in_cell[cellOf(accepted[i].getRT(), accepted[i].getMZ())]++, i);
+      }
+      std::sort(ranked.begin(), ranked.end());
+      const bool all_taken = ranked.size() < n;
+      ranked.resize(std::min(n, ranked.size()));
+
+      // a truncated cell may hold further analytes; they matter if the round-robin reaches the rank of the next one
+      const Size last_rank = ranked.empty() ? 0 : ranked.back().first;
+      bool repeat = false;
+      for (Size cell = 0; cell < cells; ++cell)
+      {
+        if (truncated[cell] && (all_taken || accepted_in_cell[cell] <= last_rank))
+        {
+          limit[cell] = std::min(ms1_peaks, 2 * limit[cell]);
+          repeat = true;
+        }
+      }
+      if (!repeat)
+      {
+        break;
+      }
     }
-    std::sort(ranked.begin(), ranked.end());
-    ranked.resize(std::min(n, ranked.size()));
 
     std::vector<Peak2D> selected;
     selected.reserve(ranked.size());

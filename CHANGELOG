@@ -47,15 +47,17 @@ OpenMS Library:
     an element with a unique id. MapAlignmentAlgorithmPoseClustering selects the most intense MS1 peaks of a
     PeakMap itself (holding only the selected peaks, without copying the map); its setReference() template is
     replaced by overloads for FeatureMap and PeakMap.
-  - MapAlignmentAlgorithmPoseClustering (MapAlignerPoseClustering): new 'peak_selection:method' 'spread' for peak
-    maps selects at most one MS1 peak per analyte (non-maximum suppression over the elution profile, within
-    'peak_selection:rt_window', and the isotope pattern, up to 'peak_selection:max_charge'), spread round-robin over a
-    'peak_selection:rt_bins' x 'peak_selection:mz_bins' grid. The most intense peaks of a few analytes cancel out in
-    the superimposer and make the pair finder's matches ambiguous. The default ('intensity') is unchanged.
+  - MapAlignmentAlgorithmPoseClustering (MapAlignerPoseClustering): new 'peak_selection:method' 'spread', the new
+    default for peak maps (e.g. mzML input), selects at most one MS1 peak per analyte (non-maximum suppression over
+    the elution profile, within 'peak_selection:rt_window', and the isotope pattern, up to
+    'peak_selection:max_charge'), spread round-robin over a 'peak_selection:rt_bins' x 'peak_selection:mz_bins' grid.
+    The most intense peaks of a few analytes cancel out in the superimposer and make the pair finder's matches
+    ambiguous. 'peak_selection:method' 'intensity' selects the most intense peaks as before. Feature maps are not
+    affected.
   - FIX: MapAlignmentAlgorithmPoseClustering (MapAlignerPoseClustering) used the first 'max_num_peaks_considered'
     features of a feature map in file order (e.g. the 1000 lowest-RT features of a position-sorted featureXML)
-    instead of the most intense ones. Peaks or features with a NaN intensity now throw Exception::InvalidValue
-    instead of making the selection undefined.
+    instead of the most intense ones. Peaks or features with a NaN intensity, and MS1 peaks with a non-finite RT or
+    m/z, now throw Exception::InvalidValue instead of making the selection undefined.
   - FIX: MetaboliteSpectralMatching HyperScore rejects negative and non-finite fragment tolerances before scoring, including empty spectra; zero-tolerance exact matching remains supported.
   - FIX: OMS schema 6 preserves IdentificationData processing actions and distinct same-second search provenance; schemas 1-5 remain readable.
   - FIX: IdentificationData chooses a reproducible representative for exact best-score ties without target/decoy preference.
