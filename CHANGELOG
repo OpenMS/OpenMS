@@ -428,6 +428,9 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: TheoreticalSpectrumGenerator with add_internal_fragments never generated the internal fragment that
+    ends next to the C-terminal residue (e.g. ID of PEPTIDE), and none at all for peptides of 4 residues.
+    OpenNuXL, which annotates spectra with internal fragments, now reports these fragments too.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
