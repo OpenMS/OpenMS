@@ -3,11 +3,13 @@
 #define OPENMS_NASE_CLASS_TEST
 #include "../NucleicAcidSearchEngine.cpp"
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 #include "RNAPrecursorCorrector.h"
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <limits>
@@ -1354,6 +1356,256 @@ START_SECTION(([EXTRA] FLASH MS1: std::vector<Result> correct(MSExperiment& expe
   RNAPrecursorCorrector::storeReport(tsv, rows);
   TextFile report(tsv);
   TEST_EQUAL(std::distance(report.begin(), report.end()), 2)
+}
+END_SECTION
+START_SECTION(([EXTRA] FLASH MS1: std::vector<Result> correct(MSExperiment& experiment) preserves unsorted parent scans))
+{
+  for (bool positive : {false, true})
+  {
+    auto sorted_parent = survey(positive);
+    MSSpectrum::IntegerDataArray indices;
+    indices.setName("original_index");
+    MSSpectrum::FloatDataArray samples;
+    samples.setName("sample_value");
+    MSSpectrum::StringDataArray labels;
+    labels.setName("sample_label");
+    for (Size i = 0; i < sorted_parent.size(); ++i)
+    {
+      indices.push_back(i);
+      samples.push_back(float(i) + 0.5f);
+      labels.push_back("sample_" + std::to_string(i));
+    }
+    sorted_parent.getIntegerDataArrays().push_back(indices);
+    sorted_parent.getFloatDataArrays().push_back(samples);
+    sorted_parent.getStringDataArrays().push_back(labels);
+    const auto fragmentation = ms2(sorted_parent);
+    auto unsorted_parent = sorted_parent;
+    // Leave the first/last m/z unchanged so only interior ordering differs.
+    std::reverse(unsorted_parent.begin() + 1, unsorted_parent.end() - 1);
+    for (auto& array : unsorted_parent.getIntegerDataArrays())
+    {
+      std::reverse(array.begin() + 1, array.end() - 1);
+    }
+    for (auto& array : unsorted_parent.getFloatDataArrays())
+    {
+      std::reverse(array.begin() + 1, array.end() - 1);
+    }
+    for (auto& array : unsorted_parent.getStringDataArrays())
+    {
+      std::reverse(array.begin() + 1, array.end() - 1);
+    }
+    TEST_TRUE(sorted_parent.isSorted())
+    TEST_FALSE(unsorted_parent.isSorted())
+    RNAPrecursorCorrector corrector(10, 1, 5, positive, 8000);
+    MSExperiment sorted_experiment, unsorted_experiment;
+    sorted_experiment.setSpectra({sorted_parent, fragmentation});
+    unsorted_experiment.setSpectra({unsorted_parent, fragmentation});
+    const auto expected_rows = corrector.correct(sorted_experiment);
+    const auto actual_rows = corrector.correct(unsorted_experiment);
+    TEST_EQUAL(expected_rows.size(), 1)
+    TEST_EQUAL(actual_rows.size(), 1)
+    ABORT_IF(expected_rows.size() != 1 || actual_rows.size() != 1)
+    const auto& expected = expected_rows[0];
+    const auto& actual = actual_rows[0];
+    TEST_TRUE(expected.accepted())
+    TEST_TRUE(actual.accepted())
+    TEST_EQUAL(actual.status, expected.status)
+    TEST_EQUAL(actual.spectrum, expected.spectrum)
+    TEST_EQUAL(actual.parent, expected.parent)
+    TEST_EQUAL(actual.parent_source, expected.parent_source)
+    TEST_EQUAL(actual.isotope, expected.isotope)
+    TEST_EQUAL(actual.charge, expected.charge)
+    TEST_EQUAL(actual.original_mz, expected.original_mz)
+    TEST_EQUAL(actual.original_charge, expected.original_charge)
+    TEST_EQUAL(actual.corrected_mz, expected.corrected_mz)
+    TEST_EQUAL(actual.mono_mass, expected.mono_mass)
+    TEST_EQUAL(actual.cosine, expected.cosine)
+    TEST_EQUAL(actual.snr, expected.snr)
+    TEST_EQUAL(actual.selected_error_ppm, expected.selected_error_ppm)
+    TEST_TRUE(actual.mono_observed == expected.mono_observed)
+    TEST_EQUAL(actual.parent_peak_count, expected.parent_peak_count)
+    TEST_EQUAL(actual.parent_query_count, expected.parent_query_count)
+    TEST_EQUAL(sorted_experiment[0], sorted_parent)
+    TEST_EQUAL(unsorted_experiment[0], unsorted_parent)
+    TEST_EQUAL(unsorted_experiment[1], sorted_experiment[1])
+  }
+}
+END_SECTION
+START_SECTION(([EXTRA] directed FLASH MS1: Different precursors sharing an MS1 use one batch and retain the full scan))
+{
+  RNAPrecursorCorrector corrector(10, 1, 5, false, 8000);
+  const auto first = survey();
+  auto second = first;
+  for (auto& peak : second) peak.setMZ(peak.getMZ() + 30.0);
+  auto parent = first;
+  parent.insert(parent.end(), second.begin(), second.end());
+  parent.sortByPosition();
+  auto a = ms2(first, 1);
+  auto b = ms2(second, 3);
+  b.setNativeID("scan=4");
+  auto repeat = a;
+  repeat.setNativeID("scan=5");
+  auto unknown = a;
+  unknown.setNativeID("scan=6");
+  unknown.getPrecursors()[0].setCharge(0);
+  MSExperiment experiment;
+  experiment.setSpectra({parent, a, b, repeat, unknown});
+  const auto rows = corrector.correct(experiment);
+  TEST_EQUAL(rows.size(), 4)
+  for (Size i = 0; i < rows.size(); ++i)
+  {
+    TEST_TRUE(rows[i].accepted())
+    TEST_EQUAL(rows[i].parent_peak_count, parent.size())
+    TEST_EQUAL(rows[i].charge, 2)
+    TEST_EQUAL(rows[i].parent_query_count, 3)
+  }
+  TEST_EQUAL(rows[0].isotope, 1)
+  TEST_EQUAL(rows[1].isotope, 3)
+  TEST_REAL_SIMILAR(rows[0].corrected_mz, first[0].getMZ())
+  TEST_REAL_SIMILAR(rows[1].corrected_mz, second[0].getMZ())
+  TEST_REAL_SIMILAR(rows[2].corrected_mz, rows[0].corrected_mz)
+  TEST_EQUAL(rows[3].original_charge, 0)
+  TEST_EQUAL(experiment[0], parent)
+}
+END_SECTION
+START_SECTION(([EXTRA] directed FLASH MS1: std::vector<Result> correct(MSExperiment& experiment) retains overlapping co-batch corrections))
+{
+  MSExperiment fixture;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("RNAPrecursorCorrector_competition.mzML"), fixture);
+  RNAPrecursorCorrector corrector(10, 1, 20, false, 8800.181396484375, 0.85, 0.25);
+  for (Size i = 0; i < 2; ++i)
+  {
+    const auto& parent = fixture[2 * i];
+    const auto& child = fixture[2 * i + 1];
+    MSExperiment alone;
+    alone.setSpectra({parent, child});
+    const auto expected = corrector.correct(alone)[0];
+    auto overlapping = child;
+    overlapping.setNativeID("overlapping");
+    auto& query = overlapping.getPrecursors()[0];
+    query.setMZ(query.getMZ() + Constants::C13C12_MASSDIFF_U / std::max(1, std::abs(query.getCharge())));
+    auto unknown = child;
+    unknown.setNativeID("unknown_charge");
+    unknown.getPrecursors()[0].setCharge(0);
+    for (bool reverse : {false, true})
+    {
+      MSExperiment batch;
+      batch.setSpectra(reverse ? std::vector<MSSpectrum>{parent, child, unknown, overlapping} :
+                                std::vector<MSSpectrum>{parent, child, overlapping, unknown});
+      const auto rows = corrector.correct(batch);
+      TEST_EQUAL(rows.size(), 3)
+      ABORT_IF(rows.size() != 3)
+      const auto& actual = rows[0];
+      TEST_EQUAL(actual.status, expected.status)
+      TEST_EQUAL(actual.isotope, expected.isotope)
+      TEST_EQUAL(actual.charge, expected.charge)
+      TEST_EQUAL(actual.original_mz, expected.original_mz)
+      TEST_EQUAL(actual.original_charge, expected.original_charge)
+      TEST_EQUAL(actual.corrected_mz, expected.corrected_mz)
+      TEST_EQUAL(actual.mono_mass, expected.mono_mass)
+      TEST_EQUAL(actual.cosine, expected.cosine)
+      TEST_EQUAL(actual.snr, expected.snr)
+      TEST_EQUAL(actual.selected_error_ppm, expected.selected_error_ppm)
+      TEST_TRUE(actual.mono_observed == expected.mono_observed)
+      TEST_EQUAL(batch[0], parent)
+    }
+  }
+}
+END_SECTION
+START_SECTION(([EXTRA] directed FLASH MS1: Full-MS1 evidence at distant charge states))
+{
+  for (bool positive : {false, true})
+  {
+    auto parent = survey(positive);
+    const double carrier = positive ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U;
+    const auto charge_two = parent;
+    for (const auto& peak : charge_two)
+    {
+      parent.emplace_back((peak.getMZ() - carrier) * 2 / 3 + carrier, peak.getIntensity() * 0.8);
+    }
+    parent.sortByPosition();
+    SpectralDeconvolution full;
+    Param parameters = full.getParameters();
+    parameters.setValue("tol", DoubleList{10, 10});
+    parameters.setValue("min_charge", positive ? 1 : -5);
+    parameters.setValue("max_charge", positive ? 5 : -1);
+    parameters.setValue("max_mass", 8000.0);
+    parameters.setValue("min_cos", DoubleList{0.85, 0.85});
+    parameters.setValue("min_snr", DoubleList{0.25, 0.25});
+    full.setParameters(parameters);
+    full.calculateAveragine(true);
+    for (int charge : {0, 2})
+    {
+      auto fragmentation = ms2(charge_two, 1);
+      fragmentation.getPrecursors()[0].setCharge(charge);
+      RNAPrecursorCorrector corrector(10, 1, 5, positive, 8000);
+      full.performSpectrumDeconvolution(parent, 0, PeakGroup());
+      const auto expected = corrector.match(full.getDeconvolvedSpectrum(), fragmentation.getPrecursors()[0]);
+      MSExperiment experiment;
+      experiment.setSpectra({parent, fragmentation});
+      const auto result = corrector.correct(experiment)[0];
+      TEST_TRUE(expected.accepted())
+      TEST_EQUAL(result.status, expected.status)
+      TEST_EQUAL(result.isotope, expected.isotope)
+      TEST_EQUAL(result.charge, expected.charge)
+      TEST_EQUAL(result.corrected_mz, expected.corrected_mz)
+      TEST_EQUAL(result.original_mz, expected.original_mz)
+      TEST_EQUAL(result.original_charge, expected.original_charge)
+      TEST_EQUAL(result.mono_mass, expected.mono_mass)
+      TEST_EQUAL(result.cosine, expected.cosine)
+      TEST_EQUAL(result.snr, expected.snr)
+      TEST_EQUAL(result.selected_error_ppm, expected.selected_error_ppm)
+      TEST_EQUAL(result.mono_observed, expected.mono_observed)
+      TEST_EQUAL(experiment[0], parent)
+    }
+  }
+}
+END_SECTION
+START_SECTION(([EXTRA] directed FLASH MS1: Refined overlapping envelopes retain the full-scan competition result))
+{
+  // Two reduced Kaiser MS1 cases exercise overlapping-envelope refinement
+  // and an envelope whose initial apex shifted. The first is near a quality
+  // cutoff, so its full-scan decision can differ across platforms; compare
+  // directed results with the full-scan reference from this same build.
+  MSExperiment experiment;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("RNAPrecursorCorrector_competition.mzML"), experiment);
+  RNAPrecursorCorrector corrector(10, 1, 20, false, 8800.181396484375, 0.85, 0.25);
+  const auto original = experiment;
+  const auto rows = corrector.correct(experiment);
+  TEST_EQUAL(rows.size(), 2)
+  ABORT_IF(rows.size() != 2)
+  SpectralDeconvolution full;
+  Param parameters = full.getParameters();
+  parameters.setValue("tol", DoubleList{10, 10});
+  parameters.setValue("min_charge", -20);
+  parameters.setValue("max_charge", -1);
+  parameters.setValue("max_mass", 8800.181396484375);
+  parameters.setValue("min_cos", DoubleList{0.85, 0.85});
+  parameters.setValue("min_snr", DoubleList{0.25, 0.25});
+  full.setParameters(parameters);
+  full.calculateAveragine(true);
+  for (Size i = 0; i < rows.size(); ++i)
+  {
+    full.performSpectrumDeconvolution(original[2 * i], int(2 * i), PeakGroup());
+    const auto expected = corrector.match(full.getDeconvolvedSpectrum(), original[2 * i + 1].getPrecursors()[0]);
+    TEST_EQUAL(rows[i].status, expected.status)
+    TEST_EQUAL(rows[i].isotope, expected.isotope)
+    TEST_EQUAL(rows[i].charge, expected.charge)
+    TEST_EQUAL(rows[i].original_mz, expected.original_mz)
+    TEST_EQUAL(rows[i].original_charge, expected.original_charge)
+    TEST_EQUAL(rows[i].corrected_mz, expected.corrected_mz)
+    TEST_EQUAL(rows[i].mono_mass, expected.mono_mass)
+    TEST_EQUAL(rows[i].cosine, expected.cosine)
+    TEST_EQUAL(rows[i].snr, expected.snr)
+    TEST_EQUAL(rows[i].selected_error_ppm, expected.selected_error_ppm)
+    TEST_EQUAL(rows[i].mono_observed, expected.mono_observed)
+  }
+  TEST_EQUAL(rows[1].status, "monoisotopic")
+  TEST_EQUAL(rows[1].isotope, 0)
+  TEST_EQUAL(rows[1].charge, 4)
+  TEST_EQUAL(rows[1].corrected_mz, rows[1].original_mz)
+  TEST_EQUAL(experiment[0], original[0])
+  TEST_EQUAL(experiment[2], original[2])
 }
 END_SECTION
 END_TEST
