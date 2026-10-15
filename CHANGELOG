@@ -220,9 +220,6 @@ OpenMS Library:
   - FIX: The mzML writer escapes the name of a non-standard data array and the fraction identifier.
     An & or < in either - they are taken verbatim from the data - produced a file that no reader
     could parse, including the OpenMS one (#10148).
-  - FIX: MzMLSqliteHandler no longer accepts a sqMass PRECURSOR.ACTIVATION_METHOD value below -1.
-    Such a value cast straight to an out-of-range Precursor::ActivationMethod enum, which later
-    code (e.g. getActivationMethodsAsString()) used to index a static name table out of bounds.
   - FIX: FalseDiscoveryRate::applyPickedProteinFDR read past the end of its score map for a protein
     group that took no part in the target-decoy competition (all its members lost their pairs) and
     whose score lay beyond every calibrated group score. The group got an arbitrary value (in our
@@ -230,6 +227,9 @@ OpenMS Library:
     one gets the best q-value now (with no_qvalues: FDR 1), a worse one the q-value or FDR of the
     worst calibrated score. If there are groups but none takes part in the competition,
     Exception::MissingInformation is thrown.
+  - FIX: MzMLSqliteHandler no longer accepts a sqMass PRECURSOR.ACTIVATION_METHOD value below -1.
+    Such a value cast straight to an out-of-range Precursor::ActivationMethod enum, which later
+    code (e.g. getActivationMethodsAsString()) used to index a static name table out of bounds.
   - FIX: For lower-is-better scores, FalseDiscoveryRate gave a protein group whose score is not a
     calibrated score (in picked protein FDR: a group that takes no part in the competition) the
     q-value or FDR of the next worse calibrated score. It gets the one of the closest equal or
