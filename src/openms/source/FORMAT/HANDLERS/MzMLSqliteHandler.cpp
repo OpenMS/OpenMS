@@ -34,6 +34,25 @@ namespace OpenMS::Internal
 
     namespace Sql = Internal::SqliteHelper;
 
+    namespace
+    {
+      /// Spectrum native IDs as stored in the SPECTRUM table, in the order the spectra were written.
+      std::vector<std::string> storedSpectrumNativeIDs(SqliteConnector& conn)
+      {
+        std::vector<std::string> native_ids;
+        sqlite3_stmt* stmt;
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, "SELECT NATIVE_ID FROM SPECTRUM ORDER BY ID;");
+        Sql::SqlState state = Sql::SqlState::SQL_ROW;
+        while ((state = Sql::nextRow(stmt, state)) == Sql::SqlState::SQL_ROW)
+        {
+          const unsigned char* text = sqlite3_column_text(stmt, 0);
+          native_ids.emplace_back(text == nullptr ? std::string() : std::string(reinterpret_cast<const char*>(text), sqlite3_column_bytes(stmt, 0)));
+        }
+        sqlite3_finalize(stmt);
+        return native_ids;
+      }
+    }
+
   /**
    * @brief Helper function to concatenate integers with "," for SQL IN(...) lists.
    *
@@ -366,6 +385,20 @@ namespace OpenMS::Internal
         prepareSpectra_(conn, spectra);
         exp.setChromatograms(chromatograms);
         exp.setSpectra(spectra);
+      }
+      else
+      {
+        // The mzML writer replaces all spectrum native IDs by "spectrum=<index>" as soon as one of them
+        // lacks '=', so the full-metadata snapshot can carry renamed IDs. The SPECTRUM table keeps the
+        // original IDs, and the data below is matched against those, so restore them.
+        const std::vector<std::string> native_ids = storedSpectrumNativeIDs(conn);
+        if (native_ids.size() == exp.getNrSpectra())
+        {
+          for (Size i = 0; i < native_ids.size(); ++i)
+          {
+            exp.getSpectra()[i].setNativeID(native_ids[i]);
+          }
+        }
       }
 
       exp.setSqlRunID(getRunID());
