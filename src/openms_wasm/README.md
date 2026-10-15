@@ -25,7 +25,7 @@ The bindings cover a selection of the OpenMS API, named as in C++ and pyOpenMS:
 | Features | `Feature`, `FeatureMap`, `ConsensusMap`, `MassTraceDetection`, `ElutionPeakDetection`, `FeatureFindingMetabo` |
 | Identification | `PeptideHit` (with `getPeakAnnotations()`), `PeptideIdentification(List)`, `ProteinHit`, `ProteinIdentification(List)`, `SimpleSearchEngineAlgorithm`, `ProSEAlgorithm`, `annotateSpectrum()` |
 | Parameters | `Param`, and on every algorithm `getParameters()`/`setParameters()`, `getParameterValues()`/`setParameterValues({...})` |
-| Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, `getThreadingInfo()`, `getMemoryInfo()`, the file system `FS` |
+| Misc | `getVersion()`, `getOpenMSDataPath()`, `setLogEnabled(channel, enabled)`, `getThreadingInfo()`, `getMemoryInfo()`, the file system `FS` with `mountHostDirectory()` and `unmount()` |
 
 `openms.d.ts` declares all of them for TypeScript, including the shapes of the plain objects
 they return (e.g. `getPeaks(): { mz: Float64Array; intensity: Float32Array }`).
@@ -37,7 +37,10 @@ they return (e.g. `getPeaks(): { mz: Float64Array; intensity: Float32Array }`).
 `openms.mjs` is an ES module whose default export creates an instance of the
 library. It loads `openms.wasm` from the directory it was loaded from; the file includes
 OpenMS' shared data (modifications, enzymes, controlled vocabularies, ...), which the
-library finds at `/share/OpenMS` of its file system. Options of
+library finds at `/share/OpenMS` of its file system. Serve `openms.wasm` so that browsers
+can cache it (e.g. `Cache-Control: public, max-age=31536000, immutable` for a versioned
+path): Chrome then also keeps the compiled code, and the module starts and runs faster from
+the second visit on (see Performance below). Options of
 [Emscripten's Module object](https://emscripten.org/docs/api_reference/module.html) can
 be passed, e.g. to redirect OpenMS' log output or to locate the files elsewhere:
 
@@ -51,8 +54,7 @@ OpenMS.setLogEnabled("info", false);       // silence progress messages
 ```
 
 Browsers have to serve `openms.wasm` as `application/wasm`. Large files are best
-processed in a Web Worker, so that the page stays responsive; a worker can also read the
-user's file directly, without copying it into memory first:
+processed in a Web Worker, so that the page stays responsive:
 
 ```js
 // worker.mjs, started with new Worker("worker.mjs", { type: "module" })
@@ -62,7 +64,7 @@ const ready = createOpenMS();                    // set onmessage before awaitin
 onmessage = async ({ data: file }) => {          // a File from <input type="file">
   const OpenMS = await ready;
   OpenMS.FS.mkdir("/input");
-  OpenMS.FS.mount(OpenMS.FS.filesystems.WORKERFS, { files: [file] }, "/input");
+  OpenMS.FS.writeFile(`/input/${file.name}`, new Uint8Array(await file.arrayBuffer()));
   const handler = new OpenMS.FileHandler();
   const exp = new OpenMS.MSExperiment();
   try {
@@ -71,19 +73,19 @@ onmessage = async ({ data: file }) => {          // a File from <input type="fil
   } finally {
     handler.delete();
     exp.delete();
-    OpenMS.FS.unmount("/input");
-    OpenMS.FS.rmdir("/input");
+    OpenMS.FS.unlink(`/input/${file.name}`);
   }
 };
 ```
 
-`examples/node/summary.mjs` shows the same with Node.js (`NODEFS`).
+`examples/node/summary.mjs` shows the same with Node.js, where the file's directory is
+mounted instead of copied.
 
 ### Files
 
-OpenMS reads and writes files by path. In WebAssembly, paths refer to Emscripten's
-[virtual file system](https://emscripten.org/docs/api_reference/Filesystem-API.html),
-`OpenMS.FS`, which keeps files in memory:
+OpenMS reads and writes files by path. In WebAssembly, paths refer to the module's
+[virtual file system](https://emscripten.org/docs/api_reference/Filesystem-API.html)
+(WasmFS), `OpenMS.FS`, which keeps files in memory:
 
 ```js
 // browser: a File from <input type="file"> or drag and drop
@@ -99,16 +101,15 @@ const result = OpenMS.FS.readFile("/tmp/features.featureXML");   // Uint8Array
 ```
 
 `MzMLFile` also loads from and stores to strings (`loadBuffer(text, exp)`,
-`storeBuffer(exp)`). Without copying the file into memory first:
-
-- Node.js: mount a directory, `FS.mount(FS.filesystems.NODEFS, { root: "/data" }, "/data")`.
-- Web Workers: mount `File` objects,
-  `FS.mount(FS.filesystems.WORKERFS, { files: [file] }, "/input")`; OpenMS then reads
-  them in pieces. In the threaded build, not for files that OpenMS reads on a helper thread
-  while the calling thread computes (ProSE reads the spectra that way): the file system lives
-  on the calling thread, so each read of the helper waits for it, and WORKERFS reads are slow.
-  A ProSE search of a 78 MB mzML file on 16 threads took 29 s from WORKERFS, 2 s from a copy
-  in memory (`FS.writeFile`).
+`storeBuffer(exp)`). In Node.js, `OpenMS.mountHostDirectory("/data", "/path/on/disk")`
+makes a directory of the host visible at `/data`, without copying its files;
+`OpenMS.unmount("/data")` removes the mount point again. Browsers have no such mount:
+write the user's file into the file system (above). The file system is WasmFS, implemented
+inside the module: every thread reads it directly, which matters for ProSE, which reads
+the spectra on a helper thread while the other threads build the index. (With Emscripten's
+JavaScript file system, which lives on the main thread, those reads waited for the busy
+main thread; the index then could not be restricted to the spectra, and a search against
+the human proteome took 8.7 s instead of 5.8 s.)
 
 Gzip- and bzip2-compressed mzML files are read as usual.
 
@@ -250,6 +251,27 @@ a BSA run against an E. coli target-decoy database) took 1458 ms on 1 thread, 10
 and 880 ms on 4 (1549 ms in the single-threaded build); loading that mzML file (about 200 ms)
 and the feature finding of FeatureFinderMetabo_3 (about 220 ms) took the same time on 1 to
 4 threads.
+
+### Serving the module
+
+- `openms.wasm` has to be served as `application/wasm` (for `WebAssembly.instantiateStreaming`).
+- Threads need a cross-origin isolated page: the headers `Cross-Origin-Opener-Policy: same-origin`
+  and `Cross-Origin-Embedder-Policy: require-corp` on the page and on the scripts of the Web
+  Workers it starts. (The module's own threads need none: in browsers their Workers are started
+  from a Blob that imports the module, and so inherit the isolation of their creator.)
+- Let browsers cache `openms.wasm` and `openms.mjs` (e.g. `Cache-Control: public, max-age=31536000,
+  immutable` for versioned paths). Chrome keeps the compiled code of a module it could cache
+  and skips the compilation on later visits; the module then also runs faster: V8 compiles
+  WebAssembly in tiers, and code that was optimized once comes back optimized. A search against
+  the human proteome (16 threads) took 5.9 s on the first visit and 3.7 s on the next; natively
+  2.4 s. With `Cache-Control: no-store`, every visit is the first.
+- Where the server does neither, a service worker can: the demo applications register
+  `examples/sw.js` (through `examples/sw-client.mjs`), which adds the isolation headers to the
+  page and to worker scripts, so threads work on static hosts such as GitHub Pages, and stores
+  the module files in the Cache API, answering even the first request from the store, so that
+  Chrome keeps the compiled code from the first visit on. On the first visit the page reloads
+  once. The stores are named after the package version; a hard reload (Shift+Reload) bypasses
+  the worker, e.g. after rebuilding the module with the same version.
 
 ### Limits
 

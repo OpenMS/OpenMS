@@ -152,8 +152,9 @@
 
   <footer>
     <p>Built with <a href="https://www.openms.org">OpenMS</a> <span id="version"></span> and Emscripten.
-       Threads need a cross-origin isolated page (headers <code>Cross-Origin-Opener-Policy: same-origin</code> and
-       <code>Cross-Origin-Embedder-Policy: require-corp</code>).</p>
+       A service worker caches the module and isolates the page for threads where the server does not send the
+       headers <code>Cross-Origin-Opener-Policy: same-origin</code> and <code>Cross-Origin-Embedder-Policy: require-corp</code>;
+       a hard reload (Shift+Reload) bypasses it.</p>
   </footer>
 
   <script type="module" src="app.mjs"></script>

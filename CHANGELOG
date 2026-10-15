@@ -427,6 +427,10 @@ Build System:
     Percolator rescoring) and of
     spectrum annotation (annotateSpectrum, PeptideHit.getPeakAnnotations), and a web
     application around ProSE (src/openms_wasm/examples/prose).
+  - WebAssembly: the module's file system is WasmFS (inside the module, read by every thread
+    directly); Node.js mounts host directories with mountHostDirectory(). The demo applications
+    register a service worker that caches the module (Chrome then keeps its compiled code) and
+    isolates the page for threads on servers without the COOP/COEP headers.
   - New CMake option WITH_CURL (default ON): without libcurl, NetworkGetRequest and
     MascotRemoteQuery report an error when run, and the update check is off.
   - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX

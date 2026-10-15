@@ -43,6 +43,19 @@ var openmsThreadPoolSize = (() => {
   return (openmsNumThreads - 1) + 3 + (helperTeam - 1);
 })();
 
+/**
+ * In browsers, the threads' Web Workers are started from a Blob that imports this module, not
+ * from the module's URL: a Worker started from a Blob inherits the cross-origin isolation of its
+ * creator, while one started from a URL needs the Cross-Origin-Embedder-Policy header on that
+ * response. The module usually runs in a Web Worker of the page, and Chrome fetches the script
+ * of a Worker created inside a Worker directly from the server, past a service worker that
+ * would add the header (examples/sw.js): on a server without the header, the threads would
+ * not start. (Node.js workers are started from the module's path as usual.)
+ */
+if (!(typeof process == "object" && process.versions?.node) && Module["mainScriptUrlOrBlob"] === undefined) {
+  Module["mainScriptUrlOrBlob"] = new Blob([`import ${JSON.stringify(import.meta.url)};`], { type: "text/javascript" });
+}
+
 Module["preRun"] = [].concat(Module["preRun"] || [], () => {
   // The OpenMP variables of the Node.js process (Emscripten's environment starts empty).
   if (typeof process == "object" && process.versions?.node) {

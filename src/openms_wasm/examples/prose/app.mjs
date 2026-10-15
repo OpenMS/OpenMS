@@ -7,6 +7,11 @@
 // cross-origin isolated page (COOP/COEP headers).
 
 import { bars, histogram, ionType, mirrorSpectrum, scatter } from "./plots.mjs";
+import { registerServiceWorker } from "../sw-client.mjs";
+
+// The service worker (../sw.js) caches the module and makes the page cross-origin isolated
+// where the server does not; the page may reload once here.
+const serviceWorker = await registerServiceWorker();
 
 const $ = (id) => document.getElementById(id);
 const status = (text) => { $("status").textContent = text; };
@@ -71,7 +76,7 @@ const isolated = globalThis.crossOriginIsolated === true;
 const defaultThreads = Math.min(cores, 16);
 for (let n = 1; n <= (isolated ? cores : 1); ++n) $("threads").append(new Option(String(n), String(n), false, n === defaultThreads));
 $("threads-hint").textContent = isolated
-  ? `${cores} logical cores reported by the browser.`
+  ? `${cores} logical cores reported by the browser.${serviceWorker ? " The module is cached by a service worker." : ""}`
   : "One thread: the page is not cross-origin isolated (COOP/COEP headers), so threads cannot share memory.";
 
 async function loadOpenMS() {
