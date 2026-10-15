@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <map>
 
 using namespace std;
 
@@ -52,13 +53,21 @@ namespace OpenMS
   vector<vector<double>> ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(const ConsensusMap& map, const Settings& settings,
                                                                                 const std::string& acc_filter, const std::string& desc_filter)
   {
-    if (settings.neighbors == 0 || settings.rounds == 0 || settings.min_maps == 0)
+    if (settings.neighbors == 0 || settings.rounds == 0 || settings.min_maps == 0 || settings.min_reference == 0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "'neighbors', 'rounds' and 'min_maps' must be at least 1.");
+                                        "'neighbors', 'rounds', 'min_maps' and 'min_reference' must be at least 1.");
     }
 
-    const Size n_maps = map.getColumnHeaders().size();
+    // map indices need not be consecutive (FileFilter keeps them when it extracts maps): number the maps densely
+    std::map<UInt64, Size> index_of_map;
+    vector<UInt64> id_of_map;
+    for (const auto& header : map.getColumnHeaders())
+    {
+      index_of_map[header.first] = id_of_map.size();
+      id_of_map.push_back(header.first);
+    }
+    const Size n_maps = id_of_map.size();
     vector<vector<double>> offsets(map.size());
     vector<Cell> cells;
     vector<vector<Size>> cells_of_feature(map.size());
@@ -74,7 +83,8 @@ namespace OpenMS
       {
         if (fh.getIntensity() > 0.0)
         {
-          if (fh.getMapIndex() >= n_maps)
+          const auto dense_index = index_of_map.find(fh.getMapIndex());
+          if (dense_index == index_of_map.end())
           {
             throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                              "map index " + std::to_string(fh.getMapIndex()) + " has no column header");
@@ -82,7 +92,7 @@ namespace OpenMS
           Cell c;
           c.feature = f;
           c.handle = handle;
-          c.map = fh.getMapIndex();
+          c.map = dense_index->second;
           c.rt = fh.getRT();
           c.log2_int = std::log2(double(fh.getIntensity()));
           if (cells_of_feature[f].empty() || cells[cells_of_feature[f].back()].map != c.map) ++n_feature_maps;
@@ -174,14 +184,14 @@ namespace OpenMS
     {
       if (!normalized_map[m])
       {
-        OPENMS_LOG_INFO << "RT-local normalization: map " << m << " has " << reference_of_map[m].size()
+        OPENMS_LOG_INFO << "RT-local normalization: map " << id_of_map[m] << " has " << reference_of_map[m].size()
                         << " reference features (fewer than " << settings.min_reference << ") and is not normalized." << endl;
         continue;
       }
       auto& o = offsets_of_map[m];
       const double sd = (o.size() > 1) ? Math::sd(o.begin(), o.end()) : 0.0;
       const double median = Math::median(o.begin(), o.end());
-      OPENMS_LOG_INFO << "RT-local normalization: map " << m << ": " << reference_of_map[m].size() << " reference features, median log2 offset "
+      OPENMS_LOG_INFO << "RT-local normalization: map " << id_of_map[m] << ": " << reference_of_map[m].size() << " reference features, median log2 offset "
                       << std::fixed << std::setprecision(3) << median << ", sd along RT " << sd << std::defaultfloat << endl;
     }
     return offsets;

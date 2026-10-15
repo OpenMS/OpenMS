@@ -25,13 +25,15 @@ namespace
 
   /// A consensus map with @p n_maps maps and @p n_features features at RT 10, 20, 30, ...
   /// intensity(feature f, map m) = base(f) * factor(f, m); a factor <= 0 leaves the handle out.
-  ConsensusMap makeMap(Size n_maps, Size n_features, const function<double(Size, Size)>& factor)
+  /// The m-th map gets the map index @p map_ids[m] (default: m).
+  ConsensusMap makeMap(Size n_maps, Size n_features, const function<double(Size, Size)>& factor, const vector<UInt64>& map_ids = {})
   {
+    auto id = [&map_ids](Size m) { return map_ids.empty() ? UInt64(m) : map_ids[m]; };
     ConsensusMap map;
     for (Size m = 0; m < n_maps; ++m)
     {
-      map.getColumnHeaders()[m].filename = "map" + std::to_string(m) + ".mzML";
-      map.getColumnHeaders()[m].size = n_features;
+      map.getColumnHeaders()[id(m)].filename = "map" + std::to_string(id(m)) + ".mzML";
+      map.getColumnHeaders()[id(m)].size = n_features;
     }
     UInt64 uid = 0;
     for (Size f = 0; f < n_features; ++f)
@@ -50,7 +52,7 @@ namespace
         p.setRT(rt);
         p.setMZ(400.0 + double(f));
         p.setIntensity(base * fac);
-        cf.insert(m, p, ++uid);
+        cf.insert(id(m), p, ++uid);
       }
       map.push_back(cf);
     }
@@ -133,11 +135,42 @@ START_SECTION((static std::vector<std::vector<double>> computeOffsets(const Cons
     }
   }
 
+  // map indices with gaps, as FileFilter leaves them when it extracts maps 1, 3 and 4 of five: same offsets as maps 0, 1, 2
+  {
+    const vector<double> factors = {1.0, 4.0, 0.5};
+    ConsensusMap dense = makeMap(3, 60, [&factors](Size, Size m) { return factors[m]; });
+    ConsensusMap filtered = makeMap(3, 60, [&factors](Size, Size m) { return factors[m]; }, {1, 3, 4});
+    TEST_EQUAL(filtered.isMapConsistent(), true)
+    vector<vector<double>> offsets_dense = ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(dense, Settings(), "", "");
+    vector<vector<double>> offsets = ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(filtered, Settings(), "", "");
+    TEST_REAL_SIMILAR(offsets[0][0], -1.0 / 3.0)
+    TEST_REAL_SIMILAR(offsets[0][1], 5.0 / 3.0)
+    TEST_REAL_SIMILAR(offsets[0][2], -4.0 / 3.0)
+    TEST_EQUAL(offsets == offsets_dense, true)
+
+    // a handle whose map has no column header
+    Peak2D p;
+    p.setRT(10.0);
+    p.setMZ(400.0);
+    p.setIntensity(5000.0);
+    filtered[0].insert(2, p, 999999);
+    TEST_EXCEPTION(Exception::ElementNotFound, ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(filtered, Settings(), "", ""))
+  }
+
   // invalid settings
   {
     ConsensusMap map = makeMap(3, 10, [](Size, Size) { return 1.0; });
     Settings s;
     s.neighbors = 0;
+    TEST_EXCEPTION(Exception::InvalidParameter, ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(map, s, "", ""))
+    s = Settings();
+    s.rounds = 0;
+    TEST_EXCEPTION(Exception::InvalidParameter, ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(map, s, "", ""))
+    s = Settings();
+    s.min_maps = 0;
+    TEST_EXCEPTION(Exception::InvalidParameter, ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(map, s, "", ""))
+    s = Settings();
+    s.min_reference = 0;
     TEST_EXCEPTION(Exception::InvalidParameter, ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(map, s, "", ""))
   }
 }

@@ -50,7 +50,7 @@ namespace OpenMS
   class OPENMS_DLLAPI ConsensusMapNormalizerAlgorithmRTLocal
   {
   public:
-    /// Settings of the normalization
+    /// Settings of the normalization (all of them at least 1)
     struct Settings
     {
       Size neighbors = 50;     ///< reference cells on each side (in retention time) that estimate a cell's offset
@@ -68,6 +68,11 @@ namespace OpenMS
       @param[in] desc_filter Regular expression the protein descriptions of a reference feature must (partially) match; empty: no filter
       @return One vector per consensus feature (in map order) with one offset per feature handle (in the
               order of ConsensusFeature::getFeatures()). Handles without a positive intensity get 0.
+
+      The map indices of the feature handles need not be consecutive (FileFilter keeps them when it extracts maps).
+
+      @exception Exception::InvalidParameter if a setting is 0
+      @exception Exception::ElementNotFound if the map index of a feature handle with a positive intensity has no column header
     */
     static std::vector<std::vector<double>> computeOffsets(const ConsensusMap& map, const Settings& settings,
                                                            const std::string& acc_filter, const std::string& desc_filter);
@@ -79,6 +84,9 @@ namespace OpenMS
       @param[in] settings Settings of the normalization
       @param[in] acc_filter Regular expression the protein accessions of a reference feature must (partially) match; empty: no filter
       @param[in] desc_filter Regular expression the protein descriptions of a reference feature must (partially) match; empty: no filter
+
+      @exception Exception::InvalidParameter if a setting is 0
+      @exception Exception::ElementNotFound if the map index of a feature handle with a positive intensity has no column header
     */
     static void normalizeMaps(ConsensusMap& map, const Settings& settings, const std::string& acc_filter, const std::string& desc_filter);
   };
