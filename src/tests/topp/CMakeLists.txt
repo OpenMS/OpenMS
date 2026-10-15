@@ -355,6 +355,10 @@ set_tests_properties("TOPP_BaselineFilter_1_out1" PROPERTIES DEPENDS "TOPP_Basel
 add_test("TOPP_ConsensusMapNormalizer_1" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusMapNormalizer.tmp.consensusXML)
 add_test("TOPP_ConsensusMapNormalizer_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusMapNormalizer.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ConsensusMapNormalizer_output.consensusXML )
 set_tests_properties("TOPP_ConsensusMapNormalizer_1_out1" PROPERTIES DEPENDS "TOPP_ConsensusMapNormalizer_1")
+# maps 1 and 2 of ConsensusMapNormalizer_input, extracted by 'FileFilter -consensus:map 1 2', which keeps the map indices
+foreach(_algorithm robust_regression median median_shift quantile)
+  add_test("TOPP_ConsensusMapNormalizer_filtered_${_algorithm}" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_filtered_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusMapNormalizer_filtered_${_algorithm}.tmp.consensusXML -algorithm_type ${_algorithm})
+endforeach()
 
 #------------------------------------------------------------------------------
 # MapNormalizer tests
