@@ -13,6 +13,10 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+
 #include <set>
 #include <sstream>
 
@@ -22,6 +26,25 @@ using namespace std;
 // alias to force the regex constructor (the 2-arg form is ambiguous with the
 // cut-specification constructor; a std::set 3rd argument selects this overload)
 using SS = std::set<std::string>;
+
+// digest 'protein' (full specificity, no missed cleavages) with an enzyme built
+// from a cut specification; the products are joined with '|'
+static std::string digestWith(const DigestionEnzyme& e, const std::string& protein)
+{
+  DigestionEnzymeProtein enzyme(e);
+  ProteaseDigestion digestion;
+  digestion.setEnzyme(&enzyme); // compiles the cleavage regex
+  digestion.setMissedCleavages(0);
+  std::vector<AASequence> products;
+  digestion.digest(AASequence::fromString(protein), products);
+  std::string result;
+  for (const AASequence& p : products)
+  {
+    if (!result.empty()) result += "|";
+    result += p.toUnmodifiedString();
+  }
+  return result;
+}
 
 START_TEST(DigestionEnzyme, "$Id$")
 
@@ -52,12 +75,32 @@ END_SECTION
 START_SECTION((DigestionEnzyme(const std::string& name, std::string cut_before, const std::string& nocut_after = "", std::string sense = "C", const std::set<std::string>& synonyms = std::set<std::string>(), std::string regex_description = "")))
 {
   // the cut-specification constructor builds a cleavage regex
+  // (an "X" is appended to the cleavage residues; groups must be closed, see #10569)
   DigestionEnzyme e("Tryp2", "KR", "P", "C");
   TEST_STRING_EQUAL(e.getName(), "Tryp2")
-  TEST_NOT_EQUAL(e.getRegEx().empty(), true) // a regex was synthesized
+  TEST_STRING_EQUAL(e.getRegEx(), "(?<=[KRX])(?!P)") // same as Trypsin in Enzymes.xml
+
+  DigestionEnzyme e_c("KR_C", "KR", "", "C");
+  TEST_STRING_EQUAL(e_c.getRegEx(), "(?<=[KRX])")
+
+  DigestionEnzyme e_c_multi("KR_C_PD", "KR", "PD", "C");
+  TEST_STRING_EQUAL(e_c_multi.getRegEx(), "(?<=[KRX])(?![PD])")
 
   DigestionEnzyme e_n("AspN", "D", "", "N");
-  TEST_NOT_EQUAL(e_n.getRegEx().empty(), true)
+  TEST_STRING_EQUAL(e_n.getRegEx(), "(?=[DX])") // same as Asp-N in Enzymes.xml
+
+  DigestionEnzyme e_n_nocut("AspN_P", "D", "P", "N");
+  TEST_STRING_EQUAL(e_n_nocut.getRegEx(), "(?<![P])(?=[DX])")
+
+  // the regexes compile and cleave as specified
+  TEST_STRING_EQUAL(digestWith(e_c, "AAKPAAKAARAA"), "AAK|PAAK|AAR|AA")
+  TEST_STRING_EQUAL(digestWith(e, "AAKPAAKAARAA"), "AAKPAAK|AAR|AA") // no cut before P
+  TEST_STRING_EQUAL(digestWith(e_c_multi, "AAKPAAKDAARAA"), "AAKPAAKDAAR|AA") // no cut before P or D
+  TEST_STRING_EQUAL(digestWith(e_n, "AADAADPDAA"), "AA|DAA|DP|DAA")
+  TEST_STRING_EQUAL(digestWith(e_n_nocut, "AADAADPDAA"), "AA|DAA|DPDAA") // no cut after P
+
+  // the sense is case-insensitive
+  TEST_STRING_EQUAL(DigestionEnzyme("lower", "KR", "P", "c").getRegEx(), "(?<=[KRX])(?!P)")
 
   // an empty cleavage specification is rejected
   TEST_EXCEPTION(Exception::MissingInformation, DigestionEnzyme("bad", "", "", "C"))

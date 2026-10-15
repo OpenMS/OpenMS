@@ -76,7 +76,7 @@ START_SECTION(void load(const std::string& filename, std::vector<ProteinIdentifi
   TEST_EQUAL(proteins.size(), 1);
   TEST_FALSE(peptides.empty());
   TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "user-defined,unknown_enzyme,KR,,C");
-  TEST_FALSE(proteins[0].getSearchParameters().digestion_enzyme.getRegEx().empty());
+  TEST_STRING_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getRegEx(), "(?<=[KRX])"); // see #10569
 }
 END_SECTION
 
@@ -665,6 +665,19 @@ START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expec
   TEST_EQUAL(StringUtils::hasSubstring(content, "name=\"expect\""), false)
   PepXMLFile().load(file_out, proteins_new, peptides_new);
   TEST_EQUAL(peptides_new.size(), 3)
+}
+END_SECTION
+
+START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - enzyme synonyms with uppercase letters)
+{
+  // "sample_enzyme" and "enzymatic_search_constraint" give the enzyme as "Glu-C", a synonym of "glutamyl endopeptidase" (#10571)
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_enzyme_synonym.pepxml"), proteins, peptides);
+  TEST_EQUAL(proteins.size(), 1)
+  TEST_EQUAL(peptides.size(), 1)
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(proteins[0].getSearchParameters().digestion_enzyme.getName(), "glutamyl endopeptidase")
 }
 END_SECTION
 

@@ -1918,10 +1918,9 @@ namespace OpenMS
       variable_modifications_.clear();
       const auto digestion_enzyme = params_.digestion_enzyme;
       params_ = ProteinIdentification::SearchParameters();
-      const std::string enzyme_name = StringUtils::toLower(enzyme_);
-      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       }
       else
       {
@@ -2016,9 +2015,9 @@ namespace OpenMS
 
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
-      if (ProteaseDB::getInstance()->hasEnzyme(StringUtils::toLower(enzyme_)))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(StringUtils::toLower(enzyme_)));
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       }
       else
       {
@@ -2047,18 +2046,20 @@ namespace OpenMS
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //TODO we should not overwrite the enzyme here! Luckily in most files it is the same
-      // enzyme as in sample_enzyme or something useless like "default".
       ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
-      enzyme_ = attributeAsString_(attributes, "enzyme");    
+      // The search parameters describe the search, so a known enzyme of the search constraint takes precedence over
+      // "sample_enzyme" (e.g. Comet: sample_enzyme "nonspecific", search constraint "Formic_Acid"). An unknown name
+      // (e.g. "default" from MSFragger) keeps the enzyme of "sample_enzyme".
+      enzyme_ = attributeAsString_(attributes, "enzyme");
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(StringUtils::toLower(enzyme_)));
+        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
         if (params_.digestion_enzyme.getName() != "unknown_enzyme" && enzyme_to_set != params_.digestion_enzyme)
         {
-          error(LOAD, "More than one enzyme found. This is currently not supported. Proceeding with last encountered only.");
+          error(LOAD, "Enzyme '" + enzyme_to_set.getName() + "' of 'enzymatic_search_constraint' differs from enzyme '"
+                      + params_.digestion_enzyme.getName() + "' (e.g. of 'sample_enzyme'). Using '" + enzyme_to_set.getName() + "'.");
         }
         params_.digestion_enzyme = enzyme_to_set;
       }
