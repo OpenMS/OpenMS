@@ -19,6 +19,15 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - NucleicAcidSearchEngine: enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications before cleavage, preserve terminal candidate hypotheses, and expose coordinate-bearing RNase products in pyOpenMS.
 
 OpenMS Library:
+  - FIX: ProteaseDB and RNaseDB also find enzyme names and synonyms ignoring case, whitespace, '-' and '_' (e.g. 'glu-c',
+    'GluC' and 'Glu_C' find glutamyl endopeptidase, 'LysC/P' finds Lys-C/P); other characters such as '/' and '+' stay
+    significant. pepXML files with sample_enzyme or enzymatic_search_constraint 'Glu-C' load with glutamyl endopeptidase
+    instead of failing. Adding an enzyme named like a synonym of another enzyme no longer removes that enzyme (#10571).
+  - Enzymes.xml and the built-in proteases drop the synonyms 'argc', 'arg_c', 'asp_n', 'glu_c', 'lys_c' and 'lys_n' and two
+    synonyms that repeated the enzyme's name. ProteaseDB still finds these spellings; getSynonyms() no longer lists them.
+  - PepXMLFile: a known enzyme of 'enzymatic_search_constraint' takes precedence over 'sample_enzyme' (unchanged, now
+    documented); the warning when they differ names both enzymes. A user-defined enzyme from an unknown 'sample_enzyme'
+    keeps the case of its name.
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
   - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
