@@ -996,6 +996,12 @@ protected:
 
     if (readoptions == "onDisc")
     {
+      if (split_file)
+      {
+        // SwathFile::loadSplit only reads 'normal' and 'cache'; fail here with a clear message instead
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "readOptions 'onDisc' does not support -split_file_input; use 'normal' or 'cache'.");
+      }
       for (const auto& f : file_list)
       {
         const FileTypes::Type type = FileHandler::getTypeByFileName(f);
