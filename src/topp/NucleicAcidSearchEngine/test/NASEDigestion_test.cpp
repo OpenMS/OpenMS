@@ -1642,4 +1642,64 @@ START_SECTION(([EXTRA] directed FLASH MS1: Refined overlapping envelopes retain 
   TEST_EQUAL(experiment[2], original[2])
 }
 END_SECTION
+START_SECTION((NASE directed deconvolution preserves ordinary FLASH and clears query state))
+{
+  RNADirectedDeconvolution fd_algo;
+  Param parameters;
+  parameters.setValue("min_charge", 5);
+  parameters.setValue("max_charge", 20);
+  parameters.setValue("max_mass", 50000.);
+  fd_algo.setParameters(parameters);
+  fd_algo.calculateAveragine(false);
+  MSExperiment input;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  const auto original = fd_algo.getDeconvolvedSpectrum();
+  TEST_FALSE(original.empty())
+  std::vector<Precursor> queries;
+  for (const auto& group : original)
+  {
+    for (const auto& peak : group)
+    {
+      if (peak.isotopeIndex >= 0)
+      {
+        Precursor query;
+        query.setMZ(peak.mz);
+        query.setCharge(peak.abs_charge);
+        queries.push_back(query);
+        break;
+      }
+    }
+  }
+  std::vector<std::pair<double, int>> mz_charge;
+  for (const auto& precursor : queries) mz_charge.emplace_back(precursor.getMZ(), precursor.getCharge());
+  fd_algo.deconvolve(input[3], 4, mz_charge);
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().getOriginalSpectrum(), input[3])
+  const auto directed = fd_algo.getDeconvolvedSpectrum();
+  TEST_EQUAL(directed.size(), original.size())
+  for (Size i = 0; i < std::min(directed.size(), original.size()); ++i)
+  {
+    TEST_EQUAL(directed[i].getMonoMass(), original[i].getMonoMass())
+    TEST_EQUAL(directed[i].size(), original[i].size())
+  }
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+  TEST_EXCEPTION(Exception::IllegalArgument, fd_algo.deconvolve(input[3], 4, {{0.0, 2}}))
+  TEST_EXCEPTION(Exception::IllegalArgument, fd_algo.deconvolve(input[3], 4, {{std::numeric_limits<double>::infinity(), 2}}))
+  auto msn = input[3];
+  msn.setMSLevel(2);
+  TEST_EXCEPTION(Exception::IllegalArgument, fd_algo.deconvolve(msn, 4, mz_charge))
+  // Queries must also be consumed by failed and empty-spectrum calls.
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+  MSSpectrum empty;
+  empty.setMSLevel(1);
+  fd_algo.deconvolve(empty, 0, mz_charge);
+  fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+  fd_algo.deconvolve(input[3], 4, {});
+  TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+}
+END_SECTION
+
 END_TEST

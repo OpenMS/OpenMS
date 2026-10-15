@@ -192,8 +192,16 @@ protected:
     /// Score type to use for filtering
     std::string score_type_;
 
-    /// Score better?
-    bool (*better_) (double, double) = [](double, double) {return true;};
+    /**
+      @brief Does @p hit of @p peptide pass the score cut-off ('score_cutoff', 'min_score')?
+
+      The score direction is that of @p peptide, so identifications with different score directions are each filtered correctly.
+    */
+    bool passesScoreCutoff_(const PeptideIdentification& peptide, const PeptideHit& hit) const
+    {
+      if (!score_cutoff_) return true;
+      return peptide.isHigherScoreBetter() ? hit.getScore() >= min_score_ : hit.getScore() <= min_score_;
+    }
 
     /**
       @brief Compute the median retention time for each peptide sequence
@@ -235,8 +243,8 @@ protected:
       The following global flags (mutually exclusive) influence the processing:\n
       Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
       Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
-      Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
-      determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
+      Depending on @p score_cutoff and min_score, only peptide IDs whose best hit reaches the minimum score are used (in the
+      score direction of each peptide ID).
 
       @param[in] features Input features for RT data
       @param[out] rt_data Lists of RT values for diff. peptide sequences (output)
@@ -246,52 +254,37 @@ protected:
 
     bool getRetentionTimes_(const IsFCMap auto& features, SeqToList& rt_data)
     {
-      if (!score_cutoff_)
-      {
-        better_ = [](double, double)
-        {return true;};
-      }
-      else if (features[0].getPeptideIdentifications()[0].isHigherScoreBetter())
-      {
-        better_ = [](double a, double b)
-        { return a >= b; };
-      }
-      else
-      {
-        better_ = [](double a, double b)
-        { return a <= b; };
-      }
-
       for (auto feat_it = features.cbegin(); feat_it != features.cend(); ++feat_it)
       {
         if (use_feature_rt_)
         {
-          // find the peptide ID closest in RT to the feature centroid:
+          // find the peptide ID closest in RT to the feature centroid (among those that pass the score cut-off):
           std::string sequence;
           double rt_distance = std::numeric_limits<double>::max();
-          bool any_hit = false;
+          bool any_passing = false;
           for (PeptideIdentificationList::const_iterator pep_it =
                  feat_it->getPeptideIdentifications().begin(); pep_it !=
                  feat_it->getPeptideIdentifications().end(); ++pep_it)
           {
             if (!pep_it->getHits().empty())
             {
-              any_hit = true;
               double current_distance = fabs(pep_it->getRT() -
                                              feat_it->getRT());
               if (current_distance < rt_distance)
               {
                 const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
-                if (best_hit && better_(best_hit->getScore(), min_score_))
+                if (best_hit && passesScoreCutoff_(*pep_it, *best_hit))
                 {
                   sequence = best_hit->getSequence().toString();
                   rt_distance = current_distance;
+                  any_passing = true;
                 }
               }
             }
           }
 
-          if (any_hit) rt_data[sequence].push_back(feat_it->getRT());
+          // a feature without a passing identification has no sequence (and is no alignment point)
+          if (any_passing) rt_data[sequence].push_back(feat_it->getRT());
         }
         else
         {

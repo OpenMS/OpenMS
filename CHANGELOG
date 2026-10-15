@@ -147,6 +147,7 @@ OpenMS Library:
   - PepXMLFile: a known enzyme of 'enzymatic_search_constraint' takes precedence over 'sample_enzyme' (unchanged, now
     documented); the warning when they differ names both enzymes. A user-defined enzyme from an unknown 'sample_enzyme'
     keeps the case of its name.
+  - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
   - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
@@ -200,6 +201,11 @@ OpenMS Library:
     charge_high (the charge count wrapped; crash) and aborts seeds without an isotope pattern for feature:min_isotope_fit 0 (crash).
   - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) counted aborted seeds in a map shared by
     the OpenMP threads of the seed extension without a lock, which could corrupt the map (intermittent crash).
+  - FIX: MapAlignmentAlgorithmIdentification (MapAlignerIdentification, ProteomicsLFQ, MS1LabeledWorkflow) applies
+    'score_cutoff'/'min_score' in the score direction of each peptide identification. The cut-off was ignored for
+    peptide identifications (idXML input), applied the score direction of the first identification of a feature or
+    consensus map to all of them, and read out of bounds (crash) if the first feature had no identification. With
+    'use_feature_rt', a feature whose identifications all failed the cut-off was an alignment point under an empty sequence.
   - FIX: ParamValue and DataValue conversions to double, float and long double throw a ConversionError
     for string and list values instead of returning garbage.
   - FIX: MRMIonSeries::annotateTransitionCV gave every formula neutral loss (e.g. y7-H2O1) the mass
@@ -491,6 +497,9 @@ OpenMS Library:
     one gets the best q-value now (with no_qvalues: FDR 1), a worse one the q-value or FDR of the
     worst calibrated score. If there are groups but none takes part in the competition,
     Exception::MissingInformation is thrown.
+  - FIX: MzMLSqliteHandler no longer accepts a sqMass PRECURSOR.ACTIVATION_METHOD value below -1.
+    Such a value cast straight to an out-of-range Precursor::ActivationMethod enum, which later
+    code (e.g. getActivationMethodsAsString()) used to index a static name table out of bounds.
   - FIX: For lower-is-better scores, FalseDiscoveryRate gave a protein group whose score is not a
     calibrated score (in picked protein FDR: a group that takes no part in the competition) the
     q-value or FDR of the next worse calibrated score. It gets the one of the closest equal or

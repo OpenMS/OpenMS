@@ -333,7 +333,7 @@ namespace OpenMS
       if (!pep_it->getHits().empty())
       {
         const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
-        if (better_(best_hit->getScore(), min_score_))
+        if (passesScoreCutoff_(*pep_it, *best_hit))
         {
           const std::string& seq = best_hit->getSequence().toString();
           rt_data[seq].push_back(pep_it->getRT());
