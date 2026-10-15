@@ -5135,6 +5135,11 @@ START_SECTION(([EXTRA] rescore: the searches rescore every run with Percolator b
     TEST_TRUE(on_result.percolator.skipped_reason.starts_with("Only "))
     TEST_TRUE(on_result.percolator.skipped_reason.find("Percolator rescoring needs at least 100") != std::string::npos)
     TEST_FALSE(on_result.peptide_ids.empty())
+    // the run identifier holds the time of the search
+    for (ProSEAlgorithm::SearchResult* result : {&on_result, &off_result})
+    {
+      for (PeptideIdentification& id : result->peptide_ids) { id.setIdentifier(""); }
+    }
     TEST_TRUE(on_result.peptide_ids == off_result.peptide_ids)
   }
 

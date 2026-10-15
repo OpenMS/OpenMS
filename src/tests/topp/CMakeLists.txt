@@ -4940,7 +4940,11 @@ foreach(_part a b)
     PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
 endforeach()
 # Percolator rescores the first file but not the second (too few PSMs): their runs cannot be pooled,
-# so -out_merged fails the run (WILL_FAIL), after the per-file outputs were written.
+# so -out_merged fails the run (WILL_FAIL), after the per-file outputs were written. The outputs of an
+# earlier run are removed first, so that only this run's outputs can pass the checks.
+add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm -f
+  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
+  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
 add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
@@ -4948,7 +4952,10 @@ add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
   -out_merged ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
-set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES WILL_FAIL 1)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES WILL_FAIL 1 DEPENDS "TOPP_ProSE_11_rescore_mixed_clean")
+add_test(NAME "TOPP_ProSE_11_rescore_mixed_merged_absent" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_merged_absent" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed" WILL_FAIL 1)
 add_test("TOPP_ProSE_11_rescore_mixed_info_a" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_a" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
