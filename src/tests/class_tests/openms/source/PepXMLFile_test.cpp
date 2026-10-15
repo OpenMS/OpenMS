@@ -668,6 +668,45 @@ START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expec
 }
 END_SECTION
 
+START_SECTION(([EXTRA] store and load Mascot results - expect scores survive repeated round trips, issue #10570))
+{
+  vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("Mascot_run");
+  proteins[0].setSearchEngine("Mascot");
+  PeptideIdentificationList peptides(1);
+  peptides[0].setIdentifier("Mascot_run");
+  peptides[0].setRT(100.0);
+  peptides[0].setMZ(464.2347);
+  peptides[0].setScoreType("Mascot");
+  peptides[0].setHigherScoreBetter(true);
+  PeptideHit hit(35.0, 0, 2, AASequence::fromString("PEPTIDEK"));
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("PROT1");
+  evidence.setAABefore('K');
+  evidence.setAAAfter('A');
+  hit.addPeptideEvidence(evidence);
+  hit.setMetaValue("MS:1001172", 0.01); // Mascot:expectation value
+  peptides[0].insertHit(hit);
+
+  // store writes the engine as "MASCOT"; the reader has to recognize that to keep "MS:1001172" for the next store:
+  for (Size pass = 1; pass <= 2; ++pass)
+  {
+    std::string file_out;
+    NEW_TMP_FILE(file_out);
+    PepXMLFile().store(file_out, proteins, peptides);
+    PepXMLFile().load(file_out, proteins, peptides);
+    TEST_EQUAL(proteins.size(), 1)
+    ABORT_IF(peptides.size() != 1 || peptides[0].getHits().size() != 1)
+    TEST_EQUAL(peptides[0].getScoreType(), "expect")
+    const PeptideHit& hit_new = peptides[0].getHits()[0];
+    TEST_EQUAL(hit_new.getSequence().toString(), "PEPTIDEK")
+    TEST_REAL_SIMILAR(hit_new.getScore(), 0.01)
+    TEST_EQUAL(hit_new.metaValueExists("MS:1001172"), true)
+    TEST_REAL_SIMILAR(static_cast<double>(hit_new.getMetaValue("MS:1001172", 0.0)), 0.01)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - enzyme synonyms with uppercase letters)
 {
   // "sample_enzyme" and "enzymatic_search_constraint" give the enzyme as "Glu-C", a synonym of "glutamyl endopeptidase" (#10571)

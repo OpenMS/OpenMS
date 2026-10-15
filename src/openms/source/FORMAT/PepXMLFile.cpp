@@ -1247,7 +1247,7 @@ namespace OpenMS
         {
           peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
         }
-        else if (search_engine_ == "Mascot")
+        else if (search_engine_ == "Mascot" || search_engine_ == "MASCOT") // "MASCOT": written by TPP and by PepXMLFile::store
         {
           peptide_hit_.setMetaValue("MS:1001172", value); // name: Mascot:expectation value
         }

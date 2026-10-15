@@ -22,7 +22,8 @@ OpenMS Library:
   - FIX: PepXMLFile::store writes the expect score of X! Tandem and Mascot hits read from pepXML (it wrote an empty
     value, so the stored file could not be read back), and skips scores without a value. PepXMLFile::load keeps
     'unknown_enzyme' for an empty `cut` (as OpenMS writes it) instead of naming a "user-defined" enzyme that grew
-    with every pepXML pass and was not recognized as missing (#10570).
+    with every pepXML pass and was not recognized as missing. It also keeps the Mascot expectation value (MS:1001172)
+    for search_engine "MASCOT", as TPP and PepXMLFile::store write it (#10570).
   - Added PeptDeepLibraryPredictor, which turns peptide precursors into an OpenSWATH assay library
     (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
     optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
