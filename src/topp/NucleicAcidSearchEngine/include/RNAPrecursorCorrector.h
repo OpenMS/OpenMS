@@ -6,7 +6,7 @@
 // --------------------------------------------------------------------------
 #pragma once
 
-#include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
+#include "RNADirectedDeconvolution.h"
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -82,7 +82,7 @@ namespace OpenMS
     static void storeReport(const std::string& filename, const std::vector<Result>& results);
 
   private:
-    SpectralDeconvolution detector_;
+    RNADirectedDeconvolution detector_;
     double tolerance_ppm_, min_cos_, min_snr_;
     int min_abs_charge_, max_abs_charge_;
     bool positive_;

@@ -31,6 +31,13 @@ OpenMS Library:
     check replaced it by the default direction ("Resetting score vector" of the percolator binary): no target at q < test_fdr
     on the held-out folds, or fewer targets than the best single feature. Typical for blank runs and small inputs (q-values
     count the decoys + 1, so a fold needs about 1 / test_fdr targets above its first decoy).
+  - PepXMLFile accepts the optional pepXML `no_cut` attribute when reading unknown enzymes,
+    including files written by OpenMS (#10321).
+  - FIX: PepXMLFile::store writes the expect score of X! Tandem and Mascot hits read from pepXML (it wrote an empty
+    value, so the stored file could not be read back), and skips scores without a value. PepXMLFile::load keeps
+    'unknown_enzyme' for an empty `cut` (as OpenMS writes it) instead of naming a "user-defined" enzyme that grew
+    with every pepXML pass and was not recognized as missing. It also keeps the Mascot expectation value (MS:1001172)
+    for search_engine "MASCOT", as TPP and PepXMLFile::store write it (#10570).
   - Added PeptDeepLibraryPredictor, which turns peptide precursors into an OpenSWATH assay library
     (LightTargetedExperiment) with the native PeptDeep ONNX models: predicted retention time,
     optionally CCS (stored as 1/K0), and b/y fragment intensities (four canonical non-loss
@@ -69,6 +76,7 @@ OpenMS Library:
   - PepXMLFile: a known enzyme of 'enzymatic_search_constraint' takes precedence over 'sample_enzyme' (unchanged, now
     documented); the warning when they differ names both enzymes. A user-defined enzyme from an unknown 'sample_enzyme'
     keeps the case of its name.
+  - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
   - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
@@ -83,6 +91,8 @@ OpenMS Library:
     The seeded sequence is preserved except for skipped zeros.
   - FIX: IDFilter throws on non-finite observation-match scores and PSM/distinct peptide q-values outside [0, 1] before modifying the data; missing scores are still filtered out.
   - FIX: RNA a1-B fragments include 5-prime terminal modifications; getMultipleSpectra uses the requested precursor charge, and RNA mzTab calculated m/z includes the assigned adduct.
+  - FIX: PEFFEntry::getVariantSequences and digestWithVariants no longer shift descriptions against
+    sequences when a variant sequence cannot be parsed; the unparsable variant is skipped as a pair.
   - FIX: SignalToNoiseEstimatorMedian auto_mode 1 (percentile) used the minimum instead of the maximum intensity and
     indexed its histogram out of bounds (crash, e.g. PeakPickerHiRes); intensities beyond the int range land in the last bin.
   - FIX: SignalToNoiseEstimatorMedian and SignalToNoiseEstimatorMeanIterative no longer apply an absolute intensity offset
@@ -123,6 +133,11 @@ OpenMS Library:
     charge_high (the charge count wrapped; crash) and aborts seeds without an isotope pattern for feature:min_isotope_fit 0 (crash).
   - FIX: FeatureFinderAlgorithmPicked (FeatureFinderCentroided) counted aborted seeds in a map shared by
     the OpenMP threads of the seed extension without a lock, which could corrupt the map (intermittent crash).
+  - FIX: MapAlignmentAlgorithmIdentification (MapAlignerIdentification, ProteomicsLFQ, MS1LabeledWorkflow) applies
+    'score_cutoff'/'min_score' in the score direction of each peptide identification. The cut-off was ignored for
+    peptide identifications (idXML input), applied the score direction of the first identification of a feature or
+    consensus map to all of them, and read out of bounds (crash) if the first feature had no identification. With
+    'use_feature_rt', a feature whose identifications all failed the cut-off was an alignment point under an empty sequence.
   - FIX: ParamValue and DataValue conversions to double, float and long double throw a ConversionError
     for string and list values instead of returning garbage.
   - FIX: MRMIonSeries::annotateTransitionCV gave every formula neutral loss (e.g. y7-H2O1) the mass
@@ -414,6 +429,9 @@ OpenMS Library:
     one gets the best q-value now (with no_qvalues: FDR 1), a worse one the q-value or FDR of the
     worst calibrated score. If there are groups but none takes part in the competition,
     Exception::MissingInformation is thrown.
+  - FIX: MzMLSqliteHandler no longer accepts a sqMass PRECURSOR.ACTIVATION_METHOD value below -1.
+    Such a value cast straight to an out-of-range Precursor::ActivationMethod enum, which later
+    code (e.g. getActivationMethodsAsString()) used to index a static name table out of bounds.
   - FIX: For lower-is-better scores, FalseDiscoveryRate gave a protein group whose score is not a
     calibrated score (in picked protein FDR: a group that takes no part in the competition) the
     q-value or FDR of the next worse calibrated score. It gets the one of the closest equal or
@@ -1068,8 +1086,6 @@ Dependencies:
     input files in MaRaCluster's index step, single-threaded, before it clusters them:
     1.04.1's Windows build crashes in about one run in ten when it converts several files
     in parallel (OpenMS/THIRDPARTY#113, #10259).
-  - PepXMLFile accepts the optional pepXML `no_cut` attribute when reading unknown enzymes,
-    including files written by OpenMS (#10321).
 
 PyOpenMS:
   - BREAKING: boolean parameters are Python bools (#10116). Reading/writing Params
