@@ -310,6 +310,23 @@ namespace OpenMS
 
   namespace
   {
+    // Run metadata of an open random-access experiment; it must have been opened with metadata
+    std::shared_ptr<ExperimentalSettings> copyOnDiscSettings(const std::shared_ptr<IMSExperimentRandomAccess>& experiment)
+    {
+      if (!experiment)
+      {
+        throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      const std::shared_ptr<const ExperimentalSettings> settings = experiment->getExperimentalSettings();
+      if (!settings)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The random-access experiment has no meta data (e.g. OnDiscMSExperiment opened with skipMetaData); "
+          "readOptions 'onDisc' needs the spectrum meta data to determine the SWATH windows.");
+      }
+      return std::make_shared<ExperimentalSettings>(*settings);
+    }
+
     // Spectra without peaks, in index order, as an experiment (for FAIMSHelper and countScansInSwath_())
     PeakMap readOnDiscMetadata(IMSExperimentRandomAccess& experiment)
     {
@@ -544,11 +561,7 @@ namespace OpenMS
                                                          std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                          Interfaces::IMSDataConsumer* plugin_consumer)
   {
-    if (!experiment)
-    {
-      throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
-    exp_meta = std::make_shared<ExperimentalSettings>(*experiment->getExperimentalSettings());
+    exp_meta = copyOnDiscSettings(experiment);
     const PeakMap metadata = readOnDiscMetadata(*experiment);
 
     // The flat SwathMap list carries no compensation voltage: windows of different CVs with the same
@@ -572,11 +585,7 @@ namespace OpenMS
                                                                  std::shared_ptr<ExperimentalSettings>& exp_meta,
                                                                  Interfaces::IMSDataConsumer* plugin_consumer)
   {
-    if (!experiment)
-    {
-      throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
-    exp_meta = std::make_shared<ExperimentalSettings>(*experiment->getExperimentalSettings());
+    exp_meta = copyOnDiscSettings(experiment);
     const PeakMap metadata = readOnDiscMetadata(*experiment);
     passOnDiscToPlugin_(*experiment, metadata, *exp_meta, plugin_consumer);
 

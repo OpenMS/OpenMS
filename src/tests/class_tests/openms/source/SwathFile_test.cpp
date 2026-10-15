@@ -470,6 +470,14 @@ START_SECTION((std::vector<FAIMSSwathMapGroup> loadOnDiscByFAIMSCV(const std::sh
   TEST_TRUE(std::isnan(groups_no_faims[0].faims_cv))
   TEST_EQUAL(groups_no_faims[0].swath_maps.size(), 3)
   TEST_EQUAL(SwathFile().loadOnDisc(on_disc_no_faims, meta).size(), 3)
+
+  // Without meta data (no experimental settings, no spectrum metadata) both loaders reject the experiment
+  auto on_disc_no_meta = std::make_shared<OnDiscMSExperiment>();
+  TEST_TRUE(on_disc_no_meta->openFile(file_no_faims, true))
+  TEST_EXCEPTION(Exception::IllegalArgument, SwathFile().loadOnDisc(on_disc_no_meta, meta))
+  TEST_EXCEPTION(Exception::IllegalArgument, SwathFile().loadOnDiscByFAIMSCV(on_disc_no_meta, meta))
+  std::shared_ptr<IMSExperimentRandomAccess> null_experiment;
+  TEST_EXCEPTION(Exception::NullPointer, SwathFile().loadOnDisc(null_experiment, meta))
 }
 END_SECTION
 

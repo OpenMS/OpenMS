@@ -198,8 +198,9 @@ public:
       @return Swath maps for MS2 and MS1
 
       @throws Exception::NullPointer if @p experiment is null
-      @throws Exception::IllegalArgument if the input has more than one FAIMS compensation voltage
-              (use loadOnDiscByFAIMSCV()) or if @p plugin_consumer modifies a spectrum
+      @throws Exception::IllegalArgument if @p experiment has no meta data (e.g. opened with skipMetaData),
+              if the input has more than one FAIMS compensation voltage (use loadOnDiscByFAIMSCV())
+              or if @p plugin_consumer modifies a spectrum
     */
     std::vector<OpenSwath::SwathMap> loadOnDisc(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,
                                                 std::shared_ptr<ExperimentalSettings>& exp_meta,
@@ -241,7 +242,8 @@ public:
       @return SWATH maps per FAIMS compensation voltage, in ascending CV order
 
       @throws Exception::NullPointer if @p experiment is null
-      @throws Exception::IllegalArgument if @p plugin_consumer modifies a spectrum
+      @throws Exception::IllegalArgument if @p experiment has no meta data (e.g. opened with skipMetaData)
+              or if @p plugin_consumer modifies a spectrum
     */
     std::vector<FAIMSSwathMapGroup> loadOnDiscByFAIMSCV(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,
                                                         std::shared_ptr<ExperimentalSettings>& exp_meta,
