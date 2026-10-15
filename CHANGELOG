@@ -428,6 +428,8 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: OpenSwathWorkflow and OpenDIA with -out_chrom .xic: an error while writing the Parquet file (e.g. a
+    full disk) was only logged, and the tool exited with 0 and a missing or truncated .xic file. The run now fails.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

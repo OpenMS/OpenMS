@@ -1697,11 +1697,7 @@ protected:
 
     //// Write out data
 
-    // Surface parquet (.xic) write errors during normal control flow instead of letting
-    // the consumer's destructor swallow them into a log line (issue #9488, FORM-129).
-    // finalize() is not part of the IMSDataConsumer interface, so cast explicitly
-    // (mirrors the MSDataSqlConsumer dynamic_cast above and the mobilogram finalize()).
-    // finalize() is idempotent, so the destructor's later call is a safe no-op.
+    // Write the .xic file here, so that a write error fails the run; the destructor only logs it
     if (auto* xic_cons = dynamic_cast<MSChromatogramParquetConsumer*>(chromatogramConsumer))
     {
       xic_cons->finalize();

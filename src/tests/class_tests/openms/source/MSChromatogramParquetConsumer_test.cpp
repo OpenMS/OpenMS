@@ -159,9 +159,7 @@ END_SECTION
 
 START_SECTION(MSChromatogramParquetConsumer_finalize_surfaces_errors)
 {
-  // issue #9488 (FORM-129): unlike the destructor (which must not throw and only logs),
-  // calling finalize() explicitly surfaces write errors as exceptions so callers can react
-  // during normal control flow. OpenSwathWorkflow now calls finalize() before delete.
+  // Unlike the destructor, which must not throw and only logs, finalize() throws on write errors
   TargetedExperiment targeted_exp;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
 
@@ -169,7 +167,7 @@ START_SECTION(MSChromatogramParquetConsumer_finalize_surfaces_errors)
   OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
 
   // Unwritable path (non-existent directory) -> finalize()/write_() must throw, NOT swallow.
-  std::string out = File::getTempDirectory() + "/openms_missing_dir/xic_finalize.xic";
+  std::string out = SystemSettings::getTempDirectory() + "/openms_missing_dir/xic_finalize.xic";
   MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
   TEST_EXCEPTION(Exception::FileNotWritable, consumer.finalize())
 }
