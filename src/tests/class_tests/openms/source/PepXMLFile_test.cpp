@@ -646,7 +646,7 @@ START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expec
   }
   TEST_REAL_SIMILAR(peptides_new[2].getHits()[0].getScore(), 0.30199517204)
 
-  // without any expect value (here: X! Tandem hyperscores only), no (empty) expect score is written,
+  // without any expect value (here: X! Tandem hyperscores only, "MS:1001330" empty), no (empty) expect score is written,
   // and the file can still be read:
   for (PeptideIdentification& pep : peptides)
   {
@@ -654,7 +654,7 @@ START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expec
     for (PeptideHit& hit : pep.getHits())
     {
       hit.setScore(static_cast<double>(hit.getMetaValue("hyperscore")));
-      hit.removeMetaValue("MS:1001330");
+      hit.setMetaValue("MS:1001330", "");
     }
   }
   NEW_TMP_FILE(file_out);
@@ -665,6 +665,21 @@ START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expec
   TEST_EQUAL(StringUtils::hasSubstring(content, "name=\"expect\""), false)
   PepXMLFile().load(file_out, proteins_new, peptides_new);
   TEST_EQUAL(peptides_new.size(), 3)
+
+  // an empty "MS:1001330" does not hide the "E-Value" fallback:
+  for (PeptideIdentification& pep : peptides)
+  {
+    for (PeptideHit& hit : pep.getHits())
+    {
+      hit.setMetaValue("E-Value", 0.5);
+    }
+  }
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  ABORT_IF(peptides_new.size() != 3 || peptides_new[0].getHits().empty())
+  TEST_EQUAL(peptides_new[0].getScoreType(), "expect")
+  TEST_REAL_SIMILAR(peptides_new[0].getHits()[0].getScore(), 0.5)
 }
 END_SECTION
 

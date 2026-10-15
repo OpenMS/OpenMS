@@ -562,15 +562,16 @@ namespace OpenMS
       f << "\t<analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << "\n";
     }
 
-    // Writes a "search_score" with the value of the first of 'keys' that is set as meta value of 'hit'.
-    // Writes nothing if none is set, as an empty "value" attribute cannot be read back (issue #10570).
+    // Writes a "search_score" with the value of the first of 'keys' that is set (and not empty) as meta value of 'hit'.
+    // Writes nothing if there is none, as an empty "value" attribute cannot be read back (issue #10570).
     auto writeScoreFromMetaValue = [&f](const PeptideHit& hit, const std::string& name, std::initializer_list<const char*> keys)
     {
       for (const char* key : keys)
       {
-        if (hit.metaValueExists(key))
+        const std::string value = hit.getMetaValue(key).toString(); // empty if 'key' is not set
+        if (!value.empty())
         {
-          f << "\t\t\t<search_score" << " name=\"" << name << "\" value=\"" << hit.getMetaValue(key) << "\"" << "/>\n";
+          f << "\t\t\t<search_score" << " name=\"" << name << "\" value=\"" << value << "\"" << "/>\n";
           return true;
         }
       }
