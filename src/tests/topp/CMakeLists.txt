@@ -1231,12 +1231,11 @@ set_tests_properties("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" PROPERTI
 
 # TMT 32-plex / 35-plex end-to-end: the 32/35-plex methods are registered in the
 # IsobaricQuantitationMethod factory; run them on the TMT10 fixture and confirm 32/35 channels are
-# quantified (consensusXML diffs clean). Isotope correction is not yet supported for these methods (the
-# matrix is always identity), so it is disabled to avoid the identity-matrix rejection.
-add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt32plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML)
+# quantified (consensusXML diffs clean), with the default isotope correction (the shipped CoA matrices).
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt32plex -out ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyTwoPlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1")
-add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt35plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML)
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt35plex -out ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyFivePlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1")
 
@@ -4954,7 +4953,7 @@ set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_
   PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
 # Test 12: -out_pin holds the PSMs before any FDR filter. With FDR:PSM and FDR:protein (ProSE_6_fdr.ini, one input) the
 # .pin equals that of the same search without FDR (decoys kept, search engine scores; with -rescore the rescored PSMs),
-# and -out_pin does not change the idXML (Test 6, Test 11).
+# and -out_pin does not change the idXML (Test 6, Test 11; with -rescore, the hit counts after FDR).
 foreach(_rescore OFF ON)
   set(_f ProSE_12_pin)
   set(_opt)
@@ -4974,9 +4973,22 @@ foreach(_rescore OFF ON)
     -Search:FDR:PSM 0 -Search:FDR:protein 0 -out_pin ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
   add_test("TOPP_${_f}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}.tmp.tsv -in2 ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
   set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_f}_nofdr")
-  add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/${_ref}_out.tmp.idXML
-    -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
-  set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_ref}")
+  if(_rescore)
+    # Percolator cannot train properly on this data (1 decoy among 896 PSMs, so the SVM scores are not rescaled):
+    # its SVM scores differ by about 1% between two runs on Windows. Compare the hit counts after FDR instead.
+    foreach(_run ${_f} ${_ref})
+      add_test("TOPP_${_f}_info_${_run}" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/${_run}_out.tmp.idXML
+        -out_tsv ${TESTS_TEMP_DIR}/${_f}_info_${_run}.tmp.tsv)
+      set_tests_properties("TOPP_${_f}_info_${_run}" PROPERTIES DEPENDS "TOPP_${_run}")
+    endforeach()
+    add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_info_${_f}.tmp.tsv
+      -in2 ${TESTS_TEMP_DIR}/${_f}_info_${_ref}.tmp.tsv -whitelist "file name")
+    set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f}_info_${_f};TOPP_${_f}_info_${_ref}")
+  else()
+    add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/${_ref}_out.tmp.idXML
+      -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
+    set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_ref}")
+  endif()
 endforeach()
 # Test 12 (open search): -out_pin changes no other output. FDR:PSM 0.0005 removes the PSMs ranked below the one decoy,
 # so the idXML and the modification-analysis tables count fewer PSMs than the .pin, which equals the .pin without FDR.
