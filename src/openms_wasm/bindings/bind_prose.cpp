@@ -412,6 +412,7 @@ namespace OpenMS::WASM
       const bool ok = run.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK;
 
       val percolator = val::null();
+      bool deferred_fdr_applied = false;
       if (rescore && ok)
       {
         StopWatch perc_watch;
@@ -427,6 +428,7 @@ namespace OpenMS::WASM
         {
           if (!skipped.empty()) algo.annotatePsmQValues(run.peptide_ids);
           IDFilter::filterHitsByScore(run.peptide_ids, psm_fdr);
+          deferred_fdr_applied = true;
         }
       }
 
@@ -436,6 +438,13 @@ namespace OpenMS::WASM
         ProSEAlgorithm::applyCompleteSetProteinFDR(run.protein_ids, run.peptide_ids, result.decoy_string,
                                                    result.decoy_is_prefix, protein_fdr);
         protein_fdr_applied = true;
+      }
+      // Rescoring, the deferred PSM FDR and the protein FDR changed the PSMs after the search
+      // collected its statistics: recount them from the final PSMs, as the ProSE tool does.
+      if (ok)
+      {
+        ProSEAlgorithm::updateFinalStats(run.stats, run.peptide_ids, result.shared.enzyme,
+                                         run.stats.fdr_applied || deferred_fdr_applied);
       }
       watch.stop();
       result.shared.seconds_total = watch.getClockTime();

@@ -145,6 +145,13 @@ test("ProSEAlgorithm: Percolator rescoring, in-process", () => {
       assert.equal(summary.percolator.applied, true, summary.percolator.skipped ?? "");
       const ids = peptides.toArray().filter((id) => id.hits.length > 0);
       assert.ok(ids.length > 0);
+      // the statistics describe the PSMs returned (after rescoring and FDR), not the search before
+      const decoys = ids.filter((id) => id.hits[0].isDecoy).length;
+      assert.equal(summary.run.matchedSpectra, ids.length);
+      assert.equal(summary.run.targetPSMs, ids.length - decoys);
+      assert.equal(summary.run.decoyPSMs, decoys);
+      assert.equal(summary.run.fdrApplied, true);
+      assert.ok(summary.run.achievedPsmFDR <= 0.05);
       for (const id of ids) {
         assert.equal(id.scoreType, "q-value");
         assert.ok(id.hits[0].score <= 0.05, `q-value ${id.hits[0].score} passes FDR:PSM`);
