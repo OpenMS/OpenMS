@@ -13,8 +13,8 @@
 				<qualityParameter name="MS1 spectra count" ID="QCCalculator_input_ms1aquisition" cvRef="QC" accession="QC:0000006" value="3"/>
 				<qualityParameter name="MS2 spectra count" ID="QCCalculator_input_ms2aquisition" cvRef="QC" accession="QC:0000007" value="1"/>
 				<qualityParameter name="Chromatogram count" ID="QCCalculator_input_Chromaquisition" cvRef="QC" accession="QC:0000008" value="2"/>
-				<qualityParameter name="TIC slump" ID="QCCalculator_input_ticslump" cvRef="QC" accession="QC:0000023" value="375"/>
-				<qualityParameter name="percentage of ric slumps" ID="QCCalculator_input_ricslump" cvRef="QC" accession="QC:0000057" value="75"/>
+				<qualityParameter name="TIC slump" ID="QCCalculator_input_ticslump" cvRef="QC" accession="QC:0000023" value="100"/>
+				<qualityParameter name="percentage of ric slumps" ID="QCCalculator_input_ricslump" cvRef="QC" accession="QC:0000057" value="100"/>
 				<qualityParameter name="IS-1A" ID="QCCalculator_input_ricjump" cvRef="QC" accession="QC:0000059" value="0"/>
 				<qualityParameter name="IS-1B" ID="QCCalculator_input_ricdump" cvRef="QC" accession="QC:0000060" value="1"/>
 				<attachment  name="precursors" ID="QCCalculator_input_precursors" cvRef="QC" accession="QC:0000044" qualityParameterRef="QCCalculator_input_msaq">

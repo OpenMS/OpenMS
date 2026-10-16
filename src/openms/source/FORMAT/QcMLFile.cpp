@@ -1266,6 +1266,7 @@ namespace OpenMS
       at.colTypes.emplace_back("MS:1000894_[sec]");
       at.colTypes.emplace_back("MS:1000285");
       Size below_10k = 0;
+      Size tic_points = 0;
       const std::vector<OpenMS::Chromatogram>& chroms = exp.getChromatograms();
       if (!chroms.empty()) //real TIC from the mzML
       {
@@ -1273,6 +1274,7 @@ namespace OpenMS
         {
           if (chroms[t].getChromatogramType() == ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM)
           {
+            tic_points = chroms[t].size();
             for (Size i = 0; i < chroms[t].size(); ++i)
             {
               double sum = chroms[t][i].getIntensity();
@@ -1294,8 +1296,9 @@ namespace OpenMS
         qp.id = base_name + "_ticslump"; ///< Identifier
         qp.cvRef = "QC"; ///< cv reference
         qp.cvAcc = "QC:0000023";
-        // multiply before dividing: exp.size() is usually >> 100, so (100 / exp.size()) truncates to 0 first
-        qp.value =StringUtils::toStr(100 * below_10k / exp.size());
+        // The percentage is of TIC points below the threshold, so it has to be divided by
+        // the number of TIC points (not exp.size(), the number of spectra), guarding 0.
+        qp.value = StringUtils::toStr(tic_points > 0 ? 100 * below_10k / tic_points : Size(0));
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -1330,6 +1333,7 @@ namespace OpenMS
       at.colTypes.emplace_back("peak count");
       Size prev = 0;
       below_10k = 0;
+      Size ms1_count = 0;
       Size jumps = 0;
       Size drops = 0;
       Size fact = 10;
@@ -1337,6 +1341,7 @@ namespace OpenMS
       {
         if (exp[i].getMSLevel() == 1)
         {
+          ++ms1_count;
           UInt sum = 0;
           for (Size j = 0; j < exp[i].size(); ++j)
           {
@@ -1369,8 +1374,9 @@ namespace OpenMS
       qp.id = base_name + "_ricslump"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000057";
-      // multiply before dividing: exp.size() is usually >> 100, so (100 / exp.size()) truncates to 0 first
-      qp.value =StringUtils::toStr(100 * below_10k / exp.size());
+      // below_10k only counts MS1 spectra, so the percentage has to be of ms1_count, not
+      // exp.size() (which includes every MS level), guarding 0.
+      qp.value = StringUtils::toStr(ms1_count > 0 ? 100 * below_10k / ms1_count : Size(0));
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);

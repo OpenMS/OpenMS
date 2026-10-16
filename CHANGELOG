@@ -54,7 +54,10 @@ OpenMS Library:
   - QcMLFile::collectQCData computed the "percentage of tic slumps" and "percentage of ric slumps"
     quality parameters with integer division before the multiplication by 100, so both truncated
     to 0 for any experiment with more than 100 spectra, and were wrong whenever the spectrum count
-    did not divide 100 evenly. Fixed by multiplying before dividing.
+    did not divide 100 evenly. Fixed by multiplying before dividing. Both percentages were also
+    divided by exp.size() (the total spectrum count), which is not what either count is a fraction
+    of: the TIC slump count is of TIC chromatogram points, and the RIC slump count is of MS1
+    spectra only. Fixed to divide by the matching count instead, guarding against zero.
   - Every PeptideIdentification needs the ProteinIdentification run (search run) whose identifier
     it names; the run may have no protein hits or database (e.g. peptidomics, de novo). The new
     ProteinRunReferences checks this (also in pyOpenMS) and throws Exception::InvalidParameter

@@ -395,6 +395,43 @@ START_SECTION((void collectQCData(std::vector<ProteinIdentification>& prot_ids, 
 }
 END_SECTION
 
+START_SECTION((void collectQCData(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids, const FeatureMap& feature_map, const ConsensusMap& consensus_map, const std::string& inputfile_raw, const bool remove_duplicate_features, const MSExperiment& exp) - TIC slump percentage))
+{
+  // "TIC slump" (QC:0000023) counts TIC chromatogram points below the threshold, but was
+  // divided by exp.size() (the number of spectra) instead of the number of TIC points --
+  // a different, unrelated count. Use a chromatogram longer than the spectrum list so the
+  // two counts clearly diverge.
+  MSExperiment exp;
+  MSSpectrum spec;
+  spec.setMSLevel(1);
+  exp.addSpectrum(spec);
+
+  MSChromatogram tic;
+  tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+  for (Size i = 0; i < 30; ++i)
+  {
+    ChromatogramPeak peak;
+    peak.setRT(double(i));
+    peak.setIntensity(i < 15 ? 100.0 : 50000.0); // half below, half above the 10000 threshold
+    tic.push_back(peak);
+  }
+  exp.setChromatograms(std::vector<MSChromatogram>{tic});
+  exp.updateRanges();
+
+  std::vector<ProteinIdentification> prot_ids;
+  PeptideIdentificationList pep_ids;
+  FeatureMap feature_map;
+  ConsensusMap consensus_map;
+
+  QcMLFile qc;
+  qc.collectQCData(prot_ids, pep_ids, feature_map, consensus_map, "test.mzML", false, exp);
+
+  // 15 of the TIC's 30 points are below the threshold: the correct percentage is 50, based
+  // on the chromatogram's own point count, not the single spectrum in exp.
+  TEST_EQUAL(qc.exportQP("test", "QC:0000023"), "50")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
