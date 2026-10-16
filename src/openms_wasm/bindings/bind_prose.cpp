@@ -12,6 +12,7 @@
 // does, whose results (ProSEResultSet) JavaScript holds; and the annotation of a spectrum with
 // the fragment ions of a peptide, for spectrum viewers.
 
+#include "bind_prose.h"
 #include "binding_utils.h"
 
 #include <OpenMS/ANALYSIS/ID/PeptDeepRescoring.h>
@@ -22,6 +23,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -523,45 +525,6 @@ namespace OpenMS::WASM
   //------------------------------------------------------------------------------
   // Several files: searchFiles() and its ProSEResultSet
 
-  /// The search of one input file of ProSEAlgorithm.searchFiles()
-  struct ProSEFileResult
-  {
-    std::string path;                                   ///< as given
-    ProSEAlgorithm::ExitCodes exit_code = ProSEAlgorithm::ExitCodes::EXECUTION_OK;
-    ProSEAlgorithm::RunStatistics stats;                ///< of the PSMs of the file (after its FDR:PSM)
-    ProSEAlgorithm::PercolatorRescoring percolator;
-    std::optional<double> peptdeep_nce;                 ///< the NCE of PeptDeep's predictions (PeptDeepRescoring::NCE_META_VALUE)
-  };
-
-  /// The results of ProSEAlgorithm.searchFiles(), which JavaScript holds until delete(): the search of each input
-  /// file and the pooled evaluation of all of them (ProSEAlgorithm::mergeFileResults(), the ProSE tool's -out_merged).
-  struct ProSEResultSet
-  {
-    std::vector<ProSEFileResult> files;      ///< in input order
-    /// the pooled run and the PSMs of all files; the meta value 'id_merge_index' of a PSM is the position of its file
-    ProSEAlgorithm::MergedResult merged;
-    std::vector<FASTAFile::FASTAEntry> database; ///< the proteins of the FASTA file searched
-    bool rescore = false;                    ///< whether the search rescored the PSMs with Percolator ('rescore')
-    bool open_search = false;
-    /// of the PSMs of all files (open search)
-    OpenSearchModificationAnalysis::OpenSearchAnalysisResult modification_analysis;
-    std::string decoy_string;                ///< the decoy marker of the accessions (empty: target-only)
-    double psm_fdr = 0.0;                    ///< FDR:PSM
-    double protein_fdr = 0.0;                ///< FDR:protein
-    bool keep_spectra = true;                ///< ProSEFilesOptions.keepSpectra
-
-    ProSEResultSet() = default;
-    // no copies of the results by mistake (Embind copies a class returned by value)
-    ProSEResultSet(const ProSEResultSet&) = delete;
-    ProSEResultSet& operator=(const ProSEResultSet&) = delete;
-
-    /// The summary of the search (ProSEMultiSummary)
-    JS::ProSEMultiSummary summary() const;
-
-    /// Stores the pooled run and PSMs as idXML (the ProSE tool's -out_merged)
-    void storeIdXML(const std::string& path) const;
-  };
-
   JS::ProSEMultiSummary ProSEResultSet::summary() const
   {
     const auto file_summary = [this](const ProSEFileResult& f) {
@@ -677,6 +640,18 @@ namespace OpenMS::WASM
             {
               f.peptdeep_nce = static_cast<double>(protein_id.getMetaValue(PeptDeepRescoring::NCE_META_VALUE));
             }
+            // the features of the run for tables(): the pooled run records those of one file only
+            const ProteinIdentification::SearchParameters& sp = protein_id.getSearchParameters();
+            if (sp.metaValueExists("extra_features"))
+            {
+              for (const std::string& name : ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString()))
+              {
+                if (std::find(set->extra_features.begin(), set->extra_features.end(), name) == set->extra_features.end())
+                {
+                  set->extra_features.push_back(name);
+                }
+              }
+            }
           }
           // the statistics of the PSMs of the file, as the ProSE tool reports them
           ProSEAlgorithm::updateFinalStats(run.stats, run.peptide_ids, result.shared.enzyme, run.stats.fdr_applied);
@@ -695,6 +670,15 @@ namespace OpenMS::WASM
       set->modification_analysis = std::move(files.size() == 1 ? result.per_file[0].modification_analysis
                                                                 : result.aggregate.modification_analysis);
       set->decoy_string = result.decoy_string;
+      set->decoy_is_prefix = result.decoy_is_prefix;
+      // how the search built its decoys, for the sequences of the decoy proteins (ProSEAlgorithm's decoy database)
+      {
+        const Param& p = algo.getParameters();
+        set->decoys.generated = result.shared.decoy_mode == "generated";
+        set->decoys.enzyme = p.getValue("enzyme").toString();
+        set->decoys.unspecific = p.getValue("peptide:enzyme_specificity").toString() == "none";
+        set->decoys.keep_initial_met = p.getValue("peptide:clip_nterm_methionine").toBool();
+      }
 
       // Without PSMs, nothing is pooled: the results stay empty, as without a searched file. (mergeFileResults() would
       // throw: the protein inference needs PSMs.)
@@ -834,6 +818,7 @@ EMSCRIPTEN_BINDINGS(openms_prose)
   // The results of searchFiles(); delete() releases them.
   class_<ProSEResultSet>("ProSEResultSet")
     .function("summary", OMS_METHOD(ProSEResultSet, &ProSEResultSet::summary))
+    .function("tables", OMS_METHOD(ProSEResultSet, &ProSEResultSet::tables))
     .function("storeIdXML", OMS_METHOD(ProSEResultSet, &ProSEResultSet::storeIdXML))
     ;
 

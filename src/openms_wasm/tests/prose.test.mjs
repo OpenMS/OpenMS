@@ -371,7 +371,7 @@ const suitabilitySpectra = path.join(toppDataDir, "THIRDPARTY/DatabaseSuitabilit
 
 /// Copies @p source (default: DatabaseSuitability_in_spec.mzML) to @p names (paths relative to a new temporary
 /// directory, e.g. "0/run.mzML"), mounted at /searchfiles of module @p m while @p fn runs; @p fn gets the paths of
-/// the copies there.
+/// the copies there, and the directory on the host.
 function withSpectraCopies(m, names, fn, source = suitabilitySpectra) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openms-wasm-prose-"));
   try {
@@ -381,7 +381,7 @@ function withSpectraCopies(m, names, fn, source = suitabilitySpectra) {
     }
     m.mountHostDirectory("/searchfiles", dir);
     try {
-      return fn(names.map((name) => `/searchfiles/${name}`));
+      return fn(names.map((name) => `/searchfiles/${name}`), dir);
     } finally {
       m.unmount("/searchfiles");
     }
@@ -443,6 +443,83 @@ function assertFuzzy(actual, expected, absdiff, ratio, message) {
   const withinRatio = actual > 0 && expected > 0 && Math.max(actual, expected) / Math.min(actual, expected) <= ratio;
   assert.ok(Math.abs(actual - expected) <= absdiff || withinRatio,
     `${message}: expected ${expected} (± ${absdiff} or a ratio of ${ratio}), got ${actual}`);
+}
+
+/// The columns of the three tables of ProSEResultSet.tables() with one entry per row, and their types
+const tableColumns = {
+  psms: { file: Uint16Array, nativeId: Array, rt: Float64Array, mz: Float64Array, charge: Int8Array, peptide: Uint32Array,
+          score: Float64Array, qValue: Float64Array, pep: Float64Array, precursorErrorPpm: Float64Array,
+          isotopeError: Int8Array, deltaMass: Float64Array, decoy: Uint8Array },
+  peptides: { openms: Array, proforma: Array, sequence: Array, decoy: Uint8Array },
+  proteins: { accession: Array, description: Array, sequence: Array, score: Float64Array, qValue: Float64Array,
+              decoy: Uint8Array, group: Int32Array },
+};
+
+/// Checks the shape of tables @p t (ProSEResultSet.tables()): the types and lengths of the columns, the offsets of the
+/// modifications and protein references of the peptides, and that every reference points into its table.
+function assertTableShapes(t) {
+  assert.ok(Array.isArray(t.files));
+  for (const [table, columns] of Object.entries(tableColumns)) {
+    const n = t[table].count;
+    assert.ok(Number.isInteger(n) && n >= 0, `${table}.count ${n}`);
+    for (const [column, type] of Object.entries(columns)) {
+      assert.ok(t[table][column] instanceof type, `${table}.${column} is a ${type.name}`);
+      assert.equal(t[table][column].length, n, `${table}.${column} has ${table}.count entries`);
+    }
+  }
+  const { psms, peptides, proteins } = t;
+  assert.ok(Array.isArray(psms.featureNames) && psms.features instanceof Float64Array);
+  assert.equal(psms.features.length, psms.count * psms.featureNames.length, "features: count × featureNames.length");
+  assert.ok(psms.peptide.every((k) => k < peptides.count), "every PSM refers to a peptide");
+  assert.ok(psms.file.every((f) => f < t.files.length), "every PSM refers to a file");
+  const ranges = (offsets, columns) => {
+    assert.ok(peptides[offsets] instanceof Uint32Array);
+    assert.equal(peptides[offsets].length, peptides.count + 1, `${offsets}: count + 1 entries`);
+    assert.equal(peptides[offsets][0], 0);
+    for (let k = 0; k < peptides.count; ++k) assert.ok(peptides[offsets][k] <= peptides[offsets][k + 1], offsets);
+    const n = peptides[offsets][peptides.count];
+    for (const [column, type] of Object.entries(columns)) {
+      assert.ok(peptides[column] instanceof type, `peptides.${column} is a ${type.name}`);
+      assert.equal(peptides[column].length, n, `peptides.${column} has ${offsets}[count] entries`);
+    }
+  };
+  ranges("modOffsets", { modPosition: Int16Array, modName: Array, modUnimod: Int32Array, modMass: Float64Array });
+  ranges("proteinOffsets", { protein: Uint32Array, start: Uint32Array, end: Uint32Array });
+  assert.ok(peptides.protein.every((p) => p < proteins.count), "every peptide reference points to a protein");
+  for (let k = 0; k < peptides.count; ++k) {
+    for (let i = peptides.modOffsets[k]; i < peptides.modOffsets[k + 1]; ++i) {
+      assert.ok(peptides.modPosition[i] >= -1 && peptides.modPosition[i] <= peptides.sequence[k].length, "modPosition");
+    }
+  }
+}
+
+/// @p actual is @p expected (NaN for a missing number), up to the precision of idXML
+function assertSame(actual, expected, message) {
+  if (typeof expected !== "number" || Number.isNaN(expected)) {
+    assert.ok(Number.isNaN(actual), `${message}: expected NaN, got ${actual}`);
+  } else {
+    assertClose(assert, actual, expected, 1e-9 * Math.max(1, Math.abs(expected)), message);
+  }
+}
+
+/// The text of the idXML file @p file of the host
+function idXMLText(file) {
+  return fs.readFileSync(file, "utf8");
+}
+
+/// The Percolator features of the search engine that the run of idXML @p text records (its 'extra_features')
+function extraFeatures(text) {
+  const match = /name="extra_features" value="([^"]*)"/.exec(text);
+  assert.ok(match, "extra_features in the idXML");
+  return match[1].split(",");
+}
+
+/// The indistinguishable-protein groups of the run of idXML @p text, as accessions: one array per group, in order
+function indistinguishableGroups(text) {
+  const accessions = new Map([...text.matchAll(/<ProteinHit id="([^"]*)" accession="([^"]*)"/g)].map((m) => [m[1], m[2]]));
+  const groups = [...text.matchAll(/name="indistinguishable_proteins_(\d+)" value="([^"]*)"/g)]
+    .map((m) => [Number(m[1]), m[2].split(",").slice(1).map((id) => accessions.get(id))]);
+  return groups.sort((a, b) => a[0] - b[0]).map(([, group]) => group);
 }
 
 /// The search of TOPP_ProSE_13_merged (two copies of one file, a.mzML and b.mzML; Percolator, the decoys removed),
@@ -529,6 +606,12 @@ test("searchFiles keeps files with the same name apart", () => {
       assert.equal(summary.proteinFdrApplied, true);
       assert.ok(ids.some((id) => id.hits[0].isDecoy), "decoy PSMs");
       assert.ok(proteins[0].hits.some((h) => h.accession.startsWith("DECOY_")), "decoy proteins");
+      // the tables: the files in input order, and the file of each PSM by its position
+      const t = set.tables();
+      assertTableShapes(t);
+      assert.deepEqual(t.files, files);
+      assert.equal(t.psms.count, ids.length);
+      assert.deepEqual(Array.from(t.psms.file), ids.map((id) => id.metaValues.id_merge_index));
     } finally {
       set.delete();
     }
@@ -549,6 +632,13 @@ test("searchFiles: one file, open search", () => {
     assert.ok(summary.modificationAnalysis !== null, "the modification analysis of the one file");
     assert.ok(Array.isArray(summary.modificationAnalysis.deltaMasses.entries));
     assert.equal(summary.proteinFdrApplied, false, "decoys: ignore");
+    // the mass shift of every PSM; no q-values and no protein FDR without decoys
+    const t = set.tables();
+    assertTableShapes(t);
+    assert.ok(t.psms.count > 0);
+    assert.ok(t.psms.deltaMass.every(Number.isFinite), `delta masses ${t.psms.deltaMass}`);
+    assert.ok(t.psms.qValue.every(Number.isNaN) && t.psms.pep.every(Number.isNaN));
+    assert.ok(t.proteins.count > 0 && t.proteins.qValue.every(Number.isNaN));
   } finally {
     set.delete();
   }
@@ -603,6 +693,11 @@ test("searchFiles: files without PSMs give empty results", () => {
       assert.equal(peptides.length, 0);
       assert.ok(proteins.every((run) => run.hits.length === 0));
     });
+    const t = set.tables();
+    assertTableShapes(t);
+    assert.deepEqual(t.files, ["/topp/SimpleSearchEngine_1.mzML"]);
+    assert.deepEqual([t.psms.count, t.peptides.count, t.proteins.count], [0, 0, 0]);
+    assert.deepEqual(t.psms.featureNames, ["ln(hyperscore)"]);
   } finally {
     set.delete();
   }
@@ -617,6 +712,212 @@ test("searchFiles: files that Percolator could not all rescore are not pooled", 
         /rescored only some.*SimpleSearchEngine_1\.mzML.*rescore: false/s);
       assert.equal(prose.getParameterValues()["rescore"], false, "the parameter is restored");
     });
+  });
+});
+
+test("tables() is consistent with the result set", () => {
+  // one file, rescored with Percolator; the decoys are kept (default)
+  withSpectraCopies(OpenMS, ["a.mzML"], (files, dir) => {
+    const set = searchFiles(OpenMS, files, undefined);
+    try {
+      assert.equal(set.summary().files[0].percolator.applied, true);
+      const t = set.tables();
+      assertTableShapes(t);
+      const { psms, peptides, proteins } = t;
+      const { proteins: runs, peptides: ids } = storedIdentifications(set, "/searchfiles/merged.idXML");
+      const text = idXMLText(path.join(dir, "merged.idXML"));
+      assert.deepEqual(t.files, files);
+
+      // One row per identified spectrum (its best hit), in the order of the stored identifications
+      const rows = ids.filter((id) => id.hits.length > 0);
+      assert.equal(psms.count, rows.length);
+      assert.ok(psms.count > 500, `${psms.count} PSMs`);
+      const names = psms.featureNames;
+      assert.ok(names.includes("ln(hyperscore)"), JSON.stringify(names));
+      // the Percolator features of the search engine ('score' is its ln(hyperscore))
+      for (const name of extraFeatures(text)) {
+        if (name !== "score") assert.ok(names.includes(name), `feature ${name} in ${JSON.stringify(names)}`);
+      }
+      rows.forEach((id, i) => {
+        const hit = id.hits[0];
+        const where = `PSM ${i} (${id.spectrumReference})`;
+        assert.equal(psms.file[i], id.metaValues.id_merge_index, where);
+        assert.equal(psms.nativeId[i], id.spectrumReference, where);
+        assertSame(psms.rt[i], id.rt ?? NaN, `rt of ${where}`);
+        assertSame(psms.mz[i], id.mz ?? NaN, `mz of ${where}`);
+        assert.equal(psms.charge[i], hit.charge, where);
+        assert.equal(peptides.openms[psms.peptide[i]], hit.sequence, where);
+        assert.equal(psms.decoy[i], hit.isDecoy ? 1 : 0, where);
+        // Percolator: q-values as scores, its SVM score and PEP as meta values
+        assert.equal(id.scoreType, "q-value");
+        assertSame(psms.qValue[i], hit.score, `qValue of ${where}`);
+        assertSame(psms.score[i], hit.metaValues["MS:1001492"], `score of ${where}`);
+        assertSame(psms.pep[i], hit.metaValues["MS:1001493"], `pep of ${where}`);
+        assertSame(psms.precursorErrorPpm[i], hit.metaValues.precursor_mz_error_ppm, `precursorErrorPpm of ${where}`);
+        assert.equal(psms.isotopeError[i], hit.metaValues.isotope_error, where);
+        assert.ok(Number.isNaN(psms.deltaMass[i]), `no delta mass in a closed search, ${where}`);
+        names.forEach((name, j) => {
+          assertSame(psms.features[i * names.length + j], hit.metaValues[name], `${name} of ${where}`);
+        });
+      });
+      assert.ok(psms.decoy.includes(1) && psms.decoy.includes(0), "target and decoy PSMs");
+
+      // Peptides: unique by their OpenMS string; ProForma is the sequence with its modifications in brackets
+      assert.equal(new Set(peptides.openms).size, peptides.count);
+      assert.deepEqual(new Set(peptides.openms), new Set(rows.map((id) => id.hits[0].sequence)));
+      const residues = (proforma) => proforma.replace(/^\[[^\]]*\]-/, "").replace(/-\[[^\]]*\]$/, "").replace(/\[[^\]]*\]/g, "");
+      const accessionsOf = new Map(rows.map((id) => [id.hits[0].sequence, id.hits[0].proteinAccessions]));
+      for (let k = 0; k < peptides.count; ++k) {
+        const where = `peptide ${peptides.openms[k]}`;
+        assert.equal(residues(peptides.proforma[k]), peptides.sequence[k], where);
+        assert.equal(peptides.modOffsets[k + 1] - peptides.modOffsets[k], (peptides.openms[k].match(/\(/g) ?? []).length, where);
+        for (let i = peptides.modOffsets[k]; i < peptides.modOffsets[k + 1]; ++i) {
+          // carbamidomethyl-C (fixed) and oxidized M (variable)
+          const [residue, name, unimod] = peptides.modName[i] === "Oxidation" ? ["M", "Oxidation", 35] : ["C", "Carbamidomethyl", 4];
+          assert.equal(peptides.sequence[k][peptides.modPosition[i]], residue, where);
+          assert.equal(peptides.modName[i], name, where);
+          assert.equal(peptides.modUnimod[i], unimod, where);
+        }
+        // every reference is the stretch of the peptide in the protein's sequence, decoys included
+        const refs = [];
+        for (let r = peptides.proteinOffsets[k]; r < peptides.proteinOffsets[k + 1]; ++r) {
+          const p = peptides.protein[r];
+          assert.equal(proteins.sequence[p].slice(peptides.start[r], peptides.end[r]), peptides.sequence[k],
+            `${where} in ${proteins.accession[p]} at ${peptides.start[r]}-${peptides.end[r]}`);
+          refs.push(proteins.accession[p]);
+        }
+        assert.deepEqual([...new Set(refs)].sort(), [...new Set(accessionsOf.get(peptides.openms[k]))].sort(), where);
+        const decoys = rows.filter((id) => id.hits[0].sequence === peptides.openms[k]).map((id) => id.hits[0].isDecoy);
+        assert.ok(decoys.every((d) => d === (peptides.decoy[k] === 1)), `decoy flag of ${where}`);
+      }
+      assert.ok(peptides.proteinOffsets[peptides.count] >= peptides.count, "the peptides have proteins");
+
+      // Proteins: the hits of the pooled run, with the sequences of the FASTA (decoys: as ProSE generated them)
+      const hits = runs[0].hits;
+      assert.deepEqual(proteins.accession, hits.map((h) => h.accession));
+      const fasta = new Map(using([new OpenMS.FASTAFile()], (f) => f.load(suitabilityDatabase)).map((e) => [e.identifier, e]));
+      const groups = indistinguishableGroups(text);
+      assert.ok(groups.length > 0);
+      const groupOf = new Map(groups.flatMap((group, g) => group.map((accession) => [accession, g])));
+      hits.forEach((h, p) => {
+        const decoy = h.accession.startsWith("DECOY_");
+        const target = fasta.get(decoy ? h.accession.slice("DECOY_".length) : h.accession);
+        assert.ok(target, h.accession);
+        assert.equal(proteins.decoy[p], decoy ? 1 : 0, h.accession);
+        assert.equal(proteins.description[p], target.description ?? "", h.accession);
+        if (decoy) {
+          assert.equal(proteins.sequence[p].length, target.sequence.length, h.accession);
+          assert.notEqual(proteins.sequence[p], target.sequence, h.accession);
+        } else {
+          assert.equal(proteins.sequence[p], target.sequence, h.accession);
+        }
+        assertSame(proteins.qValue[p], h.score, `protein q-value of ${h.accession}`);
+        assert.ok(Number.isFinite(proteins.score[p]), `score of ${h.accession}`);
+        assert.equal(proteins.group[p], groupOf.get(h.accession) ?? -1, `group of ${h.accession}`);
+      });
+      assert.ok(proteins.decoy.includes(1), "decoy proteins");
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+/// Stores the spectra of TOPP_ProSE_1 and, as further spectra, the b and y ions of @p peptides ([OpenMS sequence,
+/// precursor charge]) as mzML at @p file.
+function storeSpectraWith(file, peptides) {
+  using([new OpenMS.MSExperiment(), new OpenMS.MzMLFile(), new OpenMS.TheoreticalSpectrumGenerator()], (experiment, mzml, generator) => {
+    mzml.load("/topp/SimpleSearchEngine_1.mzML", experiment);
+    for (const [sequence, charge] of peptides) {
+      using([OpenMS.AASequence.fromString(sequence), new OpenMS.MSSpectrum()], (peptide, spectrum) => {
+        generator.getSpectrum(spectrum, peptide, 1, 2);
+        const { mz } = spectrum.getPeaks();
+        spectrum.setPeaks(mz, new Float64Array(mz.length).fill(100));
+        spectrum.setMSLevel(2);
+        spectrum.setRT(5000 + experiment.size());
+        spectrum.setNativeID(`spectrum=${experiment.size()}`);
+        spectrum.setPrecursors([{ mz: peptide.getMZ(charge), charge }]);
+        experiment.addSpectrum(spectrum);
+      });
+    }
+    mzml.store(file, experiment);
+  });
+}
+
+test("tables() encodes terminal modifications", () => {
+  // the data of TOPP_ProSE_1 (with an oxidized M), and spectra of a peptide with an N-terminal and one with a C-terminal
+  // modification
+  const acetylated = ".(Acetyl)EWATYTC(Carbamidomethyl)VLGFHVYVPVR";
+  const amidated = "LVTLAESPR.(Amidated)";
+  const oxidized = "IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK";
+  withSpectraCopies(OpenMS, [], () => {
+    storeSpectraWith("/searchfiles/terminal.mzML", [[acetylated, 3], [amidated, 2]]);
+    const set = searchFiles(OpenMS, ["/searchfiles/terminal.mzML"], undefined, {
+      parameters: { ...prose1, "modifications:variable": ["Acetyl (N-term)", "Oxidation (M)", "Amidated (C-term)"] },
+      database: "/topp/SimpleSearchEngine_1.fasta",
+    });
+    try {
+      const t = set.tables();
+      assertTableShapes(t);
+      const { psms, peptides, proteins } = t;
+      assert.equal(psms.count, 5);
+      const peptide = (openms) => {
+        const k = peptides.openms.indexOf(openms);
+        assert.ok(k >= 0, `${openms} in ${JSON.stringify(peptides.openms)}`);
+        return k;
+      };
+      const mods = (k) => {
+        const m = [];
+        for (let i = peptides.modOffsets[k]; i < peptides.modOffsets[k + 1]; ++i) {
+          m.push([peptides.modPosition[i], peptides.modName[i], peptides.modUnimod[i], Number(peptides.modMass[i].toFixed(4))]);
+        }
+        return m;
+      };
+      const proteinsOf = (k) => {
+        const p = [];
+        for (let r = peptides.proteinOffsets[k]; r < peptides.proteinOffsets[k + 1]; ++r) {
+          assert.equal(proteins.sequence[peptides.protein[r]].slice(peptides.start[r], peptides.end[r]), peptides.sequence[k]);
+          p.push(proteins.accession[peptides.protein[r]]);
+        }
+        return p.sort();
+      };
+
+      // N-terminal: position -1, "[Acetyl]-" in ProForma; the fixed modification is written like any other
+      let k = peptide(acetylated);
+      assert.equal(peptides.sequence[k], "EWATYTCVLGFHVYVPVR");
+      assert.equal(peptides.proforma[k], "[Acetyl]-EWATYTC[Carbamidomethyl]VLGFHVYVPVR");
+      assert.deepEqual(mods(k), [[-1, "Acetyl", 1, 42.0106], [6, "Carbamidomethyl", 4, 57.0215]]);
+      assert.deepEqual(proteinsOf(k), ["BSA2"]);
+      // C-terminal: position = length of the sequence, "-[Amidated]"; a peptide of three proteins
+      k = peptide(amidated);
+      assert.equal(peptides.proforma[k], "LVTLAESPR-[Amidated]");
+      assert.deepEqual(mods(k), [[9, "Amidated", 2, -0.984]]);
+      assert.deepEqual(proteinsOf(k), ["BSA3", "BSA333", "test"]);
+      // a modified residue
+      k = peptide(oxidized);
+      assert.equal(peptides.proforma[k], "IALSRPNVEVVALNDPFITNDYAAYM[Oxidation]FK");
+      assert.deepEqual(mods(k), [[25, "Oxidation", 35, 15.9949]]);
+      // unmodified
+      k = peptide("DFASSGGYVLHLHR");
+      assert.equal(peptides.proforma[k], "DFASSGGYVLHLHR");
+      assert.deepEqual(mods(k), []);
+      // the OpenMS strings are those of AASequence, which reads them back
+      for (const s of peptides.openms) using([OpenMS.AASequence.fromString(s)], (a) => assert.equal(a.toString(), s));
+
+      // Without decoys: ProSE's ln(hyperscore) as score (TOPP_ProSE_1), no q-values, PEPs or protein q-values
+      const row = psms.peptide.indexOf(peptide(oxidized));
+      assertClose(assert, psms.score[row], 45.369950862989675, 1e-6, "ln(hyperscore)");
+      assert.equal(psms.charge[row], 3);
+      const hyperscore = psms.featureNames.indexOf("ln(hyperscore)");
+      for (let i = 0; i < psms.count; ++i) {
+        assert.equal(psms.features[i * psms.featureNames.length + hyperscore], psms.score[i], "the score is the feature");
+        assert.ok(Number.isNaN(psms.qValue[i]) && Number.isNaN(psms.pep[i]) && Number.isNaN(psms.deltaMass[i]));
+        assert.equal(psms.decoy[i], 0);
+      }
+      assert.ok(proteins.qValue.every(Number.isNaN));
+      assert.ok(proteins.decoy.every((d) => d === 0));
+    } finally {
+      set.delete();
+    }
   });
 });
 

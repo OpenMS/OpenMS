@@ -82,6 +82,7 @@ add_executable(openms_wasm
   bindings/bind_misc.cpp
   bindings/bind_processing.cpp
   bindings/bind_prose.cpp
+  bindings/bind_prose_tables.cpp
   bindings/js_types.cpp
 )
 target_link_libraries(openms_wasm PRIVATE OpenMS)

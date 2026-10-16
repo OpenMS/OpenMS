@@ -176,6 +176,8 @@ namespace OpenMS::WASM
   template <> struct TypedArrayName<double> { static constexpr const char* value = "Float64Array"; };
   template <> struct TypedArrayName<float> { static constexpr const char* value = "Float32Array"; };
   template <> struct TypedArrayName<int32_t> { static constexpr const char* value = "Int32Array"; };
+  template <> struct TypedArrayName<uint16_t> { static constexpr const char* value = "Uint16Array"; };
+  template <> struct TypedArrayName<int16_t> { static constexpr const char* value = "Int16Array"; };
   template <> struct TypedArrayName<uint32_t> { static constexpr const char* value = "Uint32Array"; };
   template <> struct TypedArrayName<int8_t> { static constexpr const char* value = "Int8Array"; };
   template <> struct TypedArrayName<uint8_t> { static constexpr const char* value = "Uint8Array"; };
