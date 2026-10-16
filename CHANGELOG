@@ -17,6 +17,12 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - ConsensusMapNormalizerAlgorithmRTLocal: normalizes each map of a consensus map by a log2 offset that may vary
+    with retention time, estimated as the median deviation of the features quantified in several maps among the
+    neighbouring features in retention time (the run normalisation of andes). It removes both different loading
+    and a drift of the ion signal along the gradient. On the ProteoBench DDA ion module (QExactive), applied to
+    ProteomicsLFQ output, it lowers the median CV from 0.23-0.24 to 0.09-0.10 and the median absolute fold-change
+    error from 0.22 to 0.15-0.16; one median per map ('median') reaches a CV of 0.16 at an error of 0.22.
   - PepXMLFile accepts the optional pepXML `no_cut` attribute when reading unknown enzymes,
     including files written by OpenMS (#10321).
   - FIX: PepXMLFile::store writes the expect score of X! Tandem and Mascot hits read from pepXML (it wrote an empty
@@ -65,6 +71,11 @@ OpenMS Library:
   - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
+  - FIX: ConsensusMapNormalizerAlgorithmMedian, -Quantile and -Threshold accept maps whose indices are not consecutive, as
+    'FileFilter -consensus:map' leaves them. Median and Quantile threw ElementNotFound for them, and Threshold
+    (ConsensusMapNormalizer -algorithm_type robust_regression) read past the end of its per-map vectors and crashed. The
+    per-map vectors (medians, ratios, intensity vectors) are numbered by the position of a map among the column headers,
+    which is the map index for maps numbered 0 ... N-1.
   - FIX: MapAlignmentAlgorithmIdentification::setReference() (MapAlignerIdentification -reference:file) ignored the
     parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
     lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
@@ -453,6 +464,20 @@ OpenMS Library:
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
   - FIX: OpenSwathWorkflow and OpenDIA with -out_chrom .xic: an error while writing the Parquet file (e.g. a
     full disk) was only logged, and the tool exited with 0 and a missing or truncated .xic file. The run now fails.
+  - FIX: FeatureFinderMultiplexAlgorithm with knock_out: a partial pattern lacking the lightest channel
+    (e.g. medium and heavy of a triple SILAC peptide without light) kept the mass shifts of the complete
+    pattern, so the filtering only found it next to a peak at the absent light position; such peptides
+    came out as unrelated singlets. Knock-out patterns now start at shift 0 (relative to their lightest
+    present channel), and the quadruplex knock-out without its third channel is searched as well.
+  - FIX: FeatureFinderMultiplexAlgorithm fills getBlacklist() for centroided input, too (it was empty, so
+    MultiplexResolver reported overlapped dummy channels as absent instead of not quantifiable). Every
+    FeatureHandle of getConsensusMap() carries the unique id of its feature in getFeatureMap() (the
+    channel's mass trace hulls); getCentroidedExperiment() returns the peaks the detection worked on.
+  - MultiplexResolverAlgorithm: a pattern also has to label as many K, R (and L for Leu3) residues as
+    the identified sequence has. The label set of an unlabelled identification occurs in every pattern,
+    so e.g. a light singlet of a K-terminal peptide could be completed with Arg-shifted channels. New
+    checkIdentifications() tells which identifications of a multiplet agree with its mass shifts,
+    expectedChannelMZs() where the peptide of an identification appears in every channel.
   - FIX: TheoreticalSpectrumGenerator with add_internal_fragments never generated the internal fragment that
     ends next to the C-terminal residue (e.g. ID of PEPTIDE), and none at all for peptides of 4 residues.
     OpenNuXL, which annotates spectra with internal fragments, now reports these fragments too.
@@ -501,6 +526,10 @@ TOPP tools:
       and export; peptidoform inference needs workflow:working_format sqlite. Intermediate files are
       removed on success unless workflow:keep_intermediate_files is set (#10373).
   Changes:
+    ConsensusMapNormalizer:
+      - New -algorithm_type rt_local (options rt_local:*): per-map normalization with an offset that varies with
+        retention time (see ConsensusMapNormalizerAlgorithmRTLocal). -accession_filter and -description_filter
+        restrict the reference features as for 'median'.
     NucleicAcidSearchEngine:
       - Resolve interleaved ambiguity variants within their original precursor/source hypotheses, record current cached-digest search parameters, and produce finite LFQ retention times. Exact cutoff tie retention is unchanged; exported ties now follow the shared library value order.
       - Enumerate cleavage-blocking RNA modifications during digestion, apply fixed internal modifications
@@ -536,6 +565,33 @@ TOPP tools:
         ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
         exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported()
         (#10459).
+    MS1LabeledWorkflow:
+      - FIX: identifications were mapped onto a multiplet only within id_mapping:rt_tolerance (5 s) of
+        its apex and by their precursor m/z, so MS2 spectra acquired off the apex, and every spectrum
+        whose precursor was picked on another isotope (accepted by searches with isotope error
+        correction), stayed unassigned. They are now matched against the elution region of the
+        multiplet's channels (their mass traces, plus the tolerances), and id_mapping:mz_reference
+        defaults to 'peptide': the theoretical m/z of the identified, labelled peptidoform. The
+        channel of a spectrum match is the one closest to that m/z, too (an off-isotope precursor
+        could be closer to another channel and turn the multiplet into a conflict).
+      - FIX: of several identifications on a multiplet, those whose labels agree with its mass shifts
+        are preferred; a better-scoring one that contradicts them (e.g. a co-isolated peptide) made
+        the whole multiplet a quant/ID conflict.
+      - PARAM: algorithm:knock_out defaults to 'true': partial multiplets (e.g. a peptide seen in the
+        heavy channel only, or whose weaker channels fail the detection's filters) are quantified;
+        before, every multiplet with an undetected channel was dropped. Partial multiplets that only
+        flank a larger multiplet of the same peptide are merged into it. Supported for up to four
+        channels. -match_between_runs can be combined with it (only complete unidentified
+        multiplets are kept).
+      - PARAM: new -requantify (default 'true'): a channel the detection did not find is measured at
+        its expected position over the elution region of the multiplet, relative to its most intense
+        detected channel (like MaxQuant's re-quantify), and reported as absent only if it shows no
+        signal there. An identification of such a channel (e.g. the minor channel of a mixture, which
+        DDA fragments as well) joins the multiplet detected in the peptide's other channels.
+      - On a synthetic triple SILAC run (120 peptides; complete, partial and weak 1:0.15:0.15
+        multiplets; MS2 over the whole elution, precursors partly on M+1..M+3) 119 peptides are
+        quantified with the exact channel ratios. The previous per-run chain (apex mapping on precursor
+        m/z, complete multiplets only) quantified 27, i.e. not even half of the 60 complete ones.
     IsobaricWorkflow:
       - -in also accepts Thermo .raw (if built WITH_THERMO_RAW) and Bruker timsTOF .d (if built
         WITH_OPENTIMS) runs, read natively like in IsobaricAnalyzer; mzML input is unchanged. The
@@ -608,6 +664,17 @@ TOPP tools:
         quantified once per isomer, and copies whose identifications failed the PSM FDR filter became
         identical unidentified consensus features, which made -out_qpx fail with duplicate QPX
         feature rows.
+      - The RT tolerance of linking (QT linking, and the global RT window of PIP-ECHO) is
+        sized from the 95th percentile of the RT differences of the alignment points after alignment
+        (the largest over the runs) instead of their maximum, and no longer has a 2-minute minimum.
+        A few outlying points decided the maximum: on the ProteoBench DDA ion module (QExactive, 6 runs,
+        2 h gradients) the tolerance was +-20 min, and match-between-runs without PIP-ECHO raised the
+        median absolute E. coli fold-change error from 0.41 (identified only) to 0.62. With the 95th
+        percentile the tolerance is +-74 s, and match-between-runs adds 4,600 precursors (42,322 to
+        46,929) at the accuracy of identified only (median error 0.221, E. coli 0.41).
+      - FIX: -Alignment:model_type and -Alignment:model:<type>:* were ignored: the RT transformations
+        were always B-splines with default parameters. They now select the RT model and its parameters.
+        The second, unused switch -Alignment:model:type is removed; use -Alignment:model_type.
       - FIX: -feat_dir checkpoints record -protein_quantification. Detection keeps the peptide
         uniqueness annotation that strictly_unique_peptides filters on only in that mode, so a
         strict combine accepted checkpoints detected in another mode and then dropped the peptide
