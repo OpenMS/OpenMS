@@ -94,6 +94,8 @@ OpenMS Library:
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
+  - Shared OpenMS libraries use the full package version as their SONAME, preventing tools from loading
+    an incompatible library from another installation. Linux pyOpenMS bundles and preloads the versioned names.
   - UniqueIdGenerator guards the shared Mersenne Twister with one mutex per id instead of two OpenMP
     critical sections, which also protects callers without OpenMP. Generated ids exclude zero.
     The seeded sequence is preserved except for skipped zeros.

@@ -49,6 +49,10 @@ openms_add_library(TARGET_NAME OpenMSHeaderProbe
   HEADER_FILES ${_headers}
   BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include"
   DLL_EXPORT_PATH "OpenMS/")
+get_target_property(_probe_soversion OpenMSHeaderProbe SOVERSION)
+if(_probe_soversion)
+  message(FATAL_ERROR "The test-only header probe must not carry the package SONAME")
+endif()
 target_sources(OpenMSHeaderProbe PRIVATE FILE_SET private_headers TYPE HEADERS
   BASE_DIRS source include
   FILES source/private.h include/OpenMS/private.h)
