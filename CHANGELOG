@@ -80,6 +80,8 @@ OpenMS Library:
     parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
     lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
     did not match the inputs (no alignment points).
+  - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
+    all passing through one OpenMP critical section, which serialized threads that read or set meta values.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.
@@ -223,6 +225,65 @@ OpenMS Library:
     Bruker timsTOF MALDI imaging .d) into an MSImagingExperiment; exposed through pyOpenMS.
     FileHandler::loadExperiment() now rejects Bruker MALDI imaging .d folders with InvalidFileType, as
     it already did for imzML. Before, it read them as DDA-PASEF and failed on the missing Precursors table.
+  - pyOpenMS: BrukerTimsFile.Config has every field of the C++ struct. New are the frame and retention
+    time range (frame_id_min, frame_id_max, rt_min_sec, rt_max_sec), ms1_centroid_algo, the HillBased
+    centroiding options and the isotopic prefilter options.
+  - FileHandler::loadExperiment() no longer decodes what its PeakFileOptions exclude from Bruker .d
+    input. The reader skips the MS levels that are not requested, and the retention times outside the
+    requested range if only MS1 is requested, instead of reading everything and filtering afterwards.
+    The spectra returned are unchanged. An MS2-only load of a ddaPASEF run (SimpleSearchEngine, ProSE,
+    ...) no longer reads the MS1 frames, an MS1-only load (the FeatureFinders) no MS2 frames. For direct
+    use of the reader there is BrukerTimsFile::Config::load_ms2 (also in pyOpenMS).
+  - FIX: BrukerTimsFile no longer warns "ms1_centroid_mz_ppm and ms1_centroid_im_pct must both be > 0 to
+    enable MS1 centroiding" on every load with the default configuration (ms1_centroid_mz_ppm has been
+    10 by default since HillBased centroiding uses it; on its own it selects nothing).
+  - BrukerTimsFile reads raw frames (MS1 without centroiding, FRAME export mode) more than twice as fast:
+    the peaks of a frame are put in m/z order while they are read, by their TOF index, instead of sorting
+    every spectrum by m/z at the end of the load, which took most of the time. The output is unchanged.
+  - BrukerTimsFile decodes every MS2 frame of a diaPASEF run once and splits it into the isolation windows
+    of its window group (load() without RT aggregation, transform() and loadDIAStreaming(), which
+    OpenSWATH uses), instead of decoding it once per window; the window spectra are emitted in m/z order.
+    A default diaPASEF load takes less than half the time. The output is unchanged.
+  - BrukerTimsFile keeps a decoded MS2 frame of a ddaPASEF run only until the last precursor that needs
+    it has been read, not until the end of the load. An MS2-only load of a 110 min run (62,000 frames,
+    230,000 precursors) peaks at 5.8 GB instead of 14 GB. The output is unchanged.
+  - BrukerTimsFile decodes raw frames (MS1 without centroiding or aggregation, FRAME export mode) on up to
+    four threads, in batches that it hands on in order. With the changes above, a default load of a 5.6 min
+    ddaPASEF run takes 4.1 s instead of 20.8 s and one of a diaPASEF run 5.5 s instead of 19.4 s. Frames
+    are decoded one at a time if the Bruker SDK does the conversions. The output is unchanged.
+  - Bruker .d input that cannot be read is reported as such. A .d directory with TSF data (analysis.tsf,
+    timsTOF without ion mobility) or BAF data (analysis.baf, QTOF) was an unknown file type ("Could not
+    determine input file type"); FileHandler::getType() now takes it as Bruker .d and the readers throw
+    a ParseError that names the format. TDF data that is not zstd-compressed (TimsCompressionType other
+    than 2) gets a ParseError naming the value instead of "... is not readable for the current user".
+    A '.d.zip' archive is typed by its list of entries: one without a .d directory (or without entries)
+    is no longer taken for Bruker data, and nothing is extracted before the reader rejects an archive.
+    New: BrukerTimsFile::detectFormat() and checkDataFormat(), and ZipArchiveFile::listEntries() with a
+    result that tells an archive without entries from one that cannot be read.
+  - BrukerTimsFile::transform() hands the spectra to the consumer as they are read, in the order and form
+    load() returns them, instead of loading the whole run first; the memory it needs no longer grows with
+    the run. (Exceptions, loaded completely as before: DIA with MS2 aggregation over retention time, and
+    DDA with calibrate on the linear m/z model.) Exposed in pyOpenMS (BrukerTimsFile.transform()), as are
+    detectFormat() and checkDataFormat().
+  - FileHandler::transformExperiment() streams Bruker .d input (directory or .d.zip) as well; before, it threw
+    InvalidFileType. As for loadExperiment(), the reader skips the frames the PeakFileOptions exclude, and
+    every spectrum is then filtered on its way to the consumer (MS level, RT and precursor m/z range, peak
+    m/z and intensity range, metadata-only), so the consumer gets the spectra loadExperiment() returns.
+    MALDI imaging .d is rejected as by loadExperiment(). The number of spectra passed to setExpectedSize()
+    is an upper bound (see BrukerTimsFile::transform()). loadExperiment() now also honours fill-data off for
+    Bruker .d input (spectra without peaks, as for Thermo .raw).
+  - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
+    without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
+    invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
+    frame without peaks keeps its empty ion mobility array. CachedMzMLHandler::readMemdump() also returns the values
+    of the data arrays of chromatograms, which came back empty.
+  - MSDataWritingConsumer (the streaming mzML writer of the low-memory modes) corrects the count of its
+    spectrumList when the file is closed, if another number of spectra was written than it was told to
+    expect (a filter, or a reader that leaves empty spectra out). The tag is rewritten in place and
+    padded with blanks, so the index stays valid. Before, the count stayed at the expected number.
+    If it got the settings of a run but no spectrum or chromatogram, it now writes the mzML document of
+    a run without spectra, as MzMLFile::store() does, instead of an empty file (e.g. -process_lowmemory
+    conversions in which every spectrum is filtered out).
   - FIX: ThermoRawFile (native Thermo .raw reader) opens files given through a symbolic link, as
     staged by Nextflow and Galaxy. Thermo's RawFileReader failed on them ("Could not open RAW file");
     the resolved path is opened now, while the source file keeps the given name (#10451).
@@ -462,6 +523,16 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: IDFilter -score:peptide with -score:type_peptide filtered the protein hits instead of the peptide
+    hits, so the PSMs were not filtered. IDFilter::filterHitsByScore() with a score type now removes the hits
+    of an identification that has this score neither as main nor as secondary score, as documented; before,
+    it kept them.
+  - FIX: MorphologicalFilter shared its scratch buffers between all threads. MapAlignerPoseClustering aligns
+    maps in parallel and its superimposer applies a tophat filter, so with three or more input maps the
+    alignments could read each other's data. The buffers are thread-local now.
+  - FIX: estimateNoiseFromRandomScans() (TOPPView's intensity cutoff when opening a file) sampled spectra
+    by their position in the list of non-empty spectra of the MS level instead of their index in the
+    experiment, so it read spectra of other MS levels, or an empty spectrum.
   - FIX: SwathQC (the charge distribution of OpenSwathWorkflow -out_qc and OpenSwathFileSplitter) used only
     the first MS1 spectrum of a run with 45 or more MS1 spectra: the index for subsampling 30 spectra only
     counted the spectra already taken. It now counts every MS1 spectrum.
@@ -571,6 +642,19 @@ TOPP tools:
         ILLEGAL_PARAMETERS, without leaving an empty <Tool>.cwl behind. ParamCWLFile throws OpenMS
         exceptions (NotImplemented, UnableToCreateFile) instead of std ones and has isSupported()
         (#10459).
+    FileConverter:
+      - New option -bruker:load_ms2: 'false' skips the MS2 spectra of a Bruker .d (MS1-only conversion),
+        the counterpart of -bruker:load_ms1.
+      - -process_lowmemory also works for Bruker .d input (to mzML; before: an error). The spectra are
+        written as they are read, and the mzML file is the one the conversion in memory gives. A 110 min
+        ddaPASEF run (5.6 GB .d, 1.9 billion peaks) converts in under 5 minutes with 170 MB of heap memory
+        (the resident memory, 4.8 GB at its peak, is the memory-mapped analysis.tdf_bin).
+      - FIX: -force_TPP_compatibility had no effect with -process_lowmemory (mzML output from mzML, mzXML,
+        Thermo .raw and now Bruker .d input).
+      - -process_lowmemory also converts Bruker .d input to cachedMzML (before: an error); the spectra go to
+        the cache as they are read, and both files are those of the conversion in memory.
+      - FIX: Bruker MALDI imaging .d input is rejected (exit code INCOMPATIBLE_INPUT_DATA), as by
+        FileHandler::loadExperiment(); it was read as DDA-PASEF data, without its pixel geometry.
     MS1LabeledWorkflow:
       - FIX: identifications were mapped onto a multiplet only within id_mapping:rt_tolerance (5 s) of
         its apex and by their precursor m/z, so MS2 spectra acquired off the apex, and every spectrum
