@@ -170,7 +170,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       RunStatistics stats;
       /// Outcome of the Percolator rescoring of this run (parameter 'rescore')
       PercolatorRescoring percolator;
-      PeptideIdentificationList pre_fdr_peptide_ids; ///< the PSMs before FDR:PSM; only filled with setKeepPreFdrPsms(true)
+      PeptideIdentificationList pre_fdr_peptide_ids; ///< the PSMs before rescoring and FDR:PSM; only filled with setKeepPreFdrPsms(true)
     };
 
     /**
@@ -614,8 +614,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         bool build_pooled_aggregate = true) const;
 
     /// With @p keep = true, the multi-file searchWithModificationAnalysis() overloads also return the PSMs of each
-    /// file before FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a Percolator .pin); with 'rescore', as
-    /// Percolator rescored them. Default: false (no copy).
+    /// file before the rescoring ('rescore') and FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a
+    /// Percolator .pin): the search engine scores, every reported hit and the decoys. Default: false (no copy).
     void setKeepPreFdrPsms(bool keep)
     {
       keep_pre_fdr_psms_ = keep;
@@ -1345,7 +1345,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// 'rescore' on, rescores the PSMs with Percolator first (rescoreWithPercolator()) and then
     /// applies FDR:PSM with applyDeferredPsmFDR(); otherwise applies FDR:PSM to the search engine
     /// scores (if @p has_decoys). Fills the FDR fields of @p stats. If @p pre_fdr_psms is given, it
-    /// receives the PSMs right before FDR:PSM, i.e. after the rescoring (see setKeepPreFdrPsms()).
+    /// receives the PSMs before the rescoring and FDR:PSM (see setKeepPreFdrPsms()).
     /// @return The outcome of the rescoring (not applied, no reason with 'rescore' off).
     PercolatorRescoring applyPsmFDR_(std::vector<ProteinIdentification>& protein_ids,
                                      PeptideIdentificationList& peptide_ids,

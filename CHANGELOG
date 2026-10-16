@@ -725,8 +725,9 @@ TOPP tools:
         PSMs that passed, with q-values as score; with one input and Search:FDR:protein, it had no
         decoys, so Percolator could not use it. The search now also hands back the PSMs before
         FDR:PSM (ProSEAlgorithm::setKeepPreFdrPsms), and the .pin is written from them before the
-        protein FDR; with Search:rescore it holds the rescored PSMs before the FDR filters. The other
-        outputs do not change.
+        protein FDR. It is the input of a later rescoring, so with Search:rescore (the default) it also
+        holds the PSMs before the rescoring: ProSE's own scores, all reported hits and the decoys. The
+        other outputs do not change.
     FileConverter:
       - PARAM: Thermo .raw input (in-process reader) no longer records the SHA-1 of the raw file by
         default, which cost a second read of the whole file (5-15% of the conversion time); the new

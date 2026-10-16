@@ -360,7 +360,7 @@ namespace OpenMS
                        "and FDR:PSM and FDR:protein are applied to the rescored PSMs. Needs decoys (see 'decoys') and at least "
                        "100 PSMs: a run without them, or for which Percolator fails, is not rescored and keeps its search engine "
                        "scores, which the FDR filters then use (the ProSE tool warns). Set to 'false' to report the search engine "
-                       "scores, e.g. to rescore the Percolator input (.pin) of the ProSE tool externally.");
+                       "scores.");
     defaults_.setValidStrings("rescore", {"true", "false"});
 
     defaults_.setValue("FDR:PSM", 0.0,
@@ -4193,6 +4193,9 @@ namespace OpenMS
                                                                    PeptideIdentificationList* pre_fdr_psms) const
   {
     PercolatorRescoring rescoring;
+    // The copy for a Percolator .pin (setKeepPreFdrPsms()) holds the search engine scores, every reported hit and the
+    // decoys: it is the input of a later rescoring, so it is taken before the rescoring as well as before FDR:PSM.
+    if (pre_fdr_psms != nullptr) { *pre_fdr_psms = peptide_ids; }
     if (rescore_)
     {
       // Percolator gets all target and decoy PSMs; the PSM FDR follows on its q-values (or, if it
@@ -4204,7 +4207,6 @@ namespace OpenMS
 #endif
       OPENMS_LOG_INFO << "[ProSE] Rescoring the PSMs with Percolator..." << std::endl;
       rescoring = rescoreWithPercolator(protein_ids, peptide_ids, threads);
-      if (pre_fdr_psms != nullptr) { *pre_fdr_psms = peptide_ids; }
       if (fdr_psm_ > 0.0)
       {
         StopWatch sw_fdr; sw_fdr.start();
@@ -4229,7 +4231,6 @@ namespace OpenMS
       return rescoring;
     }
 
-    if (pre_fdr_psms != nullptr) { *pre_fdr_psms = peptide_ids; }
     if (fdr_psm_ > 0.0 && has_decoys)
     {
       // PSM-level FDR: annotate q-values and filter target+decoy PSMs alike by the threshold.
