@@ -164,6 +164,7 @@ public:
   using ProSEAlgorithm::annotateIonPriors_;
   using ProSEAlgorithm::reversedNoiseSequence_;
   using ProSEAlgorithm::fragment_mass_tolerance_;
+  using ProSEAlgorithm::poolSearchedFiles_;
 };
 
 // A progress display that counts how often a progress display starts and ends, and throws when one with the label
@@ -5448,6 +5449,7 @@ START_SECTION((MergedResult mergeFileResults(MultiFileSearchResult& result, cons
 {
   std::string copy_file;
   NEW_TMP_FILE_EXT(copy_file, ".mzML")
+  File::remove(copy_file); // left over if an earlier run failed; File::copy() does not overwrite
   TEST_TRUE(File::copy(merge_spectra_file, copy_file))
   merge_files = {merge_spectra_file, copy_file};
   ProSEAlgorithm algo;
@@ -5581,6 +5583,57 @@ START_SECTION(([EXTRA] mergeFileResults skips failed files))
   TEST_TRUE(merged.protein_ids.empty())
   TEST_TRUE(merged.peptide_ids.empty())
   TEST_FALSE(merged.protein_fdr_applied)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults and the pooled aggregate give each PSM the input position of its file, also after a failed file))
+{
+  // IDMergerAlgorithm numbers only the files it pools, while the pooled run lists all input files: with the first file
+  // failed, the PSMs of the second one must carry index 1 (the second file of the run), not 0.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  const std::vector<std::string> file_1_psms = target_psms(merge_search.per_file[1].peptide_ids);
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  result.per_file[0].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+
+  // the pooling of the search's aggregate, which copies the identifications of the files
+  std::vector<ProteinIdentification> pooled_proteins;
+  PeptideIdentificationList pooled_peptides;
+  ProSEAlgorithm_test::poolSearchedFiles_(result.per_file, false, merge_files, pooled_proteins, pooled_peptides);
+  ABORT_IF(pooled_proteins.size() != 1)
+  StringList run_paths;
+  pooled_proteins[0].getPrimaryMSRunPath(run_paths);
+  TEST_TRUE(run_paths == merge_files)
+  TEST_EQUAL(pooled_peptides.size(), merge_search.per_file[1].peptide_ids.size())
+  TEST_TRUE(merge_indices(pooled_peptides) == (std::set<int>{1}))
+  TEST_EQUAL(result.per_file[1].peptide_ids.size(), merge_search.per_file[1].peptide_ids.size()) // copied
+
+  // mergeFileResults on such a pooled aggregate (the search's) keeps the indices
+  result.aggregate.protein_ids = pooled_proteins;
+  result.aggregate.peptide_ids = pooled_peptides;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{1}))
+  TEST_TRUE(target_psms(merged.peptide_ids) == file_1_psms)
+
+  // mergeFileResults without an aggregate pools the files itself
+  result = merge_search;
+  result.per_file[0].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  merged = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{1}))
+  TEST_TRUE(target_psms(merged.peptide_ids) == file_1_psms)
+
+  // a failed file between two others: the third file keeps index 2
+  result = merge_search;
+  result.per_file.insert(result.per_file.begin() + 1, merge_search.per_file[1]);
+  result.per_file[1].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
+  result.aggregate.protein_ids.clear();
+  result.aggregate.peptide_ids.clear();
+  const StringList three_files = {merge_files[0], "failed.mzML", merge_files[1]};
+  merged = algo.mergeFileResults(result, three_files);
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0, 2}))
 }
 END_SECTION
 

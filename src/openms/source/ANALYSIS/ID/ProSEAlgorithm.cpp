@@ -5595,18 +5595,10 @@ namespace OpenMS
       // remaps all PeptideIdentification identifiers to the merged run. No
       // PeptideIndexing re-run needed: per-file searches already linked
       // peptides to proteins.
-      // The COPY overload is mandatory here: per_file is returned to the caller and must
+      // Copying is mandatory here: per_file is returned to the caller and must
       // stay intact, so nothing may be moved out of it.
-      IDMergerAlgorithm merger;
-      for (const auto& pf : mfres.per_file)
-      {
-        if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-        merger.insertRuns(pf.protein_ids, pf.peptide_ids);
-      }
-      ProteinIdentification merged_proteins;
-      merger.returnResultsAndClear(merged_proteins, mfres.aggregate.peptide_ids);
-      mfres.aggregate.protein_ids = {std::move(merged_proteins)};
-      mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
+      poolSearchedFiles_(mfres.per_file, /*move=*/false, in_spectra_files,
+                         mfres.aggregate.protein_ids, mfres.aggregate.peptide_ids);
     }
 
     // Note: protein inference + FDR on the aggregate is left to the caller
@@ -5694,6 +5686,47 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // Pooling of the searched files of a multi-file search (IDMergerAlgorithm), shared
+  // by the search's pooled aggregate and mergeFileResults().
+  // =====================================================================
+  // static
+  void ProSEAlgorithm::poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move,
+                                          const StringList& in_spectra_files,
+                                          std::vector<ProteinIdentification>& protein_ids,
+                                          PeptideIdentificationList& peptide_ids)
+  {
+    IDMergerAlgorithm merger;
+    std::vector<Size> pooled_files; // input positions of the pooled files, in insertion order
+    for (Size i = 0; i < per_file.size(); ++i)
+    {
+      SearchResult& pf = per_file[i];
+      if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+      if (!pf.protein_ids.empty()) { pooled_files.push_back(i); } // insertRuns() skips a file without a run
+      if (move) { merger.insertRuns(std::move(pf.protein_ids), std::move(pf.peptide_ids)); }
+      else { merger.insertRuns(pf.protein_ids, pf.peptide_ids); }
+    }
+    ProteinIdentification merged_proteins;
+    merger.returnResultsAndClear(merged_proteins, peptide_ids);
+    protein_ids.clear();
+    protein_ids.emplace_back(std::move(merged_proteins));
+    protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
+
+    // IDMergerAlgorithm numbers the primary MS run paths of the runs ('id_merge_index') in the order it meets them --
+    // one per pooled file, as the search gives each run the path of its input file -- so it counts only the pooled
+    // files, while the run lists all input files: after a failed file, index k would name the wrong file. Map k to the
+    // input position of the k-th pooled file (nothing to do if no file failed).
+    if (!pooled_files.empty() && pooled_files.back() + 1 != pooled_files.size())
+    {
+      for (PeptideIdentification& id : peptide_ids)
+      {
+        if (!id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { continue; }
+        const Size k = static_cast<Size>(static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)));
+        if (k < pooled_files.size()) { id.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, pooled_files[k]); }
+      }
+    }
+  }
+
+  // =====================================================================
   // The pooled evaluation of a multi-file search (the ProSE tool's -out_merged):
   // pooling, cross-file protein inference and the optional picked-protein FDR.
   // =====================================================================
@@ -5726,10 +5759,9 @@ namespace OpenMS
     const std::string& decoy_string = result.decoy_string;
     const bool decoy_is_prefix = result.decoy_is_prefix;
 
-    // The multi-file search already produced exactly this merge: it pools the per-file results with the identical
-    // sequence of insertRuns(pf.protein_ids, pf.peptide_ids) calls and then setPrimaryMSRunPath(in_spectra_files) --
-    // so re-merging here would only build a third copy of every PSM. Consume the aggregate by move instead. Without an
-    // aggregate (build_pooled_aggregate false), merge the runs of the files here.
+    // The multi-file search already produced exactly this merge: it pools the per-file results with
+    // poolSearchedFiles_(), as below -- so re-merging here would only build a third copy of every PSM. Consume the
+    // aggregate by move instead. Without an aggregate (build_pooled_aggregate false), pool the runs of the files here.
     if (!result.aggregate.protein_ids.empty())
     {
       merged.protein_ids.emplace_back(std::move(result.aggregate.protein_ids[0]));
@@ -5741,15 +5773,7 @@ namespace OpenMS
     {
       // Moved out of per_file, as documented: the caller keeps the statistics, exit codes, Percolator outcomes and
       // modification analyses, not the identifications.
-      IDMergerAlgorithm merger;
-      for (SearchResult& pf : result.per_file)
-      {
-        if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-        merger.insertRuns(std::move(pf.protein_ids), std::move(pf.peptide_ids));
-      }
-      ProteinIdentification merged_proteins;
-      merger.returnResultsAndClear(merged_proteins, merged.peptide_ids);
-      merged.protein_ids.emplace_back(std::move(merged_proteins));
+      poolSearchedFiles_(result.per_file, /*move=*/true, in_spectra_files, merged.protein_ids, merged.peptide_ids);
     }
 
     std::vector<ProteinIdentification>& merged_protein_ids = merged.protein_ids;

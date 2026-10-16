@@ -207,7 +207,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * The aggregate's @c protein_ids template is taken from the first
      * successful per-file result (search parameters are identical across files
      * by construction), with the primary MS run path overwritten to list every
-     * input file.
+     * input file. Its PSMs carry the meta value 'id_merge_index', the input
+     * position of their file (also when other files failed).
      */
     struct MultiFileSearchResult
     {
@@ -630,9 +631,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * searchWithModificationAnalysis() with the parameters of this instance:
      *  - Pooling: the pooled aggregate of the search (@c build_pooled_aggregate) is taken as it is. Without one (e.g.
      *    @c build_pooled_aggregate false), the runs of the files that were searched (exit code EXECUTION_OK) are merged
-     *    with IDMergerAlgorithm. 'id_merge_index' is the position of a PSM's file among the files that were searched,
-     *    i.e. its position in @p in_spectra_files if all of them were. The pooled run lists @p in_spectra_files as its
-     *    primary MS run paths and gets the current date.
+     *    with IDMergerAlgorithm. 'id_merge_index' is the input position of a PSM's file (its index in
+     *    @p in_spectra_files), also when other files failed. The pooled run lists @p in_spectra_files as its primary
+     *    MS run paths and gets the current date.
      *  - Cross-file protein inference (BasicProteinInferenceAlgorithm).
      *  - With FDR:protein > 0 and decoys in the searched database: picked-protein FDR (Savitski et al. 2015) and the
      *    filter at FDR:protein, provided the inference identified decoy proteins (otherwise a warning, and nothing is
@@ -1363,6 +1364,15 @@ class OPENMS_DLLAPI ProSEAlgorithm :
     /// Empty marker → false. Pure std::string (no String dependency).
     static bool accessionHasDecoyMarker_(const std::string& accession,
                                          const std::string& marker, bool is_prefix);
+
+    /// Helper: pool the runs of the files of @p per_file that were searched (exit code EXECUTION_OK) with
+    /// IDMergerAlgorithm into one run (@p protein_ids, one entry) that lists @p in_spectra_files as primary MS run
+    /// paths, and their PSMs (@p peptide_ids). Copies the identifications, or moves them out of @p per_file
+    /// (@p move). 'id_merge_index' of a PSM is the input position of its file (its index in @p per_file and
+    /// @p in_spectra_files), also when other files failed. Shared by the multi-file search's pooled aggregate and
+    /// mergeFileResults().
+    static void poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move, const StringList& in_spectra_files,
+                                   std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids);
 
     /// Helper: capture statistics that must be read BEFORE FDR filtering, namely
     /// target/decoy PSM counts (via the "target_decoy" meta set by PeptideIndexing;
