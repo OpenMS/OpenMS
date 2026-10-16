@@ -6,9 +6,7 @@
 // $Authors: Marc Sturm, Hendrik Weisser $
 // -------------------------------------------------------------------------
 
-#include <atomic>
 #include <mutex>
-#include <unordered_map>
 #include <sstream>
 
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
@@ -18,40 +16,12 @@ using namespace std;
 namespace OpenMS
 {
 
-  namespace
-  {
-    /// Source of the registry versions: every content of every registry gets its own.
-    std::atomic<UInt64> next_registry_version{1};
-
-    UInt64 newRegistryVersion()
-    {
-      return next_registry_version.fetch_add(1, std::memory_order_relaxed);
-    }
-
-    /// Whether this thread still has its copy (see ThreadCopy). A plain bool, so it stays readable
-    /// while objects with static storage duration are destroyed after the thread-local ones.
-    bool& threadCopyAlive()
-    {
-      thread_local bool alive = true;
-      return alive;
-    }
-
-    /// A thread's copy of the name-to-index map of the registry content with the given version
-    struct ThreadCopy
-    {
-      UInt64 version = 0; // no registry has version 0
-      std::unordered_map<std::string, UInt> name_to_index;
-      ~ThreadCopy() { threadCopyAlive() = false; }
-    };
-  }
-
   MetaInfoRegistry::MetaInfoRegistry() :
     next_index_(1024), 
     name_to_index_(), 
     index_to_name_(), 
     index_to_description_(), 
-    index_to_unit_(),
-    version_(newRegistryVersion())
+    index_to_unit_()
   {
     name_to_index_["isotopic_range"] = 1;
     index_to_name_[1] = "isotopic_range";
@@ -119,28 +89,9 @@ namespace OpenMS
     index_to_unit_[13] = "";
   }
 
-  MetaInfoRegistry::MetaInfoRegistry(const MetaInfoRegistry& rhs) :
-    version_(newRegistryVersion())
+  MetaInfoRegistry::MetaInfoRegistry(const MetaInfoRegistry& rhs)
   {
     *this = rhs;
-  }
-
-  bool MetaInfoRegistry::findInThreadCopy_(const std::string& name, UInt& index) const
-  {
-    if (!threadCopyAlive())
-    {
-      return false; // the thread is ending: the caller takes the lock
-    }
-    thread_local ThreadCopy copy;
-    if (copy.version != version_.load(std::memory_order_acquire))
-    {
-      std::shared_lock<std::shared_mutex> lock(mutex_);
-      copy.name_to_index = name_to_index_;
-      copy.version = version_.load(std::memory_order_relaxed);
-    }
-    const auto it = copy.name_to_index.find(name);
-    index = it != copy.name_to_index.end() ? it->second : UInt(-1);
-    return true;
   }
 
   MetaInfoRegistry::~MetaInfoRegistry() = default;
@@ -159,17 +110,19 @@ namespace OpenMS
     index_to_name_ = rhs.index_to_name_;
     index_to_description_ = rhs.index_to_description_;
     index_to_unit_ = rhs.index_to_unit_;
-    version_.store(newRegistryVersion(), std::memory_order_release);
     return *this;
   }
 
   UInt MetaInfoRegistry::registerName(const std::string& name, const std::string& description, const std::string& unit)
   {
-    // Nearly all calls are for names that are registered already: those are found without a lock.
-    UInt known_index = UInt(-1);
-    if (findInThreadCopy_(name, known_index) && known_index != UInt(-1))
+    // Nearly all calls are for names that are registered already: look those up under the shared lock.
     {
-      return known_index;
+      std::shared_lock<std::shared_mutex> lock(mutex_);
+      MapString2IndexType::const_iterator it = name_to_index_.find(name);
+      if (it != name_to_index_.end())
+      {
+        return it->second;
+      }
     }
     std::unique_lock<std::shared_mutex> lock(mutex_);
     // another thread may have registered the name in between
@@ -182,7 +135,6 @@ namespace OpenMS
     index_to_name_[next_index_] = name;
     index_to_description_[next_index_] = description;
     index_to_unit_[next_index_] = unit;
-    version_.store(newRegistryVersion(), std::memory_order_release);
     return next_index_++;
   }
 
@@ -232,11 +184,6 @@ namespace OpenMS
 
   UInt MetaInfoRegistry::getIndex(const std::string& name) const
   {
-    UInt known_index = UInt(-1);
-    if (findInThreadCopy_(name, known_index))
-    {
-      return known_index; // UInt(-1) if the name is not registered
-    }
     std::shared_lock<std::shared_mutex> lock(mutex_);
     MapString2IndexType::const_iterator it = name_to_index_.find(name);
     return it != name_to_index_.end() ? it->second : UInt(-1);

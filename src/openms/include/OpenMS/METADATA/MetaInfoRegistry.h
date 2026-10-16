@@ -15,7 +15,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
-#include <atomic>
 #include <shared_mutex>
 #include <unordered_map>
 
@@ -152,15 +151,6 @@ private:
     MapIndex2StringType index_to_unit_;
     /// guards all members: lookups share the lock, so that concurrent readers do not block each other
     mutable std::shared_mutex mutex_;
-    /**
-      Identifies the current content: set to a value that no registry has had before whenever a
-      name is registered or the registry is assigned. Name lookups compare it with the version of
-      a thread-local copy of the name-to-index map and, if it is unchanged, need no lock at all
-      (taking even a shared lock makes all threads write to the same cache line).
-    */
-    std::atomic<UInt64> version_;
-    /// Looks @p name up in this thread's copy of name_to_index_, refreshing the copy if it is outdated
-    bool findInThreadCopy_(const std::string& name, UInt& index) const;
   };
 
 } // namespace OpenMS
