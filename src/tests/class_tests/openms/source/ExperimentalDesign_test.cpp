@@ -167,7 +167,7 @@ START_SECTION(( map<vector<String>, set<unsigned> > getConditionToSampleMapping(
     // The value should be a set containing exactly one sample row index
     TEST_EQUAL(sample_indices.size(), 1);
     
-    String sample_name = condition_vec[0];
+    std::string sample_name = condition_vec[0];
     
     // The ordinal position in map_b must perfectly match the condition ID in map_a
     TEST_EQUAL(map_a[sample_name], ordinal);
