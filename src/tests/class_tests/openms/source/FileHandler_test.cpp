@@ -14,6 +14,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
@@ -950,6 +953,77 @@ START_SECTION(([EXTRA] transformExperiment applies PeakFileOptions to mzML and m
       }
       TEST_EQUAL(data.getNrChromatograms(), loaded.getNrChromatograms())
     }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the ion mobility range of the PeakFileOptions, for any format))
+{
+  // FileHandler applies PeakFileOptions::setIMRange() itself, also to the formats whose readers do not know it: the peaks
+  // outside the range leave the spectra with an ion mobility per peak, the spectra with a single ion mobility outside it
+  // are left out, and the spectra without ion mobility stay.
+  PeakMap exp;
+  MSSpectrum per_peak;
+  per_peak.setRT(1.0);
+  per_peak.setNativeID("spectrum=1");
+  for (const auto& [mz, im] : std::vector<std::pair<double, float>>{{100.0, 0.7f}, {200.0, 0.95f}, {300.0, 1.05f}, {400.0, 1.3f}})
+  {
+    per_peak.push_back(Peak1D(mz, 10.0f));
+    if (per_peak.getFloatDataArrays().empty()) per_peak.getFloatDataArrays().resize(1);
+    per_peak.getFloatDataArrays()[0].push_back(im);
+  }
+  IMDataConverter::setIMUnit(per_peak.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
+  exp.addSpectrum(per_peak);
+  for (const auto& [rt, drift_time] : std::vector<std::pair<double, double>>{{2.0, 1.0}, {3.0, 1.5}})
+  {
+    MSSpectrum single;
+    single.setRT(rt);
+    single.setMSLevel(2);
+    single.setNativeID("spectrum=" + std::to_string(static_cast<int>(rt)));
+    single.setDriftTime(drift_time);
+    single.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    // as BrukerTimsFile gives DDA MS2 spectra; mzML stores the ion mobility of the precursor
+    Precursor precursor;
+    precursor.setMZ(700.0);
+    precursor.setDriftTime(drift_time);
+    precursor.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    single.setPrecursors({precursor});
+    single.push_back(Peak1D(500.0, 5.0f));
+    exp.addSpectrum(single);
+  }
+  MSSpectrum without;
+  without.setRT(4.0);
+  without.setNativeID("spectrum=4");
+  without.push_back(Peak1D(600.0, 5.0f));
+  exp.addSpectrum(without);
+
+  std::string file;
+  NEW_TMP_FILE(file);
+  file += ".mzML";
+  MzMLFile().store(file, exp);
+
+  FileHandler handler;
+  handler.getOptions().setIMRange(DRange<1>(0.9, 1.1));
+  PeakMap loaded;
+  handler.loadExperiment(file, loaded);
+  TEST_EQUAL(loaded.size(), 3)
+  ABORT_IF(loaded.size() != 3)
+  TEST_EQUAL(loaded[0].size(), 2)
+  TEST_REAL_SIMILAR(loaded[0][0].getMZ(), 200.0)
+  TEST_REAL_SIMILAR(loaded[0][1].getMZ(), 300.0)
+  TEST_EQUAL(loaded[0].containsIMData(), true)
+  TEST_EQUAL(loaded[0].getFloatDataArrays()[loaded[0].getIMData().first].size(), 2)
+  TEST_REAL_SIMILAR(loaded[1].getDriftTime(), 1.0)
+  TEST_REAL_SIMILAR(loaded[2].getRT(), 4.0)
+
+  // the same when streamed
+  MSDataStoringConsumer streamed;
+  handler.transformExperiment(file, &streamed);
+  TEST_EQUAL(streamed.getData().size(), loaded.size())
+  ABORT_IF(streamed.getData().size() != loaded.size())
+  for (Size i = 0; i < loaded.size(); ++i)
+  {
+    TEST_EQUAL(streamed.getData()[i] == loaded[i], true)
   }
 }
 END_SECTION
