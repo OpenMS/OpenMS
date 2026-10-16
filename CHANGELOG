@@ -64,7 +64,6 @@ OpenMS Library:
     did not match the inputs (no alignment points).
   - PERF: MetaInfoRegistry lookups (every MetaInfoInterface access by name) share a reader-writer lock instead of
     all passing through one OpenMP critical section, which serialized threads that read or set meta values.
-    Lookups of registered names use a per-thread copy of the name table and take no lock at all.
   - PERF: OpenSwathWorkflow/OpenDIA output no longer stalls the scoring threads: XIC Parquet chromatograms are
     compressed by the thread that extracted them (MSChromatogramParquetConsumer::encodeChromatogram(),
     consumeEncodedChromatograms()) and only appended inside the output lock, and the buffered OSW writer writes
