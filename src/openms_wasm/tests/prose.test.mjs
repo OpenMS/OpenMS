@@ -1659,24 +1659,37 @@ test("annotatePeaks: peaks of the same m/z", () => {
   const annotate = (mz, intensity, options) => OpenMS.annotatePeaks(Float32Array.from(mz), Float32Array.from(intensity), "PEPTIDEK", 2, options);
   const ppm = { tolerance: 10, unit: "ppm" };
   const da = { tolerance: 0.01 };
-  for (const intensity of [[1, 2], [2, 1]]) {
-    // ppm: the first of the peaks, whatever their intensities (the sort of the peaks is stable)
-    assert.deepEqual(peakIons(annotate([y4, y4], intensity, ppm)), [[0, "y4"]]);
-    // Da: the alignment takes one: the second of two
-    assert.deepEqual(peakIons(annotate([y4, y4], intensity, da)), [[1, "y4"]]);
+  // in Da the alignment takes one of the peaks of equal m/z, which one is not specified (it depends on floating-point
+  // details of the alignment and the neighbouring peaks): exactly one match, on one of them, and the same whatever the
+  // intensities. @p equal: where the equal peaks are in @p peaks
+  const takesOneOf = (peaks, equal, ion, options, what) => {
+    const taken = [(i) => i + 1, (i) => peaks.length - i].map((intensity) => {
+      const matches = peakIons(annotate(peaks, peaks.map((_, i) => intensity(i)), options));
+      assert.equal(matches.length, 1, `${what}: ${JSON.stringify(matches)}`);
+      assert.ok(equal.includes(matches[0][0]) && matches[0][1] === ion, `${what}: ${JSON.stringify(matches)}`);
+      return matches[0][0];
+    });
+    assert.equal(taken[0], taken[1], `${what}: the peak does not depend on the intensities`);
+  };
+
+  // ppm: the first of the equal peaks, whatever their intensities (the sort of the peaks is stable)
+  for (const n of [2, 3, 4]) {
+    const peaks = new Array(n).fill(y4);
+    for (const intensity of [peaks.map((_, i) => i + 1), peaks.map((_, i) => n - i)]) {
+      assert.deepEqual(peakIons(annotate(peaks, intensity, ppm)), [[0, "y4"]], `${n} peaks`);
+    }
+    takesOneOf(peaks, peaks.map((_, i) => i), "y4", da, `Da, ${n} peaks`);
   }
   // among other peaks, and not next to each other in the arrays
   assert.deepEqual(peakIons(annotate([900, y4, 100, y4], [1, 1, 1, 1], ppm)), [[1, "y4"]]);
-  assert.deepEqual(peakIons(annotate([900, y4, 100, y4], [1, 1, 1, 1], da)), [[3, "y4"]]);
   assert.deepEqual(peakIons(annotate([y4, 900, y4, 100, y4], [1, 1, 1, 1, 1], ppm)), [[0, "y4"]]);
-  // more of them: ppm the first; Da one of them, the same whatever the intensities
-  for (const n of [3, 4]) {
-    const peaks = new Array(n).fill(y4);
-    assert.deepEqual(peakIons(annotate(peaks, peaks.map((_, i) => i + 1), ppm)), [[0, "y4"]]);
-    const [up, down] = [peaks.map((_, i) => i + 1), peaks.map((_, i) => n - i)].map((intensity) => peakIons(annotate(peaks, intensity, da)));
-    assert.deepEqual(up, down);
-    assert.equal(up.length, 1);
-    assert.ok(up[0][0] >= 0 && up[0][0] < n && up[0][1] === "y4");
+  takesOneOf([900, y4, 100, y4], [1, 3], "y4", da, "Da, around 100 and 900");
+  // a smaller peak before two equal ones 4 mDa from y3 (where the alignment does not take the second), on either side
+  const y3 = OpenMS.annotatePeaks(new Float32Array(0), new Float32Array(0), "PEPTIDEK", 2, {}).theoretical.find((t) => t.ion === "y3").mz;
+  for (const offset of [-0.004, 0.004]) {
+    const p = Math.fround(y3 + offset);
+    takesOneOf([10, p, p], [1, 2], "y3", da, `Da, 10 and two peaks at y3 ${offset}`);
+    assert.deepEqual(peakIons(annotate([10, p, p], [1, 1, 1], { tolerance: 20, unit: "ppm" })), [[1, "y3"]], `ppm, 10 and two peaks at y3 ${offset}`);
   }
 });
 

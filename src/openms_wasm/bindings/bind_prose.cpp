@@ -743,8 +743,8 @@ namespace OpenMS::WASM
     ///   peak (e.g. z1++ and y1-NH3++, which have the same m/z), so a peak can be in several alignment pairs. Of peaks
     ///   of equal m/z the one first in the spectrum is taken (the sort is stable).
     /// - Da: a dynamic-programming alignment, one to one and in m/z order: a peak has at most one ion, and of two
-    ///   ions of the same m/z only one has a peak (unless there are two peaks). Of peaks of equal m/z it takes one;
-    ///   of two, the second one in the spectrum.
+    ///   ions of the same m/z only one has a peak (unless there are two peaks). Of peaks of equal m/z one is taken;
+    ///   which one is unspecified (it depends on floating-point details of the alignment and on the neighbouring peaks).
     FragmentAlignment alignFragments(const MSSpectrum& spectrum, const AASequence& peptide, int precursor_charge,
                                      const JS::AnnotationOptions& options)
     {

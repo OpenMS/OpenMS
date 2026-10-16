@@ -205,14 +205,15 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "/** the ion as labelled in a spectrum: 'b3'; 'y5++' (one '+' per charge, none for charge 1); 'y7-H2O' with a neutral "
     "loss; '[M+2H]++' and '[M+H-NH3]' for precursor peaks */ ion: string; "
     "/** 'a' to 'z', or 'precursor' */ type: string; /** the ion number (3 for b3); 0 for a precursor */ ordinal: number; "
-    "charge: number; /** formula of the neutral loss ('H2O', 'NH3'); '' if none */ loss: string; "
+    "charge: number; /** formula of the neutral loss ('H2O', 'NH3', 'H3PO4'); '' if none */ loss: string; "
     "theoreticalMz: number; /** (observed - theoretical) / theoretical * 1e6, whatever the unit of the tolerance */ "
     "errorPpm: number }");
   register_type<PeakAnnotationResult>("PeakAnnotationResult",
     "{ /** the ions that have a peak within the tolerance, by ascending m/z: one match per ion. In ppm each ion takes the "
     "closest peak, so several ions can have the same peak (the same index in peak), and of peaks of equal m/z the first in "
     "the arrays. In Da the matching is one to one and in m/z order: a peak has at most one ion (of two ions of one m/z, "
-    "one is left out), and of peaks of equal m/z one is taken, of two the second */ matches: PeakMatch[]; "
+    "one is left out, unless there are two peaks), and of peaks of equal m/z one is taken; which one is unspecified */ "
+    "matches: PeakMatch[]; "
     "/** every ion of the peptide for the options (charges 1 to maxCharge), by ascending m/z, matched or not */ "
     "theoretical: { ion: string; type: string; ordinal: number; charge: number; mz: number }[] }");
 
