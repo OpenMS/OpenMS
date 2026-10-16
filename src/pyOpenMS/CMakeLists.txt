@@ -853,7 +853,10 @@ else()
     set(PYOPENMS_DEPENDENCIES ${OPENMS_TARGET} ${OPENSWATHALGO_TARGET})
 
     # Step 1: Copy main OpenMS libraries (all platforms)
+    # On Linux, remove old versioned .so files first to prevent stale libraries
+    # from coexisting after a version bump in a reused build tree.
     add_custom_target(pyopenms_copy_deps ALL
+      COMMAND ${CMAKE_COMMAND} -DDIR="${PYOPENMS_BUILD_DIR}/pyopenms" -P "${PROJECT_SOURCE_DIR}/pyopenms_clean_old_libs.cmake"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${OPENMS_TARGET}> "${PYOPENMS_BUILD_DIR}/pyopenms/"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${OPENSWATHALGO_TARGET}> "${PYOPENMS_BUILD_DIR}/pyopenms/"
       COMMENT "Copying OpenMS dependencies to build dir"

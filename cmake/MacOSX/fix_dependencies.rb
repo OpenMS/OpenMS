@@ -41,7 +41,7 @@ end
 ###############################################################################
 def fixable(name, path)
   filename = "#{path}/#{name}"
-  if File.symlink?(filename) or File.directory?(filename)
+  if File.directory?(filename) or (File.symlink?(filename) and not isFramework(name))
     return false
   elsif name.match(/^\./)
     return false
