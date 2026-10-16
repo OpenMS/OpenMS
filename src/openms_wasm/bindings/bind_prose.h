@@ -44,6 +44,11 @@ namespace OpenMS::WASM
       ++size;
     }
 
+    const T& operator[](std::size_t i) const
+    {
+      return blocks[i / block_size][i % block_size];
+    }
+
     /// Frees the capacity of the last block that is not used
     void shrink_to_fit()
     {
@@ -123,14 +128,19 @@ namespace OpenMS::WASM
     /// Reads the peaks of the spectra of the PSM rows of tables() from the input files into stored_spectra
     /// (bind_prose_tables.cpp), at the end of searchFiles(), while the files are there. With keep_spectra: the MS2
     /// spectra of the rows whose q-value passes FDR:PSM (all rows without q-values, or with FDR:PSM 0), one per file
-    /// and native ID, streamed from one file at a time; otherwise none (every row -1).
-    void collectSpectra();
+    /// and native ID, streamed from one file at a time; otherwise none (every row -1). A native ID that a file has more
+    /// than once: the spectrum at the RT of the PSM, none if none or several are there. A file that cannot be read:
+    /// none for its rows (a warning).
+    /// @p progress: reports the step "Reading the spectra of the PSMs..." over the MS2 spectra of the files read, if
+    /// some row is wanted (null: none)
+    void collectSpectra(const ProgressLogger* progress);
 
-    /// The peaks of the identified spectra (StoredSpectra; bind_prose_tables.cpp), copied into JavaScript arrays
+    /// The peaks of the identified spectra (StoredSpectra; bind_prose_tables.cpp), copied into JavaScript arrays.
+    /// Throws Exception::Postcondition if they do not have one entry per PSM row.
     JS::StoredSpectra spectra() const;
 
     /// For tests: replaces the native ID of PSM row @p row of tables() and collects the spectra again
-    /// (collectSpectra()), which re-reads the input files (bind_prose_tables.cpp)
+    /// (collectSpectra(), without progress), which re-reads the input files (bind_prose_tables.cpp)
     void debugSetNativeId(int row, const std::string& native_id);
 
     /// Stores the pooled run and PSMs as idXML (the ProSE tool's -out_merged)

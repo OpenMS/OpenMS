@@ -703,7 +703,7 @@ namespace OpenMS::WASM
           "out those that could not be rescored.");
       }
       // the peaks of the identified spectra (spectra()), read now, while the input files are there
-      set->collectSpectra();
+      set->collectSpectra(&algo);
       return set;
     }
 

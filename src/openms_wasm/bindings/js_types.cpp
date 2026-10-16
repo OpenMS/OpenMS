@@ -186,7 +186,8 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "/** index of its indistinguishable-protein group; -1: none */ group: Int32Array } }");
   register_type<StoredSpectra>("StoredSpectra",
     "{ /** per PSM row of ResultTables.psms: the index of its spectrum; -1: none (keepSpectra false, a q-value above "
-    "FDR:PSM, or no MS2 spectrum with its native ID in its file). PSMs of one spectrum (file and native ID) share it */ "
+    "FDR:PSM, no MS2 spectrum with its native ID in its file, or several of them and not exactly one at the PSM's RT, "
+    "or a file that could not be read again). The PSMs of the same spectrum share it */ "
     "psmSpectrum: Int32Array; "
     "/** the peaks of spectrum s: offsets[s] .. offsets[s + 1] of mz and intensity (n + 1 entries) */ offsets: Uint32Array; "
     "/** the peaks of the MS2 spectra as read from the files (not preprocessed), sorted by m/z */ mz: Float32Array; "

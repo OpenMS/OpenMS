@@ -224,13 +224,18 @@ test("ProSEAlgorithm: PeptDeep features for Percolator (ONNX Runtime)", (t) => {
   }
 });
 
-/// Checks progress @p reports of a search of the files with the steps @p fileSteps (their labels, in input order):
-/// - the outermost steps (depth 0) are those of the files, each with the file's position (file);
+/// The progress step of searchFiles() that reads the spectra of the PSMs (keepSpectra), after the steps of the files
+const readingSpectra = "Reading the spectra of the PSMs...";
+
+/// Checks progress @p reports of a search of the files with the steps @p fileSteps (their labels, in input order),
+/// followed by the outermost steps @p laterSteps outside the files:
+/// - the outermost steps (depth 0) are those of the files, each with the file's position (file), then @p laterSteps,
+///   with file -1;
 /// - every report of a step carries its label, range and depth; its values lie in the range and never decrease;
 /// - every report carries the position of the file whose step encloses it.
-function assertProgressSteps(reports, fileSteps) {
+function assertProgressSteps(reports, fileSteps, laterSteps = []) {
   assert.deepEqual(reports.filter((r) => r.event === "start" && r.depth === 0).map((r) => [r.label, r.file]),
-    fileSteps.map((label, i) => [label, i]));
+    [...fileSteps.map((label, i) => [label, i]), ...laterSteps.map((label) => [label, -1])]);
   const open = [];
   let file = -1;
   for (const r of reports) {
@@ -277,9 +282,12 @@ test("ProSEAlgorithm: a search that throws leaves the progress of the next searc
       prose.setProgressCallback((r) => reports.push(r));
       const failing = { ...prose1, "peptdeep:enable": true, "peptdeep:ms2_model": "/no-such-model/ms2.onnx" };
       const steps = ["Searching SimpleSearchEngine_1.mzML (1 of 1)..."];
-      for (const run of [
-        () => using([prose.searchFiles(["/topp/SimpleSearchEngine_1.mzML"], "/topp/SimpleSearchEngine_1.fasta", { rescore: false })], () => {}),
-        () => prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides, { rescore: false }),
+      for (const [run, laterSteps] of [
+        // searchFiles() then reads the spectra of the PSMs
+        [() => using([prose.searchFiles(["/topp/SimpleSearchEngine_1.mzML"], "/topp/SimpleSearchEngine_1.fasta", { rescore: false })], () => {}),
+         [readingSpectra]],
+        [() => prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides, { rescore: false }),
+         []],
       ]) {
         prose.setParameterValues(failing);
         reports = [];
@@ -289,7 +297,7 @@ test("ProSEAlgorithm: a search that throws leaves the progress of the next searc
         prose.setParameterValues({ "peptdeep:enable": false });
         reports = [];
         run();
-        assertProgressSteps(reports, steps);
+        assertProgressSteps(reports, steps, laterSteps);
       }
     });
 });
@@ -579,8 +587,14 @@ test("searchFiles pools two files like ProSE -out_merged", () => {
 });
 
 test("searchFiles reports one progress step per file", () => {
-  const { reports } = pooled();
-  assertProgressSteps(reports, ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."]);
+  const { reports, summary } = pooled();
+  // then the step that reads the spectra of the PSMs (keepSpectra), over the MS2 spectra of the files
+  assertProgressSteps(reports, ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."], [readingSpectra]);
+  const reading = reports.filter((r) => r.label === readingSpectra);
+  assert.deepEqual([reading[0].event, reading.at(-1).event], ["start", "end"]);
+  for (const r of reading) {
+    assert.deepEqual([r.depth, r.begin, r.end], [0, 0, summary.files[0].ms2Spectra + summary.files[1].ms2Spectra]);
+  }
   // the steps inside a file report their own range (e.g. one per spectrum), not that of the file's step
   assert.ok(reports.some((r) => r.event !== "start" && r.end > 1), "a step with a range beyond [0, 1]");
 });
@@ -599,7 +613,7 @@ test("searchFiles keeps files with the same name apart", () => {
       }
       // the progress tells them apart by position
       assert.deepEqual(reports.filter((r) => r.event === "start" && r.depth === 0).map((r) => [r.label, r.file]),
-        [["Searching run.mzML (1 of 2)...", 0], ["Searching run.mzML (2 of 2)...", 1]]);
+        [["Searching run.mzML (1 of 2)...", 0], ["Searching run.mzML (2 of 2)...", 1], [readingSpectra, -1]]);
       // PSMs of both files; the decoys are kept by default
       const { proteins, peptides } = storedIdentifications(set, "/searchfiles/merged.idXML");
       const ids = peptides.filter((id) => id.hits.length > 0);
@@ -687,8 +701,11 @@ test("searchFiles: open search of two files, with the modification analysis of a
 
 test("searchFiles: files without PSMs give empty results", () => {
   // the spectra of TOPP_ProSE_1 match no peptide of the DatabaseSuitability database
-  const set = searchFiles(OpenMS, ["/topp/SimpleSearchEngine_1.mzML"], undefined);
+  const reports = [];
+  const set = searchFiles(OpenMS, ["/topp/SimpleSearchEngine_1.mzML"], undefined, { onProgress: (r) => reports.push(r) });
   try {
+    // no spectra to read
+    assertProgressSteps(reports, ["Searching SimpleSearchEngine_1.mzML (1 of 1)..."]);
     const summary = set.summary();
     assert.equal(summary.files[0].status, "EXECUTION_OK");
     assert.equal(summary.files[0].targetPSMs, 0);
@@ -1046,9 +1063,29 @@ function fileSpectra(file) {
   });
 }
 
+/// Stores the spectra of mzML file @p source at @p file, with an activation energy of @p energy on every precursor (a
+/// marker of the file)
+function storeWithActivationEnergy(source, file, energy) {
+  using([new OpenMS.MSExperiment(), new OpenMS.MzMLFile()], (experiment, mzml) => {
+    mzml.setOptions({ sortSpectraByMZ: false });
+    mzml.load(source, experiment);
+    for (let i = 0; i < experiment.size(); ++i) {
+      using([experiment.getSpectrum(i)], (spectrum) => {
+        spectrum.setPrecursors(spectrum.getPrecursors().map((p) => ({ ...p, activationEnergy: energy })));
+        experiment.setSpectrum(i, spectrum);
+      });
+    }
+    mzml.store(file, experiment);
+  });
+}
+
 test("spectra() holds the peaks of the identified spectra", () => {
-  // two copies of one file: PSMs of both with the same native IDs, whose spectra are those of their own file
-  withSpectraCopies(OpenMS, ["a.mzML", "b.mzML"], (files) => {
+  // two files with the same name and spectra, the second with an activation energy of 33 eV on every precursor: PSMs
+  // of both with the same native IDs, whose spectra are those of their own file
+  withSpectraCopies(OpenMS, ["0/run.mzML"], ([first], dir) => {
+    fs.mkdirSync(path.join(dir, "1"));
+    const files = [first, "/searchfiles/1/run.mzML"];
+    storeWithActivationEnergy(first, files[1], 33);
     const set = searchFiles(OpenMS, files, { rescore: false });
     try {
       const { psms } = set.tables();
@@ -1073,33 +1110,39 @@ test("spectra() holds the peaks of the identified spectra", () => {
       assert.ok(psms.qValue.every((q) => q <= psmFdr));
       assert.ok(s.psmSpectrum.every((k) => k >= 0), "every PSM has its spectrum");
 
-      // the spectra of the files, as read: the peaks sorted by m/z, the precursor of the PSM, and no collision energy
-      // (the file records none)
-      const expected = fileSpectra(files[0]); // b.mzML is a copy of a.mzML
+      // the spectra of the PSMs' own files, as read: the peaks sorted by m/z, the precursor of the PSM, and the
+      // collision energy of the file (the first records none, the second 33 eV)
+      assert.deepEqual([...new Set(psms.file)].sort(), [0, 1], "PSMs of both files");
+      const expected = files.map(fileSpectra);
       const keyOf = new Map(); // spectrum -> its file and native ID
       for (let i = 0; i < psms.count; ++i) {
         const k = s.psmSpectrum[i];
         const key = `${psms.file[i]} ${psms.nativeId[i]}`;
         assert.ok(!keyOf.has(k) || keyOf.get(k) === key, `spectrum ${k}: ${keyOf.get(k)} and ${key}`);
         keyOf.set(k, key);
-        const e = expected.get(psms.nativeId[i]);
-        assert.ok(e && e.msLevel === 2, psms.nativeId[i]);
+        const e = expected[psms.file[i]].get(psms.nativeId[i]);
+        assert.ok(e && e.msLevel === 2, key);
         assert.deepEqual(storedPeaks(s, k), e.peaks, `the peaks of ${key}`);
         assertClose(assert, s.precursorMz[k], psms.mz[i], 1e-4, `precursor m/z of ${key}`);
         assert.equal(s.precursorMz[k], e.precursors[0].mz, `precursor m/z of ${key}`);
-        assert.ok(Number.isNaN(s.collisionEnergy[k]), `no collision energy for ${key}: ${s.collisionEnergy[k]}`);
+        if (psms.file[i] === 1) {
+          assert.equal(s.collisionEnergy[k], 33, `the collision energy of ${key}`);
+        } else {
+          assert.ok(Number.isNaN(s.collisionEnergy[k]), `no collision energy for ${key}: ${s.collisionEnergy[k]}`);
+        }
       }
       assert.equal(keyOf.size, n, "every spectrum is that of a PSM");
       assert.equal(new Set(keyOf.values()).size, n, "one spectrum per file and native ID");
-      // the same native ID in both files: two spectra (with the same peaks)
-      const inB = new Map();
-      for (let i = 0; i < psms.count; ++i) if (psms.file[i] === 1) inB.set(psms.nativeId[i], s.psmSpectrum[i]);
+      // the same native ID in both files: two spectra, with the same peaks, each with the energy of its file
+      const inSecond = new Map();
+      for (let i = 0; i < psms.count; ++i) if (psms.file[i] === 1) inSecond.set(psms.nativeId[i], s.psmSpectrum[i]);
       let both = 0;
       for (let i = 0; i < psms.count; ++i) {
-        if (psms.file[i] !== 0 || !inB.has(psms.nativeId[i])) continue;
-        const [ka, kb] = [s.psmSpectrum[i], inB.get(psms.nativeId[i])];
-        assert.notEqual(ka, kb, psms.nativeId[i]);
-        assert.deepEqual(storedPeaks(s, ka), storedPeaks(s, kb), psms.nativeId[i]);
+        if (psms.file[i] !== 0 || !inSecond.has(psms.nativeId[i])) continue;
+        const [k0, k1] = [s.psmSpectrum[i], inSecond.get(psms.nativeId[i])];
+        assert.notEqual(k0, k1, psms.nativeId[i]);
+        assert.deepEqual(storedPeaks(s, k0), storedPeaks(s, k1), psms.nativeId[i]);
+        assert.ok(Number.isNaN(s.collisionEnergy[k0]) && s.collisionEnergy[k1] === 33, psms.nativeId[i]);
         ++both;
       }
       assert.ok(both > 100, `${both} native IDs with PSMs in both files`);
@@ -1137,9 +1180,10 @@ function storeSpectraToKeep(file) {
 }
 
 /// ProSEAlgorithm.searchFiles() of the data of TOPP_ProSE_1 changed by storeSpectraToKeep() (three PSMs, no q-values)
-function searchSpectraToKeep(options) {
+function searchSpectraToKeep(options, onProgress) {
   storeSpectraToKeep("/searchfiles/keep.mzML");
-  return searchFiles(OpenMS, ["/searchfiles/keep.mzML"], options, { parameters: prose1, database: "/topp/SimpleSearchEngine_1.fasta" });
+  return searchFiles(OpenMS, ["/searchfiles/keep.mzML"], options,
+    { parameters: prose1, database: "/topp/SimpleSearchEngine_1.fasta", onProgress });
 }
 
 test("spectra() marks PSMs without a readable spectrum with -1", () => {
@@ -1218,12 +1262,104 @@ test("spectra(): the peaks as read, sorted by m/z, and the collision energy of t
 
 test("spectra() without keepSpectra: no peaks", () => {
   withSpectraCopies(OpenMS, [], () => {
-    const set = searchSpectraToKeep({ keepSpectra: false });
+    const reports = [];
+    const set = searchSpectraToKeep({ keepSpectra: false }, (r) => reports.push(r));
     try {
+      // no step that reads the spectra
+      assertProgressSteps(reports, ["Searching keep.mzML (1 of 1)..."]);
       const s = set.spectra();
       assert.equal(assertSpectraShapes(s, 3), 0);
       assert.deepEqual(Array.from(s.psmSpectrum), [-1, -1, -1]);
       assert.deepEqual(Array.from(s.offsets), [0]);
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+/// Stores the spectra of TOPP_ProSE_1 as mzML at @p file, and two more under native IDs it has: spectrum=1 again at
+/// RT + 100 s, with an activation energy of 40 eV, and spectrum=2 again at the same RT.
+function storeRepeatedNativeIds(file) {
+  using([new OpenMS.MSExperiment(), new OpenMS.MzMLFile()], (experiment, mzml) => {
+    mzml.load("/topp/SimpleSearchEngine_1.mzML", experiment);
+    using([experiment.getSpectrum(1), experiment.getSpectrum(2)], (one, two) => {
+      one.setRT(one.getRT() + 100);
+      one.setPrecursors(one.getPrecursors().map((p) => ({ ...p, activationEnergy: 40 })));
+      experiment.addSpectrum(one);
+      experiment.addSpectrum(two);
+    });
+    mzml.store(file, experiment);
+  });
+}
+
+test("spectra(): a native ID that a file has more than once", () => {
+  withSpectraCopies(OpenMS, [], () => {
+    storeRepeatedNativeIds("/searchfiles/repeated.mzML");
+    const set = searchFiles(OpenMS, ["/searchfiles/repeated.mzML"], undefined,
+      { parameters: prose1, database: "/topp/SimpleSearchEngine_1.fasta" });
+    try {
+      const { psms } = set.tables();
+      let s = set.spectra();
+      const rowsOf = (nativeId) => psms.nativeId.flatMap((id, i) => (id === nativeId ? [i] : []));
+      // spectrum=1 twice, at different RTs: the PSM of each has the spectrum at its RT
+      const ones = rowsOf("spectrum=1").sort((a, b) => psms.rt[a] - psms.rt[b]);
+      assert.equal(ones.length, 2, JSON.stringify(psms.nativeId));
+      const [early, late] = ones.map((i) => s.psmSpectrum[i]);
+      assert.ok(early >= 0 && late >= 0 && early !== late, `spectra ${early}, ${late}`);
+      assert.ok(Number.isNaN(s.collisionEnergy[early]));
+      assert.equal(s.collisionEnergy[late], 40);
+      // spectrum=2 twice, at the same RT: neither is the one at the RT of its PSMs
+      const twos = rowsOf("spectrum=2");
+      assert.ok(twos.length > 0);
+      assert.ok(twos.every((i) => s.psmSpectrum[i] === -1), `spectrum=2: ${twos.map((i) => s.psmSpectrum[i])}`);
+      // spectrum=0 once
+      const [zero] = rowsOf("spectrum=0");
+      assert.ok(s.psmSpectrum[zero] >= 0);
+      // only the spectra of PSMs are kept: that of spectrum=0, and the two of spectrum=1
+      assert.equal(assertSpectraShapes(s, psms.count), 3);
+      assert.equal(new Set(Array.from(s.psmSpectrum).filter((k) => k >= 0)).size, 3);
+
+      // a PSM at an RT of neither spectrum of a native ID that the file has twice: none
+      set._debugSetNativeId(zero, "spectrum=1");
+      s = set.spectra();
+      assert.equal(s.psmSpectrum[zero], -1);
+      assert.equal(assertSpectraShapes(s, psms.count), 2);
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+test("spectra(): the PSMs of a file that cannot be read again have none", () => {
+  withSpectraCopies(OpenMS, [], (_, dir) => {
+    const files = ["0/run.mzML", "1/run.mzML"];
+    for (const f of files) {
+      fs.mkdirSync(path.dirname(path.join(dir, f)));
+      storeSpectraToKeep(`/searchfiles/${f}`);
+    }
+    const set = searchFiles(OpenMS, files.map((f) => `/searchfiles/${f}`), undefined,
+      { parameters: prose1, database: "/topp/SimpleSearchEngine_1.fasta" });
+    try {
+      const { psms } = set.tables();
+      const before = set.spectra();
+      assert.deepEqual([...new Set(psms.file)].sort(), [0, 1]);
+      assert.ok(before.psmSpectrum.every((k) => k >= 0));
+      // the second file is gone: reading the files again (through the test hook) does not throw
+      fs.unlinkSync(path.join(dir, files[1]));
+      set._debugSetNativeId(0, psms.nativeId[0]);
+      const after = set.spectra();
+      assertSpectraShapes(after, psms.count);
+      for (let i = 0; i < psms.count; ++i) {
+        const [k0, k1] = [before.psmSpectrum[i], after.psmSpectrum[i]];
+        if (psms.file[i] === 1) {
+          assert.equal(k1, -1, `PSM ${i} of the file that is gone`);
+        } else {
+          assert.ok(k1 >= 0, `PSM ${i}`);
+          assert.deepEqual(storedPeaks(after, k1), storedPeaks(before, k0), `the peaks of PSM ${i}`);
+          assert.equal(after.precursorMz[k1], before.precursorMz[k0]);
+          assert.ok(Object.is(after.collisionEnergy[k1], before.collisionEnergy[k0]));
+        }
+      }
     } finally {
       set.delete();
     }
