@@ -272,6 +272,16 @@ OpenMS Library:
     MALDI imaging .d is rejected as by loadExperiment(). The number of spectra passed to setExpectedSize()
     is an upper bound (see BrukerTimsFile::transform()). loadExperiment() now also honours fill-data off for
     Bruker .d input (spectra without peaks, as for Thermo .raw).
+  - FIX: BrukerTimsFile reads TDF data without DDA-PASEF precursors (no Precursors and PasefFrameMsMsInfo tables,
+    e.g. MS1-only MALDI runs) as its MS1 frames, and warns if such a run has MS2 frames, which only export mode
+    FRAME reads. It threw SQLite::Exception "no such table: Precursors", which ended TOPP tools such as
+    FileConverter (exit code 134). No SQLite::Exception leaves load(), transform(), readDIAMetadata() or
+    loadDIAStreaming() any more: an analysis.tdf that lacks a table or column the reader needs gives a ParseError
+    that names the file (#10597).
+  - FIX: BrukerTimsImagingFile reads '.d.zip' archives (it looked for <archive>/analysis.tdf); only analysis.tdf
+    is extracted for the metadata. isImagingDataset() now recognizes zipped MALDI imaging runs, so
+    FileHandler::loadExperiment() and transformExperiment() reject them as they reject .d directories, and
+    loadImagingExperiment() loads them (#10596).
   - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
     without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
     invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
@@ -636,7 +646,10 @@ TOPP tools:
       - -process_lowmemory also converts Bruker .d input to cachedMzML (before: an error); the spectra go to
         the cache as they are read, and both files are those of the conversion in memory.
       - FIX: Bruker MALDI imaging .d input is rejected (exit code INCOMPATIBLE_INPUT_DATA), as by
-        FileHandler::loadExperiment(); it was read as DDA-PASEF data, without its pixel geometry.
+        FileHandler::loadExperiment(); it was read as DDA-PASEF data, without its pixel geometry. This covers
+        zipped imaging runs (.d.zip) as well (#10596).
+      - FIX: Bruker .d input without DDA-PASEF precursors (e.g. MS1-only MALDI runs) converts to its MS1 spectra;
+        the tool aborted (exit code 134), and with -process_lowmemory left an empty output file behind (#10597).
     MS1LabeledWorkflow:
       - FIX: identifications were mapped onto a multiplet only within id_mapping:rt_tolerance (5 s) of
         its apex and by their precursor m/z, so MS2 spectra acquired off the apex, and every spectrum

@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 ///////////////////////////
 
@@ -418,6 +419,24 @@ START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and trans
   // A non-imaging .d reaches BrukerTimsImagingFile, whose strict imaging check rejects it.
   MSImagingExperiment img;
   TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(fake_d("SingleSpectra"), img))
+
+  // The same for zipped runs (#10596): the imaging probe reads the analysis.tdf in the archive. It looked for
+  // <archive>/analysis.tdf, so a zipped imaging run was read as DDA data.
+  auto zip_d = [](const std::string& d)
+  {
+    const std::string dir = d + "_zip";
+    File::makeDir(dir);
+    std::filesystem::copy(d, dir + "/run.d", std::filesystem::copy_options::recursive);
+    const std::string archive = d + ".zip";
+    ZipArchiveFile::zipDirectory(dir, archive);
+    return archive;
+  };
+  const std::string imaging_zip = zip_d(imaging);
+  TEST_EQUAL(FileHandler::getType(imaging_zip), FileTypes::BRUKER_TDF)
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(imaging_zip, exp))
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(imaging_zip, &streamed))
+  TEST_EQUAL(streamed.getData().size(), 0)
+  TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(zip_d(tmp_dir.getPath() + "/SingleSpectra.d"), img))
 }
 END_SECTION
 

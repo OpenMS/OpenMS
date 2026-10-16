@@ -1272,10 +1272,18 @@ namespace OpenMS
       double isolation_width;
     };
 
-    // Read DDA precursors from SQL
+    // Whether analysis.tdf has the DDA-PASEF precursor tables. TDF data without PASEF precursors, such as
+    // MS1-only MALDI runs, has neither of them.
+    bool hasDDAPrecursorTables(SQLite::Database& db)
+    {
+      return db.tableExists("Precursors") && db.tableExists("PasefFrameMsMsInfo");
+    }
+
+    // Read DDA precursors from SQL (none if there are no precursor tables)
     std::vector<DDAPrecursorInfo> readDDAPrecursors(SQLite::Database& db)
     {
       std::vector<DDAPrecursorInfo> precursors;
+      if (!hasDDAPrecursorTables(db)) return precursors;
 
       SQLite::Statement q(db,
         "SELECT p.Id, p.MonoisotopicMz, p.Charge, p.Intensity, "
@@ -1455,6 +1463,23 @@ namespace OpenMS
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
       "Bruker TDF data with TimsCompressionType " + compression + " is not supported. Only zstd-compressed frames "
       "(TimsCompressionType 2) can be read, which timsTOF acquisition software has written since 2018");
+  }
+
+  // Runs one of the public read functions on @p path. No SQLite exception leaves the reader: an analysis.tdf that
+  // lacks a table or column a query needs is reported as ParseError of @p path (the TOPP tools catch OpenMS
+  // exceptions only, so an SQLite::Exception would end the program).
+  template <typename Function>
+  static auto rethrowSQLiteErrors(const std::string& path, Function&& function)
+  {
+    try
+    {
+      return function();
+    }
+    catch (const SQLite::Exception& e)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        std::string("Cannot read analysis.tdf (SQLite: ") + e.what() + ")");
+    }
   }
 
   struct BrukerTimsFile::UnpackedArchive
@@ -2251,6 +2276,12 @@ namespace OpenMS
   BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata(
       const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
   {
+    return rethrowSQLiteErrors(path, [&] { return readDIAMetadata_(path, exp_settings, config); });
+  }
+
+  BrukerTimsFile::DIAStreamingMetadata BrukerTimsFile::readDIAMetadata_(
+      const std::string& path, ExperimentalSettings& exp_settings, const Config& config)
+  {
     // Keep the extraction for the call that follows, typically loadDIAStreaming(): the consumer
     // is sized from this metadata, so its spectra must come from the same files.
     unpacked_ = takeUnpacked_(path);
@@ -2452,6 +2483,12 @@ namespace OpenMS
   }
 
   void BrukerTimsFile::loadDIAStreaming(
+      const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
+  {
+    rethrowSQLiteErrors(path, [&] { loadDIAStreaming_(path, consumer, config); });
+  }
+
+  void BrukerTimsFile::loadDIAStreaming_(
       const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
     const auto unpacked = takeUnpacked_(path); // the files readDIAMetadata() read, if it read path
@@ -2669,6 +2706,11 @@ namespace OpenMS
 
   void BrukerTimsFile::load(const std::string& path, MSExperiment& exp, const Config& config)
   {
+    rethrowSQLiteErrors(path, [&] { load_(path, exp, config); });
+  }
+
+  void BrukerTimsFile::load_(const std::string& path, MSExperiment& exp, const Config& config)
+  {
     exp.clear(true);
     const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
     const std::string d_path = unpacked ? unpacked->d_path : path;
@@ -2722,6 +2764,11 @@ namespace OpenMS
   }
 
   void BrukerTimsFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
+  {
+    rethrowSQLiteErrors(path, [&] { transform_(path, consumer, config); });
+  }
+
+  void BrukerTimsFile::transform_(const std::string& path, Interfaces::IMSDataConsumer* consumer, const Config& config)
   {
     const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
     const std::string d_path = unpacked ? unpacked->d_path : path;
@@ -2797,6 +2844,7 @@ namespace OpenMS
 
     // Collect the MS1 frame IDs (the MS2 frames are referenced by the precursors below)
     std::vector<uint32_t> ms1_frame_ids;
+    size_t ms2_frame_count = 0;
 
     for (uint32_t fid = handle.min_frame_id(); fid <= handle.max_frame_id(); ++fid)
     {
@@ -2805,6 +2853,8 @@ namespace OpenMS
       TimsFrame& frame = handle.get_frame(fid);
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
+      else
+        ++ms2_frame_count;
     }
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
@@ -2813,7 +2863,17 @@ namespace OpenMS
     // downstream silently skip any orphans, but stripping them here keeps
     // progress counts and the precursor_groups loop honest.
     std::vector<DDAPrecursorInfo> precursor_entries;
-    if (config.load_ms2) precursor_entries = readDDAPrecursors(db);
+    if (config.load_ms2)
+    {
+      precursor_entries = readDDAPrecursors(db);
+      // Without PASEF precursors, the MS1 frames are all there is to read as DDA data
+      if (ms2_frame_count > 0 && !hasDDAPrecursorTables(db))
+      {
+        OPENMS_LOG_WARN << "Warning: the run has " << ms2_frame_count << " MS2 frame(s) but no DDA-PASEF precursors "
+                        << "(no Precursors / PasefFrameMsMsInfo table), so only its MS1 frames are read as DDA data. "
+                        << "Export mode FRAME reads every frame." << std::endl;
+      }
+    }
     const bool range_active =
       (config.frame_id_min != 0) ||
       (config.frame_id_max != std::numeric_limits<uint32_t>::max());
