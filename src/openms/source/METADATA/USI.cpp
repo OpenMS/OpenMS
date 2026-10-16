@@ -10,6 +10,8 @@
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 #include <boost/regex.hpp>
 #include <sstream>
@@ -268,7 +270,7 @@ namespace OpenMS
     // USI spec section 3.3.5: "scan" is reserved for the scan number of the
     // original run.  Only standard Thermo (controllerType=0) and bare "scan=X"
     // unambiguously map to scan:.
-    if (StringUtils::hasPrefix(native_id, "controllerType=0 "))
+    if (StringUtils::hasPrefix(native_id, "controllerType=0 controllerNumber=1 "))
     {
       RegularExpression re(R"(scan=(?<GROUP>\d+))");
       Int scan = SpectrumNativeIDParser::extractScanNumber(native_id, re, true);
@@ -409,11 +411,11 @@ namespace OpenMS
       basename = path;
     }
 
-    // Strip file extension (USI spec 3.3.4: use root name for universality)
-    size_t dot_pos = basename.rfind('.');
-    if (dot_pos != std::string::npos && dot_pos > 0)
+    // Strip file extension only for recognized MS types (USI spec 3.3.4).
+    // Unknown dotted suffixes (e.g. run names from pepXML base_name) stay intact.
+    if (FileNameUtils::getTypeByFileName(basename) != FileTypes::UNKNOWN)
     {
-      basename = basename.substr(0, dot_pos);
+      basename = FileNameUtils::stripExtension(basename);
     }
 
     return basename;

@@ -33,6 +33,10 @@ class TestUSIBindings(unittest.TestCase):
         self.assertEqual(str(p.USI.extractBasename("/path/to/sample.mzML")), "sample")
         self.assertEqual(str(p.USI.extractBasename("sample.raw")), "sample")
         self.assertEqual(str(p.USI.extractBasename("sample")), "sample")
+        # .mzML.gz compound extension
+        self.assertEqual(str(p.USI.extractBasename("sample.mzML.gz")), "sample")
+        # Unknown dotted suffix stays intact
+        self.assertEqual(str(p.USI.extractBasename("/data/HeLa_1.5ug")), "HeLa_1.5ug")
 
     def test_native_id_to_usi_index(self):
         # Thermo standard -> scan
@@ -40,6 +44,12 @@ class TestUSIBindings(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result[0], p.USI.IndexType.SCAN)
         self.assertEqual(str(result[1]), "43920")
+
+        # controllerType=0 but controllerNumber!=1 -> nativeId (§3.6.4)
+        result = p.USI.nativeIdToUSIIndex("controllerType=0 controllerNumber=2 scan=7")
+        self.assertIsNotNone(result)
+        self.assertEqual(result[0], p.USI.IndexType.NATIVEID)
+        self.assertEqual(str(result[1]), "0,2,7")
 
         # Bruker TDF -> nativeId with comma-separated values
         result = p.USI.nativeIdToUSIIndex("frame=120 scan=475")

@@ -350,6 +350,9 @@ START_SECTION((static std::optional<int> extractScanNumberFromNativeID(const std
   TEST_EQUAL(result5.has_value(), true);
   TEST_EQUAL(result5.value(), 12345);
 
+  // controllerType=0 but controllerNumber!=1 → not a standard scan (§3.6.4)
+  TEST_EQUAL(USI::extractScanNumberFromNativeID("controllerType=0 controllerNumber=2 scan=7").has_value(), false);
+
   // These should NOT return scan numbers per USI spec
   TEST_EQUAL(USI::extractScanNumberFromNativeID("controllerType=5 controllerNumber=1 scan=7").has_value(), false);
   TEST_EQUAL(USI::extractScanNumberFromNativeID("frame=120 scan=475").has_value(), false);
@@ -375,7 +378,13 @@ START_SECTION((static std::optional<std::pair<USI::IndexType, std::string>> nati
   TEST_EQUAL(r2->first, USI::IndexType::SCAN);
   TEST_STRING_EQUAL(r2->second, "12345");
 
-  // Non-standard Thermo → nativeId: comma-separated
+  // controllerType=0 but controllerNumber!=1 → nativeId: (§3.6.4)
+  auto r2b = USI::nativeIdToUSIIndex("controllerType=0 controllerNumber=2 scan=7");
+  TEST_EQUAL(r2b.has_value(), true);
+  TEST_EQUAL(r2b->first, USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(r2b->second, "0,2,7");
+
+  // Non-standard Thermo controllerType → nativeId: comma-separated
   auto r3 = USI::nativeIdToUSIIndex("controllerType=5 controllerNumber=1 scan=7");
   TEST_EQUAL(r3.has_value(), true);
   TEST_EQUAL(r3->first, USI::IndexType::NATIVEID);
@@ -456,6 +465,12 @@ START_SECTION((static std::string extractBasename(const std::string& filepath)))
   // Test basename only (no path)
   TEST_STRING_EQUAL(USI::extractBasename("sample.mzML"), "sample");
   TEST_STRING_EQUAL(USI::extractBasename("run1.raw"), "run1");
+
+  // Compound extension (.mzML.gz)
+  TEST_STRING_EQUAL(USI::extractBasename("/path/to/sample.mzML.gz"), "sample");
+
+  // Unknown dotted suffix stays intact (e.g. pepXML base_name without extension)
+  TEST_STRING_EQUAL(USI::extractBasename("/data/HeLa_1.5ug"), "HeLa_1.5ug");
 
   // Test without extension
   TEST_STRING_EQUAL(USI::extractBasename("sample"), "sample");

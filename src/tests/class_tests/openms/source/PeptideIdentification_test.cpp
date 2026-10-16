@@ -766,6 +766,13 @@ START_SECTION(([EXTRA] buildUSI with file paths and basenames))
   USI usi5 = id3.buildUSI("thermo_sample", "PXD000561", false);
   TEST_STRING_EQUAL(usi5.getIndex(), "7890");
   TEST_STRING_EQUAL(usi5.getMSRun(), "thermo_sample");
+
+  // controllerType=0 controllerNumber=2 → nativeId: (§3.6.4)
+  PeptideIdentification id_cn2;
+  id_cn2.setSpectrumReference("controllerType=0 controllerNumber=2 scan=7");
+  USI usi_cn2 = id_cn2.buildUSI("thermo_sample", "PXD000561", false);
+  TEST_EQUAL(usi_cn2.getIndexType(), USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(usi_cn2.getIndex(), "0,2,7");
 }
 END_SECTION
 
@@ -847,6 +854,16 @@ START_SECTION(([EXTRA] buildUSI with IdentifierMSRunMapper for merged files))
   TEST_EQUAL(usi_interp.isValid(), true);
   TEST_STRING_EQUAL(usi_interp.getInterpretation(), "PEPTIDEK/2");
   TEST_STRING_EQUAL(usi_interp.toString(), "mzspec:PXD000561:file1:scan:500:PEPTIDEK/2");
+
+  // §3.3.4: index: type keeps the file extension (tells resolver which format)
+  PeptideIdentification id_idx;
+  id_idx.setIdentifier("run1");
+  id_idx.setSpectrumReference("index=42");
+  USI usi_idx = id_idx.buildUSI(mapping, "PXD000561", false);
+  TEST_EQUAL(usi_idx.isValid(), true);
+  TEST_STRING_EQUAL(usi_idx.getMSRun(), "file1.mzML");
+  TEST_EQUAL(usi_idx.getIndexType(), USI::IndexType::INDEX);
+  TEST_STRING_EQUAL(usi_idx.toString(), "mzspec:PXD000561:file1.mzML:index:42");
 }
 END_SECTION
 
