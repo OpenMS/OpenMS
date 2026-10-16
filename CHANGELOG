@@ -575,6 +575,31 @@ OpenMS Library:
     sheets: correction_matrix for the non-deuterated channels (8 columns, as for TMT 16-/18-plex) and
     correction_matrix_deuterated for the deuterated channels (14 columns). A correction_matrix with one
     14-column row per channel, as stored in OpenMS 3.6.0 INI files, is still accepted.
+  - FIX: pyOpenMS docstrings (#10599): the former pxd-to-nanobind generator attached every multi-line
+    docstring to the method declared after it (getRT() read "Checks if retention time is set") and
+    dropped blank lines and indentation, so examples, lists and :param:/:return: fields rendered as
+    one paragraph. All such docstrings are reattributed and reformatted, docstrings lost by the shift
+    are restored. The API docs list nanobind methods as methods, with signatures, instead of as
+    attributes, and static methods no longer render as "<nanobind.nb_func object>".
+  - FIX: pyOpenMS bindings that could not work (#10599): SimpleTSGXLMS and TheoreticalSpectrumGeneratorXLMS
+    getLinearIonSpectrum()/getXLinkIonSpectrum() generated the spectrum of an empty peptide (or cross-link)
+    instead of taking it as argument; they now take spectrum, peptide (or cross-link) and the other arguments
+    of the C++ API. IsotopeLabelingMDVs calculateIsotopicPurity()/calculateMDVAccuracy() annotate the feature
+    passed to them, like the C++ API, instead of a new empty one. PeptideIndexing.run() takes the FASTA file
+    name instead of a FASTAContainer, which Python could not create. CachedMzMLHandler.getSpectraIndex(),
+    getChromatogramIndex() and IndexedMzMLDecoder.findIndexListOffset() return int offsets instead of raw
+    std::streampos objects. MZTrafoModel.getCoefficients() returns (intercept, slope, power) instead of
+    filling float arguments, which Python cannot observe. Bound the nested types the signatures referred to
+    but Python could not use (ConsensusFeature.Ratio, whose ratio value now defaults to 0 instead of being
+    uninitialized, SignalToNoiseEstimatorMedianRapid.NoiseEstimator, SplineInterpolatedPeaks.Navigator,
+    the IsotopeLabelingMDVs enums, ims Weights, FeatureFinderAlgorithmPickedHelperStructs_MassTrace) and
+    DeltaMass.label_set. Removed what could not be called from Python: begin()/end() returning C++ iterators
+    (MSExperiment, IsotopeDistribution, DeconvolvedSpectrum, PeakGroup), the initializer_list and std::list
+    constructors, MascotGenericFile.store() to a C++ stream and MapToResidueType.val (now len()).
+    OPXLHelper.buildCandidates returns cross-links that keep their peptides alive (they pointed into a freed
+    copy of the peptide list) and checks the candidate indices it was given.
+    Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
+    pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
