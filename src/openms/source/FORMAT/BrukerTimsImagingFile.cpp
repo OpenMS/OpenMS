@@ -54,6 +54,8 @@ namespace OpenMS
     // The analysis.tdf entry of the .d directory that BrukerTimsFile reads from the '.d.zip' archive @p archive:
     // the shallowest directory '*.d' with analysis.tdf or analysis.tdf_bin (the first by name among equally deep
     // ones), none below '__MACOSX'. Empty if there is no such directory or it has no analysis.tdf.
+    // BrukerTimsFile chooses among the extracted directories, where an entry './a.d/analysis.tdf' has become
+    // 'a.d/analysis.tdf', so entries are compared by their normalized paths, and the name is kept for extraction.
     std::string tdfEntryOfArchive(const std::string& archive)
     {
       std::vector<std::string> entries;
@@ -63,7 +65,7 @@ namespace OpenMS
       std::string found_tdf;
       for (const std::string& entry : entries)
       {
-        const std::filesystem::path entry_path = to_path(entry);
+        const std::filesystem::path entry_path = to_path(entry).lexically_normal();
         const std::filesystem::path dir = entry_path.parent_path();
         const std::string file_name = entry_path.filename().string();
         if (dir.extension() != ".d" || (file_name != "analysis.tdf" && file_name != "analysis.tdf_bin")) { continue; }

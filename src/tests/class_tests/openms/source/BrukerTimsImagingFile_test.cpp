@@ -8,10 +8,12 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 
@@ -216,6 +218,21 @@ START_SECTION([EXTRA] '.d.zip' archives)
   createFakeD(top_dir, "z", "SingleSpectra", {{1, 0, 0, 0}});
   createFakeD(top_dir + "/outer", "a", "Imaging", {{1, 0, 0, 0}});
   TEST_EQUAL(BrukerTimsImagingFile::isImagingDataset(zip(top_dir)), false) // z.d
+  // An entry './a.d/analysis.tdf' is extracted to a.d, as deep as b.d, so a.d (the first by name) is read
+  const std::string dot_dir = tmp.getPath() + "/zip_dot";
+  const std::string dot_a = createFakeD(dot_dir, "a", "Imaging", {{1, 0, 0, 0}, {2, 1, 0, 0}});
+  const std::string dot_b = createFakeD(dot_dir, "b", "SingleSpectra", {{1, 0, 0, 0}});
+  const std::string dot_zip = dot_dir + ".d.zip";
+  ZipArchiveFile::addOrReplaceFromFile(dot_zip, "./a.d/analysis.tdf", dot_a + "/analysis.tdf");
+  ZipArchiveFile::addOrReplaceFromFile(dot_zip, "b.d/analysis.tdf", dot_b + "/analysis.tdf");
+  TEST_EQUAL(BrukerTimsImagingFile::isImagingDataset(dot_zip), true)
+  TEST_EQUAL(BrukerTimsImagingFile::readMaldiFrameInfo(dot_zip).size(), 2)
+  // BrukerTimsFile, which reads the frames, takes a.d as well: it refuses the imaging run outside export mode FRAME
+  {
+    BrukerTimsFile frames;
+    MSExperiment frames_exp;
+    TEST_EXCEPTION(Exception::InvalidFileType, frames.load(dot_zip, frames_exp))
+  }
 
   // No .d directory with analysis.tdf in the archive
   const std::string empty_dir = tmp.getPath() + "/zip_empty";
