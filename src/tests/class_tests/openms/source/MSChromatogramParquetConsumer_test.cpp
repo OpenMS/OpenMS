@@ -250,6 +250,22 @@ START_SECTION(MSChromatogramParquetConsumer_finalize_surfaces_errors)
 }
 END_SECTION
 
+START_SECTION(MSChromatogramParquetConsumer_finalize_keeps_writer_error)
+{
+  TargetedExperiment targeted_exp;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("MSChromatogramParquetConsumer_1_input.TraML"), targeted_exp);
+
+  OpenSwath::LightTargetedExperiment light_exp;
+  OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, light_exp);
+
+  // the writer thread fails to open the file: every finalize() reports it, none closes the output as complete
+  std::string out = SystemSettings::getTempDirectory() + "/openms_missing_dir/xic_out.xic";
+  MSChromatogramParquetConsumer consumer(out, 1, "test_source", light_exp);
+  TEST_EXCEPTION(Exception::FileNotWritable, consumer.finalize())
+  TEST_EXCEPTION(Exception::FileNotWritable, consumer.finalize())
+}
+END_SECTION
+
 START_SECTION(MSChromatogramParquetConsumer_mixed_target_and_decoy_identifying_transitions_keep_single_target_analyte)
 {
   OpenSwath::LightTargetedExperiment light_exp;
