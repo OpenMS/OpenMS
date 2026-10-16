@@ -2075,7 +2075,7 @@ START_SECTION([EXTRA] rt_selects_spectra and im_min/im_max give the spectra of a
     const double im_max = 1.1;
 
     // what the ranges leave of the spectra of a load without them
-    const auto filtered = [&](const MSExperiment& exp, bool by_rt, bool by_im)
+    const auto filtered = [&](const MSExperiment& exp, bool by_rt, bool by_im, double im_lo, double im_hi)
     {
       MSExperiment result;
       for (MSSpectrum s : exp)
@@ -2087,11 +2087,11 @@ START_SECTION([EXTRA] rt_selects_spectra and im_min/im_max give the spectra of a
           std::vector<Size> kept;
           for (Size i = 0; i < s.size(); ++i)
           {
-            if (im[i] >= im_min && im[i] <= im_max) kept.push_back(i);
+            if (im[i] >= im_lo && im[i] <= im_hi) kept.push_back(i);
           }
           s.select(kept);
         }
-        else if (by_im && s.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET && (s.getDriftTime() < im_min || s.getDriftTime() > im_max))
+        else if (by_im && s.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET && (s.getDriftTime() < im_lo || s.getDriftTime() > im_hi))
         {
           continue;
         }
@@ -2112,21 +2112,27 @@ START_SECTION([EXTRA] rt_selects_spectra and im_min/im_max give the spectra of a
       BrukerTimsFile::Config config;
       bool by_rt;
       bool by_im;
+      double im_lo;
+      double im_hi;
     };
     BrukerTimsFile::Config aggregated = window; // MS1 over 2 neighbors on each side, DIA MS2 over 1
     aggregated.ms1_n_neighbors = 2;
     aggregated.dia_ms2_n_neighbors = 1;
     BrukerTimsFile::Config frames = window;
     frames.export_mode = BrukerTimsFile::Config::FRAME;
-    const std::vector<Case> cases = {{"RT", window, true, false}, {"RT, aggregated", aggregated, true, false},
-                                     {"RT, frames", frames, true, false}, {"IM", window, false, true},
-                                     {"RT and IM", window, true, true}};
+    const double inf = std::numeric_limits<double>::infinity();
+    const std::vector<Case> cases = {{"RT", window, true, false, im_min, im_max},
+                                     {"RT, aggregated", aggregated, true, false, im_min, im_max},
+                                     {"RT, frames", frames, true, false, im_min, im_max},
+                                     {"IM", window, false, true, im_min, im_max},
+                                     {"IM, lower bound only", window, false, true, im_min, inf},
+                                     {"RT and IM", window, true, true, im_min, im_max}};
     for (const Case& c : cases)
     {
       STATUS(path << ": " << c.name)
       MSExperiment all;
       BrukerTimsFile().load(path, all, c.config);
-      const MSExperiment expected = filtered(all, c.by_rt, c.by_im);
+      const MSExperiment expected = filtered(all, c.by_rt, c.by_im, c.im_lo, c.im_hi);
       TEST_EQUAL(expected.size() > 0, true)
       TEST_EQUAL(peaks(expected) < peaks(all), true)
 
@@ -2139,8 +2145,8 @@ START_SECTION([EXTRA] rt_selects_spectra and im_min/im_max give the spectra of a
       }
       if (c.by_im)
       {
-        selecting.im_min = im_min;
-        selecting.im_max = im_max;
+        selecting.im_min = c.im_lo;
+        selecting.im_max = c.im_hi;
       }
       MSExperiment selected;
       BrukerTimsFile().load(path, selected, selecting);
@@ -2158,6 +2164,13 @@ START_SECTION([EXTRA] rt_selects_spectra and im_min/im_max give the spectra of a
         TEST_NOT_EQUAL(spectraDifference(spectrumPointers(expected), spectrumPointers(by_frames)), "")
       }
     }
+
+    // a NaN bound leaves no peaks, as an empty range does (it does not switch the filter off)
+    BrukerTimsFile::Config nan_range = window;
+    nan_range.im_max = std::numeric_limits<double>::quiet_NaN();
+    MSExperiment none;
+    BrukerTimsFile().load(path, none, nan_range);
+    TEST_EQUAL(peaks(none), 0)
   }
 }
 END_SECTION

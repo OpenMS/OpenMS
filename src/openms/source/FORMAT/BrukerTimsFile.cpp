@@ -693,9 +693,10 @@ namespace OpenMS
     frame_ids = std::vector<uint32_t>(frame_ids.begin() + lo, frame_ids.begin() + hi + 1);
   }
 
+  // A NaN bound counts as set: no ion mobility lies in such a range, as in one with im_min > im_max.
   static bool imRangeSet(const BrukerTimsFile::Config& config)
   {
-    return config.im_min > 0.0 || std::isfinite(config.im_max);
+    return !(config.im_min <= 0.0) || !(config.im_max == std::numeric_limits<double>::infinity());
   }
 
   // Config::im_min/im_max applied to a spectrum the loaders emit: removes the peaks outside the range from a spectrum
@@ -725,6 +726,11 @@ namespace OpenMS
   {
     const bool select_rt = selectsSpectraByRT(eff);
     const bool select_im = imRangeSet(eff);
+    if (select_im && !(eff.im_min <= eff.im_max))
+    {
+      OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config ion mobility range [" << eff.im_min << ", " << eff.im_max
+                      << "] is empty. No peaks will be loaded." << std::endl;
+    }
     if (!select_rt && !select_im) return sink;
     return [&eff, select_rt, select_im, sink = std::move(sink)](MSSpectrum& spec)
     {
@@ -3013,8 +3019,9 @@ namespace OpenMS
           sel.im_hi = std::max({sel.im_hi, ims[0], ims[1]});
         }
       }
-      // a margin for the rounding of the mean ion mobility of a spectrum
-      const double im_margin = 1e-9 * std::max(1.0, std::abs(config.im_max));
+      // a margin for the rounding of the mean ion mobility of a spectrum, relative to the finite bounds
+      const double im_scale = std::max(std::isfinite(config.im_max) ? std::abs(config.im_max) : 0.0, std::abs(config.im_min));
+      const double im_margin = 1e-9 * std::max(1.0, im_scale);
       precursor_entries.erase(
         std::remove_if(precursor_entries.begin(), precursor_entries.end(),
                        [&](const DDAPrecursorInfo& e) {

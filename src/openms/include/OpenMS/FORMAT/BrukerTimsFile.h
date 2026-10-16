@@ -138,8 +138,9 @@ namespace OpenMS
       /// mobility per peak (MS1, DIA MS2, FRAME mode), and a DDA MS2 spectrum,
       /// which has a single ion mobility, is left out if that lies outside.
       /// DDA precursors isolated entirely outside the range are skipped before
-      /// their frames are decoded (with calibrate = true, the OLS fit uses the
-      /// precursors kept only). Defaults (0.0, +inf) impose no filter.
+      /// their frames are decoded; with calibrate = true, the OLS fit uses the
+      /// precursors isolated at least partly inside it. Defaults (0.0, +inf)
+      /// impose no filter; a NaN bound, like im_min > im_max, leaves no peaks.
       /// readDIAMetadata() and loadDIAStreaming() ignore it.
       double im_min = 0.0;
       double im_max = std::numeric_limits<double>::infinity();
