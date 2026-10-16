@@ -138,6 +138,13 @@ partitions spectra accordingly. Ion mobility lower/upper limits are attached as
 spectrum meta values so that PASEF windows sharing the same m/z range but
 differing in ion mobility are correctly distinguished.
 
+<h4>Thermo .raw (requires WITH_THERMO_RAW)</h4>
+Thermo .raw files can be passed directly; the spectra are centroided by the
+vendor library. With `-readOptions onDisc` (indexed mzML or Thermo .raw), the
+file is indexed once and the spectra are read from it when they are needed (see
+SwathFile::loadOnDisc(), OnDiscMSExperiment and OnDiscThermoRawExperiment), so
+the run is neither loaded into memory nor cached to disk.
+
 <h4>PRM</h4>
 PRM (parallel reaction monitoring) is a targeted MS2 acquisition mode. PRM
 data typically contains MS2 traces targeted to specific precursors and may
@@ -330,8 +337,8 @@ protected:
 
     registerFlag_("append_oswpq", "If out_features is an oswpq archive, optionally append to the existing .oswpq archive instead of overwriting. This may be useful if you run separate instances of OpenSwathWorkflow for separate input files. (default: overwrite)", true);
 
-    registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
-    setValidStrings_("readOptions", ListUtils::create<std::string>("normal,cache,cacheWorkingInMemory,workingInMemory"));
+    registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory. 'onDisc' (indexed mzML or Thermo .raw input) indexes the file and reads the spectra from it when they are needed, without loading or caching the data; input with more than one FAIMS compensation voltage is rejected.", false, true);
+    setValidStrings_("readOptions", ListUtils::create<std::string>("normal,cache,cacheWorkingInMemory,workingInMemory,onDisc"));
 
     registerStringOption_("tempDirectory", "<tmp>", SystemSettings::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
     registerFlag_("keep_cached_files", "If set, do not remove cached files created in tempDirectory (disable automated cleanup)", false);
@@ -985,6 +992,25 @@ protected:
     {
       readoptions = "normal";
       load_into_memory = true;
+    }
+
+    if (readoptions == "onDisc")
+    {
+      if (split_file)
+      {
+        // SwathFile::loadSplit only reads 'normal' and 'cache'; fail here with a clear message instead
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "readOptions 'onDisc' does not support -split_file_input; use 'normal' or 'cache'.");
+      }
+      for (const auto& f : file_list)
+      {
+        const FileTypes::Type type = FileHandler::getTypeByFileName(f);
+        if (type != FileTypes::RAW && type != FileTypes::MZML)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "readOptions 'onDisc' is only supported for indexed mzML and Thermo .raw input, not for '" + f + "'.");
+        }
+      }
     }
 
     bool is_sqmass_input  = (FileHandler::getTypeByFileName(file_list[0]) == FileTypes::SQMASS);

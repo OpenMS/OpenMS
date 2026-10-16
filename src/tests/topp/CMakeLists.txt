@@ -355,6 +355,13 @@ set_tests_properties("TOPP_BaselineFilter_1_out1" PROPERTIES DEPENDS "TOPP_Basel
 add_test("TOPP_ConsensusMapNormalizer_1" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusMapNormalizer.tmp.consensusXML)
 add_test("TOPP_ConsensusMapNormalizer_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusMapNormalizer.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ConsensusMapNormalizer_output.consensusXML )
 set_tests_properties("TOPP_ConsensusMapNormalizer_1_out1" PROPERTIES DEPENDS "TOPP_ConsensusMapNormalizer_1")
+add_test("TOPP_ConsensusMapNormalizer_2" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusMapNormalizer_2.tmp.consensusXML -algorithm_type rt_local -rt_local:neighbors 10)
+add_test("TOPP_ConsensusMapNormalizer_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusMapNormalizer_2.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ConsensusMapNormalizer_2_output.consensusXML )
+set_tests_properties("TOPP_ConsensusMapNormalizer_2_out1" PROPERTIES DEPENDS "TOPP_ConsensusMapNormalizer_2")
+# maps 1 and 2 of ConsensusMapNormalizer_input, extracted by 'FileFilter -consensus:map 1 2', which keeps the map indices
+foreach(_algorithm robust_regression median median_shift quantile rt_local)
+  add_test("TOPP_ConsensusMapNormalizer_filtered_${_algorithm}" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_filtered_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusMapNormalizer_filtered_${_algorithm}.tmp.consensusXML -algorithm_type ${_algorithm})
+endforeach()
 
 #------------------------------------------------------------------------------
 # MapNormalizer tests
@@ -1231,12 +1238,11 @@ set_tests_properties("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" PROPERTI
 
 # TMT 32-plex / 35-plex end-to-end: the 32/35-plex methods are registered in the
 # IsobaricQuantitationMethod factory; run them on the TMT10 fixture and confirm 32/35 channels are
-# quantified (consensusXML diffs clean). Isotope correction is not yet supported for these methods (the
-# matrix is always identity), so it is disabled to avoid the identity-matrix rejection.
-add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt32plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML)
+# quantified (consensusXML diffs clean), with the default isotope correction (the shipped CoA matrices).
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt32plex -out ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyTwoPlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1")
-add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt35plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML)
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt35plex -out ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyFivePlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1")
 
@@ -4388,7 +4394,10 @@ add_test("TOPP_MS1LabeledWorkflow_3_mbr" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -te
   -proteinFDR 1.0
   -match_between_runs true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "1 multiplet.s. are unidentified, 1 of them kept for match between runs")
+# Knock-outs are detected by default, so run B also has six unidentified partial multiplets (singlets);
+# only the complete unidentified doublet is kept for match between runs, since the channels of a partial
+# one are known from an identification only.
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "7 multiplet.s. are unidentified, 1 of them kept for match between runs")
 add_test("TOPP_MS1LabeledWorkflow_3_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_mbr_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_mbr")
 add_test("TOPP_MS1LabeledWorkflow_3_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
@@ -4453,8 +4462,9 @@ add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment" ${TOPP_BIN_PATH}/MS1Labele
   -proteinFDR 1.0
   -id_mapping:mz_tolerance 15000
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML)
-# an identical output could also mean that nothing was multi-assigned, so require that it was
-set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment" PROPERTIES PASS_REGULAR_EXPRESSION "assigned to multiple features: 3")
+# an identical output could also mean that nothing was multi-assigned, so require that it was (besides
+# doublets 2 and 3, one identification also lands on a nearby unidentified singlet)
+set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment" PROPERTIES PASS_REGULAR_EXPRESSION "4 spectrum match.es. were mapped onto several multiplets")
 add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_5_multi_assignment")
 
@@ -4507,15 +4517,46 @@ add_test("TOPP_MS1LabeledWorkflow_ratio_reference_channel" ${TOPP_BIN_PATH}/MS1L
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_ratio_reference_channel.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_ratio_reference_channel" PROPERTIES PASS_REGULAR_EXPRESSION "names a channel that '-labels .*' does not have")
 
-# with knock-outs the channel order of an unidentified multiplet is unknown, so match between runs is refused
-add_test("TOPP_MS1LabeledWorkflow_mbr_knock_out" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
-  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
-  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
-  -labels "[][Lys8,Arg10]"
-  -match_between_runs true
-  -algorithm:knock_out
-  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_mbr_knock_out.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_mbr_knock_out" PROPERTIES PASS_REGULAR_EXPRESSION "cannot be combined with '-algorithm:knock_out'")
+# partial multiplets (knock-outs, the default): a synthetic triple SILAC run, MS1LabeledWorkflow_7_input.mzML
+# with MS1LabeledWorkflow_7.idXML, one peptide per case (light : medium : heavy):
+#   GDVTAQFLEHK 1:1:1, identified by a light spectrum 10 s after the apex (beyond the 5 s RT tolerance, but
+#     within the elution region) and by a heavy spectrum whose precursor is the M+1 peak (off by 1/2 Th);
+#   SAYWNEGHIR 0:1:2 (no light), TFEQLMDSR 0:0:1 (heavy only), YVNDLAGHEK 1:0:0 (light only);
+#   ENGTWQFYIK and HDSVFLAEGR 1 : 0.0125 : 0.015, too weak in medium and heavy to be detected (their M+2 is below
+#     algorithm:intensity_cutoff), identified by the light resp. only by the medium spectrum.
+# All six are quantified: the three partial ones with their absent channels as 0, the medium and heavy
+# channels of the two weak ones re-quantified (exactly 1:0.0125:0.015, i.e. measured against the light
+# channel where both were seen), HDSVFLAEGR through its medium identification although only its light
+# channel was detected. With -algorithm:knock_out false only GDVTAQFLEHK would be.
+add_test("TOPP_MS1LabeledWorkflow_7_partial" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 4 channel.s. the detection did not find; 5 show no signal")
+add_test("TOPP_MS1LabeledWorkflow_7_partial_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_partial_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial")
+add_test("TOPP_MS1LabeledWorkflow_7_attached" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_attached.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_attached" PROPERTIES PASS_REGULAR_EXPRESSION "1 identification.s. of channels the detection did not find were attached")
+add_test("TOPP_MS1LabeledWorkflow_7_complete_only" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -algorithm:knock_out false
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_complete_only.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_complete_only" PROPERTIES PASS_REGULAR_EXPRESSION "Resolved 1 multiplet.s.; 0 identified")
 
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
@@ -4954,7 +4995,7 @@ set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_
   PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
 # Test 12: -out_pin holds the PSMs before any FDR filter. With FDR:PSM and FDR:protein (ProSE_6_fdr.ini, one input) the
 # .pin equals that of the same search without FDR (decoys kept, search engine scores; with -rescore the rescored PSMs),
-# and -out_pin does not change the idXML (Test 6, Test 11).
+# and -out_pin does not change the idXML (Test 6, Test 11; with -rescore, the hit counts after FDR).
 foreach(_rescore OFF ON)
   set(_f ProSE_12_pin)
   set(_opt)
@@ -4974,9 +5015,22 @@ foreach(_rescore OFF ON)
     -Search:FDR:PSM 0 -Search:FDR:protein 0 -out_pin ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
   add_test("TOPP_${_f}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}.tmp.tsv -in2 ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
   set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_f}_nofdr")
-  add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/${_ref}_out.tmp.idXML
-    -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
-  set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_ref}")
+  if(_rescore)
+    # Percolator cannot train properly on this data (1 decoy among 896 PSMs, so the SVM scores are not rescaled):
+    # its SVM scores differ by about 1% between two runs on Windows. Compare the hit counts after FDR instead.
+    foreach(_run ${_f} ${_ref})
+      add_test("TOPP_${_f}_info_${_run}" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/${_run}_out.tmp.idXML
+        -out_tsv ${TESTS_TEMP_DIR}/${_f}_info_${_run}.tmp.tsv)
+      set_tests_properties("TOPP_${_f}_info_${_run}" PROPERTIES DEPENDS "TOPP_${_run}")
+    endforeach()
+    add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_info_${_f}.tmp.tsv
+      -in2 ${TESTS_TEMP_DIR}/${_f}_info_${_ref}.tmp.tsv -whitelist "file name")
+    set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f}_info_${_f};TOPP_${_f}_info_${_ref}")
+  else()
+    add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/${_ref}_out.tmp.idXML
+      -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
+    set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_ref}")
+  endif()
 endforeach()
 # Test 12 (open search): -out_pin changes no other output. FDR:PSM 0.0005 removes the PSMs ranked below the one decoy,
 # so the idXML and the modification-analysis tables count fewer PSMs than the .pin, which equals the .pin without FDR.
@@ -6166,6 +6220,31 @@ add_test("TOPP_ProteomicsLFQ_1_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
 add_test("TOPP_ProteomicsLFQ_1_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
+
+# -Alignment:model_type selects the RT model that is fitted to the alignment points (B-splines were fitted whatever it
+# said). A model is only fitted to more than 10 points, more than two BSA runs share: a run and a copy of it share all
+# 12 identified peptides when unassigned IDs count. The debug log names the fitted model.
+add_test("TOPP_ProteomicsLFQ_model_type_copy_mzML" ${CMAKE_COMMAND} -E copy ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${TESTS_TEMP_DIR}/BSA1_F1_copy.tmp.mzML)
+add_test("TOPP_ProteomicsLFQ_model_type_copy_idXML" ${CMAKE_COMMAND} -E copy ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${TESTS_TEMP_DIR}/BSA1_F1_copy.tmp.idXML)
+add_test("TOPP_ProteomicsLFQ_model_type" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${TESTS_TEMP_DIR}/BSA1_F1_copy.tmp.mzML
+         -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${TESTS_TEMP_DIR}/BSA1_F1_copy.tmp.idXML
+         -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -Alignment:align_algorithm:max_rt_shift 0
+         -Alignment:align_algorithm:use_feature_rt false
+         -Alignment:align_algorithm:use_unassigned_peptides
+         -Alignment:model_type linear
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_model_type.tmp.consensusXML
+         -threads 1
+         -proteinFDR 0.3
+         -debug 1
+         -test
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_model_type" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_model_type_copy_mzML;TOPP_ProteomicsLFQ_model_type_copy_idXML"
+                     PASS_REGULAR_EXPRESSION "after applying 'linear' transformation")
 
 # Identical to TOPP_ProteomicsLFQ_1, except that BSA1_F1's identifications carry one
 # PeptideIdentification twice (same spectrum, peptidoform and charge; the copy scored worse).

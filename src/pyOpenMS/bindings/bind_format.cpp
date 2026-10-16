@@ -10,7 +10,9 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include "index_value_iterator.h"
 #endif
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -151,8 +153,98 @@ NB_MODULE(_pyopenms_format, m) {
         .def("getOptions", &OpenMS::ThermoRawFile::getOptions, nb::rv_policy::copy, "Returns a copy of the current loading options")
         .def("setOptions", &OpenMS::ThermoRawFile::setOptions, "options"_a, "Sets the loading options")
         .def("load", &OpenMS::ThermoRawFile::load, "filename"_a, "experiment"_a, nb::call_guard<nb::gil_scoped_release>(),
-             "Loads a Thermo RAW file into an MSExperiment");
+             "Loads a Thermo RAW file into an MSExperiment")
+        .def("transform", [](OpenMS::ThermoRawFile& self, const std::string& filename, nb::object consumer) {
+            // each spectrum is a local that is dropped after the callback, so it is not read back
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(filename, &wrapper);
+        }, "filename"_a, "consumer"_a,
+        R"doc(Streams a Thermo RAW file into a consumer, one spectrum at a time.
+
+The consumer is a Python object with the methods ``setExpectedSize(nr_spectra, nr_chromatograms)``,
+``setExperimentalSettings(settings)``, ``consumeSpectrum(spectrum)`` and ``consumeChromatogram(chromatogram)``
+(as for ``MzMLFile.transform``). The spectra are the ones load() would return with the same options.
+)doc");
     def_ProgressLogger<OpenMS::ThermoRawFile>(thermorawfile_class);
+
+    // -----------------------------------------------------------------------
+    // OnDiscThermoRawExperiment (random access to the spectra of a .raw file)
+    // -----------------------------------------------------------------------
+    pyopenms_iter::bind_index_value_iterator<OpenMS::OnDiscThermoRawExperiment>(m, "_OnDiscThermoRawExperimentIter");
+    using ODTRE = OpenMS::OnDiscThermoRawExperiment;
+    nb::class_<ODTRE>(m, "OnDiscThermoRawExperiment",
+        R"doc(Random access to the spectra of a Thermo RAW file.
+
+openFile() reads the scan headers once and keeps a small index; getSpectrum(i) then reads and converts
+a single scan. The spectra are the same as the i-th spectrum of ThermoRawFile.load() with the same
+options, in any access order. Options.ms_levels, the scan, RT and precursor m/z ranges select the
+indexed spectra. Copies share the index and read through their own file handle, so a copy per thread
+can be used concurrently.
+
+Example::
+
+    exp = OnDiscThermoRawExperiment()
+    exp.openFile("run.raw")
+    for i in range(exp.findFirstRT(600.0), len(exp)):
+        spectrum = exp.getSpectrum(i)
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const ODTRE&>())
+        .def("__copy__", [](const ODTRE& self) { return ODTRE(self); })
+        .def("__deepcopy__", [](const ODTRE& self, nb::dict) { return ODTRE(self); }, "memo"_a)
+        .def("openFile", [](ODTRE& self, const std::string& filename, const OpenMS::ThermoRawFile::Options& options) {
+            nb::gil_scoped_release release;
+            self.openFile(filename, options);
+        }, "filename"_a, "options"_a = OpenMS::ThermoRawFile::Options(), "Opens a .raw file and builds the spectrum index (no peaks are read)")
+        .def("isOpen", &ODTRE::isOpen, "Whether a file was opened")
+        .def("getFilename", &ODTRE::getFilename, "The opened file")
+        .def("getOptions", &ODTRE::getOptions, nb::rv_policy::copy, "The options given to openFile() (checksum is always off)")
+        .def("getNrSpectra", &ODTRE::getNrSpectra, "Number of indexed spectra")
+        .def("getNrChromatograms", &ODTRE::getNrChromatograms, "Number of chromatograms")
+        .def("size", &ODTRE::size, "Number of indexed spectra")
+        .def("__len__", &ODTRE::size)
+        .def("getSpectrum", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrum(index);
+        }, "index"_a, "Reads the spectrum with the given index, with peaks (as ThermoRawFile.load())")
+        .def("__getitem__", [](ODTRE& self, long long index) {
+            const long long n = static_cast<long long>(self.size());
+            if (index < 0) { index += n; }
+            if (index < 0 || index >= n) { throw nb::index_error("spectrum index out of range"); }
+            nb::gil_scoped_release release;
+            return self.getSpectrum(static_cast<size_t>(index));
+        }, "index"_a)
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<ODTRE>(self); },
+             "Iterates over all spectra in index order, reading one at a time")
+        .def("getSpectrumMetadata", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumMetadata(index);
+        }, "index"_a, "The spectrum without peaks and data arrays (no peaks are read)")
+        .def("getSpectrumPeaks", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumPeaks(index);
+        }, "index"_a, "Only the peaks and data arrays of the spectrum (other fields may be left empty)")
+        .def("getSpectrumByNativeId", [](ODTRE& self, const std::string& native_id) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumByNativeId(native_id);
+        }, "native_id"_a, "Reads the spectrum with the given native ID")
+        .def("getSpectrumRT", &ODTRE::getSpectrumRT, "index"_a, "Retention time (seconds) of a spectrum, from the index")
+        .def("getSpectrumMSLevel", &ODTRE::getSpectrumMSLevel, "index"_a, "MS level of a spectrum, from the index")
+        .def("getSpectrumNativeID", &ODTRE::getSpectrumNativeID, "index"_a, "Native ID of a spectrum, from the index")
+        .def("getScanNumber", &ODTRE::getScanNumber, "index"_a, "Thermo scan number of a spectrum (0 for PDA spectra)")
+        .def("getSpectrumIndexByScanNumber", &ODTRE::getSpectrumIndexByScanNumber, "scan"_a,
+             "Index of the spectrum of a scan number (size() if the scan is not indexed)")
+        .def("isSortedByRT", &ODTRE::isSortedByRT, "Whether the spectra are sorted by retention time (always true)")
+        .def("findFirstRT", &ODTRE::findFirstRT, "rt"_a,
+             "Index of the first spectrum with RT >= rt (size() if there is none)")
+        .def("getChromatogram", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getChromatogram(index);
+        }, "index"_a, "Returns a chromatogram (TIC and detector traces, as loaded by ThermoRawFile.load())")
+        .def("getExperimentalSettings", [](const ODTRE& self) { return OpenMS::ExperimentalSettings(*self.getExperimentalSettings()); },
+             "The run metadata (a copy)")
+        ;
 #endif
 
     // -----------------------------------------------------------------------
