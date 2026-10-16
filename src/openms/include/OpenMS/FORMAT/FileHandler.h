@@ -473,11 +473,13 @@ private:
     /**
       @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
 
-      Used by vendor-format paths whose loaders read all scans/peaks regardless of
-      PeakFileOptions (Bruker .d), and for the per-peak filters on Thermo .raw (the
-      scan-level filters are passed to ThermoRawFile). Filters MS level, RT range, precursor
-      m/z range, per-peak m/z and intensity ranges, and strips peak data when
-      metadata-only is requested. Calls updateRanges() at the end.
+      Used by the vendor-format paths. Bruker .d: loadExperiment() has the reader skip the
+      MS levels and, where that gives the same spectra, the retention times the options
+      exclude, so that this data is not decoded; the filters here make the result exact.
+      Thermo .raw: the scan-level filters are passed to ThermoRawFile, only the per-peak
+      filters are applied here. Filters MS level, RT range, precursor m/z range, per-peak
+      m/z and intensity ranges, and strips peak data when metadata-only is requested.
+      Calls updateRanges() at the end.
     */
     void applyPostLoadOptions_(MSExperiment& exp) const;
 
