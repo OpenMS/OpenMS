@@ -144,25 +144,6 @@ private:
     static const char encoder_[];
     static const char decoder_[];
 
-    /// Decodes a single Base64 character via decoder_, throwing if it is not part of the alphabet
-    static inline UInt decodeIntegerChar_(char c)
-    {
-      // '=' is the padding character; it can end up at a position that is still read (not every
-      // caller strips it beforehand), and is never itself a data value.
-      if (c == '=')
-      {
-        return 0;
-      }
-      unsigned char uc = static_cast<unsigned char>(c);
-      // decoder_ covers ASCII 43 ('+') to 122 ('z'); positions inside that range that are not
-      // themselves part of the Base64 alphabet hold '$' as a sentinel.
-      if (uc < 43 || uc > 122 || decoder_[uc - 43] == '$')
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid character in Base64 input.");
-      }
-      return static_cast<UInt>(decoder_[uc - 43]) - 62;
-    }
-
     /// Decodes a Base64 string to a vector of floating point numbers
     template <typename ToType>
     static void decodeUncompressed_(const std::string & in, ByteOrder from_byte_order, std::vector<ToType> & out);
@@ -539,142 +520,19 @@ private:
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Malformed base64 input, length is not a multiple of 4.");
     }
 
-    Size src_size = in.size();
-    // last one or two '=' are skipped if contained
-    int padding = 0;
-    if (in[src_size - 1] == '=') padding++;
-    if (in[src_size - 2] == '=') padding++;
+    constexpr Size element_size = sizeof(ToType);
+    std::string s;
+    stringSimdDecoder_(in, s);
 
-    src_size -= padding;
-
-    UInt a;
-    UInt b;
-
-    UInt offset = 0;
-    int inc = 1;
-    UInt written = 0;
-
-    const Size element_size = sizeof(ToType);
-
-    // enough for either float or double
-    char element[8] = "\x00\x00\x00\x00\x00\x00\x00";
-
+    // change endianness if necessary (mzML is always LITTLE_ENDIAN; x64 is LITTLE_ENDIAN)
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
     {
-      offset = (element_size - 1);              // other endian
-      inc = -1;
-    }
-    else
-    {
-      offset = 0;
-      inc = 1;
+      invertEndianess<element_size>((void*)s.data(), s.size() / element_size);
     }
 
-    // reserve enough space in the output vector
-    out.reserve((UInt)(std::ceil((4.0 * src_size) / 3.0) + 6.0));
-
-    // sort all read bytes correctly into a char[4] (double) or
-    // char[8] (float) and push_back when necessary.
-    for (Size i = 0; i < src_size; i += 4)
-    {
-
-      // decode 4 Base64-Chars to 3 Byte
-      // -------------------------------
-
-      // decode the first two chars
-      a = decodeIntegerChar_(in[i]);
-      if (i + 1 >= src_size)
-      {
-        b = 0;
-      }
-      else
-      {
-        b = decodeIntegerChar_(in[i + 1]);
-      }
-      // write first byte (6 bits from a and 2 highest bits from b)
-      element[offset] = (unsigned char) ((a << 2) | (b >> 4));
-      written++;
-      offset = (offset + inc) % element_size;
-
-      if (written % element_size == 0)
-      {
-        ToType float_value;
-        if (element_size == 4)
-        {
-          Int32 * value = reinterpret_cast<Int32 *>(&element[0]);
-          float_value = (ToType) * value;
-        }
-        else
-        {
-          Int64 * value = reinterpret_cast<Int64 *>(&element[0]);
-          float_value = (ToType) * value;
-        }
-        out.push_back(float_value);
-        strcpy(element, "");
-      }
-
-      // decode the third char
-      if (i + 2 >= src_size)
-      {
-        a = 0;
-      }
-      else
-      {
-        a = decodeIntegerChar_(in[i + 2]);
-      }
-      // write second byte (4 lowest bits from b and 4 highest bits from a)
-      element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
-      written++;
-      offset = (offset + inc) % element_size;
-
-      if (written % element_size == 0)
-      {
-        ToType float_value;
-        if (element_size == 4)
-        {
-          Int32 * value = reinterpret_cast<Int32 *>(&element[0]);
-          float_value = (ToType) * value;
-        }
-        else
-        {
-          Int64 * value = reinterpret_cast<Int64 *>(&element[0]);
-          float_value = (ToType) * value;
-        }
-        out.push_back(float_value);
-        strcpy(element, "");
-      }
-
-      // decode the fourth char
-      if (i + 3 >= src_size)
-      {
-        b = 0;
-      }
-      else
-      {
-        b = decodeIntegerChar_(in[i + 3]);
-      }
-      // write third byte (2 lowest bits from a and 6 bits from b)
-      element[offset] = (unsigned char) (((a & 3) << 6) | b);
-      written++;
-      offset = (offset + inc) % element_size;
-
-      if (written % element_size == 0)
-      {
-        ToType float_value;
-        if (element_size == 4)
-        {
-          Int32 * value = reinterpret_cast<Int32 *>(&element[0]);
-          float_value = (ToType) * value;
-        }
-        else
-        {
-          Int64 * value = reinterpret_cast<Int64 *>(&element[0]);
-          float_value = (ToType) * value;
-        }
-        out.push_back(float_value);
-        strcpy(element, "");
-      }
-    }
+    const char* cptr = s.data();
+    const ToType * iptr = reinterpret_cast<const ToType*>(cptr);
+    out.assign(iptr, iptr + s.size() / element_size);
   }
 
 } //namespace OpenMS
