@@ -153,6 +153,13 @@ START_SECTION(void load(const String& path, MSImagingExperiment& exp))
   const std::string d_no_tdf = tmp.getPath() + "/no_tdf.d";
   std::filesystem::create_directories(d_no_tdf.c_str());
   TEST_EXCEPTION(Exception::FileNotReadable, f.load(d_no_tdf, exp))
+
+  // TSF data (MALDI without ion mobility, written for most MALDI imaging runs) cannot be read: said
+  // as such (BrukerTimsFile::checkDataFormat()), not as a missing analysis.tdf.
+  const std::string d_tsf = tmp.getPath() + "/tsf.d";
+  std::filesystem::create_directories(d_tsf.c_str());
+  { std::ofstream os((d_tsf + "/analysis.tsf").c_str()); os << "no data"; }
+  TEST_EXCEPTION(Exception::ParseError, f.load(d_tsf, exp))
 }
 END_SECTION
 
