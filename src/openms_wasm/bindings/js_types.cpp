@@ -222,8 +222,10 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "/** 2 only if the precursor has charge 2 or more */ charge: 1 | 2; "
     "/** from the theoretical spectrum, with the modifications of the peptide as given; the ions of a peptide come by "
     "ascending m/z */ mz: number; "
-    "/** relative to the most intense predicted b/y ion, which is 1; ions of 0.01 or less are left out */ intensity: number }");
+    "/** relative to the most intense returned b/y ion, which is 1; ions of 0.01 or less are left out. (For a precursor "
+    "of charge 1 the model's own maximum may be in a channel that is not returned.) */ intensity: number }");
   register_type<PredictedIons>("PredictedIon[]");
+  register_type<ModelPathInput>("string | null | undefined");
 
   // features
   register_type<BoundingBox>("BoundingBox", "{ minRT: number; maxRT: number; minMZ: number; maxMZ: number }");

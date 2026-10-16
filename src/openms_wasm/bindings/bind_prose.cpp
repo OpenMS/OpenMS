@@ -1086,8 +1086,9 @@ namespace OpenMS::WASM
     ///
     /// - Only the b and y ions of charge 1 and 2 without neutral loss (not the modloss channels of the model); charge 2
     ///   only if the precursor has charge 2 or more.
-    /// - Intensities relative to the most intense of these ions (which is 1), the ions of 0.01 or less left out; no ions
-    ///   at all if the model predicts none.
+    /// - Intensities relative to the most intense returned ion (which is 1), the ions of 0.01 or less left out; no ions
+    ///   at all if the model predicts none. (The model's own maximum may be in a channel that is not returned: a modloss
+    ///   ion, or a doubly charged one of a precursor of charge 1.)
     /// - m/z from TheoreticalSpectrumGenerator, as annotatePeaks() (b and y, charges 1 and 2).
     /// - By ascending m/z; a peptide of one residue has no ions.
     /// Without ONNX Runtime (WITH_ONNX) in the module it throws.
@@ -1125,11 +1126,12 @@ namespace OpenMS::WASM
       // Keep in sync with PeptDeepRescoring::predictedIons_() (PeptDeepRescoring.cpp: a helper in an anonymous namespace,
       // so not callable from here), which PeptDeepLibraryPredictor::predict() agrees with.
       constexpr int ion_b1 = 0, ion_b2 = 1, ion_y1 = 2, ion_y2 = 3;
-      const Size channels = flat.size() / (length - 1);
-      if (channels <= static_cast<Size>(ion_y2) || flat.size() != channels * (length - 1))
+      constexpr Size channels = 8; // as PeptDeepLibraryPredictor (PEPTDEEP_MS2_CHANNELS) requires
+      if (flat.size() != channels * (length - 1))
       {
         throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "PeptDeep gave " + std::to_string(flat.size()) + " intensities for the " + std::to_string(length - 1) + " cleavages of " + peptide_string);
+          "PeptDeep gave " + std::to_string(flat.size()) + " intensities for the " + std::to_string(length - 1) + " cleavages of "
+          + peptide_string + " (expected " + std::to_string(channels) + " channels each)");
       }
       struct Predicted
       {
@@ -1201,6 +1203,19 @@ namespace OpenMS::WASM
     {
       return predictMS2(peptide_string, charge, nce, instrument, default_ms2_model);
     }
+
+    /// predictMS2() with the model at @p model_path, a string; undefined and null (an omitted optional argument passed
+    /// explicitly) select the default model
+    JS::PredictedIons predictMS2WithModel(const std::string& peptide_string, int charge, double nce, const std::string& instrument,
+                                          const JS::ModelPathInput& model_path)
+    {
+      if (isNullish(model_path)) return predictMS2WithDefaultModel(peptide_string, charge, nce, instrument);
+      if (!model_path.isString())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The model path has to be a string", model_path.typeOf().as<std::string>());
+      }
+      return predictMS2(peptide_string, charge, nce, instrument, model_path.as<std::string>());
+    }
   } // namespace
 } // namespace OpenMS::WASM
 
@@ -1233,5 +1248,5 @@ EMSCRIPTEN_BINDINGS(openms_prose)
   function("annotateSpectrum", OMS_FN(&annotateSpectrum));
   function("annotatePeaks", OMS_FN(&annotatePeaks));
   function("predictMS2", OMS_FN(&predictMS2WithDefaultModel));
-  function("predictMS2", OMS_FN(&predictMS2));
+  function("predictMS2", OMS_FN(&predictMS2WithModel));
 }

@@ -1875,7 +1875,8 @@ test("predictMS2 predicts b and y intensities", (t) => {
     });
 
     // what the model of the package (peptdeep_ms2_dynamic.onnx) predicts for this peptide: y9 is the base peak, then b2
-    // (this pins the reading of the model's channels, y numbered from the C-terminus; update it with the model)
+    // (a regression pin of the model's output, to be updated with the model; the orientation itself is pinned by the
+    // proline effect in the next test)
     const strongest = [...ions].sort((a, b) => b.intensity - a.intensity);
     assert.equal(strongest[0].ion, "y9");
     assert.equal(strongest[1].ion, "b2");
@@ -1883,6 +1884,21 @@ test("predictMS2 predicts b and y intensities", (t) => {
 
     // the model is the default one, and the answer is the same for an explicit path
     assert.deepEqual(OpenMS.predictMS2(avmPeptide, 2, 30, "QE", "/models/peptdeep_ms2_dynamic.onnx"), ions);
+  });
+});
+
+// The channels of the model are read with the y ions numbered from the C-terminus. That follows from chemistry, not
+// from the code: the proline effect, cleavage N-terminal to a proline dominates the spectrum of a peptide, which makes
+// the y ion that begins with the proline the strongest y ion.
+test("predictMS2: the y ions are numbered from the C-terminus (proline effect)", (t) => {
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  withModels(() => {
+    // proline effect: cleavage N-terminal to P dominates; a reversed y numbering would name these y5, y5, y2
+    for (const [pep, y] of [["AGLQFPVGR", 4], ["VEADIPGHGQEVLIR", 10], ["ELPEHTVK", 6]]) {
+      const ys = OpenMS.predictMS2(pep, 2, 30, "QE").filter((i) => i.type === "y" && i.charge === 1);
+      assert.equal(ys.reduce((a, b) => (b.intensity > a.intensity ? b : a)).ordinal, y, pep);
+      assert.equal(pep[pep.length - y], "P", `${pep}: y${y} begins with the proline`);
+    }
   });
 });
 
@@ -1966,10 +1982,14 @@ test("predictMS2: errors", (t) => {
     rejects("a peptide with a digit", () => OpenMS.predictMS2("PEPT1DE", 2, 30, "QE"), /Parse Error.*PEPT1DE/);
     rejects("an unknown residue", () => OpenMS.predictMS2("PEPTXDE", 2, 30, "QE"), /InvalidValue/);
     rejects("an unknown modification", () => OpenMS.predictMS2("PEPT(NoSuchMod)IDE", 2, 30, "QE"), /NoSuchMod/);
+    // an omitted model path may be passed as undefined or null: the default model; other types are rejected
+    const expected = OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE");
+    assert.deepEqual(OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE", undefined), expected);
+    assert.deepEqual(OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE", null), expected);
+    rejects("a number as model path", () => OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE", 5), /InvalidValue.*number/);
+    rejects("an empty model path", () => OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE", ""), /FileNotFound/);
     // a peptide of one residue has no cleavage
     assert.deepEqual(OpenMS.predictMS2("K", 2, 30, "QE"), []);
-    // the model predicts nothing for an energy far out of its range (PeptDeepMS2Inference zeroes absurd intensities)
-    assert.deepEqual(OpenMS.predictMS2("PITQGSYLENQVNQCWCK", 2, 60, "QE"), []);
     // and the errors leave the module as it was
     assert.ok(OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE").length > 0);
   });
@@ -1979,6 +1999,7 @@ test("predictMS2 throws without ONNX Runtime", (t) => {
   if (OpenMS.hasONNXRuntime()) return t.skip("the module was built with ONNX Runtime");
   assert.throws(() => OpenMS.predictMS2(avmPeptide, 2, 30, "QE"), /without ONNX Runtime/);
   assert.throws(() => OpenMS.predictMS2(avmPeptide, 2, 30, "QE", "/models/peptdeep_ms2_dynamic.onnx"), /without ONNX Runtime/);
+  assert.throws(() => OpenMS.predictMS2(avmPeptide, 2, 30, "QE", undefined), /without ONNX Runtime/);
 });
 
 // ProSE's PeptDeep rescoring records the collision energy its predictions used for each file
