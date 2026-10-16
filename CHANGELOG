@@ -160,6 +160,15 @@ OpenMS Library:
   - PepXMLFile: a known enzyme of 'enzymatic_search_constraint' takes precedence over 'sample_enzyme' (unchanged, now
     documented); the warning when they differ names both enzymes. A user-defined enzyme from an unknown 'sample_enzyme'
     keeps the case of its name.
+  - FIX: PepXMLFile::store no longer writes an empty <specificity cut=""> for enzymes without cleavage rules (e.g.
+    'unknown_enzyme') or a misleading cut="A" for unspecific cleavage, and writes 'search_engine' only on
+    'search_summary' (it is not an attribute of 'msms_run_summary') (#10346).
+  - FIX: MzTabFile reads and writes the colunit metadata as specified by mzTab 1.0 ('MTD<tab>colunit-<section><tab><value>').
+    The writer emitted an upper-case 'colunit-PSM' without a tab, and the reader expected an index in the key, so
+    conforming lines failed with a ConversionError (#10524).
+  - FIX: MzMLSqliteHandler (sqMass with write_full_meta) keeps the original spectrum native IDs: the embedded mzML
+    snapshot replaced them by 'spectrum=<index>', so such files could not be read back (#10525).
+  - Faster SignalToNoiseEstimatorMedianRapid (1.4-2 fold) (#9782).
   - API: Move NASE-directed precursor query selection into the tool; remove the unreleased SpectralDeconvolution::setQueryMasses API and pyOpenMS binding. Shared FLASH construction, scoring and filtering remain in the library.
   - FIX: DigestionEnzyme built from cleavage residues (name, cut, no_cut, sense; used for unknown pepXML <sample_enzyme>s)
     closes its regex groups, e.g. KR/P/C gives (?<=[KRX])(?!P) like Trypsin; the regexes did not compile (#10569).
@@ -363,6 +372,17 @@ OpenMS Library:
     MALDI imaging .d is rejected as by loadExperiment(). The number of spectra passed to setExpectedSize()
     is an upper bound (see BrukerTimsFile::transform()). loadExperiment() now also honours fill-data off for
     Bruker .d input (spectra without peaks, as for Thermo .raw).
+  - BrukerTimsFile::Config::rt_selects_spectra (new, default false): the retention time range selects the spectra
+    instead of the frames. load() and transform() then return the spectra of a load without the range whose retention
+    time lies in it, unchanged: a DDA MS2 spectrum (the mean time of its frames) is built from all of its frames, and
+    aggregation over retention time reads the neighboring frames outside the range that it needs. FileHandler uses it,
+    so loadExperiment() and transformExperiment() no longer decode the MS2 frames outside a requested RT range of
+    Bruker .d input (before, the RT range was passed to the reader for MS1-only loads alone).
+  - Ion mobility range: PeakFileOptions::setIMRange() (new) restricts the ion mobility of the data FileHandler loads or
+    streams, for every format: peaks outside the range are removed from spectra with an ion mobility per peak, spectra
+    with a single ion mobility outside it are left out, spectra without ion mobility are kept. For Bruker .d input it is
+    passed to the reader, BrukerTimsFile::Config::im_min/im_max (new), which filters likewise and skips the DDA
+    precursors isolated outside the range before their frames are decoded. Both are exposed in pyOpenMS.
   - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
     without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
     invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
@@ -614,6 +634,14 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
+  - FIX: SwathQC (the charge distribution of OpenSwathWorkflow -out_qc and OpenSwathFileSplitter) used only
+    the first MS1 spectrum of a run with 45 or more MS1 spectra: the index for subsampling 30 spectra only
+    counted the spectra already taken. It now counts every MS1 spectrum.
+  - FIX: TargetedSpectraExtractor with mz_unit_is_Da 'false' (ppm): annotateSpectra() with a TargetedExperiment
+    and pickSpectrum() divided mz_tolerance and fwhm_threshold by 1e6 without multiplying by the m/z, so the
+    precursor window and the FWHM threshold were about a factor of m/z too small; annotateSpectra() with MS1
+    features (extractSpectra() with features) took mz_tolerance in Th. They are now relative to the precursor
+    and the peak m/z.
   - FIX: FeatureFinderMultiplexAlgorithm with knock_out: a partial pattern lacking the lightest channel
     (e.g. medium and heavy of a triple SILAC peptide without light) kept the mass shifts of the complete
     pattern, so the filtering only found it next to a peak at the absent light position; such peptides
@@ -638,6 +666,31 @@ OpenMS Library:
     sheets: correction_matrix for the non-deuterated channels (8 columns, as for TMT 16-/18-plex) and
     correction_matrix_deuterated for the deuterated channels (14 columns). A correction_matrix with one
     14-column row per channel, as stored in OpenMS 3.6.0 INI files, is still accepted.
+  - FIX: pyOpenMS docstrings (#10599): the former pxd-to-nanobind generator attached every multi-line
+    docstring to the method declared after it (getRT() read "Checks if retention time is set") and
+    dropped blank lines and indentation, so examples, lists and :param:/:return: fields rendered as
+    one paragraph. All such docstrings are reattributed and reformatted, docstrings lost by the shift
+    are restored. The API docs list nanobind methods as methods, with signatures, instead of as
+    attributes, and static methods no longer render as "<nanobind.nb_func object>".
+  - FIX: pyOpenMS bindings that could not work (#10599): SimpleTSGXLMS and TheoreticalSpectrumGeneratorXLMS
+    getLinearIonSpectrum()/getXLinkIonSpectrum() generated the spectrum of an empty peptide (or cross-link)
+    instead of taking it as argument; they now take spectrum, peptide (or cross-link) and the other arguments
+    of the C++ API. IsotopeLabelingMDVs calculateIsotopicPurity()/calculateMDVAccuracy() annotate the feature
+    passed to them, like the C++ API, instead of a new empty one. PeptideIndexing.run() takes the FASTA file
+    name instead of a FASTAContainer, which Python could not create. CachedMzMLHandler.getSpectraIndex(),
+    getChromatogramIndex() and IndexedMzMLDecoder.findIndexListOffset() return int offsets instead of raw
+    std::streampos objects. MZTrafoModel.getCoefficients() returns (intercept, slope, power) instead of
+    filling float arguments, which Python cannot observe. Bound the nested types the signatures referred to
+    but Python could not use (ConsensusFeature.Ratio, whose ratio value now defaults to 0 instead of being
+    uninitialized, SignalToNoiseEstimatorMedianRapid.NoiseEstimator, SplineInterpolatedPeaks.Navigator,
+    the IsotopeLabelingMDVs enums, ims Weights, FeatureFinderAlgorithmPickedHelperStructs_MassTrace) and
+    DeltaMass.label_set. Removed what could not be called from Python: begin()/end() returning C++ iterators
+    (MSExperiment, IsotopeDistribution, DeconvolvedSpectrum, PeakGroup), the initializer_list and std::list
+    constructors, MascotGenericFile.store() to a C++ stream and MapToResidueType.val (now len()).
+    OPXLHelper.buildCandidates returns cross-links that keep their peptides alive (they pointed into a freed
+    copy of the peptide list) and checks the candidate indices it was given.
+    Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
+    pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its
@@ -828,6 +881,8 @@ TOPP tools:
       - -readOptions onDisc for indexed mzML and Thermo .raw input reads the spectra of each SWATH window from the file
         during extraction instead of holding them in memory; results are identical to 'normal'.
         Input with more than one FAIMS compensation voltage is rejected (#10522).
+      - FIX (also OpenDIA): with -out_chrom .xic, an error while writing the Parquet file (e.g. a full disk) was
+        only logged, and the tool exited with 0 and a missing or truncated .xic file. The run now fails.
     SageAdapter, CometAdapter:
       - Thermo .raw input is streamed into the temporary mzML instead of being loaded into memory (#10522).
     IDFileConverter:

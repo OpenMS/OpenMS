@@ -46,6 +46,7 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
@@ -255,6 +256,50 @@ namespace OpenMS
       }
     }
 
+    /// Apply the ion mobility range of @p options (if any) to @p spectrum: remove the peaks outside it from a spectrum with an
+    /// ion mobility per peak. Returns false for a spectrum with a single ion mobility outside it.
+    bool applyIMRange(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      if (! options.hasIMRange()) { return true; }
+      const auto& im_range = options.getIMRange();
+      if (spectrum.containsIMData())
+      {
+        const auto& im = spectrum.getFloatDataArrays()[spectrum.getIMData().first];
+        std::vector<Size> kept;
+        kept.reserve(spectrum.size());
+        for (Size i = 0; i < spectrum.size() && i < im.size(); ++i)
+        {
+          if (im_range.encloses(DPosition<1>(im[i]))) { kept.push_back(i); }
+        }
+        if (kept.size() != spectrum.size()) { spectrum.select(kept); }
+        return true;
+      }
+      if (spectrum.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET) { return im_range.encloses(DPosition<1>(spectrum.getDriftTime())); }
+      return true; // no ion mobility
+    }
+
+    /// Apply all PeakFileOptions to @p spectrum. Returns false if the spectrum is excluded.
+    bool applyOptions(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      if (! selectSpectrum(options, spectrum) || ! applyIMRange(options, spectrum)) { return false; }
+      applyPeakOptions(options, spectrum);
+      return true;
+    }
+
+    /// Keep the spectra of @p exp for which @p filter (which may change them) returns true.
+    void filterSpectra(MSExperiment& exp, const std::function<bool(MSSpectrum&)>& filter)
+    {
+      auto& spectra = exp.getSpectra();
+      Size kept = 0;
+      for (Size i = 0; i < spectra.size(); ++i)
+      {
+        if (! filter(spectra[i])) { continue; }
+        if (kept != i) { spectra[kept] = std::move(spectra[i]); }
+        ++kept;
+      }
+      spectra.erase(spectra.begin() + kept, spectra.end());
+    }
+
     /// Point the (first) source file of @p settings to @p filename.
     void rewriteSourceFile(ExperimentalSettings& settings, const std::string& filename, FileTypes::Type type, bool compute_hash)
     {
@@ -331,8 +376,9 @@ namespace OpenMS
       }
     }
 
-    /// BrukerTimsFile configuration for FileHandler: the PeakFileOptions that select whole frames are passed to
-    /// the reader, so the excluded frames are not decoded. The caller applies all options to the spectra afterwards.
+    /// BrukerTimsFile configuration for FileHandler: the MS levels and the RT and ion mobility ranges of the PeakFileOptions
+    /// are passed to the reader, so that the frames they exclude are not decoded. The caller applies all options to the
+    /// spectra afterwards.
     BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options)
     {
       // The reader emits MS levels 1 and 2 only: every frame that is not MS1 (any MsMsType but 0) gives MS2 spectra.
@@ -343,26 +389,33 @@ namespace OpenMS
         config.load_ms1 = options.containsMSLevel(1);
         config.load_ms2 = options.containsMSLevel(2);
       }
-      // The reader's RT range selects frames. That equals selecting spectra by RT for MS1, but not for
-      // DDA MS2 spectra, which are built from several frames: a range would cut those at its ends.
-      if (options.hasRTRange() && ! config.load_ms2)
+      // The reader selects the spectra by their RT (not the frames, which would cut the DDA MS2 spectra built from
+      // frames on both sides of a range end), and skips the DDA precursors isolated outside the ion mobility range.
+      // Both of its ranges are inclusive; the exact (half-open) ones are applied afterwards.
+      if (options.hasRTRange())
       {
         config.rt_min_sec = options.getRTRange().minPosition()[0];
         config.rt_max_sec = options.getRTRange().maxPosition()[0];
+        config.rt_selects_spectra = true;
+      }
+      if (options.hasIMRange())
+      {
+        config.im_min = options.getIMRange().minPosition()[0];
+        config.im_max = options.getIMRange().maxPosition()[0];
       }
       return config;
     }
 #endif
 
-    /// Forwards to another consumer, rewriting the source file and applying PeakFileOptions on the way.
+    /// Forwards to another consumer, rewriting the source file and filtering the spectra on the way.
     class ForwardingConsumer : public Interfaces::IMSDataConsumer
     {
     public:
-      /// @p filter: the PeakFileOptions applied to each spectrum (nullptr: none). Only the peak-level ones, unless
-      /// @p select_spectra is set: then the spectra the spectrum-level ones exclude are not forwarded either.
-      ForwardingConsumer(Interfaces::IMSDataConsumer* next, std::function<void(ExperimentalSettings&)> settings, const PeakFileOptions* filter,
-                         bool select_spectra = false) :
-        next_(next), settings_(std::move(settings)), filter_(filter), select_spectra_(select_spectra)
+      /// @p filter: applied to each spectrum (may change it); a spectrum for which it returns false is not forwarded.
+      /// Empty: none.
+      ForwardingConsumer(Interfaces::IMSDataConsumer* next, std::function<void(ExperimentalSettings&)> settings,
+                         std::function<bool(MSSpectrum&)> filter) :
+        next_(next), settings_(std::move(settings)), filter_(std::move(filter))
       {
       }
       void setExperimentalSettings(const ExperimentalSettings& settings) override
@@ -375,11 +428,7 @@ namespace OpenMS
       void setExpectedSize(Size spectra, Size chromatograms) override { next_->setExpectedSize(spectra, chromatograms); }
       void consumeSpectrum(SpectrumType& spectrum) override
       {
-        if (filter_ != nullptr)
-        {
-          if (select_spectra_ && ! selectSpectrum(*filter_, spectrum)) { return; }
-          applyPeakOptions(*filter_, spectrum);
-        }
+        if (filter_ && ! filter_(spectrum)) { return; }
         next_->consumeSpectrum(spectrum);
       }
       void consumeChromatogram(ChromatogramType& chromatogram) override { next_->consumeChromatogram(chromatogram); }
@@ -387,8 +436,7 @@ namespace OpenMS
     private:
       Interfaces::IMSDataConsumer* next_;
       std::function<void(ExperimentalSettings&)> settings_;
-      const PeakFileOptions* filter_;
-      bool select_spectra_;
+      std::function<bool(MSSpectrum&)> filter_;
     };
   } // namespace
 
@@ -1126,6 +1174,8 @@ namespace OpenMS
         f.getOptions() = options_;
         f.setLogType(log);
         f.load(filename, exp);
+        // The ion mobility range applies to the spectra, so also to the SRM spectra before they become chromatograms
+        if (options_.hasIMRange()) { filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); }); }
         ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
       }
       break;
@@ -1200,8 +1250,8 @@ namespace OpenMS
         f.setOptions(thermoRawOptions(options_, f.getOptions()));
         f.load(filename, exp);
 
-        // Only the peak-level filters (m/z, intensity) are left to apply post-load.
-        if (options_.hasMZRange() || options_.hasIntensityRange()) { applyPostLoadOptions_(exp); }
+        // Only the peak-level filters (m/z, intensity, ion mobility) are left to apply post-load.
+        if (options_.hasMZRange() || options_.hasIntensityRange() || options_.hasIMRange()) { applyPostLoadOptions_(exp); }
       }
       break;
 #endif
@@ -1210,6 +1260,13 @@ namespace OpenMS
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
+    }
+    // The ion mobility range, which the readers of the other formats ignore (applyPostLoadOptions_() applies it with the rest;
+    // for mzML it is applied above, before the SRM spectra are converted to chromatograms)
+    if (options_.hasIMRange() && type != FileTypes::BRUKER_TDF && type != FileTypes::RAW)
+    {
+      if (type != FileTypes::MZML) { filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); }); }
+      exp.updateRanges();
     }
     if (rewrite_source_file) { rewriteSourceFile(exp, filename, type, compute_hash); }
   }
@@ -1230,12 +1287,15 @@ namespace OpenMS
     {
       settings = [&filename, type, compute_hash](ExperimentalSettings& s) { rewriteSourceFile(s, filename, type, compute_hash); };
     }
+    // The ion mobility range, which the mzML and mzXML readers ignore (as for loadExperiment())
+    std::function<bool(MSSpectrum&)> im_filter;
+    if (options_.hasIMRange()) { im_filter = [this](MSSpectrum& s) { return applyIMRange(options_, s); }; }
 
     switch (type)
     {
       case FileTypes::MZML:
       {
-        ForwardingConsumer forward(consumer, settings, nullptr);
+        ForwardingConsumer forward(consumer, settings, im_filter);
         MzMLFile f;
         f.getOptions() = options_;
         f.setLogType(log);
@@ -1245,7 +1305,7 @@ namespace OpenMS
 
       case FileTypes::MZXML:
       {
-        ForwardingConsumer forward(consumer, settings, nullptr);
+        ForwardingConsumer forward(consumer, settings, im_filter);
         MzXMLFile f;
         f.getOptions() = options_;
         f.setLogType(log);
@@ -1257,7 +1317,12 @@ namespace OpenMS
       case FileTypes::RAW:
       {
         // The reader applies the scan-level options; the peak-level ones are applied per spectrum.
-        ForwardingConsumer forward(consumer, settings, (options_.hasMZRange() || options_.hasIntensityRange()) ? &options_ : nullptr);
+        std::function<bool(MSSpectrum&)> peak_filter;
+        if (options_.hasMZRange() || options_.hasIntensityRange() || options_.hasIMRange())
+        {
+          peak_filter = [this](MSSpectrum& s) { if (! applyIMRange(options_, s)) { return false; } applyPeakOptions(options_, s); return true; };
+        }
+        ForwardingConsumer forward(consumer, settings, peak_filter);
         ThermoRawFile f;
         f.setLogType(log);
         f.setOptions(thermoRawOptions(options_, f.getOptions()));
@@ -1273,7 +1338,7 @@ namespace OpenMS
 
         // The reader skips the frames the options exclude; all options are then applied to each spectrum, as
         // loadExperiment() applies them to the loaded experiment.
-        ForwardingConsumer forward(consumer, settings, &options_, true);
+        ForwardingConsumer forward(consumer, settings, [this](MSSpectrum& s) { return applyOptions(options_, s); });
         BrukerTimsFile f;
         f.setLogType(log);
         f.transform(filename, &forward, brukerConfig(options_));
@@ -1336,13 +1401,8 @@ namespace OpenMS
   void FileHandler::applyPostLoadOptions_(MSExperiment& exp) const
   {
     // The same filters as transformExperiment() applies to each spectrum, so loading and streaming give the same spectra.
-    // filterPeaks() keeps the per-peak data arrays (e.g. the ion mobility of Bruker .d frames) aligned with the peaks.
-    exp.getSpectra().erase(
-      std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-        [this](const MSSpectrum& s) { return ! selectSpectrum(options_, s); }),
-      exp.getSpectra().end());
-    for (auto& spectrum : exp.getSpectra()) { applyPeakOptions(options_, spectrum); }
-
+    // The peak filters keep the per-peak data arrays (e.g. the ion mobility of Bruker .d frames) aligned with the peaks.
+    filterSpectra(exp, [this](MSSpectrum& s) { return applyOptions(options_, s); });
     exp.updateRanges();
   }
 

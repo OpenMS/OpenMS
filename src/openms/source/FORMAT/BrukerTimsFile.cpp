@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -652,6 +653,100 @@ namespace OpenMS
   static inline bool frameInRange(uint32_t fid, const BrukerTimsFile::Config& config)
   {
     return fid >= config.frame_id_min && fid <= config.frame_id_max;
+  }
+
+  // Config::rt_selects_spectra with a retention time range: the loaders select the spectra by their retention time
+  // (see trimToRTRange() and the precursor selection of loadDDA_()), and load() and transform() leave out the ones
+  // outside the range that are read for aggregation only.
+  static bool selectsSpectraByRT(const BrukerTimsFile::Config& config)
+  {
+    return config.rt_selects_spectra && (config.rt_min_sec > 0.0 || std::isfinite(config.rt_max_sec));
+  }
+
+  static inline bool rtInRange(double rt, const BrukerTimsFile::Config& config)
+  {
+    return rt >= config.rt_min_sec && rt <= config.rt_max_sec;
+  }
+
+  // Config::rt_selects_spectra: trims @p frame_ids (in order of frame id) to the frames in the retention time range
+  // and the @p n_neighbors frames on either side of them, which aggregation over n_neighbors frames of the list needs
+  // for the spectra in the range. Without a retention time range, or for another mode, nothing is trimmed.
+  static void trimToRTRange(std::vector<uint32_t>& frame_ids, TimsDataHandle& handle, const BrukerTimsFile::Config& config,
+                            int n_neighbors)
+  {
+    if (!selectsSpectraByRT(config)) return;
+    size_t first = frame_ids.size(), last = 0;
+    for (size_t i = 0; i < frame_ids.size(); ++i)
+    {
+      if (!handle.has_frame(frame_ids[i]) || !rtInRange(handle.get_frame(frame_ids[i]).time, config)) continue;
+      first = std::min(first, i);
+      last = i;
+    }
+    if (first == frame_ids.size())
+    {
+      frame_ids.clear();
+      return;
+    }
+    const size_t n = static_cast<size_t>(std::max(n_neighbors, 0));
+    const size_t lo = first >= n ? first - n : 0;
+    const size_t hi = std::min(last + n, frame_ids.size() - 1);
+    frame_ids = std::vector<uint32_t>(frame_ids.begin() + lo, frame_ids.begin() + hi + 1);
+  }
+
+  // A NaN bound counts as set: no ion mobility lies in such a range, as in one with im_min > im_max.
+  static bool imRangeSet(const BrukerTimsFile::Config& config)
+  {
+    return !(config.im_min <= 0.0) || !(config.im_max == std::numeric_limits<double>::infinity());
+  }
+
+  // Config::im_min/im_max applied to a spectrum the loaders emit: removes the peaks outside the range from a spectrum
+  // with an ion mobility per peak. Returns false for a spectrum with a single ion mobility outside it (DDA MS2).
+  static bool applyIMRange(MSSpectrum& spec, const BrukerTimsFile::Config& config)
+  {
+    const auto in_range = [&config](double im) { return im >= config.im_min && im <= config.im_max; };
+    if (spec.containsIMData())
+    {
+      const auto& im = spec.getFloatDataArrays()[spec.getIMData().first];
+      std::vector<Size> kept;
+      kept.reserve(spec.size());
+      for (Size i = 0; i < spec.size() && i < im.size(); ++i)
+      {
+        if (in_range(im[i])) kept.push_back(i);
+      }
+      if (kept.size() != spec.size()) spec.select(kept); // keeps the data arrays aligned with the peaks
+      return true;
+    }
+    if (spec.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET) return in_range(spec.getDriftTime());
+    return true;
+  }
+
+  // load() and transform(): passes the spectra of the loaders on to @p sink, without those that Config::rt_selects_spectra
+  // (spectra read for the aggregation of the ones in the range) and Config::im_min/im_max leave out
+  static std::function<void(MSSpectrum&)> selectingSink(const BrukerTimsFile::Config& eff, std::function<void(MSSpectrum&)> sink)
+  {
+    const bool select_rt = selectsSpectraByRT(eff);
+    const bool select_im = imRangeSet(eff);
+    if (select_im && !(eff.im_min <= eff.im_max))
+    {
+      OPENMS_LOG_WARN << "Warning: BrukerTimsFile::Config ion mobility range [" << eff.im_min << ", " << eff.im_max
+                      << "] is empty. No peaks will be loaded." << std::endl;
+    }
+    if (!select_rt && !select_im) return sink;
+    return [&eff, select_rt, select_im, sink = std::move(sink)](MSSpectrum& spec)
+    {
+      if (select_rt && !rtInRange(spec.getRT(), eff)) return;
+      if (select_im && !applyIMRange(spec, eff)) return;
+      sink(spec);
+    };
+  }
+
+  // Config::rt_selects_spectra: the loaders select by the retention time range themselves (trimToRTRange(), loadDDA_()),
+  // so they get the frame_id range of the user, not the one narrowed to the retention time range by resolveEffectiveConfig()
+  static void keepFrameRangeOfUser(BrukerTimsFile::Config& eff, const BrukerTimsFile::Config& config)
+  {
+    if (!selectsSpectraByRT(config)) return;
+    eff.frame_id_min = config.frame_id_min;
+    eff.frame_id_max = config.frame_id_max;
   }
 
   // One-shot validation of the frame_id and RT ranges against the file's
@@ -1357,6 +1452,30 @@ namespace OpenMS
       }
       catch (const SQLite::Exception&) {}
       return 0;
+    }
+
+    // Config::rt_selects_spectra: the precursors in the frame_id range of @p config whose spectra lie in its retention
+    // time range (the mean time of their frames, as loadDDA_() computes it), counted with a margin for rounding
+    uint32_t countDDAPrecursorsInRTRange(SQLite::Database& db,
+                                         const BrukerTimsFile::Config& config)
+    {
+      try
+      {
+        const double margin = 1e-6;
+        SQLite::Statement q(db,
+          "SELECT COUNT(*) FROM (SELECT SUM(f.Time) / COUNT(*) AS rt FROM PasefFrameMsMsInfo pfm"
+          " LEFT JOIN Frames f ON f.Id = pfm.Frame"
+          " WHERE pfm.Frame >= ? AND pfm.Frame <= ? GROUP BY pfm.Precursor)"
+          " WHERE rt >= ? AND rt <= ?");
+        q.bind(1, static_cast<int64_t>(config.frame_id_min));
+        q.bind(2, static_cast<int64_t>(config.frame_id_max));
+        q.bind(3, config.rt_min_sec - margin);
+        q.bind(4, std::isfinite(config.rt_max_sec) ? config.rt_max_sec + margin : std::numeric_limits<double>::max());
+        if (q.executeStep())
+          return static_cast<uint32_t>(q.getColumn(0).getInt());
+      }
+      catch (const SQLite::Exception&) {}
+      return countDDAPrecursors(db, config);
     }
 
   } // anonymous namespace
@@ -2576,7 +2695,10 @@ namespace OpenMS
   // The number of spectra the loaders emit for a configuration (frames, precursors and frames x windows of
   // analysis.tdf, under the active frame_id range and the load_ms1/load_ms2 knobs). An upper bound: a DDA
   // precursor or a DIA window of a frame that ends up without peaks gives no spectrum.
-  static size_t expectedSpectra(SQLite::Database& db, TimsDataHandle& handle, const BrukerTimsFile::Config& eff, bool is_dia)
+  // @p eff: the effective configuration, with the frame_id range narrowed to the retention time range. With
+  // Config::rt_selects_spectra, @p config (that of the user) counts the DDA precursors by their retention time.
+  static size_t expectedSpectra(SQLite::Database& db, TimsDataHandle& handle, const BrukerTimsFile::Config& eff, bool is_dia,
+                                const BrukerTimsFile::Config* config = nullptr)
   {
     using Config = BrukerTimsFile::Config;
     const Config::ExportMode mode = eff.export_mode;
@@ -2621,7 +2743,8 @@ namespace OpenMS
     else
     {
       // DDA: MS1 frames + per-precursor MS2 spectra
-      uint32_t num_precursors = countDDAPrecursors(db, eff);
+      uint32_t num_precursors = (config != nullptr && selectsSpectraByRT(*config)) ? countDDAPrecursorsInRTRange(db, *config)
+                                                                                    : countDDAPrecursors(db, eff);
       expected = ms1_emitted + num_precursors;
     }
 
@@ -2686,10 +2809,11 @@ namespace OpenMS
                                     handle->min_frame_id(),
                                     handle->max_frame_id());
       is_dia = isDIA(db);
-      exp.reserveSpaceSpectra(static_cast<unsigned int>(expectedSpectra(db, *handle, eff, is_dia)));
+      exp.reserveSpaceSpectra(static_cast<unsigned int>(expectedSpectra(db, *handle, eff, is_dia, &config)));
     }
+    keepFrameRangeOfUser(eff, config);
 
-    const SpectrumSink to_experiment = [&exp](MSSpectrum& spec) { exp.addSpectrum(std::move(spec)); };
+    const SpectrumSink to_experiment = selectingSink(eff, [&exp](MSSpectrum& spec) { exp.addSpectrum(std::move(spec)); });
     Config::ExportMode mode = eff.export_mode;
 
     if (mode == Config::FRAME)
@@ -2730,23 +2854,25 @@ namespace OpenMS
     std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
-    const auto eff = resolveEffectiveConfig(db, config,
-                                             handle->min_frame_id(),
-                                             handle->max_frame_id());
+    Config eff = resolveEffectiveConfig(db, config,
+                                        handle->min_frame_id(),
+                                        handle->max_frame_id());
 
     bool is_dia = isDIA(db);
     Config::ExportMode mode = eff.export_mode;
 
-    const size_t expected = expectedSpectra(db, *handle, eff, is_dia);
+    const size_t expected = expectedSpectra(db, *handle, eff, is_dia, &config);
     consumer->setExpectedSize(expected, 0);
+    keepFrameRangeOfUser(eff, config);
 
     // Populate source file metadata (same as load())
     ExperimentalSettings settings;
     loadExperimentalSettings_(path, d_path, settings);
     consumer->setExperimentalSettings(settings);
 
-    const auto run_loader = [&](const SpectrumSink& sink)
+    const auto run_loader = [&](const SpectrumSink& emit)
     {
+      const SpectrumSink sink = selectingSink(eff, emit);
       if (mode == Config::FRAME)
         loadFrames_(*handle, sink, eff);
       else if (is_dia && mode != Config::SPECTRUM)
@@ -2806,6 +2932,7 @@ namespace OpenMS
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
+    trimToRTRange(ms1_frame_ids, handle, config, config.ms1_n_neighbors);
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // Read DDA precursors from SQL. Drop entries whose MS2 frame is outside
@@ -2859,6 +2986,52 @@ namespace OpenMS
                        return !frameInRange(e.frame_id, config);
                      }),
       precursor_entries.end());
+
+    // Config::rt_selects_spectra: keep the precursors whose spectra lie in the retention time range, with all of their
+    // frames. A precursor spectrum gets the mean time of its frames, summed in the same order as emit_precursor does.
+    // Config::im_min/im_max: leave out the precursors isolated entirely outside the ion mobility range. The ion mobility
+    // of their spectra is a mean of ion mobilities in the isolated scans, so it would lie outside as well.
+    const bool select_rt = selectsSpectraByRT(config);
+    const bool select_im = config.load_ms2 && imRangeSet(config);
+    if (select_rt || select_im)
+    {
+      struct Selection
+      {
+        double rt_sum = 0.0;
+        size_t entries = 0;
+        double im_lo = std::numeric_limits<double>::infinity();
+        double im_hi = -std::numeric_limits<double>::infinity();
+      };
+      std::map<int, Selection> per_precursor;
+      for (const auto& e : precursor_entries)
+      {
+        Selection& sel = per_precursor[e.precursor_id];
+        ++sel.entries;
+        if (!handle.has_frame(e.frame_id)) continue;
+        sel.rt_sum += handle.get_frame(e.frame_id).time;
+        if (select_im && e.scan_end > e.scan_begin)
+        {
+          // the peaks are taken from the scans [scan_begin, scan_end)
+          const uint32_t scans[2] = {e.scan_begin, e.scan_end - 1};
+          double ims[2] = {0.0, 0.0};
+          handle.scan2inv_ion_mobility_converter->convert(e.frame_id, ims, scans, 2);
+          sel.im_lo = std::min({sel.im_lo, ims[0], ims[1]});
+          sel.im_hi = std::max({sel.im_hi, ims[0], ims[1]});
+        }
+      }
+      // a margin for the rounding of the mean ion mobility of a spectrum, relative to the finite bounds
+      const double im_scale = std::max(std::isfinite(config.im_max) ? std::abs(config.im_max) : 0.0, std::abs(config.im_min));
+      const double im_margin = 1e-9 * std::max(1.0, im_scale);
+      precursor_entries.erase(
+        std::remove_if(precursor_entries.begin(), precursor_entries.end(),
+                       [&](const DDAPrecursorInfo& e) {
+                         const Selection& sel = per_precursor[e.precursor_id];
+                         if (select_rt && !rtInRange(sel.rt_sum / static_cast<double>(sel.entries), config)) return true;
+                         return select_im && sel.im_lo <= sel.im_hi &&
+                                (sel.im_hi < config.im_min - im_margin || sel.im_lo > config.im_max + im_margin);
+                       }),
+        precursor_entries.end());
+    }
 
     // Group by precursor ID
     std::map<int, std::vector<const DDAPrecursorInfo*>> precursor_groups;
@@ -3480,6 +3653,7 @@ namespace OpenMS
       if (frame.msms_type == 0)
         ms1_frame_ids.push_back(fid);
     }
+    trimToRTRange(ms1_frame_ids, handle, config, config.ms1_n_neighbors);
     warnPartialMS1AggregationConfig(config, ms1_frame_ids.size());
 
     // --- MS1 frames ---
@@ -3533,6 +3707,8 @@ namespace OpenMS
         std::remove_if(frame_ids.begin(), frame_ids.end(),
                        [&config](uint32_t fid) { return !frameInRange(fid, config); }),
         frame_ids.end());
+      // aggregation over retention time takes the neighbors among the frames of the window group
+      trimToRTRange(frame_ids, handle, config, config.dia_ms2_n_neighbors);
     }
 
     // Group DIAWindows by window_group
@@ -3898,6 +4074,7 @@ namespace OpenMS
         if (!handle.has_frame(fid)) continue;
         TimsFrame& frame = handle.get_frame(fid);
         if ((level == 1) != (frame.msms_type == 0)) continue;
+        if (selectsSpectraByRT(config) && !rtInRange(frame.time, config)) continue; // a spectrum per frame
         frames.push_back({frame.time, level, fid});
         if (level == 2) ++n_ms2;
       }
