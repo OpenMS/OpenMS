@@ -111,8 +111,10 @@ OpenMS Library:
     64 instead of 67 entrapment hits).
   - PERF: OSWFile::readOpenSwathExportRows aggregates the transition intensities only for the exported peak groups
     instead of for every peak group of the file (OpenDIA/OpenSwathExport result export: 30 s instead of 72 s).
-  - PERF: SignalToNoiseOpenMS takes its estimator from a per-thread pool instead of constructing one, with its whole
-    parameter set, for every chromatogram (4% less CPU time in OpenSWATH/OpenDIA scoring).
+  - PERF: SignalToNoiseOpenMS keeps only the S/N values of its chromatogram: it computes them with the new static
+    SignalToNoiseEstimatorMedian::estimate(), which takes the parameters as a plain Settings struct, instead of
+    constructing an estimator with its whole parameter set for every chromatogram (about 4% of the CPU time of
+    OpenSWATH/OpenDIA scoring). The values are unchanged.
   - PERF: SWATH maps that were cached to disk (readOptions cache/cacheWorkingInMemory of OpenSwathWorkflow and
     OpenDIA) get their access objects in parallel: 12 s instead of 48 s for the 300 windows of an Astral DIA run.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,

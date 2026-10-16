@@ -28,9 +28,6 @@ START_TEST(MRMFeatureAccessOpenMS, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-#include <memory>
-#include <vector>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -298,10 +295,10 @@ START_SECTION(([SignalToNoiseOpenMS] double getValueAtRT(double RT)))
 }
 END_SECTION
 
-START_SECTION(([EXTRA][SignalToNoiseOpenMS] reused estimators give the values of a fresh one))
+START_SECTION(([EXTRA][SignalToNoiseOpenMS] gives the values of SignalToNoiseEstimatorMedian))
 {
-  // Estimators are taken from a per-thread pool: what one computed for an earlier chromatogram,
-  // or with other parameters, must not show in the values for the next one.
+  // SignalToNoiseOpenMS computes the S/N with SignalToNoiseEstimatorMedian::estimate(), without an estimator
+  // object: the values must be those of an estimator configured with the same parameters.
   auto makeChromatogram = [](int n, double baseline, int apex, double height)
   {
     MSChromatogram chrom;
@@ -317,44 +314,33 @@ START_SECTION(([EXTRA][SignalToNoiseOpenMS] reused estimators give the values of
   };
   const MSChromatogram a = makeChromatogram(60, 10.0, 15, 1000.0);
   const MSChromatogram b = makeChromatogram(25, 200.0, 20, 5000.0);
-
-  // reference values from the first estimators of this section (nothing of a or b computed before)
-  std::vector<double> ref_a, ref_b, ref_a_other;
+  const double win_lens[] = {30.0, 10.0};
+  const unsigned int bin_counts[] = {30, 12};
+  for (const MSChromatogram* chrom : {&a, &b})
   {
-    SignalToNoiseOpenMS<MSChromatogram> sn_a(a, 30.0, 30, false);
-    SignalToNoiseOpenMS<MSChromatogram> sn_b(b, 30.0, 30, false);
-    SignalToNoiseOpenMS<MSChromatogram> sn_a_other(a, 10.0, 12, false);
-    for (double rt = 0.0; rt < 60.0; rt += 1.0) { ref_a.push_back(sn_a.getValueAtRT(rt)); ref_a_other.push_back(sn_a_other.getValueAtRT(rt)); }
-    for (double rt = 0.0; rt < 25.0; rt += 1.0) { ref_b.push_back(sn_b.getValueAtRT(rt)); }
-  }
-  // other parameters change the estimate, otherwise the checks below would be vacuous
-  TEST_EQUAL(ref_a == ref_a_other, false)
+    for (Size k = 0; k < 2; ++k)
+    {
+      SignalToNoiseEstimatorMedian<MSChromatogram> estimator;
+      Param p = estimator.getParameters();
+      p.setValue("win_len", win_lens[k]);
+      p.setValue("bin_count", bin_counts[k]);
+      p.setValue("write_log_messages", "false");
+      estimator.setParameters(p);
+      estimator.init(*chrom);
 
-  // the estimators above are back in the pool: use them in another order and with other parameters
-  for (int round = 0; round < 3; ++round)
-  {
-    SignalToNoiseOpenMS<MSChromatogram> sn_b(b, 30.0, 30, false);
-    SignalToNoiseOpenMS<MSChromatogram> sn_a_other(a, 10.0, 12, false);
-    SignalToNoiseOpenMS<MSChromatogram> sn_a(a, 30.0, 30, false);
-    std::vector<double> got_a, got_b, got_a_other;
-    for (double rt = 0.0; rt < 60.0; rt += 1.0) { got_a.push_back(sn_a.getValueAtRT(rt)); got_a_other.push_back(sn_a_other.getValueAtRT(rt)); }
-    for (double rt = 0.0; rt < 25.0; rt += 1.0) { got_b.push_back(sn_b.getValueAtRT(rt)); }
-    TEST_EQUAL(got_a == ref_a, true)
-    TEST_EQUAL(got_b == ref_b, true)
-    TEST_EQUAL(got_a_other == ref_a_other, true)
+      SignalToNoiseOpenMS<MSChromatogram> sn(*chrom, win_lens[k], bin_counts[k], false);
+      Size n_equal = 0;
+      for (Size i = 0; i < chrom->size(); ++i)
+      {
+        if (sn.getValueAtRT((*chrom)[i].getRT()) == estimator.getSignalToNoise(i)) ++n_equal;
+      }
+      TEST_EQUAL(n_equal, chrom->size())
+    }
   }
 
-  // more estimators alive at once than the pool keeps
-  std::vector<std::unique_ptr<SignalToNoiseOpenMS<MSChromatogram>>> many;
-  for (int i = 0; i < 100; ++i)
-  {
-    many.push_back(std::make_unique<SignalToNoiseOpenMS<MSChromatogram>>(i % 2 == 0 ? a : b, 30.0, 30, false));
-  }
-  TEST_REAL_SIMILAR(many[98]->getValueAtRT(15.0), ref_a[15])
-  TEST_REAL_SIMILAR(many[99]->getValueAtRT(20.0), ref_b[20])
-  many.clear();
-  SignalToNoiseOpenMS<MSChromatogram> sn_after(a, 30.0, 30, false);
-  TEST_REAL_SIMILAR(sn_after.getValueAtRT(15.0), ref_a[15])
+  // the ranges of the estimator parameters still apply
+  TEST_EXCEPTION(Exception::InvalidParameter, SignalToNoiseOpenMS<MSChromatogram>(a, 30.0, 2, false))
+  TEST_EXCEPTION(Exception::InvalidParameter, SignalToNoiseOpenMS<MSChromatogram>(a, 0.5, 30, false))
 }
 END_SECTION
 

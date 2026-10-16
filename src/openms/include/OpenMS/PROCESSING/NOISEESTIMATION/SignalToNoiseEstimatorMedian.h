@@ -14,8 +14,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/TypeAliases.h>
-#include <vector>
 #include <algorithm> //for std::max_element
+#include <cmath>
+#include <vector>
 
 namespace OpenMS
 {
@@ -157,44 +158,82 @@ public:
       return histogram_oob_percent_;
     }
 
-protected:
-
-
-    /** Calculate signal-to-noise values for all data points given, by using a sliding window approach
-
-        @param[in] c Raw data, usually an MSSpectrum
-        @exception Throws Exception::InvalidValue
-    */
-    void computeSTN_(const Container& c) override
+    /// The parameters of an estimation as plain values (see the parameters of the class); the defaults are theirs
+    struct Settings
     {
+      double max_intensity = -1;
+      double auto_max_stdev_factor = 3.0;
+      double auto_max_percentile = 95;
+      int auto_mode = AUTOMAXBYSTDEV;
+      double win_len = 200.0;
+      int bin_count = 30;
+      int min_required_elements = 10;
+      double noise_for_empty_window = std::pow(10.0, 20);
+      bool write_log_messages = true;
+    };
+
+    /// What an estimation determined besides the S/N values
+    struct Statistics
+    {
+      double max_intensity = 0;          ///< maximal intensity of the histogram (estimated in the auto modes)
+      double sparse_window_percent = 0;  ///< percentage of the windows that were sparse
+      double histogram_oob_percent = 0;  ///< percentage of the medians found in the rightmost bin
+    };
+
+    /**
+      @brief Calculates the signal-to-noise values of all data points of @p c with a sliding window, without an estimator object
+
+      Gives the values that init() and getSignalToNoise() give for an estimator with the same parameters, without
+      building and checking a parameter set: for callers that estimate many containers with the same settings.
+
+      @param[in] c Raw data, usually an MSSpectrum
+      @param[in] settings The parameters of the estimation
+      @param[out] sn The S/N of every data point of @p c
+      @param[in] progress Logger to report the progress to, or nullptr
+      @return The maximal intensity that was used and the percentages of sparse windows and of medians in the rightmost bin
+      @exception Exception::InvalidParameter if a setting is outside the range of its parameter
+      @exception Exception::InvalidValue if the maximal intensity is not valid for the auto mode
+    */
+    static Statistics estimate(const Container& c, const Settings& settings, std::vector<double>& sn,
+                               const ProgressLogger* progress = nullptr)
+    {
+      // the ranges of the parameters, which Settings do not go through
+      if (!(settings.win_len >= 1.0) || settings.bin_count < 3 || settings.min_required_elements < 1 ||
+          settings.auto_mode < MANUAL || settings.auto_mode > AUTOMAXBYPERCENT || settings.max_intensity < -1 ||
+          !(settings.auto_max_stdev_factor >= 0.0 && settings.auto_max_stdev_factor <= 999.0))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "SignalToNoiseEstimatorMedian: a setting is outside the range of its parameter (win_len >= 1, "
+                                          "bin_count >= 3, min_required_elements >= 1, auto_mode in [-1, 1], max_intensity >= -1, "
+                                          "auto_max_stdev_factor in [0, 999])");
+      }
+
+      Statistics stats;
+      stats.max_intensity = settings.max_intensity;
+
       //first element in the scan
       PeakIterator scan_first_ = c.begin();
       //last element in the scan
       PeakIterator scan_last_ = c.end();
 
-      // reset counter for sparse windows
-      sparse_window_percent_ = 0;
-      // reset counter for histogram overflow
-      histogram_oob_percent_ = 0;
-
       // reset the results
-      stn_estimates_.clear();
-      stn_estimates_.resize(c.size());
+      sn.clear();
+      sn.resize(c.size());
 
       // maximal range of histogram needs to be calculated first
-      if (auto_mode_ == AUTOMAXBYSTDEV)
+      if (settings.auto_mode == AUTOMAXBYSTDEV)
       {
         // use MEAN+auto_max_intensity_*STDEV as threshold
         GaussianEstimate gauss_global = SignalToNoiseEstimator<Container>::estimate_(scan_first_, scan_last_);
-        max_intensity_ = gauss_global.mean + std::sqrt(gauss_global.variance) * auto_max_stdev_Factor_;
+        stats.max_intensity = gauss_global.mean + std::sqrt(gauss_global.variance) * settings.auto_max_stdev_factor;
       }
-      else if (auto_mode_ == AUTOMAXBYPERCENT)
+      else if (settings.auto_mode == AUTOMAXBYPERCENT)
       {
-        // get value at "auto_max_percentile_"th percentile
+        // get value at "auto_max_percentile"th percentile
         // we use a histogram approach here as well.
-        if ((auto_max_percentile_ < 0) || (auto_max_percentile_ > 100))
+        if ((settings.auto_max_percentile < 0) || (settings.auto_max_percentile > 100))
         {
-          std::string s = StringUtils::toStr(auto_max_percentile_);
+          std::string s = StringUtils::toStr(settings.auto_max_percentile);
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
@@ -204,7 +243,7 @@ protected:
 
         if (c.empty())
         {
-          return;
+          return stats;
         }
         std::vector<int> histogram_auto(100, 0);
 
@@ -221,7 +260,7 @@ protected:
         }
 
         // add up element counts in histogram until ?th percentile is reached
-        int elements_below_percentile = std::max(1, (int) (auto_max_percentile_ * c.size() / 100));
+        int elements_below_percentile = std::max(1, (int) (settings.auto_max_percentile * c.size() / 100));
         int elements_seen = 0;
         int i = -1;
 
@@ -231,13 +270,13 @@ protected:
           elements_seen += histogram_auto[i];
         }
 
-        max_intensity_ = (((double)i) + 0.5) * bin_size;
+        stats.max_intensity = (((double)i) + 0.5) * bin_size;
       }
-      else //if (auto_mode_ == MANUAL)
+      else //if (settings.auto_mode == MANUAL)
       {
-        if (max_intensity_ <= 0)
+        if (stats.max_intensity <= 0)
         {
-          std::string s = StringUtils::toStr(max_intensity_);
+          std::string s = StringUtils::toStr(stats.max_intensity);
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
@@ -246,24 +285,24 @@ protected:
         }
       }
 
-      if (max_intensity_ < 0)
+      if (stats.max_intensity < 0)
       {
-        OPENMS_LOG_WARN << "SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
-        return;
+        OPENMS_LOG_WARN << "SignalToNoiseEstimatorMedian: the max_intensity value should be positive! " << stats.max_intensity << std::endl;
+        return stats;
       }
 
       PeakIterator window_pos_center  = scan_first_;
       PeakIterator window_pos_borderleft = scan_first_;
       PeakIterator window_pos_borderright = scan_first_;
 
-      double window_half_size = win_len_ / 2;
-      double bin_size = std::max(1.0, max_intensity_ / bin_count_); // at least size of 1 for intensity bins
-      int bin_count_minus_1 = bin_count_ - 1;
+      double window_half_size = settings.win_len / 2;
+      double bin_size = std::max(1.0, stats.max_intensity / settings.bin_count); // at least size of 1 for intensity bins
+      int bin_count_minus_1 = settings.bin_count - 1;
 
-      std::vector<int> histogram(bin_count_, 0);
-      std::vector<double> bin_value(bin_count_, 0);
+      std::vector<int> histogram(settings.bin_count, 0);
+      std::vector<double> bin_value(settings.bin_count, 0);
       // calculate average intensity that is represented by a bin
-      for (int bin = 0; bin < bin_count_; bin++)
+      for (int bin = 0; bin < settings.bin_count; bin++)
       {
         histogram[bin] = 0;
         bin_value[bin] = (bin + 0.5) * bin_size;
@@ -287,7 +326,7 @@ protected:
       double noise;    // noise value of a datapoint
 
       ///start progress estimation
-      SignalToNoiseEstimator<Container>::startProgress(0, c.size(), "noise estimation of data");
+      if (progress != nullptr) progress->startProgress(0, c.size(), "noise estimation of data");
 
       // MAIN LOOP
       while (window_pos_center != scan_last_)
@@ -313,10 +352,10 @@ protected:
           ++window_pos_borderright;
         }
 
-        if (elements_in_window < min_required_elements_)
+        if (elements_in_window < settings.min_required_elements)
         {
-          noise = noise_for_empty_window_;
-          ++sparse_window_percent_;
+          noise = settings.noise_for_empty_window;
+          ++stats.sparse_window_percent;
         }
         else
         {
@@ -331,11 +370,11 @@ protected:
           }
 
           // increase the error count
-          if (median_bin == bin_count_minus_1) {++histogram_oob_percent_; }
+          if (median_bin == bin_count_minus_1) {++stats.histogram_oob_percent; }
 
           // Interpolate within the median bin instead of just reporting its center.
           // Using the bin center alone means the noise estimate can only take one of
-          // 'bin_count_' discrete values; a tiny, insignificant shift in which side of
+          // 'bin_count' discrete values; a tiny, insignificant shift in which side of
           // a bin boundary the cumulative-median crossing falls on then causes a full
           // bin-width jump in the reported noise, even though the underlying data barely
           // changed. Assuming points are uniformly distributed within the bin, we can
@@ -359,42 +398,71 @@ protected:
         }
 
         // store result
-        stn_estimates_[window_count] = (*window_pos_center).getIntensity() / noise;
+        sn[window_count] = (*window_pos_center).getIntensity() / noise;
 
 
         // advance the window center by one datapoint
         ++window_pos_center;
         ++window_count;
         // update progress
-        SignalToNoiseEstimator<Container>::setProgress(window_count);
+        if (progress != nullptr) progress->setProgress(window_count);
 
       } // end while
 
-      SignalToNoiseEstimator<Container>::endProgress();
+      if (progress != nullptr) progress->endProgress();
 
-      sparse_window_percent_ = sparse_window_percent_ * 100 / window_count;
-      histogram_oob_percent_ = histogram_oob_percent_ * 100 / window_count;
+      stats.sparse_window_percent = stats.sparse_window_percent * 100 / window_count;
+      stats.histogram_oob_percent = stats.histogram_oob_percent * 100 / window_count;
 
       // warn if percentage of sparse windows is above 20%
-      if (sparse_window_percent_ > 20 && write_log_messages_)
+      if (stats.sparse_window_percent > 20 && settings.write_log_messages)
       {
         OPENMS_LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
-                 << sparse_window_percent_
+                 << stats.sparse_window_percent
                  << "% of all windows were sparse. You should consider increasing 'win_len' or decreasing 'min_required_elements'"
                  << std::endl;
       }
 
       // warn if percentage of possibly wrong median estimates is above 1%
-      if (histogram_oob_percent_ > 1 && write_log_messages_)
+      if (stats.histogram_oob_percent > 1 && settings.write_log_messages)
       {
         OPENMS_LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
-                 << histogram_oob_percent_
+                 << stats.histogram_oob_percent
                  << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. "
                  << "You should consider increasing 'max_intensity' (and maybe 'bin_count' with it, to keep bin width reasonable)"
                  << std::endl;
       }
 
-    } // end of shiftWindow_
+      return stats;
+    }
+
+protected:
+
+    /** Calculate signal-to-noise values for all data points given, by using a sliding window approach
+
+        @param[in] c Raw data, usually an MSSpectrum
+        @exception Throws Exception::InvalidValue
+    */
+    void computeSTN_(const Container& c) override
+    {
+      Settings settings;
+      settings.max_intensity = max_intensity_;
+      settings.auto_max_stdev_factor = auto_max_stdev_Factor_;
+      settings.auto_max_percentile = auto_max_percentile_;
+      settings.auto_mode = auto_mode_;
+      settings.win_len = win_len_;
+      settings.bin_count = bin_count_;
+      settings.min_required_elements = min_required_elements_;
+      settings.noise_for_empty_window = noise_for_empty_window_;
+      settings.write_log_messages = write_log_messages_;
+      // reset the counters, also for an estimation that throws
+      sparse_window_percent_ = 0;
+      histogram_oob_percent_ = 0;
+      const Statistics stats = estimate(c, settings, stn_estimates_, this);
+      max_intensity_ = stats.max_intensity;
+      sparse_window_percent_ = stats.sparse_window_percent;
+      histogram_oob_percent_ = stats.histogram_oob_percent;
+    }
 
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_() override

@@ -110,7 +110,7 @@ protected:
 
 
     /// calculate mean & stdev of intensities of a spectrum
-    inline GaussianEstimate estimate_(const PeakIterator & scan_first_, const PeakIterator & scan_last_) const
+    static GaussianEstimate estimate_(const PeakIterator & scan_first_, const PeakIterator & scan_last_)
     {
       int size = 0;
       // add up
