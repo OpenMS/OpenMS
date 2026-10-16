@@ -544,7 +544,8 @@ namespace OpenMS
       stopWriterThread_();
       if (writer_error_)
       {
-        std::rethrow_exception(std::exchange(writer_error_, nullptr));
+        // kept: a later finalize() (e.g. from the destructor) must not close the incomplete file as if it were complete
+        std::rethrow_exception(writer_error_);
       }
 
       // Close writer and outfile so Parquet metadata is written.
