@@ -897,7 +897,7 @@ protected:
           MSDataTransformingConsumer keep_meta;
           keep_meta.setExperimentalSettingsFunc([&exp_meta](const ExperimentalSettings& settings) { static_cast<ExperimentalSettings&>(exp_meta) = settings; });
           keep_meta.setSpectraProcessingFunc([&exp_meta](MSSpectrum& spectrum) { exp_meta.addSpectrum(spectrum); });
-          MSDataChainingConsumer consumer({&cache, &keep_meta});
+          MSDataChainingConsumer consumer(std::vector<Interfaces::IMSDataConsumer*>{&cache, &keep_meta});
           BrukerTimsFile tims_file;
           tims_file.setLogType(log_type_);
           tims_file.transform(in, &consumer, getBrukerConfig_());
