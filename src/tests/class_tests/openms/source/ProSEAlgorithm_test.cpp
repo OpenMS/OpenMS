@@ -5210,6 +5210,17 @@ START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<Prot
 }
 END_SECTION
 
+START_SECTION((static std::string pinEnzymeName(const std::string& enzyme)))
+{
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("Trypsin"), "trypsin")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("Trypsin/P"), "trypsinp")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("Lys-C"), "lys-c")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("PepsinA"), "pepsin")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("Proteinase K"), "proteinasek")
+  TEST_EQUAL(ProSEAlgorithm::pinEnzymeName("unspecific cleavage"), "no_enzyme")
+}
+END_SECTION
+
 START_SECTION((bool applyDeferredPsmFDR(const std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, bool rescored, double psm_fdr) const))
 {
   ABORT_IF(percolator_search_peptides.empty() || percolator_rescored_peptides.empty())

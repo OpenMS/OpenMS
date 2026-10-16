@@ -388,6 +388,20 @@ class OPENMS_DLLAPI ProSEAlgorithm :
                                                      int threads);
 
     /**
+     * @brief The name of the OpenMS enzyme @p enzyme for the enzyme features of Percolator's .pin input (enzN, enzC,
+     *        enzInt), as rescoreWithPercolator() passes it to PercolatorInfile
+     *
+     * Lower case without spaces, as PercolatorInfile names the enzymes ("Trypsin" is "trypsin", "Trypsin/P"
+     * "trypsinp", "PepsinA" "pepsin"); "no_enzyme" for an enzyme PercolatorInfile does not know. For callers that
+     * compute the .pin features of a search's PSMs as its rescoring does (PercolatorInfile::stampPinFeaturesOnHits()),
+     * e.g. to show them.
+     *
+     * @param[in] enzyme The name of the enzyme in ProteaseDB (e.g. the digestion enzyme of the search parameters)
+     * @return The name for PercolatorInfile
+     */
+    static std::string pinEnzymeName(const std::string& enzyme);
+
+    /**
      * @brief Apply the PSM-level FDR that a search with Percolator rescoring deferred.
      *
      * For PSMs that rescoreWithPercolator() rescored (@p rescored), the scores are Percolator

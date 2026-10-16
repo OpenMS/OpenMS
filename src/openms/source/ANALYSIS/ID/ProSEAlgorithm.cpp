@@ -4036,22 +4036,19 @@ namespace OpenMS
     }
   }
 
-  namespace
+  // static
+  std::string ProSEAlgorithm::pinEnzymeName(const std::string& enzyme)
   {
-    // Name of @p enzyme as PercolatorInfile computes the enzN/enzC/enzInt .pin features ("no_enzyme" if unknown).
-    std::string pinEnzymeName(const std::string& enzyme)
+    std::string name;
+    for (const char c : enzyme)
     {
-      std::string name;
-      for (const char c : enzyme)
-      {
-        if (c != ' ') name += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-      }
-      if (name == "trypsin/p") return "trypsinp";
-      if (name == "pepsina") return "pepsin";
-      static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
-                                                        "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
-      return pin_enzymes.contains(name) ? name : "no_enzyme";
+      if (c != ' ') name += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
     }
+    if (name == "trypsin/p") return "trypsinp";
+    if (name == "pepsina") return "pepsin";
+    static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
+                                                      "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
+    return pin_enzymes.contains(name) ? name : "no_enzyme";
   }
 
   // =====================================================================
