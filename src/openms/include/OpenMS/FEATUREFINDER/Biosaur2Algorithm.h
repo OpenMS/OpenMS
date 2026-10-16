@@ -37,6 +37,9 @@ namespace OpenMS
   - Profile mode centroiding via PeakPickerHiRes
 
   The implementation closely mirrors the reference Python implementation to ensure reproducible results.
+  Two deviations are enabled by default and can be switched off: isotope patterns are scored against the
+  peptide averagine instead of a carbon-only binomial model (@em isotope_model), and features whose
+  monoisotopic peak was missed during pattern assembly are re-anchored (@em mono_correction).
   All core parameters are exposed through the parameter system and can be configured via INI files
   or programmatically. For detailed parameter descriptions and usage examples, see @ref TOPP_FeatureFinderLFQ.
 
@@ -300,12 +303,19 @@ private:
   /**
     @brief Compute averagine-based theoretical isotope intensities.
 
-    Uses a C-only binomial model on a 100 Da neutral-mass grid and rescales
-    the resulting probabilities to the provided monoisotopic apex intensity.
-    Returns the theoretical intensities and the index of the expected
-    maximum-intensity isotope.
+    With @em isotope_model "averagine" (default), the peptide averagine of Senko et al.
+    (C, H, N, O and S isotopes, via CoarseIsotopePatternGenerator) is evaluated for the neutral
+    monoisotopic mass on a 10 Da grid. With "carbon_only", the C-only binomial model of the
+    reference Python implementation (100 Da grid, mass = m/z * charge) is used.
+    The probabilities are rescaled to the provided monoisotopic apex intensity.
+
+    @param[in] mono_mz Monoisotopic m/z
+    @param[in] charge Charge state
+    @param[in] apex_intensity Apex intensity of the monoisotopic hill (scales the result)
+    @return Theoretical intensities (10 isotopes) and the index of the expected maximum-intensity isotope (at least 4)
   */
-  std::pair<std::vector<double>, Size> computeAveragine_(double neutral_mass,
+  std::pair<std::vector<double>, Size> computeAveragine_(double mono_mz,
+                                                         int charge,
                                                          double apex_intensity) const;
 
   /**
@@ -585,6 +595,58 @@ private:
                                                             double itol_ppm) const;
 
   /**
+    @brief Assemble a peptide feature from a monoisotopic hill and its isotope hills.
+
+    @param[in] mono_hill Monoisotopic hill
+    @param[in] charge Charge state
+    @param[in] isotopes Isotope hills (isotope numbers 1, 2, ...)
+    @param[in] hill_lookup Lookup from hill index to hill
+    @param[in] negative_mode Whether negative ion mode is enabled (neutral mass calculation)
+    @param[in] iuse Number of isotopes to add to the feature intensity (0=mono only, -1=all)
+    @return The assembled peptide feature
+  */
+  PeptideFeature assemblePeptideFeature_(const Hill& mono_hill,
+                                         int charge,
+                                         const std::vector<IsotopeCandidate>& isotopes,
+                                         const std::map<Size, const Hill*>& hill_lookup,
+                                         bool negative_mode,
+                                         int iuse) const;
+
+  /**
+    @brief Re-anchor features whose monoisotopic peak was missed.
+
+    Pattern assembly only searches for isotopes above a candidate monoisotopic hill, and the
+    candidate starting at the true monoisotopic peak can be lost (e.g. through the RT apex or
+    isotope calibration filters), leaving the pattern anchored at the first isotope. For each
+    feature (most intense first) this looks for a hill one isotope spacing below the reported
+    monoisotopic peak that is not part of any feature, co-elutes with it and matches it in m/z
+    and ion mobility. That hill becomes the new monoisotopic peak if the averagine fit of the
+    observed intensities is better with it as monoisotopic peak than with the current alignment
+    (which predicts no signal there), and the intensity ratio of the two peaks is within a
+    factor of three of the averagine expectation. The step is repeated while it succeeds.
+
+    @param[in,out] features Selected peptide features (corrected in place)
+    @param[in] hills All hills (sorted by m/z)
+    @param[in] itol_ppm Isotope mass tolerance in ppm
+    @param[in] mz_step Bin width of @p hills_mz_fast
+    @param[in] hills_mz_fast Fast m/z lookup of hills
+    @param[in] hill_im_bins Ion mobility bin per hill (-1 if not available)
+    @param[in] use_im Whether to gate on ion mobility
+    @param[in] negative_mode Whether negative ion mode is enabled
+    @param[in] iuse Number of isotopes to add to the feature intensity
+    @return Number of corrected features
+  */
+  Size correctMonoisotopicPeaks_(std::vector<PeptideFeature>& features,
+                                 const std::vector<Hill>& hills,
+                                 double itol_ppm,
+                                 double mz_step,
+                                 const std::map<int, std::vector<FastHillEntry>>& hills_mz_fast,
+                                 const std::vector<int>& hill_im_bins,
+                                 bool use_im,
+                                 bool negative_mode,
+                                 int iuse) const;
+
+  /**
     @brief Detect isotope patterns and assemble peptide features
  
     For each candidate monoisotopic hill, searches for matching isotope peaks based on expected
@@ -716,6 +778,8 @@ private:
   double hrttol_;             ///< Maximum RT difference between monoisotopic and isotope apex (0=disable)
   std::string convex_hull_mode_;   ///< Representation of feature convex hulls ("mass_traces" vs. "bounding_box")
   bool faims_merge_features_; ///< Whether to merge features at different FAIMS CV values representing the same analyte
+  bool carbon_only_averagine_; ///< Whether to use the C-only binomial isotope model of the Python reference (isotope_model "carbon_only")
+  bool mono_correction_;      ///< Whether to re-anchor features whose monoisotopic peak was missed
   //@}
 };
 

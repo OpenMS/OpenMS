@@ -13,6 +13,8 @@
 #include <OpenMS/FEATUREFINDER/Biosaur2Algorithm.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -24,6 +26,80 @@
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  // One simulated ion trace: constant m/z, Gaussian elution profile.
+  struct SimulatedTrace
+  {
+    double mz;
+    double apex_rt;
+    double height;
+  };
+
+  // 60 MS1 scans, 2 s apart; trace points below 1% of the trace height are left out.
+  MSExperiment simulateExperiment(const vector<SimulatedTrace>& traces, double sigma_rt = 16.0)
+  {
+    MSExperiment experiment;
+    for (int scan = 0; scan < 60; ++scan)
+    {
+      MSSpectrum spec;
+      spec.setMSLevel(1);
+      spec.setRT(scan * 2.0);
+      for (const auto& trace : traces)
+      {
+        double intensity = trace.height * std::exp(-0.5 * std::pow((spec.getRT() - trace.apex_rt) / sigma_rt, 2));
+        if (intensity >= 0.01 * trace.height)
+        {
+          Peak1D peak;
+          peak.setMZ(trace.mz);
+          peak.setIntensity(intensity);
+          spec.push_back(peak);
+        }
+      }
+      spec.sortByPosition();
+      experiment.addSpectrum(spec);
+    }
+    experiment.updateRanges();
+    return experiment;
+  }
+
+  // Isotope traces (M..M+3) of a doubly charged peptide with monoisotopic m/z 700, with averagine
+  // intensities. The monoisotopic trace elutes with its apex 14 s before the isotopes, beyond the
+  // default RT apex tolerance (hrttol = 10 s) but still co-eluting (wide, overlapping profiles).
+  vector<SimulatedTrace> peptideTraces(double mono_apex_rt = 46.0)
+  {
+    const double mono_mz = 700.0;
+    const int charge = 2;
+    IsotopeDistribution averagine = CoarseIsotopePatternGenerator(4).estimateFromPeptideMonoWeight(
+      (mono_mz - Constants::PROTON_MASS_U) * charge);
+    vector<SimulatedTrace> traces;
+    for (Size k = 0; k < 4; ++k)
+    {
+      traces.push_back({mono_mz + k * Constants::C13C12_MASSDIFF_U / charge,
+                        k == 0 ? mono_apex_rt : 60.0,
+                        1.0e6 * averagine[k].getIntensity() / averagine[0].getIntensity()});
+    }
+    return traces;
+  }
+
+  FeatureMap runBiosaur2(const MSExperiment& experiment, const Param& extra = Param())
+  {
+    Biosaur2Algorithm algo;
+    Param p = algo.getParameters();
+    p.setValue("minmz", 600.0);
+    p.setValue("maxmz", 800.0);
+    for (auto it = extra.begin(); it != extra.end(); ++it)
+    {
+      p.setValue(it.getName(), it->value);
+    }
+    algo.setParameters(p);
+    algo.setMSData(experiment);
+    FeatureMap features;
+    algo.run(features);
+    return features;
+  }
+}
 
 START_TEST(Biosaur2Algorithm, "$Id$")
 
@@ -439,6 +515,75 @@ START_SECTION([EXTRA] run() preserves the stored MS data on the non-FAIMS path)
   // ranges describe the returned spectra here too, not just on the FAIMS path
   TEST_REAL_SIMILAR(algo.getMSData().getMinRT(), 0.0)
   TEST_REAL_SIMILAR(algo.getMSData().getMaxRT(), 9.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] parameters isotope_model and mono_correction)
+{
+  Biosaur2Algorithm algo;
+  TEST_EQUAL(algo.getParameters().getValue("isotope_model").toString(), "averagine")
+  TEST_EQUAL(algo.getParameters().getValue("mono_correction").toString(), "true")
+}
+END_SECTION
+
+START_SECTION([EXTRA] run() recovers a monoisotopic peak lost during pattern assembly)
+{
+  // The candidate pattern starting at the monoisotopic trace loses all isotopes in the RT apex
+  // filter, so assembly anchors the pattern at the first isotope (M+1).
+  MSExperiment experiment = simulateExperiment(peptideTraces());
+
+  Param no_correction;
+  no_correction.setValue("mono_correction", "false");
+  FeatureMap uncorrected = runBiosaur2(experiment, no_correction);
+  TEST_EQUAL(uncorrected.size(), 1)
+  ABORT_IF(uncorrected.size() != 1)
+  TEST_REAL_SIMILAR(uncorrected[0].getMZ(), 700.0 + Constants::C13C12_MASSDIFF_U / 2)
+  TEST_EQUAL(uncorrected[0].getMetaValue("n_isotopes"), 3)
+
+  // The correction re-anchors the feature at the co-eluting, unassigned monoisotopic trace.
+  FeatureMap corrected = runBiosaur2(experiment);
+  TEST_EQUAL(corrected.size(), 1)
+  ABORT_IF(corrected.size() != 1)
+  TEST_REAL_SIMILAR(corrected[0].getMZ(), 700.0)
+  TEST_EQUAL(corrected[0].getCharge(), 2)
+  TEST_EQUAL(corrected[0].getMetaValue("n_isotopes"), 4)
+  TEST_REAL_SIMILAR(corrected[0].getMetaValue("mass_calib"), (700.0 - Constants::PROTON_MASS_U) * 2)
+  TEST_REAL_SIMILAR(corrected[0].getIntensity(), 1.0e6) // apex intensity of the new monoisotopic trace (iuse = 0)
+
+  // also with the isotope model of the reference implementation
+  Param carbon_only;
+  carbon_only.setValue("isotope_model", "carbon_only");
+  FeatureMap corrected_carbon = runBiosaur2(experiment, carbon_only);
+  TEST_EQUAL(corrected_carbon.size(), 1)
+  ABORT_IF(corrected_carbon.size() != 1)
+  TEST_REAL_SIMILAR(corrected_carbon[0].getMZ(), 700.0)
+  TEST_EQUAL(corrected_carbon[0].getMetaValue("n_isotopes"), 4)
+
+  // with aligned apices, assembly finds the monoisotopic peak on its own; the correction leaves it alone
+  FeatureMap aligned = runBiosaur2(simulateExperiment(peptideTraces(60.0)));
+  TEST_EQUAL(aligned.size(), 1)
+  ABORT_IF(aligned.size() != 1)
+  TEST_REAL_SIMILAR(aligned[0].getMZ(), 700.0)
+  TEST_EQUAL(aligned[0].getMetaValue("n_isotopes"), 4)
+}
+END_SECTION
+
+START_SECTION([EXTRA] run() does not move the monoisotopic peak onto an interfering peak)
+{
+  // A co-eluting trace one isotope spacing below a correctly anchored pattern (its apex shifted
+  // beyond hrttol, so assembly does not use it either). Its intensity is not plausible for a
+  // monoisotopic peak of the pattern, so the feature must stay where it is.
+  const double interferer_mz = 700.0 - Constants::C13C12_MASSDIFF_U / 2;
+  for (double relative_height : {0.05, 10.0})
+  {
+    vector<SimulatedTrace> traces = peptideTraces(60.0);
+    traces.push_back({interferer_mz, 46.0, relative_height * 1.0e6});
+    FeatureMap features = runBiosaur2(simulateExperiment(traces));
+    TEST_EQUAL(features.size(), 1)
+    ABORT_IF(features.size() != 1)
+    TEST_REAL_SIMILAR(features[0].getMZ(), 700.0)
+    TEST_EQUAL(features[0].getMetaValue("n_isotopes"), 4)
+  }
 }
 END_SECTION
 
