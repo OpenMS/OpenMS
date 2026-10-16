@@ -1025,6 +1025,53 @@ START_SECTION(([EXTRA] the ion mobility range of the PeakFileOptions, for any fo
   {
     TEST_EQUAL(streamed.getData()[i] == loaded[i], true)
   }
+
+  // SRM spectra: loadExperiment() turns them into chromatograms, after the ion mobility range has left out the spectra
+  // outside it. Two scans of one transition, at RT 1 (ion mobility 1.0, kept) and RT 2 (1.5, left out).
+  PeakMap srm;
+  for (const auto& [rt, drift_time] : std::vector<std::pair<double, double>>{{1.0, 1.0}, {2.0, 1.5}})
+  {
+    MSSpectrum scan;
+    scan.setRT(rt);
+    scan.setMSLevel(2);
+    scan.setNativeID("scan=" + std::to_string(static_cast<int>(rt)));
+    scan.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
+    Precursor precursor;
+    precursor.setMZ(500.0);
+    precursor.setDriftTime(drift_time);
+    precursor.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    scan.setPrecursors({precursor});
+    scan.setDriftTime(drift_time);
+    scan.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    scan.push_back(Peak1D(400.0, 100.0f * static_cast<float>(rt)));
+    srm.addSpectrum(scan);
+  }
+  std::string srm_file;
+  NEW_TMP_FILE(srm_file);
+  srm_file += ".mzML";
+  MzMLFile().store(srm_file, srm);
+
+  PeakMap srm_all;
+  FileHandler().loadExperiment(srm_file, srm_all);
+  TEST_EQUAL(srm_all.getChromatograms().size(), 1)
+  ABORT_IF(srm_all.getChromatograms().size() != 1)
+  TEST_EQUAL(srm_all.getChromatograms()[0].size(), 2) // without a range, both scans
+
+  PeakMap srm_loaded;
+  handler.loadExperiment(srm_file, srm_loaded);
+  TEST_EQUAL(srm_loaded.size(), 0) // the SRM spectra became chromatograms
+  TEST_EQUAL(srm_loaded.getChromatograms().size(), 1)
+  ABORT_IF(srm_loaded.getChromatograms().size() != 1)
+  TEST_EQUAL(srm_loaded.getChromatograms()[0].size(), 1)
+  ABORT_IF(srm_loaded.getChromatograms()[0].size() != 1)
+  TEST_REAL_SIMILAR(srm_loaded.getChromatograms()[0][0].getRT(), 1.0)
+
+  // streamed, the SRM spectra stay spectra; the same one is left out
+  MSDataStoringConsumer srm_streamed;
+  handler.transformExperiment(srm_file, &srm_streamed);
+  TEST_EQUAL(srm_streamed.getData().size(), 1)
+  ABORT_IF(srm_streamed.getData().size() != 1)
+  TEST_REAL_SIMILAR(srm_streamed.getData()[0].getRT(), 1.0)
 }
 END_SECTION
 

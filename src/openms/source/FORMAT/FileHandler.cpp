@@ -1145,6 +1145,8 @@ namespace OpenMS
         f.getOptions() = options_;
         f.setLogType(log);
         f.load(filename, exp);
+        // The ion mobility range applies to the spectra, so also to the SRM spectra before they become chromatograms
+        if (options_.hasIMRange()) { filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); }); }
         ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
       }
       break;
@@ -1230,10 +1232,11 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
     }
-    // The ion mobility range, which the readers of the other formats ignore (applyPostLoadOptions_() applies it with the rest)
+    // The ion mobility range, which the readers of the other formats ignore (applyPostLoadOptions_() applies it with the rest;
+    // for mzML it is applied above, before the SRM spectra are converted to chromatograms)
     if (options_.hasIMRange() && type != FileTypes::BRUKER_TDF && type != FileTypes::RAW)
     {
-      filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); });
+      if (type != FileTypes::MZML) { filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); }); }
       exp.updateRanges();
     }
     if (rewrite_source_file) { rewriteSourceFile(exp, filename, type, compute_hash); }
