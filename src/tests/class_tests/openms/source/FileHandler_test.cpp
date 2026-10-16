@@ -150,10 +150,10 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
 
-  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() resolves this to
-  // BRUKER_TDF for an existing, non-directory ".zip" whose name strips to ".d".
-  // SDK-free: only the name and the file's existence matter for type detection,
-  // not the archive contents.
+  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() looks at the list of entries of
+  // the archive (see BrukerTimsFile_test for archives with entries). A file whose entries
+  // cannot be listed, as this one, is taken for Bruker data by its name; the reader then
+  // reports what is wrong with it.
   {
     std::string dzip_base;
     NEW_TMP_FILE(dzip_base)
@@ -165,6 +165,10 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
 #else
     TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN) // the .d family requires WITH_OPENTIMS
 #endif
+    File::remove(dzip);
+    // an archive that can be read but has no entries (just the end of central directory record) holds no .d
+    { std::ofstream os(dzip.c_str(), std::ios::binary); os << std::string("PK\005\006", 4) << std::string(18, '\0'); }
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN)
     File::remove(dzip);
   }
 
@@ -388,7 +392,7 @@ START_SECTION((void loadImagingExperiment(const std::string& filename, MSImaging
 END_SECTION
 
 #ifdef WITH_OPENTIMS
-START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and routed by loadImagingExperiment))
+START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and transformExperiment and routed by loadImagingExperiment))
 {
   // Fake .d folders with only GlobalMetadata: enough for type detection and the
   // imaging probe, both of which run before any frame is read. TempDir removes them
@@ -405,11 +409,45 @@ START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and route
   };
 
   PeakMap exp;
-  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(fake_d("Imaging"), exp))
+  const std::string imaging = fake_d("Imaging");
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(imaging, exp))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(imaging, &streamed))
+  TEST_EQUAL(streamed.getData().size(), 0)
 
   // A non-imaging .d reaches BrukerTimsImagingFile, whose strict imaging check rejects it.
   MSImagingExperiment img;
   TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(fake_d("SingleSpectra"), img))
+}
+END_SECTION
+
+START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
+{
+  // TDF data is what can be read. TSF and BAF data (no ion mobility) are taken as Bruker .d as well, so
+  // that loading them fails with a message that names the format, not with an unknown file type.
+  TempDir tmp_dir;
+  auto make_d = [&tmp_dir](const std::string& name, const std::string& file)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + name + ".d";
+    std::filesystem::create_directories(d);
+    if (!file.empty()) { std::ofstream os((d + "/" + file).c_str()); os << "no data"; }
+    return d;
+  };
+  TEST_EQUAL(FileHandler::getType(make_d("tdf", "analysis.tdf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("tdf_bin", "analysis.tdf_bin")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("tdf", "analysis.tdf") + "/"), FileTypes::BRUKER_TDF) // as shells complete it
+  TEST_EQUAL(FileHandler::getType(make_d("tsf", "analysis.tsf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("baf", "analysis.baf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("empty", "")), FileTypes::UNKNOWN)
+  TEST_EQUAL(FileHandler::getType(make_d("other", "readme.txt")), FileTypes::UNKNOWN)
+
+  PeakMap exp;
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("tsf", "analysis.tsf"), &streamed))
 }
 END_SECTION
 #endif
