@@ -15,7 +15,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
-#include <shared_mutex>
 #include <unordered_map>
 
 #ifdef OPENMS_COMPILER_MSVC
@@ -149,8 +148,6 @@ private:
     MapIndex2StringType index_to_description_;
     /// map from index to unit
     MapIndex2StringType index_to_unit_;
-    /// guards all members: lookups share the lock, so that concurrent readers do not block each other
-    mutable std::shared_mutex mutex_;
   };
 
 } // namespace OpenMS
