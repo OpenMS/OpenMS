@@ -337,8 +337,38 @@ runtime.
             auto meta = self.readDIAMetadata(path, settings, config);
             return nb::make_tuple(meta, settings);
         }, "path"_a, "config"_a, "Read DIA SWATH boundaries and spectrum counts with explicit configuration. Returns (DIAStreamingMetadata, ExperimentalSettings).")
+        .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer) {
+            // the reader does not use a spectrum again after the consumer had it, so the value
+            // need not be restored after each callback
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(path, &wrapper);
+        }, "path"_a, "consumer"_a,
+        "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
+        "the spectra load() returns, in the same order (default configuration)")
+        .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer,
+                             const OpenMS::BrukerTimsFile::Config& config) {
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(path, &wrapper, config);
+        }, "path"_a, "consumer"_a, "config"_a,
+        "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
+        "the spectra load() returns with this configuration, in the same order. DIA data with MS2 aggregation "
+        "over retention time, and DDA data with calibrate=True on the linear m/z model, are loaded completely first.")
+        .def_static("detectFormat", &OpenMS::BrukerTimsFile::detectFormat, "path"_a,
+        "Which Bruker data format a .d directory or '.d.zip' archive holds, told by its file names (nothing is read or extracted)")
+        .def_static("checkDataFormat", &OpenMS::BrukerTimsFile::checkDataFormat, "path"_a,
+        "Raises if the path holds Bruker data in a format that cannot be read (TSF, BAF); load() does this check itself")
         ;
     def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
+
+    nb::enum_<OpenMS::BrukerTimsFile::DataFormat>(brukertimsfile_class, "DataFormat")
+        .value("NONE", OpenMS::BrukerTimsFile::DataFormat::NONE)
+        .value("TDF", OpenMS::BrukerTimsFile::DataFormat::TDF)
+        .value("TSF", OpenMS::BrukerTimsFile::DataFormat::TSF)
+        .value("BAF", OpenMS::BrukerTimsFile::DataFormat::BAF)
+        .value("UNREADABLE_ARCHIVE", OpenMS::BrukerTimsFile::DataFormat::UNREADABLE_ARCHIVE)
+        ;
 
     // Nested Config struct
     auto brukertimsfile_config = nb::class_<OpenMS::BrukerTimsFile::Config>(brukertimsfile_class, "Config",
@@ -347,10 +377,24 @@ runtime.
         .def_rw("calibration_tolerance", &OpenMS::BrukerTimsFile::Config::calibration_tolerance, "m/z recalibration tolerance in Da (0 = default 0.1 Da)")
         .def_rw("calibrate", &OpenMS::BrukerTimsFile::Config::calibrate, "Enable m/z recalibration (off by default; may fail on some datasets)")
         .def_rw("load_ms1", &OpenMS::BrukerTimsFile::Config::load_ms1, "Load MS1 spectra. Disable for MS2-only workflows.")
-        .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0)")
-        .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "MS1 IM-centroiding ion mobility tolerance in percent (0 = disabled, suggested: 3.0)")
-        .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "Upper bound on centroided peaks per MS1 spectrum")
+        .def_rw("load_ms2", &OpenMS::BrukerTimsFile::Config::load_ms2, "Load MS2 spectra. Disable for MS1-only workflows: the MS2 frames are then not read.")
+        .def_rw("frame_id_min", &OpenMS::BrukerTimsFile::Config::frame_id_min, "Lowest frame ID to read (inclusive; frame IDs are 1-based; default 0 = from the first frame)")
+        .def_rw("frame_id_max", &OpenMS::BrukerTimsFile::Config::frame_id_max, "Highest frame ID to read (inclusive; default 4294967295 = to the last frame). Frames outside the range are not read.")
+        .def_rw("rt_min_sec", &OpenMS::BrukerTimsFile::Config::rt_min_sec, "Lower retention time limit in seconds (inclusive; default 0.0). Resolved to a frame ID range and intersected with frame_id_min/frame_id_max.")
+        .def_rw("rt_max_sec", &OpenMS::BrukerTimsFile::Config::rt_max_sec, "Upper retention time limit in seconds (inclusive; default +inf = no limit). Resolved to a frame ID range and intersected with frame_id_min/frame_id_max.")
+        .def_rw("ms1_centroid_algo", &OpenMS::BrukerTimsFile::Config::ms1_centroid_algo, "MS1 centroiding algorithm (default OFF). OFF with ms1_centroid_mz_ppm and ms1_centroid_im_pct both > 0 selects GREEDY2D.")
         .def_rw("ms2_centroid_algo", &OpenMS::BrukerTimsFile::Config::ms2_centroid_algo, "MS2 centroiding algorithm for DIA-PASEF and DDA-PASEF")
+        .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 centroiding m/z tolerance in ppm, used by GREEDY2D and HILL_BASED (default 10.0; 0 = MS1 centroiding disabled)")
+        .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "GREEDY2D only: MS1 centroiding ion mobility tolerance in percent (0 = GREEDY2D disabled, suggested: 3.0). Ignored by HILL_BASED.")
+        .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "GREEDY2D only: upper bound on centroided peaks per MS1 spectrum (the most intense ones are kept)")
+        .def_rw("ms2_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms2_centroid_mz_ppm, "HILL_BASED MS2 centroiding m/z tolerance in ppm (default 20.0; 0 = HILL_BASED MS2 centroiding falls back to OFF with a warning)")
+        .def_rw("centroid_valley_factor", &OpenMS::BrukerTimsFile::Config::centroid_valley_factor, "HILL_BASED (MS1 and MS2): a hill is split at a valley if both neighbouring maxima exceed the valley by this factor (default 1.3; smaller = more splitting)")
+        .def_rw("ms1_centroid_min_hill_length", &OpenMS::BrukerTimsFile::Config::ms1_centroid_min_hill_length, "HILL_BASED MS1: minimum number of IM scans a hill must span (default 1)")
+        .def_rw("ms2_centroid_min_hill_length", &OpenMS::BrukerTimsFile::Config::ms2_centroid_min_hill_length, "HILL_BASED MS2: minimum number of IM scans a hill must span (default 2, tuned for DIA-PASEF; use 1 for DDA-PASEF)")
+        .def_rw("centroid_max_scan_gap", &OpenMS::BrukerTimsFile::Config::centroid_max_scan_gap, "HILL_BASED (MS1 and MS2): maximum number of consecutive empty IM scans a hill may bridge (default 0 = consecutive scans only)")
+        .def_rw("expose_hill_bounds", &OpenMS::BrukerTimsFile::Config::expose_hill_bounds, "HILL_BASED (MS1 and DIA MS2): attach four float data arrays with the IM and m/z bounds of each centroid's hill (default False)")
+        .def_rw("isotopic_prefilter", &OpenMS::BrukerTimsFile::Config::isotopic_prefilter, "MS1 and DIA MS2: before centroiding, drop peaks without an isotopic partner (charge 1-5) in the same or an adjacent IM scan (default False)")
+        .def_rw("isotopic_prefilter_tol_ppm", &OpenMS::BrukerTimsFile::Config::isotopic_prefilter_tol_ppm, "m/z tolerance in ppm for the isotopic partner match of isotopic_prefilter (default 50.0)")
         .def_rw("dia_ms2_n_neighbors", &OpenMS::BrukerTimsFile::Config::dia_ms2_n_neighbors, "DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled)")
         .def_rw("dia_ms2_min_support", &OpenMS::BrukerTimsFile::Config::dia_ms2_min_support, "DIA MS2 denoising: minimum occupied neighbors in 3x3 (m/z x IM) grid")
         .def_rw("dia_ms2_centroid", &OpenMS::BrukerTimsFile::Config::dia_ms2_centroid, "DIA MS2 2D peak picking: Gaussian smoothing + local maxima detection")

@@ -23,6 +23,7 @@
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmRTLocal.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
@@ -396,6 +397,27 @@ CVTermList
         }, "data_in"_a, "n_resampling_points"_a, "Resamples data_in and returns the resampled data")
         .def_static("extractIntensityVectors", [](const OpenMS::ConsensusMap& map) { std::vector<std::vector<double>> out_intensities; OpenMS::ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(map, out_intensities); return out_intensities; }, "map"_a, "Extracts the intensities of the features of the different maps")
         .def_static("setNormalizedIntensityValues", [](const std::vector<std::vector<double>>& feature_ints, OpenMS::ConsensusMap& map) { return OpenMS::ConsensusMapNormalizerAlgorithmQuantile::setNormalizedIntensityValues(feature_ints, map); }, "feature_ints"_a, "map"_a, "Sets the normalized intensity values to the consensus map")
+        ;
+
+    // -----------------------------------------------------------------------
+    // ConsensusMapNormalizerAlgorithmRTLocal
+    // -----------------------------------------------------------------------
+    auto consensusmapnormalizeralgorithmrtlocal_class = nb::class_<OpenMS::ConsensusMapNormalizerAlgorithmRTLocal>(m, "ConsensusMapNormalizerAlgorithmRTLocal", "Normalizes the maps of a consensus map by a per-map offset that may vary with retention time")
+        .def(nb::init<>())
+        ;
+    nb::class_<OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings>(consensusmapnormalizeralgorithmrtlocal_class, "Settings", "Settings of the RT-local normalization")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings &>())
+        .def("__copy__", [](const OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings& self) { return OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings(self); })
+        .def("__deepcopy__", [](const OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings& self, nb::dict) { return OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings(self); }, "memo"_a)
+        .def_rw("neighbors", &OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings::neighbors, "Reference cells on each side (in retention time) that estimate a cell's offset")
+        .def_rw("rounds", &OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings::rounds, "Backfitting rounds")
+        .def_rw("min_maps", &OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings::min_maps, "A consensus feature is a reference feature with intensities in at least this many maps")
+        .def_rw("min_reference", &OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings::min_reference, "Maps with fewer reference cells are not normalized")
+        ;
+    consensusmapnormalizeralgorithmrtlocal_class
+        .def_static("computeOffsets", [](const OpenMS::ConsensusMap& map, const OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings& settings, const std::string& acc_filter, const std::string& desc_filter) { return OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::computeOffsets(map, settings, acc_filter, desc_filter); }, "map"_a, "settings"_a, "acc_filter"_a, "desc_filter"_a, "Computes the log2 offset of every feature handle: one list per consensus feature, one offset per feature handle")
+        .def_static("normalizeMaps", [](OpenMS::ConsensusMap& map, const OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::Settings& settings, const std::string& acc_filter, const std::string& desc_filter) { return OpenMS::ConsensusMapNormalizerAlgorithmRTLocal::normalizeMaps(map, settings, acc_filter, desc_filter); }, "map"_a, "settings"_a, "acc_filter"_a, "desc_filter"_a, "Divides every feature handle's intensity by 2^offset")
         ;
 
     // -----------------------------------------------------------------------

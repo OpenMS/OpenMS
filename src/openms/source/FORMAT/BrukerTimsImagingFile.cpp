@@ -151,6 +151,9 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
 
+    // TSF and BAF data are reported as such, not as a missing analysis.tdf
+    BrukerTimsFile::checkDataFormat(path);
+
     // Resolve analysis.tdf eagerly so an I/O error surfaces as FileNotReadable
     // here, rather than being masked by isImagingDataset() (which swallows
     // exceptions to behave as a non-throwing probe).
@@ -188,6 +191,7 @@ namespace OpenMS
     BrukerTimsFile::Config inner_config = config.inner_config;
     inner_config.export_mode = BrukerTimsFile::Config::ExportMode::FRAME;
     inner_config.load_ms1 = true;
+    inner_config.load_ms2 = true;
 
     MSExperiment ms_exp;
     BrukerTimsFile inner;

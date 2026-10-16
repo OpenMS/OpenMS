@@ -156,6 +156,32 @@ protected:
     */
     Matrix<double> stringListToIsotopeCorrectionMatrix_(const std::vector<std::string>& stringlist) const;
 
+    /**
+      @brief Assembles the isotope correction matrix from a split (non-deuterated + deuterated) parameter representation.
+
+      Some TMTpro reagent sets (the 32- and 35-plex) mix non-deuterated and deuterated channels, which
+      ship on two separate Thermo Certificate-of-Analysis sheets. To let users paste the values straight
+      from those sheets, the correction is supplied as two parameters: the non-deuterated channels in the
+      8-column layout (<-2C13>/<-N15-C13>/<-C13>/<-N15>/<+N15>/<+C13>/<+N15+C13>/<+2C13>, identical to the
+      TMT 16-/18-plex correction matrix) and the deuterated channels in the full 14-column layout (which
+      additionally carries the six 2H (deuterium) offsets).
+
+      This helper expands each non-deuterated 8-column row into the 14-column layout (filling the six 2H
+      positions with 'NA') and interleaves both inputs into one row-per-channel list in the order of
+      getChannelInformation(), then forwards to stringListToIsotopeCorrectionMatrix_(). Deuterated channels
+      are identified by a 'D' in their channel name (e.g. 127D, 128ND, 128CD).
+
+      A @p nondeuterated list with one 14-value row for every channel is taken as the complete matrix and
+      @p deuterated is ignored: that is the single-parameter layout of OpenMS 3.6.0, whose INI files store it
+      in 'correction_matrix'.
+
+      @param[in] nondeuterated One 8-value row per non-deuterated channel, in channel order.
+      @param[in] deuterated One 14-value row per deuterated channel, in channel order.
+      @return An isotope correction matrix as Matrix<double>.
+    */
+    Matrix<double> stringListToIsotopeCorrectionMatrixSplit_(const std::vector<std::string>& nondeuterated,
+                                                             const std::vector<std::string>& deuterated) const;
+
 private:
     /// The concrete isobaric method this instance represents; set by the c'tor and returned by getMethodType()/getMethodName().
     MethodType iso_method_;

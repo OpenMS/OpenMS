@@ -355,16 +355,12 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
     if (type == FileTypes::BRUKER_TDF)
     {
-      if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
-      {
-        return FileTypes::BRUKER_TDF;
-      }
-      // Check for .d.zip: a ZIP archive containing a Bruker .d directory
-      if (File::exists(normalized) && !File::isDirectory(normalized) && StringUtils::hasSuffix(StringUtils::toLowered(normalized), ".zip"))
-      {
-        return FileTypes::BRUKER_TDF;
-      }
-      return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
+      // A Bruker .d directory, or a ZIP archive that holds one according to its list of entries. TSF and BAF
+      // data (no ion mobility) count as well: BrukerTimsFile then says that it cannot read them, which tells
+      // more than an unknown file type. An archive whose entries cannot be listed is taken by its name; the
+      // reader reports what is wrong with it.
+      return BrukerTimsFile::detectFormat(normalized) != BrukerTimsFile::DataFormat::NONE ? FileTypes::BRUKER_TDF
+                                                                                          : FileTypes::UNKNOWN;
     }
 #else
     if (type == FileTypes::BRUKER_TDF)
@@ -1127,9 +1123,24 @@ namespace OpenMS
         // BrukerTimsFile unpacks a .d.zip archive itself.
         BrukerTimsFile f;
         f.setLogType(log);
-        f.load(filename, exp);
 
-        // BrukerTimsFile loads everything; apply PeakFileOptions filters post-load.
+        // Do not decode what the PeakFileOptions exclude anyway. The reader emits MS levels 1 and 2.
+        BrukerTimsFile::Config config;
+        if (options_.hasMSLevels())
+        {
+          config.load_ms1 = options_.containsMSLevel(1);
+          config.load_ms2 = options_.containsMSLevel(2);
+        }
+        // The reader's RT range selects frames. That equals selecting spectra by RT for MS1, but not for
+        // DDA MS2 spectra, which are built from several frames: a range would cut those at its ends.
+        if (options_.hasRTRange() && ! config.load_ms2)
+        {
+          config.rt_min_sec = options_.getRTRange().minPosition()[0];
+          config.rt_max_sec = options_.getRTRange().maxPosition()[0];
+        }
+        f.load(filename, exp, config);
+
+        // Apply the remaining PeakFileOptions filters (and the exact RT range, which is inclusive in the reader).
         applyPostLoadOptions_(exp);
       }
       break;

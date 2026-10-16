@@ -326,21 +326,29 @@ void ZipArchiveFile::addOrReplaceFromFile(const std::string& archive_path, const
 std::vector<std::string> ZipArchiveFile::listEntries(const std::string& archive_path)
 {
   std::vector<std::string> out;
+  listEntries(archive_path, out);
+  return out;
+}
+
+bool ZipArchiveFile::listEntries(const std::string& archive_path, std::vector<std::string>& entries)
+{
+  entries.clear();
 #if defined(OPENMS_HAVE_LIBZIP)
   int err = 0;
   zip_t* za = zip_open(archive_path.c_str(), ZIP_RDONLY, &err);
-  if (!za) return out;
+  if (!za) return false;
   zip_int64_t num = zip_get_num_entries(za, 0);
   for (zip_uint64_t i = 0; i < static_cast<zip_uint64_t>(num); ++i)
   {
     const char* name = zip_get_name(za, i, 0);
-    if (name) out.emplace_back(name);
+    if (name) entries.emplace_back(name);
   }
   zip_close(za);
+  return true;
 #else
   (void)archive_path;
+  return false;
 #endif
-  return out;
 }
 
 void ZipArchiveFile::writeSidecarIndex(const std::string& archive_path)

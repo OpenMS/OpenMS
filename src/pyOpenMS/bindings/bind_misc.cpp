@@ -2709,6 +2709,8 @@ DefaultParamHandler
         .def("run", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, OpenMS::MSExperiment& exp, bool progress) { nb::gil_scoped_release release; return self.run(exp, progress); }, "exp"_a, "progress"_a, "Main method for feature detection")
         .def("getFeatureMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::FeatureMap { return self.getFeatureMap(); })
         .def("getConsensusMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::ConsensusMap { return self.getConsensusMap(); })
+        .def("getBlacklist", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::MSExperiment { return self.getBlacklist(); }, "Spectral peaks blacklisted during detection (input for MultiplexResolverAlgorithm.resolve)")
+        .def("getCentroidedExperiment", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::MSExperiment { return self.getCentroidedExperiment(); }, "The centroided spectra the detection ran on")
         ;
 
     // -----------------------------------------------------------------------
@@ -2733,6 +2735,8 @@ DefaultParamHandler
         .def("__deepcopy__", [](const OpenMS::MultiplexResolverAlgorithm& self, nb::dict) { return OpenMS::MultiplexResolverAlgorithm(self); }, "memo"_a)
         .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts, const OpenMS::MSExperiment& blacklist) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts, blacklist); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "blacklist"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts); blacklist may be an empty MSExperiment")
         .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts) without a blacklist")
+        .def("checkIdentifications", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusFeature& consensus) { return self.checkIdentifications(consensus); }, "consensus"_a, "One flag per peptide identification of the multiplet: whether its labels agree with the detected mass shifts (the check resolve() applies)")
+        .def("expectedChannelMZs", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::AASequence& sequence, int charge) { OpenMS::Size position = 0; std::vector<double> mzs = self.expectedChannelMZs(sequence, charge, position); return nb::make_tuple(mzs, position); }, "sequence"_a, "charge"_a, "Returns (m/z of each channel, channel of the sequence itself) for the label set that fits the sequence; an empty list if none fits")
         ;
 
     // -----------------------------------------------------------------------
