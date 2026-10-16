@@ -9,8 +9,8 @@
 // The database search engine ProSE (ANALYSIS/ID/ProSEAlgorithm): a search of one spectrum
 // file as the ProSE tool runs it, with its statistics, the modification analysis of open
 // searches and progress reports; a search of several files pooled as the tool's -out_merged
-// does, whose results (ProSEResultSet) JavaScript holds; and the annotation of a spectrum with
-// the fragment ions of a peptide, for spectrum viewers.
+// does, whose results (ProSEResultSet) JavaScript holds; and the annotation of a spectrum, or of the
+// stored peaks of an identified spectrum, with the fragment ions of a peptide, for spectrum viewers.
 
 #include "bind_prose.h"
 #include "binding_utils.h"
@@ -36,9 +36,11 @@
 #include <algorithm>
 #include <atomic>
 #include <charconv>
+#include <cctype>
 #include <cmath>
 #include <memory>
 #include <mutex>
+#include <numeric>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -715,14 +717,30 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // Annotation of a spectrum with the fragment ions of a peptide
 
-    /// Matches the fragment ions of @p peptide (charges 1 to maxCharge) to the peaks of
-    /// @p spectrum, which need not be sorted. Options: tolerance (default 0.02), unit ("Da"
-    /// or "ppm", default "Da"), maxCharge (default: precursor charge - 1, at least 1), ions
-    /// (default ["b", "y"]; also "a", "c", "x", "z"), losses (neutral losses, default false),
-    /// precursor (precursor peaks, default false).
-    JS::SpectrumAnnotation annotateSpectrum(const MSSpectrum& spectrum, const AASequence& peptide, int precursor_charge,
-                                            const JS::AnnotationOptions& options)
+    /// The fragment ions of a peptide matched to the peaks of a spectrum: what annotateSpectrum() and annotatePeaks()
+    /// share.
+    struct FragmentAlignment
     {
+      std::string unit;                             ///< "Da" or "ppm": the unit of the tolerance
+      MSSpectrum theoretical;                       ///< the fragment ions sorted by m/z, with their names and charges
+      MSSpectrum measured;                          ///< the peaks of the spectrum sorted by m/z
+      std::vector<Size> measured_position;          ///< measured[k] is the peak measured_position[k] of the spectrum as given
+      std::vector<std::pair<Size, Size>> alignment; ///< (theoretical, measured) index pairs by ascending m/z, one to one
+      Size names_array = 0;                         ///< the data array of theoretical with the ion names
+      Size charges_array = 0;                       ///< the data array of theoretical with the ion charges
+
+      const MSSpectrum::StringDataArray& names() const { return theoretical.getStringDataArrays()[names_array]; }
+      const MSSpectrum::IntegerDataArray& charges() const { return theoretical.getIntegerDataArrays()[charges_array]; }
+    };
+
+    /// Matches the fragment ions of @p peptide (charges 1 to maxCharge) to the peaks of @p spectrum, which need not be
+    /// sorted. Options: tolerance (default 0.02), unit ("Da" or "ppm", default "Da"), maxCharge (default: precursor
+    /// charge - 1, at least 1), ions (default ["b", "y"]; also "a", "c", "x", "z"), losses (neutral losses, default
+    /// false), precursor (precursor peaks, of the charge maxCharge, default false).
+    FragmentAlignment alignFragments(const MSSpectrum& spectrum, const AASequence& peptide, int precursor_charge,
+                                     const JS::AnnotationOptions& options)
+    {
+      FragmentAlignment result;
       const bool has_options = !isNullish(options);
       const auto option = [&](const char* name) { return has_options ? options[name] : val::undefined(); };
 
@@ -732,6 +750,7 @@ namespace OpenMS::WASM
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unit has to be 'Da' or 'ppm'", unit);
       }
+      result.unit = unit;
       const int max_charge = isNullish(option("maxCharge")) ? std::max(1, precursor_charge - 1) : option("maxCharge").as<int>();
       std::vector<std::string> ions{"b", "y"};
       if (!isNullish(option("ions"))) ions = stringsFromJS(option("ions"));
@@ -758,23 +777,25 @@ namespace OpenMS::WASM
       p.setValue("add_first_prefix_ion", "true");
       p.setValue("add_metainfo", "true");
       generator.setParameters(p);
-      MSSpectrum theoretical;
+      MSSpectrum& theoretical = result.theoretical;
       generator.getSpectrum(theoretical, peptide, 1, std::max(1, max_charge));
       theoretical.sortByPosition(); // keeps the data arrays aligned
 
-      // the measured peaks, sorted by m/z (SpectrumAlignment needs that)
-      MSSpectrum measured;
+      // the measured peaks, sorted by m/z (SpectrumAlignment needs that), and where they were in the spectrum
+      result.measured_position.resize(spectrum.size());
+      std::iota(result.measured_position.begin(), result.measured_position.end(), Size(0));
+      std::stable_sort(result.measured_position.begin(), result.measured_position.end(),
+                       [&spectrum](Size a, Size b) { return spectrum[a].getMZ() < spectrum[b].getMZ(); });
+      MSSpectrum& measured = result.measured;
       measured.reserve(spectrum.size());
-      for (const auto& peak : spectrum) measured.push_back(peak);
-      measured.sortByPosition();
+      for (const Size position : result.measured_position) measured.push_back(spectrum[position]);
 
       SpectrumAlignment aligner;
       Param ap = aligner.getParameters();
       ap.setValue("tolerance", tolerance);
       ap.setValue("is_relative_tolerance", unit == "ppm" ? "true" : "false");
       aligner.setParameters(ap);
-      std::vector<std::pair<Size, Size>> alignment;
-      aligner.getSpectrumAlignment(alignment, theoretical, measured);
+      aligner.getSpectrumAlignment(result.alignment, theoretical, measured);
 
       // the arrays add_metainfo adds: ion names and charges
       const auto names_it = std::find_if(theoretical.getStringDataArrays().begin(), theoretical.getStringDataArrays().end(),
@@ -785,10 +806,24 @@ namespace OpenMS::WASM
       {
         throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The theoretical spectrum has no ion names or charges.");
       }
-      const auto& names = *names_it;
-      const auto& charges = *charges_it;
+      result.names_array = static_cast<Size>(names_it - theoretical.getStringDataArrays().begin());
+      result.charges_array = static_cast<Size>(charges_it - theoretical.getIntegerDataArrays().begin());
+      return result;
+    }
+
+    /// Annotates @p spectrum with the fragment ions of @p peptide: see alignFragments() for the options.
+    JS::SpectrumAnnotation annotateSpectrum(const MSSpectrum& spectrum, const AASequence& peptide, int precursor_charge,
+                                            const JS::AnnotationOptions& options)
+    {
+      const FragmentAlignment fragments = alignFragments(spectrum, peptide, precursor_charge, options);
+      const MSSpectrum& theoretical = fragments.theoretical;
+      const MSSpectrum& measured = fragments.measured;
+      const auto& names = fragments.names();
+      const auto& charges = fragments.charges();
+      const std::string& unit = fragments.unit;
+
       val matches = val::array();
-      for (const auto& [t, m] : alignment)
+      for (const auto& [t, m] : fragments.alignment)
       {
         const double theo_mz = theoretical[t].getMZ();
         const double mz = measured[m].getMZ();
@@ -811,6 +846,152 @@ namespace OpenMS::WASM
       o.set("theoretical", theo);
       o.set("unit", unit);
       return o;
+    }
+
+    /// A fragment ion as TheoreticalSpectrumGenerator names it, split up.
+    struct IonLabel
+    {
+      std::string ion;  ///< the name without the '+' of charge 1: "b3", "y5++", "y7-H2O", "[M+2H]++"
+      std::string type; ///< "a" to "z", or "precursor"
+      int ordinal = 0;  ///< the ion number: 3 for "b3"; 0 for a precursor
+      std::string loss; ///< the formula of the neutral loss: "H2O" for "y7-H2O"; "" for none
+    };
+
+    /// A neutral loss formula as written in ion names: without the count 1 of an element ("H2O" for the "H2O1" that
+    /// TheoreticalSpectrumGenerator makes of an EmpiricalFormula), and ammonia as "NH3" (not "H3N1", which is how the
+    /// formula's alphabetical order spells it).
+    std::string lossFormulaName(const std::string& formula)
+    {
+      std::string name;
+      for (size_t i = 0; i < formula.size(); ++i)
+      {
+        const bool count_one = formula[i] == '1' && i > 0 && std::isalpha(static_cast<unsigned char>(formula[i - 1]))
+                               && (i + 1 == formula.size() || !std::isdigit(static_cast<unsigned char>(formula[i + 1])));
+        if (!count_one) name += formula[i];
+      }
+      return name == "H3N" ? "NH3" : name;
+    }
+
+    /// Splits the name of a fragment ion that TheoreticalSpectrumGenerator gives a peak of @p charge (with add_metainfo).
+    /// It names a fragment ion by its type, number, neutral loss if any (as the formula "H2O1", "H3N1", "CH4OS1"), and
+    /// one '+' per charge: "b3+", "y5++", "y7-H2O1++"; a precursor peak by its adduct, with the loss inside: "[M+H]+",
+    /// "[M+2H-NH3]++". The label has the loss as lossFormulaName() and keeps the '+' signs of charge 2 and more only:
+    /// "b3", "y5++", "y7-H2O++".
+    IonLabel parseIonName(const std::string& name, int charge)
+    {
+      const auto unexpected = [&name]() {
+        return Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unexpected name of a fragment ion", name);
+      };
+      // without the charge: at most one '+' per charge (a name without charge, as of isotope peaks, has none)
+      std::string base = name;
+      for (int z = 0; z < charge && !base.empty() && base.back() == '+'; ++z) base.pop_back();
+
+      IonLabel label;
+      if (base.size() > 4 && base.compare(0, 3, "[M+") == 0 && base.back() == ']') // "[M+H]", "[M+2H-H2O]"
+      {
+        label.type = "precursor";
+        const size_t minus = base.find('-');
+        if (minus != std::string::npos)
+        {
+          label.loss = lossFormulaName(base.substr(minus + 1, base.size() - minus - 2)); // up to the ']'
+          if (label.loss.empty()) throw unexpected();
+          base = base.substr(0, minus + 1) + label.loss + "]";
+        }
+      }
+      else
+      {
+        // the type (a letter, but z. and z' too), the number, and "-" with the formula of the loss
+        size_t digits = 0;
+        while (digits < base.size() && !std::isdigit(static_cast<unsigned char>(base[digits])) && base[digits] != '-') ++digits;
+        size_t end = digits;
+        while (end < base.size() && std::isdigit(static_cast<unsigned char>(base[end]))) ++end;
+        if (digits == 0 || end == digits) throw unexpected();
+        label.type = base.substr(0, digits);
+        if (std::from_chars(base.data() + digits, base.data() + end, label.ordinal).ec != std::errc()) throw unexpected();
+        if (end < base.size())
+        {
+          if (base[end] != '-' || end + 1 == base.size()) throw unexpected();
+          label.loss = lossFormulaName(base.substr(end + 1));
+          base = base.substr(0, end + 1) + label.loss;
+        }
+      }
+      label.ion = charge > 1 ? base + std::string(static_cast<size_t>(charge), '+') : base;
+      return label;
+    }
+
+    /// Annotates the peaks mz/intensity (arrays of one spectrum, in any order; same length) with the fragment ions of
+    /// @p peptide_string (AASequence.toString(), e.g. "AM(Oxidation)K") of precursor charge @p charge: see
+    /// alignFragments() for the options. The peaks are matched one to one, as in annotateSpectrum(). A match refers to
+    /// its peak by its index in the arrays as passed; its error is always in ppm.
+    JS::PeakAnnotationResult annotatePeaks(const JS::NumberInput& mz, const JS::NumberInput& intensity,
+                                           const std::string& peptide_string, int charge, const JS::AnnotationOptions& options)
+    {
+      if (charge < 1)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The precursor charge has to be at least 1", std::to_string(charge));
+      }
+      const AASequence peptide = AASequence::fromString(peptide_string);
+      if (peptide.empty())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The peptide is empty", peptide_string);
+      }
+      // float m/z become doubles exactly
+      const auto mzs = numbersFromJS<double>(mz);
+      const auto intensities = numbersFromJS<float>(intensity);
+      if (mzs.size() != intensities.size())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "m/z and intensity arrays differ in length (" + std::to_string(mzs.size()) + " vs. " + std::to_string(intensities.size()) + ")");
+      }
+      MSSpectrum spectrum;
+      spectrum.reserve(mzs.size());
+      for (Size i = 0; i < mzs.size(); ++i)
+      {
+        if (!std::isfinite(mzs[i]))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "m/z has to be a finite number", "peak " + std::to_string(i));
+        }
+        spectrum.emplace_back(mzs[i], intensities[i]);
+      }
+
+      const FragmentAlignment fragments = alignFragments(spectrum, peptide, charge, options);
+      const auto& names = fragments.names();
+      const auto& charges = fragments.charges();
+      std::vector<IonLabel> labels;
+      labels.reserve(fragments.theoretical.size());
+      for (Size t = 0; t < fragments.theoretical.size(); ++t) labels.push_back(parseIonName(names[t], charges[t]));
+
+      val matches = val::array();
+      for (const auto& [t, m] : fragments.alignment)
+      {
+        const double theo_mz = fragments.theoretical[t].getMZ();
+        const double observed = fragments.measured[m].getMZ();
+        val o = val::object();
+        o.set("peak", fragments.measured_position[m]);
+        o.set("ion", labels[t].ion);
+        o.set("type", labels[t].type);
+        o.set("ordinal", labels[t].ordinal);
+        o.set("charge", charges[t]);
+        o.set("loss", labels[t].loss);
+        o.set("theoreticalMz", theo_mz);
+        o.set("errorPpm", (observed - theo_mz) / theo_mz * 1e6);
+        matches.call<void>("push", o);
+      }
+      val theoretical = val::array();
+      for (Size t = 0; t < fragments.theoretical.size(); ++t)
+      {
+        val o = val::object();
+        o.set("ion", labels[t].ion);
+        o.set("type", labels[t].type);
+        o.set("ordinal", labels[t].ordinal);
+        o.set("charge", charges[t]);
+        o.set("mz", fragments.theoretical[t].getMZ());
+        theoretical.call<void>("push", o);
+      }
+      val result = val::object();
+      result.set("matches", matches);
+      result.set("theoretical", theoretical);
+      return result;
     }
   } // namespace
 } // namespace OpenMS::WASM
@@ -842,4 +1023,5 @@ EMSCRIPTEN_BINDINGS(openms_prose)
     ;
 
   function("annotateSpectrum", OMS_FN(&annotateSpectrum));
+  function("annotatePeaks", OMS_FN(&annotatePeaks));
 }

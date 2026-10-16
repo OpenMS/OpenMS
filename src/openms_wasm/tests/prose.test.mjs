@@ -2,7 +2,7 @@
 // test TOPP_ProSE_1 (src/tests/topp), which has to give the same PSMs; its progress reports,
 // statistics, peak annotations and open search; the search of several files pooled as the ProSE
 // tool's -out_merged (TOPP_ProSE_13_merged), with its results as typed columns (tables()) and the
-// peaks of the identified spectra (spectra()); and annotateSpectrum() for spectrum viewers.
+// peaks of the identified spectra (spectra()); and annotateSpectrum() and annotatePeaks() for spectrum viewers.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -1436,6 +1436,282 @@ test("annotateSpectrum: b and y ions of a theoretical spectrum", () => {
       assert.throws(() => OpenMS.annotateSpectrum(spectrum, peptide, 2, { unit: "mmu" }), /unit/);
       assert.throws(() => OpenMS.annotateSpectrum(spectrum, peptide, 2, { ions: ["q"] }), /ion type/);
     });
+});
+
+/// The stored peaks of PSM row @p row of the stored spectra @p s (ProSEResultSet.spectra()): views of its arrays
+function psmPeaks(s, row) {
+  const k = s.psmSpectrum[row];
+  assert.ok(k >= 0, `PSM ${row} has a spectrum`);
+  return { mz: s.mz.subarray(s.offsets[k], s.offsets[k + 1]), intensity: s.intensity.subarray(s.offsets[k], s.offsets[k + 1]) };
+}
+
+/// The ion label for the fields of a PeakMatch or theoretical ion: 'b3' for charge 1, 'y5++' for charge 2, 'y7-H2O'
+/// with a loss
+function ionLabel({ type, ordinal, charge, loss }) {
+  return `${type}${ordinal}${loss ? "-" + loss : ""}${charge > 1 ? "+".repeat(charge) : ""}`;
+}
+
+/// The PSMs at 1 % FDR of the search of DatabaseSuitability_in_spec.mzML (without Percolator), every @p stride-th, with
+/// the tables and stored spectra of the result set; @p fn gets them.
+function withPsmSpectra(stride, fn) {
+  withSpectraCopies(OpenMS, ["run.mzML"], (files) => {
+    const set = searchFiles(OpenMS, files, { rescore: false });
+    try {
+      const { psms, peptides } = set.tables();
+      const s = set.spectra();
+      const rows = [];
+      for (let i = 0; i < psms.count; i += stride) {
+        if (psms.decoy[i] === 0 && psms.qValue[i] <= 0.01 && s.psmSpectrum[i] >= 0) rows.push(i);
+      }
+      fn({ psms, peptides, s, rows });
+    } finally {
+      set.delete();
+    }
+  });
+}
+
+const ppm10 = { tolerance: 10, unit: "ppm" };
+
+test("annotatePeaks matches b and y ions of a stored spectrum", () => {
+  withPsmSpectra(5, ({ psms, peptides, s, rows }) => {
+    assert.ok(rows.length > 30, `${rows.length} PSMs`);
+    const types = new Set();
+    let matched = 0;
+    for (const row of rows) {
+      const peptide = peptides.openms[psms.peptide[row]];
+      const n = peptides.sequence[psms.peptide[row]].length;
+      const { mz, intensity } = psmPeaks(s, row);
+      const r = OpenMS.annotatePeaks(mz, intensity, peptide, psms.charge[row], ppm10);
+      const what = `PSM ${row} ${peptide}/${psms.charge[row]}`;
+      assert.deepEqual(Object.keys(r).sort(), ["matches", "theoretical"]);
+
+      // the theoretical ions: b1..b(n-1) and y1..y(n-1) at charge 1, unique, sorted by m/z
+      const labels = new Set(r.theoretical.map((t) => t.ion));
+      assert.equal(labels.size, r.theoretical.length, `${what}: unique ions`);
+      for (let i = 1; i < n; ++i) {
+        for (const type of ["b", "y"]) {
+          const t = r.theoretical.find((t) => t.ion === `${type}${i}`);
+          assert.ok(t, `${what}: ${type}${i} in theoretical`);
+          assert.deepEqual(Object.keys(t).sort(), ["charge", "ion", "mz", "ordinal", "type"]);
+          assert.deepEqual([t.type, t.ordinal, t.charge], [type, i, 1]);
+        }
+      }
+      for (const t of r.theoretical) {
+        assert.equal(ionLabel({ ...t, loss: "" }), t.ion, what);
+        assert.ok(t.mz > 0 && t.charge >= 1 && t.charge <= Math.max(1, psms.charge[row] - 1), `${what}: ${t.ion}`);
+      }
+      for (let i = 1; i < r.theoretical.length; ++i) assert.ok(r.theoretical[i - 1].mz <= r.theoretical[i].mz);
+
+      // the matches
+      assert.ok(r.matches.length > 0, `${what}: matches`);
+      const peaks = new Set();
+      for (const m of r.matches) {
+        assert.deepEqual(Object.keys(m).sort(), ["charge", "errorPpm", "ion", "loss", "ordinal", "peak", "theoreticalMz", "type"]);
+        assert.ok(Number.isInteger(m.peak) && m.peak >= 0 && m.peak < mz.length, `${what}: peak ${m.peak}`);
+        assert.ok(!peaks.has(m.peak), `${what}: peak ${m.peak} is matched once`);
+        peaks.add(m.peak);
+        assert.ok(m.type === "b" || m.type === "y", `${what}: ${m.ion}`);
+        types.add(m.type);
+        assert.equal(m.loss, "");
+        assert.equal(ionLabel(m), m.ion);
+        assert.ok(Number.isInteger(m.ordinal) && m.ordinal >= 1 && m.ordinal < n, `${what}: ${m.ion}`);
+        assert.ok(r.theoretical.some((t) => t.ion === m.ion && t.mz === m.theoreticalMz && t.charge === m.charge), `${what}: ${m.ion}`);
+        // in ppm, from the peak as passed: (observed - theoretical) / theoretical
+        assertClose(assert, m.errorPpm, (mz[m.peak] - m.theoreticalMz) / m.theoreticalMz * 1e6, 1e-6, `${what}: ${m.ion}`);
+        assert.ok(Math.abs(m.errorPpm) <= 10, `${what}: ${m.ion} is ${m.errorPpm} ppm off`);
+      }
+      matched += r.matches.length;
+    }
+    assert.deepEqual([...types].sort(), ["b", "y"]);
+    assert.ok(matched > 5 * rows.length, `${matched} matches in ${rows.length} PSMs`);
+
+    // the spectra of this file are made of b and y ions: the first PSM's peaks 5 ppm above and below theirs are matched
+    // within 10 ppm (errorPpm 5 and -5, the m/z being Float32) but not within 4
+    const row = rows[0];
+    const peptide = peptides.openms[psms.peptide[row]];
+    const { mz, intensity } = psmPeaks(s, row);
+    for (const shift of [5, -5]) {
+      const moved = Float32Array.from(mz, (x) => x * (1 + shift * 1e-6));
+      const r = OpenMS.annotatePeaks(moved, intensity, peptide, psms.charge[row], ppm10);
+      assert.equal(r.matches.length, mz.length, `${shift} ppm`);
+      for (const m of r.matches) assertClose(assert, m.errorPpm, shift, 0.2, `${m.ion} ${shift} ppm`);
+      assert.deepEqual(OpenMS.annotatePeaks(moved, intensity, peptide, psms.charge[row], { tolerance: 4, unit: "ppm" }).matches, []);
+      // and in Da, ppm all the same: 0.01 Da is more than 5 ppm for ions below 2000
+      const da = OpenMS.annotatePeaks(moved, intensity, peptide, psms.charge[row], { tolerance: 0.01 });
+      assert.equal(da.matches.length, mz.length, `${shift} ppm in Da`);
+      for (const m of da.matches) assertClose(assert, m.errorPpm, shift, 0.2, `${m.ion} ${shift} ppm in Da`);
+    }
+  });
+});
+
+test("annotatePeaks: peak is the index into the arrays as passed, whatever their order", () => {
+  withPsmSpectra(25, ({ psms, peptides, s, rows }) => {
+    assert.ok(rows.length >= 5, `${rows.length} PSMs`);
+    let seed = 20261016; // a fixed shuffle
+    const random = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+    // the matches as [m/z of the peak, its intensity, ion, theoretical m/z, error], found by the index
+    const matches = (r, mz, intensity) => r.matches
+      .map((m) => [mz[m.peak], intensity[m.peak], m.ion, m.theoreticalMz, m.errorPpm])
+      .sort((a, b) => a[0] - b[0] || (a[2] < b[2] ? -1 : 1));
+    let found = 0;
+    for (const row of rows) {
+      const peptide = peptides.openms[psms.peptide[row]];
+      const charge = psms.charge[row];
+      const { mz, intensity } = psmPeaks(s, row);
+      const sorted = OpenMS.annotatePeaks(mz, intensity, peptide, charge, ppm10);
+      assert.ok(sorted.matches.length > 0);
+      for (const m of sorted.matches) {
+        assert.ok(Math.abs(mz[m.peak] - m.theoreticalMz) / m.theoreticalMz * 1e6 <= 10, `${peptide}: ${m.ion} is peak ${m.peak}`);
+      }
+
+      const order = Array.from(mz, (_, i) => i); // order[j]: the position of the j-th peak of the copy in the original
+      for (let i = order.length - 1; i > 0; --i) {
+        const j = Math.floor(random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      assert.ok(order.some((o, j) => o !== j), "shuffled");
+      const mz2 = Float32Array.from(order, (o) => mz[o]);
+      const intensity2 = Float32Array.from(order, (o) => intensity[o]);
+      const shuffled = OpenMS.annotatePeaks(mz2, intensity2, peptide, charge, ppm10);
+      for (const m of shuffled.matches) {
+        assert.ok(Math.abs(mz2[m.peak] - m.theoreticalMz) / m.theoreticalMz * 1e6 <= 10, `${peptide}: ${m.ion} is peak ${m.peak}`);
+      }
+      // the same ions on the same peaks, with the same errors, but at the indices of the copy
+      assert.deepEqual(matches(shuffled, mz2, intensity2), matches(sorted, mz, intensity), peptide);
+      assert.deepEqual(shuffled.matches.map((m) => order[m.peak]).sort((a, b) => a - b),
+                       sorted.matches.map((m) => m.peak).sort((a, b) => a - b), peptide);
+      assert.deepEqual(shuffled.theoretical, sorted.theoretical);
+
+      // the same matching as annotateSpectrum() of a spectrum with these peaks, which names the ions as TheoreticalSpectrumGenerator
+      const spectrumMatches = using([OpenMS.AASequence.fromString(peptide), new OpenMS.MSSpectrum()], (aa, spectrum) => {
+        spectrum.setPeaks(mz2, intensity2);
+        return OpenMS.annotateSpectrum(spectrum, aa, charge, ppm10).matches;
+      });
+      assert.deepEqual(spectrumMatches.map((m) => [m.mz, m.intensity, m.ion, m.charge, m.theoreticalMZ, m.error]),
+                       shuffled.matches.map((m) => [mz2[m.peak], intensity2[m.peak], m.charge > 1 ? m.ion : m.ion + "+", m.charge,
+                                                    m.theoreticalMz, m.errorPpm]), `${peptide}: as annotateSpectrum`);
+
+      // JavaScript arrays and the reverse order
+      const plain = OpenMS.annotatePeaks(Array.from(mz2), Array.from(intensity2), peptide, charge, ppm10);
+      assert.deepEqual(plain, shuffled);
+      const reversed = OpenMS.annotatePeaks(Float32Array.from(mz).reverse(), Float32Array.from(intensity).reverse(), peptide, charge, ppm10);
+      assert.deepEqual(reversed.matches.map((m) => mz.length - 1 - m.peak).sort((a, b) => a - b),
+                       sorted.matches.map((m) => m.peak).sort((a, b) => a - b), peptide);
+      found += sorted.matches.length;
+    }
+    assert.ok(found > 5 * rows.length);
+  });
+});
+
+test("annotatePeaks: the names of ions with neutral losses, other ion types and precursor peaks", () => {
+  const options = { ions: ["a", "b", "c", "x", "y", "z"], losses: true, precursor: true, tolerance: 0.001 };
+  // [peptide, charge, ions that have to be there]
+  const peptides = [
+    ["PEPTIDEK", 3, ["b3", "b3++", "y7-H2O", "y7-H2O++", "y1-NH3", "a2", "c3++", "x4", "z4++", "b4-H2O",
+                     "[M+2H]++", "[M+2H-H2O]++", "[M+2H-NH3]++"]],
+    ["M(Oxidation)RESK", 4, ["b1", "b1++", "y4", "y4+++", "y4-H2O+++", "y3-NH3++", "[M+3H]+++", "[M+3H-H2O]+++"]],
+    [".(Acetyl)DAHKSEVAHR", 3, ["b2-H2O", "b2-H2O++", "y3-NH3++", "y9", "[M+2H]++"]],
+    ["PEPTIDER.(Amidated)", 2, ["b7", "y1", "y7-H2O", "[M+H]", "[M+H-NH3]"]],
+  ];
+  for (const [peptide, charge, expected] of peptides) {
+    // every ion as a peak of its own: it has to be matched, with its own name
+    const theoretical = OpenMS.annotatePeaks(new Float32Array(0), new Float32Array(0), peptide, charge, options).theoretical;
+    const ions = new Set(theoretical.map((t) => t.ion));
+    for (const ion of expected) assert.ok(ions.has(ion), `${peptide}: ${ion} in ${[...ions]}`);
+    assert.equal(ions.size, theoretical.length, `${peptide}: unique ions`);
+    const mz = Float32Array.from(theoretical, (t) => t.mz);
+    const { matches } = OpenMS.annotatePeaks(mz, new Float32Array(mz.length).fill(1), peptide, charge, options);
+    // (ions of the same m/z, e.g. z1++ and y1-NH3++, are two peaks of that m/z: each takes one)
+    assert.deepEqual(matches.map((m) => m.ion).sort(), [...ions].sort(), `${peptide}: every ion is matched`);
+
+    const byIon = new Map(theoretical.map((t) => [t.ion, t]));
+    const kinds = new Set();
+    for (const m of matches) {
+      const what = `${peptide}: ${m.ion}`;
+      const t = byIon.get(m.ion);
+      assert.ok(t, what);
+      assert.deepEqual([m.type, m.ordinal, m.charge, m.theoreticalMz], [t.type, t.ordinal, t.charge, t.mz], what);
+      assert.ok(Math.abs(m.errorPpm) < 2, `${what}: ${m.errorPpm} ppm (float32 m/z)`);
+      assert.ok(Number.isInteger(m.charge) && m.charge >= 1 && Number.isInteger(m.ordinal), what);
+      if (m.type === "precursor") {
+        assert.equal(m.ordinal, 0, what);
+        const [, adduct, plus] = m.ion.match(/^\[M\+(\d*)H(?:-[A-Za-z0-9]+)?\](\+*)$/) ?? assert.fail(what);
+        assert.equal(adduct === "" ? 1 : Number(adduct), m.charge, what);
+        assert.equal(plus.length, m.charge > 1 ? m.charge : 0, what); // one '+' per charge, none for charge 1
+        assert.equal(m.ion.includes("-"), m.loss !== "", what);
+        kinds.add(m.loss ? "precursor loss" : "precursor");
+      } else {
+        assert.match(m.type, /^[a-z]$/, what);
+        assert.ok(m.ordinal >= 1, what);
+        assert.equal(ionLabel(m), m.ion, what);
+        kinds.add(m.loss ? `${m.type} loss` : m.type);
+      }
+      if (m.loss) {
+        // the loss is a formula, and the ion has the m/z of the ion without the loss less the formula's mass
+        const parent = m.ion.replace(`-${m.loss}`, "");
+        const p = byIon.get(parent);
+        assert.ok(p, `${what}: the ion without the loss, ${parent}`);
+        const mass = using([OpenMS.EmpiricalFormula.fromString(m.loss)], (f) => f.getMonoWeight());
+        assertClose(assert, p.mz - m.theoreticalMz, mass / m.charge, 1e-6, `${what}: loses ${m.loss}`);
+      }
+    }
+    for (const kind of ["a", "b", "c", "x", "y", "z", "b loss", "y loss", "precursor", "precursor loss"]) {
+      assert.ok(kinds.has(kind), `${peptide}: matches of ${kind}`);
+    }
+    // the loss of a modified residue is named by its formula
+    if (peptide === "M(Oxidation)RESK") {
+      assert.ok(matches.some((m) => m.loss !== "" && m.loss !== "H2O" && m.loss !== "NH3"), "the loss of oxidized M or of R");
+    }
+  }
+});
+
+test("annotatePeaks: options, empty and invalid input", () => {
+  const peptide = "PEPTIDEK";
+  const none = new Float32Array(0);
+  const empty = OpenMS.annotatePeaks(none, none, peptide, 2, { tolerance: 0.01 });
+  assert.deepEqual(empty.matches, []);
+  assert.deepEqual(empty.theoretical.map((t) => t.ion).sort(), ["b1", "b2", "b3", "b4", "b5", "b6", "b7",
+                                                              "y1", "y2", "y3", "y4", "y5", "y6", "y7"].sort());
+
+  // the defaults of annotateSpectrum: b and y ions of the charges 1 to charge - 1, without losses and precursor
+  for (const options of [undefined, null, {}]) {
+    const ions = OpenMS.annotatePeaks(none, none, peptide, 3, options).theoretical.map((t) => t.ion);
+    assert.equal(ions.length, 28, JSON.stringify(options));
+    assert.ok(ions.includes("y5++") && ions.includes("b2++") && !ions.some((i) => i.includes("+++")));
+  }
+  assert.equal(OpenMS.annotatePeaks(none, none, peptide, 1, null).theoretical.length, 14, "charge 1: at least charge 1");
+  assert.ok(OpenMS.annotatePeaks(none, none, peptide, 2, { maxCharge: 3 }).theoretical.some((t) => t.ion === "y5+++"));
+  assert.deepEqual([...new Set(OpenMS.annotatePeaks(none, none, peptide, 2, { ions: ["y", "a"] }).theoretical.map((t) => t.type))].sort(),
+                   ["a", "y"]);
+
+  // a y4 ion 5 mDa off, and a peak 1 Da away from the b2 ion
+  const y4 = empty.theoretical.find((t) => t.ion === "y4").mz;
+  const b2 = empty.theoretical.find((t) => t.ion === "b2").mz;
+  const mz = Float32Array.of(y4 + 0.005, b2 + 1);
+  const intensity = Float32Array.of(10, 20);
+  const da = OpenMS.annotatePeaks(mz, intensity, peptide, 2, { tolerance: 0.01 });
+  assert.deepEqual(da.matches.map((m) => [m.peak, m.ion]), [[0, "y4"]]);
+  // ppm whatever the unit of the tolerance
+  assertClose(assert, da.matches[0].errorPpm, 0.005 / y4 * 1e6, 0.5, "5 mDa as ppm");
+  assert.ok(da.matches[0].errorPpm > 0);
+  assert.deepEqual(OpenMS.annotatePeaks(mz, intensity, peptide, 2, { tolerance: 20, unit: "ppm" }).matches.map((m) => m.ion), ["y4"]);
+  assertClose(assert, OpenMS.annotatePeaks(mz, intensity, peptide, 2, { tolerance: 20, unit: "ppm" }).matches[0].errorPpm,
+              da.matches[0].errorPpm, 1e-9, "the same error in either unit");
+  assert.deepEqual(OpenMS.annotatePeaks(mz, intensity, peptide, 2, { tolerance: 5, unit: "ppm" }).matches, [], "5 mDa is more than 5 ppm");
+  assert.deepEqual(OpenMS.annotatePeaks(mz, intensity, peptide, 2, { tolerance: 1.5 }).matches.map((m) => m.ion).sort(), ["b2", "y4"]);
+
+  const rejects = (what, f, pattern) => assert.throws(f, pattern, what);
+  rejects("charge 0", () => OpenMS.annotatePeaks(mz, intensity, peptide, 0, null), /InvalidValue/);
+  rejects("charge -2", () => OpenMS.annotatePeaks(mz, intensity, peptide, -2, null), /InvalidValue/);
+  rejects("empty peptide", () => OpenMS.annotatePeaks(mz, intensity, "", 2, null), /InvalidValue/);
+  // (AASequence.fromString's own errors: a syntax error is a ParseError, an unknown residue an InvalidValue)
+  rejects("a peptide with a digit", () => OpenMS.annotatePeaks(mz, intensity, "PEPT1DE", 2, null), /Parse Error.*PEPT1DE/);
+  rejects("a modification that is not closed", () => OpenMS.annotatePeaks(mz, intensity, "PEPTIDE(", 2, null), /Parse Error/);
+  rejects("an unknown residue", () => OpenMS.annotatePeaks(mz, intensity, "PEPTXDE", 2, null), /InvalidValue/);
+  rejects("unit", () => OpenMS.annotatePeaks(mz, intensity, peptide, 2, { unit: "mmu" }), /unit/);
+  rejects("ion type", () => OpenMS.annotatePeaks(mz, intensity, peptide, 2, { ions: ["q"] }), /ion type/);
+  rejects("lengths", () => OpenMS.annotatePeaks(mz, Float32Array.of(1), peptide, 2, null), /IllegalArgument/);
+  rejects("NaN", () => OpenMS.annotatePeaks(Float32Array.of(100, NaN), Float32Array.of(1, 1), peptide, 2, null), /InvalidValue/);
 });
 
 test("getMemoryInfo", () => {
