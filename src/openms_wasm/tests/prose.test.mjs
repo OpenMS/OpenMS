@@ -119,28 +119,44 @@ test("ProSEAlgorithm: Percolator rescoring, in-process", () => {
   assert.equal(small.percolator.applied, false);
   assert.match(small.percolator.skipped, /100/);
 
-  // on by default; { rescore: false } turns it off
-  for (const [options, expected] of [[undefined, "object"], [{ rescore: false }, "null"]]) {
+  // on by default (the parameter 'rescore'); { rescore: false } turns it off, as does the parameter
+  for (const [parameters, options, expected] of [[prose1, undefined, "object"], [prose1, { rescore: false }, "null"],
+                                                 [{ ...prose1, "rescore": false }, undefined, "null"]]) {
     const summary = using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
       (prose, proteins, peptides) => {
-        prose.setParameterValues(prose1);
+        prose.setParameterValues(parameters);
         return options === undefined
           ? prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides)
           : prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides, options);
       });
-    assert.equal(summary.percolator === null ? "null" : typeof summary.percolator, expected, JSON.stringify(options));
+    assert.equal(summary.percolator === null ? "null" : typeof summary.percolator, expected,
+      JSON.stringify({ rescore: parameters.rescore, options }));
   }
 
-  // the data and settings of TOPP_ProSE_11_rescore (ProSE_6_fdr.ini): rescored, q-values as scores, filtered at FDR:PSM
+  // the data and settings of TOPP_ProSE_11_rescore (ProSE_6_fdr.ini)
+  const settings = {
+    "enzyme": "Trypsin", "decoys": "generate",
+    "precursor:mass_tolerance_lower": 20, "precursor:mass_tolerance_upper": 20, "precursor:mass_tolerance_unit": "ppm",
+    "fragment:mass_tolerance": 10, "fragment:mass_tolerance_unit": "ppm",
+    "modifications:fixed": ["Carbamidomethyl (C)"], "modifications:variable": ["Oxidation (M)"],
+    "FDR:PSM": 0.05, "FDR:protein": 0.05,
+  };
+  // { rescore: false } sets the parameter 'rescore' for the call: ProSE's own scores (q-values of its FDR:PSM)
   using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
     (prose, proteins, peptides) => {
-      prose.setParameterValues({
-        "enzyme": "Trypsin", "decoys": "generate",
-        "precursor:mass_tolerance_lower": 20, "precursor:mass_tolerance_upper": 20, "precursor:mass_tolerance_unit": "ppm",
-        "fragment:mass_tolerance": 10, "fragment:mass_tolerance_unit": "ppm",
-        "modifications:fixed": ["Carbamidomethyl (C)"], "modifications:variable": ["Oxidation (M)"],
-        "FDR:PSM": 0.05, "FDR:protein": 0.05,
-      });
+      prose.setParameterValues(settings);
+      const summary = prose.search("/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML", "/topp/THIRDPARTY/DatabaseSuitability_database.fasta",
+        proteins, peptides, { rescore: false });
+      assert.equal(summary.status, "EXECUTION_OK");
+      assert.equal(summary.percolator, null);
+      assert.equal(proteins.toArray()[0].searchEngine, "ProSE", "not rescored");
+      assert.ok(peptides.toArray().some((id) => id.hits.length > 0));
+      assert.equal(prose.getParameterValues()["rescore"], true, "the parameter is as set");
+    });
+  // rescored, q-values as scores, filtered at FDR:PSM
+  using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+    (prose, proteins, peptides) => {
+      prose.setParameterValues(settings);
       const summary = prose.search("/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML", "/topp/THIRDPARTY/DatabaseSuitability_database.fasta",
         proteins, peptides, { rescore: true });
       assert.equal(summary.status, "EXECUTION_OK");
@@ -159,7 +175,7 @@ test("ProSEAlgorithm: Percolator rescoring, in-process", () => {
         assert.ok(id.hits[0].score <= 0.05, `q-value ${id.hits[0].score} passes FDR:PSM`);
       }
       assert.equal(proteins.toArray()[0].searchEngine, "Percolator");
-      // the parameters are as set (the search ran with the FDR filters deferred)
+      // the parameters are as set
       assert.equal(prose.getParameterValues()["FDR:PSM"], 0.05);
     });
 });

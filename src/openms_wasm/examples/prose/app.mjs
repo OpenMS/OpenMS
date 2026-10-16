@@ -311,7 +311,7 @@ function showResults() {
     card("indexed peptides", summary.search.indexedPeptides.toLocaleString()),
     card("index build", seconds(summary.search.secondsIndexBuild)),
     card("search total", seconds(summary.search.secondsTotal)),
-    ...(summary.percolator ? [card("Percolator", summary.percolator.applied ? seconds(summary.percolator.seconds) : "skipped")] : []),
+    ...(summary.percolator ? [card("Percolator", summary.percolator.applied ? "rescored" : "skipped")] : []),
     card("memory (peak)", `${(memory.heapSize / 2 ** 20).toFixed(0)} MB`),
     card("threads", String(threading.numThreads)),
   );
@@ -324,7 +324,8 @@ function showResults() {
     { name: "decoys", cls: "bar-decoy", values: psms.filter((p) => p.decoy).map(score) },
   ].filter((s) => s.values.length > 0), { xLabel: rescored ? "Percolator score" : "ln(hyperscore)" });
   if (summary.percolator && !summary.percolator.applied) {
-    $("error").textContent = `Percolator rescoring was skipped: ${summary.percolator.skipped}. The PSMs keep ProSE's scores.`;
+    const reason = summary.percolator.skipped.replace(/\.?$/, "."); // a sentence
+    $("error").textContent = `Percolator rescoring was skipped: ${reason} The PSMs keep ProSE's scores.`;
     $("error").hidden = false;
   }
   histogram($("precursor-error-plot"), [{ name: "PSMs", cls: "bar-target", values: accepted.map((p) => p.precursorErrorPPM) }],

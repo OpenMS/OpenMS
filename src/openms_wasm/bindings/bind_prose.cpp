@@ -13,7 +13,6 @@
 
 #include "binding_utils.h"
 
-#include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -21,24 +20,15 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <pthread.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include <algorithm>
 #include <atomic>
-#include <cctype>
-#include <set>
 #include <cmath>
 #include <utility>
 
@@ -269,130 +259,28 @@ namespace OpenMS::WASM
       return o;
     }
 
-    //------------------------------------------------------------------------------
-    // Percolator rescoring, in-process (Percolator::rescorePSMs). As the ProSE tool does it with
-    // -rescore (src/topp/ProSE.cpp, rescoreWithPercolator_ and pinEnzymeName_): keep the two in sync.
-
-    /// The enzyme names Percolator's PIN format knows
-    std::string pinEnzymeName(const std::string& enzyme)
-    {
-      std::string name;
-      for (const char c : enzyme)
-      {
-        if (c != ' ') name += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-      }
-      if (name == "trypsin/p") return "trypsinp";
-      if (name == "pepsina") return "pepsin";
-      static const std::set<std::string> pin_enzymes = {"elastase", "pepsin", "proteinasek", "thermolysin", "chymotrypsin",
-                                                        "lys-n", "lys-c", "arg-c", "asp-n", "glu-c", "trypsin", "trypsinp"};
-      return pin_enzymes.contains(name) ? name : "no_enzyme";
-    }
-
-    /// Replaces the scores of the PSMs by Percolator q-values. Returns why it was skipped, or an
-    /// empty string: at least 100 PSMs and decoys are needed.
-    std::string rescoreWithPercolator(ProteinIdentificationList& protein_ids, PeptideIdentificationList& peptide_ids)
-    {
-      if (protein_ids.empty() || peptide_ids.size() < 100)
-      {
-        return "only " + std::to_string(peptide_ids.size()) + " PSMs, Percolator needs at least 100";
-      }
-      bool has_decoys = false;
-      int min_charge = 10;
-      int max_charge = 0;
-      for (const PeptideIdentification& pid : peptide_ids)
-      {
-        for (const PeptideHit& hit : pid.getHits())
-        {
-          has_decoys = has_decoys || hit.isDecoy();
-          min_charge = std::min(min_charge, hit.getCharge());
-          max_charge = std::max(max_charge, hit.getCharge());
-        }
-      }
-      if (!has_decoys)
-      {
-        return "no decoy PSMs for the target/decoy competition (set decoys to auto or generate)";
-      }
-
-      const ProteinIdentification::SearchParameters& sp = protein_ids.front().getSearchParameters();
-      StringList feature_set = PercolatorInfile::getStandardFeatureSet(min_charge, max_charge);
-      if (sp.metaValueExists("extra_features"))
-      {
-        StringList extra = ListUtils::create<std::string>(sp.getMetaValue("extra_features").toString());
-        feature_set.insert(feature_set.end(), extra.begin(), extra.end());
-      }
-      else
-      {
-        feature_set.push_back("score");
-      }
-      feature_set.push_back("Peptide");
-      feature_set.push_back("Proteins");
-
-      Percolator perc;
-      Param pp = perc.getDefaults();
-      pp.setValue("train_best_positive", "true");
-      pp.setValue("post_processing_tdc", "true");
-      pp.setValue("subset_max_train", 0);
-      pp.setValue("pep_method", "nonparametric");
-#ifdef _OPENMP
-      pp.setValue("num_threads", std::clamp(omp_get_max_threads(), 1, 3)); // one model per fold: more do not help
-#else
-      pp.setValue("num_threads", 1);
-#endif
-      perc.setParameters(pp);
-      try
-      {
-        perc.rescorePSMs(peptide_ids, feature_set, pinEnzymeName(sp.digestion_enzyme.getName()), min_charge, max_charge, "q-value");
-      }
-      catch (const Exception::BaseException& e)
-      {
-        return std::string("Percolator failed: ") + e.what();
-      }
-      IDFilter::keepNBestHits(peptide_ids, 1);
-
-      for (ProteinIdentification& run : protein_ids)
-      {
-        run.setSearchEngine("Percolator");
-        run.setSearchEngineVersion("3.08-vendored");
-        run.setMetaValue("percolator", "ProSE");
-        ProteinIdentification::SearchParameters run_sp = run.getSearchParameters();
-        run_sp.setMetaValue("Percolator:peptide_level_fdrs", "false");
-        run_sp.setMetaValue("Percolator:protein_level_fdrs", "false");
-        run_sp.setMetaValue("Percolator:testFDR", static_cast<double>(pp.getValue("test_fdr")));
-        run_sp.setMetaValue("Percolator:trainFDR", static_cast<double>(pp.getValue("train_fdr")));
-        run_sp.setMetaValue("Percolator:maxiter", static_cast<int>(pp.getValue("num_iterations")));
-        run_sp.setMetaValue("Percolator:subset_max_train", static_cast<int>(pp.getValue("subset_max_train")));
-        run_sp.setMetaValue("Percolator:seed", static_cast<int>(pp.getValue("seed")));
-        run_sp.setMetaValue("Percolator:post_processing_tdc", "true");
-        run_sp.setMetaValue("Percolator:train_best_positive", "true");
-        run.setSearchParameters(run_sp);
-      }
-      return "";
-    }
-
     /// Searches the spectra of @p spectra_path (mzML) against the proteins of @p database_path
-    /// (FASTA) as the ProSE tool does for one input file: the search with PSM-level FDR
-    /// (FDR:PSM), then, if FDR:protein is set and the database has decoys, protein inference
-    /// with picked-protein FDR. By default (options {rescore: false} turn it off) it rescores the PSMs with Percolator
-    /// (in-process) as the tool's -rescore does: the PSM and protein FDR then use its q-values.
+    /// (FASTA) as the ProSE tool does for one input file: the search, which by default (parameter
+    /// 'rescore') rescores the PSMs with Percolator (in-process) before its PSM-level FDR
+    /// (FDR:PSM), then, if FDR:protein is set and the database has decoys, protein inference with
+    /// picked-protein FDR. Options {rescore} set the parameter 'rescore' for this call.
     JS::ProSESummary proseSearchWithOptions(ProSEAlgorithm& algo, const std::string& spectra_path, const std::string& database_path,
                                             ProteinIdentificationList& proteins, PeptideIdentificationList& peptides,
                                             const JS::ProSEOptions& options)
     {
-      // Percolator rescoring is on unless {rescore: false}
-      const bool rescore = isNullish(options) || isNullish(options["rescore"]) || options["rescore"].as<bool>();
       const Param user_params = algo.getParameters();
-      const double psm_fdr = static_cast<double>(user_params.getValue("FDR:PSM"));
+      // {rescore} overrides the parameter 'rescore' for this call; the parameters are restored afterwards
+      const bool override_rescore = !isNullish(options) && !isNullish(options["rescore"]);
+      if (override_rescore)
+      {
+        Param p = user_params;
+        p.setValue("rescore", options["rescore"].as<bool>() ? "true" : "false");
+        algo.setParameters(p);
+      }
+      const bool rescore = algo.getParameters().getValue("rescore").toString() == "true";
       const double protein_fdr = static_cast<double>(user_params.getValue("FDR:protein"));
       StopWatch watch;
       watch.start();
-      // With rescoring, the FDR filters wait for Percolator's q-values (as in the tool).
-      if (rescore)
-      {
-        Param p = user_params;
-        p.setValue("FDR:PSM", 0.0);
-        p.setValue("FDR:protein", 0.0);
-        algo.setParameters(p);
-      }
       ProSEAlgorithm::MultiFileSearchResult result;
       try
       {
@@ -400,10 +288,10 @@ namespace OpenMS::WASM
       }
       catch (...)
       {
-        if (rescore) algo.setParameters(user_params);
+        if (override_rescore) algo.setParameters(user_params);
         throw;
       }
-      if (rescore) algo.setParameters(user_params);
+      if (override_rescore) algo.setParameters(user_params);
       if (result.per_file.size() != 1)
       {
         throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ProSE returned no result for the input file.");
@@ -411,25 +299,13 @@ namespace OpenMS::WASM
       ProSEAlgorithm::SearchResult& run = result.per_file[0];
       const bool ok = run.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK;
 
+      // the outcome of the search's Percolator rescoring
       val percolator = val::null();
-      bool deferred_fdr_applied = false;
       if (rescore && ok)
       {
-        StopWatch perc_watch;
-        perc_watch.start();
-        const std::string skipped = rescoreWithPercolator(run.protein_ids, run.peptide_ids);
-        perc_watch.stop();
         percolator = val::object();
-        percolator.set("applied", skipped.empty());
-        percolator.set("skipped", skipped.empty() ? val::null() : val(skipped));
-        percolator.set("seconds", perc_watch.getClockTime());
-        // the deferred PSM FDR: on Percolator's q-values, or on ProSE's own if it was skipped
-        if (psm_fdr > 0.0 && !run.peptide_ids.empty() && (skipped.empty() || result.have_decoys))
-        {
-          if (!skipped.empty()) algo.annotatePsmQValues(run.peptide_ids);
-          IDFilter::filterHitsByScore(run.peptide_ids, psm_fdr);
-          deferred_fdr_applied = true;
-        }
+        percolator.set("applied", run.percolator.applied);
+        percolator.set("skipped", run.percolator.applied ? val::null() : val(run.percolator.skipped_reason));
       }
 
       bool protein_fdr_applied = false;
@@ -439,12 +315,11 @@ namespace OpenMS::WASM
                                                    result.decoy_is_prefix, protein_fdr);
         protein_fdr_applied = true;
       }
-      // Rescoring, the deferred PSM FDR and the protein FDR changed the PSMs after the search
-      // collected its statistics: recount them from the final PSMs, as the ProSE tool does.
+      // The protein FDR changed the PSMs after the search collected its statistics: recount them
+      // from the final PSMs, as the ProSE tool does.
       if (ok)
       {
-        ProSEAlgorithm::updateFinalStats(run.stats, run.peptide_ids, result.shared.enzyme,
-                                         run.stats.fdr_applied || deferred_fdr_applied);
+        ProSEAlgorithm::updateFinalStats(run.stats, run.peptide_ids, result.shared.enzyme, run.stats.fdr_applied);
       }
       watch.stop();
       result.shared.seconds_total = watch.getClockTime();
