@@ -212,56 +212,15 @@ public:
                         double sn_win_len_, unsigned int sn_bin_count_, bool write_log_messages) :
       chromatogram_(chromat)
     {
-      // One estimator is needed per chromatogram, millions of them in a DIA run. Constructing one
-      // builds and validates its whole parameter set, which costs more than the estimate itself:
-      // take a used one from this thread's pool instead. init() below resets everything an
-      // estimator keeps from the previous chromatogram.
-      std::vector<std::unique_ptr<Estimator_>>* pool = pool_();
-      if (pool != nullptr && !pool->empty())
-      {
-        estimator_ = std::move(pool->back());
-        pool->pop_back();
-      }
-      else
-      {
-        estimator_ = std::make_unique<Estimator_>();
-      }
-      if (!estimator_->configured || estimator_->win_len != sn_win_len_ ||
-          estimator_->bin_count != sn_bin_count_ || estimator_->write_log_messages != write_log_messages)
-      {
-        OpenMS::Param snt_parameters = estimator_->sn.getParameters();
-        snt_parameters.setValue("win_len", sn_win_len_);
-        snt_parameters.setValue("bin_count", sn_bin_count_);
-
-        if (write_log_messages)
-        {
-          snt_parameters.setValue("write_log_messages", "true");
-        }
-        else
-        {
-          snt_parameters.setValue("write_log_messages", "false");
-        }
-
-        estimator_->sn.setParameters(snt_parameters);
-        estimator_->win_len = sn_win_len_;
-        estimator_->bin_count = sn_bin_count_;
-        estimator_->write_log_messages = write_log_messages;
-        estimator_->configured = true;
-      }
-      estimator_->sn.init(chromatogram_);
+      // Only the S/N values are kept, not an estimator: constructing a SignalToNoiseEstimatorMedian builds and
+      // checks its whole parameter set, which costs more than the estimate itself, and there is one chromatogram
+      // per transition, millions in a DIA run.
+      typename SignalToNoiseEstimatorMedian<ContainerT>::Settings settings;
+      settings.win_len = sn_win_len_;
+      settings.bin_count = static_cast<int>(sn_bin_count_);
+      settings.write_log_messages = write_log_messages;
+      SignalToNoiseEstimatorMedian<ContainerT>::estimate(chromatogram_, settings, sn_);
     }
-
-    ~SignalToNoiseOpenMS() override
-    {
-      std::vector<std::unique_ptr<Estimator_>>* pool = pool_();
-      if (pool != nullptr && estimator_ && pool->size() < max_pooled_estimators_)
-      {
-        pool->push_back(std::move(estimator_));
-      }
-    }
-
-    SignalToNoiseOpenMS(const SignalToNoiseOpenMS&) = delete;
-    SignalToNoiseOpenMS& operator=(const SignalToNoiseOpenMS&) = delete;
 
     double getValueAtRT(double RT) override
     {
@@ -286,59 +245,20 @@ public:
       if (std::fabs(prev->getPos() - RT) < std::fabs(iter->getPos() - RT) )
       {
         // prev is closer to the apex
-        return estimator_->sn.getSignalToNoise((Size) distance(chromatogram_.begin(),prev));
+        return sn_[(Size) distance(chromatogram_.begin(),prev)];
       }
       else
       {
         // iter is closer to the apex
-        return estimator_->sn.getSignalToNoise((Size) distance(chromatogram_.begin(),iter));
+        return sn_[(Size) distance(chromatogram_.begin(),iter)];
       }
     }
 
 private:
 
-    /// An estimator together with the parameters it was configured with.
-    struct Estimator_
-    {
-      OpenMS::SignalToNoiseEstimatorMedian< ContainerT > sn;
-      double win_len = 0.0;
-      unsigned int bin_count = 0;
-      bool write_log_messages = false;
-      bool configured = false;
-    };
-
-    /// The pool of a thread; clears the thread's flag when the thread ends.
-    struct Pool_
-    {
-      std::vector<std::unique_ptr<Estimator_>> estimators;
-      ~Pool_() { poolAlive_() = false; }
-    };
-
-    /// Whether the pool of this thread still exists. Objects with static storage duration (there
-    /// are some in MRMFeatureAccessOpenMS.cpp) are destroyed after the thread-local pool of the
-    /// main thread; the flag is a plain bool and stays readable until then.
-    static bool& poolAlive_()
-    {
-      thread_local bool alive = true;
-      return alive;
-    }
-
-    /// Estimators that are not in use, per thread; nullptr once the thread has destroyed its pool.
-    static std::vector<std::unique_ptr<Estimator_>>* pool_()
-    {
-      if (!poolAlive_())
-      {
-        return nullptr;
-      }
-      thread_local Pool_ pool;
-      return &pool.estimators;
-    }
-
-    static constexpr Size max_pooled_estimators_ = 64;
-
     const ContainerT& chromatogram_;
-    std::unique_ptr<Estimator_> estimator_;
-
+    /// the S/N of every data point of the chromatogram
+    std::vector<double> sn_;
   };
 
 }
