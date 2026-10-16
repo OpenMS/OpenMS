@@ -568,6 +568,8 @@ OpenMS Library:
     DeltaMass.label_set. Removed what could not be called from Python: begin()/end() returning C++ iterators
     (MSExperiment, IsotopeDistribution, DeconvolvedSpectrum, PeakGroup), the initializer_list and std::list
     constructors, MascotGenericFile.store() to a C++ stream and MapToResidueType.val (now len()).
+    OPXLHelper.buildCandidates returns cross-links that keep their peptides alive (they pointed into a freed
+    copy of the peptide list) and checks the candidate indices it was given.
     Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
     pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
 

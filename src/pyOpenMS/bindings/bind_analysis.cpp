@@ -1637,9 +1637,11 @@ Generate a decoy for targets where fragmentation tree re-rooting was not possibl
     // --- ProteinProteinCrossLink ---
     nb::class_<OpenMS::OPXLDataStructs::ProteinProteinCrossLink>(m, "ProteinProteinCrossLink", "Represents a cross-link between two peptides")
         .def(nb::init<>())
-        .def(nb::init<const OpenMS::OPXLDataStructs::ProteinProteinCrossLink &>())
-        .def("__copy__", [](const OpenMS::OPXLDataStructs::ProteinProteinCrossLink& self) { return OpenMS::OPXLDataStructs::ProteinProteinCrossLink(self); })
-        .def("__deepcopy__", [](const OpenMS::OPXLDataStructs::ProteinProteinCrossLink& self, nb::dict) { return OpenMS::OPXLDataStructs::ProteinProteinCrossLink(self); }, "memo"_a)
+        // alpha and beta point to peptides owned elsewhere (see buildCandidates); a copy
+        // shares them, so it keeps the original, and with it their owner, alive
+        .def(nb::init<const OpenMS::OPXLDataStructs::ProteinProteinCrossLink &>(), nb::keep_alive<1, 2>())
+        .def("__copy__", [](const OpenMS::OPXLDataStructs::ProteinProteinCrossLink& self) { return OpenMS::OPXLDataStructs::ProteinProteinCrossLink(self); }, nb::keep_alive<0, 1>())
+        .def("__deepcopy__", [](const OpenMS::OPXLDataStructs::ProteinProteinCrossLink& self, nb::dict) { return OpenMS::OPXLDataStructs::ProteinProteinCrossLink(self); }, "memo"_a, nb::keep_alive<0, 1>())
         .def_prop_ro("alpha", [](const OpenMS::OPXLDataStructs::ProteinProteinCrossLink& self) {
             return self.alpha ? *self.alpha : OpenMS::AASequence();
         })
@@ -1813,10 +1815,47 @@ duplicated code
                 const std::vector<double>& spectrum_precursor_vector,
                 const std::vector<double>& allowed_error_vector,
                 const std::string& cross_link_name) {
-            return OpenMS::OPXLHelper::buildCandidates(candidates, precursor_corrections,
-                precursor_correction_positions, peptide_masses, cross_link_residue1,
+            // the C++ indexes these without checking
+            if (precursor_corrections.size() < candidates.size())
+            {
+              throw nb::value_error("precursor_corrections needs one entry per candidate");
+            }
+            if (spectrum_precursor_vector.size() < allowed_error_vector.size())
+            {
+              throw nb::value_error("spectrum_precursor_vector needs one entry per allowed error");
+            }
+            for (const auto& candidate : candidates)
+            {
+              const bool has_beta = candidate.beta_index < peptide_masses.size();
+              if (candidate.alpha_index >= peptide_masses.size())
+              {
+                throw nb::index_error("candidate alpha_index is not an index into peptide_masses");
+              }
+              if (candidate.alpha_seq.empty() || (has_beta && candidate.beta_seq.empty()))
+              {
+                throw nb::value_error("candidates need the sequences of their peptides (alpha_seq, beta_seq)");
+              }
+            }
+            // The cross-links point into the peptide list (alpha, beta). nanobind passes a
+            // temporary copy of the Python list, so build them on a copy that lives as long
+            // as any returned cross-link. A C++ copy of a cross-link (e.g. stored in a
+            // CrossLinkSpectrumMatch) does not extend that lifetime.
+            auto* peptides = new std::vector<OpenMS::OPXLDataStructs::AASeqWithMass>(peptide_masses);
+            nb::capsule owner(peptides, [](void* p) noexcept {
+                delete static_cast<std::vector<OpenMS::OPXLDataStructs::AASeqWithMass>*>(p);
+            });
+            auto cross_links = OpenMS::OPXLHelper::buildCandidates(candidates, precursor_corrections,
+                precursor_correction_positions, *peptides, cross_link_residue1,
                 cross_link_residue2, cross_link_mass, cross_link_mass_mono_link,
                 spectrum_precursor_vector, allowed_error_vector, cross_link_name);
+            nb::typed<nb::list, OpenMS::OPXLDataStructs::ProteinProteinCrossLink> result;
+            for (auto& cross_link : cross_links)
+            {
+                nb::object item = nb::cast(std::move(cross_link));
+                nb::keep_alive_obj(item, owner);
+                result.append(item);
+            }
+            return result;
         }, "candidates"_a, "precursor_corrections"_a, "precursor_correction_positions"_a,
            "peptide_masses"_a, "cross_link_residue1"_a, "cross_link_residue2"_a,
            "cross_link_mass"_a, "cross_link_mass_mono_link"_a,

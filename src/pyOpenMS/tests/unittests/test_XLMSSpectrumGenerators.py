@@ -3,6 +3,9 @@
 The bindings used to construct an empty AASequence (or cross-link) internally and
 return it alongside an empty spectrum. Expected values are those of the C++ class tests.
 """
+import copy
+import gc
+
 import pytest
 
 import pyopenms as oms
@@ -71,3 +74,47 @@ class TestTheoreticalSpectrumGeneratorXLMS:
         oms.TheoreticalSpectrumGeneratorXLMS().getXLinkIonSpectrum(
             spec, oms.ProteinProteinCrossLink(), True, 2, 3)
         assert spec.size() == 0
+
+
+class TestCrossLinkCandidates:
+    """Cross-links from OPXLHelper.buildCandidates point to their peptides (alpha, beta)."""
+
+    @staticmethod
+    def _candidates():
+        peptides = []
+        for seq in ("PEPKIDER", "LIKEFR"):
+            peptide = oms.AASeqWithMass()
+            peptide.peptide_seq = oms.AASequence.fromString(seq)
+            peptide.peptide_mass = peptide.peptide_seq.getMonoWeight()
+            peptide.unmodified_seq = seq
+            peptides.append(peptide)
+        precursor = oms.XLPrecursor()
+        precursor.alpha_index, precursor.beta_index = 0, 1
+        precursor.alpha_seq, precursor.beta_seq = "PEPKIDER", "LIKEFR"
+        precursor.precursor_mass = peptides[0].peptide_mass + peptides[1].peptide_mass + 138.068
+        return oms.OPXLHelper.buildCandidates(
+            [precursor], [0], [0], peptides, ["K"], ["K"], 138.068, [156.079],
+            [precursor.precursor_mass], [0.1], "DSS")
+
+    def test_cross_links_outlive_the_peptide_list(self):
+        cross_links = self._candidates()  # the peptide list passed in is gone
+        assert len(cross_links) == 1
+        gc.collect()
+        _ = [oms.AASequence.fromString("ACDEFGHIK" * 5) for _ in range(1000)]
+        link = cross_links[0]
+        assert {link.alpha.toString(), link.beta.toString()} == {"PEPKIDER", "LIKEFR"}
+        copied = copy.copy(link)
+        del cross_links, link
+        gc.collect()
+        assert {copied.alpha.toString(), copied.beta.toString()} == {"PEPKIDER", "LIKEFR"}
+        spec = oms.MSSpectrum()
+        oms.TheoreticalSpectrumGeneratorXLMS().getXLinkIonSpectrum(spec, copied, True, 1, 2)
+        assert spec.size() > 0
+
+    def test_candidate_must_index_the_peptides(self):
+        precursor = oms.XLPrecursor()
+        precursor.alpha_index = 5
+        precursor.alpha_seq = "PEPKIDER"
+        with pytest.raises(IndexError):
+            oms.OPXLHelper.buildCandidates(
+                [precursor], [0], [0], [], ["K"], ["K"], 138.068, [], [], [], "DSS")

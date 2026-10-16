@@ -58,7 +58,9 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
+#include <cmath>
 #include <sstream>
+#include <string>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -172,6 +174,18 @@ namespace
     rejectForeignPointer_("Modification", "ModificationsDB", m == nullptr ? "None" : m->getFullId());
   }
 } // namespace
+
+namespace
+{
+  // ims::Weights scales the masses by 1 / precision into integers
+  void check_ims_precision(double precision)
+  {
+    if (!(precision > 0.0) || !std::isfinite(precision))
+    {
+      throw nb::value_error("precision must be a positive number");
+    }
+  }
+}
 
 NB_MODULE(_pyopenms_chemistry, m) {
     // index-based value iterators (see index_value_iterator.h)
@@ -1808,7 +1822,7 @@ Checks if peptide is a valid digestion product of the enzyme, taking into accoun
         ;
 
     // -----------------------------------------------------------------------
-    // RealMassDecomposer
+    // IMSWeights (ims::Weights)
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ims::Weights>(m, "IMSWeights",
         R"doc(
@@ -1817,7 +1831,10 @@ Masses of an alphabet scaled to integer weights with a given precision
 Used by RealMassDecomposer: the integer weights are round(mass / precision).
 )doc")
         .def(nb::init<>())
-        .def(nb::init<const std::vector<double>&, double>(), "masses"_a, "precision"_a,
+        .def("__init__", [](OpenMS::ims::Weights* self, const std::vector<double>& masses, double precision) {
+            check_ims_precision(precision);
+            new (self) OpenMS::ims::Weights(masses, precision);
+        }, "masses"_a, "precision"_a,
             "Creates weights from the alphabet masses, scaled to integers with the given precision")
         .def(nb::init<const OpenMS::ims::Weights &>())
         .def("__copy__", [](const OpenMS::ims::Weights& self) { return OpenMS::ims::Weights(self); })
@@ -1828,7 +1845,10 @@ Used by RealMassDecomposer: the integer weights are round(mass / precision).
             if (i >= self.size()) throw nb::index_error();
             return self.getWeight(i);
         }, "i"_a, "Gets a scaled integer weight by index")
-        .def("setPrecision", [](OpenMS::ims::Weights& self, double precision) { self.setPrecision(precision); }, "precision"_a,
+        .def("setPrecision", [](OpenMS::ims::Weights& self, double precision) {
+            check_ims_precision(precision);
+            self.setPrecision(precision);
+        }, "precision"_a,
             "Sets a new precision to scale double values to integer")
         .def("getPrecision", [](const OpenMS::ims::Weights& self) { return self.getPrecision(); }, "Gets precision")
         .def("back", [](const OpenMS::ims::Weights& self) {
@@ -1845,20 +1865,44 @@ Used by RealMassDecomposer: the integer weights are round(mass / precision).
             if (index1 >= self.size() || index2 >= self.size()) throw nb::index_error();
             self.swap(index1, index2);
         }, "index1"_a, "index2"_a, "Exchanges weight and mass at index1 with weight and mass at index2")
-        .def("divideByGCD", [](OpenMS::ims::Weights& self) { return self.divideByGCD(); },
-            "Divides the integer weights by their gcd. The precision is also adjusted")
+        .def("divideByGCD", [](OpenMS::ims::Weights& self) {
+            // the C++ divides by the gcd, which is 0 if all weights are 0
+            for (size_t i = 0; i < self.size(); ++i)
+            {
+              if (self.getWeight(i) != 0) return self.divideByGCD();
+            }
+            return false;
+        },
+            "Divides the integer weights by their gcd. The precision is also adjusted. Returns whether the weights were divided")
         .def("getMinRoundingError", [](const OpenMS::ims::Weights& self) { return self.getMinRoundingError(); },
             "Returns the minimal rounding error of the integer weights")
         .def("getMaxRoundingError", [](const OpenMS::ims::Weights& self) { return self.getMaxRoundingError(); },
             "Returns the maximal rounding error of the integer weights")
         ;
 
+    // -----------------------------------------------------------------------
+    // RealMassDecomposer
+    // -----------------------------------------------------------------------
     nb::class_<OpenMS::ims::RealMassDecomposer>(m, "RealMassDecomposer", 
         R"doc(
 Handles decomposing of non-integer values/masses over a set of
 non-integer weights with an error allowed
 )doc")
-        .def(nb::init<const OpenMS::ims::Weights&>(), "weights"_a)
+        .def("__init__", [](OpenMS::ims::RealMassDecomposer* self, const OpenMS::ims::Weights& weights) {
+            // the decomposer indexes the first weight and takes residues modulo every weight
+            if (weights.size() < 2)
+            {
+              throw nb::value_error("RealMassDecomposer needs at least two weights");
+            }
+            for (size_t i = 0; i < weights.size(); ++i)
+            {
+              if (weights.getWeight(i) == 0)
+              {
+                throw nb::value_error(("weight " + std::to_string(i) + " is 0 at this precision; use a smaller precision").c_str());
+              }
+            }
+            new (self) OpenMS::ims::RealMassDecomposer(weights);
+        }, "weights"_a, "Creates a decomposer for the alphabet of the given weights (at least two, none 0 at their precision)")
         .def("getNumberOfDecompositions", [](OpenMS::ims::RealMassDecomposer& self, double mass, double error) { return self.getNumberOfDecompositions(mass, error); }, "mass"_a, "error"_a, 
             R"doc(
 Gets a number of all decompositions for amass with an error

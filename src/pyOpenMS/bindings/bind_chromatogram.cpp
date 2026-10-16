@@ -116,12 +116,12 @@ Clears all data and meta data.
 Always deletes all peaks, associated data arrays (float, integer, string), and ranges.
 If clear_meta_data is True, also deletes the descriptive meta data (ChromatogramSettings, name).
 )doc")
-        .def("getNativeID", [](const OpenMS::MSChromatogram& self) { return self.getNativeID(); }, "Returns the native identifier for the spectrum, used by the acquisition software.")
-        .def("setNativeID", [](OpenMS::MSChromatogram& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the spectrum, used by the acquisition software.")
+        .def("getNativeID", [](const OpenMS::MSChromatogram& self) { return self.getNativeID(); }, "Returns the native identifier for the chromatogram, used by the acquisition software.")
+        .def("setNativeID", [](OpenMS::MSChromatogram& self, const std::string& native_id) { return self.setNativeID(native_id); }, "native_id"_a, "Sets the native identifier for the chromatogram, used by the acquisition software.")
         .def("getComment", [](const OpenMS::MSChromatogram& self) { return self.getComment(); }, "Returns the free-text comment")
         .def("setComment", [](OpenMS::MSChromatogram& self, const std::string& comment) { return self.setComment(comment); }, "comment"_a, "Sets the free-text comment")
-        .def("getInstrumentSettings", [](const OpenMS::MSChromatogram& self) -> OpenMS::InstrumentSettings { return self.getInstrumentSettings(); }, "Returns the instrument settings of the current spectrum")
-        .def("setInstrumentSettings", [](OpenMS::MSChromatogram& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current spectrum")
+        .def("getInstrumentSettings", [](const OpenMS::MSChromatogram& self) -> OpenMS::InstrumentSettings { return self.getInstrumentSettings(); }, "Returns the instrument settings of the current chromatogram")
+        .def("setInstrumentSettings", [](OpenMS::MSChromatogram& self, const OpenMS::InstrumentSettings& instrument_settings) { return self.setInstrumentSettings(instrument_settings); }, "instrument_settings"_a, "Sets the instrument settings of the current chromatogram")
         .def("getAcquisitionInfo", [](const OpenMS::MSChromatogram& self) -> OpenMS::AcquisitionInfo { return self.getAcquisitionInfo(); }, "Returns the acquisition info")
         .def("setAcquisitionInfo", [](OpenMS::MSChromatogram& self, const OpenMS::AcquisitionInfo& acquisition_info) { return self.setAcquisitionInfo(acquisition_info); }, "acquisition_info"_a, "Sets the acquisition info")
         .def("getSourceFile", [](const OpenMS::MSChromatogram& self) -> OpenMS::SourceFile { return self.getSourceFile(); }, "Returns the source file")

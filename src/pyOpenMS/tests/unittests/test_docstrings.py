@@ -25,13 +25,41 @@ import pyopenms
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _resolve(path):
+    """The class behind a name from _get_all_classes()."""
+    obj = pyopenms
+    for part in path.split("."):
+        obj = getattr(obj, part)
+    # the DB singletons (ElementDB, ...) are exported as callable wrappers
+    return getattr(obj, "_singleton_class", obj)
+
+
 def _get_all_classes():
-    """Return all public classes exported by pyopenms."""
-    return sorted(
-        name for name in dir(pyopenms)
-        if not name.startswith("_")
-        and inspect.isclass(getattr(pyopenms, name, None))
-    )
+    """Return all public classes exported by pyopenms.
+
+    Includes the classes nested in them ("ConsensusFeature.Ratio") and the DB
+    singletons behind their callable wrappers.
+    """
+    names = []
+    seen = set()
+
+    def visit(path, cls):
+        if id(cls) in seen:
+            return
+        seen.add(id(cls))
+        names.append(path)
+        for attr, value in vars(cls).items():
+            # only classes defined here, not aliases of other classes
+            if inspect.isclass(value) and value.__qualname__ == f"{cls.__qualname__}.{attr}":
+                visit(f"{path}.{attr}", value)
+
+    for name in dir(pyopenms):
+        if name.startswith("_"):
+            continue
+        obj = _resolve(name)
+        if inspect.isclass(obj):
+            visit(name, obj)
+    return sorted(names)
 
 
 def _get_public_methods(cls):
@@ -262,7 +290,7 @@ class TestAllClassDocstrings:
     @pytest.mark.parametrize("class_name", ALL_CLASSES)
     def test_class_docstring_is_str(self, class_name):
         """Every class docstring (if present) must be str, not bytes."""
-        cls = getattr(pyopenms, class_name)
+        cls = _resolve(class_name)
         doc = cls.__doc__
         if doc is not None:
             assert isinstance(doc, str), (
@@ -272,7 +300,7 @@ class TestAllClassDocstrings:
     @pytest.mark.parametrize("class_name", ALL_CLASSES)
     def test_class_docstring_valid_rst(self, class_name):
         """Every class docstring must be valid RST."""
-        cls = getattr(pyopenms, class_name)
+        cls = _resolve(class_name)
         doc = cls.__doc__
         if not doc:
             pytest.skip("no docstring")
@@ -284,7 +312,7 @@ class TestAllClassDocstrings:
     @pytest.mark.parametrize("class_name", ALL_CLASSES)
     def test_method_docstrings_are_str(self, class_name):
         """All method docstrings must be str, not bytes."""
-        cls = getattr(pyopenms, class_name)
+        cls = _resolve(class_name)
         binary = []
         for mname in _get_public_methods(cls):
             doc = getattr(getattr(cls, mname, None), "__doc__", None)
@@ -297,7 +325,7 @@ class TestAllClassDocstrings:
     @pytest.mark.parametrize("class_name", ALL_CLASSES)
     def test_method_docstrings_valid_rst(self, class_name):
         """All method docstrings must be valid RST."""
-        cls = getattr(pyopenms, class_name)
+        cls = _resolve(class_name)
         all_errors = []
         for mname in _get_public_methods(cls):
             doc = getattr(getattr(cls, mname, None), "__doc__", None)
@@ -320,7 +348,7 @@ class TestAllClassDocstrings:
         method *following* it, so getRT() read "Checks if retention time is
         set" and setRT() "Returns the retention time" (#10599).
         """
-        cls = getattr(pyopenms, class_name)
+        cls = _resolve(class_name)
         mismatches = []
         for mname in _get_public_methods(cls):
             for doc in _overload_docs(getattr(cls, mname, None)):
@@ -370,7 +398,7 @@ class TestDocstringCoverage:
         total = len(ALL_CLASSES)
         with_doc = sum(
             1 for name in ALL_CLASSES
-            if getattr(pyopenms, name).__doc__
+            if _resolve(name).__doc__
         )
         pct = 100.0 * with_doc / total if total else 0
         # Informational — print coverage but don't fail
@@ -386,7 +414,7 @@ class TestDocstringCoverage:
         total = 0
         with_doc = 0
         for name in ALL_CLASSES:
-            cls = getattr(pyopenms, name)
+            cls = _resolve(name)
             for mname in _get_public_methods(cls):
                 total += 1
                 doc = getattr(getattr(cls, mname, None), "__doc__", None)

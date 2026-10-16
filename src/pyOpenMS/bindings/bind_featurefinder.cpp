@@ -263,18 +263,30 @@ for a group of matching peptide features
     // MultiplexDeltaMasses_DeltaMass
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MultiplexDeltaMasses::DeltaMass>(m, "MultiplexDeltaMasses_DeltaMass", "OpenMS class MultiplexDeltaMasses_DeltaMass")
+        // before the list overload: nanobind would also accept a str as a list of characters
+        .def(nb::init<double, std::string>(), "delta_mass"_a, "label"_a)
         .def("__init__", [](OpenMS::MultiplexDeltaMasses::DeltaMass* self, double delta_mass, const std::vector<std::string>& label_set) {
             new (self) OpenMS::MultiplexDeltaMasses::DeltaMass(delta_mass, OpenMS::MultiplexDeltaMasses::LabelSet(label_set.begin(), label_set.end()));
         }, "delta_mass"_a, "label_set"_a)
-        .def(nb::init<double, std::string>())
         .def(nb::init<const OpenMS::MultiplexDeltaMasses::DeltaMass &>())
         .def_rw("delta_mass", &OpenMS::MultiplexDeltaMasses::DeltaMass::delta_mass)
         .def_prop_rw("label_set",
             [](const OpenMS::MultiplexDeltaMasses::DeltaMass& self) {
                 return std::vector<std::string>(self.label_set.begin(), self.label_set.end());
             },
-            [](OpenMS::MultiplexDeltaMasses::DeltaMass& self, const std::vector<std::string>& labels) {
-                self.label_set = OpenMS::MultiplexDeltaMasses::LabelSet(labels.begin(), labels.end());
+            [](OpenMS::MultiplexDeltaMasses::DeltaMass& self, nb::handle labels) {
+                // a str is a single label, not a list of characters
+                if (nb::isinstance<nb::str>(labels))
+                {
+                  self.label_set = OpenMS::MultiplexDeltaMasses::LabelSet{nb::cast<std::string>(labels)};
+                  return;
+                }
+                std::vector<std::string> list;
+                if (!nb::try_cast(labels, list))
+                {
+                  throw nb::type_error("label_set must be a str or a list of str");
+                }
+                self.label_set = OpenMS::MultiplexDeltaMasses::LabelSet(list.begin(), list.end());
             },
             "Labels of this delta mass (a sorted multiset, as a list)")
         ;

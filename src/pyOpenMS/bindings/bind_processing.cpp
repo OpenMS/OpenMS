@@ -40,17 +40,27 @@ using namespace nb::literals;
 
 namespace
 {
+  using NoiseEstimator = OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator;
+
   // NoiseEstimator::get_noise_even/odd only assert() their window index, so an m/z
-  // outside the estimated range reads past the window vectors in a release build.
-  void noise_window_check(const OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& e, double mz)
+  // outside the estimated range reads past the window vector in a release build.
+  // `window` is the fractional window number that the C++ truncates to an int.
+  void check_noise_window(double window, size_t n_windows)
   {
-    const double even = (mz - e.mz_start) / e.window_length;
-    const double odd = (mz - e.mz_start + e.window_length / 2.0) / e.window_length;
-    if (!(even > -1.0 && even < static_cast<double>(e.result_windows_even.size()) &&
-          odd > -1.0 && odd < static_cast<double>(e.result_windows_odd.size())))
+    if (!(window > -1.0 && window < static_cast<double>(n_windows)))
     {
       throw nb::index_error("m/z is outside the windows of this NoiseEstimator");
     }
+  }
+
+  void check_even_window(const NoiseEstimator& e, double mz)
+  {
+    check_noise_window((mz - e.mz_start) / e.window_length, e.result_windows_even.size());
+  }
+
+  void check_odd_window(const NoiseEstimator& e, double mz)
+  {
+    check_noise_window((mz - e.mz_start + e.window_length / 2.0) / e.window_length, e.result_windows_odd.size());
   }
 }
 
@@ -652,15 +662,16 @@ length; get_noise_value() averages both.
         .def_rw("result_windows_even", &OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator::result_windows_even)
         .def_rw("result_windows_odd", &OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator::result_windows_odd)
         .def("get_noise_value", [](OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& self, double mz) {
-            noise_window_check(self, mz);
+            check_even_window(self, mz);
+            check_odd_window(self, mz);
             return self.get_noise_value(mz);
         }, "mz"_a, "Returns the noise value at m/z (the average of both window sets, at least 1)")
         .def("get_noise_even", [](OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& self, double mz) {
-            noise_window_check(self, mz);
+            check_even_window(self, mz);
             return self.get_noise_even(mz);
         }, "mz"_a, "Returns the noise value at m/z from the even (non-offset) windows")
         .def("get_noise_odd", [](OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& self, double mz) {
-            noise_window_check(self, mz);
+            check_odd_window(self, mz);
             return self.get_noise_odd(mz);
         }, "mz"_a, "Returns the noise value at m/z from the odd (half-window offset) windows")
         ;

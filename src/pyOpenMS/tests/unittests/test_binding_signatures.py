@@ -18,19 +18,35 @@ _CPP_TYPE = re.compile(r"\b(OpenMS::|std::|__gnu_cxx::|boost::|Eigen::)")
 _DATA = os.path.dirname(os.path.abspath(__file__))
 
 
+def _classes(name, cls, seen):
+    """cls and the classes nested in it ("ConsensusFeature.Ratio"), once each."""
+    if id(cls) in seen:
+        return
+    seen.add(id(cls))
+    yield name, cls
+    for attr, value in vars(cls).items():
+        # only classes defined here, not aliases of other classes
+        if inspect.isclass(value) and value.__qualname__ == f"{cls.__qualname__}.{attr}":
+            yield from _classes(f"{name}.{attr}", value, seen)
+
+
 def _signatures():
+    seen = set()
     for name in dir(oms):
         obj = getattr(oms, name)
+        # the DB singletons (ElementDB, ...) are exported as callable wrappers
+        obj = getattr(obj, "_singleton_class", obj)
         if not inspect.isclass(obj):
             for sig, _doc, _defaults in getattr(obj, "__nb_signature__", None) or ():
                 yield name, sig
             continue
-        for attr, value in vars(obj).items():
-            funcs = [value.fget, value.fset] if isinstance(value, property) else [value]
-            for func in funcs:
-                func = getattr(func, "__func__", func)
-                for sig, _doc, _defaults in getattr(func, "__nb_signature__", None) or ():
-                    yield f"{name}.{attr}", sig
+        for where, cls in _classes(name, obj, seen):
+            for attr, value in vars(cls).items():
+                funcs = [value.fget, value.fset] if isinstance(value, property) else [value]
+                for func in funcs:
+                    func = getattr(func, "__func__", func)
+                    for sig, _doc, _defaults in getattr(func, "__nb_signature__", None) or ():
+                        yield f"{where}.{attr}", sig
 
 
 def test_no_raw_cpp_types_in_signatures():
@@ -90,6 +106,15 @@ def test_noise_estimator():
         noise.get_noise_value(10000.0)
     with pytest.raises(IndexError):
         noise.get_noise_even(float("nan"))
+    # each accessor checks only the window set it reads
+    estimator = oms.SignalToNoiseEstimatorMedianRapid.NoiseEstimator(3, 0, 10)
+    estimator.result_windows_even = [4.0, 5.0, 6.0]
+    estimator.result_windows_odd = []
+    assert estimator.get_noise_even(5.0) == 4.0
+    with pytest.raises(IndexError):
+        estimator.get_noise_odd(5.0)
+    with pytest.raises(IndexError):
+        estimator.get_noise_value(5.0)
 
 
 def test_spline_navigator_keeps_spline_alive():
@@ -130,6 +155,19 @@ def test_ims_weights():
     oms.RealMassDecomposer(weights)
 
 
+def test_ims_weights_reject_what_the_cpp_divides_by():
+    # each of these crashed the interpreter (division by zero, empty alphabet)
+    with pytest.raises(ValueError):
+        oms.IMSWeights([1.0, 2.0], 0.0)
+    with pytest.raises(ValueError):
+        oms.IMSWeights([1.0, 2.0], 0.5).setPrecision(-1.0)
+    assert oms.IMSWeights([0.1, 0.2], 1.0).divideByGCD() is False  # all weights round to 0
+    with pytest.raises(ValueError):
+        oms.RealMassDecomposer(oms.IMSWeights())
+    with pytest.raises(ValueError):
+        oms.RealMassDecomposer(oms.IMSWeights([0.1, 57.02], 1.0))  # 0.1 rounds to weight 0
+
+
 def test_picked_mass_trace():
     trace = oms.FeatureFinderAlgorithmPickedHelperStructs_MassTrace()
     trace.max_rt = 12.5
@@ -142,6 +180,18 @@ def test_delta_mass_label_set():
     assert delta.label_set == ["Arg10", "Lys8", "Lys8"]
     delta.label_set = ["Arg6"]
     assert delta.label_set == ["Arg6"]
+    # a str is one label, not a list of characters
+    assert oms.MultiplexDeltaMasses_DeltaMass(8.0142, "Lys8").label_set == ["Lys8"]
+    delta.label_set = "Arg10"
+    assert delta.label_set == ["Arg10"]
+    with pytest.raises(TypeError):
+        delta.label_set = 5
+
+
+def test_singleton_wrappers_stay_introspectable():
+    # help() and IPython call inspect.signature() on ElementDB, ModificationsDB, ...
+    assert str(inspect.signature(oms.ElementDB)) == "()"
+    assert oms.ElementDB() is not None
 
 
 def test_modification_map_size():

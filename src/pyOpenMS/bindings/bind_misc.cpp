@@ -2551,23 +2551,36 @@ Usage:
             return proteinIDs;
         }, "proteinIDs"_a, "peptideIDs"_a, "greedy_group_resolution"_a, "exp_des"_a = nb::none(),
             R"doc(
-Optionally adds indistinguishable protein groups with separate scores, too
-Currently only takes first proteinID run and all peptides
+Performs Bayesian protein inference on protein and peptide identifications
 
-:param proteinIDs: Vector of protein identifications
-:param peptideIDs: Vector of peptide identifications
-:returns: Updated proteinIDs with posterior probabilities
+Filters the input, builds the protein-peptide graph and writes the posterior
+probabilities into the protein hits and, optionally, the peptide hits as new scores.
+Indistinguishable protein groups with separate scores can be added, too. Input scores
+can be posterior or error probabilities. See the parameters of this algorithm for more
+settings. Only the first protein identification run is used, with all peptides.
+
+:param proteinIDs: Protein identifications
+:param peptideIDs: Peptide identifications, updated in place
+:param greedy_group_resolution: Keep only the best protein association of each "razor" peptide
+:param exp_des: Experimental design, to build an extended graph with replicate information (experimental)
+:returns: The protein identifications with posterior probabilities
 )doc")
         .def("inferPosteriorProbabilities", [](OpenMS::BayesianProteinInferenceAlgorithm& self, OpenMS::ConsensusMap& cmap, bool greedy_group_resolution, std::optional<OpenMS::ExperimentalDesign> exp_des) { return self.inferPosteriorProbabilities(cmap, greedy_group_resolution, exp_des); }, "cmap"_a, "greedy_group_resolution"_a, "exp_des"_a = nb::none(), 
             R"doc(
-Writes its results into protein and (optionally also) peptide hits (as new score)
-Optionally adds indistinguishable protein groups with separate scores, too
-Loops over all runs in the ConsensusMaps' protein IDs (experimental)
+Performs Bayesian protein inference on the identifications of a ConsensusMap
 
-:param cmap: ConsensusMaps with protein IDs.
-:param greedy_group_resolution: Adds indistinguishable protein groups with separate scores
-:param exp_des: Experimental Design
-:return: Writes its protein ID results into the ConsensusMap
+Writes the posterior probabilities into the protein hits and, optionally, the peptide
+hits of the map as new scores. Indistinguishable protein groups with separate scores can
+be added, too. Input scores can be posterior or error probabilities.
+
+Requires a single merged protein identification run in the map
+(``len(cmap.getProteinIdentifications()) == 1``) with the peptide identifications
+referring to it. For inference across several runs or files, merge the runs first
+(ConsensusMapMergerAlgorithm.mergeAllIDRuns).
+
+:param cmap: Features with the input/output peptide and protein identifications
+:param greedy_group_resolution: Keep only the best protein association of each "razor" peptide
+:param exp_des: Experimental design, to build an extended graph with replicate information (experimental)
 )doc")
         ;
     def_ProgressLogger<OpenMS::BayesianProteinInferenceAlgorithm>(bayesianproteininferencealgorithm_class);
@@ -3122,8 +3135,8 @@ Proxy for a (potential) cluster
         .def("__copy__", [](const OpenMS::GaussFilter& self) { return OpenMS::GaussFilter(self); })
         .def("__deepcopy__", [](const OpenMS::GaussFilter& self, nb::dict) { return OpenMS::GaussFilter(self); }, "memo"_a)
         .def("filter", [](OpenMS::GaussFilter& self, OpenMS::MSSpectrum& spectrum) { return self.filter(spectrum); }, "spectrum"_a, "Smoothes an MSSpectrum containing profile data")
-        .def("filter", [](OpenMS::GaussFilter& self, OpenMS::MSChromatogram& chromatogram) { return self.filter(chromatogram); }, "chromatogram"_a, "Smoothes an MSSpectrum containing profile data")
-        .def("filter", [](OpenMS::GaussFilter& self, OpenMS::Mobilogram& mobilogram) { return self.filter(mobilogram); }, "mobilogram"_a, "Smoothes an MSSpectrum containing profile data")
+        .def("filter", [](OpenMS::GaussFilter& self, OpenMS::MSChromatogram& chromatogram) { return self.filter(chromatogram); }, "chromatogram"_a, "Smoothes an MSChromatogram containing profile data")
+        .def("filter", [](OpenMS::GaussFilter& self, OpenMS::Mobilogram& mobilogram) { return self.filter(mobilogram); }, "mobilogram"_a, "Smoothes a Mobilogram containing profile data")
         .def("filterExperiment", [](OpenMS::GaussFilter& self, OpenMS::MSExperiment& map) { return self.filterExperiment(map); }, "map"_a, "Smoothes an MSExperiment containing profile data")
         ;
     def_DefaultParamHandler<OpenMS::GaussFilter>(gaussfilter_class);
@@ -4152,8 +4165,8 @@ decomposition
         .def("__copy__", [](const OpenMS::SavitzkyGolayFilter& self) { return OpenMS::SavitzkyGolayFilter(self); })
         .def("__deepcopy__", [](const OpenMS::SavitzkyGolayFilter& self, nb::dict) { return OpenMS::SavitzkyGolayFilter(self); }, "memo"_a)
         .def("filter", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::MSSpectrum& spectrum) { return self.filter(spectrum); }, "spectrum"_a, "Removes the noise from an MSSpectrum containing profile data")
-        .def("filter", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::MSChromatogram& chromatogram) { return self.filter(chromatogram); }, "chromatogram"_a, "Removes the noise from an MSSpectrum containing profile data")
-        .def("filter", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::Mobilogram& mobilogram) { return self.filter(mobilogram); }, "mobilogram"_a, "Removes the noise from an MSSpectrum containing profile data")
+        .def("filter", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::MSChromatogram& chromatogram) { return self.filter(chromatogram); }, "chromatogram"_a, "Removes the noise from an MSChromatogram containing profile data")
+        .def("filter", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::Mobilogram& mobilogram) { return self.filter(mobilogram); }, "mobilogram"_a, "Removes the noise from a Mobilogram containing profile data")
         .def("filterExperiment", [](OpenMS::SavitzkyGolayFilter& self, OpenMS::MSExperiment& map) { return self.filterExperiment(map); }, "map"_a, "Removes the noise from an MSExperiment containing profile data")
         ;
     def_DefaultParamHandler<OpenMS::SavitzkyGolayFilter>(savitzkygolayfilter_class);

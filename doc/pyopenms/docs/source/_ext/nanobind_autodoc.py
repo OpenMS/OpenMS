@@ -199,14 +199,14 @@ def _unwrap_singletons():
 
     pyopenms replaces them by callable wrappers (``ModificationsDB()`` returns
     the instance), which autosummary does not recognise as classes, so they had
-    no API page. The wrappers carry the class as ``__wrapped__``.
+    no API page. The wrappers carry the class as ``_singleton_class``.
     """
     try:
         import pyopenms
     except ImportError:
         return
     for name in dir(pyopenms):
-        wrapped = getattr(getattr(pyopenms, name), "__wrapped__", None)
+        wrapped = getattr(getattr(pyopenms, name), "_singleton_class", None)
         if isinstance(wrapped, type) and wrapped.__name__ == name:
             setattr(pyopenms, name, wrapped)
 
