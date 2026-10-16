@@ -194,6 +194,8 @@ namespace OpenMS
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
+      // In ppm mode the tolerance is relative to the precursor m/z
+      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : Math::ppmToMass(mz_tolerance_, spectrum_mz);
 
       // Lambda to check the mz/rt thresholds
       auto checkRtAndMzTol = [](const double& spectrum_mz, const double& spectrum_rt, 
@@ -251,12 +253,12 @@ namespace OpenMS
           // iterate through the subordinate level
           for (const auto& subordinate : feature.getSubordinates())
           {
-            construct_feature(subordinate, mz_tolerance_, rt_window_);
+            construct_feature(subordinate, mz_tolerance, rt_window_);
           }
         }
         else
         {
-          construct_feature(feature, mz_tolerance_, rt_window_);
+          construct_feature(feature, mz_tolerance, rt_window_);
         }
       }
     }

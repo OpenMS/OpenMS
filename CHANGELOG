@@ -465,9 +465,11 @@ OpenMS Library:
   - FIX: SwathQC (the charge distribution of OpenSwathWorkflow -out_qc and OpenSwathFileSplitter) used only
     the first MS1 spectrum of a run with 45 or more MS1 spectra: the index for subsampling 30 spectra only
     counted the spectra already taken. It now counts every MS1 spectrum.
-  - FIX: TargetedSpectraExtractor with mz_unit_is_Da 'false' (ppm): mz_tolerance and fwhm_threshold were
-    divided by 1e6 without multiplying by the m/z, so the precursor window and the FWHM threshold were about
-    a factor of m/z too small. They are now relative to the precursor and the peak m/z.
+  - FIX: TargetedSpectraExtractor with mz_unit_is_Da 'false' (ppm): annotateSpectra() with a TargetedExperiment
+    and pickSpectrum() divided mz_tolerance and fwhm_threshold by 1e6 without multiplying by the m/z, so the
+    precursor window and the FWHM threshold were about a factor of m/z too small; annotateSpectra() with MS1
+    features (extractSpectra() with features) took mz_tolerance in Th. They are now relative to the precursor
+    and the peak m/z.
   - FIX: FeatureFinderMultiplexAlgorithm with knock_out: a partial pattern lacking the lightest channel
     (e.g. medium and heavy of a triple SILAC peptide without light) kept the mass shifts of the complete
     pattern, so the filtering only found it next to a peak at the absent light position; such peptides

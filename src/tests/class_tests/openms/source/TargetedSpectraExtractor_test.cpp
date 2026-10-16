@@ -414,6 +414,22 @@ START_SECTION(void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_s
   TEST_REAL_SIMILAR(it->getMZ(), 112.033)
   TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
 
+  // In ppm, the FWHM threshold is relative to the m/z of each peak: 2500 ppm is 0.2125 Th at 85.014 (FWHM 0.245,
+  // kept), 0.2801 Th at 112.033 (FWHM 0.261, rejected) and 0.3252 Th at 130.081 (FWHM 0.185, rejected). A threshold
+  // of 2500 / 1e6 Th would keep all three.
+  params.setValue("mz_unit_is_Da", "false");
+  params.setValue("fwhm_threshold", 2500.0);
+  tse.setParameters(params);
+
+  tse.pickSpectrum(spectrum, picked_spectrum);
+
+  TEST_EQUAL(picked_spectrum.size(), 1)
+  ABORT_IF(picked_spectrum.size() != 1)
+  TEST_REAL_SIMILAR(picked_spectrum[0].getMZ(), 85.014)
+  TEST_REAL_SIMILAR(picked_spectrum[0].getIntensity(), 60754.7)
+  params.setValue("mz_unit_is_Da", "true");
+  tse.setParameters(params);
+
   MSSpectrum unordered;
   unordered.emplace_back(Peak1D(10.0, 100.0));
   unordered.emplace_back(Peak1D(9.0, 100.0));
@@ -1201,6 +1217,45 @@ START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const Feat
   const auto& annotated_spectr1 = annotated_spectra[0];
   TEST_EQUAL(annotated_spectr1.getName(), "ident1")
   TEST_REAL_SIMILAR(annotated_spectr1.getRT(), 100.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] annotateSpectra(spectra, ms1_features, ...) ppm-mode m/z tolerance scales with m/z)
+{
+  // This overload takes mz_tolerance as the width of the window around the precursor m/z: a feature matches iff its
+  // m/z lies within +-mz_tolerance / 2 of it. 20 ppm at m/z 1000 is a window of 0.02 Th, +-0.01 Th.
+  auto annotate = [](double feature_mz)
+  {
+    TargetedSpectraExtractor tse;
+    Param params = tse.getParameters();
+    params.setValue("mz_unit_is_Da", "false");
+    params.setValue("mz_tolerance", 20.0);
+    tse.setParameters(params);
+
+    FeatureMap ms1_features;
+    Feature feature;
+    feature.setUniqueId();
+    feature.setMetaValue("PeptideRef", "ident1");
+    feature.setMZ(feature_mz);
+    feature.setRT(100.0);
+    ms1_features.push_back(feature);
+
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setRT(100.0);
+    Precursor precursor;
+    precursor.setMZ(1000.0);
+    spectrum.setPrecursors({precursor});
+
+    FeatureMap ms2_features;
+    std::vector<MSSpectrum> annotated;
+    tse.annotateSpectra(std::vector<MSSpectrum>{spectrum}, ms1_features, ms2_features, annotated);
+    return annotated.size();
+  };
+  TEST_EQUAL(annotate(1000.008), 1) // inside
+  TEST_EQUAL(annotate(999.992), 1)
+  TEST_EQUAL(annotate(1000.015), 0) // outside; 20 taken as Th (+-10 Th) matched it
+  TEST_EQUAL(annotate(1005.0), 0)
 }
 END_SECTION
 
