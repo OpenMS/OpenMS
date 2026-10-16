@@ -281,6 +281,17 @@ OpenMS Library:
     MALDI imaging .d is rejected as by loadExperiment(). The number of spectra passed to setExpectedSize()
     is an upper bound (see BrukerTimsFile::transform()). loadExperiment() now also honours fill-data off for
     Bruker .d input (spectra without peaks, as for Thermo .raw).
+  - BrukerTimsFile::Config::rt_selects_spectra (new, default false): the retention time range selects the spectra
+    instead of the frames. load() and transform() then return the spectra of a load without the range whose retention
+    time lies in it, unchanged: a DDA MS2 spectrum (the mean time of its frames) is built from all of its frames, and
+    aggregation over retention time reads the neighboring frames outside the range that it needs. FileHandler uses it,
+    so loadExperiment() and transformExperiment() no longer decode the MS2 frames outside a requested RT range of
+    Bruker .d input (before, the RT range was passed to the reader for MS1-only loads alone).
+  - Ion mobility range: PeakFileOptions::setIMRange() (new) restricts the ion mobility of the data FileHandler loads or
+    streams, for every format: peaks outside the range are removed from spectra with an ion mobility per peak, spectra
+    with a single ion mobility outside it are left out, spectra without ion mobility are kept. For Bruker .d input it is
+    passed to the reader, BrukerTimsFile::Config::im_min/im_max (new), which filters likewise and skips the DDA
+    precursors isolated outside the range before their frames are decoded. Both are exposed in pyOpenMS.
   - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
     without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
     invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
