@@ -29,7 +29,12 @@
 ## - homebrew/<formula>/: on macOS, Qt and the libraries it needs (glib, ICU, freetype, ...)
 ##   and the OpenMP runtime libomp come from Homebrew, and the package bundles them. Homebrew
 ##   installs the license files of a formula into its keg, and these are installed for the
-##   given formulae and every formula they depend on.
+##   given formulae and every installed formula they depend on.
+##
+## openms_install_system_library_licenses() installs system/<package>/: on Linux, the
+## libraries the package takes from the build machine's distribution rather than from vcpkg
+## (libgfortran, which vcpkg's LAPACK needs), with the copyright file of the Debian package
+## each comes from; cmake/package_general.cmake calls it.
 ##
 ## openms_install_vendored_licenses() installs the licenses of the third-party code that
 ## OpenMS carries in its own source tree and compiles into its libraries (vendored/<name>/).
@@ -166,30 +171,47 @@ function(openms_install_third_party_licenses)
                           "their license files, does not exist.")
     endif()
     ## --union: the dependencies of any of the formulae, not only those they all share.
-    execute_process(COMMAND "${_brew}" deps --installed --union ${arg_HOMEBREW_FORMULAE}
-                    OUTPUT_VARIABLE _dependencies
-                    RESULT_VARIABLE _result
-                    ERROR_VARIABLE _error
-                    OUTPUT_STRIP_TRAILING_WHITESPACE
-                    ERROR_STRIP_TRAILING_WHITESPACE)
-    if(NOT _result EQUAL 0)
-      message(FATAL_ERROR "'brew deps' failed (${_error}), so the license files of the "
-                          "dependencies of the Homebrew formulae ${arg_HOMEBREW_FORMULAE}, whose "
-                          "libraries the package bundles, cannot be collected.")
-    endif()
-    string(REGEX REPLACE "[ \t\r\n]+" ";" _dependencies "${_dependencies}")
+    ## Both the dependencies recorded in the installed kegs (--installed) and those the
+    ## formulae declare are collected. The recorded ones alone miss formulae: in the Release
+    ## run of 2026-10-08, 'brew deps --installed' left out exactly the dependencies that
+    ## 'brew install qtbase' had upgraded in the same run (glib, harfbuzz, pcre2, libpng,
+    ## cairo, ...), although the package bundles their libraries. homebrew-core's CI checks
+    ## that a formula declares every formula it links against, so the declared ones cover
+    ## what is bundled.
+    set(_dependencies)
+    foreach(_installed_only "--installed" "")
+      execute_process(COMMAND "${_brew}" deps ${_installed_only} --union ${arg_HOMEBREW_FORMULAE}
+                      OUTPUT_VARIABLE _deps
+                      RESULT_VARIABLE _result
+                      ERROR_VARIABLE _error
+                      OUTPUT_STRIP_TRAILING_WHITESPACE
+                      ERROR_STRIP_TRAILING_WHITESPACE)
+      if(NOT _result EQUAL 0)
+        message(FATAL_ERROR "'brew deps ${_installed_only} --union' failed (${_error}), so the "
+                            "license files of the dependencies of the Homebrew formulae "
+                            "${arg_HOMEBREW_FORMULAE}, whose libraries the package bundles, "
+                            "cannot be collected.")
+      endif()
+      string(REGEX REPLACE "[ \t\r\n]+" ";" _deps "${_deps}")
+      list(APPEND _dependencies ${_deps})
+    endforeach()
     set(_formulae ${arg_HOMEBREW_FORMULAE} ${_dependencies})
     list(REMOVE_DUPLICATES _formulae)
+    list(SORT _formulae)
 
     set(_without_license)
+    set(_not_installed)
     foreach(_formula IN LISTS _formulae)
       execute_process(COMMAND "${_brew}" --prefix "${_formula}"
                       OUTPUT_VARIABLE _prefix
                       RESULT_VARIABLE _result
                       ERROR_QUIET
                       OUTPUT_STRIP_TRAILING_WHITESPACE)
+      ## 'brew --prefix' names the opt link of a formula whether or not it is installed. A
+      ## declared dependency that is not installed (an optional one, or one the formula
+      ## gained after it was installed) cannot have a library in the package.
       if(NOT _result EQUAL 0 OR NOT IS_DIRECTORY "${_prefix}")
-        list(APPEND _without_license "${_formula}")
+        list(APPEND _not_installed "${_formula}")
         continue()
       endif()
       file(REAL_PATH "${_prefix}" _keg)
@@ -224,13 +246,238 @@ function(openms_install_third_party_licenses)
       endif()
     endforeach()
     list(LENGTH _formulae _count)
+    list(LENGTH _not_installed _count_not_installed)
+    math(EXPR _count "${_count} - ${_count_not_installed}")
     message(STATUS "Packaging the license files of ${_count} Homebrew formulae")
+    if(_not_installed)
+      message(STATUS "Declared Homebrew dependencies that are not installed: ${_not_installed}")
+    endif()
     if(_without_license)
       ## Expected for Qt's own formulae, whose keg holds its licenses only in a LICENSES
       ## directory; the Qt licenses are installed above.
       message(STATUS "No license file in the Homebrew kegs of: ${_without_license}")
     endif()
   endif()
+endfunction()
+
+## Sets <var> to the libraries <library> needs (the NEEDED entries of its dynamic section).
+function(_openms_needed_libraries var objdump library)
+  execute_process(COMMAND "${objdump}" -p "${library}"
+                  OUTPUT_VARIABLE _output
+                  RESULT_VARIABLE _result
+                  ERROR_QUIET)
+  if(NOT _result EQUAL 0)
+    message(FATAL_ERROR "'${objdump} -p ${library}' failed, so the libraries it needs, whose "
+                        "licenses the package has to ship, are unknown.")
+  endif()
+  string(REGEX MATCHALL "NEEDED +[^ \t\r\n]+" _entries "${_output}")
+  list(TRANSFORM _entries REPLACE "^NEEDED +" "")
+  set(${var} "${_entries}" PARENT_SCOPE)
+endfunction()
+
+## openms_install_system_library_licenses(ROOTS <library>... [EXCLUDE_REGEXES <regex>...])
+##   ROOTS            shared libraries that the package bundles and that come with their
+##                    licenses, i.e. those of the vcpkg tree; what they need, directly or
+##                    through each other, is followed
+##   EXCLUDE_REGEXES  paths of libraries the package does not bundle, the
+##                    POST_EXCLUDE_REGEXES of its runtime dependency set (the C and C++
+##                    runtime, Qt, ...)
+## The libraries the roots need that neither another root provides nor an exclusion drops
+## come from the build machine's distribution, and the package bundles them: on Ubuntu, the
+## GCC Fortran runtime libgfortran, which vcpkg's LAPACK needs. They are found as the
+## compiler finds them (-print-file-name), and the libraries they need are followed in turn.
+## For each Debian package that installed one, its copyright file goes to
+## LICENSES/system/<package>/copyright. Debian's copyright files refer to the full texts of
+## common licenses in /usr/share/common-licenses instead of including them, so the texts
+## they name go next to it. LICENSES/system/INDEX.txt lists the
+## libraries with the package, version and source package each comes from. Configuring
+## fails rather than leave a license out: without dpkg, for a library the compiler cannot
+## find, or for one no package owns.
+function(openms_install_system_library_licenses)
+  cmake_parse_arguments(PARSE_ARGV 0 arg "" "" "ROOTS;EXCLUDE_REGEXES")
+  set(_provided)
+  set(_queue)
+  foreach(_root IN LISTS arg_ROOTS)
+    get_filename_component(_name "${_root}" NAME)
+    list(APPEND _provided "${_name}")
+    if(NOT IS_SYMLINK "${_root}")
+      list(APPEND _queue "${_root}")
+    endif()
+  endforeach()
+  if(NOT _queue)
+    return()
+  endif()
+  set(_objdump "${CMAKE_OBJDUMP}")
+  if(NOT _objdump)
+    find_program(OPENMS_OBJDUMP_EXECUTABLE objdump)
+    set(_objdump "${OPENMS_OBJDUMP_EXECUTABLE}")
+  endif()
+  if(NOT _objdump)
+    message(FATAL_ERROR "objdump is needed to find the libraries of the build machine that "
+                        "the package bundles, whose licenses it has to ship.")
+  endif()
+
+  ## Walk the dependencies: <name>|<path> for every library of the build machine.
+  set(_seen ${_provided})
+  set(_system)
+  set(_unresolved)
+  while(_queue)
+    list(POP_FRONT _queue _library)
+    _openms_needed_libraries(_needed "${_objdump}" "${_library}")
+    foreach(_name IN LISTS _needed)
+      if(_name IN_LIST _seen)
+        continue()
+      endif()
+      list(APPEND _seen "${_name}")
+      execute_process(COMMAND "${CMAKE_CXX_COMPILER}" "-print-file-name=${_name}"
+                      OUTPUT_VARIABLE _path
+                      OUTPUT_STRIP_TRAILING_WHITESPACE
+                      ERROR_QUIET)
+      if(IS_ABSOLUTE "${_path}" AND EXISTS "${_path}")
+        file(REAL_PATH "${_path}" _real)
+        set(_candidates "${_path}" "${_real}")
+      else()
+        ## Not where the compiler looks, but the install step may still find and bundle it
+        ## (through a RUNPATH, ld.so.conf or its DIRECTORIES), so only an exclusion that
+        ## matches the name lets it pass.
+        set(_real)
+        set(_candidates "/${_name}")
+      endif()
+      set(_excluded FALSE)
+      foreach(_regex IN LISTS arg_EXCLUDE_REGEXES)
+        foreach(_candidate IN LISTS _candidates)
+          if(_candidate MATCHES "${_regex}")
+            set(_excluded TRUE)
+          endif()
+        endforeach()
+      endforeach()
+      if(_excluded)
+        continue()
+      elseif(NOT _real)
+        list(APPEND _unresolved "${_name} (needed by ${_library})")
+        continue()
+      endif()
+      list(APPEND _system "${_name}|${_real}")
+      list(APPEND _queue "${_real}")
+    endforeach()
+  endwhile()
+  if(_unresolved)
+    list(JOIN _unresolved ", " _list)
+    message(FATAL_ERROR "The compiler (-print-file-name) cannot find ${_list}, so whether the "
+                        "package bundles them, and the licenses it then has to ship, cannot be "
+                        "checked.")
+  endif()
+  if(NOT _system)
+    return()
+  endif()
+
+  find_program(OPENMS_DPKG_QUERY_EXECUTABLE dpkg-query)
+  set(_dpkg_query "${OPENMS_DPKG_QUERY_EXECUTABLE}")
+  if(NOT _dpkg_query)
+    string(REPLACE "|" " from " _list "${_system}")
+    message(FATAL_ERROR "The package bundles libraries of the build machine (${_list}), but "
+                        "without dpkg-query the packages they come from, and so their "
+                        "licenses, cannot be found.")
+  endif()
+  set(_system_dir "${INSTALL_SHARE_DIR}/LICENSES/system")
+  set(_packages)
+  set(_index)
+  foreach(_entry IN LISTS _system)
+    string(REPLACE "|" ";" _entry "${_entry}")
+    list(GET _entry 0 _name)
+    list(GET _entry 1 _real)
+    ## With a merged /usr, dpkg may know the file under /lib instead of /usr/lib.
+    set(_package)
+    set(_architecture)
+    foreach(_candidate "${_real}" "")
+      if(NOT _candidate)
+        string(REGEX REPLACE "^/usr/" "/" _candidate "${_real}")
+      endif()
+      execute_process(COMMAND "${_dpkg_query}" -S "${_candidate}"
+                      OUTPUT_VARIABLE _owner
+                      RESULT_VARIABLE _result
+                      ERROR_QUIET)
+      ## "libgfortran5:amd64: /usr/lib/x86_64-linux-gnu/libgfortran.so.5.0.0"
+      if(_result EQUAL 0 AND _owner MATCHES "^([^:, \n]+)(:[^: \n]+)?: ")
+        set(_package "${CMAKE_MATCH_1}")
+        set(_architecture "${CMAKE_MATCH_2}")
+        break()
+      endif()
+    endforeach()
+    if(NOT _package)
+      message(FATAL_ERROR "The package bundles ${_name} (${_real}), which no Debian package "
+                          "owns, so its license cannot be found.")
+    endif()
+    ## With the architecture qualifier, as -W lists every installed architecture of a
+    ## multiarch package otherwise.
+    execute_process(COMMAND "${_dpkg_query}" -W
+                            "-f=\${Version}|\${source:Package}|\${source:Version}"
+                            "${_package}${_architecture}"
+                    OUTPUT_VARIABLE _versions
+                    RESULT_VARIABLE _result
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET)
+    if(NOT _result EQUAL 0 OR NOT _versions MATCHES "^[^|\n]+\\|[^|\n]+\\|[^|\n]+$")
+      message(FATAL_ERROR "'dpkg-query -W ${_package}${_architecture}' failed or returned "
+                          "'${_versions}', so the version of ${_name}'s package cannot be "
+                          "recorded.")
+    endif()
+    string(REPLACE "|" ";" _versions "${_versions}")
+    list(GET _versions 0 _version)
+    list(GET _versions 1 _source)
+    list(GET _versions 2 _source_version)
+    list(APPEND _index "${_name}\t${_package} ${_version} (source package ${_source} ${_source_version})")
+    if(_package IN_LIST _packages)
+      continue()
+    endif()
+    list(APPEND _packages "${_package}")
+    ## The doc folder of a library package is often a link to that of its source package's
+    ## base package (libgfortran5 -> gcc-14-base).
+    set(_copyright "/usr/share/doc/${_package}/copyright")
+    if(NOT EXISTS "${_copyright}")
+      message(FATAL_ERROR "The package bundles ${_name} from the Debian package ${_package}, "
+                          "which has no ${_copyright}.")
+    endif()
+    file(REAL_PATH "${_copyright}" _copyright)
+    install(FILES "${_copyright}"
+            DESTINATION "${_system_dir}/${_package}"
+            COMPONENT share)
+    openms_add_third_party_notice("LICENSES/system/${_package}/copyright" "${_copyright}")
+    file(READ "${_copyright}" _text)
+    string(REGEX MATCHALL "/usr/share/common-licenses/[A-Za-z0-9.+-]*[A-Za-z0-9+]" _references "${_text}")
+    list(REMOVE_DUPLICATES _references)
+    foreach(_reference IN LISTS _references)
+      if(NOT EXISTS "${_reference}")
+        message(FATAL_ERROR "The copyright file of the Debian package ${_package} refers to "
+                            "${_reference}, which does not exist.")
+      endif()
+      get_filename_component(_text_name "${_reference}" NAME)
+      ## GPL is a link to GPL-3; it is installed as a file under the name the text uses.
+      file(REAL_PATH "${_reference}" _text_file)
+      install(FILES "${_text_file}"
+              DESTINATION "${_system_dir}/${_package}"
+              RENAME "${_text_name}"
+              COMPONENT share)
+      openms_add_third_party_notice("LICENSES/system/${_package}/${_text_name}" "${_text_file}")
+    endforeach()
+  endforeach()
+
+  list(SORT _index)
+  list(JOIN _index "\n" _index)
+  set(_index_file "${PROJECT_BINARY_DIR}/third_party_licenses/system/INDEX.txt")
+  file(WRITE "${_index_file}"
+       "Libraries of the build machine's distribution that this package bundles, and the Debian\n"
+       "package each comes from. LICENSES/system/<package>/ holds the package's copyright file\n"
+       "and the texts in /usr/share/common-licenses that it refers to. The source code of a\n"
+       "package is in the archive of the distribution: apt-get source <source package>=<version>.\n\n"
+       "${_index}\n")
+  install(FILES "${_index_file}"
+          DESTINATION "${_system_dir}"
+          COMPONENT share)
+  openms_add_third_party_notice("LICENSES/system/INDEX.txt" "${_index_file}")
+  list(JOIN _packages ", " _packages)
+  message(STATUS "Packaging the licenses of the libraries the package takes from the build "
+                 "machine, from the Debian packages ${_packages}")
 endfunction()
 
 ## Installs the licenses of the libraries under src/openms/extern and src/openms/thirdparty,

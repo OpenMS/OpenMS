@@ -20,6 +20,7 @@
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
@@ -40,6 +41,15 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /// Appended to the message of an error of IdXMLFile::store(): store() does not remove what it has written.
+    std::string partialFileNote(const std::string& filename)
+    {
+      return "(writing '" + filename + "' did not complete: a partial file may remain)";
+    }
+  } // namespace
 
   IdXMLFile::IdXMLFile() :
     XMLHandler("", "1.5"),
@@ -84,11 +94,21 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
+    proteinid_to_run_.clear();
 
     endProgress();
   }
 
   void IdXMLFile::store(const std::string& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id)
+  {
+    // every peptide identification needs its protein identification run: fail before the file is opened (outside of
+    // storeFile_(), whose errors note that a partial file may remain)
+    ProteinRunReferences::check(protein_ids, peptide_ids);
+    storeFile_(filename, protein_ids, peptide_ids, document_id);
+  }
+
+  void IdXMLFile::storeFile_(const std::string& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const std::string& document_id)
+  try
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
     {
@@ -235,15 +255,10 @@ namespace OpenMS
     }
     std::vector<std::vector<Size>> run_peptide_ids(protein_ids.size()); // the ones with hits, written
     std::vector<Size> run_empty_count(protein_ids.size(), 0); // the ones without hits, omitted
-    std::vector<Size> without_run; // the ones whose identifier names no run, omitted
     for (Size l = 0; l < peptide_ids.size(); ++l)
     {
-      const auto run = run_of_identifier.find(peptide_ids[l].getIdentifier());
-      if (run == run_of_identifier.end())
-      {
-        without_run.push_back(l);
-      }
-      else if (peptide_ids[l].getHits().empty())
+      const auto run = run_of_identifier.find(peptide_ids[l].getIdentifier()); // exists, checked above
+      if (peptide_ids[l].getHits().empty())
       {
         ++run_empty_count[run->second];
       }
@@ -256,6 +271,8 @@ namespace OpenMS
     // write ProteinIdentification Runs
     for (Size i = 0; i < protein_ids.size(); ++i)
     {
+      // the peptide hits (and protein groups) of a run reference the protein hits of that run only
+      accession_to_id.clear();
       os << "\t<IdentificationRun ";
       os << "date=\"" << protein_ids[i].getDateTime().getDate() << "T" << protein_ids[i].getDateTime().getTime() << "\" ";
       os << "search_engine=\"" << writeXMLEscape(protein_ids[i].getSearchEngine()) << "\" ";
@@ -364,7 +381,7 @@ namespace OpenMS
         }
         if (thrown) std::rethrow_exception(thrown);
       };
-      const char* const store_function = OPENMS_PRETTY_FUNCTION; // names store(), not a lambda, in the exceptions below
+      const char* const store_function = OPENMS_PRETTY_FUNCTION; // names storeFile_(), not a lambda, in the exceptions below
 
       // writeUserParam_(), leaving out the meta values with index skip_a or skip_b
       const auto write_user_params = [&call_serialized](std::ostream& out, const MetaInfoInterface& meta_info,
@@ -476,7 +493,7 @@ namespace OpenMS
               {
                 const std::string message = "No accession " + protein_accession + " found in run '" + run_identifier +
                     "' for PSM " + p_hit.getSequence().toString() + "_" + StringUtils::toStr(p_hit.getCharge()) +
-                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.";
+                    ". Every protein of a peptide evidence needs to be a protein hit of the peptide identification's run.";
                 call_serialized([&] { throw Exception::ElementNotFound(__FILE__, __LINE__, store_function, message); });
               }
             }
@@ -503,12 +520,15 @@ namespace OpenMS
       const SignedSize num_blocks = static_cast<SignedSize>((to_write.size() + block_size - 1) / block_size);
       const std::streamsize precision = os.precision();
       std::exception_ptr error;
+      bool write_failed = false; // writing into the file failed; the exception is constructed after the parallel region
       std::atomic<bool> failed(false);
 
-#ifdef _OPENMP
       // at most one thread per block and at most 16: with more, the formatting outruns the serial write into the file and
-      // the threads only wait
-      const int team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
+      // the threads only wait. Declared without OpenMP, too: with the -fopenmp-simd fallback the compiler still parses
+      // the clauses of the parallel pragma below.
+      [[maybe_unused]] int team_size = 1;
+#ifdef _OPENMP
+      team_size = static_cast<int>(std::min<SignedSize>({omp_get_max_threads(), 16, std::max<SignedSize>(num_blocks, 1)}));
 #endif
 #pragma omp parallel if (num_blocks > 1) num_threads(team_size)
       {
@@ -526,10 +546,12 @@ namespace OpenMS
             {
               std::ostringstream block_os;
               block_os.precision(precision);
-              for (Size k = begin; k < end; ++k)
-              {
-                write_peptide_identification(block_os, peptide_ids[to_write[k]], scratch);
-              }
+              formatBlock_(block_os, [&](std::ostream& out) {
+                for (Size k = begin; k < end; ++k)
+                {
+                  write_peptide_identification(out, peptide_ids[to_write[k]], scratch);
+                }
+              });
               text = block_os.str();
             }
             catch (...)
@@ -549,13 +571,26 @@ namespace OpenMS
               else
               {
                 os.write(text.data(), static_cast<std::streamsize>(text.size()));
-                setProgress(to_write[end - 1]);
+                if (!os)
+                {
+                  write_failed = true;
+                  failed.store(true, std::memory_order_relaxed);
+                }
+                else
+                {
+                  setProgress(to_write[end - 1]);
+                }
               }
             }
           }
         }
       }
       if (error) std::rethrow_exception(error);
+      if (write_failed)
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                            "writing the file failed (e.g. disk full or I/O error)");
+      }
 
       os << "\t</IdentificationRun>\n";
 
@@ -570,15 +605,17 @@ namespace OpenMS
       os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>\n";
     }
 
-    for (const Size l : without_run)
-    {
-      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[l].getIdentifier() + "' while writing '" + filename + "'!");
-    }
     // write footer
     os << "</IdXML>\n";
 
-    // close stream
+    // close stream; a failed write anywhere above (the stream state is sticky) or a failed final flush must not leave a
+    // truncated file behind a successful return
     os.close();
+    if (os.fail())
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                          "writing the file failed (e.g. disk full or I/O error)");
+    }
 
     endProgress();
 
@@ -594,6 +631,30 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
+    proteinid_to_run_.clear();
+  }
+  // Every failure of store() is raised, and the output is never removed: if writing fails (opening, a block, a write, the
+  // final flush or close, an allocation), a partial file may remain. An OpenMS exception keeps its type, and its message
+  // gets a note that names the file and says so, if there is memory for it (otherwise the error is raised as it is). Any
+  // other exception (e.g. std::bad_alloc) is raised unchanged: wrapping it would need memory, and an allocation failure
+  // inside the (noexcept) constructor of an OpenMS exception ends the program.
+  catch (Exception::BaseException& e)
+  {
+    try
+    {
+      if (FileHandler::hasValidExtension(filename, FileTypes::IDXML)) // an invalid extension is reported before any file is opened
+      {
+        std::string message = e.what();
+        if (!message.empty() && message.back() != ' ') message += ' ';
+        message += partialFileNote(filename);
+        static_cast<std::runtime_error&>(e) = std::runtime_error(message);
+      }
+    }
+    catch (...)
+    {
+      // no memory for the note: the error is raised without it
+    }
+    throw;
   }
 
   void IdXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
@@ -746,6 +807,7 @@ namespace OpenMS
 
       // insert id and accession to map
       proteinid_to_accession_[attributeAsString_(attributes, "id")] = accession;
+      proteinid_to_run_[attributeAsString_(attributes, "id")] = prot_id_.getIdentifier();
     }
     // PEPTIDES
     else if (tag == "PeptideIdentification")
@@ -823,6 +885,11 @@ namespace OpenMS
           const auto it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
+            // a peptide hit references the protein hits of its peptide identification's run (no other run's)
+            if (proteinid_to_run_[*it] != pep_id_.getIdentifier())
+            {
+              fatalError(LOAD, std::string("Invalid protein reference '") + *it + "': protein " + it2->second + " is no protein hit of the peptide identification's run");
+            }
             PeptideEvidence pe;
             pe.setProteinAccession(it2->second);
             peptide_evidences_.push_back(std::move(pe));
@@ -1027,6 +1094,8 @@ namespace OpenMS
       getProteinGroups_(prot_id_.getProteinGroups(), "protein_group");
       getProteinGroups_(prot_id_.getIndistinguishableProteins(),
                         "indistinguishable_proteins");
+      // older files may contain an empty file list, which names no files
+      prot_id_.removeEmptyPrimaryMSRunPaths();
 
       prot_ids_->push_back(prot_id_);
       prot_id_ = ProteinIdentification();
@@ -1214,6 +1283,12 @@ namespace OpenMS
       }
     }
     return os;
+  }
+
+  void IdXMLFile::formatBlock_(std::ostream& block_os, const std::function<void(std::ostream&)>& write)
+  {
+    block_os.exceptions(std::ios::badbit | std::ios::failbit);
+    write(block_os);
   }
 
   void IdXMLFile::writeFragmentAnnotations_(const std::string & tag_name, std::ostream & os,

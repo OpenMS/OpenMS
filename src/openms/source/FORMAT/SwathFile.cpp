@@ -32,6 +32,19 @@
 #endif
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOnDisc.h>
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
+#endif
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/IMSExperimentRandomAccess.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <algorithm>
+#include <map>
+#include <numeric>
+#include <set>
+#include <cmath>
 
 #include <memory> // for make_shared
 #include <utility>
@@ -40,6 +53,61 @@ namespace OpenMS
 {
 
   using Interfaces::IMSDataConsumer;
+
+  namespace
+  {
+    /// The SWATH consumer for @p readoptions ("normal", "cache" or "split"), with @p settings set.
+    std::shared_ptr<FullSwathFileConsumer> makeSwathConsumer_(const std::string& readoptions,
+                                                              const std::vector<OpenSwath::SwathMap>& known_window_boundaries,
+                                                              const std::string& tmp,
+                                                              const std::string& tmp_fname,
+                                                              int nr_ms1_spectra,
+                                                              const std::vector<int>& swath_counter,
+                                                              const ExperimentalSettings& settings)
+    {
+      std::shared_ptr<FullSwathFileConsumer> consumer;
+      if (readoptions == "normal")
+      {
+        consumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
+      }
+      else if (readoptions == "cache")
+      {
+        consumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      }
+      else if (readoptions == "split")
+      {
+        // WARNING: swath_maps will be empty when querying retrieveSwathMaps()
+        consumer = std::make_shared<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Unknown or unsupported option " + readoptions);
+      }
+      consumer->setExperimentalSettings(settings);
+      return consumer;
+    }
+
+    /**
+      @brief Passes only the spectra and chromatograms on.
+
+      The receiving consumers were already given the metadata (and, where needed, extra meta
+      values) by the caller; this keeps a reader from replacing it (cf. MzMLFile::transform()
+      with skip_first_pass).
+    */
+    class DataOnlyConsumer : public IMSDataConsumer
+    {
+    public:
+      explicit DataOnlyConsumer(IMSDataConsumer& next) : next_(next) {}
+      void consumeSpectrum(SpectrumType& s) override { next_.consumeSpectrum(s); }
+      void consumeChromatogram(ChromatogramType& c) override { next_.consumeChromatogram(c); }
+      void setExpectedSize(Size, Size) override {}
+      void setExperimentalSettings(const ExperimentalSettings&) override {}
+
+    private:
+      IMSDataConsumer& next_;
+    };
+  }
 
   /// Loads a Swath run from a list of split mzML files
   std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list,
@@ -156,27 +224,7 @@ namespace OpenMS
 
     std::shared_ptr<FullSwathFileConsumer> dataConsumer;
     startProgress(0, 1, "Loading data file " + file);
-    if (readoptions == "normal")
-    {
-      dataConsumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
-      dataConsumer->setExperimentalSettings(*exp_meta.get());
-    }
-    else if (readoptions == "cache")
-    {
-      dataConsumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      dataConsumer->setExperimentalSettings(*exp_meta.get());
-    }
-    else if (readoptions == "split")
-    {
-      // WARNING: swath_maps will be empty when querying retrieveSwathMaps()
-      dataConsumer = std::make_shared<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      dataConsumer->setExperimentalSettings(*exp_meta.get());
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Unknown or unsupported option " + readoptions);
-    }
+    dataConsumer = makeSwathConsumer_(readoptions, known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter, *exp_meta);
 
     std::vector<Interfaces::IMSDataConsumer *> consumer_list;
     // only use plugin if non-empty
@@ -199,6 +247,357 @@ namespace OpenMS
     return swath_maps;
   }
 
+#ifdef WITH_THERMO_RAW
+  std::vector<OpenSwath::SwathMap> SwathFile::loadThermoRaw(const std::string& file,
+                                                            const std::string& tmp,
+                                                            std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                            const std::string& readoptions,
+                                                            Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    OPENMS_LOG_INFO << "Loading Thermo RAW file " << file << " using readoptions " << readoptions << '\n';
+    if (readoptions == "onDisc")
+    {
+      return loadOnDisc(file, exp_meta, plugin_consumer);
+    }
+    std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : "";
+
+    // Read through FileHandler like the other tools (centroided spectra, source file as for a load)
+    FileHandler fh;
+    fh.getOptions().setSkipChromatograms(true); // the SWATH consumers do not take chromatograms
+
+    // First pass: the spectra without peaks, for the SWATH windows and as run metadata
+    startProgress(0, 1, "Loading metadata of " + file);
+    auto exp_stripped = std::make_shared<PeakMap>();
+    {
+      FileHandler meta_fh = fh;
+      meta_fh.getOptions().setMetadataOnly(true);
+      meta_fh.loadExperiment(file, *exp_stripped, {FileTypes::RAW});
+    }
+    exp_meta = exp_stripped;
+
+    std::vector<int> swath_counter;
+    int nr_ms1_spectra;
+    std::vector<OpenSwath::SwathMap> known_window_boundaries;
+    countScansInSwath_(exp_stripped->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
+    OPENMS_LOG_INFO << "Determined there to be " << swath_counter.size()
+                    << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
+    endProgress();
+
+    startProgress(0, 1, "Loading data file " + file);
+    std::shared_ptr<FullSwathFileConsumer> dataConsumer =
+      makeSwathConsumer_(readoptions, known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter, *exp_meta);
+
+    std::vector<Interfaces::IMSDataConsumer*> consumer_list;
+    if (plugin_consumer)
+    {
+      exp_meta->setMetaValue("nr_ms1_spectra", nr_ms1_spectra); // required for SwathQC::getExpSettingsFunc()
+      plugin_consumer->setExperimentalSettings(*exp_meta);
+      exp_meta->removeMetaValue("nr_ms1_spectra");
+      consumer_list.push_back(plugin_consumer);
+    }
+    consumer_list.push_back(dataConsumer.get());
+    MSDataChainingConsumer chaining_consumer(consumer_list);
+    DataOnlyConsumer data_only(chaining_consumer);
+    fh.transformExperiment(file, &data_only, {FileTypes::RAW});
+
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    dataConsumer->retrieveSwathMaps(swath_maps);
+    endProgress();
+    return swath_maps;
+  }
+
+#endif
+
+  namespace
+  {
+    // Run metadata of an open random-access experiment; it must have been opened with metadata
+    std::shared_ptr<ExperimentalSettings> copyOnDiscSettings(const std::shared_ptr<IMSExperimentRandomAccess>& experiment)
+    {
+      if (!experiment)
+      {
+        throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      const std::shared_ptr<const ExperimentalSettings> settings = experiment->getExperimentalSettings();
+      if (!settings)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The random-access experiment has no meta data (e.g. OnDiscMSExperiment opened with skipMetaData); "
+          "readOptions 'onDisc' needs the spectrum meta data to determine the SWATH windows.");
+      }
+      return std::make_shared<ExperimentalSettings>(*settings);
+    }
+
+    // Spectra without peaks, in index order, as an experiment (for FAIMSHelper and countScansInSwath_())
+    PeakMap readOnDiscMetadata(IMSExperimentRandomAccess& experiment)
+    {
+      PeakMap metadata;
+      metadata.reserve(experiment.getNrSpectra());
+      for (Size i = 0; i < experiment.getNrSpectra(); ++i)
+      {
+        metadata.addSpectrum(experiment.getSpectrumMetadata(i));
+      }
+      return metadata;
+    }
+
+    /*
+      Spectrum indices per FAIMS compensation voltage, with the assignment of
+      IMDataConverter::splitByFAIMSCV(): a spectrum goes to the CV in its drift time if the drift time
+      unit is FAIMS_COMPENSATION_VOLTAGE, an MS2+ spectrum without a CV to the most recent CV before
+      it, and other spectra are skipped. Without any CV, all spectra form one group with CV NaN.
+    */
+    std::vector<std::pair<double, std::vector<Size>>> partitionByFAIMSCV(const PeakMap& metadata)
+    {
+      std::vector<std::pair<double, std::vector<Size>>> result;
+      const std::set<double> cvs = FAIMSHelper::getCompensationVoltages(metadata);
+      if (cvs.empty())
+      {
+        std::vector<Size> all(metadata.size());
+        std::iota(all.begin(), all.end(), Size(0));
+        result.emplace_back(std::numeric_limits<double>::quiet_NaN(), std::move(all));
+        return result;
+      }
+      std::map<double, std::vector<Size>> groups;
+      for (double cv : cvs) { groups[cv]; }
+      double last_cv = std::numeric_limits<double>::quiet_NaN();
+      Size skipped = 0;
+      for (Size i = 0; i < metadata.size(); ++i)
+      {
+        const MSSpectrum& s = metadata[i];
+        double cv = std::numeric_limits<double>::quiet_NaN();
+        if (s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+        {
+          cv = last_cv = s.getDriftTime();
+        }
+        else if (s.getMSLevel() > 1)
+        {
+          cv = last_cv;
+        }
+        auto it = std::isnan(cv) ? groups.end() : groups.find(cv);
+        if (it == groups.end())
+        {
+          ++skipped;
+          continue;
+        }
+        it->second.push_back(i);
+      }
+      if (skipped > 0)
+      {
+        OPENMS_LOG_WARN << "Skipped " << skipped << " spectra without a FAIMS compensation voltage.\n";
+      }
+      for (auto& [cv, indices] : groups)
+      {
+        result.emplace_back(cv, std::move(indices));
+      }
+      return result;
+    }
+  }
+
+  std::vector<OpenSwath::SwathMap> SwathFile::buildOnDiscMaps_(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,
+                                                               const PeakMap& metadata,
+                                                               const std::vector<Size>& indices)
+  {
+    // Window assignment as with the streaming consumers: the windows are determined from the spectrum
+    // metadata (countScansInSwath_()), then each MS2 spectrum goes to the first window with the same
+    // center and ion mobility limits (cf. FullSwathFileConsumer::consumeSpectrum()).
+    std::vector<MSSpectrum> subset;
+    subset.reserve(indices.size());
+    for (Size i : indices)
+    {
+      subset.push_back(metadata[i]);
+    }
+    std::vector<int> swath_counter;
+    int nr_ms1_spectra;
+    std::vector<OpenSwath::SwathMap> boundaries;
+    countScansInSwath_(subset, swath_counter, nr_ms1_spectra, boundaries);
+    OPENMS_LOG_INFO << "Determined there to be " << swath_counter.size()
+                    << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra\n";
+
+    std::vector<Size> ms1_indices;
+    std::vector<std::vector<Size>> window_indices(boundaries.size());
+    for (Size k = 0; k < subset.size(); ++k)
+    {
+      const MSSpectrum& s = subset[k];
+      if (s.getMSLevel() == 1)
+      {
+        ms1_indices.push_back(indices[k]);
+        continue;
+      }
+      const Precursor& prec = s.getPrecursors()[0]; // countScansInSwath_() checked that there is one
+      double im_lower = -1, im_upper = -1;
+      if (s.metaValueExists("ion mobility lower limit"))
+      {
+        im_lower = (double)s.getMetaValue("ion mobility lower limit");
+        im_upper = (double)s.getMetaValue("ion mobility upper limit");
+      }
+      for (Size w = 0; w < boundaries.size(); ++w)
+      {
+        if (std::fabs(prec.getMZ() - boundaries[w].center) < 1e-6 &&
+            std::fabs(im_lower - boundaries[w].imLower) < 1e-6 &&
+            std::fabs(im_upper - boundaries[w].imUpper) < 1e-6)
+        {
+          window_indices[w].push_back(indices[k]);
+          break;
+        }
+      }
+    }
+
+    // OpenSwathWorkflow hands each map to one thread without lightClone(), so every map reads
+    // through its own handle (all handles share the index).
+    std::vector<OpenSwath::SwathMap> swath_maps;
+    if (!ms1_indices.empty())
+    {
+      OpenSwath::SwathMap map;
+      map.sptr = std::make_shared<SpectrumAccessOnDisc>(experiment->clone(), std::move(ms1_indices));
+      map.lower = map.upper = map.center = map.imLower = map.imUpper = -1;
+      map.ms1 = true;
+      swath_maps.push_back(map);
+    }
+    for (Size w = 0; w < boundaries.size(); ++w)
+    {
+      OpenSwath::SwathMap map = boundaries[w];
+      map.sptr = std::make_shared<SpectrumAccessOnDisc>(experiment->clone(), std::move(window_indices[w]));
+      map.ms1 = false;
+      swath_maps.push_back(map);
+    }
+    return swath_maps;
+  }
+
+  void SwathFile::passOnDiscToPlugin_(IMSExperimentRandomAccess& experiment,
+                                      const PeakMap& metadata,
+                                      ExperimentalSettings& exp_meta,
+                                      Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    if (plugin_consumer == nullptr)
+    {
+      return;
+    }
+    // The maps read the spectra from the file again, so a change made by the plugin would be lost.
+    // Hand it a copy and reject changes instead of silently discarding them.
+    const int nr_ms1_spectra = static_cast<int>(std::count_if(metadata.begin(), metadata.end(),
+      [](const MSSpectrum& s) { return s.getMSLevel() == 1; }));
+    startProgress(0, experiment.getNrSpectra(), "Passing the spectra to the plugin consumer");
+    exp_meta.setMetaValue("nr_ms1_spectra", nr_ms1_spectra); // required for SwathQC::getExpSettingsFunc()
+    plugin_consumer->setExperimentalSettings(exp_meta);
+    exp_meta.removeMetaValue("nr_ms1_spectra");
+    for (Size i = 0; i < experiment.getNrSpectra(); ++i)
+    {
+      const MSSpectrum original = experiment.getSpectrum(i);
+      MSSpectrum s = original;
+      plugin_consumer->consumeSpectrum(s);
+      if (!(s == original))
+      {
+        endProgress();
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "readOptions 'onDisc' reads the spectra from the file and cannot keep changes made by a plugin consumer "
+          "(spectrum " + StringUtils::toStr(i) + " was modified). Use readOptions 'normal' or 'cache' for "
+          "transforming consumers.");
+      }
+      setProgress(i);
+    }
+    endProgress();
+  }
+
+  std::shared_ptr<IMSExperimentRandomAccess> SwathFile::openOnDisc_(const std::string& file)
+  {
+    const FileTypes::Type type = FileHandler::getType(file);
+    std::shared_ptr<IMSExperimentRandomAccess> experiment;
+    startProgress(0, 1, "Indexing " + file);
+    if (type == FileTypes::MZML)
+    {
+      auto mzml = std::make_shared<OnDiscMSExperiment>();
+      if (!mzml->openFile(file))
+      {
+        endProgress();
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file,
+          "readOptions 'onDisc' needs an indexed mzML file (e.g. written by FileConverter); use 'normal' or 'cache' otherwise.");
+      }
+      experiment = mzml;
+    }
+#ifdef WITH_THERMO_RAW
+    else if (type == FileTypes::RAW)
+    {
+      // Same reader options as FileHandler uses for the other read options (centroided, no chromatograms)
+      ThermoRawFile::Options options;
+      options.centroid = true;
+      options.checksum = false;
+      options.skip_chromatograms = true;
+      auto raw = std::make_shared<OnDiscThermoRawExperiment>();
+      raw->openFile(file, options);
+      experiment = raw;
+    }
+#endif
+    // Bruker .d (TDF) is not supported yet; it needs an IMSExperimentRandomAccess backend.
+    else
+    {
+      endProgress();
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "readOptions 'onDisc' supports indexed mzML"
+#ifdef WITH_THERMO_RAW
+        " and Thermo .raw"
+#endif
+        " input, not this file type.", file);
+    }
+    endProgress();
+    return experiment;
+  }
+
+  std::vector<OpenSwath::SwathMap> SwathFile::loadOnDisc(const std::string& file,
+                                                         std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                         Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    OPENMS_LOG_INFO << "Loading " << file << " using readoptions onDisc\n";
+    return loadOnDisc(openOnDisc_(file), exp_meta, plugin_consumer);
+  }
+
+  std::vector<FAIMSSwathMapGroup> SwathFile::loadOnDiscByFAIMSCV(const std::string& file,
+                                                                 std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                                 Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    OPENMS_LOG_INFO << "Loading " << file << " by FAIMS CV using readoptions onDisc\n";
+    return loadOnDiscByFAIMSCV(openOnDisc_(file), exp_meta, plugin_consumer);
+  }
+
+  std::vector<OpenSwath::SwathMap> SwathFile::loadOnDisc(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,
+                                                         std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                         Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    exp_meta = copyOnDiscSettings(experiment);
+    const PeakMap metadata = readOnDiscMetadata(*experiment);
+
+    // The flat SwathMap list carries no compensation voltage: windows of different CVs with the same
+    // isolation window would be merged, so multi-CV input needs loadOnDiscByFAIMSCV().
+    const std::set<double> cvs = FAIMSHelper::getCompensationVoltages(metadata);
+    if (cvs.size() > 1)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "The input contains " + StringUtils::toStr(cvs.size()) + " FAIMS compensation voltages. readOptions 'onDisc' "
+        "does not merge spectra of different CVs into one set of SWATH maps; use SwathFile::loadOnDiscByFAIMSCV() "
+        "(or split the input by CV).");
+    }
+    passOnDiscToPlugin_(*experiment, metadata, *exp_meta, plugin_consumer);
+
+    std::vector<Size> all(metadata.size());
+    std::iota(all.begin(), all.end(), Size(0));
+    return buildOnDiscMaps_(experiment, metadata, all);
+  }
+
+  std::vector<FAIMSSwathMapGroup> SwathFile::loadOnDiscByFAIMSCV(const std::shared_ptr<IMSExperimentRandomAccess>& experiment,
+                                                                 std::shared_ptr<ExperimentalSettings>& exp_meta,
+                                                                 Interfaces::IMSDataConsumer* plugin_consumer)
+  {
+    exp_meta = copyOnDiscSettings(experiment);
+    const PeakMap metadata = readOnDiscMetadata(*experiment);
+    passOnDiscToPlugin_(*experiment, metadata, *exp_meta, plugin_consumer);
+
+    std::vector<FAIMSSwathMapGroup> result;
+    for (auto& [cv, indices] : partitionByFAIMSCV(metadata))
+    {
+      result.push_back(FAIMSSwathMapGroup{cv, buildOnDiscMaps_(experiment, metadata, indices)});
+    }
+    return result;
+  }
+
+
   /// Loads a Swath run from a pre-loaded in-memory MSExperiment
   std::vector<OpenSwath::SwathMap> SwathFile::loadFromMSExperiment(
       const std::shared_ptr<PeakMap>& exp,
@@ -210,8 +609,10 @@ namespace OpenMS
                     << " spectra using readoptions " << readoptions << '\n';
     std::string tmp_fname = StringUtils::hasSuffix(tmp, '/') ? File::getUniqueName() : "";
 
-    // The provided experiment already contains all metadata + data.
-    exp_meta = exp;
+    // Keep only the run-level metadata, not a second reference to the spectra.
+    auto metadata = std::make_shared<PeakMap>();
+    metadata->getExperimentalSettings() = exp->getExperimentalSettings();
+    exp_meta = metadata;
 
     std::vector<int> swath_counter;
     int nr_ms1_spectra;

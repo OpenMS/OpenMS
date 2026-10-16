@@ -1569,6 +1569,63 @@ END_SECTION
 // pin the parts of it that a lenient reader would otherwise paper over.
 /////////////////////////////////////////////////////////////
 
+START_SECTION(([EXTRA] exportToParquet / importFromParquet - every peptide identification needs its protein identification run))
+{
+  FeatureMap fm;
+  ProteinIdentification run; // no protein hits
+  run.setIdentifier("search");
+  run.setSearchEngine("SearchEngine");
+  fm.setProteinIdentifications({run});
+
+  PeptideIdentification pep;
+  pep.setIdentifier("search");
+  pep.setScoreType("q-value");
+  pep.setHigherScoreBetter(false);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  hit.setScore(0.01);
+  pep.insertHit(hit);
+
+  Feature f;
+  f.setRT(10.0);
+  f.setMZ(500.0);
+  f.setIntensity(100.0f);
+  f.setCharge(2);
+  f.setUniqueId(42);
+  Feature sub = f;
+  sub.setUniqueId(43);
+  sub.getPeptideIdentifications().push_back(pep); // a subordinate with its own identification
+  f.getSubordinates().push_back(sub);
+  f.getPeptideIdentifications().push_back(pep);
+  fm.push_back(f);
+
+  // the identifications of features, subordinates and unassigned ones are checked before anything is written
+  {
+    FeatureMap bad = fm;
+    bad[0].getSubordinates()[0].getPeptideIdentifications()[0].setIdentifier("other");
+    std::string tmp_dir;
+    NEW_TMP_FILE(tmp_dir)
+    tmp_dir += ".featureparquet";
+    TEST_EXCEPTION(Exception::InvalidParameter, FeatureMapArrowIO::exportToParquet(bad, tmp_dir))
+    TEST_FALSE(File::exists(tmp_dir))
+  }
+
+  // the run identifier is synthesized on load: the identifications of the subordinates follow it, too
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_fmruns";
+  TEST_TRUE(File::makeDir(dir))
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+  ABORT_IF(in.size() != 1 || in[0].getSubordinates().size() != 1 || in.getProteinIdentifications().size() != 1)
+  const std::string& identifier = in.getProteinIdentifications()[0].getIdentifier();
+  TEST_EQUAL(in[0].getPeptideIdentifications()[0].getIdentifier(), identifier)
+  TEST_EQUAL(in[0].getSubordinates()[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(in[0].getSubordinates()[0].getPeptideIdentifications()[0].getIdentifier(), identifier)
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
 START_SECTION(([EXTRA] exportToParquet / importFromParquet - the map level unique id survives))
 {
   FeatureMap fm;

@@ -54,6 +54,7 @@
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/set.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
@@ -93,7 +94,7 @@ namespace
         if (!(*db_entry == *r))
         {
           throw nb::value_error(("Ribonucleotide '" + r->getCode() + "' differs from the RibonucleotideDB "
-                                 "entry with the same code. NASequence stores database entries, so the edits "
+                                 "entry with the same code. OpenMS stores database entries, so the edits "
                                  "on this copy would be silently lost. Register the modified ribonucleotide "
                                  "in RibonucleotideDB under its own code instead.").c_str());
         }
@@ -104,6 +105,18 @@ namespace
       }
     }
     rejectForeignPointer_("Ribonucleotide", "RibonucleotideDB", r == nullptr ? "None" : r->getCode());
+  }
+
+  /// Return owned Python copies so mutable access cannot edit shared database entries.
+  nb::set copyRibonucleotideSet_(const std::set<const OpenMS::Ribonucleotide*>& modifications)
+  {
+    nb::set result;
+    for (const auto* modification : modifications)
+    {
+      if (modification == nullptr) throw nb::value_error("A modification group contains a null ribonucleotide.");
+      result.add(nb::cast(*modification, nb::rv_policy::copy));
+    }
+    return result;
   }
 
   const OpenMS::DigestionEnzyme* requireDBEnzyme_(const OpenMS::DigestionEnzyme* e)
@@ -1653,6 +1666,23 @@ The enzymes are read from share/CHEMISTRY/Enzymes_RNA.xml.
     // -----------------------------------------------------------------------
     // RNaseDigestion
     // -----------------------------------------------------------------------
+    nb::class_<OpenMS::RNaseDigestion::DigestionProduct>(m, "RNaseDigestionProduct", "Digested RNA sequence and zero-based parent coordinates (start, length)")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::RNaseDigestion::DigestionProduct&>())
+        .def_rw("fragment", &OpenMS::RNaseDigestion::DigestionProduct::fragment)
+        .def_rw("position", &OpenMS::RNaseDigestion::DigestionProduct::position);
+    nb::class_<OpenMS::RNaseDigestion::CleavageSensitiveModGroups>(m, "RNaseCleavageSensitiveModGroups", "Cleavage-blocking nucleotide modifications inferred for an RNase; groups and copies borrow stable RibonucleotideDB entries")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::RNaseDigestion::CleavageSensitiveModGroups&>())
+        .def_prop_ro("cuts_before_sensitive", [](const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& self) {
+            return copyRibonucleotideSet_(self.cuts_before_sensitive);
+        }, "Return owned copies of modifications that block cleavage before a residue.")
+        .def_prop_ro("cuts_after_sensitive", [](const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& self) {
+            return copyRibonucleotideSet_(self.cuts_after_sensitive);
+        }, "Return owned copies of modifications that block cleavage after a residue.")
+        .def("combined", [](const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& self) {
+            return copyRibonucleotideSet_(self.combined());
+        }, "Return owned copies of the combined modifications; editing them does not alter the database or this group.");
     nb::class_<OpenMS::RNaseDigestion, OpenMS::EnzymaticDigestion>(m, "RNaseDigestion", 
         R"doc(
 Class for the enzymatic digestion of RNA
@@ -1690,6 +1720,27 @@ By returning only references into the original string this is very fast
 :return: Number of discarded digestion products (which are not matching length restrictions)
 )doc")
         .def("countInternalCleavageSites", [](const OpenMS::RNaseDigestion& self, const std::string& sequence) { return self.countInternalCleavageSites(sequence); }, "sequence"_a, "Returns the number of internal cleavage sites for this sequence.")
+        .def("getFragmentPositions", &OpenMS::RNaseDigestion::getFragmentPositions,
+             "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Return zero-based (start, length) coordinates for digestion products.")
+        .def("inferCleavageSensitiveMods", [](const OpenMS::RNaseDigestion& self, nb::iterable modifications) {
+            std::set<const OpenMS::Ribonucleotide*> checked;
+            for (nb::handle modification : modifications)
+            {
+                // Resolve each item while the iterator still owns the Python object.
+                checked.insert(resolveDBRibonucleotide_(nb::cast<const OpenMS::Ribonucleotide*>(modification)));
+            }
+            return self.inferCleavageSensitiveMods(checked);
+        }, "variable_modifications"_a, "Infer variable modifications that block the configured RNase. Each definition must match a registered RibonucleotideDB entry; equivalent copies are resolved to that stable entry. Unknown codes or edited definitions raise ValueError.")
+        .def("digestWithCleavageSensitiveMods", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, const OpenMS::RNaseDigestion::CleavageSensitiveModGroups& groups, OpenMS::Size budget, OpenMS::Size minimum, OpenMS::Size maximum) {
+            std::vector<OpenMS::RNaseDigestion::DigestionProduct> products;
+            self.digestWithCleavageSensitiveMods(rna, groups, budget, products, minimum, maximum);
+            return products;
+        }, "rna"_a, "cleavage_sensitive_mods"_a, "max_sensitive_mods_per_fragment"_a, "min_length"_a = 0, "max_length"_a = 0, "Return coordinate-bearing products while enumerating cleavage-blocking modifications within the budget.")
+        .def("digestProducts", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, OpenMS::Size minimum, OpenMS::Size maximum) {
+            std::vector<OpenMS::RNaseDigestion::DigestionProduct> products;
+            self.digest(rna, products, minimum, maximum);
+            return products;
+        }, "rna"_a, "min_length"_a = 0, "max_length"_a = 0, "Return RNA digestion products with their zero-based parent coordinates.")
         .def("digest", [](const OpenMS::RNaseDigestion& self, const OpenMS::NASequence& rna, OpenMS::Size min_length, OpenMS::Size max_length) {
             std::vector<OpenMS::NASequence> output;
             self.digest(rna, output, min_length, max_length);

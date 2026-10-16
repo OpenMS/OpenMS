@@ -39,6 +39,19 @@ using namespace OpenMS;
 using namespace std;
 
 /////////////////////////////////////////////////////////////
+// Every peptide identification needs its protein identification run (search run), which may have
+// no protein hits: gives a map built without one a run that all its peptide identifications use.
+/////////////////////////////////////////////////////////////
+
+void addSearchRun(ConsensusMap& cmap)
+{
+  ProteinIdentification run;
+  run.setIdentifier("search_run");
+  cmap.getProteinIdentifications().push_back(run);
+  cmap.applyFunctionOnPeptideIDs([](PeptideIdentification& pid) { pid.setIdentifier("search_run"); });
+}
+
+/////////////////////////////////////////////////////////////
 // Helper function to create a test ConsensusMap
 /////////////////////////////////////////////////////////////
 
@@ -103,6 +116,7 @@ ConsensusMap createTestConsensusMap()
 
   // Add peptide identification
   PeptideIdentification pep_id1;
+  pep_id1.setIdentifier("PI_0");
   pep_id1.setRT(100.5);
   pep_id1.setMZ(500.25);
   pep_id1.setScoreType("Posterior Error Probability");
@@ -137,6 +151,7 @@ ConsensusMap createTestConsensusMap()
   cf2.insert(0, bf3);
 
   PeptideIdentification pep_id2;
+  pep_id2.setIdentifier("PI_0");
   pep_id2.setRT(200.0);
   pep_id2.setMZ(600.30);
   pep_id2.setScoreType("Posterior Error Probability");
@@ -422,6 +437,8 @@ START_SECTION(exportToArrow - modifications column)
 
   cmap.push_back(cf);
 
+  addSearchRun(cmap);
+
   auto table = ConsensusMapArrowExport::exportToArrow(cmap);
 
   TEST_NOT_EQUAL(table, nullptr)
@@ -537,6 +554,8 @@ START_SECTION(([EXTRA] every identification-level column comes from the winning 
   cf.setPeptideIdentifications({worse, better});
   cmap.push_back(cf);
 
+  addSearchRun(cmap);
+
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
   TEST_EQUAL(t->num_rows(), 1)
@@ -595,6 +614,8 @@ START_SECTION(([EXTRA] label-free row coordinates are mutually consistent))
   pid.setHits({hit});
   cf.setPeptideIdentifications({pid});
   cmap.push_back(cf);
+
+  addSearchRun(cmap);
 
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -660,6 +681,8 @@ START_SECTION(([EXTRA] a leading hitless identification does not discard the fea
   cf.setPeptideIdentifications({hitless, real_id});
   cmap.push_back(cf);
 
+  addSearchRun(cmap);
+
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
   auto seq = std::static_pointer_cast<arrow::StringArray>(t->GetColumnByName("sequence")->chunk(0));
@@ -692,6 +715,8 @@ START_SECTION(([EXTRA] a feature whose identifications are all hitless does not 
   another_empty_pid.setHigherScoreBetter(false);
   cf.setPeptideIdentifications({empty_pid, another_empty_pid});
   cmap.push_back(cf);
+
+  addSearchRun(cmap);
 
   auto t = ConsensusMapArrowExport::exportToArrow(cmap);
   TEST_NOT_EQUAL(t, nullptr)
@@ -990,6 +1015,7 @@ START_SECTION((static bool exportToParquetStreaming(const ConsensusMap& cmap, co
     if (i % 4 != 0) // most identified, every 4th left unidentified
     {
       PeptideIdentification pid;
+      pid.setIdentifier("PI_0");
       pid.setRT(cf.getRT()); pid.setMZ(cf.getMZ());
       pid.setScoreType("Posterior Error Probability"); pid.setHigherScoreBetter(false);
       PeptideHit hit;
@@ -1108,6 +1134,7 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   cf.insert(0, bf);
 
   PeptideIdentification pid;
+  pid.setIdentifier("PI_0");
   pid.setScoreType("Posterior Error Probability"); pid.setHigherScoreBetter(false);
   pid.setMetaValue("ion_mobility", 0.85);
   PeptideHit hit;
@@ -1134,6 +1161,7 @@ START_SECTION([EXTRA] exportToArrow - dedicated metavalue columns resolve to cor
   BaseFeature bf2; bf2.setIntensity(5.0f); bf2.setMZ(600.0); bf2.setRT(400.0);
   cf2.insert(0, bf2);
   PeptideIdentification pid2;
+  pid2.setIdentifier("PI_0");
   pid2.setScoreType("Posterior Error Probability"); pid2.setHigherScoreBetter(false);
   pid2.setMetaValue("IM", 1.10);            // fallback path (no "ion_mobility")
   PeptideHit hit2;
@@ -1433,16 +1461,11 @@ START_SECTION(([EXTRA] the feature<->PSM cross-references resolve and agree in b
   // (its "reciprocal desync" check). Producing both from one pass is what makes that hold, so
   // this asserts the property rather than the implementation detail.
   ConsensusMap cmap = createTestConsensusMap();
-  // The shared fixture leaves the identification run's MS run path unset and its PSMs' run
-  // identifier unlinked. Both are legitimate, but together they mean the psm view cannot resolve
-  // run_file_name -- and a PSM with no run matches no feature row, so the cross-references would
-  // come out empty and every assertion below would hold vacuously. The `total_listed > 0` guard
-  // further down is what catches that if these two lines are ever lost.
+  // The shared fixture leaves the identification run's MS run path unset, which is legitimate, but
+  // means the psm view cannot resolve run_file_name -- and a PSM with no run file matches no
+  // feature row, so the cross-references would come out empty and every assertion below would hold
+  // vacuously. The `total_listed > 0` guard further down is what catches that if this line is lost.
   cmap.getProteinIdentifications()[0].setPrimaryMSRunPath({"sample1.mzML"});
-  for (auto& cf : cmap)
-  {
-    for (auto& pid : cf.getPeptideIdentifications()) { pid.setIdentifier("PI_0"); }
-  }
 
   QPXIdentity::FeatureLinks links;
   auto features = ConsensusMapArrowExport::exportToArrow(cmap, &links);

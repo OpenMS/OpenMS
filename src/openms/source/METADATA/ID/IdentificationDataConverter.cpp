@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <vector>
 
 using namespace std;
@@ -30,6 +31,9 @@ namespace OpenMS
     IdentificationData& id_data, const vector<ProteinIdentification>& proteins,
     const PeptideIdentificationList& peptides)
   {
+    // every peptide identification needs its protein identification run (the processing step it is assigned to)
+    ProteinRunReferences::check(proteins, peptides);
+
     map<std::string, ID::ProcessingStepRef> id_to_step;
     ProgressLogger progresslogger;
     progresslogger.setLogType(ProgressLogger::CMD);
@@ -373,7 +377,7 @@ namespace OpenMS
     // score type is stored in "PeptideIdent.", not "PeptideHit":
 
     map<pair<ID::ObservationRef, std::optional<ID::ProcessingStepRef>>,
-        pair<vector<PeptideHit>, ID::ScoreTypeRef>> psm_data;
+        pair<vector<pair<PeptideHit, const ID::ObservationMatch*>>, ID::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
 
@@ -442,7 +446,7 @@ namespace OpenMS
         }
         auto key = make_pair(input_match.observation_ref,
                              applied.processing_step_opt);
-        psm_data[key].first.push_back(hit_copy);
+        psm_data[key].first.emplace_back(hit_copy, &input_match);
         psm_data[key].second = scores[0].first; // primary score type
       }
     }
@@ -459,8 +463,20 @@ namespace OpenMS
       if (obs.rt == obs.rt) peptide.setRT(obs.rt);
       if (obs.mz == obs.mz) peptide.setMZ(obs.mz);
       peptide.setSpectrumReference( obs.data_id);
-      peptide.setHits(obsref_stepopt2vechits_scoretype.second.first);
       const ID::ScoreType& score_type = *obsref_stepopt2vechits_scoretype.second.second;
+      auto ordered_hits = obsref_stepopt2vechits_scoretype.second.first;
+      std::stable_sort(ordered_hits.begin(), ordered_hits.end(), [&](const auto& left, const auto& right)
+      {
+        if (left.first.getScore() != right.first.getScore())
+        {
+          return score_type.isBetterScore(left.first.getScore(), right.first.getScore());
+        }
+        return ID::observationMatchLess(*left.second, *right.second);
+      });
+      for (const auto& ordered : ordered_hits)
+      {
+        peptide.insertHit(ordered.first);
+      }
       peptide.setScoreType(score_type.cv_term.getName());
       peptide.setHigherScoreBetter(score_type.higher_better);
       if (obsref_stepopt2vechits_scoretype.first.second) // processing step given
@@ -614,8 +630,8 @@ namespace OpenMS
   }
 
 
-  MzTab IdentificationDataConverter::exportMzTab(const IdentificationData&
-                                                 id_data)
+  MzTab IdentificationDataConverter::exportMzTab(const IdentificationData& id_data,
+    const set<std::string>& observation_meta_keys, const set<std::string>& match_meta_keys)
   {
     MzTabMetaData meta;
     Size counter = 1;
@@ -707,7 +723,7 @@ namespace OpenMS
         const AASequence& seq = molecule_var.getIdentifiedPeptideRef()->sequence;
         double calc_mass = seq.getMonoWeight(Residue::Full, obs_match.charge);
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
-                                       psms, psm_scores, file_map);
+                                       psms, psm_scores, file_map, observation_meta_keys, match_meta_keys);
         // "PSM_ID" field is set at the end, after sorting
       }
       else if (molecule_type == ID::MoleculeType::RNA)
@@ -715,8 +731,12 @@ namespace OpenMS
         const NASequence& seq = molecule_var.getIdentifiedOligoRef()->sequence;
         double calc_mass = seq.getMonoWeight(NASequence::Full,
                                              obs_match.charge);
+        if (obs_match.adduct_opt)
+        {
+          calc_mass += (*obs_match.adduct_opt)->getMassShift();
+        }
         exportObservationMatchToMzTab_(seq.toString(), obs_match, calc_mass,
-                                       osms, osm_scores, file_map);
+                                       osms, osm_scores, file_map, observation_meta_keys, match_meta_keys);
       }
     }
 
@@ -1002,6 +1022,9 @@ namespace OpenMS
   void IdentificationDataConverter::importFeatureIDs(FeatureMap& features,
                                                      bool clear_original)
   {
+    // check before the features are modified
+    ProteinRunReferences::check(features);
+
     // collect all peptide IDs:
     PeptideIdentificationList peptides = features.getUnassignedPeptideIdentifications();
     // get peptide IDs from each feature and its subordinates, add meta values:
@@ -1206,6 +1229,9 @@ namespace OpenMS
     // i.e. from 'protein_identifications_'/'unassigned_peptide_identifications_' (consensus map)
     // and 'peptides_' (features) to 'id_data_' (consensus map) and 'primary_id_'/'id_matches_' (features);
     // use meta values to temporarily store which features IDs are assigned to
+
+    // check before the consensus features are modified
+    ProteinRunReferences::check(consensus);
 
     // collect all peptide IDs:
     PeptideIdentificationList peptides = consensus.getUnassignedPeptideIdentifications();

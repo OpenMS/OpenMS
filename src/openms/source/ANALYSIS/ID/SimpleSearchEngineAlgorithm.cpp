@@ -166,7 +166,12 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
-    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:PSM", 0.0,
+                       "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR). Set to 0 to disable PSM-level FDR: no q-values are "
+                       "computed, and every PSM keeps 'ln(hyperscore)' as main score. Above 0, the q-value replaces the main score (the "
+                       "search engine score is kept as meta value 'ln(hyperscore)_score'), only the best hit of each spectrum is kept, "
+                       "and decoy hits are removed. Requires 'decoys' to be 'true'; otherwise a threshold above 0 is skipped with a "
+                       "warning.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");
@@ -266,6 +271,11 @@ namespace OpenMS
       exp[exp_index].sortByPosition();
 
       // deisotope (skipped for low-resolution data; see do_deisotope above)
+      // Isotope intensities must fall from the monoisotopic peak on (start_intensity_check = 1).
+      // With the library default of 2, a small peak one isotope spacing below a fragment ion
+      // became the envelope's monoisotopic peak and the ion itself was removed as its isotope.
+      // TMT/TMTpro-labelled fragments carry such a peak (reagent isotope impurity), and dense
+      // spectra often hold one by chance. ProSE makes the same call (OpenMS#10391).
       if (do_deisotope)
       {
         Deisotoper::deisotopeAndSingleCharge(exp[exp_index],
@@ -273,7 +283,11 @@ namespace OpenMS
           1, 3,   // min / max charge
           false,  // keep only deisotoped
           3, 10,  // min / max isopeaks
-          true);  // convert fragment m/z to mono-charge
+          true,   // convert fragment m/z to mono-charge
+          false,  // annotate charge
+          false,  // annotate isotopic peak counts
+          true,   // decreasing isotope intensities
+          1);     // start the intensity check at the monoisotopic peak
       }
 
       // remove noise

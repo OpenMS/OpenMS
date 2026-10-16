@@ -24,11 +24,16 @@ namespace OpenMS
   class PeakFileOptions;
   class MSSpectrum;
   class MSExperiment;
+  class MSImagingExperiment;
   class FeatureMap;
   class ConsensusMap;
   class TargetedExperiment;
   class ProteinIdentification;
   class PeptideIdentificationList;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
 
   /**
     @brief Facilitates file handling by file type recognition.
@@ -172,6 +177,8 @@ public:
       @param[out] compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @note Thermo .raw files (OpenMS built with WITH_THERMO_RAW) are read with Thermo's peak picking, like FileConverter does by default, so profile scans are returned centroided. Use ThermoRawFile directly to keep the scans as they were acquired.
+      The MS level, RT range, precursor m/z range, metadata-only, fill-data and skip-chromatograms options are passed to the reader, so skipped scans are not decoded
+      (fill-data off loads spectra without peaks, like metadata-only). The SourceFile carries no SHA-1 checksum unless @p rewrite_source_file and @p compute_hash are set.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -179,6 +186,56 @@ public:
     void loadExperiment(const std::string& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
+
+    /**
+      @brief Streams a file into a consumer, spectrum by spectrum, without holding the whole experiment in memory
+
+      The consumer receives IMSDataConsumer::setExpectedSize() and IMSDataConsumer::setExperimentalSettings()
+      first, then the spectra and chromatograms. Supported are mzML (MzMLFile::transform), mzXML
+      (MzXMLFile::transform) and Thermo .raw (ThermoRawFile::transform, OpenMS built with WITH_THERMO_RAW).
+      The PeakFileOptions are applied as by loadExperiment(); .raw files are read centroided and with the
+      scan-level options passed to the reader, as by loadExperiment(). Unlike loadExperiment(), mzML spectra
+      that hold chromatogram data (SRM) are not converted to chromatograms. For mzML and mzXML the sizes passed
+      to IMSDataConsumer::setExpectedSize() come from the file and ignore the selection; for .raw they are the
+      numbers of selected spectra and chromatograms.
+
+      @param[in] filename The file to read
+      @param[in] consumer Receives the data (not owned)
+      @param[in] allowed_types Supported file types; if empty, any streamable type
+      @param[in] log Progress logging mode
+      @param[in] rewrite_source_file Set the SourceFile name and path to @p filename (as loadExperiment())
+      @param[in] compute_hash If source files are rewritten, store the SHA-1 of @p filename in the SourceFile
+
+      @exception Exception::NullPointer is thrown if @p consumer is null
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing or the type is not in @p allowed_types
+      @exception Exception::InvalidFileType is thrown if the file type cannot be streamed
+    */
+    void transformExperiment(const std::string& filename, Interfaces::IMSDataConsumer* consumer,
+                             const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+                             ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
+                             const bool compute_hash = false);
+
+    /**
+      @brief Loads a mass spectrometry imaging file into an MSImagingExperiment
+
+      Imaging data is always loaded into an MSImagingExperiment.
+      Supported here are imzML (via ImzMLFile) and Bruker
+      timsTOF MALDI imaging .d folders (via BrukerTimsImagingFile, OpenMS built with WITH_OPENTIMS).
+
+      @param[in] filename The file name of the file to load.
+      @param[out] exp The imaging experiment to load the data into; replaced (not appended).
+      @param[in] allowed_types A vector of supported filetypes. If the vector is empty, load from any imaging type that we have a handler for.
+      @param[in] log Progress logging mode
+
+      @exception Exception::InvalidFileType is thrown if the file is not an imaging format
+      @exception Exception::ParseError is thrown if the type is not in @p allowed_types
+      @exception Exception::InvalidValue is thrown for a .d folder that is not MALDI imaging
+    */
+    void loadImagingExperiment(const std::string& filename,
+                               MSImagingExperiment& exp,
+                               const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+                               ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Stores an MSExperiment to a file
@@ -416,11 +473,13 @@ private:
     /**
       @brief Applies the current PeakFileOptions filters to an already-loaded experiment.
 
-      Used by vendor-format paths (Thermo .raw, Bruker .d) whose loaders read all
-      scans/peaks regardless of PeakFileOptions. Filters MS level, RT range, precursor
-      m/z range, per-peak m/z and intensity ranges, and strips peak data when
-      metadata-only is requested. Calls updateRanges() at the end. Until these filters
-      are pushed into the respective loader classes, both vendor paths share this.
+      Used by the vendor-format paths. Bruker .d: loadExperiment() has the reader skip the
+      MS levels and, where that gives the same spectra, the retention times the options
+      exclude, so that this data is not decoded; the filters here make the result exact.
+      Thermo .raw: the scan-level filters are passed to ThermoRawFile, only the per-peak
+      filters are applied here. Filters MS level, RT range, precursor m/z range, per-peak
+      m/z and intensity ranges, and strips peak data when metadata-only is requested.
+      Calls updateRanges() at the end.
     */
     void applyPostLoadOptions_(MSExperiment& exp) const;
 

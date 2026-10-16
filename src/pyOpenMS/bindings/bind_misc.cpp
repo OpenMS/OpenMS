@@ -2706,6 +2706,8 @@ DefaultParamHandler
         .def("run", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, OpenMS::MSExperiment& exp, bool progress) { nb::gil_scoped_release release; return self.run(exp, progress); }, "exp"_a, "progress"_a, "Main method for feature detection")
         .def("getFeatureMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::FeatureMap { return self.getFeatureMap(); })
         .def("getConsensusMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::ConsensusMap { return self.getConsensusMap(); })
+        .def("getBlacklist", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::MSExperiment { return self.getBlacklist(); }, "Spectral peaks blacklisted during detection (input for MultiplexResolverAlgorithm.resolve)")
+        .def("getCentroidedExperiment", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::MSExperiment { return self.getCentroidedExperiment(); }, "The centroided spectra the detection ran on")
         ;
 
     // -----------------------------------------------------------------------
@@ -2730,6 +2732,8 @@ DefaultParamHandler
         .def("__deepcopy__", [](const OpenMS::MultiplexResolverAlgorithm& self, nb::dict) { return OpenMS::MultiplexResolverAlgorithm(self); }, "memo"_a)
         .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts, const OpenMS::MSExperiment& blacklist) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts, blacklist); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "blacklist"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts); blacklist may be an empty MSExperiment")
         .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts) without a blacklist")
+        .def("checkIdentifications", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusFeature& consensus) { return self.checkIdentifications(consensus); }, "consensus"_a, "One flag per peptide identification of the multiplet: whether its labels agree with the detected mass shifts (the check resolve() applies)")
+        .def("expectedChannelMZs", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::AASequence& sequence, int charge) { OpenMS::Size position = 0; std::vector<double> mzs = self.expectedChannelMZs(sequence, charge, position); return nb::make_tuple(mzs, position); }, "sequence"_a, "charge"_a, "Returns (m/z of each channel, channel of the sequence itself) for the label set that fits the sequence; an empty list if none fits")
         ;
 
     // -----------------------------------------------------------------------
@@ -3243,18 +3247,31 @@ ProgressLogger
         .def(nb::init<const OpenMS::MetaboliteSpectralMatching &>())
         .def("__copy__", [](const OpenMS::MetaboliteSpectralMatching& self) { return OpenMS::MetaboliteSpectralMatching(self); })
         .def("__deepcopy__", [](const OpenMS::MetaboliteSpectralMatching& self, nb::dict) { return OpenMS::MetaboliteSpectralMatching(self); }, "memo"_a)
-        .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
-        .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) {
+        .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound, bool use_mass_accuracy) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound, use_mass_accuracy); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a = 0.0, "use_mass_accuracy"_a = false)
+        .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound, bool use_mass_accuracy) {
             std::vector<OpenMS::PeptideHit::PeakAnnotation> annotations;
-            auto score = OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, annotations, mz_lower_bound);
+            auto score = OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, annotations, mz_lower_bound, use_mass_accuracy);
             return nb::make_tuple(score, annotations);
-        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a = 0.0, "use_mass_accuracy"_a = false)
         .def("run", [](OpenMS::MetaboliteSpectralMatching& self, OpenMS::MSExperiment& p0, OpenMS::MSExperiment& p1, OpenMS::MzTab& p2) {
             std::string out_spectra;
             self.run(p0, p1, p2, out_spectra);
             return out_spectra;
         })
         ;
+    metabolitespectralmatching_class
+        .def_static("computeMVHScore", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& experimental, const OpenMS::MSSpectrum& theoretical, OpenMS::Size classes, double tic, double lower, bool accuracy, bool single) {
+            return OpenMS::MetaboliteSpectralMatching::computeMVHScore(tolerance, ppm, experimental, theoretical, classes, tic, lower, accuracy, single);
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a,
+           "num_intensity_classes"_a = 3, "tic_fraction"_a = 0.98, "mz_lower_bound"_a = 0.0,
+           "use_mass_accuracy"_a = true, "single_peak_credit"_a = true)
+        .def_static("computeMVHScoreWithAnnotations", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& experimental, const OpenMS::MSSpectrum& theoretical, OpenMS::Size classes, double tic, double lower, bool accuracy, bool single) {
+            std::vector<OpenMS::PeptideHit::PeakAnnotation> annotations;
+            const double score = OpenMS::MetaboliteSpectralMatching::computeMVHScore(tolerance, ppm, experimental, theoretical, annotations, classes, tic, lower, accuracy, single);
+            return nb::make_tuple(score, annotations);
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a,
+           "num_intensity_classes"_a = 3, "tic_fraction"_a = 0.98, "mz_lower_bound"_a = 0.0,
+           "use_mass_accuracy"_a = true, "single_peak_credit"_a = true);
     def_ProgressLogger<OpenMS::MetaboliteSpectralMatching>(metabolitespectralmatching_class);
 
     // -----------------------------------------------------------------------
@@ -5533,6 +5550,10 @@ XMLFile
             self.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
         }, "transition_group"_a, "trafo"_a, "swath_maps"_a, "output"_a, "ms1only"_a = false,
            "Score peak groups in a transition group")
+        .def_static("addProteinIdentificationRun", [](const OpenSwath::LightTargetedExperiment& transition_exp, OpenMS::FeatureMap& output) {
+            OpenMS::MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, output);
+        }, "transition_exp"_a, "output"_a,
+           "Adds the protein identification run (search run) that the peptide identifications of the features reference, with the proteins of the transition list; merges them into the run if the output already has it (pickExperiment() adds it; call this after scorePeakgroups())")
         ;
     def_ProgressLogger<OpenMS::MRMFeatureFinderScoring>(mrmfeaturefinderscoring_class);
 
