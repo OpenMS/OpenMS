@@ -115,6 +115,8 @@ mzML file:
 FileConverter -in sample.d -out sample.mzML -process_lowmemory
 ```
 
+This works for cachedMzML output (`-out sample.cachedMzML`) as well.
+
 ## pyOpenMS
 
 pyOpenMS reads both formats as well; see

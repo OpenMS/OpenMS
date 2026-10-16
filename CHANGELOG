@@ -265,6 +265,18 @@ OpenMS Library:
     the run. (Exceptions, loaded completely as before: DIA with MS2 aggregation over retention time, and
     DDA with calibrate on the linear m/z model.) Exposed in pyOpenMS (BrukerTimsFile.transform()), as are
     detectFormat() and checkDataFormat().
+  - FileHandler::transformExperiment() streams Bruker .d input (directory or .d.zip) as well; before, it threw
+    InvalidFileType. As for loadExperiment(), the reader skips the frames the PeakFileOptions exclude, and
+    every spectrum is then filtered on its way to the consumer (MS level, RT and precursor m/z range, peak
+    m/z and intensity range, metadata-only), so the consumer gets the spectra loadExperiment() returns.
+    MALDI imaging .d is rejected as by loadExperiment(). The number of spectra passed to setExpectedSize()
+    is an upper bound (see BrukerTimsFile::transform()). loadExperiment() now also honours fill-data off for
+    Bruker .d input (spectra without peaks, as for Thermo .raw).
+  - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
+    without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
+    invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
+    frame without peaks keeps its empty ion mobility array. CachedMzMLHandler::readMemdump() also returns the values
+    of the data arrays of chromatograms, which came back empty.
   - MSDataWritingConsumer (the streaming mzML writer of the low-memory modes) corrects the count of its
     spectrumList when the file is closed, if another number of spectra was written than it was told to
     expect (a filter, or a reader that leaves empty spectra out). The tag is rewritten in place and
@@ -621,6 +633,10 @@ TOPP tools:
         (the resident memory, 4.8 GB at its peak, is the memory-mapped analysis.tdf_bin).
       - FIX: -force_TPP_compatibility had no effect with -process_lowmemory (mzML output from mzML, mzXML,
         Thermo .raw and now Bruker .d input).
+      - -process_lowmemory also converts Bruker .d input to cachedMzML (before: an error); the spectra go to
+        the cache as they are read, and both files are those of the conversion in memory.
+      - FIX: Bruker MALDI imaging .d input is rejected (exit code INCOMPATIBLE_INPUT_DATA), as by
+        FileHandler::loadExperiment(); it was read as DDA-PASEF data, without its pixel geometry.
     MS1LabeledWorkflow:
       - FIX: identifications were mapped onto a multiplet only within id_mapping:rt_tolerance (5 s) of
         its apex and by their precursor m/z, so MS2 spectra acquired off the apex, and every spectrum
