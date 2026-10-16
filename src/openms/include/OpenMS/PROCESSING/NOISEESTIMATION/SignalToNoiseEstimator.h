@@ -146,9 +146,20 @@ protected:
     std::vector<double> stn_estimates_;
   };
 
-  /// Picks @p n_scans from the given @p ms_level randomly and returns either average intensity at a certain @p percentile.
-  /// If no scans with the required level are present, 0.0 is returned
+  /**
+    @brief Estimates noise from randomly selected spectra.
+
+    Randomly selects @p n_scans non-empty spectra at @p ms_level and returns the mean of their
+    intensity values at @p percentile. If @p n_scans is zero or no matching non-empty spectra are
+    present, 0.0 is returned. Percentiles outside [0, 100] are clamped to the nearest boundary.
+
+    @param[in] exp Experiment containing the candidate spectra
+    @param[in] ms_level MS level to sample
+    @param[in] n_scans Number of spectra to sample
+    @param[in] percentile Intensity percentile to extract from each sampled spectrum
+
+    @return Mean of the sampled percentile intensities, or 0.0 if no spectrum is sampled
+  */
   OPENMS_DLLAPI float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans = 10, const double percentile = 80);
 
 } // namespace OpenMS
-

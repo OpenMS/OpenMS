@@ -99,7 +99,7 @@ namespace OpenMS
       IDPARQUET,          ///< OpenMS internal identification parquet bundle (directory: psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
       FEATUREPARQUET,     ///< OpenMS internal feature map parquet bundle (directory: features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
       CONSENSUSPARQUET,   ///< OpenMS internal consensus map parquet bundle (directory: consensus_features.parquet + psms.parquet + proteins.parquet + protein_groups.parquet + search_params.parquet)
-      BRUKER_TDF,         ///< Bruker TimsTOF .d directory (TDF format)
+      BRUKER_TDF,         ///< Bruker .d directory. Only TDF data (timsTOF with ion mobility) can be read; TSF and BAF data are recognized (BrukerTimsFile::detectFormat()) and rejected when loaded
       IMZML,              ///< imzML mass spectrometry imaging file (.imzML + .ibd)
       YAML,               ///< YAML Ain't Markup Language file (.yaml)
       BEDRMOD,            ///< bedRMod file (.bedrmod, also accepts .bed)

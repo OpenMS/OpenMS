@@ -17,6 +17,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -237,6 +240,80 @@ START_SECTION(void annotateSpectra(
 }
 END_SECTION
 
+START_SECTION([EXTRA] annotateSpectra ppm-mode m/z tolerance scales with m/z)
+{
+  // helper: build a single-transition TargetedExperiment at precursor m/z = target_mz,
+  // and one MSSpectrum whose precursor m/z is target_mz + offset. The matching window is
+  // [spectrum_mz - tol, spectrum_mz + tol] and is tested against target_mz, so the transition
+  // matches iff |offset| <= tol.
+  auto make_exp = [](double target_mz) -> TargetedExperiment
+  {
+    TargetedExperiment exp;
+    TargetedExperimentHelper::Peptide pep;
+    pep.id = "pep1";
+    TargetedExperimentHelper::RetentionTime rt;
+    rt.setRT(0.0); // matches the default spectrum RT (0) within the default rt_window (30)
+    pep.rts.push_back(rt);
+    exp.addPeptide(pep);
+
+    ReactionMonitoringTransition tr;
+    tr.setPeptideRef("pep1");
+    tr.setPrecursorMZ(target_mz);
+    exp.addTransition(tr);
+    return exp;
+  };
+
+  auto make_spectra = [](double precursor_mz) -> std::vector<MSSpectrum>
+  {
+    MSSpectrum s;
+    s.setRT(0.0);
+    Precursor prec;
+    prec.setMZ(precursor_mz);
+    s.setPrecursors({prec});
+    return std::vector<MSSpectrum>{s};
+  };
+
+  // 20 ppm at m/z 500 -> window = 20 * 500 / 1e6 = 0.01 Th
+  {
+    TargetedSpectraExtractor tse;
+    Param params = tse.getParameters();
+    params.setValue("mz_unit_is_Da", "false");
+    params.setValue("mz_tolerance", 20.0);
+    tse.setParameters(params);
+
+    TargetedExperiment exp = make_exp(500.0);
+    FeatureMap features;
+
+    // offset +0.008 Th is INSIDE the 0.01 Th window -> match
+    std::vector<MSSpectrum> annotated;
+    tse.annotateSpectra(make_spectra(500.008), exp, annotated, features, false);
+    TEST_EQUAL(annotated.size(), 1)
+
+    // offset +0.02 Th is OUTSIDE the 0.01 Th window -> no match
+    annotated.clear();
+    tse.annotateSpectra(make_spectra(500.02), exp, annotated, features, false);
+    TEST_EQUAL(annotated.size(), 0)
+  }
+
+  // 20 ppm at m/z 1000 -> window = 20 * 1000 / 1e6 = 0.02 Th.
+  // offset +0.015 Th MATCHES only because the window scales with m/z; the pre-fix
+  // fixed window (20/1e6 = 2e-5 Th) would have rejected it.
+  {
+    TargetedSpectraExtractor tse;
+    Param params = tse.getParameters();
+    params.setValue("mz_unit_is_Da", "false");
+    params.setValue("mz_tolerance", 20.0);
+    tse.setParameters(params);
+
+    TargetedExperiment exp = make_exp(1000.0);
+    FeatureMap features;
+    std::vector<MSSpectrum> annotated;
+    tse.annotateSpectra(make_spectra(1000.015), exp, annotated, features, false);
+    TEST_EQUAL(annotated.size(), 1)
+  }
+}
+END_SECTION
+
 START_SECTION(void annotateSpectra(
   const std::vector<MSSpectrum>& spectra,
   const TargetedExperiment& targeted_exp,
@@ -336,6 +413,22 @@ START_SECTION(void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_s
   ++it;
   TEST_REAL_SIMILAR(it->getMZ(), 112.033)
   TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
+
+  // In ppm, the FWHM threshold is relative to the m/z of each peak: 2500 ppm is 0.2125 Th at 85.014 (FWHM 0.245,
+  // kept), 0.2801 Th at 112.033 (FWHM 0.261, rejected) and 0.3252 Th at 130.081 (FWHM 0.185, rejected). A threshold
+  // of 2500 / 1e6 Th would keep all three.
+  params.setValue("mz_unit_is_Da", "false");
+  params.setValue("fwhm_threshold", 2500.0);
+  tse.setParameters(params);
+
+  tse.pickSpectrum(spectrum, picked_spectrum);
+
+  TEST_EQUAL(picked_spectrum.size(), 1)
+  ABORT_IF(picked_spectrum.size() != 1)
+  TEST_REAL_SIMILAR(picked_spectrum[0].getMZ(), 85.014)
+  TEST_REAL_SIMILAR(picked_spectrum[0].getIntensity(), 60754.7)
+  params.setValue("mz_unit_is_Da", "true");
+  tse.setParameters(params);
 
   MSSpectrum unordered;
   unordered.emplace_back(Peak1D(10.0, 100.0));
@@ -1124,6 +1217,45 @@ START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const Feat
   const auto& annotated_spectr1 = annotated_spectra[0];
   TEST_EQUAL(annotated_spectr1.getName(), "ident1")
   TEST_REAL_SIMILAR(annotated_spectr1.getRT(), 100.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] annotateSpectra(spectra, ms1_features, ...) ppm-mode m/z tolerance scales with m/z)
+{
+  // This overload takes mz_tolerance as the width of the window around the precursor m/z: a feature matches iff its
+  // m/z lies within +-mz_tolerance / 2 of it. 20 ppm at m/z 1000 is a window of 0.02 Th, +-0.01 Th.
+  auto annotate = [](double feature_mz)
+  {
+    TargetedSpectraExtractor tse;
+    Param params = tse.getParameters();
+    params.setValue("mz_unit_is_Da", "false");
+    params.setValue("mz_tolerance", 20.0);
+    tse.setParameters(params);
+
+    FeatureMap ms1_features;
+    Feature feature;
+    feature.setUniqueId();
+    feature.setMetaValue("PeptideRef", "ident1");
+    feature.setMZ(feature_mz);
+    feature.setRT(100.0);
+    ms1_features.push_back(feature);
+
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setRT(100.0);
+    Precursor precursor;
+    precursor.setMZ(1000.0);
+    spectrum.setPrecursors({precursor});
+
+    FeatureMap ms2_features;
+    std::vector<MSSpectrum> annotated;
+    tse.annotateSpectra(std::vector<MSSpectrum>{spectrum}, ms1_features, ms2_features, annotated);
+    return annotated.size();
+  };
+  TEST_EQUAL(annotate(1000.008), 1) // inside
+  TEST_EQUAL(annotate(999.992), 1)
+  TEST_EQUAL(annotate(1000.015), 0) // outside; 20 taken as Th (+-10 Th) matched it
+  TEST_EQUAL(annotate(1005.0), 0)
 }
 END_SECTION
 
