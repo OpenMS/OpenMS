@@ -7,6 +7,7 @@
 // -------------------------------------------------------------------------
 
 #include <mutex>
+#include <shared_mutex>
 #include <sstream>
 
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
@@ -15,6 +16,19 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /// Guards the members of all registries (in practice only MetaInfo's global one). Lookups share
+    /// the lock, so that concurrent readers do not block each other. Kept out of the header, which
+    /// nearly every OpenMS file includes, and never destroyed, so that registries stay usable while
+    /// objects with static storage duration are destroyed.
+    std::shared_mutex& registryMutex()
+    {
+      static std::shared_mutex* mutex = new std::shared_mutex();
+      return *mutex;
+    }
+  }
 
   MetaInfoRegistry::MetaInfoRegistry() :
     next_index_(1024), 
@@ -102,9 +116,7 @@ namespace OpenMS
     {
       return *this;
     }
-    std::unique_lock<std::shared_mutex> lock(mutex_, std::defer_lock);
-    std::shared_lock<std::shared_mutex> rhs_lock(rhs.mutex_, std::defer_lock);
-    std::lock(lock, rhs_lock);
+    std::unique_lock<std::shared_mutex> lock(registryMutex()); // guards rhs as well
     next_index_ = rhs.next_index_;
     name_to_index_ = rhs.name_to_index_;
     index_to_name_ = rhs.index_to_name_;
@@ -117,14 +129,14 @@ namespace OpenMS
   {
     // Nearly all calls are for names that are registered already: look those up under the shared lock.
     {
-      std::shared_lock<std::shared_mutex> lock(mutex_);
+      std::shared_lock<std::shared_mutex> lock(registryMutex());
       MapString2IndexType::const_iterator it = name_to_index_.find(name);
       if (it != name_to_index_.end())
       {
         return it->second;
       }
     }
-    std::unique_lock<std::shared_mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(registryMutex());
     // another thread may have registered the name in between
     MapString2IndexType::const_iterator it = name_to_index_.find(name);
     if (it != name_to_index_.end())
@@ -140,7 +152,7 @@ namespace OpenMS
 
   void MetaInfoRegistry::setDescription(UInt index, const std::string& description)
   {
-    std::unique_lock<std::shared_mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(registryMutex());
     MapIndex2StringType::iterator pos = index_to_description_.find(index);
     if (pos == index_to_description_.end())
     {
@@ -151,7 +163,7 @@ namespace OpenMS
 
   void MetaInfoRegistry::setDescription(const std::string& name, const std::string& description)
   {
-    std::unique_lock<std::shared_mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(registryMutex());
     MapString2IndexType::iterator pos = name_to_index_.find(name);
     if (pos == name_to_index_.end())
     {
@@ -162,7 +174,7 @@ namespace OpenMS
 
   void MetaInfoRegistry::setUnit(UInt index, const std::string& unit)
   {
-    std::unique_lock<std::shared_mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(registryMutex());
     MapIndex2StringType::iterator pos = index_to_unit_.find(index);
     if (pos == index_to_unit_.end())
     {
@@ -173,7 +185,7 @@ namespace OpenMS
 
   void MetaInfoRegistry::setUnit(const std::string& name, const std::string& unit)
   {
-    std::unique_lock<std::shared_mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(registryMutex());
     MapString2IndexType::iterator pos = name_to_index_.find(name);
     if (pos == name_to_index_.end())
     {
@@ -184,14 +196,14 @@ namespace OpenMS
 
   UInt MetaInfoRegistry::getIndex(const std::string& name) const
   {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(registryMutex());
     MapString2IndexType::const_iterator it = name_to_index_.find(name);
     return it != name_to_index_.end() ? it->second : UInt(-1);
   }
 
   std::string MetaInfoRegistry::getDescription(UInt index) const
   {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(registryMutex());
     MapIndex2StringType::const_iterator it = index_to_description_.find(index);
     if (it == index_to_description_.end())
     {
@@ -202,7 +214,7 @@ namespace OpenMS
 
   std::string MetaInfoRegistry::getDescription(const std::string& name) const
   {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(registryMutex());
     MapString2IndexType::const_iterator it = name_to_index_.find(name);
     if (it == name_to_index_.end())
     {
@@ -213,7 +225,7 @@ namespace OpenMS
 
   std::string MetaInfoRegistry::getUnit(UInt index) const
   {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(registryMutex());
     MapIndex2StringType::const_iterator it = index_to_unit_.find(index);
     if (it == index_to_unit_.end())
     {
@@ -224,7 +236,7 @@ namespace OpenMS
 
   std::string MetaInfoRegistry::getUnit(const std::string& name) const
   {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(registryMutex());
     MapString2IndexType::const_iterator it = name_to_index_.find(name);
     if (it == name_to_index_.end())
     {
@@ -235,7 +247,7 @@ namespace OpenMS
 
   std::string MetaInfoRegistry::getName(UInt index) const
   {
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(registryMutex());
     MapIndex2StringType::const_iterator it = index_to_name_.find(index);
     if (it == index_to_name_.end())
     {
