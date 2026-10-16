@@ -527,16 +527,17 @@ Internally, these steps take place:
 :param use_RANSAC: Remove outliers before computing the model?
 :return: True if model was build, false otherwise
 )doc")
-        .def("getCoefficients", [](OpenMS::MZTrafoModel& self, double& intercept, double& slope, double& power) { return self.getCoefficients(intercept, slope, power); }, "intercept"_a, "slope"_a, "power"_a, 
+        .def("getCoefficients", [](OpenMS::MZTrafoModel& self) {
+            double intercept, slope, power;
+            self.getCoefficients(intercept, slope, power);
+            return nb::make_tuple(intercept, slope, power);
+        },
             R"doc(
 Get model coefficients
 
-Parameters will be filled with internal model parameters
 The model must be trained before; Exception is thrown otherwise!
 
-:param intercept: The intercept
-:param slope: The slope
-:param power: The coefficient for x*x (will be 0 for linear models)
+:return: Tuple of (intercept, slope, power); power is the coefficient for x*x (0 for linear models)
 )doc")
         .def("setCoefficients", [](OpenMS::MZTrafoModel& self, const OpenMS::MZTrafoModel& rhs) { return self.setCoefficients(rhs); }, "rhs"_a, "Copy model coefficients from another model")
         .def("setCoefficients", [](OpenMS::MZTrafoModel& self, double intercept, double slope, double power) { return self.setCoefficients(intercept, slope, power); }, "intercept"_a, "slope"_a, "power"_a, 

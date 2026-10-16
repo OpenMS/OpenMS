@@ -4298,8 +4298,6 @@ Returns all transition features in this MRM feature
 Retrieves the native IDs of all transition features
 
 :return: The native IDs of all transitions
-
-This is an output parameter. Pass an empty list and it will be populated with IDs
 )doc")
         .def("getPrecursorFeature", [](const OpenMS::MRMFeature& self, const std::string& key) { return self.getPrecursorFeature(key); }, "key"_a, 
             R"doc(
@@ -4327,9 +4325,7 @@ Precursor features are optional and represent MS1-level information
             R"doc(
 Retrieves the native IDs of all precursor features
 
-:return: The precursor IDs
-
-This is an output parameter. Pass an empty list and it will be populated with IDs
+:return: The native IDs of all precursor features
 )doc")
         .def("__eq__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a == b; })
         .def("__ne__", [](const OpenMS::MRMFeature& a, const OpenMS::MRMFeature& b) { return a != b; })

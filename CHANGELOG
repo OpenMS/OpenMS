@@ -560,8 +560,10 @@ OpenMS Library:
     passed to them, like the C++ API, instead of a new empty one. PeptideIndexing.run() takes the FASTA file
     name instead of a FASTAContainer, which Python could not create. CachedMzMLHandler.getSpectraIndex(),
     getChromatogramIndex() and IndexedMzMLDecoder.findIndexListOffset() return int offsets instead of raw
-    std::streampos objects. Bound the nested types the signatures referred to but Python could not use
-    (ConsensusFeature.Ratio, SignalToNoiseEstimatorMedianRapid.NoiseEstimator, SplineInterpolatedPeaks.Navigator,
+    std::streampos objects. MZTrafoModel.getCoefficients() returns (intercept, slope, power) instead of
+    filling float arguments, which Python cannot observe. Bound the nested types the signatures referred to
+    but Python could not use (ConsensusFeature.Ratio, whose ratio value now defaults to 0 instead of being
+    uninitialized, SignalToNoiseEstimatorMedianRapid.NoiseEstimator, SplineInterpolatedPeaks.Navigator,
     the IsotopeLabelingMDVs enums, ims Weights, FeatureFinderAlgorithmPickedHelperStructs_MassTrace) and
     DeltaMass.label_set. Removed what could not be called from Python: begin()/end() returning C++ iterators
     (MSExperiment, IsotopeDistribution, DeconvolvedSpectrum, PeakGroup), the initializer_list and std::list

@@ -59,6 +59,7 @@ def test_stream_offsets_are_ints(tmp_path):
 
 def test_consensus_feature_ratios():
     ratio = oms.ConsensusFeature.Ratio()
+    assert ratio.ratio_value_ == 0.0
     ratio.ratio_value_ = 2.5
     ratio.numerator_ref_ = "heavy"
     ratio.denominator_ref_ = "light"
@@ -69,6 +70,14 @@ def test_consensus_feature_ratios():
     ratios = feature.getRatios()
     assert len(ratios) == 2
     assert (ratios[0].ratio_value_, ratios[0].numerator_ref_, ratios[0].description_) == (2.5, "heavy", ["SILAC"])
+
+
+def test_mz_trafo_model_coefficients():
+    model = oms.MZTrafoModel()
+    with pytest.raises(Exception):
+        model.getCoefficients()  # not trained yet
+    model.setCoefficients(1.0, 2.0, 3.0)
+    assert model.getCoefficients() == (1.0, 2.0, 3.0)
 
 
 def test_noise_estimator():

@@ -1374,10 +1374,10 @@ The width in m/z of the overall convex hull of each feature is set to 3 Th in la
         .def(nb::init<>())
         .def("load", [](OpenMS::KroenikFile& self, const std::string& filename) { OpenMS::FeatureMap feature_map; self.load(filename, feature_map); return feature_map; }, "filename"_a, 
             R"doc(
-Loads a Kroenik file into a featureXML
+Loads a Kroenik file
 
-The content of the file is stored in `features`
-
+:param filename: The name of the file to read from
+:return: FeatureMap with the features of the file
 :raises:
   Exception: FileNotFound is thrown if the file could not be opened
 :raises:
@@ -1493,13 +1493,16 @@ The content of the file is stored in `features`
         .def("__deepcopy__", [](const OpenMS::MsInspectFile& self, nb::dict) { return OpenMS::MsInspectFile(self); }, "memo"_a)
         .def("load", [](OpenMS::MsInspectFile& self, const std::string& filename, OpenMS::FeatureMap& feature_map) { self.load(filename, feature_map); }, "filename"_a, "feature_map"_a, 
             R"doc(
-Loads a MsInspect file into a featureXML.
-The content of the file is stored in `features`.
+Loads a MsInspect file into the given FeatureMap
 
-:raises Exception: FileNotFound is thrown if the file could not be opened
-:raises Exception: ParseError is thrown if an error occurs during parsing
+:param filename: The name of the file to read from
+:param feature_map: FeatureMap that is filled with the features of the file
+:raises:
+  Exception: FileNotFound is thrown if the file could not be opened
+:raises:
+  Exception: ParseError is thrown if an error occurs during parsing
 )doc")
-        .def("store", [](const OpenMS::MsInspectFile& self, const std::string& filename, const OpenMS::MSSpectrum& spectrum) { self.store(filename, spectrum); }, "filename"_a, "spectrum"_a, "Stores a featureXML as a MsInspect file")
+        .def("store", [](const OpenMS::MsInspectFile& self, const std::string& filename, const OpenMS::MSSpectrum& spectrum) { self.store(filename, spectrum); }, "filename"_a, "spectrum"_a, "Stores a spectrum as a MsInspect file")
         ;
 
     // -----------------------------------------------------------------------
@@ -1702,9 +1705,7 @@ load the data from such a file into the structures of OpenMS
         .def("__deepcopy__", [](const OpenMS::OMSSACSVFile& self, nb::dict) { return OpenMS::OMSSACSVFile(self); }, "memo"_a)
         .def("load", [](const OpenMS::OMSSACSVFile& self, const std::string& filename) { OpenMS::ProteinIdentification protein_identification; OpenMS::PeptideIdentificationList id_data; self.load(filename, protein_identification, id_data); return std::make_tuple(protein_identification, id_data); }, "filename"_a, 
             R"doc(
-Loads a OMSSA file
-
-The content of the file is stored in `features`
+Loads an OMSSA CSV file
 
 :param filename: The name of the file to read from
 :return: Tuple of (protein_identification, id_data): the protein ProteinIdentification data and the peptide ids of the file

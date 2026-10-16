@@ -3021,7 +3021,8 @@ Get the deviations between the data pairs
 :param do_sort: Sort the deviations before returning?
 :return: The deviations between the data pairs
 )doc")
-        .def("getStatistics", [](const OpenMS::TransformationDescription& self) { return self.getStatistics(); })
+        .def("getStatistics", [](const OpenMS::TransformationDescription& self) { return self.getStatistics(); },
+            "Returns summary statistics (data ranges and percentiles of the deviations before and after the transformation)")
 
         .def("getDataPoints", [](const OpenMS::TransformationDescription& self) {
             return self.getDataPoints();
