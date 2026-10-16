@@ -113,7 +113,25 @@ example, the :term:`MS1` spectra are not needed:
 ``export_mode`` selects the layout: ``AUTO`` (the default) detects DDA or DIA, ``SPECTRUM``
 forces the per-precursor layout and ``FRAME`` returns the raw frames. Other fields control m/z
 recalibration, frame aggregation and centroiding along the ion mobility axis.
-:py:class:`~.FileHandler` reads ``.d`` directories with the default configuration.
+:py:class:`~.FileHandler` reads ``.d`` directories with the default configuration, plus the
+retention time, ion mobility and MS level ranges of its :py:class:`~.PeakFileOptions`
+(``setRTRange``, ``setIMRange``, ``setMSLevels``), which are passed to the reader so that frames
+outside the ranges are not decoded:
+
+.. code-block:: python
+    :linenos:
+
+    options = oms.PeakFileOptions()
+    options.setRTRange(oms.DRange1(600.0, 900.0))
+    options.setIMRange(oms.DRange1(0.8, 1.2))  # 1/K0
+    fh = oms.FileHandler()
+    fh.setOptions(options)
+    exp = oms.MSExperiment()
+    fh.loadExperiment("my_run.d", exp)
+
+With ``config.rt_selects_spectra = True`` the retention time range of a ``BrukerTimsFile.Config``
+selects spectra instead of frames, and ``config.im_min`` / ``config.im_max`` restrict the ion
+mobility when using the reader directly.
 
 Bruker's SDK is not needed: m/z and ion mobility are computed from the calibration stored in the
 file. If Bruker's SDK library (``timsdata.dll`` or ``libtimsdata.so``) is installed, set

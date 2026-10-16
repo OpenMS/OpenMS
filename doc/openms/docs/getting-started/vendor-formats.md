@@ -117,6 +117,10 @@ FileConverter -in sample.d -out sample.mzML -process_lowmemory
 
 This works for cachedMzML output (`-out sample.cachedMzML`) as well.
 
+Retention time, ion mobility (1/K0) and MS level ranges requested through `PeakFileOptions`
+(in C++: `setRTRange()`, `setIMRange()`, `setMSLevels()`) are passed to the `.d` reader, so
+`FileHandler::loadExperiment()` and `transformExperiment()` do not decode the frames outside them.
+
 ## pyOpenMS
 
 pyOpenMS reads both formats as well; see
