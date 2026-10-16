@@ -63,6 +63,9 @@ namespace OpenMS::WASM
     /// The Percolator features of the search engine of the runs of the files (their 'extra_features', in order of
     /// appearance), for the feature columns of tables()
     std::vector<std::string> extra_features;
+    /// The precursor charges of the search (precursor:min_charge, precursor:max_charge), for the charge features of
+    /// Percolator in tables()
+    int min_charge = 0, max_charge = 0;
 
     ProSEResultSet() = default;
     // no copies of the results by mistake (Embind copies a class returned by value)

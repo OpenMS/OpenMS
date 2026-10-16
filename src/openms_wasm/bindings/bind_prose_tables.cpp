@@ -13,12 +13,14 @@
 #include "bind_prose.h"
 #include "binding_utils.h"
 
+#include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -32,6 +34,7 @@
 #include <cstdlib>
 #include <initializer_list>
 #include <limits>
+#include <set>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -219,7 +222,8 @@ namespace OpenMS::WASM
       {
         if (mod == nullptr) return;
         mod_position.push_back(static_cast<int16_t>(position));
-        mod_name.push_back(mod->getId().empty() ? mod->getFullId() : mod->getId());
+        // a modification without a name (e.g. mass-only) by its full name: "[+42.0106]"
+        mod_name.push_back(!mod->getId().empty() ? mod->getId() : !mod->getFullName().empty() ? mod->getFullName() : mod->getFullId());
         mod_unimod.push_back(mod->getUniModRecordId() > 0 ? mod->getUniModRecordId() : -1);
         mod_mass.push_back(mod->getDiffMonoMass());
       }
@@ -236,6 +240,8 @@ namespace OpenMS::WASM
     /// The decoy ProSE generates from the target sequence @p target, as ProSEAlgorithm builds its decoy database: the
     /// peptides of the enzyme reversed (whole protein for unspecific searches), an initial M kept in place when the
     /// initial M is clipped. Empty if it cannot be built.
+    /// Keep in sync with ProSEAlgorithm::buildDecoyAugmentedDB_ (ProSEAlgorithm.cpp:~2357), whose rule this copies (it
+    /// is private, and the search does not return its decoy database).
     std::string generatedDecoy(std::string target, const ProSEResultSet::DecoyGeneration& g)
     {
       const bool keep_met = g.keep_initial_met && target.size() > 1 && target[0] == 'M';
@@ -332,13 +338,37 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // PSMs (the best hit of each identification with hits) and their peptides
 
-    // The features: ln(hyperscore) (Percolator's "score"), then the search engine's features of the runs and those of
-    // PeptDeep. Only those that some PSM has are columns.
+    const PeptideIdentificationList& ids = merged.peptide_ids;
+
+    // The features, Percolator's inputs as ProSE's rescoring (ProSEAlgorithm::rescoreWithPercolator()) gives them:
+    // - ln(hyperscore), the search engine score (Percolator's "score");
+    // - the standard features of the .pin format (PercolatorInfile::getStandardFeatureSet()) that Percolator trains on:
+    //   CalcMass, mass, peplen, charge<N>, enzN, enzC, enzInt, dm, absdm. PercolatorInfile computes them on copies of
+    //   the best hits (below), with the enzyme of the search and charges N over its precursor charge range (widened
+    //   to the charges of the PSMs; Percolator itself takes the range of the PSMs of the file it rescores);
+    // - the search engine's features of the runs ('extra_features') and PeptDeep's.
+    // Only those that some PSM has are columns.
     std::vector<std::string> feature_names{HYPERSCORE};
-    const auto addFeature = [&feature_names](const std::string& name) {
+    std::vector<bool> pin_feature{false}; // whether column j is a .pin feature that PercolatorInfile computes
+    const auto addFeature = [&feature_names, &pin_feature](const std::string& name, bool pin = false) {
       if (name.empty() || name == "score" || name == HYPERSCORE) return;
-      if (std::find(feature_names.begin(), feature_names.end(), name) == feature_names.end()) feature_names.push_back(name);
+      if (std::find(feature_names.begin(), feature_names.end(), name) != feature_names.end()) return;
+      feature_names.push_back(name);
+      pin_feature.push_back(pin);
     };
+    int min_pin_charge = min_charge, max_pin_charge = max_charge;
+    for (const PeptideIdentification& id : ids)
+    {
+      if (id.getHits().empty()) continue;
+      min_pin_charge = std::min(min_pin_charge, bestHit(id).getCharge());
+      max_pin_charge = std::max(max_pin_charge, bestHit(id).getCharge());
+    }
+    // the bookkeeping columns of the .pin format, which Percolator does not train on (Percolator::rescorePSMs())
+    static const std::set<std::string> pin_not_features{"SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"};
+    for (const std::string& name : PercolatorInfile::getStandardFeatureSet(min_pin_charge, max_pin_charge))
+    {
+      if (!pin_not_features.contains(name)) addFeature(name, true);
+    }
     for (const std::string& name : extra_features) addFeature(name);
     if (run != nullptr && run->getSearchParameters().metaValueExists("extra_features"))
     {
@@ -361,7 +391,6 @@ namespace OpenMS::WASM
     const bool observed_minus_theoretical = run != nullptr
       && run->getSearchParameters().getMetaValue("isotope_error_convention", DataValue("")).toString() == "observed_minus_theoretical";
 
-    const PeptideIdentificationList& ids = merged.peptide_ids;
     const Size n_features = feature_names.size();
     std::vector<uint16_t> file;
     std::vector<std::string> native_id;
@@ -376,11 +405,15 @@ namespace OpenMS::WASM
     PeptideColumns pt;
     std::unordered_map<std::string, uint32_t> peptide_row;
     std::vector<double> peptide_best; // the best score of the PSMs of each peptide
+    std::vector<const PeptideIdentification*> row_ids; // the identification of each PSM row
+    std::vector<const PeptideHit*> row_hits;          // and its best hit
 
     for (const PeptideIdentification& id : ids)
     {
       if (id.getHits().empty()) continue;
       const PeptideHit& hit = bestHit(id);
+      row_ids.push_back(&id);
+      row_hits.push_back(&hit);
       file.push_back(clamped<uint16_t>(metaNumber(id, keys.merge_index)));
       native_id.push_back(id.getSpectrumReference());
       rt.push_back(id.hasRT() ? id.getRT() : NaN);
@@ -400,7 +433,7 @@ namespace OpenMS::WASM
       features.push_back(search_score);
       for (Size j = 1; j < n_features; ++j)
       {
-        const double v = metaNumber(hit, feature_keys[j]);
+        const double v = pin_feature[j] ? NaN : metaNumber(hit, feature_keys[j]); // .pin features: below
         feature_present[j] = feature_present[j] || !std::isnan(v);
         features.push_back(v);
       }
@@ -461,6 +494,52 @@ namespace OpenMS::WASM
     }
     const Size n_psms = file.size();
     const Size n_peptides = pt.openms.size();
+
+    // The .pin features, as PercolatorInfile computes them for Percolator, on copies of the best hits (without their
+    // peak annotations), a chunk of them at a time; the results stay as they are. A hit PercolatorInfile skips (no
+    // protein reference, or not known as target or decoy) has none.
+    if (n_psms > 0 && std::find(pin_feature.begin(), pin_feature.end(), true) != pin_feature.end())
+    {
+      const std::string enzyme = ProSEAlgorithm::pinEnzymeName(run != nullptr ? run->getSearchParameters().digestion_enzyme.getName() : "");
+      constexpr Size chunk_size = 4096;
+      for (Size from = 0; from < n_psms; from += chunk_size)
+      {
+        const Size to = std::min(n_psms, from + chunk_size);
+        PeptideIdentificationList chunk;
+        chunk.reserve(to - from);
+        for (Size i = from; i < to; ++i)
+        {
+          const PeptideIdentification& id = *row_ids[i];
+          const PeptideHit& hit = *row_hits[i];
+          PeptideIdentification copy;
+          static_cast<MetaInfoInterface&>(copy) = static_cast<const MetaInfoInterface&>(id);
+          copy.setIdentifier(id.getIdentifier());
+          copy.setScoreType(id.getScoreType());
+          copy.setHigherScoreBetter(id.isHigherScoreBetter());
+          copy.setRT(id.getRT());
+          copy.setMZ(id.getMZ());
+          PeptideHit hit_copy(hit.getScore(), hit.getRank(), hit.getCharge(), hit.getSequence());
+          static_cast<MetaInfoInterface&>(hit_copy) = static_cast<const MetaInfoInterface&>(hit);
+          hit_copy.setPeptideEvidences(hit.getPeptideEvidences());
+          copy.insertHit(std::move(hit_copy));
+          chunk.push_back(std::move(copy));
+        }
+        PercolatorInfile::PinFeatureMetaValueMap added;
+        const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(chunk, enzyme, min_pin_charge, max_pin_charge, added);
+        for (Size i = from; i < to; ++i)
+        {
+          if (skipped.contains({i - from, 0})) continue;
+          const PeptideHit& stamped = chunk[i - from].getHits()[0];
+          for (Size j = 1; j < n_features; ++j)
+          {
+            if (!pin_feature[j]) continue;
+            const double v = metaNumber(stamped, feature_keys[j]);
+            feature_present[j] = feature_present[j] || !std::isnan(v);
+            features[i * n_features + j] = v;
+          }
+        }
+      }
+    }
 
     // the score of a protein: the best score of its PSMs (aggregation "best" of the protein inference, on psms.score)
     for (Size k = 0; k < n_peptides; ++k)

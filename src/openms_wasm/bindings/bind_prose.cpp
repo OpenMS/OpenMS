@@ -678,6 +678,8 @@ namespace OpenMS::WASM
         set->decoys.enzyme = p.getValue("enzyme").toString();
         set->decoys.unspecific = p.getValue("peptide:enzyme_specificity").toString() == "none";
         set->decoys.keep_initial_met = p.getValue("peptide:clip_nterm_methionine").toBool();
+        set->min_charge = static_cast<int>(p.getValue("precursor:min_charge"));
+        set->max_charge = static_cast<int>(p.getValue("precursor:max_charge"));
       }
 
       // Without PSMs, nothing is pooled: the results stay empty, as without a searched file. (mergeFileResults() would

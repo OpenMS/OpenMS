@@ -637,6 +637,12 @@ test("searchFiles: one file, open search", () => {
     assertTableShapes(t);
     assert.ok(t.psms.count > 0);
     assert.ok(t.psms.deltaMass.every(Number.isFinite), `delta masses ${t.psms.deltaMass}`);
+    // the shift is a value of the PSM: the ProForma of its peptide never has it as unlocalized mass ("[+Δ]?SEQ")
+    for (let i = 0; i < t.psms.count; ++i) {
+      const proforma = t.peptides.proforma[t.psms.peptide[i]];
+      assert.ok(!/^\[[^\]]*\]\?/.test(proforma), `no unlocalized shift in ${proforma}`);
+      assert.equal(proforma.replace(/\[[^\]]*\]-?/g, ""), t.peptides.sequence[t.psms.peptide[i]], proforma);
+    }
     assert.ok(t.psms.qValue.every(Number.isNaN) && t.psms.pep.every(Number.isNaN));
     assert.ok(t.proteins.count > 0 && t.proteins.qValue.every(Number.isNaN));
   } finally {
@@ -738,6 +744,11 @@ test("tables() is consistent with the result set", () => {
       for (const name of extraFeatures(text)) {
         if (name !== "score") assert.ok(names.includes(name), `feature ${name} in ${JSON.stringify(names)}`);
       }
+      // the standard .pin features Percolator trains on (precursor charges 2 to 5), which are not meta values of the
+      // stored hits: Percolator computes them
+      const pin = ["CalcMass", "mass", "peplen", "charge2", "charge3", "charge4", "charge5", "enzN", "enzC", "enzInt", "dm", "absdm"];
+      for (const name of pin) assert.ok(names.includes(name), `feature ${name} in ${JSON.stringify(names)}`);
+      const feature = (i, name) => psms.features[i * names.length + names.indexOf(name)];
       rows.forEach((id, i) => {
         const hit = id.hits[0];
         const where = `PSM ${i} (${id.spectrumReference})`;
@@ -757,9 +768,20 @@ test("tables() is consistent with the result set", () => {
         assert.equal(psms.isotopeError[i], hit.metaValues.isotope_error, where);
         assert.ok(Number.isNaN(psms.deltaMass[i]), `no delta mass in a closed search, ${where}`);
         names.forEach((name, j) => {
-          assertSame(psms.features[i * names.length + j], hit.metaValues[name], `${name} of ${where}`);
+          if (!pin.includes(name)) assertSame(psms.features[i * names.length + j], hit.metaValues[name], `${name} of ${where}`);
         });
+        assert.ok(Number.isFinite(feature(i, "ln(hyperscore)")), `ln(hyperscore) of ${where}`);
+        for (const name of pin) assert.ok(Number.isFinite(feature(i, name)), `${name} of ${where}: ${feature(i, name)}`);
+        const residues = peptides.sequence[psms.peptide[i]];
+        assert.equal(feature(i, "peplen"), residues.length, where);
+        for (const z of [2, 3, 4, 5]) assert.equal(feature(i, `charge${z}`), hit.charge === z ? 1 : 0, where);
+        assertSame(feature(i, "mass"), id.mz, `mass of ${where}`);
+        assertSame(feature(i, "absdm"), Math.abs(feature(i, "dm")), `absdm of ${where}`);
+        for (const name of ["enzN", "enzC"]) assert.ok([0, 1].includes(feature(i, name)), `${name} of ${where}`);
+        assert.ok(Number.isInteger(feature(i, "enzInt")) && feature(i, "enzInt") >= 0, where);
       });
+      // tryptic peptides: enzymatic termini, mostly without internal cleavage sites
+      assert.ok(rows.filter((_, i) => feature(i, "enzN") === 1 && feature(i, "enzC") === 1).length > 0.9 * rows.length);
       assert.ok(psms.decoy.includes(1) && psms.decoy.includes(0), "target and decoy PSMs");
 
       // Peptides: unique by their OpenMS string; ProForma is the sequence with its modifications in brackets
@@ -799,6 +821,15 @@ test("tables() is consistent with the result set", () => {
       const groups = indistinguishableGroups(text);
       assert.ok(groups.length > 0);
       const groupOf = new Map(groups.flatMap((group, g) => group.map((accession) => [accession, g])));
+      // the best score of the PSMs of each protein: those of its peptides (targets and decoys)
+      const bestScore = [];
+      for (let i = 0; i < psms.count; ++i) {
+        const k = psms.peptide[i];
+        for (let r = peptides.proteinOffsets[k]; r < peptides.proteinOffsets[k + 1]; ++r) {
+          const p = peptides.protein[r];
+          bestScore[p] = Math.max(bestScore[p] ?? -Infinity, psms.score[i]);
+        }
+      }
       hits.forEach((h, p) => {
         const decoy = h.accession.startsWith("DECOY_");
         const target = fasta.get(decoy ? h.accession.slice("DECOY_".length) : h.accession);
@@ -813,6 +844,7 @@ test("tables() is consistent with the result set", () => {
         }
         assertSame(proteins.qValue[p], h.score, `protein q-value of ${h.accession}`);
         assert.ok(Number.isFinite(proteins.score[p]), `score of ${h.accession}`);
+        assertSame(proteins.score[p], bestScore[p] ?? NaN, `score of ${h.accession}: the best of its PSMs`);
         assert.equal(proteins.group[p], groupOf.get(h.accession) ?? -1, `group of ${h.accession}`);
       });
       assert.ok(proteins.decoy.includes(1), "decoy proteins");
@@ -915,6 +947,46 @@ test("tables() encodes terminal modifications", () => {
       }
       assert.ok(proteins.qValue.every(Number.isNaN));
       assert.ok(proteins.decoy.every((d) => d === 0));
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+test("tables(): the decoys of an unspecific search", () => {
+  // ProSE reverses whole proteins for the decoys of an unspecific search (peptide:enzyme_specificity none), not their
+  // peptides. With the spectra of TOPP_ProSE_1, a spectrum of a stretch of the decoy of BSA2 (its reversed sequence
+  // RVPVYVHFGLVCTYTAWEKFM...), which only that decoy has.
+  const decoyPeptide = "VHFGLVC(Carbamidomethyl)TYTAWEK";
+  withSpectraCopies(OpenMS, [], () => {
+    storeSpectraWith("/searchfiles/unspecific.mzML", [[decoyPeptide, 2]]);
+    const set = searchFiles(OpenMS, ["/searchfiles/unspecific.mzML"], { rescore: false }, {
+      parameters: { ...prose1, "decoys": "generate", "peptide:enzyme_specificity": "none", "FDR:PSM": 0, "FDR:protein": 0 },
+      database: "/topp/SimpleSearchEngine_1.fasta",
+    });
+    try {
+      const t = set.tables();
+      assertTableShapes(t);
+      const { psms, peptides, proteins } = t;
+      const k = peptides.openms.indexOf(decoyPeptide);
+      assert.ok(k >= 0, `${decoyPeptide} in ${JSON.stringify(peptides.openms)}`);
+      assert.equal(peptides.decoy[k], 1);
+      assert.ok(psms.decoy[psms.peptide.indexOf(k)] === 1);
+      // the decoy proteins have the sequences ProSE searched: every peptide is at [start, end) of each of its proteins
+      let decoyReferences = 0;
+      for (let j = 0; j < peptides.count; ++j) {
+        for (let r = peptides.proteinOffsets[j]; r < peptides.proteinOffsets[j + 1]; ++r) {
+          const p = peptides.protein[r];
+          assert.equal(proteins.sequence[p].slice(peptides.start[r], peptides.end[r]), peptides.sequence[j],
+            `${peptides.openms[j]} in ${proteins.accession[p]} at ${peptides.start[r]}-${peptides.end[r]}`);
+          decoyReferences += proteins.decoy[p];
+        }
+      }
+      assert.ok(decoyReferences > 0, "references to decoy proteins");
+      const decoy = proteins.accession.indexOf("DECOY_BSA2");
+      assert.ok(decoy >= 0, JSON.stringify(proteins.accession));
+      assert.equal(proteins.decoy[decoy], 1);
+      assert.equal(proteins.sequence[decoy], [..."IALSRPNVEVVALNDPFITNDYAAYMFKEWATYTCVLGFHVYVPVR"].reverse().join(""));
     } finally {
       set.delete();
     }
