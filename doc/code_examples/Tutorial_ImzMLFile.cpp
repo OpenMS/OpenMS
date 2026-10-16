@@ -114,7 +114,8 @@ int main(int argc, const char** argv)
 
   ImzMLMeta dataset_meta;
   std::vector<ImzMLSpectrumIndex> dataset_index;
-  loader.loadSpectraIndex(path, dataset_meta, dataset_index);
+  MSExperiment dataset_index_spectra;
+  loader.loadSpectraIndex(path, dataset_meta, dataset_index, dataset_index_spectra);
   printDatasetMetadata(exp, dataset_meta, dataset_index.size());
 
   if (exp.getNrSpectra() > 0)
@@ -144,7 +145,8 @@ int main(int argc, const char** argv)
   std::cout << "\n=== Mode 3: loadSpectraIndex ===\n";
   ImzMLMeta meta;
   std::vector<ImzMLSpectrumIndex> index;
-  loader.loadSpectraIndex(path, meta, index);
+  MSExperiment index_spectra;
+  loader.loadSpectraIndex(path, meta, index, index_spectra);
   std::cout << "index entries: " << index.size() << ", mode: " << meta.imaging_mode << "\n";
 
   // ------------------------------------------------------------------

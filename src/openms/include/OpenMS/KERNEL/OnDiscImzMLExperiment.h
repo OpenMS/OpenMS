@@ -24,6 +24,7 @@ namespace OpenMS
 
   class MSImagingGeometry; // OpenMS/IMAGING/MSImagingGeometry.h — included in the .cpp
   class IonImage;          // OpenMS/IMAGING/IonImage.h — included in the .cpp
+  class ExperimentalSettings; // OpenMS/METADATA/ExperimentalSettings.h — included in the .cpp
 
   /**
     @brief Random-access, on-disc reader for imzML mass spectrometry imaging datasets.
@@ -51,7 +52,10 @@ namespace OpenMS
     coordinate map) so that this header has no dependency on expat, Xerces, or
     the native @p imzml:: parser library.  The index is built by running
     @p ImzMLFile::loadSpectraIndex() during @p open() — no peak arrays
-    are decoded until @p getSpectrum() is called.
+    are decoded until @p getSpectrum() is called. The same parse keeps every
+    spectrum's metadata (without peaks) in memory, so @p getSpectrum() returns the
+    metadata the in-memory @p ImzMLFile::load gives (RT = -1 and
+    @p imzml:scan_start_time, see @p ImzMLFile).
 
     @note @p getSpectrum() returns m/z, intensity, and any indexed auxiliary
     external arrays (e.g. @c MS:1003006 ion mobility) as @c FloatDataArray
@@ -142,9 +146,10 @@ namespace OpenMS
     /**
       @brief Decode and return spectrum @p i from the .ibd file.
 
-      The returned MSSpectrum contains peak arrays decoded from the .ibd file
-      and pixel coordinates as MetaValues (@p imzml:x, @p imzml:y, @p imzml:z).
-      mzML scan metadata (RT, MS level, etc.) is not loaded in on-disc mode.
+      The returned MSSpectrum contains peak arrays decoded from the .ibd file and
+      native ID, MS level, polarity, scan and instrument settings, and MetaValues
+      including the pixel coordinates (@p imzml:x, @p imzml:y, @p imzml:z)
+      and @p imzml:scan_start_time.
 
       @param i  0-based spectrum index.
       @throws Exception::IndexOverflow if @p i >= getNrSpectra().
@@ -226,6 +231,13 @@ namespace OpenMS
 
     /// Returns imaging metadata parsed during open() — no IBD reads.
     const ImzMLMeta& getImzMLMeta() const noexcept;
+
+    /**
+      @brief Dataset-level settings parsed during open(): instrument, sample, source
+      files, data processing, and the @p imzml:* MetaValues — the ExperimentalSettings
+      of @p MSImagingExperiment::getMSExperiment() after an in-memory load.
+    */
+    const ExperimentalSettings& getExperimentalSettings() const;
 
     /**
       @brief The standard 2D imaging geometry (pixel grid + (x,y)->spectrum map).

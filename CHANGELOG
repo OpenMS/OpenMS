@@ -80,6 +80,14 @@ OpenMS Library:
     parameters 'min_score' and 'use_adducts' until the first align() call: with 'score_cutoff', a reference with
     lower-is-better scores kept no identifications (MissingInformation), and adducted identifications in .oms input
     did not match the inputs (no alignment points).
+  - imzML: OnDiscImzMLExperiment spectra carry the same metadata as ImzMLFile::load (native ID, MS level, polarity,
+    scan settings, MetaValues, IM peak type); new getExperimentalSettings(). ImzMLFile::loadSpectraIndex always returns
+    the spectrum metadata (API change: new MSExperiment& argument, pyOpenMS returns (meta, index, spectra)).
+    PeakFileOptions::setMetadataOnly on ImzMLFile loads returns every spectrum with metadata and coordinates but no
+    peaks (was: no spectra; a streaming consumer now receives these spectra too). RT is -1 on every imzML load path; a
+    scan start time is kept in seconds as the MetaValue imzml:scan_start_time. ImzMLFile::store writes scan start time
+    from a caller-set RT, else from imzml:scan_start_time, and omits it otherwise (was: -1); the store RT range filter
+    uses the same value. Index-only and metadata-only loads report imzml:mz_data_type / imzml:int_data_type.
   - FIX: Percolator nonparametric PEPs (e.g. ProSE -rescore): fewer than 4 score bins, or bin medians closer than 1e-15,
     made the PEP spline divide by zero (assertion in Debug builds, meaningless PEPs in Release builds).
   - FIX: pyOpenMS RNase modification groups borrow stable RibonucleotideDB entries. Inference accepts equivalent registered definitions and rejects unknown or edited definitions; copied groups and digestion products survive collection or mutation of Python inputs.

@@ -1976,6 +1976,9 @@ This is an alias for getChromatogramByNativeId().
         .def("getImzMLMeta", [](const OpenMS::OnDiscImzMLExperiment& self) {
             return self.getImzMLMeta();
         }, "Return dataset-level ImzMLMeta parsed during open()")
+        .def("getExperimentalSettings", [](const OpenMS::OnDiscImzMLExperiment& self) {
+            return OpenMS::ExperimentalSettings(self.getExperimentalSettings());
+        }, "Return a copy of the dataset-level ExperimentalSettings parsed during open() (instrument, sample, imzml:* MetaValues)")
         .def("getGeometry",
             [](const OpenMS::OnDiscImzMLExperiment& self) -> OpenMS::MSImagingGeometry { return self.getGeometry(); },
             "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")
