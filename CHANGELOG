@@ -633,6 +633,8 @@ TOPP tools:
         Thermo .raw and now Bruker .d input).
       - -process_lowmemory also converts Bruker .d input to cachedMzML (before: an error); the spectra go to
         the cache as they are read, and both files are those of the conversion in memory.
+      - FIX: Bruker MALDI imaging .d input is rejected (exit code INCOMPATIBLE_INPUT_DATA), as by
+        FileHandler::loadExperiment(); it was read as DDA-PASEF data, without its pixel geometry.
     MS1LabeledWorkflow:
       - FIX: identifications were mapped onto a multiplet only within id_mapping:rt_tolerance (5 s) of
         its apex and by their precursor m/z, so MS2 spectra acquired off the apex, and every spectrum

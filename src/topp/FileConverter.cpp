@@ -38,6 +38,7 @@
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
 #endif
 
 #ifdef WITH_THERMO_RAW
@@ -597,6 +598,16 @@ protected:
     ConsensusMap cm;
 
     writeDebug_(std::string("Loading input file"), 1);
+
+#ifdef WITH_OPENTIMS
+    // Bruker .d is read with BrukerTimsFile directly below (FileHandler cannot pass the bruker: options). Reject MALDI
+    // imaging data as FileHandler::loadExperiment() does: read as DDA, it would lose its pixel geometry.
+    if (in_type == FileTypes::BRUKER_TDF && BrukerTimsImagingFile::isImagingDataset(in))
+    {
+      OPENMS_LOG_ERROR << "Bruker MALDI imaging .d is a mass spectrometry imaging format, which FileConverter cannot convert." << std::endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+#endif
 
     if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
     {
