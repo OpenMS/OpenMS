@@ -409,9 +409,10 @@ START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and trans
   };
 
   PeakMap exp;
-  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(fake_d("Imaging"), exp))
+  const std::string imaging = fake_d("Imaging");
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(imaging, exp))
   MSDataStoringConsumer streamed;
-  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(fake_d("Imaging"), &streamed))
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(imaging, &streamed))
   TEST_EQUAL(streamed.getData().size(), 0)
 
   // A non-imaging .d reaches BrukerTimsImagingFile, whose strict imaging check rejects it.
