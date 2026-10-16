@@ -462,8 +462,6 @@ OpenMS Library:
     when there are no indistinguishable groups, instead of warning "No scores extracted for FDR
     calculation. Skipping. Do you have target-decoy annotated Hits?". Every strictly_unique_peptides
     run of ProteomicsLFQ, IsobaricWorkflow and MS1LabeledWorkflow printed it; results are unchanged.
-  - FIX: OpenSwathWorkflow and OpenDIA with -out_chrom .xic: an error while writing the Parquet file (e.g. a
-    full disk) was only logged, and the tool exited with 0 and a missing or truncated .xic file. The run now fails.
   - FIX: FeatureFinderMultiplexAlgorithm with knock_out: a partial pattern lacking the lightest channel
     (e.g. medium and heavy of a triple SILAC peptide without light) kept the mass shifts of the complete
     pattern, so the filtering only found it next to a peak at the absent light position; such peptides
@@ -648,6 +646,8 @@ TOPP tools:
       - -readOptions onDisc for indexed mzML and Thermo .raw input reads the spectra of each SWATH window from the file
         during extraction instead of holding them in memory; results are identical to 'normal'.
         Input with more than one FAIMS compensation voltage is rejected (#10522).
+      - FIX (also OpenDIA): with -out_chrom .xic, an error while writing the Parquet file (e.g. a full disk) was
+        only logged, and the tool exited with 0 and a missing or truncated .xic file. The run now fails.
     SageAdapter, CometAdapter:
       - Thermo .raw input is streamed into the temporary mzML instead of being loaded into memory (#10522).
     IDFileConverter:
