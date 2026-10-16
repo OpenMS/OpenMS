@@ -1953,6 +1953,7 @@ def testFalseDiscoveryRate():
     _testParam(p)
 
     assert pyopenms.FalseDiscoveryRate().apply is not None
+    assert pyopenms.FalseDiscoveryRate().applyPeptideDoubleCompetition is not None
 
 @report
 def testIDFilter():

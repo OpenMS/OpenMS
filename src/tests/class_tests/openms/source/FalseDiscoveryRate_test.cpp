@@ -719,6 +719,315 @@ START_SECTION([EXTRA] protein FDR without indistinguishable groups skips the gro
 }
 END_SECTION
 
+START_SECTION((void applyPeptideDoubleCompetition(PeptideIdentificationList&, const std::map<std::string, std::string>&)))
+{
+  auto build_ids = []()
+  {
+    PeptideIdentificationList ids;
+    auto add = [&ids](const std::string& sequence, double score, const std::string& target_decoy)
+    {
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(sequence));
+      hit.setScore(score);
+      hit.setCharge(2);
+      hit.setMetaValue("target_decoy", target_decoy);
+      PeptideIdentification id;
+      id.setScoreType("score");
+      id.setHigherScoreBetter(true);
+      id.setHits({hit});
+      ids.push_back(id);
+    };
+    add("AAAAAAAK", 0.95, "target");
+    add("DECOYAAK", 0.99, "decoy"); // wins its pair; its target counterpart is absent
+    add("CCCCCCCK", 0.90, "target");
+    add("DDDDDDDK", 0.80, "target");
+    add("EEEEEEEK", 0.70, "target");
+    add("FFFFFFFK", 0.60, "target");
+    return ids;
+  };
+
+  const std::map<std::string, std::string> pairs = {
+    {"AAAAAAAK", "DECOYAAK"},
+    {"CCCCCCCK", "DECOYCCK"},
+    {"DDDDDDDK", "DECOYDDK"},
+    {"EEEEEEEK", "DECOYEEK"},
+    {"FFFFFFFK", "DECOYFFK"}
+  };
+
+  FalseDiscoveryRate fdr;
+  auto ids = build_ids();
+  fdr.applyPeptideDoubleCompetition(ids, pairs);
+
+  Size target_hits = 0;
+  bool losing_target_retained = false;
+  double observed_peptide_qvalue = -1.0;
+  double lower_score_qvalues[3] = {-1.0, -1.0, -1.0};
+  for (const auto& id : ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      if (hit.getSequence().toUnmodifiedString() == "AAAAAAAK") losing_target_retained = true;
+      if (hit.getSequence().toUnmodifiedString() == "CCCCCCCK") observed_peptide_qvalue = hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE);
+      if (hit.getSequence().toUnmodifiedString() == "DDDDDDDK") lower_score_qvalues[0] = hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE);
+      if (hit.getSequence().toUnmodifiedString() == "EEEEEEEK") lower_score_qvalues[1] = hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE);
+      if (hit.getSequence().toUnmodifiedString() == "FFFFFFFK") lower_score_qvalues[2] = hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE);
+      ++target_hits;
+    }
+  }
+  TEST_EQUAL(target_hits, 4)
+  TEST_FALSE(losing_target_retained)
+  TEST_REAL_SIMILAR(observed_peptide_qvalue, 0.5)
+  TEST_TRUE(observed_peptide_qvalue >= lower_score_qvalues[0])
+  TEST_TRUE(lower_score_qvalues[0] >= lower_score_qvalues[1])
+  TEST_TRUE(lower_score_qvalues[1] >= lower_score_qvalues[2])
+
+  // A peptide assigned to both databases has no valid T/D label and is excluded.
+  PeptideIdentificationList ambiguous_ids;
+  PeptideHit unambiguous_target;
+  unambiguous_target.setSequence(AASequence::fromString("AAAAAAAK"));
+  unambiguous_target.setScore(0.9);
+  unambiguous_target.setMetaValue("target_decoy", "target");
+  PeptideIdentification unambiguous_id;
+  unambiguous_id.setScoreType("score");
+  unambiguous_id.setHigherScoreBetter(true);
+  unambiguous_id.setHits({unambiguous_target});
+  ambiguous_ids.push_back(unambiguous_id);
+  PeptideHit ambiguous_hit;
+  ambiguous_hit.setSequence(AASequence::fromString("AMBIGUOUSK"));
+  ambiguous_hit.setScore(1.0);
+  ambiguous_hit.setMetaValue("target_decoy", "target+decoy");
+  PeptideIdentification ambiguous_id;
+  ambiguous_id.setScoreType("score");
+  ambiguous_id.setHigherScoreBetter(true);
+  ambiguous_id.setHits({ambiguous_hit});
+  ambiguous_ids.push_back(ambiguous_id);
+  fdr.applyPeptideDoubleCompetition(ambiguous_ids, {{"AAAAAAAK", "DECOYAAK"}});
+  TEST_EQUAL(ambiguous_ids.size(), 1)
+  TEST_EQUAL(ambiguous_ids[0].getHits().size(), 1)
+  TEST_EQUAL(ambiguous_ids[0].getHits()[0].getSequence().toUnmodifiedString(), "AAAAAAAK")
+
+  auto unmapped_ids = build_ids();
+  TEST_EXCEPTION(Exception::MissingInformation, fdr.applyPeptideDoubleCompetition(unmapped_ids, {}))
+  TEST_EXCEPTION(Exception::InvalidValue, fdr.applyPeptideDoubleCompetition(unmapped_ids, {{"AAAAAAAK", "DECOYAAK"}, {"CCCCCCCK", "DECOYAAK"}}))
+  TEST_EXCEPTION(Exception::InvalidValue, fdr.applyPeptideDoubleCompetition(unmapped_ids, {{"AAAAAAAK", "CCCCCCCK"}, {"CCCCCCCK", "DECOYCCK"}}))
+
+  // Modified forms share the unmodified peptide identity used by the existing FDR path.
+  PeptideIdentificationList modified_ids;
+  auto add_modified = [&modified_ids](const std::string& sequence, double score, const std::string& label)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setScore(score);
+    hit.setCharge(2);
+    hit.setMetaValue("target_decoy", label);
+    PeptideIdentification id;
+    id.setScoreType("score");
+    id.setHigherScoreBetter(true);
+    id.setHits({hit});
+    modified_ids.push_back(id);
+  };
+  add_modified("MPEPTIDEK", 0.4, "target");
+  add_modified("M(Oxidation)PEPTIDEK", 0.9, "target");
+  const std::map<std::string, std::string> modified_pair = {{"MPEPTIDEK", "KEDITPEPM"}};
+  fdr.applyPeptideDoubleCompetition(modified_ids, modified_pair);
+  Size modified_target_hits = 0;
+  for (const auto& id : modified_ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      if (hit.getSequence().toUnmodifiedString() == "MPEPTIDEK") ++modified_target_hits;
+    }
+  }
+  TEST_EQUAL(modified_target_hits, 2)
+
+  FalseDiscoveryRate charge_fdr;
+  Param charge_params = charge_fdr.getParameters();
+  charge_params.setValue("split_charge_variants", "true");
+  charge_fdr.setParameters(charge_params);
+  PeptideIdentificationList charge_ids;
+  auto add_charge = [&charge_ids](const std::string& sequence, double score, Int charge, const std::string& label)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setScore(score);
+    hit.setCharge(charge);
+    hit.setMetaValue("target_decoy", label);
+    PeptideIdentification id;
+    id.setScoreType("score");
+    id.setHigherScoreBetter(true);
+    id.setHits({hit});
+    charge_ids.push_back(id);
+  };
+  add_charge("AAAAAAAK", 0.1, 2, "target");
+  add_charge("DECOYAAK", 0.9, 2, "decoy");
+  add_charge("AAAAAAAK", 0.99, 3, "target");
+  charge_fdr.applyPeptideDoubleCompetition(charge_ids, {{"AAAAAAAK", "DECOYAAK"}});
+  bool charge_two_target_retained = false;
+  bool charge_three_target_retained = false;
+  for (const auto& id : charge_ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      if (hit.getSequence().toUnmodifiedString() == "AAAAAAAK")
+      {
+        charge_two_target_retained |= hit.getCharge() == 2;
+        charge_three_target_retained |= hit.getCharge() == 3;
+      }
+    }
+  }
+  TEST_FALSE(charge_two_target_retained)
+  TEST_TRUE(charge_three_target_retained)
+
+  // PSM competition chooses one best hit per spectrum and keeps decoy-only peptide winners when requested.
+  FalseDiscoveryRate psm_fdr;
+  Param psm_params = psm_fdr.getParameters();
+  psm_params.setValue("add_decoy_peptides", "true");
+  psm_fdr.setParameters(psm_params);
+  PeptideIdentificationList psm_ids;
+  PeptideHit target_psm_hit;
+  target_psm_hit.setSequence(AASequence::fromString("AAAAAAAK"));
+  target_psm_hit.setScore(0.7);
+  target_psm_hit.setMetaValue("target_decoy", "target");
+  PeptideHit decoy_psm_hit;
+  decoy_psm_hit.setSequence(AASequence::fromString("DECOYAAK"));
+  decoy_psm_hit.setScore(0.9);
+  decoy_psm_hit.setMetaValue("target_decoy", "decoy");
+  PeptideIdentification spectrum_id;
+  spectrum_id.setScoreType("score");
+  spectrum_id.setHigherScoreBetter(true);
+  spectrum_id.setHits({target_psm_hit, decoy_psm_hit});
+  psm_ids.push_back(spectrum_id);
+  PeptideHit other_target_hit;
+  other_target_hit.setSequence(AASequence::fromString("CCCCCCCK"));
+  other_target_hit.setScore(0.8);
+  other_target_hit.setMetaValue("target_decoy", "target");
+  PeptideIdentification other_spectrum_id;
+  other_spectrum_id.setScoreType("score");
+  other_spectrum_id.setHigherScoreBetter(true);
+  other_spectrum_id.setHits({other_target_hit});
+  psm_ids.push_back(other_spectrum_id);
+  PeptideHit decoy_only_hit;
+  decoy_only_hit.setSequence(AASequence::fromString("DECOYDDK"));
+  decoy_only_hit.setScore(0.6);
+  decoy_only_hit.setMetaValue("target_decoy", "decoy");
+  PeptideIdentification decoy_only_id;
+  decoy_only_id.setScoreType("score");
+  decoy_only_id.setHigherScoreBetter(true);
+  decoy_only_id.setHits({decoy_only_hit});
+  psm_ids.push_back(decoy_only_id);
+  psm_fdr.applyPeptideDoubleCompetition(psm_ids, {{"AAAAAAAK", "DECOYAAK"}, {"CCCCCCCK", "DECOYCCK"}, {"DDDDDDDK", "DECOYDDK"}});
+  TEST_EQUAL(psm_ids[0].getHits().size(), 1)
+  TEST_EQUAL(psm_ids[0].getHits()[0].getSequence().toUnmodifiedString(), "DECOYAAK")
+  TEST_EQUAL(psm_ids[2].getHits().size(), 1)
+  TEST_EQUAL(psm_ids[2].getHits()[0].getSequence().toUnmodifiedString(), "DECOYDDK")
+
+  // Charge and run partitions each get their own FDR curve.
+  FalseDiscoveryRate partitioned_fdr;
+  Param partitioned_params = partitioned_fdr.getParameters();
+  partitioned_params.setValue("split_charge_variants", "true");
+  partitioned_params.setValue("treat_runs_separately", "true");
+  partitioned_fdr.setParameters(partitioned_params);
+  PeptideIdentificationList partitioned_ids;
+  auto add_partitioned = [&partitioned_ids](const std::string& sequence, double score, Int charge, const std::string& run, const std::string& label)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setScore(score);
+    hit.setCharge(charge);
+    hit.setMetaValue("target_decoy", label);
+    PeptideIdentification id;
+    id.setIdentifier(run);
+    id.setScoreType("score");
+    id.setHigherScoreBetter(true);
+    id.setHits({hit});
+    partitioned_ids.push_back(id);
+  };
+  add_partitioned("AAAAAAAK", 0.9, 2, "run1", "target");
+  add_partitioned("DECOYBBK", 0.7, 2, "run1", "decoy");
+  add_partitioned("CCCCCCCK", 0.8, 2, "run1", "target");
+  add_partitioned("EEEEEEEK", 0.6, 3, "run2", "target");
+  const std::map<std::string, std::string> partitioned_pairs = {
+    {"AAAAAAAK", "DECOYAAK"}, {"BBBBBBBK", "DECOYBBK"},
+    {"CCCCCCCK", "DECOYCCK"}, {"EEEEEEEK", "DECOYEEK"}
+  };
+  partitioned_fdr.applyPeptideDoubleCompetition(partitioned_ids, partitioned_pairs);
+  double isolated_target_qvalue = -1.0;
+  double run1_target_qvalue = -1.0;
+  for (const auto& id : partitioned_ids)
+  {
+    for (const auto& hit : id.getHits())
+    {
+      if (hit.getSequence().toUnmodifiedString() == "EEEEEEEK") isolated_target_qvalue = hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE);
+      if (hit.getSequence().toUnmodifiedString() == "CCCCCCCK") run1_target_qvalue = hit.getMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE);
+    }
+  }
+  TEST_REAL_SIMILAR(isolated_target_qvalue, 1.0)
+  TEST_REAL_SIMILAR(run1_target_qvalue, 0.5)
+
+  // Equal peptide scores are resolved by the fixed seed, so repeated runs agree.
+  const std::map<std::string, std::string> tie_pair = {{"GGGGGGGK", "HHHHHHHK"}};
+  PeptideIdentificationList tied_ids_1, tied_ids_2;
+  auto add_tie = [](PeptideIdentificationList& input)
+  {
+    PeptideHit target;
+    target.setSequence(AASequence::fromString("GGGGGGGK"));
+    target.setScore(0.5);
+    target.setMetaValue("target_decoy", "target");
+    PeptideIdentification target_id;
+    target_id.setScoreType("score");
+    target_id.setHigherScoreBetter(true);
+    target_id.setHits({target});
+    input.push_back(target_id);
+    PeptideHit decoy;
+    decoy.setSequence(AASequence::fromString("HHHHHHHK"));
+    decoy.setScore(0.5);
+    decoy.setMetaValue("target_decoy", "decoy");
+    PeptideIdentification decoy_id;
+    decoy_id.setScoreType("score");
+    decoy_id.setHigherScoreBetter(true);
+    decoy_id.setHits({decoy});
+    input.push_back(decoy_id);
+  };
+  add_tie(tied_ids_1);
+  add_tie(tied_ids_2);
+  fdr.applyPeptideDoubleCompetition(tied_ids_1, tie_pair);
+  fdr.applyPeptideDoubleCompetition(tied_ids_2, tie_pair);
+  const bool first_tie_kept_target = !tied_ids_1.front().getHits().empty();
+  const bool second_tie_kept_target = !tied_ids_2.front().getHits().empty();
+  TEST_EQUAL(first_tie_kept_target, second_tie_kept_target)
+
+  // Equal PSM scores within one spectrum are also resolved by the configured seed.
+  FalseDiscoveryRate psm_tie_fdr;
+  Param psm_tie_params = psm_tie_fdr.getParameters();
+  psm_tie_params.setValue("add_decoy_peptides", "true");
+  psm_tie_fdr.setParameters(psm_tie_params);
+  auto add_psm_tie = [](PeptideIdentificationList& input)
+  {
+    PeptideHit target;
+    target.setSequence(AASequence::fromString("IIIIIIIK"));
+    target.setScore(0.5);
+    target.setMetaValue("target_decoy", "target");
+    PeptideHit decoy;
+    decoy.setSequence(AASequence::fromString("KIIIIIII"));
+    decoy.setScore(0.5);
+    decoy.setMetaValue("target_decoy", "decoy");
+    PeptideIdentification spectrum;
+    spectrum.setScoreType("score");
+    spectrum.setHigherScoreBetter(true);
+    spectrum.setHits({target, decoy});
+    input.push_back(spectrum);
+  };
+  PeptideIdentificationList psm_tied_ids_1, psm_tied_ids_2;
+  add_psm_tie(psm_tied_ids_1);
+  add_psm_tie(psm_tied_ids_2);
+  const std::map<std::string, std::string> psm_tie_pair = {{"IIIIIIIK", "KIIIIIII"}};
+  psm_tie_fdr.applyPeptideDoubleCompetition(psm_tied_ids_1, psm_tie_pair);
+  psm_tie_fdr.applyPeptideDoubleCompetition(psm_tied_ids_2, psm_tie_pair);
+  TEST_EQUAL(psm_tied_ids_1[0].getHits().size(), 1)
+  TEST_EQUAL(psm_tied_ids_1[0].getHits()[0].getSequence().toUnmodifiedString(), psm_tied_ids_2[0].getHits()[0].getSequence().toUnmodifiedString())
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////

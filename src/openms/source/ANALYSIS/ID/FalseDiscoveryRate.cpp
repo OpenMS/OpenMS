@@ -18,6 +18,16 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <algorithm>
+#include <cmath>
+#include <iterator>
+#include <limits>
+#include <random>
+#include <set>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
 
 // #define FALSE_DISCOVERY_RATE_DEBUG
 // #undef  FALSE_DISCOVERY_RATE_DEBUG
@@ -26,6 +36,11 @@ using namespace std;
 
 namespace OpenMS
 {
+  bool isFirstBetterScore(double first, double second, bool isHigherBetter)
+  {
+    return isHigherBetter ? first > second : first < second;
+  }
+
   FalseDiscoveryRate::FalseDiscoveryRate() :
     DefaultParamHandler("FalseDiscoveryRate")
   {
@@ -43,14 +58,263 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoy_proteins", {"true","false"});
     defaults_.setValue("conservative", "true", "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.");
     defaults_.setValidStrings("conservative", {"true","false"});
+    defaults_.setValue("peptide_tie_seed", 1, "Seed used to randomly resolve equal-scoring target/decoy peptide pairs in double competition.");
+    defaults_.setMinInt("peptide_tie_seed", 0);
     //defaults_.setValue("subprotein_level", "PSM", "Choose PSM or peptide or PSM+peptide");
     //defaults_.setValidStrings("subprotein_level", {"PSM","peptide","PSM+peptide"});
     defaultsToParam_();
   }
 
-  bool isFirstBetterScore(double first, double second, bool isHigherBetter)
+  void FalseDiscoveryRate::applyPeptideDoubleCompetition(PeptideIdentificationList& ids, const map<string, string>& target_decoy_peptide_pairs) const
   {
-    if (isHigherBetter) return first > second; else return first < second;
+    if (ids.empty()) return;
+    if (target_decoy_peptide_pairs.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide double competition requires target-decoy peptide pairs.");
+    }
+
+    set<string> observed_decoy_sequences;
+    for (const auto& peptide_id : ids)
+    {
+      for (const auto& hit : peptide_id.getHits())
+      {
+        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::DECOY)
+        {
+          observed_decoy_sequences.insert(hit.getSequence().toUnmodifiedString());
+        }
+      }
+    }
+
+    unordered_set<string_view> seen_decoy_sequences;
+    unordered_map<string_view, string_view> decoy_to_target;
+    seen_decoy_sequences.reserve(target_decoy_peptide_pairs.size());
+    decoy_to_target.reserve(observed_decoy_sequences.size());
+    for (const auto& [target_sequence, decoy_sequence] : target_decoy_peptide_pairs)
+    {
+      if (target_sequence.empty() || decoy_sequence.empty() || target_sequence == decoy_sequence)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Target-decoy peptide pairs must contain two distinct, non-empty unmodified sequences.", target_sequence + " -> " + decoy_sequence);
+      }
+      if (target_decoy_peptide_pairs.contains(decoy_sequence))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A peptide sequence cannot be both a target and a decoy in the pair map.", decoy_sequence);
+      }
+      if (!seen_decoy_sequences.emplace(decoy_sequence).second)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Each decoy peptide must map to exactly one target peptide.", decoy_sequence);
+      }
+      if (observed_decoy_sequences.contains(decoy_sequence))
+      {
+        decoy_to_target.emplace(decoy_sequence, target_sequence);
+      }
+    }
+
+    const bool higher_score_better = ids.begin()->isHigherScoreBetter();
+    const bool q_value = !param_.getValue("no_qvalues").toBool();
+    const bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
+    const bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
+    const bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
+    const double worst_score = higher_score_better ? -numeric_limits<double>::infinity() : numeric_limits<double>::infinity();
+    mt19937 generator(static_cast<mt19937::result_type>(static_cast<UInt>(param_.getValue("peptide_tie_seed"))));
+    uniform_int_distribution<int> coin(0, 1);
+
+    using PairKey = tuple<string, string, SignedSize, string>;
+
+    struct PairScores
+    {
+      double target_score;
+      double decoy_score;
+    };
+    map<PairKey, PairScores> pair_scores;
+    PeptideIdentificationList competed_ids;
+    competed_ids.reserve(ids.size());
+
+    // The paper's first competition selects one best PSM hit per spectrum.
+    for (const auto& peptide_id : ids)
+    {
+      if (peptide_id.isHigherScoreBetter() != higher_score_better)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "All peptide identifications must use the same score orientation.");
+      }
+      vector<PeptideHit> sorted_hits = peptide_id.getHits();
+      for (const auto& hit : sorted_hits)
+      {
+        if (!isfinite(hit.getScore()))
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide scores must be finite for double competition.", StringUtils::toStr(hit.getScore()));
+        }
+      }
+      sort(sorted_hits.begin(), sorted_hits.end(), [higher_score_better](const PeptideHit& lhs, const PeptideHit& rhs)
+      {
+        return isFirstBetterScore(lhs.getScore(), rhs.getScore(), higher_score_better);
+      });
+      if (!sorted_hits.empty())
+      {
+        Size tied_best = 1;
+        while (tied_best < sorted_hits.size() && sorted_hits[tied_best].getScore() == sorted_hits.front().getScore()) ++tied_best;
+        if (tied_best > 1) swap(sorted_hits.front(), sorted_hits[static_cast<Size>(uniform_int_distribution<Size>(0, tied_best - 1)(generator))]);
+      }
+      PeptideIdentification competed_id = peptide_id;
+      if (sorted_hits.empty())
+      {
+        competed_ids.push_back(std::move(competed_id));
+        continue;
+      }
+
+      const auto& hit = sorted_hits.front();
+      const string sequence = hit.getSequence().toUnmodifiedString();
+      const auto type = hit.getTargetDecoyType();
+      if (type == PeptideHit::TargetDecoyType::UNKNOWN)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide hit lacks target_decoy annotation; run PeptideIndexer first.");
+      }
+      // A peptide matching both databases has no valid target/decoy label and cannot enter either competition.
+      if (type == PeptideHit::TargetDecoyType::TARGET_DECOY) continue;
+
+      competed_id.setHits({hit});
+      competed_ids.push_back(std::move(competed_id));
+
+      auto target_it = target_decoy_peptide_pairs.find(sequence);
+      auto decoy_it = decoy_to_target.find(sequence);
+      if (type == PeptideHit::TargetDecoyType::DECOY)
+      {
+        if (decoy_it == decoy_to_target.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target peptide pairing was supplied for decoy sequence " + sequence);
+        }
+        const PairKey key{string(decoy_it->second), sequence, split_charge_variants ? hit.getCharge() : 0, treat_runs_separately ? peptide_id.getIdentifier() : string{}};
+        auto scores_it = pair_scores.try_emplace(key, PairScores{worst_score, worst_score}).first;
+        auto& scores = scores_it->second;
+        if (isFirstBetterScore(hit.getScore(), scores.decoy_score, higher_score_better)) scores.decoy_score = hit.getScore();
+      }
+      else
+      {
+        if (target_it == target_decoy_peptide_pairs.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No decoy peptide pairing was supplied for target sequence " + sequence);
+        }
+        const PairKey key{sequence, target_it->second, split_charge_variants ? hit.getCharge() : 0, treat_runs_separately ? peptide_id.getIdentifier() : string{}};
+        auto scores_it = pair_scores.try_emplace(key, PairScores{worst_score, worst_score}).first;
+        auto& scores = scores_it->second;
+        if (isFirstBetterScore(hit.getScore(), scores.target_score, higher_score_better)) scores.target_score = hit.getScore();
+      }
+    }
+
+    struct Winner
+    {
+      PairKey key;
+      double score;
+      bool target_won;
+      double fdr = 1.0;
+      double qvalue = 1.0;
+    };
+    vector<Winner> winners;
+    winners.reserve(pair_scores.size());
+    for (const auto& [key, scores] : pair_scores)
+    {
+      if (scores.target_score == worst_score && scores.decoy_score == worst_score) continue;
+      bool target_won;
+      if (scores.target_score == scores.decoy_score)
+      {
+        target_won = (coin(generator) == 0);
+      }
+      else
+      {
+        target_won = isFirstBetterScore(scores.target_score, scores.decoy_score, higher_score_better);
+      }
+      winners.push_back({key, target_won ? scores.target_score : scores.decoy_score, target_won});
+    }
+
+    using FDRGroup = pair<SignedSize, string>;
+    map<FDRGroup, vector<Winner>> grouped_winners;
+    for (auto& winner : winners)
+    {
+      grouped_winners[{get<2>(winner.key), get<3>(winner.key)}].push_back(std::move(winner));
+    }
+    for (auto& group_entry : grouped_winners)
+    {
+      auto& group_winners = group_entry.second;
+      sort(group_winners.begin(), group_winners.end(), [higher_score_better](const Winner& lhs, const Winner& rhs)
+      {
+        return higher_score_better ? lhs.score > rhs.score : lhs.score < rhs.score;
+      });
+
+      Size target_wins = 0;
+      Size decoy_wins = 0;
+      for (Size begin = 0; begin < group_winners.size();)
+      {
+        Size end = begin;
+        while (end < group_winners.size() && group_winners[end].score == group_winners[begin].score)
+        {
+          if (group_winners[end].target_won) ++target_wins;
+          else ++decoy_wins;
+          ++end;
+        }
+        const double fdr = target_wins == 0 ? 1.0 : min(1.0, (static_cast<double>(decoy_wins) + 1.0) / static_cast<double>(target_wins));
+        for (Size i = begin; i < end; ++i) group_winners[i].fdr = fdr;
+        begin = end;
+      }
+
+      double running_minimum = 1.0;
+      for (auto it = group_winners.rbegin(); it != group_winners.rend(); ++it)
+      {
+        running_minimum = min(running_minimum, it->fdr);
+        it->qvalue = running_minimum;
+      }
+    }
+    winners.clear();
+    for (auto& group_entry : grouped_winners)
+    {
+      auto& group_winners = group_entry.second;
+      winners.insert(winners.end(), std::make_move_iterator(group_winners.begin()), std::make_move_iterator(group_winners.end()));
+    }
+
+    map<PairKey, double> target_qvalues, decoy_qvalues;
+    for (const auto& winner : winners)
+    {
+      const double value = q_value ? winner.qvalue : winner.fdr;
+      if (winner.target_won)
+      {
+        target_qvalues[winner.key] = value;
+      }
+      else
+      {
+        decoy_qvalues[winner.key] = value;
+      }
+    }
+
+    // Reuse the established PSM-level path on only the PSM-competition winners.
+    apply(competed_ids, false);
+    ids = std::move(competed_ids);
+    const string peptide_value_name = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
+    for (auto& peptide_id : ids)
+    {
+      vector<PeptideHit> kept_hits;
+      kept_hits.reserve(peptide_id.getHits().size());
+      for (auto hit : peptide_id.getHits())
+      {
+        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::TARGET_DECOY) continue;
+        const string sequence = hit.getSequence().toUnmodifiedString();
+        const string target_sequence = hit.isDecoy() ? string(decoy_to_target.at(sequence)) : sequence;
+        const string decoy_sequence = hit.isDecoy() ? sequence : target_decoy_peptide_pairs.at(sequence);
+        const PairKey key{target_sequence, decoy_sequence, split_charge_variants ? hit.getCharge() : 0, treat_runs_separately ? peptide_id.getIdentifier() : string{}};
+        const bool is_decoy = hit.isDecoy();
+        if (is_decoy)
+        {
+          auto q_it = decoy_qvalues.find(key);
+          if (!add_decoy_peptides || q_it == decoy_qvalues.end()) continue;
+          hit.setMetaValue(peptide_value_name, q_it->second);
+        }
+        else
+        {
+          auto q_it = target_qvalues.find(key);
+          if (q_it == target_qvalues.end()) continue;
+          hit.setMetaValue(peptide_value_name, q_it->second);
+        }
+        kept_hits.push_back(std::move(hit));
+      }
+      peptide_id.setHits(std::move(kept_hits));
+    }
   }
 
   void FalseDiscoveryRate::apply(PeptideIdentificationList& ids, bool annotate_peptide_fdr) const
