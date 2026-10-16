@@ -8,11 +8,13 @@
 
 // The database search engine ProSE (ANALYSIS/ID/ProSEAlgorithm): a search of one spectrum
 // file as the ProSE tool runs it, with its statistics, the modification analysis of open
-// searches and progress reports; and the annotation of a spectrum with the fragment ions of
-// a peptide, for spectrum viewers.
+// searches and progress reports; a search of several files pooled as the tool's -out_merged
+// does, whose results (ProSEResultSet) JavaScript holds; and the annotation of a spectrum with
+// the fragment ions of a peptide, for spectrum viewers.
 
 #include "binding_utils.h"
 
+#include <OpenMS/ANALYSIS/ID/PeptDeepRescoring.h>
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -20,6 +22,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -29,8 +33,14 @@
 
 #include <algorithm>
 #include <atomic>
+#include <charconv>
 #include <cmath>
+#include <memory>
+#include <optional>
+#include <string>
+#include <string_view>
 #include <utility>
+#include <vector>
 
 using namespace emscripten;
 
@@ -43,11 +53,48 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // Progress
 
+    /// The position of the input file of a progress step "Searching <name> (<i> of <n>)...", the step of a
+    /// multi-file search per input file (ProSEAlgorithm): i - 1, and whether it is the last file (i = n);
+    /// nothing for other labels.
+    std::optional<std::pair<int, bool>> fileOfProgressStep(const std::string& label)
+    {
+      static constexpr std::string_view prefix = "Searching ", suffix = ")...", of = " of ";
+      const std::string_view l(label);
+      if (l.size() <= prefix.size() + suffix.size() || l.substr(0, prefix.size()) != prefix
+          || l.substr(l.size() - suffix.size()) != suffix)
+      {
+        return std::nullopt;
+      }
+      const auto open = l.rfind(" (");
+      if (open == std::string_view::npos || open < prefix.size()) return std::nullopt;
+      const std::string_view counts = l.substr(open + 2, l.size() - suffix.size() - open - 2); // "<i> of <n>"
+      const auto of_pos = counts.find(of);
+      if (of_pos == std::string_view::npos) return std::nullopt;
+      const auto number = [](std::string_view s, int& n) {
+        const auto [end, error] = std::from_chars(s.data(), s.data() + s.size(), n);
+        return error == std::errc() && end == s.data() + s.size() && !s.empty();
+      };
+      int i = 0, n = 0;
+      if (!number(counts.substr(0, of_pos), i) || !number(counts.substr(of_pos + of.size()), n) || i < 1 || i > n)
+      {
+        return std::nullopt;
+      }
+      return std::make_pair(i - 1, i == n);
+    }
+
     /// Reports the progress of an algorithm to a JavaScript function, called with
-    /// {event: "start" | "progress" | "end", label, depth, begin, end, value}.
-    /// The function is called only on the thread that set it (a JavaScript value belongs
-    /// to the thread that created it); reports of other threads (OpenMP) only count.
-    /// It runs while the search runs: in a Web Worker, postMessage() its argument to the page.
+    /// {event: "start" | "progress" | "end", label, depth, begin, end, value, file}:
+    /// - Every report is that of the innermost open step: its label, its range [begin, end] and
+    ///   its nesting depth (0: outermost), as this logger counts the steps; value is in the range.
+    /// - file: the position of the input file being searched, from the step "Searching <name>
+    ///   (<i> of <n>)..." of a multi-file search: i - 1 from that step on, until the step of the
+    ///   next file. -1 before the first file, after the step of the last one ends, and in steps
+    ///   outside the files.
+    /// The function is called only on the thread that set it (a JavaScript value belongs to the
+    /// thread that created it), and only the steps of that thread count: the steps of other
+    /// threads (e.g. a background reader) are not reported, and their values only count towards
+    /// the open step (OpenMP threads). It runs while the search runs: in a Web Worker,
+    /// postMessage() its argument to the page.
     class JSProgressLogger : public ProgressLogger::ProgressLoggerImpl
     {
     public:
@@ -57,21 +104,31 @@ namespace OpenMS::WASM
       {
       }
 
-      void startProgress(const SignedSize begin, const SignedSize end, const std::string& label, const int depth) const override
+      // ProgressLogger's depth is not used: it is static and shared by all threads.
+      void startProgress(const SignedSize begin, const SignedSize end, const std::string& label, const int /*depth*/) const override
       {
-        current_ = begin;
-        if (depth == 0)
+        if (!isOwner_()) return;
+        if (!steps_.empty()) steps_.back().value = current_;
+        Step step{label, begin, end, begin, false};
+        if (const auto file = fileOfProgressStep(label))
         {
-          begin_ = begin;
-          end_ = end;
+          file_ = file->first;
+          step.last_file = file->second;
         }
-        report_("start", label, depth, begin, end, begin);
+        else if (steps_.empty())
+        {
+          file_ = -1; // a step outside the files
+        }
+        steps_.push_back(std::move(step));
+        current_ = begin;
+        report_("start", steps_.back(), steps_.size() - 1, begin);
       }
 
-      void setProgress(const SignedSize value, const int depth) const override
+      void setProgress(const SignedSize value, const int /*depth*/) const override
       {
+        if (!isOwner_() || steps_.empty()) return;
         current_ = value;
-        report_("progress", "", depth, begin_, end_, value);
+        report_("progress", steps_.back(), steps_.size() - 1, value);
       }
 
       SignedSize nextProgress() const override
@@ -79,33 +136,52 @@ namespace OpenMS::WASM
         return ++current_;
       }
 
-      void endProgress(const int depth, UInt64 /*bytes_processed*/) const override
+      void endProgress(const int /*depth*/, UInt64 /*bytes_processed*/) const override
       {
-        report_("end", "", depth, begin_, end_, end_);
+        if (!isOwner_() || steps_.empty()) return;
+        const Step step = std::move(steps_.back());
+        steps_.pop_back();
+        if (!steps_.empty()) current_ = steps_.back().value;
+        report_("end", step, steps_.size(), step.end);
+        if (step.last_file) file_ = -1; // after the search of the files
       }
 
     private:
-      void report_(const char* event, const std::string& label, int depth, SignedSize begin, SignedSize end, SignedSize value) const
+      /// An open step
+      struct Step
       {
-        if (!pthread_equal(pthread_self(), owner_))
-        {
-          return;
-        }
+        std::string label;
+        SignedSize begin, end;
+        SignedSize value;   ///< the progress when a step inside it started
+        bool last_file;     ///< the step of the last input file
+      };
+
+      bool isOwner_() const
+      {
+        return pthread_equal(pthread_self(), owner_);
+      }
+
+      /// Reports @p event of @p step, at nesting depth @p depth.
+      void report_(const char* event, const Step& step, Size depth, SignedSize value) const
+      {
         val o = val::object();
         o.set("event", std::string(event));
-        o.set("label", label);
-        o.set("depth", depth);
-        o.set("begin", static_cast<double>(begin));
-        o.set("end", static_cast<double>(end));
+        o.set("label", step.label);
+        o.set("depth", static_cast<int>(depth));
+        o.set("begin", static_cast<double>(step.begin));
+        o.set("end", static_cast<double>(step.end));
         o.set("value", static_cast<double>(value));
+        o.set("file", file_);
         callback_(o);
       }
 
       val callback_;
       pthread_t owner_;
+      /// the progress of the innermost open step (all threads count)
       mutable std::atomic<SignedSize> current_{0};
-      mutable SignedSize begin_ = 0;
-      mutable SignedSize end_ = 0;
+      /// the open steps of the owner thread, innermost last (only that thread changes them)
+      mutable std::vector<Step> steps_;
+      mutable int file_ = -1;
     };
 
     /// Sets the function that receives the progress reports of @p algo (null or undefined: none).
@@ -259,6 +335,56 @@ namespace OpenMS::WASM
       return o;
     }
 
+    /// The option @p name of @p options (an object or nullish), or undefined.
+    val option(const val& options, const char* name)
+    {
+      return isNullish(options) ? val::undefined() : options[name];
+    }
+
+    /// Sets the parameter 'rescore' of an algorithm to the option {rescore} of a call, if given, for as long as it
+    /// exists; the parameters are restored afterwards, also when the call throws.
+    class RescoreOverride
+    {
+    public:
+      RescoreOverride(ProSEAlgorithm& algo, const val& options) :
+        algo_(algo),
+        saved_(algo.getParameters())
+      {
+        const val rescore = option(options, "rescore");
+        if (isNullish(rescore)) return;
+        Param p = saved_;
+        p.setValue("rescore", rescore.as<bool>() ? "true" : "false");
+        algo_.setParameters(p);
+        active_ = true;
+      }
+
+      RescoreOverride(const RescoreOverride&) = delete;
+      RescoreOverride& operator=(const RescoreOverride&) = delete;
+
+      ~RescoreOverride()
+      {
+        if (!active_) return;
+        try
+        {
+          algo_.setParameters(saved_);
+        }
+        catch (...) // the parameters were valid before
+        {
+        }
+      }
+
+      /// Whether the call rescores the PSMs (the parameter 'rescore' as set for it)
+      bool rescore() const
+      {
+        return algo_.getParameters().getValue("rescore").toString() == "true";
+      }
+
+    private:
+      ProSEAlgorithm& algo_;
+      const Param saved_;
+      bool active_ = false;
+    };
+
     /// Searches the spectra of @p spectra_path (mzML) against the proteins of @p database_path
     /// (FASTA) as the ProSE tool does for one input file: the search, which by default (parameter
     /// 'rescore') rescores the PSMs with Percolator (in-process) before its PSM-level FDR
@@ -268,30 +394,17 @@ namespace OpenMS::WASM
                                             ProteinIdentificationList& proteins, PeptideIdentificationList& peptides,
                                             const JS::ProSEOptions& options)
     {
-      const Param user_params = algo.getParameters();
-      // {rescore} overrides the parameter 'rescore' for this call; the parameters are restored afterwards
-      const bool override_rescore = !isNullish(options) && !isNullish(options["rescore"]);
-      if (override_rescore)
-      {
-        Param p = user_params;
-        p.setValue("rescore", options["rescore"].as<bool>() ? "true" : "false");
-        algo.setParameters(p);
-      }
-      const bool rescore = algo.getParameters().getValue("rescore").toString() == "true";
-      const double protein_fdr = static_cast<double>(user_params.getValue("FDR:protein"));
+      bool rescore = false;
+      const double protein_fdr = static_cast<double>(algo.getParameters().getValue("FDR:protein"));
       StopWatch watch;
       watch.start();
       ProSEAlgorithm::MultiFileSearchResult result;
-      try
       {
+        // {rescore} overrides the parameter 'rescore' for the search
+        const RescoreOverride rescore_override(algo, options);
+        rescore = rescore_override.rescore();
         result = algo.searchWithModificationAnalysis(std::vector<std::string>{spectra_path}, database_path, {}, "", false);
       }
-      catch (...)
-      {
-        if (override_rescore) algo.setParameters(user_params);
-        throw;
-      }
-      if (override_rescore) algo.setParameters(user_params);
       if (result.per_file.size() != 1)
       {
         throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ProSE returned no result for the input file.");
@@ -350,6 +463,209 @@ namespace OpenMS::WASM
     void proseSetProgressCallback(ProSEAlgorithm& algo, const JS::ProgressCallback& callback)
     {
       setProgressCallback(algo, callback);
+    }
+  } // namespace
+
+  //------------------------------------------------------------------------------
+  // Several files: searchFiles() and its ProSEResultSet
+
+  /// The search of one input file of ProSEAlgorithm.searchFiles()
+  struct ProSEFileResult
+  {
+    std::string path;                                   ///< as given
+    ProSEAlgorithm::ExitCodes exit_code = ProSEAlgorithm::ExitCodes::EXECUTION_OK;
+    ProSEAlgorithm::RunStatistics stats;                ///< of the PSMs of the file (after its FDR:PSM)
+    ProSEAlgorithm::PercolatorRescoring percolator;
+    std::optional<double> peptdeep_nce;                 ///< the NCE of PeptDeep's predictions (PeptDeepRescoring::NCE_META_VALUE)
+  };
+
+  /// The results of ProSEAlgorithm.searchFiles(), which JavaScript holds until delete(): the search of each input
+  /// file and the pooled evaluation of all of them (ProSEAlgorithm::mergeFileResults(), the ProSE tool's -out_merged).
+  struct ProSEResultSet
+  {
+    std::vector<ProSEFileResult> files;      ///< in input order
+    /// the pooled run and the PSMs of all files; the meta value 'id_merge_index' of a PSM is the position of its file
+    ProSEAlgorithm::MergedResult merged;
+    std::vector<FASTAFile::FASTAEntry> database; ///< the proteins of the FASTA file searched
+    bool rescore = false;                    ///< whether the search rescored the PSMs with Percolator ('rescore')
+    bool open_search = false;
+    /// of the PSMs of all files (open search)
+    OpenSearchModificationAnalysis::OpenSearchAnalysisResult modification_analysis;
+    std::string decoy_string;                ///< the decoy marker of the accessions (empty: target-only)
+    double psm_fdr = 0.0;                    ///< FDR:PSM
+    double protein_fdr = 0.0;                ///< FDR:protein
+    bool keep_spectra = true;                ///< ProSEFilesOptions.keepSpectra
+
+    ProSEResultSet() = default;
+    // no copies of the results by mistake (Embind copies a class returned by value)
+    ProSEResultSet(const ProSEResultSet&) = delete;
+    ProSEResultSet& operator=(const ProSEResultSet&) = delete;
+
+    /// The summary of the search (ProSEMultiSummary)
+    JS::ProSEMultiSummary summary() const;
+
+    /// Stores the pooled run and PSMs as idXML (the ProSE tool's -out_merged)
+    void storeIdXML(const std::string& path) const;
+  };
+
+  JS::ProSEMultiSummary ProSEResultSet::summary() const
+  {
+    const auto file_summary = [this](const ProSEFileResult& f) {
+      const bool ok = f.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK;
+      val percolator = val::null();
+      if (rescore && ok)
+      {
+        percolator = val::object();
+        percolator.set("applied", f.percolator.applied);
+        percolator.set("skipped", f.percolator.applied ? val::null() : val(f.percolator.skipped_reason));
+        percolator.set("warning", f.percolator.warning.empty() ? val::null() : val(f.percolator.warning));
+      }
+      val o = val::object();
+      o.set("path", f.path);
+      o.set("status", exitCodeName(f.exit_code));
+      o.set("ms2Spectra", static_cast<double>(f.stats.ms2_spectra));
+      o.set("targetPSMs", static_cast<double>(f.stats.target_psms));
+      o.set("decoyPSMs", static_cast<double>(f.stats.decoy_psms));
+      o.set("percolator", percolator);
+      o.set("peptdeepNce", f.peptdeep_nce ? val(*f.peptdeep_nce) : val::null());
+      o.set("secondsSearch", f.stats.seconds_search);
+      return o;
+    };
+    val o = val::object();
+    o.set("files", toArray(files, file_summary));
+    o.set("proteinFdrApplied", merged.protein_fdr_applied);
+    o.set("psmFdr", psm_fdr);
+    o.set("proteinFdr", protein_fdr);
+    o.set("decoyString", decoy_string);
+    o.set("openSearch", open_search);
+    o.set("modificationAnalysis", open_search ? modificationAnalysisToJS(modification_analysis) : val::null());
+    return o;
+  }
+
+  void ProSEResultSet::storeIdXML(const std::string& path) const
+  {
+    IdXMLFile().store(path, merged.protein_ids, merged.peptide_ids);
+  }
+
+  namespace
+  {
+    /// Searches the spectra of @p files (mzML) against the proteins of @p database_path (FASTA) as the ProSE tool does
+    /// with -out_merged: one search of all files, which by default (parameter 'rescore') rescores the PSMs of each file
+    /// with Percolator before its FDR:PSM; then the PSMs of all files are pooled for the protein inference and, with
+    /// FDR:protein and decoys, the picked-protein FDR (ProSEAlgorithm::mergeFileResults()). Options: {rescore} sets the
+    /// parameter 'rescore' for the call; {removeDecoys} (default false) removes the decoys after the protein FDR, as
+    /// the tool does; {keepSpectra} (default true) keeps the peaks of the identified spectra.
+    std::unique_ptr<ProSEResultSet> proseSearchFilesWithOptions(ProSEAlgorithm& algo, const JS::StringArray& files_js,
+                                                                const std::string& database_path,
+                                                                const JS::ProSEFilesOptions& options)
+    {
+      if (!val::global("Array").call<bool>("isArray", files_js))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "searchFiles() takes the paths of the spectrum files as array.");
+      }
+      if (!isNullish(options) && options.typeOf().as<std::string>() != "object")
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The options have to be an object (or null).");
+      }
+      const std::vector<std::string> files = stringsFromJS(files_js);
+      if (files.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "searchFiles() needs at least one spectrum file.");
+      }
+      // The pooled PSMs refer to their file by its path ('id_merge_index'): the same path twice would merge two files.
+      for (Size i = 1; i < files.size(); ++i)
+      {
+        if (std::find(files.begin(), files.begin() + i, files[i]) != files.begin() + i)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "searchFiles() needs distinct paths: '" + files[i] + "' is given twice.");
+        }
+      }
+      const val remove_decoys_option = option(options, "removeDecoys");
+      const val keep_spectra_option = option(options, "keepSpectra");
+      const bool remove_decoys = !isNullish(remove_decoys_option) && remove_decoys_option.as<bool>();
+
+      auto set = std::make_unique<ProSEResultSet>();
+      set->keep_spectra = isNullish(keep_spectra_option) || keep_spectra_option.as<bool>();
+      set->psm_fdr = static_cast<double>(algo.getParameters().getValue("FDR:PSM"));
+      set->protein_fdr = static_cast<double>(algo.getParameters().getValue("FDR:protein"));
+      FASTAFile().load(database_path, set->database);
+
+      // {rescore} overrides the parameter 'rescore' for the search and its evaluation
+      const RescoreOverride rescore_override(algo, options);
+      set->rescore = rescore_override.rescore();
+      // No pooled copy of the PSMs (build_pooled_aggregate false): mergeFileResults() pools them by moving them out of
+      // the results of the files. An open search still analyses the modifications of the pooled PSMs.
+      ProSEAlgorithm::MultiFileSearchResult result = algo.searchWithModificationAnalysis(files, set->database, {}, "", false);
+      if (result.per_file.size() != files.size())
+      {
+        throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ProSE returned no result for some input files.");
+      }
+
+      std::string not_rescored; // the files Percolator did not rescore, with the reasons
+      bool have_psms = false;   // whether a file has a PSM
+      for (Size i = 0; i < files.size(); ++i)
+      {
+        ProSEAlgorithm::SearchResult& run = result.per_file[i];
+        ProSEFileResult f;
+        f.path = files[i];
+        f.exit_code = run.exit_code;
+        f.percolator = run.percolator;
+        if (run.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+        {
+          if (!run.protein_ids.empty())
+          {
+            ProteinIdentification& protein_id = run.protein_ids[0];
+            protein_id.getSearchParameters().db = database_path; // as a search of the FASTA file records it
+            if (protein_id.metaValueExists(PeptDeepRescoring::NCE_META_VALUE))
+            {
+              f.peptdeep_nce = static_cast<double>(protein_id.getMetaValue(PeptDeepRescoring::NCE_META_VALUE));
+            }
+          }
+          // the statistics of the PSMs of the file, as the ProSE tool reports them
+          ProSEAlgorithm::updateFinalStats(run.stats, run.peptide_ids, result.shared.enzyme, run.stats.fdr_applied);
+          have_psms = have_psms || std::any_of(run.peptide_ids.begin(), run.peptide_ids.end(),
+                                               [](const PeptideIdentification& id) { return !id.getHits().empty(); });
+          if (set->rescore && !run.percolator.applied)
+          {
+            not_rescored += (not_rescored.empty() ? "" : "; ") + files[i] + " (" + run.percolator.skipped_reason + ")";
+          }
+        }
+        f.stats = run.stats;
+        set->files.push_back(std::move(f));
+      }
+      set->open_search = result.aggregate.is_open_search;
+      // a search of one file analyses the modifications of its PSMs, not of a pooled set
+      set->modification_analysis = std::move(files.size() == 1 ? result.per_file[0].modification_analysis
+                                                                : result.aggregate.modification_analysis);
+      set->decoy_string = result.decoy_string;
+
+      // Without PSMs, nothing is pooled: the results stay empty, as without a searched file. (mergeFileResults() would
+      // throw: the protein inference needs PSMs.)
+      if (!have_psms) return set;
+      bool partly_rescored = false;
+      try
+      {
+        set->merged = algo.mergeFileResults(result, files, remove_decoys);
+      }
+      catch (const Exception::InvalidValue&) // Percolator rescored only some of the files
+      {
+        partly_rescored = true;
+      }
+      if (partly_rescored)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Percolator rescored only some of the input files, and their PSMs cannot be pooled with the search engine "
+          "scores of the others (not rescored: " + not_rescored + "). Search the files with { rescore: false }, or leave "
+          "out those that could not be rescored.");
+      }
+      return set;
+    }
+
+    std::unique_ptr<ProSEResultSet> proseSearchFiles(ProSEAlgorithm& algo, const JS::StringArray& files, const std::string& database_path)
+    {
+      return proseSearchFilesWithOptions(algo, files, database_path, val::undefined());
     }
 
     //------------------------------------------------------------------------------
@@ -460,10 +776,18 @@ using namespace OpenMS::WASM;
 
 EMSCRIPTEN_BINDINGS(openms_prose)
 {
+  // The results of searchFiles(); delete() releases them.
+  class_<ProSEResultSet>("ProSEResultSet")
+    .function("summary", OMS_METHOD(ProSEResultSet, &ProSEResultSet::summary))
+    .function("storeIdXML", OMS_METHOD(ProSEResultSet, &ProSEResultSet::storeIdXML))
+    ;
+
   class_<ProSEAlgorithm, base<DefaultParamHandler>>("ProSEAlgorithm")
     .constructor<>()
     .function("search", OMS_FN(&proseSearch))
     .function("search", OMS_FN(&proseSearchWithOptions))
+    .function("searchFiles", OMS_FN(&proseSearchFiles), nonnull<ret_val>())
+    .function("searchFiles", OMS_FN(&proseSearchFilesWithOptions), nonnull<ret_val>())
     .function("setProgressCallback", OMS_FN(&proseSetProgressCallback))
     // q-values of the best hits by target-decoy competition (as FDR:PSM, without filtering)
     .function("annotatePsmQValues", OMS_METHOD(ProSEAlgorithm, &ProSEAlgorithm::annotatePsmQValues))

@@ -100,8 +100,9 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
 
   // ProSE
   register_type<ProgressCallback>(
-    "((progress: { event: 'start' | 'progress' | 'end'; label: string; depth: number; begin: number; end: number; value: number }) => void) "
-    "| null | undefined");
+    "((progress: { event: 'start' | 'progress' | 'end'; label: string; depth: number; begin: number; end: number; value: number; "
+    "/** position of the input file being searched (its step 'Searching <name> (<i> of <n>)...': i - 1), -1 outside a file */ "
+    "file: number }) => void) | null | undefined");
   register_type<ProSESummary>("ProSESummary",
     "{ status: 'EXECUTION_OK' | 'INPUT_FILE_EMPTY' | 'UNEXPECTED_RESULT' | 'ILLEGAL_PARAMETERS' | 'UNKNOWN_ERROR'; "
     "openSearch: boolean; haveDecoys: boolean; decoyString: string; decoyIsPrefix: boolean; proteinFDRApplied: boolean; "
@@ -127,6 +128,20 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
   register_type<ProSEOptions>("ProSEOptions",
     "{ /** Percolator rescoring: sets the parameter 'rescore' for the call (default: the parameter, true) */ rescore?: boolean } "
     "| null | undefined");
+  register_type<ProSEFilesOptions>("ProSEFilesOptions",
+    "{ /** Percolator rescoring of each file: sets the parameter 'rescore' for the call (default: the parameter, true) */ "
+    "rescore?: boolean; "
+    "/** keep the peaks of the identified spectra with the results (default true) */ keepSpectra?: boolean; "
+    "/** with the protein FDR, remove the decoy PSMs and proteins from the pooled results, as the ProSE tool's -out_merged "
+    "does (default false: keep those that pass) */ removeDecoys?: boolean } | null | undefined");
+  register_type<ProSEFileSummary>("ProSEFileSummary",
+    "{ path: string; status: 'EXECUTION_OK' | 'INPUT_FILE_EMPTY' | 'UNEXPECTED_RESULT' | 'ILLEGAL_PARAMETERS' | 'UNKNOWN_ERROR'; "
+    "ms2Spectra: number; targetPSMs: number; decoyPSMs: number; "
+    "percolator: { applied: boolean; skipped: string | null; warning: string | null } | null; "
+    "peptdeepNce: number | null; secondsSearch: number }");
+  register_type<ProSEMultiSummary>("ProSEMultiSummary",
+    "{ files: ProSEFileSummary[]; proteinFdrApplied: boolean; psmFdr: number; proteinFdr: number; decoyString: string; "
+    "openSearch: boolean; modificationAnalysis: ProSESummary['modificationAnalysis'] }");
   register_type<AnnotationOptions>("AnnotationOptions",
     "{ tolerance?: number; unit?: 'Da' | 'ppm'; maxCharge?: number; ions?: ('a' | 'b' | 'c' | 'x' | 'y' | 'z')[]; "
     "losses?: boolean; precursor?: boolean } | null | undefined");

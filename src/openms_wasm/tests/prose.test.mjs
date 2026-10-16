@@ -1,12 +1,15 @@
 // The search engine ProSE in WebAssembly: ProSEAlgorithm with the settings and data of the TOPP
 // test TOPP_ProSE_1 (src/tests/topp), which has to give the same PSMs; its progress reports,
-// statistics, peak annotations and open search; and annotateSpectrum() for spectrum viewers.
+// statistics, peak annotations and open search; the search of several files pooled as the ProSE
+// tool's -out_merged (TOPP_ProSE_13_merged); and annotateSpectrum() for spectrum viewers.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { loadOpenMS, modulePath, using, assertClose } from "./helpers.mjs";
+import { pathToFileURL } from "node:url";
+import { loadOpenMS, modulePath, toppDataDir, using, assertClose } from "./helpers.mjs";
 
 const OpenMS = await loadOpenMS();
 
@@ -220,6 +223,39 @@ test("ProSEAlgorithm: PeptDeep features for Percolator (ONNX Runtime)", (t) => {
   }
 });
 
+/// Checks progress @p reports of a search of the files with the steps @p fileSteps (their labels, in input order):
+/// - the outermost steps (depth 0) are those of the files, each with the file's position (file);
+/// - every report of a step carries its label, range and depth; its values lie in the range and never decrease;
+/// - every report carries the position of the file whose step encloses it.
+function assertProgressSteps(reports, fileSteps) {
+  assert.deepEqual(reports.filter((r) => r.event === "start" && r.depth === 0).map((r) => [r.label, r.file]),
+    fileSteps.map((label, i) => [label, i]));
+  const open = [];
+  let file = -1;
+  for (const r of reports) {
+    assert.ok(["start", "progress", "end"].includes(r.event), r.event);
+    if (r.event === "start") {
+      assert.equal(r.depth, open.length, `depth of ${r.label}`);
+      if (open.length === 0) file = fileSteps.indexOf(r.label, file + 1);
+      open.push({ label: r.label, begin: r.begin, end: r.end, value: r.value });
+    }
+    const step = open.at(-1);
+    assert.ok(step !== undefined, `${r.event} report outside a step: ${JSON.stringify(r)}`);
+    const where = `${r.event} of "${step.label}": ${JSON.stringify(r)}`;
+    assert.equal(r.label, step.label, where);
+    assert.deepEqual([r.begin, r.end], [step.begin, step.end], where);
+    assert.ok(r.begin <= r.value && r.value <= r.end, `value in range, ${where}`);
+    assert.ok(r.value >= step.value, `value does not decrease, ${where}`);
+    step.value = r.value;
+    assert.equal(r.file, file, `file, ${where}`);
+    if (r.event === "end") {
+      open.pop();
+      assert.equal(r.depth, open.length, `depth, ${where}`);
+    }
+  }
+  assert.equal(open.length, 0, "every step ended");
+}
+
 test("ProSEAlgorithm reports its progress", () => {
   const reports = [];
   const { summary } = search(prose1, (p) => reports.push(p));
@@ -227,10 +263,7 @@ test("ProSEAlgorithm reports its progress", () => {
   const started = reports.filter((r) => r.event === "start").map((r) => r.label);
   assert.ok(started.includes("Building fragment index..."), JSON.stringify(started));
   assert.ok(reports.some((r) => r.event === "end"));
-  for (const r of reports) {
-    assert.ok(["start", "progress", "end"].includes(r.event));
-    assert.ok(r.depth >= 0 && r.begin <= r.end);
-  }
+  assertProgressSteps(reports, ["Searching SimpleSearchEngine_1.mzML (1 of 1)..."]);
 });
 
 test("ProSEAlgorithm: progress callback has to be a function", () => {
@@ -254,6 +287,304 @@ test("ProSEAlgorithm: open search gives the modification analysis", () => {
   assert.ok(Array.isArray(analysis.deltaMasses.entries));
   assert.ok(Array.isArray(analysis.ptms.entries));
   assert.ok(analysis.deltaMasses.totalPSMs >= 0);
+});
+
+//------------------------------------------------------------------------------
+// Several files: searchFiles() and ProSEResultSet
+
+/// ProSE_6_fdr.ini: the settings of TOPP_ProSE_13_merged (with its FDR:protein 0.05)
+const prose6 = {
+  "enzyme": "Trypsin",
+  "decoys": "generate",
+  "decoy_prefix": "DECOY_",
+  "low_memory": false,
+  "precursor:mass_tolerance_lower": 20,
+  "precursor:mass_tolerance_upper": 20,
+  "precursor:mass_tolerance_unit": "ppm",
+  "precursor:min_charge": 2,
+  "precursor:max_charge": 5,
+  "precursor:isotope_error_min": -1,
+  "precursor:isotope_error_max": 1,
+  "fragment:mass_tolerance": 10,
+  "fragment:mass_tolerance_unit": "ppm",
+  "fragment:deisotope": "auto",
+  "fragment:min_mz": 150,
+  "fragment:max_mz": 2000,
+  "fragment:min_ion_index": 2,
+  "fragment:min_matched_ions": 5,
+  "fragment:max_charge": 2,
+  "modifications:fixed": ["Carbamidomethyl (C)"],
+  "modifications:variable": ["Oxidation (M)"],
+  "modifications:variable_max_per_peptide": 2,
+  "annotate:PSM": ["ALL"],
+  "peptide:min_size": 7,
+  "peptide:max_size": 40,
+  "peptide:missed_cleavages": 1,
+  "peptide:enzyme_specificity": "full",
+  "peptide:motif": "",
+  "peptide:min_mass": 100,
+  "peptide:max_mass": 9000,
+  "report:top_hits": 1,
+  "FDR:PSM": 0.05,
+  "FDR:protein": 0.05,
+  "scoring:max_candidates_per_spectrum": 50,
+  "ions:add_y_ions": true,
+  "ions:add_b_ions": true,
+  "ions:add_a_ions": false,
+  "ions:add_c_ions": false,
+  "ions:add_x_ions": false,
+  "ions:add_z_ions": false,
+  "calibration:enabled": false,
+  "calibration:subset_ratio": 0.1,
+  "calibration:min_psms": 50,
+  "database:chunk_size": 0,
+};
+const suitabilityDatabase = "/topp/THIRDPARTY/DatabaseSuitability_database.fasta";
+const suitabilitySpectra = path.join(toppDataDir, "THIRDPARTY/DatabaseSuitability_in_spec.mzML");
+
+/// Copies DatabaseSuitability_in_spec.mzML to @p names (paths relative to a new temporary directory, e.g.
+/// "0/run.mzML"), mounted at /searchfiles of module @p m while @p fn runs; @p fn gets the paths of the copies there.
+function withSpectraCopies(m, names, fn) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openms-wasm-prose-"));
+  try {
+    for (const name of names) {
+      fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
+      fs.copyFileSync(suitabilitySpectra, path.join(dir, name));
+    }
+    m.mountHostDirectory("/searchfiles", dir);
+    try {
+      return fn(names.map((name) => `/searchfiles/${name}`));
+    } finally {
+      m.unmount("/searchfiles");
+    }
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/// ProSEAlgorithm.searchFiles() of module @p m; returns the ProSEResultSet, which the caller deletes.
+function searchFiles(m, files, options, { parameters = prose6, database = suitabilityDatabase, onProgress } = {}) {
+  return using([new m.ProSEAlgorithm()], (prose) => {
+    prose.setParameterValues(parameters);
+    if (onProgress) prose.setProgressCallback(onProgress);
+    return options === undefined ? prose.searchFiles(files, database) : prose.searchFiles(files, database, options);
+  });
+}
+
+/// The identifications of result set @p set, stored as idXML at @p file and loaded again (plain objects).
+function storedIdentifications(set, file) {
+  set.storeIdXML(file);
+  return using([new OpenMS.IdXMLFile(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+    (idxml, proteins, peptides) => {
+      idxml.load(file, proteins, peptides);
+      return { proteins: proteins.toArray(), peptides: peptides.toArray() };
+    });
+}
+
+/// The counts of FileInfo's identification summary (FileInfo -out_tsv)
+function fileInfoCounts({ proteins, peptides }) {
+  const matched = peptides.filter((id) => id.hits.length > 0);
+  return {
+    runs: proteins.length,
+    proteinHits: proteins.reduce((n, run) => n + run.hits.length, 0),
+    matchedSpectra: matched.length,
+    peptideHits: matched.reduce((n, id) => n + id.hits.length, 0),
+    distinctPeptides: new Set(matched.flatMap((id) => id.hits.map((hit) => hit.sequence))).size,
+  };
+}
+
+/// The counts of a FileInfo -out_tsv file of the TOPP tests
+function fileInfoReference(file) {
+  const lines = fs.readFileSync(path.join(toppDataDir, file), "utf8").split("\n");
+  const value = (key) => {
+    const line = lines.find((l) => l.startsWith(key));
+    assert.ok(line, `${key} in ${file}`);
+    return Number(line.split("\t").at(-1));
+  };
+  return {
+    runs: value("general: num. of runs"),
+    proteinHits: value("general: num. of protein hits"),
+    matchedSpectra: value("general: num. of matched spectra"),
+    peptideHits: value("general: num. of peptide hits"),
+    distinctPeptides: value("general: num. of non-redundant peptide hits"),
+  };
+}
+
+/// FuzzyDiff's comparison of the TOPP tests: within @p absdiff, or within a ratio of @p ratio
+function assertFuzzy(actual, expected, absdiff, ratio, message) {
+  const withinRatio = actual > 0 && expected > 0 && Math.max(actual, expected) / Math.min(actual, expected) <= ratio;
+  assert.ok(Math.abs(actual - expected) <= absdiff || withinRatio,
+    `${message}: expected ${expected} (± ${absdiff} or a ratio of ${ratio}), got ${actual}`);
+}
+
+/// The search of TOPP_ProSE_13_merged (two copies of one file, a.mzML and b.mzML; Percolator, the decoys removed),
+/// run once for the tests that look at it: its summary, the stored identifications and the progress reports.
+let pooledSearch;
+function pooled() {
+  pooledSearch ??= withSpectraCopies(OpenMS, ["a.mzML", "b.mzML"], (files) => {
+    const reports = [];
+    const set = searchFiles(OpenMS, files, { removeDecoys: true }, { onProgress: (r) => reports.push(r) });
+    try {
+      return { files, reports, summary: set.summary(), stored: storedIdentifications(set, "/searchfiles/merged.idXML") };
+    } finally {
+      set.delete();
+    }
+  });
+  return pooledSearch;
+}
+
+test("searchFiles pools two files like ProSE -out_merged", () => {
+  const { files, summary, stored } = pooled();
+  assert.equal(summary.files.length, 2);
+  assert.deepEqual(summary.files.map((f) => f.path), files);
+  for (const f of summary.files) {
+    assert.equal(f.status, "EXECUTION_OK");
+    assert.equal(f.ms2Spectra, summary.files[0].ms2Spectra);
+    assert.ok(f.ms2Spectra > 0 && f.targetPSMs > 0 && f.decoyPSMs >= 0, JSON.stringify(f));
+    assert.equal(f.percolator.applied, true, f.percolator.skipped ?? "");
+    assert.equal(f.percolator.skipped, null);
+    assert.ok(f.percolator.warning === null || typeof f.percolator.warning === "string");
+    assert.equal(f.peptdeepNce, null, "no PeptDeep rescoring");
+    assert.ok(f.secondsSearch >= 0);
+  }
+  assert.equal(summary.proteinFdrApplied, true);
+  assert.equal(summary.psmFdr, 0.05);
+  assert.equal(summary.proteinFdr, 0.05);
+  assert.equal(summary.decoyString, "DECOY_");
+  assert.equal(summary.openSearch, false);
+  assert.equal(summary.modificationAnalysis, null);
+
+  // the pooled run, as FileInfo counts it, against the reference of TOPP_ProSE_13_merged with its tolerances
+  const counts = fileInfoCounts(stored);
+  const expected = fileInfoReference("ProSE_13_merged_info.tsv");
+  assert.equal(counts.runs, expected.runs);
+  assertFuzzy(counts.proteinHits, expected.proteinHits, 1, 1.01, "protein hits");
+  assertFuzzy(counts.matchedSpectra, expected.matchedSpectra, 6, 1.01, "matched spectra");
+  assertFuzzy(counts.peptideHits, expected.peptideHits, 6, 1.01, "peptide hits");
+  assertFuzzy(counts.distinctPeptides, expected.distinctPeptides, 6, 1.01, "distinct peptides");
+  // TOPP_ProSE_13_merged_structure: Percolator's run with protein q-values, and no decoys left
+  assert.equal(stored.proteins[0].searchEngine, "Percolator");
+  assert.equal(stored.proteins[0].scoreType, "q-value");
+  assert.ok(stored.proteins[0].hits.every((h) => !h.accession.startsWith("DECOY_")));
+  assert.ok(stored.peptides.every((id) => id.hits.every((h) => !h.isDecoy)));
+  // the PSMs of both files
+  const fileIndices = new Set(stored.peptides.filter((id) => id.hits.length > 0).map((id) => id.metaValues.id_merge_index));
+  assert.deepEqual([...fileIndices].sort(), [0, 1]);
+});
+
+test("searchFiles reports one progress step per file", () => {
+  const { reports } = pooled();
+  assertProgressSteps(reports, ["Searching a.mzML (1 of 2)...", "Searching b.mzML (2 of 2)..."]);
+  // the steps inside a file report their own range (e.g. one per spectrum), not that of the file's step
+  assert.ok(reports.some((r) => r.event !== "start" && r.end > 1), "a step with a range beyond [0, 1]");
+});
+
+test("searchFiles keeps files with the same name apart", () => {
+  withSpectraCopies(OpenMS, ["0/run.mzML", "1/run.mzML"], (files) => {
+    const reports = [];
+    const set = searchFiles(OpenMS, files, { rescore: false }, { onProgress: (r) => reports.push(r) });
+    try {
+      const summary = set.summary();
+      assert.deepEqual(summary.files.map((f) => f.path), files);
+      assert.notEqual(summary.files[0].path, summary.files[1].path);
+      for (const f of summary.files) {
+        assert.equal(f.status, "EXECUTION_OK");
+        assert.equal(f.percolator, null, "not rescored");
+      }
+      // the progress tells them apart by position
+      assert.deepEqual(reports.filter((r) => r.event === "start" && r.depth === 0).map((r) => [r.label, r.file]),
+        [["Searching run.mzML (1 of 2)...", 0], ["Searching run.mzML (2 of 2)...", 1]]);
+      // PSMs of both files; the decoys are kept by default
+      const { proteins, peptides } = storedIdentifications(set, "/searchfiles/merged.idXML");
+      const ids = peptides.filter((id) => id.hits.length > 0);
+      assert.deepEqual([...new Set(ids.map((id) => id.metaValues.id_merge_index))].sort(), [0, 1]);
+      assert.equal(summary.proteinFdrApplied, true);
+      assert.ok(ids.some((id) => id.hits[0].isDecoy), "decoy PSMs");
+      assert.ok(proteins[0].hits.some((h) => h.accession.startsWith("DECOY_")), "decoy proteins");
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+test("searchFiles: one file, open search", () => {
+  const set = searchFiles(OpenMS, ["/topp/SimpleSearchEngine_1.mzML"], undefined, {
+    parameters: { ...prose1, "precursor:mass_tolerance_lower": 500, "precursor:mass_tolerance_upper": 500,
+                  "precursor:mass_tolerance_unit": "Da" },
+    database: "/topp/SimpleSearchEngine_1.fasta",
+  });
+  try {
+    const summary = set.summary();
+    assert.equal(summary.files.length, 1);
+    assert.equal(summary.files[0].status, "EXECUTION_OK");
+    assert.equal(summary.openSearch, true);
+    assert.ok(summary.modificationAnalysis !== null, "the modification analysis of the one file");
+    assert.ok(Array.isArray(summary.modificationAnalysis.deltaMasses.entries));
+    assert.equal(summary.proteinFdrApplied, false, "decoys: ignore");
+  } finally {
+    set.delete();
+  }
+  assert.throws(() => searchFiles(OpenMS, [], undefined), /at least one/);
+  assert.throws(() => searchFiles(OpenMS, ["/topp/no-such-file.mzML"], undefined), /no-such-file/);
+  // the PSMs tell their files apart by path
+  assert.throws(() => searchFiles(OpenMS, ["/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.mzML"], undefined),
+    /SimpleSearchEngine_1\.mzML.*twice/);
+});
+
+test("searchFiles: files without PSMs give empty results", () => {
+  // the spectra of TOPP_ProSE_1 match no peptide of the DatabaseSuitability database
+  const set = searchFiles(OpenMS, ["/topp/SimpleSearchEngine_1.mzML"], undefined);
+  try {
+    const summary = set.summary();
+    assert.equal(summary.files[0].status, "EXECUTION_OK");
+    assert.equal(summary.files[0].targetPSMs, 0);
+    assert.equal(summary.files[0].percolator.applied, false);
+    assert.match(summary.files[0].percolator.skipped, /100/);
+    assert.equal(summary.proteinFdrApplied, false);
+    withSpectraCopies(OpenMS, [], () => {
+      const { proteins, peptides } = storedIdentifications(set, "/searchfiles/empty.idXML");
+      assert.equal(peptides.length, 0);
+      assert.ok(proteins.every((run) => run.hits.length === 0));
+    });
+  } finally {
+    set.delete();
+  }
+});
+
+test("searchFiles: files that Percolator could not all rescore are not pooled", () => {
+  withSpectraCopies(OpenMS, ["a.mzML"], ([a]) => {
+    using([new OpenMS.ProSEAlgorithm()], (prose) => {
+      prose.setParameterValues({ ...prose6, "rescore": false });
+      // too few PSMs in SimpleSearchEngine_1.mzML to rescore (TOPP_ProSE_11_rescore_mixed)
+      assert.throws(() => prose.searchFiles([a, "/topp/SimpleSearchEngine_1.mzML"], suitabilityDatabase, { rescore: true }),
+        /rescored only some.*SimpleSearchEngine_1\.mzML.*rescore: false/s);
+      assert.equal(prose.getParameterValues()["rescore"], false, "the parameter is restored");
+    });
+  });
+});
+
+test("ProSEResultSet.delete() releases the results", async () => {
+  // A module of its own, whose memory grows with these searches only. WebAssembly memory never shrinks, and it grows
+  // in steps of 20 % (Emscripten's MEMORY_GROWTH_GEOMETRIC_STEP): result sets that stay allocated show as a step after
+  // a few searches (three, without delete()). One thread: the search allocates the same way each time. (With several
+  // threads, the heap of a threaded search grows from search to search also without result sets, as that of search().)
+  const { default: createOpenMS } = await import(pathToFileURL(modulePath).href);
+  const m = await createOpenMS({ print: () => {}, printErr: () => {}, numThreads: 1 });
+  m.mountHostDirectory("/topp", toppDataDir);
+  withSpectraCopies(m, ["a.mzML", "b.mzML"], (files) => {
+    const heapAfterSearch = () => {
+      const set = searchFiles(m, files, { rescore: false });
+      assert.equal(set.summary().files.length, 2);
+      set.delete();
+      assert.throws(() => set.summary(), /deleted/);
+      return m.getMemoryInfo().heapSize;
+    };
+    const h1 = heapAfterSearch();
+    for (let i = 2; i <= 4; ++i) {
+      const h = heapAfterSearch();
+      assert.ok(h - h1 < 0.2 * h1, `the heap grew from ${h1} to ${h} bytes by search ${i}`);
+    }
+  });
 });
 
 test("annotateSpectrum: b and y ions of a theoretical spectrum", () => {
