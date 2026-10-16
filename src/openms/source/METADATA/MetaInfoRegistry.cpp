@@ -138,12 +138,11 @@ namespace OpenMS
     }
     std::unique_lock<std::shared_mutex> lock(registryMutex());
     // another thread may have registered the name in between
-    MapString2IndexType::const_iterator it = name_to_index_.find(name);
-    if (it != name_to_index_.end())
+    const auto [it, inserted] = name_to_index_.try_emplace(name, next_index_);
+    if (!inserted)
     {
       return it->second;
     }
-    name_to_index_[name] = next_index_;
     index_to_name_[next_index_] = name;
     index_to_description_[next_index_] = description;
     index_to_unit_[next_index_] = unit;
