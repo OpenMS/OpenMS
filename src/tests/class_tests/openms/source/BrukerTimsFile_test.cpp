@@ -1904,11 +1904,11 @@ END_SECTION
 
 START_SECTION([FileHandler] the reader skips what the PeakFileOptions exclude)
 {
-  // FileHandler::loadExperiment() passes the MS levels of its PeakFileOptions on to the reader, and the
-  // retention time range if only MS1 is asked for, so that the excluded frames are not decoded. The result
-  // has to be that of loading everything and filtering afterwards: in particular a DDA MS2 spectrum at the
-  // end of a retention time range is built from all of its frames. FileHandler takes Bruker data by the
-  // '.d' suffix of the path, which the fixture directories do not have.
+  // FileHandler::loadExperiment() passes the MS levels and the retention time range of its PeakFileOptions on to
+  // the reader (which then selects spectra by their retention time, Config::rt_selects_spectra), so that the
+  // excluded frames are not decoded. The result has to be that of loading everything and filtering afterwards: in
+  // particular a DDA MS2 spectrum at the end of a retention time range is built from all of its frames. FileHandler
+  // takes Bruker data by the '.d' suffix of the path, which the fixture directories do not have.
   TempDir tmp;
   std::vector<std::pair<std::string, std::string>> runs = {{OPENTIMS_DDA_TEST_DATA, tmp.getPath() + "/dda.d"}};
 #ifdef OPENTIMS_DIA_TEST_DATA
@@ -2003,7 +2003,7 @@ START_SECTION([FileHandler] transformExperiment() gives what loadExperiment() re
     const DRange<1> intensity_range(intensities[intensities.size() / 2], max_intensity * 2.0);
     const DRange<1> mz_range(400.0, 800.0);
 
-    std::vector<PeakFileOptions> option_sets(6);
+    std::vector<PeakFileOptions> option_sets(8);
     option_sets[0].setMSLevels({2}); // DDA: the MS2 spectra at the ends of the range are built from frames outside it
     option_sets[0].setRTRange(rt_range);
     option_sets[1].setMSLevels({1}); // the reader selects the frames by retention time
@@ -2020,6 +2020,13 @@ START_SECTION([FileHandler] transformExperiment() gives what loadExperiment() re
     option_sets[4].setRTRange(rt_range);
     option_sets[4].setFillData(false); // spectra without peaks, as with metadata-only
     option_sets[5].setMSLevels({3});   // nothing the reader gives
+    const DRange<1> im_range(0.9, 1.1);
+    option_sets[6].setMSLevels({2});   // DDA: MS2 spectra by their ion mobility, DIA: peaks by theirs
+    option_sets[6].setRTRange(rt_range);
+    option_sets[6].setIMRange(im_range);
+    option_sets[7].setMSLevels({1});   // peaks by their ion mobility
+    option_sets[7].setRTRange(rt_range);
+    option_sets[7].setIMRange(im_range);
 
     for (Size i = 0; i < option_sets.size(); ++i)
     {
@@ -2034,7 +2041,7 @@ START_SECTION([FileHandler] transformExperiment() gives what loadExperiment() re
       TEST_STRING_EQUAL(consumer.difference(), "")
       TEST_EQUAL(consumer.received.spectra, loaded.size())
       TEST_EQUAL(loaded.empty(), i == 5)
-      TEST_EQUAL(consumer.received.without_peaks == consumer.received.spectra, i >= 3)
+      TEST_EQUAL(consumer.received.without_peaks == consumer.received.spectra, i >= 3 && i <= 5)
       // the settings and the (upper bound of the) number of spectra arrive once, before the first spectrum
       TEST_EQUAL(consumer.settings_calls, 1)
       TEST_TRUE(consumer.settings == loaded.getExperimentalSettings())
@@ -2051,6 +2058,23 @@ START_SECTION([FileHandler] transformExperiment() gives what loadExperiment() re
         }
       }
       TEST_EQUAL(misaligned, 0)
+      if (option_sets[i].hasIMRange())
+      {
+        // what is left lies in the ion mobility range
+        Size outside = 0;
+        for (const MSSpectrum& s : loaded)
+        {
+          if (s.containsIMData())
+          {
+            for (const float im : s.getFloatDataArrays()[s.getIMData().first])
+            {
+              if (! im_range.encloses(DPosition<1>(im))) ++outside;
+            }
+          }
+          else if (! im_range.encloses(DPosition<1>(s.getDriftTime()))) ++outside;
+        }
+        TEST_EQUAL(outside, 0)
+      }
     }
 
     // the source file rewritten, as by loadExperiment()
@@ -2064,6 +2088,139 @@ START_SECTION([FileHandler] transformExperiment() gives what loadExperiment() re
     ABORT_IF(rewritten.settings.getSourceFiles().size() != 1)
     TEST_STRING_EQUAL(rewritten.settings.getSourceFiles()[0].getNameOfFile(), File::basename(d_path))
     TEST_TRUE(rewritten.settings == loaded_rewritten.getExperimentalSettings())
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] rt_selects_spectra and im_min/im_max give the spectra of a load filtered afterwards)
+{
+  // With rt_selects_spectra, load() returns the spectra of a load without the RT range whose RT lies in it, unchanged: a
+  // DDA MS2 spectrum at an end of the range is built from all of its frames, an aggregated spectrum from all of its
+  // neighbors. im_min/im_max remove the peaks outside the IM range from the spectra with an IM per peak and leave out the
+  // DDA MS2 spectra whose IM lies outside. Both are compared with a load without them, filtered here. The loads are
+  // limited to 400 frames; the RT range lies well inside them, so that the aggregation neighbors of its spectra are
+  // among them.
+  std::vector<std::string> runs = {OPENTIMS_DDA_TEST_DATA};
+#ifdef OPENTIMS_DIA_TEST_DATA
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA);
+#endif
+  for (Size run = 0; run < runs.size(); ++run)
+  {
+    const std::string& path = runs[run];
+    BrukerTimsFile::Config window;
+    window.frame_id_min = 1500;
+    window.frame_id_max = 1900;
+
+    MSExperiment ms1;
+    {
+      BrukerTimsFile::Config cfg = window;
+      cfg.load_ms2 = false;
+      BrukerTimsFile().load(path, ms1, cfg);
+    }
+    TEST_EQUAL(ms1.size() > 30, true)
+    ABORT_IF(ms1.size() <= 30)
+    const double rt_min = ms1[10].getRT();
+    const double rt_max = ms1[ms1.size() - 11].getRT();
+    const double im_min = 0.9;
+    const double im_max = 1.1;
+
+    // what the ranges leave of the spectra of a load without them
+    const auto filtered = [&](const MSExperiment& exp, bool by_rt, bool by_im, double im_lo, double im_hi)
+    {
+      MSExperiment result;
+      for (MSSpectrum s : exp)
+      {
+        if (by_rt && (s.getRT() < rt_min || s.getRT() > rt_max)) continue;
+        if (by_im && s.containsIMData())
+        {
+          const auto& im = s.getFloatDataArrays()[s.getIMData().first];
+          std::vector<Size> kept;
+          for (Size i = 0; i < s.size(); ++i)
+          {
+            if (im[i] >= im_lo && im[i] <= im_hi) kept.push_back(i);
+          }
+          s.select(kept);
+        }
+        else if (by_im && s.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET && (s.getDriftTime() < im_lo || s.getDriftTime() > im_hi))
+        {
+          continue;
+        }
+        result.addSpectrum(s);
+      }
+      return result;
+    };
+    const auto peaks = [](const MSExperiment& exp)
+    {
+      Size n = 0;
+      for (const MSSpectrum& s : exp) n += s.size();
+      return n;
+    };
+
+    struct Case
+    {
+      std::string name;
+      BrukerTimsFile::Config config;
+      bool by_rt;
+      bool by_im;
+      double im_lo;
+      double im_hi;
+    };
+    BrukerTimsFile::Config aggregated = window; // MS1 over 2 neighbors on each side, DIA MS2 over 1
+    aggregated.ms1_n_neighbors = 2;
+    aggregated.dia_ms2_n_neighbors = 1;
+    BrukerTimsFile::Config frames = window;
+    frames.export_mode = BrukerTimsFile::Config::FRAME;
+    const double inf = std::numeric_limits<double>::infinity();
+    const std::vector<Case> cases = {{"RT", window, true, false, im_min, im_max},
+                                     {"RT, aggregated", aggregated, true, false, im_min, im_max},
+                                     {"RT, frames", frames, true, false, im_min, im_max},
+                                     {"IM", window, false, true, im_min, im_max},
+                                     {"IM, lower bound only", window, false, true, im_min, inf},
+                                     {"RT and IM", window, true, true, im_min, im_max}};
+    for (const Case& c : cases)
+    {
+      STATUS(path << ": " << c.name)
+      MSExperiment all;
+      BrukerTimsFile().load(path, all, c.config);
+      const MSExperiment expected = filtered(all, c.by_rt, c.by_im, c.im_lo, c.im_hi);
+      TEST_EQUAL(expected.size() > 0, true)
+      TEST_EQUAL(peaks(expected) < peaks(all), true)
+
+      BrukerTimsFile::Config selecting = c.config;
+      if (c.by_rt)
+      {
+        selecting.rt_min_sec = rt_min;
+        selecting.rt_max_sec = rt_max;
+        selecting.rt_selects_spectra = true;
+      }
+      if (c.by_im)
+      {
+        selecting.im_min = c.im_lo;
+        selecting.im_max = c.im_hi;
+      }
+      MSExperiment selected;
+      BrukerTimsFile().load(path, selected, selecting);
+      TEST_STRING_EQUAL(spectraDifference(spectrumPointers(expected), spectrumPointers(selected)), "")
+      // transform() delivers the same, and announces an upper bound of the number of spectra
+      testTransformAgainstLoad(path, selecting);
+
+      if (run == 0 && c.name == "RT")
+      {
+        // the frames in the range (rt_selects_spectra = false) give other DDA MS2 spectra: partial ones at the ends of
+        // the range, and ones whose mean time lies outside it
+        selecting.rt_selects_spectra = false;
+        MSExperiment by_frames;
+        BrukerTimsFile().load(path, by_frames, selecting);
+        TEST_NOT_EQUAL(spectraDifference(spectrumPointers(expected), spectrumPointers(by_frames)), "")
+      }
+    }
+
+    // a NaN bound leaves no peaks, as an empty range does (it does not switch the filter off)
+    BrukerTimsFile::Config nan_range = window;
+    nan_range.im_max = std::numeric_limits<double>::quiet_NaN();
+    MSExperiment none;
+    BrukerTimsFile().load(path, none, nan_range);
+    TEST_EQUAL(peaks(none), 0)
   }
 }
 END_SECTION

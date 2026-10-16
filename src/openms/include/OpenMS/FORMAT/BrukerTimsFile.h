@@ -119,9 +119,36 @@ namespace OpenMS
       /// frame_id_min/frame_id_max. TIMS frame IDs are monotonic in
       /// acquisition time, so an RT range maps to a contiguous frame_id
       /// sub-range. Defaults (0.0, +inf) impose no RT filter. All other
-      /// interplay caveats listed on frame_id_min apply identically.
+      /// interplay caveats listed on frame_id_min apply identically, unless
+      /// rt_selects_spectra is set.
       double rt_min_sec = 0.0;
       double rt_max_sec = std::numeric_limits<double>::infinity();
+
+      /// What the retention time range selects. false (default): frames, as
+      /// described above. true: spectra. load() and transform() then return
+      /// the spectra of a load without the range whose retention time lies in
+      /// [rt_min_sec, rt_max_sec], in the same form. A DDA MS2 spectrum (whose
+      /// retention time is the mean time of its frames) is built from all of
+      /// its frames, and aggregation over retention time (ms1_n_neighbors,
+      /// dia_ms2_n_neighbors) reads the neighboring frames outside the range
+      /// that the spectra in it need. Nothing is reconstructed partially.
+      /// frame_id_min/frame_id_max still select frames. With calibrate = true,
+      /// the OLS fit uses the selected precursors only. readDIAMetadata() and
+      /// loadDIAStreaming() select frames either way.
+      bool rt_selects_spectra = false;
+
+      /// Ion mobility range filter (inclusive, 1/K0 in V·s/cm²). load() and
+      /// transform() return the spectra of a load without it, filtered: the
+      /// peaks outside the range are removed from the spectra with an ion
+      /// mobility per peak (MS1, DIA MS2, FRAME mode), and a DDA MS2 spectrum,
+      /// which has a single ion mobility, is left out if that lies outside.
+      /// DDA precursors isolated entirely outside the range are skipped before
+      /// their frames are decoded; with calibrate = true, the OLS fit uses the
+      /// precursors isolated at least partly inside it. Defaults (0.0, +inf)
+      /// impose no filter; a NaN bound, like im_min > im_max, leaves no peaks.
+      /// readDIAMetadata() and loadDIAStreaming() ignore it.
+      double im_min = 0.0;
+      double im_max = std::numeric_limits<double>::infinity();
 
       /// Centroiding algorithms for IM-PASEF frames.
       ///   - Off:       no IM-axis centroiding (raw detector peaks pass through).

@@ -5202,6 +5202,11 @@ def testPeakFileOptions():
     assert not pfo.getZstdCompression()
     pfo.setZstdCompression(True)
     assert pfo.getZstdCompression()
+    assert not pfo.hasIMRange()
+    pfo.setIMRange(pyopenms.DRange1(0.8, 1.2))
+    assert pfo.hasIMRange()
+    assert pfo.getIMRange().minX() == 0.8
+    assert pfo.getIMRange().maxX() == 1.2
 
 @report
 def testMRMMapping():
