@@ -200,7 +200,8 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "{ matches: { mz: number; intensity: number; ion: string; charge: number; theoreticalMZ: number; error: number }[]; "
     "theoretical: { mz: Float64Array; ion: string[]; charge: number[] }; unit: 'Da' | 'ppm' }");
   register_type<PeakMatch>("PeakMatch",
-    "{ /** index of the peak in the mz and intensity arrays as passed (not in sorted order) */ peak: number; "
+    "{ /** index of the peak in the mz and intensity arrays as passed (not in sorted order); in ppm several matches can "
+    "have the same peak */ peak: number; "
     "/** the ion as labelled in a spectrum: 'b3'; 'y5++' (one '+' per charge, none for charge 1); 'y7-H2O' with a neutral "
     "loss; '[M+2H]++' and '[M+H-NH3]' for precursor peaks */ ion: string; "
     "/** 'a' to 'z', or 'precursor' */ type: string; /** the ion number (3 for b3); 0 for a precursor */ ordinal: number; "
@@ -208,7 +209,10 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "theoreticalMz: number; /** (observed - theoretical) / theoretical * 1e6, whatever the unit of the tolerance */ "
     "errorPpm: number }");
   register_type<PeakAnnotationResult>("PeakAnnotationResult",
-    "{ /** the peaks matched to a fragment ion, one to one, by ascending m/z */ matches: PeakMatch[]; "
+    "{ /** the ions that have a peak within the tolerance, by ascending m/z: one match per ion. In ppm each ion takes the "
+    "closest peak, so several ions can have the same peak (the same index in peak), and of peaks of equal m/z the first in "
+    "the arrays. In Da the matching is one to one and in m/z order: a peak has at most one ion (of two ions of one m/z, "
+    "one is left out), and of peaks of equal m/z one is taken, of two the second */ matches: PeakMatch[]; "
     "/** every ion of the peptide for the options (charges 1 to maxCharge), by ascending m/z, matched or not */ "
     "theoretical: { ion: string; type: string; ordinal: number; charge: number; mz: number }[] }");
 

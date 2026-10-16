@@ -725,7 +725,7 @@ namespace OpenMS::WASM
       MSSpectrum theoretical;                       ///< the fragment ions sorted by m/z, with their names and charges
       MSSpectrum measured;                          ///< the peaks of the spectrum sorted by m/z
       std::vector<Size> measured_position;          ///< measured[k] is the peak measured_position[k] of the spectrum as given
-      std::vector<std::pair<Size, Size>> alignment; ///< (theoretical, measured) index pairs by ascending m/z, one to one
+      std::vector<std::pair<Size, Size>> alignment; ///< (theoretical, measured) index pairs by ascending m/z; see alignFragments()
       Size names_array = 0;                         ///< the data array of theoretical with the ion names
       Size charges_array = 0;                       ///< the data array of theoretical with the ion charges
 
@@ -737,6 +737,14 @@ namespace OpenMS::WASM
     /// sorted. Options: tolerance (default 0.02), unit ("Da" or "ppm", default "Da"), maxCharge (default: precursor
     /// charge - 1, at least 1), ions (default ["b", "y"]; also "a", "c", "x", "z"), losses (neutral losses, default
     /// false), precursor (precursor peaks, of the charge maxCharge, default false).
+    ///
+    /// How the ions take peaks depends on the unit (SpectrumAlignment):
+    /// - ppm: each ion takes the closest peak within the tolerance (MatchedIterator). Several ions can take the same
+    ///   peak (e.g. z1++ and y1-NH3++, which have the same m/z), so a peak can be in several alignment pairs. Of peaks
+    ///   of equal m/z the one first in the spectrum is taken (the sort is stable).
+    /// - Da: a dynamic-programming alignment, one to one and in m/z order: a peak has at most one ion, and of two
+    ///   ions of the same m/z only one has a peak (unless there are two peaks). Of peaks of equal m/z it takes one;
+    ///   of two, the second one in the spectrum.
     FragmentAlignment alignFragments(const MSSpectrum& spectrum, const AASequence& peptide, int precursor_charge,
                                      const JS::AnnotationOptions& options)
     {
@@ -858,8 +866,9 @@ namespace OpenMS::WASM
     };
 
     /// A neutral loss formula as written in ion names: without the count 1 of an element ("H2O" for the "H2O1" that
-    /// TheoreticalSpectrumGenerator makes of an EmpiricalFormula), and ammonia as "NH3" (not "H3N1", which is how the
-    /// formula's alphabetical order spells it).
+    /// TheoreticalSpectrumGenerator makes of an EmpiricalFormula), and the common losses as they are conventionally
+    /// spelled, not in the formula's alphabetical order: "NH3" (ammonia; not "H3N"), "H3PO4" (not "H3O4P") and "HPO3"
+    /// (not "HO3P"). Others stay in that order, e.g. "CH4OS" (the loss of oxidized methionine).
     std::string lossFormulaName(const std::string& formula)
     {
       std::string name;
@@ -869,7 +878,9 @@ namespace OpenMS::WASM
                                && (i + 1 == formula.size() || !std::isdigit(static_cast<unsigned char>(formula[i + 1])));
         if (!count_one) name += formula[i];
       }
-      return name == "H3N" ? "NH3" : name;
+      static const std::unordered_map<std::string, std::string> conventional{{"H3N", "NH3"}, {"H3O4P", "H3PO4"}, {"HO3P", "HPO3"}};
+      const auto it = conventional.find(name);
+      return it == conventional.end() ? name : it->second;
     }
 
     /// Splits the name of a fragment ion that TheoreticalSpectrumGenerator gives a peak of @p charge (with add_metainfo).
@@ -921,8 +932,9 @@ namespace OpenMS::WASM
 
     /// Annotates the peaks mz/intensity (arrays of one spectrum, in any order; same length) with the fragment ions of
     /// @p peptide_string (AASequence.toString(), e.g. "AM(Oxidation)K") of precursor charge @p charge: see
-    /// alignFragments() for the options. The peaks are matched one to one, as in annotateSpectrum(). A match refers to
-    /// its peak by its index in the arrays as passed; its error is always in ppm.
+    /// alignFragments() for the options. The ions take peaks as in annotateSpectrum(): in ppm each ion takes the closest
+    /// peak, so several ions can share one (a peak is then in several matches); in Da the matching is one to one. A
+    /// match refers to its peak by its index in the arrays as passed; its error is always in ppm.
     JS::PeakAnnotationResult annotatePeaks(const JS::NumberInput& mz, const JS::NumberInput& intensity,
                                            const std::string& peptide_string, int charge, const JS::AnnotationOptions& options)
     {
@@ -967,7 +979,7 @@ namespace OpenMS::WASM
         const double theo_mz = fragments.theoretical[t].getMZ();
         const double observed = fragments.measured[m].getMZ();
         val o = val::object();
-        o.set("peak", fragments.measured_position[m]);
+        o.set("peak", static_cast<double>(fragments.measured_position[m]));
         o.set("ion", labels[t].ion);
         o.set("type", labels[t].type);
         o.set("ordinal", labels[t].ordinal);

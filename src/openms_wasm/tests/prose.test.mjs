@@ -1504,12 +1504,9 @@ test("annotatePeaks matches b and y ions of a stored spectrum", () => {
 
       // the matches
       assert.ok(r.matches.length > 0, `${what}: matches`);
-      const peaks = new Set();
       for (const m of r.matches) {
         assert.deepEqual(Object.keys(m).sort(), ["charge", "errorPpm", "ion", "loss", "ordinal", "peak", "theoreticalMz", "type"]);
         assert.ok(Number.isInteger(m.peak) && m.peak >= 0 && m.peak < mz.length, `${what}: peak ${m.peak}`);
-        assert.ok(!peaks.has(m.peak), `${what}: peak ${m.peak} is matched once`);
-        peaks.add(m.peak);
         assert.ok(m.type === "b" || m.type === "y", `${what}: ${m.ion}`);
         types.add(m.type);
         assert.equal(m.loss, "");
@@ -1558,6 +1555,8 @@ test("annotatePeaks: peak is the index into the arrays as passed, whatever their
       const peptide = peptides.openms[psms.peptide[row]];
       const charge = psms.charge[row];
       const { mz, intensity } = psmPeaks(s, row);
+      // no peaks of equal m/z: which of them an ion takes depends on their order (see the test of equal m/z below)
+      assert.equal(new Set(mz).size, mz.length, `${peptide}: peaks of different m/z`);
       const sorted = OpenMS.annotatePeaks(mz, intensity, peptide, charge, ppm10);
       assert.ok(sorted.matches.length > 0);
       for (const m of sorted.matches) {
@@ -1603,6 +1602,84 @@ test("annotatePeaks: peak is the index into the arrays as passed, whatever their
   });
 });
 
+/// The theoretical ions of PEPTIDEK (precursor charge 3) for all ion types with losses, which include z1++ and y1-NH3++ of the
+/// same m/z, and that m/z. (Called inside the tests: with annotatePeaks() called while this file loads, node aborted at
+/// exit in every run of the whole suite on the threaded build.)
+const sameMzIons = () => {
+  const theoretical = OpenMS.annotatePeaks(new Float32Array(0), new Float32Array(0), "PEPTIDEK", 3,
+                                           { ions: ["a", "b", "c", "x", "y", "z"], losses: true }).theoretical;
+  const [z1, y1] = ["z1++", "y1-NH3++"].map((ion) => theoretical.find((t) => t.ion === ion));
+  return { theoretical, mz: z1.mz, equal: z1.mz === y1.mz };
+};
+const annotateAll = (mz, intensity, tolerance) => OpenMS.annotatePeaks(Float32Array.from(mz), Float32Array.from(intensity), "PEPTIDEK", 3,
+  { ions: ["a", "b", "c", "x", "y", "z"], losses: true, ...tolerance });
+const peakIons = (r) => r.matches.map((m) => [m.peak, m.ion]).sort((a, b) => a[0] - b[0] || (a[1] < b[1] ? -1 : 1));
+
+test("annotatePeaks in ppm: each ion takes the closest peak, so ions of the same m/z share it", () => {
+  const sameMz = sameMzIons();
+  assert.ok(sameMz.equal, "z1++ and y1-NH3++ have the same m/z");
+  const ppm = { tolerance: 10, unit: "ppm" };
+  // one peak at their m/z: both ions have it
+  assert.deepEqual(peakIons(annotateAll([sameMz.mz], [1], ppm)), [[0, "y1-NH3++"], [0, "z1++"]]);
+  // two peaks of that m/z, or one more 1 ppm above: still both ions on the first
+  assert.deepEqual(peakIons(annotateAll([sameMz.mz, sameMz.mz], [1, 2], ppm)), [[0, "y1-NH3++"], [0, "z1++"]]);
+  assert.deepEqual(peakIons(annotateAll([sameMz.mz, sameMz.mz * (1 + 1e-6)], [1, 2], ppm)), [[0, "y1-NH3++"], [0, "z1++"]]);
+  // a peak is in several matches of the theoretical spectrum as peaks: all its ions are matched, on fewer peaks
+  const peaks = sameMz.theoretical.map((t) => t.mz);
+  const r = annotateAll(peaks, peaks.map(() => 1), ppm);
+  assert.deepEqual(r.matches.map((m) => m.ion).sort(), sameMz.theoretical.map((t) => t.ion).sort());
+  assert.ok(new Set(r.matches.map((m) => m.peak)).size < r.matches.length, "several ions share a peak");
+  for (const m of r.matches) assert.ok(Math.abs(peaks[m.peak] - m.theoreticalMz) / m.theoreticalMz * 1e6 <= 10, m.ion);
+});
+
+test("annotatePeaks in Da: matching is one to one, in m/z order", () => {
+  const sameMz = sameMzIons();
+  const da = { tolerance: 0.001 };
+  // one peak at the m/z of two ions: only one of them has it
+  const one = annotateAll([sameMz.mz], [1], da);
+  assert.equal(one.matches.length, 1);
+  assert.equal(one.matches[0].peak, 0);
+  assert.ok(["z1++", "y1-NH3++"].includes(one.matches[0].ion), one.matches[0].ion);
+  // two peaks: one ion each
+  const two = annotateAll([sameMz.mz, sameMz.mz], [1, 2], da);
+  assert.deepEqual(two.matches.map((m) => m.peak).sort(), [0, 1]);
+  assert.deepEqual(two.matches.map((m) => m.ion).sort(), ["y1-NH3++", "z1++"]);
+  // the theoretical spectrum as peaks: a peak has at most one ion, in order of m/z
+  const peaks = sameMz.theoretical.map((t) => t.mz);
+  const r = annotateAll(peaks, peaks.map(() => 1), da);
+  assert.equal(new Set(r.matches.map((m) => m.peak)).size, r.matches.length, "a peak has one ion");
+  for (let i = 1; i < r.matches.length; ++i) {
+    assert.ok(r.matches[i - 1].theoreticalMz <= r.matches[i].theoreticalMz && peaks[r.matches[i - 1].peak] <= peaks[r.matches[i].peak]);
+  }
+});
+
+test("annotatePeaks: peaks of the same m/z", () => {
+  const y4 = Math.fround(OpenMS.annotatePeaks(new Float32Array(0), new Float32Array(0), "PEPTIDEK", 2, {})
+                              .theoretical.find((t) => t.ion === "y4").mz);
+  const annotate = (mz, intensity, options) => OpenMS.annotatePeaks(Float32Array.from(mz), Float32Array.from(intensity), "PEPTIDEK", 2, options);
+  const ppm = { tolerance: 10, unit: "ppm" };
+  const da = { tolerance: 0.01 };
+  for (const intensity of [[1, 2], [2, 1]]) {
+    // ppm: the first of the peaks, whatever their intensities (the sort of the peaks is stable)
+    assert.deepEqual(peakIons(annotate([y4, y4], intensity, ppm)), [[0, "y4"]]);
+    // Da: the alignment takes one: the second of two
+    assert.deepEqual(peakIons(annotate([y4, y4], intensity, da)), [[1, "y4"]]);
+  }
+  // among other peaks, and not next to each other in the arrays
+  assert.deepEqual(peakIons(annotate([900, y4, 100, y4], [1, 1, 1, 1], ppm)), [[1, "y4"]]);
+  assert.deepEqual(peakIons(annotate([900, y4, 100, y4], [1, 1, 1, 1], da)), [[3, "y4"]]);
+  assert.deepEqual(peakIons(annotate([y4, 900, y4, 100, y4], [1, 1, 1, 1, 1], ppm)), [[0, "y4"]]);
+  // more of them: ppm the first; Da one of them, the same whatever the intensities
+  for (const n of [3, 4]) {
+    const peaks = new Array(n).fill(y4);
+    assert.deepEqual(peakIons(annotate(peaks, peaks.map((_, i) => i + 1), ppm)), [[0, "y4"]]);
+    const [up, down] = [peaks.map((_, i) => i + 1), peaks.map((_, i) => n - i)].map((intensity) => peakIons(annotate(peaks, intensity, da)));
+    assert.deepEqual(up, down);
+    assert.equal(up.length, 1);
+    assert.ok(up[0][0] >= 0 && up[0][0] < n && up[0][1] === "y4");
+  }
+});
+
 test("annotatePeaks: the names of ions with neutral losses, other ion types and precursor peaks", () => {
   const options = { ions: ["a", "b", "c", "x", "y", "z"], losses: true, precursor: true, tolerance: 0.001 };
   // [peptide, charge, ions that have to be there]
@@ -1611,6 +1688,7 @@ test("annotatePeaks: the names of ions with neutral losses, other ion types and 
                      "[M+2H]++", "[M+2H-H2O]++", "[M+2H-NH3]++"]],
     ["M(Oxidation)RESK", 4, ["b1", "b1++", "y4", "y4+++", "y4-H2O+++", "y3-NH3++", "[M+3H]+++", "[M+3H-H2O]+++"]],
     [".(Acetyl)DAHKSEVAHR", 3, ["b2-H2O", "b2-H2O++", "y3-NH3++", "y9", "[M+2H]++"]],
+    ["PEPS(Phospho)TIDEK", 3, ["b4", "b4-H3PO4", "b4-H3PO4++", "y6-H3PO4", "y6-H3PO4++", "y5", "[M+2H-H2O]++"]],
     ["PEPTIDER.(Amidated)", 2, ["b7", "y1", "y7-H2O", "[M+H]", "[M+H-NH3]"]],
   ];
   for (const [peptide, charge, expected] of peptides) {
@@ -1621,7 +1699,7 @@ test("annotatePeaks: the names of ions with neutral losses, other ion types and 
     assert.equal(ions.size, theoretical.length, `${peptide}: unique ions`);
     const mz = Float32Array.from(theoretical, (t) => t.mz);
     const { matches } = OpenMS.annotatePeaks(mz, new Float32Array(mz.length).fill(1), peptide, charge, options);
-    // (ions of the same m/z, e.g. z1++ and y1-NH3++, are two peaks of that m/z: each takes one)
+    // (in Da, ions of the same m/z, e.g. z1++ and y1-NH3++, are two peaks of that m/z: each takes one)
     assert.deepEqual(matches.map((m) => m.ion).sort(), [...ions].sort(), `${peptide}: every ion is matched`);
 
     const byIon = new Map(theoretical.map((t) => [t.ion, t]));
@@ -1658,9 +1736,15 @@ test("annotatePeaks: the names of ions with neutral losses, other ion types and 
     for (const kind of ["a", "b", "c", "x", "y", "z", "b loss", "y loss", "precursor", "precursor loss"]) {
       assert.ok(kinds.has(kind), `${peptide}: matches of ${kind}`);
     }
-    // the loss of a modified residue is named by its formula
+    // the loss of a modified residue is named by its formula, conventionally spelled for the common ones
     if (peptide === "M(Oxidation)RESK") {
-      assert.ok(matches.some((m) => m.loss !== "" && m.loss !== "H2O" && m.loss !== "NH3"), "the loss of oxidized M or of R");
+      assert.ok(matches.some((m) => m.loss === "CH4OS"), "the loss of oxidized M");
+    }
+    if (peptide === "PEPS(Phospho)TIDEK") {
+      const phospho = matches.filter((m) => m.loss === "H3PO4");
+      assert.ok(phospho.length > 10, `${phospho.length} ions that lost H3PO4`);
+      assert.ok(!matches.some((m) => m.loss === "H3O4P" || m.ion.includes("H3O4P")), "not in the formula's alphabetical order");
+      assert.ok(phospho.some((m) => m.ion === "y6-H3PO4" && m.type === "y" && m.ordinal === 6 && m.charge === 1));
     }
   }
 });
