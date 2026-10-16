@@ -135,7 +135,6 @@ Returns the "center" of the model, particular definition (depends on the derived
         R"doc(
 Exponentially modified gaussian distribution model for elution
 profiles
-InterpolationModel
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::EmgModel &>())
@@ -174,11 +173,13 @@ interpolation
     auto isotopemodel_class = nb::class_<OpenMS::IsotopeModel, OpenMS::InterpolationModel>(m, "IsotopeModel", 
         R"doc(
 Isotope distribution approximated using linear interpolation
+
 This models a smoothed (widened) distribution, i.e. can be used to sample actual raw peaks (depending on the points you query)
 If you only want the distribution (no widening), use either
 EmpiricalFormula::getIsotopeDistribution() // for a certain sum formula
 or
 IsotopeDistribution::estimateFromPeptideWeight (double average_weight)  // for averagine
+
 Peak widening is achieved by either a Gaussian or Lorentzian shape
 )doc")
         .def(nb::init<>())
@@ -186,15 +187,29 @@ Peak widening is achieved by either a Gaussian or Lorentzian shape
         .def("__copy__", [](const OpenMS::IsotopeModel& self) { return OpenMS::IsotopeModel(self); })
         .def("__deepcopy__", [](const OpenMS::IsotopeModel& self, nb::dict) { return OpenMS::IsotopeModel(self); }, "memo"_a)
         .def("getCharge", [](const OpenMS::IsotopeModel& self) { return self.getCharge(); })
-        .def("setOffset", [](OpenMS::IsotopeModel& self, double offset) { return self.setOffset(offset); }, "offset"_a)
+        .def("setOffset", [](OpenMS::IsotopeModel& self, double offset) { return self.setOffset(offset); }, "offset"_a, 
+            R"doc(
+Set the offset of the model
+
+The whole model will be shifted to the new offset without being computing all over
+This leaves a discrepancy which is minor in small shifts (i.e. shifting by one or two
+standard deviations) but can get significant otherwise. In that case use setParameters()
+which enforces a recomputation of the model
+)doc")
         .def("getOffset", [](OpenMS::IsotopeModel& self) { return self.getOffset(); }, "Get the offset of the model")
         .def("getFormula", [](OpenMS::IsotopeModel& self) { return self.getFormula(); }, "Return the Averagine peptide formula (mass calculated from mean mass and charge -- use .setParameters() to set them)")
         .def("setSamples", [](OpenMS::IsotopeModel& self, const OpenMS::EmpiricalFormula& formula) { return self.setSamples(formula); }, "formula"_a, "Set sample/supporting points of interpolation")
-        .def("getCenter", [](const OpenMS::IsotopeModel& self) { return self.getCenter(); })
-        .def("getIsotopeDistribution", [](const OpenMS::IsotopeModel& self) -> OpenMS::IsotopeDistribution { return self.getIsotopeDistribution(); }, 
+        .def("getCenter", [](const OpenMS::IsotopeModel& self) { return self.getCenter(); }, 
             R"doc(
 Get the center of the Isotope model
+
 This is a m/z-value not necessarily the monoisotopic mass
+)doc")
+        .def("getIsotopeDistribution", [](const OpenMS::IsotopeModel& self) -> OpenMS::IsotopeDistribution { return self.getIsotopeDistribution(); }, 
+            R"doc(
+Get the Isotope distribution (without widening) from the last setSamples() call
+
+Useful to determine the number of isotopes that the model contains and their position
 )doc")
         ;
     // Averagines enum nested under IsotopeModel
@@ -213,13 +228,16 @@ This is a m/z-value not necessarily the monoisotopic mass
     nb::class_<OpenMS::MultiplexDeltaMasses>(m, "MultiplexDeltaMasses", 
         R"doc(
 Data structure for mass shift pattern
+
 Groups of labelled peptides appear with characteristic mass shifts
+
 For example, for an Arg6 labeled SILAC peptide pair we expect to see
 mass shifts of 0 and 6 Da. Or as second example, for a
 peptide pair of a dimethyl labelled sample with a single lysine
 we will see mass shifts of 56 Da and 64 Da.
 28 Da (N-term) + 28 Da (K) and 34 Da (N-term) + 34 Da (K)
 for light and heavy partners respectively
+
 The data structure stores the mass shifts and corresponding labels
 for a group of matching peptide features
 )doc")
@@ -282,6 +300,7 @@ with three isotopic peaks we expect peaks * at relative m/z shifts of
     nb::class_<OpenMS::PeakWidthEstimator>(m, "PeakWidthEstimator", 
         R"doc(
 Rough estimation of the peak width at m/z
+
 Based on the peaks of the dataset (peak position & width) and the peak
 boundaries as reported by the PeakPickerHiRes, the typical peak width is
 estimated for arbitrary m/z using a spline interpolation.

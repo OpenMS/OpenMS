@@ -37,21 +37,42 @@ NB_MODULE(_pyopenms_ml, m) {
         .def("__copy__", [](const OpenMS::Math::BilinearInterpolation<double, double>& self) { return OpenMS::Math::BilinearInterpolation<double, double>(self); })
         .def("__deepcopy__", [](const OpenMS::Math::BilinearInterpolation<double, double>& self, nb::dict) { return OpenMS::Math::BilinearInterpolation<double, double>(self); }, "memo"_a)
         .def("value", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1) { return self.value(arg_pos_0, arg_pos_1); }, "arg_pos_0"_a, "arg_pos_1"_a)
-        .def("addValue", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1, double arg_value) { self.addValue(arg_pos_0, arg_pos_1, arg_value); }, "arg_pos_0"_a, "arg_pos_1"_a, "arg_value"_a)
+        .def("addValue", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1, double arg_value) { self.addValue(arg_pos_0, arg_pos_1, arg_value); }, "arg_pos_0"_a, "arg_pos_1"_a, "arg_value"_a, 
+            R"doc(
+Performs bilinear resampling.  The arg_value is split up and added to the data points around arg_pos.  ("forward resampling")
+)doc")
         .def("getData", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getData(); })
-        .def("setData", [](OpenMS::Math::BilinearInterpolation<double, double>& self, OpenMS::Matrix<double> data) { self.setData(data); }, "data"_a)
+        .def("setData", [](OpenMS::Math::BilinearInterpolation<double, double>& self, OpenMS::Matrix<double> data) { self.setData(data); }, "data"_a, "Assigns data to the internal random access container storing the data. SourceContainer must be assignable to ContainerType")
         .def("empty", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.empty(); })
-        .def("key2index_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.key2index_0(pos); }, "pos"_a)
-        .def("index2key_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.index2key_0(pos); }, "pos"_a)
-        .def("key2index_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.key2index_1(pos); }, "pos"_a)
-        .def("index2key_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.index2key_1(pos); }, "pos"_a)
+        .def("key2index_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.key2index_0(pos); }, "pos"_a, 
+            R"doc(
+The transformation from "outside" to "inside" coordinates
+)doc")
+        .def("index2key_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.index2key_0(pos); }, "pos"_a, 
+            R"doc(
+The transformation from "inside" to "outside" coordinates
+)doc")
+        .def("key2index_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.key2index_1(pos); }, "pos"_a, 
+            R"doc(
+The transformation from "outside" to "inside" coordinates
+)doc")
+        .def("index2key_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.index2key_1(pos); }, "pos"_a, 
+            R"doc(
+The transformation from "inside" to "outside" coordinates
+)doc")
         .def("getScale_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getScale_0(); })
         .def("setScale_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & scale) { self.setScale_0(scale); }, "scale"_a)
         .def("getScale_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getScale_1(); })
         .def("setScale_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & scale) { self.setScale_1(scale); }, "scale"_a)
-        .def("getOffset_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOffset_0(); })
+        .def("getOffset_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOffset_0(); }, 
+            R"doc(
+Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data(0,0)"
+)doc")
         .def("setOffset_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & offset) { self.setOffset_0(offset); }, "offset"_a)
-        .def("getOffset_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOffset_1(); })
+        .def("getOffset_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOffset_1(); }, 
+            R"doc(
+Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data(0,0)"
+)doc")
         .def("setOffset_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & offset) { self.setOffset_1(offset); }, "offset"_a)
         .def("setMapping_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & scale, double & inside, double & outside) { self.setMapping_0(scale, inside, outside); }, "scale"_a, "inside"_a, "outside"_a)
         .def("setMapping_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & inside_low, double & outside_low, double & inside_high, double & outside_high) { self.setMapping_0(inside_low, outside_low, inside_high, outside_high); }, "inside_low"_a, "outside_low"_a, "inside_high"_a, "outside_high"_a)
@@ -61,10 +82,22 @@ NB_MODULE(_pyopenms_ml, m) {
         .def("getInsideReferencePoint_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getInsideReferencePoint_1(); })
         .def("getOutsideReferencePoint_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOutsideReferencePoint_0(); })
         .def("getOutsideReferencePoint_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOutsideReferencePoint_1(); })
-        .def("supportMin_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMin_0(); })
-        .def("supportMin_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMin_1(); })
-        .def("supportMax_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMax_0(); })
-        .def("supportMax_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMax_1(); })
+        .def("supportMin_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMin_0(); }, 
+            R"doc(
+Lower boundary of the support, in "outside" coordinates
+)doc")
+        .def("supportMin_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMin_1(); }, 
+            R"doc(
+Lower boundary of the support, in "outside" coordinates
+)doc")
+        .def("supportMax_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMax_0(); }, 
+            R"doc(
+Upper boundary of the support, in "outside" coordinates
+)doc")
+        .def("supportMax_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMax_1(); }, 
+            R"doc(
+Upper boundary of the support, in "outside" coordinates
+)doc")
         ;
 
 

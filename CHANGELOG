@@ -547,6 +547,12 @@ OpenMS Library:
     sheets: correction_matrix for the non-deuterated channels (8 columns, as for TMT 16-/18-plex) and
     correction_matrix_deuterated for the deuterated channels (14 columns). A correction_matrix with one
     14-column row per channel, as stored in OpenMS 3.6.0 INI files, is still accepted.
+  - FIX: pyOpenMS docstrings (#10599): the former pxd-to-nanobind generator attached every multi-line
+    docstring to the method declared after it (getRT() read "Checks if retention time is set") and
+    dropped blank lines and indentation, so examples, lists and :param:/:return: fields rendered as
+    one paragraph. All such docstrings are reattributed and reformatted, docstrings lost by the shift
+    are restored. The API docs list nanobind methods as methods, with signatures, instead of as
+    attributes, and static methods no longer render as "<nanobind.nb_func object>".
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

@@ -75,6 +75,78 @@ def _check_rst_code_blocks(docstring):
     return errors
 
 
+_FIELD_RE = re.compile(r"^:(param|type|returns?|rtype|raises?)\b")
+_BULLET_RE = re.compile(r"^[-*] \S")
+_DIRECTIVE_OPTION_RE = re.compile(r"^\s+:[\w-]+:")
+
+
+def _is_paragraph_text(line):
+    return (
+        bool(line.strip())
+        and not line[0].isspace()
+        and not _FIELD_RE.match(line)
+        and not _BULLET_RE.match(line)
+        and not line.startswith("..")
+    )
+
+
+def _check_rst_block_separation(docstring):
+    """Check that block markup is separated from the paragraph before it.
+
+    Without the blank line reST folds a directive, a bullet list or a field
+    list into the preceding paragraph, so ``.. code-block::`` or ``:return:``
+    end up as plain text (#10599). docutils accepts this silently.
+    """
+    errors = []
+    lines = inspect.cleandoc(docstring).split("\n")
+    seen_field = False
+    for i, line in enumerate(lines):
+        prev = lines[i - 1] if i else ""
+        if line.startswith(".. ") and prev.strip():
+            errors.append(f"Line {i+1}: directive not preceded by a blank line")
+        if line.startswith(".. code-block::"):
+            j = i + 1
+            while j < len(lines) and _DIRECTIVE_OPTION_RE.match(lines[j]):
+                j += 1
+            if j + 1 >= len(lines) or lines[j].strip() or not lines[j + 1][:1].isspace():
+                errors.append(
+                    f"Line {i+1}: code-block content must follow a blank line and be indented"
+                )
+        if _FIELD_RE.match(line):
+            if not seen_field and _is_paragraph_text(prev):
+                # wording avoids "field list", which _is_acceptable_error waives
+                errors.append(f"Line {i+1}: :param:/:return: block not preceded by a blank line")
+            seen_field = True
+        elif _BULLET_RE.match(line) and not seen_field and _is_paragraph_text(prev):
+            errors.append(f"Line {i+1}: bullet list not preceded by a blank line")
+        if line.rstrip().endswith("\\n"):
+            errors.append(f"Line {i+1}: literal '\\n' instead of a blank line")
+    return errors
+
+
+_GETTER_RE = re.compile(r"^(get|has|is)[A-Z_]")
+_SETTER_RE = re.compile(r"^set[A-Z_]")
+
+
+def _overload_docs(func):
+    """The user docstrings of all overloads (without nanobind's signatures)."""
+    sigs = getattr(func, "__nb_signature__", None)
+    if sigs is not None:
+        return [doc for _sig, doc, _defaults in sigs if doc]
+    doc = inspect.getdoc(func)
+    return [doc] if doc else []
+
+
+def _accessor_doc_mismatch(name, doc):
+    """First line of ``doc`` if it documents the opposite accessor of ``name``."""
+    first = next((line.strip() for line in doc.split("\n") if line.strip()), "")
+    if _GETTER_RE.match(name) and re.match(r"(?i)sets?\b", first):
+        return first
+    if _SETTER_RE.match(name) and re.match(r"(?i)(returns?|gets?)\b", first):
+        return first
+    return None
+
+
 def _check_common_issues(docstring):
     """Check for common docstring problems."""
     errors = []
@@ -163,6 +235,7 @@ def validate_docstring(docstring, name=""):
         return False, [f"{name}: docstring is {type(docstring).__name__}, not str"]
     errors = []
     errors.extend(_check_rst_code_blocks(docstring))
+    errors.extend(_check_rst_block_separation(docstring))
     errors.extend(_check_common_issues(docstring))
     if HAS_DOCUTILS:
         for level, msg in _get_docutils_errors(docstring):
@@ -238,6 +311,55 @@ class TestAllClassDocstrings:
         assert not all_errors, (
             f"{class_name} method RST errors:\n" + "\n".join(all_errors[:20])
         )
+
+    @pytest.mark.parametrize("class_name", ALL_CLASSES)
+    def test_accessor_docstrings_match_method(self, class_name):
+        """A getter must not be documented as a setter, nor vice versa.
+
+        The former pxd-to-nanobind generator attached each docstring to the
+        method *following* it, so getRT() read "Checks if retention time is
+        set" and setRT() "Returns the retention time" (#10599).
+        """
+        cls = getattr(pyopenms, class_name)
+        mismatches = []
+        for mname in _get_public_methods(cls):
+            for doc in _overload_docs(getattr(cls, mname, None)):
+                first = _accessor_doc_mismatch(mname, doc)
+                if first:
+                    mismatches.append(f"{class_name}.{mname}: {first!r}")
+        assert not mismatches, (
+            "Docstrings describing a different method:\n" + "\n".join(mismatches)
+        )
+
+
+class TestDocstringRegressions:
+    """Docstrings reported broken in #10599."""
+
+    def test_peptideidentification_class_example_is_code_block(self):
+        doc = inspect.cleandoc(pyopenms.PeptideIdentification.__doc__)
+        assert "\n\n.. code-block:: python\n\n   pep_id = oms.PeptideIdentification()" in doc
+        assert "\n\n- A list of peptide hits" in doc
+
+    @pytest.mark.parametrize("method, summary", [
+        ("getRT", "Returns the retention time of the precursor"),
+        ("setRT", "Sets the retention time of the precursor"),
+        ("hasRT", "Checks if retention time is set"),
+        ("getMZ", "Returns the precursor m/z value"),
+        ("setMZ", "Sets the precursor m/z value"),
+        ("hasMZ", "Checks if m/z value is set"),
+        ("getHits", "Returns all peptide hits"),
+        ("insertHit", "Appends a peptide hit to the list"),
+        ("setHits", "Sets all peptide hits at once"),
+        ("getScoreType", "Returns the type of score"),
+        ("setScoreType", "Sets the score type"),
+        ("getSpectrumReference", "Get the spectrum reference"),
+        ("setSpectrumReference", "Set the spectrum reference"),
+    ])
+    def test_peptideidentification_method_docstrings(self, method, summary):
+        docs = _overload_docs(getattr(pyopenms.PeptideIdentification, method))
+        assert docs and all(d.lstrip().startswith(summary) for d in docs), docs
+        # summary and field list are separate paragraphs
+        assert all("\n\n:" in d for d in docs if ":param" in d or ":return" in d), docs
 
 
 class TestDocstringCoverage:

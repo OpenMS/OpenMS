@@ -115,17 +115,21 @@ between runs, components, and their actual concentrations
     nb::class_<OpenMS::AnnotatedMSRun>(m, "AnnotatedMSRun", 
         R"doc(
 Class for storing MS run data with peptide and protein identifications
+
 This class stores an MSExperiment (containing spectra) along with peptide and protein
 identifications. Each spectrum in the MSExperiment is associated with a single
 PeptideIdentification object. Object gets typically not manually created but generated
 by the IDMapper class.
+
 Usage:
+
 .. code-block:: python
-run = AnnotatedMSRun()
-exp = MSExperiment()
-MzMLFile().load(path_to_file, exp)
-run.setMSExperiment(exp)
-run.setPeptideIdentifications(my_peptide_ids)
+
+  run = AnnotatedMSRun()
+  exp = MSExperiment()
+  MzMLFile().load(path_to_file, exp)
+  run.setMSExperiment(exp)
+  run.setPeptideIdentifications(my_peptide_ids)
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::AnnotatedMSRun &>())
@@ -298,46 +302,55 @@ run.setPeptideIdentifications(my_peptide_ids)
     nb::class_<OpenMS::IdentifierMSRunMapper>(m, "IdentifierMSRunMapper", 
         R"doc(
 Maps protein identification identifiers to MS run file paths.
+
 This class encapsulates the mapping between ProteinIdentification identifiers
 and their associated MS run paths. It is useful for resolving the correct
 source file for peptide identifications, especially in merged identification results.
+
 Example usage:
 
 .. code-block:: python
 
-  # Create mapping from protein identifications
-  mapper = oms.IdentifierMSRunMapper(protein_ids)
-  # Get MS run paths for a peptide's identifier
-  paths = mapper.getMSRunPaths(pep_id.getIdentifier())
-  # Build a USI using the mapping
-  usi = pep_id.buildUSI(mapper, "PXD000561", False)
+   # Create mapping from protein identifications
+   mapper = oms.IdentifierMSRunMapper(protein_ids)
+
+   # Get MS run paths for a peptide's identifier
+   paths = mapper.getMSRunPaths(pep_id.getIdentifier())
+
+   # Build a USI using the mapping
+   usi = pep_id.buildUSI(mapper, "PXD000561", False)
 )doc")
         .def(nb::init<>())
         .def(nb::init<std::vector<OpenMS::ProteinIdentification>>())
         .def("create", [](OpenMS::IdentifierMSRunMapper& self, const std::vector<OpenMS::ProteinIdentification>& prot_ids) { return self.create(prot_ids); }, "prot_ids"_a, 
             R"doc(
-Construct mapper from a list of ProteinIdentifications.
+Create/update mapping from a list of ProteinIdentifications.
+
 :param prot_ids: List of ProteinIdentification objects
 )doc")
         .def("hasIdentifier", [](const OpenMS::IdentifierMSRunMapper& self, const std::string& identifier) { return self.hasIdentifier(identifier); }, "identifier"_a,
             R"doc(
 Check if the mapping contains an entry for the given identifier.
+
 :param identifier: ProteinIdentification identifier
 :return: True if identifier exists in mapping
 )doc")
         .def("empty", [](const OpenMS::IdentifierMSRunMapper& self) { return self.empty(); },
             R"doc(
 Check if the mapping is empty.
+
 :return: True if no mappings exist
 )doc")
         .def("size", [](const OpenMS::IdentifierMSRunMapper& self) { return self.size(); },
             R"doc(
 Get the number of identifier mappings.
+
 :return: Number of identifiers in the mapping
 )doc")
         .def("getMSRunPaths", [](const OpenMS::IdentifierMSRunMapper& self, const std::string& identifier) -> const std::vector<std::string> & { return self.getMSRunPaths(identifier); }, "identifier"_a,
             R"doc(
 Get the MS run paths associated with the given identifier.
+
 :param identifier: ProteinIdentification identifier
 :return: List of MS run file paths associated with this identifier
 )doc")
@@ -377,13 +390,16 @@ loaders enforce this; the checks raise an error naming the first peptide identif
     nb::class_<OpenMS::MetaInfo>(m, "MetaInfo", 
         R"doc(
 A Type-Name-Value tuple class
+
 MetaInfo maps an index (an integer corresponding to a string) to
 DataValue objects.  The mapping of strings to the index is performed by
 the MetaInfoRegistry, which can be accessed by the method registry()
+
 There are two versions of nearly all members. One which operates with a
 string name and another one which operates on an index. The index version
 is always faster, as it does not need to look up the index corresponding
 to the string in the MetaInfoRegistry
+
 If you wish to add a MetaInfo member to a class, consider deriving that
 class from MetaInfoInterface, instead of simply adding MetaInfo as
 member. MetaInfoInterface implements a full interface to a MetaInfo
@@ -394,13 +410,13 @@ member and is more memory efficient if no meta info gets added
         .def("__copy__", [](const OpenMS::MetaInfo& self) { return OpenMS::MetaInfo(self); })
         .def("__deepcopy__", [](const OpenMS::MetaInfo& self, nb::dict) { return OpenMS::MetaInfo(self); }, "memo"_a)
         .def("getValue", [](const OpenMS::MetaInfo& self, const std::string& name, const OpenMS::DataValue& default_value) { return self.getValue(name, default_value); }, "name"_a, "default_value"_a = nb::none(), "Returns the value corresponding to a string")
-        .def("getValue", [](const OpenMS::MetaInfo& self, unsigned int index, const OpenMS::DataValue& default_value) { return self.getValue(index, default_value); }, "index"_a, "default_value"_a = nb::none(), "Returns the value corresponding to a string")
+        .def("getValue", [](const OpenMS::MetaInfo& self, unsigned int index, const OpenMS::DataValue& default_value) { return self.getValue(index, default_value); }, "index"_a, "default_value"_a = nb::none(), "Returns the value corresponding to an index")
         .def("exists", [](const OpenMS::MetaInfo& self, const std::string& name) { return self.exists(name); }, "name"_a, "Returns if this MetaInfo is set")
         .def("exists", [](const OpenMS::MetaInfo& self, unsigned int index) { return self.exists(index); }, "index"_a, "Returns if this MetaInfo is set")
         .def("setValue", [](OpenMS::MetaInfo& self, const std::string& name, const OpenMS::DataValue& value) { return self.setValue(name, value); }, "name"_a, "value"_a, "Sets the DataValue corresponding to a name")
-        .def("setValue", [](OpenMS::MetaInfo& self, unsigned int index, const OpenMS::DataValue& value) { return self.setValue(index, value); }, "index"_a, "value"_a, "Sets the DataValue corresponding to a name")
+        .def("setValue", [](OpenMS::MetaInfo& self, unsigned int index, const OpenMS::DataValue& value) { return self.setValue(index, value); }, "index"_a, "value"_a, "Sets the DataValue corresponding to an index")
         .def("removeValue", [](OpenMS::MetaInfo& self, const std::string& name) { return self.removeValue(name); }, "name"_a, "Removes the DataValue corresponding to `name` if it exists")
-        .def("removeValue", [](OpenMS::MetaInfo& self, unsigned int index) { return self.removeValue(index); }, "index"_a, "Removes the DataValue corresponding to `name` if it exists")
+        .def("removeValue", [](OpenMS::MetaInfo& self, unsigned int index) { return self.removeValue(index); }, "index"_a, "Removes the DataValue corresponding to `index` if it exists")
         .def_static("registry", []() { return OpenMS::MetaInfo::registry(); })
         
         .def("getKeys", [](const OpenMS::MetaInfo& self, nb::list py_keys) {
@@ -454,6 +470,7 @@ member and is more memory efficient if no meta info gets added
     nb::class_<OpenMS::MetaInfoRegistry>(m, "MetaInfoRegistry", 
         R"doc(
 Registry which assigns unique integer indices to strings
+
 When registering a new name an index >= 1024 is assigned.
 Indices from 1 to 1023 are reserved for fast access and will never change:
 1 - isotopic_range
@@ -476,15 +493,15 @@ Indices from 1 to 1023 are reserved for fast access and will never change:
         .def("__deepcopy__", [](const OpenMS::MetaInfoRegistry& self, nb::dict) { return OpenMS::MetaInfoRegistry(self); }, "memo"_a)
         .def("registerName", [](OpenMS::MetaInfoRegistry& self, const std::string& name, const std::string& description, const std::string& unit) { return self.registerName(name, description, unit); }, "name"_a, "description"_a = "", "unit"_a = "", "Registers a string, stores its description and unit, and returns the corresponding index. If the string is already registered, it returns the index of the string")
         .def("setDescription", [](OpenMS::MetaInfoRegistry& self, unsigned int index, const std::string& description) { return self.setDescription(index, description); }, "index"_a, "description"_a, "Sets the description (String), corresponding to an index")
-        .def("setDescription", [](OpenMS::MetaInfoRegistry& self, const std::string& name, const std::string& description) { return self.setDescription(name, description); }, "name"_a, "description"_a, "Sets the description (String), corresponding to an index")
+        .def("setDescription", [](OpenMS::MetaInfoRegistry& self, const std::string& name, const std::string& description) { return self.setDescription(name, description); }, "name"_a, "description"_a, "Sets the description (String), corresponding to a name")
         .def("setUnit", [](OpenMS::MetaInfoRegistry& self, unsigned int index, const std::string& unit) { return self.setUnit(index, unit); }, "index"_a, "unit"_a, "Sets the unit (String), corresponding to an index")
-        .def("setUnit", [](OpenMS::MetaInfoRegistry& self, const std::string& name, const std::string& unit) { return self.setUnit(name, unit); }, "name"_a, "unit"_a, "Sets the unit (String), corresponding to an index")
+        .def("setUnit", [](OpenMS::MetaInfoRegistry& self, const std::string& name, const std::string& unit) { return self.setUnit(name, unit); }, "name"_a, "unit"_a, "Sets the unit (String), corresponding to a name")
         .def("getIndex", [](const OpenMS::MetaInfoRegistry& self, const std::string& name) { return self.getIndex(name); }, "name"_a, "Returns the integer index corresponding to a string. If the string is not registered, returns UInt(-1) (= UINT_MAX)")
         .def("getName", [](const OpenMS::MetaInfoRegistry& self, unsigned int index) { return self.getName(index); }, "index"_a, "Returns the corresponding name to an index")
         .def("getDescription", [](const OpenMS::MetaInfoRegistry& self, unsigned int index) { return self.getDescription(index); }, "index"_a, "Returns the description of an index")
-        .def("getDescription", [](const OpenMS::MetaInfoRegistry& self, const std::string& name) { return self.getDescription(name); }, "name"_a, "Returns the description of an index")
+        .def("getDescription", [](const OpenMS::MetaInfoRegistry& self, const std::string& name) { return self.getDescription(name); }, "name"_a, "Returns the description of a name")
         .def("getUnit", [](const OpenMS::MetaInfoRegistry& self, unsigned int index) { return self.getUnit(index); }, "index"_a, "Returns the unit of an index")
-        .def("getUnit", [](const OpenMS::MetaInfoRegistry& self, const std::string& name) { return self.getUnit(name); }, "name"_a, "Returns the unit of an index")
+        .def("getUnit", [](const OpenMS::MetaInfoRegistry& self, const std::string& name) { return self.getUnit(name); }, "name"_a, "Returns the unit of a name")
         ;
 
     // -----------------------------------------------------------------------
@@ -561,10 +578,12 @@ Indices from 1 to 1023 are reserved for fast access and will never change:
     nb::class_<OpenMS::PeptideIdentificationList>(m, "PeptideIdentificationList", 
         R"doc(
 A container for peptide identifications from multiple spectra.
+
 This class provides a vector-like interface for managing collections
 of peptide identifications, typically obtained from tandem mass
 spectrometry experiments or peptide database searches. Each PeptideIdentification represents
 the identification results from a single spectrum.
+
 This class supports direct iteration in Python.
 )doc")
         .def(nb::init<std::vector<OpenMS::PeptideIdentification>>())
@@ -656,45 +675,50 @@ This class supports direct iteration in Python.
         .def("empty", [](const OpenMS::SpectrumLookup& self) { return self.empty(); }, "Check if any spectra were set")
         .def("findByRT", [](const OpenMS::SpectrumLookup& self, double rt) { return self.findByRT(rt); }, "rt"_a, 
             R"doc(
-Read and index spectra for later look-up
-:param spectra: Container of spectra
-:param scan_regexp: Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>". For example, "scan=(?<SCAN>\\d+)").
-)doc")
-        .def("findByNativeID", [](const OpenMS::SpectrumLookup& self, const std::string& native_id) { return self.findByNativeID(native_id); }, "native_id"_a, 
-            R"doc(
 Look up spectrum by retention time (RT)
+
 :param rt: Retention time to look up
 :returns: Index of the spectrum that matched
 )doc")
-        .def("findByIndex", [](const OpenMS::SpectrumLookup& self, size_t index, bool count_from_one) { return self.findByIndex(index, count_from_one); }, "index"_a, "count_from_one"_a = false, 
+        .def("findByNativeID", [](const OpenMS::SpectrumLookup& self, const std::string& native_id) { return self.findByNativeID(native_id); }, "native_id"_a, 
             R"doc(
 Look up spectrum by native ID
+
 :param native_id: Native ID to look up
 :returns: Index of the spectrum that matched
-Size findByIndex(Size index)
 )doc")
-        .def("findByScanNumber", [](const OpenMS::SpectrumLookup& self, size_t scan_number) { return self.findByScanNumber(scan_number); }, "scan_number"_a, 
+        .def("findByIndex", [](const OpenMS::SpectrumLookup& self, size_t index, bool count_from_one) { return self.findByIndex(index, count_from_one); }, "index"_a, "count_from_one"_a = false,
             R"doc(
 Look up spectrum by index (position in the vector of spectra)
+
 :param index: Index to look up
 :param count_from_one: Do indexes start counting at one (default zero)?
 :returns: Index of the spectrum that matched
 )doc")
-        .def("findByReference", [](const OpenMS::SpectrumLookup& self, const std::string& spectrum_ref) { return self.findByReference(spectrum_ref); }, "spectrum_ref"_a, 
+        .def("findByScanNumber", [](const OpenMS::SpectrumLookup& self, size_t scan_number) { return self.findByScanNumber(scan_number); }, "scan_number"_a, 
             R"doc(
 Look up spectrum by scan number (extracted from the native ID)
+
 :param scan_number: Scan number to look up
+:returns: Index of the spectrum that matched
+)doc")
+        .def("findByReference", [](const OpenMS::SpectrumLookup& self, const std::string& spectrum_ref) { return self.findByReference(spectrum_ref); }, "spectrum_ref"_a, 
+            R"doc(
+Look up spectrum by reference
+
+:param spectrum_ref: Spectrum reference to parse
 :returns: Index of the spectrum that matched
 )doc")
         .def("addReferenceFormat", [](OpenMS::SpectrumLookup& self, const std::string& regexp) { return self.addReferenceFormat(regexp); }, "regexp"_a, 
             R"doc(
-Look up spectrum by reference
-:param spectrum_ref: Spectrum reference to parse
-:returns: Index of the spectrum that matched
+Register a possible format for a spectrum reference
+
+:param regexp: Regular expression defining the format
 )doc")
         .def_static("extractScanNumber", [](const std::string& native_id, const std::string& scan_regexp, bool no_error) { return OpenMS::SpectrumLookup::extractScanNumber(native_id, OpenMS::RegularExpression(scan_regexp), no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a,
             R"doc(
 Extract scan number from a native ID using a regular expression
+
 :param native_id: The native spectrum ID string
 :param scan_regexp: Regular expression for extracting the scan number
 :param no_error: If true, do not throw on failure
@@ -702,6 +726,7 @@ Extract scan number from a native ID using a regular expression
         .def_static("extractScanNumber", [](const std::string& native_id, const std::string& native_id_type_accession) { return OpenMS::SpectrumLookup::extractScanNumber(native_id, native_id_type_accession); }, "native_id"_a, "native_id_type_accession"_a,
             R"doc(
 Extract scan number from a native ID using the accession type
+
 :param native_id: The native spectrum ID string
 :param native_id_type_accession: The native ID type accession
 )doc")
@@ -716,6 +741,7 @@ Extract scan number from a native ID using the accession type
         .def_static("extractScanNumber", [](const std::string& native_id, const std::string& scan_regexp, bool no_error) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, OpenMS::RegularExpression(scan_regexp), no_error); }, "native_id"_a, "scan_regexp"_a, "no_error"_a,
             R"doc(
 Extract the scan number from a native ID using a regular expression
+
 :param native_id: The native spectrum ID string
 :param scan_regexp: Regular expression whose first capture group matches the scan number, e.g. ``scan=(?<SCAN>\d+)`` (naming the group is optional); if it matches several times, the last match is used
 :param no_error: If true, return -1 on failure instead of raising an exception
@@ -724,6 +750,7 @@ Extract the scan number from a native ID using a regular expression
         .def_static("extractScanNumber", [](const std::string& native_id, const std::string& native_id_type_accession) { return OpenMS::SpectrumNativeIDParser::extractScanNumber(native_id, native_id_type_accession); }, "native_id"_a, "native_id_type_accession"_a,
             R"doc(
 Extract the scan number from a native ID using the CV accession of its format
+
 :param native_id: The native spectrum ID string
 :param native_id_type_accession: CV accession of the native ID format (e.g. "MS:1000768" for Thermo, "MS:1000770" for WIFF)
 :returns: Scan number of the spectrum, or -1 on failure (WIFF IDs yield cycle * 1000 + experiment; index-based IDs yield index + 1)
@@ -731,12 +758,14 @@ Extract the scan number from a native ID using the CV accession of its format
         .def_static("getRegExFromNativeID", [](const std::string& native_id) { return OpenMS::SpectrumNativeIDParser::getRegExFromNativeID(native_id); }, "native_id"_a,
             R"doc(
 Determine the regular expression that extracts the scan or index number from a native ID
+
 :param native_id: A native ID string to analyze (its prefix, e.g. "scan=" or "index=", selects the pattern)
 :returns: Regular expression string whose named group GROUP matches the scan or index number
 )doc")
         .def_static("isNativeID", [](const std::string& id) { return OpenMS::SpectrumNativeIDParser::isNativeID(id); }, "id"_a,
             R"doc(
 Check whether a spectrum identifier is a native ID from a vendor file
+
 :param id: Spectrum identifier string to check
 :returns: True if the string starts with a known native ID prefix (scan=, scanId=, scanID=, controllerType=, function=, sample=, index=, spectrum=, file=, frame=)
 )doc")
@@ -748,8 +777,10 @@ Check whether a spectrum identifier is a native ID from a vendor file
     auto usi_class = nb::class_<OpenMS::USI>(m, "USI", 
         R"doc(
 Utility class for handling Universal Spectrum Identifiers (USI).
+
 USI format (PSI-MS MS:1003063):
-mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+  mzspec:<collection>:<ms_run>:<index_type>:<index>[:interpretation]
+
 The optional interpretation part uses ProForma proteoform-ion notation.
 )doc")
         .def(nb::init<>())

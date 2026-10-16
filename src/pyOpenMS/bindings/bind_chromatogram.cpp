@@ -65,11 +65,14 @@ Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arr
 Indexing and iteration yield copies of the peaks; write changes back with chrom[i] = peak
 Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
 See help(ChromatogramSettings) for information about meta-information
+
 Usage:
+
 .. code-block:: python
-precursor = chromatogram.getPrecursor()
-product = chromatogram.getProduct()
-rt, intensities = chromatogram.get_peaks()
+
+  precursor = chromatogram.getPrecursor()
+  product = chromatogram.getProduct()
+  rt, intensities = chromatogram.get_peaks()
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::MSChromatogram &>())
