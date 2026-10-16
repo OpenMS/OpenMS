@@ -9,6 +9,8 @@
 #include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 // TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
@@ -251,7 +253,7 @@ protected:
     registerFlag_("zstd_compression", "[mzML output only] Compress binary data arrays with Zstandard (zstd) instead of zlib (lossless; can be combined with 'lossy_compression'). Attention: not all external tools can read zstd-compressed mzML files yet.", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
-    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML/Bruker .d to mzML, mzML to cachedMzML and, with RawToMzML:reader inprocess, Thermo RAW to mzML or cachedMzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML/Bruker .d to mzML, mzML/Bruker .d to cachedMzML and, with RawToMzML:reader inprocess, Thermo RAW to mzML or cachedMzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
     
 #ifdef WITH_OPENTIMS
     registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
@@ -879,10 +881,37 @@ protected:
 
         return EXECUTION_OK;
       }
+#ifdef WITH_OPENTIMS
+      else if (in_type == FileTypes::BRUKER_TDF && out_type == FileTypes::CACHEDMZML)
+      {
+        const std::string out_meta = extractCachedMetaFilename(out);
+        if (out_meta.empty())
+        {
+          return ILLEGAL_PARAMETERS;
+        }
+        // The spectra go to the cache as they are read. The cache consumer removes their peaks, so only their
+        // metadata is kept for the metadata file.
+        PeakMap exp_meta;
+        {
+          MSDataCachedConsumer cache(out);
+          MSDataTransformingConsumer keep_meta;
+          keep_meta.setExperimentalSettingsFunc([&exp_meta](const ExperimentalSettings& settings) { static_cast<ExperimentalSettings&>(exp_meta) = settings; });
+          keep_meta.setSpectraProcessingFunc([&exp_meta](MSSpectrum& spectrum) { exp_meta.addSpectrum(spectrum); });
+          MSDataChainingConsumer consumer({&cache, &keep_meta});
+          BrukerTimsFile tims_file;
+          tims_file.setLogType(log_type_);
+          tims_file.transform(in, &consumer, getBrukerConfig_());
+        }
+        Internal::CachedMzMLHandler cacher;
+        cacher.setLogType(log_type_);
+        cacher.writeMetadata(exp_meta, out_meta);
+        return EXECUTION_OK;
+      }
+#endif
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Process_lowmemory option can only be used with mzML / mzXML / Bruker .d input and mzML output data types.");
+          "Process_lowmemory option can only be used with mzML / mzXML / Bruker .d input and mzML output, or with mzML / Bruker .d input and cachedMzML output.");
       }
     }
 #ifdef WITH_OPENTIMS

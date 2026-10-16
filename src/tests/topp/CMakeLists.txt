@@ -5122,6 +5122,12 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   add_test("TOPP_FileConverter_DDA_d_nothing_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing_lowmemory.tmp.mzML -bruker:load_ms1 false -bruker:load_ms2 false -process_lowmemory)
   add_test("TOPP_FileConverter_DDA_d_nothing_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing.tmp.mzML)
   set_tests_properties("TOPP_FileConverter_DDA_d_nothing_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d_nothing;TOPP_FileConverter_DDA_d_nothing_lowmemory")
+  # .d -> cachedMzML (the cache and its metadata .mzML), likewise in memory and written to the cache as it is read
+  add_test("TOPP_FileConverter_DDA_d_cached" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached.tmp.cachedMzML -bruker:load_ms1 false)
+  add_test("TOPP_FileConverter_DDA_d_cached_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached_lowmemory.tmp.cachedMzML -bruker:load_ms1 false -process_lowmemory)
+  add_test("TOPP_FileConverter_DDA_d_cached_lowmemory_out1" ${CMAKE_COMMAND} -E compare_files ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached_lowmemory.tmp.cachedMzML ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached.tmp.cachedMzML)
+  add_test("TOPP_FileConverter_DDA_d_cached_lowmemory_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_DDA_d_cached_lowmemory_out1" "TOPP_FileConverter_DDA_d_cached_lowmemory_out2" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d_cached;TOPP_FileConverter_DDA_d_cached_lowmemory")
 
   # Typical timsTOF Pro DDA-PASEF parameters: 20 ppm precursor, 20 ppm fragment,
   # Trypsin/P, 2 missed cleavages, Carbamidomethyl (C) fixed,
