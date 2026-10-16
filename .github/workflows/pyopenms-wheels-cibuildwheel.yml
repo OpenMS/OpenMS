@@ -855,7 +855,7 @@ jobs:
 
       - name: Install test dependencies
         shell: bash
-        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow scipy
+        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow
 
       - name: Run the pyOpenMS test suite against the installed wheel
         shell: bash

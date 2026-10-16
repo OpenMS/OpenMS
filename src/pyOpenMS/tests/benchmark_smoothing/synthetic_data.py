@@ -20,8 +20,10 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Dict, Any
 
 import numpy as np
-from scipy.special import erfc
 import pyopenms
+
+# Vectorized erfc using standard library math.erfc to avoid scipy test dependency
+erfc = np.vectorize(math.erfc, otypes=[float])
 
 # Numerical trapezoid integration compatible with numpy 1.x and 2.x
 trapz_fn = getattr(np, "trapezoid", getattr(np, "trapz", None))

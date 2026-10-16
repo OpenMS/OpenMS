@@ -123,7 +123,6 @@ test = [
     "pytest-cov",
     "pandas>=3",  # tests need pandas for DataFrame functionality
     "pyarrow",
-    "scipy",
 ]
 dev = [
     {include-group = "build"},
@@ -221,7 +220,7 @@ build = "cp311-*"
 skip = "*-win32 *-musllinux_*"
 
 # Test the wheel after building
-test-requires = ["pytest", "numpy", "pandas>=3", "pyarrow", "scipy"]
+test-requires = ["pytest", "numpy", "pandas>=3", "pyarrow"]
 test-command = "pytest \"{package}/tests\" --import-mode=importlib"
 build-verbosity = 1
 
@@ -306,4 +305,5 @@ repair-wheel-command = [
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test*"]
+norecursedirs = ["tests/benchmark_smoothing"]
 addopts = "-v --tb=short"

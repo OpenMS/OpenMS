@@ -28,7 +28,7 @@ src/pyOpenMS/tests/benchmark_smoothing/
 ├── benchmark_engine.py             # Execution engine, parameter tuning, phase sweeps, real-data benchmark
 ├── plotter.py                      # Publication-grade figure generation (Matplotlib Agg)
 ├── run_benchmark.py                # Standalone CLI entry point and markdown reporter
-├── test_benchmark.py               # Comprehensive unit & integration regression test suite (23 tests)
+├── benchmark_tests.py              # Comprehensive unit & integration regression test suite (27 tests)
 └── README.md                       # Comprehensive methodology documentation
 ```
 
