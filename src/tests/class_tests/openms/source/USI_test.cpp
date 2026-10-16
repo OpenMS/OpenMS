@@ -305,45 +305,114 @@ END_SECTION
 
 START_SECTION((static USI createFromNativeID(const std::string& dataset_id, const std::string& filename, const std::string& native_id)))
 {
-  // Test with extractable scan number
-  USI usi1 = USI::createFromNativeID("PXD000561", "sample.mzML", "scan=12345");
-  TEST_STRING_EQUAL(usi1.toString(), "mzspec:PXD000561:sample.mzML:scan:12345");
-  
-  USI usi2 = USI::createFromNativeID("PXD000561", "sample.mzML", "controllerType=0 controllerNumber=1 scan=54321");
+  // Thermo standard → scan:
+  USI usi1 = USI::createFromNativeID("PXD000561", "sample", "scan=12345");
+  TEST_STRING_EQUAL(usi1.toString(), "mzspec:PXD000561:sample:scan:12345");
+
+  USI usi2 = USI::createFromNativeID("PXD000561", "sample", "controllerType=0 controllerNumber=1 scan=54321");
   TEST_STRING_EQUAL(usi2.getIndex(), "54321");
-  
-  // Test with non-extractable native ID (falls back to nativeId type)
-  USI usi3 = USI::createFromNativeID("PXD000561", "sample.mzML", "custom_id_format");
+  TEST_EQUAL(usi2.getIndexType(), USI::IndexType::SCAN);
+
+  // Bruker TDF → nativeId: comma-separated
+  USI usi3 = USI::createFromNativeID("PXD000561", "sample", "frame=120 scan=475");
   TEST_EQUAL(usi3.getIndexType(), USI::IndexType::NATIVEID);
-  TEST_STRING_EQUAL(usi3.getIndex(), "custom_id_format");
+  TEST_STRING_EQUAL(usi3.getIndex(), "120,475");
+
+  // index= → index:
+  USI usi4 = USI::createFromNativeID("PXD000561", "sample", "index=2074");
+  TEST_EQUAL(usi4.getIndexType(), USI::IndexType::INDEX);
+  TEST_STRING_EQUAL(usi4.getIndex(), "2074");
+
+  // Unknown format → nativeId: passthrough
+  USI usi5 = USI::createFromNativeID("PXD000561", "sample", "custom_id_format");
+  TEST_EQUAL(usi5.getIndexType(), USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(usi5.getIndex(), "custom_id_format");
+
+  // Empty → invalid
+  USI usi6 = USI::createFromNativeID("PXD000561", "sample", "");
+  TEST_EQUAL(usi6.isValid(), false);
 }
 END_SECTION
 
 START_SECTION((static std::optional<int> extractScanNumberFromNativeID(const std::string& native_id)))
 {
-  // Test various native ID formats
+  // Only standard Thermo (controllerType=0) and bare scan= should return a scan number
   auto result1 = USI::extractScanNumberFromNativeID("scan=12345");
   TEST_EQUAL(result1.has_value(), true);
   TEST_EQUAL(result1.value(), 12345);
-  
+
   auto result2 = USI::extractScanNumberFromNativeID("controllerType=0 controllerNumber=1 scan=54321");
   TEST_EQUAL(result2.has_value(), true);
   TEST_EQUAL(result2.value(), 54321);
-  
-  auto result3 = USI::extractScanNumberFromNativeID("scanId=99999");
-  TEST_EQUAL(result3.has_value(), true);
-  TEST_EQUAL(result3.value(), 99999);
-  
-  auto result4 = USI::extractScanNumberFromNativeID("index=100");
-  TEST_EQUAL(result4.has_value(), true);
-  TEST_EQUAL(result4.value(), 100);
-  
+
+  // Plain number
   auto result5 = USI::extractScanNumberFromNativeID("12345");
   TEST_EQUAL(result5.has_value(), true);
   TEST_EQUAL(result5.value(), 12345);
-  
-  auto result6 = USI::extractScanNumberFromNativeID("custom_format_no_number");
-  TEST_EQUAL(result6.has_value(), false);
+
+  // These should NOT return scan numbers per USI spec
+  TEST_EQUAL(USI::extractScanNumberFromNativeID("controllerType=5 controllerNumber=1 scan=7").has_value(), false);
+  TEST_EQUAL(USI::extractScanNumberFromNativeID("frame=120 scan=475").has_value(), false);
+  TEST_EQUAL(USI::extractScanNumberFromNativeID("function=10 process=1 scan=345").has_value(), false);
+  TEST_EQUAL(USI::extractScanNumberFromNativeID("sample=1 period=1 cycle=2740 experiment=10").has_value(), false);
+  TEST_EQUAL(USI::extractScanNumberFromNativeID("index=100").has_value(), false);
+  TEST_EQUAL(USI::extractScanNumberFromNativeID("scanId=99999").has_value(), false);
+  TEST_EQUAL(USI::extractScanNumberFromNativeID("custom_format_no_number").has_value(), false);
+}
+END_SECTION
+
+START_SECTION((static std::optional<std::pair<USI::IndexType, std::string>> nativeIdToUSIIndex(const std::string& native_id)))
+{
+  // Standard Thermo → scan:
+  auto r1 = USI::nativeIdToUSIIndex("controllerType=0 controllerNumber=1 scan=43920");
+  TEST_EQUAL(r1.has_value(), true);
+  TEST_EQUAL(r1->first, USI::IndexType::SCAN);
+  TEST_STRING_EQUAL(r1->second, "43920");
+
+  // Bare scan= → scan:
+  auto r2 = USI::nativeIdToUSIIndex("scan=12345");
+  TEST_EQUAL(r2.has_value(), true);
+  TEST_EQUAL(r2->first, USI::IndexType::SCAN);
+  TEST_STRING_EQUAL(r2->second, "12345");
+
+  // Non-standard Thermo → nativeId: comma-separated
+  auto r3 = USI::nativeIdToUSIIndex("controllerType=5 controllerNumber=1 scan=7");
+  TEST_EQUAL(r3.has_value(), true);
+  TEST_EQUAL(r3->first, USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(r3->second, "5,1,7");
+
+  // Bruker TDF → nativeId:
+  auto r4 = USI::nativeIdToUSIIndex("frame=120 scan=475");
+  TEST_EQUAL(r4.has_value(), true);
+  TEST_EQUAL(r4->first, USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(r4->second, "120,475");
+
+  // Waters → nativeId:
+  auto r5 = USI::nativeIdToUSIIndex("function=10 process=1 scan=345");
+  TEST_EQUAL(r5.has_value(), true);
+  TEST_EQUAL(r5->first, USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(r5->second, "10,1,345");
+
+  // SCIEX WIFF → nativeId:
+  auto r6 = USI::nativeIdToUSIIndex("sample=1 period=1 cycle=2740 experiment=10");
+  TEST_EQUAL(r6.has_value(), true);
+  TEST_EQUAL(r6->first, USI::IndexType::NATIVEID);
+  TEST_STRING_EQUAL(r6->second, "1,1,2740,10");
+
+  // index= → index:
+  auto r7 = USI::nativeIdToUSIIndex("index=2074");
+  TEST_EQUAL(r7.has_value(), true);
+  TEST_EQUAL(r7->first, USI::IndexType::INDEX);
+  TEST_STRING_EQUAL(r7->second, "2074");
+
+  // Plain number → scan:
+  auto r8 = USI::nativeIdToUSIIndex("42");
+  TEST_EQUAL(r8.has_value(), true);
+  TEST_EQUAL(r8->first, USI::IndexType::SCAN);
+  TEST_STRING_EQUAL(r8->second, "42");
+
+  // Empty → nullopt
+  TEST_EQUAL(USI::nativeIdToUSIIndex("").has_value(), false);
 }
 END_SECTION
 
@@ -370,29 +439,32 @@ END_SECTION
 
 START_SECTION((static std::string extractBasename(const std::string& filepath)))
 {
-  // Test Unix-style paths
-  TEST_STRING_EQUAL(USI::extractBasename("/path/to/sample.mzML"), "sample.mzML");
-  TEST_STRING_EQUAL(USI::extractBasename("/data/experiments/run1.mzML"), "run1.mzML");
-  TEST_STRING_EQUAL(USI::extractBasename("/sample.mzML"), "sample.mzML");
-  
+  // Test Unix-style paths (extension stripped per USI spec 3.3.4)
+  TEST_STRING_EQUAL(USI::extractBasename("/path/to/sample.mzML"), "sample");
+  TEST_STRING_EQUAL(USI::extractBasename("/data/experiments/run1.mzML"), "run1");
+  TEST_STRING_EQUAL(USI::extractBasename("/sample.mzML"), "sample");
+
   // Test Windows-style paths
-  TEST_STRING_EQUAL(USI::extractBasename("C:\\data\\sample.mzML"), "sample.mzML");
-  TEST_STRING_EQUAL(USI::extractBasename("C:\\Users\\test\\data\\run1.mzML"), "run1.mzML");
-  
+  TEST_STRING_EQUAL(USI::extractBasename("C:\\data\\sample.mzML"), "sample");
+  TEST_STRING_EQUAL(USI::extractBasename("C:\\Users\\test\\data\\run1.mzML"), "run1");
+
   // Test file:// URIs (common in mzML and consensusXML)
-  TEST_STRING_EQUAL(USI::extractBasename("file:///path/to/sample.mzML"), "sample.mzML");
-  TEST_STRING_EQUAL(USI::extractBasename("file:///C:/Users/bielow/data/sample.mzML"), "sample.mzML");
-  TEST_STRING_EQUAL(USI::extractBasename("file:///C:/data/experiments/ES-0014b_2.mzML"), "ES-0014b_2.mzML");
-  
+  TEST_STRING_EQUAL(USI::extractBasename("file:///path/to/sample.mzML"), "sample");
+  TEST_STRING_EQUAL(USI::extractBasename("file:///C:/Users/bielow/data/sample.mzML"), "sample");
+  TEST_STRING_EQUAL(USI::extractBasename("file:///C:/data/experiments/ES-0014b_2.mzML"), "ES-0014b_2");
+
   // Test basename only (no path)
-  TEST_STRING_EQUAL(USI::extractBasename("sample.mzML"), "sample.mzML");
-  TEST_STRING_EQUAL(USI::extractBasename("run1.raw"), "run1.raw");
-  
+  TEST_STRING_EQUAL(USI::extractBasename("sample.mzML"), "sample");
+  TEST_STRING_EQUAL(USI::extractBasename("run1.raw"), "run1");
+
+  // Test without extension
+  TEST_STRING_EQUAL(USI::extractBasename("sample"), "sample");
+
   // Test empty string
   TEST_STRING_EQUAL(USI::extractBasename(""), "");
-  
+
   // Test paths with mixed separators
-  TEST_STRING_EQUAL(USI::extractBasename("/data/sub\\folder/sample.mzML"), "sample.mzML");
+  TEST_STRING_EQUAL(USI::extractBasename("/data/sub\\folder/sample.mzML"), "sample");
 }
 END_SECTION
 
@@ -423,18 +495,18 @@ START_SECTION(([EXTRA] USI construction with file paths))
   // Test createFromScanNumber with full path - should use path as-is
   USI usi1 = USI::createFromScanNumber("PXD000561", "/path/to/sample.mzML", 12345);
   TEST_STRING_EQUAL(usi1.getMSRun(), "/path/to/sample.mzML");
-  
-  // Test creating USI with extracted basename
+
+  // Test creating USI with extracted basename (extension stripped)
   std::string full_path = "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML";
   std::string basename = USI::extractBasename(full_path);
   USI usi2 = USI::createFromScanNumber("PXD000561", basename, 219);
-  TEST_STRING_EQUAL(usi2.getMSRun(), "ES-0014b_2.mzML");
-  TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:ES-0014b_2.mzML:scan:219");
-  
+  TEST_STRING_EQUAL(usi2.getMSRun(), "ES-0014b_2");
+  TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:ES-0014b_2:scan:219");
+
   // Test with Windows path
   std::string win_path = "C:\\data\\experiments\\sample.mzML";
   USI usi3 = USI::createFromScanNumber("PXD000561", USI::extractBasename(win_path), 100);
-  TEST_STRING_EQUAL(usi3.getMSRun(), "sample.mzML");
+  TEST_STRING_EQUAL(usi3.getMSRun(), "sample");
 }
 END_SECTION
 
