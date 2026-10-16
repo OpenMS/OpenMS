@@ -29,11 +29,11 @@ namespace OpenMS
     /// @brief Destructor
     ~PeptDeepCCSInference();
 
-    /// @brief Predicts CCS values for a batch of unmodified peptide sequences.
-    /// @param peptides A vector of raw uppercase peptide strings.
+    /// @brief Predicts CCS values for a batch of peptide sequences.
+    /// @param peptides A vector of peptide strings. Supports OpenMS AASequence modification notation (e.g., "PEPTIDEK", "M(Oxidation)PEP").
     /// @param charges A vector of precursor charge states. Must match peptides size.
     /// @return A vector of predicted CCS values corresponding to the input peptides.
-    /// @throws Exception::IllegalArgument if peptides is empty, charges.size() != peptides.size(), or a sequence is invalid/modified.
+    /// @throws Exception::IllegalArgument if peptides is empty, size constraints fail, or a sequence is chemically invalid.
     std::vector<float> predictCCS(
       const std::vector<std::string>& peptides,
       const std::vector<float>& charges);

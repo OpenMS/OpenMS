@@ -19,14 +19,14 @@ A glossary of common terms used throughout OpenMS documentation.
         Features from replicate experiments with similar retention times and m/z values are linked and considered a consensus feature.
         A consensus feature contains information on the common retention time and m/z values as well as intensities for each sample.
         OpenMS represents a consensus feature using the class `ConsensusFeature
-        <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/classOpenMS_1_1ConsensusFeature.html>`_.
+        <https://archive.openms.de/openms/Documentation/nightly/latest/html/classOpenMS_1_1ConsensusFeature.html>`_.
 
     consensus maps
     consensus map
         A consensus map is a collection of :term:`consensus features` identified from mass spectra across replicate experiments,
         usually by combining multiple :term:`feature maps`.
         One consensus map usually contains many consensus features. OpenMS represents a consensus map using 
-        the class `ConsensusMap <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/classOpenMS_1_1ConsensusMap.html>`_.
+        the class `ConsensusMap <https://archive.openms.de/openms/Documentation/nightly/latest/html/classOpenMS_1_1ConsensusMap.html>`_.
 
     de novo
     de novo peptide sequencing
@@ -55,7 +55,7 @@ A glossary of common terms used throughout OpenMS documentation.
     feature map
         A feature map is a collection of :term:`feature`\ s identified from a single experiment.
         One feature map usually contains many features. OpenMS represents a feature map using the class
-        `FeatureMap <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/classOpenMS_1_1FeatureMap.html>`_.
+        `FeatureMap <https://archive.openms.de/openms/Documentation/nightly/latest/html/classOpenMS_1_1FeatureMap.html>`_.
 
     high performance liquid chromatography
     HPLC
@@ -67,9 +67,6 @@ A glossary of common terms used throughout OpenMS documentation.
     iTRAQ
         Isobaric tags for relative and absolute quantitation (iTRAQ) is a MS based multiplexing technique designed to
         identify and quantify proteins from different samples in one single measurement.
-
-    KNIME
-        An advanced workflow editor which OpenMS provides a plugin for.
 
     LC-MS
     LCMS
@@ -86,7 +83,7 @@ A glossary of common terms used throughout OpenMS documentation.
     LuciphorAdapter
         Adapter for the LuciPHOr2: a site localisation tool of generic post-translational modifications from tandem mass
         spectrometry data. More information is available in the `OpenMS API reference documentation
-        <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_LuciphorAdapter.html>`__.
+        <https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_LuciphorAdapter.html>`__.
 
     MALDI
         matrix-assisted laser desorption/ionization (MALDI) is an ionization technique that uses a laser energy-absorbing matrix to create ions.
@@ -103,13 +100,13 @@ A glossary of common terms used throughout OpenMS documentation.
         A visual or numerical representation of a measurement from an MS instrument.
         A spectrum contains (usually many) pairs of mass-over-charge(m/z)+intensity values.
 
-    MascotAdapter
-        Used to identify peptides in :term:`MS2` spectra. Read more about this adapter in the `OpenMS API reference documentation
-        <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_MascotAdapter.html>`__.
+    MascotAdapterOnline
+        Used to identify peptides in :term:`MS2` spectra with a Mascot server. Read more about this adapter in the `OpenMS API reference documentation
+        <https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_MascotAdapterOnline.html>`__.
 
     MSGFPlusAdapter
         Adapter for the MS-GF+ protein identification (database search) engine. More information is available in the
-        `OpenMS API reference documentation <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_MSGFPlusAdapter.html>`__.
+        `OpenMS API reference documentation <https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_MSGFPlusAdapter.html>`__.
 
     MS1
         Mass spectra of a sample where only precursor ions (i.e. no fragment ions) can be observed.
@@ -205,13 +202,13 @@ A glossary of common terms used throughout OpenMS documentation.
 
     TOPPAS
         An assistant for GUI-driven :term:`TOPP` workflow design, build into OpenMS. 
-        See `TOPPAS tutorial <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPPAS_tutorial.html>` for details.
+        See `TOPPAS tutorial <https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPPAS_tutorial.html>` for details.
 
     TOPP tools
         OpenMS provides a number of applications (executable files) that are chainable in a pipeline/script and each process MS data.
         These tools are subdivided into different categories, such as 'File Handling' or 'Peptide Identification'.
         All :term:`TOPP` tools are described in the `OpenMS API reference documentation
-        <https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/TOPP_documentation.html>`__.
+        <https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_documentation.html>`__.
 
     TOPPView
         TOPPView is a viewer for MS and HPLC-MS data and shipped with every OpenMS release.

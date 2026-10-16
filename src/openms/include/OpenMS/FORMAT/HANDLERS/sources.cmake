@@ -25,10 +25,8 @@ MzXMLHandler.h
 PASEFHillCentroider.h
 PTMXMLHandler.h
 ParamXMLHandler.h
-ToolDescriptionHandler.h
 TraMLHandler.h
 UnimodXMLHandler.h
-UniProtXMLHandler.h
 StringManager.h
 XMLAttributes.h
 XMLHandler.h
@@ -53,8 +51,12 @@ set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 ### PRIVATE link dependency.
 set(private_headers_list_h
 SAX2HandlerAdapter.h
+ThermoRawFileMetadata.h
 MzIdentMLDOMHandler.h
 )
+if (WITH_THERMO_RAW)
+  list(APPEND private_headers_list_h ThermoRawScanReader.h)
+endif()
 set(private_sources_h)
 foreach(i ${private_headers_list_h})
 	list(APPEND private_sources_h ${directory}/${i})

@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/MS1LabelState.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -462,6 +463,30 @@ bool qpxIsCanonicalIntensityLabel(const std::string& label)
   return canonical.contains(label);
 }
 
+std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit)
+{
+  return qpxCvParams(hit, MS1LabelState::Keys());
+}
+
+std::vector<std::pair<std::string, std::string>> qpxCvParams(const MetaInfoInterface& hit,
+                                                              const MS1LabelState::Keys& keys)
+{
+  // The label state written by MS1LabeledWorkflow; see MS1LabelState for the meaning of each key.
+  // Looked up by index: this runs once per exported row, and a lookup by name takes the registry lock.
+  std::vector<std::pair<std::string, std::string>> params;
+  const auto add = [&](const std::string& name, UInt index)
+  {
+    if (index != static_cast<UInt>(-1) && hit.metaValueExists(index))
+    {
+      params.emplace_back(name, hit.getMetaValue(index).toString());
+    }
+  };
+  add(MS1LabelState::LABELED_SEQUENCE, keys.labeled_sequence);
+  add(MS1LabelState::REMOVED_LABELS, keys.removed_labels);
+  add(MS1LabelState::CHANNEL, keys.channel);
+  return params;
+}
+
 std::string qpxRunFileName(const std::string& ms_run_path)
 {
   // File::stemName() already maps "" -> "".
@@ -475,12 +500,12 @@ std::vector<Int32> qpxScanComponents(const std::string& spectrum_reference)
   if (regex_str.empty()) { return {}; }
 
   // getRegExFromNativeID() maps every native-ID convention onto one of a handful of fixed
-  // patterns, but compiling a boost::regex parses the pattern each time -- and this runs once per
+  // patterns, but compiling a RegularExpression parses the pattern each time -- and this runs once per
   // exported row. Cached per thread rather than shared: the exporters call it from inside an
   // OpenMP region, where one shared cache would need a lock and reintroduce the cost it saves.
-  thread_local std::map<std::string, boost::regex> compiled;
+  thread_local std::map<std::string, RegularExpression> compiled;
   auto entry = compiled.find(regex_str);
-  if (entry == compiled.end()) { entry = compiled.emplace(regex_str, boost::regex(regex_str)).first; }
+  if (entry == compiled.end()) { entry = compiled.emplace(regex_str, RegularExpression(regex_str)).first; }
 
   const Int scan = SpectrumNativeIDParser::extractScanNumber(spectrum_reference, entry->second, true);
   if (scan < 0) { return {}; }
@@ -773,7 +798,7 @@ void readMetaValues(
     }
     else if (type_str == "double" || type_str == "float")
     {
-      try { target.setMetaValue(name, std::stod(value_str)); }
+      try { target.setMetaValue(name, StringUtils::toDouble(value_str)); }
       catch (...) { target.setMetaValue(name, value_str); }
     }
     else if (type_str == "int_list")

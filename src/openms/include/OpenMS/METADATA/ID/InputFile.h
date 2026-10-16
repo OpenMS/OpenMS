@@ -8,11 +8,11 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/METADATA/ID/IDDataContainer.h>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
+
 
 #include <set>
 
@@ -60,12 +60,7 @@ namespace OpenMS
       }
     };
 
-    typedef boost::multi_index_container<
-      InputFile,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          InputFile, std::string, &InputFile::name>>>
-      > InputFiles;
+    using InputFiles = IDDataContainer<InputFile, std::string, std::string, &InputFile::name>;
     typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
 
   }

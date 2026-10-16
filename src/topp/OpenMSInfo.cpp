@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 #include <OpenMS/config.h>
 #include <OpenMS/openms_data_path.h>
 
@@ -31,13 +32,16 @@ using namespace std;
 @brief Prints configurations details of %OpenMS (Version, Git hash, SIMD extensions, Multithreading), along with directories where auxilliary data
 like modifications (UniMOD), Enzymes etc are taken from.
 
-Some path's can be manipulated by the user by setting environment variables. If not set, the values are taken from the system defaults.
+Some of these paths can be changed; if nothing is set, the system defaults are used.
 
 <ul>
-  <li> <b>Data path:</b> controlled by the environment variable 'OPENMS_DATA_PATH'; the value should point to a %OpenMS share directory, e.g.
-'c:/program files/OpenMS3.1/share/OpenMS' <li> <b>Temp path:</b> controlled by the environment variable 'OPENMS_TMPDIR'; the value should point to
-where you want %OpenMS to store temporary data. <li> <b>Userdata path:</b> controlled by the environment variable 'OPENMS_HOME_PATH'; the value should
-point to where you want %OpenMS to store user-realted data, e.g. the .OpenMS.ini.
+  <li> <b>Data path:</b> the %OpenMS share directory (modifications, enzymes etc.), found via the compiled-in path or the location of the
+       executable; the output says which one was used. The environment variable 'OPENMS_DATA_PATH' is only a fallback and should point to
+       an %OpenMS share directory, e.g. 'c:/program files/OpenMS3.1/share/OpenMS'.
+  <li> <b>Temp path:</b> where %OpenMS stores temporary data. Set it with the environment variable 'OPENMS_TMPDIR' or the 'temp_dir' entry
+       of the optional %OpenMS.ini file (see the @ref user_FAQ).
+  <li> <b>Userdata path:</b> where %OpenMS stores user-related data. Set it with the environment variable 'OPENMS_HOME_PATH' or the
+       'home_dir' entry of %OpenMS.ini.
 </ul>
 
 <B>This tool does not need/use any command line parameters.</B>
@@ -124,8 +128,8 @@ protected:
        << green("<< Installation information >>\n")
        << "Data path    : " << File::getOpenMSDataPath()
        << " (via " << File::getOpenMSDataPathSource() << ")" << '\n'
-       << "Temp path    : " << File::getTempDirectory() << '\n'
-       << "Userdata path: " << File::getUserDirectory() << '\n'
+       << "Temp path    : " << SystemSettings::getTempDirectory() << '\n'
+       << "Userdata path: " << SystemSettings::getUserDirectory() << '\n'
        << '\n'
        << green("<< Build information >>\n") 
        << "Source path  : " << OPENMS_SOURCE_PATH << '\n'

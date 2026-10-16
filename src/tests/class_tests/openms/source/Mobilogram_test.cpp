@@ -678,17 +678,17 @@ START_SECTION((Mobilogram& select(const std::vector<Size>& indices)))
   TEST_EQUAL(m.getIntegerDataArrays()[0][1], 1)
   TEST_STRING_EQUAL(m.getFloatDataArrays()[0].getName(), "f1")
 
-  // duplicate indices must duplicate the values, not leave moved-from holes
-  Mobilogram dup;
-  dup.emplace_back(1.0, 10.0f);
-  dup.emplace_back(2.0, 20.0f);
-  Mobilogram::StringDataArray dup_sda;
-  dup_sda.push_back("a"); dup_sda.push_back("b");
-  dup.getStringDataArrays().push_back(dup_sda);
-  dup.select(std::vector<Size>{0, 0});
-  TEST_EQUAL(dup.size(), 2)
-  TEST_STRING_EQUAL(dup.getStringDataArrays()[0][0], "a")
-  TEST_STRING_EQUAL(dup.getStringDataArrays()[0][1], "a")
+  // a valid (unique) reorder keeps the data arrays aligned
+  Mobilogram rev;
+  rev.emplace_back(1.0, 10.0f);
+  rev.emplace_back(2.0, 20.0f);
+  Mobilogram::StringDataArray rev_sda;
+  rev_sda.push_back("a"); rev_sda.push_back("b");
+  rev.getStringDataArrays().push_back(rev_sda);
+  rev.select(std::vector<Size>{1, 0});
+  TEST_EQUAL(rev.size(), 2)
+  TEST_STRING_EQUAL(rev.getStringDataArrays()[0][0], "b")
+  TEST_STRING_EQUAL(rev.getStringDataArrays()[0][1], "a")
 
   // size mismatch between peaks and a data array is an error
   Mobilogram bad;

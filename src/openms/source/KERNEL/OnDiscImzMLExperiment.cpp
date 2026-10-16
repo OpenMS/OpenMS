@@ -13,6 +13,8 @@
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/IMAGING/IonImageExtraction.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <cmath>
 #include <cstdio>
@@ -55,13 +57,17 @@ struct OnDiscImzMLExperiment::Impl
     ImzMLFile::buildImagingGeometry(index_, meta_, geometry_);
   }
 
-  MSSpectrum decodeSpectrum(std::size_t i) const
+  // Decode m/z and intensity into 's'. Deliberately does not sort: callers attach
+  // auxiliary arrays first and sort afterwards, so FloatDataArrays stay aligned
+  // with peak order.
+  void decodePeaksInto_(const ImzMLSpectrumIndex& e, MSSpectrum& s) const
   {
-    const ImzMLSpectrumIndex& e = index_[i];
-    MSSpectrum s;
-    s.setMetaValue("imzml:x", static_cast<Int>(e.x));
-    s.setMetaValue("imzml:y", static_cast<Int>(e.y));
-    s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+    if (e.mz_compressed || e.int_compressed)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
+        "Compressed external m/z or intensity arrays are not supported "
+        "(need uncompressed MS:1000576). Re-export without compression.");
+    }
 
     std::vector<double> mz_vec = readMz_(e);
     std::vector<float> int_vec = readInt_(e);
@@ -86,6 +92,86 @@ struct OnDiscImzMLExperiment::Impl
       s[k].setMZ(mz_vec[k]);
       s[k].setIntensity(int_vec[k]);
     }
+  }
+
+  MSSpectrum decodeSpectrum(std::size_t i) const
+  {
+    const ImzMLSpectrumIndex& e = index_[i];
+    MSSpectrum s;
+    s.setMetaValue("imzml:x", static_cast<Int>(e.x));
+    s.setMetaValue("imzml:y", static_cast<Int>(e.y));
+    s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+
+    decodePeaksInto_(e, s);
+    const std::size_t n = s.size();
+
+    // Attach auxiliary external arrays (ion mobility, …) before sortByPosition
+    // so FloatDataArrays stay aligned with peak order.
+    for (const ImzMLSpectrumIndex::AuxArray& aux : e.aux)
+    {
+      if (aux.name.empty())
+      {
+        continue;
+      }
+      if (aux.compressed)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
+          "Compressed external auxiliary array '" + aux.name
+          + "' is not supported (IMS:1000104 encoded length="
+          + StringConversions::toString(aux.encoded_bytes) + ")");
+      }
+      if (aux.length == 0)
+      {
+        continue;
+      }
+      if (aux.length != n)
+      {
+        OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
+                        << e.x << "," << e.y << "," << e.z
+                        << "): length " << aux.length << " != peak count " << n << "\n";
+        continue;
+      }
+      if (aux.type == ImzMLSpectrumIndex::DataType::UNKNOWN)
+      { // no MS:1000521/1000523/1000519/1000522 on this array: skip it rather than
+        // abort the read, matching the warn-and-skip policy for other bad aux arrays
+        OPENMS_LOG_WARN << "Skipping auxiliary array '" << aux.name << "' at pixel ("
+                        << e.x << "," << e.y << "," << e.z
+                        << "): missing or unsupported binary data type\n";
+        continue;
+      }
+      std::vector<float> values;
+      ImzMLBinaryIO::readAuxArray(ibd_, aux.offset, aux.length, aux.type, values, ibd_path_, aux.name);
+      if (values.empty())
+      {
+        continue;
+      }
+      auto& fda = s.getFloatDataArrays().emplace_back();
+      fda.setName(aux.name);
+      if (!aux.unit_accession.empty())
+      {
+        fda.setMetaValue("unit_accession", aux.unit_accession);
+      }
+      fda.assign(values.begin(), values.end());
+    }
+
+    // Same default as MzMLHandler / ImzMLInterceptConsumer: per-peak IM from the
+    // .ibd is profile data unless a later centroiding step marks it otherwise.
+    if (s.containsIMData() && s.getIMPeakType() == IMPeakType::UNKNOWN)
+    {
+      s.setIMPeakType(IMPeakType::IM_PROFILE);
+    }
+
+    s.sortByPosition();
+    return s;
+  }
+
+  // Ion image extraction only sums intensities inside an m/z window (via
+  // MZBegin/MZEnd), so skip the auxiliary array reads and the pixel MetaValues
+  // that decodeSpectrum() has to produce.
+  MSSpectrum decodePeaks(std::size_t i) const
+  {
+    MSSpectrum s;
+    decodePeaksInto_(index_[i], s);
     s.sortByPosition();
     return s;
   }
@@ -234,7 +320,7 @@ IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm)
   std::vector<Size> all(pimpl_->geometry_.getNumberOfPixels());
   std::iota(all.begin(), all.end(), Size(0));
   return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, all, pimpl_->index_.size(),
-                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodePeaks(i); });
 }
 
 IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm, Size region_id) const
@@ -245,7 +331,7 @@ IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm,
   // getRegionPixels throws Exception::ElementNotFound for an unknown region_id.
   const std::vector<Size> region = pimpl_->geometry_.getRegionPixels(region_id);
   return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, region, pimpl_->index_.size(),
-                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodePeaks(i); });
 }
 
 const MSImagingGeometry& OnDiscImzMLExperiment::getGeometry() const

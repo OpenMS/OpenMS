@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -245,5 +246,8 @@ START_TEST(IDBoostGraph, "$Id$")
       }
     }
     END_SECTION
+
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
 
 END_TEST

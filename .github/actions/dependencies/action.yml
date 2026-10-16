@@ -4,6 +4,18 @@ inputs:
   compiler:
     description: "The name of the compiler to use"
     required: true
+  ssh_key:
+    description: "SSH private key for the rsync cache archive"
+    required: false
+  ssh_host:
+    description: "SSH host for the rsync cache archive"
+    required: false
+  ssh_port:
+    description: "SSH port for the rsync cache archive"
+    required: false
+  ssh_user:
+    description: "SSH user for the rsync cache archive"
+    required: false
 outputs:
   cmake_prefix:
     description: "Path to add to CMAKE_PREFIX"
@@ -11,42 +23,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Identify contrib submodule revision for cache key
-      id: contrib-rev
-      if: runner.os == 'Windows'
-      shell: bash
-      run: |
-        rev=$(git submodule status --cached -- contrib | sed -E 's/^-?//' | cut -d' ' -f1)
-        echo "rev=$rev" >> "$GITHUB_OUTPUT"
-
-    - name: Cache contrib
-      id: cache-contrib
-      if: runner.os == 'Windows'
-      uses: actions/cache@v5
-      with:
-        path: contrib/build
-        key: ${{ runner.os }}-${{ steps.contrib-rev.outputs.rev }}
-
-    - name: Fetch contrib if not in cache
-      if: runner.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        git submodule update --init -- contrib
-        mkdir -p contrib/build
-
-    - name: Build contrib if not in cache
-      if: runner.os == 'Windows' && steps.cache-contrib.outputs.cache-hit != 'true'
-      shell: pwsh
-      run: |
-        $NPROC = $env:NUMBER_OF_PROCESSORS
-        if (-not $NPROC) { $NPROC = 4 }
-        $env:CMAKE_BUILD_PARALLEL_LEVEL = $NPROC
-        Set-Location "${{ github.workspace }}\contrib\build"
-        # windows-2025 runners ship Visual Studio 2026 (v145). The "Visual Studio 18 2026"
-        # generator needs CMake >= 4.2 (the runner image provides CMake >= 4.3).
-        cmake -G"Visual Studio 18 2026" -Ax64 -DBUILD_TYPE=ALL "${{ github.workspace }}\contrib"
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
     - name: Add THIRDPARTY
       shell: bash
       run: |
@@ -77,57 +53,6 @@ runs:
             fi
           done
 
-    - name: Install Conda
-      if: runner.os == 'Windows'
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        activate-environment: "ci"
-        python-version: 3.11
-        use-mamba: true
-
-    - name: Install Dependencies via Conda
-      id: conda-setup
-      if: runner.os == 'Windows'
-      # NOTE: This weird shell line is needed in order to activate
-      # conda (and put it in this shell's PATH) since the way it's
-      # installed requires a login shell :(
-      shell: bash -el {0}
-      run: |
-        # Dump out environment information for debugging:
-        conda info
-
-        # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
-        # doxygen is installed here (conda-forge) instead of via Chocolatey:
-        #  - choco 'doxygen.portable' downloads from doxygen.nl, which intermittently returns
-        #    HTTP 403 and aborts the whole job before it can build.
-        # doxygen is needed for the docs (enable_docs=ON, built on Windows to catch errors
-        # pre-merge); conda-forge ships it into Library/bin (already on PATH below).
-        # Ghostscript is no longer required: LaTeX formulas are rendered client-side via
-        # MathJax (USE_MATHJAX=YES in doc/doxygen/Doxyfile*.in).
-        conda install -c conda-forge libarrow libparquet libzip doxygen uv -y
-
-        # Set variables required for the following steps so they
-        # don't need a conda environment or login shell:
-        CONDA_ENV_PREFIX=$(
-          conda info --json |
-            jq --raw-output .active_prefix |
-            sed 's|\\|/|g'
-        )
-
-        echo "$CONDA_ENV_PREFIX/bin" >>"$GITHUB_PATH"
-        echo "$CONDA_ENV_PREFIX/Library/bin" >>"$GITHUB_PATH"
-        echo "cmake_prefix=$CONDA_ENV_PREFIX/Library" >>"$GITHUB_OUTPUT"
-
-        # Some output for debugging:
-        echo "CONDA_ENV_PREFIX=$CONDA_ENV_PREFIX"
-
-        # Disable conda auto-activation to prevent race conditions during parallel
-        # CMake builds. See https://github.com/conda/conda/issues/8733
-        # The paths are already added to GITHUB_PATH above, so conda activation
-        # is no longer needed for subsequent steps.
-        conda init --reverse bash
-
     - name: Install Qt (Windows)
       if: runner.os == 'Windows'
       uses: jurplel/install-qt-action@v4
@@ -143,19 +68,8 @@ runs:
       if: runner.os == 'Windows'
       shell: bash
       run: |
-        # NOTE: doxygen is installed via conda-forge in the Conda step above, not here:
-        # choco 'doxygen.portable' frequently 403s from doxygen.nl. (Ghostscript is no
-        # longer needed -- LaTeX formulas render client-side via MathJax.)
-        choco install -y --no-progress \
-          ccache \
-          graphviz
-
-        # Use a custom NSIS, which provides 8-k string support and has
-        # UltraModernUI integrated already:
-        curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
-        7z x -so NSIS.tar.gz | 7z x -si -ttar -aoa -o"C:/Program Files (x86)/NSIS/"
+        bash tools/ci/deps-windows.sh
         echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
-
         echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
 
     - name: "Dependencies: Linux"
@@ -167,7 +81,11 @@ runs:
 
         if [[ "${{ inputs.compiler }}" == clang* ]]; then
           major_ver=$(clang -dumpversion | cut -d. -f1)
-          sudo apt-get -qq install -y "libomp-${major_ver}-dev"
+          sudo apt-get -qq install -y "libomp-${major_ver}-dev" "llvm-${major_ver}"
+          for tool in /usr/bin/llvm-*-${major_ver}; do
+            base=$(basename "$tool" "-${major_ver}")
+            sudo ln -sf "$tool" "/usr/local/bin/${base}"
+          done
         fi
 
         echo "cmake_prefix=" >>$GITHUB_OUTPUT
@@ -182,10 +100,11 @@ runs:
       shell: bash
       run: |
         bash tools/ci/deps-macos.sh
-        brew install ccache
 
         brew_path=$(brew --prefix)
         echo "$brew_path/bin" >>"$GITHUB_PATH"
+        echo "$(brew --prefix flex)/bin" >> "$GITHUB_PATH"
+        echo "$(brew --prefix bison)/bin" >> "$GITHUB_PATH"
         echo "cmake_prefix=$brew_path" >>"$GITHUB_OUTPUT"
 
     - name: Combine Outputs
@@ -210,3 +129,29 @@ runs:
         done
 
         echo "cmake_prefix=${cmake_prefix_s}" >> "$GITHUB_OUTPUT"
+
+    - uses: OpenMS/ci-tools/actions/rsync-cache@b0622a9a8ecfe12fa6e896795f45fddad12faa6c
+      with:
+        name: vcpkg-cache
+        path: ${{ github.workspace }}/.vcpkg-cache
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+        ssh_key: ${{ inputs.ssh_key }}
+        ssh_host: ${{ inputs.ssh_host }}
+        ssh_port: ${{ inputs.ssh_port }}
+        ssh_user: ${{ inputs.ssh_user }}
+
+    - name: Init vcpkg submodule
+      shell: bash
+      run: |
+        git submodule update --init vcpkg
+
+    - name: Point vcpkg at the Local Binary Cache
+      shell: bash
+      run: |
+        mkdir -p "${{ github.workspace }}/.vcpkg-cache"
+        echo "VCPKG_BINARY_SOURCES=clear;files,${{ github.workspace }}/.vcpkg-cache,readwrite" >> "$GITHUB_ENV"
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        doNotCache: true

@@ -14,6 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ProteinHit.h>
@@ -32,6 +33,8 @@
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
+
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -1101,6 +1104,57 @@ START_SECTION(([EXTRA] importFromArrow_round_trip))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] import warns when an unknown peptidoform modification is lost))
+{
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+  vector<ProteinIdentification> prot_ids{prot};
+
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("AEADNLDDKK"));
+  hit.setCharge(2);
+  hit.setScore(0.1);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  pid.setRT(17.8);
+  pid.setMZ(712.7828);
+  pid.setSpectrumReference("scan=9");
+  pid.setHits({hit});
+  PeptideIdentificationList pep_ids{pid};
+
+  auto table = QPXFile::exportToArrow(prot_ids, pep_ids, /*export_all_psms=*/true);
+  TEST_NOT_EQUAL(table, nullptr)
+
+  arrow::StringBuilder peptidoform_builder;
+  TEST_TRUE(peptidoform_builder.Append("AEADNLDDK[NuXL:U-H2O]K").ok())
+  table = replaceColumn(table, PSMSchema::PEPTIDOFORM,
+                        peptidoform_builder.Finish().ValueOrDie());
+
+  arrow::DoubleBuilder calculated_mz_builder;
+  TEST_TRUE(calculated_mz_builder.Append(712.7824985834709).ok())
+  table = replaceColumn(table, PSMSchema::CALCULATED_MZ,
+                        calculated_mz_builder.Finish().ValueOrDie());
+
+  vector<ProteinIdentification> prot_ids_out = prot_ids;
+  PeptideIdentificationList pep_ids_out;
+  ostringstream captured_warn;
+  OPENMS_LOG_WARN.insert(captured_warn);
+  const bool imported = QPXFile::importFromArrow(table, prot_ids_out, pep_ids_out);
+  OPENMS_LOG_WARN.remove(captured_warn);
+
+  TEST_TRUE(imported)
+  TEST_EQUAL(pep_ids_out.size(), 1)
+  TEST_STRING_EQUAL(pep_ids_out[0].getHits()[0].getSequence().toString(), "AEADNLDDKK")
+  TEST_TRUE(captured_warn.str().find("NuXL:U-H2O") != string::npos)
+  TEST_TRUE(captured_warn.str().find("calculated m/z") != string::npos)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] importFromArrow_round_trip_peptide_evidence_unknown_sentinels))
 {
   // PSMSchema protein_accessions is list<struct{accession, aa_before, aa_after, start, end}>
@@ -1176,8 +1230,8 @@ END_SECTION
 
 START_SECTION(([EXTRA] importFromArrow_appends_shell_for_unknown_run_identifier))
 {
-  // Build one PeptideIdentification with a run_identifier that has NO matching
-  // ProteinIdentification — importFromArrow must append a shell entry.
+  // Build one PeptideIdentification and import its PSM table without the protein identification
+  // runs (which are stored in their own table) — importFromArrow must append a shell entry.
   PeptideIdentification pid;
   pid.setIdentifier("run_unknown");
   pid.setScoreType("hyperscore");
@@ -1195,10 +1249,15 @@ START_SECTION(([EXTRA] importFromArrow_appends_shell_for_unknown_run_identifier)
   PeptideIdentificationList pep_ids;
   pep_ids.push_back(pid);
 
-  // Export: no matching ProteinIdentification provided.
-  std::vector<ProteinIdentification> prot_ids_empty;
-  auto table = QPXFile::exportToArrow(prot_ids_empty, pep_ids, /*export_all_psms=*/true);
+  // Export with its run (every peptide identification needs one) ...
+  std::vector<ProteinIdentification> prot_ids(1);
+  prot_ids[0].setIdentifier("run_unknown");
+  auto table = QPXFile::exportToArrow(prot_ids, pep_ids, /*export_all_psms=*/true);
   TEST_NOT_EQUAL(table.get(), nullptr);
+
+  // ... but no run is known to the import, and none of the exporters accepts a peptide identification without one
+  std::vector<ProteinIdentification> prot_ids_empty;
+  TEST_EXCEPTION(Exception::InvalidParameter, QPXFile::exportToArrow(prot_ids_empty, pep_ids, /*export_all_psms=*/true))
 
   // Import against an *empty* prot_ids_out vector — shell must be appended.
   std::vector<ProteinIdentification> prot_ids_out;
@@ -1529,7 +1588,8 @@ START_SECTION(([EXTRA] exportToParquetStreaming parallel build (n_threads)))
 
   // --- Non-empty input that yields zero PSM rows (all hits empty) + 8 threads ---
   {
-    PeptideIdentificationList empty_hits(50); // 50 default-constructed PeptideIdentifications, no hits
+    PeptideIdentificationList empty_hits(50); // 50 PeptideIdentifications of the run, no hits
+    for (auto& p : empty_hits) { p.setIdentifier(protein_ids[0].getIdentifier()); }
     std::vector<const PeptideIdentification*> eh_ptrs;
     for (const auto& p : empty_hits) { eh_ptrs.push_back(&p); }
     std::string f; NEW_TMP_FILE(f)

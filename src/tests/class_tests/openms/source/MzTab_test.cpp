@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -188,6 +189,46 @@ START_SECTION([EXTRA] exportIdentificationsToMzTab terminates with export_all_ps
   // yields at most one PSM row before the stream advances and finishes (the exact
   // empty-row count is an implementation detail; termination is what we regress on).
   TEST_TRUE(mztab.getPSMSectionRows().size() <= 1)
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportIdentificationsToMzTab with a file listed by two runs)
+{
+  // Run A lists a.mzML; run B lists a.mzML and b.mzML. a.mzML must keep one ms_run, and b.mzML must get
+  // the next ms_run with its own location (it used to inherit the location of the repeated a.mzML).
+  ProteinIdentification run_a, run_b;
+  run_a.setIdentifier("A");
+  run_a.setPrimaryMSRunPath(StringList{"a.mzML"});
+  run_b.setIdentifier("B");
+  run_b.setPrimaryMSRunPath(StringList{"a.mzML", "b.mzML"});
+  std::vector<ProteinIdentification> prot_ids{run_a, run_b};
+
+  PeptideIdentificationList pep_ids;
+  const auto add_psm = [&](const std::string& run, Int merge_index, const std::string& reference, const std::string& sequence) {
+    PeptideIdentification pep;
+    pep.setIdentifier(run);
+    pep.setRT(100.0);
+    pep.setMZ(500.0);
+    pep.setSpectrumReference(reference);
+    if (merge_index >= 0) pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, merge_index);
+    pep.setHits({PeptideHit(1.0, 1, 2, AASequence::fromString(sequence))});
+    pep_ids.push_back(pep);
+  };
+  add_psm("A", -1, "scan=1", "PEPTIDE");
+  add_psm("B", 0, "scan=2", "PEPTIDEK");
+  add_psm("B", 1, "scan=3", "PEPTIDER");
+
+  MzTab mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, "test.idXML", false);
+  const auto& ms_runs = mztab.getMetaData().ms_run;
+  TEST_EQUAL(ms_runs.size(), 2)
+  TEST_EQUAL(ms_runs.at(1).location.get(), "file://a.mzML")
+  TEST_EQUAL(ms_runs.at(2).location.get(), "file://b.mzML")
+  std::map<std::string, Size> ms_run_of_sequence;
+  for (const auto& row : mztab.getPSMSectionRows())
+    ms_run_of_sequence[row.sequence.get()] = row.spectra_ref.getMSFile();
+  TEST_EQUAL(ms_run_of_sequence["PEPTIDE"], 1)
+  TEST_EQUAL(ms_run_of_sequence["PEPTIDEK"], 1)
+  TEST_EQUAL(ms_run_of_sequence["PEPTIDER"], 2)
 }
 END_SECTION
 

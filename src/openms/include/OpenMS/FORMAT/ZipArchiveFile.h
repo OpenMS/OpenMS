@@ -11,6 +11,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <memory>
 #include <string>
@@ -46,19 +47,24 @@ namespace OpenMS
     /**
       @brief Unpack a zip archive into a temporary directory and return the usable path
 
-      Extracts the archive into a newly created File::TempDir and returns the path to
+      Extracts the archive into a newly created TempDir and returns the path to
       the unpacked directory. This function protects against path traversal and
       absolute paths in archive entries. If the provided path already points to a
       directory it is returned unchanged and no TempDir is created.
+
+      Before writing anything, archives with more than 100000 entries, or whose declared
+      uncompressed size exceeds 90% of the free space of the temporary directory (or if that
+      free space cannot be determined), are rejected.
+      Extraction stops at an entry that inflates beyond its declared size.
 
       @param[in] input_path Path to the zip archive (or a directory).
       @param[out] temp_dir A unique_ptr which will be set to the owned TempDir when an archive is extracted. If input_path is a directory this will remain unchanged.
       @return The path where the archive was unpacked (or input_path if already a directory).
       @throws Exception::FileNotFound if the input archive is not readable.
-      @throws Exception::InvalidValue on archive extraction errors.
+      @throws Exception::InvalidValue on archive extraction errors, including an archive over these limits.
       @throws Exception::NotImplemented if libzip support is unavailable.
     */
-    static std::string unzipDirectory(const std::string& input_path, std::unique_ptr<File::TempDir>& temp_dir);
+    static std::string unzipDirectory(const std::string& input_path, std::unique_ptr<TempDir>& temp_dir);
 
     /**
       @brief Add or replace an entry inside an existing zip archive from a file on disk
@@ -85,6 +91,18 @@ namespace OpenMS
               vector if the archive cannot be read or libzip is unavailable.
     */
     static std::vector<std::string> listEntries(const std::string& archive_path);
+
+    /**
+      @brief List entries in a zip archive, and tell whether the archive could be read
+
+      Unlike listEntries(const std::string&), this tells an archive without entries from one that
+      cannot be read.
+
+      @param[in] archive_path Path to the zip archive to inspect.
+      @param[out] entries The entry names contained in the archive (empty if it cannot be read).
+      @return false if the archive cannot be opened or libzip is unavailable.
+    */
+    static bool listEntries(const std::string& archive_path, std::vector<std::string>& entries);
 
     /**
       @brief Write a small JSON sidecar index for the archive listing entries and sizes.
@@ -119,7 +137,7 @@ namespace OpenMS
       @throws Exception::FileNotFound if the archive or entry is not found
       @throws Exception::InvalidValue on extraction errors
     */
-    static std::string extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<File::TempDir>& temp_dir);
+    static std::string extractEntryToTempFile(const std::string& archive_path, const std::string& entry_name, std::unique_ptr<TempDir>& temp_dir);
 
   };
 

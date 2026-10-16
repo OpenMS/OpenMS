@@ -12,7 +12,6 @@ ConsensusIDAlgorithm.cpp
 ConsensusIDAlgorithmAverage.cpp
 ConsensusIDAlgorithmBest.cpp
 ConsensusIDAlgorithmIdentity.cpp
-CometModification.cpp
 ConsensusIDAlgorithmPEPIons.cpp
 ConsensusIDAlgorithmPEPMatrix.cpp
 ConsensusIDAlgorithmRanks.cpp
@@ -23,6 +22,7 @@ FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
 FragmentIndex.cpp
+FragmentIonLikelihoodModel.cpp
 HyperScore.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
@@ -36,7 +36,6 @@ IonIdentityMolecularNetworking.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 MorpheusScore.cpp
-NeighborSeq.cpp
 OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
 ProSEAlgorithm.cpp

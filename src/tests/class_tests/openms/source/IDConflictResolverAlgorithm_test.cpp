@@ -38,6 +38,73 @@ static PeptideIdentification makePepID_(const std::string& reference,
 
 START_TEST(IDConflictResolverAlgorithm, "$Id$")
 
+START_SECTION((static void resolve(FeatureMap& features, bool keep_matching = false)))
+{
+  // The best identification of a feature is never one without hits, whichever direction is better: with lower
+  // scores better, an identification without hits used to win (and keep_matching then read its first hit).
+  for (const bool higher_better : {false, true})
+  {
+    for (const bool keep_matching : {false, true})
+    {
+      FeatureMap map;
+      Feature feature;
+      feature.setUniqueId(7);
+      PeptideIdentificationList ids;
+      ids.push_back(makePepID_("scan=1", "", 2, 0.0, higher_better)); // no hits
+      ids.push_back(makePepID_("scan=2", "PEPTIDEK", 2, 0.25, higher_better));
+      ids.push_back(makePepID_("scan=3", "PEPTIDER", 2, 0.75, higher_better));
+      ids.push_back(makePepID_("scan=4", "", 2, 0.0, higher_better)); // no hits
+      feature.setPeptideIdentifications(ids);
+      map.push_back(feature);
+      IDConflictResolverAlgorithm::resolve(map, keep_matching);
+      const auto& kept = map[0].getPeptideIdentifications();
+      ABORT_IF(kept.empty() || kept[0].getHits().empty())
+      TEST_EQUAL(kept[0].getHits()[0].getSequence().toString(), higher_better ? "PEPTIDER" : "PEPTIDEK")
+    }
+  }
+}
+END_SECTION
+
+START_SECTION((resolve with keep_matching and only hitless identifications))
+{
+  // Exercise both public map overloads, including an empty list and one or several hitless IDs.
+  const auto check_hitless = [](auto map, auto feature, bool higher_better, Size num_ids)
+  {
+    feature.setUniqueId(7);
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < num_ids; ++i)
+    {
+      auto id = makePepID_("scan=" + StringUtils::toStr(i + 1), "", 2, 0.0, higher_better);
+      id.setMetaValue("test_metadata", "preserve me");
+      ids.push_back(id);
+    }
+    feature.setPeptideIdentifications(ids);
+    map.push_back(feature);
+
+    auto unassigned = makePepID_("scan=unassigned", "PEPTIDEK", 2, 0.5, higher_better);
+    // resolve() annotates pre-existing unassigned IDs as "not mapped" in either mode.
+    unassigned.setMetaValue("feature_id", "not mapped");
+    map.getUnassignedPeptideIdentifications().push_back(unassigned);
+    const auto unassigned_before = map.getUnassignedPeptideIdentifications();
+
+    IDConflictResolverAlgorithm::resolve(map, true);
+
+    TEST_EQUAL(map.size(), 1)
+    TEST_TRUE(map[0].getPeptideIdentifications() == ids)
+    TEST_TRUE(map.getUnassignedPeptideIdentifications() == unassigned_before)
+  };
+
+  for (const bool higher_better : {false, true})
+  {
+    for (const Size num_ids : {Size(0), Size(1), Size(3)})
+    {
+      check_hitless(FeatureMap{}, Feature{}, higher_better, num_ids);
+      check_hitless(ConsensusMap{}, ConsensusFeature{}, higher_better, num_ids);
+    }
+  }
+}
+END_SECTION
+
 START_SECTION(resolveBetweenFeatures())
 {
   FeatureMap map;

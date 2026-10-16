@@ -53,6 +53,13 @@ namespace OpenMS
     @p ImzMLFile::loadSpectraIndex() during @p open() — no peak arrays
     are decoded until @p getSpectrum() is called.
 
+    @note @p getSpectrum() returns m/z, intensity, and any indexed auxiliary
+    external arrays (e.g. @c MS:1003006 ion mobility) as @c FloatDataArray
+    entries — the same contract as in-memory @p ImzMLFile::load — so viewers
+    can call @c containsIMData() / rasterize without a separate code path.
+    Auxiliary arrays whose length differs from the peak count, or which declare no
+    supported binary data type, are skipped with a warning in both loaders.
+
     @note This class is not thread-safe.  If concurrent reads are needed,
     construct one instance per thread.
 
@@ -142,6 +149,10 @@ namespace OpenMS
       @param i  0-based spectrum index.
       @throws Exception::IndexOverflow if @p i >= getNrSpectra().
       @throws Exception::FileNotFound  if the .ibd is not open.
+      @throws Exception::ParseError    if m/z, intensity, or auxiliary arrays are
+                                       compressed (@c MS:1000572 other than
+                                       @c MS:1000576), or if m/z and intensity
+                                       array lengths mismatch.
     */
     MSSpectrum getSpectrum(std::size_t i) const;
 
@@ -174,10 +185,12 @@ namespace OpenMS
              intensities inside [mz - dm, mz + dm], with dm = mz * tolerance_ppm * 1e-6.
 
       This is the on-disc counterpart of @p MSImagingExperiment::extractIonImage:
-      it walks the shared 2D geometry and decodes each pixel's spectrum from the
-      .ibd on demand (one fseek + fread per pixel), so the full dataset never needs
-      to be held in memory. This makes it suitable for visualizing single-mass ion
-      images of large datasets.
+      it walks the shared 2D geometry and decodes each pixel's peaks from the
+      .ibd on demand, so the full dataset never needs to be held in memory. This
+      makes it suitable for visualizing single-mass ion images of large datasets.
+      Only m/z and intensity are decoded — auxiliary arrays do not contribute to
+      the summed intensity, so a compressed auxiliary array is not reported here
+      (unlike getSpectrum()).
 
       Pixels absent from the geometry stay invalid in the returned image. Pixels with
       a spectrum but no peaks in the window are marked valid with intensity 0. The

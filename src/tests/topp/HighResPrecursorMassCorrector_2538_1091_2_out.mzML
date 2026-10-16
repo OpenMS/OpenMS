@@ -257,12 +257,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7077216300"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525082984605" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16249365401" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2524.48062" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -296,12 +296,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7850246100"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525196687306" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16302279238" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2526.15414" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -335,12 +335,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8553379300"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525172948509" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16291304527" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2527.1436" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -374,12 +374,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9319582700"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525109556034" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16264449703" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2528.89794" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -413,12 +413,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9116040200"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525112628583" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16267628415" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2529.7605" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -452,12 +452,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="5025457.5"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="110.071853637695" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1992.87670898438" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + c NSI d Full ms2 1092.04@hcd28.00 [110.00-2245.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="2"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2530.10976" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + c NSI d Full ms2 1092.04@hcd28.00 [110.00-2245.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="2"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="0"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -512,12 +512,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9298402300"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525008346596" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16214458315" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2530.39086" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -551,12 +551,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9600320500"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525151285569" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16225623502" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2531.88618" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -590,12 +590,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="6884265000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525067236336" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16243238923" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2532.35136" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -629,12 +629,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8313271800"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524962161293" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16194462791" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2533.37544" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -668,12 +668,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9300180000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525056018984" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.1623795308" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2534.04942" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -707,12 +707,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9870162900"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525142426566" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16277776601" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2535.13242" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -746,12 +746,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8837419000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525120806362" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16267070402" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2535.7317" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -785,12 +785,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9835369500"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525008212434" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16214518828" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2536.65216" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -824,12 +824,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8896120800"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525069135993" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16252212685" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2537.38404" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -863,12 +863,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7900235300"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525189947236" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16305654081" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2538.23316" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -902,12 +902,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="10656453000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524927039027" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16182900774" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2539.0029" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -941,12 +941,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9273447400"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525094197121" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16254471797" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2539.71678" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -980,12 +980,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9023148000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525009113733" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16218172548" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2540.31438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1019,12 +1019,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9511965700"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525086232361" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16191460238" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2540.96166" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1058,12 +1058,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9722019800"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52494675758" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16185646863" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2541.82314" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1097,12 +1097,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="10133299000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52504606482" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.1623263249" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2542.58676" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1136,12 +1136,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8872025100"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525214533554" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16315388668" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2543.40462" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1175,12 +1175,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9440506900"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525150321581" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16280707229" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2543.75214" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1214,12 +1214,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8874097700"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525004684718" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16218674356" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2544.07176" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1253,12 +1253,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9491599400"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525035746316" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16228638134" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2544.54174" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1292,12 +1292,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9719785500"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525013893377" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16218330944" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2545.59648" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1331,12 +1331,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8999065600"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525130654987" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16271433734" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2546.65698" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1370,12 +1370,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9234967600"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524984699153" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16203501168" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2547.72162" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1409,12 +1409,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9145790500"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525033668503" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16228439742" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2548.45194" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1448,12 +1448,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9388767200"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525003535318" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16212315898" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2548.79994" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1487,12 +1487,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9417738200"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525120003903" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16267513049" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2549.36196" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1526,12 +1526,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="10143279000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525099130456" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16263002675" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2550.03096" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1565,12 +1565,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9462720500"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525155892028" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.162851801" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2550.47184" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1604,12 +1604,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9224109100"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525142594977" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16278497554" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2551.14384" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1643,12 +1643,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9732398100"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525108950248" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16268119675" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2551.81584" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1682,12 +1682,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9553527800"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525056986191" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16240534451" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2552.6553" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1721,12 +1721,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9548392400"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525079970186" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16247993951" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2553.38634" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1760,12 +1760,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9194534900"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525112219075" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16263010346" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2554.2414" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1799,12 +1799,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="10182118000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525009189795" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16216972519" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2554.59066" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1838,12 +1838,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8745125900"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525187366489" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16297964649" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2555.47194" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1877,12 +1877,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9990709200"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525110566311" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16262273172" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2555.8962" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1916,12 +1916,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9391564800"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52515051382" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.1629016936" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2556.3612" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1955,12 +1955,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9476084700"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525125278548" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16270933985" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2557.14456" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1994,12 +1994,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8768531500"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525053565963" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16236949235" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2557.78926" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2033,12 +2033,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9735093200"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525039138565" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16228946884" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2558.3268" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2072,12 +2072,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8468715000"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.5250430155" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16232025746" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2558.79366" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2111,12 +2111,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8990667800"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52508462276" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16252432771" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2559.7239" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2150,12 +2150,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="9243677700"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525126043983" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16270749537" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2560.58688" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2189,12 +2189,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8208809500"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525216826101" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16311788745" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2561.31486" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2228,12 +2228,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8738079700"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52499863932" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.1620996548" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2561.98002" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2267,12 +2267,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8379440600"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524999761811" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.162132857" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2562.78648" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2306,12 +2306,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7907573200"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525179001476" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16294112667" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2563.13334" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2345,12 +2345,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8325919200"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525026865769" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16223151893" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2564.09184" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2384,12 +2384,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8098895900"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525108482229" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16261271862" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2564.91414" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2423,12 +2423,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7604045800"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52510921057" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16261506757" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2565.60072" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2462,12 +2462,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8286642700"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52503862061" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16228638145" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2566.0086" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2501,12 +2501,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7555154400"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525061445447" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.1623925843" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2567.01744" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2540,12 +2540,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7737381400"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524958699751" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16191456038" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2567.74734" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2579,12 +2579,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7512478700"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525124183935" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16268540443" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2568.73944" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2618,12 +2618,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7368538100"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.52509640608" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16255588355" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2569.68708" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2657,12 +2657,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7646905900"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524929785664" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16177835422" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2570.66256" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2696,12 +2696,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7656226800"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524969485744" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16196289112" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2571.6417" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2735,12 +2735,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1380827.6"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="110.071731567383" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1840.89636230469" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + c NSI d Full ms2 1092.55@hcd28.00 [110.00-2250.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="2"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2572.03458" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + c NSI d Full ms2 1092.55@hcd28.00 [110.00-2250.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="2"/>
 						<userParam name="[Thermo Trailer Extra]Monoisotopic M/Z:" type="xsd:double" value="0"/>
 						<scanWindowList count="1">
 							<scanWindow>
@@ -2794,12 +2794,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7742158300"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525053025006" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16240082213" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2572.4499" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2833,12 +2833,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7269833200"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525040199377" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16229364894" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2573.0982" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2872,12 +2872,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="7137257500"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.524948885431" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16186621633" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2573.96568" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2911,12 +2911,12 @@
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="6387717600"/>
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="346.525041214427" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1616.16231162487" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<userParam name="filter string" type="xsd:string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
-				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2574.8253" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="FTMS + p NSI Full lock ms [350.00-1600.00]"/>
+						<cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="350" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2945,76 +2945,76 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15676">20423</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15689">23384</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15697">26269</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15711">29141</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15717">32046</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15719">34998</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15722">46178</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15734">49111</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15737">52044</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15746">54997</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15751">57930</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15759">60863</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15763">63844</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15770">66777</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15775">69699</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15781">72653</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15786">75606</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15791">78576</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15795">81545</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15799">84499</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15805">87433</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15810">90385</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15816">93318</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15817">96240</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15818">99174</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15821">102096</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15829">105018</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15837">107924</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15845">110830</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15850">113736</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15851">116622</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15855">119544</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15860">122450</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15863">125420</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15868">128304</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15873">131226</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15879">134112</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15884">137017</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15890">139922</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15891">142843</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15898">145729</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15901">148634</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15904">151539</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15909">154442</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15913">157316</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15917">160202</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15920">163074</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15927">165957</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15934">168841</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15939">171727</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15944">174601</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15950">177505</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15951">180377</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15959">183251</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15965">186108</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15970">188982</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15973">191855</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15981">194727</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15986">197707</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=15993">200629</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=16001">203535</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=16008">206468</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=16015">209354</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=16017">212238</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=16021">221747</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=16025">224668</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=16031">227541</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=16037">230426</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15676">20419</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15689">23412</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15697">26329</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15711">29233</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15717">32170</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15719">35154</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15722">46366</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15734">49331</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15737">52296</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15746">55281</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15751">58246</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15759">61211</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15763">64224</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15770">67189</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15775">70143</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15781">73129</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15786">76114</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15791">79116</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15795">82117</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15799">85103</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15805">88069</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15810">91053</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15816">94018</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15817">96972</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15818">99938</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15821">102892</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15829">105846</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15837">108784</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15845">111722</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15850">114660</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15851">117578</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15855">120532</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15860">123470</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15863">126472</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15868">129388</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15873">132342</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15879">135260</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15884">138197</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15890">141134</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15891">144087</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15898">147005</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15901">149942</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15904">152879</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15909">155814</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15913">158720</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15917">161638</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15920">164542</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15927">167457</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15934">170373</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15939">173291</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15944">176197</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15950">179133</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15951">182037</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15959">184943</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15965">187832</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15970">190738</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15973">193643</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15981">196547</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15986">199559</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=15993">202513</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16001">205451</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16008">208416</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16015">211334</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16017">214250</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16021">223791</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16025">226744</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16031">229649</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=16037">232566</offset>
 	</index>
 </indexList>
-<indexListOffset>233377</indexListOffset>
+<indexListOffset>235549</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

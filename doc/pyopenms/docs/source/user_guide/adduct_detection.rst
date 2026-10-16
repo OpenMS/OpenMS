@@ -80,7 +80,7 @@ In pyOpenMS, :py:class:`~.MetaboliteFeatureDeconvolution` takes a :term:`feature
     mfd.compute(feature_map, feature_map_MFD, groups, edges)
 
     # export feature map as pandas DataFrame and append adduct information
-    df = feature_map_MFD.get_df(export_peptide_identifications=False)
+    df = feature_map_MFD.to_df(export_peptide_identifications=False)
     df["adduct"] = [f.getMetaValue("dc_charge_adducts") for f in feature_map_MFD]
 
     # display data

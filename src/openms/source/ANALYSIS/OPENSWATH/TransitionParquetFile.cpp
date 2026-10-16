@@ -21,6 +21,7 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <fstream>
@@ -220,7 +221,7 @@ namespace OpenMS
     {
       *source_ids = OpenSwathLibraryIDNormalizer::SourceIDMapping{};
     }
-    std::unique_ptr<File::TempDir> temp_dir;
+    std::unique_ptr<TempDir> temp_dir;
 
     // Try to open parquet entries directly from the archive using a RandomAccessFile.
     // If that fails (e.g., compressed entry or libzip not available), fall back to
@@ -449,11 +450,11 @@ namespace OpenMS
     OpenSwathLibraryIDNormalizer::validateCanonicalIDs(targeted_exp);
 
     const bool output_is_dir = File::isDirectory(oswpq_path);
-    std::unique_ptr<File::TempDir> temp_dir;
+    std::unique_ptr<TempDir> temp_dir;
     std::string base_dir = oswpq_path;
     if (!output_is_dir)
     {
-      temp_dir = std::make_unique<File::TempDir>();
+      temp_dir = std::make_unique<TempDir>();
       base_dir = temp_dir->getPath() + "/oswpq_output";
       File::makeDir(base_dir);
     }

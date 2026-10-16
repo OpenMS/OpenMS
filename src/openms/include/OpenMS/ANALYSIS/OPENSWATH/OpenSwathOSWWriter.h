@@ -224,6 +224,27 @@ namespace OpenMS
     void setRunId(const UInt64 run_id);
 
     /**
+     * @brief Count FEATURE rows belonging to a run in the active OSW output.
+     *
+     * The query is serialized with OSW writes and executed inside libOpenMS so
+     * the private SQLite implementation does not cross the public library boundary.
+     *
+     * @param[in] run_id Run identifier to query.
+     * @return Number of FEATURE rows associated with @p run_id, or zero for an inactive writer.
+     */
+    UInt64 countFeaturesForRun(const UInt64 run_id) const;
+
+    /**
+     * @brief Remove all OSW rows belonging to a run.
+     *
+     * FEATURE child rows, FEATURE rows, and the RUN row are removed in one
+     * transaction. The operation is serialized with normal OSW writes.
+     *
+     * @param[in] run_id Run identifier to remove.
+     */
+    void clearRunData(const UInt64 run_id);
+
+    /**
      * @brief Prepare scores for SQLite insertion
      *
      * Some scores might not be defined, those are reported as NULL

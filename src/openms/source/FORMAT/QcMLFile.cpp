@@ -255,7 +255,7 @@ namespace OpenMS
   }
 
   QcMLFile::QcMLFile() :
-    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version up-to-date
+    XMLHandler("", "0.7"), XMLFile("", "0.7"), ProgressLogger() // no bundled XSD; qcML schema is archived (see share/OpenMS/SCHEMAS/README.md)
   {
   }
 

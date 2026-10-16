@@ -23,6 +23,13 @@ namespace OpenMS::Internal
   //Copyright 2010 Orjan Westin
   //Under BSD license
   //========================================================================================================
+  /**
+    @brief Shared-ownership handle for a Xerces object or string, which releases it the way Xerces requires
+
+    Like std::shared_ptr, but the last owner releases a DOM object through its release() member, unless
+    the object belongs to a document, and a transcoded @c char or @c XMLCh string through
+    xercesc::XMLString::release().
+  */
   template<typename T>
   class OPENMS_DLLAPI shared_xerces_ptr
   {

@@ -187,6 +187,20 @@ namespace OpenMS
     return report;
   }
 
+  namespace
+  {
+    /// Order for finding the lowest-scoring identification: like compareIDsSmallerScores_, but identifications without
+    /// hits come last, so that they are never the best one when lower scores are better (as for higher scores).
+    bool lowerScoreFirst(const PeptideIdentification& left, const PeptideIdentification& right)
+    {
+      if (left.getHits().empty() || right.getHits().empty())
+      {
+        return left.getHits().size() > right.getHits().size();
+      }
+      return left.getHits()[0].getScore() < right.getHits()[0].getScore();
+    }
+  } // namespace
+
   // static
   void IDConflictResolverAlgorithm::resolveConflictKeepMatching_(
       PeptideIdentificationList & peptides,
@@ -208,7 +222,14 @@ namespace OpenMS
     }
     else  // find lowest-scoring ID
     {
-      pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
+      pos = min_element(peptides.begin(), peptides.end(), lowerScoreFirst);
+    }
+
+    // A hitless winner means all identifications are hitless, in either score direction.
+    // There is no sequence to match; preserve the identifications and their metadata.
+    if (pos->getHits().empty())
+    {
+      return;
     }
 
     const AASequence& best = (*pos).getHits()[0].getSequence();
@@ -274,7 +295,7 @@ namespace OpenMS
     }
     else  // find lowest-scoring ID
     {
-      pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
+      pos = min_element(peptides.begin(), peptides.end(), lowerScoreFirst);
     }
 
     // copy conflicting ones left to best one

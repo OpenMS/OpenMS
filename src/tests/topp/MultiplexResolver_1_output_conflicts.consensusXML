@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_14811341817612382122" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_14811341817612382122" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2016-04-29T14:06:03">
 		<software name="IDMapper" version="2.0.0" />
 		<processingAction name="Identification mapping" />
 		<UserParam type="string" name="parameter: id" value="/home/lars/Desktop/resolver_test_data/peptide_quant_20150930/TOPPAS_out/id_FDR5/MB_Uk45_P250413_020513.idXML"/>
 		<UserParam type="string" name="parameter: in" value="/home/lars/Desktop/resolver_test_data/peptide_quant_20150930/TOPPAS_out/004-FeatureFinderMultiplex-out/MB_Uk45_P250413_020513.consensusXML"/>
 		<UserParam type="string" name="parameter: out" value="/tmp/2016-04-29_135856_LinuxSchilling_402_1/TOPPAS_tmp/peptide_quant_2/003_IDMapper/out/MB_Uk45_P250413_020513.consensusXML_tmp001"/>
-		<UserParam type="float" name="parameter: rt_tolerance" value="50"/>
-		<UserParam type="float" name="parameter: mz_tolerance" value="20"/>
+		<UserParam type="float" name="parameter: rt_tolerance" value="50.0"/>
+		<UserParam type="float" name="parameter: mz_tolerance" value="20.0"/>
 		<UserParam type="string" name="parameter: mz_measure" value="ppm"/>
 		<UserParam type="string" name="parameter: mz_reference" value="precursor"/>
 		<UserParam type="string" name="parameter: ignore_charge" value="false"/>
@@ -43,7 +43,7 @@
 		<UserParam type="string" name="parameter: int" value=":"/>
 		<UserParam type="string" name="parameter: sort" value="false"/>
 		<UserParam type="string" name="parameter: pc_mz" value=":"/>
-		<UserParam type="float" name="parameter: peak_options:sn" value="0"/>
+		<UserParam type="float" name="parameter: peak_options:sn" value="0.0"/>
 		<UserParam type="intList" name="parameter: peak_options:rm_pc_charge" value="[]"/>
 		<UserParam type="string" name="parameter: peak_options:pc_mz_range" value=":"/>
 		<UserParam type="floatList" name="parameter: peak_options:pc_mz_list" value="[]"/>
@@ -55,9 +55,9 @@
 		<UserParam type="string" name="parameter: peak_options:int_precision" value="32"/>
 		<UserParam type="string" name="parameter: peak_options:indexed_file" value="false"/>
 		<UserParam type="string" name="parameter: peak_options:numpress:masstime" value="none"/>
-		<UserParam type="float" name="parameter: peak_options:numpress:masstime_error" value="0.0001"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:masstime_error" value="1.0e-04"/>
 		<UserParam type="string" name="parameter: peak_options:numpress:intensity" value="none"/>
-		<UserParam type="float" name="parameter: peak_options:numpress:intensity_error" value="0.0001"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:intensity_error" value="1.0e-04"/>
 		<UserParam type="string" name="parameter: spectra:remove_zoom" value="false"/>
 		<UserParam type="string" name="parameter: spectra:remove_mode" value=""/>
 		<UserParam type="string" name="parameter: spectra:remove_activation" value=""/>
@@ -75,7 +75,7 @@
 		<UserParam type="string" name="parameter: consensus:blackorwhitelist:blacklist" value="true"/>
 		<UserParam type="string" name="parameter: consensus:blackorwhitelist:file" value=""/>
 		<UserParam type="intList" name="parameter: consensus:blackorwhitelist:maps" value="[]"/>
-		<UserParam type="float" name="parameter: consensus:blackorwhitelist:rt" value="60"/>
+		<UserParam type="float" name="parameter: consensus:blackorwhitelist:rt" value="60.0"/>
 		<UserParam type="float" name="parameter: consensus:blackorwhitelist:mz" value="0.01"/>
 		<UserParam type="string" name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" value="false"/>
 		<UserParam type="string" name="parameter: f_and_c:charge" value=":"/>
@@ -90,16 +90,16 @@
 		<UserParam type="string" name="parameter: id:remove_unassigned_ids" value="true"/>
 		<UserParam type="string" name="parameter: id:blacklist" value=""/>
 		<UserParam type="float" name="parameter: id:rt" value="0.1"/>
-		<UserParam type="float" name="parameter: id:mz" value="0.001"/>
+		<UserParam type="float" name="parameter: id:mz" value="1.0e-03"/>
 		<UserParam type="string" name="parameter: id:blacklist_imperfect" value="false"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:max_intensity" value="-1"/>
-		<UserParam type="float" name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" value="3"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" value="3.0"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_max_percentile" value="95"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_mode" value="0"/>
-		<UserParam type="float" name="parameter: algorithm:SignalToNoise:win_len" value="200"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:win_len" value="200.0"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:bin_count" value="30"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:min_required_elements" value="10"/>
-		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1e+20"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1.0e20"/>
 		<UserParam type="string" name="parameter: algorithm:SignalToNoise:write_log_messages" value="true"/>
 	</dataProcessing>
 	<dataProcessing completion_time="2016-05-21T18:06:08">
@@ -119,7 +119,7 @@
 		<UserParam type="string" name="parameter: mz" value=":"/>
 		<UserParam type="string" name="parameter: int" value=":"/>
 		<UserParam type="string" name="parameter: sort" value="false"/>
-		<UserParam type="float" name="parameter: peak_options:sn" value="0"/>
+		<UserParam type="float" name="parameter: peak_options:sn" value="0.0"/>
 		<UserParam type="intList" name="parameter: peak_options:rm_pc_charge" value="[]"/>
 		<UserParam type="string" name="parameter: peak_options:pc_mz_range" value=":"/>
 		<UserParam type="floatList" name="parameter: peak_options:pc_mz_list" value="[]"/>
@@ -131,9 +131,9 @@
 		<UserParam type="string" name="parameter: peak_options:int_precision" value="32"/>
 		<UserParam type="string" name="parameter: peak_options:indexed_file" value="false"/>
 		<UserParam type="string" name="parameter: peak_options:numpress:masstime" value="none"/>
-		<UserParam type="float" name="parameter: peak_options:numpress:masstime_error" value="0.0001"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:masstime_error" value="1.0e-04"/>
 		<UserParam type="string" name="parameter: peak_options:numpress:intensity" value="none"/>
-		<UserParam type="float" name="parameter: peak_options:numpress:intensity_error" value="0.0001"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:intensity_error" value="1.0e-04"/>
 		<UserParam type="string" name="parameter: spectra:remove_zoom" value="false"/>
 		<UserParam type="string" name="parameter: spectra:remove_mode" value=""/>
 		<UserParam type="string" name="parameter: spectra:remove_activation" value=""/>
@@ -151,7 +151,7 @@
 		<UserParam type="string" name="parameter: consensus:blackorwhitelist:blacklist" value="true"/>
 		<UserParam type="string" name="parameter: consensus:blackorwhitelist:file" value=""/>
 		<UserParam type="intList" name="parameter: consensus:blackorwhitelist:maps" value="[]"/>
-		<UserParam type="float" name="parameter: consensus:blackorwhitelist:rt" value="60"/>
+		<UserParam type="float" name="parameter: consensus:blackorwhitelist:rt" value="60.0"/>
 		<UserParam type="float" name="parameter: consensus:blackorwhitelist:mz" value="0.01"/>
 		<UserParam type="string" name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" value="false"/>
 		<UserParam type="string" name="parameter: f_and_c:charge" value=":"/>
@@ -166,16 +166,16 @@
 		<UserParam type="string" name="parameter: id:remove_unassigned_ids" value="false"/>
 		<UserParam type="string" name="parameter: id:blacklist" value=""/>
 		<UserParam type="float" name="parameter: id:rt" value="0.1"/>
-		<UserParam type="float" name="parameter: id:mz" value="0.001"/>
+		<UserParam type="float" name="parameter: id:mz" value="1.0e-03"/>
 		<UserParam type="string" name="parameter: id:blacklist_imperfect" value="false"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:max_intensity" value="-1"/>
-		<UserParam type="float" name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" value="3"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" value="3.0"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_max_percentile" value="95"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_mode" value="0"/>
-		<UserParam type="float" name="parameter: algorithm:SignalToNoise:win_len" value="200"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:win_len" value="200.0"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:bin_count" value="30"/>
 		<UserParam type="int" name="parameter: algorithm:SignalToNoise:min_required_elements" value="10"/>
-		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1e+20"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1.0e20"/>
 		<UserParam type="string" name="parameter: algorithm:SignalToNoise:write_log_messages" value="true"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2015-10-01T21:01:20" search_engine="OpenMS/ConsensusID_best" search_engine_version="2.0.0">
@@ -5373,34 +5373,69 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_2684106197423007927" quality="1" charge="3">
-			<centroid rt="3921.91905835922" mz="631.663137186643" it="1.67511e+08"/>
+		<consensusElement id="e_2684106197423007927" quality="1.0" charge="3">
+			<centroid rt="3910.978869100580141" mz="553.963109395641027" it="7.72463e07"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="3921.91905835922" mz="631.663137186643" it="2.80493e+08" charge="3"/>
-				<element map="1" id="0" rt="3920.99952985057" mz="634.346282511371" it="1.00349e+08" charge="3"/>
-				<element map="2" id="0" rt="3921.55806929815" mz="637.006058813141" it="1.2169e+08" charge="3"/>
+				<element map="0" id="0" rt="3910.978869100580141" mz="553.963109395641027" it="7.97435e07" charge="3"/>
+				<element map="1" id="0" rt="3910.917857271930188" mz="555.97000829683202" it="7.66526e07" charge="3"/>
+				<element map="2" id="0" rt="3910.748450379180213" mz="557.299430238840046" it="7.53429e07" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="553.972778320313" RT="3955.98461914063" >
+				<PeptideHit score="0.00108108108108108" sequence="IINEPTAAAIAYGLDK" charge="3" aa_before="R X X X X" aa_after="R X X X X" protein_refs="PH_1207 PH_1204 PH_1195 PH_1097 PH_88">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="0.052000795569784"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="555.970031738281" RT="3925.68798828125" >
+				<PeptideHit score="0" sequence="IINEPTAAAIAYGLDK(Label:13C(6)15N(2))" charge="3" aa_before="R X X X X" aa_after="R X X X X" protein_refs="PH_1207 PH_1204 PH_1195 PH_1097 PH_88">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="1.43949345473539e-03"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="553.963134765625" RT="3924.37475585938" >
+				<PeptideHit score="0" sequence="IINEPTAAAIAYGLDK" charge="3" aa_before="R X X X X" aa_after="R X X X X" protein_refs="PH_1207 PH_1204 PH_1195 PH_1097 PH_88">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Error Probability_score" value="4.95196302388471e-03"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_8119044117483804262" quality="1.0" charge="3">
+			<centroid rt="3921.919058359219889" mz="631.663137186642984" it="1.67511e08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="3921.919058359219889" mz="631.663137186642984" it="2.80493e08" charge="3"/>
+				<element map="1" id="0" rt="3920.99952985057007" mz="634.346282511370987" it="1.00349e08" charge="3"/>
+				<element map="2" id="0" rt="3921.558069298149803" mz="637.006058813140953" it="1.2169e08" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="634.346252441406" RT="3935.67553710938" >
 				<PeptideHit score="0.0491175845205188" sequence="STVREIDPQNDLTFLR" charge="3" aa_before="R X" aa_after="I X" protein_refs="PH_1104 PH_623">
 					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="consensus_support" value="0"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.771871301065041"/>
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_8119044117483804262" quality="1" charge="2">
-			<centroid rt="3927.74344766135" mz="757.401025658071" it="1.11311e+08"/>
+		<consensusElement id="e_17314619952666245179" quality="1.0" charge="2">
+			<centroid rt="3927.743447661349819" mz="757.401025658071035" it="1.11311e08"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="3927.74344766135" mz="757.401025658071" it="1.56924e+08" charge="2"/>
-				<element map="1" id="0" rt="3924.13450423038" mz="760.411176766411" it="9.60531e+07" charge="2"/>
-				<element map="2" id="0" rt="3922.72834795447" mz="762.405476274356" it="8.09567e+07" charge="2"/>
+				<element map="0" id="0" rt="3927.743447661349819" mz="757.401025658071035" it="1.56924e08" charge="2"/>
+				<element map="1" id="0" rt="3924.134504230380116" mz="760.411176766411018" it="9.60531e07" charge="2"/>
+				<element map="2" id="0" rt="3922.728347954469882" mz="762.405476274356033" it="8.09567e07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="757.401000976563" RT="3923.15502929688" >
 				<PeptideHit score="0.00259571706683971" sequence="LINIDFTDPDESK(Label:13C(6)15N(2))" charge="2" aa_before="R" aa_after="W" protein_refs="PH_709">
 					<UserParam type="string" name="target_decoy" value="target"/>
-					<UserParam type="float" name="consensus_support" value="0"/>
+					<UserParam type="float" name="consensus_support" value="0.0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.128303432755731"/>
 				</PeptideHit>

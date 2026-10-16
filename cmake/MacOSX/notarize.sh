@@ -87,14 +87,41 @@ echo "=== Submitting for notarization ==="
 
 # Submit for notarization using notarytool
 # --wait makes the command block until notarization is complete
-# Ensure pipefail is set for this block in case of subshells
-set -o pipefail
-if xcrun notarytool submit "$BUNDLE_PKG" \
-    --apple-id "$ASC_USERNAME" \
-    --password "${!ASC_PASSWORD_ENVVAR}" \
-    --team-id "$ASC_TEAMID" \
-    --wait \
-    2>&1 | tee "$NOTARIZE_LOG"; then
+#
+# The Apple notary service (and the runner's network path to it) occasionally
+# drops the connection mid-poll with a transient error such as "The Internet
+# connection appears to be offline" even though the upload itself succeeded.
+# Retry the whole submit+wait a few times with a backoff before giving up, so
+# a single transient blip doesn't fail an otherwise-good build.
+MAX_SUBMIT_ATTEMPTS=3
+RETRY_DELAY_SECONDS=60
+SUBMIT_EXIT=1
+
+for attempt in $(seq 1 "$MAX_SUBMIT_ATTEMPTS"); do
+    echo "Submission attempt $attempt of $MAX_SUBMIT_ATTEMPTS..."
+
+    set +e
+    xcrun notarytool submit "$BUNDLE_PKG" \
+        --apple-id "$ASC_USERNAME" \
+        --password "${!ASC_PASSWORD_ENVVAR}" \
+        --team-id "$ASC_TEAMID" \
+        --wait \
+        2>&1 | tee "$NOTARIZE_LOG"
+    SUBMIT_EXIT=${PIPESTATUS[0]}
+    set -e
+
+    if [[ $SUBMIT_EXIT -eq 0 ]]; then
+        break
+    fi
+
+    echo "Submission attempt $attempt failed (exit $SUBMIT_EXIT)."
+    if [[ $attempt -lt $MAX_SUBMIT_ATTEMPTS ]]; then
+        echo "Retrying in ${RETRY_DELAY_SECONDS}s..."
+        sleep "$RETRY_DELAY_SECONDS"
+    fi
+done
+
+if [[ $SUBMIT_EXIT -eq 0 ]]; then
 
     echo ""
     echo "=== Notarization submission completed ==="
@@ -163,7 +190,7 @@ if xcrun notarytool submit "$BUNDLE_PKG" \
         exit 1
     fi
 else
-    echo "Error: notarytool submission failed!"
+    echo "Error: notarytool submission failed after $MAX_SUBMIT_ATTEMPTS attempts!"
     cat "$NOTARIZE_LOG"
 
     # Clean up temporary zip if we created one

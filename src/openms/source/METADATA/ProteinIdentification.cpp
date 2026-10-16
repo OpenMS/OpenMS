@@ -8,7 +8,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -467,16 +467,9 @@ namespace OpenMS
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, bool raw)
   {
-    std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
-    setMetaValue(meta_name, DataValue(StringList()));
-    if (s.empty())
-    {
-      OPENMS_LOG_WARN << "Setting an empty value for primary MS runs paths." << std::endl;
-    }
-    else
-    {
-      addPrimaryMSRunPath(s, raw);
-    }
+    // an empty list names no files and is not stored
+    removeMetaValue(raw ? "spectra_data_raw" : "spectra_data");
+    addPrimaryMSRunPath(s, raw);
   }
 
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
@@ -485,7 +478,7 @@ namespace OpenMS
     e.getPrimaryMSRunPath(ms_path);
     if (ms_path.size() == 1)
     {
-      FileTypes::Type filetype = FileHandler::getTypeByFileName(ms_path[0]);
+      FileTypes::Type filetype = FileNameUtils::getTypeByFileName(ms_path[0]);
       if ((filetype == FileTypes::MZML) && File::exists(ms_path[0]))
       {
         setMetaValue("spectra_data", DataValue(StringList({ms_path[0]})));
@@ -511,12 +504,16 @@ namespace OpenMS
 
   void ProteinIdentification::addPrimaryMSRunPath(const StringList& s, bool raw)
   {
+    if (s.empty())
+    {
+      return;
+    }
     std::string meta_name = raw ? "spectra_data_raw" : "spectra_data";
     if (!raw) // mzML files expected
     {
       for (const std::string &filename : s)
       {
-        FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
+        FileTypes::Type filetype = FileNameUtils::getTypeByFileName(filename);
         if (filetype != FileTypes::MZML)
         {
           OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS runs.\n"
@@ -527,6 +524,21 @@ namespace OpenMS
     StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
     spectra_data.insert(spectra_data.end(), s.begin(), s.end());
     setMetaValue(meta_name, spectra_data);
+  }
+
+  void ProteinIdentification::removeEmptyPrimaryMSRunPaths()
+  {
+    for (const char* meta_name : {"spectra_data", "spectra_data_raw"})
+    {
+      if (metaValueExists(meta_name))
+      {
+        const DataValue& value = getMetaValue(meta_name);
+        if (value.valueType() == DataValue::STRING_LIST && value.toStringList().empty())
+        {
+          removeMetaValue(meta_name);
+        }
+      }
+    }
   }
 
   void ProteinIdentification::addPrimaryMSRunPath(const std::string& s, bool raw)

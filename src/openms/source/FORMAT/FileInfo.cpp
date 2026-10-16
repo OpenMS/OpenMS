@@ -25,7 +25,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/KERNEL/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
@@ -928,7 +928,7 @@ namespace OpenMS
 
           }
           // add our own hash
-          m_headers[id_hash] = { std::distance(entries.begin(), loopiter) };
+          m_headers[id_hash].push_back(std::distance(entries.begin(), loopiter));
         }
 
         {
@@ -946,7 +946,7 @@ namespace OpenMS
 
           }
           // add our own hash
-          m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
+          m_seqs[id_seq].push_back(std::distance(entries.begin(), loopiter));
         }
 
         // Collect sequence length for statistics
@@ -1344,7 +1344,7 @@ namespace OpenMS
       Size average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
       for (Size i = 0; i < id_data.peptides.size(); ++i)
       {
-        if (!id_data.peptides[i].empty())
+        if (!id_data.peptides[i].getHits().empty())
         {
           ++spectrum_count;
           average_peptide_hits += id_data.peptides[i].getHits().size();
@@ -2260,9 +2260,9 @@ namespace OpenMS
 
         vector<double> intensities;
         intensities.reserve(size);
-        vector<double> qualities(size);
+        vector<double> qualities;
         qualities.reserve(size);
-        vector<double> widths(size);
+        vector<double> widths;
         widths.reserve(size);
 
         vector<double> rt_delta_by_elems;

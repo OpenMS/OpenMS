@@ -2,17 +2,9 @@
 set(directory include/OpenMS/APPLICATIONS)
 
 ### list all header files of the directory here
+### (the TOPP tool framework -- TOPPBase, ToolHandler, ... -- lives in src/openms_cli)
 set(sources_list_h
 ConsoleUtils.h
-INIUpdater.h
-MapAlignerBase.h
-OpenSwathBase.h
-ParameterInformation.h
-SearchEngineBase.h
-ToolHandler.h
-TOPPBase.h
-TOPPBase_defs.h
-TOPPExternalToolBase.h
 )
 
 ### add path to the filenames
@@ -25,4 +17,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\APPLICATIONS" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

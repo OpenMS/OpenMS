@@ -36,10 +36,31 @@ namespace Internal
       MetaValues when present.
 
       Export writes external binary arrays with a 16-byte UUID header in the
-      @c .ibd file. Binary precision follows @p PeakFileOptions (@p getMz32Bit,
-      @p getIntensity32Bit). @p PeakFileOptions spectrum/peak filters (MS level,
-      RT, precursor m/z, m/z and intensity ranges, metadata-only, sort-by-m/z)
-      are applied to a temporary copy before export.
+      @c .ibd file. Binary precision for m/z and intensity follows
+      @p PeakFileOptions (@p getMz32Bit, @p getIntensity32Bit).
+
+      Per-spectrum @c FloatDataArray values are exported as additional external
+      binary arrays after m/z and intensity (standard imzML multi-array layout).
+      Scope of that path:
+      - @c FloatDataArray only (not integer/string data arrays)
+      - unnamed arrays are skipped with a warning
+      - arrays named after the peak CV terms (@c MS:1000514 "m/z array",
+        @c MS:1000515 "intensity array") are skipped with a warning: such an array
+        would be read back as the spectrum's peak metadata
+      - arrays must have the same length as the spectrum peaks (others are skipped)
+      - always 32-bit float, uncompressed (@c MS:1000576 on the array and on the
+        m/z and intensity @c referenceableParamGroup entries)
+      - PSI-MS accession resolved via the ontology (children of @c MS:1000513).
+        If the term declares exactly one allowed unit, that unit is written
+        (accession, name, cvRef). Terms with several allowed units get no unit
+        attributes (no arbitrary choice). Unknown names become @c MS:1000786
+        "non-standard data array"
+
+      Viewers can rely on @c MSSpectrum::containsIMData() after load for IM arrays.
+
+      @p PeakFileOptions spectrum/peak filters (MS level, RT, precursor m/z,
+      m/z and intensity ranges, metadata-only, sort-by-m/z) are applied to a
+      temporary copy before export.
 
       Spectra sharing a pixel coordinate are written out as-is with a warning, matching
       what the reader accepts for the same dataset (readers map only the first spectrum

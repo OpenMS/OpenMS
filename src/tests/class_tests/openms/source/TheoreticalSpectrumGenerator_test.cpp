@@ -45,6 +45,21 @@ START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& s
   ptr = new TheoreticalSpectrumGenerator();
   TheoreticalSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // getParameters() cannot see the members updateMembers_() caches, so also check
+  // that a copy of a configured generator produces the same spectrum
+  TheoreticalSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  TheoreticalSpectrumGenerator configured_copy(configured);
+
+  AASequence seq = AASequence::fromString("IFSQVGK");
+  PeakSpectrum from_source, from_copy;
+  configured.getSpectrum(from_source, seq, 1, 1);
+  configured_copy.getSpectrum(from_copy, seq, 1, 1);
+  TEST_EQUAL(from_copy == from_source, true)
 END_SECTION
 
 START_SECTION(~TheoreticalSpectrumGenerator())
@@ -58,6 +73,20 @@ START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectru
   TheoreticalSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+
+  // same for assignment
+  TheoreticalSpectrumGenerator configured;
+  Param p(configured.getParameters());
+  p.setValue("add_a_ions", "true");
+  p.setValue("a_intensity", 0.5);
+  configured.setParameters(p);
+  TheoreticalSpectrumGenerator assigned;
+  assigned = configured;
+
+  PeakSpectrum from_source, from_assigned;
+  configured.getSpectrum(from_source, peptide, 1, 1);
+  assigned.getSpectrum(from_assigned, peptide, 1, 1);
+  TEST_EQUAL(from_assigned == from_source, true)
 END_SECTION
 
 START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge = 1, Int max_charge = 1))
@@ -946,6 +975,49 @@ START_SECTION([EXTRA] b-ion and a-ion neutral-loss m/z values)
   // non-vacuous: both ladders must actually contribute water-loss ions
   TEST_EQUAL(b_checked > 0, true)
   TEST_EQUAL(a_checked > 0, true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] internal fragments include the one next to the C-terminal residue)
+{
+  // Only internal fragments: no ion series, precursor or immonium peaks
+  TheoreticalSpectrumGenerator gen;
+  Param p = gen.getParameters();
+  p.setValue("add_a_ions", "false");
+  p.setValue("add_b_ions", "false");
+  p.setValue("add_c_ions", "false");
+  p.setValue("add_x_ions", "false");
+  p.setValue("add_y_ions", "false");
+  p.setValue("add_z_ions", "false");
+  p.setValue("add_precursor_peaks", "false");
+  p.setValue("add_abundant_immonium_ions", "false");
+  p.setValue("add_losses", "false");
+  p.setValue("add_internal_fragments", "true");
+  p.setValue("add_metainfo", "true");
+  gen.setParameters(p);
+
+  // GASP: the only internal fragment is AS (and its a-type AS-CO)
+  {
+    PeakSpectrum spec;
+    gen.getSpectrum(spec, AASequence::fromString("GASP"), 1, 1);
+    const PeakSpectrum::StringDataArray& anno = spec.getStringDataArrays()[0];
+    TEST_EQUAL(std::find(anno.begin(), anno.end(), "AS") != anno.end(), true)
+  }
+  // GASPK: AS, ASP and SP
+  {
+    PeakSpectrum spec;
+    gen.getSpectrum(spec, AASequence::fromString("GASPK"), 1, 1);
+    const PeakSpectrum::StringDataArray& anno = spec.getStringDataArrays()[0];
+    TEST_EQUAL(std::find(anno.begin(), anno.end(), "AS") != anno.end(), true)
+    TEST_EQUAL(std::find(anno.begin(), anno.end(), "ASP") != anno.end(), true)
+    TEST_EQUAL(std::find(anno.begin(), anno.end(), "SP") != anno.end(), true)
+  }
+  // GAS has no internal fragment of 2 or more residues
+  {
+    PeakSpectrum spec;
+    gen.getSpectrum(spec, AASequence::fromString("GAS"), 1, 1);
+    TEST_EQUAL(spec.empty(), true)
+  }
 }
 END_SECTION
 

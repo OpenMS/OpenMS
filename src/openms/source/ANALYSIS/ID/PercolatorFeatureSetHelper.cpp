@@ -12,15 +12,47 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <cmath>
 #include <set>
 
 using namespace std;
 
 namespace OpenMS
-{    
+{
+    namespace
+    {
+      // true if the meta value is (or spells, as MS-GF+ writes untyped userParams) a non-finite number
+      bool isNonFiniteNumber_(const DataValue& value)
+      {
+        if (value.valueType() == DataValue::DOUBLE_VALUE)
+        {
+          return !std::isfinite(static_cast<double>(value));
+        }
+        if (value.valueType() == DataValue::STRING_VALUE)
+        {
+          const std::string text = StringUtils::toLowered(StringUtils::trimmed(value.toString()));
+          try
+          {
+            return !std::isfinite(StringUtils::toDouble(text));
+          }
+          catch (const Exception::ConversionError&)
+          {
+            return text == "nan" || text == "-nan" || text == "+nan";
+          }
+        }
+        return false;
+      }
+    }
+
     void PercolatorFeatureSetHelper::addMSGFFeatures(PeptideIdentificationList& peptide_ids, StringList& feature_set)
     {
+      // MS-GF+ reports these standard deviations as NaN when the variance is ~0 (see header documentation)
+      const std::vector<std::string> msgf_stdev_features {"StdevErrorAll", "StdevErrorTop7", "StdevRelErrorAll", "StdevRelErrorTop7"};
+      Size n_fixed_stdev = 0;
+
       // MSGF+ does not always produce all scores so we focus on the main ones 
       // and make sure they are present and initalized
       feature_set.push_back("MS:1002049"); // MS-GF:RawScore
@@ -36,7 +68,28 @@ namespace OpenMS
           if (!h.metaValueExists("MS:1002050")) h.setMetaValue("MS:1002050", 0.0);
           if (!h.metaValueExists("MS:1002052")) h.setMetaValue("MS:1002052", 0.0);
           if (!h.metaValueExists("MS:1002053")) h.setMetaValue("MS:1002053", 0.0);
+          for (const std::string& f : msgf_stdev_features)
+          {
+            if (!h.metaValueExists(f)) continue;
+            const DataValue& v = h.getMetaValue(f);
+            if (!isNonFiniteNumber_(v)) continue;
+            // keep the value type (MS-GF+ userParams are read as strings)
+            if (v.valueType() == DataValue::STRING_VALUE)
+            {
+              h.setMetaValue(f, std::string("0.0"));
+            }
+            else
+            {
+              h.setMetaValue(f, 0.0);
+            }
+            ++n_fixed_stdev;
+          }
         }
+      }
+      if (n_fixed_stdev > 0)
+      {
+        OPENMS_LOG_INFO << "Set " << n_fixed_stdev << " non-finite MS-GF+ fragment error standard deviation(s) "
+                        << "(degenerate variance) to 0.\n";
       }
     }
     

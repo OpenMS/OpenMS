@@ -33,13 +33,18 @@ public:
     ~PeptDeepMS2Inference();
 
     /// @brief Predicts MS2 fragment intensities for a batch of peptide sequences.
-    /// @param peptides A vector of raw uppercase peptide strings.
+    /// @param peptides A vector of peptide strings. Supports OpenMS AASequence modification notation (e.g., "PEPTIDEK", "M(Oxidation)PEP").
     /// @param charges A vector of precursor charge states (must match peptides size).
     /// @param nces A vector of normalized collision energies (must match peptides size).
-    /// @param instrument_indices A vector of categorical integers representing MS instruments (e.g., 0=Lumos, 1=QE, 2=timsTOF, 3=Sciex).
+    /// @param instrument_indices One peptdeep instrument index per peptide. Derive these with
+    ///        ML::instrumentIndex() rather than writing literals: the encoding is positional and
+    ///        belongs to peptdeep (ML::ALPHAPEPTDEEP_INSTRUMENTS), where 0 is QE and 1 is Lumos.
+    ///        Indices outside [0, ML::PEPTDEEP_MAX_INSTRUMENT_NUM) are rejected, because the
+    ///        model's OneHot would otherwise answer them with an all-off row.
     /// @return A vector of flattened fragment intensity arrays, one for each peptide.
-    ///         Native shape ordering is contiguous by fragment and ion type [b_1, y_1, b_2, y_2...].
-    /// @throws std::invalid_argument if the sequence string is empty, too long, or contains unmapped characters.
+    ///         Each cleavage position contains eight contiguous AlphaPeptDeep channels in this order:
+    ///         [b_z1, b_z2, y_z1, y_z2, b_modloss_z1, b_modloss_z2, y_modloss_z1, y_modloss_z2].
+    /// @throws Exception::IllegalArgument if peptides is empty, size constraints fail, or a sequence is chemically invalid.
     std::vector<std::vector<float>> predictMS2(
         const std::vector<std::string>& peptides,
         const std::vector<float>& charges,

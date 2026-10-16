@@ -86,7 +86,9 @@ PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
 
 Size exp_mt_lengths[3] = {86, 31, 16};
-double exp_mt_rts[3] = {348.667, 347.107, 346.888}; // centroid RTs should be reasonably similar (isotopic traces)
+double exp_mt_rts[3] = {348.618754, 347.086557, 346.818032}; // centroid RTs should be reasonably similar (isotopic traces)
+// note: these shifted slightly earlier when updateWeightedMeanRT() started to weight the first
+// peak of a trace as well (it used to be skipped, biasing the centroid late -- see issue #2777)
 double exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
 double exp_mt_ints[3] = {3381.72226139326, 664.763828332733, 109.490108620676};
 

@@ -21,6 +21,7 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -466,7 +467,7 @@ protected:
     }
 
     //tmp_dir
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
 
     // create a temporary config file for LuciPHOr2 parameters
     std::string conf_file = tmp_dir.getPath() + "luciphor2_input_template.txt";

@@ -40,7 +40,7 @@ using namespace std;
 /**
 @page TOPP_TextExporter TextExporter
 
-@brief This application converts several %OpenMS XML formats (featureXML, consensusXML, idXML, mzML) and OpenSWATH Parquet chromatogram files (.xic) to text files.
+@brief This application converts several %OpenMS XML formats (featureXML, consensusXML, idXML, mzML), their Parquet bundles (featureparquet, consensusparquet, idparquet) and OpenSWATH Parquet chromatogram files (.xic) to text files.
 
 <CENTER>
 <table>

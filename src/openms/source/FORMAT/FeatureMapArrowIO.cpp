@@ -16,10 +16,12 @@
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/ProForma.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -378,7 +380,7 @@ namespace // anonymous
                 }
                 else if (mv_type == "double" || mv_type == "float")
                 {
-                  try { dp.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+                  try { dp.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
                   catch (...) { dp.setMetaValue(mv_name, DataValue(mv_value)); }
                 }
                 else if (mv_type == "int_list")
@@ -537,7 +539,7 @@ namespace // anonymous
         }
         else if (mv_type == "double" || mv_type == "float")
         {
-          try { target.setMetaValue(mv_name, DataValue(std::stod(mv_value))); }
+          try { target.setMetaValue(mv_name, DataValue(StringUtils::toDouble(mv_value))); }
           catch (...) { target.setMetaValue(mv_name, DataValue(mv_value)); }
         }
         else if (mv_type == "int_list")
@@ -1237,6 +1239,8 @@ bool FeatureMapArrowIO::exportToParquet(
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .featureparquet behind. Throws Exception::InvalidValue.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(feature_map.getProteinIdentifications());
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(feature_map);
 
   // 1. Create output directory
   try
@@ -1267,6 +1271,10 @@ bool FeatureMapArrowIO::exportToParquet(
   feature_map_metadata["loaded_file_type"] = FileTypes::typeToName(feature_map.getLoadedFileType());
   feature_map_metadata["data_processing"] = serializeDataProcessing_(feature_map.getDataProcessing());
   feature_map_metadata["fmap_metavalues"] = serializeMetaValues_(feature_map);
+  // The map's own UniqueIdInterface value -- distinct from the per-feature unique ids in the
+  // table and from DocumentIdentifier above. Consumers key on it: ProteomicsLFQ copies it into
+  // the consensus column header of the run the map came from.
+  feature_map_metadata["map_unique_id"] = std::to_string(feature_map.getUniqueId());
 
   if (!writeArrowTableToParquet_(features_table, directory + "/features.parquet", "features", config, feature_map_metadata))
   {
@@ -1298,7 +1306,8 @@ bool FeatureMapArrowIO::exportToParquet(
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-          prot_ids, directory + "/search_params.parquet", config))
+          prot_ids, directory + "/search_params.parquet", config,
+          ModificationDefinitionIO::encodeByRun(prot_ids, ModificationDefinitionIO::collect(feature_map))))
   {
     return false;
   }
@@ -1779,9 +1788,16 @@ bool FeatureMapArrowIO::importPSMsFromArrow(
       }
       else
       {
-        OPENMS_LOG_WARN << "FeatureMapArrowIO: Could not find feature with id "
-                        << group.feature_id << " for PSM. Adding as unassigned." << std::endl;
-        feature_map.getUnassignedPeptideIdentifications().push_back(std::move(group.pep_id));
+        // Refuse rather than re-file the identification as unassigned. The two identification
+        // lists of a FeatureMap partition the PSMs, and which list a PSM is in is part of the
+        // result: FDR is estimated over both together, and every exporter reports them
+        // separately. Silently moving one across that boundary yields a map that parses
+        // cleanly and describes a different experiment from the one that was written, which
+        // is the failure mode that is hardest to notice afterwards.
+        OPENMS_LOG_ERROR << "FeatureMapArrowIO: PSM references feature unique id "
+                         << group.feature_id << ", which is not in features.parquet. The file is "
+                         << "inconsistent." << std::endl;
+        return false;
       }
     }
   }
@@ -1842,6 +1858,22 @@ bool FeatureMapArrowIO::importFromParquet(
     {
       deserializeMetaValues_(schema_md->value(idx), feature_map);
     }
+
+    // The map's own unique id. Absent in files written before it was stored, which then keep
+    // the invalid id the map starts with, exactly as they did before.
+    idx = schema_md->FindKey("map_unique_id");
+    if (idx >= 0)
+    {
+      try
+      {
+        feature_map.setUniqueId(static_cast<UInt64>(std::stoull(schema_md->value(idx))));
+      }
+      catch (const std::exception&)
+      {
+        OPENMS_LOG_WARN << "FeatureMapArrowIO: could not read map_unique_id '"
+                        << schema_md->value(idx) << "'; leaving the map id unset." << std::endl;
+      }
+    }
   }
 
   if (!importFeaturesFromArrow(features_table, feature_map))
@@ -1856,6 +1888,8 @@ bool FeatureMapArrowIO::importFromParquet(
   {
     return false;
   }
+  // every peptide identification needs its protein identification run (checked on the stored identifiers)
+  ProteinRunReferences::check(feature_map);
 
   // 4. Synthesize fresh ProtID identifiers + apply rename to every pep_id collection
   //    we own (per-feature + unassigned). Mirrors IdXMLFile.cpp:530 — the stored
@@ -1865,10 +1899,18 @@ bool FeatureMapArrowIO::importFromParquet(
     auto& prot_ids = feature_map.getProteinIdentifications();
     auto rename = ProteinIdentificationArrowIO::synthesizeRunIdentifiers(prot_ids);
 
+    // features and their subordinates (which can carry peptide identifications, too)
+    std::function<void(Feature&)> renameFeature = [&](Feature& f)
+    {
+      ProteinIdentificationArrowIO::applyRunIdentifierRename(rename, f.getPeptideIdentifications());
+      for (auto& sub : f.getSubordinates())
+      {
+        renameFeature(sub);
+      }
+    };
     for (auto& feature : feature_map)
     {
-      ProteinIdentificationArrowIO::applyRunIdentifierRename(
-          rename, feature.getPeptideIdentifications());
+      renameFeature(feature);
     }
     ProteinIdentificationArrowIO::applyRunIdentifierRename(
         rename, feature_map.getUnassignedPeptideIdentifications());

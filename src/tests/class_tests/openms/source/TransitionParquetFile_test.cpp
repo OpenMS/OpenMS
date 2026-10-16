@@ -15,6 +15,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
@@ -123,7 +124,7 @@ START_SECTION(void convertParquetToTargetedExperiment(const std::string& oswpq_d
   }
   TEST_EQUAL(transitions.size() > 0, true)
 
-  File::TempDir tmp_dir;
+  TempDir tmp_dir;
   const std::string base_dir = tmp_dir.getPath() + "/test.oswpq";
   const std::string library_dir = base_dir + "/library";
   File::makeDir(base_dir);
@@ -372,7 +373,7 @@ START_SECTION(void convertLightTargetedExperimentToParquet(const std::string& os
   TEST_EQUAL(light_exp.transitions.size() > 0, true)
 
   // --- Write to a temporary .oswpq directory ---
-  File::TempDir tmp_dir;
+  TempDir tmp_dir;
   const std::string out_dir = tmp_dir.getPath() + "/roundtrip.oswpq";
   File::makeDir(out_dir);
 

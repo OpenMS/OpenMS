@@ -15,6 +15,13 @@
 
 namespace OpenMS
 {
+    /**
+      @brief Predicts peptide retention times with the PeptDeep RT model (@c peptdeep_rt_dynamic.onnx)
+
+      Runs the model through ONNXPredictorBase and returns one predicted retention time per peptide
+      sequence, processing at most @c batch_size peptides per model run. Available in builds with
+      @c WITH_ONNX.
+    */
     class OPENMS_DLLAPI PeptDeepRTInference
     {
     public:
@@ -32,10 +39,10 @@ namespace OpenMS
         ~PeptDeepRTInference();
 
         /**
-         * @brief Predicts Retention Times for a list of peptide sequences
-         * @param peptides A vector of raw uppercase, unmodified peptide strings (e.g., "PEPTIDEK")
-         * @return A vector of predicted RT values corresponding to the input peptides
-         * @throws Exception::IllegalArgument if peptides is empty or contains an invalid/modified sequence.
+         * @brief Predicts Retention Times for a list of peptide sequences.
+         * @param peptides A vector of peptide strings. Supports OpenMS AASequence modification notation (e.g., "PEPTIDEK", "M(Oxidation)PEP").
+         * @return A vector of predicted RT values corresponding to the input peptides.
+         * @throws Exception::IllegalArgument if peptides is empty, size constraints fail, or a sequence is chemically invalid.
          */
         std::vector<float> predictRT(const std::vector<std::string>& peptides);
 
