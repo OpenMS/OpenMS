@@ -216,6 +216,14 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "matches: PeakMatch[]; "
     "/** every ion of the peptide for the options (charges 1 to maxCharge), by ascending m/z, matched or not */ "
     "theoretical: { ion: string; type: string; ordinal: number; charge: number; mz: number }[] }");
+  register_type<PredictedIon>("PredictedIon",
+    "{ /** the ion as annotatePeaks names it: 'b3'; 'y5++' (one '+' per charge, none for charge 1) */ ion: string; "
+    "type: 'b' | 'y'; /** the ion number, 1 to the length of the peptide - 1 (3 for b3) */ ordinal: number; "
+    "/** 2 only if the precursor has charge 2 or more */ charge: 1 | 2; "
+    "/** from the theoretical spectrum, with the modifications of the peptide as given; the ions of a peptide come by "
+    "ascending m/z */ mz: number; "
+    "/** relative to the most intense predicted b/y ion, which is 1; ions of 0.01 or less are left out */ intensity: number }");
+  register_type<PredictedIons>("PredictedIon[]");
 
   // features
   register_type<BoundingBox>("BoundingBox", "{ minRT: number; maxRT: number; minMZ: number; maxMZ: number }");

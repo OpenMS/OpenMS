@@ -101,6 +101,8 @@ namespace OpenMS::WASM::JS
   OPENMS_WASM_JS_TYPE(SpectrumAnnotation);
   OPENMS_WASM_JS_TYPE(PeakMatch);
   OPENMS_WASM_JS_TYPE(PeakAnnotationResult);
+  OPENMS_WASM_JS_TYPE(PredictedIon);
+  OPENMS_WASM_JS_TYPE(PredictedIons);
 
   // features
   OPENMS_WASM_JS_TYPE(BoundingBox);

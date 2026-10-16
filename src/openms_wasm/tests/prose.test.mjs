@@ -1811,6 +1811,202 @@ test("annotatePeaks: options, empty and invalid input", () => {
   rejects("NaN", () => OpenMS.annotatePeaks(Float32Array.of(100, NaN), Float32Array.of(1, 1), peptide, 2, null), /InvalidValue/);
 });
 
+/// Runs @p fn with the PeptDeep models of the package (models/ next to openms.mjs) mounted at /models; the default
+/// model of predictMS2() is /models/peptdeep_ms2_dynamic.onnx.
+function withModels(fn, mountPoint = "/models") {
+  const models = path.join(path.dirname(modulePath), "models");
+  assert.ok(fs.existsSync(path.join(models, "peptdeep_ms2_dynamic.onnx")), `the models are in ${models}`);
+  OpenMS.mountHostDirectory(mountPoint, models);
+  try {
+    return fn();
+  } finally {
+    OpenMS.unmount(mountPoint);
+  }
+}
+
+const avmPeptide = "AVM(Oxidation)DDFAAFVEK";
+
+/// The `ion` label of a predicted ion: as annotatePeaks names it
+const predictedLabel = (i) => `${i.type}${i.ordinal}${i.charge > 1 ? "+".repeat(i.charge) : ""}`;
+
+// A module with ONNX Runtime (WITH_ONNX): the b and y intensities that PeptDeep predicts, for the mirror plot of a PSM
+test("predictMS2 predicts b and y intensities", (t) => {
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  withModels(() => {
+    const ions = OpenMS.predictMS2(avmPeptide, 2, 30, "QE");
+    assert.ok(Array.isArray(ions) && ions.length > 0, "ions are predicted");
+    const length = 12; // residues of AVMDDFAAFVEK: ordinals 1 to 11
+    for (const ion of ions) {
+      assert.deepEqual(Object.keys(ion).sort(), ["charge", "intensity", "ion", "mz", "ordinal", "type"]);
+      assert.ok(ion.type === "b" || ion.type === "y", ion.type);
+      assert.ok(ion.charge === 1 || ion.charge === 2, `charge ${ion.charge}`);
+      assert.ok(Number.isInteger(ion.ordinal) && ion.ordinal >= 1 && ion.ordinal <= length - 1, `ordinal ${ion.ordinal}`);
+      assert.ok(ion.intensity > 0.01 && ion.intensity <= 1, `${ion.ion}: intensity ${ion.intensity}`);
+      assert.equal(ion.ion, predictedLabel(ion), "the ion is named as annotatePeaks names it");
+    }
+    // relative to the most intense predicted b/y ion, which is exactly 1
+    assert.equal(Math.max(...ions.map((i) => i.intensity)), 1);
+    assert.equal(new Set(ions.map((i) => i.ion)).size, ions.length, "every ion once");
+    // by ascending m/z
+    for (let k = 1; k < ions.length; ++k) assert.ok(ions[k - 1].mz <= ions[k].mz, "sorted by m/z");
+    // y1 of the C-terminal K
+    const y1 = ions.find((i) => i.ion === "y1");
+    assert.ok(y1, "y1 is predicted");
+    assertClose(assert, y1.mz, 147.1128, 1e-3, "m/z of y1");
+    // both b and y ions, of charge 1 and 2
+    assert.deepEqual([...new Set(ions.map((i) => i.type))].sort(), ["b", "y"]);
+    assert.deepEqual([...new Set(ions.map((i) => i.charge))].sort(), [1, 2]);
+    const doubly = ions.filter((i) => i.charge === 2);
+    assert.ok(doubly.length > 0 && doubly.every((i) => i.ion.endsWith("++") && !i.ion.endsWith("+++")), "doubly charged ions are named with '++'");
+    assert.ok(ions.filter((i) => i.charge === 1).every((i) => !i.ion.includes("+")), "singly charged ions without '+'");
+
+    // m/z from the theoretical spectrum of annotatePeaks (the modification of the peptide string is in it)
+    const none = new Float32Array(0);
+    const theoretical = new Map(OpenMS.annotatePeaks(none, none, avmPeptide, 3, { ions: ["b", "y"] }).theoretical.map((i) => [i.ion, i.mz]));
+    for (const ion of ions) assertClose(assert, ion.mz, theoretical.get(ion.ion), 1e-9, `m/z of ${ion.ion}`);
+    // and from the residues, as PeptDeepLibraryPredictor computes them: b(n) is the first n residues, y(n) the last n
+    using([OpenMS.AASequence.fromString(avmPeptide)], (sequence) => {
+      assert.equal(sequence.size(), length);
+      for (const ion of ions) {
+        const part = ion.type === "b" ? sequence.getPrefix(ion.ordinal) : sequence.getSuffix(ion.ordinal);
+        const mz = using([part], (p) => p.getMZ(ion.charge, ion.type === "b" ? OpenMS.ResidueType.BIon : OpenMS.ResidueType.YIon));
+        assertClose(assert, ion.mz, mz, 1e-6, `m/z of ${ion.ion} from its residues`);
+      }
+    });
+
+    // what the model of the package (peptdeep_ms2_dynamic.onnx) predicts for this peptide: y9 is the base peak, then b2
+    // (this pins the reading of the model's channels, y numbered from the C-terminus; update it with the model)
+    const strongest = [...ions].sort((a, b) => b.intensity - a.intensity);
+    assert.equal(strongest[0].ion, "y9");
+    assert.equal(strongest[1].ion, "b2");
+    assertClose(assert, strongest[1].intensity, 0.89, 0.05, "intensity of b2");
+
+    // the model is the default one, and the answer is the same for an explicit path
+    assert.deepEqual(OpenMS.predictMS2(avmPeptide, 2, 30, "QE", "/models/peptdeep_ms2_dynamic.onnx"), ions);
+  });
+});
+
+test("predictMS2: charge, instrument and collision energy are inputs of the model", (t) => {
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  withModels(() => {
+    const peptide = "LHVNSAR";
+    const at = (charge, nce, instrument, sequence = peptide) => OpenMS.predictMS2(sequence, charge, nce, instrument);
+    // a precursor of charge 1 has no doubly charged fragments; others can have them (this peptide's, for the charges 2 to 4)
+    for (const charge of [2, 3, 4]) {
+      assert.ok(at(charge, 30, "QE", avmPeptide).some((i) => i.charge === 2), `charge ${charge}`);
+    }
+    // (PEPTIDEK and EDPQTFYYAVAVVK: the model gives doubly charged ions of 7 % and 81 % to a precursor of charge 1)
+    for (const sequence of [peptide, avmPeptide, "PEPTIDEK", "EDPQTFYYAVAVVK", "SLYVDEGGHNLTQVHKGEE"]) {
+      assert.ok(at(1, 30, "QE", sequence).length > 0);
+      assert.ok(at(1, 30, "QE", sequence).every((i) => i.charge === 1), `${sequence}, charge 1: no doubly charged fragments`);
+    }
+    // the intensities are relative to the strongest returned ion: in these (to a precursor of charge 1) the model's
+    // own maximum is a doubly charged or a modloss ion, 18 % and 20 % of which is the strongest b or y ion
+    for (const sequence of ["SDNKVPFVGWQVRAVYSGK", "NILMDAFYEPMQPLRQCR"]) {
+      const ions = at(1, 30, "QE", sequence);
+      assert.ok(ions.length > 1);
+      assert.equal(Math.max(...ions.map((i) => i.intensity)), 1, sequence);
+      assert.ok(ions.every((i) => i.intensity > 0.01 && i.intensity <= 1 && i.charge === 1));
+    }
+    for (const charge of [1, 2, 3]) {
+      const ions = at(charge, 30, "QE");
+      assert.equal(Math.max(...ions.map((i) => i.intensity)), 1, `charge ${charge}`);
+      assert.ok(ions.every((i) => i.ordinal >= 1 && i.ordinal <= 6));
+    }
+    // the instrument is peptdeep's, case-insensitive; a name it does not know is the catch-all, as in ML::instrumentIndex
+    assert.deepEqual(at(2, 30, "qe"), at(2, 30, "QE"));
+    assert.deepEqual(at(2, 30, "TIMSTOF"), at(2, 30, "timsTOF"));
+    assert.deepEqual(at(2, 30, "no such instrument"), at(2, 30, ""));
+    assert.deepEqual(at(2, 30, "Orbitrap Exploris"), at(2, 30, "no such instrument"));
+    const differs = (a, b) => JSON.stringify(a.map((i) => i.intensity)) !== JSON.stringify(b.map((i) => i.intensity));
+    assert.ok(differs(at(2, 30, "QE"), at(2, 30, "timsTOF")), "the instrument changes the prediction");
+    assert.ok(differs(at(2, 30, "QE"), at(2, 30, "no such instrument")), "so does the catch-all");
+    assert.ok(differs(at(2, 20, "QE"), at(2, 40, "QE")), "the collision energy changes the prediction");
+    assert.ok(differs(at(2, 30, "QE"), at(3, 30, "QE")), "the charge too");
+  });
+});
+
+test("predictMS2 loads a model once per path, and a failed load is not kept", (t) => {
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  const model = "/models-late/peptdeep_ms2_dynamic.onnx";
+  // not mounted yet: the library's exception for a missing file
+  assert.throws(() => OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE", model), /FileNotFound.*models-late/);
+  assert.throws(() => OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE", model), /FileNotFound.*models-late/, "the failure is not kept");
+  withModels(() => {
+    const expected = OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE");
+    withModels(() => {
+      const time = () => {
+        const start = performance.now();
+        const ions = OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE", model);
+        return { ions, ms: performance.now() - start };
+      };
+      // now it is there: loaded by the first call, a session of its own (not that of the default path)
+      const first = time();
+      assert.deepEqual(first.ions, expected, "the same model gives the same prediction");
+      const later = Array.from({ length: 7 }, time);
+      for (const { ions } of later) assert.deepEqual(ions, expected);
+      const median = later.map((r) => r.ms).sort((a, b) => a - b)[3];
+      t.diagnostic(`first call ${first.ms.toFixed(0)} ms, median of 7 later calls ${median.toFixed(1)} ms`);
+      assert.ok(first.ms > 2 * median, `the first call loads the model (${first.ms} ms), later ones do not (median ${median} ms)`);
+    }, "/models-late");
+  });
+});
+
+test("predictMS2: errors", (t) => {
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  const rejects = (what, f, pattern) => assert.throws(f, pattern, what);
+  withModels(() => {
+    rejects("a model that is not there", () => OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE", "/models/no-such-model.onnx"), /FileNotFound.*no-such-model/);
+    rejects("charge 0", () => OpenMS.predictMS2("PEPTIDEK", 0, 30, "QE"), /InvalidValue/);
+    rejects("charge -1", () => OpenMS.predictMS2("PEPTIDEK", -1, 30, "QE"), /InvalidValue/);
+    rejects("NaN as energy", () => OpenMS.predictMS2("PEPTIDEK", 2, NaN, "QE"), /InvalidValue/);
+    rejects("Infinity as energy", () => OpenMS.predictMS2("PEPTIDEK", 2, Infinity, "QE"), /InvalidValue/);
+    rejects("empty peptide", () => OpenMS.predictMS2("", 2, 30, "QE"), /InvalidValue/);
+    // (AASequence.fromString's own errors: a syntax error is a ParseError, an unknown residue an InvalidValue)
+    rejects("a peptide with a digit", () => OpenMS.predictMS2("PEPT1DE", 2, 30, "QE"), /Parse Error.*PEPT1DE/);
+    rejects("an unknown residue", () => OpenMS.predictMS2("PEPTXDE", 2, 30, "QE"), /InvalidValue/);
+    rejects("an unknown modification", () => OpenMS.predictMS2("PEPT(NoSuchMod)IDE", 2, 30, "QE"), /NoSuchMod/);
+    // a peptide of one residue has no cleavage
+    assert.deepEqual(OpenMS.predictMS2("K", 2, 30, "QE"), []);
+    // the model predicts nothing for an energy far out of its range (PeptDeepMS2Inference zeroes absurd intensities)
+    assert.deepEqual(OpenMS.predictMS2("PITQGSYLENQVNQCWCK", 2, 60, "QE"), []);
+    // and the errors leave the module as it was
+    assert.ok(OpenMS.predictMS2("PEPTIDEK", 2, 30, "QE").length > 0);
+  });
+});
+
+test("predictMS2 throws without ONNX Runtime", (t) => {
+  if (OpenMS.hasONNXRuntime()) return t.skip("the module was built with ONNX Runtime");
+  assert.throws(() => OpenMS.predictMS2(avmPeptide, 2, 30, "QE"), /without ONNX Runtime/);
+  assert.throws(() => OpenMS.predictMS2(avmPeptide, 2, 30, "QE", "/models/peptdeep_ms2_dynamic.onnx"), /without ONNX Runtime/);
+});
+
+// ProSE's PeptDeep rescoring records the collision energy its predictions used for each file
+test("searchFiles reports the PeptDeep NCE", (t) => {
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  withModels(() => {
+    const parameters = {
+      ...prose6,
+      "peptdeep:enable": true,
+      "peptdeep:ms2_model": "/models/peptdeep_ms2_dynamic.onnx", "peptdeep:rt_model": "/models/peptdeep_rt_dynamic.onnx",
+    };
+    withSpectraCopies(OpenMS, ["a.mzML", "b.mzML"], (files) => {
+      const set = searchFiles(OpenMS, files, undefined, { parameters });
+      try {
+        const { files: summaries } = set.summary();
+        assert.equal(summaries.length, 2);
+        for (const f of summaries) {
+          assert.equal(f.status, "EXECUTION_OK");
+          assert.equal(typeof f.peptdeepNce, "number", `NCE of ${f.path}`);
+          assert.ok(f.peptdeepNce >= 20 && f.peptdeepNce <= 40, `NCE ${f.peptdeepNce} of ${f.path}`);
+        }
+      } finally {
+        set.delete();
+      }
+    });
+  });
+});
+
 test("getMemoryInfo", () => {
   const { heapSize, heapMax } = OpenMS.getMemoryInfo();
   assert.ok(heapSize > 0 && heapSize <= heapMax);

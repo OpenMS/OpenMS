@@ -9,8 +9,9 @@
 // The database search engine ProSE (ANALYSIS/ID/ProSEAlgorithm): a search of one spectrum
 // file as the ProSE tool runs it, with its statistics, the modification analysis of open
 // searches and progress reports; a search of several files pooled as the tool's -out_merged
-// does, whose results (ProSEResultSet) JavaScript holds; and the annotation of a spectrum, or of the
-// stored peaks of an identified spectrum, with the fragment ions of a peptide, for spectrum viewers.
+// does, whose results (ProSEResultSet) JavaScript holds; the annotation of a spectrum, or of the
+// stored peaks of an identified spectrum, with the fragment ions of a peptide, for spectrum viewers; and the fragment
+// intensities that PeptDeep predicts for a peptide (modules with ONNX Runtime).
 
 #include "bind_prose.h"
 #include "binding_utils.h"
@@ -30,20 +31,32 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/config.h>
+
+#ifdef WITH_ONNX
+#include <OpenMS/ML/PEPTDEEP/PeptDeepMS2Inference.h>
+#include <OpenMS/ML/PEPTDEEP/PeptDeepUtils.h>
+#endif
 
 #include <pthread.h>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include <algorithm>
 #include <atomic>
 #include <charconv>
 #include <cctype>
 #include <cmath>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <numeric>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -717,6 +730,63 @@ namespace OpenMS::WASM
     //------------------------------------------------------------------------------
     // Annotation of a spectrum with the fragment ions of a peptide
 
+    /// The fragment ions of a peptide as TheoreticalSpectrumGenerator makes them, sorted by m/z, with the data arrays of
+    /// their names and charges (add_metainfo): what annotateSpectrum(), annotatePeaks() and predictMS2() share.
+    struct TheoreticalFragments
+    {
+      MSSpectrum spectrum;       ///< the fragment ions sorted by m/z, with their names and charges
+      Size names_array = 0;      ///< the data array of spectrum with the ion names
+      Size charges_array = 0;    ///< the data array of spectrum with the ion charges
+
+      const MSSpectrum::StringDataArray& names() const { return spectrum.getStringDataArrays()[names_array]; }
+      const MSSpectrum::IntegerDataArray& charges() const { return spectrum.getIntegerDataArrays()[charges_array]; }
+    };
+
+    /// The fragment ions of @p peptide of the charges 1 to @p max_charge (at least 1) and the types @p ions ("a", "b", "c",
+    /// "x", "y", "z"), with their neutral losses if @p losses and the precursor peaks (of the charge max_charge) if
+    /// @p precursor. The first prefix ion is there (b1).
+    TheoreticalFragments theoreticalFragments(const AASequence& peptide, const std::vector<std::string>& ions, int max_charge,
+                                              bool losses, bool precursor)
+    {
+      TheoreticalSpectrumGenerator generator;
+      Param p = generator.getParameters();
+      for (const char* ion : {"a", "b", "c", "x", "y", "z"})
+      {
+        const bool wanted = std::find(ions.begin(), ions.end(), ion) != ions.end();
+        p.setValue(std::string("add_") + ion + "_ions", wanted ? "true" : "false");
+      }
+      for (const auto& ion : ions)
+      {
+        if (ion.size() != 1 || std::string("abcxyz").find(ion) == std::string::npos)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown ion type (a, b, c, x, y, z)", ion);
+        }
+      }
+      p.setValue("add_losses", losses ? "true" : "false");
+      p.setValue("add_precursor_peaks", precursor ? "true" : "false");
+      p.setValue("add_first_prefix_ion", "true");
+      p.setValue("add_metainfo", "true");
+      generator.setParameters(p);
+
+      TheoreticalFragments result;
+      generator.getSpectrum(result.spectrum, peptide, 1, std::max(1, max_charge));
+      result.spectrum.sortByPosition(); // keeps the data arrays aligned
+
+      // the arrays add_metainfo adds: ion names and charges
+      MSSpectrum& spectrum = result.spectrum;
+      const auto names_it = std::find_if(spectrum.getStringDataArrays().begin(), spectrum.getStringDataArrays().end(),
+        [](const auto& a) { return a.getName() == Constants::UserParam::IonNames; });
+      const auto charges_it = std::find_if(spectrum.getIntegerDataArrays().begin(), spectrum.getIntegerDataArrays().end(),
+        [](const auto& a) { return a.getName() == "Charges"; });
+      if (names_it == spectrum.getStringDataArrays().end() || charges_it == spectrum.getIntegerDataArrays().end())
+      {
+        throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The theoretical spectrum has no ion names or charges.");
+      }
+      result.names_array = static_cast<Size>(names_it - spectrum.getStringDataArrays().begin());
+      result.charges_array = static_cast<Size>(charges_it - spectrum.getIntegerDataArrays().begin());
+      return result;
+    }
+
     /// The fragment ions of a peptide matched to the peaks of a spectrum: what annotateSpectrum() and annotatePeaks()
     /// share.
     struct FragmentAlignment
@@ -766,28 +836,11 @@ namespace OpenMS::WASM
       const bool precursor = !isNullish(option("precursor")) && option("precursor").as<bool>();
 
       // the theoretical spectrum, with the names and charges of its ions
-      TheoreticalSpectrumGenerator generator;
-      Param p = generator.getParameters();
-      for (const char* ion : {"a", "b", "c", "x", "y", "z"})
-      {
-        const bool wanted = std::find(ions.begin(), ions.end(), ion) != ions.end();
-        p.setValue(std::string("add_") + ion + "_ions", wanted ? "true" : "false");
-      }
-      for (const auto& ion : ions)
-      {
-        if (ion.size() != 1 || std::string("abcxyz").find(ion) == std::string::npos)
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown ion type (a, b, c, x, y, z)", ion);
-        }
-      }
-      p.setValue("add_losses", losses ? "true" : "false");
-      p.setValue("add_precursor_peaks", precursor ? "true" : "false");
-      p.setValue("add_first_prefix_ion", "true");
-      p.setValue("add_metainfo", "true");
-      generator.setParameters(p);
+      TheoreticalFragments fragments = theoreticalFragments(peptide, ions, max_charge, losses, precursor);
+      result.theoretical = std::move(fragments.spectrum);
+      result.names_array = fragments.names_array;
+      result.charges_array = fragments.charges_array;
       MSSpectrum& theoretical = result.theoretical;
-      generator.getSpectrum(theoretical, peptide, 1, std::max(1, max_charge));
-      theoretical.sortByPosition(); // keeps the data arrays aligned
 
       // the measured peaks, sorted by m/z (SpectrumAlignment needs that), and where they were in the spectrum
       result.measured_position.resize(spectrum.size());
@@ -805,17 +858,6 @@ namespace OpenMS::WASM
       aligner.setParameters(ap);
       aligner.getSpectrumAlignment(result.alignment, theoretical, measured);
 
-      // the arrays add_metainfo adds: ion names and charges
-      const auto names_it = std::find_if(theoretical.getStringDataArrays().begin(), theoretical.getStringDataArrays().end(),
-        [](const auto& a) { return a.getName() == Constants::UserParam::IonNames; });
-      const auto charges_it = std::find_if(theoretical.getIntegerDataArrays().begin(), theoretical.getIntegerDataArrays().end(),
-        [](const auto& a) { return a.getName() == "Charges"; });
-      if (names_it == theoretical.getStringDataArrays().end() || charges_it == theoretical.getIntegerDataArrays().end())
-      {
-        throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The theoretical spectrum has no ion names or charges.");
-      }
-      result.names_array = static_cast<Size>(names_it - theoretical.getStringDataArrays().begin());
-      result.charges_array = static_cast<Size>(charges_it - theoretical.getIntegerDataArrays().begin());
       return result;
     }
 
@@ -1005,6 +1047,160 @@ namespace OpenMS::WASM
       result.set("theoretical", theoretical);
       return result;
     }
+
+    //------------------------------------------------------------------------------
+    // Fragment intensities predicted by PeptDeep
+
+    /// The MS2 model of predictMS2() unless another is named: the one of the package (models/ next to openms.mjs), as the
+    /// application mounts it.
+    constexpr const char* default_ms2_model = "/models/peptdeep_ms2_dynamic.onnx";
+
+#ifdef WITH_ONNX
+    /// The inference session of the MS2 model file @p model_path. The first call for a path loads the model (it takes a
+    /// while); the session is then kept for the rest of the module's life and used by every later call, so the file is
+    /// read once, whatever happens to it (or to its mount point) afterwards. A model that does not load throws and is not
+    /// kept, so that a later call can load it (e.g. once the file is mounted).
+    PeptDeepMS2Inference& ms2Inference(const std::string& model_path)
+    {
+      static std::mutex mutex;
+      static std::unordered_map<std::string, std::unique_ptr<PeptDeepMS2Inference>> sessions;
+      const std::lock_guard<std::mutex> lock(mutex);
+      const auto it = sessions.find(model_path);
+      if (it != sessions.end()) return *it->second;
+      // The threads as ProSEAlgorithm gives them to PeptDeepRescoring (the threads OpenMP computes with), and the
+      // default batch size (that of the 'batch_size' parameter, too).
+#ifdef _OPENMP
+      const int threads = std::max(1, omp_get_max_threads());
+#else
+      const int threads = 1;
+#endif
+      return *sessions.emplace(model_path, std::make_unique<PeptDeepMS2Inference>(model_path, threads)).first->second;
+    }
+#endif
+
+    /// The fragment ions of the peptide @p peptide_string (AASequence.toString(), e.g. "AVM(Oxidation)DDFAAFVEK", with all
+    /// modifications written out) of precursor charge @p charge, with the intensities that PeptDeep (the MS2 model at
+    /// @p model_path) predicts for collision energy @p nce (PeptDeep's normalised collision energy, as the 'nce' of
+    /// PeptDeepRescoring) on @p instrument ("QE", "Lumos", "timsTOF", "SciexTOF", "ThermoTOF", case-insensitively; any
+    /// other name is peptdeep's catch-all instrument, ML::instrumentIndex()).
+    ///
+    /// - Only the b and y ions of charge 1 and 2 without neutral loss (not the modloss channels of the model); charge 2
+    ///   only if the precursor has charge 2 or more.
+    /// - Intensities relative to the most intense of these ions (which is 1), the ions of 0.01 or less left out; no ions
+    ///   at all if the model predicts none.
+    /// - m/z from TheoreticalSpectrumGenerator, as annotatePeaks() (b and y, charges 1 and 2).
+    /// - By ascending m/z; a peptide of one residue has no ions.
+    /// Without ONNX Runtime (WITH_ONNX) in the module it throws.
+    JS::PredictedIons predictMS2(const std::string& peptide_string, int charge, double nce, const std::string& instrument,
+                                 const std::string& model_path)
+    {
+#ifdef WITH_ONNX
+      if (charge < 1)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The precursor charge has to be at least 1", std::to_string(charge));
+      }
+      if (!std::isfinite(nce))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The collision energy has to be a finite number", std::to_string(nce));
+      }
+      const AASequence peptide = AASequence::fromString(peptide_string);
+      if (peptide.empty())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The peptide is empty", peptide_string);
+      }
+
+      // As PeptDeepRescoring: the peptide as AASequence::toString() writes it, the collision energy as it is (not /100),
+      // and the instrument as peptdeep's index.
+      PeptDeepMS2Inference& model = ms2Inference(model_path);
+      val ions = val::array();
+      const Size length = peptide.size();
+      if (length < 2) return ions; // no cleavage
+      const std::vector<std::vector<float>> predicted =
+        model.predictMS2({peptide.toString()}, {static_cast<float>(charge)}, {static_cast<float>(nce)}, {ML::instrumentIndex(instrument)});
+      const std::vector<float>& flat = predicted.at(0);
+
+      // The model gives eight channels for each of the length - 1 cleavages: [b_z1, b_z2, y_z1, y_z2, b_modloss_z1, ...],
+      // of which the first four are the b and y ions. Cleavage `pos` (from the N-terminus) carries b(pos + 1) and
+      // y(length - 1 - pos), as the model lists the fragments N to C: the y series is numbered from the other end.
+      // Keep in sync with PeptDeepRescoring::predictedIons_() (PeptDeepRescoring.cpp: a helper in an anonymous namespace,
+      // so not callable from here), which PeptDeepLibraryPredictor::predict() agrees with.
+      constexpr int ion_b1 = 0, ion_b2 = 1, ion_y1 = 2, ion_y2 = 3;
+      const Size channels = flat.size() / (length - 1);
+      if (channels <= static_cast<Size>(ion_y2) || flat.size() != channels * (length - 1))
+      {
+        throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "PeptDeep gave " + std::to_string(flat.size()) + " intensities for the " + std::to_string(length - 1) + " cleavages of " + peptide_string);
+      }
+      struct Predicted
+      {
+        char type;
+        int ordinal;
+        int charge;
+        double intensity;
+      };
+      std::vector<Predicted> candidates;
+      candidates.reserve(4 * (length - 1));
+      const bool doubly_charged = charge > 1; // a precursor of charge 1 has no doubly charged fragments
+      for (Size pos = 0; pos + 1 < length; ++pos)
+      {
+        const Size base = pos * channels;
+        const int b = static_cast<int>(pos + 1), y = static_cast<int>(length - 1 - pos);
+        candidates.push_back({'b', b, 1, flat[base + ion_b1]});
+        candidates.push_back({'y', y, 1, flat[base + ion_y1]});
+        if (doubly_charged)
+        {
+          candidates.push_back({'b', b, 2, flat[base + ion_b2]});
+          candidates.push_back({'y', y, 2, flat[base + ion_y2]});
+        }
+      }
+      // relative to the most intense of these ions; the ions of 0.01 or less are left out
+      double base_peak = 0;
+      for (const Predicted& c : candidates) base_peak = std::max(base_peak, c.intensity);
+      if (!(base_peak > 0)) return ions; // nothing predicted
+      std::map<std::tuple<char, int, int>, double> intensity;
+      for (const Predicted& c : candidates)
+      {
+        const double relative = c.intensity / base_peak;
+        if (relative > 0.01) intensity[{c.type, c.ordinal, c.charge}] = relative;
+      }
+
+      // the ions with their m/z, by ascending m/z, named as annotatePeaks() names them
+      const TheoreticalFragments theoretical = theoreticalFragments(peptide, {"b", "y"}, doubly_charged ? 2 : 1, false, false);
+      const auto& names = theoretical.names();
+      const auto& charges = theoretical.charges();
+      Size found = 0;
+      for (Size t = 0; t < theoretical.spectrum.size(); ++t)
+      {
+        const IonLabel label = parseIonName(names[t], charges[t]);
+        const auto it = intensity.find({label.type.at(0), label.ordinal, charges[t]});
+        if (it == intensity.end()) continue;
+        ++found;
+        val o = val::object();
+        o.set("ion", label.ion);
+        o.set("type", label.type);
+        o.set("ordinal", label.ordinal);
+        o.set("charge", charges[t]);
+        o.set("mz", theoretical.spectrum[t].getMZ());
+        o.set("intensity", it->second);
+        ions.call<void>("push", o);
+      }
+      if (found != intensity.size())
+      {
+        throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "The theoretical spectrum of " + peptide_string + " lacks some of the predicted ions");
+      }
+      return ions;
+#else
+      (void)peptide_string; (void)charge; (void)nce; (void)instrument; (void)model_path;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "predictMS2: this OpenMS module was built without ONNX Runtime");
+#endif
+    }
+
+    /// predictMS2() with the default model
+    JS::PredictedIons predictMS2WithDefaultModel(const std::string& peptide_string, int charge, double nce, const std::string& instrument)
+    {
+      return predictMS2(peptide_string, charge, nce, instrument, default_ms2_model);
+    }
   } // namespace
 } // namespace OpenMS::WASM
 
@@ -1036,4 +1232,6 @@ EMSCRIPTEN_BINDINGS(openms_prose)
 
   function("annotateSpectrum", OMS_FN(&annotateSpectrum));
   function("annotatePeaks", OMS_FN(&annotatePeaks));
+  function("predictMS2", OMS_FN(&predictMS2WithDefaultModel));
+  function("predictMS2", OMS_FN(&predictMS2));
 }
