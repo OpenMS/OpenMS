@@ -8,6 +8,7 @@
 
 // ProSEResultSet.tables() (bound in bind_prose.cpp): the pooled results of a search as compact typed columns, three
 // tables (PSMs, peptides, proteins) whose rows refer to each other by index, for a browser app with 100,000+ PSMs.
+// ProSEResultSet.spectra(): the peaks of the spectra of the PSM rows, which the search reads from its input files.
 // The columns are copied into JavaScript arrays, which JavaScript owns.
 
 #include "bind_prose.h"
@@ -19,8 +20,14 @@
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -153,6 +160,31 @@ namespace OpenMS::WASM
       if (std::isnan(v)) return 0;
       return static_cast<T>(std::clamp(v, static_cast<double>(std::numeric_limits<T>::min()),
                                        static_cast<double>(std::numeric_limits<T>::max())));
+    }
+
+    /// A row of tables().psms (and of spectra().psmSpectrum): an identification with hits, and its best hit
+    struct PsmRow
+    {
+      Size id;                ///< the position of the identification in the pooled PSMs
+      const PeptideHit* hit;  ///< its best hit
+    };
+
+    /// The PSM rows of the pooled PSMs @p ids: one per identification with hits, in their order
+    std::vector<PsmRow> psmRows(const PeptideIdentificationList& ids)
+    {
+      std::vector<PsmRow> rows;
+      rows.reserve(ids.size());
+      for (Size i = 0; i < ids.size(); ++i)
+      {
+        if (!ids[i].getHits().empty()) rows.push_back({i, &bestHit(ids[i])});
+      }
+      return rows;
+    }
+
+    /// The input file of identification @p id: its position in the input files ('id_merge_index'; 0 if absent)
+    uint16_t psmFile(const PeptideIdentification& id, const ScoreKeys& k)
+    {
+      return clamped<uint16_t>(metaNumber(id, k.merge_index));
     }
 
     /// A JavaScript array of @p strings. One string split in JavaScript is much faster than one conversion per
@@ -339,6 +371,7 @@ namespace OpenMS::WASM
     // PSMs (the best hit of each identification with hits) and their peptides
 
     const PeptideIdentificationList& ids = merged.peptide_ids;
+    const std::vector<PsmRow> rows = psmRows(ids);
 
     // The features, Percolator's inputs as ProSE's rescoring (ProSEAlgorithm::rescoreWithPercolator()) gives them:
     // - ln(hyperscore), the search engine score (Percolator's "score");
@@ -357,11 +390,10 @@ namespace OpenMS::WASM
       pin_feature.push_back(pin);
     };
     int min_pin_charge = min_charge, max_pin_charge = max_charge;
-    for (const PeptideIdentification& id : ids)
+    for (const PsmRow& row : rows)
     {
-      if (id.getHits().empty()) continue;
-      min_pin_charge = std::min(min_pin_charge, bestHit(id).getCharge());
-      max_pin_charge = std::max(max_pin_charge, bestHit(id).getCharge());
+      min_pin_charge = std::min(min_pin_charge, row.hit->getCharge());
+      max_pin_charge = std::max(max_pin_charge, row.hit->getCharge());
     }
     // the bookkeeping columns of the .pin format, which Percolator does not train on (Percolator::rescorePSMs())
     static const std::set<std::string> pin_not_features{"SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"};
@@ -398,23 +430,19 @@ namespace OpenMS::WASM
     std::vector<int8_t> charge, isotope_error;
     std::vector<uint32_t> peptide;
     std::vector<uint8_t> psm_decoy;
-    for (auto* column : {&rt, &mz, &score, &q_value, &pep_value, &precursor_error, &delta_mass}) column->reserve(ids.size());
-    features.reserve(ids.size() * n_features);
+    for (auto* column : {&rt, &mz, &score, &q_value, &pep_value, &precursor_error, &delta_mass}) column->reserve(rows.size());
+    features.reserve(rows.size() * n_features);
     std::vector<bool> feature_present(n_features, false);
     feature_present[0] = true; // ln(hyperscore): always a column
     PeptideColumns pt;
     std::unordered_map<std::string, uint32_t> peptide_row;
     std::vector<double> peptide_best; // the best score of the PSMs of each peptide
-    std::vector<const PeptideIdentification*> row_ids; // the identification of each PSM row
-    std::vector<const PeptideHit*> row_hits;          // and its best hit
 
-    for (const PeptideIdentification& id : ids)
+    for (const PsmRow& row : rows)
     {
-      if (id.getHits().empty()) continue;
-      const PeptideHit& hit = bestHit(id);
-      row_ids.push_back(&id);
-      row_hits.push_back(&hit);
-      file.push_back(clamped<uint16_t>(metaNumber(id, keys.merge_index)));
+      const PeptideIdentification& id = ids[row.id];
+      const PeptideHit& hit = *row.hit;
+      file.push_back(psmFile(id, keys));
       native_id.push_back(id.getSpectrumReference());
       rt.push_back(id.hasRT() ? id.getRT() : NaN);
       mz.push_back(id.hasMZ() ? id.getMZ() : NaN);
@@ -509,8 +537,8 @@ namespace OpenMS::WASM
         chunk.reserve(to - from);
         for (Size i = from; i < to; ++i)
         {
-          const PeptideIdentification& id = *row_ids[i];
-          const PeptideHit& hit = *row_hits[i];
+          const PeptideIdentification& id = ids[rows[i].id];
+          const PeptideHit& hit = *rows[i].hit;
           PeptideIdentification copy;
           static_cast<MetaInfoInterface&>(copy) = static_cast<const MetaInfoInterface&>(id);
           copy.setIdentifier(id.getIdentifier());
@@ -625,5 +653,140 @@ namespace OpenMS::WASM
     o.set("peptides", peptides);
     o.set("proteins", proteins);
     return o;
+  }
+
+  //------------------------------------------------------------------------------
+  // The peaks of the identified spectra
+
+  namespace
+  {
+    /// Keeps the peaks of the MS2 spectra of one input file whose native IDs are wanted, as they are read
+    /// (ProSEResultSet::collectSpectra())
+    class IdentifiedSpectraConsumer : public Interfaces::IMSDataConsumer
+    {
+    public:
+      /// @p wanted: the PSM rows of each native ID to keep, whose spectrum is added to @p stored; a native ID found is
+      /// removed (a later spectrum with the same native ID is not kept)
+      IdentifiedSpectraConsumer(std::unordered_map<std::string, std::vector<Size>>& wanted, ProSEStoredSpectra& stored) :
+        wanted_(wanted),
+        stored_(stored)
+      {
+      }
+
+      void consumeSpectrum(MSSpectrum& s) override
+      {
+        if (s.getMSLevel() != 2) return;
+        const auto it = wanted_.find(s.getNativeID());
+        if (it == wanted_.end()) return;
+        if (!s.isSorted()) s.sortByPosition();
+        const auto index = static_cast<int32_t>(stored_.precursor_mz.size());
+        for (const Peak1D& peak : s)
+        {
+          stored_.mz.push_back(static_cast<float>(peak.getMZ()));
+          stored_.intensity.push_back(peak.getIntensity());
+        }
+        stored_.offsets.push_back(static_cast<uint32_t>(stored_.mz.size));
+        const std::vector<Precursor>& precursors = s.getPrecursors();
+        stored_.precursor_mz.push_back(precursors.empty() ? NaN : precursors[0].getMZ());
+        // OpenMS has 0 for an energy that is not known
+        const double energy = precursors.empty() ? 0.0 : precursors[0].getActivationEnergy();
+        stored_.collision_energy.push_back(energy > 0.0 ? static_cast<float>(energy) : std::numeric_limits<float>::quiet_NaN());
+        for (const Size row : it->second) stored_.psm_spectrum[row] = index;
+        wanted_.erase(it);
+      }
+
+      void consumeChromatogram(MSChromatogram& /*c*/) override {}
+      void setExpectedSize(size_t /*spectra*/, size_t /*chromatograms*/) override {}
+      void setExperimentalSettings(const ExperimentalSettings& /*settings*/) override {}
+
+    private:
+      std::unordered_map<std::string, std::vector<Size>>& wanted_;
+      ProSEStoredSpectra& stored_;
+    };
+
+    /// A JavaScript typed array holding a copy of the values of @p v
+    template <typename T>
+    val toTypedArray(const BlockVector<T>& v)
+    {
+      val result = val::global(TypedArrayName<T>::value).new_(v.size);
+      std::size_t at = 0;
+      for (const std::vector<T>& block : v.blocks)
+      {
+        if (block.empty()) continue;
+        result.call<void>("set", val(emscripten::typed_memory_view(block.size(), block.data())), static_cast<double>(at));
+        at += block.size();
+      }
+      return result;
+    }
+  } // namespace
+
+  void ProSEResultSet::collectSpectra()
+  {
+    stored_spectra = ProSEStoredSpectra{};
+    ProSEStoredSpectra& stored = stored_spectra;
+    const ScoreKeys keys;
+    const PeptideIdentificationList& ids = merged.peptide_ids;
+    const std::vector<PsmRow> rows = psmRows(ids);
+    stored.psm_spectrum.assign(rows.size(), -1);
+    if (!keep_spectra) return;
+
+    // The rows to keep the spectra of, by file and native ID: those whose q-value passes FDR:PSM, decoys too; all rows
+    // without q-values, and with FDR:PSM 0 (no filter)
+    std::vector<std::unordered_map<std::string, std::vector<Size>>> wanted(files.size());
+    for (Size r = 0; r < rows.size(); ++r)
+    {
+      const PeptideIdentification& id = ids[rows[r].id];
+      const double q = qValue(id, *rows[r].hit, keys);
+      if (!std::isnan(q) && psm_fdr > 0.0 && q > psm_fdr) continue;
+      const Size f = psmFile(id, keys);
+      if (f < files.size()) wanted[f][id.getSpectrumReference()].push_back(r);
+    }
+
+    // One file at a time, streamed: only the spectra kept stay in memory, and only they are sorted (by the consumer).
+    // (Not setSkipChromatograms(): MzMLHandler then skips the contents of the spectra, too.)
+    PeakFileOptions options;
+    options.setMSLevels({2});
+    options.setSortSpectraByMZ(false);
+    for (Size f = 0; f < files.size(); ++f)
+    {
+      if (wanted[f].empty()) continue;
+      MzMLFile mzml;
+      mzml.setOptions(options);
+      IdentifiedSpectraConsumer consumer(wanted[f], stored);
+      try
+      {
+        mzml.transform(files[f].path, &consumer, true, true); // one pass: no counts, no metadata
+      }
+      catch (const Exception::BaseException& e) // the file was searched, but cannot be read again: its PSMs have none
+      {
+        OPENMS_LOG_WARN << "ProSE: cannot read the spectra of the PSMs of '" << files[f].path << "' again (" << e.what()
+                        << "); the PSMs whose spectra were not read have none." << std::endl;
+      }
+      wanted[f].clear();
+    }
+    stored.mz.shrink_to_fit();
+    stored.intensity.shrink_to_fit();
+  }
+
+  JS::StoredSpectra ProSEResultSet::spectra() const
+  {
+    const ProSEStoredSpectra& s = stored_spectra;
+    val o = val::object();
+    o.set("psmSpectrum", toTypedArray(s.psm_spectrum));
+    o.set("offsets", toTypedArray(s.offsets));
+    o.set("mz", toTypedArray(s.mz));
+    o.set("intensity", toTypedArray(s.intensity));
+    o.set("precursorMz", toTypedArray(s.precursor_mz));
+    o.set("collisionEnergy", toTypedArray(s.collision_energy));
+    return o;
+  }
+
+  void ProSEResultSet::debugSetNativeId(int row, const std::string& native_id)
+  {
+    const std::vector<PsmRow> rows = psmRows(merged.peptide_ids);
+    if (row < 0) throw Exception::IndexUnderflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, rows.size());
+    if (static_cast<Size>(row) >= rows.size()) throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, rows.size());
+    merged.peptide_ids[rows[row].id].setSpectrumReference(native_id);
+    collectSpectra();
   }
 } // namespace OpenMS::WASM

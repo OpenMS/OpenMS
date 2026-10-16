@@ -96,6 +96,7 @@ namespace OpenMS::WASM::JS
   OPENMS_WASM_JS_TYPE(ProSEFileSummary);
   OPENMS_WASM_JS_TYPE(ProSEMultiSummary);
   OPENMS_WASM_JS_TYPE(ResultTables);
+  OPENMS_WASM_JS_TYPE(StoredSpectra);
   OPENMS_WASM_JS_TYPE(AnnotationOptions);
   OPENMS_WASM_JS_TYPE(SpectrumAnnotation);
 

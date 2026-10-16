@@ -1,7 +1,8 @@
 // The search engine ProSE in WebAssembly: ProSEAlgorithm with the settings and data of the TOPP
 // test TOPP_ProSE_1 (src/tests/topp), which has to give the same PSMs; its progress reports,
 // statistics, peak annotations and open search; the search of several files pooled as the ProSE
-// tool's -out_merged (TOPP_ProSE_13_merged); and annotateSpectrum() for spectrum viewers.
+// tool's -out_merged (TOPP_ProSE_13_merged), with its results as typed columns (tables()) and the
+// peaks of the identified spectra (spectra()); and annotateSpectrum() for spectrum viewers.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -704,6 +705,7 @@ test("searchFiles: files without PSMs give empty results", () => {
     assert.deepEqual(t.files, ["/topp/SimpleSearchEngine_1.mzML"]);
     assert.deepEqual([t.psms.count, t.peptides.count, t.proteins.count], [0, 0, 0]);
     assert.deepEqual(t.psms.featureNames, ["ln(hyperscore)"]);
+    assert.equal(assertSpectraShapes(set.spectra(), 0), 0);
   } finally {
     set.delete();
   }
@@ -987,6 +989,260 @@ test("tables(): the decoys of an unspecific search", () => {
       assert.ok(decoy >= 0, JSON.stringify(proteins.accession));
       assert.equal(proteins.decoy[decoy], 1);
       assert.equal(proteins.sequence[decoy], [..."IALSRPNVEVVALNDPFITNDYAAYMFKEWATYTCVLGFHVYVPVR"].reverse().join(""));
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+/// Checks the shape of the stored spectra @p s (ProSEResultSet.spectra()) of a result set with @p rows PSM rows: the
+/// types and lengths of the arrays, the offsets, and that every row refers to a spectrum or is -1. Returns the number
+/// of spectra.
+function assertSpectraShapes(s, rows) {
+  const types = { psmSpectrum: Int32Array, offsets: Uint32Array, mz: Float32Array, intensity: Float32Array,
+                  precursorMz: Float64Array, collisionEnergy: Float32Array };
+  assert.deepEqual(Object.keys(s).sort(), Object.keys(types).sort());
+  for (const [name, type] of Object.entries(types)) assert.ok(s[name] instanceof type, `${name} is a ${type.name}`);
+  const n = s.precursorMz.length;
+  assert.equal(s.psmSpectrum.length, rows, "psmSpectrum: one entry per PSM row");
+  assert.equal(s.collisionEnergy.length, n, "collisionEnergy: one entry per spectrum");
+  assert.equal(s.offsets.length, n + 1, "offsets: n + 1 entries");
+  assert.equal(s.offsets[0], 0);
+  for (let k = 0; k < n; ++k) assert.ok(s.offsets[k] <= s.offsets[k + 1], "offsets");
+  assert.equal(s.mz.length, s.offsets[n], "mz: offsets[n] entries");
+  assert.equal(s.intensity.length, s.offsets[n], "intensity: offsets[n] entries");
+  assert.ok(s.psmSpectrum.every((k) => k >= -1 && k < n), "psmSpectrum: -1 or a spectrum");
+  return n;
+}
+
+/// [m/z, intensity] pairs (as Float32) sorted by m/z, then intensity
+function peakPairs(mz, intensity) {
+  return Array.from(mz, (m, j) => [Math.fround(m), Math.fround(intensity[j])]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+}
+
+/// The peaks of spectrum @p k of the stored spectra @p s, which are sorted by m/z, as peakPairs()
+function storedPeaks(s, k) {
+  const mz = s.mz.subarray(s.offsets[k], s.offsets[k + 1]);
+  for (let j = 1; j < mz.length; ++j) assert.ok(mz[j - 1] <= mz[j], `the peaks of spectrum ${k} are sorted by m/z`);
+  return peakPairs(mz, s.intensity.subarray(s.offsets[k], s.offsets[k + 1]));
+}
+
+/// The spectra of mzML file @p file, by native ID: their MS level, peaks (peakPairs()), whether the file has them sorted
+/// by m/z, and precursors
+function fileSpectra(file) {
+  return using([new OpenMS.MSExperiment(), new OpenMS.MzMLFile()], (experiment, mzml) => {
+    mzml.setOptions({ sortSpectraByMZ: false }); // the peaks in the order of the file
+    mzml.load(file, experiment);
+    const spectra = new Map();
+    for (let i = 0; i < experiment.size(); ++i) {
+      using([experiment.getSpectrum(i)], (spectrum) => {
+        const { mz, intensity } = spectrum.getPeaks();
+        spectra.set(spectrum.getNativeID(),
+          { msLevel: spectrum.getMSLevel(), peaks: peakPairs(mz, intensity), sorted: spectrum.isSorted(),
+            precursors: spectrum.getPrecursors() });
+      });
+    }
+    return spectra;
+  });
+}
+
+test("spectra() holds the peaks of the identified spectra", () => {
+  // two copies of one file: PSMs of both with the same native IDs, whose spectra are those of their own file
+  withSpectraCopies(OpenMS, ["a.mzML", "b.mzML"], (files) => {
+    const set = searchFiles(OpenMS, files, { rescore: false });
+    try {
+      const { psms } = set.tables();
+      const s = set.spectra();
+      const n = assertSpectraShapes(s, psms.count);
+      const { psmFdr } = set.summary();
+      assert.equal(psmFdr, 0.05);
+
+      // every target PSM at 1 % FDR has its spectrum, with peaks
+      let targets = 0;
+      for (let i = 0; i < psms.count; ++i) {
+        if (psms.decoy[i] === 1 || !(psms.qValue[i] <= 0.01)) continue;
+        const k = s.psmSpectrum[i];
+        assert.ok(k >= 0, `the spectrum of PSM ${i} (${psms.nativeId[i]})`);
+        assert.ok(s.offsets[k + 1] > s.offsets[k], `the peaks of PSM ${i}`);
+        ++targets;
+      }
+      assert.ok(targets > 100, `${targets} target PSMs at 1 % FDR`);
+      // every PSM that passes FDR:PSM, decoys too (here all: the search filtered them), has its spectrum: the file has
+      // every spectrum ProSE identified
+      assert.ok(psms.decoy.includes(1), "decoy PSMs");
+      assert.ok(psms.qValue.every((q) => q <= psmFdr));
+      assert.ok(s.psmSpectrum.every((k) => k >= 0), "every PSM has its spectrum");
+
+      // the spectra of the files, as read: the peaks sorted by m/z, the precursor of the PSM, and no collision energy
+      // (the file records none)
+      const expected = fileSpectra(files[0]); // b.mzML is a copy of a.mzML
+      const keyOf = new Map(); // spectrum -> its file and native ID
+      for (let i = 0; i < psms.count; ++i) {
+        const k = s.psmSpectrum[i];
+        const key = `${psms.file[i]} ${psms.nativeId[i]}`;
+        assert.ok(!keyOf.has(k) || keyOf.get(k) === key, `spectrum ${k}: ${keyOf.get(k)} and ${key}`);
+        keyOf.set(k, key);
+        const e = expected.get(psms.nativeId[i]);
+        assert.ok(e && e.msLevel === 2, psms.nativeId[i]);
+        assert.deepEqual(storedPeaks(s, k), e.peaks, `the peaks of ${key}`);
+        assertClose(assert, s.precursorMz[k], psms.mz[i], 1e-4, `precursor m/z of ${key}`);
+        assert.equal(s.precursorMz[k], e.precursors[0].mz, `precursor m/z of ${key}`);
+        assert.ok(Number.isNaN(s.collisionEnergy[k]), `no collision energy for ${key}: ${s.collisionEnergy[k]}`);
+      }
+      assert.equal(keyOf.size, n, "every spectrum is that of a PSM");
+      assert.equal(new Set(keyOf.values()).size, n, "one spectrum per file and native ID");
+      // the same native ID in both files: two spectra (with the same peaks)
+      const inB = new Map();
+      for (let i = 0; i < psms.count; ++i) if (psms.file[i] === 1) inB.set(psms.nativeId[i], s.psmSpectrum[i]);
+      let both = 0;
+      for (let i = 0; i < psms.count; ++i) {
+        if (psms.file[i] !== 0 || !inB.has(psms.nativeId[i])) continue;
+        const [ka, kb] = [s.psmSpectrum[i], inB.get(psms.nativeId[i])];
+        assert.notEqual(ka, kb, psms.nativeId[i]);
+        assert.deepEqual(storedPeaks(s, ka), storedPeaks(s, kb), psms.nativeId[i]);
+        ++both;
+      }
+      assert.ok(both > 100, `${both} native IDs with PSMs in both files`);
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+/// Stores the spectra of TOPP_ProSE_1 as mzML at @p file, changed for the tests of spectra(): an MS1 spectrum ("scan=1")
+/// first, the first MS2 spectrum with a collision energy of 27.5 eV, and the peaks of the second in reverse order. (The
+/// native IDs have a '=': otherwise MzMLFile writes "spectrum=<index>" for all.)
+function storeSpectraToKeep(file) {
+  using([new OpenMS.MSExperiment(), new OpenMS.MSExperiment(), new OpenMS.MzMLFile(), new OpenMS.MSSpectrum()],
+    (original, changed, mzml, ms1) => {
+      mzml.load("/topp/SimpleSearchEngine_1.mzML", original);
+      ms1.setMSLevel(1);
+      ms1.setNativeID("scan=1");
+      ms1.setPeaks([400, 500], [10, 20]);
+      changed.addSpectrum(ms1);
+      for (let i = 0; i < original.size(); ++i) {
+        using([original.getSpectrum(i)], (spectrum) => {
+          if (i === 0) {
+            spectrum.setPrecursors(spectrum.getPrecursors().map((p) => ({ mz: p.mz, charge: p.charge, activationEnergy: 27.5 })));
+          }
+          if (i === 1) {
+            const { mz, intensity } = spectrum.getPeaks();
+            spectrum.setPeaks(Array.from(mz).reverse(), Array.from(intensity).reverse());
+          }
+          changed.addSpectrum(spectrum);
+        });
+      }
+      mzml.store(file, changed);
+    });
+}
+
+/// ProSEAlgorithm.searchFiles() of the data of TOPP_ProSE_1 changed by storeSpectraToKeep() (three PSMs, no q-values)
+function searchSpectraToKeep(options) {
+  storeSpectraToKeep("/searchfiles/keep.mzML");
+  return searchFiles(OpenMS, ["/searchfiles/keep.mzML"], options, { parameters: prose1, database: "/topp/SimpleSearchEngine_1.fasta" });
+}
+
+test("spectra() marks PSMs without a readable spectrum with -1", () => {
+  withSpectraCopies(OpenMS, [], () => {
+    const set = searchSpectraToKeep(undefined);
+    try {
+      const { nativeId } = set.tables().psms;
+      assert.equal(nativeId.length, 3);
+      const spectra = () => {
+        const s = set.spectra();
+        return [s.psmSpectrum, assertSpectraShapes(s, 3)];
+      };
+      let [psmSpectrum, n] = spectra();
+      assert.equal(n, 3);
+      assert.ok(psmSpectrum.every((k) => k >= 0));
+
+      // a native ID that the file does not have (the test hook re-reads the file)
+      set._debugSetNativeId(0, "scan=99999999");
+      assert.equal(set.tables().psms.nativeId[0], "scan=99999999");
+      [psmSpectrum, n] = spectra();
+      assert.equal(psmSpectrum[0], -1);
+      assert.ok(psmSpectrum[1] >= 0 && psmSpectrum[2] >= 0 && psmSpectrum[1] !== psmSpectrum[2]);
+      assert.equal(n, 2);
+      // that of an MS1 spectrum: only MS2 spectra are kept
+      assert.equal(fileSpectra("/searchfiles/keep.mzML").get("scan=1").msLevel, 1);
+      set._debugSetNativeId(0, "scan=1");
+      [psmSpectrum, n] = spectra();
+      assert.equal(psmSpectrum[0], -1);
+      assert.equal(n, 2);
+      // two PSMs of one spectrum share it
+      set._debugSetNativeId(0, nativeId[1]);
+      [psmSpectrum, n] = spectra();
+      assert.ok(psmSpectrum[0] >= 0);
+      assert.equal(psmSpectrum[0], psmSpectrum[1]);
+      assert.equal(n, 2);
+
+      assert.throws(() => set._debugSetNativeId(3, "x"), /Index/);
+      assert.throws(() => set._debugSetNativeId(-1, "x"), /Index/);
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+test("spectra(): the peaks as read, sorted by m/z, and the collision energy of the precursor", () => {
+  withSpectraCopies(OpenMS, [], () => {
+    const set = searchSpectraToKeep(undefined);
+    try {
+      const { psms } = set.tables();
+      const s = set.spectra();
+      assert.equal(assertSpectraShapes(s, psms.count), 3);
+      // no q-values (decoys: ignore): the spectra of all PSMs
+      assert.ok(psms.qValue.every(Number.isNaN));
+      assert.ok(s.psmSpectrum.every((k) => k >= 0));
+      const expected = fileSpectra("/searchfiles/keep.mzML");
+      assert.equal(expected.get("spectrum=0").precursors[0].activationEnergy, 27.5, "the file records the energy");
+      assert.equal(expected.get("spectrum=1").sorted, false, "the file has the peaks of spectrum=1 in reverse order");
+      for (let i = 0; i < psms.count; ++i) {
+        const k = s.psmSpectrum[i];
+        const e = expected.get(psms.nativeId[i]);
+        // the second spectrum of TOPP_ProSE_1 has its peaks in reverse order in the file
+        assert.deepEqual(storedPeaks(s, k), e.peaks, psms.nativeId[i]);
+        assert.equal(s.precursorMz[k], e.precursors[0].mz);
+        if (psms.nativeId[i] === "spectrum=0") {
+          assert.equal(s.collisionEnergy[k], 27.5);
+        } else {
+          assert.ok(Number.isNaN(s.collisionEnergy[k]), `no energy (0 in OpenMS) for ${psms.nativeId[i]}`);
+        }
+      }
+      assert.deepEqual(new Set(psms.nativeId), new Set(["spectrum=0", "spectrum=1", "spectrum=2"]));
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+test("spectra() without keepSpectra: no peaks", () => {
+  withSpectraCopies(OpenMS, [], () => {
+    const set = searchSpectraToKeep({ keepSpectra: false });
+    try {
+      const s = set.spectra();
+      assert.equal(assertSpectraShapes(s, 3), 0);
+      assert.deepEqual(Array.from(s.psmSpectrum), [-1, -1, -1]);
+      assert.deepEqual(Array.from(s.offsets), [0]);
+    } finally {
+      set.delete();
+    }
+  });
+});
+
+test("spectra() with FDR:PSM 0 (no filter): the spectra of all PSMs, whatever their q-values", () => {
+  // Percolator gives every PSM a q-value, which FDR:PSM 0 does not filter: these PSMs pass, and keep their spectra
+  withSpectraCopies(OpenMS, ["a.mzML"], (files) => {
+    const set = searchFiles(OpenMS, files, { rescore: true }, { parameters: { ...prose6, "FDR:PSM": 0, "FDR:protein": 0 } });
+    try {
+      assert.equal(set.summary().files[0].percolator.applied, true);
+      assert.equal(set.summary().psmFdr, 0);
+      const { psms } = set.tables();
+      assert.ok(psms.qValue.every(Number.isFinite), "q-values");
+      assert.ok(psms.qValue.some((q) => q > 0), "q-values above FDR:PSM");
+      const s = set.spectra();
+      assert.equal(assertSpectraShapes(s, psms.count), psms.count);
+      assert.ok(s.psmSpectrum.every((k) => k >= 0), "every PSM has its spectrum");
     } finally {
       set.delete();
     }

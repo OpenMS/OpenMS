@@ -571,7 +571,8 @@ namespace OpenMS::WASM
     /// with Percolator before its FDR:PSM; then the PSMs of all files are pooled for the protein inference and, with
     /// FDR:protein and decoys, the picked-protein FDR (ProSEAlgorithm::mergeFileResults()). Options: {rescore} sets the
     /// parameter 'rescore' for the call; {removeDecoys} (default false) removes the decoys after the protein FDR, as
-    /// the tool does; {keepSpectra} (default true) keeps the peaks of the identified spectra.
+    /// the tool does; {keepSpectra} (default true) keeps the peaks of the identified spectra, which are read from the
+    /// files at the end (ProSEResultSet::collectSpectra()).
     std::unique_ptr<ProSEResultSet> proseSearchFilesWithOptions(ProSEAlgorithm& algo, const JS::StringArray& files_js,
                                                                 const std::string& database_path,
                                                                 const JS::ProSEFilesOptions& options)
@@ -701,6 +702,8 @@ namespace OpenMS::WASM
           "scores of the others (not rescored: " + not_rescored + "). Search the files with { rescore: false }, or leave "
           "out those that could not be rescored.");
       }
+      // the peaks of the identified spectra (spectra()), read now, while the input files are there
+      set->collectSpectra();
       return set;
     }
 
@@ -821,7 +824,10 @@ EMSCRIPTEN_BINDINGS(openms_prose)
   class_<ProSEResultSet>("ProSEResultSet")
     .function("summary", OMS_METHOD(ProSEResultSet, &ProSEResultSet::summary))
     .function("tables", OMS_METHOD(ProSEResultSet, &ProSEResultSet::tables))
+    .function("spectra", OMS_METHOD(ProSEResultSet, &ProSEResultSet::spectra))
     .function("storeIdXML", OMS_METHOD(ProSEResultSet, &ProSEResultSet::storeIdXML))
+    // for tests: (row, nativeId) replaces the native ID of a PSM row and reads the spectra from the input files again
+    .function("_debugSetNativeId", OMS_METHOD(ProSEResultSet, &ProSEResultSet::debugSetNativeId))
     ;
 
   class_<ProSEAlgorithm, base<DefaultParamHandler>>("ProSEAlgorithm")

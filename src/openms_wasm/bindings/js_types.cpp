@@ -184,6 +184,14 @@ EMSCRIPTEN_BINDINGS(openms_js_types)
     "/** the best score (psms.score) of its PSMs; NaN: none */ score: Float64Array; "
     "/** picked-protein FDR; NaN: no protein FDR */ qValue: Float64Array; /** 1: decoy */ decoy: Uint8Array; "
     "/** index of its indistinguishable-protein group; -1: none */ group: Int32Array } }");
+  register_type<StoredSpectra>("StoredSpectra",
+    "{ /** per PSM row of ResultTables.psms: the index of its spectrum; -1: none (keepSpectra false, a q-value above "
+    "FDR:PSM, or no MS2 spectrum with its native ID in its file). PSMs of one spectrum (file and native ID) share it */ "
+    "psmSpectrum: Int32Array; "
+    "/** the peaks of spectrum s: offsets[s] .. offsets[s + 1] of mz and intensity (n + 1 entries) */ offsets: Uint32Array; "
+    "/** the peaks of the MS2 spectra as read from the files (not preprocessed), sorted by m/z */ mz: Float32Array; "
+    "intensity: Float32Array; /** m/z of the first precursor; NaN: none */ precursorMz: Float64Array; "
+    "/** activation (collision) energy of the first precursor; NaN: unknown */ collisionEnergy: Float32Array }");
   register_type<AnnotationOptions>("AnnotationOptions",
     "{ tolerance?: number; unit?: 'Da' | 'ppm'; maxCharge?: number; ions?: ('a' | 'b' | 'c' | 'x' | 'y' | 'z')[]; "
     "losses?: boolean; precursor?: boolean } | null | undefined");
