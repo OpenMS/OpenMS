@@ -31,6 +31,21 @@ OpenMS Library:
     check replaced it by the default direction ("Resetting score vector" of the percolator binary): no target at q < test_fdr
     on the held-out folds, or fewer targets than the best single feature. Typical for blank runs and small inputs (q-values
     count the decoys + 1, so a fold needs about 1 / test_fdr targets above its first decoy).
+  - ProSEAlgorithm::mergeFileResults(): the merged evaluation of the ProSE tool's -out_merged moves into the library, so that
+    other callers (e.g. a browser app on the WebAssembly module) can share it. It pools the PSMs of the result of a multi-file
+    searchWithModificationAnalysis(), infers proteins across the files and, with FDR:protein and decoys in the database,
+    applies the picked-protein FDR and removes the decoys; the result is the new ProSEAlgorithm::MergedResult. Throws
+    Exception::InvalidValue if Percolator rescored only some of the files (the tool still exits with INCOMPATIBLE_INPUT_DATA).
+    The output of the ProSE tool does not change.
+  - FIX: ProSEAlgorithm: the meta value 'id_merge_index' of the pooled PSMs of a multi-file search (and of -out_merged) is the
+    position of their file in the input list. After a file whose search failed, the PSMs of the later files named the wrong file.
+  - ProSEAlgorithm multi-file search: progress step "Searching <file> (i of n)..." per input file, with the steps of the search of the
+    file nested below it, so that a progress display can tell which file is searched. Consumers identify the step by its
+    label: the nesting depth is reliable only with one thread (ProgressLogger's depth is shared by the threads), and a chunk-major
+    search (database:chunk_size) has no per-file step.
+  - PeptDeepRescoring::annotate() stores the normalised collision energy the predictions of each run used (the scanned one, or 'nce'
+    when set) as the double run meta value 'peptdeep_nce' on that run's ProteinIdentification, so that a consumer of the result can
+    predict spectra at the same energy. Runs without PSMs get none.
   - ConsensusMapNormalizerAlgorithmRTLocal: normalizes each map of a consensus map by a log2 offset that may vary
     with retention time, estimated as the median deviation of the features quantified in several maps among the
     neighbouring features in retention time (the run normalisation of andes). It removes both different loading
