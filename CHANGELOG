@@ -553,6 +553,21 @@ OpenMS Library:
     one paragraph. All such docstrings are reattributed and reformatted, docstrings lost by the shift
     are restored. The API docs list nanobind methods as methods, with signatures, instead of as
     attributes, and static methods no longer render as "<nanobind.nb_func object>".
+  - FIX: pyOpenMS bindings that could not work (#10599): SimpleTSGXLMS and TheoreticalSpectrumGeneratorXLMS
+    getLinearIonSpectrum()/getXLinkIonSpectrum() generated the spectrum of an empty peptide (or cross-link)
+    instead of taking it as argument; they now take spectrum, peptide (or cross-link) and the other arguments
+    of the C++ API. IsotopeLabelingMDVs calculateIsotopicPurity()/calculateMDVAccuracy() annotate the feature
+    passed to them, like the C++ API, instead of a new empty one. PeptideIndexing.run() takes the FASTA file
+    name instead of a FASTAContainer, which Python could not create. CachedMzMLHandler.getSpectraIndex(),
+    getChromatogramIndex() and IndexedMzMLDecoder.findIndexListOffset() return int offsets instead of raw
+    std::streampos objects. Bound the nested types the signatures referred to but Python could not use
+    (ConsensusFeature.Ratio, SignalToNoiseEstimatorMedianRapid.NoiseEstimator, SplineInterpolatedPeaks.Navigator,
+    the IsotopeLabelingMDVs enums, ims Weights, FeatureFinderAlgorithmPickedHelperStructs_MassTrace) and
+    DeltaMass.label_set. Removed what could not be called from Python: begin()/end() returning C++ iterators
+    (MSExperiment, IsotopeDistribution, DeconvolvedSpectrum, PeakGroup), the initializer_list and std::list
+    constructors, MascotGenericFile.store() to a C++ stream and MapToResidueType.val (now len()).
+    Arguments of 64 methods got names, and the API docs show public names (pyopenms.X instead of
+    pyopenms._pyopenms_kernel.X), property types, the DB singletons, and nested enums only once.
 
 Dependencies:
   - OPENMS_CONTRIB_LIBS was removed, together with the contrib (OpenMS/contrib), after its

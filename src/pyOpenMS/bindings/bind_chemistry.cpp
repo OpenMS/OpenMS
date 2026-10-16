@@ -820,7 +820,7 @@ for molecule H2O (values are taken randomly):
 
 To the sake of faster computations distribution is restricted
 to the first K elements, where K can be set by adjusting size
-'SIZE' of distribution. @note For the elements most abundant in
+'SIZE' of distribution. Note: For the elements most abundant in
 living beings (CHNOPS) this restriction is negligible, since abundances
 decrease dramatically in isotopes order and are usually of no interest
 starting from +10 isotope.
@@ -916,8 +916,6 @@ IsotopePatternGenerator
         .def("trimRight", [](OpenMS::IsotopeDistribution& self, double cutoff) { return self.trimRight(cutoff); }, "cutoff"_a, "Trims the right side of the isotope distribution to isotopes with a significant contribution")
         .def("trimLeft", [](OpenMS::IsotopeDistribution& self, double cutoff) { return self.trimLeft(cutoff); }, "cutoff"_a, "Trims the left side of the isotope distribution to isotopes with a significant contribution")
         .def("averageMass", [](const OpenMS::IsotopeDistribution& self) { return self.averageMass(); }, "Compute average mass of isotope distribution (weighted average of all isotopes)")
-        .def("begin", [](const OpenMS::IsotopeDistribution& self) { return self.begin(); })
-        .def("end", [](const OpenMS::IsotopeDistribution& self) { return self.end(); })
         .def("insert", [](OpenMS::IsotopeDistribution& self, const double& mass, const float& intensity) { return self.insert(mass, intensity); }, "mass"_a, "intensity"_a)
         .def("__hash__", [](const OpenMS::IsotopeDistribution& self) { return std::hash<OpenMS::IsotopeDistribution>{}(self); })
         .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<OpenMS::IsotopeDistribution>(self); })
@@ -1102,7 +1100,7 @@ The modifications are read from the unimod.xml file on construction.
 )doc")
         .def_static("isInstantiated", []() { return OpenMS::ModificationsDB::isInstantiated(); }, "Check whether ModificationsDB was instantiated before")
         .def("has", [](const OpenMS::ModificationsDB& self, const std::string& modification) { return self.has(modification); }, "modification"_a, "Returns True if the modification exists")
-        .def("findModificationIndex", [](const OpenMS::ModificationsDB& self, const std::string& mod_name) { return self.findModificationIndex(mod_name); }, "mod_name"_a, "Returns the index of the modification in the mods_ vector; a unique name must be given")
+        .def("findModificationIndex", [](const OpenMS::ModificationsDB& self, const std::string& mod_name) { return self.findModificationIndex(mod_name); }, "mod_name"_a, "Returns the index of the modification in the database; a unique name must be given")
 
         .def("searchModifications", [](const OpenMS::ModificationsDB& self, const std::string& mod_name, const std::string& residue, nb::object term_spec_obj) {
             int term_spec = nb::cast<int>(nb::int_(term_spec_obj));
@@ -1188,7 +1186,8 @@ The cross-linker modifications are read from an OBO file.
         .def(nb::init<const OpenMS::ModifiedPeptideGenerator::MapToResidueType &>())
         .def("__copy__", [](const OpenMS::ModifiedPeptideGenerator::MapToResidueType& self) { return OpenMS::ModifiedPeptideGenerator::MapToResidueType(self); })
         .def("__deepcopy__", [](const OpenMS::ModifiedPeptideGenerator::MapToResidueType& self, nb::dict) { return OpenMS::ModifiedPeptideGenerator::MapToResidueType(self); }, "memo"_a)
-        .def_ro("val", &OpenMS::ModifiedPeptideGenerator::MapToResidueType::val)
+        .def("__len__", [](const OpenMS::ModifiedPeptideGenerator::MapToResidueType& self) { return self.val.size(); },
+            "Returns the number of modifications in the map")
         ;
 
     // -----------------------------------------------------------------------
@@ -1811,12 +1810,55 @@ Checks if peptide is a valid digestion product of the enzyme, taking into accoun
     // -----------------------------------------------------------------------
     // RealMassDecomposer
     // -----------------------------------------------------------------------
+    nb::class_<OpenMS::ims::Weights>(m, "IMSWeights",
+        R"doc(
+Masses of an alphabet scaled to integer weights with a given precision
+
+Used by RealMassDecomposer: the integer weights are round(mass / precision).
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const std::vector<double>&, double>(), "masses"_a, "precision"_a,
+            "Creates weights from the alphabet masses, scaled to integers with the given precision")
+        .def(nb::init<const OpenMS::ims::Weights &>())
+        .def("__copy__", [](const OpenMS::ims::Weights& self) { return OpenMS::ims::Weights(self); })
+        .def("__deepcopy__", [](const OpenMS::ims::Weights& self, nb::dict) { return OpenMS::ims::Weights(self); }, "memo"_a)
+        .def("size", [](const OpenMS::ims::Weights& self) { return self.size(); }, "Gets size of a set of weights")
+        .def("__len__", [](const OpenMS::ims::Weights& self) { return self.size(); })
+        .def("getWeight", [](const OpenMS::ims::Weights& self, size_t i) {
+            if (i >= self.size()) throw nb::index_error();
+            return self.getWeight(i);
+        }, "i"_a, "Gets a scaled integer weight by index")
+        .def("setPrecision", [](OpenMS::ims::Weights& self, double precision) { self.setPrecision(precision); }, "precision"_a,
+            "Sets a new precision to scale double values to integer")
+        .def("getPrecision", [](const OpenMS::ims::Weights& self) { return self.getPrecision(); }, "Gets precision")
+        .def("back", [](const OpenMS::ims::Weights& self) {
+            if (self.size() == 0) throw nb::index_error();
+            return self.back();
+        }, "Gets the last weight")
+        .def("getAlphabetMass", [](const OpenMS::ims::Weights& self, size_t i) {
+            if (i >= self.size()) throw nb::index_error();
+            return self.getAlphabetMass(i);
+        }, "i"_a, "Gets an original (double) alphabet mass by index")
+        .def("getParentMass", [](const OpenMS::ims::Weights& self, const std::vector<unsigned int>& decomposition) { return self.getParentMass(decomposition); },
+            "decomposition"_a, "Returns a parent mass for a given decomposition (one count per alphabet entry)")
+        .def("swap", [](OpenMS::ims::Weights& self, size_t index1, size_t index2) {
+            if (index1 >= self.size() || index2 >= self.size()) throw nb::index_error();
+            self.swap(index1, index2);
+        }, "index1"_a, "index2"_a, "Exchanges weight and mass at index1 with weight and mass at index2")
+        .def("divideByGCD", [](OpenMS::ims::Weights& self) { return self.divideByGCD(); },
+            "Divides the integer weights by their gcd. The precision is also adjusted")
+        .def("getMinRoundingError", [](const OpenMS::ims::Weights& self) { return self.getMinRoundingError(); },
+            "Returns the minimal rounding error of the integer weights")
+        .def("getMaxRoundingError", [](const OpenMS::ims::Weights& self) { return self.getMaxRoundingError(); },
+            "Returns the maximal rounding error of the integer weights")
+        ;
+
     nb::class_<OpenMS::ims::RealMassDecomposer>(m, "RealMassDecomposer", 
         R"doc(
 Handles decomposing of non-integer values/masses over a set of
 non-integer weights with an error allowed
 )doc")
-        .def(nb::init<OpenMS::ims::Weights>())
+        .def(nb::init<const OpenMS::ims::Weights&>(), "weights"_a)
         .def("getNumberOfDecompositions", [](OpenMS::ims::RealMassDecomposer& self, double mass, double error) { return self.getNumberOfDecompositions(mass, error); }, "mass"_a, "error"_a, 
             R"doc(
 Gets a number of all decompositions for amass with an error
@@ -1858,10 +1900,10 @@ but less space consuming, since doesn't use container to store decompositions
         .def("getThreeLetterCode", [](const OpenMS::Residue& self) { return self.getThreeLetterCode(); }, "Returns the name of the residue as three letter code")
         .def("setOneLetterCode", [](OpenMS::Residue& self, const std::string& one_letter_code) { return self.setOneLetterCode(one_letter_code); }, "one_letter_code"_a, "Sets the name as one letter code")
         .def("getOneLetterCode", [](const OpenMS::Residue& self) { return self.getOneLetterCode(); }, "Returns the name as one letter code")
-        .def("addLossFormula", [](OpenMS::Residue& self, const OpenMS::EmpiricalFormula& p0) { return self.addLossFormula(p0); }, "Adds a neutral loss formula")
-        .def("setLossFormulas", [](OpenMS::Residue& self, const std::vector<OpenMS::EmpiricalFormula>& p0) { return self.setLossFormulas(p0); }, "Sets the neutral loss formulas")
-        .def("addNTermLossFormula", [](OpenMS::Residue& self, const OpenMS::EmpiricalFormula& p0) { return self.addNTermLossFormula(p0); }, "Adds N-terminal losses")
-        .def("setNTermLossFormulas", [](OpenMS::Residue& self, const std::vector<OpenMS::EmpiricalFormula>& p0) { return self.setNTermLossFormulas(p0); }, "Sets the N-terminal losses")
+        .def("addLossFormula", [](OpenMS::Residue& self, const OpenMS::EmpiricalFormula& p0) { return self.addLossFormula(p0); }, "formula"_a, "Adds a neutral loss formula")
+        .def("setLossFormulas", [](OpenMS::Residue& self, const std::vector<OpenMS::EmpiricalFormula>& p0) { return self.setLossFormulas(p0); }, "formulas"_a, "Sets the neutral loss formulas")
+        .def("addNTermLossFormula", [](OpenMS::Residue& self, const OpenMS::EmpiricalFormula& p0) { return self.addNTermLossFormula(p0); }, "formula"_a, "Adds N-terminal losses")
+        .def("setNTermLossFormulas", [](OpenMS::Residue& self, const std::vector<OpenMS::EmpiricalFormula>& p0) { return self.setNTermLossFormulas(p0); }, "formulas"_a, "Sets the N-terminal losses")
         .def("getLossFormulas", [](const OpenMS::Residue& self) -> std::vector<OpenMS::EmpiricalFormula> { return self.getLossFormulas(); }, "Returns the neutral loss formulas")
         .def("getNTermLossFormulas", [](const OpenMS::Residue& self) -> std::vector<OpenMS::EmpiricalFormula> { return self.getNTermLossFormulas(); }, "Returns N-terminal loss formulas")
         .def("setLossNames", [](OpenMS::Residue& self, const std::vector<std::string>& name) { return self.setLossNames(name); }, "name"_a, "Sets the neutral loss molecule name")

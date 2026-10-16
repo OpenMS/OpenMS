@@ -106,9 +106,10 @@ Upper boundary of the support, in "outside" coordinates
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ClusteringGrid>(m, "ClusteringGrid", 
         R"doc(
-data structure to store 2D data to be clustered * e.g. (m/z,
-retention time) coordinates from multiplex filtering * * @see
-LocalClustering
+Data structure to store 2D data to be clustered,
+e.g. (m/z, retention time) coordinates from multiplex filtering
+
+See also: LocalClustering
 )doc")
         .def(nb::init<std::vector<double>, std::vector<double>>())
         .def(nb::init<const OpenMS::ClusteringGrid &>())

@@ -67,8 +67,7 @@ interpolation
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::GaussTraceFitter>(m, "GaussTraceFitter", 
         R"doc(
-Fitter for RT profiles using a Gaussian background model * *
-@htmlinclude OpenMS_GaussTraceFitter.parameters * * @todo More docu
+Fitter for RT profiles using a Gaussian background model
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::GaussTraceFitter &>())
@@ -264,11 +263,20 @@ for a group of matching peptide features
     // MultiplexDeltaMasses_DeltaMass
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MultiplexDeltaMasses::DeltaMass>(m, "MultiplexDeltaMasses_DeltaMass", "OpenMS class MultiplexDeltaMasses_DeltaMass")
-        .def(nb::init<double, std::multiset<std::string>>())
+        .def("__init__", [](OpenMS::MultiplexDeltaMasses::DeltaMass* self, double delta_mass, const std::vector<std::string>& label_set) {
+            new (self) OpenMS::MultiplexDeltaMasses::DeltaMass(delta_mass, OpenMS::MultiplexDeltaMasses::LabelSet(label_set.begin(), label_set.end()));
+        }, "delta_mass"_a, "label_set"_a)
         .def(nb::init<double, std::string>())
         .def(nb::init<const OpenMS::MultiplexDeltaMasses::DeltaMass &>())
         .def_rw("delta_mass", &OpenMS::MultiplexDeltaMasses::DeltaMass::delta_mass)
-        .def_rw("label_set", &OpenMS::MultiplexDeltaMasses::DeltaMass::label_set)
+        .def_prop_rw("label_set",
+            [](const OpenMS::MultiplexDeltaMasses::DeltaMass& self) {
+                return std::vector<std::string>(self.label_set.begin(), self.label_set.end());
+            },
+            [](OpenMS::MultiplexDeltaMasses::DeltaMass& self, const std::vector<std::string>& labels) {
+                self.label_set = OpenMS::MultiplexDeltaMasses::LabelSet(labels.begin(), labels.end());
+            },
+            "Labels of this delta mass (a sorted multiset, as a list)")
         ;
 
     // -----------------------------------------------------------------------
@@ -276,11 +284,12 @@ for a group of matching peptide features
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MultiplexIsotopicPeakPattern>(m, "MultiplexIsotopicPeakPattern", 
         R"doc(
-data structure for pattern of isotopic peaks * * Groups of peptides
-appear as characteristic patterns of isotopic peaks * in MS1 spectra.
-For example, for an Arg6 labeled SILAC peptide pair * of charge 2+
-with three isotopic peaks we expect peaks * at relative m/z shifts of
-0, 0.5, 1, 3, 3.5 and 4 Th
+Data structure for pattern of isotopic peaks
+
+Groups of peptides appear as characteristic patterns of isotopic peaks
+in MS1 spectra. For example, for an Arg6 labeled SILAC peptide pair
+of charge 2+ with three isotopic peaks we expect peaks
+at relative m/z shifts of 0, 0.5, 1, 3, 3.5 and 4 Th
 )doc")
         .def(nb::init<int, int, OpenMS::MultiplexDeltaMasses, int>())
         .def(nb::init<const OpenMS::MultiplexIsotopicPeakPattern &>())
@@ -353,6 +362,27 @@ For a pandas-based interface see FeatureFinderAlgorithmMetaboIdent.compounds_fro
         .def("getIsotopeDistribution", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIsotopeDistribution(); }, "Returns the isotope distribution")
         .def("getIonMobilities", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> const std::vector<double>& { return self.getIonMobilities(); }, "Returns the expected ion mobility values")
         .def("getAdduct", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound& self) -> std::string { return self.getAdduct(); }, "Returns the adduct string (e.g. 'M+H;1+', 'M+Na;1+', 'M-H;1-')")
+        ;
+
+    // -----------------------------------------------------------------------
+    // FeatureFinderAlgorithmPickedHelperStructs_MassTrace
+    // -----------------------------------------------------------------------
+    nb::class_<OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace>(m, "FeatureFinderAlgorithmPickedHelperStructs_MassTrace",
+        R"doc(
+Helper struct for mass traces used in FeatureFinderAlgorithmPicked
+
+The peaks of a trace are references into the peak map and are not exposed.
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace &>())
+        .def("__copy__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& self) { return OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace(self); })
+        .def("__deepcopy__", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& self, nb::dict) { return OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace(self); }, "memo"_a)
+        .def_rw("max_rt", &OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace::max_rt, "RT of the maximum peak")
+        .def_rw("theoretical_int", &OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace::theoretical_int, "Theoretical intensity value (scaled to [0,1])")
+        .def("getConvexhull", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& self) { return self.getConvexhull(); }, "Returns the convex hull of the trace")
+        .def("updateMaximum", [](OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& self) { self.updateMaximum(); }, "Sets the maximum to the highest contained peak of the trace")
+        .def("getAvgMZ", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& self) { return self.getAvgMZ(); }, "Returns the average m/z of all peaks in this trace (weighted by intensity)")
+        .def("isValid", [](const OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace& self) { return self.isValid(); }, "Checks if this trace is valid (has more than 2 points)")
         ;
 
     // -----------------------------------------------------------------------

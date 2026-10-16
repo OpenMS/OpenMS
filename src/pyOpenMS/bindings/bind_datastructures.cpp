@@ -641,7 +641,8 @@ Numerical Analysis, 4th ed. PWS-Kent, 1989, ISBN 0-53491-585-X, pp.
         .def("setTime", [](OpenMS::DateTime& self, unsigned int hour, unsigned int minute, unsigned int second) { return self.setTime(hour, minute, second); }, "hour"_a, "minute"_a, "second"_a)
         .def("set", [](OpenMS::DateTime& self, unsigned int month, unsigned int day, unsigned int year, unsigned int hour, unsigned int minute, unsigned int second) { return self.set(month, day, year, hour, minute, second); }, "month"_a, "day"_a, "year"_a, "hour"_a, "minute"_a, "second"_a,
             R"doc(
-@brief Sets date and time
+Sets date and time
+
 The following formats are supported:
 
 - MM/dd/yyyy hh:mm:ss
@@ -653,8 +654,9 @@ The following formats are supported:
 )doc")
         .def("getDateAndTime", [](const OpenMS::DateTime& self) { unsigned int month, day, year, hour, minute, second; self.get(month, day, year, hour, minute, second); return nb::make_tuple(month, day, year, hour, minute, second); },
             R"doc(
-@brief Returns date and time components as a tuple
-@return Tuple of (month, day, year, hour, minute, second) as integers
+Returns date and time components as a tuple
+
+:return: Tuple of (month, day, year, hour, minute, second) as integers
 )doc")
         .def("getDateComponents", [](const OpenMS::DateTime& self) { unsigned int month, day, year; self.getDate(month, day, year); return nb::make_tuple(month, day, year); }, "Returns (month, day, year) as a tuple of integers")
         .def("getDate", [](const OpenMS::DateTime& self) { return self.getDate(); })
@@ -664,12 +666,14 @@ The following formats are supported:
         .def("clear", [](OpenMS::DateTime& self) { return self.clear(); })
         .def("get", [](const OpenMS::DateTime& self) { return self.get(); },
             R"doc(
-@brief Returns a string representation of the date and time
+Returns a string representation of the date and time
+
 The format of the string will be yyyy-MM-dd hh:mm:ss
 )doc")
         .def("set", [](OpenMS::DateTime& self, const std::string& date) { return self.set(date); }, "date"_a,
             R"doc(
-@brief Sets date and time
+Sets date and time
+
 The following formats are supported:
 
 - MM/dd/yyyy hh:mm:ss
@@ -791,7 +795,8 @@ Example:
 This function will **not** apply to settings to the log handlers. Use configure() for that.
 
 :param setting: StringList containing the configuration options
-:raises ParseError: In case of an invalid configuration.
+:raises:
+  Exception: ParseError in case of an invalid configuration.
 :return: Param object containing all settings, that can be applied using the LogConfigHandler.configure() method
 )doc")
         .def("configure", [](OpenMS::LogConfigHandler& self, const OpenMS::Param& param) { return self.configure(param); }, "param"_a,
@@ -814,9 +819,10 @@ A classical configuration would contain a list of settings e.g.
 `INFO remove cout FILE` (FILE will be ignored)
 `INFO add string_stream1 STRING`
 
-:raises ElementNotFound: If the LogStream (first argument) does not exist.
-:raises FileNotWritable: If a file (or stream) should be opened as log file (or stream) that is not accessible.
-:raises IllegalArgument: If a stream should be registered, that was already registered with a different type.
+:raises:
+  Exception: ElementNotFound if the LogStream (first argument) does not exist.
+  Exception: FileNotWritable if a file (or stream) should be opened as log file (or stream) that is not accessible.
+  Exception: IllegalArgument if a stream should be registered, that was already registered with a different type.
 )doc")
         .def("setLogLevel", [](OpenMS::LogConfigHandler& self, const std::string& log_level) { return self.setLogLevel(log_level); }, "log_level"_a,
             R"doc(
@@ -828,7 +834,8 @@ The default configuration writes debug and info messages to stdout, and warnings
 stderr. Debug messages are written from setLogLevel("DEBUG") on.
 
 :param log_level: The minimum log level to enable. Levels below this will have their streams removed.
-:raises IllegalArgument: If log_level is not one of the levels above.
+:raises:
+  Exception: IllegalArgument if log_level is not one of the levels above.
 )doc")
         .def_static("getInstance", []() -> OpenMS::LogConfigHandler* { return OpenMS::LogConfigHandler::getInstance(); }, nb::rv_policy::reference, "Returns the singleton instance")
         ;
@@ -962,7 +969,7 @@ Example:
 
     multipletesting_class
         .def_static("qValue", [](const std::vector<double>& p_values, double pi0, bool pfdr) { return OpenMS::Math::MultipleTesting::qValue(p_values, pi0, pfdr); }, "p_values"_a, "pi0"_a, "pfdr"_a, "Compute q-values from p-values using the Storey-Tibshirani method")
-        .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) { return OpenMS::Math::MultipleTesting::pNorm(stat, stat0); }, "stat"_a, "stat0"_a, "Compute p-values from observed and null statistics using the empirical distribution")
+        .def_static("pNorm", [](const std::vector<double>& stat, const std::vector<double>& stat0) { return OpenMS::Math::MultipleTesting::pNorm(stat, stat0); }, "stat"_a, "stat0"_a, "Compute upper tail probabilities (p-values) of stat under a normal distribution fitted to the null statistics stat0")
 
         .def_static("pi0Est", [](std::vector<double> p_values,
                                   std::vector<double> lambda,

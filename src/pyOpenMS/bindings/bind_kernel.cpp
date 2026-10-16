@@ -461,7 +461,6 @@ Feature handles are not checked.
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::MassTrace>(m, "MassTrace", "OpenMS class MassTrace")
         .def(nb::init<>())
-        .def(nb::init<std::list<OpenMS::Peak2D>>())
         .def(nb::init<std::vector<OpenMS::Peak2D>>())
         .def(nb::init<const OpenMS::MassTrace &>())
         .def("__copy__", [](const OpenMS::MassTrace& self) { return OpenMS::MassTrace(self); })
@@ -2492,7 +2491,7 @@ Set the spectrum reference (native ID) for this identification.
 )doc")
         .def("sort", [](OpenMS::PeptideIdentification& self) { return self.sort(); })
         .def("empty", [](const OpenMS::PeptideIdentification& self) { return self.empty(); })
-        .def_static("getReferencingHits", [](const std::vector<OpenMS::PeptideHit>& p0, const std::set<std::string>& accession) { return OpenMS::PeptideIdentification::getReferencingHits(p0, accession); }, "Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)")
+        .def_static("getReferencingHits", [](const std::vector<OpenMS::PeptideHit>& p0, const std::set<std::string>& accession) { return OpenMS::PeptideIdentification::getReferencingHits(p0, accession); }, "hits"_a, "accession"_a, "Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)")
         .def("buildUSI", [](const OpenMS::PeptideIdentification& self, const std::string& ms_run_name, const std::string& dataset_id, bool include_interpretation) { return self.buildUSI(ms_run_name, dataset_id, include_interpretation); }, "ms_run_name"_a, "dataset_id"_a = "local", "include_interpretation"_a = false, 
             R"doc(
 Build a Universal Spectrum Identifier (USI) for this identification.
@@ -2868,7 +2867,8 @@ Representation of a protein identification run
 Does not return anything but stores the coverage inside the ProteinHit objects.
 
 :param pep_ids: List of PeptideIdentification objects
-:raises Exception.MissingInformation: if ProteinHits do not have sequence information
+:raises:
+  Exception: MissingInformation if ProteinHits do not have sequence information
 )doc")
         .def("computeCoverage", [](OpenMS::ProteinIdentification& self, const OpenMS::ConsensusMap& cmap, bool use_unassigned_ids) { self.computeCoverage(cmap, use_unassigned_ids); }, "cmap"_a, "use_unassigned_ids"_a,
             R"doc(Compute the coverage (in percent) of all ProteinHits given a ConsensusMap.
@@ -3974,7 +3974,7 @@ A basic LC-MS feature
     // -----------------------------------------------------------------------
     // ConsensusFeature
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::ConsensusFeature, OpenMS::BaseFeature>(m, "ConsensusFeature", 
+    auto consensusfeature_class = nb::class_<OpenMS::ConsensusFeature, OpenMS::BaseFeature>(m, "ConsensusFeature", 
         R"doc(
 A consensus feature spanning multiple LC-MS/MS experiments.
 
@@ -4033,6 +4033,16 @@ Get access to the underlying features through getFeatureList()
         .def("__str__", [](const OpenMS::ConsensusFeature& self) {
             return nb::cast(self).attr("__repr__")();
         })
+        ;
+    nb::class_<OpenMS::ConsensusFeature::Ratio>(consensusfeature_class, "Ratio", "A simple struct for storing ratio information between features")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::ConsensusFeature::Ratio &>())
+        .def("__copy__", [](const OpenMS::ConsensusFeature::Ratio& self) { return OpenMS::ConsensusFeature::Ratio(self); })
+        .def("__deepcopy__", [](const OpenMS::ConsensusFeature::Ratio& self, nb::dict) { return OpenMS::ConsensusFeature::Ratio(self); }, "memo"_a)
+        .def_rw("ratio_value_", &OpenMS::ConsensusFeature::Ratio::ratio_value_)
+        .def_rw("denominator_ref_", &OpenMS::ConsensusFeature::Ratio::denominator_ref_)
+        .def_rw("numerator_ref_", &OpenMS::ConsensusFeature::Ratio::numerator_ref_)
+        .def_rw("description_", &OpenMS::ConsensusFeature::Ratio::description_)
         ;
 
     // -----------------------------------------------------------------------

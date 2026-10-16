@@ -587,7 +587,6 @@ the identification results from a single spectrum.
 This class supports direct iteration in Python.
 )doc")
         .def(nb::init<std::vector<OpenMS::PeptideIdentification>>())
-        .def(nb::init<std::initializer_list<OpenMS::PeptideIdentification>>())
 
         .def(nb::init<>(), "Default constructor - creates an empty list")
 

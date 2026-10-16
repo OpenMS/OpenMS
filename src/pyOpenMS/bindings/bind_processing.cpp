@@ -38,6 +38,22 @@
 namespace nb = nanobind;
 using namespace nb::literals;
 
+namespace
+{
+  // NoiseEstimator::get_noise_even/odd only assert() their window index, so an m/z
+  // outside the estimated range reads past the window vectors in a release build.
+  void noise_window_check(const OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& e, double mz)
+  {
+    const double even = (mz - e.mz_start) / e.window_length;
+    const double odd = (mz - e.mz_start + e.window_length / 2.0) / e.window_length;
+    if (!(even > -1.0 && even < static_cast<double>(e.result_windows_even.size()) &&
+          odd > -1.0 && odd < static_cast<double>(e.result_windows_odd.size())))
+    {
+      throw nb::index_error("m/z is outside the windows of this NoiseEstimator");
+    }
+  }
+}
+
 NB_MODULE(_pyopenms_processing, m) {
     m.doc() = "pyOpenMS processing bindings";
 
@@ -608,7 +624,7 @@ If you want a constant model, set slope to zero in addition
     // -----------------------------------------------------------------------
     // SignalToNoiseEstimatorMedianRapid
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SignalToNoiseEstimatorMedianRapid>(m, "SignalToNoiseEstimatorMedianRapid", 
+    auto signaltonoiseestimatormedianrapid_class = nb::class_<OpenMS::SignalToNoiseEstimatorMedianRapid>(m, "SignalToNoiseEstimatorMedianRapid", 
         R"doc(
 Estimates the signal/noise (S/N) ratio of each data point in a scan
 by using the median (window based)
@@ -618,11 +634,40 @@ by using the median (window based)
         .def("estimateNoise", [](OpenMS::SignalToNoiseEstimatorMedianRapid& self, std::shared_ptr<OpenMS::Interfaces::Chromatogram> chrom) { return self.estimateNoise(chrom); }, "chrom"_a)
         .def("estimateNoise", [](OpenMS::SignalToNoiseEstimatorMedianRapid& self, const std::vector<double>& mz_array, const std::vector<double>& int_array) { return self.estimateNoise(mz_array, int_array); }, "mz_array"_a, "int_array"_a)
         ;
+    nb::class_<OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator>(signaltonoiseestimatormedianrapid_class, "NoiseEstimator",
+        R"doc(
+Noise values per m/z window as computed by SignalToNoiseEstimatorMedianRapid.estimateNoise()
+
+The noise is stored for two sets of windows that are offset by half a window
+length; get_noise_value() averages both.
+)doc")
+        .def(nb::init<double, double, double>(), "nr_windows"_a, "mz_start"_a, "win_len"_a)
+        .def(nb::init<const OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator &>())
+        .def("__copy__", [](const OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& self) { return OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator(self); })
+        .def("__deepcopy__", [](const OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& self, nb::dict) { return OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator(self); }, "memo"_a)
+        .def_rw("nr_windows", &OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator::nr_windows)
+        .def_rw("mz_start", &OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator::mz_start)
+        .def_rw("window_length", &OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator::window_length)
+        .def_rw("result_windows_even", &OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator::result_windows_even)
+        .def_rw("result_windows_odd", &OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator::result_windows_odd)
+        .def("get_noise_value", [](OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& self, double mz) {
+            noise_window_check(self, mz);
+            return self.get_noise_value(mz);
+        }, "mz"_a, "Returns the noise value at m/z (the average of both window sets, at least 1)")
+        .def("get_noise_even", [](OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& self, double mz) {
+            noise_window_check(self, mz);
+            return self.get_noise_even(mz);
+        }, "mz"_a, "Returns the noise value at m/z from the even (non-offset) windows")
+        .def("get_noise_odd", [](OpenMS::SignalToNoiseEstimatorMedianRapid::NoiseEstimator& self, double mz) {
+            noise_window_check(self, mz);
+            return self.get_noise_odd(mz);
+        }, "mz"_a, "Returns the noise value at m/z from the odd (half-window offset) windows")
+        ;
 
     // -----------------------------------------------------------------------
     // SplineInterpolatedPeaks
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SplineInterpolatedPeaks>(m, "SplineInterpolatedPeaks", 
+    auto splineinterpolatedpeaks_class = nb::class_<OpenMS::SplineInterpolatedPeaks>(m, "SplineInterpolatedPeaks", 
         R"doc(
 Data structure for spline interpolation of MS1 spectra and chromatograms
 
@@ -643,8 +688,22 @@ See also: SplinePackage, MSSpectrum, MSChromatogram
         .def("getPosMin", [](const OpenMS::SplineInterpolatedPeaks& self) { return self.getPosMin(); })
         .def("getPosMax", [](const OpenMS::SplineInterpolatedPeaks& self) { return self.getPosMax(); })
         .def("size", [](const OpenMS::SplineInterpolatedPeaks& self) { return self.size(); })
-        .def("getNavigator", [](OpenMS::SplineInterpolatedPeaks& self, double scaling) { return self.getNavigator(scaling); }, "scaling"_a = 0.7)
+        .def("getNavigator", [](OpenMS::SplineInterpolatedPeaks& self, double scaling) { return self.getNavigator(scaling); }, "scaling"_a = 0.7,
+            nb::keep_alive<0, 1>(),
+            "Returns a Navigator over the splines; it keeps this object alive. Raises if there are no splines")
         .def("__len__", [](OpenMS::SplineInterpolatedPeaks& self) { return self.size(); })
+        ;
+    nb::class_<OpenMS::SplineInterpolatedPeaks::Navigator>(splineinterpolatedpeaks_class, "Navigator",
+        R"doc(
+Iterator-like access to the splines of a SplineInterpolatedPeaks
+
+Obtained from SplineInterpolatedPeaks.getNavigator(). It refers to the splines of
+that object, which is kept alive as long as the navigator exists.
+)doc")
+        .def("eval", [](OpenMS::SplineInterpolatedPeaks::Navigator& self, double pos) { return self.eval(pos); }, "pos"_a,
+            "Returns the spline-interpolated intensity at position pos (m/z or RT); 0 between splines")
+        .def("getNextPos", [](OpenMS::SplineInterpolatedPeaks::Navigator& self, double pos) { return self.getNextPos(pos); }, "pos"_a,
+            "Returns the next sensible position after pos, i.e. pos plus the scaled average data point spacing of the current spline, or the start of the next spline")
         ;
 
     // -----------------------------------------------------------------------
@@ -652,12 +711,13 @@ See also: SplinePackage, MSSpectrum, MSChromatogram
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::SplinePackage>(m, "SplinePackage", 
         R"doc(
-fundamental data structure for SplineInterpolatedPeaks * * In many
-cases, data points in MS spectra (or chromatograms) are not
-equidistant in m/z (or RT) * but consist of packages of data points
-separated by wide m/z (or RT) ranges with zero intensity. *
-SplinePackage contains the spline fit of a single set of such data
-points. * * @see SplineInterpolatedPeaks
+Fundamental data structure for SplineInterpolatedPeaks
+
+In many cases, data points in MS spectra (or chromatograms) are not equidistant in m/z (or RT)
+but consist of packages of data points separated by wide m/z (or RT) ranges with zero intensity.
+SplinePackage contains the spline fit of a single set of such data points.
+
+See also: SplineInterpolatedPeaks
 )doc")
         .def(nb::init<std::vector<double>, std::vector<double>>())
         .def(nb::init<const OpenMS::SplinePackage &>())

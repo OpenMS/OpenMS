@@ -28,6 +28,8 @@ def make_singleton_callable(original_cls):
             return repr(original_cls)
 
     wrapper = CallableSingleton()
+    # lets tools reach the wrapped class (inspect.unwrap(), the API documentation)
+    wrapper.__wrapped__ = original_cls
     return wrapper
 
 

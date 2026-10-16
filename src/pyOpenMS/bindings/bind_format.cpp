@@ -459,10 +459,10 @@ runtime.
         .def("__deepcopy__", [](const OpenMS::CachedSwathFileConsumer&, nb::dict) -> nb::object { throw nb::type_error("CachedSwathFileConsumer cannot be copied"); }, "memo"_a)
         .def(nb::init<std::string, std::string, size_t, std::vector<int>>())
         .def(nb::init<std::vector<OpenSwath::SwathMap>, std::string, std::string, size_t, std::vector<int>>())
-        .def("setExpectedSize", [](OpenMS::CachedSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::CachedSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("setExperimentalSettings", [](OpenMS::CachedSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::CachedSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
-        .def("consumeChromatogram", [](OpenMS::CachedSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
+        .def("consumeChromatogram", [](OpenMS::CachedSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); }, "chromatogram"_a)
         .def("consumeSpectrum", [](OpenMS::CachedSwathFileConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         ;
 
@@ -671,7 +671,7 @@ Checks whether the given file type is supported
 :returns: True if the file type is supported
 )doc")
         .def("getOptions", [](OpenMS::FileHandler& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Access to the options for loading/storing")
-        .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets options for loading/storing")
+        .def("setOptions", [](OpenMS::FileHandler& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "options"_a, "Sets options for loading/storing")
         .def("loadFeatures", [](OpenMS::FileHandler& self, const std::string& filename) { OpenMS::FeatureMap map; self.loadFeatures(filename, map); return map; }, "filename"_a,
             R"doc(
 Loads features from a file into a FeatureMap (auto-detect file type)
@@ -1105,7 +1105,7 @@ Use store() to export imzML + UUID-linked companion .ibd (binary precision via P
         }, "filename"_a, "exp"_a, "Store an MSImagingExperiment as imzML (.imzML + .ibd); coordinates come from its MSImagingGeometry")
         .def("getOptions", [](OpenMS::ImzMLFile& self) -> OpenMS::PeakFileOptions { return self.getOptions(); },
              "Returns the options for loading")
-        .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); },
+        .def("setOptions", [](OpenMS::ImzMLFile& self, const OpenMS::PeakFileOptions& opts) { self.setOptions(opts); }, "options"_a,
              "Set PeakFileOptions for filtering during load")
         .def("load", [](OpenMS::ImzMLFile& self, const std::string& filename, OpenMS::MSImagingExperiment& exp) {
             nb::gil_scoped_release release;
@@ -1166,7 +1166,7 @@ to all spectra and chromatogram offsets
         .def(nb::init<const OpenMS::IndexedMzMLDecoder &>())
         .def("__copy__", [](const OpenMS::IndexedMzMLDecoder& self) { return OpenMS::IndexedMzMLDecoder(self); })
         .def("__deepcopy__", [](const OpenMS::IndexedMzMLDecoder& self, nb::dict) { return OpenMS::IndexedMzMLDecoder(self); }, "memo"_a)
-        .def("findIndexListOffset", [](OpenMS::IndexedMzMLDecoder& self, const std::string& filename, int buffersize) { return self.findIndexListOffset(filename, buffersize); }, "filename"_a, "buffersize"_a = 1023, 
+        .def("findIndexListOffset", [](OpenMS::IndexedMzMLDecoder& self, const std::string& filename, int buffersize) { return static_cast<long long>(self.findIndexListOffset(filename, buffersize)); }, "filename"_a, "buffersize"_a = 1023, 
             R"doc(
 Tries to extract the indexList offset from an indexedmzML
 
@@ -1197,7 +1197,7 @@ numerical characters that follow
     nb::class_<OpenMS::IndexedMzMLFileLoader>(m, "IndexedMzMLFileLoader", "A class to load an indexedmzML file")
         .def(nb::init<>())
         .def("getOptions", [](OpenMS::IndexedMzMLFileLoader& self) -> OpenMS::PeakFileOptions { return self.getOptions(); }, "Returns the options for loading/storing")
-        .def("setOptions", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "Sets the options for loading/storing")
+        .def("setOptions", [](OpenMS::IndexedMzMLFileLoader& self, const OpenMS::PeakFileOptions& p0) { return self.setOptions(p0); }, "options"_a, "Sets the options for loading/storing")
         .def("load", [](OpenMS::IndexedMzMLFileLoader& self, const std::string& filename, OpenMS::OnDiscMSExperiment& exp) { nb::gil_scoped_release release; return self.load(filename, exp); }, "filename"_a, "exp"_a, 
             R"doc(
 Load a file
@@ -1576,10 +1576,10 @@ result as Chromatogram
         // the original both delete (a double free).
         .def("__copy__", [](const OpenMS::MzMLSwathFileConsumer&) -> nb::object { throw nb::type_error("MzMLSwathFileConsumer cannot be copied"); })
         .def("__deepcopy__", [](const OpenMS::MzMLSwathFileConsumer&, nb::dict) -> nb::object { throw nb::type_error("MzMLSwathFileConsumer cannot be copied"); }, "memo"_a)
-        .def("setExpectedSize", [](OpenMS::MzMLSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::MzMLSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("setExperimentalSettings", [](OpenMS::MzMLSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::MzMLSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
-        .def("consumeChromatogram", [](OpenMS::MzMLSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
+        .def("consumeChromatogram", [](OpenMS::MzMLSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); }, "chromatogram"_a)
         .def("consumeSpectrum", [](OpenMS::MzMLSwathFileConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         ;
 
@@ -1677,9 +1677,9 @@ valid MSDataWritingConsumer object or pointer but no operation is
 required
 )doc")
         .def(nb::init<std::string>())
-        .def("setExperimentalSettings", [](OpenMS::NoopMSDataWritingConsumer& self, const OpenMS::ExperimentalSettings& p0) { return self.setExperimentalSettings(p0); })
-        .def("consumeSpectrum", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSSpectrum& p0) { return self.consumeSpectrum(p0); })
-        .def("consumeChromatogram", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
+        .def("setExperimentalSettings", [](OpenMS::NoopMSDataWritingConsumer& self, const OpenMS::ExperimentalSettings& p0) { return self.setExperimentalSettings(p0); }, "exp"_a)
+        .def("consumeSpectrum", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSSpectrum& p0) { return self.consumeSpectrum(p0); }, "spectrum"_a)
+        .def("consumeChromatogram", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); }, "chromatogram"_a)
         .def("setExpectedSize", [](OpenMS::NoopMSDataWritingConsumer& self, size_t expectedSpectra, size_t expectedChromatograms) { return self.setExpectedSize(expectedSpectra, expectedChromatograms); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("addDataProcessing", [](OpenMS::NoopMSDataWritingConsumer& self, OpenMS::DataProcessing d) { return self.addDataProcessing(d); }, "d"_a)
         .def("getNrSpectraWritten", [](OpenMS::NoopMSDataWritingConsumer& self) { return self.getNrSpectraWritten(); })
@@ -2294,10 +2294,10 @@ Groups MS2 spectra by their precursor m/z into SWATH windows
         .def("__copy__", [](const OpenMS::RegularSwathFileConsumer& self) { return OpenMS::RegularSwathFileConsumer(self); })
         .def("__deepcopy__", [](const OpenMS::RegularSwathFileConsumer& self, nb::dict) { return OpenMS::RegularSwathFileConsumer(self); }, "memo"_a)
         .def(nb::init<std::vector<OpenSwath::SwathMap>>())
-        .def("setExpectedSize", [](OpenMS::RegularSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); })
+        .def("setExpectedSize", [](OpenMS::RegularSwathFileConsumer& self, size_t p0, size_t p1) { return self.setExpectedSize(p0, p1); }, "expectedSpectra"_a, "expectedChromatograms"_a)
         .def("setExperimentalSettings", [](OpenMS::RegularSwathFileConsumer& self, const OpenMS::ExperimentalSettings& exp) { return self.setExperimentalSettings(exp); }, "exp"_a)
         .def("retrieveSwathMaps", [](OpenMS::RegularSwathFileConsumer& self) { std::vector<OpenSwath::SwathMap> maps; self.retrieveSwathMaps(maps); return maps; })
-        .def("consumeChromatogram", [](OpenMS::RegularSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); })
+        .def("consumeChromatogram", [](OpenMS::RegularSwathFileConsumer& self, OpenMS::MSChromatogram& p0) { return self.consumeChromatogram(p0); }, "chromatogram"_a)
         .def("consumeSpectrum", [](OpenMS::RegularSwathFileConsumer& self, OpenMS::MSSpectrum& s) { return self.consumeSpectrum(s); }, "s"_a)
         ;
 
@@ -2525,8 +2525,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XICParquetFile& self) { return OpenMS::XICParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XICParquetFile& self, nb::dict) { return OpenMS::XICParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); })
-        .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
+        .def("getFilename", [](const OpenMS::XICParquetFile& self) { return self.getFilename(); }, "Returns the primary filename (the first one for a multi-file reader)")
+        .def("getFilenames", [](const OpenMS::XICParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, "Returns all filenames read by this reader")
 
         .def("getColumns", [](const OpenMS::XICParquetFile& self) {
             std::vector<std::string> columns;
@@ -2724,8 +2724,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XIMParquetFile& self) { return OpenMS::XIMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIMParquetFile& self, nb::dict) { return OpenMS::XIMParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH mobilogram Parquet files (.xim).")
-        .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
+        .def("getFilename", [](const OpenMS::XIMParquetFile& self) { return self.getFilename(); }, "Returns the primary filename (the first one for a multi-file reader)")
+        .def("getFilenames", [](const OpenMS::XIMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, "Returns all filenames read by this reader")
 
         .def("getColumns", [](const OpenMS::XIMParquetFile& self) {
             std::vector<std::string> columns;
@@ -2936,8 +2936,8 @@ or chromatograms only (SRM/MRM) and forwards to the appropriate loader.
         .def(nb::init<std::vector<std::string>>())
         .def("__copy__", [](const OpenMS::XIPMParquetFile& self) { return OpenMS::XIPMParquetFile(self); })
         .def("__deepcopy__", [](const OpenMS::XIPMParquetFile& self, nb::dict) { return OpenMS::XIPMParquetFile(self); }, "memo"_a)
-        .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Reader for multiple OpenSWATH peak-map Parquet files (.xipm).")
-        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); })
+        .def("getFilename", [](const OpenMS::XIPMParquetFile& self) { return self.getFilename(); }, "Returns the primary filename (the first one for a multi-file reader)")
+        .def("getFilenames", [](const OpenMS::XIPMParquetFile& self) -> const std::vector<std::string> & { return self.getFilenames(); }, "Returns all filenames read by this reader")
 
         .def("getColumns", [](const OpenMS::XIPMParquetFile& self) {
             std::vector<std::string> columns;
@@ -3380,7 +3380,7 @@ Read a set of chromatograms (potentially restricted to a subset)
 :param indices: A list of indices restricting the resulting chromatograms only to those specified here
 :param meta_only: Only read the meta data
 )doc")
-        .def("getNrSpectra", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrSpectra(); }, "Returns number of spectra in the file, reutrns the number of spectra")
+        .def("getNrSpectra", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrSpectra(); }, "Returns the number of spectra in the file")
         .def("getNrChromatograms", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getNrChromatograms(); }, "Returns the number of chromatograms in the file")
         .def("getRunID", [](const OpenMS::Internal::MzMLSqliteHandler& self) { return self.getRunID(); }, "Extract the `RUN` ID from the sqMass file")
         .def("getSpectraIndicesbyRT", [](const OpenMS::Internal::MzMLSqliteHandler& self, double RT, double deltaRT, const std::vector<int>& indices) { return self.getSpectraIndicesbyRT(RT, deltaRT, indices); }, "RT"_a, "deltaRT"_a, "indices"_a, 

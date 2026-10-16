@@ -49,7 +49,10 @@ nitpicky = True
 nitpick_ignore = []
 # types from outside pyOpenMS that appear in the nanobind signatures
 nitpick_ignore_regex = [
-    ("py:class", r"(collections\.abc|typing|enum|os|numpy|pandas|pyarrow)\..*"),
+    (
+        "py:class",
+        r"(collections\.abc|typing|enum|os|ctypes|numpy|pandas|pyarrow|matplotlib)\..*",
+    ),
 ]
 
 autosummary_generate = True

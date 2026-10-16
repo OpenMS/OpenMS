@@ -67,7 +67,7 @@ be used. The base classes of :py:class:`~.MSExperiment`, which contain further
 information, are named in the first line of the output and in the
 ``Method resolution order`` section.
 The list of available methods is long and reveals that the class exposes methods such as
-:py:meth:`~.MSExperiment.getNrSpectra` and :py:meth:`~.MSExperiment.getSpectrum(id)` where the argument ``id`` is
+:py:meth:`~.MSExperiment.getNrSpectra` and :py:meth:`getSpectrum(id) <.MSExperiment.getSpectrum>` where the argument ``id`` is
 the index of the spectrum; the methods inherited from the base classes follow at the end,
 under ``Methods inherited from``. The command also lists the signature for each
 function, allowing users to identify the function arguments and return types.
@@ -155,7 +155,7 @@ We can now inspect the properties of this object:
 
 
 which indicates that the variable ``exp`` has (among others) the functions
-:py:class:`~.MSExperiment.getNrSpectra` and :py:class:`~.MSExperiment.getNrChromatograms`. We can now try these functions:
+:py:meth:`~.MSExperiment.getNrSpectra` and :py:meth:`~.MSExperiment.getNrChromatograms`. We can now try these functions:
 
 .. code-block:: python
 
@@ -261,7 +261,7 @@ We can iterate through the spectra as follows:
     MS Level: 1
     MS Level: 1
 
-This iterates through all available :py:class:`~.MSSpectra`, we can also access spectra through the ``[]`` operator:
+This iterates through all available spectra (:py:class:`~.MSSpectrum`), we can also access spectra through the ``[]`` operator:
 
 .. code-block:: python
 
