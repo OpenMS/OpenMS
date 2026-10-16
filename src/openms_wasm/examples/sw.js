@@ -50,22 +50,26 @@ const version = (async () => {
 const moduleCache = async () => caches.open(`openms-module-${await version}`);
 const appCache = async () => caches.open(`openms-app-${await version}`);
 
+/// From the server, past the browser's HTTP cache, which may still hold the files of the previous
+/// version (GitHub Pages: max-age=600): revalidated, i.e. a 304 where nothing changed.
+const fromServer = (request) => fetch(request, { cache: "no-cache" });
+
 /// From the store; the first time from the network, stored and answered from the store.
 async function cacheFirst(request) {
   const cache = await moduleCache();
   const hit = await cache.match(request);
   if (hit) return hit;
-  const response = await fetch(request);
+  const response = await fromServer(request);
   if (!response.ok) return response;
   await cache.put(request, response);
-  return (await cache.match(request)) ?? fetch(request);
+  return (await cache.match(request)) ?? fromServer(request);
 }
 
 /// From the network, stored; from the store when the network fails.
 async function networkFirst(request) {
   const cache = await appCache();
   try {
-    const response = await fetch(request);
+    const response = await fromServer(request);
     if (response.ok) await cache.put(request, response.clone());
     return response;
   } catch (error) {
