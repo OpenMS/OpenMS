@@ -531,10 +531,13 @@ std::string ZipArchiveFile::extractEntryToTempFile(const std::string& archive_pa
                                   "Zip entry has absolute path", entry_name);
   }
 
-  const std::filesystem::path outpath = (std::filesystem::u8path(std::string(base)) / entry_path).lexically_normal();
-  const std::string base_str = std::filesystem::u8path(std::string(base)).string();
-  const std::string out_str = outpath.string();
-  if (out_str.size() < base_str.size() || out_str.compare(0, base_str.size(), base_str) != 0)
+  // As in unzipDirectory(): the base is normalized as the output path is (on Windows lexically_normal() turns the '/'
+  // in the TempDir path into '\', so comparing strings with the unnormalized base rejected every entry), and path
+  // elements are compared, not strings
+  const std::filesystem::path base_path = std::filesystem::u8path(std::string(base)).lexically_normal();
+  const std::filesystem::path outpath = (base_path / entry_path).lexically_normal();
+  const std::filesystem::path relative = outpath.lexically_relative(base_path);
+  if (relative.empty() || *relative.begin() == "..")
   {
     zip_fclose(zf);
     zip_close(za);

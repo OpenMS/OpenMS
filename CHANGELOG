@@ -282,6 +282,10 @@ OpenMS Library:
     is extracted for the metadata. isImagingDataset() now recognizes zipped MALDI imaging runs, so
     FileHandler::loadExperiment() and transformExperiment() reject them as they reject .d directories, and
     loadImagingExperiment() loads them (#10596).
+  - FIX: ZipArchiveFile::extractEntryToTempFile() rejected every entry as "would extract outside target directory"
+    when the path of the temporary directory was not in normal form: always on Windows, where it holds both '/' and
+    '\', and elsewhere with a temporary directory ending in '/' (e.g. TMPDIR on macOS). It now checks containment as
+    unzipDirectory() does. This affected zipped .oswpq archives and the .d.zip support of BrukerTimsImagingFile.
   - FIX: BrukerTimsFile rejects MALDI imaging runs (.d or .d.zip) with InvalidFileType unless the export mode is
     FRAME, which BrukerTimsImagingFile uses; readDIAMetadata() and loadDIAStreaming() reject them in any case.
     The tools that read .d with BrukerTimsFile directly instead of FileHandler read them as DDA or DIA data,
