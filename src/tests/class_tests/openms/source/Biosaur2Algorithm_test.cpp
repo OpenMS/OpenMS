@@ -65,9 +65,9 @@ namespace
   }
 
   // Isotope traces (M..M+3) of a doubly charged peptide with monoisotopic m/z 700, with averagine
-  // intensities. The monoisotopic trace elutes with its apex 14 s before the isotopes, beyond the
+  // intensities. The monoisotopic trace elutes with its apex 12 s before the isotopes, beyond the
   // default RT apex tolerance (hrttol = 10 s) but still co-eluting (wide, overlapping profiles).
-  vector<SimulatedTrace> peptideTraces(double mono_apex_rt = 46.0)
+  vector<SimulatedTrace> peptideTraces(double mono_apex_rt = 48.0)
   {
     const double mono_mz = 700.0;
     const int charge = 2;
@@ -577,7 +577,7 @@ START_SECTION([EXTRA] run() does not move the monoisotopic peak onto an interfer
   for (double relative_height : {0.05, 10.0})
   {
     vector<SimulatedTrace> traces = peptideTraces(60.0);
-    traces.push_back({interferer_mz, 46.0, relative_height * 1.0e6});
+    traces.push_back({interferer_mz, 48.0, relative_height * 1.0e6});
     FeatureMap features = runBiosaur2(simulateExperiment(traces));
     TEST_EQUAL(features.size(), 1)
     ABORT_IF(features.size() != 1)

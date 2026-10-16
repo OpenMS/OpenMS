@@ -17,6 +17,12 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ------------------------------------------------------------------------------------------
 
 OpenMS Library:
+  - Biosaur2Algorithm (FeatureFinderLFQ, ProteomicsLFQ biosaur2 seeding): isotope patterns are scored against the
+    peptide averagine (C, H, N, O, S isotopes) of the neutral monoisotopic mass; isotope_model 'carbon_only' restores
+    the carbon-only binomial model of the Python reference. New mono_correction step (on by default): a feature whose
+    pattern was anchored on the first isotope is moved to an unassigned, co-eluting hill one isotope spacing below
+    it if that hill fits the averagine as monoisotopic peak. On the PyOpenMSCourse UPS1 run this corrects 95 of 7367
+    features, among them intense peptides whose monoisotopic hill had lost its isotopes in the RT apex filter.
   - ConsensusMapNormalizerAlgorithmRTLocal: normalizes each map of a consensus map by a log2 offset that may vary
     with retention time, estimated as the median deviation of the features quantified in several maps among the
     neighbouring features in retention time (the run normalisation of andes). It removes both different loading

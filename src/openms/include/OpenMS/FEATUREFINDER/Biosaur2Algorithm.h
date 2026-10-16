@@ -619,11 +619,12 @@ private:
     candidate starting at the true monoisotopic peak can be lost (e.g. through the RT apex or
     isotope calibration filters), leaving the pattern anchored at the first isotope. For each
     feature (most intense first) this looks for a hill one isotope spacing below the reported
-    monoisotopic peak that is not part of any feature, co-elutes with it and matches it in m/z
-    and ion mobility. That hill becomes the new monoisotopic peak if the averagine fit of the
-    observed intensities is better with it as monoisotopic peak than with the current alignment
-    (which predicts no signal there), and the intensity ratio of the two peaks is within a
-    factor of three of the averagine expectation. The step is repeated while it succeeds.
+    monoisotopic peak that is not part of any feature, co-elutes with it (elution profile cosine
+    of at least 0.8) and matches it in m/z and ion mobility. That hill becomes the new
+    monoisotopic peak if the averagine fit of the observed intensities is better with it as
+    monoisotopic peak than with the current alignment (which predicts no signal there), and the
+    intensity ratio of the two peaks is within a factor of two of the averagine expectation.
+    The step is repeated while it succeeds.
 
     @param[in,out] features Selected peptide features (corrected in place)
     @param[in] hills All hills (sorted by m/z)

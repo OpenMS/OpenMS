@@ -3011,10 +3011,12 @@ Size Biosaur2Algorithm::correctMonoisotopicPeaks_(vector<PeptideFeature>& featur
   }
 
   const double ISOTOPE_MASSDIFF = Constants::C13C12_MASSDIFF_U;
-  // Minimum elution profile similarity, as required when linking isotope hills.
-  const double min_cos_rt = 0.6;
-  // Maximum deviation (factor) of the new/old monoisotopic intensity ratio from the averagine expectation.
-  const double max_ratio_deviation = 3.0;
+  // Re-anchoring changes the reported mass by one isotope spacing, so the evidence has to be stronger
+  // than for linking isotope hills during assembly (elution profile cosine >= 0.6, no ratio check).
+  // Minimum elution profile similarity of the new and the current monoisotopic hill:
+  const double min_cos_rt = 0.8;
+  // Maximum deviation (factor) of their intensity ratio from the averagine expectation:
+  const double max_ratio_deviation = 2.0;
   // A pattern can be shifted by more than one position if several leading peaks were missed.
   const int max_shifts = 3;
 
