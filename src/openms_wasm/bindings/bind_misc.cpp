@@ -89,6 +89,17 @@ namespace OpenMS::WASM
       return info;
     }
 
+    /// Whether the module includes ONNX Runtime (built with WITH_ONNX): machine-learning models
+    /// such as PeptDeep's, e.g. for ProSE's 'peptdeep:enable'.
+    bool hasONNXRuntime()
+    {
+#ifdef WITH_ONNX
+      return true;
+#else
+      return false;
+#endif
+    }
+
     /// The size of the module's memory and the most it can grow to, in bytes. WebAssembly memory
     /// grows but never shrinks: after a computation, heapSize is its high-water mark.
     JS::MemoryInfo memoryInfo()
@@ -154,6 +165,7 @@ EMSCRIPTEN_BINDINGS(openms_misc)
   function("isLogEnabled", OMS_FN(&isLogEnabled));
   function("getThreadingInfo", OMS_FN(&threadingInfo));
   function("getMemoryInfo", OMS_FN(&memoryInfo));
+  function("hasONNXRuntime", OMS_FN(&hasONNXRuntime));
   function("mountHostDirectory", OMS_FN(&mountHostDirectory));
   function("unmount", OMS_FN(&unmountDirectory));
 }

@@ -200,6 +200,51 @@ chunking (it needs more than 16 GB without); Embind would also pass `size_t` as 
 8 to 16 hardly shortened these searches: decoy generation, parts of the index build and reading
 the spectra are serial.
 
+### Machine learning: ONNX Runtime and PeptDeep
+
+A module built with the CMake preset `wasm32-emscripten-mt-onnx-release` (`WITH_ONNX`, threaded)
+contains ONNX Runtime; `OpenMS.hasONNXRuntime()` says whether a module has it. ProSE's
+`peptdeep:enable` then works as natively: PeptDeep (AlphaPeptDeep) predicts the fragment
+intensities and the retention time of every PSM, and their agreement with the spectrum becomes
+five more Percolator features (`ms2_cosine`, `ms2_spectral_angle`, `ms2_pearson`,
+`ms2_frac_pred_found`, `rt_abs_error`). The models are not part of the module: the build copies
+them to `models/` of the package (MS2 15.5 MB, retention time 2.7 MB; from
+https://archive.openms.de/openms/models). Write them to the module's file system and name them by
+absolute path (`/share/OpenMS` of the module is read-only, so the default names do not resolve):
+
+```js
+const models = { "peptdeep:ms2_model": "peptdeep_ms2_dynamic.onnx", "peptdeep:rt_model": "peptdeep_rt_dynamic.onnx" };
+OpenMS.FS.mkdir("/models");                         // Node.js: OpenMS.mountHostDirectory("/models", "<package>/models")
+const parameters = { "peptdeep:enable": true };
+for (const [parameter, name] of Object.entries(models)) {
+  OpenMS.FS.writeFile(`/models/${name}`, new Uint8Array(await (await fetch(`models/${name}`)).arrayBuffer()));
+  parameters[parameter] = `/models/${name}`;
+}
+prose.setParameterValues(parameters);
+```
+
+The ProSE web application offers this as an option next to Percolator and loads the models on
+first use (the service worker caches them); `examples/node/prose.mjs --peptdeep` mounts them. ONNX
+Runtime computes with WebAssembly SIMD on one pool of as many threads as OpenMP, shared by all
+sessions (ONNX Runtime's WebAssembly build uses global thread pools); `threads.js` starts their Web
+Workers with the module. The predictions are those of native OpenMS: the PeptDeep class tests,
+compiled to WebAssembly, pass (largest difference from Python's ONNX Runtime: 1.2e-7 for retention
+times, 1.1e-6 for fragment intensities), and with the same NCE the five features of 896 PSMs differ
+from native ProSE's by at most 3.3e-7. Measured on the data of TOPP_ProSE_11_rescore (2,789 MS2
+spectra, 896 PSMs, 16 threads):
+
+| | Native ProSE | Node.js | Chromium |
+|---|---|---|---|
+| search with Percolator | 9.4 s | 10.6 s | 11.2 s |
+| with PeptDeep features | 12.2 s | 13.9 s | 12.7 s (14.5 s the first time: models) |
+| memory with PeptDeep | 0.17 GB | 0.8 GB | 1.0 GB |
+
+ONNX Runtime makes `openms.wasm` 42.6 MB instead of 29.1 MB (gzip: 10.3 instead of 6.8 MB); the
+models are 17 MB (gzip). The automatic NCE (`peptdeep:nce` -1) picks the grid point with the best
+median cosine; where the grid is nearly flat, rounding differences between platforms can pick
+another point (here 26 natively, 36 in WebAssembly, median cosines 0.55504 and 0.55503) and with it
+other feature values.
+
 ### Errors
 
 An OpenMS exception becomes a JavaScript `Error` whose message names it, e.g.
@@ -311,6 +356,14 @@ cmake -DSINGLE=build/wasm32-emscripten-release/openms-wasm \
       -DMULTI=build/wasm32-emscripten-mt-release/openms-wasm \
       -DOUTPUT=build/openms-wasm-package -P src/openms_wasm/assemble_package.cmake
 ```
+
+The preset `wasm32-emscripten-mt-onnx-release` is the threaded build with ONNX Runtime (`WITH_ONNX`,
+vcpkg feature `onnxruntime`; see "Machine learning" above). vcpkg builds ONNX Runtime for the
+`wasm32-emscripten-mt` triplet in about two minutes, with the ports of
+`vcpkg-overlays/emscripten/ports`: `onnxruntime` as static libraries with WebAssembly SIMD and
+threads, without LTO, onnxruntime-web's JavaScript module or cpuinfo; `onnx` without static schema
+registration (ONNX Runtime registers the schemas itself). The build downloads the PeptDeep models
+and copies them to `models/` of the package.
 
 The npm package is written to `build/wasm32-emscripten-release/openms-wasm/`
 (`openms.mjs`, `openms.wasm`, `openms.d.ts`, `package.json`); `npm pack`

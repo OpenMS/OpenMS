@@ -7,31 +7,35 @@
 //                             --set "modifications:fixed=Carbamidomethyl (C)"
 //     --out <file.idXML>      write the identifications
 //     --no-rescore            keep ProSE's scores (default: rescore the PSMs with Percolator)
+//     --peptdeep              add PeptDeep features for Percolator (a module with ONNX Runtime; the
+//                             models are read from models/ of the package)
 //     --json                  print the summary as JSON
 //
 // Run from the package directory (or adjust the import to "@openms/openms-wasm").
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import createOpenMS from "../../openms.mjs";
 
 const args = process.argv.slice(2);
 const positional = [];
 const settings = {};
-let threads, out, json = false, rescore = true;
+let threads, out, json = false, rescore = true, peptdeep = false;
 for (let i = 0; i < args.length; ++i) {
   const a = args[i];
   if (a === "--threads") threads = Number(args[++i]);
   else if (a === "--out") out = args[++i];
   else if (a === "--json") json = true;
   else if (a === "--no-rescore") rescore = false;
+  else if (a === "--peptdeep") peptdeep = true;
   else if (a === "--set") {
     const [name, ...rest] = args[++i].split("=");
     settings[name] = rest.join("=");
   } else positional.push(a);
 }
 if (positional.length !== 2) {
-  console.error("usage: node prose.mjs <spectra.mzML> <database.fasta> [--threads n] [--set name=value]... [--out file.idXML] [--json]");
+  console.error("usage: node prose.mjs <spectra.mzML> <database.fasta> [--threads n] [--set name=value]... [--out file.idXML] [--json] [--no-rescore] [--peptdeep]");
   process.exit(1);
 }
 
@@ -63,6 +67,13 @@ for (const [name, text] of Object.entries(settings)) {
   const list = text === "" ? [] : text.split(",").map((s) => s.trim());
   values[name] = { "int": Number(text), "double": Number(text), "bool": text === "true", "string[]": list,
                    "int[]": list.map(Number), "double[]": list.map(Number) }[entry.type] ?? text;
+}
+// PeptDeep: the models of the package, mounted at /models
+if (peptdeep) {
+  if (!OpenMS.hasONNXRuntime()) throw new Error("--peptdeep: this OpenMS module was built without ONNX Runtime");
+  OpenMS.mountHostDirectory("/models", fileURLToPath(new URL("../../models", import.meta.url)));
+  Object.assign(values, { "peptdeep:enable": true, "peptdeep:ms2_model": "/models/peptdeep_ms2_dynamic.onnx",
+                          "peptdeep:rt_model": "/models/peptdeep_rt_dynamic.onnx" });
 }
 prose.setParameterValues(values);
 

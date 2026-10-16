@@ -516,9 +516,34 @@ $("download-tsv").addEventListener("click", () => {
 
 //------------------------------------------------------------------------------
 
+/// The PeptDeep checkbox next to Percolator's: a module with ONNX Runtime only; it sets the parameter
+/// peptdeep:enable (under All parameters), and the features need Percolator.
+function setUpPeptDeep(onnx) {
+  const field = document.querySelector('#settings [data-type][data-name="peptdeep:enable"]');
+  if (!field) return;
+  if (!onnx) {
+    field.disabled = true;
+    field.parentElement.title = "This OpenMS module was built without ONNX Runtime.";
+    return;
+  }
+  $("peptdeep-box").hidden = false;
+  const sync = () => {
+    $("peptdeep").disabled = !$("rescore").checked;
+    field.checked = $("peptdeep").checked && $("rescore").checked;
+  };
+  $("peptdeep").addEventListener("change", sync);
+  $("rescore").addEventListener("change", sync);
+  field.addEventListener("change", () => {
+    $("peptdeep").checked = field.checked;
+    sync();
+  });
+  sync();
+}
+
 try {
   const info = await loadOpenMS();
   buildForm(info.parameters);
+  setUpPeptDeep(info.onnx);
 } catch (e) {
   status("OpenMS could not be loaded.");
   $("error").textContent = e.message;

@@ -7,7 +7,8 @@
 //     worker script, which hosts like GitHub Pages do not send. The worker adds them to those
 //     responses (and to nothing else: see 2). On its first visit the page reloads once, so that
 //     the worker serves it (sw-client.mjs).
-//  2. Caching the module. openms.wasm is 30 MB, and Chrome keeps its compiled code only for a
+//  2. Caching the module, and the models of a module with ONNX Runtime (models/*.onnx, fetched
+//     when first used). openms.wasm is 30 MB, and Chrome keeps its compiled code only for a
 //     module it could cache. Module files are served from the Cache API: on the first request
 //     the worker stores the file and answers from the store at once, after which Chrome keeps the
 //     compiled code and the module starts and runs faster from the second visit on (a search
@@ -21,7 +22,7 @@
 
 const META_CACHE = "openms-meta";
 const APP_DIR = new URL("./", self.location.href).pathname;            // examples/
-const MODULE_FILE = /\/(openms\.(wasm|mjs|data)|index\.mjs)$/;           // the module and the loader
+const MODULE_FILE = /\/(openms\.(wasm|mjs|data)|index\.mjs|models\/[^/]+\.onnx)$/; // the module, the loader, its models
 
 async function versionFromNetwork() {
   try {

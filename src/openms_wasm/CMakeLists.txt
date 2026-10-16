@@ -134,6 +134,12 @@ set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${_share_stamp}")
 ## memory (not cross-origin isolated), where the module then runs single-threaded. A
 ## fixed pool size would make the module hang at startup on such pages.
 if(OPENMS_WASM_THREADS)
+  ## ONNX Runtime starts a pool of threads of its own (onnx.js; before threads.js, which counts them).
+  ## SHELL: CMake would drop the second "--pre-js" as a duplicate option
+  if(WITH_ONNX)
+    target_link_options(openms_wasm PRIVATE "SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/onnx.js\"")
+    set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/onnx.js")
+  endif()
   target_link_options(openms_wasm PRIVATE
     "--pre-js" "${CMAKE_CURRENT_SOURCE_DIR}/threads.js"
     "-sPTHREAD_POOL_SIZE=openmsThreadPoolSize"
@@ -158,6 +164,13 @@ add_custom_command(TARGET openms_wasm POST_BUILD
   # the demo web application (not part of the npm package: see "files" in package.json)
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/examples" "${OPENMS_WASM_PACKAGE_DIR}/examples"
   VERBATIM)
+## ONNX Runtime: the PeptDeep models next to the module (models/, not part of the npm package
+## either), for applications to load when needed: 22 MB that most uses of the module do not need.
+if(WITH_ONNX)
+  add_custom_command(TARGET openms_wasm POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${OPENMS_PEPTDEEP_MODEL_DIR}" "${OPENMS_WASM_PACKAGE_DIR}/models"
+    VERBATIM)
+endif()
 
 #------------------------------------------------------------------------------
 # Tests: the bindings, run with Node.js (node --test)

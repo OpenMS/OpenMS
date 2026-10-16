@@ -4,7 +4,9 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { loadOpenMS, using, assertClose } from "./helpers.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import { loadOpenMS, modulePath, using, assertClose } from "./helpers.mjs";
 
 const OpenMS = await loadOpenMS();
 
@@ -160,6 +162,46 @@ test("ProSEAlgorithm: Percolator rescoring, in-process", () => {
       // the parameters are as set (the search ran with the FDR filters deferred)
       assert.equal(prose.getParameterValues()["FDR:PSM"], 0.05);
     });
+});
+
+// A module with ONNX Runtime (WITH_ONNX): ProSE's PeptDeep features, with the models of the package
+// (models/ next to openms.mjs). The PeptDeep class tests check the predictions themselves.
+test("ProSEAlgorithm: PeptDeep features for Percolator (ONNX Runtime)", (t) => {
+  const models = path.join(path.dirname(modulePath), "models");
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  assert.ok(fs.existsSync(path.join(models, "peptdeep_ms2_dynamic.onnx")), `the models are in ${models}`);
+  OpenMS.mountHostDirectory("/models", models);
+  try {
+    using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+      (prose, proteins, peptides) => {
+        prose.setParameterValues({
+          "enzyme": "Trypsin", "decoys": "generate",
+          "precursor:mass_tolerance_lower": 20, "precursor:mass_tolerance_upper": 20, "precursor:mass_tolerance_unit": "ppm",
+          "fragment:mass_tolerance": 10, "fragment:mass_tolerance_unit": "ppm",
+          "modifications:fixed": ["Carbamidomethyl (C)"], "modifications:variable": ["Oxidation (M)"],
+          "FDR:PSM": 0.01, "FDR:protein": 0,
+          "peptdeep:enable": true,
+          "peptdeep:ms2_model": "/models/peptdeep_ms2_dynamic.onnx", "peptdeep:rt_model": "/models/peptdeep_rt_dynamic.onnx",
+        });
+        const summary = prose.search("/topp/THIRDPARTY/DatabaseSuitability_in_spec.mzML", "/topp/THIRDPARTY/DatabaseSuitability_database.fasta",
+          proteins, peptides, { rescore: true });
+        assert.equal(summary.status, "EXECUTION_OK");
+        assert.equal(summary.percolator.applied, true, summary.percolator.skipped ?? "");
+        const ids = peptides.toArray().filter((id) => id.hits.length > 0);
+        assert.ok(ids.length > 500, `${ids.length} PSMs`);
+        const features = ["ms2_cosine", "ms2_spectral_angle", "ms2_pearson", "ms2_frac_pred_found", "rt_abs_error"];
+        for (const id of ids) {
+          const meta = id.hits[0].metaValues;
+          for (const f of features) assert.equal(typeof meta[f], "number", `${f} of ${id.hits[0].sequence}`);
+          assert.ok(meta.ms2_cosine >= -1 && meta.ms2_cosine <= 1);
+        }
+        // the predictions agree with the spectra of most target PSMs
+        const cosines = ids.filter((id) => !id.hits[0].isDecoy).map((id) => id.hits[0].metaValues.ms2_cosine).sort((a, b) => a - b);
+        assert.ok(cosines[Math.floor(cosines.length / 2)] > 0.5, `median cosine ${cosines[Math.floor(cosines.length / 2)]}`);
+      });
+  } finally {
+    OpenMS.unmount("/models");
+  }
 });
 
 test("ProSEAlgorithm reports its progress", () => {

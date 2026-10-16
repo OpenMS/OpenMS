@@ -32,15 +32,17 @@ var openmsNumThreads = (() => {
 /**
  * Workers started with the module. Node.js: none (it starts them on demand). Browsers: one
  * per thread of a team but the calling one; three for the helper threads OpenMS starts besides
- * OpenMP (e.g. the writers of OpenSwath); and the OpenMP team of such a helper thread: ProSE
+ * OpenMP (e.g. the writers of OpenSwath); the OpenMP team of such a helper thread: ProSE
  * reads the spectra on a helper thread with a quarter of the threads (at least 2, at most 16)
- * while the calling thread's team builds the index. A thread that finds the pool empty waits
- * for a new Worker, which cannot start while its creator blocks: the search would hang.
+ * while the calling thread's team builds the index; and in a module with ONNX Runtime (onnx.js),
+ * the threads of its pool but the calling one. A thread that finds the pool empty waits for a
+ * new Worker, which cannot start while its creator blocks: the search would hang.
  */
 var openmsThreadPoolSize = (() => {
   if ((typeof process == "object" && process.versions?.node) || openmsNumThreads == 1) return 0;
   const helperTeam = Math.min(Math.max(Math.floor(openmsNumThreads / 4), Math.min(openmsNumThreads, 2)), 16);
-  return (openmsNumThreads - 1) + 3 + (helperTeam - 1);
+  const onnx = typeof openmsOnnxThreads != "undefined" ? openmsNumThreads - 1 : 0;
+  return (openmsNumThreads - 1) + 3 + (helperTeam - 1) + onnx;
 })();
 
 /**

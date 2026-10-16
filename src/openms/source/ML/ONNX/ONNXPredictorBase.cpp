@@ -9,6 +9,7 @@
 #include <OpenMS/ML/ONNX/ONNXPredictorBase.h>
 #include "ONNXEnvironment.h"
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <onnxruntime_cxx_api.h>
 #include <stdexcept>
 
@@ -44,7 +45,13 @@ namespace OpenMS
             session_ = std::make_unique<Ort::Session>(getONNXEnvironment(), model_path.c_str(), *session_options_);
 #endif
         } catch (const Ort::Exception& e) {
-            throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_path);
+            // a model that is there but does not load: ONNX Runtime's message says why
+            if (!File::exists(model_path))
+            {
+                throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_path);
+            }
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_path,
+                                        std::string("ONNX Runtime cannot load the model: ") + e.what());
         }
     }
 

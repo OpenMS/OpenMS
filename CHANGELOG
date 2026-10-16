@@ -431,6 +431,13 @@ Build System:
     directly); Node.js mounts host directories with mountHostDirectory(). The demo applications
     register a service worker that caches the module (Chrome then keeps its compiled code) and
     isolates the page for threads on servers without the COOP/COEP headers.
+  - WebAssembly: ONNX Runtime in the threaded module (CMake preset wasm32-emscripten-mt-onnx-release,
+    vcpkg overlay ports onnxruntime and onnx for WebAssembly): ProSE's PeptDeep rescoring features
+    (peptdeep:enable) in browsers and Node.js, hasONNXRuntime(), and a PeptDeep option in the ProSE
+    web application, which loads the models on first use. With WebAssembly threads, OpenMS creates
+    the ONNX Runtime environment with global thread pools, which ONNX Runtime's sessions use there.
+  - ONNX: a model that exists but does not load reports ONNX Runtime's message (ParseError) instead
+    of FileNotFound.
   - New CMake option WITH_CURL (default ON): without libcurl, NetworkGetRequest and
     MascotRemoteQuery report an error when run, and the update check is off.
   - Docker images (dockerfiles/Dockerfile) are built with WITH_ONNX=ON against a pinned ONNX

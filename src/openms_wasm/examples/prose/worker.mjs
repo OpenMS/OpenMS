@@ -4,6 +4,7 @@
 // arrive as {type: "progress", ...} in between.
 
 let OpenMS = null;
+let moduleUrl = null;
 let state = null; // the last search: { proteins, peptides, spectra, byNativeID, fragmentTolerance, fragmentUnit }
 
 /// Plain values of the parameter entries (for the form of the page).
@@ -36,6 +37,33 @@ async function writeInputs(files) {
   for (const file of files) {
     FS.writeFile(`/input/${file.name}`, new Uint8Array(await file.arrayBuffer()));
   }
+}
+
+/// The PeptDeep models of ProSE's PeptDeep features (peptdeep:enable): those next to the module
+/// (models/ of the package), copied to /models of the module's file system on first use. Returns
+/// the parameters that point ProSE there.
+async function peptDeepModels() {
+  const models = { "peptdeep:ms2_model": "peptdeep_ms2_dynamic.onnx", "peptdeep:rt_model": "peptdeep_rt_dynamic.onnx" };
+  const { FS } = OpenMS;
+  try {
+    FS.mkdir("/models");
+  } catch {
+    // there
+  }
+  const parameters = {};
+  for (const [parameter, name] of Object.entries(models)) {
+    const file = `/models/${name}`;
+    try {
+      FS.stat(file);
+    } catch {
+      postMessage({ type: "progress", event: "start", label: "Loading the PeptDeep models...", depth: 0, begin: 0, end: 1, value: 0 });
+      const response = await fetch(new URL(`models/${name}`, moduleUrl));
+      if (!response.ok) throw new Error(`The PeptDeep model ${name} could not be loaded (${response.status} ${response.statusText}).`);
+      FS.writeFile(file, new Uint8Array(await response.arrayBuffer()));
+    }
+    parameters[parameter] = file;
+  }
+  return parameters;
 }
 
 /// The best hit of each PSM as a row of the PSM table.
@@ -79,7 +107,8 @@ function proteinRows(proteins) {
 }
 
 const handlers = {
-  async init({ moduleUrl, numThreads }) {
+  async init({ moduleUrl: url, numThreads }) {
+    moduleUrl = url;
     const { default: createOpenMS } = await import(moduleUrl);
     const options = { print: () => {}, printErr: (line) => console.warn(line) };
     if (numThreads) options.numThreads = numThreads;
@@ -89,6 +118,7 @@ const handlers = {
       version: OpenMS.getVersion(),
       threading: OpenMS.getThreadingInfo(),
       memory: OpenMS.getMemoryInfo(),
+      onnx: OpenMS.hasONNXRuntime?.() ?? false, // (modules before hasONNXRuntime(): none)
       parameters: parameterEntries(),
     };
   },
@@ -96,6 +126,7 @@ const handlers = {
   async search({ spectraFile, databaseFile, parameters, rescore = true }) {
     releaseState();
     await writeInputs([spectraFile, databaseFile]);
+    if (parameters["peptdeep:enable"]) parameters = { ...parameters, ...(await peptDeepModels()) };
     const spectraPath = `/input/${spectraFile.name}`;
     const databasePath = `/input/${databaseFile.name}`;
 

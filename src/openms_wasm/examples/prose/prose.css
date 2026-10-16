@@ -6,6 +6,8 @@ body { max-width: 1180px; }
 .drop-zone.loaded { border-style: solid; border-color: var(--accent); color: var(--fg); }
 
 label.inline { flex-direction: row; align-items: center; gap: 6px; }
+/* (display: inline-flex would override the hidden attribute) */
+label[hidden] { display: none; }
 
 .parameters { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 16px; margin: 8px 0 12px; }
 .parameters label { min-width: 0; }
