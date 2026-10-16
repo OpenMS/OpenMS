@@ -5086,6 +5086,25 @@ foreach(_t DeltaMassStats OutputTable PTMStats)
   set_tests_properties("TOPP_ProSE_12_open_${_t}_out" PROPERTIES DEPENDS "TOPP_ProSE_12_open_pin;TOPP_ProSE_12_open_nopin")
 endforeach()
 
+# Test 13: pooled -out_merged output of two inputs (copies of one file) with the default Percolator rescoring: cross-file
+# protein inference, then the picked-protein FDR at 5 % with the decoys removed. The reference ProSE_13_merged_out.idXML
+# pins this output, so that moving the pooling into the library cannot change it.
+add_test("TOPP_ProSE_13_merged_inputs" ${CMAKE_COMMAND}
+  -DSOURCE=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -DTARGET_A=${TESTS_TEMP_DIR}/ProSE_13_a.mzML -DTARGET_B=${TESTS_TEMP_DIR}/ProSE_13_b.mzML
+  -P ${DATA_DIR_TOPP}/ProSE_13_prepare.cmake)
+add_test("TOPP_ProSE_13_merged" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -Search:FDR:protein 0.05
+  -in ${TESTS_TEMP_DIR}/ProSE_13_a.mzML ${TESTS_TEMP_DIR}/ProSE_13_b.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML)
+set_tests_properties("TOPP_ProSE_13_merged" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_inputs")
+add_test("TOPP_ProSE_13_merged_out" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML
+  -in2 ${DATA_DIR_TOPP}/ProSE_13_merged_out.idXML
+  -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "InferenceEngineVersion" "name=\"fragment_annotation\"")
+set_tests_properties("TOPP_ProSE_13_merged_out" PROPERTIES DEPENDS "TOPP_ProSE_13_merged")
+
 # PeptDeep prediction features: 'peptdeep:enable' is an explicit request, so it must either report
 # how many PSMs received predicted features or fail -- never continue silently without them.
 if(WITH_ONNX)
