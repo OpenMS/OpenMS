@@ -319,7 +319,8 @@ namespace OpenMS
     /// the reader, so the excluded frames are not decoded. The caller applies all options to the spectra afterwards.
     BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options)
     {
-      // The reader emits MS levels 1 and 2.
+      // The reader emits MS levels 1 and 2 only: every frame that is not MS1 (any MsMsType but 0) gives MS2 spectra.
+      // Asking for MS3 or higher alone therefore decodes nothing.
       BrukerTimsFile::Config config;
       if (options.hasMSLevels())
       {

@@ -292,6 +292,9 @@ START_SECTION(([EXTRA] spectra and chromatograms without peaks keep their data a
   empty_chromatogram.getFloatDataArrays().resize(1);
   MSChromatogram chromatogram;
   chromatogram.push_back(ChromatogramPeak(5.0, 50.0));
+  chromatogram.getFloatDataArrays().resize(1);
+  chromatogram.getFloatDataArrays()[0].setName("noise");
+  chromatogram.getFloatDataArrays()[0].push_back(2.5f);
   exp.setChromatograms({empty_chromatogram, chromatogram});
 
   std::string tmp_filename;
@@ -320,6 +323,13 @@ START_SECTION(([EXTRA] spectra and chromatograms without peaks keep their data a
   TEST_EQUAL(read.getChromatograms()[0].size(), 0)
   TEST_EQUAL(read.getChromatograms()[1].size(), 1)
   TEST_REAL_SIMILAR(read.getChromatograms()[1][0].getRT(), 5.0)
+  // the values of a chromatogram's data arrays are read back as well
+  TEST_EQUAL(read.getChromatograms()[1].getFloatDataArrays().size(), 1)
+  ABORT_IF(read.getChromatograms()[1].getFloatDataArrays().size() != 1)
+  TEST_STRING_EQUAL(read.getChromatograms()[1].getFloatDataArrays()[0].getName(), "noise")
+  TEST_EQUAL(read.getChromatograms()[1].getFloatDataArrays()[0].size(), 1)
+  ABORT_IF(read.getChromatograms()[1].getFloatDataArrays()[0].size() != 1)
+  TEST_REAL_SIMILAR(read.getChromatograms()[1].getFloatDataArrays()[0][0], 2.5)
 
   // the index finds every spectrum and chromatogram where it begins
   cache.createMemdumpIndex(tmp_filename);

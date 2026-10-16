@@ -273,7 +273,8 @@ OpenMS Library:
   - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
     without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
     invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
-    frame without peaks keeps its empty ion mobility array.
+    frame without peaks keeps its empty ion mobility array. CachedMzMLHandler::readMemdump() also returns the values
+    of the data arrays of chromatograms, which came back empty.
   - MSDataWritingConsumer (the streaming mzML writer of the low-memory modes) corrects the count of its
     spectrumList when the file is closed, if another number of spectra was written than it was told to
     expect (a filter, or a reader that leaves empty spectra out). The tag is rewritten in place and

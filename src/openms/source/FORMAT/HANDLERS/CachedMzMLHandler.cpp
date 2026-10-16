@@ -458,7 +458,7 @@ namespace OpenMS::Internal
     {
       MSChromatogram::FloatDataArray fda;
       fda.reserve(data[j]->data.size());
-      for (const auto& k : fda) fda.push_back(k);
+      for (const auto& k : data[j]->data) fda.push_back(k);
       fda.setName(data[j]->description);
       fdas.push_back(fda);
     }
