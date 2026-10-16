@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -130,15 +131,14 @@ namespace OpenMS
 
   void ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(const ConsensusMap& map, vector<vector<double> >& out_intensities)
   {
+    // the maps are numbered by their position among the column headers: map indices need not be consecutive
+    const std::map<UInt64, Size> positions = ConsensusMapNormalizerAlgorithmMedian::mapPositions_(map);
     //reserve space for out_intensities (unequal vector lengths, 0-features omitted)
-    Size number_of_maps = map.getColumnHeaders().size();
     out_intensities.clear();
-    out_intensities.resize(number_of_maps);
-    for (UInt i = 0; i < number_of_maps; i++)
+    out_intensities.resize(positions.size());
+    for (const auto& [map_index, header] : map.getColumnHeaders())
     {
-      ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
-      if (it == map.getColumnHeaders().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,StringUtils::toStr(i));
-      out_intensities[i].reserve(it->second.size);
+      out_intensities[positions.at(map_index)].reserve(header.size);
     }
     //fill out_intensities
     ConsensusMap::ConstIterator cf_it;
@@ -147,7 +147,7 @@ namespace OpenMS
       ConsensusFeature::HandleSetType::const_iterator f_it;
       for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
       {
-        out_intensities[f_it->getMapIndex()].push_back(f_it->getIntensity());
+        out_intensities[ConsensusMapNormalizerAlgorithmMedian::mapPosition_(positions, f_it->getMapIndex())].push_back(f_it->getIntensity());
       }
     }
   }
@@ -156,15 +156,15 @@ namespace OpenMS
   {
     //assumes the input map and feature_ints are in the same order as in the beginning,
     //although feature_ints has normalized values now (but the same ranks as before)
-    Size number_of_maps = map.getColumnHeaders().size();
+    const std::map<UInt64, Size> positions = ConsensusMapNormalizerAlgorithmMedian::mapPositions_(map);
     ConsensusMap::ConstIterator cf_it;
-    vector<Size> progress_indices(number_of_maps);
+    vector<Size> progress_indices(positions.size());
     for (cf_it = map.begin(); cf_it != map.end(); ++cf_it)
     {
       ConsensusFeature::HandleSetType::const_iterator f_it;
       for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
       {
-        Size map_idx = f_it->getMapIndex();
+        Size map_idx = ConsensusMapNormalizerAlgorithmMedian::mapPosition_(positions, f_it->getMapIndex());
         double intensity = feature_ints[map_idx][progress_indices[map_idx]++];
         f_it->asMutable().setIntensity(intensity);
       }
