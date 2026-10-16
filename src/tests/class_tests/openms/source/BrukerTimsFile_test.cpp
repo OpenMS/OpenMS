@@ -1913,6 +1913,111 @@ START_SECTION([FileHandler] the reader skips what the PeakFileOptions exclude)
 }
 END_SECTION
 
+START_SECTION([FileHandler] transformExperiment() gives what loadExperiment() returns)
+{
+  // FileHandler::transformExperiment() has the reader skip what the PeakFileOptions exclude, as loadExperiment() does,
+  // and applies the options to every spectrum on its way to the consumer. With the same options the consumer has to
+  // receive the spectra of loadExperiment(): in particular all peaks of a DDA MS2 spectrum at the end of a retention
+  // time range, and per-peak ion mobility arrays that stay aligned with the peaks the m/z and intensity ranges keep.
+  TempDir tmp;
+  std::vector<std::pair<std::string, std::string>> runs = {{OPENTIMS_DDA_TEST_DATA, tmp.getPath() + "/dda.d"}};
+#ifdef OPENTIMS_DIA_TEST_DATA
+  runs.emplace_back(OPENTIMS_DIA_TEST_DATA, tmp.getPath() + "/dia.d");
+#endif
+  for (const auto& [fixture, d_path] : runs)
+  {
+    std::error_code link_error;
+    std::filesystem::create_directory_symlink(fixture, d_path, link_error);
+    if (link_error)
+    {
+      STATUS("no symbolic link to " << fixture << " (" << link_error.message() << "): not tested")
+      continue;
+    }
+
+    // a retention time range that begins and ends at MS1 spectra, and an intensity range that drops the weaker
+    // half of the peaks of a spectrum in it
+    FileHandler ms1_loader;
+    ms1_loader.getOptions().setMSLevels({1});
+    MSExperiment ms1;
+    ms1_loader.loadExperiment(d_path, ms1, {FileTypes::BRUKER_TDF});
+    TEST_EQUAL(ms1.size() > 20, true)
+    ABORT_IF(ms1.size() <= 20)
+    const MSSpectrum& middle = ms1[ms1.size() / 2];
+    const DRange<1> rt_range(middle.getRT(), ms1[ms1.size() / 2 + 10].getRT());
+    std::vector<double> intensities;
+    for (const Peak1D& p : middle) intensities.push_back(p.getIntensity());
+    TEST_EQUAL(intensities.size() > 10, true)
+    ABORT_IF(intensities.size() <= 10)
+    const double max_intensity = *std::max_element(intensities.begin(), intensities.end());
+    std::nth_element(intensities.begin(), intensities.begin() + intensities.size() / 2, intensities.end());
+    const DRange<1> intensity_range(intensities[intensities.size() / 2], max_intensity * 2.0);
+    const DRange<1> mz_range(400.0, 800.0);
+
+    std::vector<PeakFileOptions> option_sets(6);
+    option_sets[0].setMSLevels({2}); // DDA: the MS2 spectra at the ends of the range are built from frames outside it
+    option_sets[0].setRTRange(rt_range);
+    option_sets[1].setMSLevels({1}); // the reader selects the frames by retention time
+    option_sets[1].setRTRange(rt_range);
+    option_sets[1].setMZRange(mz_range);
+    option_sets[1].setIntensityRange(intensity_range);
+    option_sets[2].setMSLevels({2}); // DIA MS2 spectra have per-peak ion mobility as well
+    option_sets[2].setPrecursorMZRange(DRange<1>(500.0, 700.0));
+    option_sets[2].setMZRange(mz_range);
+    option_sets[3].setMSLevels({1});
+    option_sets[3].setRTRange(rt_range);
+    option_sets[3].setMetadataOnly(true);
+    option_sets[4].setMSLevels({2});
+    option_sets[4].setRTRange(rt_range);
+    option_sets[4].setFillData(false); // spectra without peaks, as with metadata-only
+    option_sets[5].setMSLevels({3});   // nothing the reader gives
+
+    for (Size i = 0; i < option_sets.size(); ++i)
+    {
+      STATUS(d_path << ", options " << i)
+      FileHandler handler;
+      handler.setOptions(option_sets[i]);
+      MSExperiment loaded;
+      handler.loadExperiment(d_path, loaded, {FileTypes::BRUKER_TDF});
+      ComparingConsumer consumer(loaded);
+      handler.transformExperiment(d_path, &consumer, {FileTypes::BRUKER_TDF});
+
+      TEST_STRING_EQUAL(consumer.difference(), "")
+      TEST_EQUAL(consumer.received.spectra, loaded.size())
+      TEST_EQUAL(loaded.empty(), i == 5)
+      TEST_EQUAL(consumer.received.without_peaks == consumer.received.spectra, i >= 3)
+      // the settings and the (upper bound of the) number of spectra arrive once, before the first spectrum
+      TEST_EQUAL(consumer.settings_calls, 1)
+      TEST_TRUE(consumer.settings == loaded.getExperimentalSettings())
+      TEST_EQUAL(consumer.expected_size_calls, 1)
+      TEST_EQUAL(consumer.size_known_at_first_spectrum || loaded.empty(), true)
+      TEST_EQUAL(consumer.expected_spectra >= consumer.received.spectra, true)
+      // the per-peak arrays are as long as the peaks the filters keep
+      Size misaligned = 0;
+      for (const MSSpectrum& s : loaded)
+      {
+        for (const auto& array : s.getFloatDataArrays())
+        {
+          if (array.size() != s.size()) ++misaligned;
+        }
+      }
+      TEST_EQUAL(misaligned, 0)
+    }
+
+    // the source file rewritten, as by loadExperiment()
+    FileHandler nothing;
+    nothing.getOptions().setMSLevels({3});
+    MSExperiment loaded_rewritten;
+    nothing.loadExperiment(d_path, loaded_rewritten, {FileTypes::BRUKER_TDF}, ProgressLogger::NONE, true);
+    ComparingConsumer rewritten(loaded_rewritten);
+    nothing.transformExperiment(d_path, &rewritten, {FileTypes::BRUKER_TDF}, ProgressLogger::NONE, true);
+    TEST_EQUAL(rewritten.settings.getSourceFiles().size(), 1)
+    ABORT_IF(rewritten.settings.getSourceFiles().size() != 1)
+    TEST_STRING_EQUAL(rewritten.settings.getSourceFiles()[0].getNameOfFile(), File::basename(d_path))
+    TEST_TRUE(rewritten.settings == loaded_rewritten.getExperimentalSettings())
+  }
+}
+END_SECTION
+
 START_SECTION(Bruker frame_id range filter test)
 {
   BrukerTimsFile f;

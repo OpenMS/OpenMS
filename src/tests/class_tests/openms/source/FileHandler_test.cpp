@@ -392,7 +392,7 @@ START_SECTION((void loadImagingExperiment(const std::string& filename, MSImaging
 END_SECTION
 
 #ifdef WITH_OPENTIMS
-START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and routed by loadImagingExperiment))
+START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and transformExperiment and routed by loadImagingExperiment))
 {
   // Fake .d folders with only GlobalMetadata: enough for type detection and the
   // imaging probe, both of which run before any frame is read. TempDir removes them
@@ -409,7 +409,11 @@ START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and route
   };
 
   PeakMap exp;
-  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(fake_d("Imaging"), exp))
+  const std::string imaging = fake_d("Imaging");
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(imaging, exp))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(imaging, &streamed))
+  TEST_EQUAL(streamed.getData().size(), 0)
 
   // A non-imaging .d reaches BrukerTimsImagingFile, whose strict imaging check rejects it.
   MSImagingExperiment img;
@@ -442,6 +446,8 @@ START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
   TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
   TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}))
   TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("tsf", "analysis.tsf"), &streamed))
 }
 END_SECTION
 #endif

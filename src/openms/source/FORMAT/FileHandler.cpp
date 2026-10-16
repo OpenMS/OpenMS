@@ -231,6 +231,30 @@ namespace OpenMS
       if (kept.size() != spectrum.size()) { spectrum.select(kept); }
     }
 
+    /// Whether @p spectrum passes the spectrum-level filters of @p options: MS level, RT range and,
+    /// for MSn spectra with a precursor, precursor m/z range.
+    bool selectSpectrum(const PeakFileOptions& options, const MSSpectrum& spectrum)
+    {
+      if (options.hasMSLevels() && ! options.containsMSLevel(spectrum.getMSLevel())) { return false; }
+      if (options.hasRTRange() && ! options.getRTRange().encloses(DPosition<1>(spectrum.getRT()))) { return false; }
+      if (options.hasPrecursorMZRange() && spectrum.getMSLevel() > 1 && ! spectrum.getPrecursors().empty())
+      {
+        return options.getPrecursorMZRange().encloses(DPosition<1>(spectrum.getPrecursors()[0].getMZ()));
+      }
+      return true;
+    }
+
+    /// Apply the peak-level filters of @p options to @p spectrum: the m/z and intensity ranges, and
+    /// metadata-only or fill-data off, which leave the spectrum without peaks.
+    void applyPeakOptions(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      filterPeaks(options, spectrum);
+      if (options.getMetadataOnly() || ! options.getFillData())
+      {
+        spectrum.clear(false); // clear the peaks and data arrays, keep the metadata
+      }
+    }
+
     /// Point the (first) source file of @p settings to @p filename.
     void rewriteSourceFile(ExperimentalSettings& settings, const std::string& filename, FileTypes::Type type, bool compute_hash)
     {
@@ -295,12 +319,50 @@ namespace OpenMS
     }
 #endif
 
-    /// Forwards to another consumer, rewriting the source file and filtering peaks on the way.
+#ifdef WITH_OPENTIMS
+    /// MALDI imaging .d is, like imzML, not readable as a flat MSExperiment (AUTO export mode would otherwise misread it as DDA).
+    void rejectBrukerImaging(const std::string& filename)
+    {
+      if (BrukerTimsImagingFile::isImagingDataset(filename))
+      {
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                         "Bruker MALDI imaging .d is a mass spectrometry imaging format; load it via "
+                                         "FileHandler::loadImagingExperiment into an MSImagingExperiment");
+      }
+    }
+
+    /// BrukerTimsFile configuration for FileHandler: the PeakFileOptions that select whole frames are passed to
+    /// the reader, so the excluded frames are not decoded. The caller applies all options to the spectra afterwards.
+    BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options)
+    {
+      // The reader emits MS levels 1 and 2 only: every frame that is not MS1 (any MsMsType but 0) gives MS2 spectra.
+      // Asking for MS3 or higher alone therefore decodes nothing.
+      BrukerTimsFile::Config config;
+      if (options.hasMSLevels())
+      {
+        config.load_ms1 = options.containsMSLevel(1);
+        config.load_ms2 = options.containsMSLevel(2);
+      }
+      // The reader's RT range selects frames. That equals selecting spectra by RT for MS1, but not for
+      // DDA MS2 spectra, which are built from several frames: a range would cut those at its ends.
+      if (options.hasRTRange() && ! config.load_ms2)
+      {
+        config.rt_min_sec = options.getRTRange().minPosition()[0];
+        config.rt_max_sec = options.getRTRange().maxPosition()[0];
+      }
+      return config;
+    }
+#endif
+
+    /// Forwards to another consumer, rewriting the source file and applying PeakFileOptions on the way.
     class ForwardingConsumer : public Interfaces::IMSDataConsumer
     {
     public:
-      ForwardingConsumer(Interfaces::IMSDataConsumer* next, std::function<void(ExperimentalSettings&)> settings, const PeakFileOptions* peak_filter) :
-        next_(next), settings_(std::move(settings)), peak_filter_(peak_filter)
+      /// @p filter: the PeakFileOptions applied to each spectrum (nullptr: none). Only the peak-level ones, unless
+      /// @p select_spectra is set: then the spectra the spectrum-level ones exclude are not forwarded either.
+      ForwardingConsumer(Interfaces::IMSDataConsumer* next, std::function<void(ExperimentalSettings&)> settings, const PeakFileOptions* filter,
+                         bool select_spectra = false) :
+        next_(next), settings_(std::move(settings)), filter_(filter), select_spectra_(select_spectra)
       {
       }
       void setExperimentalSettings(const ExperimentalSettings& settings) override
@@ -313,7 +375,11 @@ namespace OpenMS
       void setExpectedSize(Size spectra, Size chromatograms) override { next_->setExpectedSize(spectra, chromatograms); }
       void consumeSpectrum(SpectrumType& spectrum) override
       {
-        if (peak_filter_ != nullptr) { filterPeaks(*peak_filter_, spectrum); }
+        if (filter_ != nullptr)
+        {
+          if (select_spectra_ && ! selectSpectrum(*filter_, spectrum)) { return; }
+          applyPeakOptions(*filter_, spectrum);
+        }
         next_->consumeSpectrum(spectrum);
       }
       void consumeChromatogram(ChromatogramType& chromatogram) override { next_->consumeChromatogram(chromatogram); }
@@ -321,7 +387,8 @@ namespace OpenMS
     private:
       Interfaces::IMSDataConsumer* next_;
       std::function<void(ExperimentalSettings&)> settings_;
-      const PeakFileOptions* peak_filter_;
+      const PeakFileOptions* filter_;
+      bool select_spectra_;
     };
   } // namespace
 
@@ -1111,34 +1178,13 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
       case FileTypes::BRUKER_TDF:
       {
-        // MALDI imaging .d: like imzML, not loadable into a flat MSExperiment
-        // (AUTO export mode would otherwise misread it as DDA).
-        if (BrukerTimsImagingFile::isImagingDataset(filename))
-        {
-          throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
-                                           "Bruker MALDI imaging .d is a mass spectrometry imaging format; load it via "
-                                           "FileHandler::loadImagingExperiment into an MSImagingExperiment");
-        }
+        rejectBrukerImaging(filename);
 
         // BrukerTimsFile unpacks a .d.zip archive itself.
         BrukerTimsFile f;
         f.setLogType(log);
-
-        // Do not decode what the PeakFileOptions exclude anyway. The reader emits MS levels 1 and 2.
-        BrukerTimsFile::Config config;
-        if (options_.hasMSLevels())
-        {
-          config.load_ms1 = options_.containsMSLevel(1);
-          config.load_ms2 = options_.containsMSLevel(2);
-        }
-        // The reader's RT range selects frames. That equals selecting spectra by RT for MS1, but not for
-        // DDA MS2 spectra, which are built from several frames: a range would cut those at its ends.
-        if (options_.hasRTRange() && ! config.load_ms2)
-        {
-          config.rt_min_sec = options_.getRTRange().minPosition()[0];
-          config.rt_max_sec = options_.getRTRange().maxPosition()[0];
-        }
-        f.load(filename, exp, config);
+        // Do not decode what the PeakFileOptions exclude anyway
+        f.load(filename, exp, brukerConfig(options_));
 
         // Apply the remaining PeakFileOptions filters (and the exact RT range, which is inclusive in the reader).
         applyPostLoadOptions_(exp);
@@ -1220,6 +1266,21 @@ namespace OpenMS
       break;
 #endif
 
+#ifdef WITH_OPENTIMS
+      case FileTypes::BRUKER_TDF:
+      {
+        rejectBrukerImaging(filename);
+
+        // The reader skips the frames the options exclude; all options are then applied to each spectrum, as
+        // loadExperiment() applies them to the loaded experiment.
+        ForwardingConsumer forward(consumer, settings, &options_, true);
+        BrukerTimsFile f;
+        f.setLogType(log);
+        f.transform(filename, &forward, brukerConfig(options_));
+      }
+      break;
+#endif
+
       default:
       {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
@@ -1274,59 +1335,13 @@ namespace OpenMS
 
   void FileHandler::applyPostLoadOptions_(MSExperiment& exp) const
   {
-    // Filter by MS level
-    if (options_.hasMSLevels())
-    {
-      exp.getSpectra().erase(
-        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-          [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
-        exp.getSpectra().end());
-    }
-
-    // Filter by RT range
-    if (options_.hasRTRange())
-    {
-      const auto& rt_range = options_.getRTRange();
-      exp.getSpectra().erase(
-        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-          [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
-        exp.getSpectra().end());
-    }
-
-    // Filter by precursor m/z range (for MSn spectra)
-    if (options_.hasPrecursorMZRange())
-    {
-      const auto& prec_range = options_.getPrecursorMZRange();
-      exp.getSpectra().erase(
-        std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-          [&prec_range](const MSSpectrum& s)
-          {
-            if (s.getMSLevel() <= 1) { return false; } // keep MS1
-            if (s.getPrecursors().empty()) { return false; }
-            return !prec_range.encloses(DPosition<1>(s.getPrecursors()[0].getMZ()));
-          }),
-        exp.getSpectra().end());
-    }
-
-    // Filter peaks by m/z range and intensity range within each spectrum.
-    // Use MSSpectrum::select() rather than erase(): select() rebuilds the parallel data
-    // arrays so the per-peak ion-mobility FloatDataArray carried by Bruker .d frames (and any
-    // other float/string/integer array) stays aligned with the peaks. A raw erase() would
-    // shrink only the peak vector, leaving the IM array too long -> corrupt mzML output or a
-    // Precondition throw on the next sortByPosition()/select().
-    if (options_.hasMZRange() || options_.hasIntensityRange())
-    {
-      for (auto& spectrum : exp.getSpectra()) { filterPeaks(options_, spectrum); }
-    }
-
-    // Metadata only: strip peak data
-    if (options_.getMetadataOnly())
-    {
-      for (auto& spectrum : exp.getSpectra())
-      {
-        spectrum.clear(false); // clear data but keep metadata
-      }
-    }
+    // The same filters as transformExperiment() applies to each spectrum, so loading and streaming give the same spectra.
+    // filterPeaks() keeps the per-peak data arrays (e.g. the ion mobility of Bruker .d frames) aligned with the peaks.
+    exp.getSpectra().erase(
+      std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
+        [this](const MSSpectrum& s) { return ! selectSpectrum(options_, s); }),
+      exp.getSpectra().end());
+    for (auto& spectrum : exp.getSpectra()) { applyPeakOptions(options_, spectrum); }
 
     exp.updateRanges();
   }
