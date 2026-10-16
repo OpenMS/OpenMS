@@ -166,7 +166,12 @@ namespace OpenMS
     defaults_.setValue("report:top_hits", 1, "Maximum number of top scoring hits per spectrum that are reported.");
     defaults_.setSectionDescription("report", "Reporting Options");
 
-    defaults_.setValue("FDR:PSM", 0.0, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, set to 0 to disable filtering and report all PSMs with q-values). Requires '-decoys' to be set.");
+    defaults_.setValue("FDR:PSM", 0.0,
+                       "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR). Set to 0 to disable PSM-level FDR: no q-values are "
+                       "computed, and every PSM keeps 'ln(hyperscore)' as main score. Above 0, the q-value replaces the main score (the "
+                       "search engine score is kept as meta value 'ln(hyperscore)_score'), only the best hit of each spectrum is kept, "
+                       "and decoy hits are removed. Requires 'decoys' to be 'true'; otherwise a threshold above 0 is skipped with a "
+                       "warning.");
     defaults_.setMinFloat("FDR:PSM", 0.0);
     defaults_.setMaxFloat("FDR:PSM", 1.0);
     defaults_.setSectionDescription("FDR", "False Discovery Rate control (requires decoys)");

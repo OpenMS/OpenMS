@@ -355,6 +355,13 @@ set_tests_properties("TOPP_BaselineFilter_1_out1" PROPERTIES DEPENDS "TOPP_Basel
 add_test("TOPP_ConsensusMapNormalizer_1" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusMapNormalizer.tmp.consensusXML)
 add_test("TOPP_ConsensusMapNormalizer_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusMapNormalizer.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ConsensusMapNormalizer_output.consensusXML )
 set_tests_properties("TOPP_ConsensusMapNormalizer_1_out1" PROPERTIES DEPENDS "TOPP_ConsensusMapNormalizer_1")
+add_test("TOPP_ConsensusMapNormalizer_2" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusMapNormalizer_2.tmp.consensusXML -algorithm_type rt_local -rt_local:neighbors 10)
+add_test("TOPP_ConsensusMapNormalizer_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ConsensusMapNormalizer_2.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ConsensusMapNormalizer_2_output.consensusXML )
+set_tests_properties("TOPP_ConsensusMapNormalizer_2_out1" PROPERTIES DEPENDS "TOPP_ConsensusMapNormalizer_2")
+# maps 1 and 2 of ConsensusMapNormalizer_input, extracted by 'FileFilter -consensus:map 1 2', which keeps the map indices
+foreach(_algorithm robust_regression median median_shift quantile rt_local)
+  add_test("TOPP_ConsensusMapNormalizer_filtered_${_algorithm}" ${TOPP_BIN_PATH}/ConsensusMapNormalizer -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_filtered_input.consensusXML -out ${TESTS_TEMP_DIR}/ConsensusMapNormalizer_filtered_${_algorithm}.tmp.consensusXML -algorithm_type ${_algorithm})
+endforeach()
 
 #------------------------------------------------------------------------------
 # MapNormalizer tests
@@ -703,10 +710,12 @@ add_test("TOPP_FileConverter_36" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_36_out1" ${DIFF} -whitelist "id=" "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_36.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_36_output.consensusXML)
 set_tests_properties("TOPP_FileConverter_36_out1" PROPERTIES DEPENDS "TOPP_FileConverter_36")
 
-# TOPP_FileConverter_37: spectra -> consensusXML keeps every MS1 peak: FileFilter_44_input.mzML has two MS1 spectra with 18 peaks each, so all 36 peaks are written (the old limit was the spectrum count, 2), each with its own unique ID
+# TOPP_FileConverter_37: spectra cannot be converted to consensusXML (each peak would become a consensus feature
+# whose handle refers to a peak index, not to an element with a unique id, #10520); the tool refuses before loading
+# the input. PASS_REGULAR_EXPRESSION ignores the exit
+# code, so the message itself is the check.
 add_test("TOPP_FileConverter_37" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_44_input.mzML -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_37.tmp.consensusXML -out_type consensusXML)
-add_test("TOPP_FileConverter_37_out1" ${DIFF} -whitelist "href=" -in1 ${TESTS_TEMP_DIR}/FileConverter_37.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FileConverter_37_output.consensusXML)
-set_tests_properties("TOPP_FileConverter_37_out1" PROPERTIES DEPENDS "TOPP_FileConverter_37")
+set_tests_properties("TOPP_FileConverter_37" PROPERTIES PASS_REGULAR_EXPRESSION "Cannot convert mzML to consensusXML")
 # TOPP_FileConverter_38/39: an output name whose compression suffix the writer does not produce is refused
 # instead of holding plain data. 38: the low-memory mode streams plain mzML, so '.mzML.gz' is refused there
 # (the in-memory path writes gzip); 39: MGF is always written plain. PASS_REGULAR_EXPRESSION ignores the
@@ -754,6 +763,40 @@ if (WITH_THERMO_RAW AND THERMO_RAW_TEST_DATA)
     "-DFORBIDDEN=name=\"profile spectrum\""
     -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
   set_tests_properties("TOPP_FileConverter_RAW_1_centroided" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  add_test("TOPP_FileConverter_RAW_noise" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -RawToMzML:include_noise -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_noise.tmp.mzML)
+  foreach (noise_accession 1002743 1002744 1002745)
+    add_test("TOPP_FileConverter_RAW_noise_${noise_accession}" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_noise.tmp.mzML
+      "-DEXPECTED=accession=\"MS:${noise_accession}\""
+      -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+    set_tests_properties("TOPP_FileConverter_RAW_noise_${noise_accession}" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_noise")
+  endforeach ()
+  # The SHA-1 of the raw file costs a second read of the whole file, so it is computed only on request
+  # (mzML requires a checksum term, so without it the SHA-1 value is empty).
+  add_test("TOPP_FileConverter_RAW_1_no_checksum" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML
+    "-DEXPECTED=name=\"SHA-1\" value=\"\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_1_no_checksum" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  add_test("TOPP_FileConverter_RAW_checksum" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -raw_checksum -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_checksum.tmp.mzML)
+  add_test("TOPP_FileConverter_RAW_checksum_written" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_checksum.tmp.mzML
+    "-DEXPECTED=name=\"SHA-1\""
+    "-DFORBIDDEN=name=\"SHA-1\" value=\"\""
+    -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_checksum_written" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_checksum")
+  # -process_lowmemory streams the scans into the mzML writer and gives the in-memory conversion. Only the run-level
+  # fileContent differs: the streaming writer takes it from the first spectrum, so it lacks "MSn spectrum" (and the
+  # index offsets shift by that line). The term is removed from the in-memory output's fileContent before comparing.
+  add_test("TOPP_FileConverter_RAW_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${THERMO_RAW_TEST_DATA} -RawToMzML:reader inprocess -process_lowmemory -no_progress -out ${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory.tmp.mzML)
+  add_test("TOPP_FileConverter_RAW_lowmemory_prepare" ${CMAKE_COMMAND}
+    -DINPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_1.tmp.mzML
+    -DOUTPUT_FILE=${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory_expected.tmp.mzML
+    "-DTERM=MSn spectrum"
+    -P ${DATA_DIR_TOPP}/remove_file_content_term.cmake)
+  set_tests_properties("TOPP_FileConverter_RAW_lowmemory_prepare" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_1")
+  add_test("TOPP_FileConverter_RAW_lowmemory_out1" ${DIFF} -whitelist "<offset" "indexListOffset" "fileChecksum" -in1 ${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_RAW_lowmemory_expected.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_RAW_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_RAW_lowmemory;TOPP_FileConverter_RAW_lowmemory_prepare")
   if (NOT WIN32) # creating symbolic links needs extra privileges on Windows
     # Workflow systems (Nextflow, Galaxy) stage inputs as symbolic links, which Thermo's RawFileReader
     # cannot open itself (#10451). The source file must keep the linked name.
@@ -1195,12 +1238,11 @@ set_tests_properties("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" PROPERTI
 
 # TMT 32-plex / 35-plex end-to-end: the 32/35-plex methods are registered in the
 # IsobaricQuantitationMethod factory; run them on the TMT10 fixture and confirm 32/35 channels are
-# quantified (consensusXML diffs clean). Isotope correction is not yet supported for these methods (the
-# matrix is always identity), so it is disabled to avoid the identity-matrix rejection.
-add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt32plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML)
+# quantified (consensusXML diffs clean), with the default isotope correction (the shipped CoA matrices).
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt32plex -out ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyTwoPlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyTwoPlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyTwoPlexMethod_1")
-add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt35plex -quantification:isotope_correction false -out ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML)
+add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -type tmt35plex -out ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML)
 add_test("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/TMTThirtyFivePlexMethod_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/TMTThirtyFivePlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTThirtyFivePlexMethod_1")
 
@@ -3122,15 +3164,15 @@ set_tests_properties("TOPP_OpenNuXL_legacy_mass_delta_check" PROPERTIES DEPENDS 
 #------------------------------------------------------------------------------
 # SeedListGenerator tests
 add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out_prefix tmp_path/SeedListGenerator_1_output_tmp)
-add_test("TOPP_SeedListGenerator_1_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_1_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_1_output.featureXML )
+add_test("TOPP_SeedListGenerator_1_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_1_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_1_output.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_1_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_1")
 add_test("TOPP_SeedListGenerator_2" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/IDMapper_1_output.featureXML -out_prefix tmp_path/SeedListGenerator_2_output_tmp)
-add_test("TOPP_SeedListGenerator_2_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_2_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_2_output.featureXML )
+add_test("TOPP_SeedListGenerator_2_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_2_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_2_output.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_2_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_2")
 add_test("TOPP_SeedListGenerator_3" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/ConsensusXMLFile_1.consensusXML -out_prefix tmp_path/SeedListGenerator_3_output_tmp)
-add_test("TOPP_SeedListGenerator_3_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_3_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output1.featureXML )
+add_test("TOPP_SeedListGenerator_3_out1" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_3_output_tmp_0.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output1.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_3_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_3")
-add_test("TOPP_SeedListGenerator_3_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_3_output_tmp_1.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output2.featureXML )
+add_test("TOPP_SeedListGenerator_3_out2" ${DIFF} -whitelist "id=" -in1 ${TESTS_TEMP_DIR}/SeedListGenerator_3_output_tmp_1.featureXML -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output2.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_3_out2" PROPERTIES DEPENDS "TOPP_SeedListGenerator_3")
 
 #------------------------------------------------------------------------------
@@ -4352,7 +4394,10 @@ add_test("TOPP_MS1LabeledWorkflow_3_mbr" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -te
   -proteinFDR 1.0
   -match_between_runs true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "1 multiplet.s. are unidentified, 1 of them kept for match between runs")
+# Knock-outs are detected by default, so run B also has six unidentified partial multiplets (singlets);
+# only the complete unidentified doublet is kept for match between runs, since the channels of a partial
+# one are known from an identification only.
+set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_2_prepare" PASS_REGULAR_EXPRESSION "7 multiplet.s. are unidentified, 1 of them kept for match between runs")
 add_test("TOPP_MS1LabeledWorkflow_3_mbr_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_3_mbr.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_3_mbr_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_3_mbr_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_3_mbr")
 add_test("TOPP_MS1LabeledWorkflow_3_targeted" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
@@ -4417,8 +4462,9 @@ add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment" ${TOPP_BIN_PATH}/MS1Labele
   -proteinFDR 1.0
   -id_mapping:mz_tolerance 15000
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML)
-# an identical output could also mean that nothing was multi-assigned, so require that it was
-set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment" PROPERTIES PASS_REGULAR_EXPRESSION "assigned to multiple features: 3")
+# an identical output could also mean that nothing was multi-assigned, so require that it was (besides
+# doublets 2 and 3, one identification also lands on a nearby unidentified singlet)
+set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment" PROPERTIES PASS_REGULAR_EXPRESSION "4 spectrum match.es. were mapped onto several multiplets")
 add_test("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_5_multi_assignment.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_5_multi_assignment_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_5_multi_assignment")
 
@@ -4471,15 +4517,46 @@ add_test("TOPP_MS1LabeledWorkflow_ratio_reference_channel" ${TOPP_BIN_PATH}/MS1L
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_ratio_reference_channel.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_ratio_reference_channel" PROPERTIES PASS_REGULAR_EXPRESSION "names a channel that '-labels .*' does not have")
 
-# with knock-outs the channel order of an unidentified multiplet is unknown, so match between runs is refused
-add_test("TOPP_MS1LabeledWorkflow_mbr_knock_out" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
-  -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML
-  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_1.idXML
-  -labels "[][Lys8,Arg10]"
-  -match_between_runs true
-  -algorithm:knock_out
-  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_mbr_knock_out.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_mbr_knock_out" PROPERTIES PASS_REGULAR_EXPRESSION "cannot be combined with '-algorithm:knock_out'")
+# partial multiplets (knock-outs, the default): a synthetic triple SILAC run, MS1LabeledWorkflow_7_input.mzML
+# with MS1LabeledWorkflow_7.idXML, one peptide per case (light : medium : heavy):
+#   GDVTAQFLEHK 1:1:1, identified by a light spectrum 10 s after the apex (beyond the 5 s RT tolerance, but
+#     within the elution region) and by a heavy spectrum whose precursor is the M+1 peak (off by 1/2 Th);
+#   SAYWNEGHIR 0:1:2 (no light), TFEQLMDSR 0:0:1 (heavy only), YVNDLAGHEK 1:0:0 (light only);
+#   ENGTWQFYIK and HDSVFLAEGR 1 : 0.0125 : 0.015, too weak in medium and heavy to be detected (their M+2 is below
+#     algorithm:intensity_cutoff), identified by the light resp. only by the medium spectrum.
+# All six are quantified: the three partial ones with their absent channels as 0, the medium and heavy
+# channels of the two weak ones re-quantified (exactly 1:0.0125:0.015, i.e. measured against the light
+# channel where both were seen), HDSVFLAEGR through its medium identification although only its light
+# channel was detected. With -algorithm:knock_out false only GDVTAQFLEHK would be.
+add_test("TOPP_MS1LabeledWorkflow_7_partial" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial" PROPERTIES PASS_REGULAR_EXPRESSION "Re-quantified 4 channel.s. the detection did not find; 5 show no signal")
+add_test("TOPP_MS1LabeledWorkflow_7_partial_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_partial.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_partial_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_partial_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_7_partial")
+add_test("TOPP_MS1LabeledWorkflow_7_attached" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_attached.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_attached" PROPERTIES PASS_REGULAR_EXPRESSION "1 identification.s. of channels the detection did not find were attached")
+add_test("TOPP_MS1LabeledWorkflow_7_complete_only" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_7.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -algorithm:knock_out false
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_7_complete_only.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_7_complete_only" PROPERTIES PASS_REGULAR_EXPRESSION "Resolved 1 multiplet.s.; 0 identified")
 
 # the labels must have been searched as modifications: identifications whose search parameters lack
 # them are refused (with -force the run continues)
@@ -4642,7 +4719,9 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 
 
 # ProSE:
-add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test
+# Percolator rescoring (Search:rescore) is on by default. The tests of the search itself switch it off
+# ('-Search:rescore false') so they keep testing ProSE's own scores and FDR; Test 11 tests the rescoring.
+add_test("TOPP_ProSE_1" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
 -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
@@ -4650,7 +4729,7 @@ add_test("TOPP_ProSE_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_1_out.tmp.idXML
 set_tests_properties("TOPP_ProSE_1_out" PROPERTIES DEPENDS
 "TOPP_ProSE_1")
 
-add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_2" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
 -ini ${DATA_DIR_TOPP}/ProSE_2.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_2_out.tmp.idXML
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
@@ -4659,7 +4738,7 @@ set_tests_properties("TOPP_ProSE_2_out" PROPERTIES DEPENDS
 "TOPP_ProSE_2")
 
 # Multi-file test: single-file idXML output
-add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_3_multi" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_3_multi_a.tmp.idXML
@@ -4688,7 +4767,7 @@ set_tests_properties("TOPP_ProSE_3_multi_idXML_out" PROPERTIES DEPENDS "TOPP_Pro
 # producer that crashed - or that legitimately stopped writing a file - would leave the
 # previous run's output for the assertions below to read, and they would pass on it.
 add_test(NAME "TOPP_ProSE_3_qpx_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir)
-add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_3_qpx" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -out_qpx ${TESTS_TEMP_DIR}/ProSE_3_qpx_dir
@@ -4726,7 +4805,7 @@ set_tests_properties("TOPP_ProSE_3_qpx_merged_identity" PROPERTIES DEPENDS "TOPP
 # (3 MS2 spectra) triggers the calibration pass, which detects shift ~ +7 ppm
 # as the signed median. With 3 tight residuals the |shift| >> spread check
 # routes the result through the extreme-bias path, preserving user bounds.
-add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_4" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_4.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1_shifted_7ppm.mzML
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_4_out.tmp.idXML
@@ -4742,7 +4821,7 @@ set_tests_properties("TOPP_ProSE_4_out" PROPERTIES DEPENDS
 # Test 5: Database chunking — same inputs as test 1 but with chunk_size=5.
 # 11 proteins (decoys=false in ProSE_1.ini) → 3 chunks (5+5+1). Output
 # must match test 1 exactly (chunking must not change identification results).
-add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_5_chunked" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini -in
   ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out_idxml ${TESTS_TEMP_DIR}/ProSE_5_chunked_out.tmp.idXML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
@@ -4760,7 +4839,7 @@ set_tests_properties("TOPP_ProSE_5_chunked_out" PROPERTIES DEPENDS
 # with protein q-values; the output must store as valid idXML (no dangling protein-group /
 # peptide-evidence references). The statistical contract (no per-file protein FDR) and the
 # in-memory vs single-file behaviour are pinned by ProSEAlgorithm_test.
-add_test("TOPP_ProSE_6_fdr" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_6_fdr" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
@@ -4792,7 +4871,7 @@ set_tests_properties("TOPP_ProSE_6_fdr_info_psms" PROPERTIES DEPENDS "TOPP_ProSE
 # (Test 6), NOT a committed golden: chunking is deterministic per platform (TOPP_ProSE_5_chunked
 # proves it bit-identical), so this is immune to the cross-platform FP noise above while still
 # pinning that chunking does not perturb single-file protein-FDR finalization (issue #9640).
-add_test("TOPP_ProSE_6_fdr_chunked" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_6_fdr_chunked" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
@@ -4810,7 +4889,7 @@ set_tests_properties("TOPP_ProSE_6_fdr_chunked_out" PROPERTIES DEPENDS
 # decoys). The same input is searched twice (replicate-merge). Rather than a large golden idXML,
 # diff a small FileInfo summary (protein/peptide/spectrum counts); env-dependent file-name/db/
 # version lines are whitelisted. The decoy-reporting contract itself is pinned by ProSEAlgorithm_test.
-add_test("TOPP_ProSE_7_merged" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_7_merged" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
       ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
@@ -4831,7 +4910,7 @@ set_tests_properties("TOPP_ProSE_7_merged_info_out" PROPERTIES DEPENDS "TOPP_Pro
 # WITH_OPENTIMS block below, so without this the default decoy mode has no standard-CI golden coverage.
 # On a target-only FASTA, auto generates decoys -> result is identical to decoys=generate (Test 6),
 # so it diffs the same FileInfo golden (protein count exact-ish; a decoy-removal regression -> 49).
-add_test("TOPP_ProSE_8_auto" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_8_auto" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
@@ -4851,7 +4930,7 @@ set_tests_properties("TOPP_ProSE_8_auto_info_proteins" PROPERTIES DEPENDS "TOPP_
 # -summary_out still writes the machine-readable YAML. The existence check (via
 # sha256sum, which errors if the file is absent) is a smoke test that the YAML
 # artifact is produced; its timing fields are non-deterministic so it is not diffed.
-add_test("TOPP_ProSE_9_summary" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_9_summary" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
@@ -4864,7 +4943,7 @@ set_tests_properties("TOPP_ProSE_9_summary_exists" PROPERTIES DEPENDS "TOPP_ProS
 
 # Test 10: a peak listed twice (same m/z) must not hide the peaks above it (MatchedIterator).
 # scan=2 is scan=1 plus a copy of its y1 peak, so both must get the same score and ion counts.
-add_test("TOPP_ProSE_10" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_10" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
   -in ${DATA_DIR_TOPP}/ProSE_10_duplicate_peaks.mzML
   -database ${DATA_DIR_TOPP}/ProSE_10.fasta
   -Search:fragment:mass_tolerance 10
@@ -4876,7 +4955,7 @@ add_test("TOPP_ProSE_10_out" ${DIFF}
   -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_ProSE_10_out" PROPERTIES DEPENDS "TOPP_ProSE_10")
 
-# Test 11: in-process Percolator rescoring (-rescore), per input file, followed by the deferred
+# Test 11: in-process Percolator rescoring (Search:rescore, the default), per input file, followed by the deferred
 # PSM/protein FDR. Scores carry the same cross-platform FP noise as Test 6, so check that every file
 # was rescored and that the output carries Percolator q-values; no exact diff. The ProSE runs have no
 # PASS_REGULAR_EXPRESSION, so that ctest checks their exit code; FileInfo checks their output.
@@ -4884,7 +4963,6 @@ add_test("TOPP_ProSE_11_rescore" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -rescore
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
 add_test("TOPP_ProSE_11_rescore_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
@@ -4896,7 +4974,6 @@ add_test("TOPP_ProSE_11_rescore_multi" ${TOPP_BIN_PATH}/ProSE -test
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
       ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
-  -rescore
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_b.tmp.idXML
   -out_merged ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi.tmp.idXML)
 foreach(_part a b)
@@ -4905,22 +4982,158 @@ foreach(_part a b)
   set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
     PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
 endforeach()
+# Percolator rescores the first file but not the second (too few PSMs): their runs cannot be pooled,
+# so -out_merged fails the run (WILL_FAIL), after the per-file outputs were written. The outputs of an
+# earlier run are removed first, so that only this run's outputs can pass the checks.
+add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm -f
+  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
+  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
+add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
+  -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+      ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed" PROPERTIES WILL_FAIL 1 DEPENDS "TOPP_ProSE_11_rescore_mixed_clean")
+add_test(NAME "TOPP_ProSE_11_rescore_mixed_merged_absent" COMMAND ${CMAKE_COMMAND} -E sha256sum
+  ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_merged_absent" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed" WILL_FAIL 1)
+add_test("TOPP_ProSE_11_rescore_mixed_info_a" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_a" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
+  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+add_test("TOPP_ProSE_11_rescore_mixed_info_b" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML)
+set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_b" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
+  PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
 # Too few PSMs to train on: the file is not rescored, keeps its HyperScores and ProSE still succeeds.
 add_test("TOPP_ProSE_11_rescore_skip" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_1.ini
   -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
   -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
-  -rescore
   -out_idxml ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
 add_test("TOPP_ProSE_11_rescore_skip_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_skip_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_skip_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_skip"
   PASS_REGULAR_EXPRESSION "ProSE \\(version" FAIL_REGULAR_EXPRESSION "Percolator \\(version")
+# Test 12: -out_pin holds the PSMs before the rescoring and any FDR filter. With FDR:PSM and FDR:protein (ProSE_6_fdr.ini,
+# one input) the .pin equals that of the same search without FDR (decoys kept, search engine scores), with Search:rescore
+# (the default) it equals that of the search without rescoring, and -out_pin does not change the idXML (Test 6, Test 11;
+# with rescoring, the hit counts after FDR).
+foreach(_rescore OFF ON)
+  set(_f ProSE_12_pin)
+  set(_opt -Search:rescore false)
+  set(_ref ProSE_6_fdr)
+  if(_rescore)
+    set(_f ProSE_12_pin_rescore)
+    set(_opt)
+    set(_ref ProSE_11_rescore)
+  endif()
+  add_test("TOPP_${_f}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini ${_opt}
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -out_idxml ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -out_pin ${TESTS_TEMP_DIR}/${_f}.tmp.tsv)
+  add_test("TOPP_${_f}_nofdr" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini ${_opt}
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+    -Search:FDR:PSM 0 -Search:FDR:protein 0 -out_pin ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
+  add_test("TOPP_${_f}_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}.tmp.tsv -in2 ${TESTS_TEMP_DIR}/${_f}_nofdr.tmp.tsv)
+  set_tests_properties("TOPP_${_f}_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_f}_nofdr")
+  if(_rescore)
+    # Percolator cannot train properly on this data (1 decoy among 896 PSMs, so the SVM scores are not rescaled):
+    # its SVM scores differ by about 1% between two runs on Windows. Compare the hit counts after FDR instead.
+    foreach(_run ${_f} ${_ref})
+      add_test("TOPP_${_f}_info_${_run}" ${TOPP_BIN_PATH}/FileInfo -test -in ${TESTS_TEMP_DIR}/${_run}_out.tmp.idXML
+        -out_tsv ${TESTS_TEMP_DIR}/${_f}_info_${_run}.tmp.tsv)
+      set_tests_properties("TOPP_${_f}_info_${_run}" PROPERTIES DEPENDS "TOPP_${_run}")
+    endforeach()
+    add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_info_${_f}.tmp.tsv
+      -in2 ${TESTS_TEMP_DIR}/${_f}_info_${_ref}.tmp.tsv -whitelist "file name")
+    set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f}_info_${_f};TOPP_${_f}_info_${_ref}")
+  else()
+    add_test("TOPP_${_f}_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/${_f}_out.tmp.idXML -in2 ${TESTS_TEMP_DIR}/${_ref}_out.tmp.idXML
+      -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "search_engine_version" "InferenceEngineVersion" "name=\"fragment_annotation\"")
+    set_tests_properties("TOPP_${_f}_idXML_out" PROPERTIES DEPENDS "TOPP_${_f};TOPP_${_ref}")
+  endif()
+endforeach()
+add_test("TOPP_ProSE_12_pin_rescore_vs_norescore_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_12_pin_rescore.tmp.tsv -in2 ${TESTS_TEMP_DIR}/ProSE_12_pin.tmp.tsv)
+set_tests_properties("TOPP_ProSE_12_pin_rescore_vs_norescore_out" PROPERTIES DEPENDS "TOPP_ProSE_12_pin_rescore;TOPP_ProSE_12_pin")
+# Test 12 (open search): -out_pin changes no other output. FDR:PSM 0.0005 removes the PSMs ranked below the one decoy,
+# so the idXML and the modification-analysis tables count fewer PSMs than the .pin, which equals the .pin without FDR.
+set(_open -Search:rescore false -Search:precursor:mass_tolerance_lower 100 -Search:precursor:mass_tolerance_upper 300
+  -Search:precursor:mass_tolerance_unit Da -Search:FDR:protein 0)
+foreach(_v pin nopin nofdr)
+  set(_opt -Search:FDR:PSM 0.0005 -out_idxml ${TESTS_TEMP_DIR}/ProSE_12_open_${_v}.tmp.idXML -out_mod_analysis_dir ${TESTS_TEMP_DIR}/ProSE_12_open_${_v})
+  if(_v STREQUAL "pin")
+    list(APPEND _opt -out_pin ${TESTS_TEMP_DIR}/ProSE_12_open_pin.tmp.tsv)
+  elseif(_v STREQUAL "nofdr")
+    set(_opt -Search:FDR:PSM 0 -out_pin ${TESTS_TEMP_DIR}/ProSE_12_open_nofdr.tmp.tsv)
+  endif()
+  add_test("TOPP_ProSE_12_open_${_v}" ${TOPP_BIN_PATH}/ProSE -test -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini ${_open} ${_opt}
+    -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+    -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta)
+endforeach()
+add_test("TOPP_ProSE_12_open_pin_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_12_open_pin.tmp.tsv -in2 ${TESTS_TEMP_DIR}/ProSE_12_open_nofdr.tmp.tsv)
+set_tests_properties("TOPP_ProSE_12_open_pin_out" PROPERTIES DEPENDS "TOPP_ProSE_12_open_pin;TOPP_ProSE_12_open_nofdr")
+add_test("TOPP_ProSE_12_open_idXML_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProSE_12_open_pin.tmp.idXML -in2 ${TESTS_TEMP_DIR}/ProSE_12_open_nopin.tmp.idXML
+  -whitelist "IdentificationRun date" "search_engine_version")
+set_tests_properties("TOPP_ProSE_12_open_idXML_out" PROPERTIES DEPENDS "TOPP_ProSE_12_open_pin;TOPP_ProSE_12_open_nopin")
+foreach(_t DeltaMassStats OutputTable PTMStats)
+  add_test("TOPP_ProSE_12_open_${_t}_out" ${DIFF}
+    -in1 ${TESTS_TEMP_DIR}/ProSE_12_open_pin/DatabaseSuitability_in_spec_ModificationAnalysis_${_t}.tsv
+    -in2 ${TESTS_TEMP_DIR}/ProSE_12_open_nopin/DatabaseSuitability_in_spec_ModificationAnalysis_${_t}.tsv)
+  set_tests_properties("TOPP_ProSE_12_open_${_t}_out" PROPERTIES DEPENDS "TOPP_ProSE_12_open_pin;TOPP_ProSE_12_open_nopin")
+endforeach()
+
+# Test 13: pooled -out_merged output of two inputs (copies of one file) with the default Percolator rescoring: cross-file
+# protein inference, then the picked-protein FDR at 5 % with the decoys removed. It pins the result of the pooling, so that
+# moving the pooling into the library cannot change it. An exact idXML diff is not portable (see Test 6: libm last-ULP
+# differences flip a target/decoy near-tie; Test 12: the Percolator SVM scores differ by about 1 % between runs on Windows),
+# so a FileInfo summary is compared with calibrated tolerances, as in Test 6 and Test 7, plus structural checks.
+add_test("TOPP_ProSE_13_merged_inputs" ${CMAKE_COMMAND}
+  -DSOURCE=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
+  -DTARGET_A=${TESTS_TEMP_DIR}/ProSE_13_a.mzML -DTARGET_B=${TESTS_TEMP_DIR}/ProSE_13_b.mzML
+  -P ${DATA_DIR_TOPP}/ProSE_13_prepare.cmake)
+add_test("TOPP_ProSE_13_merged" ${TOPP_BIN_PATH}/ProSE -test
+  -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -Search:FDR:protein 0.05
+  -in ${TESTS_TEMP_DIR}/ProSE_13_a.mzML ${TESTS_TEMP_DIR}/ProSE_13_b.mzML
+  -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
+  -out_merged ${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML)
+set_tests_properties("TOPP_ProSE_13_merged" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_inputs")
+# The pooled set is one run (the two runs are merged).
+add_test("TOPP_ProSE_13_merged_info" ${TOPP_BIN_PATH}/FileInfo -test
+  -in ${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML
+  -out_tsv ${TESTS_TEMP_DIR}/ProSE_13_merged_info.tmp.tsv)
+set_tests_properties("TOPP_ProSE_13_merged_info" PROPERTIES DEPENDS "TOPP_ProSE_13_merged"
+  PASS_REGULAR_EXPRESSION "runs: +1[^0-9]")
+# (a) protein count = the FDR-controlled, decoy-free quantity: 47 targets (+/-1 for the borderline-match jitter, as in
+#     Test 6). A decoy-removal regression leaks 2 decoys -> 49 -> caught (diff 2 > 1).
+add_test("TOPP_ProSE_13_merged_info_proteins" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_13_merged_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_13_merged_info.tsv -absdiff 1
+  -whitelist "file name" "database" "search engine" "matched spectra" "peptide hits" "modified top-hits")
+set_tests_properties("TOPP_ProSE_13_merged_info_proteins" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_info")
+# (b) matched-spectra / peptide-hit counts: 2 x 895 PSMs, 895 distinct peptides (+/-6, the +/-3 of Test 6 for each of the
+#     two files, which carry the same jitter); catches gross scoring/ID regressions while tolerating the platform FP noise.
+add_test("TOPP_ProSE_13_merged_info_psms" ${DIFF}
+  -in1 ${TESTS_TEMP_DIR}/ProSE_13_merged_info.tmp.tsv
+  -in2 ${DATA_DIR_TOPP}/ProSE_13_merged_info.tsv -absdiff 6
+  -whitelist "file name" "database" "search engine" "protein hits")
+set_tests_properties("TOPP_ProSE_13_merged_info_psms" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_info")
+# (c) the protein FDR was applied (the protein scores are q-values), the run is the Percolator run, and no decoy PSM or
+#     decoy protein is left.
+add_test("TOPP_ProSE_13_merged_structure" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML
+  "-DEXPECTED=<ProteinIdentification score_type=\"q-value\";search_engine=\"Percolator\""
+  "-DFORBIDDEN=name=\"target_decoy\" value=\"decoy\";accession=\"DECOY_"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_ProSE_13_merged_structure" PROPERTIES DEPENDS "TOPP_ProSE_13_merged")
 
 # PeptDeep prediction features: 'peptdeep:enable' is an explicit request, so it must either report
 # how many PSMs received predicted features or fail -- never continue silently without them.
 if(WITH_ONNX)
-  add_test("TOPP_ProSE_peptdeep" ${TOPP_BIN_PATH}/ProSE -test
+  add_test("TOPP_ProSE_peptdeep" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
     -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
     -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
     -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
@@ -4929,7 +5142,7 @@ if(WITH_ONNX)
   set_tests_properties("TOPP_ProSE_peptdeep" PROPERTIES PASS_REGULAR_EXPRESSION
     "\\[PeptDeepRescoring\\] Predicted features added: [1-9][0-9]* / [0-9]+ PSMs")
   # Without fragment annotations no PSM can get MS2 features: hard error.
-  add_test("TOPP_ProSE_peptdeep_no_annotation_fails" ${TOPP_BIN_PATH}/ProSE -test
+  add_test("TOPP_ProSE_peptdeep_no_annotation_fails" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
     -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
     -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
     -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
@@ -4938,7 +5151,7 @@ if(WITH_ONNX)
     -out_idxml ${TESTS_TEMP_DIR}/ProSE_peptdeep_no_annotation_out.tmp.idXML)
   set_tests_properties("TOPP_ProSE_peptdeep_no_annotation_fails" PROPERTIES WILL_FAIL TRUE)
   # A missing model is a hard error, not a fallback to search-engine features only.
-  add_test("TOPP_ProSE_peptdeep_missing_model_fails" ${TOPP_BIN_PATH}/ProSE -test
+  add_test("TOPP_ProSE_peptdeep_missing_model_fails" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
     -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
     -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
     -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
@@ -4948,7 +5161,7 @@ if(WITH_ONNX)
   set_tests_properties("TOPP_ProSE_peptdeep_missing_model_fails" PROPERTIES WILL_FAIL TRUE)
 else()
   # Without ONNX the request cannot be honoured: hard error instead of a warning.
-  add_test("TOPP_ProSE_peptdeep_requires_onnx" ${TOPP_BIN_PATH}/ProSE -test
+  add_test("TOPP_ProSE_peptdeep_requires_onnx" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
     -ini ${DATA_DIR_TOPP}/ProSE_1.ini
     -in ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
     -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta
@@ -4963,6 +5176,29 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   set(OPENTIMS_DDA_SYMLINK "${CMAKE_BINARY_DIR}/test_data/DDA_HeLa.d")
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_data")
   file(CREATE_LINK "${OPENTIMS_DDA_TEST_DATA}" "${OPENTIMS_DDA_SYMLINK}" SYMBOLIC)
+
+  # FileConverter .d -> mzML: the run loaded into memory, and written as it is read (-process_lowmemory,
+  # BrukerTimsFile::transform()). Both have to give the same file. MS2 only, which keeps the files at 70 MB.
+  add_test("TOPP_FileConverter_DDA_d" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d.tmp.mzML -bruker:load_ms1 false)
+  add_test("TOPP_FileConverter_DDA_d_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_lowmemory.tmp.mzML -bruker:load_ms1 false -process_lowmemory)
+  add_test("TOPP_FileConverter_DDA_d_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_DDA_d_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d;TOPP_FileConverter_DDA_d_lowmemory")
+  # the same with -force_TPP_compatibility, which changes how precursors are written
+  add_test("TOPP_FileConverter_DDA_d_TPP" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_TPP.tmp.mzML -bruker:load_ms1 false -force_TPP_compatibility)
+  add_test("TOPP_FileConverter_DDA_d_TPP_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_TPP_lowmemory.tmp.mzML -bruker:load_ms1 false -force_TPP_compatibility -process_lowmemory)
+  add_test("TOPP_FileConverter_DDA_d_TPP_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_TPP_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_TPP.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_DDA_d_TPP_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d_TPP;TOPP_FileConverter_DDA_d_TPP_lowmemory")
+  # neither MS1 nor MS2: a run without spectra, also when written as it is read
+  add_test("TOPP_FileConverter_DDA_d_nothing" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing.tmp.mzML -bruker:load_ms1 false -bruker:load_ms2 false)
+  add_test("TOPP_FileConverter_DDA_d_nothing_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing_lowmemory.tmp.mzML -bruker:load_ms1 false -bruker:load_ms2 false -process_lowmemory)
+  add_test("TOPP_FileConverter_DDA_d_nothing_lowmemory_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_nothing.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_DDA_d_nothing_lowmemory_out1" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d_nothing;TOPP_FileConverter_DDA_d_nothing_lowmemory")
+  # .d -> cachedMzML (the cache and its metadata .mzML), likewise in memory and written to the cache as it is read
+  add_test("TOPP_FileConverter_DDA_d_cached" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached.tmp.cachedMzML -bruker:load_ms1 false)
+  add_test("TOPP_FileConverter_DDA_d_cached_lowmemory" ${TOPP_BIN_PATH}/FileConverter -test -in ${OPENTIMS_DDA_SYMLINK} -out ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached_lowmemory.tmp.cachedMzML -bruker:load_ms1 false -process_lowmemory)
+  add_test("TOPP_FileConverter_DDA_d_cached_lowmemory_out1" ${CMAKE_COMMAND} -E compare_files ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached_lowmemory.tmp.cachedMzML ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached.tmp.cachedMzML)
+  add_test("TOPP_FileConverter_DDA_d_cached_lowmemory_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached_lowmemory.tmp.mzML -in2 ${TESTS_TEMP_DIR}/FileConverter_DDA_d_cached.tmp.mzML)
+  set_tests_properties("TOPP_FileConverter_DDA_d_cached_lowmemory_out1" "TOPP_FileConverter_DDA_d_cached_lowmemory_out2" PROPERTIES DEPENDS "TOPP_FileConverter_DDA_d_cached;TOPP_FileConverter_DDA_d_cached_lowmemory")
 
   # Typical timsTOF Pro DDA-PASEF parameters: 20 ppm precursor, 20 ppm fragment,
   # Trypsin/P, 2 missed cleavages, Carbamidomethyl (C) fixed,
@@ -4999,7 +5235,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   set_tests_properties("TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA_psm_count"
     PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_SimpleSearchEngineDDA")
 
-  add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test
+  add_test("TOPP_ProSE_DDA" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
     -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_out.tmp.idXML
@@ -5028,7 +5264,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
     PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_ProSEDDA")
 
   # Same DDA search with automatic calibration enabled
-  add_test("TOPP_ProSE_DDA_calibrated" ${TOPP_BIN_PATH}/ProSE -test
+  add_test("TOPP_ProSE_DDA_calibrated" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
     -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_calibrated_out.tmp.idXML
@@ -5066,7 +5302,7 @@ if (WITH_OPENTIMS AND OPENTIMS_DDA_TEST_DATA)
   # the calibration pool. chunk_size=5000 is the sweet spot on the HeLa fixture
   # where calibration fires reliably with the cal_target=chunk_size strategy.
   # Current: 4438. Floor ~0.5% below.
-  add_test("TOPP_ProSE_DDA_chunked_calibrated" ${TOPP_BIN_PATH}/ProSE -test
+  add_test("TOPP_ProSE_DDA_chunked_calibrated" ${TOPP_BIN_PATH}/ProSE -test -Search:rescore false
     -in ${OPENTIMS_DDA_SYMLINK}
     -database ${OPENTIMS_TEST_FASTA}
     -out_idxml ${TESTS_TEMP_DIR}/ProSE_DDA_chunked_cal_out.tmp.idXML
@@ -6061,6 +6297,31 @@ add_test("TOPP_ProteomicsLFQ_1_out_2" ${DIFF}  -whitelist "software" "location" 
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_2" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
 add_test("TOPP_ProteomicsLFQ_1_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 ${TESTS_TEMP_DIR}/BSA.tmp.mztab -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
 set_tests_properties("TOPP_ProteomicsLFQ_1_out_3" PROPERTIES DEPENDS "TOPP_ProteomicsLFQ_1")
+
+# -Alignment:model_type selects the RT model that is fitted to the alignment points (B-splines were fitted whatever it
+# said). A model is only fitted to more than 10 points, more than two BSA runs share: a run and a copy of it share all
+# 12 identified peptides when unassigned IDs count. The debug log names the fitted model.
+add_test("TOPP_ProteomicsLFQ_model_type_copy_mzML" ${CMAKE_COMMAND} -E copy ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${TESTS_TEMP_DIR}/BSA1_F1_copy.tmp.mzML)
+add_test("TOPP_ProteomicsLFQ_model_type_copy_idXML" ${CMAKE_COMMAND} -E copy ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${TESTS_TEMP_DIR}/BSA1_F1_copy.tmp.idXML)
+add_test("TOPP_ProteomicsLFQ_model_type" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML ${TESTS_TEMP_DIR}/BSA1_F1_copy.tmp.mzML
+         -ids ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML ${TESTS_TEMP_DIR}/BSA1_F1_copy.tmp.idXML
+         -fasta ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -mass_recalibration false
+         -Alignment:align_algorithm:max_rt_shift 0
+         -Alignment:align_algorithm:use_feature_rt false
+         -Alignment:align_algorithm:use_unassigned_peptides
+         -Alignment:model_type linear
+         -out_cxml ${TESTS_TEMP_DIR}/BSA_model_type.tmp.consensusXML
+         -threads 1
+         -proteinFDR 0.3
+         -debug 1
+         -test
+         )
+set_tests_properties("TOPP_ProteomicsLFQ_model_type" PROPERTIES
+                     DEPENDS "TOPP_ProteomicsLFQ_model_type_copy_mzML;TOPP_ProteomicsLFQ_model_type_copy_idXML"
+                     PASS_REGULAR_EXPRESSION "after applying 'linear' transformation")
 
 # Identical to TOPP_ProteomicsLFQ_1, except that BSA1_F1's identifications carry one
 # PeptideIdentification twice (same spectrum, peptidoform and charge; the copy scored worse).

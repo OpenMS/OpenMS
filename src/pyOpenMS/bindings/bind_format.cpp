@@ -4,11 +4,15 @@
 #include "all_casters.h"
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/BedRModFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include "index_value_iterator.h"
 #endif
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -101,6 +105,20 @@ using namespace nb::literals;
 
 NB_MODULE(_pyopenms_format, m) {
     m.doc() = "pyOpenMS format bindings";
+    nb::class_<OpenMS::OMSFile>(m, "OMSFile", "Load and store identification data in OMS format")
+        .def(nb::init<>())
+        .def("load", nb::overload_cast<const std::string&, OpenMS::IdentificationData&>(&OpenMS::OMSFile::load),
+             "filename"_a, "id_data"_a, nb::call_guard<nb::gil_scoped_release>())
+        .def("store", nb::overload_cast<const std::string&, const OpenMS::IdentificationData&>(&OpenMS::OMSFile::store),
+             "filename"_a, "id_data"_a, nb::call_guard<nb::gil_scoped_release>());
+
+    nb::class_<OpenMS::BedRModFile>(m, "BedRModFile", "Export RNA modifications with explicit bedRMod reference metadata")
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::BedRModFile&>())
+        .def("store", &OpenMS::BedRModFile::store, "out_file"_a, "id_data"_a,
+             "chebi_mapping_file"_a = "", "reference_metadata"_a = std::map<std::string, std::string>{},
+             "Write aggregated RNA modification sites; unspecified metadata is NA. Custom codes require a validated modomics_short_name CSV mapping.",
+             nb::call_guard<nb::gil_scoped_release>());
 
 #ifdef WITH_THERMO_RAW
     // -----------------------------------------------------------------------
@@ -116,7 +134,16 @@ NB_MODULE(_pyopenms_format, m) {
         .def_rw("all_detectors", &OpenMS::ThermoRawFile::Options::all_detectors, "Export UV/PDA/analog detector traces and PDA spectra")
         .def_rw("preserve_trailers", &OpenMS::ThermoRawFile::Options::preserve_trailers, "Retain all scan trailer label/value pairs")
         .def_rw("instrument_methods", &OpenMS::ThermoRawFile::Options::instrument_methods, "Retain the embedded instrument method texts")
-        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance");
+        .def_rw("checksum", &OpenMS::ThermoRawFile::Options::checksum, "Compute the SHA-1 of the source file for mzML provenance")
+        .def_rw("first_scan", &OpenMS::ThermoRawFile::Options::first_scan, "First scan number to load (0: from the first scan)")
+        .def_rw("last_scan", &OpenMS::ThermoRawFile::Options::last_scan, "Last scan number to load (0: up to the last scan)")
+        .def_rw("rt_min", &OpenMS::ThermoRawFile::Options::rt_min, "Load scans with rt_min <= RT (seconds)")
+        .def_rw("rt_max", &OpenMS::ThermoRawFile::Options::rt_max, "Load scans with RT < rt_max (seconds)")
+        .def_rw("ms_levels", &OpenMS::ThermoRawFile::Options::ms_levels, "MS levels to load (empty: all; PDA spectra have level 0)")
+        .def_rw("precursor_mz_min", &OpenMS::ThermoRawFile::Options::precursor_mz_min, "Skip MSn scans whose first precursor m/z is below this")
+        .def_rw("precursor_mz_max", &OpenMS::ThermoRawFile::Options::precursor_mz_max, "Skip MSn scans whose first precursor m/z is at or above this")
+        .def_rw("metadata_only", &OpenMS::ThermoRawFile::Options::metadata_only, "Load spectrum metadata only (no peaks are read)")
+        .def_rw("skip_chromatograms", &OpenMS::ThermoRawFile::Options::skip_chromatograms, "Do not load the TIC and detector chromatograms");
     // ProgressLogger lives in another extension module, so its methods are added
     // explicitly instead of declaring it as a nanobind base class.
     auto thermorawfile_class = nb::class_<OpenMS::ThermoRawFile>(m, "ThermoRawFile", "Load Thermo RAW spectra and metadata for mzML export");
@@ -126,8 +153,98 @@ NB_MODULE(_pyopenms_format, m) {
         .def("getOptions", &OpenMS::ThermoRawFile::getOptions, nb::rv_policy::copy, "Returns a copy of the current loading options")
         .def("setOptions", &OpenMS::ThermoRawFile::setOptions, "options"_a, "Sets the loading options")
         .def("load", &OpenMS::ThermoRawFile::load, "filename"_a, "experiment"_a, nb::call_guard<nb::gil_scoped_release>(),
-             "Loads a Thermo RAW file into an MSExperiment");
+             "Loads a Thermo RAW file into an MSExperiment")
+        .def("transform", [](OpenMS::ThermoRawFile& self, const std::string& filename, nb::object consumer) {
+            // each spectrum is a local that is dropped after the callback, so it is not read back
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(filename, &wrapper);
+        }, "filename"_a, "consumer"_a,
+        R"doc(Streams a Thermo RAW file into a consumer, one spectrum at a time.
+
+The consumer is a Python object with the methods ``setExpectedSize(nr_spectra, nr_chromatograms)``,
+``setExperimentalSettings(settings)``, ``consumeSpectrum(spectrum)`` and ``consumeChromatogram(chromatogram)``
+(as for ``MzMLFile.transform``). The spectra are the ones load() would return with the same options.
+)doc");
     def_ProgressLogger<OpenMS::ThermoRawFile>(thermorawfile_class);
+
+    // -----------------------------------------------------------------------
+    // OnDiscThermoRawExperiment (random access to the spectra of a .raw file)
+    // -----------------------------------------------------------------------
+    pyopenms_iter::bind_index_value_iterator<OpenMS::OnDiscThermoRawExperiment>(m, "_OnDiscThermoRawExperimentIter");
+    using ODTRE = OpenMS::OnDiscThermoRawExperiment;
+    nb::class_<ODTRE>(m, "OnDiscThermoRawExperiment",
+        R"doc(Random access to the spectra of a Thermo RAW file.
+
+openFile() reads the scan headers once and keeps a small index; getSpectrum(i) then reads and converts
+a single scan. The spectra are the same as the i-th spectrum of ThermoRawFile.load() with the same
+options, in any access order. Options.ms_levels, the scan, RT and precursor m/z ranges select the
+indexed spectra. Copies share the index and read through their own file handle, so a copy per thread
+can be used concurrently.
+
+Example::
+
+    exp = OnDiscThermoRawExperiment()
+    exp.openFile("run.raw")
+    for i in range(exp.findFirstRT(600.0), len(exp)):
+        spectrum = exp.getSpectrum(i)
+)doc")
+        .def(nb::init<>())
+        .def(nb::init<const ODTRE&>())
+        .def("__copy__", [](const ODTRE& self) { return ODTRE(self); })
+        .def("__deepcopy__", [](const ODTRE& self, nb::dict) { return ODTRE(self); }, "memo"_a)
+        .def("openFile", [](ODTRE& self, const std::string& filename, const OpenMS::ThermoRawFile::Options& options) {
+            nb::gil_scoped_release release;
+            self.openFile(filename, options);
+        }, "filename"_a, "options"_a = OpenMS::ThermoRawFile::Options(), "Opens a .raw file and builds the spectrum index (no peaks are read)")
+        .def("isOpen", &ODTRE::isOpen, "Whether a file was opened")
+        .def("getFilename", &ODTRE::getFilename, "The opened file")
+        .def("getOptions", &ODTRE::getOptions, nb::rv_policy::copy, "The options given to openFile() (checksum is always off)")
+        .def("getNrSpectra", &ODTRE::getNrSpectra, "Number of indexed spectra")
+        .def("getNrChromatograms", &ODTRE::getNrChromatograms, "Number of chromatograms")
+        .def("size", &ODTRE::size, "Number of indexed spectra")
+        .def("__len__", &ODTRE::size)
+        .def("getSpectrum", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrum(index);
+        }, "index"_a, "Reads the spectrum with the given index, with peaks (as ThermoRawFile.load())")
+        .def("__getitem__", [](ODTRE& self, long long index) {
+            const long long n = static_cast<long long>(self.size());
+            if (index < 0) { index += n; }
+            if (index < 0 || index >= n) { throw nb::index_error("spectrum index out of range"); }
+            nb::gil_scoped_release release;
+            return self.getSpectrum(static_cast<size_t>(index));
+        }, "index"_a)
+        .def("__iter__", [](nb::object self) { return pyopenms_iter::make_index_value_iterator<ODTRE>(self); },
+             "Iterates over all spectra in index order, reading one at a time")
+        .def("getSpectrumMetadata", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumMetadata(index);
+        }, "index"_a, "The spectrum without peaks and data arrays (no peaks are read)")
+        .def("getSpectrumPeaks", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumPeaks(index);
+        }, "index"_a, "Only the peaks and data arrays of the spectrum (other fields may be left empty)")
+        .def("getSpectrumByNativeId", [](ODTRE& self, const std::string& native_id) {
+            nb::gil_scoped_release release;
+            return self.getSpectrumByNativeId(native_id);
+        }, "native_id"_a, "Reads the spectrum with the given native ID")
+        .def("getSpectrumRT", &ODTRE::getSpectrumRT, "index"_a, "Retention time (seconds) of a spectrum, from the index")
+        .def("getSpectrumMSLevel", &ODTRE::getSpectrumMSLevel, "index"_a, "MS level of a spectrum, from the index")
+        .def("getSpectrumNativeID", &ODTRE::getSpectrumNativeID, "index"_a, "Native ID of a spectrum, from the index")
+        .def("getScanNumber", &ODTRE::getScanNumber, "index"_a, "Thermo scan number of a spectrum (0 for PDA spectra)")
+        .def("getSpectrumIndexByScanNumber", &ODTRE::getSpectrumIndexByScanNumber, "scan"_a,
+             "Index of the spectrum of a scan number (size() if the scan is not indexed)")
+        .def("isSortedByRT", &ODTRE::isSortedByRT, "Whether the spectra are sorted by retention time (always true)")
+        .def("findFirstRT", &ODTRE::findFirstRT, "rt"_a,
+             "Index of the first spectrum with RT >= rt (size() if there is none)")
+        .def("getChromatogram", [](ODTRE& self, size_t index) {
+            nb::gil_scoped_release release;
+            return self.getChromatogram(index);
+        }, "index"_a, "Returns a chromatogram (TIC and detector traces, as loaded by ThermoRawFile.load())")
+        .def("getExperimentalSettings", [](const ODTRE& self) { return OpenMS::ExperimentalSettings(*self.getExperimentalSettings()); },
+             "The run metadata (a copy)")
+        ;
 #endif
 
     // -----------------------------------------------------------------------
@@ -227,8 +344,38 @@ runtime.
             auto meta = self.readDIAMetadata(path, settings, config);
             return nb::make_tuple(meta, settings);
         }, "path"_a, "config"_a, "Read DIA SWATH boundaries and spectrum counts with explicit configuration. Returns (DIAStreamingMetadata, ExperimentalSettings).")
+        .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer) {
+            // the reader does not use a spectrum again after the consumer had it, so the value
+            // need not be restored after each callback
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(path, &wrapper);
+        }, "path"_a, "consumer"_a,
+        "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
+        "the spectra load() returns, in the same order (default configuration)")
+        .def("transform", [](OpenMS::BrukerTimsFile& self, const std::string& path, nb::object consumer,
+                             const OpenMS::BrukerTimsFile::Config& config) {
+            NanobindMSDataConsumer wrapper(consumer, /*caller_reads_back=*/false);
+            nb::gil_scoped_release release; // the wrapper takes the GIL for each callback
+            self.transform(path, &wrapper, config);
+        }, "path"_a, "consumer"_a, "config"_a,
+        "Feed the spectra of a .d directory to a consumer object as they are read, without keeping them: "
+        "the spectra load() returns with this configuration, in the same order. DIA data with MS2 aggregation "
+        "over retention time, and DDA data with calibrate=True on the linear m/z model, are loaded completely first.")
+        .def_static("detectFormat", &OpenMS::BrukerTimsFile::detectFormat, "path"_a,
+        "Which Bruker data format a .d directory or '.d.zip' archive holds, told by its file names (nothing is read or extracted)")
+        .def_static("checkDataFormat", &OpenMS::BrukerTimsFile::checkDataFormat, "path"_a,
+        "Raises if the path holds Bruker data in a format that cannot be read (TSF, BAF); load() does this check itself")
         ;
     def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
+
+    nb::enum_<OpenMS::BrukerTimsFile::DataFormat>(brukertimsfile_class, "DataFormat")
+        .value("NONE", OpenMS::BrukerTimsFile::DataFormat::NONE)
+        .value("TDF", OpenMS::BrukerTimsFile::DataFormat::TDF)
+        .value("TSF", OpenMS::BrukerTimsFile::DataFormat::TSF)
+        .value("BAF", OpenMS::BrukerTimsFile::DataFormat::BAF)
+        .value("UNREADABLE_ARCHIVE", OpenMS::BrukerTimsFile::DataFormat::UNREADABLE_ARCHIVE)
+        ;
 
     // Nested Config struct
     auto brukertimsfile_config = nb::class_<OpenMS::BrukerTimsFile::Config>(brukertimsfile_class, "Config",
@@ -237,10 +384,24 @@ runtime.
         .def_rw("calibration_tolerance", &OpenMS::BrukerTimsFile::Config::calibration_tolerance, "m/z recalibration tolerance in Da (0 = default 0.1 Da)")
         .def_rw("calibrate", &OpenMS::BrukerTimsFile::Config::calibrate, "Enable m/z recalibration (off by default; may fail on some datasets)")
         .def_rw("load_ms1", &OpenMS::BrukerTimsFile::Config::load_ms1, "Load MS1 spectra. Disable for MS2-only workflows.")
-        .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 IM-centroiding m/z tolerance in ppm (0 = disabled, suggested: 5.0)")
-        .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "MS1 IM-centroiding ion mobility tolerance in percent (0 = disabled, suggested: 3.0)")
-        .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "Upper bound on centroided peaks per MS1 spectrum")
+        .def_rw("load_ms2", &OpenMS::BrukerTimsFile::Config::load_ms2, "Load MS2 spectra. Disable for MS1-only workflows: the MS2 frames are then not read.")
+        .def_rw("frame_id_min", &OpenMS::BrukerTimsFile::Config::frame_id_min, "Lowest frame ID to read (inclusive; frame IDs are 1-based; default 0 = from the first frame)")
+        .def_rw("frame_id_max", &OpenMS::BrukerTimsFile::Config::frame_id_max, "Highest frame ID to read (inclusive; default 4294967295 = to the last frame). Frames outside the range are not read.")
+        .def_rw("rt_min_sec", &OpenMS::BrukerTimsFile::Config::rt_min_sec, "Lower retention time limit in seconds (inclusive; default 0.0). Resolved to a frame ID range and intersected with frame_id_min/frame_id_max.")
+        .def_rw("rt_max_sec", &OpenMS::BrukerTimsFile::Config::rt_max_sec, "Upper retention time limit in seconds (inclusive; default +inf = no limit). Resolved to a frame ID range and intersected with frame_id_min/frame_id_max.")
+        .def_rw("ms1_centroid_algo", &OpenMS::BrukerTimsFile::Config::ms1_centroid_algo, "MS1 centroiding algorithm (default OFF). OFF with ms1_centroid_mz_ppm and ms1_centroid_im_pct both > 0 selects GREEDY2D.")
         .def_rw("ms2_centroid_algo", &OpenMS::BrukerTimsFile::Config::ms2_centroid_algo, "MS2 centroiding algorithm for DIA-PASEF and DDA-PASEF")
+        .def_rw("ms1_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms1_centroid_mz_ppm, "MS1 centroiding m/z tolerance in ppm, used by GREEDY2D and HILL_BASED (default 10.0; 0 = MS1 centroiding disabled)")
+        .def_rw("ms1_centroid_im_pct", &OpenMS::BrukerTimsFile::Config::ms1_centroid_im_pct, "GREEDY2D only: MS1 centroiding ion mobility tolerance in percent (0 = GREEDY2D disabled, suggested: 3.0). Ignored by HILL_BASED.")
+        .def_rw("ms1_centroid_max_peaks", &OpenMS::BrukerTimsFile::Config::ms1_centroid_max_peaks, "GREEDY2D only: upper bound on centroided peaks per MS1 spectrum (the most intense ones are kept)")
+        .def_rw("ms2_centroid_mz_ppm", &OpenMS::BrukerTimsFile::Config::ms2_centroid_mz_ppm, "HILL_BASED MS2 centroiding m/z tolerance in ppm (default 20.0; 0 = HILL_BASED MS2 centroiding falls back to OFF with a warning)")
+        .def_rw("centroid_valley_factor", &OpenMS::BrukerTimsFile::Config::centroid_valley_factor, "HILL_BASED (MS1 and MS2): a hill is split at a valley if both neighbouring maxima exceed the valley by this factor (default 1.3; smaller = more splitting)")
+        .def_rw("ms1_centroid_min_hill_length", &OpenMS::BrukerTimsFile::Config::ms1_centroid_min_hill_length, "HILL_BASED MS1: minimum number of IM scans a hill must span (default 1)")
+        .def_rw("ms2_centroid_min_hill_length", &OpenMS::BrukerTimsFile::Config::ms2_centroid_min_hill_length, "HILL_BASED MS2: minimum number of IM scans a hill must span (default 2, tuned for DIA-PASEF; use 1 for DDA-PASEF)")
+        .def_rw("centroid_max_scan_gap", &OpenMS::BrukerTimsFile::Config::centroid_max_scan_gap, "HILL_BASED (MS1 and MS2): maximum number of consecutive empty IM scans a hill may bridge (default 0 = consecutive scans only)")
+        .def_rw("expose_hill_bounds", &OpenMS::BrukerTimsFile::Config::expose_hill_bounds, "HILL_BASED (MS1 and DIA MS2): attach four float data arrays with the IM and m/z bounds of each centroid's hill (default False)")
+        .def_rw("isotopic_prefilter", &OpenMS::BrukerTimsFile::Config::isotopic_prefilter, "MS1 and DIA MS2: before centroiding, drop peaks without an isotopic partner (charge 1-5) in the same or an adjacent IM scan (default False)")
+        .def_rw("isotopic_prefilter_tol_ppm", &OpenMS::BrukerTimsFile::Config::isotopic_prefilter_tol_ppm, "m/z tolerance in ppm for the isotopic partner match of isotopic_prefilter (default 50.0)")
         .def_rw("dia_ms2_n_neighbors", &OpenMS::BrukerTimsFile::Config::dia_ms2_n_neighbors, "DIA MS2 frame aggregation: number of adjacent frames on each side (0 = disabled)")
         .def_rw("dia_ms2_min_support", &OpenMS::BrukerTimsFile::Config::dia_ms2_min_support, "DIA MS2 denoising: minimum occupied neighbors in 3x3 (m/z x IM) grid")
         .def_rw("dia_ms2_centroid", &OpenMS::BrukerTimsFile::Config::dia_ms2_centroid, "DIA MS2 2D peak picking: Gaussian smoothing + local maxima detection")
@@ -725,6 +886,7 @@ Computes a SHA-1 hash of the file content
         .value("PEPLIST", OpenMS::FileTypes::Type::PEPLIST)
         .value("HARDKLOER", OpenMS::FileTypes::Type::HARDKLOER)
         .value("KROENIK", OpenMS::FileTypes::Type::KROENIK)
+        .value("BEDRMOD", OpenMS::FileTypes::Type::BEDRMOD)
         .value("FASTA", OpenMS::FileTypes::Type::FASTA)
         .value("EDTA", OpenMS::FileTypes::Type::EDTA)
         .value("CSV", OpenMS::FileTypes::Type::CSV)

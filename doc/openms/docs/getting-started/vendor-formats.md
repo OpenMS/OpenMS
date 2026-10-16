@@ -69,6 +69,11 @@ file) with the [opentims](https://github.com/michalsta/opentims) library. A `.d`
 packed into a ZIP archive (`.d.zip`) can be given instead; it is unpacked into a temporary
 directory while the tool runs, so that directory needs space for the unpacked data.
 
+Other Bruker data in `.d` directories cannot be read, and the tools say so: TSF data
+(`analysis.tsf`, timsTOF without ion mobility separation, e.g. most MALDI imaging runs), BAF
+data (`analysis.baf`, QTOF instruments), and TDF data of early timsTOF software whose frames
+are not zstd-compressed. Convert such runs to mzML with another tool first.
+
 Bruker's SDK is not needed: OpenMS computes m/z and ion mobility (1/K0) from the calibration
 stored in the file. If Bruker's SDK library (`timsdata.dll` or `libtimsdata.so`) is
 installed, set the environment variable `OPENMS_BRUKER_SDK_PATH` to the library's path to
@@ -89,7 +94,8 @@ The acquisition type is detected from the file:
 
 FileConverter, CometAdapter and PeakPickerIM have `bruker:` options to change this, for
 example `-bruker:export_mode` to force the per-precursor layout (`spectrum`) or raw frames
-(`frame`). FileConverter can also skip the MS1 spectra (`-bruker:load_ms1 false`),
+(`frame`). FileConverter can also skip the MS1 or the MS2 spectra (`-bruker:load_ms1 false`,
+`-bruker:load_ms2 false`),
 recalibrate m/z, aggregate neighbouring frames and centroid along the ion mobility axis; see
 its documentation. ProteomicsLFQ
 centroids the MS1 frames along the ion mobility axis before feature detection. The other
@@ -100,6 +106,16 @@ To convert a `.d` directory to mzML:
 ```bash
 FileConverter -in sample.d -out sample.mzML
 ```
+
+A whole run in memory takes a multiple of the size of the `.d` directory. With
+`-process_lowmemory` FileConverter writes the spectra as it reads them, and gives the same
+mzML file:
+
+```bash
+FileConverter -in sample.d -out sample.mzML -process_lowmemory
+```
+
+This works for cachedMzML output (`-out sample.cachedMzML`) as well.
 
 ## pyOpenMS
 

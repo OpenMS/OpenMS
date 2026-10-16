@@ -256,6 +256,86 @@ START_SECTION((void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, C
 }
 END_SECTION
 
+START_SECTION((std::vector<bool> checkIdentifications(const ConsensusFeature& consensus) const))
+{
+  MultiplexResolverAlgorithm resolver;
+  // a Lys8 doublet carrying: the light peptide on the light feature (consistent), a better-scoring
+  // Arg10-labelled peptide on the light feature (its heavy partner would sit at the Arg10 shift),
+  // the heavy peptide on the heavy feature (consistent), an identification naming no handle,
+  // one without map index and one without hits
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setCharge(2);
+  cf.insert(makeHandle(0, 100.0, 500.0, 2, 100.0));
+  cf.insert(makeHandle(1, 100.0, 500.0 + LYS8 / 2, 2, 200.0));
+  cf.getPeptideIdentifications().push_back(makeId("PEPTIDEK", 2, 0));
+  PeptideIdentification wrong = makeId("PEPTIDER(Label:13C(6)15N(4))", 2, 0);
+  wrong.getHits()[0].setScore(0.001);
+  cf.getPeptideIdentifications().push_back(wrong);
+  cf.getPeptideIdentifications().push_back(makeId("PEPTIDEK(Label:13C(6)15N(2))", 2, 1));
+  cf.getPeptideIdentifications().push_back(makeId("PEPTIDEK", 2, 5));
+  PeptideIdentification no_index = makeId("PEPTIDEK", 2, 0);
+  no_index.removeMetaValue("map_index");
+  cf.getPeptideIdentifications().push_back(no_index);
+  PeptideIdentification no_hits;
+  no_hits.setMetaValue("map_index", 0);
+  cf.getPeptideIdentifications().push_back(no_hits);
+
+  const std::vector<bool> consistent = resolver.checkIdentifications(cf);
+  TEST_EQUAL(consistent.size(), 6)
+  TEST_TRUE(consistent[0])
+  TEST_FALSE(consistent[1])
+  TEST_TRUE(consistent[2])
+  TEST_FALSE(consistent[3])
+  TEST_FALSE(consistent[4])
+  TEST_FALSE(consistent[5])
+
+  // the same verdict as resolve() reaches for the first identification
+  ConsensusMap in;
+  in.setExperimentType("labeled_MS1");
+  in.getColumnHeaders() = makeDuplexMap().getColumnHeaders();
+  ConsensusFeature only_wrong = cf;
+  only_wrong.getPeptideIdentifications().clear();
+  only_wrong.getPeptideIdentifications().push_back(wrong);
+  in.push_back(only_wrong);
+  ConsensusMap out, conflicts;
+  resolver.resolve(in, out, conflicts);
+  TEST_EQUAL(out.size(), 0)
+  TEST_EQUAL(conflicts.size(), 1)
+
+  // a multiplet without features has nothing to agree with
+  TEST_EQUAL(resolver.checkIdentifications(ConsensusFeature()).size(), 0)
+}
+END_SECTION
+
+START_SECTION((std::vector<double> expectedChannelMZs(const AASequence& sequence, int charge, Size& position) const))
+{
+  MultiplexResolverAlgorithm resolver;
+  Size position = 99;
+  // the light peptide of a K-terminal peptide: light, then Lys8
+  const AASequence light = AASequence::fromString("PEPTIDEK");
+  std::vector<double> mzs = resolver.expectedChannelMZs(light, 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_EQUAL(position, 0)
+  TEST_REAL_SIMILAR(mzs[0], light.getMZ(2))
+  TEST_REAL_SIMILAR(mzs[1], light.getMZ(2) + LYS8 / 2)
+
+  // its heavy form names the heavy channel; an R-terminal light peptide gets the Arg10 shift
+  mzs = resolver.expectedChannelMZs(AASequence::fromString("PEPTIDEK(Label:13C(6)15N(2))"), 2, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_EQUAL(position, 1)
+  TEST_REAL_SIMILAR(mzs[0], light.getMZ(2))
+  mzs = resolver.expectedChannelMZs(AASequence::fromString("PEPTIDER"), 3, position);
+  TEST_EQUAL(mzs.size(), 2)
+  TEST_REAL_SIMILAR(mzs[1] - mzs[0], ARG10 / 3)
+
+  // no pattern: two labelled residues with max_nr_labelled_aas = 0, or no charge
+  TEST_EQUAL(resolver.expectedChannelMZs(AASequence::fromString("PEKPTIDEK"), 2, position).size(), 0)
+  TEST_EQUAL(resolver.expectedChannelMZs(light, 0, position).size(), 0)
+}
+END_SECTION
+
 START_SECTION((FAIMS metadata and CV - specific blacklisting))
 {
   auto in = makeDuplexMap();

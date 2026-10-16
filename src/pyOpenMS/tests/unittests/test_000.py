@@ -2033,6 +2033,27 @@ def testConsensusMapNormalizerAlgorithmQuantile():
     assert pyopenms.ConsensusMapNormalizerAlgorithmQuantile().normalizeMaps is not None
 
 @report
+def testConsensusMapNormalizerAlgorithmRTLocal():
+    """
+    @tests: ConsensusMapNormalizerAlgorithmRTLocal
+     ConsensusMapNormalizerAlgorithmRTLocal.__init__
+     ConsensusMapNormalizerAlgorithmRTLocal.Settings
+    """
+    ff = pyopenms.ConsensusMapNormalizerAlgorithmRTLocal()
+    settings = pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.Settings()
+    assert settings.neighbors == 50
+    assert settings.rounds == 5
+    assert settings.min_maps == 3
+    assert settings.min_reference == 20
+    settings.neighbors = 10
+    assert copy.copy(settings).neighbors == 10
+
+    cmap = pyopenms.ConsensusMap()
+    assert pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.computeOffsets(cmap, settings, "", "") == []
+    pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.normalizeMaps(cmap, settings, "", "")
+    assert cmap.size() == 0
+
+@report
 def testConsensusMapNormalizerAlgorithmThreshold():
     """
     @tests: ConsensusMapNormalizerAlgorithmThreshold
@@ -6433,12 +6454,13 @@ def test_MapConversion():
     exp.addSpectrum(sp)
     exp.addSpectrum(sp)
 
+    # peaks cannot be converted to a ConsensusMap: the handles would refer to peak indices, not to elements with ids
     cmap = pyopenms.ConsensusMap()
-    pyopenms.MapConversion().convert(0, exp, cmap, 2)
-
-    assert(cmap.size() == 2)
-    assert(cmap[0].getIntensity() == 10.0)
-    assert(cmap[0].getMZ() == 20.0)
+    try:
+        pyopenms.MapConversion().convert(0, exp, cmap, 2)
+        assert False, "converting an MSExperiment must fail"
+    except TypeError:
+        pass
 
 def test_BSpline2d():
 

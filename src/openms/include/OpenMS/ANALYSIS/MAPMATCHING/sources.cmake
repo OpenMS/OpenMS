@@ -8,6 +8,7 @@ BaseSuperimposer.h
 ConsensusMapNormalizerAlgorithmThreshold.h
 ConsensusMapNormalizerAlgorithmMedian.h
 ConsensusMapNormalizerAlgorithmQuantile.h
+ConsensusMapNormalizerAlgorithmRTLocal.h
 FeatureDistance.h
 FeatureGroupingAlgorithm.h
 FeatureGroupingAlgorithmLabeled.h
