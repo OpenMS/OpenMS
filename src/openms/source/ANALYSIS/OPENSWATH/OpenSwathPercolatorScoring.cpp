@@ -20,6 +20,7 @@
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/SqliteConnector_impl.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
 
@@ -29,7 +30,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <random>
 #include <limits>
 #include <map>
 #include <memory>
@@ -1781,12 +1781,13 @@ namespace OpenMS
       {
         return input; // everything would be taken
       }
-      // partial Fisher-Yates: the first max_others entries become a uniform sample
-      std::mt19937_64 rng(seed);
+      // the first max_others entries of a shuffle are a uniform sample; RandomShuffler draws the same
+      // shuffle on every platform (std::uniform_int_distribution does not)
+      Math::RandomShuffler shuffler;
+      shuffler.seed(seed);
+      shuffler.portable_random_shuffle(others.begin(), others.end());
       for (Size k = 0; k < max_others; ++k)
       {
-        std::uniform_int_distribution<Size> pick(k, others.size() - 1);
-        std::swap(others[k], others[pick(rng)]);
         take[others[k]] = 1;
       }
 
