@@ -266,6 +266,33 @@ test("ProSEAlgorithm reports its progress", () => {
   assertProgressSteps(reports, ["Searching SimpleSearchEngine_1.mzML (1 of 1)..."]);
 });
 
+// A module with ONNX Runtime: PeptDeep without its model throws inside a step of the file's step, which the search
+// leaves open. The next search of the algorithm has to report its steps from the outermost level again.
+test("ProSEAlgorithm: a search that throws leaves the progress of the next search intact", (t) => {
+  if (!OpenMS.hasONNXRuntime()) return t.skip("the module was built without ONNX Runtime");
+  using([new OpenMS.ProSEAlgorithm(), new OpenMS.ProteinIdentificationList(), new OpenMS.PeptideIdentificationList()],
+    (prose, proteins, peptides) => {
+      let reports = [];
+      prose.setProgressCallback((r) => reports.push(r));
+      const failing = { ...prose1, "peptdeep:enable": true, "peptdeep:ms2_model": "/no-such-model/ms2.onnx" };
+      const steps = ["Searching SimpleSearchEngine_1.mzML (1 of 1)..."];
+      for (const run of [
+        () => using([prose.searchFiles(["/topp/SimpleSearchEngine_1.mzML"], "/topp/SimpleSearchEngine_1.fasta", { rescore: false })], () => {}),
+        () => prose.search("/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.fasta", proteins, peptides, { rescore: false }),
+      ]) {
+        prose.setParameterValues(failing);
+        reports = [];
+        assert.throws(run, /no-such-model/);
+        assert.ok(reports.some((r) => r.event === "start" && r.label === "Adding PeptDeep rescoring features..."),
+          "the search threw inside a step of the file's step");
+        prose.setParameterValues({ "peptdeep:enable": false });
+        reports = [];
+        run();
+        assertProgressSteps(reports, steps);
+      }
+    });
+});
+
 test("ProSEAlgorithm: progress callback has to be a function", () => {
   using([new OpenMS.ProSEAlgorithm()], (prose) => {
     assert.throws(() => prose.setProgressCallback(42), /function/);
@@ -342,14 +369,15 @@ const prose6 = {
 const suitabilityDatabase = "/topp/THIRDPARTY/DatabaseSuitability_database.fasta";
 const suitabilitySpectra = path.join(toppDataDir, "THIRDPARTY/DatabaseSuitability_in_spec.mzML");
 
-/// Copies DatabaseSuitability_in_spec.mzML to @p names (paths relative to a new temporary directory, e.g.
-/// "0/run.mzML"), mounted at /searchfiles of module @p m while @p fn runs; @p fn gets the paths of the copies there.
-function withSpectraCopies(m, names, fn) {
+/// Copies @p source (default: DatabaseSuitability_in_spec.mzML) to @p names (paths relative to a new temporary
+/// directory, e.g. "0/run.mzML"), mounted at /searchfiles of module @p m while @p fn runs; @p fn gets the paths of
+/// the copies there.
+function withSpectraCopies(m, names, fn, source = suitabilitySpectra) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openms-wasm-prose-"));
   try {
     for (const name of names) {
       fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
-      fs.copyFileSync(suitabilitySpectra, path.join(dir, name));
+      fs.copyFileSync(source, path.join(dir, name));
     }
     m.mountHostDirectory("/searchfiles", dir);
     try {
@@ -529,6 +557,35 @@ test("searchFiles: one file, open search", () => {
   // the PSMs tell their files apart by path
   assert.throws(() => searchFiles(OpenMS, ["/topp/SimpleSearchEngine_1.mzML", "/topp/SimpleSearchEngine_1.mzML"], undefined),
     /SimpleSearchEngine_1\.mzML.*twice/);
+});
+
+test("searchFiles: open search of two files, with the modification analysis of all PSMs", () => {
+  // TOPP_ProSE_12_open (ProSE_6_fdr.ini, an open precursor window); its PSMs have mass shifts, unlike those of the
+  // open search of TOPP_ProSE_1's data
+  const open = { ...prose6, "rescore": false, "precursor:mass_tolerance_lower": 100, "precursor:mass_tolerance_upper": 300,
+                 "precursor:mass_tolerance_unit": "Da", "FDR:PSM": 0.0005, "FDR:protein": 0 };
+  const analysis = (files) => {
+    const set = searchFiles(OpenMS, files, undefined, { parameters: open });
+    try {
+      const summary = set.summary();
+      assert.equal(summary.files.length, files.length);
+      assert.ok(summary.files.every((f) => f.status === "EXECUTION_OK"));
+      assert.equal(summary.openSearch, true);
+      assert.ok(summary.modificationAnalysis !== null);
+      return summary.modificationAnalysis.deltaMasses;
+    } finally {
+      set.delete();
+    }
+  };
+  withSpectraCopies(OpenMS, ["a.mzML", "b.mzML"], (files) => {
+    const one = analysis(files.slice(0, 1));
+    const both = analysis(files);
+    assert.ok(both.entries.length > 0, "delta masses");
+    // the analysis of the PSMs of both files (copies of one)
+    assert.ok(one.totalPSMs > 0);
+    assert.equal(both.totalPSMs, 2 * one.totalPSMs);
+    assert.deepEqual(both.entries.map((e) => [e.deltaMass, e.count]), one.entries.map((e) => [e.deltaMass, 2 * e.count]));
+  });
 });
 
 test("searchFiles: files without PSMs give empty results", () => {

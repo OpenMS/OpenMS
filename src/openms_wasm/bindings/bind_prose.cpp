@@ -36,9 +36,11 @@
 #include <charconv>
 #include <cmath>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -82,6 +84,23 @@ namespace OpenMS::WASM
       return std::make_pair(i - 1, i == n);
     }
 
+    class JSProgressLogger;
+
+    /// The JSProgressLogger of each ProgressLogger that has one, so that a search can reset it (resetProgress()):
+    /// ProgressLogger has no getter for its implementation. A JSProgressLogger enters itself when it is created and
+    /// leaves when its ProgressLogger deletes it (for another callback or log type, or with the algorithm).
+    std::unordered_map<const ProgressLogger*, JSProgressLogger*>& jsProgressLoggers()
+    {
+      static std::unordered_map<const ProgressLogger*, JSProgressLogger*> loggers;
+      return loggers;
+    }
+
+    std::mutex& jsProgressLoggersMutex()
+    {
+      static std::mutex mutex;
+      return mutex;
+    }
+
     /// Reports the progress of an algorithm to a JavaScript function, called with
     /// {event: "start" | "progress" | "end", label, depth, begin, end, value, file}:
     /// - Every report is that of the innermost open step: its label, its range [begin, end] and
@@ -95,13 +114,37 @@ namespace OpenMS::WASM
     /// threads (e.g. a background reader) are not reported, and their values only count towards
     /// the open step (OpenMP threads). It runs while the search runs: in a Web Worker,
     /// postMessage() its argument to the page.
+    /// A search resets it before it starts (reset()): the steps of the algorithms are not ended
+    /// when they throw, so a search that threw may have left steps open.
     class JSProgressLogger : public ProgressLogger::ProgressLoggerImpl
     {
     public:
-      explicit JSProgressLogger(val callback) :
+      /// Reports the progress of @p logger, which takes it (setLogger()), to @p callback
+      JSProgressLogger(val callback, const ProgressLogger& logger) :
         callback_(std::move(callback)),
-        owner_(pthread_self())
+        owner_(pthread_self()),
+        logger_(&logger)
       {
+        const std::lock_guard<std::mutex> lock(jsProgressLoggersMutex());
+        jsProgressLoggers()[logger_] = this;
+      }
+
+      JSProgressLogger(const JSProgressLogger&) = delete;
+      JSProgressLogger& operator=(const JSProgressLogger&) = delete;
+
+      ~JSProgressLogger() override
+      {
+        const std::lock_guard<std::mutex> lock(jsProgressLoggersMutex());
+        const auto it = jsProgressLoggers().find(logger_);
+        if (it != jsProgressLoggers().end() && it->second == this) jsProgressLoggers().erase(it);
+      }
+
+      /// Forgets the open steps and the file, before a search starts (on the thread of the search, with no step open)
+      void reset() const
+      {
+        steps_.clear();
+        file_ = -1;
+        current_ = 0;
       }
 
       // ProgressLogger's depth is not used: it is static and shared by all threads.
@@ -177,6 +220,7 @@ namespace OpenMS::WASM
 
       val callback_;
       pthread_t owner_;
+      const ProgressLogger* logger_; ///< the logger that has this one
       /// the progress of the innermost open step (all threads count)
       mutable std::atomic<SignedSize> current_{0};
       /// the open steps of the owner thread, innermost last (only that thread changes them)
@@ -197,7 +241,16 @@ namespace OpenMS::WASM
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "The progress callback has to be a function (or null).", "");
       }
-      logger.setLogger(new JSProgressLogger(callback)); // the logger owns it
+      logger.setLogger(new JSProgressLogger(callback, logger)); // the logger owns it
+    }
+
+    /// Resets the progress reports of @p logger to JavaScript, if it has them (JSProgressLogger::reset()): at the
+    /// start of every search, which has to report its steps from the outermost one.
+    void resetProgress(const ProgressLogger& logger)
+    {
+      const std::lock_guard<std::mutex> lock(jsProgressLoggersMutex());
+      const auto it = jsProgressLoggers().find(&logger);
+      if (it != jsProgressLoggers().end()) it->second->reset();
     }
 
     //------------------------------------------------------------------------------
@@ -394,6 +447,7 @@ namespace OpenMS::WASM
                                             ProteinIdentificationList& proteins, PeptideIdentificationList& peptides,
                                             const JS::ProSEOptions& options)
     {
+      resetProgress(algo);
       bool rescore = false;
       const double protein_fdr = static_cast<double>(algo.getParameters().getValue("FDR:protein"));
       StopWatch watch;
@@ -586,6 +640,7 @@ namespace OpenMS::WASM
       const val keep_spectra_option = option(options, "keepSpectra");
       const bool remove_decoys = !isNullish(remove_decoys_option) && remove_decoys_option.as<bool>();
 
+      resetProgress(algo);
       auto set = std::make_unique<ProSEResultSet>();
       set->keep_spectra = isNullish(keep_spectra_option) || keep_spectra_option.as<bool>();
       set->psm_fdr = static_cast<double>(algo.getParameters().getValue("FDR:PSM"));
