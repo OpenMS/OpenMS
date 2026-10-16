@@ -18,6 +18,7 @@
 #include <fstream>
 #include <limits>
 #include <map>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -101,6 +102,12 @@ with @c -omit_isoforms.
 
 Both plain @c .xml and @c .xml.gz UniProt inputs are accepted (gzip is
 auto-detected by the underlying parser).
+
+The mandatory <code># DbVersion=</code> header line takes the value of
+@c -dbversion. If that is empty, it is the download date UniProt puts into the
+names of its files, e.g. @c 2025_07_05 for
+<em>uniprotkb_proteome_UP000005640_2025_07_05.xml.gz</em>, or @c unknown if
+the input file name contains no such date.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_UniPEFF.cli
@@ -1464,6 +1471,21 @@ namespace
     return !e.accession.empty() && !e.sequence.empty();
   }
 
+  /// UniProt names downloads after their date, e.g. "uniprotkb_proteome_UP000005640_2025_07_05.xml.gz".
+  /// Returns the last date token (YYYY_MM_DD, delimited by '_', '-', '.' or the ends of the name) in the
+  /// file name of @p path, or an empty string if it has none.
+  std::string dateFromFileName(const std::string& path)
+  {
+    static const std::regex date_token(R"((?:^|[_.-])((?:19|20)\d{2}_(?:0[1-9]|1[0-2])_(?:0[1-9]|[12]\d|3[01]))(?=[_.-]|$))");
+    const std::string name = File::basename(path);
+    std::string date;
+    for (std::sregex_iterator it(name.begin(), name.end(), date_token), end; it != end; ++it)
+    {
+      date = (*it)[1].str();
+    }
+    return date;
+  }
+
 } // namespace
 
 // ──────────────────────────────────────────────────────────────────
@@ -1498,7 +1520,7 @@ protected:
     setValidFormats_("unimod_obo", {"obo"});
 
     registerStringOption_("prefix", "<string>", "", "Force a single PEFF prefix for every entry (e.g. 'sp'); if empty, sp/tr is derived from the UniProt dataset.", false);
-    registerStringOption_("dbversion", "<string>", "unknown", "Value for the mandatory '# DbVersion=' PEFF header line.", false);
+    registerStringOption_("dbversion", "<string>", "", "Value for the mandatory '# DbVersion=' PEFF header line. If empty, the download date in the input file name is used (e.g. '2025_07_05' for 'uniprotkb_proteome_UP000005640_2025_07_05.xml.gz'), or 'unknown' if it has none.", false);
 
     registerFlag_("annotation_identifiers", "Emit PEFF Option B: assign a global sequential id: prefix to every annotation tuple, referenced by \\DisulfideBond. By default only the \\DisulfideBond tuples and the half-cystines they reference get ids: of K bonds, bond k (counting from 0) labels its half-cystines 2k and 2k+1 and is itself labeled 2K+k.");
     registerFlag_("omit_molecular_processing", "Skip the \\Processed annotations (initiator methionine, signal/transit peptide, propeptide, chain).");
@@ -1512,7 +1534,7 @@ protected:
     const std::string in_file        = getStringOption_("in");
     const std::string out_file       = getStringOption_("out");
     const std::string prefix_override = getStringOption_("prefix");
-    const std::string dbversion      = getStringOption_("dbversion");
+    std::string dbversion            = getStringOption_("dbversion");
     const bool option_b              = getFlag_("annotation_identifiers");
     const bool omit_proc             = getFlag_("omit_molecular_processing");
     const bool omit_aa               = getFlag_("omit_amino_acid_modifications");
@@ -1523,6 +1545,22 @@ protected:
     const bool record_aa_mods    = !omit_aa;
     const bool record_variants   = !omit_var;
     const bool record_isoforms   = !omit_iso;
+
+    if (dbversion.empty())
+    {
+      dbversion = dateFromFileName(in_file);
+      if (dbversion.empty())
+      {
+        dbversion = "unknown";
+        OPENMS_LOG_INFO << "UniPEFF: no -dbversion given and no date (YYYY_MM_DD) in the input file name; "
+                           "writing '# DbVersion=unknown'." << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "UniPEFF: no -dbversion given; using the date in the input file name: '# DbVersion="
+                        << dbversion << "'." << std::endl;
+      }
+    }
 
     // Resolve auxiliary files.
     std::string ptmlist_file = getStringOption_("ptmlist");

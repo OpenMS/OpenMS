@@ -906,9 +906,10 @@ namespace OpenMS{
 #ifndef OPENMS_WINDOWSPLATFORM
     // layered installs (e.g. Homebrew kegs for library, TOPP tools and GUI) merge their files into a common
     // prefix, whose share/OpenMS is compiled in as OPENMS_INSTALL_DATA_PATH: probe the bin/ of that prefix
-    if (!std::string(OPENMS_INSTALL_DATA_PATH).empty())
+    const std::string install_data_path = installPath_(OPENMS_INSTALL_DATA_PATH);
+    if (!install_data_path.empty())
     {
-      exec = std::string(OPENMS_INSTALL_DATA_PATH) + "/../../bin/" + toolName;
+      exec = install_data_path + "/../../bin/" + toolName;
       if (File::exists(exec) && !File::isDirectory(exec)) return exec;
     }
 #endif

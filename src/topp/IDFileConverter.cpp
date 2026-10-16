@@ -74,7 +74,8 @@ IDFileConverter can be used to convert identification results from external tool
 For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. CometAdapter) to avoid the extra conversion step.
 
 The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
-Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits.
+Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits, in the order of the line:
+as the file has no scores, a hit's score is its rank (score type "rank", lower is better).
 Lines starting with "#" are ignored by the parser.
 
 Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quite comprehensive, to the extent that the original data can be
@@ -574,6 +575,9 @@ protected:
           if (it->empty() || StringUtils::hasPrefix(*it, "#")) continue;
 
           PeptideIdentification pepid;
+          // The file has no scores; the hits of a line are given in rank order, so their score is their rank.
+          pepid.setScoreType("rank");
+          pepid.setHigherScoreBetter(false);
           StringList peps;
           StringUtils::split(*it, '\t', peps, false);
           std::vector<PeptideHit> hits;
@@ -581,6 +585,7 @@ protected:
           {
             PeptideHit hit;
             hit.setSequence(AASequence::fromString(*sit));
+            hit.setScore(static_cast<double>(hits.size() + 1));
             hits.push_back(hit);
           }
           pepid.setHits(hits);

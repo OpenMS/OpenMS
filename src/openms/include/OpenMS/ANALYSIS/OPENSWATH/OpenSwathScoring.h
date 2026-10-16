@@ -25,7 +25,6 @@
 
 #include <vector>
 #include <memory>
-#include <boost/make_shared.hpp>
 
 //logging
 #include <OpenMS/CONCEPT/LogStream.h>

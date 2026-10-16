@@ -36,7 +36,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Arg-C",
       "(?<=[RX])(?!P)",
-      set<std::string>{"Clostripain", "argc", "arg_c"},
+      set<std::string>{"Clostripain"},
       "Arg-C cleaves following R residue unless the next residue is P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -66,7 +66,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Asp-N",
       "(?=[DBX])",
-      set<std::string>{"asp_n"},
+      set<std::string>(),
       "Asp-N cleaves before D(or B).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -171,7 +171,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Lys-C",
       "(?<=[KX])(?!P)",
-      set<std::string>{"lys_c"},
+      set<std::string>(),
       "Lys-C cuts after K if not followed by P.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -186,7 +186,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "Lys-N",
       "(?=[KX])",
-      set<std::string>{"lys_n"},
+      set<std::string>(),
       "Lys-N cuts before K.",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),
@@ -321,7 +321,7 @@ namespace OpenMS
     enzymes.push_back(make_unique<DigestionEnzymeProtein>(
       "glutamyl endopeptidase",
       "(?<=[DBEZX])",
-      set<std::string>{"Glu-C", "glu_c", "staphylococcal protease"},
+      set<std::string>{"Glu-C", "staphylococcal protease"},
       "glutamyl endopeptidase cuts after D(or B) or E(or Z).",
       EmpiricalFormula("H"),
       EmpiricalFormula("OH"),

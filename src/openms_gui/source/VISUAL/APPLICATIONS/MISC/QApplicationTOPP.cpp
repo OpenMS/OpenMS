@@ -6,6 +6,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <clocale>
 #include <cstdio>
 #include <cstdlib>
 
@@ -38,6 +39,11 @@ namespace OpenMS
   QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) :
     QApplication(argc, argv)
   {
+    // QApplication (like any QCoreApplication on Unix) calls setlocale(LC_ALL, ""), which
+    // makes C library number parsing/formatting depend on the user's region (e.g. decimal
+    // comma in de_DE). Reset LC_NUMERIC to "C" as recommended by the Qt documentation.
+    setlocale(LC_NUMERIC, "C");
+
     // inject the GUIProgressLoggerImpl to be used by OpenMS lib via an extern variable
     make_gui_progress_logger = 
       []() -> ProgressLogger::ProgressLoggerImpl* { return new GUIProgressLoggerImpl(); };

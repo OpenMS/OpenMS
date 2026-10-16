@@ -34,6 +34,18 @@ namespace OpenMS
       result.errors.push_back(std::move(error));
     }
 
+    /// The values of a list-valued key field, for an error message: "[3, 7]"
+    std::string listAsText(const std::vector<int32_t>& values)
+    {
+      std::string text = "[";
+      for (size_t i = 0; i < values.size(); ++i)
+      {
+        if (i > 0) { text += ", "; }
+        text += std::to_string(values[i]);
+      }
+      return text + "]";
+    }
+
     std::shared_ptr<arrow::Array> combinedColumn(
       const std::shared_ptr<arrow::Table>& table,
       const std::string& name,
@@ -386,6 +398,7 @@ namespace OpenMS
         combinedColumn(table, QPXPSMSchema::SCAN, result));
       if (!peptidoform || !charge || !run || !scan) { return result; }
       const auto scan_values = std::static_pointer_cast<arrow::Int32Array>(scan->values());
+      int64_t duplicate_primary_keys = 0;
 
       for (int64_t row = 0; row < table->num_rows(); ++row)
       {
@@ -440,9 +453,35 @@ namespace OpenMS
 
         if (impl_->primary_keys.contains(key) || !new_primary_keys.insert(key).second)
         {
+          ++duplicate_primary_keys;
+          // name the values, not just the row: the row index is into the Parquet table, so on its
+          // own it says nothing about which spectrum and which peptide have to be looked at
           addError(result, "row " + std::to_string(row)
                            + " repeats the QPX psm primary key "
-                             "(peptidoform, charge, run_file_name, scan)");
+                             "(peptidoform, charge, run_file_name, scan): peptidoform '"
+                           + peptidoform->GetString(row) + "', charge "
+                           + std::to_string(charge->Value(row)) + ", run_file_name '"
+                           + run->GetString(row) + "', scan " + listAsText(scans));
+        }
+      }
+      if (duplicate_primary_keys > 0)
+      {
+        if (duplicate_primary_keys * 2 > table->num_rows())
+        {
+          // a handful of identifications colliding is a duplicated identification; most of the
+          // table colliding means the key does not identify a spectrum in the first place
+          addError(result, "most rows (" + std::to_string(duplicate_primary_keys) + " of "
+                           + std::to_string(table->num_rows()) + ") repeat their primary key. That is"
+                             " usually not duplicated identifications but 'run_file_name' or 'scan'"
+                             " values that do not identify a spectrum: check that the runs have"
+                             " distinct names and that the spectrum references carry a scan number"
+                             " (some vendor native IDs, e.g. Bruker timsTOF and Sciex, do not).");
+        }
+        else
+        {
+          addError(result, "keep one identification per (spectrum, peptidoform, charge) before"
+                           " exporting, e.g. with IDFilter, ConsensusID -algorithm best or"
+                           " IDConflictResolver.");
         }
       }
     }
@@ -516,7 +555,13 @@ namespace OpenMS
           {
             addError(result, "row " + std::to_string(row)
                              + " repeats the QPX feature primary key "
-                               "(peptidoform, charge, run_file_name, rt, observed_mz)");
+                               "(peptidoform, charge, run_file_name, rt, observed_mz): peptidoform '"
+                             + peptidoform->GetString(row) + "', charge "
+                             + std::to_string(charge->Value(row)) + ", run_file_name '"
+                             + run->GetString(row) + "', rt "
+                             + (rt->IsNull(row) ? "null" : std::to_string(rt->Value(row)))
+                             + ", observed_mz "
+                             + (observed_mz->IsNull(row) ? "null" : std::to_string(observed_mz->Value(row))));
           }
         }
 

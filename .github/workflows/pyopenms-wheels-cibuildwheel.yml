@@ -399,7 +399,6 @@ jobs:
             clp \
             coinutils \
             eigen \
-            libomp \
             libsvm \
             libzip \
             sqlite \
@@ -545,7 +544,9 @@ jobs:
       - name: Install the binary cache tools
         shell: bash
         run: |
-          choco install -y --no-progress rclone
+          git clone https://github.com/OpenMS/chocolatey-packages.git
+          (cd chocolatey-packages && make && cd build &&
+            choco install -y --no-progress -s . rclone)
           choco install -y --no-progress --version 6.2.7 rsync
 
       # The main CI's vcpkg binary cache, under the key of its Windows build

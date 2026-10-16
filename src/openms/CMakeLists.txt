@@ -68,14 +68,8 @@ add_subdirectory(thirdparty/percolator)
 ## Xerces-free XMLHandler / XMLAttributes / StringManager public API and the
 ## internal SAX2HandlerAdapter, so it no longer appears in any installed header
 ## and downstream consumers neither include nor link it (see #8547).
-## Note: Boost::boost (header-only) is PUBLIC because the installed public header
-## config.h includes <boost/current_function.hpp> (via Macros.h), so consumers
-## (e.g. pyOpenMS) need Boost's include dir. It propagates include dirs but no
-## link libraries, and it is the only Boost target: OpenMS uses header-only Boost
-## libraries only (see the Boost section of cmake/cmake_findExternalLibs.cmake).
-set(OPENMS_DEP_LIBRARIES
-  Boost::boost
-)
+## Boost is an implementation dependency: no installed header includes it.
+set(OPENMS_DEP_LIBRARIES)
 
 ## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 ## Note: Eigen3::Eigen is PRIVATE because Eigen types are not exposed in the public API
@@ -83,6 +77,7 @@ set(OPENMS_DEP_LIBRARIES
 ## Note: LibSVM::LibSVM is PRIVATE because LIBSVM types are not exposed in the public API;
 ##       they are fully encapsulated by the SimpleSVM wrapper (Pimpl) (see #8547).
 set(OPENMS_DEP_PRIVATE_LIBRARIES
+  Boost::boost
   CURL::libcurl
   XercesC::XercesC
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
@@ -95,6 +90,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Quadtree
   SIMDe
   SQLiteCpp
+  Threads::Threads
   ${OPENMS_SQLITECPP_EXTRA_LIBS}
   ZLIB::ZLIB
   ${OPENMS_ZSTD_TARGET}
@@ -104,8 +100,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   eol-bspline
   OpenMS_Percolator
   )
-
-option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 
 if(WITH_ONNX)
   if(OPENMS_USE_VCPKG)
@@ -155,11 +149,28 @@ if(WITH_ONNX)
   endif()
 
   if(ORT_LIB_PATH)
-      # Safely install ONNX shared libraries based on the operating system
+      # Safely install ONNX shared libraries based on the operating system.
+      # Component Dependencies, as for the other runtime dependencies
+      # (cmake/package_general.cmake): the installers and the SDK select their
+      # components by name and never install the unnamed default component.
       if(WIN32)
-          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}")
+          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_BIN_DIR}" COMPONENT Dependencies)
       else()
-          install(PROGRAMS "${ORT_LIB_PATH}" DESTINATION "${INSTALL_LIB_DIR}")
+          # ORT_LIB_PATH is usually the unversioned symlink (libonnxruntime.so/.dylib), which
+          # install() copies as a symlink, i.e. dangling without its target; and libOpenMS records
+          # the SONAME/install name (libonnxruntime.so.1, libonnxruntime.1.dylib) anyway. Install
+          # the real library together with all its (relative) version symlinks from its directory.
+          file(REAL_PATH "${ORT_LIB_PATH}" _ort_real_lib)
+          get_filename_component(_ort_lib_dir "${_ort_real_lib}" DIRECTORY)
+          if(APPLE)
+            file(GLOB _ort_libs "${_ort_lib_dir}/libonnxruntime.*dylib")
+          else()
+            file(GLOB _ort_libs "${_ort_lib_dir}/libonnxruntime.so*")
+          endif()
+          install(FILES ${_ort_libs}
+                  DESTINATION "${INSTALL_LIB_DIR}"
+                  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+                  COMPONENT Dependencies)
       endif()
   endif()
 
@@ -239,9 +250,13 @@ if(WITH_ONNX)
     endif()
   endforeach()
 
-  # Ensure models are packaged during 'make install'.
+  # Ensure models are packaged during 'make install'. They are shared data the
+  # library loads at runtime, so they belong to the share component the
+  # installers and the SDK install (the unnamed default component is never
+  # selected by them).
   install(FILES ${OPENMS_PEPTDEEP_MODEL_FILES}
-          DESTINATION "share/OpenMS/models")
+          DESTINATION "${INSTALL_SHARE_DIR}/models"
+          COMPONENT share)
 
 endif()
 
@@ -521,5 +536,9 @@ if(WITH_ONNX)
     source/ML/PEPTDEEP/PeptDeepInput.cpp
     source/ML/PEPTDEEP/PeptDeepRTInference.cpp
     source/ML/PEPTDEEP/PeptDeepMS2Inference.cpp
+    source/ANALYSIS/ID/PeptDeepRescoring.cpp
   )
+  # Lets dependent code (e.g. ProSEAlgorithm) compile out the PeptDeep calls when the
+  # runtime is absent, the same way WITH_OPENTIMS / WITH_THERMO_RAW are handled.
+  target_compile_definitions(OpenMS PUBLIC WITH_ONNX=1)
 endif()

@@ -21,6 +21,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
@@ -929,8 +930,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            //encountered a PeptideIdentification which is not linked to any ProteinIdentification
-            OPENMS_LOG_ERROR << "encountered a PeptideIdentification which is not linked to any ProteinIdentification\n";
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(it->getIdentifier()));
           }
         }
 

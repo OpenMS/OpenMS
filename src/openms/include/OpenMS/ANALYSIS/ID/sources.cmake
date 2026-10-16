@@ -22,8 +22,8 @@ FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
 FragmentIndex.h
+FragmentIonLikelihoodModel.h
 HyperScore.h
-IDBoostGraph.h
 IDDecoyProbability.h
 IDConflictResolverAlgorithm.h
 IDMapper.h
@@ -49,6 +49,12 @@ SiriusExportAlgorithm.h
 SiriusMSConverter.h
 )
 
+if (WITH_ONNX)
+    list(APPEND sources_list_h
+        PeptDeepRescoring.h
+    )
+endif()
+
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
@@ -59,3 +65,8 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\ANALYSIS\\ID" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
+
+# Implementation detail of protein inference: its graph types are Boost.Graph, so it is not
+# installed. Code outside the library that needs indistinguishable protein groups calls
+# BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups() instead.
+list(APPEND OpenMS_private_headers ${directory}/IDBoostGraph.h)

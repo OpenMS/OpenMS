@@ -687,6 +687,7 @@ START_SECTION(importSearchParamsFromArrow - round trip)
   prot_id.setHigherScoreBetter(false);
   prot_id.setSignificanceThreshold(0.01);
   prot_id.setPrimaryMSRunPath(StringList{"sample_1.mzML", "sample_2.mzML"});
+  prot_id.setPrimaryMSRunPath(StringList{"sample_1.raw", "sample_2.raw"}, true);
 
   DateTime dt;
   dt.set("2024-06-15 14:30:00");
@@ -746,6 +747,10 @@ START_SECTION(importSearchParamsFromArrow - round trip)
   TEST_EQUAL(ms_runs.size(), 2)
   TEST_EQUAL(ms_runs[0], "sample_1.mzML")
   TEST_EQUAL(ms_runs[1], "sample_2.mzML")
+  // The raw files have no column of their own; they travel as a meta value.
+  StringList raw_runs;
+  imp.getPrimaryMSRunPath(raw_runs, true);
+  TEST_EQUAL(raw_runs == StringList({"sample_1.raw", "sample_2.raw"}), true)
 
   // SearchParameters
   const auto& imp_sp = imp.getSearchParameters();
@@ -780,6 +785,22 @@ START_SECTION(importSearchParamsFromArrow - round trip)
 
   // Cross-check: sp_custom_param should NOT be on the ProteinIdentification object
   TEST_EQUAL(imp.metaValueExists("sp_custom_param"), false)
+}
+END_SECTION
+
+START_SECTION(importSearchParamsFromArrow - an empty file list is not stored)
+{
+  // the file list column holds an empty list for a run without files; older bundles may also hold an empty raw file list
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_without_files");
+  prot_id.setMetaValue("spectra_data_raw", StringList());
+  auto table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(vector<ProteinIdentification>{prot_id});
+  TEST_NOT_EQUAL(table, nullptr)
+  vector<ProteinIdentification> imported_ids;
+  TEST_EQUAL(ProteinIdentificationArrowIO::importSearchParamsFromArrow(table, imported_ids), true)
+  TEST_EQUAL(imported_ids.size(), 1)
+  TEST_EQUAL(imported_ids[0].metaValueExists("spectra_data"), false)
+  TEST_EQUAL(imported_ids[0].metaValueExists("spectra_data_raw"), false)
 }
 END_SECTION
 

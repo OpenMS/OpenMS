@@ -24,6 +24,7 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 #include <arrow/builder.h>
@@ -189,6 +190,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const Conse
 std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(const ConsensusMap& cmap,
                                                                     const ExperimentalDesign& design)
 {
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(cmap);
+
   if (cmap.getProteinIdentifications().empty())
   {
     OPENMS_LOG_WARN << "ProteinGroupArrowExport: No protein identifications found" << std::endl;
@@ -1030,6 +1034,9 @@ std::shared_ptr<arrow::Table> ProteinGroupArrowExport::exportToArrow(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications)
 {
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(protein_identifications, peptide_identifications);
+
   auto target_schema = QPXPgSchema::schema();
 
   if (protein_identifications.empty())

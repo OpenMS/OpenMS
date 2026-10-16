@@ -5,6 +5,7 @@ set(directory include/OpenMS/QC)
 set(sources_list_h
   FeatureSummary.h
   IdentificationSummary.h
+  IDFreeMassErrorEstimator.h
   MissedCleavages.h
   Ms2IdentificationRate.h
   PSMExplainedIonCurrent.h

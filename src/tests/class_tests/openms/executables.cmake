@@ -4,7 +4,7 @@ set(concept_executables_list
   Colorizer_test
   Exception_Base_test
   FuzzyStringComparator_test
-  #GlobalExceptionHandler_test
+  GlobalExceptionHandler_test
   PrecisionWrapper_test
   ProgressLogger_test
   RAIICleanup_test
@@ -21,6 +21,7 @@ set(qc_executables_list
   DBSuitability_test
   FeatureSummary_test
   IdentificationSummary_test
+  IDFreeMassErrorEstimator_test
   MissedCleavages_test
   Ms2IdentificationRate_test
   PSMExplainedIonCurrent_test
@@ -95,6 +96,7 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
+  IDDataContainer_test
   IdentificationData_test
   IdentificationDataConverter_test
   IdentifiedMolecule_test
@@ -119,6 +121,7 @@ set(metadata_executables_list
   ProteinHit_test
   ProteinIdentification_test
   ProteinModificationSummary_test
+  ProteinRunReferences_test
   IdentifierMSRunMapper_test
   Sample_test
   ScanWindow_test
@@ -159,6 +162,7 @@ set(kernel_executables_list
   DimMapper_test
   DPeak_test
   FeatureMap_test
+  FeatureUniqueIds_test
   Feature_test
   MassTrace_test
   Mobilogram_test
@@ -185,6 +189,7 @@ set(kernel_executables_list
 set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
+  BedRModFile_test
   BrukerTimsFile_test
   BrukerTimsImagingFile_test
   PASEFHillCentroider_test
@@ -258,9 +263,11 @@ set(format_executables_list
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
+  OSWParquetFile_test
   OSWFileInference_test
   PTMXMLFile_test
   ParamCTDFile_test
+  ParamCWLFile_test
   ParamJSONFile_test
   ParamXMLFile_test
   ParquetFilter_test
@@ -276,6 +283,7 @@ set(format_executables_list
   PercolatorAdapter_parity_test
   PercolatorInfile_test
   PercolatorOutfile_test
+  PercolatorPosteriorEstimator_test
   ProtXMLFile_test
   QcMLFile_test
   SVOutStream_test
@@ -287,6 +295,7 @@ set(format_executables_list
   SqliteConnector_test
   MRMFile_test
   ThermoRawFile_test
+  OnDiscThermoRawExperiment_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -318,6 +327,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SpectrumAccessOnDisc_test
   SpectrumAccessOpenMS_test
   SpectrumAccessOpenMSInMemory_test
   MRMFeatureAccessOpenMS_test
@@ -539,6 +549,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
+  ConsensusMapNormalizerAlgorithmRTLocal_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
   # DeconvolvedSpectrum_test
@@ -620,6 +631,7 @@ set(analysis_executables_list
   PeakGroup_test
   PScore_test
   FragmentIndex_test
+  FragmentIonLikelihoodModel_test
   HyperScore_test
   MorpheusScore_test
   OpenPepXLAlgorithm_test
@@ -648,6 +660,10 @@ set(analysis_executables_list
 
 if(WITH_WNETALIGN)
   list(APPEND analysis_executables_list FeatureGroupingAlgorithmWNet_test WNetMatcher_test)
+endif()
+
+if(WITH_ONNX)
+  list(APPEND analysis_executables_list PeptDeepRescoring_test)
 endif()
 
 set(applications_executables_list
@@ -721,7 +737,9 @@ if(NOT DISABLE_OPENSWATH)
     PeakMapExtractor_test
     OpenSwathHelper_test
     OpenSwathLibraryIDNormalizer_test
+    OpenSwathLibraryPreparation_test
     OpenSwathOSWWriter_test
+    OpenSwathPeptidoformInference_test
     TransitionListEvidenceFilter_test
     OpenSwathScoring_test
     OpenSwathScores_test
@@ -756,6 +774,12 @@ if(NOT DISABLE_OPENSWATH)
     CachedMzMLHandler_test
   )
 endif(NOT DISABLE_OPENSWATH)
+
+if(WITH_ONNX AND NOT DISABLE_OPENSWATH)
+  list(APPEND swath_executables_list
+    PeptDeepLibraryPredictor_test
+    OpenSwathPredictedLibraryPreparation_test)
+endif()
 
 if(NOT DISABLE_OPENSWATH)
   list(APPEND swath_executables_list TransitionParquetFile_test)

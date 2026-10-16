@@ -105,19 +105,11 @@ namespace
     }
     try
     {
-      size_t pos = 0;
-      const double v = std::stod(val, &pos);
-      if (pos != val.size())
-      {
-        throwImsParseError_(file, acc, val, "trailing characters");
-      }
-      return v;
+      // StringUtils::toDouble is locale-independent (std::stod honours LC_NUMERIC) and rejects
+      // trailing characters
+      return StringUtils::toDouble(val);
     }
-    catch (const Exception::ParseError&)
-    {
-      throw;
-    }
-    catch (...)
+    catch (const Exception::ConversionError&)
     {
       throwImsParseError_(file, acc, val, "not a valid floating-point number");
     }

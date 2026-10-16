@@ -19,6 +19,7 @@
 
 namespace OpenMS
 {
+  class AASequence;
   class MultiplexDeltaMassesGenerator;
 
   /**
@@ -38,6 +39,8 @@ namespace OpenMS
 
     Only the first peptide identification of a consensus feature is taken into account, so the map should
     have been reduced to one identification per feature (IDConflictResolverAlgorithm::resolve()) first.
+    checkIdentifications() tells beforehand which of several identifications agree with a multiplet, so that
+    the reduction can prefer one of those over a better-scoring one that would make the multiplet a conflict.
     Multiplets without sequence annotation are written to the conflict map unchanged.
 
     The identifications must carry the map index of the feature handle they were mapped to in the meta
@@ -79,7 +82,39 @@ namespace OpenMS
     void resolve(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts,
                  const MSExperiment& blacklist = MSExperiment()) const;
 
+    /**
+      @brief Which peptide identifications of @p consensus agree with its detected mass shifts?
+
+      This is the check resolve() applies to the (first) identification of a multiplet, for every
+      identification: the label set of its first peptide hit has to occur in a theoretical pattern whose
+      mass shifts explain every detected feature, relative to the feature named by the identification's
+      @c map_index. Use it to choose, among several identifications mapped onto one multiplet, one that
+      does not turn the multiplet into a conflict.
+
+      @return One flag per peptide identification of @p consensus, in order. Identifications without
+              hits, without @c map_index, or whose @c map_index names no feature handle are not consistent.
+    */
+    std::vector<bool> checkIdentifications(const ConsensusFeature& consensus) const;
+
+    /**
+      @brief Where the peptide of @p sequence appears in every channel.
+
+      The theoretical pattern of the peptide is the one whose label set at some position equals the labels
+      of @p sequence and whose channels label as many residues as it has (see matchesResidues_()). Its
+      mass shifts, relative to the position of @p sequence, give the m/z of the peptide at charge
+      @p charge in every channel.
+
+      @param[in] sequence Identified peptidoform, with its labels
+      @param[in] charge Charge state (non-zero)
+      @param[out] position Position (channel) of @p sequence itself within the returned m/z values
+      @return The m/z per channel (pattern position), empty if no theoretical pattern fits @p sequence
+    */
+    std::vector<double> expectedChannelMZs(const AASequence& sequence, int charge, Size& position) const;
+
   protected:
+    /// The generator of the theoretical mass-shift patterns, as configured in the sections @c algorithm and @c labels
+    MultiplexDeltaMassesGenerator createGenerator_() const;
+
     /// Relative delta mass between the first feature handle and the handle with map index @p idx (NaN if absent)
     static double deltaMassFromMapIndex_(const ConsensusFeature::HandleSetType& feature_handles, unsigned idx);
 
@@ -98,27 +133,44 @@ namespace OpenMS
       @brief Check whether all delta masses of the detected pattern match one of the theoretical pattern
 
       @param[in] consensus Detected pattern
+      @param[in] detected_delta_mass_at_label_set Detected mass shift of the identified feature (relative to the first feature)
       @param[in] pattern Theoretical pattern
       @param[in] theoretical_delta_mass_at_label_set Theoretical mass shift at which the label set was matched
       @param[out] delta_mass_matched Which delta masses of the theoretical pattern were matched
       @return true if every detected delta mass has a theoretical counterpart within the mass tolerance
     */
-    bool matchDeltaMasses_(const ConsensusFeature& consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
+    bool matchDeltaMasses_(const ConsensusFeature& consensus, double detected_delta_mass_at_label_set,
+                           const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,
                            double theoretical_delta_mass_at_label_set, std::vector<bool>& delta_mass_matched) const;
 
     /**
       @brief Find the theoretical delta mass pattern matching the detected one
 
       @param[in] consensus Detected pattern
-      @param[in] label_set Label set extracted from the sequence annotated to the detected pattern
+      @param[in] detected_delta_mass_at_label_set Detected mass shift of the identified feature (relative to the first feature)
+      @param[in] sequence Sequence annotated to the detected pattern
+      @param[in] label_set Label set extracted from @p sequence
       @param[in] theoretical_patterns All theoretical patterns
       @param[out] delta_mass_matched Which delta masses of the matching pattern were matched
       @param[out] index_label_set Index within the matching pattern at which the label set was matched
       @return Index of the matching pattern, or -1
     */
-    int findMatchingPattern_(const ConsensusFeature& consensus, const MultiplexDeltaMasses::LabelSet& label_set,
+    int findMatchingPattern_(const ConsensusFeature& consensus, double detected_delta_mass_at_label_set,
+                             const AASequence& sequence, const MultiplexDeltaMasses::LabelSet& label_set,
                              const std::vector<MultiplexDeltaMasses>& theoretical_patterns,
                              std::vector<bool>& delta_mass_matched, int& index_label_set) const;
+
+    /**
+      @brief Does every channel of @p pattern label as many residues as @p sequence has?
+
+      Metabolic labels (SILAC Lys/Arg, Leu3) sit on every residue of their kind, so in a pattern that
+      fits the peptide, each channel carries one Lys label per K, one Arg label per R and one Leu label
+      per L - counted for the residue kinds the channel labels at all. This tells the pattern of an
+      unlabelled identification, whose label set ("no_label") occurs in every pattern, e.g. a light
+      singlet of a K-terminal peptide must not be completed with Arg-shifted channels. Other labels
+      (Dimethyl, ICPL, plain mass shifts) are not counted.
+    */
+    static bool matchesResidues_(const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, const AASequence& sequence);
 
     /// m/z of the lightest peptide of the complete multiplet, given the incomplete one at @p mz
     static double findNewMZ_(double mz, int charge, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern,

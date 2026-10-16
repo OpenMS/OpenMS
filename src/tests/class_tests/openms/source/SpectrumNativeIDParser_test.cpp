@@ -79,16 +79,16 @@ START_SECTION((static std::string getRegExFromNativeID(const std::string& native
 END_SECTION
 
 
-START_SECTION((static Int extractScanNumber(const std::string& native_id, const boost::regex& scan_regexp, bool no_error = false)))
+START_SECTION((static Int extractScanNumber(const std::string& native_id, const RegularExpression& scan_regexp, bool no_error = false)))
 {
   // Test successful extraction with spectrum= format
-  boost::regex re_spectrum("spectrum=(?<SCAN>\\d+)");
+  RegularExpression re_spectrum("spectrum=(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("spectrum=42", re_spectrum), 42);
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("spectrum=0", re_spectrum), 0);
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("spectrum=99999", re_spectrum), 99999);
 
   // Test successful extraction with scan= format
-  boost::regex re_scan("scan=(?<SCAN>\\d+)");
+  RegularExpression re_scan("scan=(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("scan=123", re_scan), 123);
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("controllerType=0 controllerNumber=1 scan=456", re_scan), 456);
 
@@ -102,11 +102,11 @@ START_SECTION((static Int extractScanNumber(const std::string& native_id, const 
   TEST_EXCEPTION(Exception::ParseError, SpectrumNativeIDParser::extractScanNumber("no_match", re_spectrum, false));
 
   // Test multiple matches - should return last one
-  boost::regex re_multi("(?<SCAN>\\d+)");
+  RegularExpression re_multi("(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("1 2 3 42", re_multi), 42);
 
   // Test edge cases
-  boost::regex re_index("index=(?<SCAN>\\d+)");
+  RegularExpression re_index("index=(?<SCAN>\\d+)");
   TEST_EQUAL(SpectrumNativeIDParser::extractScanNumber("index=0", re_index), 0);
 }
 END_SECTION
@@ -189,10 +189,9 @@ START_SECTION([EXTRA] Edge cases and error handling)
 
   // Test getRegExFromNativeID preserves regex structure
   std::string regex = SpectrumNativeIDParser::getRegExFromNativeID("scan=123");
-  boost::regex re(regex);
-  boost::smatch match;
+  RegularExpression re(regex);
   std::string test = "scan=456";
-  TEST_EQUAL(boost::regex_search(test, match, re), true);
+  TEST_EQUAL(re.search(test), true);
 }
 END_SECTION
 

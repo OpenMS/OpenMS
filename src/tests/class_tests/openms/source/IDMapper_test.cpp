@@ -646,6 +646,57 @@ START_SECTION([EXTRA] double getAbsoluteMZTolerance_(const double mz) const)
   TEST_REAL_SIMILAR(mapper.getAbsoluteMZTolerance2_(1000), 3)
 END_SECTION
 
+START_SECTION(([EXTRA] annotate(ConsensusMap& map, ...) with TMT/iTRAQ spectrum references that are bare scan numbers))
+{
+  // Search engines such as Sage report bare scan numbers, while the consensus features of
+  // TMT/iTRAQ data carry the native IDs of their spectra.
+  auto annotate = [](const std::vector<std::string>& native_ids, const std::vector<std::string>& references)
+  {
+    ConsensusMap map;
+    map.getColumnHeaders()[0].filename = "tmt.mzML";
+    for (const auto& native_id : native_ids)
+    {
+      ConsensusFeature cf;
+      cf.insert(0, Peak2D(), 0);
+      cf.setMetaValue("scan_id", native_id);
+      map.push_back(cf);
+    }
+    PeptideIdentificationList ids;
+    for (const auto& reference : references)
+    {
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setRT(100.0);
+      id.setMZ(500.0);
+      id.setSpectrumReference(reference);
+      id.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE")));
+      ids.push_back(id);
+    }
+    std::vector<ProteinIdentification> proteins(1);
+    proteins[0].setIdentifier("run");
+    proteins[0].setPrimaryMSRunPath({"tmt.mzML"});
+    IDMapper().annotate(map, ids, proteins);
+    return map;
+  };
+
+  // The scan number is taken from the native ID (this aborted with a ParseError before).
+  ConsensusMap thermo = annotate({"controllerType=0 controllerNumber=1 scan=42", "controllerType=0 controllerNumber=1 scan=43"},
+                                 {"43", "42"});
+  TEST_EQUAL(thermo[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(thermo[0].getPeptideIdentifications()[0].getSpectrumReference(), "42")
+  TEST_EQUAL(thermo[1].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(thermo[1].getPeptideIdentifications()[0].getSpectrumReference(), "43")
+
+  // A WIFF native ID's scan number is cycle * 1000 + experiment, not its last number:
+  // reference "1" must not be attached to the spectrum with experiment=1.
+  ConsensusMap wiff = annotate({"sample=1 period=1 cycle=96 experiment=1", "sample=1 period=1 cycle=97 experiment=2"},
+                               {"96001", "1"});
+  TEST_EQUAL(wiff[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(wiff[0].getPeptideIdentifications()[0].getSpectrumReference(), "96001")
+  TEST_EQUAL(wiff[1].getPeptideIdentifications().size(), 0)
+}
+END_SECTION
+
 START_SECTION([EXTRA] bool isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const)
   IDMapper2 mapper;
   TEST_EQUAL(mapper.isMatch2_(1, 1000, 1000.001), true)

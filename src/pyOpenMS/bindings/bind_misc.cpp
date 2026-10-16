@@ -186,6 +186,7 @@
 #include <OpenMS/PROCESSING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
+#include <OpenMS/QC/IDFreeMassErrorEstimator.h>
 #include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
@@ -2705,6 +2706,8 @@ DefaultParamHandler
         .def("run", [](OpenMS::FeatureFinderMultiplexAlgorithm& self, OpenMS::MSExperiment& exp, bool progress) { nb::gil_scoped_release release; return self.run(exp, progress); }, "exp"_a, "progress"_a, "Main method for feature detection")
         .def("getFeatureMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::FeatureMap { return self.getFeatureMap(); })
         .def("getConsensusMap", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::ConsensusMap { return self.getConsensusMap(); })
+        .def("getBlacklist", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::MSExperiment { return self.getBlacklist(); }, "Spectral peaks blacklisted during detection (input for MultiplexResolverAlgorithm.resolve)")
+        .def("getCentroidedExperiment", [](OpenMS::FeatureFinderMultiplexAlgorithm& self) -> OpenMS::MSExperiment { return self.getCentroidedExperiment(); }, "The centroided spectra the detection ran on")
         ;
 
     // -----------------------------------------------------------------------
@@ -2729,6 +2732,8 @@ DefaultParamHandler
         .def("__deepcopy__", [](const OpenMS::MultiplexResolverAlgorithm& self, nb::dict) { return OpenMS::MultiplexResolverAlgorithm(self); }, "memo"_a)
         .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts, const OpenMS::MSExperiment& blacklist) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts, blacklist); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "blacklist"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts); blacklist may be an empty MSExperiment")
         .def("resolve", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusMap& map_in, OpenMS::ConsensusMap& map_out, OpenMS::ConsensusMap& map_conflicts) { nb::gil_scoped_release release; self.resolve(map_in, map_out, map_conflicts); }, "map_in"_a, "map_out"_a, "map_conflicts"_a, "Split map_in into resolved multiplets (map_out) and conflicts (map_conflicts) without a blacklist")
+        .def("checkIdentifications", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::ConsensusFeature& consensus) { return self.checkIdentifications(consensus); }, "consensus"_a, "One flag per peptide identification of the multiplet: whether its labels agree with the detected mass shifts (the check resolve() applies)")
+        .def("expectedChannelMZs", [](const OpenMS::MultiplexResolverAlgorithm& self, const OpenMS::AASequence& sequence, int charge) { OpenMS::Size position = 0; std::vector<double> mzs = self.expectedChannelMZs(sequence, charge, position); return nb::make_tuple(mzs, position); }, "sequence"_a, "charge"_a, "Returns (m/z of each channel, channel of the sequence itself) for the label set that fits the sequence; an empty list if none fits")
         ;
 
     // -----------------------------------------------------------------------
@@ -3242,18 +3247,31 @@ ProgressLogger
         .def(nb::init<const OpenMS::MetaboliteSpectralMatching &>())
         .def("__copy__", [](const OpenMS::MetaboliteSpectralMatching& self) { return OpenMS::MetaboliteSpectralMatching(self); })
         .def("__deepcopy__", [](const OpenMS::MetaboliteSpectralMatching& self, nb::dict) { return OpenMS::MetaboliteSpectralMatching(self); }, "memo"_a)
-        .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
-        .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound) {
+        .def_static("computeHyperScore", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound, bool use_mass_accuracy) { return OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, mz_lower_bound, use_mass_accuracy); }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a = 0.0, "use_mass_accuracy"_a = false)
+        .def_static("computeHyperScoreWithAnnotations", [](double fragment_mass_error, bool fragment_mass_tolerance_unit_ppm, const OpenMS::MSSpectrum& exp_spectrum, const OpenMS::MSSpectrum& db_spectrum, double mz_lower_bound, bool use_mass_accuracy) {
             std::vector<OpenMS::PeptideHit::PeakAnnotation> annotations;
-            auto score = OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, annotations, mz_lower_bound);
+            auto score = OpenMS::MetaboliteSpectralMatching::computeHyperScore(fragment_mass_error, fragment_mass_tolerance_unit_ppm, exp_spectrum, db_spectrum, annotations, mz_lower_bound, use_mass_accuracy);
             return nb::make_tuple(score, annotations);
-        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a)
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a, "mz_lower_bound"_a = 0.0, "use_mass_accuracy"_a = false)
         .def("run", [](OpenMS::MetaboliteSpectralMatching& self, OpenMS::MSExperiment& p0, OpenMS::MSExperiment& p1, OpenMS::MzTab& p2) {
             std::string out_spectra;
             self.run(p0, p1, p2, out_spectra);
             return out_spectra;
         })
         ;
+    metabolitespectralmatching_class
+        .def_static("computeMVHScore", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& experimental, const OpenMS::MSSpectrum& theoretical, OpenMS::Size classes, double tic, double lower, bool accuracy, bool single) {
+            return OpenMS::MetaboliteSpectralMatching::computeMVHScore(tolerance, ppm, experimental, theoretical, classes, tic, lower, accuracy, single);
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a,
+           "num_intensity_classes"_a = 3, "tic_fraction"_a = 0.98, "mz_lower_bound"_a = 0.0,
+           "use_mass_accuracy"_a = true, "single_peak_credit"_a = true)
+        .def_static("computeMVHScoreWithAnnotations", [](double tolerance, bool ppm, const OpenMS::MSSpectrum& experimental, const OpenMS::MSSpectrum& theoretical, OpenMS::Size classes, double tic, double lower, bool accuracy, bool single) {
+            std::vector<OpenMS::PeptideHit::PeakAnnotation> annotations;
+            const double score = OpenMS::MetaboliteSpectralMatching::computeMVHScore(tolerance, ppm, experimental, theoretical, annotations, classes, tic, lower, accuracy, single);
+            return nb::make_tuple(score, annotations);
+        }, "fragment_mass_error"_a, "fragment_mass_tolerance_unit_ppm"_a, "exp_spectrum"_a, "db_spectrum"_a,
+           "num_intensity_classes"_a = 3, "tic_fraction"_a = 0.98, "mz_lower_bound"_a = 0.0,
+           "use_mass_accuracy"_a = true, "single_peak_credit"_a = true);
     def_ProgressLogger<OpenMS::MetaboliteSpectralMatching>(metabolitespectralmatching_class);
 
     // -----------------------------------------------------------------------
@@ -5532,8 +5550,139 @@ XMLFile
             self.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
         }, "transition_group"_a, "trafo"_a, "swath_maps"_a, "output"_a, "ms1only"_a = false,
            "Score peak groups in a transition group")
+        .def_static("addProteinIdentificationRun", [](const OpenSwath::LightTargetedExperiment& transition_exp, OpenMS::FeatureMap& output) {
+            OpenMS::MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, output);
+        }, "transition_exp"_a, "output"_a,
+           "Adds the protein identification run (search run) that the peptide identifications of the features reference, with the proteins of the transition list; merges them into the run if the output already has it (pickExperiment() adds it; call this after scorePeakgroups())")
         ;
     def_ProgressLogger<OpenMS::MRMFeatureFinderScoring>(mrmfeaturefinderscoring_class);
+
+
+
+    // -----------------------------------------------------------------------
+    // IDFreeMassErrorEstimator
+    // -----------------------------------------------------------------------
+    auto idfree_mass_error = nb::class_<OpenMS::IDFreeMassErrorEstimator>(
+        m, "IDFreeMassErrorEstimator",
+        "Identification-free precursor and fragment mass-precision estimator");
+
+    nb::class_<OpenMS::IDFreeMassErrorEstimator::Parameters>(idfree_mass_error, "Parameters")
+        .def(nb::init<>())
+        .def_rw("rt_window_seconds", &OpenMS::IDFreeMassErrorEstimator::Parameters::rt_window_seconds)
+        .def_rw("precursor_candidate_ppm", &OpenMS::IDFreeMassErrorEstimator::Parameters::precursor_candidate_ppm)
+        .def_rw("fragment_match_da", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_match_da)
+        .def_rw("fragment_low_res_match_da", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_low_res_match_da)
+        .def_rw("fragment_very_low_res_match_da", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_very_low_res_match_da)
+        .def_rw("top_peaks", &OpenMS::IDFreeMassErrorEstimator::Parameters::top_peaks)
+        .def_rw("min_matched_peaks", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_matched_peaks)
+        .def_rw("min_overlap_fraction", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_overlap_fraction)
+        .def_rw("max_candidates_per_bin", &OpenMS::IDFreeMassErrorEstimator::Parameters::max_candidates_per_bin)
+        .def_rw("min_spectrum_pairs", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_spectrum_pairs)
+        .def_rw("min_precursor_clusters", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_precursor_clusters)
+        .def_rw("min_precursor_cluster_size", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_precursor_cluster_size)
+        .def_rw("min_fragment_pairs", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_fragment_pairs)
+        .def_rw("min_tolerance_pairs", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_tolerance_pairs)
+        .def_rw("min_tolerance_clusters", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_tolerance_clusters)
+        .def_rw("tolerance_sigma_multiplier", &OpenMS::IDFreeMassErrorEstimator::Parameters::tolerance_sigma_multiplier)
+        .def_rw("min_fragment_tolerance_pairs", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_fragment_tolerance_pairs)
+        .def_rw("min_fragment_tolerance_spectra", &OpenMS::IDFreeMassErrorEstimator::Parameters::min_fragment_tolerance_spectra)
+        .def_rw("fragment_tolerance_sigma_multiplier", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_tolerance_sigma_multiplier)
+        .def_rw("fragment_high_res_max_sigma_da", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_high_res_max_sigma_da)
+        .def_rw("fragment_high_res_max_sigma_ppm", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_high_res_max_sigma_ppm)
+        .def_rw("fragment_high_intensity_quantile", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_high_intensity_quantile)
+        .def_rw("fragment_low_res_min_sigma_da", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_low_res_min_sigma_da)
+        .def_rw("fragment_low_res_min_sigma_ppm", &OpenMS::IDFreeMassErrorEstimator::Parameters::fragment_low_res_min_sigma_ppm)
+        ;
+
+    nb::class_<OpenMS::IDFreeMassErrorEstimator::RobustError>(idfree_mass_error, "RobustError")
+        .def_ro("pairwise_median", &OpenMS::IDFreeMassErrorEstimator::RobustError::pairwise_median)
+        .def_ro("pairwise_sigma", &OpenMS::IDFreeMassErrorEstimator::RobustError::pairwise_sigma)
+        .def_ro("single_measurement_sigma", &OpenMS::IDFreeMassErrorEstimator::RobustError::single_measurement_sigma)
+        .def_ro("pairwise_p95_abs", &OpenMS::IDFreeMassErrorEstimator::RobustError::pairwise_p95_abs)
+        .def_ro("robust_inlier_threshold_3sigma", &OpenMS::IDFreeMassErrorEstimator::RobustError::robust_inlier_threshold_3sigma)
+        .def_ro("robust_inlier_count", &OpenMS::IDFreeMassErrorEstimator::RobustError::robust_inlier_count)
+        .def_ro("robust_outlier_count", &OpenMS::IDFreeMassErrorEstimator::RobustError::robust_outlier_count)
+        .def_ro("robust_inlier_fraction", &OpenMS::IDFreeMassErrorEstimator::RobustError::robust_inlier_fraction)
+        .def_ro("robust_inlier_p95_abs_centered", &OpenMS::IDFreeMassErrorEstimator::RobustError::robust_inlier_p95_abs_centered)
+        ;
+
+    nb::enum_<OpenMS::IDFreeMassErrorEstimator::FragmentResolutionRegime>(idfree_mass_error, "FragmentResolutionRegime")
+        .value("UNAVAILABLE", OpenMS::IDFreeMassErrorEstimator::FragmentResolutionRegime::UNAVAILABLE)
+        .value("HIGH_RESOLUTION", OpenMS::IDFreeMassErrorEstimator::FragmentResolutionRegime::HIGH_RESOLUTION)
+        .value("LOW_RESOLUTION", OpenMS::IDFreeMassErrorEstimator::FragmentResolutionRegime::LOW_RESOLUTION)
+        ;
+
+    nb::class_<OpenMS::IDFreeMassErrorEstimator::ToleranceSuggestion>(idfree_mass_error, "ToleranceSuggestion")
+        .def_ro("tolerance", &OpenMS::IDFreeMassErrorEstimator::ToleranceSuggestion::tolerance)
+        .def_ro("single_measurement_sigma", &OpenMS::IDFreeMassErrorEstimator::ToleranceSuggestion::single_measurement_sigma)
+        .def_ro("sigma_multiplier", &OpenMS::IDFreeMassErrorEstimator::ToleranceSuggestion::sigma_multiplier)
+        .def_ro("unit", &OpenMS::IDFreeMassErrorEstimator::ToleranceSuggestion::unit)
+        .def_ro("confidence", &OpenMS::IDFreeMassErrorEstimator::ToleranceSuggestion::confidence)
+        .def_ro("support", &OpenMS::IDFreeMassErrorEstimator::ToleranceSuggestion::support)
+        ;
+
+    nb::class_<OpenMS::IDFreeMassErrorEstimator::Diagnostics>(idfree_mass_error, "Diagnostics")
+        .def_ro("precursor_eligible_ms2", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::precursor_eligible_ms2)
+        .def_ro("precursor_paired_spectra", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::precursor_paired_spectra)
+        .def_ro("precursor_clusters_used", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::precursor_clusters_used)
+        .def_ro("fragment_eligible_ms2", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_eligible_ms2)
+        .def_ro("fragment_paired_spectra", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_paired_spectra)
+        .def_ro("fragment_pairs", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_pairs)
+        .def_ro("fragment_mixture_pairs", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_mixture_pairs)
+        .def_ro("fragment_low_res_pairs", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_low_res_pairs)
+        .def_ro("fragment_very_low_res_pairs", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_very_low_res_pairs)
+        .def_ro("fragment_centroid_spectra", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_centroid_spectra)
+        .def_ro("fragment_profile_spectra", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_profile_spectra)
+        .def_ro("fragment_profile_centroids", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_profile_centroids)
+        .def_ro("fragment_zero_delta_pairs", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_zero_delta_pairs)
+        .def_ro("fragment_mixture_signal_pairs", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_mixture_signal_pairs)
+        .def_ro("fragment_zero_delta_fraction", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_zero_delta_fraction)
+        .def_ro("fragment_mixture_mean_ppm", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_mixture_mean_ppm)
+        .def_ro("fragment_mixture_reference_mz", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_mixture_reference_mz)
+        .def_ro("fragment_mixture_signal_fraction", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_mixture_signal_fraction)
+        .def_ro("fragment_mixture_iterations", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_mixture_iterations)
+        .def_ro("fragment_mixture_converged", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_mixture_converged)
+        .def_ro("fragment_mixture_rejected_zero_quantization", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_mixture_rejected_zero_quantization)
+        .def_ro("fragment_high_intensity_pairs", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_high_intensity_pairs)
+        .def_ro("fragment_high_intensity_signal_pairs", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_high_intensity_signal_pairs)
+        .def_ro("fragment_high_intensity_threshold", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_high_intensity_threshold)
+        .def_ro("fragment_high_intensity_signal_fraction", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_high_intensity_signal_fraction)
+        .def_ro("fragment_high_intensity_mixture_converged", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_high_intensity_mixture_converged)
+        .def_ro("fragment_high_intensity_fallback_used", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::fragment_high_intensity_fallback_used)
+        .def_ro("excluded_fragment_profile_or_unknown", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::excluded_fragment_profile_or_unknown)
+        .def_ro("excluded_fragment_unknown", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::excluded_fragment_unknown)
+        .def_ro("excluded_profile_peak_pick_failure", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::excluded_profile_peak_pick_failure)
+        .def_ro("excluded_low_fragment_peaks", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::excluded_low_fragment_peaks)
+        .def_ro("excluded_missing_precursor", &OpenMS::IDFreeMassErrorEstimator::Diagnostics::excluded_missing_precursor)
+        ;
+
+    nb::class_<OpenMS::IDFreeMassErrorEstimator::Result>(idfree_mass_error, "Result")
+        .def_ro("precursor_ppm", &OpenMS::IDFreeMassErrorEstimator::Result::precursor_ppm)
+        .def_ro("precursor_da", &OpenMS::IDFreeMassErrorEstimator::Result::precursor_da)
+        .def_ro("fragment_ppm", &OpenMS::IDFreeMassErrorEstimator::Result::fragment_ppm)
+        .def_ro("fragment_da", &OpenMS::IDFreeMassErrorEstimator::Result::fragment_da)
+        .def_ro("precursor_tolerance_ppm", &OpenMS::IDFreeMassErrorEstimator::Result::precursor_tolerance_ppm)
+        .def_ro("fragment_tolerance_ppm", &OpenMS::IDFreeMassErrorEstimator::Result::fragment_tolerance_ppm)
+        .def_ro("fragment_tolerance_da", &OpenMS::IDFreeMassErrorEstimator::Result::fragment_tolerance_da)
+        .def_ro("fragment_resolution_regime", &OpenMS::IDFreeMassErrorEstimator::Result::fragment_resolution_regime)
+        .def_ro("fragment_match_window_da", &OpenMS::IDFreeMassErrorEstimator::Result::fragment_match_window_da)
+        .def_ro("fragment_window_censored", &OpenMS::IDFreeMassErrorEstimator::Result::fragment_window_censored)
+        .def_ro("diagnostics", &OpenMS::IDFreeMassErrorEstimator::Result::diagnostics)
+        ;
+
+    idfree_mass_error
+        .def(nb::init<>())
+        .def(nb::init<const OpenMS::IDFreeMassErrorEstimator::Parameters&>(), "parameters"_a)
+        .def("setParameters", &OpenMS::IDFreeMassErrorEstimator::setParameters, "parameters"_a)
+        .def("getParameters", [](const OpenMS::IDFreeMassErrorEstimator& self) {
+            return self.getParameters();
+        })
+        .def("reset", &OpenMS::IDFreeMassErrorEstimator::reset)
+        .def("consumeSpectrum", &OpenMS::IDFreeMassErrorEstimator::consumeSpectrum, "spectrum"_a)
+        .def("compute", &OpenMS::IDFreeMassErrorEstimator::compute, "experiment"_a)
+        .def("getResult", &OpenMS::IDFreeMassErrorEstimator::getResult)
+        .def("getPrecursorPrecisionPPM", &OpenMS::IDFreeMassErrorEstimator::getPrecursorPrecisionPPM)
+        ;
 
     // Free function aliases for backward compatibility
     m.def("isPEFFFile", [](const std::string& filename) {

@@ -115,6 +115,7 @@ enable_testing()
 # OPENMS_COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
+option(MT_REQUIRE_OPENMP "With MT_ENABLE_OPENMP, fail the configuration if no OpenMP runtime is found, instead of falling back to -fopenmp-simd (no parallel regions). The CI presets set it." OFF)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(BUILD_TOPP_TOOLS "Build the TOPP command-line applications." ON)
@@ -123,6 +124,7 @@ option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." 
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
+option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
 option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration tests" OFF)
 # Every platform we build for reads RAW files: the Thermo CommonCore assemblies are
 # architecture-neutral IL, and only the bridge around them is compiled per target.
@@ -266,7 +268,8 @@ if (GIT_TRACKING)
   ## A source tree made by git archive (the Release workflow's source tarball, GitHub's source
   ## archives) has no .git of its own, but carries its commit in .git_archival.txt. That takes
   ## precedence: a .git further up the tree would belong to another repository.
-  git_archival_info(_openms_archival_describe OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_ARCHIVAL_FOUND)
+  git_archival_info("${CMAKE_CURRENT_SOURCE_DIR}/.git_archival.txt"
+    _openms_archival_describe OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE OPENMS_GIT_ARCHIVAL_FOUND)
   if(OPENMS_GIT_ARCHIVAL_FOUND)
     ## The archive of the tag v<version> of this version carries the plain version below; any
     ## other archive is marked as exported, as before.

@@ -13,7 +13,11 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/IMAGING/MSImagingExperiment.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -23,6 +27,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -80,6 +85,8 @@ TEST_EQUAL(tmp.getTypeByFileName("test.fasta"), FileTypes::FASTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
+TEST_EQUAL(tmp.getTypeByFileName("test.bedrmod"), FileTypes::BEDRMOD)
+TEST_EQUAL(tmp.getTypeByFileName("ordinary.bed"), FileTypes::UNKNOWN)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
 // new 3.6 directory-based parquet bundle types
 TEST_EQUAL(tmp.getTypeByFileName("test.idparquet"), FileTypes::IDPARQUET)
@@ -143,10 +150,10 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
 
-  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() resolves this to
-  // BRUKER_TDF for an existing, non-directory ".zip" whose name strips to ".d".
-  // SDK-free: only the name and the file's existence matter for type detection,
-  // not the archive contents.
+  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() looks at the list of entries of
+  // the archive (see BrukerTimsFile_test for archives with entries). A file whose entries
+  // cannot be listed, as this one, is taken for Bruker data by its name; the reader then
+  // reports what is wrong with it.
   {
     std::string dzip_base;
     NEW_TMP_FILE(dzip_base)
@@ -158,6 +165,10 @@ START_SECTION((static FileTypes::Type getType(const std::string &filename)))
 #else
     TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN) // the .d family requires WITH_OPENTIMS
 #endif
+    File::remove(dzip);
+    // an archive that can be read but has no entries (just the end of central directory record) holds no .d
+    { std::ofstream os(dzip.c_str(), std::ios::binary); os << std::string("PK\005\006", 4) << std::string(18, '\0'); }
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN)
     File::remove(dzip);
   }
 
@@ -362,6 +373,84 @@ START_SECTION((void loadExperiment imzML is rejected by FileHandler))
   const std::string imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
   TEST_EXCEPTION(Exception::InvalidFileType, fh_imz.loadExperiment(imzml_path, exp_imz))
 END_SECTION
+
+START_SECTION((void loadImagingExperiment(const std::string& filename, MSImagingExperiment& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)))
+{
+  // imzML goes through ImzMLFile, so FileHandler must give the same experiment.
+  const std::string imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
+  MSImagingExperiment img, ref;
+  FileHandler().loadImagingExperiment(imzml_path, img);
+  ImzMLFile().load(imzml_path, ref);
+  TEST_EQUAL(img.getNumberOfPixels() > 0, true)
+  TEST_EQUAL(img.getNumberOfPixels(), ref.getNumberOfPixels())
+  TEST_EQUAL(img.getMSExperiment().size(), ref.getMSExperiment().size())
+
+  // Non-imaging formats are rejected; allowed_types is honored.
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadImagingExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), img))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(imzml_path, img, {FileTypes::BRUKER_TDF}))
+}
+END_SECTION
+
+#ifdef WITH_OPENTIMS
+START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and transformExperiment and routed by loadImagingExperiment))
+{
+  // Fake .d folders with only GlobalMetadata: enough for type detection and the
+  // imaging probe, both of which run before any frame is read. TempDir removes them
+  // on scope exit, so reruns start from scratch.
+  TempDir tmp_dir;
+  auto fake_d = [&tmp_dir](const std::string& application_type)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + application_type + ".d";
+    std::filesystem::create_directories(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('MaldiApplicationType', '" + application_type + "');");
+    return d;
+  };
+
+  PeakMap exp;
+  const std::string imaging = fake_d("Imaging");
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(imaging, exp))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(imaging, &streamed))
+  TEST_EQUAL(streamed.getData().size(), 0)
+
+  // A non-imaging .d reaches BrukerTimsImagingFile, whose strict imaging check rejects it.
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(fake_d("SingleSpectra"), img))
+}
+END_SECTION
+
+START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
+{
+  // TDF data is what can be read. TSF and BAF data (no ion mobility) are taken as Bruker .d as well, so
+  // that loading them fails with a message that names the format, not with an unknown file type.
+  TempDir tmp_dir;
+  auto make_d = [&tmp_dir](const std::string& name, const std::string& file)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + name + ".d";
+    std::filesystem::create_directories(d);
+    if (!file.empty()) { std::ofstream os((d + "/" + file).c_str()); os << "no data"; }
+    return d;
+  };
+  TEST_EQUAL(FileHandler::getType(make_d("tdf", "analysis.tdf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("tdf_bin", "analysis.tdf_bin")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("tdf", "analysis.tdf") + "/"), FileTypes::BRUKER_TDF) // as shells complete it
+  TEST_EQUAL(FileHandler::getType(make_d("tsf", "analysis.tsf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("baf", "analysis.baf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("empty", "")), FileTypes::UNKNOWN)
+  TEST_EQUAL(FileHandler::getType(make_d("other", "readme.txt")), FileTypes::UNKNOWN)
+
+  PeakMap exp;
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("tsf", "analysis.tsf"), &streamed))
+}
+END_SECTION
+#endif
 
 START_SECTION((void storeExperiment(const std::string &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
 FileHandler fh;
@@ -825,5 +914,44 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /// check the temporary files written above against their XML schema (types without a validator are skipped)
 VALIDATE_TMP_FILES
+
+START_SECTION(([EXTRA] transformExperiment applies PeakFileOptions to mzML and mzXML like loadExperiment))
+{
+  for (const std::string& file : {std::string(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), std::string(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"))})
+  {
+    PeakMap all;
+    FileHandler().loadExperiment(file, all);
+    TEST_EQUAL(all.size() > 2, true)
+    std::vector<PeakFileOptions> option_sets(5);
+    option_sets[0].setMSLevels({1});
+    option_sets[1].setRTRange(DRange<1>(DPosition<1>(all[1].getRT() - 0.01), DPosition<1>(all[2].getRT() + 0.01)));
+    option_sets[2].setMZRange(DRange<1>(DPosition<1>(0.0), DPosition<1>(all[0].empty() ? 1.0 : all[0][all[0].size() / 2].getMZ())));
+    option_sets[3].setMetadataOnly(true);
+    option_sets[4].setSkipChromatograms(true);
+    option_sets[4].setFillData(false);
+    for (const PeakFileOptions& options : option_sets)
+    {
+      FileHandler loader;
+      loader.setOptions(options);
+      PeakMap loaded;
+      loader.loadExperiment(file, loaded);
+
+      FileHandler streamer;
+      streamer.setOptions(options);
+      MSDataStoringConsumer streamed;
+      streamer.transformExperiment(file, &streamed);
+
+      const PeakMap& data = streamed.getData();
+      TEST_EQUAL(data.size(), loaded.size())
+      ABORT_IF(data.size() != loaded.size())
+      for (Size i = 0; i < data.size(); ++i)
+      {
+        TEST_EQUAL(data[i] == loaded[i], true)
+      }
+      TEST_EQUAL(data.getNrChromatograms(), loaded.getNrChromatograms())
+    }
+  }
+}
+END_SECTION
 
 END_TEST

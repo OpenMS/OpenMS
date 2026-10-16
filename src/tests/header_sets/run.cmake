@@ -76,14 +76,23 @@ if(NOT _installed STREQUAL _expected)
   message(FATAL_ERROR "Unexpected header-component installation: ${_installed}")
 endif()
 
-# The configure-time guard must remain active with verification disabled.
-execute_process(COMMAND "${CMAKE_COMMAND}"
-  -S "${_source}" -B "${BINARY_DIR}/json" ${_configure}
-  -DBAD_HEADER=json -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=OFF
-  RESULT_VARIABLE _result OUTPUT_VARIABLE _out ERROR_VARIABLE _err)
-file(WRITE "${BINARY_DIR}/reject-json.log" "${_out}${_err}")
-# CMake wraps diagnostics according to path length; whitespace may include a newline.
-if(_result EQUAL 0 OR NOT "${_out}${_err}" MATCHES "includes[ \t\r\n]+nlohmann/json")
-  message(FATAL_ERROR "JSON dependency was not rejected as expected:\n${_out}${_err}")
-endif()
-message(STATUS "Header installation, consumer compatibility and JSON guard passed")
+# The configure-time guard must remain active with verification disabled. It rejects a
+# known private dependency (nlohmann/json) and one that is on no list at all.
+foreach(_bad_header IN ITEMS json unlisted)
+  execute_process(COMMAND "${CMAKE_COMMAND}"
+    -S "${_source}" -B "${BINARY_DIR}/${_bad_header}" ${_configure}
+    -DBAD_HEADER=${_bad_header} -DOPENMS_VERIFY_INTERFACE_HEADER_SETS=OFF
+    RESULT_VARIABLE _result OUTPUT_VARIABLE _out ERROR_VARIABLE _err)
+  file(WRITE "${BINARY_DIR}/reject-${_bad_header}.log" "${_out}${_err}")
+  if(_bad_header STREQUAL "json")
+    set(_expected "nlohmann/json")
+  else()
+    # Only the unlisted include is reported, not the allowed ones next to it.
+    set(_expected "newdep/api\\.h,[ \t\r\n]+which")
+  endif()
+  # CMake wraps diagnostics according to path length; whitespace may include a newline.
+  if(_result EQUAL 0 OR NOT "${_out}${_err}" MATCHES "includes[ \t\r\n]+${_expected}")
+    message(FATAL_ERROR "Include of ${_bad_header} was not rejected as expected:\n${_out}${_err}")
+  endif()
+endforeach()
+message(STATUS "Header installation, consumer compatibility and include allowlist passed")

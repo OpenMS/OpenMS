@@ -97,6 +97,10 @@ endmacro()
 #                                      (will be added with -isystem if available)
 #                    LINK_LIBRARIES <list of libraries used when linking the library>
 #                    PRIVATE_LINK_LIBRARIES <list of internal libraries used when linking the library>
+#                    ALLOWED_PUBLIC_INCLUDES <regular expressions for the headers of PUBLIC
+#                                             dependencies that HEADER_FILES may include, on
+#                                             top of OPENMS_PUBLIC_INCLUDE_ALLOWLIST
+#                                             (see openms_validate_public_headers())>
 #                    DLL_EXPORT_PATH <path to the dll export header>
 #                    EXPORT_SET <export set of the library (see cmake/install_macros.cmake);
 #                                the core set OpenMSTargets, install component 'library',
@@ -112,7 +116,8 @@ function(openms_add_library)
   # parse arguments to function
   set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH EXPORT_SET)
-  set(multiValueArgs BASE_DIRS PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
+  set(multiValueArgs BASE_DIRS PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES
+                     ALLOWED_PUBLIC_INCLUDES)
   ## make above arguments available as variables, e.g. ${openms_add_library_PRIVATE_LINK_LIBRARIES}
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
@@ -187,7 +192,8 @@ function(openms_add_library)
   # Both configured headers and generate_export_header() output belong to the
   # public interface. Listing them here also makes them visible to IDEs/AUTOMOC.
   list(REMOVE_DUPLICATES openms_add_library_HEADER_FILES)
-  openms_validate_public_headers(${openms_add_library_HEADER_FILES})
+  openms_validate_public_headers(${openms_add_library_HEADER_FILES}
+                                 ALLOW ${openms_add_library_ALLOWED_PUBLIC_INCLUDES})
   target_sources(${openms_add_library_TARGET_NAME} PUBLIC FILE_SET HEADERS
     BASE_DIRS ${openms_add_library_BASE_DIRS}
     FILES ${openms_add_library_HEADER_FILES})

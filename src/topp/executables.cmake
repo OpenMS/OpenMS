@@ -97,6 +97,7 @@ openms_topp_tool(NoiseFilterGaussian              "Spectrum Processing: Peak Smo
 openms_topp_tool(NoiseFilterSGolay                "Spectrum Processing: Peak Smoothing and Normalization")
 openms_topp_tool(NovorAdapter                     "Identification of Proteins and Peptides (SearchEngines)")
 openms_topp_tool(NucleicAcidSearchEngine          "RNA")
+openms_topp_tool(OpenDIA                          "Targeted Experiments and OpenSWATH")
 openms_topp_tool(OpenMSDatabasesInfo              "[for Developers]")
 openms_topp_tool(OpenMSInfo                       "Misc")
 openms_topp_tool(OpenNuXL                         "Cross-Linking")

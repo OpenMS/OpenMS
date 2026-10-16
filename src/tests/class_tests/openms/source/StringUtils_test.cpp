@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <clocale>
 #include <cmath>
 #include <limits>
 
@@ -568,6 +569,78 @@ START_SECTION([EXTRA] non-finite values round-trip through toStr/toDouble/toFloa
   TEST_EQUAL(std::isinf(back[2]) && back[2] < 0, true)
   TEST_EQUAL(std::isnan(back[3]), true)
   TEST_REAL_SIMILAR(back[4], 2.5)
+}
+END_SECTION
+
+START_SECTION([EXTRA] number parsing is independent of the global C locale)
+{
+  // QApplication calls setlocale(LC_ALL, ""), so GUI tools run with the user's locale. With a
+  // decimal-comma locale (e.g. de_DE), locale-dependent parsing (strtod) read "60.5" as 60 and
+  // loading mzML files in TOPPView failed with a ConversionError (seen with libc++ on macOS).
+  const char* cur = setlocale(LC_ALL, nullptr);
+  const std::string saved_loc = (cur != nullptr) ? std::string(cur) : std::string("C");
+
+  const char* comma_locale = nullptr;
+  for (const char* loc : {"de_DE.UTF-8", "de_DE.utf8", "de_DE", "fr_FR.UTF-8", "fr_FR.utf8", "fr_FR", "German_Germany.1252"})
+  {
+    if (setlocale(LC_ALL, loc) != nullptr && localeconv()->decimal_point[0] == ',')
+    {
+      comma_locale = loc;
+      break;
+    }
+  }
+
+  if (comma_locale == nullptr)
+  {
+    STATUS("No decimal-comma locale available, skipping locale-dependent checks.")
+  }
+  else
+  {
+    STATUS("Testing with locale " << comma_locale)
+    double d_val{};
+    float f_val{};
+    std::string err;
+    try
+    {
+      d_val = StringUtils::toDouble("60.5");
+      f_val = StringUtils::toFloat("60.5");
+    }
+    catch (const Exception::ConversionError& e)
+    {
+      err = e.what();
+    }
+    // query the result before restoring the locale, but restore before any TEST macro below
+    std::string s_list = "1.25 -3.5e2";
+    const char* p = s_list.data();
+    const char* p_end = s_list.data() + s_list.size();
+    double e1{}, e2{};
+    const bool ok1 = StringUtils::extractDouble(p, p_end, e1);
+    p = StringUtils::skipWhitespace(p, p_end);
+    const bool ok2 = StringUtils::extractDouble(p, p_end, e2);
+    const bool consumed_all = (p == p_end);
+    double str_val{};
+    try
+    {
+      str_val = StringUtils::toDouble(" 0.001 ");
+    }
+    catch (const Exception::ConversionError& e)
+    {
+      err += e.what();
+    }
+
+    setlocale(LC_ALL, saved_loc.c_str());
+
+    TEST_EQUAL(err, "")
+    TEST_EQUAL(d_val, 60.5)
+    TEST_EQUAL(f_val, 60.5f)
+    TEST_EQUAL(ok1, true)
+    TEST_EQUAL(e1, 1.25)
+    TEST_EQUAL(ok2, true)
+    TEST_EQUAL(e2, -350.0)
+    TEST_EQUAL(consumed_all, true)
+    TEST_EQUAL(str_val, 0.001)
+  }
+  setlocale(LC_ALL, saved_loc.c_str());
 }
 END_SECTION
 

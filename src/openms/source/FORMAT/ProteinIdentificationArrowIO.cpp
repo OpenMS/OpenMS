@@ -1361,9 +1361,7 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
       }
     }
 
-    // Primary MS run paths — only call when the column is present.
-    // Missing column → no spectra_data UserParam (preserves round-trip semantics).
-    // Present-but-empty column → empty spectra_data UserParam (matches idXML behaviour).
+    // Primary MS run paths (an empty list stores none, see ProteinIdentification::setPrimaryMSRunPath)
     if (col_ms_run_paths)
     {
       auto ms_run_paths = readStringList_(col_ms_run_paths, row);
@@ -1439,11 +1437,13 @@ bool ProteinIdentificationArrowIO::importSearchParamsFromArrow(
     }
 
     // ProteinIdentification metavalues (exclude keys handled via dedicated columns)
+    // spectra_data has its own column; spectra_data_raw only travels as a meta value.
     static const std::unordered_set<std::string> excluded_prot_id_mvs = {
       "InferenceEngine", "InferenceEngineVersion",
-      "spectra_data", "spectra_data_raw"
+      "spectra_data"
     };
     ArrowIOHelpers::readMetaValues(col_metavalues, row, prot_id, excluded_prot_id_mvs);
+    prot_id.removeEmptyPrimaryMSRunPaths();
 
     protein_identifications.push_back(std::move(prot_id));
   }

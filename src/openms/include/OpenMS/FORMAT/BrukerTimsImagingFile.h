@@ -55,8 +55,8 @@ namespace OpenMS
     struct Config
     {
       /// Configuration for the inner BrukerTimsFile (calibration, centroiding,
-      /// etc.). @c export_mode is forced to FRAME and @c load_ms1 to true
-      /// before delegation.
+      /// etc.). @c export_mode is forced to FRAME and @c load_ms1 and
+      /// @c load_ms2 to true before delegation.
       BrukerTimsFile::Config inner_config;
 
       /// Reject datasets whose @c MaldiApplicationType is not "Imaging".
@@ -89,7 +89,7 @@ namespace OpenMS
       @param[in]  path   The path to the Bruker .d directory.
       @param[out] exp    Destination experiment; replaced (not appended).
       @param[in]  config Loader configuration; @c export_mode is forced to FRAME
-                         and @c load_ms1 to true internally.
+                         and @c load_ms1 and @c load_ms2 to true internally.
       @throws Exception::FileNotReadable if the .d folder or @c analysis.tdf is missing.
       @throws Exception::InvalidValue if the dataset is not MALDI imaging and
               @c strict_imaging_only is true, or if the dataset contains

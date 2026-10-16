@@ -93,6 +93,18 @@ namespace OpenMS
     static std::vector<std::string> listEntries(const std::string& archive_path);
 
     /**
+      @brief List entries in a zip archive, and tell whether the archive could be read
+
+      Unlike listEntries(const std::string&), this tells an archive without entries from one that
+      cannot be read.
+
+      @param[in] archive_path Path to the zip archive to inspect.
+      @param[out] entries The entry names contained in the archive (empty if it cannot be read).
+      @return false if the archive cannot be opened or libzip is unavailable.
+    */
+    static bool listEntries(const std::string& archive_path, std::vector<std::string>& entries);
+
+    /**
       @brief Write a small JSON sidecar index for the archive listing entries and sizes.
 
         For zip archives this helper will write the sidecar JSON as an entry inside

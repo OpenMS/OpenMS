@@ -31,6 +31,10 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
   ## configure the regular class ..
   if(ENABLE_CLASS_TESTING)
     add_subdirectory(class_tests)
+    # the version of a source tree made by git archive (cmake/Modules/GetGitRevisionDescription.cmake)
+    add_test(NAME GitArchivalInfo
+      COMMAND ${CMAKE_COMMAND} "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/git_archival"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/git_archival/run.cmake")
   endif()
   # TOPP Test project ..
   if(ENABLE_TOPP_TESTING)
@@ -67,12 +71,14 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
   # Only the toolchain of this build is forwarded to the consumers, as a consumer
   # building with the same compiler and dependency provider would pass it;
   # everything about OpenMS comes from the installed OpenMSConfig.cmake.
+  # OpenMP_ROOT is part of the toolchain on macOS, where the OpenMP runtime
+  # (Homebrew's keg-only libomp) is not where the compiler looks.
   set(_configure_args)
   foreach(_var IN ITEMS
       CMAKE_TOOLCHAIN_FILE VCPKG_INSTALLED_DIR VCPKG_TARGET_TRIPLET VCPKG_HOST_TRIPLET
       CMAKE_PREFIX_PATH CMAKE_C_COMPILER CMAKE_CXX_COMPILER CMAKE_MAKE_PROGRAM
       CMAKE_MSVC_RUNTIME_LIBRARY CMAKE_OSX_ARCHITECTURES CMAKE_OSX_DEPLOYMENT_TARGET
-      CMAKE_OSX_SYSROOT)
+      CMAKE_OSX_SYSROOT OpenMP_ROOT)
     if(DEFINED ${_var} AND NOT "${${_var}}" STREQUAL "")
       # keep list-valued settings such as CMAKE_PREFIX_PATH as one argument
       string(REPLACE ";" "$<SEMICOLON>" _value "${${_var}}")
@@ -246,6 +252,17 @@ if(OPENMS_TEST_INSTALLED_CONSUMER AND "${PACKAGE_TYPE}" STREQUAL "none")
     set_tests_properties(TestExternalCode_noeigen_configure PROPERTIES
       FIXTURES_REQUIRED TestExternalCode_installed
       LABELS installed_consumer)
+  endif()
+
+  # Prove that every installed core header compiles with Boost unavailable.
+  if(BUILD_SHARED_LIBS)
+    list(GET Boost_INCLUDE_DIRS 0 _boost_header_root)
+    _openms_add_installed_consumer_tests(TestExternalCodeNoBoost
+      "${CMAKE_SOURCE_DIR}/src/tests/external/boost_free"
+      "${CMAKE_BINARY_DIR}/installed-consumer/prefix-no-boost"
+      "${CMAKE_BINARY_DIR}/installed-consumer/build-no-boost"
+      COMPONENTS library OpenMS_headers OpenSwathAlgo_headers thirdparty_headers cmake
+      CONFIGURE_ARGS "-DOPENMS_BOOST_HEADER_ROOT=${_boost_header_root}")
   endif()
 
   # 2. The core-only installation: exactly the components the pyOpenMS wheel

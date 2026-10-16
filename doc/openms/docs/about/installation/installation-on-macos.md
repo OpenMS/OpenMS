@@ -152,19 +152,22 @@ To build OpenMS from source, follow the build instructions for [macOS](https://a
 
 ## OpenMP / SIMD on macOS
 
-OpenMS uses `#pragma omp simd` directives to enable SIMD vectorization in
-performance-critical loops. Apple's stock Clang does not ship the OpenMP
-runtime library, so by default OpenMS automatically falls back to the
-`-fopenmp-simd` compiler flag — SIMD pragmas vectorize, but `#pragma omp parallel`
-regions do not. **No extra installation is required for SIMD support.**
-
-To get **full OpenMP** (parallel regions) on macOS, install Homebrew's libomp
-and point CMake at it:
+OpenMS runs in parallel with OpenMP (`#pragma omp parallel`, the `-threads` option of the
+tools) and uses `#pragma omp simd` directives to vectorize performance-critical loops.
+Apple's stock Clang does not ship the OpenMP runtime library, so install Homebrew's libomp
+(the Homebrew commands of the build instructions include it). The macOS presets (e.g.
+`cmake --preset macos-arm64-release`) find it in `/opt/homebrew/opt/libomp`; for other
+builds, point CMake at it:
 
 ```bash
 brew install libomp
 cmake -DOpenMP_ROOT=$(brew --prefix libomp) [other cmake options]
 ```
+
+Without the runtime, OpenMS falls back to the `-fopenmp-simd` compiler flag: SIMD pragmas
+vectorize, but `#pragma omp parallel` regions do not, so OpenMS runs single-threaded and
+`-threads` has no effect. `-DMT_REQUIRE_OPENMP=ON`, which the CI presets set, turns this
+fallback into a configuration error.
 
 To skip OpenMP entirely, pass:
 

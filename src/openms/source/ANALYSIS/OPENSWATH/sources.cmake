@@ -27,6 +27,8 @@ set(sources_list
   MRMTransitionGroupPicker.cpp
   OpenSwathHelper.cpp
   OpenSwathLibraryIDNormalizer.cpp
+  OpenSwathLibraryPreparation.cpp
+  OpenSwathPeptidoformInference.cpp
   OpenSwathMatrixExporter.cpp
   OpenSwathParquetExporter.cpp
   OpenSwathScores.cpp
@@ -52,6 +54,10 @@ set(sources_list
   TransitionParquetFile.cpp
   TransitionPQPFile.cpp
 )
+
+if(WITH_ONNX)
+  list(APPEND sources_list PeptDeepLibraryPredictor.cpp)
+endif()
 
 ### add path to the filenames
 set(sources)

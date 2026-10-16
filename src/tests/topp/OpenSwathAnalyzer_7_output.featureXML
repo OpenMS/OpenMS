@@ -62,7 +62,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-21995.0577195514" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -166,7 +166,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-21551.8863261674" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -270,7 +270,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-22000.7739706706" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
@@ -374,7 +374,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="xx_lda_prelim_score" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="-22209.1116820597" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>

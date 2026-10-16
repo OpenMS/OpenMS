@@ -411,6 +411,45 @@ namespace OpenMS
       // complementary suffix ion were matched
       inline const std::string COMPLEMENTARY_IONS_FRACTION = "complementary_ions_fraction";
 
+      /// Summed log-likelihood ratio of the fragment ion outcomes (presence, intensity rank, mass error) under a per-run learned ion model.
+      inline const std::string ION_PRIOR_LLR = "ion_prior_llr";
+
+      /// Fraction of the fragment ion presence predicted by a per-run learned ion model that was observed.
+      inline const std::string ION_PRIOR_EXPLAINED = "ion_prior_explained";
+
+      /// Fraction of the fragment ions a per-run learned ion model predicts as most likely present that were observed.
+      inline const std::string ION_PRIOR_TOPK_OBSERVED = "ion_prior_topk_observed";
+
+      /// Sum of local peak-density-based surprise over matched theoretical fragments.
+      inline const std::string CHANCE_MATCH_SURPRISE = "chance_match_surprise";
+
+      /// Matched-fragment evidence discounted by alternative assignments and local peak density.
+      inline const std::string MASS_COMPETITION_EVIDENCE = "mass_competition_evidence";
+
+      // --- PeptDeep (ONNX) prediction-derived PSM features -----------------------------
+      // All five compare a PSM against a deep-learning prediction for the same peptide,
+      // so they are only present when the search engine was run with a PeptDeep model.
+
+      // User parameter name for the cosine similarity between predicted and observed
+      // fragment intensities over the shared b/y ion set
+      inline const std::string MS2_COSINE = "ms2_cosine";
+
+      // User parameter name for the spectral angle 1 - 2*acos(cosine)/pi. Monotone in the
+      // cosine but spreads the crowded high-similarity end, as used by Prosit.
+      inline const std::string MS2_SPECTRAL_ANGLE = "ms2_spectral_angle";
+
+      // User parameter name for Pearson correlation between predicted and observed
+      // fragment intensities
+      inline const std::string MS2_PEARSON = "ms2_pearson";
+
+      // User parameter name for the fraction of confidently predicted fragment ions that
+      // were actually observed
+      inline const std::string MS2_FRAC_PRED_FOUND = "ms2_frac_pred_found";
+
+      // User parameter name for |observed RT - calibrated predicted RT|. The calibration
+      // maps predicted to observed retention time per run, so the value is in RT units.
+      inline const std::string RT_ABS_ERROR = "rt_abs_error";
+
       /** User parameter name to indicate a peptide q-value
               String
       */

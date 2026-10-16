@@ -6,6 +6,7 @@ set(sources_list
 AbsoluteQuantitationMethodFile.cpp
 AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
+BedRModFile.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
 CachedMzML.cpp
@@ -69,6 +70,7 @@ OMSFileStore.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
+OSWParquetFile.cpp
 ParamCTDFile.cpp
 ParamCWLFile.cpp
 ParamJSONFile.cpp
@@ -136,10 +138,11 @@ if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
   list(APPEND sources_list BrukerTimsImagingFile.cpp)
   list(APPEND sources_list RationalScan2ImConverter.cpp)
+  list(APPEND sources_list MzCalibrationTof2MzConverter.cpp)
 endif()
 
 if (WITH_THERMO_RAW)
-  list(APPEND sources_list ThermoRawFile.cpp)
+  list(APPEND sources_list OnDiscThermoRawExperiment.cpp ThermoRawFile.cpp)
 endif()
 
 ### add path to the filenames

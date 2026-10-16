@@ -51,6 +51,13 @@ class TestImzMLFile(unittest.TestCase):
         with self.assertRaises(Exception):
             pyopenms.FileHandler().loadExperiment(self.imzml_path, exp)
 
+    def test_file_handler_load_imaging(self):
+        img, ref = pyopenms.MSImagingExperiment(), pyopenms.MSImagingExperiment()
+        pyopenms.FileHandler().loadImagingExperiment(self.imzml_path, img)
+        pyopenms.ImzMLFile().load(self.imzml_path, ref)
+        self.assertGreater(img.getNumberOfPixels(), 0)
+        self.assertEqual(img.getNumberOfPixels(), ref.getNumberOfPixels())
+
     def test_file_types(self):
         t = pyopenms.FileHandler.getType(self.imzml_path)
         self.assertEqual(t, pyopenms.FileType.IMZML)

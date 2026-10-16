@@ -15,6 +15,7 @@
 #include <charconv>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <unordered_map>
 #include <unordered_set>
@@ -35,7 +36,7 @@ namespace OpenMS
       return id.rfind("DECOY", 0) == 0 || id.rfind("Decoy", 0) == 0 || id.rfind("decoy", 0) == 0;
     }
 
-    bool hasCanonicalIDFormat_(const std::string& text) noexcept
+    bool parseCanonicalID_(const std::string& text, int64_t& value) noexcept
     {
       if (text.empty() || text.front() == '-' || text.front() == '+' ||
           (text.size() > 1 && text.front() == '0'))
@@ -43,41 +44,54 @@ namespace OpenMS
         return false;
       }
 
-      int64_t value = -1;
+      value = -1;
       const char* begin = text.data();
       const char* end = begin + text.size();
       const auto [ptr, ec] = std::from_chars(begin, end, value);
       return ec == std::errc{} && ptr == end && value >= 0;
     }
 
-    void validateCanonicalIDFormat_(const std::string& text, const std::string& entity)
+    bool hasCanonicalIDFormat_(const std::string& text) noexcept
+    {
+      int64_t value = -1;
+      return parseCanonicalID_(text, value);
+    }
+
+    /// Returns the parsed value. Canonical decimal form is unique per value, so callers can
+    /// detect duplicate IDs on the integers instead of keeping copies of the strings.
+    int64_t validateCanonicalIDFormat_(const std::string& text, const char* entity)
     {
       if (text.empty())
       {
-        throwInvalidID_(entity + " ID must not be empty", text);
+        throwInvalidID_(std::string(entity) + " ID must not be empty", text);
       }
-      if (!hasCanonicalIDFormat_(text))
+      int64_t value = -1;
+      if (!parseCanonicalID_(text, value))
       {
-        throwInvalidID_(entity + " ID must be a non-negative Int64 in canonical decimal form", text);
+        throwInvalidID_(std::string(entity) + " ID must be a non-negative Int64 in canonical decimal form", text);
       }
+      return value;
     }
   } // namespace
 
   OpenSwathLibraryIDNormalizer::SourceIDMapping OpenSwathLibraryIDNormalizer::normalizeSourceIDs(OpenSwath::LightTargetedExperiment& exp)
   {
     // Validate source compound identifiers before constructing the operational subset.
-    std::unordered_set<std::string> known_compound_ids;
-    known_compound_ids.reserve(exp.compounds.size());
-    for (const auto& compound : exp.compounds)
+    // Nothing in exp is modified until all validation below has passed.
     {
-      const std::string source_id = compound.id;
-      if (source_id.empty())
+      std::unordered_set<std::string_view> known_compound_ids;
+      known_compound_ids.reserve(exp.compounds.size());
+      for (const auto& compound : exp.compounds)
       {
-        throwInvalidID_("Source compound ID must not be empty", source_id);
-      }
-      if (!known_compound_ids.insert(source_id).second)
-      {
-        throwInvalidID_("Source compound IDs must be unique", source_id);
+        const std::string& source_id = compound.id;
+        if (source_id.empty())
+        {
+          throwInvalidID_("Source compound ID must not be empty", source_id);
+        }
+        if (!known_compound_ids.insert(source_id).second)
+        {
+          throwInvalidID_("Source compound IDs must be unique", source_id);
+        }
       }
     }
 
@@ -86,80 +100,76 @@ namespace OpenMS
     // compound may later be omitted from the LightTargetedExperiment, but its assigned ID remains
     // reserved so surviving precursor IDs are stable across direct source loading and source->PQP
     // round-trips. Sparse canonical precursor IDs are therefore expected and valid.
-    std::vector<std::string> source_compound_ids;
-    source_compound_ids.reserve(exp.compounds.size());
-    for (const auto& compound : exp.compounds)
-    {
-      source_compound_ids.emplace_back(compound.id);
-    }
-    std::sort(source_compound_ids.begin(), source_compound_ids.end());
-
-    std::unordered_map<std::string, std::string> precursor_id_map;
-    precursor_id_map.reserve(source_compound_ids.size());
-    for (Size i = 0; i < source_compound_ids.size(); ++i)
-    {
-      precursor_id_map.emplace(source_compound_ids[i], StringUtils::toStr(static_cast<int64_t>(i)));
-    }
-
     SourceIDMapping source_ids;
-    source_ids.precursor_source_to_canonical = precursor_id_map;
-    source_ids.precursor_canonical_to_source.reserve(precursor_id_map.size());
-    for (const auto& [source_id, canonical_id] : precursor_id_map)
+    auto& precursor_id_map = source_ids.precursor_source_to_canonical;
     {
-      source_ids.precursor_canonical_to_source.emplace(canonical_id, source_id);
+      std::vector<std::string_view> source_compound_ids;
+      source_compound_ids.reserve(exp.compounds.size());
+      for (const auto& compound : exp.compounds)
+      {
+        source_compound_ids.emplace_back(compound.id);
+      }
+      std::sort(source_compound_ids.begin(), source_compound_ids.end());
+
+      precursor_id_map.reserve(source_compound_ids.size());
+      source_ids.precursor_canonical_to_source.reserve(source_compound_ids.size());
+      for (Size i = 0; i < source_compound_ids.size(); ++i)
+      {
+        const std::string canonical_id = StringUtils::toStr(static_cast<int64_t>(i));
+        precursor_id_map.emplace(source_compound_ids[i], canonical_id);
+        source_ids.precursor_canonical_to_source.emplace(canonical_id, source_compound_ids[i]);
+      }
     }
 
     // Only compounds referenced by transitions are retained in the operational OpenSWATH
     // experiment. Their IDs are not compressed after filtering; they keep the values assigned
-    // from the complete source compound set above.
-    std::unordered_set<std::string> referenced_compound_ids;
-    referenced_compound_ids.reserve(exp.transitions.size());
+    // from the complete source compound set above. Indexed by canonical precursor ID.
+    std::vector<bool> referenced_compounds(exp.compounds.size(), false);
     for (const auto& transition : exp.transitions)
     {
-      const std::string source_ref = transition.peptide_ref;
+      const std::string& source_ref = transition.peptide_ref;
       if (source_ref.empty())
       {
         throwInvalidID_("Transition precursor reference must not be empty", source_ref);
       }
-      if (!known_compound_ids.contains(source_ref))
+      const auto precursor_it = precursor_id_map.find(source_ref);
+      if (precursor_it == precursor_id_map.end())
       {
         throwInvalidID_("Transition references an unknown source compound ID", source_ref);
       }
-      referenced_compound_ids.insert(source_ref);
+      referenced_compounds[static_cast<Size>(StringUtils::toInt64(precursor_it->second))] = true;
     }
 
     // Build a fresh experiment instead of mutating compound IDs in place. LightTargetedExperiment
     // maintains an internal compound-reference lookup cache; rebuilding the object guarantees that
-    // no cache entries keyed by pre-normalization source IDs survive canonicalization.
+    // no cache entries keyed by pre-normalization source IDs survive canonicalization. Contents
+    // are moved, not copied: exp is replaced by the result below.
     OpenSwath::LightTargetedExperiment normalized;
-    normalized.proteins = exp.proteins;
-    normalized.compounds.reserve(referenced_compound_ids.size());
-    normalized.transitions = exp.transitions;
+    normalized.proteins = std::move(exp.proteins);
+    normalized.compounds.reserve(std::count(referenced_compounds.begin(), referenced_compounds.end(), true));
+    normalized.transitions = std::move(exp.transitions);
 
-    for (const auto& source_compound : exp.compounds)
+    for (auto& source_compound : exp.compounds)
     {
-      const std::string source_id = source_compound.id;
-      if (!referenced_compound_ids.contains(source_id))
+      const auto precursor_it = precursor_id_map.find(source_compound.id);
+      if (precursor_it == precursor_id_map.end())
+      {
+        // All source compounds were inserted into precursor_id_map above.
+        throwInvalidID_("Source compound is missing from the canonical precursor map", source_compound.id);
+      }
+      if (!referenced_compounds[static_cast<Size>(StringUtils::toInt64(precursor_it->second))])
       {
         continue;
       }
 
-      const auto precursor_it = precursor_id_map.find(source_id);
-      if (precursor_it == precursor_id_map.end())
-      {
-        // All source compounds were inserted into precursor_id_map above.
-        throwInvalidID_("Source compound is missing from the canonical precursor map", source_id);
-      }
-
-      OpenSwath::LightCompound compound = source_compound;
-      compound.id = precursor_it->second;
-      normalized.compounds.push_back(std::move(compound));
+      source_compound.id = precursor_it->second;
+      normalized.compounds.push_back(std::move(source_compound));
     }
 
     for (Size i = 0; i < normalized.transitions.size(); ++i)
     {
       auto& transition = normalized.transitions[i];
-      const std::string source_ref = transition.peptide_ref;
+      const std::string& source_ref = transition.peptide_ref;
       const auto precursor_it = precursor_id_map.find(source_ref);
       if (precursor_it == precursor_id_map.end())
       {
@@ -168,17 +178,16 @@ namespace OpenMS
         throwInvalidID_("Transition references an unknown source compound ID", source_ref);
       }
 
-      const std::string source_transition_id = transition.transition_name;
       if (!transition.getDecoy() &&
-          (hasConventionalDecoyPrefix_(source_ref) || hasConventionalDecoyPrefix_(source_transition_id)))
+          (hasConventionalDecoyPrefix_(source_ref) || hasConventionalDecoyPrefix_(transition.transition_name)))
       {
         transition.setDecoy(true);
       }
 
-      const std::string canonical_transition_id = StringUtils::toStr(static_cast<int64_t>(i));
-      source_ids.transition_canonical_to_source.emplace(canonical_transition_id, source_transition_id);
+      std::string canonical_transition_id = StringUtils::toStr(static_cast<int64_t>(i));
+      source_ids.transition_canonical_to_source.emplace(canonical_transition_id, std::move(transition.transition_name));
       transition.peptide_ref = precursor_it->second;
-      transition.transition_name = canonical_transition_id;
+      transition.transition_name = std::move(canonical_transition_id);
     }
 
     validateCanonicalIDs(normalized);
@@ -292,22 +301,31 @@ namespace OpenMS
       return false;
     }
 
-    std::unordered_set<std::string> precursor_ids;
+    // Canonical decimal form is unique per value, so the integer sets below detect exactly
+    // the same duplicates as sets of the ID strings.
+    std::unordered_set<int64_t> precursor_ids;
     precursor_ids.reserve(exp.compounds.size());
+    int64_t value = -1;
     for (const auto& compound : exp.compounds)
     {
-      if (!precursor_ids.insert(compound.id).second)
+      parseCanonicalID_(compound.id, value);
+      if (!precursor_ids.insert(value).second)
       {
         return false;
       }
     }
 
-    std::unordered_set<std::string> transition_ids;
+    std::unordered_set<int64_t> transition_ids;
     transition_ids.reserve(exp.transitions.size());
     for (const auto& transition : exp.transitions)
     {
-      if (!transition_ids.insert(transition.transition_name).second ||
-          !precursor_ids.contains(transition.peptide_ref))
+      parseCanonicalID_(transition.transition_name, value);
+      if (!transition_ids.insert(value).second)
+      {
+        return false;
+      }
+      parseCanonicalID_(transition.peptide_ref, value);
+      if (!precursor_ids.contains(value))
       {
         return false;
       }
@@ -317,34 +335,33 @@ namespace OpenMS
 
   void OpenSwathLibraryIDNormalizer::validateCanonicalIDs(const OpenSwath::LightTargetedExperiment& exp)
   {
-    std::unordered_set<std::string> precursor_ids;
+    // Canonical decimal form is unique per value, so the integer sets below detect exactly
+    // the same duplicates as sets of the ID strings, without copying every ID.
+    std::unordered_set<int64_t> precursor_ids;
     precursor_ids.reserve(exp.compounds.size());
 
     for (const auto& compound : exp.compounds)
     {
-      const std::string id = compound.id;
-      validateCanonicalIDFormat_(id, "Precursor");
-      if (!precursor_ids.insert(id).second)
+      const std::string& id = compound.id;
+      if (!precursor_ids.insert(validateCanonicalIDFormat_(id, "Precursor")).second)
       {
         throwInvalidID_("Canonical precursor IDs must be unique", id);
       }
     }
 
-    std::unordered_set<std::string> transition_ids;
+    std::unordered_set<int64_t> transition_ids;
     transition_ids.reserve(exp.transitions.size());
 
     for (const auto& transition : exp.transitions)
     {
-      const std::string transition_id = transition.transition_name;
-      validateCanonicalIDFormat_(transition_id, "Transition");
-      if (!transition_ids.insert(transition_id).second)
+      const std::string& transition_id = transition.transition_name;
+      if (!transition_ids.insert(validateCanonicalIDFormat_(transition_id, "Transition")).second)
       {
         throwInvalidID_("Canonical transition IDs must be unique", transition_id);
       }
 
-      const std::string precursor_ref = transition.peptide_ref;
-      validateCanonicalIDFormat_(precursor_ref, "Transition precursor reference");
-      if (!precursor_ids.contains(precursor_ref))
+      const std::string& precursor_ref = transition.peptide_ref;
+      if (!precursor_ids.contains(validateCanonicalIDFormat_(precursor_ref, "Transition precursor reference")))
       {
         throwInvalidID_("Transition references an unknown canonical precursor ID", precursor_ref);
       }

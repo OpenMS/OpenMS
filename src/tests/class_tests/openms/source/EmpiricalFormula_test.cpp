@@ -586,6 +586,28 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   }
 END_SECTION
 
+START_SECTION(([EXTRA] getConditionalFragmentIsotopeDist with a solver that caps the number of isotopes))
+  // The fragment and its complement are computed deep enough for the isolated precursor isotopes
+  // (here M, M+1 and M+2 -> 3 peaks), but the solver may cap the result below that. The loop that
+  // fills the result used to run over the uncapped length and wrote behind the end of the capped
+  // result (AddressSanitizer: heap-buffer-overflow).
+  EmpiricalFormula cap_precursor("C50H80N15O20");
+  EmpiricalFormula cap_fragment("C25H40N7O10");
+  std::set<UInt> cap_isolated = {0, 1, 2};
+
+  IsotopeDistribution uncapped = cap_fragment.getConditionalFragmentIsotopeDist(cap_precursor, cap_isolated, CoarseIsotopePatternGenerator());
+  IsotopeDistribution capped = cap_fragment.getConditionalFragmentIsotopeDist(cap_precursor, cap_isolated, CoarseIsotopePatternGenerator(2));
+  TEST_EQUAL(uncapped.size(), 3)
+  TEST_EQUAL(capped.size(), 2)
+  // renormalized to 1 over the peaks that are left
+  TEST_REAL_SIMILAR(capped.getContainer()[0].getIntensity() + capped.getContainer()[1].getIntensity(), 1.0)
+  // the kept peaks are the first ones of the uncapped distribution, so their ratio is unchanged
+  TEST_REAL_SIMILAR(capped.getContainer()[1].getIntensity() / capped.getContainer()[0].getIntensity(),
+                    uncapped.getContainer()[1].getIntensity() / uncapped.getContainer()[0].getIntensity())
+  TEST_REAL_SIMILAR(capped.getContainer()[0].getMZ(), uncapped.getContainer()[0].getMZ())
+  TEST_REAL_SIMILAR(capped.getContainer()[1].getMZ(), uncapped.getContainer()[1].getMZ())
+END_SECTION
+
 START_SECTION(([EXTRA] Check correct charge semantics))
   EmpiricalFormula ef1("H4C+"); // CH4 +1 charge
   const Element* H = db->getElement("H");
