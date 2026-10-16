@@ -228,6 +228,14 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       SharedSearchStats shared;
     };
 
+    /// The pooled evaluation of a multi-file search (the ProSE tool's -out_merged).
+    struct MergedResult
+    {
+      std::vector<ProteinIdentification> protein_ids; ///< one pooled run; empty if no file succeeded
+      PeptideIdentificationList peptide_ids;          ///< PSMs of all files; meta value 'id_merge_index' = input position
+      bool protein_fdr_applied = false;               ///< picked-protein FDR applied and decoys removed
+    };
+
     /**
      * @brief Prepared per-database state shared across multiple spectrum files.
      *
@@ -612,6 +620,35 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         const std::vector<std::string>& output_base_names = {},
         const std::string& aggregate_base_name = "",
         bool build_pooled_aggregate = true) const;
+
+    /**
+     * @brief Pools result (moving its identifications out), infers proteins across files, applies FDR:protein
+     * of this instance with picked-protein FDR if decoy proteins were identified. Throws
+     * Exception::InvalidValue if Percolator rescored only some files.
+     *
+     * The evaluation of the ProSE tool's -out_merged, for the result of a multi-file
+     * searchWithModificationAnalysis() with the parameters of this instance:
+     *  - Pooling: the pooled aggregate of the search (@c build_pooled_aggregate) is taken as it is. Without one (e.g.
+     *    @c build_pooled_aggregate false), the runs of the files that were searched (exit code EXECUTION_OK) are merged
+     *    with IDMergerAlgorithm. 'id_merge_index' is the position of a PSM's file among the files that were searched,
+     *    i.e. its position in @p in_spectra_files if all of them were. The pooled run lists @p in_spectra_files as its
+     *    primary MS run paths and gets the current date.
+     *  - Cross-file protein inference (BasicProteinInferenceAlgorithm).
+     *  - With FDR:protein > 0 and decoys in the searched database: picked-protein FDR (Savitski et al. 2015) and the
+     *    filter at FDR:protein, provided the inference identified decoy proteins (otherwise a warning, and nothing is
+     *    filtered). The finalization then removes the decoys and the references to removed proteins, as
+     *    applyCompleteSetProteinFDR() does. Without the protein FDR the result keeps the targets and decoys.
+     *
+     * @param[in,out] result The search result. Its pooled aggregate's identifications, or without an aggregate those
+     *                       of the files, are moved into the returned result; the statistics, exit codes, Percolator
+     *                       outcomes and modification analyses stay. Unchanged if Exception::InvalidValue is thrown.
+     * @param[in] in_spectra_files The input files of the search, in its order.
+     * @return The pooled run and PSMs; empty if no file was searched.
+     *
+     * @throws Exception::InvalidValue if Percolator ('rescore') rescored only some of the files that were searched: their
+     *         runs report different search engines and scores and cannot be pooled.
+     */
+    MergedResult mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files) const;
 
     /// With @p keep = true, the multi-file searchWithModificationAnalysis() overloads also return the PSMs of each
     /// file before the rescoring ('rescore') and FDR:PSM, in SearchResult::pre_fdr_peptide_ids (e.g. for a
