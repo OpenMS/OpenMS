@@ -1465,6 +1465,31 @@ namespace OpenMS
       "(TimsCompressionType 2) can be read, which timsTOF acquisition software has written since 2018");
   }
 
+  // MALDI imaging runs (GlobalMetadata MaldiApplicationType "Imaging") are read by BrukerTimsImagingFile, which keeps
+  // the pixel position of every frame. Read as DDA or DIA data here, they would lose them (and an MS1-only run would
+  // pass for an LC run without precursors), so they are rejected; export mode FRAME, which BrukerTimsImagingFile uses,
+  // reads them as frames. @p path is the path the caller gave, @p d_path the .d directory (unpacked from a .d.zip).
+  static void rejectMaldiImaging(const std::string& path, const std::string& d_path)
+  {
+    std::string application_type;
+    try
+    {
+      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      if (!db.tableExists("GlobalMetadata")) return;
+      SQLite::Statement query(db, "SELECT Value FROM GlobalMetadata WHERE Key = 'MaldiApplicationType'");
+      if (query.executeStep()) application_type = query.getColumn(0).getString();
+    }
+    catch (const std::exception&)
+    {
+      return; // no analysis.tdf that can be queried: opentims reports that
+    }
+    if (application_type != "Imaging") return;
+    throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+      "Bruker MALDI imaging .d is a mass spectrometry imaging format: read as DDA or DIA data, its spectra would lose "
+      "their pixel positions. Load it with BrukerTimsImagingFile (FileHandler::loadImagingExperiment) into an "
+      "MSImagingExperiment, or read its frames with export mode FRAME");
+  }
+
   // Runs one of the public read functions on @p path. No SQLite exception leaves the reader: an analysis.tdf that
   // lacks a table or column a query needs is reported as ParseError of @p path (the TOPP tools catch OpenMS
   // exceptions only, so an SQLite::Exception would end the program).
@@ -2286,6 +2311,7 @@ namespace OpenMS
     // is sized from this metadata, so its spectra must come from the same files.
     unpacked_ = takeUnpacked_(path);
     const std::string d_path = unpacked_ ? unpacked_->d_path : path;
+    rejectMaldiImaging(path, d_path);
     auto handle = openTimsDataHandle(d_path, config);
     std::string tdf_path = d_path + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
@@ -2492,7 +2518,9 @@ namespace OpenMS
       const std::string& path, FullSwathFileConsumer& consumer, const Config& config)
   {
     const auto unpacked = takeUnpacked_(path); // the files readDIAMetadata() read, if it read path
-    auto handle = openTimsDataHandle(unpacked ? unpacked->d_path : path, config);
+    const std::string d_path = unpacked ? unpacked->d_path : path;
+    rejectMaldiImaging(path, d_path);
+    auto handle = openTimsDataHandle(d_path, config);
     std::string tdf_path = handle->get_tims_dir_path() + "/analysis.tdf";
     SQLite::Database db(std::string(tdf_path), SQLite::OPEN_READONLY);
 
@@ -2714,6 +2742,7 @@ namespace OpenMS
     exp.clear(true);
     const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
     const std::string d_path = unpacked ? unpacked->d_path : path;
+    if (config.export_mode != Config::FRAME) rejectMaldiImaging(path, d_path);
     auto handle = openTimsDataHandle(d_path, config);
 
     std::string tdf_path = d_path + "/analysis.tdf";
@@ -2772,6 +2801,7 @@ namespace OpenMS
   {
     const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
     const std::string d_path = unpacked ? unpacked->d_path : path;
+    if (config.export_mode != Config::FRAME) rejectMaldiImaging(path, d_path);
     auto handle = openTimsDataHandle(d_path, config);
 
     std::string tdf_path = d_path + "/analysis.tdf";

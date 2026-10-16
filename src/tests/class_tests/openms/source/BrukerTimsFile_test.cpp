@@ -801,6 +801,55 @@ START_SECTION([EXTRA] readDIAMetadata() keeps its .d.zip extraction for the next
 }
 END_SECTION
 
+START_SECTION([EXTRA] MALDI imaging runs are read in export mode FRAME only)
+{
+  // Read as DDA or DIA data, an imaging run would lose the pixel positions that BrukerTimsImagingFile keeps (#10596).
+  // GlobalMetadata is checked before any frame is read, so the runs need no frame data. SDK-free.
+  using Config = BrukerTimsFile::Config;
+  TempDir tmp;
+  auto fake_d = [&tmp](const std::string& dir, const std::string& application_type)
+  {
+    const std::string d = tmp.getPath() + "/" + dir + "/run.d";
+    File::makeDir(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('MaldiApplicationType', '" + application_type + "');");
+    return d;
+  };
+  const std::string imaging = fake_d("imaging", "Imaging");
+  const std::string imaging_zip = tmp.getPath() + "/imaging.d.zip"; // checked once unpacked
+  ZipArchiveFile::zipDirectory(tmp.getPath() + "/imaging", imaging_zip);
+
+  BrukerTimsFile f;
+  for (const std::string& path : {imaging, imaging_zip})
+  {
+    for (const Config::ExportMode mode : {Config::AUTO, Config::SPECTRUM})
+    {
+      Config cfg;
+      cfg.export_mode = mode;
+      MSExperiment exp;
+      TEST_EXCEPTION(Exception::InvalidFileType, f.load(path, exp, cfg))
+      MSDataStoringConsumer consumer;
+      TEST_EXCEPTION(Exception::InvalidFileType, f.transform(path, &consumer, cfg))
+      TEST_EQUAL(consumer.getData().size(), 0)
+    }
+    ExperimentalSettings settings;
+    TEST_EXCEPTION(Exception::InvalidFileType, f.readDIAMetadata(path, settings))
+    RegularSwathFileConsumer swath_consumer;
+    TEST_EXCEPTION(Exception::InvalidFileType, f.loadDIAStreaming(path, swath_consumer))
+    // FRAME (as BrukerTimsImagingFile reads) passes the check and reaches opentims, which finds no frame data
+    Config frame;
+    frame.export_mode = Config::FRAME;
+    MSExperiment exp;
+    TEST_EXCEPTION(Exception::FileNotReadable, f.load(path, exp, frame))
+  }
+
+  // Other MALDI runs (dried droplet) are no imaging runs: they reach opentims as well
+  MSExperiment exp;
+  TEST_EXCEPTION(Exception::FileNotReadable, f.load(fake_d("droplet", "SingleSpectra"), exp))
+}
+END_SECTION
+
 START_SECTION(static DataFormat detectFormat(const std::string& path))
 {
   // Told by file names only, so the files need no content. SDK-free.

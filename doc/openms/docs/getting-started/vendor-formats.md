@@ -94,7 +94,8 @@ The acquisition type is detected from the file:
 - **Without PASEF precursors or isolation windows** (e.g. MS1-only MALDI runs): MS1 as above.
 
 MALDI imaging runs (`.d` or `.d.zip`) are not read by these tools: as a list of spectra they
-would lose their pixel positions. In the library and in pyOpenMS,
+would lose their pixel positions. (Only PeakPickerIM, which reads raw frames by default, reads
+their frames, without the positions.) In the library and in pyOpenMS,
 `FileHandler::loadImagingExperiment` loads them into an `MSImagingExperiment`.
 
 FileConverter, CometAdapter and PeakPickerIM have `bruker:` options to change this, for

@@ -282,6 +282,10 @@ OpenMS Library:
     is extracted for the metadata. isImagingDataset() now recognizes zipped MALDI imaging runs, so
     FileHandler::loadExperiment() and transformExperiment() reject them as they reject .d directories, and
     loadImagingExperiment() loads them (#10596).
+  - FIX: BrukerTimsFile rejects MALDI imaging runs (.d or .d.zip) with InvalidFileType unless the export mode is
+    FRAME, which BrukerTimsImagingFile uses; readDIAMetadata() and loadDIAStreaming() reject them in any case.
+    The tools that read .d with BrukerTimsFile directly instead of FileHandler read them as DDA or DIA data,
+    without their pixel positions (#10596).
   - FIX: cachedMzML (CachedMzMLHandler, MSDataCachedConsumer) wrote no data arrays for a spectrum or chromatogram
     without peaks, although it announced them, so everything after it was read from the wrong position ("Read an
     invalid spectrum length"). Bruker .d input with MS1 aggregation (ms1_n_neighbors > 0) gives such spectra: a
@@ -624,6 +628,10 @@ TOPP tools:
       - PARAM: New bedrmod_out exports RNA modification sites as a bedRMod v2 track
         (bedrmod_chebi_mapping, bedrmod:* reference metadata) (#10529).
     All tools:
+      - FIX: CometAdapter, ProteomicsLFQ, IsobaricWorkflow and the OpenSWATH tools reject Bruker MALDI imaging .d
+        input, as FileConverter and the tools reading through FileHandler do. PeakPickerIM, which reads raw frames
+        by default (-bruker:export_mode frame), still reads their frames, without pixel positions; with
+        -bruker:export_mode auto it rejects them (#10596).
       - FIX: -debug activates console debug logging in the main thread even when its
         thread-local logger was initialized before parameter parsing. Debug levels from INI
         files also take effect. A subsequent run in the same process removes the console

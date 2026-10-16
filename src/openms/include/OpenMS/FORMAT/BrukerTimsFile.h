@@ -39,6 +39,11 @@ namespace OpenMS
    * files. Any call other than readDIAMetadata() removes the kept files, as does destroying the
    * object.
    *
+   * MALDI imaging runs (GlobalMetadata MaldiApplicationType "Imaging") are read by
+   * BrukerTimsImagingFile, which keeps the pixel position of every frame. This class reads them in
+   * export mode FRAME only (as BrukerTimsImagingFile does); the other modes and the DIA streaming
+   * functions throw Exception::InvalidFileType for them.
+   *
    * In FRAME export mode, raw TOF indices and intensities are returned without
    * any signal processing. TOF-to-m/z and scan-to-IM conversions are applied,
    * but no smoothing or centroiding is performed.
@@ -287,6 +292,8 @@ namespace OpenMS
     ///         data that is not zstd-compressed (TimsCompressionType other than 2), a '.d.zip' archive without a
     ///         .d directory, or an analysis.tdf that lacks a table or column the reader needs. The other read
     ///         functions throw the same.
+    /// @throws Exception::InvalidFileType for a MALDI imaging run, unless the export mode is FRAME (see above), as
+    ///         do transform() and, in every export mode, readDIAMetadata() and loadDIAStreaming()
     /// @throws Exception::FileNotReadable if opentims cannot open the directory
     void load(const std::string& path, MSExperiment& exp);
     /// @overload with explicit configuration
