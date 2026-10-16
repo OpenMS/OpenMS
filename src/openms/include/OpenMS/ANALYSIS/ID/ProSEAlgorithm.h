@@ -571,6 +571,18 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * pooled set (see @p build_pooled_aggregate to skip retaining that second
      * copy of every PSM).
      *
+     * Progress: the search of each input file is a progress step of its own,
+     * labelled "Searching &lt;file name&gt; (i of n)..." (i from 1, in input order).
+     * Consumers identify the per-file step by this label. Every start is
+     * balanced by an end, also if the search of the file fails or throws. The
+     * steps of the search of the file (index build, filtering, scoring, ...)
+     * nest one level below it (depth 0 for the per-file step, depth 1 inside),
+     * but this nesting holds only with one OpenMP thread: with more, the
+     * background reading of the next mzML file shares the static step depth of
+     * the ProgressLogger, and the depths reported are not reliable. Chunk-major
+     * searches (database:chunk_size > 0 with a database of more proteins,
+     * decoys included, than the chunk size) emit no per-file step.
+     *
      * @param[in] in_spectra_files Spectrum file paths (mzML or Bruker .d).
      * @param[in] fasta_db Protein sequence database as FASTA entries.
      * @param[in] output_base_names Optional per-file base names for

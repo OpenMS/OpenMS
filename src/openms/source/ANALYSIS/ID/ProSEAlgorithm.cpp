@@ -5023,6 +5023,8 @@ namespace OpenMS
       // Chunk-major multi-file path (MSFragger-style): build each chunk's
       // FragmentIndex ONCE and score ALL files against it before moving
       // to the next chunk. This gives C FI builds instead of N×C.
+      // No file is searched on its own here, so there is no "Searching <file>" progress step per file as in the
+      // non-chunked path below; the steps of the phases and chunks are reported as before.
       // ================================================================
       // full_db already built above.
       const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
@@ -5438,39 +5440,54 @@ namespace OpenMS
       const bool restrict_index = in_spectra_files.size() == 1 && restrictIndexToSpectra_();
       PeakMap first_spectra;
       bool first_spectra_taken = false;
-      if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
-          && !(ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra_files[0])))
+      // Called for the first file, inside its progress step (the build overlaps with reading it), if its spectra are
+      // not read yet.
+      const auto build_index_while_first_file_is_read = [&]()
       {
-        std::function<const PeakMap*(Size)> searched_spectra;
-        if (restrict_index)
+        if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
+            && !(ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra_files[0])))
         {
-          const UInt64 spectra_bytes = File::fileSize(in_spectra_files[0]); // UInt64(-1) if unknown: no waiting
-          searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
+          std::function<const PeakMap*(Size)> searched_spectra;
+          if (restrict_index)
           {
-            if (!first_spectra_taken)
+            const UInt64 spectra_bytes = File::fileSize(in_spectra_files[0]); // UInt64(-1) if unknown: no waiting
+            searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
             {
-              const bool wait = threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
-                                && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started;
-              if (!wait && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+              if (!first_spectra_taken)
               {
-                return nullptr;
+                const bool wait = threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
+                                  && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started;
+                if (!wait && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                {
+                  return nullptr;
+                }
+                first_spectra = next_spectra.get();
+                first_spectra_taken = true;
               }
-              first_spectra = next_spectra.get();
-              first_spectra_taken = true;
-            }
-            return &first_spectra;
-          };
+              return &first_spectra;
+            };
+          }
+          prepare_context(false, searched_spectra);
         }
-        prepare_context(false, searched_spectra);
-      }
+      };
 
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         const std::string& in_spectra = in_spectra_files[i];
         const std::string per_file_base = (i < output_base_names.size()) ? output_base_names[i] : std::string("");
 
+        // One progress step per input file, identified by its label, so that a progress display can tell which file
+        // is searched. It ends with this iteration, whichever way it is left: the end, the continue of a failed
+        // search, an exception. The steps of the search of the file nest below it (depth 1) only with one thread:
+        // the background mzML reader shares the static step depth of the ProgressLogger.
+        startProgress(0, 1, "Searching " + File::basename(in_spectra) + " (" + StringUtils::toStr(i + 1) + " of "
+                                + StringUtils::toStr(in_spectra_files.size()) + ")...");
+        const OnScopeExit end_file_progress([this]() { endProgress(); });
+
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
+
+        if (i == 0) { build_index_while_first_file_is_read(); }
 
         PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
                           : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false));
