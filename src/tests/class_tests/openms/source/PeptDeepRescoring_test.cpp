@@ -471,6 +471,9 @@ END_SECTION
 
 START_SECTION([EXTRA] the NCE of each run is recorded on the run)
 {
+  // The name of the meta value is public, and fixed: consumers of stored results read it.
+  TEST_STRING_EQUAL(PeptDeepRescoring::NCE_META_VALUE, "peptdeep_nce")
+
   if (!File::exists(ms2_model_path) || !File::exists(rt_model_path))
   {
     STATUS("PeptDeep ONNX models not found next to the test; skipping the recorded-NCE section.")

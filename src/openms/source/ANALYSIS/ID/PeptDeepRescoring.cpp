@@ -42,9 +42,6 @@ namespace
 {
   using namespace OpenMS;
 
-  /// Run-level meta value holding the NCE a run's predictions used; see PeptDeepRescoring::annotate().
-  constexpr const char* NCE_META_KEY = "peptdeep_nce";
-
   /// Slot layout of the PeptDeep MS2 output: eight ion channels per fragment position,
   /// of which the first four are the singly and doubly charged b and y ions.
   constexpr int ION_B1 = 0, ION_B2 = 1, ION_Y1 = 2, ION_Y2 = 3;
@@ -410,7 +407,7 @@ namespace OpenMS
       }
       sp.setMetaValue("extra_features", ListUtils::concatenate(features, ","));
       prot.setSearchParameters(sp);
-      prot.setMetaValue(NCE_META_KEY, nce_by_run.at(prot.getIdentifier()));
+      prot.setMetaValue(NCE_META_VALUE, nce_by_run.at(prot.getIdentifier()));
     }
     if (!any_matched && !protein_ids.empty())
     {
@@ -433,7 +430,7 @@ namespace OpenMS
       if (std::all_of(nce_by_run.begin(), nce_by_run.end(),
                       [&](const auto& kv) { return kv.second == first_nce; }))
       {
-        protein_ids[0].setMetaValue(NCE_META_KEY, first_nce);
+        protein_ids[0].setMetaValue(NCE_META_VALUE, first_nce);
       }
     }
 

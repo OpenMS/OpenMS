@@ -83,6 +83,11 @@ namespace OpenMS
     /// Names of the features this class adds to each PSM, in a stable order.
     static StringList featureNames();
 
+    /// Name of the run meta value ("peptdeep_nce", a double) in which annotate() stores, on each annotated
+    /// ProteinIdentification, the normalised collision energy its predictions used. It is written to idXML with the
+    /// run, so consumers of stored results can rely on the name.
+    static constexpr const char* NCE_META_VALUE = "peptdeep_nce";
+
     /**
       @brief Annotates @p peptide_ids in place and registers the features for rescoring.
 
@@ -90,7 +95,7 @@ namespace OpenMS
              time and, for the NCE scan, the instrument's reported collision energy.
       @param[in,out] protein_ids Search metadata; the feature names are appended to the
              @p extra_features of each run that has PSMs, and the NCE its predictions used is
-             stored on the run as the double meta value @p peptdeep_nce (see below).
+             stored on the run as the double meta value NCE_META_VALUE (see below).
       @param[in,out] peptide_ids PSMs to annotate. Every hit receives every feature, so
              that no run ends up with a feature present on only some of its PSMs.
 
@@ -98,7 +103,8 @@ namespace OpenMS
       PeptideIdentification::getIdentifier() and each run gets its own NCE scan and its
       own RT calibration.
 
-      Each annotated ProteinIdentification gets the meta value @p peptdeep_nce (a double):
+      Each annotated ProteinIdentification gets the meta value NCE_META_VALUE
+      ("peptdeep_nce", a double):
       the NCE its run's predictions used -- the one selected by the scan, or @p nce when
       that is set. It lets a consumer of the result predict spectra at the same energy the
       annotation used. A ProteinIdentification without PSMs is not annotated and gets none.
