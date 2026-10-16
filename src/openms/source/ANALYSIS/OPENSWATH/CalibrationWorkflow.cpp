@@ -199,8 +199,10 @@ namespace OpenMS
     }
 
     // Apply estimated extraction windows if requested
+    const bool ms1_traces_picked = feature_finder_param.exists("TransitionGroupPicker:use_precursors")
+                                   && feature_finder_param.getValue("TransitionGroupPicker:use_precursors").toBool();
     applyEstimatedWindows_(result, cp, cp_ms1, pasef,
-                          feature_finder_param.getValue("use_ms1_ion_mobility").toBool());
+                          feature_finder_param.getValue("use_ms1_ion_mobility").toBool(), ms1_traces_picked);
 
     return result;
   }
@@ -697,7 +699,8 @@ namespace OpenMS
     ChromExtractParams& cp,
     ChromExtractParams& cp_ms1,
     bool pasef,
-    bool use_ms1_im) const
+    bool use_ms1_im,
+    bool ms1_traces_picked) const
   {
     // Apply RT window
     if (windows_estimate_rt_ && result.estimated_rt_window > 0)
@@ -725,8 +728,12 @@ namespace OpenMS
       // (MRMTransitionGroupPicker::resampleChromatogram_). They therefore need the fragment RT
       // window and a margin of one MS1 scan, not the uncalibrated default, at which they are
       // several times longer than the fragment traces and hold most of the chromatogram memory.
+      // Not so if they are peak-picked as well (TransitionGroupPicker:use_precursors): the S/N
+      // estimator of the picker is initialised on the whole trace, so a shorter trace would change
+      // the noise level and with it the picked peak boundaries.
       const double ms1_rt_window = cp.rt_extraction_window + 2.0 * MS1_RT_WINDOW_MARGIN_SECONDS;
-      if (cp_ms1.rt_extraction_window <= 0.0 || ms1_rt_window < cp_ms1.rt_extraction_window)
+      if (!ms1_traces_picked
+          && (cp_ms1.rt_extraction_window <= 0.0 || ms1_rt_window < cp_ms1.rt_extraction_window))
       {
         cp_ms1.rt_extraction_window = ms1_rt_window;
       }
