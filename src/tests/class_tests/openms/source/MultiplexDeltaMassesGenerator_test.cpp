@@ -56,9 +56,18 @@ START_SECTION(void generateKnockoutDeltaMasses())
   list.generateKnockoutDeltaMasses();
   std::vector<MultiplexDeltaMasses> masses_knockout = list.getDeltaMassesList();
   TEST_EQUAL(masses_knockout.size(), 21);
-  TEST_REAL_SIMILAR(masses_knockout[6].getDeltaMasses()[1].delta_mass, 8.0141988132);
+  // medium and heavy of a Lys triplet without its light peptide: relative to the medium one (Lys8 - Lys4),
+  // so that the filtering does not need a peak at the absent light position
+  TEST_REAL_SIMILAR(masses_knockout[6].getDeltaMasses()[0].delta_mass, 0.0);
+  TEST_REAL_SIMILAR(masses_knockout[6].getDeltaMasses()[1].delta_mass, 8.0141988132 - 4.0251069836);
+  TEST_EQUAL(*masses_knockout[6].getDeltaMasses()[0].label_set.begin(), "Lys4");
+  TEST_EQUAL(*masses_knockout[6].getDeltaMasses()[1].label_set.begin(), "Lys8");
   TEST_REAL_SIMILAR(masses_knockout[19].getDeltaMasses()[1].delta_mass, 20.0165372);
   TEST_EQUAL(masses_knockout[20].getDeltaMasses().size(), 1);
+  for (const MultiplexDeltaMasses& pattern : masses_knockout)
+  {
+    TEST_REAL_SIMILAR(pattern.getDeltaMasses()[0].delta_mass, 0.0);
+  }
 END_SECTION
 
 START_SECTION(std::string MultiplexDeltaMassesGenerator::getLabelShort(std::string label))
