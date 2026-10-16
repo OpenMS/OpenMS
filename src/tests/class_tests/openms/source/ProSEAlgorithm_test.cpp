@@ -5495,7 +5495,7 @@ const auto target_psms = [](const PeptideIdentificationList& peptides)
 StringList merge_files;
 ProSEAlgorithm::MultiFileSearchResult merge_search;
 
-START_SECTION((MergedResult mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files) const))
+START_SECTION((MergedResult mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files, bool remove_decoys = true) const))
 {
   std::string copy_file;
   NEW_TMP_FILE_EXT(copy_file, ".mzML")
@@ -5612,7 +5612,8 @@ START_SECTION(([EXTRA] mergeFileResults skips failed files))
   ABORT_IF(merge_search.per_file.size() != 2)
   ProSEAlgorithm algo;
   configure_merge(algo, "generate");
-  // a failed second file: the search has no pooled aggregate then, and the merge pools the runs of the files
+  // A failed second file, and no pooled aggregate (as with build_pooled_aggregate false; the search itself would pool
+  // the file that was searched): the merge pools the runs of the searched files.
   ProSEAlgorithm::MultiFileSearchResult result = merge_search;
   result.per_file[1].exit_code = ProSEAlgorithm::ExitCodes::INPUT_FILE_EMPTY;
   result.aggregate.protein_ids.clear();
@@ -5633,6 +5634,62 @@ START_SECTION(([EXTRA] mergeFileResults skips failed files))
   TEST_TRUE(merged.protein_ids.empty())
   TEST_TRUE(merged.peptide_ids.empty())
   TEST_FALSE(merged.protein_fdr_applied)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults rejects input files that are not those of the search))
+{
+  // The run lists the input files, and 'id_merge_index' indexes them: one entry per file of the search.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  const StringList too_few = {merge_files[0]};
+  const StringList too_many = {merge_files[0], merge_files[1], merge_files[1]};
+  TEST_EXCEPTION(Exception::IllegalArgument, algo.mergeFileResults(result, too_few))
+  TEST_EXCEPTION(Exception::IllegalArgument, algo.mergeFileResults(result, too_many))
+  // nothing was moved out
+  TEST_EQUAL(result.aggregate.peptide_ids.size(), merge_search.aggregate.peptide_ids.size())
+  TEST_EQUAL(result.per_file[0].peptide_ids.size(), merge_search.per_file[0].peptide_ids.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mergeFileResults of a single file keeps the run of the file))
+{
+  // The search of one file builds no pooled aggregate, so the merge always pools the runs of the files itself. It moves
+  // only their PSMs out of the result: the runs (search parameters, meta values such as 'peptdeep_nce', run paths) stay.
+  // 'rescore' is not needed here, and would add a Percolator run.
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  Param p = algo.getParameters();
+  p.setValue("rescore", "false");
+  algo.setParameters(p);
+  const StringList single_file = {merge_spectra_file};
+  const ProSEAlgorithm::MultiFileSearchResult search = algo.searchWithModificationAnalysis(single_file, merge_database_file);
+  ABORT_IF(search.per_file.size() != 1)
+  TEST_TRUE(search.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+  TEST_TRUE(search.aggregate.protein_ids.empty())
+  ABORT_IF(search.per_file[0].protein_ids.empty())
+  const Size psms = target_psms(search.per_file[0].peptide_ids).size();
+  TEST_TRUE(psms > 0)
+
+  ProSEAlgorithm::MultiFileSearchResult result = search;
+  ProSEAlgorithm::MergedResult merged = algo.mergeFileResults(result, single_file);
+  TEST_EQUAL(merged.protein_ids.size(), 1)
+  TEST_TRUE(merged.protein_fdr_applied)
+  ABORT_IF(merged.protein_ids.size() != 1)
+  TEST_FALSE(merged.protein_ids[0].getHits().empty())
+  StringList run_paths;
+  merged.protein_ids[0].getPrimaryMSRunPath(run_paths);
+  TEST_TRUE(run_paths == single_file)
+  TEST_EQUAL(merged.peptide_ids.size(), psms) // the decoy PSMs are removed
+  TEST_TRUE(target_psms(merged.peptide_ids) == target_psms(search.per_file[0].peptide_ids))
+  TEST_TRUE(merge_indices(merged.peptide_ids) == (std::set<int>{0}))
+
+  // the run of the file is kept as the search returned it, its PSMs were moved out
+  TEST_FALSE(result.per_file[0].protein_ids.empty())
+  TEST_TRUE(result.per_file[0].protein_ids == search.per_file[0].protein_ids)
+  TEST_TRUE(result.per_file[0].peptide_ids.empty())
 }
 END_SECTION
 
@@ -5709,12 +5766,107 @@ START_SECTION(([EXTRA] mergeFileResults without decoys infers proteins but appli
 }
 END_SECTION
 
+START_SECTION(([EXTRA] mergeFileResults keeps decoys when asked))
+{
+  // With remove_decoys false the merge infers the proteins and applies the picked-protein FDR and its filter as by
+  // default, but keeps the decoy PSMs and the decoy proteins that pass; it only drops the references to the proteins
+  // the filter removed, so that the result can still be stored.
+  ABORT_IF(merge_search.per_file.size() != 2)
+  ProSEAlgorithm algo;
+  configure_merge(algo, "generate");
+  ProSEAlgorithm::MultiFileSearchResult result = merge_search;
+  const ProSEAlgorithm::MergedResult with_decoys = algo.mergeFileResults(result, merge_files, false);
+  result = merge_search;
+  const ProSEAlgorithm::MergedResult without_decoys = algo.mergeFileResults(result, merge_files);
+  TEST_TRUE(with_decoys.protein_fdr_applied)
+  TEST_TRUE(without_decoys.protein_fdr_applied)
+  ABORT_IF(with_decoys.protein_ids.size() != 1 || without_decoys.protein_ids.size() != 1)
+
+  // every PSM of the pooled aggregate is kept, the decoys among them, and the targets are those of the default
+  Size decoy_psms = 0;
+  for (const PeptideIdentification& id : with_decoys.peptide_ids)
+  {
+    for (const PeptideHit& hit : id.getHits()) { decoy_psms += hit.isDecoy(); }
+  }
+  TEST_TRUE(decoy_psms > 0)
+  TEST_EQUAL(with_decoys.peptide_ids.size(), merge_search.aggregate.peptide_ids.size())
+  TEST_TRUE(target_psms(with_decoys.peptide_ids) == target_psms(without_decoys.peptide_ids))
+  TEST_TRUE(merge_indices(with_decoys.peptide_ids) == (std::set<int>{0, 1}))
+
+  // the proteins carry the q-values of the picked-protein FDR, all within FDR:protein; the decoys among them are kept,
+  // and the targets are those of the default
+  const ProteinIdentification& run = with_decoys.protein_ids[0];
+  TEST_STRING_EQUAL(run.getScoreType(), "q-value")
+  TEST_FALSE(run.getHits().empty())
+  std::set<std::string> accessions, target_accessions, default_accessions;
+  Size above_fdr = 0;
+  for (const ProteinHit& hit : run.getHits())
+  {
+    accessions.insert(hit.getAccession());
+    if (!hit.getAccession().starts_with("DECOY_")) { target_accessions.insert(hit.getAccession()); }
+    above_fdr += hit.getScore() > 0.05;
+  }
+  std::map<std::string, double> default_q_values;
+  for (const ProteinHit& hit : without_decoys.protein_ids[0].getHits())
+  {
+    default_accessions.insert(hit.getAccession());
+    default_q_values[hit.getAccession()] = hit.getScore();
+  }
+  TEST_EQUAL(above_fdr, 0)
+  TEST_TRUE(accessions.size() > target_accessions.size()) // decoy proteins passed the filter
+  TEST_TRUE(target_accessions == default_accessions)
+  Size other_q_values = 0;
+  for (const ProteinHit& hit : run.getHits())
+  {
+    const auto it = default_q_values.find(hit.getAccession());
+    other_q_values += it != default_q_values.end() && it->second != hit.getScore();
+  }
+  TEST_EQUAL(other_q_values, 0) // keeping the decoys does not change the q-values of the targets
+
+  // no dangling references: every evidence and every group names a protein of the run, and the result can be stored
+  Size evidences = 0, dangling = 0;
+  for (const PeptideIdentification& id : with_decoys.peptide_ids)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
+      {
+        ++evidences;
+        dangling += !accessions.contains(evidence.getProteinAccession());
+      }
+    }
+  }
+  TEST_TRUE(evidences > 0)
+  TEST_EQUAL(dangling, 0)
+  Size dangling_in_groups = 0;
+  for (const auto* groups : {&run.getIndistinguishableProteins(), &run.getProteinGroups()})
+  {
+    for (const ProteinIdentification::ProteinGroup& group : *groups)
+    {
+      for (const std::string& accession : group.accessions) { dangling_in_groups += !accessions.contains(accession); }
+    }
+  }
+  TEST_EQUAL(dangling_in_groups, 0)
+  std::string out_file;
+  NEW_TMP_FILE_EXT(out_file, ".idXML")
+  FileHandler().storeIdentifications(out_file, with_decoys.protein_ids, with_decoys.peptide_ids, {FileTypes::IDXML});
+  std::vector<ProteinIdentification> stored_proteins;
+  PeptideIdentificationList stored_peptides;
+  FileHandler().loadIdentifications(out_file, stored_proteins, stored_peptides, {FileTypes::IDXML});
+  TEST_EQUAL(stored_proteins.size(), 1)
+  TEST_EQUAL(stored_peptides.size(), with_decoys.peptide_ids.size())
+}
+END_SECTION
+
 START_SECTION(([EXTRA] the multi-file search reports one outer progress step per file))
 {
-  // The search reports a depth-0 step per input file, "Searching <file> (i of n)...", so that a caller can tell which
+  // The search reports an outer step per input file, "Searching <file> (i of n)...", so that a caller can tell which
   // file is being searched; the steps of the search of the file (index build, filtering, scoring, ...) nest one level
   // below it. The searches here run with a progress display that records its events, and with one OpenMP thread (see
   // ScopedOpenMPThreads), unless said otherwise.
+  // The depth that the ProgressLogger passes is its static step counter, which threaded searches before (also those of
+  // other sections of this test) can leave off zero. So the depths are taken relative to the first event of a search,
+  // the start of the step of its first file.
   TempDir dir;
   const StringList files = {dir.getPath() + "/ProSE_13_a.mzML", dir.getPath() + "/ProSE_13_b.mzML"};
   for (const std::string& file : files)
@@ -5733,27 +5885,31 @@ START_SECTION(([EXTRA] the multi-file search reports one outer progress step per
     algo.setParameters(p);
     algo.setLogger(new RecordingProgressLogger(events)); // after configure_merge(), which sets the log type
   };
-  // the labels of the starts of the steps of a depth (-1: all depths)
-  const auto labels = [](const std::vector<ProgressEvent>& events, int depth)
+  // the depth of the first event, to which the others are relative
+  const auto base_depth = [](const std::vector<ProgressEvent>& events) { return events.empty() ? 0 : events.front().depth; };
+  // the labels of the starts of the steps of a depth, relative to the first event (-1: all depths)
+  const auto labels = [&](const std::vector<ProgressEvent>& events, int depth)
   {
+    const int base = base_depth(events);
     std::vector<std::string> result;
     for (const ProgressEvent& event : events)
     {
-      if (event.kind == 's' && (depth < 0 || event.depth == depth)) { result.push_back(event.label); }
+      if (event.kind == 's' && (depth < 0 || event.depth - base == depth)) { result.push_back(event.label); }
     }
     return result;
   };
   // Events that break the nesting of the steps: a start has the depth of the steps open, an end that of its start, and
-  // an end has a start; plus the steps that are still open at the end.
-  const auto nesting_errors = [](const std::vector<ProgressEvent>& events)
+  // an end has a start; plus the steps that are still open at the end. Depths relative to the first event.
+  const auto nesting_errors = [&](const std::vector<ProgressEvent>& events)
   {
+    const int base = base_depth(events);
     Size errors = 0;
     int open = 0;
     for (const ProgressEvent& event : events)
     {
       if (event.kind == 's')
       {
-        errors += event.depth != open;
+        errors += event.depth - base != open;
         ++open;
       }
       else if (open == 0)
@@ -5763,7 +5919,7 @@ START_SECTION(([EXTRA] the multi-file search reports one outer progress step per
       else
       {
         --open;
-        errors += event.depth != open;
+        errors += event.depth - base != open;
       }
     }
     return errors + static_cast<Size>(open);
@@ -5785,14 +5941,16 @@ START_SECTION(([EXTRA] the multi-file search reports one outer progress step per
     TEST_EQUAL(nesting_errors(events), 0)
     // the first event starts the first file, the last one ends the second; each has steps of its own inside
     ABORT_IF(events.empty())
-    TEST_TRUE(events.front().kind == 's' && events.front().depth == 0)
-    TEST_TRUE(events.back().kind == 'e' && events.back().depth == 0)
+    const int base = base_depth(events);
+    TEST_TRUE(events.front().kind == 's')
+    TEST_STRING_EQUAL(events.front().label, outer_steps[0])
+    TEST_TRUE(events.back().kind == 'e' && events.back().depth == base)
     Size inner_steps_of_file[2] = {0, 0};
     Size file_index = 0;
     for (const ProgressEvent& event : events)
     {
       if (event.kind != 's') { continue; }
-      if (event.depth == 0) { ++file_index; }
+      if (event.depth == base) { ++file_index; }
       else if (file_index >= 1 && file_index <= 2) { ++inner_steps_of_file[file_index - 1]; }
     }
     TEST_TRUE(inner_steps_of_file[0] > 0)
@@ -5839,7 +5997,7 @@ START_SECTION(([EXTRA] the multi-file search reports one outer progress step per
 
   {
     // ... and so does a file that throws: its step ends while the exception leaves the search, and the next search
-    // starts at depth 0 again.
+    // starts at the depth of the first one again (no step was left open).
     ScopedOpenMPThreads one_thread(1);
     ProSEAlgorithm algo;
     std::vector<ProgressEvent> events;
@@ -5848,10 +6006,12 @@ START_SECTION(([EXTRA] the multi-file search reports one outer progress step per
     TEST_EXCEPTION(Exception::FileNotFound, algo.searchWithModificationAnalysis(StringList{missing_file}, merge_database_file))
     TEST_TRUE(labels(events, 0) == std::vector<std::string>{"Searching ProSE_13_missing.mzML (1 of 1)..."})
     TEST_EQUAL(nesting_errors(events), 0)
+    const int first_search_depth = base_depth(events);
     events.clear();
     algo.searchWithModificationAnalysis(StringList{files[0]}, std::vector<FASTAFile::FASTAEntry>{});
     TEST_TRUE(labels(events, 0) == std::vector<std::string>{"Searching ProSE_13_a.mzML (1 of 1)..."})
     TEST_EQUAL(nesting_errors(events), 0)
+    TEST_EQUAL(base_depth(events), first_search_depth)
   }
 }
 END_SECTION

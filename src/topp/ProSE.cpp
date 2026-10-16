@@ -743,26 +743,35 @@ class ProSE :
       {
         try
         {
-          ProSEAlgorithm::MergedResult merged = sse.mergeFileResults(mfres, in_list);
-
-          if (getFlag_("test") && !merged.protein_ids.empty())
+          ProSEAlgorithm::MergedResult merged;
+          try
           {
-            StringList basenames;
-            for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
-            merged.protein_ids[0].setPrimaryMSRunPath(basenames);
+            merged = sse.mergeFileResults(mfres, in_list);
+          }
+          catch (const Exception::InvalidValue& e)
+          {
+            // The rescored runs report Percolator as search engine and carry its q-values, the others
+            // ProSE's scores: the algorithm did not pool them, and mergeFileResults() rejects them.
+            // (Only the merge is covered here: an InvalidValue of the store below is a write failure.)
+            OPENMS_LOG_ERROR << "Cannot write the merged output -> " << out_merged << ": Percolator rescored only some "
+                             << "of the input files (see the warnings above), and their PSMs cannot be pooled with the "
+                             << "search engine scores of the others. Per-file outputs were written. Use "
+                             << "'-Search:rescore false', or leave out the files that could not be rescored. ("
+                             << e.what() << ")" << endl;
+            merged_idxml_error = INCOMPATIBLE_INPUT_DATA;
           }
 
-          FileHandler().storeIdentifications(out_merged, merged.protein_ids, merged.peptide_ids, {FileTypes::IDXML});
-        }
-        catch (const Exception::InvalidValue&)
-        {
-          // The rescored runs report Percolator as search engine and carry its q-values, the others
-          // ProSE's scores: the algorithm did not pool them, and mergeFileResults() rejects them.
-          OPENMS_LOG_ERROR << "Cannot write the merged output -> " << out_merged << ": Percolator rescored only some "
-                           << "of the input files (see the warnings above), and their PSMs cannot be pooled with the "
-                           << "search engine scores of the others. Per-file outputs were written. Use "
-                           << "'-Search:rescore false', or leave out the files that could not be rescored." << endl;
-          merged_idxml_error = INCOMPATIBLE_INPUT_DATA;
+          if (merged_idxml_error == EXECUTION_OK)
+          {
+            if (getFlag_("test") && !merged.protein_ids.empty())
+            {
+              StringList basenames;
+              for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
+              merged.protein_ids[0].setPrimaryMSRunPath(basenames);
+            }
+
+            FileHandler().storeIdentifications(out_merged, merged.protein_ids, merged.peptide_ids, {FileTypes::IDXML});
+          }
         }
         catch (const Exception::BaseException& e)
         {

@@ -5707,7 +5707,7 @@ namespace OpenMS
   // by the search's pooled aggregate and mergeFileResults().
   // =====================================================================
   // static
-  void ProSEAlgorithm::poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move,
+  void ProSEAlgorithm::poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move_psms,
                                           const StringList& in_spectra_files,
                                           std::vector<ProteinIdentification>& protein_ids,
                                           PeptideIdentificationList& peptide_ids)
@@ -5719,7 +5719,9 @@ namespace OpenMS
       SearchResult& pf = per_file[i];
       if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
       if (!pf.protein_ids.empty()) { pooled_files.push_back(i); } // insertRuns() skips a file without a run
-      if (move) { merger.insertRuns(std::move(pf.protein_ids), std::move(pf.peptide_ids)); }
+      // Moving: the merger takes (and clears) the PSMs and a copy of the runs, which stay with the files -- their search
+      // parameters, meta values (e.g. PeptDeepRescoring's NCE) and run paths are still the caller's.
+      if (move_psms) { merger.insertRuns(std::vector<ProteinIdentification>(pf.protein_ids), std::move(pf.peptide_ids)); }
       else { merger.insertRuns(pf.protein_ids, pf.peptide_ids); }
     }
     ProteinIdentification merged_proteins;
@@ -5748,8 +5750,18 @@ namespace OpenMS
   // pooling, cross-file protein inference and the optional picked-protein FDR.
   // =====================================================================
   ProSEAlgorithm::MergedResult
-  ProSEAlgorithm::mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files) const
+  ProSEAlgorithm::mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files,
+                                   bool remove_decoys) const
   {
+    // The pooled run lists the input files, and 'id_merge_index' indexes them: one per file of the search.
+    if (in_spectra_files.size() != result.per_file.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "mergeFileResults(): " + StringUtils::toStr(in_spectra_files.size()) + " input file(s) given for the result of a "
+        "search of " + StringUtils::toStr(result.per_file.size()) + " file(s); pass the input files of the search, in its "
+        "order.");
+    }
+
     // Percolator ('rescore') rescores each file on its own; a file it could not rescore keeps ProSE's scores. The
     // rescored runs report Percolator as search engine and carry its q-values, the others ProSE's scores: the search
     // did not pool them, and IDMergerAlgorithm rejects them. Checked before anything is moved out of the result.
@@ -5788,9 +5800,9 @@ namespace OpenMS
     }
     else
     {
-      // Moved out of per_file, as documented: the caller keeps the statistics, exit codes, Percolator outcomes and
-      // modification analyses, not the identifications.
-      poolSearchedFiles_(result.per_file, /*move=*/true, in_spectra_files, merged.protein_ids, merged.peptide_ids);
+      // The PSMs are moved out of per_file, as documented; its runs are copied and stay, as do the statistics, exit
+      // codes, Percolator outcomes and modification analyses.
+      poolSearchedFiles_(result.per_file, /*move_psms=*/true, in_spectra_files, merged.protein_ids, merged.peptide_ids);
     }
 
     std::vector<ProteinIdentification>& merged_protein_ids = merged.protein_ids;
@@ -5819,6 +5831,14 @@ namespace OpenMS
       if (merged_has_decoy_proteins)
       {
         FalseDiscoveryRate fdr;
+        if (!remove_decoys)
+        {
+          // By default the picked-protein FDR drops the decoy proteins from the run; keep them, with q-values, so that
+          // the filter below applies to them as to the targets. The q-values of the targets do not change.
+          Param fdr_param = fdr.getParameters();
+          fdr_param.setValue("add_decoy_proteins", "true");
+          fdr.setParameters(fdr_param);
+        }
         fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_string, decoy_is_prefix);
         IDFilter::filterHitsByScore(merged_protein_ids, fdr_protein_);
         merged.protein_fdr_applied = true;
@@ -5837,12 +5857,16 @@ namespace OpenMS
 
     // Decoy removal is a protein-FDR finalization step: strip decoys only when protein FDR was
     // actually applied. Otherwise the merged output is a pooled intermediate (cross-file
-    // inference) that retains target+decoy evidence for downstream FDR.
+    // inference) that retains target+decoy evidence for downstream FDR. With remove_decoys false
+    // the decoys that pass are kept, and only the references to the proteins the filter removed go.
     if (merged.protein_fdr_applied)
     {
-      IDFilter::removeDecoyHits(merged_peptides);
-      IDFilter::removeEmptyIdentifications(merged_peptides);
-      IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
+      if (remove_decoys)
+      {
+        IDFilter::removeDecoyHits(merged_peptides);
+        IDFilter::removeEmptyIdentifications(merged_peptides);
+        IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
+      }
       // Keep indistinguishable-protein and protein groups consistent with the filtered hit set.
       IDFilter::updateProteinGroups(merged_protein_ids[0].getIndistinguishableProteins(), merged_protein_ids[0].getHits());
       IDFilter::updateProteinGroups(merged_protein_ids[0].getProteinGroups(), merged_protein_ids[0].getHits());
