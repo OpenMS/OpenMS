@@ -2033,6 +2033,27 @@ def testConsensusMapNormalizerAlgorithmQuantile():
     assert pyopenms.ConsensusMapNormalizerAlgorithmQuantile().normalizeMaps is not None
 
 @report
+def testConsensusMapNormalizerAlgorithmRTLocal():
+    """
+    @tests: ConsensusMapNormalizerAlgorithmRTLocal
+     ConsensusMapNormalizerAlgorithmRTLocal.__init__
+     ConsensusMapNormalizerAlgorithmRTLocal.Settings
+    """
+    ff = pyopenms.ConsensusMapNormalizerAlgorithmRTLocal()
+    settings = pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.Settings()
+    assert settings.neighbors == 50
+    assert settings.rounds == 5
+    assert settings.min_maps == 3
+    assert settings.min_reference == 20
+    settings.neighbors = 10
+    assert copy.copy(settings).neighbors == 10
+
+    cmap = pyopenms.ConsensusMap()
+    assert pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.computeOffsets(cmap, settings, "", "") == []
+    pyopenms.ConsensusMapNormalizerAlgorithmRTLocal.normalizeMaps(cmap, settings, "", "")
+    assert cmap.size() == 0
+
+@report
 def testConsensusMapNormalizerAlgorithmThreshold():
     """
     @tests: ConsensusMapNormalizerAlgorithmThreshold
