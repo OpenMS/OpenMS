@@ -773,6 +773,10 @@ protected:
         IDFilter::filterHitsByScore(pep_ids, psm_score);
       }
 
+      // The reduction below and the crediting rank identifications by their first hit, which the
+      // input need not store first (protein inference sorts the hits only later).
+      for (auto& pep : pep_ids) { pep.sort(); }
+
       // Identifications of one spectrum that agree on peptidoform and charge are one match counted
       // several times (in the FDR, protein inference and peptide counts). Keep the best-scoring one.
       {

@@ -22,7 +22,8 @@
 		     concatenated rather than combined. Each is listed before, and scores worse than, the
 		     identification of IsobaricWorkflow_1_input.idXML, so crediting a spectrum to its first
 		     identification instead of its best one would show. Each spectrum must be quantified once.
-		     scan=24221: names a different peptide (GIRAFFERK).
+		     scan=24221: names a different peptide (GIRAFFERK). The original identification stores a
+		     worse hit before its best one, so ranking by the first stored hit would show as well.
 		     scan=24217: names the same peptide at a different charge.
 		     scan=24220: a second decoy; like the first, it loses its hit to the FDR filter. -->
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="436.7035" RT="4881.49476" spectrum_reference="controllerType=0 controllerNumber=1 scan=24221" >
@@ -31,6 +32,9 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="436.7035" RT="4881.49476" spectrum_reference="controllerType=0 controllerNumber=1 scan=24221" >
+			<PeptideHit score="0.60" sequence="MYFINGERK" charge="2" aa_before="K" aa_after="[" start="17" end="25" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
 			<PeptideHit score="0.01" sequence="ELEFANTK" charge="2" aa_before="[" aa_after="I" start="0" end="7" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>

@@ -1300,8 +1300,9 @@ set_tests_properties("TOPP_IsobaricWorkflow_duplicate_psm_out1" PROPERTIES DEPEN
 # another peptide (scan=24221), the same peptide at charge 3 (scan=24217), and a second decoy that
 # loses its hit like the first (scan=24220). Each spectrum yields one feature. scan=24221 is credited
 # to ELEFANTK and its GIRAFFERK identification moves to the unassigned IDs; scan=24217 keeps both
-# identifications. The second identifications come first in the file and score worse, and the
-# q-values tie, so crediting by position or by q-value would pick GIRAFFERK.
+# identifications. The second identifications come first in the file and score worse, the ELEFANTK
+# identification stores a worse hit before its best one, and the q-values tie, so crediting by
+# position, by the first stored hit or by q-value would pick GIRAFFERK.
 add_test("TOPP_IsobaricWorkflow_multi_id" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
   -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
   -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_multi_id_input.idXML
