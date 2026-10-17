@@ -573,8 +573,8 @@ namespace OpenMS
   bool ProteinIdentification::peptideIDsMergeable(const ProteinIdentification& id_run, const std::string& experiment_type) const
   {
     const std::string& warn = " You probably do not want to merge the results with this tool."
-                         " For merging searches with different engines/settings please use ConsensusID or PercolatorAdapter"
-                         " to create a comparable score.";
+                         " Scores of different search engines are not comparable; searches of one engine with different"
+                         " settings can be rescored together with PercolatorAdapter to create a comparable score.";
     const std::string& engine = this->getSearchEngine();
     const std::string& version = this->getSearchEngineVersion();
 
