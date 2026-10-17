@@ -4,6 +4,26 @@ inputs:
   compiler:
     description: "The name of the compiler to use"
     required: true
+  preset:
+    description: >-
+      The CMake preset to configure, build and test with. By default the CI
+      preset of the runner (linux-x64-ci, macos-arm64-ci, windows-x64-ci, ...).
+      A build with another preset gets its own compiler and vcpkg caches, so it
+      neither evicts the default build's objects nor races it for the cache.
+    required: false
+    default: ""
+  run_tests:
+    description: "Whether to run the test suite after the build (ctest --preset)"
+    required: false
+    default: "true"
+  configure_only:
+    description: >-
+      Stop after configuring: the dependencies are installed and vcpkg builds
+      whatever its binary cache lacks, but OpenMS itself is not built and no
+      compiler cache is saved. A job that only warms the vcpkg cache of a preset
+      whose dependencies take hours to build from source.
+    required: false
+    default: "false"
   macosx_deployment_target:
     description: >-
       The oldest macOS the binaries run on (-mmacosx-version-min). Keep it at the
@@ -40,6 +60,25 @@ runs:
       if: ${{ runner.os == 'Windows' }}
       uses: egor-tensin/vs-shell@v2
       with: { arch: x64 }
+
+    ############################################################################
+    # A build with a preset of its own gets caches of its own (see the preset
+    # input): the suffix goes into the compiler cache keys below and, through the
+    # job environment, into the vcpkg cache key of the dependencies action. The
+    # environment rather than an input because the vcpkg cache is uploaded by the
+    # post step of the cache action, and in a post step an input of a composite
+    # action evaluates to its default: the first Debug SDK job uploaded its
+    # dependencies into the default build's cache. A job that sets the variable
+    # itself (release.yml does for the Debug SDK jobs) keeps its value.
+    - name: Compute the Cache Key Suffix
+      id: cache-suffix
+      env:
+        preset: ${{ inputs.preset }}
+      shell: bash
+      run: |
+        suffix=${OPENMS_CACHE_KEY_SUFFIX:-${preset:+-$preset}}
+        echo "suffix=$suffix" >> "$GITHUB_OUTPUT"
+        echo "OPENMS_CACHE_KEY_SUFFIX=$suffix" >> "$GITHUB_ENV"
 
     ############################################################################
     - name: Install Dependencies
@@ -142,7 +181,7 @@ runs:
       uses: actions/cache/restore@v5
       with:
         path: .ccache
-        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+        key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}${{ steps.cache-suffix.outputs.suffix }}-ccache-${{ steps.pr.outputs.name }}-${{ github.run_id }}-${{ github.run_attempt }}
 
         # Restoring: from the current branch/PR, otherwise from develop, otherwise the newest
         # other cache that is still in scope -- not "any branch", see below.
@@ -155,9 +194,9 @@ runs:
         # cache is the only one every pull request can read, and the daily workflow_dispatch on
         # develop keeps it fresh now that saving works at all.
         restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-${{ steps.pr.outputs.name }}-
-          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-develop-
-          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}-ccache-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}${{ steps.cache-suffix.outputs.suffix }}-ccache-${{ steps.pr.outputs.name }}-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}${{ steps.cache-suffix.outputs.suffix }}-ccache-develop-
+          ${{ runner.os }}-${{ runner.arch }}-${{ inputs.compiler }}-${{ steps.compiler.outputs.major }}${{ steps.cache-suffix.outputs.suffix }}-ccache-
 
     ############################################################################
     - name: Configure Build Caching
@@ -203,7 +242,13 @@ runs:
     - name: Resolve CMake presets
       id: preset
       shell: bash
+      env:
+        preset: ${{ inputs.preset }}
       run: |
+        if [[ -n "$preset" ]]; then
+          echo "name=$preset" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
         case "$RUNNER_OS-$RUNNER_ARCH" in
           Linux-X64) preset=linux-x64-ci ;;
           Linux-ARM64) preset=linux-arm64-ci ;;
@@ -237,10 +282,12 @@ runs:
           -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install" \
 
-        cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
+        if [[ "${{ inputs.configure_only }}" != "true" ]]; then
+          cmake --build --preset "${{ steps.preset.outputs.name }}" --verbose
+        fi
 
     - name: Verify public headers
-      if: ${{ runner.os == 'Linux' && runner.arch == 'X64' }}
+      if: ${{ runner.os == 'Linux' && runner.arch == 'X64' && inputs.configure_only != 'true' }}
       shell: bash
       run: cmake --build --preset "${{ steps.preset.outputs.name }}" --target all_verify_interface_header_sets --parallel 2
 
@@ -261,6 +308,7 @@ runs:
 
     ############################################################################
     - name: Test
+      if: ${{ inputs.run_tests == 'true' }}
       shell: bash
       run: ctest --preset "${{ steps.preset.outputs.name }}"
 
@@ -283,8 +331,11 @@ runs:
     #
     # Test failures still save: the build was complete by then, so the cache is
     # too, and a red test says nothing about the objects.
+    # Not after a configure-only run: the cache would be empty, and under the
+    # primary key of this run it would shadow the one a full build of the same
+    # run saves afterwards, which could then not be saved under that key again.
     - name: Save Build Cache
-      if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.build.outcome == 'success' && inputs.configure_only != 'true' }}
       uses: actions/cache/save@v5
       with:
         path: .ccache
