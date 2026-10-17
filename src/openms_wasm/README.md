@@ -307,12 +307,14 @@ type ResultTables = {
   `ProSEAlgorithm::pinEnzymeName()` of the search's), the search engine's extra features and PeptDeep's.
 - `peptides.proforma` is ProForma with Unimod names (`AVM[Oxidation]DDFAAFVEK`). It never has the
   unlocalized mass shift of an open search: that is a value of each PSM. Compose it from
-  `psms.deltaMass`, which is NaN in a closed search, and in an open search about ±0.001 for the
-  unmodified PSMs, so test for a minimum shift:
+  `psms.deltaMass`, which is NaN in a closed search. In an open search the shift of an unmodified
+  PSM is its precursor mass error (typically a few mDa); ProSE counts |deltaMass| <= 0.05 Da as
+  unmodified (`unmodifiedPSMs` of `summary().modificationAnalysis.deltaMasses`), so test for a shift
+  above that:
 
   ```js
   const d = psms.deltaMass[i];
-  const text = Number.isFinite(d) && Math.abs(d) >= 0.01
+  const text = Number.isFinite(d) && Math.abs(d) > 0.05
     ? `[${d < 0 ? "-" : "+"}${Math.abs(d).toFixed(4)}]?${proforma}` : proforma;   // e.g. [-57.0215]?PEPTIDEK
   ```
 - `proteins.sequence` is the sequence as searched: from the FASTA, for a decoy of the FASTA too. A decoy
@@ -405,8 +407,8 @@ OpenMS.predictMS2("AVM(Oxidation)DDFAAFVEK", 2, 30, "QE");   // 13 ions by ascen
   below). The ONNX session is cached per model path and never evicted (tens of MB per path; a path
   that later names another file keeps answering from the first one). A failed load is not cached.
 - The first call takes about 0.5 s here (it starts ONNX Runtime's global thread pool and loads the
-  model), the next few some tens of ms, later calls about 3 ms: call it a few times early to hide
-  the start.
+  model), the next few tens of ms (up to about 0.1 s for a new peptide length), later calls about
+  3 ms: call it a few times early to hide the start.
 
 ### Machine learning: ONNX Runtime and PeptDeep
 
