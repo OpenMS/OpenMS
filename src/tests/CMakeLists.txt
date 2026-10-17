@@ -35,6 +35,9 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
     add_test(NAME GitArchivalInfo
       COMMAND ${CMAKE_COMMAND} "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/git_archival"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/git_archival/run.cmake")
+    add_test(NAME ArrowS3Configuration
+      COMMAND ${CMAKE_COMMAND} "-DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/arrow_s3"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/arrow_s3/run.cmake")
   endif()
   # TOPP Test project ..
   if(ENABLE_TOPP_TESTING)

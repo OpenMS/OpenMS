@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
@@ -47,8 +48,16 @@ namespace OpenMS
   {
     feature_map.clear(true);
     //set DocumentIdentifier
-    feature_map.setLoadedFileType(filename);
-    feature_map.setLoadedFilePath(filename);
+    if (FileNameUtils::isRemoteResource(filename))
+    {
+      feature_map.setLoadedFileType(FileTypes::FEATUREXML);
+      feature_map.setLoadedNetFilePath(filename);
+    }
+    else
+    {
+      feature_map.setLoadedFileType(filename);
+      feature_map.setLoadedFilePath(filename);
+    }
 
     Internal::FeatureXMLHandler handler(feature_map, filename);
     handler.setOptions(options_);

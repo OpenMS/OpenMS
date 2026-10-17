@@ -15,6 +15,26 @@ using namespace OpenMS;
 
 START_TEST(FileNameUtils, "$Id$")
 
+START_SECTION((static std::string redactRemoteResource(const std::string& filename)))
+  TEST_EQUAL(FileNameUtils::redactRemoteResource(std::string("s3://") + "user:password@" + "bucket/key?signature=value#fragment"), "s3://bucket/key")
+  TEST_EQUAL(FileNameUtils::redactRemoteResource(std::string("https://") + "user:password@" + "host/file?token=value"), "https://host/file")
+  TEST_EQUAL(FileNameUtils::redactRemoteResource(std::string("ftp://") + "user@" + "host"), "ftp://host")
+  TEST_EQUAL(FileNameUtils::redactRemoteResource("https://host/file@version?token=value"), "https://host/file@version")
+  TEST_EQUAL(FileNameUtils::redactRemoteResource("s3://bucket/key"), "s3://bucket/key")
+  TEST_EQUAL(FileNameUtils::redactRemoteResource("local?filename"), "local?filename")
+END_SECTION
+
+START_SECTION((static bool isRemoteResource(const std::string& filename)))
+  TEST_TRUE(FileNameUtils::isRemoteResource("http://example.org/file"))
+  TEST_TRUE(FileNameUtils::isRemoteResource("https://example.org/file?query=1"))
+  TEST_TRUE(FileNameUtils::isRemoteResource("ftp://example.org/file"))
+  TEST_TRUE(FileNameUtils::isRemoteResource("s3://bucket/object?anonymous=true"))
+  TEST_FALSE(FileNameUtils::isRemoteResource(""))
+  TEST_FALSE(FileNameUtils::isRemoteResource("local.mzML"))
+  TEST_FALSE(FileNameUtils::isRemoteResource("/data/http://example.mzML"))
+  TEST_FALSE(FileNameUtils::isRemoteResource("file:///data/example.mzML"))
+END_SECTION
+
 START_SECTION((filename rules and legacy entry points))
   struct Case
   {

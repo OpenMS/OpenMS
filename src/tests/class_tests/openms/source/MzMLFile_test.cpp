@@ -13,6 +13,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <cstdlib>
 ///////////////////////////
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
@@ -975,6 +976,50 @@ START_SECTION([EXTRA] load xsd:integer types)
 }
 END_SECTION
 
+
+// Experimental, opt-in manual examples (no network access in the normal test suite):
+// OPENMS_TEST_REMOTE_XML_URI=https://host/example.mzML ./MzMLFile_test
+// OPENMS_TEST_REMOTE_XML_URI=ftp://host/example.mzML ./MzMLFile_test
+// OPENMS_TEST_REMOTE_XML_URI='s3://bucket/example.mzML.gz?anonymous=true' ./MzMLFile_test
+// HTTPS/FTP depend on the Xerces network accessor; S3 requires WITH_S3.
+START_SECTION(([EXTRA] opt-in experimental remote XML loading))
+{
+  const char* uri = std::getenv("OPENMS_TEST_REMOTE_XML_URI");
+  if (uri && *uri)
+  {
+    MzMLFile file;
+    PeakMap map;
+    file.load(uri, map);
+    TEST_EQUAL(map.getLoadedFilePath(), uri)
+    TEST_EQUAL(map.getLoadedFileType(), FileTypes::MZML)
+  }
+  else
+  {
+    NOT_TESTABLE
+  }
+}
+END_SECTION
+
+#ifndef WITH_S3
+START_SECTION(([EXTRA] disabled S3 reports a configuration error without local probing))
+{
+  MzMLFile file;
+  PeakMap map;
+  const std::string uri = "s3://unused-bucket/example.mzML";
+  try
+  {
+    file.load(uri, map);
+    TEST_TRUE(false)
+  }
+  catch (const Exception::ParseError& error)
+  {
+    TEST_TRUE(std::string(error.getMessage()).find("WITH_S3") != std::string::npos)
+  }
+  TEST_EQUAL(map.getLoadedFilePath(), uri)
+  TEST_EQUAL(map.getLoadedFileType(), FileTypes::MZML)
+}
+END_SECTION
+#endif
 
 START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {

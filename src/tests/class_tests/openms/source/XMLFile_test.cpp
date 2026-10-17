@@ -14,6 +14,13 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
 
@@ -83,6 +90,54 @@ START_SECTION(static DataValue fromXSDString(const std::string& type, const std:
                  XMLHandler::fromXSDString("xsd:negativeInteger", "-9223372036854775809")) // -1 smaller than 2^63; 'xsd:negativeInteger' can be any negative number... hard to support :)
 }
 END_SECTION
+
+START_SECTION(([EXTRA] remote XML error diagnostics do not reopen URIs as local files))
+{
+  for (const std::string uri : {"http://unused.invalid/test.mzML", "https://unused.invalid/test.mzML",
+                                "ftp://unused.invalid/test.mzML", "s3://unused/test.mzML"})
+  {
+    XMLHandler handler(uri, "1.0");
+    TEST_EXCEPTION(Exception::ParseError, handler.fatalError(XMLHandler::LOAD, "offline parser error"))
+  }
+  XMLHandler handler(std::string("s3://") + "user:password@" + "bucket/key?signature=private-value", "1.0");
+  try
+  {
+    handler.fatalError(XMLHandler::LOAD, "offline parser error");
+    TEST_TRUE(false)
+  }
+  catch (const Exception::ParseError& error)
+  {
+    const std::string message = error.getMessage();
+    TEST_TRUE(message.find("offline parser error") != std::string::npos)
+    TEST_TRUE(message.find("password") == std::string::npos)
+    TEST_TRUE(message.find("signature") == std::string::npos)
+    TEST_TRUE(message.find("private-value") == std::string::npos)
+  }
+}
+END_SECTION
+
+#ifndef WITH_S3
+START_SECTION(([EXTRA] XML readers preserve remote metadata before reporting disabled S3))
+{
+  const std::string uri = "s3://unused-bucket/object?anonymous=true";
+  FeatureMap features;
+  TEST_EXCEPTION(Exception::ParseError, FeatureXMLFile().load(uri, features))
+  TEST_EQUAL(features.getLoadedFilePath(), uri)
+  TEST_EQUAL(features.getLoadedFileType(), FileTypes::FEATUREXML)
+  ConsensusMap consensus;
+  TEST_EXCEPTION(Exception::ParseError, ConsensusXMLFile().load(uri, consensus))
+  TEST_EQUAL(consensus.getLoadedFilePath(), uri)
+  TEST_EQUAL(consensus.getLoadedFileType(), FileTypes::CONSENSUSXML)
+  MSExperiment experiment;
+  TEST_EXCEPTION(Exception::ParseError, MzXMLFile().load(uri, experiment))
+  TEST_EQUAL(experiment.getLoadedFilePath(), uri)
+  TEST_EQUAL(experiment.getLoadedFileType(), FileTypes::MZXML)
+  TEST_EXCEPTION(Exception::ParseError, MzDataFile().load(uri, experiment))
+  TEST_EQUAL(experiment.getLoadedFilePath(), uri)
+  TEST_EQUAL(experiment.getLoadedFileType(), FileTypes::MZDATA)
+}
+END_SECTION
+#endif
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

@@ -28,6 +28,36 @@ namespace OpenMS
   class OPENMS_DLLAPI FileNameUtils
   {
   public:
+    /** @brief Whether a resource uses an experimental remote XML transport.
+        @param[in] filename Resource URI or local path.
+        @return True for HTTP, HTTPS, FTP and S3 URIs, independently of build options.
+    */
+    static bool isRemoteResource(const std::string& filename)
+    {
+      return filename.compare(0, 7, "http://") == 0
+          || filename.compare(0, 8, "https://") == 0
+          || filename.compare(0, 6, "ftp://") == 0
+          || filename.compare(0, 5, "s3://") == 0;
+    }
+
+    /** @brief Remove remote URI credentials, query and fragment from diagnostics.
+        @param[in] filename Resource URI or local path.
+        @return Redacted URI, or an unchanged local path.
+    */
+    static std::string redactRemoteResource(const std::string& filename)
+    {
+      if (!isRemoteResource(filename)) return filename;
+      std::string safe = filename.substr(0, filename.find_first_of("?#"));
+      const auto authority = safe.find("://") + 3;
+      const auto slash = safe.find('/', authority);
+      const auto at = safe.rfind('@', slash == std::string::npos ? safe.size() : slash);
+      if (at != std::string::npos && at >= authority)
+      {
+        safe.erase(authority, at - authority + 1);
+      }
+      return safe;
+    }
+
     /** @brief Determine a file type from its name, including compression suffixes.
         @param[in] filename Filename to inspect.
         @return Recognized type, or FileTypes::UNKNOWN.

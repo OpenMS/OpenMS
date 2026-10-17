@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 
 #include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -89,8 +90,16 @@ namespace OpenMS
     consensus_map.clear(true); // clear map
 
     //set DocumentIdentifier
-    consensus_map.setLoadedFileType(filename);
-    consensus_map.setLoadedFilePath(filename);
+    if (FileNameUtils::isRemoteResource(filename))
+    {
+      consensus_map.setLoadedFileType(FileTypes::CONSENSUSXML);
+      consensus_map.setLoadedNetFilePath(filename);
+    }
+    else
+    {
+      consensus_map.setLoadedFileType(filename);
+      consensus_map.setLoadedFilePath(filename);
+    }
 
     Internal::ConsensusXMLHandler handler(consensus_map, filename);
     handler.setOptions(options_);

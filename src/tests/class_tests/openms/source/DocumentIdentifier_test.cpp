@@ -104,11 +104,36 @@ START_SECTION((const FileTypes::Type& getLoadedFileType() const))
 }
 END_SECTION
 
+START_SECTION((void setLoadedFileType(FileTypes::Type type)))
+{
+  DocumentIdentifier identifier;
+  identifier.setLoadedFileType(FileTypes::MZML);
+  TEST_EQUAL(identifier.getLoadedFileType(), FileTypes::MZML)
+}
+END_SECTION
+
+START_SECTION((void setLoadedNetFilePath(const std::string& uri)))
+{
+  DocumentIdentifier identifier;
+  const std::string uri = "s3://bucket/object.mzML?anonymous=true&region=eu-west-1";
+  identifier.setLoadedNetFilePath(uri);
+  TEST_EQUAL(identifier.getLoadedFilePath(), uri)
+  DocumentIdentifier copy(identifier);
+  TEST_EQUAL(copy.getLoadedFilePath(), uri)
+}
+END_SECTION
+
 START_SECTION((void setLoadedFilePath(const std::string &file_name)))
 {
   DocumentIdentifier di1;
 	di1.setLoadedFilePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
 	TEST_EQUAL(di1.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"))
+  for (const std::string uri : {"http://example.org/file.mzML", "https://example.org/file.mzML?q=1",
+                                "ftp://example.org/file.mzML", "s3://bucket/key?anonymous=true"})
+  {
+    di1.setLoadedFilePath(uri);
+    TEST_EQUAL(di1.getLoadedFilePath(), uri)
+  }
 }
 END_SECTION
 
@@ -141,6 +166,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
 

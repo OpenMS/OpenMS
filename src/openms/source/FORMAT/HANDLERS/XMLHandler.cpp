@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -43,16 +44,18 @@ namespace OpenMS::Internal
       std::string error_message;
       if (mode == LOAD)
       {
-        error_message =std::string("While loading '") + file_ + "': " + msg;
-	      // test if file has the wrong extension and is therefore passed to the wrong parser
-        // only makes sense if we are loading/parsing a file
-	      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
-        FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
-        if (ft_name != ft_content)
+        error_message = std::string("While loading '") + FileNameUtils::redactRemoteResource(file_) + "': " + msg;
+        // Content-based diagnostics apply only to local files, never to remote URIs.
+        if (!FileNameUtils::isRemoteResource(file_))
         {
-          error_message +=std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
-                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
-                          + "Rename the file to fix this.";
+          FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+          FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+          if (ft_name != ft_content)
+          {
+            error_message += std::string("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+                             + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
+                             + "Rename the file to fix this.";
+          }
         }
       }
       else if (mode == STORE)
