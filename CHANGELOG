@@ -827,6 +827,16 @@ Build System:
     Percolator rescoring) and of
     spectrum annotation (annotateSpectrum, PeptideHit.getPeakAnnotations), and a web
     application around ProSE (src/openms_wasm/examples/prose).
+  - WebAssembly: bindings for the ProSE app, a web application for experiments of several runs:
+    ProSEAlgorithm.searchFiles() searches several files and pools the results as the ProSE tool's
+    -out_merged does; its ProSEResultSet hands them over with summary(), tables() (PSMs, peptides
+    and proteins as typed columns: Percolator's input features, ProForma with Unimod names, the
+    positions of the peptides in their proteins), spectra() (the raw MS2 peaks of the identified
+    spectra) and storeIdXML(). annotatePeaks() annotates peak arrays with fragment ions, including
+    neutral losses, and predictMS2() predicts PeptDeep fragment intensities (builds with ONNX
+    Runtime). The progress reports carry the position of the searched file. The library gets the
+    public ProSEAlgorithm::pinEnzymeName(), the enzyme name for the enzyme features of Percolator's
+    .pin input that ProSE's rescoring passes (unchanged behaviour).
   - WebAssembly: the module's file system is WasmFS (inside the module, read by every thread
     directly); Node.js mounts host directories with mountHostDirectory(). The demo applications
     register a service worker that caches the module (Chrome then keeps its compiled code) and
