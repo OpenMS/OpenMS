@@ -115,8 +115,9 @@ The module replaces Emscripten's open and close of host files (`wasmfs_node.js`;
 [emscripten#27825](https://github.com/emscripten-core/emscripten/issues/27825) is fixed upstream):
 Emscripten 6.0.12 took the error of a failed open, e.g. of a file deleted on the host after the
 module had looked it up, for a file descriptor of the Node.js process, then read and closed it.
-Errors are now reported as such; a write to a read-only host file (`FS.writeFile()`) traps instead
-of going to the process' stderr.
+Errors are now reported as such. `FS.writeFile()` traps where its open of a host file fails (a
+read-only file; it used to write to the process' stderr) and where its close fails (it used to go
+on).
 
 Gzip- and bzip2-compressed mzML files are read as usual.
 
@@ -220,7 +221,7 @@ picked-protein FDR. It returns a `ProSEResultSet`, which hands the results over 
 searchFiles(files: string[], database: string, options?: ProSEFilesOptions): ProSEResultSet;
 type ProSEFilesOptions = { rescore?: boolean; keepSpectra?: boolean; removeDecoys?: boolean } | null | undefined;
 interface ProSEResultSet {
-  summary(): ProSEMultiSummary;       // statistics, per file and pooled
+  summary(): ProSEMultiSummary;       // per file: counts and Percolator's outcome; pooled: FDR levels, flags, modification analysis
   tables(): ResultTables;             // PSMs, peptides and proteins as columns
   spectra(): StoredSpectra;           // the peaks of the identified spectra
   storeIdXML(path: string): void;     // the pooled results as idXML
@@ -245,8 +246,9 @@ type ProSEFileSummary = {
   pooled results, as `-out_merged` does. By default the decoys that pass are kept, to show them.
 - The PSMs name their file by its path, so repeated paths are rejected. Files of the same name go
   to different directories (`/input/0/run.mzML`, `/input/1/run.mzML`).
-- If no file has a PSM, the result is empty (no error): all counts 0, no protein FDR, empty tables,
-  an empty idXML.
+- If no file has a PSM, the result is empty (no error): no PSMs, peptides or proteins (`targetPSMs` and
+  `decoyPSMs` are 0 and the tables have count 0; `ms2Spectra` still counts the file's spectra), no
+  protein FDR, an empty idXML.
 - Percolator needs decoys and 100 PSMs per file. If it rescored only some of the files, their
   scores cannot be pooled with the others', and `searchFiles()` throws (`InvalidParameter`, naming the
   files that were not rescored): search with `{ rescore: false }`, or leave those files out.
@@ -305,8 +307,14 @@ type ResultTables = {
   `ProSEAlgorithm::pinEnzymeName()` of the search's), the search engine's extra features and PeptDeep's.
 - `peptides.proforma` is ProForma with Unimod names (`AVM[Oxidation]DDFAAFVEK`). It never has the
   unlocalized mass shift of an open search: that is a value of each PSM. Compose it from
-  `psms.deltaMass`, with the sign of the value:
-  `` `[${d < 0 ? "-" : "+"}${Math.abs(d)}]?${proforma}` ``, e.g. `[-57.0215]?PEPTIDEK`.
+  `psms.deltaMass`, which is NaN in a closed search, and in an open search about ±0.001 for the
+  unmodified PSMs, so test for a minimum shift:
+
+  ```js
+  const d = psms.deltaMass[i];
+  const text = Number.isFinite(d) && Math.abs(d) >= 0.01
+    ? `[${d < 0 ? "-" : "+"}${Math.abs(d).toFixed(4)}]?${proforma}` : proforma;   // e.g. [-57.0215]?PEPTIDEK
+  ```
 - `proteins.sequence` is the sequence as searched: from the FASTA, for a decoy of the FASTA too. A decoy
   that ProSE generated has the sequence it generated (regenerated with ProSE's rule), so that
   `peptides.start`/`end` (0-based, end exclusive) slice the peptide from it. `''` where unknown.
@@ -326,16 +334,18 @@ type StoredSpectra = {
 
 The peaks are the raw MS2 peaks of the file (not preprocessed), as Float32 arrays sorted by m/z.
 A row keeps its spectrum if `qValue <= psmFdr` (decoys included), if `FDR:PSM` is 0 (no filter:
-every row), or if `qValue` is NaN. A PSM has -1 where the file has no MS2 spectrum with its native
-ID, where `keepSpectra` is false, or where the file could not be read again. Where a file has
+every row), or if `qValue` is NaN. A PSM has -1 where `keepSpectra` is false, where its `qValue`
+is above `psmFdr`, where the file has no MS2 spectrum with its native ID, or where the file could
+not be read again. Where a file has
 several spectra with the same native ID, the PSM gets the one at its retention time (within a
 microsecond), and -1 if not exactly one is. PSMs of one spectrum share its index.
 
 **`annotatePeaks(mz, intensity, peptide, charge, options)`** matches the fragment ions of a peptide
 to peaks given as arrays, e.g. `subarray()`s of the stored ones (`annotateSpectrum()` takes an
-`MSSpectrum`; the options and the matching are the same). The options default to a tolerance of
-0.02 `Da`, `maxCharge` of the precursor charge - 1 (at least 1), `ions` `['b', 'y']`, no `losses` and
-no `precursor` peaks:
+`MSSpectrum`; the options and the matching are the same). `options` is required by the declaration
+(the module, built without assertions, does not check the number of arguments): pass `null` for the
+defaults, a tolerance of 0.02 `Da`, `maxCharge` of the precursor charge - 1 (at least 1), `ions`
+`['b', 'y']`, no `losses` and no `precursor` peaks:
 
 ```ts
 annotatePeaks(mz: ArrayLike<number>, intensity: ArrayLike<number>, peptide: string, charge: number, options: AnnotationOptions): PeakAnnotationResult;
@@ -364,8 +374,8 @@ type PeakMatch = {
   unspecified.
 - Ions are named `b3`, `y5++` (one `+` per charge, none for charge 1), `y7-H2O++` with a neutral loss,
   `[M+2H]++` and `[M+H-NH3]` for precursor peaks. The losses are written as formulas: `H2O`, `NH3`,
-  `H3PO4` (phosphorylation), others as the theoretical spectrum generator gives them (e.g. `CH4OS`
-  of oxidized methionine). Precursor peaks are generated for the charge `maxCharge` only.
+  `H3PO4` (phosphorylation) and `HPO3`; any other as the empirical formula without counts of 1
+  (`CH4OS` of oxidized methionine). Precursor peaks are generated for the charge `maxCharge` only.
 
 **`predictMS2(peptide, charge, nce, instrument, modelPath?)`** predicts the fragment intensities of a
 peptide with the PeptDeep MS2 model, for a spectrum viewer's mirror plot (ONNX builds only; a module
@@ -383,7 +393,7 @@ type PredictedIon = {
 ```
 
 ```js
-OpenMS.predictMS2("AVM(Oxidation)DDFAAFVEK", 2, 30, "QE");   // [{ ion: "b2", type: "b", ordinal: 2, charge: 1, mz: 171.1128, intensity: 0.889 }, ...]
+OpenMS.predictMS2("AVM(Oxidation)DDFAAFVEK", 2, 30, "QE");   // 13 ions by ascending m/z: [{ ion: "y1", type: "y", ordinal: 1, charge: 1, mz: 147.1128, intensity: 0.628 }, { ion: "b2", ... }, ...]
 ```
 
 - `nce` is the normalized collision energy as `peptdeep:nce` takes it (e.g. 30; the file summary's
@@ -394,8 +404,9 @@ OpenMS.predictMS2("AVM(Oxidation)DDFAAFVEK", 2, 30, "QE");   // [{ ion: "b2", ty
 - `modelPath` defaults to `/models/peptdeep_ms2_dynamic.onnx` (write the model there, as described
   below). The ONNX session is cached per model path and never evicted (tens of MB per path; a path
   that later names another file keeps answering from the first one). A failed load is not cached.
-- The first call takes about 0.6 s here (it starts ONNX Runtime's global thread pool and loads the model),
-  later calls about 3 ms: call it once early to hide the start.
+- The first call takes about 0.5 s here (it starts ONNX Runtime's global thread pool and loads the
+  model), the next few some tens of ms, later calls about 3 ms: call it a few times early to hide
+  the start.
 
 ### Machine learning: ONNX Runtime and PeptDeep
 

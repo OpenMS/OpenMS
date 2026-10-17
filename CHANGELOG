@@ -838,7 +838,8 @@ Build System:
     public ProSEAlgorithm::pinEnzymeName(), the enzyme name for the enzyme features of Percolator's
     .pin input that ProSE's rescoring passes (unchanged behaviour).
   - WebAssembly: the module's file system is WasmFS (inside the module, read by every thread
-    directly); Node.js mounts host directories with mountHostDirectory(). The demo applications
+    directly); Node.js mounts host directories with mountHostDirectory() (working around
+    emscripten#27825). The demo applications
     register a service worker that caches the module (Chrome then keeps its compiled code) and
     isolates the page for threads on servers without the COOP/COEP headers.
   - WebAssembly: ONNX Runtime in the threaded module (CMake preset wasm32-emscripten-mt-onnx-release,
