@@ -5023,6 +5023,8 @@ namespace OpenMS
       // Chunk-major multi-file path (MSFragger-style): build each chunk's
       // FragmentIndex ONCE and score ALL files against it before moving
       // to the next chunk. This gives C FI builds instead of N×C.
+      // No file is searched on its own here, so there is no "Searching <file>" progress step per file as in the
+      // non-chunked path below; the steps of the phases and chunks are reported as before.
       // ================================================================
       // full_db already built above.
       const bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
@@ -5438,39 +5440,54 @@ namespace OpenMS
       const bool restrict_index = in_spectra_files.size() == 1 && restrictIndexToSpectra_();
       PeakMap first_spectra;
       bool first_spectra_taken = false;
-      if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
-          && !(ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra_files[0])))
+      // Called for the first file, inside its progress step (the build overlaps with reading it), if its spectra are
+      // not read yet.
+      const auto build_index_while_first_file_is_read = [&]()
       {
-        std::function<const PeakMap*(Size)> searched_spectra;
-        if (restrict_index)
+        if (next_spectra.valid() && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready
+            && !(ions_by_activation_ && mzMLHeadNamesElectronActivation(in_spectra_files[0])))
         {
-          const UInt64 spectra_bytes = File::fileSize(in_spectra_files[0]); // UInt64(-1) if unknown: no waiting
-          searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
+          std::function<const PeakMap*(Size)> searched_spectra;
+          if (restrict_index)
           {
-            if (!first_spectra_taken)
+            const UInt64 spectra_bytes = File::fileSize(in_spectra_files[0]); // UInt64(-1) if unknown: no waiting
+            searched_spectra = [&, spectra_bytes](Size peptides) -> const PeakMap*
             {
-              const bool wait = threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
-                                && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started;
-              if (!wait && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+              if (!first_spectra_taken)
               {
-                return nullptr;
+                const bool wait = threads_started <= MAX_THREADS_WAITING_FOR_SPECTRA
+                                  && spectra_bytes <= MAX_SPECTRA_BYTES_PER_PEPTIDE * peptides / threads_started;
+                if (!wait && next_spectra.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                {
+                  return nullptr;
+                }
+                first_spectra = next_spectra.get();
+                first_spectra_taken = true;
               }
-              first_spectra = next_spectra.get();
-              first_spectra_taken = true;
-            }
-            return &first_spectra;
-          };
+              return &first_spectra;
+            };
+          }
+          prepare_context(false, searched_spectra);
         }
-        prepare_context(false, searched_spectra);
-      }
+      };
 
       for (Size i = 0; i < in_spectra_files.size(); ++i)
       {
         const std::string& in_spectra = in_spectra_files[i];
         const std::string per_file_base = (i < output_base_names.size()) ? output_base_names[i] : std::string("");
 
+        // One progress step per input file, identified by its label, so that a progress display can tell which file
+        // is searched. It ends with this iteration, whichever way it is left: the end, the continue of a failed
+        // search, an exception. The steps of the search of the file nest below it (depth 1) only with one thread:
+        // the background mzML reader shares the static step depth of the ProgressLogger.
+        startProgress(0, 1, "Searching " + File::basename(in_spectra) + " (" + StringUtils::toStr(i + 1) + " of "
+                                + StringUtils::toStr(in_spectra_files.size()) + ")...");
+        const OnScopeExit end_file_progress([this]() { endProgress(); });
+
         OPENMS_LOG_INFO << "[ProSE] [" << (i + 1) << "/" << in_spectra_files.size()
                         << "] Searching " << in_spectra << std::endl;
+
+        if (i == 0) { build_index_while_first_file_is_read(); }
 
         PeakMap spectra = first_spectra_taken ? std::move(first_spectra)
                           : next_spectra.valid() ? next_spectra.get() : loadMS2Spectra(in_spectra, readerThreads(false));
@@ -5595,18 +5612,10 @@ namespace OpenMS
       // remaps all PeptideIdentification identifiers to the merged run. No
       // PeptideIndexing re-run needed: per-file searches already linked
       // peptides to proteins.
-      // The COPY overload is mandatory here: per_file is returned to the caller and must
+      // Copying is mandatory here: per_file is returned to the caller and must
       // stay intact, so nothing may be moved out of it.
-      IDMergerAlgorithm merger;
-      for (const auto& pf : mfres.per_file)
-      {
-        if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
-        merger.insertRuns(pf.protein_ids, pf.peptide_ids);
-      }
-      ProteinIdentification merged_proteins;
-      merger.returnResultsAndClear(merged_proteins, mfres.aggregate.peptide_ids);
-      mfres.aggregate.protein_ids = {std::move(merged_proteins)};
-      mfres.aggregate.protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
+      poolSearchedFiles_(mfres.per_file, /*move=*/false, in_spectra_files,
+                         mfres.aggregate.protein_ids, mfres.aggregate.peptide_ids);
     }
 
     // Note: protein inference + FDR on the aggregate is left to the caller
@@ -5691,6 +5700,183 @@ namespace OpenMS
     }
 
     return mfres;
+  }
+
+  // =====================================================================
+  // Pooling of the searched files of a multi-file search (IDMergerAlgorithm), shared
+  // by the search's pooled aggregate and mergeFileResults().
+  // =====================================================================
+  // static
+  void ProSEAlgorithm::poolSearchedFiles_(std::vector<SearchResult>& per_file, bool move_psms,
+                                          const StringList& in_spectra_files,
+                                          std::vector<ProteinIdentification>& protein_ids,
+                                          PeptideIdentificationList& peptide_ids)
+  {
+    IDMergerAlgorithm merger;
+    std::vector<Size> pooled_files; // input positions of the pooled files, in insertion order
+    for (Size i = 0; i < per_file.size(); ++i)
+    {
+      SearchResult& pf = per_file[i];
+      if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+      if (!pf.protein_ids.empty()) { pooled_files.push_back(i); } // insertRuns() skips a file without a run
+      // Moving: the merger takes (and clears) the PSMs and a copy of the runs, which stay with the files -- their search
+      // parameters, meta values (e.g. PeptDeepRescoring's NCE) and run paths are still the caller's.
+      if (move_psms) { merger.insertRuns(std::vector<ProteinIdentification>(pf.protein_ids), std::move(pf.peptide_ids)); }
+      else { merger.insertRuns(pf.protein_ids, pf.peptide_ids); }
+    }
+    ProteinIdentification merged_proteins;
+    merger.returnResultsAndClear(merged_proteins, peptide_ids);
+    protein_ids.clear();
+    protein_ids.emplace_back(std::move(merged_proteins));
+    protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
+
+    // IDMergerAlgorithm numbers the primary MS run paths of the runs ('id_merge_index') in the order it meets them --
+    // one per pooled file, as the search gives each run the path of its input file -- so it counts only the pooled
+    // files, while the run lists all input files: after a failed file, index k would name the wrong file. Map k to the
+    // input position of the k-th pooled file (nothing to do if no file failed).
+    if (!pooled_files.empty() && pooled_files.back() + 1 != pooled_files.size())
+    {
+      for (PeptideIdentification& id : peptide_ids)
+      {
+        if (!id.metaValueExists(Constants::UserParam::ID_MERGE_INDEX)) { continue; }
+        const Size k = static_cast<Size>(static_cast<int>(id.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)));
+        if (k < pooled_files.size()) { id.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, pooled_files[k]); }
+      }
+    }
+  }
+
+  // =====================================================================
+  // The pooled evaluation of a multi-file search (the ProSE tool's -out_merged):
+  // pooling, cross-file protein inference and the optional picked-protein FDR.
+  // =====================================================================
+  ProSEAlgorithm::MergedResult
+  ProSEAlgorithm::mergeFileResults(MultiFileSearchResult& result, const StringList& in_spectra_files,
+                                   bool remove_decoys) const
+  {
+    // The pooled run lists the input files, and 'id_merge_index' indexes them: one per file of the search.
+    if (in_spectra_files.size() != result.per_file.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "mergeFileResults(): " + StringUtils::toStr(in_spectra_files.size()) + " input file(s) given for the result of a "
+        "search of " + StringUtils::toStr(result.per_file.size()) + " file(s); pass the input files of the search, in its "
+        "order.");
+    }
+
+    // Percolator ('rescore') rescores each file on its own; a file it could not rescore keeps ProSE's scores. The
+    // rescored runs report Percolator as search engine and carry its q-values, the others ProSE's scores: the search
+    // did not pool them, and IDMergerAlgorithm rejects them. Checked before anything is moved out of the result.
+    Size n_searched = 0, n_rescored = 0;
+    for (const SearchResult& pf : result.per_file)
+    {
+      if (pf.exit_code != ExitCodes::EXECUTION_OK) { continue; }
+      ++n_searched;
+      if (pf.percolator.applied) { ++n_rescored; }
+    }
+    if (n_rescored > 0 && n_rescored < n_searched)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Percolator rescored only some of the input files, and their PSMs cannot be pooled with the search engine "
+        "scores of the others.",
+        StringUtils::toStr(n_rescored) + " of " + StringUtils::toStr(n_searched) + " files rescored");
+    }
+
+    MergedResult merged;
+    if (n_searched == 0) { return merged; } // no file was searched: nothing to pool
+
+    // Use the effective decoy marker/position the search resolved (which may be an auto-detected external marker,
+    // prefix or suffix), not the raw decoy_prefix parameter.
+    const std::string& decoy_string = result.decoy_string;
+    const bool decoy_is_prefix = result.decoy_is_prefix;
+
+    // The multi-file search already produced exactly this merge: it pools the per-file results with
+    // poolSearchedFiles_(), as below -- so re-merging here would only build a third copy of every PSM. Consume the
+    // aggregate by move instead. Without an aggregate (build_pooled_aggregate false), pool the runs of the files here.
+    if (!result.aggregate.protein_ids.empty())
+    {
+      merged.protein_ids.emplace_back(std::move(result.aggregate.protein_ids[0]));
+      merged.peptide_ids = std::move(result.aggregate.peptide_ids);
+      result.aggregate.protein_ids.clear();
+      result.aggregate.peptide_ids.clear();
+    }
+    else
+    {
+      // The PSMs are moved out of per_file, as documented; its runs are copied and stay, as do the statistics, exit
+      // codes, Percolator outcomes and modification analyses.
+      poolSearchedFiles_(result.per_file, /*move_psms=*/true, in_spectra_files, merged.protein_ids, merged.peptide_ids);
+    }
+
+    std::vector<ProteinIdentification>& merged_protein_ids = merged.protein_ids;
+    PeptideIdentificationList& merged_peptides = merged.peptide_ids;
+    merged_protein_ids[0].setPrimaryMSRunPath(in_spectra_files);
+    // IDMergerAlgorithm carries over search engine/params but not a run date; set one so the
+    // merged idXML is schema-valid (matches the single-file path).
+    merged_protein_ids[0].setDateTime(DateTime::now());
+
+    // Protein inference: aggregate best PSM score per peptide per protein
+    BasicProteinInferenceAlgorithm bpia;
+    bpia.run(merged_peptides, merged_protein_ids);
+
+    // Optional picked-protein FDR. Needs identified decoy proteins: gate on DB-level decoys
+    // AND a result-level check (the merged inference could be target-only even with a decoy
+    // database if no decoy survived in any file). Track whether FDR was actually applied so
+    // the decoy-removal finalization below only runs when it was.
+    if (fdr_protein_ > 0.0 && result.have_decoys && !decoy_string.empty())
+    {
+      const bool merged_has_decoy_proteins = std::any_of(
+          merged_protein_ids[0].getHits().begin(), merged_protein_ids[0].getHits().end(),
+          [&](const ProteinHit& ph) {
+            return decoy_is_prefix ? StringUtils::hasPrefix(ph.getAccession(), decoy_string)
+                                   : StringUtils::hasSuffix(ph.getAccession(), decoy_string);
+          });
+      if (merged_has_decoy_proteins)
+      {
+        FalseDiscoveryRate fdr;
+        if (!remove_decoys)
+        {
+          // By default the picked-protein FDR drops the decoy proteins from the run; keep them, with q-values, so that
+          // the filter below applies to them as to the targets. The q-values of the targets do not change.
+          Param fdr_param = fdr.getParameters();
+          fdr_param.setValue("add_decoy_proteins", "true");
+          fdr.setParameters(fdr_param);
+        }
+        fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_string, decoy_is_prefix);
+        IDFilter::filterHitsByScore(merged_protein_ids, fdr_protein_);
+        merged.protein_fdr_applied = true;
+
+        OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
+                        << merged_protein_ids[0].getHits().size() << " proteins at "
+                        << fdr_protein_ * 100 << "% FDR" << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "FDR:protein is set but the merged result has no decoy proteins "
+                        << "(marker '" << decoy_string << "'); skipping merged protein FDR to "
+                        << "avoid target-only q-values." << std::endl;
+      }
+    }
+
+    // Decoy removal is a protein-FDR finalization step: strip decoys only when protein FDR was
+    // actually applied. Otherwise the merged output is a pooled intermediate (cross-file
+    // inference) that retains target+decoy evidence for downstream FDR. With remove_decoys false
+    // the decoys that pass are kept, and only the references to the proteins the filter removed go.
+    if (merged.protein_fdr_applied)
+    {
+      if (remove_decoys)
+      {
+        IDFilter::removeDecoyHits(merged_peptides);
+        IDFilter::removeEmptyIdentifications(merged_peptides);
+        IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
+      }
+      // Keep indistinguishable-protein and protein groups consistent with the filtered hit set.
+      IDFilter::updateProteinGroups(merged_protein_ids[0].getIndistinguishableProteins(), merged_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(merged_protein_ids[0].getProteinGroups(), merged_protein_ids[0].getHits());
+      // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
+      // cleanup (target+decoy PSMs kept by removeDecoyHits would otherwise leave
+      // dangling refs that IdXMLFile::store rejects).
+      IDFilter::removeDanglingProteinReferences(merged_peptides, merged_protein_ids);
+    }
+
+    return merged;
   }
 
   // =====================================================================

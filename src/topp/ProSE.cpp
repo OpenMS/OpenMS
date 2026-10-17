@@ -9,21 +9,17 @@
 #include <OpenMS/ANALYSIS/ID/ProSEAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinGroupArrowExport.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
 #include <OpenMS/FORMAT/ArrowIOHelpers.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
@@ -329,8 +325,8 @@ class ProSE :
       }
 
       // Percolator rescoring outcome per file (Search:rescore): the search rescored the PSMs of each
-      // file before its PSM-level FDR; a file it could not rescore keeps its search engine scores.
-      bool rescored_only_some = false; // their runs cannot be pooled for -out_merged
+      // file before its PSM-level FDR; a file it could not rescore keeps its search engine scores
+      // (and if only some were rescored, -out_merged cannot pool their runs, see below).
       if (rescore)
       {
         Size n_searched = 0, n_rescored = 0;
@@ -358,7 +354,6 @@ class ProSE :
           OPENMS_LOG_WARN << "Percolator rescoring is on (Search:rescore) but no input file could be rescored; "
                           << "all outputs carry the search engine scores." << endl;
         }
-        rescored_only_some = n_rescored > 0 && n_rescored < n_searched;
       }
 
       // -out_pin, before the protein FDR below, which removes the decoys of a single input: the PSMs before the
@@ -736,141 +731,47 @@ class ProSE :
         merged_ok = ArrowIOHelpers::concatenateAndWriteToParquet(oms_sp_tables,   out_parquet_dir + "/openms.search_params.parquet") && merged_ok;
       }
 
-      // Write merged idXML (pool all per-file PSMs, possibly Percolator-rescored,
-      // and run cross-file protein inference + optional protein FDR). Wrapped in
-      // try/catch so any failure here does NOT discard per-file outputs that
-      // already completed above. Per-file outputs (-out_idxml / -out_qpx /
-      // -out_parquet) are not modified by this block — they retain run-level
-      // information. A merged idXML that cannot be written fails the run after the
-      // report, like the merged Parquet files above.
+      // Write merged idXML: ProSEAlgorithm::mergeFileResults() pools all per-file PSMs (possibly
+      // Percolator-rescored) and runs cross-file protein inference + optional protein FDR. Wrapped in
+      // try/catch so any failure here does NOT discard per-file outputs that already completed above.
+      // The merge moves the identifications out of mfres; past this block only the per-file stats /
+      // exit codes / Percolator outcomes / modification analyses are read (the search report and
+      // renderRunSummaryYaml), never the identifications. A merged idXML that cannot be written fails
+      // the run after the report, like the merged Parquet files above.
       ExitCodes merged_idxml_error = EXECUTION_OK;
-      if (!out_merged.empty() && in_list.size() > 1 && rescored_only_some)
-      {
-        // The rescored runs report Percolator as search engine and carry its q-values, the others
-        // ProSE's scores: the algorithm did not pool them, and IDMergerAlgorithm rejects them.
-        OPENMS_LOG_ERROR << "Cannot write the merged output -> " << out_merged << ": Percolator rescored only some "
-                         << "of the input files (see the warnings above), and their PSMs cannot be pooled with the "
-                         << "search engine scores of the others. Per-file outputs were written. Use "
-                         << "'-Search:rescore false', or leave out the files that could not be rescored." << endl;
-        merged_idxml_error = INCOMPATIBLE_INPUT_DATA;
-      }
-      else if (!out_merged.empty() && in_list.size() > 1)
+      if (!out_merged.empty() && in_list.size() > 1)
       {
         try
         {
-          // Use the effective decoy marker/position the search resolved (which
-          // may be an auto-detected external marker, prefix or suffix), not the
-          // raw decoy_prefix parameter.
-          const std::string decoy_string = mfres.decoy_string;
-          const bool decoy_is_prefix = mfres.decoy_is_prefix;
-
-          vector<ProteinIdentification> merged_protein_ids;
-          PeptideIdentificationList merged_peptides;
-
-          // Nothing has mutated the identifications in mfres.per_file since the search (Percolator
-          // rescoring and the PSM FDR are part of it; protein FDR is applied per file only for a
-          // single input), and the algorithm already produced exactly this merge: the multi-file
-          // searchWithModificationAnalysis pools with the identical sequence of
-          // insertRuns(pf.protein_ids, pf.peptide_ids) calls over the identical per-file results
-          // and then setPrimaryMSRunPath(in_spectra_files) — so re-merging here would only build
-          // a third copy of every PSM. Consume the aggregate by move instead. (An empty aggregate
-          // means every file failed; fall through to the merger. Files of which Percolator rescored
-          // only some, whose runs the algorithm does not pool either, do not get here, see above.)
-          // The only run-level value IDMergerAlgorithm derives from its inputs is 'id_merge_index'
-          // = the first-occurrence rank of a run's primary MS run path (the merged run's own path
-          // is overwritten unconditionally right after this block). That rank is unchanged by the
-          // 'file://<basename>' rewrite -test applies to the per-file runs above, because it maps
-          // the -in paths one-to-one -- unless two -in files in different directories share a
-          // basename, which only -test could ever collapse and which no ProSE test does.
-          if (!mfres.aggregate.protein_ids.empty())
+          ProSEAlgorithm::MergedResult merged;
+          try
           {
-            merged_protein_ids.emplace_back(std::move(mfres.aggregate.protein_ids[0]));
-            merged_peptides = std::move(mfres.aggregate.peptide_ids);
-            mfres.aggregate.protein_ids.clear();
-            mfres.aggregate.peptide_ids.clear();
+            merged = sse.mergeFileResults(mfres, in_list);
           }
-          else
+          catch (const Exception::InvalidValue& e)
           {
-            // Moving out of per_file is safe: past this block only pf.stats / pf.exit_code /
-            // pf.percolator / pf.modification_analysis are read (the search report and
-            // renderRunSummaryYaml), never the identifications.
-            IDMergerAlgorithm merger;
-            for (auto& pf : mfres.per_file)
+            // The rescored runs report Percolator as search engine and carry its q-values, the others
+            // ProSE's scores: the algorithm did not pool them, and mergeFileResults() rejects them.
+            // (Only the merge is covered here: an InvalidValue of the store below is a write failure.)
+            OPENMS_LOG_ERROR << "Cannot write the merged output -> " << out_merged << ": Percolator rescored only some "
+                             << "of the input files (see the warnings above), and their PSMs cannot be pooled with the "
+                             << "search engine scores of the others. Per-file outputs were written. Use "
+                             << "'-Search:rescore false', or leave out the files that could not be rescored. ("
+                             << e.what() << ")" << endl;
+            merged_idxml_error = INCOMPATIBLE_INPUT_DATA;
+          }
+
+          if (merged_idxml_error == EXECUTION_OK)
+          {
+            if (getFlag_("test") && !merged.protein_ids.empty())
             {
-              if (pf.exit_code != ProSEAlgorithm::ExitCodes::EXECUTION_OK) continue;
-              merger.insertRuns(std::move(pf.protein_ids), std::move(pf.peptide_ids));
+              StringList basenames;
+              for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
+              merged.protein_ids[0].setPrimaryMSRunPath(basenames);
             }
-            ProteinIdentification merged_proteins;
-            merger.returnResultsAndClear(merged_proteins, merged_peptides);
-            merged_protein_ids.emplace_back(std::move(merged_proteins));
+
+            FileHandler().storeIdentifications(out_merged, merged.protein_ids, merged.peptide_ids, {FileTypes::IDXML});
           }
-
-          merged_protein_ids[0].setPrimaryMSRunPath(in_list);
-          // IDMergerAlgorithm carries over search engine/params but not a run date; set one so the
-          // merged idXML is schema-valid (matches the single-file path in ProSEAlgorithm).
-          merged_protein_ids[0].setDateTime(DateTime::now());
-
-          // Protein inference: aggregate best PSM score per peptide per protein
-          BasicProteinInferenceAlgorithm bpia;
-          bpia.run(merged_peptides, merged_protein_ids);
-
-          // Optional picked-protein FDR. Needs identified decoy proteins: gate on DB-level decoys
-          // AND a result-level check (the merged inference could be target-only even with a decoy
-          // database if no decoy survived in any file). Track whether FDR was actually applied so
-          // the decoy-removal finalization below only runs when it was.
-          bool merged_fdr_applied = false;
-          if (user_protein_fdr > 0.0 && mfres.have_decoys && !decoy_string.empty())
-          {
-            const bool merged_has_decoy_proteins = std::any_of(
-                merged_protein_ids[0].getHits().begin(), merged_protein_ids[0].getHits().end(),
-                [&](const ProteinHit& ph) {
-                  return decoy_is_prefix ? StringUtils::hasPrefix(ph.getAccession(), decoy_string)
-                                         : StringUtils::hasSuffix(ph.getAccession(), decoy_string);
-                });
-            if (merged_has_decoy_proteins)
-            {
-              FalseDiscoveryRate fdr;
-              fdr.applyPickedProteinFDR(merged_protein_ids[0], decoy_string, decoy_is_prefix);
-              IDFilter::filterHitsByScore(merged_protein_ids, user_protein_fdr);
-              merged_fdr_applied = true;
-
-              OPENMS_LOG_INFO << "[ProSE] Merged protein inference + FDR: "
-                              << merged_protein_ids[0].getHits().size() << " proteins at "
-                              << user_protein_fdr * 100 << "% FDR" << endl;
-            }
-            else
-            {
-              OPENMS_LOG_WARN << "FDR:protein is set but the merged result has no decoy proteins "
-                              << "(marker '" << decoy_string << "'); skipping merged protein FDR to "
-                              << "avoid target-only q-values." << endl;
-            }
-          }
-
-          // Decoy removal is a protein-FDR finalization step: strip decoys only when protein FDR was
-          // actually applied. Otherwise the merged output is a pooled intermediate (cross-file
-          // inference) that retains target+decoy evidence for downstream FDR.
-          if (merged_fdr_applied)
-          {
-            IDFilter::removeDecoyHits(merged_peptides);
-            IDFilter::removeEmptyIdentifications(merged_peptides);
-            IDFilter::removeUnreferencedProteins(merged_protein_ids, merged_peptides);
-            // Keep indistinguishable-protein and protein groups consistent with the filtered hit set.
-            IDFilter::updateProteinGroups(merged_protein_ids[0].getIndistinguishableProteins(), merged_protein_ids[0].getHits());
-            IDFilter::updateProteinGroups(merged_protein_ids[0].getProteinGroups(), merged_protein_ids[0].getHits());
-            // Strip PeptideEvidence entries pointing to proteins removed by decoy/FDR
-            // cleanup (target+decoy PSMs kept by removeDecoyHits would otherwise leave
-            // dangling refs that IdXMLFile::store rejects).
-            IDFilter::removeDanglingProteinReferences(merged_peptides, merged_protein_ids);
-          }
-
-          if (getFlag_("test") && !merged_protein_ids.empty())
-          {
-            StringList basenames;
-            for (const auto& f : in_list) basenames.push_back("file://" + File::basename(f));
-            merged_protein_ids[0].setPrimaryMSRunPath(basenames);
-          }
-
-          FileHandler().storeIdentifications(out_merged, merged_protein_ids, merged_peptides, {FileTypes::IDXML});
         }
         catch (const Exception::BaseException& e)
         {
