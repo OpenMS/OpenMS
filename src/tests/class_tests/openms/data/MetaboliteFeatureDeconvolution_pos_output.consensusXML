@@ -7,7 +7,7 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_15012824780294977354" quality="0">
-			<centroid rt="100" mz="299.9989730357" it="1500"/>
+			<centroid rt="100" mz="299.99999705152135" it="1500"/>
 			<groupedElementList>
 				<element map="0" id="1" rt="100" mz="318.033823" it="100" charge="1"/>
 				<element map="0" id="2" rt="100" mz="322.989218" it="100" charge="1"/>
@@ -45,7 +45,7 @@
 			<UserParam type="string" name="15" value="H1"/>
 		</consensusElement>
 		<consensusElement id="e_9719341755803132182" quality="0">
-			<centroid rt="102" mz="295.9877466281" it="200"/>
+			<centroid rt="102" mz="295.98856949795646" it="200"/>
 			<groupedElementList>
 				<element map="0" id="101" rt="102" mz="148.992724" it="100" charge="2"/>
 				<element map="0" id="104" rt="102" mz="334.969402" it="100" charge="1"/>
@@ -57,7 +57,7 @@
 			<UserParam type="string" name="101" value="H2"/>
 		</consensusElement>
 		<consensusElement id="e_6622229003048850247" quality="0">
-			<centroid rt="102" mz="297.984761259775" it="400"/>
+			<centroid rt="102" mz="297.9853098396793" it="400"/>
 			<groupedElementList>
 				<element map="0" id="100" rt="102" mz="298.992724" it="100" charge="1"/>
 				<element map="0" id="102" rt="102" mz="280.98161" it="100" charge="1"/>

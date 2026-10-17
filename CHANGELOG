@@ -605,6 +605,15 @@ OpenMS Library:
     sheets: correction_matrix for the non-deuterated channels (8 columns, as for TMT 16-/18-plex) and
     correction_matrix_deuterated for the deuterated channels (14 columns). A correction_matrix with one
     14-column row per channel, as stored in OpenMS 3.6.0 INI files, is still accepted.
+  - FIX: ConsensusFeature::computeDechargeConsensus() (used by Decharger and MetaboliteAdductDecharger)
+    ignored the mass of the missing/surplus electrons when the 'dc_charge_adduct_mass' MetaValue (a
+    neutral adduct mass) was present, so the decharged mass was off by one electron mass per unit charge
+    (~5.5 ppm at 100 Da) compared to the neutral-mass convention of AdductInfo::getNeutralMass() used by
+    AccurateMassSearch. For ungrouped (singleton) features, MetaboliteAdductDecharger stored a proton mass
+    in 'dc_charge_adduct_mass' although the accompanying 'dc_charge_adducts' formula is neutral; it now
+    stores the neutral adduct mass, so the MetaValue has the same meaning for all features. The
+    'decharge_mz' projection of FeatureGroupingAlgorithmWNet applies the same electron-mass correction
+    when the MetaValue is present (#9917).
   - FIX: pyOpenMS docstrings (#10599): the former pxd-to-nanobind generator attached every multi-line
     docstring to the method declared after it (getRT() read "Checks if retention time is set") and
     dropped blank lines and indentation, so examples, lists and :param:/:return: fields rendered as
