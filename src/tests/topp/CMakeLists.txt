@@ -1317,6 +1317,29 @@ add_test("TOPP_IsobaricWorkflow_purity_tolerance" ${TOPP_BIN_PATH}/IsobaricWorkf
 add_test("TOPP_IsobaricWorkflow_purity_tolerance_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_purity_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_purity_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_purity_tolerance_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_purity_tolerance")
 
+# Same run as TOPP_IsobaricWorkflow_1 with a higher-is-better score (a hyperscore) instead of the PEP,
+# filtered at -psmFDR 0.25. Every target has a q-value of 0.2, so all four must stay and the output
+# matches IsobaricWorkflow_1_out.consensusXML apart from the name of the stored search score. The
+# ConsensusMap FDR kept the search score's orientation on the q-values, so the filter kept the hits
+# at or ABOVE 0.25 instead: no target survived and the run failed with "No proteins left after FDR
+# filtering". Checked for the PSM-level and the peptide-level FDR.
+add_test("TOPP_IsobaricWorkflow_hyperscore" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_hyperscore_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -psmFDR 0.25
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_hyperscore_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_hyperscore_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_hyperscore_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_hyperscore_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_hyperscore_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_hyperscore")
+add_test("TOPP_IsobaricWorkflow_hyperscore_peptide" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
+  -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
+  -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_hyperscore_input.idXML
+  -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
+  -psmFDR 0.25 -FDR_type PSM+peptide
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_hyperscore_peptide_out.tmp.consensusXML)
+add_test("TOPP_IsobaricWorkflow_hyperscore_peptide_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_hyperscore_peptide_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_hyperscore_peptide_out.consensusXML )
+set_tests_properties("TOPP_IsobaricWorkflow_hyperscore_peptide_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_hyperscore_peptide")
+
 # An MS2 with no preceding MS1 has no survey scan to measure isolation purity against.
 # TMTTenPlexMethod_test.mzML begins with one (its MS1 is the SECOND spectrum), which made
 # MSExperiment::getPrecursorSpectrum() return -1 and PrecursorPurity index before the start of
