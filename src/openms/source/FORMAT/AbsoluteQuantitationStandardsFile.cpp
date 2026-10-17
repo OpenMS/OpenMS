@@ -11,13 +11,13 @@
 namespace OpenMS
 {
   void AbsoluteQuantitationStandardsFile::load(
-    const String& filename,
+    const std::string& filename,
     std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations
   ) const
   {
     CsvFile csv(filename);
     StringList sl;
-    std::map<String, Size> headers;
+    std::map<std::string, Size> headers;
     if (csv.rowCount() > 0) // avoid accessing a row in an empty file
     {
       csv.getRow(0, sl);
@@ -36,11 +36,11 @@ namespace OpenMS
 
   AbsoluteQuantitationStandards::runConcentration AbsoluteQuantitationStandardsFile::extractRunFromLine_(
     const StringList& line,
-    const std::map<String, Size>& headers
+    const std::map<std::string, Size>& headers
   ) const
   {
     AbsoluteQuantitationStandards::runConcentration rc;
-    std::map<String, Size>::const_iterator it;
+    std::map<std::string, Size>::const_iterator it;
     it = headers.find("sample_name");
     rc.sample_name = it != headers.end() ? line[it->second] : "";
     it = headers.find("component_name");
@@ -48,13 +48,13 @@ namespace OpenMS
     it = headers.find("IS_component_name");
     rc.IS_component_name = it != headers.end() ? line[it->second] : "";
     it = headers.find("actual_concentration");
-    rc.actual_concentration = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    rc.actual_concentration = it != headers.end() ? StringUtils::toDouble(line[it->second]) : 0.0;
     it = headers.find("IS_actual_concentration");
-    rc.IS_actual_concentration = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    rc.IS_actual_concentration = it != headers.end() ? StringUtils::toDouble(line[it->second]) : 0.0;
     it = headers.find("concentration_units");
     rc.concentration_units = it != headers.end() ? line[it->second] : "";
     it = headers.find("dilution_factor");
-    rc.dilution_factor = it != headers.end() ? line[it->second].toDouble() : 1.0;
+    rc.dilution_factor = it != headers.end() ? StringUtils::toDouble(line[it->second]) : 1.0;
     return rc;
   }
 }

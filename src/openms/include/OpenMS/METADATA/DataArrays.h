@@ -118,12 +118,12 @@ namespace OpenMS
       }
     };
 
-    /// String data array class
+    /// std::string data array class
     class StringDataArray :
       public MetaInfoDescription,
-      public std::vector<String>
+      public std::vector<std::string>
     {
-      using std::vector<String>::vector; // to allow for aggregate initialization of StringDataArray
+      using std::vector<std::string>::vector; // to allow for aggregate initialization of StringDataArray
 
     public:
       /// Less than operator
@@ -133,7 +133,7 @@ namespace OpenMS
         const MetaInfoDescription& rhs_meta = rhs;
         if (lhs_meta != rhs_meta)
           return lhs_meta < rhs_meta;
-        return static_cast<const std::vector<String>&>(*this) < static_cast<const std::vector<String>&>(rhs);
+        return static_cast<const std::vector<std::string>&>(*this) < static_cast<const std::vector<std::string>&>(rhs);
       }
 
       /// Less than or equal operator
@@ -164,7 +164,7 @@ namespace OpenMS
       bool operator==(const StringDataArray& rhs) const
       {
         return static_cast<const MetaInfoDescription&>(*this) == static_cast<const MetaInfoDescription&>(rhs) && 
-               static_cast<const std::vector<String>&>(*this) == static_cast<const std::vector<String>&>(rhs);
+               static_cast<const std::vector<std::string>&>(*this) == static_cast<const std::vector<std::string>&>(rhs);
       }
     };
 

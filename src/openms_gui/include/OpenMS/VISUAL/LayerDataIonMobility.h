@@ -73,13 +73,13 @@ namespace OpenMS
 
     const Mobilogram& getMobilogram(Size index) const
     {
-      if (index != 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only one mobilogram possible atm.", String(index));
+      if (index != 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only one mobilogram possible atm.",StringUtils::toStr(index));
       return single_mobilogram_;
     }
 
     PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const override;
 
-    String getDataArrayDescription(const PeakIndex& peak_index) override;
+    std::string getDataArrayDescription(const PeakIndex& peak_index) override;
 
     std::unique_ptr<LayerStatistics> getStats() const override;
 

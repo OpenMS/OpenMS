@@ -73,7 +73,7 @@ def install_pyopenms(version):
         "pip",
         "install",
         "--extra-index-url",
-        "https://pypi.cs.uni-tuebingen.de/simple/",
+        "https://pypi.openms.de/simple/",
     ]
 
     if version == "latest":

@@ -99,7 +99,7 @@ protected:
     {
       DistanceParams_() {}
 
-      DistanceParams_(const String & what, const Param & global)
+      DistanceParams_(const std::string & what, const Param & global)
       {
         Param param = global.copy("distance_" + what + ":", true);
         if (what == "MZ")

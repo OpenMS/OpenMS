@@ -9,8 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 // forward declarations
 namespace H5
@@ -32,7 +31,7 @@ namespace OpenMS
 public:
 
     /// Constructor
-    HDF5Connector(const String& filename, bool createNewFile = false);
+    HDF5Connector(const std::string& filename, bool createNewFile = false);
 
     /// Destructor
     ~HDF5Connector();

@@ -8,6 +8,12 @@ ARG INSTALL_DIR="/opt/OpenMS"
 ARG THIRDPARTY_DIR="/opt/OpenMS/thirdparty"
 ARG NUM_BUILD_CORES=8
 ARG MAKEFLAGS="-j${NUM_BUILD_CORES}"
+# ONNX Runtime (MIT) for the PeptDeep prediction models (WITH_ONNX=ON). Prebuilt
+# Microsoft release, pinned by version and SHA256 per architecture.
+ARG ONNXRUNTIME_VERSION=1.30.0
+ARG ONNXRUNTIME_SHA256_AMD64=a5ed5a3cac51fbb2e90da632ae43d19212faaa20e76484e62bcb7c23ddb3b3fd
+ARG ONNXRUNTIME_SHA256_ARM64=e16a27a8ed330bbc698df7330b0cf56e722f354e3bcc92118682c74ef3c3e3da
+ARG ONNXRUNTIME_DIR="/opt/onnxruntime"
 
 
 ### OpenMS base ###
@@ -31,8 +37,11 @@ RUN apt-get update \
     libglpk-dev \
     libzip-dev \
     zlib1g-dev \
+    libzstd-dev \
     libzip4 \
     zlib1g \
+    # ICU is needed by the .NET SDK/runtime for the openms-thermo-bridge build
+    libicu74 \
     libxerces-c-dev \
     libbz2-dev \
     libcurl4-openssl-dev \
@@ -40,11 +49,8 @@ RUN apt-get update \
     libhdf5-dev\
     coinor-libcoinmp-dev \
     libeigen3-dev \
-    libboost-date-time-dev \
-    libboost-iostreams-dev \
-    libboost-regex-dev \
-    libboost-math-dev \
-    libboost-random-dev \
+    # Boost headers only: OpenMS links no compiled Boost library
+    libboost-dev \
     qt6-base-dev \
     libglx-dev \
     libgl1-mesa-dev \
@@ -53,8 +59,12 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
   && apt-get update && apt-get install -y --no-install-recommends wget \
-  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
+  && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
   && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
+  # Self-heal across Arrow APT key rotations: append the canonical armored KEYS
+  # to the keyring the .deb pins via Signed-By (see issue #9729). wget already
+  # fails the RUN on a bad download, so no extra guard is needed here.
+  && wget -qO- https://downloads.apache.org/arrow/KEYS >> /usr/share/keyrings/apache-arrow-apt-source.asc \
   # Pin Arrow/Parquet to v23 so build-time dev libs match the runtime SONAME (libarrow2300/libparquet2300)
   && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests libparquet-dev \
@@ -78,6 +88,47 @@ RUN <<-EOF
     rm -rf /tmp/*
 EOF
 
+# installing ONNX Runtime (headers + shared library) for WITH_ONNX=ON
+ARG ONNXRUNTIME_VERSION
+ARG ONNXRUNTIME_SHA256_AMD64
+ARG ONNXRUNTIME_SHA256_ARM64
+ARG ONNXRUNTIME_DIR
+RUN <<-EOF
+    set -eux
+    case "${TARGETARCH}" in
+        amd64) ORT_ARCH="x64"; ORT_SHA256="${ONNXRUNTIME_SHA256_AMD64}" ;;
+        arm64) ORT_ARCH="aarch64"; ORT_SHA256="${ONNXRUNTIME_SHA256_ARM64}" ;;
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
+    esac
+    ORT_NAME="onnxruntime-linux-${ORT_ARCH}-${ONNXRUNTIME_VERSION}"
+    wget "https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/${ORT_NAME}.tgz" -O ort.tgz
+    echo "${ORT_SHA256}  ort.tgz" | sha256sum -c -
+    mkdir -p "${ONNXRUNTIME_DIR}"
+    tar xzf ort.tgz --strip-components=1 -C "${ONNXRUNTIME_DIR}"
+    test -f "${ONNXRUNTIME_DIR}/include/onnxruntime_cxx_api.h"
+    test -e "${ONNXRUNTIME_DIR}/lib/libonnxruntime.so"
+    rm -f ort.tgz
+EOF
+
+# Install the .NET 8 SDK for the openms-thermo-bridge build (WITH_THERMO_RAW).
+# The bridge's FindDotNetHost.cmake requires the nethost headers/library from
+# the official .NET SDK host pack under /usr/share/dotnet/packs/..., and runs
+# `dotnet publish` to build the managed Thermo wrapper. We use Microsoft's
+# dotnet-install.sh because Ubuntu's own dotnet-sdk-8.0 installs to /usr/lib/dotnet
+# and does not provide the host pack in the expected layout.
+# WITH_THERMO_RAW is ON on every Linux target we build (amd64 and aarch64), so
+# the SDK is needed on both; dotnet-install.sh auto-detects the host architecture.
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${DOTNET_ROOT}:${PATH}"
+RUN <<-EOF
+    set -eux
+    wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
+    chmod +x /tmp/dotnet-install.sh
+    /tmp/dotnet-install.sh --channel 8.0 --install-dir "${DOTNET_ROOT}"
+    ln -s "${DOTNET_ROOT}/dotnet" /usr/local/bin/dotnet
+    rm -f /tmp/dotnet-install.sh
+EOF
+
 # The main reason we're pulling this in is to make sure that the metadata
 # below is consistently formatted for releases irrespective of the base image
 LABEL version="${OPENMS_VERSION_TAG}"
@@ -92,6 +143,7 @@ ARG BUILD_DIR
 ARG INSTALL_DIR
 ARG THIRDPARTY_DIR
 ARG MAKEFLAGS
+ARG ONNXRUNTIME_DIR
 ENV MAKEFLAGS="${MAKEFLAGS}"
 
 COPY . ${SOURCE_DIR}
@@ -142,12 +194,14 @@ RUN <<-EOF
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
     esac
     
+    # dependencies from the apt packages above, not from vcpkg
     cmake \
+        -DOPENMS_USE_VCPKG=OFF \
         -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
         -DCMAKE_BUILD_TYPE='Release' \
-        -DCMAKE_PREFIX_PATH="/usr/;/usr/local" \
+        -DCMAKE_PREFIX_PATH="/usr/;/usr/local;${ONNXRUNTIME_DIR}" \
+        -DWITH_ONNX=ON \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-        -DBOOST_USE_STATIC=OFF \
         -S ${SOURCE_DIR} \
         -B ${BUILD_DIR}
 EOF
@@ -156,10 +210,38 @@ WORKDIR ${BUILD_DIR}
 RUN make all
 RUN make install/strip
 
+# ONNX Runtime: add its MIT licence and third-party notices (the library and its
+# SONAME symlinks are installed by `make install`), and check that the PeptDeep
+# models were installed.
+RUN <<-EOF
+    set -eux
+    mkdir -p "${INSTALL_DIR}/share/OpenMS/LICENSES/onnxruntime"
+    cp "${ONNXRUNTIME_DIR}/LICENSE" "${ONNXRUNTIME_DIR}/ThirdPartyNotices.txt" "${ONNXRUNTIME_DIR}/VERSION_NUMBER" \
+       "${INSTALL_DIR}/share/OpenMS/LICENSES/onnxruntime/"
+    for m in peptdeep_ms2_dynamic.onnx peptdeep_rt_dynamic.onnx peptdeep_ccs_dynamic.onnx; do
+      test -s "${INSTALL_DIR}/share/OpenMS/models/${m}"
+    done
+    mkdir -p "${INSTALL_DIR}/share/OpenMS/LICENSES/peptdeep_models"
+    printf '%s\n' \
+      "share/OpenMS/models/peptdeep_*_dynamic.onnx are ONNX exports of the pretrained" \
+      "AlphaPeptDeep models (https://github.com/MannLabs/alphapeptdeep)," \
+      "Copyright (c) Mann Labs, licensed under the Apache License 2.0" \
+      "(https://www.apache.org/licenses/LICENSE-2.0)." \
+      > "${INSTALL_DIR}/share/OpenMS/LICENSES/peptdeep_models/NOTICE.txt"
+    # the runtime images have no ${ONNXRUNTIME_DIR}: libOpenMS must find ONNX Runtime without it
+    mv "${ONNXRUNTIME_DIR}" "${ONNXRUNTIME_DIR}.hidden"
+    ldd "${INSTALL_DIR}/lib/libOpenMS.so" | grep onnxruntime
+    if ! ldd "${INSTALL_DIR}/lib/libOpenMS.so" | grep -q "libonnxruntime.so.1 => ${INSTALL_DIR}/lib/"; then
+      echo "libOpenMS does not resolve ONNX Runtime from ${INSTALL_DIR}/lib"; exit 1
+    fi
+    mv "${ONNXRUNTIME_DIR}.hidden" "${ONNXRUNTIME_DIR}"
+EOF
+
 
 ### OpenMS library ###
 FROM ubuntu:24.04 AS library
 ARG INSTALL_DIR
+ARG TARGETARCH
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
@@ -170,31 +252,53 @@ RUN apt-get update \
     libsvm3 \
     libzip4 \
     zlib1g \
+    libzstd1 \
     libbz2-1.0 \
     libcurl4 \
     libgomp1 \
     libqt6svg6 \
     libxerces-c3.2 \
     coinor-libcoinmp1v5 \
-    libboost-date-time1.83.0 \
-    libboost-iostreams1.83.0 \
-    libboost-regex1.83.0 \
-    libboost-math1.83.0 \
-    libboost-random1.83.0 \
-  && wget https://repo1.maven.org/maven2/org/apache/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
+    # ICU is required by the .NET runtime that hosts the openms-thermo-bridge
+    libicu74 \
+  && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
   && apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-noble.deb \
+  # Self-heal across Arrow APT key rotations: append the canonical armored KEYS
+  # to the keyring the .deb pins via Signed-By (see issue #9729). wget already
+  # fails the RUN on a bad download, so no extra guard is needed here.
+  && wget -qO- https://downloads.apache.org/arrow/KEYS >> /usr/share/keyrings/apache-arrow-apt-source.asc \
+  # Pin Arrow/Parquet to v23 so these runtime libs match the build-time dev libs
+  # installed by the same pin in the base stage (see #9890)
+  && printf 'Package: libarrow* libparquet*\nPin: version 23.*\nPin-Priority: 999\n' > /etc/apt/preferences.d/arrow \
   && apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
     libarrow2300 \
     libparquet2300 \
   && rm apache-arrow-apt-source-latest-noble.deb \
+  # Install the .NET 8 runtime so the openms-thermo-bridge native library can host
+  # the managed Thermo RawFileReader at runtime (managed assemblies are shipped
+  # under ${INSTALL_DIR}/lib/openms_thermo_bridge/managed). WITH_THERMO_RAW is ON
+  # on every Linux target we build (amd64 and aarch64), so both need the runtime.
+  # A runtime (not SDK) install is sufficient here; dotnet-install.sh auto-detects
+  # the host architecture.
+  && wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh \
+  && chmod +x /tmp/dotnet-install.sh \
+  && /tmp/dotnet-install.sh --channel 8.0 --runtime dotnet --install-dir /usr/share/dotnet \
+  && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+  && rm -f /tmp/dotnet-install.sh \
   && apt-get purge -y wget && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
+
+# Make the .NET runtime discoverable by the bridge's nethost/hostfxr at runtime.
+# Propagates to the tools, tools-thirdparty and test stages (all derived from library).
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="${DOTNET_ROOT}:${PATH}"
 
 COPY --from=build ${INSTALL_DIR}/lib ${INSTALL_DIR}/lib
 COPY --from=build ${INSTALL_DIR}/include ${INSTALL_DIR}/include
 COPY --from=build ${INSTALL_DIR}/share ${INSTALL_DIR}/share
 
 LABEL software="OpenMS (library)"
+LABEL org.openms.onnxruntime="ONNX Runtime (MIT) in lib/, PeptDeep models (Apache-2.0) in share/OpenMS/models"
 
 
 ### OpenMS tools runtime ###
@@ -253,7 +357,7 @@ ARG TARGETARCH
 
 RUN apt-get update \ 
     && apt-get install -y --no-install-recommends --no-install-suggests \
-    # we need Xvfb to run a small subset of tests (eg. TOPP_INIUpdater)
+    # we need Xvfb to run a small subset of GUI tests (eg. TOPPView_test)
     xvfb \
     # needed for TSGDialog_test and TOPPView_test
     libqt6test6 \
@@ -280,6 +384,9 @@ EOF
 
 COPY --from=build ${SOURCE_DIR} ${SOURCE_DIR}
 COPY --from=build ${BUILD_DIR} ${BUILD_DIR}
+# the build-tree binaries link ONNX Runtime from its build location
+ARG ONNXRUNTIME_DIR
+COPY --from=build ${ONNXRUNTIME_DIR} ${ONNXRUNTIME_DIR}
 
 WORKDIR ${BUILD_DIR}
 RUN xvfb-run -a ctest --output-on-failure -j${NUM_BUILD_CORES}

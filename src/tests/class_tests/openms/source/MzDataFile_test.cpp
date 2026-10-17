@@ -7,12 +7,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <fstream>
+#include <sstream>
+#include <filesystem>
 
 using namespace OpenMS;
 using namespace std;
@@ -77,7 +82,7 @@ START_SECTION(PeakFileOptions& getOptions())
 }
 END_SECTION
 
-START_SECTION((template <typename MapType> void load(const String &filename, MapType & map)))
+START_SECTION((template <typename MapType> void load(const std::string &filename, MapType & map)))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
@@ -646,7 +651,7 @@ START_SECTION(([EXTRA] load with intensity range))
 }
 END_SECTION
 
-START_SECTION((template <typename MapType> void store(const String &filename, const MapType &map) const))
+START_SECTION((template <typename MapType> void store(const std::string &filename, const MapType &map) const))
 {
   PeakMap e1, e2;
   MzDataFile f;
@@ -658,10 +663,153 @@ START_SECTION((template <typename MapType> void store(const String &filename, co
   f.store(tmp_filename, e1);
   f.load(tmp_filename, e2);
   TEST_EQUAL(e2.getIdentifier(), "lsid");
-  e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
-  e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
-  e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
+  e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
+  e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
+  e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment",std::string("SoftwareComment"));
   TEST_TRUE(e1 == e2);
+}
+END_SECTION
+
+START_SECTION([EXTRA] round-trips ABSORPTION/EMC/TDF scan modes and does not crash on an unknown MS2 scan mode (CPP-171))
+{
+  // Regression test for CPP-171: the writer emits "PhotodiodeArrayDetector",
+  // "EnhancedMultiplyChargedScan" and "TimeDelayedFragmentationScan" for the
+  // ABSORPTION, EMC and TDF scan modes, but the reader did not recognize any of
+  // the three, so they round-tripped as MASSSPECTRUM (MS1) or MSNSPECTRUM (MS2+)
+  // with a warning instead of coming back unchanged.
+  PeakMap exp;
+  MSSpectrum s1;
+  s1.setMSLevel(1);
+  s1.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);
+  exp.addSpectrum(s1);
+  MSSpectrum s2;
+  s2.setMSLevel(1);
+  s2.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::EMC);
+  exp.addSpectrum(s2);
+  MSSpectrum s3;
+  s3.setMSLevel(1);
+  s3.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::TDF);
+  exp.addSpectrum(s3);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzDataFile file;
+  file.store(tmp_filename, exp);
+
+  PeakMap exp2;
+  file.load(tmp_filename, exp2);
+  TEST_EQUAL(exp2.size(), 3)
+  TEST_EQUAL(exp2[0].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::ABSORPTION)
+  TEST_EQUAL(exp2[1].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::EMC)
+  TEST_EQUAL(exp2[2].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::TDF)
+
+  // Before the fix, an unrecognized scan mode on the *first* spectrum added to
+  // the experiment called back() on the still-empty spectrum vector --
+  // undefined behaviour. The fallback must set the mode on the spectrum
+  // currently being parsed instead. MzDataFile_1.mzData's only MS level 2
+  // spectrum (ScanMode "MassScan") becomes the first (and only) spectrum kept
+  // when loading is filtered to MS level 2 -- replace its scan mode value with
+  // one cvParam_ does not recognize to hit the "exp_ still empty" case through
+  // a real, schema-valid file rather than a hand-rolled one.
+  std::ifstream orig_in(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
+  std::stringstream orig_buf;
+  orig_buf << orig_in.rdbuf();
+  std::string mzdata = orig_buf.str();
+  std::string from = "msLevel=\"2\" mzRangeStart=\"110\">\n\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>";
+  std::string to = "msLevel=\"2\" mzRangeStart=\"110\">\n\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"TotallyUnknownScanMode\"/>";
+  Size pos = mzdata.find(from);
+  TEST_NOT_EQUAL(pos, std::string::npos)
+  mzdata.replace(pos, from.size(), to);
+
+  std::string tmp_filename2;
+  NEW_TMP_FILE(tmp_filename2);
+  std::ofstream of(tmp_filename2.c_str());
+  of << mzdata;
+  of.close();
+
+  PeakMap exp3;
+  file.getOptions().clearMSLevels();
+  file.getOptions().addMSLevel(2);
+  file.load(tmp_filename2, exp3);
+  file.getOptions().clearMSLevels();
+  TEST_EQUAL(exp3.size(), 1)
+  TEST_EQUAL(exp3[0].getMSLevel(), 2)
+  TEST_EQUAL(exp3[0].getInstrumentSettings().getScanMode(), InstrumentSettings::ScanMode::MSNSPECTRUM)
+}
+END_SECTION
+
+START_SECTION([EXTRA] handles a spectrum with mismatched or missing binary data arrays without reading out of bounds (CPP-170))
+{
+  // Build a minimal but schema-valid mzData document: reuse the real fixture's
+  // <description> block (required by the schema) and replace its spectrumList
+  // with a single hand-built spectrum.
+  std::ifstream orig_in(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
+  std::stringstream orig_buf;
+  orig_buf << orig_in.rdbuf();
+  std::string orig = orig_buf.str();
+  Size desc_end = orig.find("</description>");
+  TEST_NOT_EQUAL(desc_end, std::string::npos)
+  std::string header = orig.substr(0, desc_end + std::string("</description>").size());
+
+  // mz array: 2 little-endian 32-bit floats (100.0, 120.0) -> "AADIQgAA8EI="
+  // intensity array: 1 little-endian 32-bit float (100.0) -> "AADIQg=="
+  // -- one intensity value for two m/z values; pre-fix this read
+  // decoded_list_[1][1] one element past the end of the decoded intensity vector.
+  {
+    std::string body =
+      header +
+      "\n<spectrumList count=\"1\">\n"
+      " <spectrum id=\"1\">\n"
+      "  <spectrumDesc><spectrumSettings><spectrumInstrument msLevel=\"1\">\n"
+      "   <cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n"
+      "  </spectrumInstrument></spectrumSettings></spectrumDesc>\n"
+      "  <mzArrayBinary><data precision=\"32\" endian=\"little\" length=\"2\">AADIQgAA8EI=</data></mzArrayBinary>\n"
+      "  <intenArrayBinary><data precision=\"32\" endian=\"little\" length=\"1\">AADIQg==</data></intenArrayBinary>\n"
+      " </spectrum>\n"
+      "</spectrumList>\n</mzData>\n";
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    std::ofstream of(tmp_filename.c_str());
+    of << body;
+    of.close();
+
+    PeakMap exp;
+    MzDataFile().load(tmp_filename, exp);
+    TEST_EQUAL(exp.size(), 1)
+    // Clamped to the shorter (intensity) array instead of reading past it.
+    TEST_EQUAL(exp[0].size(), 1)
+  }
+
+  // Only a mzArrayBinary, no intenArrayBinary at all: pre-fix this read
+  // precisions_[1] one element past the end of a one-element vector. The mzData
+  // schema requires intenArrayBinary, so this document is intentionally
+  // schema-invalid (that's the point -- the reader must not crash on it even
+  // though it should reject it); write it with a plain filename instead of
+  // NEW_TMP_FILE, since VALIDATE_TMP_FILES below would otherwise flag it.
+  {
+    std::string body =
+      header +
+      "\n<spectrumList count=\"1\">\n"
+      " <spectrum id=\"1\">\n"
+      "  <spectrumDesc><spectrumSettings><spectrumInstrument msLevel=\"1\">\n"
+      "   <cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n"
+      "  </spectrumInstrument></spectrumSettings></spectrumDesc>\n"
+      "  <mzArrayBinary><data precision=\"32\" endian=\"little\" length=\"1\">AADIQg==</data></mzArrayBinary>\n"
+      " </spectrum>\n"
+      "</spectrumList>\n</mzData>\n";
+    std::string tmp_filename = (std::filesystem::temp_directory_path() / "MzDataFile_test_cpp170_no_inten.mzData").string();
+    std::ofstream of(tmp_filename.c_str());
+    of << body;
+    of.close();
+
+    PeakMap exp;
+    MzDataFile().load(tmp_filename, exp);
+    TEST_EQUAL(exp.size(), 1)
+    // Kept, but without peaks -- not a crash, and not reading precisions_[1] OOB.
+    TEST_EQUAL(exp[0].size(), 0)
+
+    std::filesystem::remove(tmp_filename);
+  }
 }
 END_SECTION
 
@@ -826,7 +974,7 @@ START_SECTION([EXTRA] storing / loading of meta data arrays)
 }
 END_SECTION
 
-START_SECTION([EXTRA] static bool isValid(const String& filename))
+START_SECTION([EXTRA] static bool isValid(const std::string& filename))
 {
   std::string tmp_filename;
   MzDataFile f;
@@ -845,7 +993,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 }
 END_SECTION
 
-START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
+START_SECTION(bool isSemanticallyValid(const std::string& filename, StringList& errors, StringList& warnings))
 {
   //This is not officially supported - the mapping file was hand-crafted by Marc Sturm
   NOT_TESTABLE
@@ -854,4 +1002,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

@@ -26,17 +26,17 @@ namespace OpenMS
 
   DocumentIdentifier::~DocumentIdentifier() = default;
 
-  void DocumentIdentifier::setIdentifier(const String & id)
+  void DocumentIdentifier::setIdentifier(const std::string & id)
   {
     id_ = id;
   }
 
-  const String & DocumentIdentifier::getIdentifier() const
+  const std::string & DocumentIdentifier::getIdentifier() const
   {
     return id_;
   }
 
-  void DocumentIdentifier::setLoadedFilePath(const String & file_name)
+  void DocumentIdentifier::setLoadedFilePath(const std::string & file_name)
   {
     // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
     // i.e., a call to this will report unmatched strings
@@ -57,12 +57,12 @@ namespace OpenMS
     }
   }
 
-  const String & DocumentIdentifier::getLoadedFilePath() const
+  const std::string & DocumentIdentifier::getLoadedFilePath() const
   {
     return file_path_;
   }
 
-  void DocumentIdentifier::setLoadedFileType(const String & file_name)
+  void DocumentIdentifier::setLoadedFileType(const std::string & file_name)
   {
     file_type_ = FileHandler::getTypeByContent(file_name);
   }

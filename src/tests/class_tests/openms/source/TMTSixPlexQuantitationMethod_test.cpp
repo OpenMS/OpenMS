@@ -38,7 +38,7 @@ START_SECTION(~TMTSixPlexQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((const String& getMethodName() const ))
+START_SECTION((const std::string& getMethodName() const ))
 {
   TMTSixPlexQuantitationMethod quant_meth;
   TEST_EQUAL(quant_meth.getMethodName(), "tmt6plex")

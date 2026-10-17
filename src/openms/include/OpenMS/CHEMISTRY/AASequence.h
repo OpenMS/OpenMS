@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -63,8 +63,13 @@ namespace OpenMS
       <tt>AASequence::fromString(".DFPIAM[+15.9949]GER.")</tt> -- while the
       former will try to find the @e first modification matching to a mass
       difference of 16 +/- 0.5, the latter will try to find the @e closest
-      matching modification to the exact mass. This usually gives the intended
-      results while the first approach may not.
+      matching modification within the precision the mass was written with,
+      i.e. one unit in the last decimal (here +/- 0.0001). This usually gives
+      the intended results while the first approach may not. If no
+      modification is that close, the mass is kept as it was written and the
+      residue carries an unknown modification with exactly that mass
+      difference (e.g. <tt>".DFPIAT[+0.5]GER."</tt> is a threonine shifted by
+      0.5 Da, not a threonine with some database modification).
 
       Arbitrary/unknown amino acids (usually due to an unknown modification)
       can be specified using tags preceded by X: "X[weight]". This indicates a
@@ -72,8 +77,11 @@ namespace OpenMS
       that this tag does not alter the amino acids to the left (R) or right
       (T).  Rather, X represents an amino acid on its own. Be careful when
       converting such AASequence objects to an EmpiricalFormula using
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
       getFormula(), as tags will not be considered in this case (there exists
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
       no formula for them).  However, they have an influence on getMonoWeight()
+    /// @throws Exception::InvalidValue for d/v/w ions with an unsupported or modified cleavage residue.
       and getAverageWeight()!
 
       @note For C/N terminal modifications, the absolute mass is assumed to be
@@ -372,10 +380,10 @@ protected:
         @note For unknown modifications, the function will attempt to use the
         exact same format used in the input
     */
-    String toString() const;
+    std::string toString() const;
 
     /// returns the peptide as string without any modifications or (e.g., "PEPTIDER")
-    String toUnmodifiedString() const;
+    std::string toUnmodifiedString() const;
 
     /**
         @brief returns the peptide as string with UniMod-style modifications embedded in brackets
@@ -385,7 +393,7 @@ protected:
 
         i.e.: .[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
     */
-    String toUniModString() const;
+    std::string toUniModString() const;
 
     /**
         @brief create a TPP compatible string of the modified sequence using bracket notation.
@@ -405,13 +413,13 @@ protected:
 
         @note Using integer masses may mean that there could be multiple modifications mapping to the same mass
     */
-    String toBracketString(bool integer_mass = true,
+    std::string toBracketString(bool integer_mass = true,
                            bool mass_delta = false,
-                           const std::vector<String> & fixed_modifications = std::vector<String>()) const;
+                           const std::vector<std::string> & fixed_modifications = std::vector<std::string>()) const;
 
     /// set the modification of the residue at position index.
     /// if an empty string is passed replaces the residue with its unmodified version
-    void setModification(Size index, const String& modification);
+    void setModification(Size index, const std::string& modification);
 
     /// sets the modification of AA at @p index by providing an already, potentially modified residue
     void setModification(Size index, const Residue* modification);
@@ -428,7 +436,7 @@ protected:
 
     /// sets the N-terminal modification (by lookup in the mod names of the ModificationsDB)
     /// throws if nothing is found (since the name is not enough information to create a new mod)
-    void setNTerminalModification(const String& modification);
+    void setNTerminalModification(const std::string& modification);
 
     /// sets the N-terminal modification
     void setNTerminalModification(const ResidueModification* modification);
@@ -440,14 +448,14 @@ protected:
     void setNTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term);
 
     /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
-    const String& getNTerminalModificationName() const;
+    const std::string& getNTerminalModificationName() const;
 
     /// returns a pointer to the N-terminal modification, or zero if none is set
     const ResidueModification* getNTerminalModification() const;
 
     /// sets the C-terminal modification (by lookup in the mod names of the ModificationsDB)
     /// throws if nothing is found (since the name is not enough information to create a new mod)
-    void setCTerminalModification(const String& modification);
+    void setCTerminalModification(const std::string& modification);
 
     /// sets the C-terminal modification (must be present in the database)
     void setCTerminalModification(const ResidueModification* modification);
@@ -459,7 +467,7 @@ protected:
     void setCTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term);
 
     /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
-    const String& getCTerminalModificationName() const;
+    const std::string& getCTerminalModificationName() const;
 
     /// returns a pointer to the C-terminal modification, or zero if none is set
     const ResidueModification* getCTerminalModification() const;
@@ -483,7 +491,7 @@ protected:
     /// @note will not (and cannot) control whether the required ion can exist
     /// (e.g. x/c ions for monomers) as it does not do fragmentation but rather
     /// supplementing/deduction of the sequence to its ionic form.
-    /// @throws Exception::InvalidValue if @p charge==0
+    /// @throws Exception::InvalidValue if @p charge==0, or for d/v/w ions with an unsupported or modified cleavage residue.
     double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const;
 
     /// returns a pointer to the residue at given position
@@ -514,7 +522,7 @@ protected:
     AASequence getSubsequence(Size index, UInt number) const;
 
     /// compute frequency table of amino acids
-    void getAAFrequencies(std::map<String, Size>& frequency_table) const;
+    void getAAFrequencies(std::map<std::string, Size>& frequency_table) const;
 
     //@}
 
@@ -585,7 +593,7 @@ protected:
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const String& s,
+    static AASequence fromString(const std::string& s,
                                  bool permissive = true);
 
     /**
@@ -600,17 +608,17 @@ protected:
                                  bool permissive = true);
 
     /// @brief constructor from String
-    /// @param[in] s A String representing the amino acid sequence
-    explicit AASequence(const String& s);
+    /// @param[in] s A std::string representing the amino acid sequence
+    explicit AASequence(const std::string& s);
 
     /// @brief constructor from C string
     /// @param[in] s A C-style string representing the amino acid sequence
     explicit AASequence(const char* s);
 
     /// @brief constructor from String
-    /// @param[in] s A String representing the amino acid sequence
+    /// @param[in] s A std::string representing the amino acid sequence
     /// @param[in] permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
-    explicit AASequence(const String& s, bool permissive);
+    explicit AASequence(const std::string& s, bool permissive);
 
     /// @brief constructor from C string
     /// @param[in] s A C-style string representing the amino acid sequence
@@ -618,6 +626,9 @@ protected:
     explicit AASequence(const char* s, bool permissive);
 
   protected:
+    /// Reject satellite ions whose cleavage residue has no supported loss.
+    void validateSatelliteIon_(Residue::ResidueType type) const;
+
 
     std::vector<const Residue*> peptide_;
 
@@ -638,13 +649,22 @@ protected:
 
       @return Position at which to continue parsing
     */
-    static String::ConstIterator parseModRoundBrackets_(const String::ConstIterator str_it,
-                                                        const String& str,
+    static std::string::const_iterator parseModRoundBrackets_(const std::string::const_iterator str_it,
+                                                        const std::string& str,
                                                         AASequence& aas,
                                                         const ResidueModification::TermSpecificity& specificity);
 
     /**
       @brief Parses modifications in square brackets (a mass)
+
+      A mass with a leading '+' or '-' is a mass difference, a mass without
+      sign is the absolute mass of the modified residue. The mass is looked up
+      in ModificationsDB with a tolerance derived from the number of decimals
+      it was written with (0.5 Da for an integer, 10^-n Da for n decimals).
+      If no modification lies within that tolerance, an unknown modification
+      carrying the exact mass is attached (see
+      ResidueModification::createUnknownFromMassString), so the sequence's mass
+      is always the one written.
 
       If dot notation is used it resolves cterm ambiguity based on the presence
       of the dot.
@@ -656,12 +676,12 @@ protected:
 
       @return Position at which to continue parsing
     */
-    static String::ConstIterator parseModSquareBrackets_(const String::ConstIterator str_it,
-                                                         const String& str,
-                                                         AASequence& aas,
-                                                         const ResidueModification::TermSpecificity& specificity);
+    static std::string::const_iterator parseModSquareBrackets_(const std::string::const_iterator str_it,
+                                                               const std::string& str,
+                                                               AASequence& aas,
+                                                               const ResidueModification::TermSpecificity& specificity);
 
-    static void parseString_(const String& peptide, AASequence& aas,
+    static void parseString_(const std::string& peptide, AASequence& aas,
                              bool permissive = true);
   };
 
@@ -700,7 +720,7 @@ namespace std
       for (const auto& residue : seq)
       {
         // Hash one-letter code (single character, fast)
-        const OpenMS::String& olc = residue.getOneLetterCode();
+        const std::string& olc = residue.getOneLetterCode();
         if (!olc.empty())
         {
           OpenMS::hash_combine(seed, OpenMS::hash_char(olc[0]));
@@ -711,7 +731,7 @@ namespace std
         if (mod != nullptr)
         {
           // Use full ID for portability (e.g., "Oxidation (M)")
-          // String inherits from std::string, no copy needed
+          // std::string inherits from std::string, no copy needed
           OpenMS::hash_combine(seed, OpenMS::fnv1a_hash_string(mod->getFullId()));
         }
       }

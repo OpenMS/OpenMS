@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -162,7 +163,7 @@ START_SECTION(( [EXTRA] testCaching))
 }
 END_SECTION
 
-START_SECTION(( void writeMemdump(MapType& exp, String out )))
+START_SECTION(( void writeMemdump(MapType& exp, std::string out )))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -181,7 +182,7 @@ START_SECTION(( void writeMemdump(MapType& exp, String out )))
 }
 END_SECTION
 
-START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue=false) ))
+START_SECTION(( void writeMetadata(MapType exp, std::string out_meta, bool addCacheMetaValue=false) ))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -218,7 +219,7 @@ PeakMap exp;
 CachedMzMLHandler cache_;
 cacheFile(cache_, tmp_filename, exp);
 
-START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
+START_SECTION(( void readMemdump(MapType& exp_reading, std::string filename) const ))
 {
 
   std::string tmp_filename;
@@ -239,7 +240,7 @@ START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
 }
 END_SECTION
 
-START_SECTION(( void createMemdumpIndex(String filename) ))
+START_SECTION(( void createMemdumpIndex(std::string filename) ))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -263,6 +264,91 @@ START_SECTION(( void createMemdumpIndex(String filename) ))
   NEW_TMP_FILE(unused_tmp_filename);
   TEST_EXCEPTION(Exception::FileNotFound, cache.createMemdumpIndex(unused_tmp_filename) )
   TEST_EXCEPTION(Exception::ParseError, cache.createMemdumpIndex(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
+}
+END_SECTION
+
+START_SECTION(([EXTRA] spectra and chromatograms without peaks keep their data arrays))
+{
+  // A spectrum without peaks may still have data arrays, e.g. the empty ion mobility array of a Bruker frame
+  // without peaks. They have to be written, or what follows them is read from the wrong position.
+  PeakMap exp;
+  MSSpectrum empty_spectrum;
+  empty_spectrum.setRT(1.0);
+  empty_spectrum.getFloatDataArrays().resize(1);
+  empty_spectrum.getFloatDataArrays()[0].setName("Ion Mobility");
+  empty_spectrum.getIntegerDataArrays().resize(1);
+  exp.addSpectrum(empty_spectrum);
+  MSSpectrum spectrum;
+  spectrum.setRT(2.0);
+  spectrum.setMSLevel(2);
+  spectrum.push_back(Peak1D(100.0, 10.0f));
+  spectrum.push_back(Peak1D(200.0, 20.0f));
+  spectrum.getFloatDataArrays().resize(1);
+  spectrum.getFloatDataArrays()[0].setName("Ion Mobility");
+  spectrum.getFloatDataArrays()[0].push_back(0.8f);
+  spectrum.getFloatDataArrays()[0].push_back(0.9f);
+  exp.addSpectrum(spectrum);
+  MSChromatogram empty_chromatogram;
+  empty_chromatogram.getFloatDataArrays().resize(1);
+  MSChromatogram chromatogram;
+  chromatogram.push_back(ChromatogramPeak(5.0, 50.0));
+  chromatogram.getFloatDataArrays().resize(1);
+  chromatogram.getFloatDataArrays()[0].setName("noise");
+  chromatogram.getFloatDataArrays()[0].push_back(2.5f);
+  exp.setChromatograms({empty_chromatogram, chromatogram});
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  CachedMzMLHandler cache;
+  cache.writeMemdump(exp, tmp_filename);
+
+  PeakMap read;
+  cache.readMemdump(read, tmp_filename);
+  TEST_EQUAL(read.size(), 2)
+  ABORT_IF(read.size() != 2)
+  TEST_EQUAL(read[0].size(), 0)
+  TEST_REAL_SIMILAR(read[0].getRT(), 1.0)
+  TEST_EQUAL(read[0].getFloatDataArrays().size(), 2) // the integer array is read back as a float array
+  TEST_EQUAL(read[1].size(), 2)
+  TEST_REAL_SIMILAR(read[1].getRT(), 2.0)
+  TEST_EQUAL(read[1].getMSLevel(), 2)
+  TEST_REAL_SIMILAR(read[1][1].getMZ(), 200.0)
+  TEST_REAL_SIMILAR(read[1][1].getIntensity(), 20.0)
+  TEST_EQUAL(read[1].getFloatDataArrays().size(), 1)
+  ABORT_IF(read[1].getFloatDataArrays().size() != 1)
+  TEST_STRING_EQUAL(read[1].getFloatDataArrays()[0].getName(), "Ion Mobility")
+  TEST_EQUAL(read[1].getFloatDataArrays()[0].size(), 2)
+  TEST_EQUAL(read.getChromatograms().size(), 2)
+  ABORT_IF(read.getChromatograms().size() != 2)
+  TEST_EQUAL(read.getChromatograms()[0].size(), 0)
+  TEST_EQUAL(read.getChromatograms()[1].size(), 1)
+  TEST_REAL_SIMILAR(read.getChromatograms()[1][0].getRT(), 5.0)
+  // the values of a chromatogram's data arrays are read back as well
+  TEST_EQUAL(read.getChromatograms()[1].getFloatDataArrays().size(), 1)
+  ABORT_IF(read.getChromatograms()[1].getFloatDataArrays().size() != 1)
+  TEST_STRING_EQUAL(read.getChromatograms()[1].getFloatDataArrays()[0].getName(), "noise")
+  TEST_EQUAL(read.getChromatograms()[1].getFloatDataArrays()[0].size(), 1)
+  ABORT_IF(read.getChromatograms()[1].getFloatDataArrays()[0].size() != 1)
+  TEST_REAL_SIMILAR(read.getChromatograms()[1].getFloatDataArrays()[0][0], 2.5)
+
+  // the index finds every spectrum and chromatogram where it begins
+  cache.createMemdumpIndex(tmp_filename);
+  TEST_EQUAL(cache.getSpectraIndex().size(), 2)
+  TEST_EQUAL(cache.getChromatogramIndex().size(), 2)
+  ABORT_IF(cache.getSpectraIndex().size() != 2 || cache.getChromatogramIndex().size() != 2)
+  std::ifstream ifs(tmp_filename.c_str(), std::ios::binary);
+  ifs.seekg(cache.getSpectraIndex()[1]);
+  int ms_level = -1;
+  double rt = -1.0;
+  std::vector<OpenSwath::BinaryDataArrayPtr> data = CachedMzMLHandler::readSpectrumFast(ifs, ms_level, rt);
+  TEST_EQUAL(ms_level, 2)
+  TEST_REAL_SIMILAR(rt, 2.0)
+  TEST_EQUAL(data.size(), 3)
+  ABORT_IF(data.size() != 3)
+  TEST_EQUAL(data[0]->data.size(), 2)
+  ifs.seekg(cache.getChromatogramIndex()[1]);
+  data = CachedMzMLHandler::readChromatogramFast(ifs);
+  TEST_EQUAL(data[0]->data.size(), 1)
 }
 END_SECTION
 
@@ -390,6 +476,9 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST
 
 #ifdef __clang__

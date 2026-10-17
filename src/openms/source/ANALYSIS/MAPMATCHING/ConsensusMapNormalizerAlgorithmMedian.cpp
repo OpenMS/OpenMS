@@ -23,34 +23,26 @@ namespace OpenMS
 
   ConsensusMapNormalizerAlgorithmMedian::~ConsensusMapNormalizerAlgorithmMedian() = default;
 
-  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
+  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const std::string& acc_filter, const std::string& desc_filter)
   {
-    Size number_of_maps = map.getColumnHeaders().size();
+    // the maps are numbered by their position among the column headers: map indices need not be consecutive
+    const std::map<UInt64, Size> positions = mapPositions_(map);
+    Size number_of_maps = positions.size();
     vector<vector<double> > feature_int(number_of_maps);
     medians.resize(number_of_maps);
 
-    // get map with most features, reserve space for feature_int (unequal vector lengths, 0-features omitted)
-    ConsensusMap::ColumnHeaders::const_iterator map_with_most_features = map.getColumnHeaders().find(0);
-    UInt map_with_most_features_idx = 0;
-    for (UInt i = 0; i < number_of_maps; i++)
+    // get map with most features (ties: the first one), reserve space for feature_int (unequal vector lengths, 0-features omitted)
+    Size most_features = 0;
+    Size map_with_most_features_idx = 0;
+    for (const auto& [map_index, header] : map.getColumnHeaders())
     {
-      ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
-      if (it == map.getColumnHeaders().end()) 
-      {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
-      }
-      else if (i >= feature_int.size())
-      {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String(i) + " exceeds map number");
-      }
-       
-      feature_int[i].reserve(it->second.size);
+      const Size pos = positions.at(map_index);
+      feature_int[pos].reserve(header.size);
 
-      if (it->second.size > map_with_most_features->second.size)
+      if (header.size > most_features)
       {
-        map_with_most_features = it;
-        map_with_most_features_idx = i;
+        most_features = header.size;
+        map_with_most_features_idx = pos;
       }
     }
 
@@ -68,7 +60,7 @@ namespace OpenMS
       ConsensusFeature::HandleSetType::const_iterator f_it;
       for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
       {
-        feature_int[f_it->getMapIndex()].push_back(f_it->getIntensity());
+        feature_int[mapPosition_(positions, f_it->getMapIndex())].push_back(f_it->getIntensity());
       }
     }
 
@@ -106,7 +98,7 @@ namespace OpenMS
     return map_with_most_features_idx;
   }
 
-  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map, NormalizationMethod method, const String& acc_filter, const String& desc_filter)
+  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map, NormalizationMethod method, const std::string& acc_filter, const std::string& desc_filter)
   {
     if (method == NM_SHIFT)
     {
@@ -120,6 +112,7 @@ namespace OpenMS
 
     vector<double> medians;
     Size index_of_largest_map = computeMedians(map, medians, acc_filter, desc_filter);
+    const std::map<UInt64, Size> positions = mapPositions_(map);
 
     for (cf_it = map.begin(); cf_it != map.end(); ++cf_it)
     {
@@ -127,7 +120,7 @@ namespace OpenMS
       ConsensusFeature::HandleSetType::const_iterator f_it;
       for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
       {
-        Size map_index = f_it->getMapIndex();
+        Size map_index = mapPosition_(positions, f_it->getMapIndex());
         if (method == NM_SCALE)
         {
           // scale to median of map with largest number of features
@@ -153,7 +146,28 @@ namespace OpenMS
     progresslogger.endProgress();
   }
 
-  bool ConsensusMapNormalizerAlgorithmMedian::passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const String& acc_filter, const String& desc_filter)
+  std::map<UInt64, Size> ConsensusMapNormalizerAlgorithmMedian::mapPositions_(const ConsensusMap& map)
+  {
+    std::map<UInt64, Size> positions;
+    for (const auto& header : map.getColumnHeaders())
+    {
+      positions.emplace(header.first, positions.size());
+    }
+    return positions;
+  }
+
+  Size ConsensusMapNormalizerAlgorithmMedian::mapPosition_(const std::map<UInt64, Size>& positions, UInt64 map_index)
+  {
+    const auto pos = positions.find(map_index);
+    if (pos == positions.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "map index " + std::to_string(map_index) + " has no column header");
+    }
+    return pos->second;
+  }
+
+  bool ConsensusMapNormalizerAlgorithmMedian::passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const std::string& acc_filter, const std::string& desc_filter)
   {
     boost::regex acc_regexp(acc_filter);
     boost::regex desc_regexp(desc_filter);
@@ -174,8 +188,8 @@ namespace OpenMS
       const vector<PeptideHit>& hits = p_it->getHits();
       for (vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
       {
-        const set<String>& accs = h_it->extractProteinAccessionsSet();
-        for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
+        const set<std::string>& accs = h_it->extractProteinAccessionsSet();
+        for (set<std::string>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
         {
           // does accession match?
           if (!(acc_filter.empty() ||

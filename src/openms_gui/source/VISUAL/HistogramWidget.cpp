@@ -47,7 +47,7 @@ namespace OpenMS
 
     //signals and slots
     setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(showContextMenu(const QPoint &)));
+    connect(this, &QWidget::customContextMenuRequested, this, &HistogramWidget::showContextMenu);
   }
 
   HistogramWidget::~HistogramWidget()
@@ -80,7 +80,7 @@ namespace OpenMS
     left_splitter_ = max(dist_.minBound(), pos);
   }
 
-  void HistogramWidget::setLegend(const String & legend)
+  void HistogramWidget::setLegend(const std::string & legend)
   {
     bottom_axis_->setLegend(legend);
   }

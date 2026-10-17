@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -65,14 +65,14 @@ public:
 
 private:
     /**
-     * Check if column exists and convert String into double.
+     * Check if column exists and convert std::string into double.
      */
-    double checkedToDouble_(const std::vector<String> & parts, Size index, double def = -1);
+    double checkedToDouble_(const std::vector<std::string> & parts, Size index, double def = -1);
 
     /**
-     * Check if column exists and convert String into Int.
+     * Check if column exists and convert std::string into Int.
      */
-    Int checkedToInt_(const std::vector<String> & parts, Size index, Int def = -1);
+    Int checkedToInt_(const std::vector<std::string> & parts, Size index, Int def = -1);
 
 public:
     /**
@@ -83,7 +83,7 @@ public:
               @exception Exception::FileNotFound is thrown if the file could not be opened
               @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, ConsensusMap & consensus_map);
+    void load(const std::string & filename, ConsensusMap & consensus_map);
 
     /**
       @brief Stores a ConsensusMap as an enhanced DTA file.
@@ -92,7 +92,7 @@ public:
 
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const ConsensusMap & map) const;
+    void store(const std::string & filename, const ConsensusMap & map) const;
 
 
     /**
@@ -102,7 +102,7 @@ public:
 
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const FeatureMap & map) const;
+    void store(const std::string & filename, const FeatureMap & map) const;
   };
 } // namespace OpenMS
 

@@ -14,7 +14,13 @@
 namespace OpenMS
 {
   /**
-    @brief This class handles csv files. Currently only loading is implemented. Does NOT support comment lines!
+    @brief This class handles csv files. Currently only loading is implemented.
+
+    @note Lines whose first character is '#' are unconditionally treated as comments and silently
+          skipped on load (they are not stored and are not counted by rowCount()). The load() method strips
+          leading whitespace before this test (so "  #x" is also skipped), whereas the CsvFile(filename, ...)
+          constructor tests the raw, untrimmed line. This comment symbol is hardcoded and cannot be disabled,
+          so a CSV whose first field legitimately starts with '#' will lose those rows.
 
     @note items are allowed to be enclosed by only one character e.g. "item" where " is enclosing character
 
@@ -41,7 +47,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    CsvFile(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
+    CsvFile(const std::string& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief Loads data from a text file.
@@ -53,14 +59,14 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void load(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
+    void load(const std::string& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief Stores the buffer's content into a file.
 
       @param[in] filename The output filename.
     */
-    void store(const String& filename);
+    void store(const std::string& filename);
 
     /**
       @brief Add a row to the buffer.
@@ -93,7 +99,7 @@ public:
 
       @return The number of loaded rows.
     */
-    std::vector<String>::size_type rowCount() const;
+    std::vector<std::string>::size_type rowCount() const;
 
 private:
     char itemseperator_;

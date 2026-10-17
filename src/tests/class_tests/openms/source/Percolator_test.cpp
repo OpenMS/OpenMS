@@ -20,16 +20,22 @@
 #include <OpenMS/ANALYSIS/ID/PercolatorTypes.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/PercolatorInfile.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <iomanip>
 #include <iterator>
+#include <limits>
 #include <numeric>
 #include <random>
 #include <set>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -286,6 +292,72 @@ START_SECTION([EXTRA] missing target_decoy meta throws)
   }
   Percolator perc;
   TEST_EXCEPTION(Exception::InvalidValue, perc.rescore(peps, StringList{"feat_x"}))
+}
+END_SECTION
+
+START_SECTION([EXTRA] string meta values are features with the numbers they hold)
+{
+  // Adapters that read search engine scores from text store them as string meta values
+  // (e.g. SageAdapter). Such features must train the same model as the same numbers stored as
+  // doubles. They used to be read through DataValue's conversion to double, which yields an
+  // unrelated number for a string, so all of them ended up with a weight of zero.
+  std::vector<PeptideIdentification> numeric, text;
+  std::srand(11);
+  auto rand01 = []() { return static_cast<double>(std::rand()) / RAND_MAX; };
+  // with all the digits a double needs to read back unchanged
+  auto as_text = [](double value)
+  {
+    std::ostringstream text;
+    text << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
+    return text.str();
+  };
+  for (size_t i = 0; i < 400; ++i)
+  {
+    const bool is_decoy = (i % 2 == 1);
+    const double sep = (is_decoy ? 0.0 : 1.0) + 0.6 * (rand01() - 0.5) * 2.0;
+    const double noise = rand01();
+
+    PeptideIdentification pid;
+    pid.setRT(static_cast<double>(i) * 0.1);
+    pid.setIdentifier("run1");
+    PeptideHit hit;
+    hit.setMetaValue("target_decoy", is_decoy ? "decoy" : "target");
+    hit.setMetaValue("feat_sep", sep);
+    hit.setMetaValue("feat_noise", noise);
+    pid.insertHit(hit);
+    numeric.push_back(pid);
+
+    // the same numbers as text
+    PeptideHit& text_hit = pid.getHits()[0];
+    text_hit.setMetaValue("feat_sep", as_text(sep));
+    text_hit.setMetaValue("feat_noise", as_text(noise));
+    TEST_TRUE(text_hit.getMetaValue("feat_sep").valueType() == DataValue::STRING_VALUE)
+    text.push_back(pid);
+  }
+
+  Percolator from_numbers;
+  from_numbers.rescore(numeric, StringList{"feat_sep", "feat_noise"});
+  Percolator from_text;
+  from_text.rescore(text, StringList{"feat_sep", "feat_noise"});
+
+  // one weight vector per cross-validation split
+  const std::vector<std::vector<double>>& numeric_weights = from_numbers.getSvmWeights();
+  const std::vector<std::vector<double>>& text_weights = from_text.getSvmWeights();
+  TEST_FALSE(numeric_weights.empty())
+  TEST_TRUE(text_weights == numeric_weights)
+  for (size_t i = 0; i < numeric.size(); ++i)
+  {
+    const PeptideHit& n = numeric[i].getHits()[0];
+    const PeptideHit& t = text[i].getHits()[0];
+    TEST_EQUAL(double(t.getMetaValue("percolator_score")), double(n.getMetaValue("percolator_score")))
+    TEST_EQUAL(double(t.getMetaValue("percolator_q_value")), double(n.getMetaValue("percolator_q_value")))
+    TEST_EQUAL(double(t.getMetaValue("percolator_pep")), double(n.getMetaValue("percolator_pep")))
+  }
+
+  // text that is not a number is an error, not an unrelated number
+  text[3].getHits()[0].setMetaValue("feat_noise", "n/a");
+  Percolator not_a_number;
+  TEST_EXCEPTION(Exception::InvalidValue, not_a_number.rescore(text, StringList{"feat_sep", "feat_noise"}))
 }
 END_SECTION
 
@@ -603,6 +675,43 @@ START_SECTION([EXTRA] use_pi0=false disables pi0 correction)
 }
 END_SECTION
 
+START_SECTION([EXTRA] nonparametric PEP with fewer than 4 distinct scores)
+{
+  // A feature that does not separate targets from decoys and takes only two
+  // values yields fewer than 4 PEP bins, which are padded to 4 for the PEP
+  // spline. They used to be padded with tied scores, so the spline asserted
+  // (BaseSpline::initiateQR: dx > 0) in Debug builds and divided by zero in
+  // Release builds. Seen with ProSE -rescore, which uses these settings.
+  RescoreInput input;
+  input.feature_names = StringList{"f0"};
+  for (size_t i = 0; i < 200; ++i)
+  {
+    input.features.push_back({static_cast<double>(i % 2)});
+    input.is_decoy.push_back(i >= 100);
+  }
+
+  Percolator p;
+  Param par = p.getDefaults();
+  par.setValue("seed", 17);
+  par.setValue("train_best_positive", "true");
+  par.setValue("post_processing_tdc", "true");
+  par.setValue("subset_max_train", 0);
+  par.setValue("pep_method", "nonparametric");
+  p.setParameters(par);
+
+  RescoreOutput out = p.rescore(input);
+  TEST_EQUAL(out.peps.size(), input.features.size())
+  std::set<double> distinct_scores(out.scores.begin(), out.scores.end());
+  TEST_TRUE(distinct_scores.size() < 4)
+  bool peps_valid = true;
+  for (double pep : out.peps)
+  {
+    peps_valid = peps_valid && std::isfinite(pep) && pep >= 0.0 && pep <= 1.0;
+  }
+  TEST_TRUE(peps_valid)
+}
+END_SECTION
+
 START_SECTION([EXTRA] malformed input throws InvalidValue)
 {
   // Empty input
@@ -787,7 +896,7 @@ START_SECTION((static void saveModel(const PercolatorModel& model, const String&
 
   PercolatorModel model = p.train(input);
 
-  String tmp;
+  std::string tmp;
   NEW_TMP_FILE(tmp);
   Percolator::saveModel(model, tmp);
 
@@ -822,19 +931,19 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 {
   // Covered by the save-model round-trip section above.
   // Verify negative cases here: missing file and malformed content.
-  String nonexistent;
+  std::string nonexistent;
   NEW_TMP_FILE(nonexistent);
   std::remove(nonexistent.c_str());
   TEST_EXCEPTION(Exception::FileNotFound, Percolator::loadModel(nonexistent))
 
-  auto writeModel = [](const String& path, const std::string& body) {
+  auto writeModel = [](const std::string& path, const std::string& body) {
     std::ofstream os(path.c_str());
     os << body;
   };
 
   // Unsupported format_version
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 99\n"
       "normalizer: stdv\n"
@@ -847,7 +956,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Missing 'bias' header
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: stdv\n"
@@ -859,7 +968,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Unknown header key (typoed 'normalize:' instead of 'normalizer:')
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalize: stdv\n"
@@ -873,7 +982,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Invalid normalizer value
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: bogus\n"
@@ -886,7 +995,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Duplicate header key
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "format_version: 1\n"
@@ -900,7 +1009,7 @@ START_SECTION((static PercolatorModel loadModel(const String& filename)))
 
   // Declared n_features does not match actual feature row count
   {
-    String tmp; NEW_TMP_FILE(tmp);
+    std::string tmp; NEW_TMP_FILE(tmp);
     writeModel(tmp,
       "format_version: 1\n"
       "normalizer: stdv\n"
@@ -931,7 +1040,7 @@ START_SECTION([EXTRA] feature named 'm0' round-trips through save/load)
   PercolatorModel model = p.train(input);
   TEST_EQUAL(model.feature_names[0], "m0")
 
-  String tmp; NEW_TMP_FILE(tmp);
+  std::string tmp; NEW_TMP_FILE(tmp);
   Percolator::saveModel(model, tmp);
 
   PercolatorModel loaded = Percolator::loadModel(tmp);
@@ -1520,6 +1629,127 @@ START_SECTION([EXTRA] TRON solver capture for BLAS-to-Eigen migration)
   TEST_REAL_SIMILAR(out.scores[50],  /* row 50  */    6.7241872137246)
   TEST_REAL_SIMILAR(out.scores[100], /* row 100 */   -1.01713704846917)
   TEST_REAL_SIMILAR(out.scores[199], /* row 199 */   -0.648701128332891)
+}
+END_SECTION
+
+START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const StringList& feature_set, const std::string& enzyme, int min_charge, int max_charge, const std::string& score_type)))
+{
+  // 300 target and 300 decoy PSMs (one spectrum each); target search engine scores are higher on average.
+  const std::string aas = "ACDEFGHILMNPQSTVWY";
+  auto makeIds = [&]()
+  {
+    PeptideIdentificationList ids;
+    for (int i = 0; i < 600; ++i)
+    {
+      const bool decoy = i % 2 == 1;
+      std::string seq;
+      for (int k = 0; k < 8 + i % 5; ++k) seq += aas[(i * 7 + k * 13) % aas.size()];
+      seq += 'K';
+      PeptideHit hit;
+      hit.setSequence(AASequence::fromString(seq));
+      hit.setCharge(2);
+      // deterministic noise in [-1, 1): std::normal_distribution differs between standard libraries
+      hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod(i * 0.6180339887498949, 1.0) - 1.0);
+      hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+      PeptideEvidence ev(decoy ? "DECOY_P" + std::to_string(i) : "P" + std::to_string(i), 0, 0, 'K', 'A');
+      hit.setPeptideEvidences({ev});
+      PeptideIdentification pid;
+      pid.setScoreType("hyperscore");
+      pid.setHigherScoreBetter(true);
+      pid.setMZ(hit.getSequence().getMZ(2));
+      pid.setRT(10.0 * i);
+      pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+      pid.setHits({hit});
+      ids.push_back(pid);
+    }
+    return ids;
+  };
+
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.push_back("score");
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  PeptideIdentificationList ids = makeIds();
+  // input meta value with a PIN column name: must survive the PIN meta value cleanup
+  ids[0].getHits()[0].setMetaValue("CalcMass", 1234.5);
+  std::vector<double> original_scores;
+  for (const auto& pid : ids) original_scores.push_back(pid.getHits()[0].getScore());
+
+  Percolator perc;
+  const Size n = perc.rescorePSMs(ids, feature_set, "trypsin", 2, 2, "q-value");
+  TEST_EQUAL(n, 600)
+  Size confident_targets = 0, confident_decoys = 0;
+  bool all_annotated = true, no_pin_left = true;
+  for (Size i = 0; i < ids.size(); ++i)
+  {
+    TEST_EQUAL(ids[i].getScoreType(), "q-value")
+    TEST_EQUAL(ids[i].isHigherScoreBetter(), false)
+    const PeptideHit& hit = ids[i].getHits()[0];
+    all_annotated = all_annotated && hit.metaValueExists("MS:1001491") && hit.metaValueExists("MS:1001492")
+                    && hit.metaValueExists("MS:1001493")
+                    && double(hit.getMetaValue("hyperscore")) == original_scores[i]
+                    && hit.getScore() == double(hit.getMetaValue("MS:1001491"));
+    no_pin_left = no_pin_left && !hit.metaValueExists("ScanNr") && !hit.metaValueExists("ExpMass")
+                  && !hit.metaValueExists("enzN") && !hit.metaValueExists("peplen") && !hit.metaValueExists("score")
+                  && (i == 0 || !hit.metaValueExists("CalcMass"));
+    if (hit.getScore() <= 0.01) ++(hit.isDecoy() ? confident_decoys : confident_targets);
+  }
+  TEST_EQUAL(all_annotated, true)
+  TEST_EQUAL(no_pin_left, true)
+  TEST_REAL_SIMILAR(double(ids[0].getHits()[0].getMetaValue("CalcMass")), 1234.5)
+  TEST_EQUAL(confident_targets > 100, true)
+  TEST_EQUAL(confident_decoys < confident_targets / 10, true)
+
+  // svm and pep as main score
+  PeptideIdentificationList ids_pep = makeIds();
+  perc.rescorePSMs(ids_pep, feature_set, "trypsin", 2, 2, "pep");
+  TEST_EQUAL(ids_pep[0].getScoreType(), "Posterior Error Probability")
+  TEST_REAL_SIMILAR(ids_pep[0].getHits()[0].getScore(), double(ids_pep[0].getHits()[0].getMetaValue("MS:1001493")))
+  PeptideIdentificationList ids_svm = makeIds();
+  perc.rescorePSMs(ids_svm, feature_set, "trypsin", 2, 2, "svm");
+  TEST_EQUAL(ids_svm[0].getScoreType(), "svm")
+  TEST_EQUAL(ids_svm[0].isHigherScoreBetter(), true)
+
+  // an identification without hits first and a hit that cannot be rescored (no peptide evidence):
+  // the others are still rescored; the unrescored hit gets the executable's "not identified" values
+  PeptideIdentification no_hits;
+  no_hits.setScoreType("hyperscore");
+  auto makeMixedIds = [&]()
+  {
+    PeptideIdentificationList ids_m = makeIds();
+    ids_m.insert(ids_m.begin(), no_hits);
+    PeptideHit no_evidence = ids_m[1].getHits()[0];
+    no_evidence.setPeptideEvidences({});
+    no_evidence.setScore(25.0);
+    ids_m[1].getHits().push_back(no_evidence);
+    return ids_m;
+  };
+  PeptideIdentificationList ids_mixed = makeMixedIds();
+  TEST_EQUAL(perc.rescorePSMs(ids_mixed, feature_set, "trypsin", 2, 2, "q-value"), 600)
+  TEST_EQUAL(ids_mixed[0].getScoreType(), "q-value")
+  const PeptideHit& unrescored = ids_mixed[1].getHits()[1];
+  TEST_REAL_SIMILAR(unrescored.getScore(), 1.0)
+  TEST_REAL_SIMILAR(double(unrescored.getMetaValue("MS:1001491")), 1.0)
+  TEST_REAL_SIMILAR(double(unrescored.getMetaValue("MS:1001493")), 1.0)
+  TEST_REAL_SIMILAR(double(unrescored.getMetaValue("MS:1001492")), -100.0)
+  TEST_REAL_SIMILAR(double(unrescored.getMetaValue("hyperscore")), 25.0)
+  TEST_EQUAL(double(ids_mixed[1].getHits()[0].getMetaValue("MS:1001492")) > -100.0, true) // rescored
+  PeptideIdentificationList ids_mixed_svm = makeMixedIds();
+  perc.rescorePSMs(ids_mixed_svm, feature_set, "trypsin", 2, 2, "svm");
+  TEST_REAL_SIMILAR(ids_mixed_svm[1].getHits()[1].getScore(), -100.0)
+
+  // errors leave the input untouched
+  PeptideIdentificationList only_empty;
+  only_empty.push_back(no_hits);
+  TEST_EXCEPTION(Exception::MissingInformation, perc.rescorePSMs(only_empty, feature_set, "trypsin", 2, 2))
+  PeptideIdentificationList empty;
+  TEST_EXCEPTION(Exception::MissingInformation, perc.rescorePSMs(empty, feature_set, "trypsin", 2, 2))
+  PeptideIdentificationList untouched = makeIds();
+  TEST_EXCEPTION(Exception::InvalidValue, perc.rescorePSMs(untouched, feature_set, "trypsin", 2, 2, "hyperscore"))
+  TEST_EXCEPTION(Exception::MissingInformation, perc.rescorePSMs(untouched, StringList{"SpecId", "Label", "Peptide"}, "trypsin", 2, 2))
+  TEST_EQUAL(untouched[0].getScoreType(), "hyperscore")
+  TEST_EQUAL(untouched[0].getHits()[0].metaValueExists("ScanNr"), false)
 }
 END_SECTION
 

@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
 #include <functional>
 

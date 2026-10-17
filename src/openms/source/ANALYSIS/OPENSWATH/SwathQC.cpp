@@ -48,7 +48,7 @@ namespace OpenSwath
       else
       {
         // change the member, when the lambda gets called (acts like a callback function)
-        nr_ms1_spectra_ = es.getMetaValue("nr_ms1_spectra");
+        nr_ms1_spectra_ = (size_t)(Int)es.getMetaValue("nr_ms1_spectra");
       }
     };
     return f;
@@ -61,12 +61,14 @@ namespace OpenSwath
       // only look at MS1 spectra (for now)
       if (spec.getMSLevel() != 1) return;
 
-      if (!isSubsampledSpectrum_(nr_ms1_spectra_, cd_spectra_, ms1_spectra_seen_))
-      { 
+      // Subsample by the index among all MS1 spectra (0-based), not among the accepted ones
+      const size_t current_ms1_idx = ms1_spectra_seen_;
+      ++ms1_spectra_seen_;
+
+      if (!isSubsampledSpectrum_(nr_ms1_spectra_, cd_spectra_, current_ms1_idx))
+      {
         return;
       }
-
-      ++ms1_spectra_seen_;
 
       PeakPickerHiRes pp;
       auto t = spec.getType(true);
@@ -139,7 +141,7 @@ namespace OpenSwath
   }
 
 
-  void SwathQC::storeJSON(const OpenMS::String& filename)
+  void SwathQC::storeJSON(const std::string& filename)
   {
     using json = nlohmann::json;
 

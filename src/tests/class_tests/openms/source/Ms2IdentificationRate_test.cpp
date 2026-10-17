@@ -252,7 +252,7 @@ START_SECTION(void compute(const PeptideIdentificationList& pep_ids, const MSExp
 END_SECTION
 
 
-START_SECTION(const String& getName() const override) {TEST_EQUAL(ms2ir.getName(), "Ms2IdentificationRate")} END_SECTION
+START_SECTION(const std::string& getName() const override) {TEST_EQUAL(ms2ir.getName(), "Ms2IdentificationRate")} END_SECTION
 
 
   START_SECTION(QCBase::Status requirements() const override)

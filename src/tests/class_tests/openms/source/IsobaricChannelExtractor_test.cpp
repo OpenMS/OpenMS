@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 ///////////////////////////
 
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
@@ -74,13 +75,17 @@ START_SECTION((IsobaricChannelExtractor& operator=(const IsobaricChannelExtracto
 
 END_SECTION
 
+// IsobaricChannelExtractor_6.mzML is used by several sections below; parse it
+// only once here (read-only) instead of re-parsing the file in each section.
+PeakMap ic6_shared;
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), ic6_shared);
+
 START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & consensus_map)))
 {
   {
     // load test data
-    PeakMap exp;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp = ic6_shared;
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -255,9 +260,8 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
   }
   {
     // load test data
-    PeakMap exp;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp = ic6_shared;
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -289,9 +293,8 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
   }
   {
     // load test data
-    PeakMap exp;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp = ic6_shared;
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -374,9 +377,8 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
   }
   {
     // load test data
-    PeakMap exp;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp = ic6_shared;
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -441,9 +443,8 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
     // - dataset contains 2 ms1 and 5 ms2 spectra
     //   with the purity values listed below
 
-    PeakMap exp_purity;
-    MzMLFile mzmlfile;
-    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp_purity);
+    // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+    const PeakMap& exp_purity = ic6_shared;
 
     Param pItraq = q_method->getParameters();
     pItraq.setValue("channel_114_description", "ref");
@@ -497,9 +498,8 @@ START_SECTION(([EXTRA] purity computation without interpolation))
   // - dataset contains 2 ms1 and 5 ms2 spectra
   //   with the purity values listed below
 
-  PeakMap exp_purity;
-  MzMLFile mzmlfile;
-  mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp_purity);
+  // IsobaricChannelExtractor_6.mzML is loaded once at file scope (read-only)
+  const PeakMap& exp_purity = ic6_shared;
 
   Param pItraq = q_method->getParameters();
   pItraq.setValue("channel_114_description", "ref");
@@ -544,6 +544,93 @@ START_SECTION(([EXTRA] purity computation without interpolation))
   TEST_REAL_SIMILAR(cm_filtered[0].getMetaValue("precursor_purity"), 1.0)
   TEST_REAL_SIMILAR(cm_filtered[1].getMetaValue("precursor_purity"), 0.775739)
   TEST_REAL_SIMILAR(cm_filtered[2].getMetaValue("precursor_purity"), 1.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] precursor isotope matching and isolation window boundaries (regression for 10467)))
+{
+  IsobaricChannelExtractor ice(q_method);
+  Param parameters = ice.getParameters();
+  parameters.setValue("select_activation", "any");
+  parameters.setValue("purity_interpolation", "false");
+  parameters.setValue("min_precursor_purity", 0.0);
+  ice.setParameters(parameters);
+
+  auto check_purity = [&](const std::vector<Peak1D>& peaks, double expected_purity, double window_offset = 1.0) {
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    ms1.setRT(100.0);
+    for (const auto& peak : peaks)
+    {
+      ms1.push_back(peak);
+    }
+
+    Precursor precursor;
+    precursor.setMZ(500.25);
+    precursor.setCharge(2);
+    precursor.setIsolationWindowLowerOffset(window_offset);
+    precursor.setIsolationWindowUpperOffset(window_offset);
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    ms2.setRT(100.5);
+    ms2.setNativeID("scan=2");
+    ms2.setPrecursors({precursor});
+    for (const auto& channel : q_method->getChannelInformation())
+    {
+      ms2.emplace_back(channel.center, 10000.0f);
+    }
+
+    PeakMap exp;
+    exp.addSpectrum(ms1);
+    exp.addSpectrum(ms2);
+    ConsensusMap result;
+    ice.extractChannels(exp, result);
+    TEST_EQUAL(result.size(), 1)
+    if (result.size() != 1) { return; }
+    TEST_REAL_SIMILAR(result[0].getMetaValue("precursor_purity"), expected_purity)
+
+    // IsobaricWorkflow uses this separate implementation: check the same expectations.
+    const auto purities = PrecursorPurity::computeSingleScanPrecursorPurities(1, 0, exp, 10.0);
+    TEST_EQUAL(purities.size(), 1)
+    if (purities.size() != 1) { return; }
+    TEST_REAL_SIMILAR(purities[0], expected_purity)
+
+    // The original bug discarded even clean envelopes at the usual purity threshold.
+    Param filtered_parameters = parameters;
+    filtered_parameters.setValue("min_precursor_purity", 0.75);
+    ice.setParameters(filtered_parameters);
+    ice.extractChannels(exp, result);
+    TEST_EQUAL(result.size(), expected_purity >= 0.75 ? 1 : 0)
+    ice.setParameters(parameters);
+  };
+
+  // Reproduction from the issue: M+2 is in the fuzzy border and contributes half intensity.
+  check_purity({{500.25, 1.0e6f}, {500.7516774189, 6.0e5f}, {501.2533548378, 2.0e5f}}, 1.0);
+  // Also count the lower ladder, including the fuzzy border, when M+2 was selected.
+  check_purity({{499.2466451622, 2.0e5f}, {499.7483225811, 6.0e5f}, {500.25, 1.0e6f}}, 1.0);
+
+  // Choose the nearer peak on either side of the expected M+1 or M-1 position.
+  // Only the 600-intensity peak belongs to the target: (1000 + 600) / 1800.
+  check_purity({{500.25, 1000.0f}, {500.7514, 600.0f}, {500.7520, 200.0f}}, 8.0 / 9.0);
+  check_purity({{500.25, 1000.0f}, {500.7514, 200.0f}, {500.7518, 600.0f}}, 8.0 / 9.0);
+  check_purity({{499.7482, 600.0f}, {499.7486, 200.0f}, {500.25, 1000.0f}}, 8.0 / 9.0);
+  check_purity({{499.7480, 200.0f}, {499.7485, 600.0f}, {500.25, 1000.0f}}, 8.0 / 9.0);
+  check_purity({{500.25, 1000.0f}, {500.77, 1000.0f}}, 0.5);
+
+  // Missing isotopes can place MZBegin at end(), or leave either search range empty
+  // if the measured precursor is slightly above/below its reported m/z.
+  check_purity({{500.25, 1000.0f}}, 1.0);
+  check_purity({{500.2502, 1000.0f}}, 1.0);
+  check_purity({{500.2498, 1000.0f}}, 1.0);
+
+  // Peaks outside the fuzzy window must not contribute even if within isotope tolerance.
+  check_purity({{500.25, 1000.0f}, {500.74, 1000.0f}, {500.7551, 500.0f}}, 0.5, 0.5);
+  check_purity({{499.7449, 500.0f}, {499.76, 1000.0f}, {500.25, 1000.0f}}, 0.5, 0.5);
+
+  // At 1 ppm even a two-sided search with neutron spacing misses these carbon isotopes.
+  parameters.setValue("precursor_isotope_deviation", 1.0);
+  ice.setParameters(parameters);
+  check_purity({{500.25, 1000.0f}, {500.7516774189, 600.0f}, {501.2533548378, 200.0f}}, 1.0, 1.1);
 }
 END_SECTION
 
@@ -802,6 +889,122 @@ START_SECTION(([EXTRA] TMT 32plex support)){
     ++cf_it;
   }
   ABORT_IF(cf_it != cm_it->end())
+}
+END_SECTION
+
+// SPS-MS3 MS-level / activation handling (see OpenMS issue #7165):
+// Build a synthetic SPS-MS3 TMT10 experiment where the reporter ions reside in the MS3 scan.
+//   MS1 -> MS2 (CID, no reporter ions) -> MS3 (HCD/beam-type CID, with TMT10 reporter ions)
+// The highest MS level present (MS3) must always be used for quantification. If the user selects an
+// activation method that only matches the MS2 scans (e.g. CID), the tool must fail loudly instead of
+// silently quantifying the MS2 scan (which would yield nonsense for SPS-MS3).
+START_SECTION(([EXTRA] SPS-MS3 activation/MS-level handling (issue #7165)))
+{
+  TMTTenPlexQuantitationMethod tmt10plex;
+
+  // MS1 precursor scan
+  MSSpectrum ms1;
+  ms1.setMSLevel(1);
+  ms1.setRT(100.0);
+  ms1.setNativeID("scan=1");
+  { Peak1D p; p.setMZ(500.0); p.setIntensity(1.0e6); ms1.push_back(p); }
+
+  // MS2 scan: trap-type CID, used only for identification, no reporter ions
+  MSSpectrum ms2;
+  ms2.setMSLevel(2);
+  ms2.setRT(100.1);
+  ms2.setNativeID("scan=2");
+  {
+    Precursor prec;
+    prec.setMZ(500.0);
+    prec.setCharge(2);
+    prec.setActivationMethods({Precursor::ActivationMethod::CID});
+    ms2.setPrecursors({prec});
+  }
+  { Peak1D p; p.setMZ(650.0); p.setIntensity(5000.0); ms2.push_back(p); }
+
+  // MS3 scan: beam-type CID (HCD), carries the TMT10 reporter ions
+  MSSpectrum ms3;
+  ms3.setMSLevel(3);
+  ms3.setRT(100.2);
+  ms3.setNativeID("scan=3");
+  {
+    Precursor prec;
+    prec.setMZ(650.0);
+    prec.setCharge(0); // skip purity computation
+    prec.setActivationMethods({Precursor::ActivationMethod::HCD});
+    ms3.setPrecursors({prec});
+  }
+  std::vector<double> ms3_intensities;
+  for (const auto& ch : tmt10plex.getChannelInformation())
+  {
+    Peak1D p;
+    p.setMZ(ch.center);
+    p.setIntensity(1000.0 * (ms3_intensities.size() + 1));
+    ms3.push_back(p);
+    ms3_intensities.push_back(p.getIntensity());
+  }
+  ms3.sortByPosition();
+
+  PeakMap exp;
+  exp.addSpectrum(ms1);
+  exp.addSpectrum(ms2);
+  exp.addSpectrum(ms3);
+  exp.sortSpectra(true);
+
+  // (1) Selecting CID matches only the MS2 scans, while the quantification level (MS3) has none ->
+  //     must throw instead of silently quantifying MS2.
+  {
+    IsobaricChannelExtractor ice(&tmt10plex);
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "Collision-induced dissociation");
+    p.setValue("reporter_mass_shift", 0.003);
+    ice.setParameters(p);
+
+    ConsensusMap cm_out;
+    TEST_EXCEPTION(Exception::InvalidParameter, ice.extractChannels(exp, cm_out))
+  }
+
+  // (2) Selecting the matching activation (HCD) quantifies the MS3 scan correctly.
+  {
+    IsobaricChannelExtractor ice(&tmt10plex);
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "beam-type collision-induced dissociation");
+    p.setValue("reporter_mass_shift", 0.003);
+    ice.setParameters(p);
+
+    ConsensusMap cm_out;
+    ice.extractChannels(exp, cm_out);
+
+    TEST_EQUAL(cm_out.size(), 1)
+    ABORT_IF(cm_out.size() != 1)
+    TEST_EQUAL(cm_out[0].getMetaValue("scan_id"), "scan=3")    // quantified on MS3
+    TEST_EQUAL(cm_out[0].getMetaValue("id_scan_id"), "scan=2") // identification from MS2
+    TEST_EQUAL(cm_out[0].size(), tmt10plex.getNumberOfChannels())
+    ABORT_IF(cm_out[0].size() != tmt10plex.getNumberOfChannels())
+    ConsensusFeature::iterator cf_it = cm_out[0].begin();
+    for (Size i = 0; i < ms3_intensities.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(cf_it->getIntensity(), ms3_intensities[i])
+      ++cf_it;
+    }
+  }
+
+  // (3) Disabling activation filtering ('any') also quantifies on the highest level present (MS3).
+  {
+    IsobaricChannelExtractor ice(&tmt10plex);
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "any");
+    p.setValue("reporter_mass_shift", 0.003);
+    ice.setParameters(p);
+
+    ConsensusMap cm_out;
+    ice.extractChannels(exp, cm_out);
+
+    TEST_EQUAL(cm_out.size(), 1)
+    ABORT_IF(cm_out.size() != 1)
+    TEST_EQUAL(cm_out[0].getMetaValue("scan_id"), "scan=3")
+  }
 }
 END_SECTION
 

@@ -15,7 +15,7 @@
 #include <QtWidgets/qlabel.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <array>
@@ -53,7 +53,7 @@ namespace OpenMS
     /// struct for all information about a check box of an ion
     struct CheckBox {
       /// Constructor
-      CheckBox(QDoubleSpinBox** sb, QLabel** l, std::array<CheckBoxState, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s);
+      CheckBox(QDoubleSpinBox** sb, QLabel** l, std::array<CheckBoxState, 3> s, std::pair<std::string, std::string> p_t, std::pair<std::string, std::string> p_s);
 
       /// pointer to the corresponding ion intensity spin box
       QDoubleSpinBox** ptr_to_spin_box;
@@ -65,10 +65,10 @@ namespace OpenMS
       const std::array<CheckBoxState, 3> state;
 
       /// parameter with description of this ion
-      const std::pair<String, String> param_this;
+      const std::pair<std::string, std::string> param_this;
 
       /// parameter with description of the ion intensity
-      const std::pair<String, String> param_spin;
+      const std::pair<std::string, std::string> param_spin;
     };
 
     /// type of the input sequence (corresponds to the value of the combo box 'ui_->seq_type')
@@ -90,7 +90,7 @@ namespace OpenMS
     const MSSpectrum& getSpectrum() const;
 
     /// returns the input sequence (is public for TOPPView)
-    const String getSequence() const;
+    const std::string getSequence() const;
 
 protected slots:
 

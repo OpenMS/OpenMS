@@ -24,8 +24,8 @@ START_TEST(ElementDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ElementDB* e_ptr = nullptr;
-ElementDB* e_nullPointer = nullptr;
+const ElementDB* e_ptr = nullptr;
+const ElementDB* e_nullPointer = nullptr;
 const Element * elem_nullPointer = nullptr;
 
 START_SECTION([EXTRA] multithreaded example)
@@ -92,28 +92,19 @@ START_SECTION(bool hasElement(unsigned int atomic_number) const)
   TEST_EQUAL(e_ptr->hasElement(6), true)
 END_SECTION
 
-START_SECTION(void addElement(const std::string& name,
-                    const std::string& symbol,
-                    const unsigned int an,
-                    const std::map<unsigned int, double>& abundance,
-                    const std::map<unsigned int, double>& mass,
-                    bool replace_existing))
+START_SECTION([EXTRA] iridium has its own isotopes)
 {
-  const Element * oxygen = e_ptr->getElement(8);
-  TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 15.99940532316)
-  map<unsigned int, double> oxygen_abundance = {{16u, 0.7}, {19u, 0.3}};
-  map<unsigned int, double> oxygen_mass = {{16u, 15.994915000000001}, {19u, 19.01}};
-  e_ptr->addElement("Oxygen", "O", 8u, oxygen_abundance, oxygen_mass, true); // true: replace existing
-
-  const Element * new_oxygen = e_ptr->getElement(8);
-  // ptr addresses cannot change, otherwise we are in trouble since EmpiricalFormula uses those
-  TEST_EQUAL(oxygen, new_oxygen)
-  TEST_REAL_SIMILAR(oxygen->getAverageWeight(), 16.8994405) // average weight has changed
-
-  // cannot add invalid element (name and symbol conflict when compared existing element 
-  // -- this would invalidate the lookup, since e_ptr->getSymbols().at("O")->getSymbol() == 'P'
-  TEST_EXCEPTION(Exception::InvalidValue, e_ptr->addElement("Oxygen", "P", 8u, oxygen_abundance, oxygen_mass, true)) // true: replace existing
-
+  // natural iridium: 191Ir 190.960591 u (37.23 %), 193Ir 192.962924 u (62.77 %)
+  const Element* ir = e_ptr->getElement("Ir");
+  TEST_EQUAL(ir->getAtomicNumber(), 77)
+  const IsotopeDistribution& iso = ir->getIsotopeDistribution();
+  TEST_EQUAL(iso.size(), 2)
+  TEST_REAL_SIMILAR(iso[0].getMZ(), 190.960591)
+  TEST_REAL_SIMILAR(iso[0].getIntensity(), 0.3723)
+  TEST_REAL_SIMILAR(iso[1].getMZ(), 192.962924)
+  TEST_REAL_SIMILAR(iso[1].getIntensity(), 0.6277)
+  TEST_REAL_SIMILAR(ir->getMonoWeight(), 192.962924) // most abundant isotope
+  TEST_REAL_SIMILAR(ir->getAverageWeight(), 192.2174554) // 0.3723 * 190.960591 + 0.6277 * 192.962924
 }
 END_SECTION
 

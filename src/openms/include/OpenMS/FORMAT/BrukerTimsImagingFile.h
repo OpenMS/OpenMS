@@ -14,14 +14,17 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 
+#include <memory>
 #include <vector>
 
 namespace OpenMS
 {
+  class TempDir;
+
   /**
     @brief Reader for Bruker TimsTOF MALDI imaging .d directories.
 
@@ -37,6 +40,12 @@ namespace OpenMS
     MSImagingGeometry is strictly 2D. Multi-section MALDI datasets
     (multiple distinct @c ZIndexPos values) are rejected; load each
     section into its own MSImagingExperiment instead.
+
+    Every function taking a path also accepts a zipped .d directory
+    ('.d.zip'); the .d directory in it is the one BrukerTimsFile reads. The
+    metadata comes from its @c analysis.tdf, which is extracted alone into a
+    temporary directory; for the frames, load() has BrukerTimsFile unpack
+    the whole archive.
 
     @ingroup FileIO
   */
@@ -55,8 +64,8 @@ namespace OpenMS
     struct Config
     {
       /// Configuration for the inner BrukerTimsFile (calibration, centroiding,
-      /// etc.). @c export_mode is forced to FRAME and @c load_ms1 to true
-      /// before delegation.
+      /// etc.). @c export_mode is forced to FRAME and @c load_ms1 and
+      /// @c load_ms2 to true before delegation.
       BrukerTimsFile::Config inner_config;
 
       /// Reject datasets whose @c MaldiApplicationType is not "Imaging".
@@ -68,30 +77,42 @@ namespace OpenMS
 
     /**
       @brief Loads a MALDI imaging .d folder into @p exp using default Config.
-      @param[in]  path The path to the Bruker .d directory.
+      @param[in]  path The path to the Bruker .d directory or '.d.zip' archive.
       @param[out] exp  Destination experiment; replaced (not appended).
       @throws Exception::FileNotReadable if the .d folder or @c analysis.tdf is missing.
       @throws Exception::InvalidValue if the dataset is not MALDI imaging and
               @c strict_imaging_only is true, or if the dataset contains
               multiple distinct @c ZIndexPos values (out of scope for the 2D
               MSImagingGeometry; load each section separately).
-      @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty.
+      @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty, or
+              if a '.d.zip' archive holds no .d directory with @c analysis.tdf.
+      @note Partial result: any @c MaldiFrameInfo pixel whose frame id is not
+            present among the loaded spectra (e.g. because @c inner_config
+            restricts the loaded frame range) is silently skipped — it is only
+            counted into a single warn-level log line and does NOT cause
+            @c load() to fail. The resulting image may therefore be incomplete.
     */
-    void load(const String& path, MSImagingExperiment& exp);
+    void load(const std::string& path, MSImagingExperiment& exp);
 
     /**
       @brief Loads a MALDI imaging .d folder into @p exp.
-      @param[in]  path   The path to the Bruker .d directory.
+      @param[in]  path   The path to the Bruker .d directory or '.d.zip' archive.
       @param[out] exp    Destination experiment; replaced (not appended).
       @param[in]  config Loader configuration; @c export_mode is forced to FRAME
-                         and @c load_ms1 to true internally.
+                         and @c load_ms1 and @c load_ms2 to true internally.
       @throws Exception::FileNotReadable if the .d folder or @c analysis.tdf is missing.
       @throws Exception::InvalidValue if the dataset is not MALDI imaging and
               @c strict_imaging_only is true, or if the dataset contains
               multiple distinct @c ZIndexPos values.
-      @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty.
+      @throws Exception::ParseError if @c MaldiFrameInfo is absent or empty, or
+              if a '.d.zip' archive holds no .d directory with @c analysis.tdf.
+      @note Partial result: any @c MaldiFrameInfo pixel whose frame id is not
+            present among the loaded spectra (e.g. because @c inner_config
+            restricts the loaded frame range) is silently skipped — it is only
+            counted into a single warn-level log line and does NOT cause
+            @c load() to fail. The resulting image may therefore be incomplete.
     */
-    void load(const String& path, MSImagingExperiment& exp, const Config& config);
+    void load(const std::string& path, MSImagingExperiment& exp, const Config& config);
 
     /**
       @brief Cheap, non-throwing probe for MALDI imaging mode.
@@ -101,10 +122,10 @@ namespace OpenMS
       as a duck-type check. To distinguish "not imaging" from "unreadable",
       call @c readGlobalMetadataValue() instead, which throws on I/O failure.
 
-      @param[in] path The path to the Bruker .d directory.
+      @param[in] path The path to the Bruker .d directory or '.d.zip' archive.
       @return true iff @c GlobalMetadata.MaldiApplicationType == "Imaging".
     */
-    static bool isImagingDataset(const String& path);
+    static bool isImagingDataset(const std::string& path);
 
     /**
       @brief Reads @c MaldiFrameInfo and returns rows in @c Frame.Id order.
@@ -113,22 +134,25 @@ namespace OpenMS
       2D geometry contract is enforced by @c load(), which rejects multi-Z
       datasets up front.
 
-      @param[in] d_folder The path to the Bruker .d directory.
+      @param[in] d_folder The path to the Bruker .d directory or '.d.zip' archive.
       @return Pixel rows sorted ascending by frame id.
       @throws Exception::FileNotReadable if @c analysis.tdf cannot be opened.
-      @throws Exception::ParseError if @c MaldiFrameInfo is missing or empty.
+      @throws Exception::ParseError if @c MaldiFrameInfo is missing or empty, or
+              if a '.d.zip' archive holds no .d directory with @c analysis.tdf.
     */
-    static std::vector<MaldiPixel> readMaldiFrameInfo(const String& d_folder);
+    static std::vector<MaldiPixel> readMaldiFrameInfo(const std::string& d_folder);
 
     /**
       @brief Reads a single @c GlobalMetadata key.
-      @param[in] d_folder The path to the Bruker .d directory.
+      @param[in] d_folder The path to the Bruker .d directory or '.d.zip' archive.
       @param[in] key      Key to look up in the @c GlobalMetadata table.
       @return The stored value, or an empty string if the key is absent or
               the @c GlobalMetadata table does not exist.
       @throws Exception::FileNotReadable if @c analysis.tdf cannot be opened.
+      @throws Exception::ParseError if a '.d.zip' archive holds no .d directory
+              with @c analysis.tdf.
     */
-    static String readGlobalMetadataValue(const String& d_folder, const String& key);
+    static std::string readGlobalMetadataValue(const std::string& d_folder, const std::string& key);
 
   private:
     /// Computes the 2D bounding box of the observed pixel coordinates.
@@ -136,8 +160,9 @@ namespace OpenMS
                                     Int& x_min, Int& y_min,
                                     UInt& width, UInt& height);
 
-    /// Resolves @c analysis.tdf inside a .d folder. Throws FileNotReadable if absent.
-    static String resolveTdfPath_(const String& d_folder);
+    /// Resolves @c analysis.tdf inside a .d folder, or extracts it from a '.d.zip' archive into @p temp_dir, which
+    /// then owns it. Throws FileNotReadable if a .d folder has none, ParseError if an archive has none.
+    static std::string resolveTdfPath_(const std::string& path, std::unique_ptr<TempDir>& temp_dir);
   };
 
 } // namespace OpenMS

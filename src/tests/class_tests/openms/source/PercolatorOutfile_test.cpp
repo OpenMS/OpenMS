@@ -39,7 +39,7 @@ START_SECTION(~PercolatorOutfile())
 END_SECTION
 
 
-START_SECTION(ScoreType getScoreType(String score_type_name))
+START_SECTION(ScoreType getScoreType(std::string score_type_name))
 {
   TEST_EQUAL(PercolatorOutfile::getScoreType("qvalue"),
              PercolatorOutfile::ScoreType::QVALUE);
@@ -54,7 +54,7 @@ START_SECTION(ScoreType getScoreType(String score_type_name))
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, ProteinIdentification& proteins,
+START_SECTION(void load(const std::string& filename, ProteinIdentification& proteins,
                         PeptideIdentificationList& peptides,
                         SpectrumMetaDataLookup& lookup,
                         ScoreType output_score))
@@ -75,7 +75,7 @@ START_SECTION(void load(const String& filename, ProteinIdentification& proteins,
   SpectrumMetaDataLookup lookup;
   lookup.readSpectra(spectra, ""); // no native IDs set, so don't parse them
 
-  String filename = OPENMS_GET_TEST_DATA_PATH("PercolatorOutfile_test.psms");
+  std::string filename = OPENMS_GET_TEST_DATA_PATH("PercolatorOutfile_test.psms");
   ProteinIdentification proteins;
   PeptideIdentificationList peptides;
   file.load(filename, proteins, peptides, lookup, PercolatorOutfile::ScoreType::SCORE);

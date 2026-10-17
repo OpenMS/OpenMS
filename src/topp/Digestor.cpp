@@ -86,7 +86,7 @@ protected:
     setMinInt_("missed_cleavages", 0);
     registerIntOption_("min_length", "<number>", 6, "Minimum length of peptide", false);
     registerIntOption_("max_length", "<number>", 40, "Maximum length of peptide", false);
-    vector<String> all_enzymes;
+    vector<std::string> all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
     setValidStrings_("enzyme", all_enzymes);
@@ -112,7 +112,7 @@ protected:
     PeptideIdentificationList identifications;
     PeptideIdentification peptide_identification;
     DateTime date_time = DateTime::now();
-    String date_time_string = date_time.get();
+    std::string date_time_string = date_time.get();
     peptide_identification.setIdentifier("In-silico_digestion" + date_time_string);
 
     ProteinIdentification protein_identification;
@@ -121,8 +121,8 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String inputfile_name = getStringOption_("in");
-    String outputfile_name = getStringOption_("out");
+    std::string inputfile_name = getStringOption_("in");
+    std::string outputfile_name = getStringOption_("out");
 
     FASTAID FASTA_ID = getStringOption_("FASTA:ID") == "parent" ? PARENT : (getStringOption_("FASTA:ID") == "number" ? NUMBER : BOTH);
     bool keep_FASTA_desc = (getStringOption_("FASTA:description") == "keep");
@@ -134,7 +134,7 @@ protected:
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = fh.getTypeByFileName(outputfile_name);
-      writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 2);
+      writeDebug_(std::string("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
 
     if (out_type == FileTypes::UNKNOWN)
@@ -163,7 +163,7 @@ protected:
 
     // This should be updated if more cleavage enzymes are available
     ProteinIdentification::SearchParameters search_parameters;
-    String enzyme = getStringOption_("enzyme");
+    std::string enzyme = getStringOption_("enzyme");
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(missed_cleavages);
@@ -208,7 +208,7 @@ protected:
         dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest, min_size, max_size);
       }
 
-      String id = fe.identifier;
+      std::string id = fe.identifier;
       for (auto [pep_start, pep_end] : current_digest)
       {
         if (getFlag_("replace_ambiguous"))
@@ -237,7 +237,7 @@ protected:
 
         if (!has_FASTA_output)
         {
-          temp_peptide_hit.setSequence(AASequence(fe.sequence.substr(pep_start, pep_end-pep_start)));
+          temp_peptide_hit.setSequence(AASequence(StringUtils::substr(fe.sequence,pep_start, pep_end-pep_start)));
           peptide_identification.insertHit(temp_peptide_hit);
           identifications.push_back(peptide_identification);
           peptide_identification.setHits(std::vector<PeptideHit>()); // clear
@@ -248,10 +248,10 @@ protected:
           switch (FASTA_ID)
           {
             case PARENT: break;
-            case NUMBER: id = String(fasta_out_count); break;
-            case BOTH: id = fe.identifier + "_" + String(fasta_out_count); break;
+            case NUMBER: id =StringUtils::toStr(fasta_out_count); break;
+            case BOTH: id = fe.identifier + "_" + StringUtils::toStr(fasta_out_count); break;
           }
-          ff.writeNext(FASTAFile::FASTAEntry(id, keep_FASTA_desc ? fe.description : "", fe.sequence.substr(pep_start, pep_end - pep_start)));
+          ff.writeNext(FASTAFile::FASTAEntry(id, keep_FASTA_desc ? fe.description : "", StringUtils::substr(fe.sequence,pep_start, pep_end - pep_start)));
         }
       }
     }

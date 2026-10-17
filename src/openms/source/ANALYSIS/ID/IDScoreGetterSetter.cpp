@@ -9,7 +9,8 @@
 #include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
+
+#include <cmath>
 
 using namespace std;
 
@@ -33,7 +34,7 @@ namespace OpenMS
       for (const auto &acc : grp.accessions)
       {
         // In groups, you usually want to check if at least one member is a real target
-        if (decoy_accs.find(acc) == decoy_accs.end())
+        if (!decoy_accs.contains(acc))
         {
           target = true;
           break;
@@ -49,7 +50,7 @@ namespace OpenMS
   }
 
   inline void addToPeptideScoreMap_(
-    std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+    std::unordered_map<std::string, ScoreToTgtDecLabelPair>& seq_to_score_labels,
     const PeptideIdentification& id)
   {
     bool higher_better = id.isHigherScoreBetter();
@@ -59,20 +60,30 @@ namespace OpenMS
     }
     const auto& best_hit = id.getHits()[0];
     double score = best_hit.getScore();
-    auto [it, found] = seq_to_score_labels.try_emplace(
-      best_hit.getSequence().toUnmodifiedString(),
-      score,
+    const bool is_target =
       (best_hit.getMetaValue("target_decoy") != DataValue::EMPTY) &&
-        (best_hit.getMetaValue("target_decoy").toString().hasPrefix("target")));
+      StringUtils::hasPrefix(best_hit.getMetaValue("target_decoy").toString(), "target");
+    auto [it, inserted] = seq_to_score_labels.try_emplace(
+      best_hit.getSequence().toUnmodifiedString(), score, is_target);
 
-    if (found && isFirstBetterScore_(score, it->second.first, higher_better))
+    // A freshly inserted entry already stores this hit's (score, label). Only when the
+    // sequence was already present can a later hit need to replace the stored
+    // representative: when it scores strictly better, or when it ties but is a target
+    // while the stored one is a decoy (prefer targets on ties, as getPickedProteinScores_
+    // does). Update BOTH the score and its target/decoy label together, so the
+    // representative stays deterministic and independent of input order.
+    const bool replaces_representative =
+      isFirstBetterScore_(score, it->second.first, higher_better) ||
+      (score == it->second.first && is_target && !it->second.second);
+    if (!inserted && replaces_representative)
     {
       it->second.first = score;
+      it->second.second = is_target;
     }
   }
 
   void IDScoreGetterSetter::fillPeptideScoreMap_(
-    std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+    std::unordered_map<std::string, ScoreToTgtDecLabelPair>& seq_to_score_labels,
     const PeptideIdentificationList& ids)
   {
     for (auto const & id : ids)
@@ -82,7 +93,7 @@ namespace OpenMS
   }
 
   void IDScoreGetterSetter::fillPeptideScoreMap_(
-    std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+    std::unordered_map<std::string, ScoreToTgtDecLabelPair>& seq_to_score_labels,
     ConsensusMap const& map,
     bool include_unassigned = true)
   {
@@ -98,10 +109,10 @@ namespace OpenMS
    * Uses the "picked" algorithm. As soon as there was one member which was picked as target over a decoy, the group is counted as target. Otherwise as decoy.
    */
   void IDScoreGetterSetter::getPickedProteinGroupScores_(
-      const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
+      const std::unordered_map<std::string, ScoreToTgtDecLabelPair>& picked_scores,
       ScoreToTgtDecLabelPairs& scores_labels,
       const vector<ProteinIdentification::ProteinGroup>& grps,
-      const String& decoy_string,
+      const std::string& decoy_string,
       bool decoy_prefix)
   {
     for (const auto& grp : grps)
@@ -119,6 +130,7 @@ namespace OpenMS
         //  a single 0
         if (!isDecoy && tgt_proportion > 0.) // target was picked on single protein level
         {
+          decoy_picked = false; // one vote per group, also if a picked decoy came first
           scores_labels.emplace_back(grp.probability, 1.0);
           break;
         }
@@ -134,15 +146,15 @@ namespace OpenMS
     }
   }
 
-  pair<bool,String> IDScoreGetterSetter::removeDecoyStringIfPresent_(const String& acc, const String& decoy_string, bool decoy_prefix)
+  pair<bool, std::string> IDScoreGetterSetter::removeDecoyStringIfPresent_(const std::string& acc, const std::string& decoy_string, bool decoy_prefix)
   {
-    if (decoy_prefix && acc.hasPrefix(decoy_string))
+    if (decoy_prefix && StringUtils::hasPrefix(acc, decoy_string))
     {
-      return {true ,acc.suffix(acc.size() - decoy_string.size())};
+      return {true ,StringUtils::suffix(acc, acc.size() - decoy_string.size())};
     }
-    else if (acc.hasSuffix(decoy_string))
+    else if (!decoy_prefix && StringUtils::hasSuffix(acc, decoy_string))
     {
-      return {true, acc.prefix(acc.size() - decoy_string.size())};
+      return {true, StringUtils::prefix(acc, acc.size() - decoy_string.size())};
     }
     else
     {
@@ -151,28 +163,28 @@ namespace OpenMS
   }
 
   void IDScoreGetterSetter::getPickedProteinScores_(
-      std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
+      std::unordered_map<std::string, ScoreToTgtDecLabelPair>& picked_scores,
       const ProteinIdentification& id,
-      const String& decoy_string,
+      const std::string& decoy_string,
       bool decoy_prefix)
   {
     for (const auto& hit : id.getHits())
     {
       checkTDAnnotation_(hit);
-      StringView tgt_accession(hit.getAccession());
+      std::string tgt_accession = hit.getAccession();
       bool target = getTDLabel_(hit);
       if (!target)
       {
         if (decoy_prefix) //TODO double-check hasSuffix/Prefix? Ignore TD Metavalue?
         {
-          tgt_accession = tgt_accession.substr(decoy_string.size(),-1);
+          tgt_accession = tgt_accession.substr(decoy_string.size());
         }
         else
         {
-          tgt_accession = tgt_accession.substr(0,tgt_accession.size()-decoy_string.size());
+          tgt_accession = tgt_accession.substr(0, tgt_accession.size() - decoy_string.size());
         }
       }
-      auto[it, inserted] = picked_scores.try_emplace(tgt_accession.getString(), hit.getScore(), target);
+      auto[it, inserted] = picked_scores.try_emplace(tgt_accession, hit.getScore(), target);
       if (!inserted)
       {
         if ((id.isHigherScoreBetter() && (hit.getScore() > it->second.first)) ||
@@ -182,7 +194,7 @@ namespace OpenMS
         }
         else if (hit.getScore() == it->second.first)
         {
-          it->second = {hit.getScore(), true}; //prefer targets. Alternative: put 0.5
+          if (target) it->second.second = 1.0; //prefer targets (a tie of two decoys stays a decoy). Alternative: put 0.5
         }
       }
     }
@@ -192,7 +204,7 @@ namespace OpenMS
       ScoreToTgtDecLabelPairs& scores_labels,
       const std::vector<ProteinIdentification::ProteinGroup> &grps,
       const std::unordered_set<std::string> &decoy_accs,
-      const String& decoy_string,
+      const std::string& decoy_string,
       bool prefix)
   {
 
@@ -201,23 +213,23 @@ namespace OpenMS
     // vector (for input to group FDR).
     // Otherwise I feel like groups would block/steal too many singles/small groups
     // On the other hand, with aggregational inference groups and singles will have the same scores anyway
-    std::unordered_map<String, std::pair<double, double>> picked_scores;
+    std::unordered_map<std::string, std::pair<double, double>> picked_scores;
     for (const auto& grp : grps)
     {
-      StringView tgt_accession(grp.accessions);
+      std::string tgt_accession(grp.accessions);
       bool target = getTDLabel_(hit);
       if (!target)
       {
         if (decoy_prefix)
         {
-          tgt_accession = tgt_accession.substr(decoy_string.size(),-1);
+          tgt_accession = StringUtils::substr(tgt_accession, decoy_string.size(),-1);
         }
         else
         {
-          tgt_accession = tgt_accession.substr(0,tgt_accession.size()-decoy_string.size());
+          tgt_accession = StringUtils::substr(tgt_accession, 0,tgt_accession.size()-decoy_string.size());
         }
       }
-      auto[it, inserted] = picked_scores.try_emplace(tgt_accession.getString(), hit.getScore(), target);
+      auto[it, inserted] = picked_scores.try_emplace(tgt_accession, hit.getScore(), target);
       if (!inserted)
       {
         if ((id.isHigherScoreBetter() && (hit.getScore() > it->second.first)) ||
@@ -243,18 +255,45 @@ namespace OpenMS
   * @brief For protein groups. Unaffected by keep_decoy_proteins. Always keeps all for now @todo.
   * score_type and higher_better unused since ProteinGroups do not carry that information.
   * You have to assume that groups will always have the same scores as the ProteinHits
+  * Like a hit, a group gets the value of the closest calibrated score that is equal or better
+  * (in the direction old_higher_better of its current score). A score better than every calibrated one
+  * gets the best q-value, or the FDR of accepting no group (1) if @p q_value is false. A group
+  * without a score (NaN) gets the value of the worst calibrated score.
   */
   void IDScoreGetterSetter::setScores_(const map<double, double> &scores_to_FDR,
                                       vector <ProteinIdentification::ProteinGroup> &grps,
                                       const string & /*score_type*/,
-                                      bool /*higher_better*/)
+                                      bool /*higher_better*/,
+                                      bool old_higher_better,
+                                      bool q_value)
   {
+    if (grps.empty()) return;
+    if (scores_to_FDR.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "No protein group took part in the target-decoy competition, so no group FDR can be calculated.");
+    }
     for (auto &grp : grps)
     {
-      grp.probability = (scores_to_FDR.lower_bound(grp.probability)->second);
+      // A group without a score (NaN) took no part in the competition: it gets the value of the
+      // worst calibrated score. Explicitly, as NaN is outside the ordering of the map: looking it
+      // up is undefined, and libstdc++ and libc++ do return different elements.
+      if (std::isnan(grp.probability))
+      {
+        grp.probability = old_higher_better ? scores_to_FDR.begin()->second : scores_to_FDR.rbegin()->second;
+        continue;
+      }
+      auto it = old_higher_better ? scores_to_FDR.lower_bound(grp.probability) : scores_to_FDR.upper_bound(grp.probability);
+      if (it == (old_higher_better ? scores_to_FDR.end() : scores_to_FDR.begin())) // better than every calibrated score
+      {
+        grp.probability = q_value ? (old_higher_better ? scores_to_FDR.rbegin()->second : scores_to_FDR.begin()->second) : 1.0;
+        continue;
+      }
+      if (!old_higher_better) --it; // lower is better: the closest lower (or equal) calibrated score
+      grp.probability = it->second;
     }
   }
-  void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+  void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<std::string, ScoreToTgtDecLabelPair> const& seq_to_fdr,
                                                      PeptideIdentificationList& ids,
                                                      std::string const& score_type,
                                                      bool keep_decoys)
@@ -288,7 +327,7 @@ namespace OpenMS
     }
   }
 
-  void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+  void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<std::string, ScoreToTgtDecLabelPair> const& seq_to_fdr,
                                                      ConsensusMap& map,
                                                      std::string const& score_type,
                                                      bool keep_decoys,

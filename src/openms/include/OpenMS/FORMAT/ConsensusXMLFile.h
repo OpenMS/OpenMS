@@ -46,7 +46,7 @@ public:
     @exception Exception::ParseError is thrown if an error occurs during parsing
     @exception Exception::MissingInformation is thrown if source files are missing/duplicated or map-IDs are referencing non-existing maps
     */
-    void load(const String& filename, ConsensusMap& map);
+    void load(const std::string& filename, ConsensusMap& map);
 
     /**
     @brief Stores a consensus map to file
@@ -55,7 +55,7 @@ public:
     @exception Exception::IllegalArgument is thrown if the consensus map is not valid
     @exception Exception::MissingInformation is thrown if source files are missing/duplicated or map-IDs are referencing non-existing maps
     */
-    void store(const String& filename, const ConsensusMap& consensus_map);
+    void store(const std::string& filename, const ConsensusMap& consensus_map);
 
     /// Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();

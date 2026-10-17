@@ -9,7 +9,7 @@
 #pragma once
 
 // OpenMS
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
 namespace OpenMS
@@ -61,23 +61,23 @@ public:
     //@{
 
     /// set document identifier (e.g. an LSID)
-    void setIdentifier(const String & id);
+    void setIdentifier(const std::string & id);
 
     /// retrieve document identifier (e.g. an LSID)
-    const String & getIdentifier() const;
+    const std::string & getIdentifier() const;
 
     /// exchange content with @p from
     void swap(DocumentIdentifier & from);
 
 
     /// set the file_name_ according to absolute path of the file loaded from preferably done whilst loading
-    void setLoadedFilePath(const String & file_name);
+    void setLoadedFilePath(const std::string & file_name);
 
     /// get the file_name_ which is the absolute path to the file loaded from
-    const String & getLoadedFilePath() const;
+    const std::string & getLoadedFilePath() const;
 
     /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferably done whilst loading
-    void setLoadedFileType(const String & file_name);
+    void setLoadedFileType(const std::string & file_name);
 
     /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
     const FileTypes::Type & getLoadedFileType() const;
@@ -86,9 +86,9 @@ public:
 
 protected:
     /// the ID (e.g. LSID)
-    String id_;
+    std::string id_;
     /// the path to the loaded file
-    String file_path_;
+    std::string file_path_;
     /// the type of the loaded file
     FileTypes::Type file_type_;
   };

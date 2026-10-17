@@ -37,7 +37,7 @@ START_SECTION(~PepNovoInfile())
 END_SECTION
 
 StringList fix_mods, var_mods;
-map<String,String>keys_and_mods;
+map<std::string, std::string>keys_and_mods;
 fix_mods.push_back("Phospho (C)");
 var_mods.push_back("Phospho (D)");
 var_mods.push_back("Ethanolamine (C-term)");
@@ -72,7 +72,7 @@ START_SECTION((void setModifications(const StringList &fixed_mods, const StringL
 	NOT_TESTABLE // will be tested in next section
 END_SECTION
 
-START_SECTION(void getModifications(std::map<String,String>& modification_key_map) const)
+START_SECTION(void getModifications(std::map<std::string, std::string>& modification_key_map) const)
 	PepNovoInfile pepnovo_infile;
 	pepnovo_infile.setModifications(fix_mods, var_mods);
 	pepnovo_infile.getModifications(keys_and_mods);
@@ -83,7 +83,7 @@ START_SECTION(void getModifications(std::map<String,String>& modification_key_ma
 
   if(keys_and_mods.size()==4)
   {
-    map<String, String>::iterator mod_it=keys_and_mods.begin();
+    map<std::string, std::string>::iterator mod_it=keys_and_mods.begin();
     TEST_EQUAL((mod_it++)->first, "$+43")
     TEST_EQUAL((mod_it++)->first, "C+80")
     TEST_EQUAL((mod_it++)->first, "D+80")
@@ -91,10 +91,10 @@ START_SECTION(void getModifications(std::map<String,String>& modification_key_ma
   }
 END_SECTION
 
-START_SECTION(void store(const String& filename))
+START_SECTION(void store(const std::string& filename))
   PepNovoInfile pepnovo_infile;
   pepnovo_infile.setModifications(fix_mods, var_mods);
-	String filename;
+	std::string filename;
 	NEW_TMP_FILE(filename)
 
 	// test actual program

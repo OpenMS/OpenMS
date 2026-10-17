@@ -7,8 +7,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileNameUtils.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -23,6 +26,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -50,14 +55,17 @@
 #include <OpenMS/FORMAT/KroenikFile.h>
 
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 #include <OpenMS/FORMAT/ZipIfstream.h>
-#include <OpenMS/FORMAT/ZipArchiveFile.h>
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
 #endif
 
 #ifdef WITH_THERMO_RAW
@@ -65,6 +73,7 @@
 #endif
 
 #include <cstdint>
+#include <functional>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -156,11 +165,268 @@ namespace OpenMS
         std::memcpy(digest, h, sizeof(h));
       }
     };
+
+    std::string sha1ToHexString_(const uint32_t digest[5])
+    {
+      std::ostringstream result;
+      for (int i = 0; i < 5; ++i)
+      {
+        result << std::hex << std::setfill('0') << std::setw(8) << digest[i];
+      }
+      return result.str();
+    }
+
+    bool appendFileToSha1_(SHA1& sha, const std::string& filename)
+    {
+      std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
+      if (!file.is_open())
+      {
+        return false;
+      }
+      char buffer[8192];
+      while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
+      {
+        sha.update(buffer, static_cast<std::size_t>(file.gcount()));
+      }
+      return true;
+    }
+
   } // anonymous namespace
 
-  String allowedToString_(vector<FileTypes::Type> types)
+  namespace
   {
-    String aStrings;
+    /// Keep only the peaks inside the m/z and intensity ranges of @p options.
+    void filterPeaks(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      if (! options.hasMZRange() && ! options.hasIntensityRange()) { return; }
+      const bool filter_mz = options.hasMZRange();
+      const bool filter_int = options.hasIntensityRange();
+      const auto& mz_range = options.getMZRange();
+      const auto& int_range = options.getIntensityRange();
+      std::vector<Size> kept;
+      kept.reserve(spectrum.size());
+      for (Size i = 0; i < spectrum.size(); ++i)
+      {
+        const Peak1D& p = spectrum[i];
+        if (filter_mz && ! mz_range.encloses(DPosition<1>(p.getMZ()))) { continue; }
+        if (filter_int && ! int_range.encloses(DPosition<1>(p.getIntensity()))) { continue; }
+        kept.push_back(i);
+      }
+      // select() keeps the data arrays aligned with the peaks (erase() would not).
+      if (kept.size() != spectrum.size()) { spectrum.select(kept); }
+    }
+
+    /// Whether @p spectrum passes the spectrum-level filters of @p options: MS level, RT range and,
+    /// for MSn spectra with a precursor, precursor m/z range.
+    bool selectSpectrum(const PeakFileOptions& options, const MSSpectrum& spectrum)
+    {
+      if (options.hasMSLevels() && ! options.containsMSLevel(spectrum.getMSLevel())) { return false; }
+      if (options.hasRTRange() && ! options.getRTRange().encloses(DPosition<1>(spectrum.getRT()))) { return false; }
+      if (options.hasPrecursorMZRange() && spectrum.getMSLevel() > 1 && ! spectrum.getPrecursors().empty())
+      {
+        return options.getPrecursorMZRange().encloses(DPosition<1>(spectrum.getPrecursors()[0].getMZ()));
+      }
+      return true;
+    }
+
+    /// Apply the peak-level filters of @p options to @p spectrum: the m/z and intensity ranges, and
+    /// metadata-only or fill-data off, which leave the spectrum without peaks.
+    void applyPeakOptions(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      filterPeaks(options, spectrum);
+      if (options.getMetadataOnly() || ! options.getFillData())
+      {
+        spectrum.clear(false); // clear the peaks and data arrays, keep the metadata
+      }
+    }
+
+    /// Apply the ion mobility range of @p options (if any) to @p spectrum: remove the peaks outside it from a spectrum with an
+    /// ion mobility per peak. Returns false for a spectrum with a single ion mobility outside it.
+    bool applyIMRange(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      if (! options.hasIMRange()) { return true; }
+      const auto& im_range = options.getIMRange();
+      if (spectrum.containsIMData())
+      {
+        const auto& im = spectrum.getFloatDataArrays()[spectrum.getIMData().first];
+        std::vector<Size> kept;
+        kept.reserve(spectrum.size());
+        for (Size i = 0; i < spectrum.size() && i < im.size(); ++i)
+        {
+          if (im_range.encloses(DPosition<1>(im[i]))) { kept.push_back(i); }
+        }
+        if (kept.size() != spectrum.size()) { spectrum.select(kept); }
+        return true;
+      }
+      if (spectrum.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET) { return im_range.encloses(DPosition<1>(spectrum.getDriftTime())); }
+      return true; // no ion mobility
+    }
+
+    /// Apply all PeakFileOptions to @p spectrum. Returns false if the spectrum is excluded.
+    bool applyOptions(const PeakFileOptions& options, MSSpectrum& spectrum)
+    {
+      if (! selectSpectrum(options, spectrum) || ! applyIMRange(options, spectrum)) { return false; }
+      applyPeakOptions(options, spectrum);
+      return true;
+    }
+
+    /// Keep the spectra of @p exp for which @p filter (which may change them) returns true.
+    void filterSpectra(MSExperiment& exp, const std::function<bool(MSSpectrum&)>& filter)
+    {
+      auto& spectra = exp.getSpectra();
+      Size kept = 0;
+      for (Size i = 0; i < spectra.size(); ++i)
+      {
+        if (! filter(spectra[i])) { continue; }
+        if (kept != i) { spectra[kept] = std::move(spectra[i]); }
+        ++kept;
+      }
+      spectra.erase(spectra.begin() + kept, spectra.end());
+    }
+
+    /// Point the (first) source file of @p settings to @p filename.
+    void rewriteSourceFile(ExperimentalSettings& settings, const std::string& filename, FileTypes::Type type, bool compute_hash)
+    {
+      SourceFile src_file;
+      if (settings.getSourceFiles().empty()) // copy settings like native ID format
+      {
+        OPENMS_LOG_WARN << "No source file annotated." << endl;
+      }
+      else
+      {
+        if (settings.getSourceFiles().size() > 1)
+        {
+          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << settings.getSourceFiles().size() << " will take only first one for rewriting." << endl;
+        }
+        src_file = settings.getSourceFiles()[0];
+      }
+
+      // Normalize directory paths: strip trailing slashes for basename and URI
+      std::string normalized_name = filename;
+      while (StringUtils::hasSuffix(normalized_name, "/") || StringUtils::hasSuffix(normalized_name, "\\"))
+        normalized_name = StringUtils::prefix(normalized_name, normalized_name.size() - 1);
+      src_file.setNameOfFile(File::basename(normalized_name));
+      src_file.setPathToFile(File::toFileURI(File::path(normalized_name)));
+      // this is more complicated since the data formats allowed by mzML are very verbose.
+      // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
+      src_file.setFileType(FileTypes::typeToMZML(type));
+
+      if (compute_hash && type != FileTypes::BRUKER_TDF)
+      {
+        src_file.setChecksum(FileHandler::computeFileHash(filename), SourceFile::ChecksumType::SHA1);
+      }
+
+      settings.getSourceFiles().clear();
+      settings.getSourceFiles().push_back(src_file);
+    }
+
+#ifdef WITH_THERMO_RAW
+    /// ThermoRawFile options for FileHandler: centroided, no checksum, scan-level PeakFileOptions pushed down.
+    ThermoRawFile::Options thermoRawOptions(const PeakFileOptions& options, ThermoRawFile::Options raw_options)
+    {
+      // Apply Thermo's peak picking, as FileConverter and ThermoRawFileParser do by default:
+      // the tools that read .raw expect centroided spectra. ThermoRawFile itself keeps the
+      // acquired profile scans unless Options::centroid is set.
+      raw_options.centroid = true;
+      // The SHA-1 reads the whole file again; the source file checksum is set by FileHandler if requested.
+      raw_options.checksum = false;
+      // Push the scan-level PeakFileOptions down, so skipped scans and peaks are never decoded.
+      if (options.hasMSLevels()) { raw_options.ms_levels = options.getMSLevels(); }
+      if (options.hasRTRange())
+      {
+        raw_options.rt_min = options.getRTRange().minPosition()[0];
+        raw_options.rt_max = options.getRTRange().maxPosition()[0];
+      }
+      if (options.hasPrecursorMZRange())
+      {
+        raw_options.precursor_mz_min = options.getPrecursorMZRange().minPosition()[0];
+        raw_options.precursor_mz_max = options.getPrecursorMZRange().maxPosition()[0];
+      }
+      raw_options.metadata_only = options.getMetadataOnly() || ! options.getFillData();
+      raw_options.skip_chromatograms = options.getSkipChromatograms();
+      return raw_options;
+    }
+#endif
+
+#ifdef WITH_OPENTIMS
+    /// MALDI imaging .d is, like imzML, not readable as a flat MSExperiment (AUTO export mode would otherwise misread it as DDA).
+    void rejectBrukerImaging(const std::string& filename)
+    {
+      if (BrukerTimsImagingFile::isImagingDataset(filename))
+      {
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                         "Bruker MALDI imaging .d is a mass spectrometry imaging format; load it via "
+                                         "FileHandler::loadImagingExperiment into an MSImagingExperiment");
+      }
+    }
+
+    /// BrukerTimsFile configuration for FileHandler: the MS levels and the RT and ion mobility ranges of the PeakFileOptions
+    /// are passed to the reader, so that the frames they exclude are not decoded. The caller applies all options to the
+    /// spectra afterwards.
+    BrukerTimsFile::Config brukerConfig(const PeakFileOptions& options)
+    {
+      // The reader emits MS levels 1 and 2 only: every frame that is not MS1 (any MsMsType but 0) gives MS2 spectra.
+      // Asking for MS3 or higher alone therefore decodes nothing.
+      BrukerTimsFile::Config config;
+      if (options.hasMSLevels())
+      {
+        config.load_ms1 = options.containsMSLevel(1);
+        config.load_ms2 = options.containsMSLevel(2);
+      }
+      // The reader selects the spectra by their RT (not the frames, which would cut the DDA MS2 spectra built from
+      // frames on both sides of a range end), and skips the DDA precursors isolated outside the ion mobility range.
+      // Both of its ranges are inclusive; the exact (half-open) ones are applied afterwards.
+      if (options.hasRTRange())
+      {
+        config.rt_min_sec = options.getRTRange().minPosition()[0];
+        config.rt_max_sec = options.getRTRange().maxPosition()[0];
+        config.rt_selects_spectra = true;
+      }
+      if (options.hasIMRange())
+      {
+        config.im_min = options.getIMRange().minPosition()[0];
+        config.im_max = options.getIMRange().maxPosition()[0];
+      }
+      return config;
+    }
+#endif
+
+    /// Forwards to another consumer, rewriting the source file and filtering the spectra on the way.
+    class ForwardingConsumer : public Interfaces::IMSDataConsumer
+    {
+    public:
+      /// @p filter: applied to each spectrum (may change it); a spectrum for which it returns false is not forwarded.
+      /// Empty: none.
+      ForwardingConsumer(Interfaces::IMSDataConsumer* next, std::function<void(ExperimentalSettings&)> settings,
+                         std::function<bool(MSSpectrum&)> filter) :
+        next_(next), settings_(std::move(settings)), filter_(std::move(filter))
+      {
+      }
+      void setExperimentalSettings(const ExperimentalSettings& settings) override
+      {
+        if (! settings_) { next_->setExperimentalSettings(settings); return; }
+        ExperimentalSettings copy(settings);
+        settings_(copy);
+        next_->setExperimentalSettings(copy);
+      }
+      void setExpectedSize(Size spectra, Size chromatograms) override { next_->setExpectedSize(spectra, chromatograms); }
+      void consumeSpectrum(SpectrumType& spectrum) override
+      {
+        if (filter_ && ! filter_(spectrum)) { return; }
+        next_->consumeSpectrum(spectrum);
+      }
+      void consumeChromatogram(ChromatogramType& chromatogram) override { next_->consumeChromatogram(chromatogram); }
+
+    private:
+      Interfaces::IMSDataConsumer* next_;
+      std::function<void(ExperimentalSettings&)> settings_;
+      std::function<bool(MSSpectrum&)> filter_;
+    };
+  } // namespace
+
+  std::string allowedToString_(vector<FileTypes::Type> types)
+  {
+    std::string aStrings;
     for (auto i : types)
     {
       if (i != FileTypes::SIZE_OF_TYPE)
@@ -171,14 +437,14 @@ namespace OpenMS
     return aStrings;
   }
 
-  FileTypes::Type FileHandler::getType(const String& filename)
+  FileTypes::Type FileHandler::getType(const std::string& filename)
   {
     // Strip trailing directory separators (important for directory-based formats
     // like .d where shell tab-completion appends '/')
-    String normalized = filename;
-    while (normalized.hasSuffix("/") || normalized.hasSuffix("\\"))
+    std::string normalized = filename;
+    while (StringUtils::hasSuffix(normalized, "/") || StringUtils::hasSuffix(normalized, "\\"))
     {
-      normalized = normalized.prefix(normalized.size() - 1);
+      normalized = StringUtils::prefix(normalized, normalized.size() - 1);
     }
 
     FileTypes::Type type = getTypeByFileName(normalized);
@@ -188,16 +454,12 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
     if (type == FileTypes::BRUKER_TDF)
     {
-      if (File::exists(normalized + "/analysis.tdf") || File::exists(normalized + "/analysis.tdf_bin"))
-      {
-        return FileTypes::BRUKER_TDF;
-      }
-      // Check for .d.zip: a ZIP archive containing a Bruker .d directory
-      if (File::exists(normalized) && !File::isDirectory(normalized) && String(normalized).toLower().hasSuffix(".zip"))
-      {
-        return FileTypes::BRUKER_TDF;
-      }
-      return FileTypes::UNKNOWN; // .d suffix but not a TDF directory
+      // A Bruker .d directory, or a ZIP archive that holds one according to its list of entries. TSF and BAF
+      // data (no ion mobility) count as well: BrukerTimsFile then says that it cannot read them, which tells
+      // more than an unknown file type. An archive whose entries cannot be listed is taken by its name; the
+      // reader reports what is wrong with it.
+      return BrukerTimsFile::detectFormat(normalized) != BrukerTimsFile::DataFormat::NONE ? FileTypes::BRUKER_TDF
+                                                                                          : FileTypes::UNKNOWN;
     }
 #else
     if (type == FileTypes::BRUKER_TDF)
@@ -206,12 +468,12 @@ namespace OpenMS
     }
 #endif
 
-#ifndef WITH_THERMO_RAW
-    if (type == FileTypes::RAW)
-    {
-      return FileTypes::UNKNOWN; // .raw format requires WITH_THERMO_RAW
-    }
-#endif
+    // Note: .raw is always recognized as FileTypes::RAW, even without WITH_THERMO_RAW.
+    // The in-process reader (loadExperiment below) is #ifdef WITH_THERMO_RAW guarded,
+    // but FileConverter can still convert .raw via the external ThermoRawFileParser
+    // (mono) path, which is available on all platforms. Callers that try to load a
+    // .raw in-process without WITH_THERMO_RAW get a clear "type is not supported"
+    // ParseError from loadExperiment's default case.
 
     if (type == FileTypes::UNKNOWN)
     {
@@ -220,82 +482,24 @@ namespace OpenMS
     return type;
   }
 
-  FileTypes::Type FileHandler::getTypeByFileName(const String& filename)
+  FileTypes::Type FileHandler::getTypeByFileName(const std::string& filename)
   {
-    String basename = File::basename(filename), tmp;
-    // special rules for "double extensions":
-    if (basename.hasSuffix(".pep.xml"))
-    {
-      return FileTypes::PEPXML;
-    }
-    if (basename.hasSuffix(".prot.xml"))
-    {
-      return FileTypes::PROTXML;
-    }
-    if (basename.hasSuffix(".xquest.xml"))
-    {
-      return FileTypes::XQUESTXML;
-    }
-    if (basename.hasSuffix(".spec.xml"))
-    {
-      return FileTypes::SPECXML;
-    }
-    try
-    {
-      tmp = basename.suffix('.');
-    }
-    // no '.' => unknown type
-    catch (Exception::ElementNotFound&)
-    {
-      // last chance, Bruker fid file
-      if (basename == "fid")
-      {
-        return FileTypes::XMASS;
-      }
-      return FileTypes::UNKNOWN;
-    }
-    tmp.toUpper();
-    if (tmp == "BZ2" || tmp == "GZ" || tmp == "ZIP")
-    {
-      // do not use getTypeByContent() here, as this is deadly for output files!
-      return getTypeByFileName(filename.prefix(filename.size() - tmp.size() - 1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
-    }
-
-    return FileTypes::nameToType(tmp);
+    return FileNameUtils::getTypeByFileName(filename);
   }
 
-  bool FileHandler::hasValidExtension(const String& filename, const FileTypes::Type type)
+  bool FileHandler::hasValidExtension(const std::string& filename, const FileTypes::Type type)
   {
-    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-    return (ft == type || ft == FileTypes::UNKNOWN);
+    return FileNameUtils::hasValidExtension(filename, type);
   }
 
-  String FileHandler::stripExtension(const String& filename)
+  std::string FileHandler::stripExtension(const std::string& filename)
   {
-    if (!filename.has('.'))
-    {
-      return filename;
-    }
-    // we don't just search for the last '.' and remove the suffix, because this could be wrong, e.g. bla.mzML.gz would become bla.mzML
-    auto type = getTypeByFileName(filename);
-    auto s_type = FileTypes::typeToName(type);
-    size_t pos = String(filename).toLower().rfind(s_type.toLower()); // search backwards in entire string, because we could search for 'mzML' and have 'mzML.gz'
-    if (pos == string::npos) // file type was FileTypes::UNKNOWN and we did not find '.unknown' as ending
-    {
-      size_t ext_pos = filename.rfind('.');
-      size_t dir_sep = filename.find_last_of("/\\"); // look for '/' or '\'
-      if (dir_sep != string::npos && dir_sep > ext_pos) // we found a directory separator after the last '.', e.g. '/my.dotted.dir/filename'! Ouch!
-      { // do not strip anything, because there is no extension to strip
-        return filename;
-      }
-      return filename.prefix(ext_pos);
-    }
-    return filename.prefix(pos - 1); // strip the '.' as well
+    return FileNameUtils::stripExtension(filename);
   }
 
-  String FileHandler::swapExtension(const String& filename, const FileTypes::Type new_type)
+  std::string FileHandler::swapExtension(const std::string& filename, const FileTypes::Type new_type)
   {
-    return stripExtension(filename) + "." + FileTypes::typeToName(new_type);
+    return FileNameUtils::swapExtension(filename, new_type);
   }
 
   bool FileHandler::isSupported(FileTypes::Type type)
@@ -310,7 +514,7 @@ namespace OpenMS
     }
   }
 
-  FileTypes::Type FileHandler::getConsistentOutputfileType(const String& output_filename, const String& requested_type)
+  FileTypes::Type FileHandler::getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type)
   {
     FileTypes::Type t_file = getTypeByFileName(output_filename);
     FileTypes::Type t_req = FileTypes::nameToType(requested_type);
@@ -337,15 +541,17 @@ namespace OpenMS
     }
   }
 
-  FileTypes::Type FileHandler::getTypeByContent(const String& filename)
+  FileTypes::Type FileHandler::getTypeByContent(const std::string& filename)
   {
-    String first_line;
-    String two_five;
-    String all_simple;
+    std::string first_line;
+    std::string two_five;
+    std::string all_simple;
 
     // only the first five lines will be set for compressed files
     // so far, compression is only supported for XML files
-    vector<String> complete_file;
+    vector<std::string> complete_file;
+    bool is_uncompressed = false;
+    std::string decompressed_preview;
 
     // test whether the file is compressed (bzip2, gzip, or zip)
     ifstream compressed_file(filename.c_str());
@@ -362,15 +568,16 @@ namespace OpenMS
     {
       Bzip2Ifstream bzip2_file(filename.c_str());
 
-      // read in 1024 bytes (keep last byte for zero to end string)
-      char buffer[1024];
-      size_t bytes_read = bzip2_file.read(buffer, 1024-1);
+      // read in 8192 bytes (keep last byte for zero to end string)
+      char buffer[8192];
+      size_t bytes_read = bzip2_file.read(buffer, 8192 - 1);
       buffer[bytes_read] = '\0';
 
       // get first five lines
-      String buffer_str(buffer);
-      vector<String> split;
-      buffer_str.split('\n', split);
+      std::string buffer_str(buffer);
+      decompressed_preview = buffer_str;
+      vector<std::string> split;
+      StringUtils::split(buffer_str, '\n', split);
       split.resize(5);
 
       first_line = split[0];
@@ -382,15 +589,16 @@ namespace OpenMS
     {
       GzipIfstream gzip_file(filename.c_str());
 
-      // read in 1024 bytes (keep last byte for zero to end string)
-      char buffer[1024];
-      size_t bytes_read = gzip_file.read(buffer, 1024-1);
+      // read in 8192 bytes (keep last byte for zero to end string)
+      char buffer[8192];
+      size_t bytes_read = gzip_file.read(buffer, 8192 - 1);
       buffer[bytes_read] = '\0';
 
       // get first five lines
-      String buffer_str(buffer);
-      vector<String> split;
-      buffer_str.split('\n', split);
+      std::string buffer_str(buffer);
+      decompressed_preview = buffer_str;
+      vector<std::string> split;
+      StringUtils::split(buffer_str, '\n', split);
       split.resize(5);
 
       first_line = split[0];
@@ -402,15 +610,16 @@ namespace OpenMS
     {
       ZipIfstream zip_file(filename.c_str());
 
-      // read in 1024 bytes (keep last byte for zero to end string)
-      char buffer[1024];
-      size_t bytes_read = zip_file.read(buffer, 1024-1);
+      // read in 8192 bytes (keep last byte for zero to end string)
+      char buffer[8192];
+      size_t bytes_read = zip_file.read(buffer, 8192 - 1);
       buffer[bytes_read] = '\0';
 
       // get first five lines
-      String buffer_str(buffer);
-      vector<String> split;
-      buffer_str.split('\n', split);
+      std::string buffer_str(buffer);
+      decompressed_preview = buffer_str;
+      vector<std::string> split;
+      StringUtils::split(buffer_str, '\n', split);
       split.resize(5);
 
       first_line = split[0];
@@ -420,6 +629,7 @@ namespace OpenMS
     }
     else // uncompressed
     {
+      is_uncompressed = true;
       //load first 5 lines
       TextFile file(filename, true, 5);
       TextFile::ConstIterator file_it = file.begin();
@@ -451,8 +661,8 @@ namespace OpenMS
         }
 
         // remove trailing space
-        two_five = two_five.chop(1);
-        two_five.substitute('\t', ' ');
+        two_five = StringUtils::chop(two_five, 1);
+        StringUtils::substitute(two_five, '\t', ' ');
         all_simple = *(file.begin()) + ' ' + two_five;
         first_line = *(file.begin());
       }
@@ -463,91 +673,130 @@ namespace OpenMS
 
 
     //mzXML (all lines)
-    if (all_simple.hasSubstring("<mzXML"))
+    if (StringUtils::hasSubstring(all_simple, "<mzXML"))
     {
       return FileTypes::MZXML;
     }
     //mzData (all lines)
-    if (all_simple.hasSubstring("<mzData"))
+    if (StringUtils::hasSubstring(all_simple, "<mzData"))
     { 
       return FileTypes::MZDATA;
     }
-    //mzML (all lines)
-    if (all_simple.hasSubstring("<mzML"))
+    //imzML / mzML (all lines) — imzML uses mzML root + IMS ontology
+    if (StringUtils::hasSubstring(all_simple, "<mzML"))
     {
+      auto isImzMLContent = [](const std::string& text) -> bool
+      {
+        return StringUtils::hasSubstring(text, "Imaging MS Ontology")
+               || StringUtils::hasSubstring(text, "IMS:1000050")
+               || StringUtils::hasSubstring(text, "IMS:1000030")
+               || StringUtils::hasSubstring(text, "IMS:1000080");
+      };
+      if (isImzMLContent(all_simple))
+      {
+        return FileTypes::IMZML;
+      }
+      if (!decompressed_preview.empty() && isImzMLContent(decompressed_preview))
+      {
+        return FileTypes::IMZML;
+      }
+      if (!decompressed_preview.empty())
+      {
+        vector<std::string> preview_lines;
+        StringUtils::split(decompressed_preview, '\n', preview_lines);
+        for (const std::string& line : preview_lines)
+        {
+          if (isImzMLContent(line))
+          {
+            return FileTypes::IMZML;
+          }
+        }
+      }
+      if (is_uncompressed)
+      {
+        // IMS metadata can appear well after the root element (cvList, scanSettings, …)
+        TextFile header(filename, true, 512);
+        for (TextFile::ConstIterator it = header.begin(); it != header.end(); ++it)
+        {
+          if (isImzMLContent(*it))
+          {
+            return FileTypes::IMZML;
+          }
+        }
+      }
       return FileTypes::MZML;
     }
     //"analysisXML" aka. mzid (all lines)
-    if (all_simple.hasSubstring("<MzIdentML"))
+    if (StringUtils::hasSubstring(all_simple, "<MzIdentML"))
     {
       return FileTypes::MZIDENTML;
     }
     //subject to change!
-    if (all_simple.hasSubstring("<MzQualityMLType"))
+    if (StringUtils::hasSubstring(all_simple, "<MzQualityMLType"))
     {
       return FileTypes::QCML;
     }
     //pepXML (all lines)
-    if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
+    if (StringUtils::hasSubstring(all_simple, "xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
     {
       return FileTypes::PEPXML;
     }
     //protXML (all lines)
-    if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/protXML\""))
+    if (StringUtils::hasSubstring(all_simple, "xmlns=\"http://regis-web.systemsbiology.net/protXML\""))
     {
       return FileTypes::PROTXML;
     }
     //feature map (all lines)
-    if (all_simple.hasSubstring("<featureMap"))
+    if (StringUtils::hasSubstring(all_simple, "<featureMap"))
     {
       return FileTypes::FEATUREXML;
     }
     //idXML (all lines)
-    if (all_simple.hasSubstring("<IdXML"))
+    if (StringUtils::hasSubstring(all_simple, "<IdXML"))
     {
       return FileTypes::IDXML;
     }
     //consensusXML (all lines)
-    if (all_simple.hasSubstring("<consensusXML"))
+    if (StringUtils::hasSubstring(all_simple, "<consensusXML"))
     {
       return FileTypes::CONSENSUSXML;
     }
     //TOPPAS (all lines)
-    if (all_simple.hasSubstring("<PARAMETERS") && all_simple.hasSubstring("<NODE name=\"info\"") && all_simple.hasSubstring("<ITEM name=\"num_vertices\""))
+    if (StringUtils::hasSubstring(all_simple, "<PARAMETERS") && StringUtils::hasSubstring(all_simple, "<NODE name=\"info\"") && StringUtils::hasSubstring(all_simple, "<ITEM name=\"num_vertices\""))
     {
       return FileTypes::TOPPAS;
     }
     //INI (all lines) (must be AFTER TOPPAS) - as this is less restrictive
-    if (all_simple.hasSubstring("<PARAMETERS"))
+    if (StringUtils::hasSubstring(all_simple, "<PARAMETERS"))
     {
       return FileTypes::INI;
     }
     //TrafoXML (all lines)
-    if (all_simple.hasSubstring("<TrafoXML"))
+    if (StringUtils::hasSubstring(all_simple, "<TrafoXML"))
     {
       return FileTypes::TRANSFORMATIONXML;
     }
     //GelML (all lines)
-    if (all_simple.hasSubstring("<GelML"))
+    if (StringUtils::hasSubstring(all_simple, "<GelML"))
     {
       return FileTypes::GELML;
     }
     //traML (all lines)
-    if (all_simple.hasSubstring("<TraML"))
+    if (StringUtils::hasSubstring(all_simple, "<TraML"))
     {
       return FileTypes::TRAML;
     }
     //OMSSAXML file
-    if (all_simple.hasSubstring("<MSResponse"))
+    if (StringUtils::hasSubstring(all_simple, "<MSResponse"))
     {
       return FileTypes::OMSSAXML;
     }
     //MASCOTXML file
-    if (all_simple.hasSubstring("<mascot_search_results"))
+    if (StringUtils::hasSubstring(all_simple, "<mascot_search_results"))
     {
       return FileTypes::MASCOTXML;
     }
-    if (all_simple.hasPrefix("{"))
+    if (StringUtils::hasPrefix(all_simple, "{"))
     {
       return FileTypes::JSON;
     }
@@ -558,12 +807,13 @@ namespace OpenMS
       Size bigger_than = 0;
       while (i < complete_file.size())
       {
-        if (complete_file[i].trim().hasPrefix(">"))
+        StringUtils::trim(complete_file[i]);
+        if (StringUtils::hasPrefix(complete_file[i], ">"))
         {
           ++bigger_than;
           ++i;
         }
-        else if (complete_file[i].trim().hasPrefix("#"))
+        else if (StringUtils::hasPrefix(complete_file[i], "#"))
         {
           ++i;
         }
@@ -580,26 +830,26 @@ namespace OpenMS
 
     // PNG file (to be really correct, the first eight bytes of the file would
     // have to be checked; see e.g. the Wikipedia article)
-    if (first_line.substr(1, 3) == "PNG")
+    if (StringUtils::substr(first_line, 1, 3) == "PNG")
     {
       return FileTypes::PNG;
     }
     //MSP (all lines)
     for (Size i = 0; i != complete_file.size(); ++i)
     {
-      if (complete_file[i].hasPrefix("Name: ") && complete_file[i].hasSubstring("/"))
+      if (StringUtils::hasPrefix(complete_file[i], "Name: ") && StringUtils::hasSubstring(complete_file[i], "/"))
       {
         return FileTypes::MSP;
       }
-      if (complete_file[i].hasPrefix("Num peaks: "))
+      if (StringUtils::hasPrefix(complete_file[i], "Num peaks: "))
       {
         return FileTypes::MSP;
       }
     }
 
     //tokenize lines 2-5
-    vector<String> parts;
-    two_five.split(' ', parts);
+    vector<std::string> parts;
+    StringUtils::split(two_five, ' ', parts);
 
     //DTA
     if (parts.size() == 8)
@@ -609,7 +859,7 @@ namespace OpenMS
       {
         for (Size i = 0; i < 8; ++i)
         {
-          parts[i].toFloat();
+          StringUtils::toFloat(parts[i]);
         }
       }
       catch ( Exception::ConversionError& )
@@ -630,7 +880,7 @@ namespace OpenMS
       {
         for (Size i = 0; i < 12; ++i)
         {
-          parts[i].toFloat();
+          StringUtils::toFloat(parts[i]);
         }
       }
       catch ( Exception::ConversionError& )
@@ -644,7 +894,7 @@ namespace OpenMS
     }
 
     // MGF (Mascot Generic Format)
-    if (two_five.hasSubstring("BEGIN IONS"))
+    if (StringUtils::hasSubstring(two_five, "BEGIN IONS"))
     {
       return FileTypes::MGF;
     }
@@ -652,7 +902,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != complete_file.size(); ++i)
       {
-        if (complete_file[i].trim() == "FORMAT=Mascot generic" || complete_file[i].trim() == "BEGIN IONS")
+        if (StringUtils::trim(complete_file[i]) == "FORMAT=Mascot generic" || StringUtils::trim(complete_file[i]) == "BEGIN IONS")
         {
           return FileTypes::MGF;
         }
@@ -660,7 +910,7 @@ namespace OpenMS
     }
 
     // MS2 file format
-    if (all_simple.hasSubstring("CreationDate"))
+    if (StringUtils::hasSubstring(all_simple, "CreationDate"))
     {
       if (!all_simple.empty() && all_simple[0] == 'H')
       {
@@ -670,7 +920,7 @@ namespace OpenMS
 
     // mzTab file format
     for (Size i = 0; i != complete_file.size(); ++i) {
-        if (complete_file[i].hasSubstring("MTD\tmzTab-version")) {
+        if (StringUtils::hasSubstring(complete_file[i], "MTD\tmzTab-version")) {
             return FileTypes::MZTAB;
         }
     }
@@ -678,14 +928,14 @@ namespace OpenMS
     // msInspect file (.tsv)
     for (Size i = 0; i != complete_file.size(); ++i)
     {
-      if (complete_file[i].hasSubstring("scan\ttime\tmz\taccurateMZ\tmass\tintensity\tcharge\tchargeStates\tkl\tbackground\tmedian\tpeaks\tscanFirst\tscanLast\tscanCount\ttotalIntensity\tsumSquaresDist\tdescription"))
+      if (StringUtils::hasSubstring(complete_file[i], "scan\ttime\tmz\taccurateMZ\tmass\tintensity\tcharge\tchargeStates\tkl\tbackground\tmedian\tpeaks\tscanFirst\tscanLast\tscanCount\ttotalIntensity\tsumSquaresDist\tdescription"))
       {
         return FileTypes::TSV;
       }
     }
 
     // specArray file (.pepList)
-    if (first_line.hasSubstring("       m/z\t     rt(min)\t       snr\t      charge\t   intensity"))
+    if (StringUtils::hasSubstring(first_line, "       m/z\t     rt(min)\t       snr\t      charge\t   intensity"))
     {
       return FileTypes::PEPLIST;
     }
@@ -693,22 +943,28 @@ namespace OpenMS
     // hardkloer file (.hardkloer)
     /**
       NOT IMPLEMENTED YET
-      if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications"))
+      if (StringUtils::hasSubstring(first_line, "File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications"))
     {
         return FileTypes::HARDKLOER;
     }
     **/
 
     // kroenik file (.kroenik)
-    if (first_line.hasSubstring("File\tFirst Scan\tLast Scan\tNum of Scans\tCharge\tMonoisotopic Mass\tBase Isotope Peak\tBest Intensity\tSummed Intensity\tFirst RTime\tLast RTime\tBest RTime\tBest Correlation\tModifications"))
+    if (StringUtils::hasSubstring(first_line, "File\tFirst Scan\tLast Scan\tNum of Scans\tCharge\tMonoisotopic Mass\tBase Isotope Peak\tBest Intensity\tSummed Intensity\tFirst RTime\tLast RTime\tBest RTime\tBest Correlation\tModifications"))
     {
       return FileTypes::KROENIK;
     }
 
     // Percolator tab-delimited output (PSM level, .psms)
-    if (first_line.hasPrefix("PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds"))
+    if (StringUtils::hasPrefix(first_line, "PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds"))
     {
       return FileTypes::PSMS;
+    }
+
+    // bedRMod file format
+    if (first_line.find("fileformat=bedRMod") != std::string::npos)
+    {
+      return FileTypes::BEDRMOD;
     }
 
     // EDTA file
@@ -747,31 +1003,19 @@ namespace OpenMS
     f_options_ = f_options;
   }
 
-  String FileHandler::computeFileHash(const String& filename)
+  std::string FileHandler::computeFileHash(const std::string& filename)
   {
-    std::ifstream file{std::filesystem::path{std::string(filename)}, std::ios::binary};
-    if (!file.is_open())
+    SHA1 sha;
+    if (!appendFileToSha1_(sha, filename))
     {
       return "";
     }
-    SHA1 sha;
-    char buffer[8192];
-    while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
-    {
-      sha.update(buffer, static_cast<std::size_t>(file.gcount()));
-    }
     uint32_t digest[5];
     sha.finalize(digest);
-
-    std::ostringstream result;
-    for (int i = 0; i < 5; ++i)
-    {
-      result << std::hex << std::setfill('0') << std::setw(8) << digest[i];
-    }
-    return result.str();
+    return sha1ToHexString_(digest);
   }
 
-  void FileHandler::loadSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::loadSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
   {
     // determine file type
     FileTypes::Type type = getType(filename);
@@ -804,7 +1048,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeSpectrum(const String& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::storeSpectrum(const std::string& filename, MSSpectrum& spec, const std::vector<FileTypes::Type> allowed_types)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -840,7 +1084,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file,
+  void FileHandler::loadExperiment(const std::string& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file,
                                    const bool compute_hash)
   {
     // setting the flag for hash recomputation only works if source file entries are rewritten
@@ -901,11 +1145,21 @@ namespace OpenMS
         f.getOptions() = options_;
         f.setLogType(log);
         f.load(filename, exp);
+        // The ion mobility range applies to the spectra, so also to the SRM spectra before they become chromatograms
+        if (options_.hasIMRange()) { filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); }); }
         ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
       }
       break;
 
-      case FileTypes::MGF: 
+      case FileTypes::IMZML:
+      {
+        // imzML is a mass spectrometry imaging format; it is not loadable into a flat
+        // MSExperiment. Use loadImagingExperiment() to load it into an MSImagingExperiment.
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+          "imzML is a mass spectrometry imaging format; load it via FileHandler::loadImagingExperiment into an MSImagingExperiment");
+      }
+
+      case FileTypes::MGF:
       {
         MascotGenericFile f;
         f.setLogType(log);
@@ -945,40 +1199,16 @@ namespace OpenMS
 #ifdef WITH_OPENTIMS
       case FileTypes::BRUKER_TDF:
       {
-        // If the input is a .d.zip archive, extract to a temp directory first.
-        std::unique_ptr<File::TempDir> temp_dir;
-        String load_path = filename;
-        if (!File::isDirectory(filename) && String(filename).toLower().hasSuffix(".zip"))
-        {
-          load_path = ZipArchiveFile::unzipDirectory(filename, temp_dir);
-          // Find the .d directory inside the extracted archive (may be nested)
-          bool found_d = false;
-          for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(load_path)))
-          {
-            if (entry.is_directory() && entry.path().extension() == ".d")
-            {
-              load_path = entry.path().string();
-              found_d = true;
-              break;
-            }
-          }
-          if (!found_d)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              filename, "ZIP archive does not contain a .d directory");
-          }
-        }
+        rejectBrukerImaging(filename);
+
+        // BrukerTimsFile unpacks a .d.zip archive itself.
         BrukerTimsFile f;
         f.setLogType(log);
-        f.load(load_path, exp);
-        // Apply MS level filtering (BrukerTimsFile loads all levels)
-        if (options_.hasMSLevels())
-        {
-          exp.getSpectra().erase(
-            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
-            exp.getSpectra().end());
-        }
+        // Do not decode what the PeakFileOptions exclude anyway
+        f.load(filename, exp, brukerConfig(options_));
+
+        // Apply the remaining PeakFileOptions filters (and the exact RT range, which is inclusive in the reader).
+        applyPostLoadOptions_(exp);
       }
       break;
 #endif
@@ -988,16 +1218,11 @@ namespace OpenMS
       {
         ThermoRawFile f;
         f.setLogType(log);
+        f.setOptions(thermoRawOptions(options_, f.getOptions()));
         f.load(filename, exp);
-        // Apply MS level filtering (ThermoRawFile loads all levels)
-        if (options_.hasMSLevels())
-        {
-          exp.getSpectra().erase(
-            std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-              [this](const MSSpectrum& s) { return !options_.containsMSLevel(s.getMSLevel()); }),
-            exp.getSpectra().end());
-        }
-        exp.updateRanges();
+
+        // Only the peak-level filters (m/z, intensity, ion mobility) are left to apply post-load.
+        if (options_.hasMZRange() || options_.hasIntensityRange() || options_.hasIMRange()) { applyPostLoadOptions_(exp); }
       }
       break;
 #endif
@@ -1007,47 +1232,152 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
     }
+    // The ion mobility range, which the readers of the other formats ignore (applyPostLoadOptions_() applies it with the rest;
+    // for mzML it is applied above, before the SRM spectra are converted to chromatograms)
+    if (options_.hasIMRange() && type != FileTypes::BRUKER_TDF && type != FileTypes::RAW)
+    {
+      if (type != FileTypes::MZML) { filterSpectra(exp, [this](MSSpectrum& s) { return applyIMRange(options_, s); }); }
+      exp.updateRanges();
+    }
+    if (rewrite_source_file) { rewriteSourceFile(exp, filename, type, compute_hash); }
+  }
+
+  void FileHandler::transformExperiment(const std::string& filename, Interfaces::IMSDataConsumer* consumer, const std::vector<FileTypes::Type> allowed_types,
+                                        ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
+  {
+    OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
+    if (consumer == nullptr) { throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
+
+    const FileTypes::Type type = getType(filename);
+    if (!allowed_types.empty() && !FileTypeList(allowed_types).contains(type))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not allowed for transforming an experiment. Allowed types are: " + allowedToString_(allowed_types));
+    }
+    std::function<void(ExperimentalSettings&)> settings;
     if (rewrite_source_file)
     {
-      SourceFile src_file;
-      if (exp.getSourceFiles().empty()) // copy settings like native ID format
+      settings = [&filename, type, compute_hash](ExperimentalSettings& s) { rewriteSourceFile(s, filename, type, compute_hash); };
+    }
+    // The ion mobility range, which the mzML and mzXML readers ignore (as for loadExperiment())
+    std::function<bool(MSSpectrum&)> im_filter;
+    if (options_.hasIMRange()) { im_filter = [this](MSSpectrum& s) { return applyIMRange(options_, s); }; }
+
+    switch (type)
+    {
+      case FileTypes::MZML:
       {
-        OPENMS_LOG_WARN << "No source file annotated." << endl;
+        ForwardingConsumer forward(consumer, settings, im_filter);
+        MzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.transform(filename, &forward);
       }
-      else
+      break;
+
+      case FileTypes::MZXML:
       {
-        if (exp.getSourceFiles().size() > 1)
+        ForwardingConsumer forward(consumer, settings, im_filter);
+        MzXMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.transform(filename, &forward);
+      }
+      break;
+
+#ifdef WITH_THERMO_RAW
+      case FileTypes::RAW:
+      {
+        // The reader applies the scan-level options; the peak-level ones are applied per spectrum.
+        std::function<bool(MSSpectrum&)> peak_filter;
+        if (options_.hasMZRange() || options_.hasIntensityRange() || options_.hasIMRange())
         {
-          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getSourceFiles().size() << " will take only first one for rewriting." << endl;
+          peak_filter = [this](MSSpectrum& s) { if (! applyIMRange(options_, s)) { return false; } applyPeakOptions(options_, s); return true; };
         }
-        src_file = exp.getSourceFiles()[0];
+        ForwardingConsumer forward(consumer, settings, peak_filter);
+        ThermoRawFile f;
+        f.setLogType(log);
+        f.setOptions(thermoRawOptions(options_, f.getOptions()));
+        f.transform(filename, &forward);
       }
+      break;
+#endif
 
-      // Normalize directory paths: strip trailing slashes for basename and URI
-      String normalized_name = filename;
-      while (normalized_name.hasSuffix("/") || normalized_name.hasSuffix("\\"))
-        normalized_name = normalized_name.prefix(normalized_name.size() - 1);
-      src_file.setNameOfFile(File::basename(normalized_name));
-      String path_to_file = File::path(File::absolutePath(normalized_name)); // convert to absolute path and strip file name
-
-      // make sure we end up with at most 3 forward slashes
-      String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
-      src_file.setPathToFile(uri);
-      // this is more complicated since the data formats allowed by mzML are very verbose.
-      // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
-      src_file.setFileType(FileTypes::typeToMZML(type));
-
-      if (compute_hash && type != FileTypes::BRUKER_TDF)
+#ifdef WITH_OPENTIMS
+      case FileTypes::BRUKER_TDF:
       {
-        src_file.setChecksum(computeFileHash(filename), SourceFile::ChecksumType::SHA1);
-      }
+        rejectBrukerImaging(filename);
 
-      exp.getSourceFiles().clear();
-      exp.getSourceFiles().push_back(src_file);
+        // The reader skips the frames the options exclude; all options are then applied to each spectrum, as
+        // loadExperiment() applies them to the loaded experiment.
+        ForwardingConsumer forward(consumer, settings, [this](MSSpectrum& s) { return applyOptions(options_, s); });
+        BrukerTimsFile f;
+        f.setLogType(log);
+        f.transform(filename, &forward, brukerConfig(options_));
+      }
+      break;
+#endif
+
+      default:
+      {
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                         "type " + FileTypes::typeToName(type) + " cannot be streamed; use loadExperiment");
+      }
     }
   }
 
-  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadImagingExperiment(const std::string& filename,
+                                          MSImagingExperiment& exp,
+                                          const std::vector<FileTypes::Type> allowed_types,
+                                          ProgressLogger::LogType log)
+  {
+    FileTypes::Type type = getType(filename);
+    if (!allowed_types.empty() && !FileTypeList(allowed_types).contains(type))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                  "type: " + FileTypes::typeToName(type)
+                                    + " is not allowed for loading an imaging experiment. Allowed types are: " + allowedToString_(allowed_types));
+    }
+
+    switch (type)
+    {
+      case FileTypes::IMZML:
+      {
+        ImzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
+
+#ifdef WITH_OPENTIMS
+      case FileTypes::BRUKER_TDF:
+      {
+        // Throws InvalidValue if the .d folder is not MALDI imaging.(MaldiApplicationType = "Imaging" in Metadata)
+        // PeakFileOptions are not applied: filtering spectra post-load would invalidate the pixel geometry.
+        BrukerTimsImagingFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
+#endif
+
+      default:
+      {
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+                                         "type " + FileTypes::typeToName(type) + " is not a mass spectrometry imaging format; use loadExperiment");
+      }
+    }
+  }
+
+  void FileHandler::applyPostLoadOptions_(MSExperiment& exp) const
+  {
+    // The same filters as transformExperiment() applies to each spectrum, so loading and streaming give the same spectra.
+    // The peak filters keep the per-peak data arrays (e.g. the ion mobility of Bruker .d frames) aligned with the peaks.
+    filterSpectra(exp, [this](MSSpectrum& s) { return applyOptions(options_, s); });
+    exp.updateRanges();
+  }
+
+  void FileHandler::storeExperiment(const std::string& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1150,14 +1480,23 @@ namespace OpenMS
       }
       break;
 
-      default: 
+      case FileTypes::IMZML:
+      {
+        // imzML is a mass spectrometry imaging format; FileHandler does not store it from a
+        // flat MSExperiment. Use ImzMLFile::store with an MSImagingExperiment (geometry-driven),
+        // or ImzMLFile::store(MSExperiment) directly if the spectra already carry imzml:x/y.
+        throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename,
+          "imzML is a mass spectrometry imaging format; store it via ImzMLFile from an MSImagingExperiment");
+      }
+
+      default:
       {
         throw Exception::InvalidFileType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type: " + FileTypes::typeToName(type) + " is not supported for storing experiments");
       }
     }
   }
 
-  void FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadFeatures(const std::string& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     // determine file type
     FileTypes::Type type = getType(filename);
@@ -1224,7 +1563,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeFeatures(const std::string& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1303,7 +1642,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadConsensusFeatures(const std::string& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
 
     //determine file type
@@ -1360,7 +1699,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeConsensusFeatures(const std::string& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1417,7 +1756,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadIdentifications(const std::string& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     
     //determine file type
@@ -1469,7 +1808,8 @@ namespace OpenMS
 
       case FileTypes::OMSSAXML:
       {
-        additional_proteins.push_back(ProteinIdentification());
+        // like the other loaders, replace the content: the loaded peptide identifications reference this one run
+        additional_proteins.assign(1, ProteinIdentification());
         OMSSAXMLFile().load(filename, additional_proteins[0],
                             additional_peptides, true, true);
       }
@@ -1504,7 +1844,7 @@ namespace OpenMS
     }   
   }
 
-  void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeIdentifications(const std::string& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1573,7 +1913,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadTransitions(const std::string& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     //determine file type
     FileTypes::Type type = getType(filename);
@@ -1602,7 +1942,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeTransitions(const std::string& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1634,7 +1974,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::loadTransformations(const std::string& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
   {
     //determine file type
     FileTypes::Type type = getType(filename);
@@ -1660,7 +2000,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::storeTransformations(const std::string& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1691,17 +2031,17 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::storeQC(const String& input_file,
-               const String& filename,
+  void FileHandler::storeQC(const std::string& input_file,
+               const std::string& filename,
                const MSExperiment& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                PeptideIdentificationList& pep_ids,
                const ConsensusMap& consensus_map,
-               const String& contact_name,
-               const String& contact_address,
-               const String& description,
-               const String& label,
+               const std::string& contact_name,
+               const std::string& contact_address,
+               const std::string& description,
+               const std::string& label,
                const bool remove_duplicate_features,
                const std::vector<FileTypes::Type> allowed_types
              )

@@ -115,9 +115,9 @@ protected:
                                double score);
 
 
-    void generateDistributionImage_(const std::vector<double> & ids, const String & formula, const String & filename);
+    void generateDistributionImage_(const std::vector<double> & ids, const std::string & formula, const std::string & filename);
 
-    void generateDistributionImage_(const std::vector<double> & all_ids, const Transformation_ & all_trans, const String & fwd_formula, const String & rev_formula, const String & filename);
+    void generateDistributionImage_(const std::vector<double> & all_ids, const Transformation_ & all_trans, const std::string & fwd_formula, const std::string & rev_formula, const std::string & filename);
 
 
     void apply_(PeptideIdentificationList & ids, const std::vector<double> & rev_scores, const std::vector<double> & fwd_scores, const std::vector<double> & all_scores);

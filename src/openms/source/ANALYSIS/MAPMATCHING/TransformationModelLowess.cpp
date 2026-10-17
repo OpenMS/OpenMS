@@ -99,7 +99,7 @@ namespace OpenMS
       const auto folds = OpenMS::CrossValidation::makeKFolds(n, K);
 
       // Build candidate grid spans
-      const String grid_str = params_.getValue("auto_span_grid").toString();
+      const std::string grid_str = params_.getValue("auto_span_grid").toString();
       std::vector<double> user_grid;
       if (!grid_str.empty())
       {

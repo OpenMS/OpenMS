@@ -40,7 +40,7 @@ START_SECTION((~USI()))
 }
 END_SECTION
 
-START_SECTION((USI(const String& collection, const String& ms_run, IndexType index_type, const String& index, const String& interpretation)))
+START_SECTION((USI(const std::string& collection, const std::string& ms_run, IndexType index_type, const std::string& index, const std::string& interpretation)))
 {
   USI usi("PXD000561", "sample.mzML", USI::IndexType::SCAN, "12345", "PEPTIDEK/2");
   TEST_EQUAL(usi.isValid(), true);
@@ -52,7 +52,7 @@ START_SECTION((USI(const String& collection, const String& ms_run, IndexType ind
 }
 END_SECTION
 
-START_SECTION((explicit USI(const String& usi_string)))
+START_SECTION((explicit USI(const std::string& usi_string)))
 {
   // Test valid USI parsing
   USI usi("mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2");
@@ -156,7 +156,7 @@ START_SECTION((bool isValid() const))
 }
 END_SECTION
 
-START_SECTION((static bool isValidUSI(const String& usi_string)))
+START_SECTION((static bool isValidUSI(const std::string& usi_string)))
 {
   TEST_EQUAL(USI::isValidUSI("mzspec:PXD000561:sample.mzML:scan:12345"), true);
   TEST_EQUAL(USI::isValidUSI("mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2"), true);
@@ -167,14 +167,14 @@ START_SECTION((static bool isValidUSI(const String& usi_string)))
 }
 END_SECTION
 
-START_SECTION((const String& getCollection() const))
+START_SECTION((const std::string& getCollection() const))
 {
   USI usi("PXD000561", "sample.mzML", USI::IndexType::SCAN, "12345");
   TEST_STRING_EQUAL(usi.getCollection(), "PXD000561");
 }
 END_SECTION
 
-START_SECTION((void setCollection(const String& collection)))
+START_SECTION((void setCollection(const std::string& collection)))
 {
   USI usi;
   usi.setCollection("PXD000562");
@@ -182,14 +182,14 @@ START_SECTION((void setCollection(const String& collection)))
 }
 END_SECTION
 
-START_SECTION((const String& getMSRun() const))
+START_SECTION((const std::string& getMSRun() const))
 {
   USI usi("PXD000561", "sample.mzML", USI::IndexType::SCAN, "12345");
   TEST_STRING_EQUAL(usi.getMSRun(), "sample.mzML");
 }
 END_SECTION
 
-START_SECTION((void setMSRun(const String& ms_run)))
+START_SECTION((void setMSRun(const std::string& ms_run)))
 {
   USI usi;
   usi.setMSRun("test.mzML");
@@ -212,14 +212,14 @@ START_SECTION((void setIndexType(IndexType index_type)))
 }
 END_SECTION
 
-START_SECTION((const String& getIndex() const))
+START_SECTION((const std::string& getIndex() const))
 {
   USI usi("PXD000561", "sample.mzML", USI::IndexType::SCAN, "12345");
   TEST_STRING_EQUAL(usi.getIndex(), "12345");
 }
 END_SECTION
 
-START_SECTION((void setIndex(const String& index)))
+START_SECTION((void setIndex(const std::string& index)))
 {
   USI usi;
   usi.setIndex("99999");
@@ -227,14 +227,14 @@ START_SECTION((void setIndex(const String& index)))
 }
 END_SECTION
 
-START_SECTION((const String& getInterpretation() const))
+START_SECTION((const std::string& getInterpretation() const))
 {
   USI usi("PXD000561", "sample.mzML", USI::IndexType::SCAN, "12345", "PEPTIDEK/2");
   TEST_STRING_EQUAL(usi.getInterpretation(), "PEPTIDEK/2");
 }
 END_SECTION
 
-START_SECTION((void setInterpretation(const String& interpretation)))
+START_SECTION((void setInterpretation(const std::string& interpretation)))
 {
   USI usi;
   usi.setInterpretation("SEQUENCE/3");
@@ -252,7 +252,7 @@ START_SECTION((bool hasInterpretation() const))
 }
 END_SECTION
 
-START_SECTION((String toString() const))
+START_SECTION((std::string toString() const))
 {
   USI usi1("PXD000561", "sample.mzML", USI::IndexType::SCAN, "12345", "PEPTIDEK/2");
   TEST_STRING_EQUAL(usi1.toString(), "mzspec:PXD000561:sample.mzML:scan:12345:PEPTIDEK/2");
@@ -268,7 +268,7 @@ START_SECTION((String toString() const))
 }
 END_SECTION
 
-START_SECTION((bool fromString(const String& usi_string)))
+START_SECTION((bool fromString(const std::string& usi_string)))
 {
   USI usi;
   
@@ -290,7 +290,7 @@ START_SECTION((bool fromString(const String& usi_string)))
 }
 END_SECTION
 
-START_SECTION((static USI createFromScanNumber(const String& dataset_id, const String& filename, int scan_number, const String& interpretation)))
+START_SECTION((static USI createFromScanNumber(const std::string& dataset_id, const std::string& filename, int scan_number, const std::string& interpretation)))
 {
   USI usi1 = USI::createFromScanNumber("PXD000561", "sample.mzML", 12345);
   TEST_STRING_EQUAL(usi1.toString(), "mzspec:PXD000561:sample.mzML:scan:12345");
@@ -303,7 +303,7 @@ START_SECTION((static USI createFromScanNumber(const String& dataset_id, const S
 }
 END_SECTION
 
-START_SECTION((static USI createFromNativeID(const String& dataset_id, const String& filename, const String& native_id)))
+START_SECTION((static USI createFromNativeID(const std::string& dataset_id, const std::string& filename, const std::string& native_id)))
 {
   // Test with extractable scan number
   USI usi1 = USI::createFromNativeID("PXD000561", "sample.mzML", "scan=12345");
@@ -319,7 +319,7 @@ START_SECTION((static USI createFromNativeID(const String& dataset_id, const Str
 }
 END_SECTION
 
-START_SECTION((static std::optional<int> extractScanNumberFromNativeID(const String& native_id)))
+START_SECTION((static std::optional<int> extractScanNumberFromNativeID(const std::string& native_id)))
 {
   // Test various native ID formats
   auto result1 = USI::extractScanNumberFromNativeID("scan=12345");
@@ -347,7 +347,7 @@ START_SECTION((static std::optional<int> extractScanNumberFromNativeID(const Str
 }
 END_SECTION
 
-START_SECTION((static String indexTypeToString(IndexType index_type)))
+START_SECTION((static std::string indexTypeToString(IndexType index_type)))
 {
   TEST_STRING_EQUAL(USI::indexTypeToString(USI::IndexType::SCAN), "scan");
   TEST_STRING_EQUAL(USI::indexTypeToString(USI::IndexType::INDEX), "index");
@@ -355,7 +355,7 @@ START_SECTION((static String indexTypeToString(IndexType index_type)))
 }
 END_SECTION
 
-START_SECTION((static IndexType indexTypeFromString(const String& type_string)))
+START_SECTION((static IndexType indexTypeFromString(const std::string& type_string)))
 {
   TEST_EQUAL(USI::indexTypeFromString("scan"), USI::IndexType::SCAN);
   TEST_EQUAL(USI::indexTypeFromString("SCAN"), USI::IndexType::SCAN);
@@ -368,7 +368,7 @@ START_SECTION((static IndexType indexTypeFromString(const String& type_string)))
 }
 END_SECTION
 
-START_SECTION((static String extractBasename(const String& filepath)))
+START_SECTION((static std::string extractBasename(const std::string& filepath)))
 {
   // Test Unix-style paths
   TEST_STRING_EQUAL(USI::extractBasename("/path/to/sample.mzML"), "sample.mzML");
@@ -396,13 +396,13 @@ START_SECTION((static String extractBasename(const String& filepath)))
 }
 END_SECTION
 
-START_SECTION((static const String& getCVAccession()))
+START_SECTION((static const std::string& getCVAccession()))
 {
   TEST_STRING_EQUAL(USI::getCVAccession(), "MS:1003063");
 }
 END_SECTION
 
-START_SECTION((static const String& getCVName()))
+START_SECTION((static const std::string& getCVName()))
 {
   TEST_STRING_EQUAL(USI::getCVName(), "universal spectrum identifier");
 }
@@ -425,14 +425,14 @@ START_SECTION(([EXTRA] USI construction with file paths))
   TEST_STRING_EQUAL(usi1.getMSRun(), "/path/to/sample.mzML");
   
   // Test creating USI with extracted basename
-  String full_path = "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML";
-  String basename = USI::extractBasename(full_path);
+  std::string full_path = "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML";
+  std::string basename = USI::extractBasename(full_path);
   USI usi2 = USI::createFromScanNumber("PXD000561", basename, 219);
   TEST_STRING_EQUAL(usi2.getMSRun(), "ES-0014b_2.mzML");
   TEST_STRING_EQUAL(usi2.toString(), "mzspec:PXD000561:ES-0014b_2.mzML:scan:219");
   
   // Test with Windows path
-  String win_path = "C:\\data\\experiments\\sample.mzML";
+  std::string win_path = "C:\\data\\experiments\\sample.mzML";
   USI usi3 = USI::createFromScanNumber("PXD000561", USI::extractBasename(win_path), 100);
   TEST_STRING_EQUAL(usi3.getMSRun(), "sample.mzML");
 }

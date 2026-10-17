@@ -224,7 +224,7 @@ private:
 
       @throws Exception Propagates exceptions from @c FileHandler::storeExperiment on I/O failure (no in-class guard).
     */
-    void storeSpectrum_(const MSSpectrum& input, const String& filename);
+    void storeSpectrum_(const MSSpectrum& input, const std::string& filename);
 
     std::vector<float> mzs_;        ///< Per-band m/z centres consumed by @ref mergeAlongTime; populated by @ref updateMembers_.
     std::vector<float> bin_sizes_;  ///< Per-band sliding bin sizes parallel to @ref mzs_; populated by @ref updateMembers_.

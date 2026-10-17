@@ -79,23 +79,23 @@ namespace OpenMS
     void addPeakAnnotations_(const PeptideIdentificationList& ph);
 
     /// Helper function for text formatting
-    String n_times(Size n, const String& input);
+    std::string n_times(Size n, const std::string& input);
 
     /// Helper function that turns fragment annotations into coverage Strings for visualization with the sequence
-    void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
+    void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, std::string& alpha_string, std::string& beta_string, Size alpha_size, Size beta_size);
 
     /// Generates HTML for showing the sequence with annotations of matched fragments
     template <typename SeqType>
-    String generateSequenceDiagram_(const SeqType& seq, const std::vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+    std::string generateSequenceDiagram_(const SeqType& seq, const std::vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
     /// Helper function for generateSequenceDiagram_() - overload for peptides
-    void generateSequenceRow_(const AASequence& seq, std::vector<String>& row);
+    void generateSequenceRow_(const AASequence& seq, std::vector<std::string>& row);
 
     /// Helper function for generateSequenceDiagram_() - overload for oligonucleotides
-    void generateSequenceRow_(const NASequence& seq, std::vector<String>& row);
+    void generateSequenceRow_(const NASequence& seq, std::vector<std::string>& row);
 
     /// Helper function, that collapses a vector of Strings into one String
-    String collapseStringVector(std::vector<String> strings);
+    std::string collapseStringVector(std::vector<std::string> strings);
 
   private:
     SpectraIDViewTab* spec_id_view_;

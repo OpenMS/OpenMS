@@ -8,14 +8,41 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <algorithm>
+#include <cstddef>
 #include <iostream>
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /**
+      @brief Advances @p mz_it to the first peak whose m/z is not below @p mz and returns the number of peaks skipped.
+
+      The targets are visited in m/z order, so the peak is usually a few steps ahead: those are
+      tried first. If the target is further away (e.g. the precursors of one isolation window in
+      a full MS1 spectrum), a binary search over the m/z-sorted remainder replaces the walk.
+    */
+    inline std::ptrdiff_t advanceToMz_(std::vector<double>::const_iterator& mz_it,
+                                       const std::vector<double>::const_iterator& mz_end,
+                                       const double mz)
+    {
+      const std::vector<double>::const_iterator begin = mz_it;
+      for (int step = 0; step < 8 && mz_it != mz_end && (*mz_it) < mz; ++step)
+      {
+        ++mz_it;
+      }
+      if (mz_it != mz_end && (*mz_it) < mz)
+      {
+        mz_it = std::lower_bound(mz_it, mz_end, mz);
+      }
+      return mz_it - begin;
+    }
+  }
 
   void ChromatogramExtractorAlgorithm::extract_value_tophat(
       const std::vector<double>::const_iterator& mz_start,
@@ -50,11 +77,8 @@ namespace OpenMS
     std::vector<double>::const_iterator int_walker;
 
     // advance the mz / int iterator until we hit the m/z value of the next transition
-    while (mz_it != mz_end && (*mz_it) < mz)
-    {
-      mz_it++;
-      int_it++;
-    }
+    const std::ptrdiff_t skipped = advanceToMz_(mz_it, mz_end, mz);
+    int_it += skipped;
 
     // walk right and left and add to our intensity
     mz_walker  = mz_it;
@@ -164,12 +188,9 @@ namespace OpenMS
     std::vector<double>::const_iterator int_walker;
 
     // advance the mz / int iterator until we hit the m/z value of the next transition
-    while (mz_it != mz_end && (*mz_it) < mz)
-    {
-      mz_it++;
-      im_it++;
-      int_it++;
-    }
+    const std::ptrdiff_t skipped = advanceToMz_(mz_it, mz_end, mz);
+    im_it += skipped;
+    int_it += skipped;
 
     // walk right and left and add to our intensity
     mz_walker  = mz_it;
@@ -248,7 +269,7 @@ namespace OpenMS
       double mz_extraction_window,
       bool ppm,
       double im_extraction_window,
-      const String& filter)
+      const std::string& filter)
   {
     Size input_size = input->getNrSpectra();
     if (input_size < 1)
@@ -259,7 +280,7 @@ namespace OpenMS
     if (output.size() != extraction_coordinates.size())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Output and extraction coordinates need to have the same size: "+ String(output.size()) + " != " + String(extraction_coordinates.size()) );
+        "Output and extraction coordinates need to have the same size: "+ StringUtils::toStr(output.size()) + " != " + StringUtils::toStr(extraction_coordinates.size()) );
     }
 
     int used_filter = getFilterNr_(filter);
@@ -271,6 +292,41 @@ namespace OpenMS
         "Input to extractChromatogram needs to be sorted by m/z");
     }
 
+    // The RT of every spectrum, read once here and used by the extraction loop below (with an on-disk
+    // access such as sqMass, every meta data read is a query).
+    std::vector<double> spectrum_rts(input_size);
+    for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
+    {
+      spectrum_rts[scan_idx] = input->getSpectrumMetaById(scan_idx).RT;
+    }
+
+    // A chromatogram gets one point for every spectrum inside its RT window: reserve that many
+    // up front instead of growing the arrays point by point (which leaves each of them with up
+    // to twice the capacity it needs and fragments the heap with the outgrown buffers).
+    {
+      std::vector<double> sorted_rts;
+      if (std::any_of(extraction_coordinates.begin(), extraction_coordinates.end(),
+                      [](const ExtractionCoordinates& coord) { return coord.rt_end - coord.rt_start > 0; }))
+      {
+        sorted_rts = spectrum_rts;
+        std::sort(sorted_rts.begin(), sorted_rts.end());
+      }
+      for (Size k = 0; k < extraction_coordinates.size(); ++k)
+      {
+        const ExtractionCoordinates& coord = extraction_coordinates[k];
+        Size nr_points = input_size;
+        if (coord.rt_end - coord.rt_start > 0)
+        {
+          nr_points = std::upper_bound(sorted_rts.begin(), sorted_rts.end(), coord.rt_end) -
+                      std::lower_bound(sorted_rts.begin(), sorted_rts.end(), coord.rt_start);
+        }
+        std::vector<double>& times = output[k]->getTimeArray()->data;
+        std::vector<double>& intensities = output[k]->getIntensityArray()->data;
+        times.reserve(times.size() + nr_points);
+        intensities.reserve(intensities.size() + nr_points);
+      }
+    }
+
     //go through all spectra
     startProgress(0, input_size, "Extracting chromatograms");
     for (Size scan_idx = 0; scan_idx < input_size; ++scan_idx)
@@ -278,7 +334,7 @@ namespace OpenMS
       setProgress(scan_idx);
 
       OpenSwath::SpectrumPtr sptr = input->getSpectrumById(scan_idx);
-      OpenSwath::SpectrumMeta s_meta = input->getSpectrumMetaById(scan_idx);
+      const double current_rt = spectrum_rts[scan_idx];
 
       OpenSwath::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
       OpenSwath::BinaryDataArrayPtr int_arr = sptr->getIntensityArray();
@@ -316,7 +372,6 @@ namespace OpenMS
       for (Size k = 0; k < extraction_coordinates.size(); ++k)
       {
         double integrated_intensity = 0;
-        double current_rt = s_meta.RT;
         if (extraction_coordinates[k].rt_end - extraction_coordinates[k].rt_start > 0 &&
              (current_rt < extraction_coordinates[k].rt_start ||
               current_rt > extraction_coordinates[k].rt_end) )
@@ -352,7 +407,7 @@ namespace OpenMS
     endProgress();
   }
 
-  int ChromatogramExtractorAlgorithm::getFilterNr_(const String& filter)
+  int ChromatogramExtractorAlgorithm::getFilterNr_(const std::string& filter)
   {
     if (filter == "tophat")
     {

@@ -13,7 +13,9 @@
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/QPXFile.h>
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <arrow/api.h>
 
@@ -27,7 +29,7 @@ namespace
   constexpr const char* kProteinGroups = "protein_groups.parquet";
   constexpr const char* kSearchParams = "search_params.parquet";
 
-  bool ensureDirectory_(const String& dir)
+  bool ensureDirectory_(const std::string& dir)
   {
     if (File::exists(dir))
     {
@@ -50,13 +52,15 @@ namespace
 bool PSMArrowIO::exportToParquet(
   const std::vector<ProteinIdentification>& protein_identifications,
   const PeptideIdentificationList& peptide_identifications,
-  const String& dir,
+  const std::string& dir,
   bool export_all_psms,
   const ParquetWriteConfig& config)
 {
   // Mirror XMLHandler::checkUniqueIdentifiers_ — fail before any file is opened
   // so we never leave a partial .idparquet behind.
   ProteinIdentificationArrowIO::checkUniqueIdentifiers(protein_identifications);
+  // every peptide identification needs its protein identification run
+  ProteinRunReferences::check(protein_identifications, peptide_identifications);
 
   if (!ensureDirectory_(dir)) { return false; }
 
@@ -87,7 +91,8 @@ bool PSMArrowIO::exportToParquet(
     return false;
   }
   if (!ProteinIdentificationArrowIO::exportSearchParamsToParquet(
-        protein_identifications, dir + "/" + kSearchParams, config))
+        protein_identifications, dir + "/" + kSearchParams, config,
+        ModificationDefinitionIO::encodeByRun(protein_identifications, ModificationDefinitionIO::collect(protein_identifications, peptide_identifications))))
   {
     OPENMS_LOG_ERROR << "PSMArrowIO: failed to write " << kSearchParams << std::endl;
     return false;
@@ -97,7 +102,7 @@ bool PSMArrowIO::exportToParquet(
 }
 
 bool PSMArrowIO::importFromParquet(
-  const String& dir,
+  const std::string& dir,
   std::vector<ProteinIdentification>& protein_identifications,
   PeptideIdentificationList& peptide_identifications)
 {
@@ -134,10 +139,19 @@ bool PSMArrowIO::importFromParquet(
     return false;
   }
 
+  const Size stored_runs = tmp_proteins.size();
   if (!QPXFile::importFromArrow(psm_table, tmp_proteins, tmp_peptides))
   {
     return false;
   }
+  // every peptide identification needs its protein identification run: the PSM table import appends a shell run
+  // for each run identifier the stored runs lack, which is a dangling reference in this file
+  if (tmp_proteins.size() > stored_runs)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      ProteinRunReferences::missingRunMessage(tmp_proteins[stored_runs].getIdentifier()));
+  }
+  ProteinRunReferences::check(tmp_proteins, tmp_peptides);
 
   // Mirror IdXMLFile.cpp:530 — synthesize fresh ProtID identifiers on every load
   // and re-stamp pep_ids in lock-step. Synthesis runs only after all 4 tables have

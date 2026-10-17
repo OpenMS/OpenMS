@@ -32,7 +32,7 @@ START_TEST(IndexedMzMLHandler, "$Id$")
 
 IndexedMzMLHandler* ptr = nullptr;
 IndexedMzMLHandler* nullPointer = nullptr;
-START_SECTION((IndexedMzMLHandler(String filename) ))
+START_SECTION((IndexedMzMLHandler(std::string filename) ))
   ptr = new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -95,7 +95,7 @@ START_SECTION(( bool getParsingSuccess() const))
 }
 END_SECTION
 
-START_SECTION(( void openFile(String filename) ))
+START_SECTION(( void openFile(std::string filename) ))
 {
   IndexedMzMLHandler file;
   TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")))

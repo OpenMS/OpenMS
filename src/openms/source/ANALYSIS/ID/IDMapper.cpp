@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <unordered_set>
@@ -317,10 +318,10 @@ namespace OpenMS
     Size id_matches_none(0), id_matches_single(0), id_matches_multiple(0);
 
     // build map from file to peptide id
-    std::map<String, std::unordered_map<String, const PeptideIdentification*>> file2nativeid2pepid;
+    std::map<std::string, std::unordered_map<std::string, const PeptideIdentification*>> file2nativeid2pepid;
     bool has_spectrum_references{false};
 
-    std::unordered_map<String, ConsensusFeature*> nativeid2cf;
+    std::unordered_map<std::string, ConsensusFeature*> nativeid2cf;
 
     NATIVE_ID_TYPE native_id_type = checkTMTType(map);
 
@@ -337,8 +338,8 @@ namespace OpenMS
         
         if (pid->getHits().empty()) continue; // skip IDs without peptide annotations
 
-        String spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
-        String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+        std::string spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
+        std::string spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
         // missing file origin is fine, but we need a spectrum_reference if we want to build the map
         if (spectrum_reference.empty()) continue;
         // TODO make a unique decision in the whole class on if to extract by scan number or full string?
@@ -347,7 +348,7 @@ namespace OpenMS
           // check if spectrum reference is a string that just contains a number
           try
           {
-            ids[0].getSpectrumReference().toInt64();
+            StringUtils::toInt64(ids[0].getSpectrumReference());
             lookForScanNrsAsIntegers = true;
           }
           catch (...)
@@ -379,21 +380,21 @@ namespace OpenMS
         OPENMS_LOG_WARN << "IDMapper is configured to validate charges. Because the data looks like TMT/iTRAQ this option will be ignored."  << std::endl;
       }
 
+      // Default-constructed, so empty() holds until the first scan_id sets it below. A compiled
+      // empty pattern ("") is not empty(): with it the fallback never ran, and extractScanNumber()
+      // found no capture group and threw. Declared outside the loop, the regex is derived once.
+      RegularExpression scanregex;
       for (auto& cf : map)
       {  
         const auto first_channel = *cf.getFeatures().begin();                  
-        String filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
+        std::string filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
-        boost::regex scanregex{""};
-        String cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
-        String cf_scan_id = cf.getMetaValue(cf_scan_id_key_name, "");
+        std::string cf_scan_id_key_name = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? "id_scan_id" : "scan_id";
+        std::string cf_scan_id = StringUtils::toStr(cf.getMetaValue(cf_scan_id_key_name, ""));
         if (!cf_scan_id.empty()) 
         {
           // This assumes all scan_ids are of the same structure
-          if (lookForScanNrsAsIntegers && scanregex.empty())
-          {
-            scanregex = SpectrumLookup::getRegExFromNativeID(cf_scan_id);
-          }
+          if (lookForScanNrsAsIntegers && scanregex.empty()) { scanregex.assign(SpectrumLookup::getRegExFromNativeID(cf_scan_id)); }
           if (auto run_it = file2nativeid2pepid.find(filename); run_it != file2nativeid2pepid.end()) // TMT/iTRAQ run has identifications
           {
             if (auto scanid_it = run_it->second.find(cf_scan_id); scanid_it != run_it->second.end()) // TMT/iTRAQ run has scan_id with identification
@@ -404,7 +405,13 @@ namespace OpenMS
             // look for only the scan_number in case the search engine only extracted this (e.g. Sage)
             else if (lookForScanNrsAsIntegers)
             {
-              auto scanid_it = run_it->second.find(SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false));
+              // A WIFF native ID ("sample=1 period=1 cycle=96 experiment=1") holds two numbers, and
+              // the generic regex would take the last, the experiment. Its scan number is
+              // cycle * 1000 + experiment (96001), which the accession-based overload computes.
+              const Int scan_number = StringUtils::hasSubstring(cf_scan_id, "cycle=")
+                ? SpectrumLookup::extractScanNumber(cf_scan_id, "MS:1000770")
+                : SpectrumLookup::extractScanNumber(cf_scan_id, scanregex, false);
+              auto scanid_it = run_it->second.find(StringUtils::toStr(scan_number));
               if(scanid_it != run_it->second.end())
               {
                 cf.getPeptideIdentifications().push_back(*scanid_it->second);
@@ -491,7 +498,7 @@ namespace OpenMS
                 {
                   id_mapped = true;
                   was_added = true;
-                  if (mapping[cm_index].count(i) == 0)
+                  if (!mapping[cm_index].contains(i))
                   {
                     // Store the map index of the peptide feature in the id the feature was mapped to.
                     PeptideIdentification id_pep = ids[i];
@@ -1029,7 +1036,7 @@ namespace OpenMS
     {
       return mz_tolerance_;
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!",StringUtils::toStr(measure_));
   }
 
   bool IDMapper::isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const
@@ -1042,7 +1049,7 @@ namespace OpenMS
     {
       return (fabs(rt_distance) <= rt_tolerance_) && (fabs(mz_theoretical - mz_observed) <= mz_tolerance_);
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!",StringUtils::toStr(measure_));
   }
 
   void IDMapper::checkHits_(const PeptideIdentificationList& ids) const
@@ -1102,12 +1109,12 @@ namespace OpenMS
   bool IDMapper::checkMassType_(const vector<DataProcessing>& processing) const
   {
     bool use_avg_mass = false;
-    String before;
+    std::string before;
     for (const DataProcessing& proc_it : processing)
     {
       if (proc_it.getSoftware().getName() == "FeatureFinder")
       {
-        String reported_mz = proc_it.getMetaValue("parameter: algorithm:feature:reported_mz");
+        std::string reported_mz = StringUtils::toStr(proc_it.getMetaValue("parameter: algorithm:feature:reported_mz"));
         if (reported_mz.empty())
           continue; // parameter info not available
         if (!before.empty() && (reported_mz != before))

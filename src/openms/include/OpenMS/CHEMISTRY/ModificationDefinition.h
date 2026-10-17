@@ -11,7 +11,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <cstdint>
@@ -41,7 +41,7 @@ public:
     ModificationDefinition(const ModificationDefinition& rhs);
 
     /// detailed constructor specifying the modification by name
-    explicit ModificationDefinition(const String& mod, bool fixed = true, UInt max_occur = 0);
+    explicit ModificationDefinition(const std::string& mod, bool fixed = true, UInt max_occur = 0);
 
     /// direct constructor from a residue modification
     explicit ModificationDefinition(const ResidueModification& mod, bool fixed = true, UInt max_occur = 0);
@@ -66,10 +66,10 @@ public:
     UInt getMaxOccurrences() const;
 
     /// returns the name of the modification
-    String getModificationName() const;
+    std::string getModificationName() const;
 
     /// sets the modification, allowed are unique names provided by ModificationsDB
-    void setModification(const String& modification);
+    void setModification(const std::string& modification);
 
     /**
        @brief Returns the modification

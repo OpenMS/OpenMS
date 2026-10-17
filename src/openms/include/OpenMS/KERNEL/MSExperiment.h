@@ -1240,8 +1240,14 @@ std::vector<MSChromatogram> extractXICs(
     /// returns a single chromatogram
     MSChromatogram& getChromatogram(Size id);
 
+    /// returns a single chromatogram (immutable)
+    const MSChromatogram& getChromatogram(Size id) const;
+
     /// returns a single spectrum
     MSSpectrum& getSpectrum(Size id);
+
+    /// returns a single spectrum (immutable)
+    const MSSpectrum& getSpectrum(Size id) const;
 
     /// get the total number of spectra available
     Size getNrSpectra() const;
@@ -1371,10 +1377,10 @@ std::vector<MSChromatogram> extractXICs(
           int charge = (item->getCharge()==0 ? 1 : item->getCharge()); // set to 1 if charge is 0, otherwise div/0 below
           for (Size i = 0; i < mts; ++i)
           {
-            String meta_name = String("masstrace_intensity_") + i;
+            std::string meta_name =std::string("masstrace_intensity_") + i;
             if (!item->metaValueExists(meta_name))
             {
-              throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Meta value '") + meta_name + "' expected but not found in container.");
+              throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Meta value '") + meta_name + "' expected but not found in container.");
             }
             ContainerValueType p;
             p.setIntensity(item->getMetaValue(meta_name));

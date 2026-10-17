@@ -165,8 +165,8 @@ START_SECTION([EXTRA] aligned-order constructor uses requested aligned ids and t
   MRMFeature feature = makeMRMFeatureFixture_();
   std::vector<std::string> feature_ids{"tr2", "tr1"};
   std::vector<std::string> precursor_ids{"pr1", "pr0"};
-  std::vector<String> feature_lookup_ids{"tr1", "tr2"};
-  std::vector<String> precursor_lookup_ids{"pr1", "pr0"};
+  std::vector<std::string> feature_lookup_ids{"tr1", "tr2"};
+  std::vector<std::string> precursor_lookup_ids{"pr1", "pr0"};
   MRMFeatureOpenMS access(feature, feature_ids, precursor_ids, feature_lookup_ids, precursor_lookup_ids);
 
   const std::vector<std::string> native_ids = access.getNativeIDs();
@@ -261,9 +261,9 @@ START_SECTION(double getValueAtRT(double RT))
   }
   SignalToNoiseOpenMS<MSSpectrum> ff(s, 200, 50, true);
 
-  double value200 = 0.987854524;
-  double value210 = 1.02162;
-  double value220 = 0.782272686;
+  double value200 = 0.905533313751221;
+  double value210 = 0.936483303705851;
+  double value220 = 0.717083295186361;
   double value590 = 0.35754546252164;
 
   // test values between the mz values

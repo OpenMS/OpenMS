@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -34,7 +35,7 @@ START_SECTION((TransformationXMLFile()))
 }
 END_SECTION
 
-START_SECTION([EXTRA] static bool isValid(const String& filename))
+START_SECTION([EXTRA] static bool isValid(const std::string& filename))
 {
   TransformationXMLFile f;
   TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML"), std::cerr), true);
@@ -45,7 +46,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 END_SECTION
 
 
-START_SECTION(void load(const String & filename, TransformationDescription & transformation, bool fit_model=true))
+START_SECTION(void load(const std::string & filename, TransformationDescription & transformation, bool fit_model=true))
 {
   TransformationDescription trafo;
   TransformationXMLFile trafo_xml;
@@ -83,12 +84,12 @@ START_SECTION(void load(const String & filename, TransformationDescription & tra
 }
 END_SECTION
 
-START_SECTION(void store(String filename, const TransformationDescription& transformation))
+START_SECTION(void store(std::string filename, const TransformationDescription& transformation))
 {
   TransformationDescription trafo, trafo2;
   TransformationXMLFile trafo_xml;
 
-  String tmp_file_none;
+  std::string tmp_file_none;
   Param params;
   trafo.fitModel("none", params);
   NEW_TMP_FILE(tmp_file_none);
@@ -102,7 +103,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
     double image = trafo.apply(pre_image);
     STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
   }
-  String tmp_file_linear;
+  std::string tmp_file_linear;
   NEW_TMP_FILE(tmp_file_linear);
   params.setValue("slope", 3.141592653589793238);
   params.setValue("intercept", 2.718281828459045235);
@@ -121,7 +122,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
     STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
   }
 
-  String tmp_file_pairs;
+  std::string tmp_file_pairs;
   NEW_TMP_FILE(tmp_file_pairs);
   TransformationDescription::DataPoints pairs;
   pairs.push_back(make_pair(1.2, 5.2));
@@ -153,7 +154,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
 
   TEST_EXCEPTION(Exception::IllegalArgument, trafo.fitModel("mumble_pfrwoarpfz"));
 #if 0
-  String tmp_file_bspline;
+  std::string tmp_file_bspline;
   NEW_TMP_FILE(tmp_file_bspline);
   pairs.clear();
   pairs.push_back(make_pair(1.2, 5.2));
@@ -203,4 +204,7 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST

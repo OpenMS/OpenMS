@@ -52,6 +52,13 @@ START_SECTION((virtual void evaluate(const ConsensusMap &consensus_map_in, const
 	maea.evaluate(in, gt, 0.1, 0.1, 100, true, out);
 
 	TEST_REAL_SIMILAR(out, 0.5)
+
+	// degenerate inputs (previously a division by zero): empty tool map -> recall 0; empty ground truth -> exception
+	ConsensusMap empty_map;
+	double out_empty = -1.0;
+	maea.evaluate(empty_map, gt, 0.1, 0.1, 100, true, out_empty);
+	TEST_REAL_SIMILAR(out_empty, 0.0)
+	TEST_EXCEPTION(Exception::InvalidParameter, maea.evaluate(in, empty_map, 0.1, 0.1, 100, true, out_empty))
 END_SECTION
 
 /////////////////////////////////////////////////////////////

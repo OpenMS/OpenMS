@@ -9,6 +9,7 @@
 #pragma once
 
 // Datastructures
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
@@ -27,6 +28,9 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <exception>
+#include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -148,11 +152,41 @@ public:
           correct_window_counter_ << " correct (non-zero) window limits (expected " << swath_maps_.size() << " windows)." << std::endl;
       }
 
+      // Creating the access object of a map that was cached to disk means building the index of
+      // its data file and parsing its meta data file. The maps are independent of each other, so
+      // do that for all of them at once: one after the other it took 38 s for the 300 windows of
+      // an Orbitrap Astral run.
+      std::vector<OpenSwath::SpectrumAccessPtr> map_access(swath_maps_.size());
+      std::exception_ptr access_error;
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (SignedSize i = 0; i < static_cast<SignedSize>(swath_maps_.size()); i++)
+      {
+        try
+        {
+          map_access[i] = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_maps_[i]);
+        }
+        catch (...)
+        {
+#ifdef _OPENMP
+#pragma omp critical (FullSwathFileConsumer_retrieveSwathMaps)
+#endif
+          {
+            if (!access_error) access_error = std::current_exception();
+          }
+        }
+      }
+      if (access_error)
+      {
+        std::rethrow_exception(access_error);
+      }
+
       size_t nonempty_maps = 0;
       for (Size i = 0; i < swath_maps_.size(); i++)
       {
         OpenSwath::SwathMap map;
-        map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_maps_[i]);
+        map.sptr = map_access[i];
         map.lower = swath_map_boundaries_[i].lower;
         map.upper = swath_map_boundaries_[i].upper;
         map.center = swath_map_boundaries_[i].center;
@@ -203,7 +237,7 @@ public:
             "Swath scan does not provide a precursor.");
         }
 
-        const std::vector<Precursor> prec = s.getPrecursors();
+        const std::vector<Precursor>& prec = s.getPrecursors();
         double center = prec[0].getMZ();
         double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
         double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
@@ -214,8 +248,8 @@ public:
         // add IM if present
         if (s.metaValueExists("ion mobility lower limit"))
         {
-          lowerIm = s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility
-          upperIm = s.getMetaValue("ion mobility upper limit");
+          lowerIm = (double)s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility
+          upperIm = (double)s.getMetaValue("ion mobility upper limit");
         }
 
         bool found = false;
@@ -245,7 +279,7 @@ public:
           if (use_external_boundaries_)
           {
             throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              String("Encountered SWATH scan with boundary ") + center + " m/z which was not present in the provided windows.");
+              std::string("Encountered SWATH scan with boundary ") + center + " m/z which was not present in the provided windows.");
           }
           else
           {
@@ -392,7 +426,7 @@ public:
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
-    CachedSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+    CachedSwathFileConsumer(std::string cachedir, std::string basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
       ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
@@ -402,7 +436,7 @@ public:
     {}
 
     CachedSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
-            String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+            std::string cachedir, std::string basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
       ms1_consumer_(nullptr),
       swath_consumers_(),
@@ -430,8 +464,8 @@ public:
 protected:
     void addNewSwathMap_()
     {
-      String meta_file = cachedir_ + basename_ + "_" + String(swath_consumers_.size()) +  ".mzML";
-      String cached_file = meta_file + ".cached";
+      std::string meta_file = cachedir_ + basename_ + "_" + StringUtils::toStr(swath_consumers_.size()) +  ".mzML";
+      std::string cached_file = meta_file + ".cached";
       MSDataCachedConsumer* consumer = new MSDataCachedConsumer(cached_file, true);
       consumer->setExpectedSize(nr_ms2_spectra_[swath_consumers_.size()], 0);
       swath_consumers_.push_back(consumer);
@@ -453,8 +487,8 @@ protected:
 
     void addMS1Map_()
     {
-      String meta_file = cachedir_ + basename_ + "_ms1.mzML";
-      String cached_file = meta_file + ".cached";
+      std::string meta_file = cachedir_ + basename_ + "_ms1.mzML";
+      std::string cached_file = meta_file + ".cached";
       ms1_consumer_ = new MSDataCachedConsumer(cached_file, true);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
       std::shared_ptr<PeakMap > exp(new PeakMap(settings_));
@@ -498,7 +532,7 @@ protected:
       if (have_ms1)
       {
         std::shared_ptr<PeakMap > exp(new PeakMap);
-        String meta_file = cachedir_ + basename_ + "_ms1.mzML";
+        std::string meta_file = cachedir_ + basename_ + "_ms1.mzML";
         // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*ms1_map_, meta_file, true);
         FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::MZML});
@@ -508,10 +542,10 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_consumers_size); i++)
+      for (SignedSize i = 0; i < OpenMS::checkedCast<SignedSize>(swath_consumers_size); i++)
       {
         std::shared_ptr<PeakMap > exp(new PeakMap);
-        String meta_file = cachedir_ + basename_ + "_" + String(i) +  ".mzML";
+        std::string meta_file = cachedir_ + basename_ + "_" + StringUtils::toStr(i) +  ".mzML";
         // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*swath_maps_[i], meta_file, true);
         FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::MZML});
@@ -522,8 +556,8 @@ protected:
     MSDataCachedConsumer* ms1_consumer_;
     std::vector<MSDataCachedConsumer*> swath_consumers_;
 
-    String cachedir_;
-    String basename_;
+    std::string cachedir_;
+    std::string basename_;
     int nr_ms1_spectra_;
     std::vector<int> nr_ms2_spectra_;
   };
@@ -549,7 +583,7 @@ public:
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
-    MzMLSwathFileConsumer(const String& cachedir, const String& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
+    MzMLSwathFileConsumer(const std::string& cachedir, const std::string& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
       ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
@@ -559,7 +593,7 @@ public:
     {}
 
     MzMLSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
-            const String& cachedir, const String& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
+            const std::string& cachedir, const std::string& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
       ms1_consumer_(nullptr),
       swath_consumers_(),
@@ -593,7 +627,7 @@ protected:
 
     void addNewSwathMap_()
     {
-      String mzml_file = cachedir_ + basename_ + "_" + String(swath_consumers_.size()) +  ".mzML";
+      std::string mzml_file = cachedir_ + basename_ + "_" + StringUtils::toStr(swath_consumers_.size()) +  ".mzML";
       PlainMSDataWritingConsumer* consumer = new PlainMSDataWritingConsumer(mzml_file);
       consumer->getOptions().setCompression(true);
       consumer->setExpectedSize(nr_ms2_spectra_[swath_consumers_.size()], 0);
@@ -613,7 +647,7 @@ protected:
 
     void addMS1Map_()
     {
-      String mzml_file = cachedir_ + basename_ + "_ms1.mzML";
+      std::string mzml_file = cachedir_ + basename_ + "_ms1.mzML";
       ms1_consumer_ = new PlainMSDataWritingConsumer(mzml_file);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
       ms1_consumer_->getOptions().setCompression(true);
@@ -636,8 +670,8 @@ protected:
     PlainMSDataWritingConsumer* ms1_consumer_;
     std::vector<PlainMSDataWritingConsumer*> swath_consumers_;
 
-    String cachedir_;
-    String basename_;
+    std::string cachedir_;
+    std::string basename_;
     int nr_ms1_spectra_;
     std::vector<int> nr_ms2_spectra_;
   };

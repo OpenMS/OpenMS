@@ -122,7 +122,7 @@ namespace OpenMS
     return !seq.empty();
   }
 
-  void FASTAFile::readStart(const String& filename)
+  void FASTAFile::readStart(const std::string& filename)
   {
 
     if (!File::exists(filename))
@@ -164,7 +164,7 @@ namespace OpenMS
   entries_read_ = 0;
   }
 
-  void FASTAFile::readStartWithProgress(const String& filename, const String& progress_label)
+  void FASTAFile::readStartWithProgress(const std::string& filename, const std::string& progress_label)
   {
     readStart(filename);
     startProgress(0, fileSize_, progress_label);
@@ -189,7 +189,7 @@ namespace OpenMS
       }
       else
       {
-        seq_ = "Only " + String(entries_read_) + " proteins could be read. Parsing next record failed.";
+        seq_ = "Only " + StringUtils::toStr(entries_read_) + " proteins could be read. Parsing next record failed.";
       }
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                   "Error while parsing FASTA file! " + seq_ + " Please check the file!");
@@ -240,7 +240,7 @@ namespace OpenMS
     return (infile_.peek() == std::streambuf::traits_type::eof());
   }
 
-  void FASTAFile::load(const String &filename, vector<FASTAEntry> &data) const
+  void FASTAFile::load(const std::string &filename, vector<FASTAEntry> &data) const
   {
     startProgress(0, 1, "Loading FASTA file");
     data.clear();
@@ -254,7 +254,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void FASTAFile::writeStart(const String &filename)
+  void FASTAFile::writeStart(const std::string &filename)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
     {
@@ -274,7 +274,7 @@ namespace OpenMS
   void FASTAFile::writeNext(const FASTAEntry &protein)
   {
     outfile_ << '>' << protein.identifier << ' ' << protein.description << "\n";
-    const String &tmp(protein.sequence);
+    const std::string &tmp(protein.sequence);
 
     int chunks(tmp.size() / 80); // number of complete chunks
     Size chunk_pos(0);
@@ -297,7 +297,7 @@ namespace OpenMS
     outfile_.close();
   }
 
-  void FASTAFile::store(const String &filename, const vector<FASTAEntry> &data) const
+  void FASTAFile::store(const std::string &filename, const vector<FASTAEntry> &data) const
   {
     startProgress(0, data.size(), "Writing FASTA file");
     FASTAFile f;

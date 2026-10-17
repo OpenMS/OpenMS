@@ -10,7 +10,7 @@
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 
-#include <boost/dynamic_bitset.hpp>
+#include <vector>
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
@@ -34,7 +34,7 @@ namespace OpenMS
       defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
       defaults_.setValidStrings("reestimate_mt_sd", {"true","false"});
 
-      defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data. 'max_height' simply uses the most intense peak in the trace.");
+      defaults_.setValue("quant_method",std::string(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data. 'max_height' simply uses the most intense peak in the trace.");
       defaults_.setValidStrings("quant_method", std::vector<std::string>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
 
       // advanced parameters
@@ -113,7 +113,7 @@ namespace OpenMS
       }
 
       // validate that all meta arrays are consistently present or absent across all spectra
-      auto validate_meta_array = [&](const String& name, int idx) {
+      auto validate_meta_array = [&](const std::string& name, int idx) {
         if (idx == -1) return;
 
         Size valid_count = 0;
@@ -134,7 +134,7 @@ namespace OpenMS
         {
           throw OpenMS::Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                                 name + " meta arrays must be consistently present or absent across all MS spectra ["
-                                                  + String(valid_count) + "/" + String(spectra.size()) + "].");
+                                                  + StringUtils::toStr(valid_count) + "/" + StringUtils::toStr(spectra.size()) + "].");
         }
       };
 
@@ -263,7 +263,7 @@ namespace OpenMS
       if (spectra_count < 3)
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Input map consists of too few MS1 spectra (less than 3!). Aborting...", String(spectra_count));
+                                      "Input map consists of too few MS1 spectra (less than 3!). Aborting...",StringUtils::toStr(spectra_count));
       }
 
       // discard last spectrum's offset
@@ -342,14 +342,13 @@ namespace OpenMS
       return candidate;
     }
 
-    bool MassTraceDetection::isPeakAcceptable_(
-        const PeakCandidate& candidate,
-        double centroid_mz,
-        double ftl_sd,
-        double centroid_im,
-        Size spectrum_idx,
-        const std::vector<Size>& spec_offsets,
-        const boost::dynamic_bitset<>& peak_visited) const
+    bool MassTraceDetection::isPeakAcceptable_(const PeakCandidate& candidate,
+                                               double centroid_mz,
+                                               double ftl_sd,
+                                               double centroid_im,
+                                               Size spectrum_idx,
+                                               const std::vector<Size>& spec_offsets,
+                                               const std::vector<bool>& peak_visited) const
     {
       if (!candidate.found)
       {
@@ -475,7 +474,7 @@ namespace OpenMS
                                   std::vector<MassTrace>& found_masstraces,
                                   const Size max_traces)
     {
-      boost::dynamic_bitset<> peak_visited(total_peak_count);
+      std::vector<bool> peak_visited(total_peak_count);
       Size trace_number(1);
 
       // Detect ion mobility and FWHM metadata arrays in the dataset
@@ -669,7 +668,7 @@ namespace OpenMS
 
           new_trace.setQuantMethod(quant_method_);
           new_trace.updateWeightedMZsd();
-          new_trace.setLabel("T" + String(trace_number));
+          new_trace.setLabel("T" + StringUtils::toStr(trace_number));
           ++trace_number;
 
           found_masstraces.push_back(new_trace);
@@ -691,9 +690,9 @@ namespace OpenMS
       noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
       chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
       ion_mobility_tolerance_ = (double)param_.getValue("ion_mobility_tolerance");
-      quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method").toString());
+      quant_method_ = MassTrace::getQuantMethod(param_.getValue("quant_method").toString());
 
-      String criterion_str = (String)param_.getValue("trace_termination_criterion").toString();
+      std::string criterion_str = param_.getValue("trace_termination_criterion").toString();
       if (criterion_str == "outlier")
       {
         trace_termination_criterion_ = OUTLIER;

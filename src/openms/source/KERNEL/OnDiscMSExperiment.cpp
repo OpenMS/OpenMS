@@ -13,7 +13,56 @@
 
 namespace OpenMS
 {
-  bool OnDiscMSExperiment::openFile(const String& filename, bool skipMetaData)
+  namespace
+  {
+    /// Keep only the peaks of @p container for which @p pass returns true. Filters in place, so every
+    /// non-peak field is kept and the float/string/integer data arrays stay aligned with the peaks.
+    /// A data array whose length does not match the peak count (a malformed file) cannot be aligned
+    /// and is emptied rather than thrown on, as the unfiltered read does not reject such files either.
+    template <typename ContainerT, typename PassT>
+    void filterPeaksInPlace(ContainerT& container, PassT pass)
+    {
+      std::vector<Size> kept;
+      kept.reserve(container.size());
+      for (Size i = 0; i < container.size(); ++i)
+      {
+        if (pass(container[i])) kept.push_back(i);
+      }
+      if (kept.size() == container.size()) return; // nothing removed
+
+      auto clear_mismatched = [&container](auto& arrays)
+      {
+        for (auto& a : arrays)
+        {
+          if (a.size() != container.size()) a.clear();
+        }
+      };
+      clear_mismatched(container.getFloatDataArrays());
+      clear_mismatched(container.getStringDataArrays());
+      clear_mismatched(container.getIntegerDataArrays());
+
+      container.select(kept);
+      container.updateRanges();
+    }
+
+    /// Throws unless spectrum @p id exists and its meta data was loaded. Without meta data (openFile() with
+    /// skipMetaData), reading a spectrum only decodes its peaks and native id, so RT, MS level and precursors
+    /// would silently come back as defaults (RT -1, MS level 1).
+    void checkSpectrumMetaData(Size id, Size nr_spectra, const PeakMap* meta_data)
+    {
+      if (id >= nr_spectra || (meta_data != nullptr && id >= meta_data->size()))
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, static_cast<SignedSize>(id), nr_spectra);
+      }
+      if (meta_data == nullptr)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Spectrum meta data (RT, MS level, precursors) is not available: the file was opened with skipMetaData.");
+      }
+    }
+  } // namespace
+
+  bool OnDiscMSExperiment::openFile(const std::string& filename, bool skipMetaData)
   {
     filename_ = filename;
     indexed_mzml_file_.openFile(filename);
@@ -49,7 +98,7 @@ namespace OpenMS
     return indexed_mzml_file_.getChromatogramById(id);
   }
 
-  void OnDiscMSExperiment::loadMetaData_(const String& filename)
+  void OnDiscMSExperiment::loadMetaData_(const std::string& filename)
   {
     meta_ms_experiment_ = std::shared_ptr< PeakMap >(new PeakMap);
 
@@ -73,10 +122,10 @@ namespace OpenMS
       }
     }
 
-    if (chromatograms_native_ids_.find(id) == chromatograms_native_ids_.end())
+    if (!chromatograms_native_ids_.contains(id))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("Could not find chromatogram with id '") + id + "'.");
+          std::string("Could not find chromatogram with id '") + id + "'.");
     }
     return meta_ms_experiment_->getChromatogram(chromatograms_native_ids_[id]);
   }
@@ -105,10 +154,10 @@ namespace OpenMS
       }
     }
 
-    if (spectra_native_ids_.find(id) == spectra_native_ids_.end())
+    if (!spectra_native_ids_.contains(id))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("Could not find spectrum with id '") + id + "'.");
+          std::string("Could not find spectrum with id '") + id + "'.");
     }
     return meta_ms_experiment_->getSpectrum(spectra_native_ids_[id]);
   }
@@ -175,23 +224,42 @@ namespace OpenMS
     // Apply m/z and intensity range filters if set (requires peak data)
     if (options_.hasMZRange() || options_.hasIntensityRange())
     {
-      MSSpectrum filtered;
-      filtered.SpectrumSettings::operator=(spectrum);
-      filtered.reserve(spectrum.size());
-
-      for (const auto& peak : spectrum)
+      filterPeaksInPlace(spectrum, [this](const Peak1D& peak)
       {
-        bool pass_mz = !options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(peak.getMZ()));
-        bool pass_int = !options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity()));
-        if (pass_mz && pass_int)
-        {
-          filtered.push_back(peak);
-        }
-      }
-      return filtered;
+        return (!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(peak.getMZ())))
+            && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity())));
+      });
     }
 
     return spectrum;
+  }
+
+  MSSpectrum OnDiscMSExperiment::getSpectrumMetadata(Size id)
+  {
+    checkSpectrumMetaData(id, getNrSpectra(), meta_ms_experiment_.get());
+    MSSpectrum spectrum = meta_ms_experiment_->operator[](id);
+    spectrum.clear(false);
+    spectrum.getFloatDataArrays().clear();
+    spectrum.getStringDataArrays().clear();
+    spectrum.getIntegerDataArrays().clear();
+    return spectrum;
+  }
+
+  double OnDiscMSExperiment::getSpectrumRT(Size id) const
+  {
+    checkSpectrumMetaData(id, getNrSpectra(), meta_ms_experiment_.get());
+    return meta_ms_experiment_->operator[](id).getRT();
+  }
+
+  UInt OnDiscMSExperiment::getSpectrumMSLevel(Size id) const
+  {
+    checkSpectrumMetaData(id, getNrSpectra(), meta_ms_experiment_.get());
+    return meta_ms_experiment_->operator[](id).getMSLevel();
+  }
+
+  std::unique_ptr<IMSExperimentRandomAccess> OnDiscMSExperiment::clone() const
+  {
+    return std::make_unique<OnDiscMSExperiment>(*this);
   }
 
   MSChromatogram OnDiscMSExperiment::getChromatogram(Size id)
@@ -210,20 +278,11 @@ namespace OpenMS
     // Apply RT and intensity range filters if set (RT range for chromatograms filters on RT dimension)
     if (options_.hasRTRange() || options_.hasIntensityRange())
     {
-      MSChromatogram filtered;
-      filtered.ChromatogramSettings::operator=(chromatogram);
-      filtered.reserve(chromatogram.size());
-
-      for (const auto& peak : chromatogram)
+      filterPeaksInPlace(chromatogram, [this](const ChromatogramPeak& peak)
       {
-        bool pass_rt = !options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(peak.getRT()));
-        bool pass_int = !options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity()));
-        if (pass_rt && pass_int)
-        {
-          filtered.push_back(peak);
-        }
-      }
-      return filtered;
+        return (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(peak.getRT())))
+            && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(peak.getIntensity())));
+      });
     }
 
     return chromatogram;

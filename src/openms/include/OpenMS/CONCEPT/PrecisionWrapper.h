@@ -10,7 +10,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>  // for StringUtils::toStr
 #include <iostream>
 
 namespace OpenMS
@@ -75,10 +75,8 @@ private:
   template <typename FloatingPointType>
   inline std::ostream & operator<<(std::ostream & os, const PrecisionWrapper<FloatingPointType> & rhs)
   {
-    // manual conversion to String is much faster than ostreams internal conversion
-    // (this calls the correct overload for extra precision)
-    String s(rhs.ref_, true);
-    os << s;
+    // manual conversion to std::string is much faster than ostream's internal conversion
+    os << OpenMS::StringUtils::toStr(rhs.ref_, true);
     return os;
   }
 } // namespace OpenMS

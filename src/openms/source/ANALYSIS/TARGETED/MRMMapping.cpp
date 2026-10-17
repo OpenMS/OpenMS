@@ -66,13 +66,13 @@ namespace OpenMS
       {
         if (map_multiple_assays_)
         {
-          OPENMS_LOG_DEBUG << "Chromatogram " + String(chromatogram.getNativeID()) +
+          OPENMS_LOG_DEBUG << "Chromatogram " + std::string(chromatogram.getNativeID()) +
             " has no precursor or product m/z recorded, mapping may not work." << std::endl;
         }
         else
         {
           OPENMS_LOG_DEBUG << "Skip mapping for chromatogram " +
-            String(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
+            std::string(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
           continue;
         }
       }
@@ -90,7 +90,7 @@ namespace OpenMS
           // Create precursor and set the peptide sequence
           MSChromatogram c = chromatogram_map.getChromatograms()[i];
           Precursor precursor = c.getPrecursor();
-          String pepref = targeted_exp.getTransitions()[j].getPeptideRef();
+          std::string pepref = targeted_exp.getTransitions()[j].getPeptideRef();
           precursor.setMetaValue("peptide_sequence", pepref);
           precursor.setMetaValue("description", targeted_exp.getTransitions()[j].getNativeID());
           for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
@@ -121,13 +121,13 @@ namespace OpenMS
       //  - else append the first mapped chromatograms (if we don't allow multiple mappings)
       if (mapped_chroms.empty())
       {
-        OPENMS_LOG_DEBUG << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
-          " -> " + String(chromatogram.getProduct().getMZ()) +  "! Maybe try to increase your mapping tolerance." << std::endl;
+        OPENMS_LOG_DEBUG << "Did not find a mapping for chromatogram " + StringUtils::toStr(i) + " with transition " + StringUtils::toStr(chromatogram.getPrecursor().getMZ()) + \
+          " -> " + StringUtils::toStr(chromatogram.getProduct().getMZ()) +  "! Maybe try to increase your mapping tolerance." << std::endl;
         notmapped++;
         if (error_on_unmapped_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Did not find a mapping for chromatogram " + String(i) + "! Maybe try to increase your mapping tolerance.");
+              "Did not find a mapping for chromatogram " + StringUtils::toStr(i) + "! Maybe try to increase your mapping tolerance.");
         }
       }
       else if (map_multiple_assays_)
@@ -136,9 +136,9 @@ namespace OpenMS
         if (mapped_chroms.size() > 1)
         {
           ++multi_mapped;
-          OPENMS_LOG_DEBUG << "Chromatogram " + String(chromatogram.getNativeID()) <<
-            " with " + String(chromatogram.getPrecursor().getMZ()) <<
-            " -> " + String(chromatogram.getProduct().getMZ()) <<
+          OPENMS_LOG_DEBUG << "Chromatogram " + std::string(chromatogram.getNativeID()) <<
+            " with " + StringUtils::toStr(chromatogram.getPrecursor().getMZ()) <<
+            " -> " + StringUtils::toStr(chromatogram.getProduct().getMZ()) <<
             " maps to multiple assays!" << std::endl;
         }
       }
@@ -147,9 +147,9 @@ namespace OpenMS
         if (mapped_chroms.size() == 1) output.addChromatogram(mapped_chroms[0]);
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Chromatogram " + String(chromatogram.getNativeID()) + \
-           " with " + String(chromatogram.getPrecursor().getMZ()) + \
-            " -> " + String(chromatogram.getProduct().getMZ()) + \
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Chromatogram " + std::string(chromatogram.getNativeID()) + \
+           " with " + StringUtils::toStr(chromatogram.getPrecursor().getMZ()) + \
+            " -> " + StringUtils::toStr(chromatogram.getProduct().getMZ()) + \
               " maps to multiple assays! Either decrease your mapping tolerance or set map_multiple_assays to true.");
         }
       }
@@ -160,7 +160,7 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "MRMMapping: mapped=" << mapped << ", unmapped=" << notmapped << ", multi_mapped=" << multi_mapped << " chromatogram(s)." << std::endl;
     if (notmapped > 0 && error_on_unmapped_)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Found " + String(notmapped) + \
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Found " + StringUtils::toStr(notmapped) + \
           " unmapped chromatograms, disable error_on_unmapped to continue.");
     }
 

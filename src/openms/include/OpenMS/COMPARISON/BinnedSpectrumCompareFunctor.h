@@ -9,7 +9,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
 
 #include <cmath>

@@ -38,7 +38,7 @@ START_SECTION(~MzTabFile())
     }
 END_SECTION
 
-START_SECTION(void store(const String& filename, MzTabM& mztab_m))
+START_SECTION(void store(const std::string& filename, MzTabM& mztab_m))
     {
       FeatureMap feature_map;
       MzTabM mztabm;
@@ -47,7 +47,7 @@ START_SECTION(void store(const String& filename, MzTabM& mztab_m))
 
       mztabm = MzTabM::exportFeatureMapToMzTabM(feature_map);
 
-      String mztabm_tmpfile;
+      std::string mztabm_tmpfile;
       NEW_TMP_FILE(mztabm_tmpfile);
       MzTabMFile().store(mztabm_tmpfile, mztabm);
 

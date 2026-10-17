@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h>
@@ -261,7 +262,7 @@ namespace OpenMS
   {
     OpenSwath::SpectrumAccessPtr ms1_map;
     // store reference to MS1 map for later -> note that this is *not* threadsafe!
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
     {
       // if (swath_maps[i].ms1 && use_ms1_traces_)
       if (swath_maps[i].ms1)
@@ -301,6 +302,14 @@ namespace OpenMS
     // Suppress repeated resampling-spacing warnings for this workflow call
     // only, so embedded use does not affect later resampling in the process.
     Internal::ScopedResamplingWarningSuppression scoped_resampling_warning_suppression;
+
+    // The peptide identifications of the features reference the protein identification run (search run) of the
+    // transition list, which scorePeakgroups() does not add: add it (with all proteins, in the order of the transition
+    // list) once here instead of for every scoring batch.
+    if (store_features)
+    {
+      MRMFeatureFinderScoring::addProteinIdentificationRun(transition_exp, out_featureFile);
+    }
 
     // user-controllable overrides for inner batching and outer concurrency
     const int user_inner_batch_size = innerBatchSize;
@@ -380,7 +389,7 @@ namespace OpenMS
       // centered around the target peptide. We therefore select for each peptide
       // the best-matching PRM / DIA window:
       tr_win_map.resize(transition_exp.transitions.size(), -1);
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
       {
         for (Size k = 0; k < transition_exp.transitions.size(); k++)
         {
@@ -412,7 +421,7 @@ namespace OpenMS
       // Extract from the DIA window in which the precursor is more centered across its IM.
 
       tr_win_map.resize(transition_exp.transitions.size(), -1);
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
       {
         for (Size k = 0; k < transition_exp.transitions.size(); k++)
         {
@@ -507,12 +516,16 @@ namespace OpenMS
 
       std::vector<SwathSchedulerContext> contexts(swath_maps.size());
       std::unique_ptr<OSWBufferedWriter> buffered_osw_writer;
-      if (osw_writer.isActive())
+      if (osw_writer.isActive() && scoring_threads > 1)
       {
         OPENMS_LOG_INFO << "Use buffered OSW writer with "
                         << bytesToHumanReadable(scheduler_options.osw_buffer_bytes)
                         << " queue budget and a single writer thread." << std::endl;
         buffered_osw_writer = std::make_unique<OSWBufferedWriter>(osw_writer, scheduler_options.osw_buffer_bytes);
+      }
+      else if (osw_writer.isActive())
+      {
+        OPENMS_LOG_INFO << "Use direct OSW writes with a single SWATH scoring thread." << std::endl;
       }
 
       struct InnerBatchScoringJob
@@ -563,9 +576,9 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
-      for (SignedSize wave_pos = 0; wave_pos < boost::numeric_cast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
+      for (SignedSize wave_pos = 0; wave_pos < checkedCast<SignedSize>(wave.swath_indices.size()); ++wave_pos)
       {
-        const SignedSize swath_index = boost::numeric_cast<SignedSize>(wave.swath_indices[wave_pos]);
+        const SignedSize swath_index = checkedCast<SignedSize>(wave.swath_indices[wave_pos]);
         SwathSchedulerContext& context = contexts[swath_index];
         context.swath_index = swath_index;
 
@@ -600,7 +613,7 @@ namespace OpenMS
           std::set<std::string> matching_proteins;
           for (Size compound_idx = 0; compound_idx < transition_exp.compounds.size(); compound_idx++)
           {
-            if (matching_compounds.find(transition_exp.compounds[compound_idx].id) != matching_compounds.end())
+            if (matching_compounds.contains(transition_exp.compounds[compound_idx].id))
             {
               context.transition_exp_used_all.compounds.push_back(transition_exp.compounds[compound_idx]);
               for (Size protein_ref_idx = 0;
@@ -613,7 +626,7 @@ namespace OpenMS
           }
           for (Size protein_idx = 0; protein_idx < transition_exp.proteins.size(); protein_idx++)
           {
-            if (matching_proteins.find(transition_exp.proteins[protein_idx].id) != matching_proteins.end())
+            if (matching_proteins.contains(transition_exp.proteins[protein_idx].id))
             {
               context.transition_exp_used_all.proteins.push_back(transition_exp.proteins[protein_idx]);
             }
@@ -703,7 +716,7 @@ namespace OpenMS
 
         const Size n_compounds = context.transition_exp_used_all.getCompounds().size();
         const Size inner_batch = std::min<Size>(wave_inner_batch, n_compounds);
-        context.score_job_size = boost::numeric_cast<int>(inner_batch);
+        context.score_job_size = checkedCast<int>(inner_batch);
         if (context.score_job_size > 0)
         {
           context.nr_score_jobs = static_cast<SignedSize>((n_compounds + context.score_job_size - 1) / context.score_job_size);
@@ -958,7 +971,7 @@ namespace OpenMS
 #endif
 #pragma omp parallel for schedule(dynamic,1)
 #endif
-    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+    for (SignedSize i = 0; i < checkedCast<SignedSize>(swath_maps.size()); ++i)
     {
       if (!swath_maps[i].ms1) // skip MS1
       {
@@ -988,7 +1001,7 @@ namespace OpenMS
           std::set<std::string> matching_proteins;
           for (Size i = 0; i < transition_exp.compounds.size(); i++)
           {
-            if (matching_compounds.find(transition_exp.compounds[i].id) != matching_compounds.end())
+            if (matching_compounds.contains(transition_exp.compounds[i].id))
             {
               transition_exp_used_all.compounds.push_back( transition_exp.compounds[i] );
               for (Size j = 0; j < transition_exp.compounds[i].protein_refs.size(); j++)
@@ -999,7 +1012,7 @@ namespace OpenMS
           }
           for (Size i = 0; i < transition_exp.proteins.size(); i++)
           {
-            if (matching_proteins.find(transition_exp.proteins[i].id) != matching_proteins.end())
+            if (matching_proteins.contains(transition_exp.proteins[i].id))
             {
               transition_exp_used_all.proteins.push_back( transition_exp.proteins[i] );
             }
@@ -1265,29 +1278,29 @@ namespace OpenMS
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
-    std::unordered_map<String, int> ms1_chromatogram_map;
+    std::unordered_map<std::string, int> ms1_chromatogram_map;
     ms1_chromatogram_map.reserve(ms1_chromatograms.size());
     for (Size i = 0; i < ms1_chromatograms.size(); i++)
     {
-      ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
+      ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = checkedCast<int>(i);
     }
 
-    std::unordered_map<String, int> chromatogram_map;
+    std::unordered_map<std::string, int> chromatogram_map;
     chromatogram_map.reserve(ms2_chromatograms.size());
     for (Size i = 0; i < ms2_chromatograms.size(); i++)
     {
-      const String cid = ms2_chromatograms[i].getNativeID();
-      chromatogram_map[cid] = boost::numeric_cast<int>(i);
+      const std::string cid = ms2_chromatograms[i].getNativeID();
+      chromatogram_map[cid] = checkedCast<int>(i);
     }
-    std::unordered_map<String, int> assay_peptide_map;
+    std::unordered_map<std::string, int> assay_peptide_map;
     assay_peptide_map.reserve(transition_exp.getCompounds().size());
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
-      assay_peptide_map[transition_exp.getCompounds()[i].id] = boost::numeric_cast<int>(i);
+      assay_peptide_map[transition_exp.getCompounds()[i].id] = checkedCast<int>(i);
     }
 
     // Map peptide id to corresponding transitions
-    typedef std::map<String, std::vector< const TransitionType* > > AssayMapT;
+    typedef std::map<std::string, std::vector< const TransitionType* > > AssayMapT;
     AssayMapT assay_map;
     // create an entry for each member (ensure there is one even if we don't
     // have any transitions for it, e.g. in the case of ms1 only)
@@ -1317,7 +1330,7 @@ namespace OpenMS
     for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
     {
       // Create new MRMTransitionGroup
-      String id = assay_it->first;
+      std::string id = assay_it->first;
       MRMTransitionGroupType transition_group;
       transition_group.setTransitionGroupID(id);
       double expected_rt = transition_exp.getCompounds()[ assay_peptide_map[id] ].rt;
@@ -1336,7 +1349,7 @@ namespace OpenMS
         // the transitions)
         if (ms1only) {continue;}
 
-        if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
+        if (!chromatogram_map.contains(transition->getNativeID()))
         {
           if (mrm_) // in SRM/MRM mode, we can skip missing chromatograms, because it's unlikely that we will map all transitions to the already targeted extracted chromatograms
           {
@@ -1388,8 +1401,8 @@ namespace OpenMS
       // isotopic traces)
       for (int iso = 0; iso <= nr_ms1_isotopes; iso++)
       {
-        String prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
-        if (!ms1_chromatograms.empty() && ms1_chromatogram_map.find(prec_id) != ms1_chromatogram_map.end())
+        std::string prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
+        if (!ms1_chromatograms.empty() && ms1_chromatogram_map.contains(prec_id))
         {
           const MSChromatogram& chromatogram = ms1_chromatograms[ ms1_chromatogram_map[prec_id] ];
           transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
@@ -1411,7 +1424,7 @@ namespace OpenMS
       // Check fragment/transition chromatograms first
       for (const auto & chrom : transition_group.getChromatograms())
       {
-        String nid = chrom.getNativeID();
+        std::string nid = chrom.getNativeID();
         if (transition_group.getTransitions().size() == 0)
         {
           has_detecting_chrom = true; break;
@@ -1593,7 +1606,7 @@ namespace OpenMS
 
     for (Size i = 0; i < all_transitions.size(); i++)
     {
-      if (selected_compounds.find(all_transitions[i].peptide_ref) != selected_compounds.end())
+      if (selected_compounds.contains(all_transitions[i].peptide_ref))
       {
         output.push_back(all_transitions[i]);
       }

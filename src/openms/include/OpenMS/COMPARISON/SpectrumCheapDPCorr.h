@@ -72,6 +72,11 @@ public:
     void setFactor(double f);
     // @}
 
+protected:
+
+    /// caches the 'keeppeaks' parameter in keeppeaks_
+    void updateMembers_() override;
+
 private:
 
     /// O(n^2) dynamical programming
@@ -80,13 +85,13 @@ private:
     /// similarity of two peaks
     double comparepeaks_(double posa, double posb, double inta, double intb) const;
 
-    static const String info_;
+    static const std::string info_;
 
     /// consensus spectrum of the last comparison
     mutable PeakSpectrum lastconsensus_;
 
     /// should peaks with no alignment partner be kept in the consensus?
-    bool keeppeaks_;
+    bool keeppeaks_ = false;
 
     /// weighting factor for the next consensus spectrum
     mutable double factor_;

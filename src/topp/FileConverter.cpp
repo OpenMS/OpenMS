@@ -6,9 +6,11 @@
 // $Authors: Marc Sturm, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 // TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
@@ -22,6 +24,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 // TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -35,6 +38,11 @@
 
 #ifdef WITH_OPENTIMS
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
+#endif
+
+#ifdef WITH_THERMO_RAW
+#include <OpenMS/FORMAT/ThermoRawFile.h>
 #endif
 
 
@@ -69,16 +77,31 @@ Maybe most importantly, data from MS experiments in a number of different format
 the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
 supports traceability of analysis steps.)
 
-Thermo raw files can be converted to mzML using the ThermoRawFileParser provided in the THIRDPARTY folder.
-On windows, a recent .NET framwork needs to be installed. On linux and mac, the mono runtime needs to be
-present and accessible via the -NET_executable parameter. The path to the ThermoRawFileParser can be set
-via the -ThermoRaw_executable option.
+Thermo raw files are read by one of two readers, chosen with -RawToMzML:reader.
+The built-in reader (inprocess; the default on linux and mac when OpenMS is built with WITH_THERMO_RAW)
+needs a .NET 8 (or newer) runtime and supports every output format. Like ThermoRawFileParser, it applies
+vendor peak picking unless -RawToMzML:no_peak_picking is given.
+The external reader (external; the default on windows) converts to mzML using the ThermoRawFileParser
+provided in the THIRDPARTY folder. On windows, a recent .NET framework needs to be installed. On linux and
+mac, the mono runtime, which the OpenMS packages there do not include, needs to be present and accessible via
+the -RawToMzML:NET_executable parameter. The path to the ThermoRawFileParser can be set via the
+-RawToMzML:ThermoRaw_executable option.
+The other tools that accept raw files, except OpenNuXL, which uses ThermoRawFileParser, read them with the
+built-in reader, but without vendor peak picking; see
+<a href="https://openms.readthedocs.io/en/latest/getting-started/vendor-formats.html">Vendor formats</a>.
+
+Bruker timsTOF .d directories, and zipped ones (.d.zip), are read with the built-in reader when OpenMS is
+built with WITH_OPENTIMS (the default). DDA-PASEF data gives one MS1 spectrum per frame, with the ion
+mobility of every peak, and one MS2 spectrum per precursor; DIA-PASEF data gives MS2 spectra per frame and
+isolation window. The advanced bruker:* options select the export mode and control m/z recalibration,
+frame aggregation and centroiding along the ion mobility axis.
 
 For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
 
 Many different format conversions are supported, and some may be more useful than others. Depending on the
 file formats involved, information can be lost during conversion, e.g. when converting featureXML to mzData.
-In such cases a warning is shown.
+In such cases a warning is shown. Spectra cannot be converted to consensusXML or consensusparquet; detect features
+first (e.g. with a FeatureFinder tool).
 
 The input and output file types are determined from	the file extensions or from the first few lines of the
 files. If file type determination is not possible, the input or output file type has to be given explicitly.
@@ -88,6 +111,8 @@ errors from files (e.g. the index), to update file formats to new versions, or t
 reading or writing.
 
 Some information about the supported input types:
+raw (Thermo Fisher, see above)
+d (Bruker timsTOF, see above)
 @ref OpenMS::MzMLFile "mzML"
 @ref OpenMS::MzXMLFile "mzXML"
 @ref OpenMS::MzDataFile "mzData"
@@ -97,6 +122,8 @@ Some information about the supported input types:
 @ref OpenMS::DTAFile "dta"
 @ref OpenMS::FeatureXMLFile "featureXML"
 @ref OpenMS::ConsensusXMLFile "consensusXML"
+featureparquet (OpenMS internal feature map parquet bundle)
+consensusparquet (OpenMS internal consensus map parquet bundle)
 @ref OpenMS::MS2File "ms2"
 @ref OpenMS::XMassFile "fid/XMASS"
 @ref OpenMS::MsInspectFile "tsv"
@@ -115,40 +142,88 @@ Some information about the supported input types:
 */
 
 
-String extractCachedMetaFilename(const String& in)
+std::string extractCachedMetaFilename(const std::string& in)
 {
   // Special handling of cached mzML as input types:
   // we expect two paired input files which we should read into exp
-  std::vector<String> split_out;
-  in.split(".cachedMzML", split_out);
+  std::vector<std::string> split_out;
+  StringUtils::split(in, ".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
     OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in
       << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
-  String in_meta = split_out[0] + ".mzML";
+  std::string in_meta = split_out[0] + ".mzML";
   return in_meta;
 }
+
+#ifdef WITH_THERMO_RAW
+/// Forwards a streamed Thermo RAW file to a writing consumer: records the source directory as
+/// absolute file URI (as loadExperiment() does) and optionally keeps the metadata (spectra
+/// as left by the consumer, e.g. without peaks) for the cachedMzML metadata file.
+class RawStreamConsumer : public Interfaces::IMSDataConsumer
+{
+public:
+  RawStreamConsumer(Interfaces::IMSDataConsumer* next, const std::string& raw_dir, MSExperiment* meta = nullptr) :
+    next_(next), raw_uri_(File::toFileURI(raw_dir)), meta_(meta)
+  {
+  }
+  void setExperimentalSettings(const ExperimentalSettings& settings) override
+  {
+    ExperimentalSettings copy(settings);
+    for (SourceFile& source_file : copy.getSourceFiles()) { source_file.setPathToFile(raw_uri_); }
+    next_->setExperimentalSettings(copy);
+    if (meta_ != nullptr) { static_cast<ExperimentalSettings&>(*meta_) = copy; }
+  }
+  void setExpectedSize(Size spectra, Size chromatograms) override
+  {
+    next_->setExpectedSize(spectra, chromatograms);
+    if (meta_ != nullptr)
+    {
+      meta_->reserveSpaceSpectra(spectra);
+      meta_->reserveSpaceChromatograms(chromatograms);
+    }
+  }
+  void consumeSpectrum(SpectrumType& spectrum) override
+  {
+    next_->consumeSpectrum(spectrum);
+    if (meta_ != nullptr) { meta_->addSpectrum(spectrum); }
+  }
+  void consumeChromatogram(ChromatogramType& chromatogram) override
+  {
+    next_->consumeChromatogram(chromatogram);
+    if (meta_ != nullptr) { meta_->addChromatogram(chromatogram); }
+  }
+
+private:
+  Interfaces::IMSDataConsumer* next_;
+  std::string raw_uri_;
+  MSExperiment* meta_;
+};
+#endif
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 class TOPPFileConverter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
 public:
   TOPPFileConverter() :
-    TOPPBase("FileConverter", "Converts between different MS file formats.")
+    TOPPExternalToolBase("FileConverter", "Converts between different MS file formats.")
   {
   }
 
 protected:
+  /// Default of RawToMzML:ThermoRaw_executable
+  static constexpr const char* THERMO_RAW_PARSER_DEFAULT = "ThermoRawFileParser.exe";
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid",
+    vector<std::string> input_formats = {"mzML", "mzXML", "mgf", "msp", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "ms2", "fid",
 #ifdef WITH_OPENTIMS
     "d",
 #endif
@@ -157,10 +232,10 @@ protected:
     setValidStrings_("in_type", input_formats);
 
     registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
-    String method("none,ensure,reassign");
-    setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
+    std::string method("none,ensure,reassign");
+    setValidStrings_("UID_postprocessing", ListUtils::create<std::string>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
+    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -170,13 +245,16 @@ protected:
     registerFlag_("force_MaxQuant_compatibility", "[mzXML output only] Make sure that MaxQuant can read the mzXML and set the msManufacturer to 'Thermo Scientific'.", true);
     registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
     registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
+    registerFlag_("raw_checksum", "[Thermo raw input, in-process reader only] Record the SHA-1 checksum of the raw file as source file provenance. "
+      "This reads the whole raw file once more, which adds about 5-15% to the conversion time.", true);
 
     registerStringOption_("write_scan_index", "<toggle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
-    setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
+    setValidStrings_("write_scan_index", ListUtils::create<std::string>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
+    registerFlag_("zstd_compression", "[mzML output only] Compress binary data arrays with Zstandard (zstd) instead of zlib (lossless; can be combined with 'lossy_compression'). Attention: not all external tools can read zstd-compressed mzML files yet.", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
-    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML/Bruker .d to mzML, mzML/Bruker .d to cachedMzML and, with RawToMzML:reader inprocess, Thermo RAW to mzML or cachedMzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
     
 #ifdef WITH_OPENTIMS
     registerTOPPSubsection_("bruker", "Options for reading Bruker TimsTOF .d files (requires WITH_OPENTIMS)");
@@ -188,6 +266,10 @@ protected:
       "Load MS1 spectra. Disable for MS2-only workflows (peptide database search) "
       "where MS1 surveys are not needed — substantially cuts memory and time. Affects all export modes.", false, true);
     setValidStrings_("bruker:load_ms1", {"true", "false"});
+    registerStringOption_("bruker:load_ms2", "<toggle>", "true",
+      "Load MS2 spectra. Disable for MS1-only workflows (feature detection, quantification): "
+      "the MS2 frames are then not read. Affects all export modes.", false, true);
+    setValidStrings_("bruker:load_ms2", {"true", "false"});
     registerStringOption_("bruker:export_mode", "<mode>", "auto", "Export mode: 'auto' detects DDA/DIA acquisition type, "
       "'spectrum' forces per-precursor MS2 spectra (DDA-style), 'frame' returns raw 4D frames without signal processing.", false, true);
     setValidStrings_("bruker:export_mode", {"auto", "spectrum", "frame"});
@@ -336,13 +418,33 @@ protected:
     setValidStrings_("bruker:expose_hill_bounds", {"true", "false"});
 #endif
 
-    registerTOPPSubsection_("RawToMzML", "Options for converting raw files to mzML (uses ThermoRawFileParser)");
-    registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac.", false, true, {"is_executable"});
-    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", "ThermoRawFileParser.exe", "The ThermoRawFileParser executable.", false, true, {"is_executable"});
+    registerTOPPSubsection_("RawToMzML", "Options for converting Thermo raw files");
+    registerInputFile_("RawToMzML:NET_executable", "<executable>", "", "The .NET framework executable. Only required on linux and mac (external reader only).", false, true, {"is_executable"});
+    registerInputFile_("RawToMzML:ThermoRaw_executable", "<file>", THERMO_RAW_PARSER_DEFAULT, "The ThermoRawFileParser executable (external reader only).", false, true, {"is_executable"});
     setValidFormats_("RawToMzML:ThermoRaw_executable", {"exe"});
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
-    registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
-    registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+    registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem (external reader only).", true);
+    registerFlag_("RawToMzML:include_noise", "Include vendor sampled noise m/z, noise intensity and baseline arrays in mzML output when available. These preserve noise measurements, not calculated per-peak signal-to-noise ratios.", true);
+    // Packages always contain the in-process reader (WITH_THERMO_RAW is ON on every supported
+    // platform), which needs a .NET 8 runtime. 'external' needs ThermoRawFileParser.exe on the PATH
+    // and, on linux and mac, mono, which the packages there do not provide, so linux and mac default
+    // to the in-process reader. The windows installer puts ThermoRawFileParser on the PATH, where it
+    // runs on the .NET Framework that windows includes, but does not bundle .NET 8, so windows
+    // keeps 'external'.
+#if defined(WITH_THERMO_RAW) && !defined(OPENMS_WINDOWSPLATFORM)
+    const std::string default_raw_reader = "inprocess";
+#else
+    const std::string default_raw_reader = "external";
+#endif
+    registerStringOption_("RawToMzML:reader", "<mode>", default_raw_reader,
+      "Reader for Thermo .raw files. 'external' uses ThermoRawFileParser (external .NET process, mzML output only; the default on windows); "
+      "'inprocess' uses the built-in ThermoRawFile (in-process, supports any output format; requires WITH_THERMO_RAW build and a .NET 8 runtime; the default on linux and mac).",
+      false, true);
+    std::vector<std::string> raw_reader_modes = {"external"};
+#ifdef WITH_THERMO_RAW
+    raw_reader_modes.push_back("inprocess");
+#endif
+    setValidStrings_("RawToMzML:reader", raw_reader_modes);
     
   // OpenSwath / chromatogram options: allow passing a transition library to map extracted ion chromatograms to their matching metadata in the transition list
   registerTOPPSubsection_("OpenSwathWorkflow", "Options for loading OpenSWATH transition libraries used for chromatogram metadata");
@@ -362,7 +464,8 @@ protected:
     c.calibration_tolerance = getDoubleOption_("bruker:calibration_tolerance");
     c.calibrate = (getStringOption_("bruker:calibrate") == "true");
     c.load_ms1 = (getStringOption_("bruker:load_ms1") == "true");
-    String mode = getStringOption_("bruker:export_mode");
+    c.load_ms2 = (getStringOption_("bruker:load_ms2") == "true");
+    std::string mode = getStringOption_("bruker:export_mode");
     if (mode == "spectrum") c.export_mode = BrukerTimsFile::Config::SPECTRUM;
     else if (mode == "frame") c.export_mode = BrukerTimsFile::Config::FRAME;
     else c.export_mode = BrukerTimsFile::Config::AUTO;
@@ -378,7 +481,7 @@ protected:
 
     // Hill-based centroiding params.
     using CA = BrukerTimsFile::Config::CentroidAlgo;
-    auto parse_algo = [](const String& s) {
+    auto parse_algo = [](const std::string& s) {
       if (s == "greedy2d")   return CA::GREEDY2D;
       if (s == "hillbased")  return CA::HILL_BASED;
       return CA::OFF;
@@ -404,13 +507,14 @@ protected:
     //-------------------------------------------------------------
 
     //input file names
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
     bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
     bool force_TPP_compatibility = getFlag_("force_TPP_compatibility");
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
+    bool zstd_compression = getFlag_("zstd_compression");
 
     // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
     MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
@@ -431,7 +535,7 @@ protected:
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
       if (in_type == FileTypes::UNKNOWN)
       {
         writeLogError_("Error: Could not determine input file type!");
@@ -440,7 +544,7 @@ protected:
     }
 
     // output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
@@ -448,12 +552,40 @@ protected:
       return PARSE_ERROR;
     }
 
+    // consensus output needs features or consensus features as input; peaks are not converted to consensus features
+    // (their handles could only refer to peak indices, not to elements with ids)
+    const bool provides_features =
+      FileTypeList(FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_FEATURES})).contains(in_type) ||
+      FileTypeList(FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_CONSENSUSFEATURES})).contains(in_type);
+    if ((out_type == FileTypes::CONSENSUSXML || out_type == FileTypes::CONSENSUSPARQUET) && !provides_features)
+    {
+      writeLogError_("Error: Cannot convert " + FileTypes::typeToName(in_type) + " to " + FileTypes::typeToName(out_type) +
+                     ". Only feature and consensus data can be converted to consensus data; detect features first (e.g. with a FeatureFinder tool).");
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+
     bool TIC_DTA2D = getFlag_("TIC_DTA2D");
     bool process_lowmemory = getFlag_("process_lowmemory");
 
-    writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 1);
+    writeDebug_(std::string("Output file type: ") + FileTypes::typeToName(out_type), 1);
 
-    String uid_postprocessing = getStringOption_("UID_postprocessing");
+    std::string uid_postprocessing = getStringOption_("UID_postprocessing");
+
+    // Options of the mzML writing consumer for -process_lowmemory
+    auto configure_writer = [&](PlainMSDataWritingConsumer& consumer) {
+      consumer.getOptions().setWriteIndex(write_scan_index);
+      consumer.getOptions().setForceTPPCompatability(force_TPP_compatibility);
+      // numpress compression
+      if (lossy_compression)
+      {
+        consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+        consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
+        consumer.getOptions().setCompression(true);
+      }
+      consumer.getOptions().setZstdCompression(zstd_compression);
+      consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
+    };
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -465,15 +597,30 @@ protected:
     FeatureMap fm;
     ConsensusMap cm;
 
-    writeDebug_(String("Loading input file"), 1);
+    writeDebug_(std::string("Loading input file"), 1);
 
-    if (in_type == FileTypes::CONSENSUSXML)
+#ifdef WITH_OPENTIMS
+    // Bruker .d is read with BrukerTimsFile directly below (FileHandler cannot pass the bruker: options). Reject MALDI
+    // imaging data (.d directory or .d.zip archive) as FileHandler::loadExperiment() does: read as DDA, it would lose
+    // its pixel geometry.
+    if (in_type == FileTypes::BRUKER_TDF && BrukerTimsImagingFile::isImagingDataset(in))
     {
-      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML}, log_type_);
+      OPENMS_LOG_ERROR << "Bruker MALDI imaging .d is a mass spectrometry imaging format, which FileConverter cannot convert "
+                          "(the spectra would lose their pixel positions). FileHandler::loadImagingExperiment() in the OpenMS "
+                          "library and pyOpenMS reads it." << std::endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+#endif
+
+    if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
+    {
+      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML, FileTypes::CONSENSUSPARQUET}, log_type_);
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
-          (out_type != FileTypes::OMS)
+          (out_type != FileTypes::OMS) &&
+          (out_type != FileTypes::FEATUREPARQUET) &&
+          (out_type != FileTypes::CONSENSUSPARQUET)
           )
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
@@ -483,6 +630,93 @@ protected:
     }
     else if (in_type == FileTypes::RAW)
     {
+      std::string raw_reader = getStringOption_("RawToMzML:reader");
+#ifdef WITH_THERMO_RAW
+      if (raw_reader == "inprocess")
+      {
+        if (getFlag_("RawToMzML:no_zlib_compression"))
+        {
+          OPENMS_LOG_WARN << "RawToMzML:no_zlib_compression is specific to the external ThermoRawFileParser; "
+                          << "it is ignored when RawToMzML:reader=inprocess." << std::endl;
+        }
+        // Pipelines written for the old default may still name the external reader's executables.
+        // Compare raw values: getStringOption_() would search the PATH for them and throw.
+        const std::pair<std::string, std::string> external_only[] = {
+          {"RawToMzML:ThermoRaw_executable", THERMO_RAW_PARSER_DEFAULT}, {"RawToMzML:NET_executable", ""}};
+        for (const auto& [option, default_value] : external_only)
+        {
+          if (getParam_().getValue(option).toString() != default_value)
+          {
+            OPENMS_LOG_WARN << option << " is specific to the external ThermoRawFileParser; it is ignored "
+                            << "when RawToMzML:reader=inprocess. Pass '-RawToMzML:reader external' to use it."
+                            << std::endl;
+          }
+        }
+        // Read like ThermoRawFileParser does by default: vendor peak picking unless
+        // no_peak_picking is set, noise arrays on request. Otherwise the reader choice would
+        // change what is written (ThermoRawFile keeps profile scans by default). FileHandler
+        // cannot pass these options, so ThermoRawFile is used directly (like BrukerTimsFile below).
+        ThermoRawFile raw_file;
+        raw_file.setLogType(log_type_);
+        ThermoRawFile::Options raw_options = raw_file.getOptions();
+        raw_options.centroid = !getFlag_("RawToMzML:no_peak_picking");
+        raw_options.noise_data = getFlag_("RawToMzML:include_noise");
+        raw_options.checksum = getFlag_("raw_checksum");
+        raw_file.setOptions(raw_options);
+        // Record the source directory as absolute file URI, as FileHandler::loadExperiment() does
+        // (ThermoRawFile stores the path as given, which is empty for a bare file name).
+        const std::string raw_dir = File::path(File::absolutePath(in));
+        const bool stream = process_lowmemory && (out_type == FileTypes::MZML || out_type == FileTypes::CACHEDMZML);
+        if (process_lowmemory && ! stream)
+        {
+          OPENMS_LOG_WARN << "-process_lowmemory supports Thermo RAW input only with mzML or cachedMzML output; "
+                          << "loading the whole file instead." << std::endl;
+        }
+        try
+        {
+          if (stream && out_type == FileTypes::MZML)
+          {
+            // Scans are converted and written one at a time; memory does not grow with the file size.
+            PlainMSDataWritingConsumer consumer(out);
+            configure_writer(consumer);
+            RawStreamConsumer forward(&consumer, raw_dir);
+            raw_file.transform(in, &forward);
+            return EXECUTION_OK;
+          }
+          if (stream)
+          {
+            const std::string out_meta = extractCachedMetaFilename(out);
+            if (out_meta.empty()) { return ILLEGAL_PARAMETERS; }
+            PeakMap exp_meta;
+            {
+              MSDataCachedConsumer consumer(out);
+              RawStreamConsumer forward(&consumer, raw_dir, &exp_meta);
+              raw_file.transform(in, &forward);
+            }
+            Internal::CachedMzMLHandler cacher;
+            cacher.setLogType(log_type_);
+            cacher.writeMetadata(exp_meta, out_meta);
+            return EXECUTION_OK;
+          }
+          raw_file.load(in, exp);
+        }
+        catch (const Exception::ParseError&)
+        {
+          // This reader is the default on linux and mac, so name the way back to the external one
+          OPENMS_LOG_ERROR << "The in-process Thermo reader failed. It needs the .NET 8 runtime; if that is "
+                           << "missing, install it, or pass '-RawToMzML:reader external' to convert with "
+                           << "ThermoRawFileParser instead." << std::endl;
+          throw;
+        }
+        for (SourceFile& source_file : exp.getSourceFiles())
+        {
+          source_file.setPathToFile(File::toFileURI(raw_dir));
+        }
+        // Fall through to generic output writing — supports any output format.
+      }
+      else
+#endif
+      {
       if (out_type != FileTypes::MZML)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -492,8 +726,8 @@ protected:
       bool no_zlib_compression = getFlag_("RawToMzML:no_zlib_compression");
       bool include_noise = getFlag_("RawToMzML:include_noise");
       writeLogInfo_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
-      String net_executable = getStringOption_("RawToMzML:NET_executable");
-      std::vector<String> arguments;
+      std::string net_executable = getStringOption_("RawToMzML:NET_executable");
+      std::vector<std::string> arguments;
 #ifdef OPENMS_WINDOWSPLATFORM
       if (net_executable.empty())
       { // default on Windows: if NO mono executable is set use the "native" .NET one
@@ -525,13 +759,16 @@ protected:
         arguments.push_back("--noiseData");
       }
       return runExternalProcess_(net_executable, arguments);
+      } // close raw_reader == "external" block
     }
     else if (in_type == FileTypes::EDTA)
     {
       FileHandler().loadConsensusFeatures(in, cm, {FileTypes::EDTA}, log_type_);
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+          (out_type != FileTypes::CONSENSUSXML) &&
+          (out_type != FileTypes::FEATUREPARQUET) &&
+          (out_type != FileTypes::CONSENSUSPARQUET))
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
@@ -539,6 +776,7 @@ protected:
       }
     }
     else if (in_type == FileTypes::FEATUREXML ||
+             in_type == FileTypes::FEATUREPARQUET ||
              in_type == FileTypes::TSV ||
              in_type == FileTypes::PEPLIST ||
              in_type == FileTypes::KROENIK)
@@ -547,7 +785,9 @@ protected:
       fm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
-          (out_type != FileTypes::OMS))
+          (out_type != FileTypes::OMS) &&
+          (out_type != FileTypes::FEATUREPARQUET) &&
+          (out_type != FileTypes::CONSENSUSPARQUET))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
@@ -557,7 +797,7 @@ protected:
     else if (in_type == FileTypes::CACHEDMZML)
     {
       // Determine location of meta information (empty mzML)
-      String in_meta = extractCachedMetaFilename(in);
+      std::string in_meta = extractCachedMetaFilename(in);
       if (in_meta.empty())
       {
         return ILLEGAL_PARAMETERS;
@@ -601,21 +841,12 @@ protected:
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
 
-      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
+      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML || in_type == FileTypes::BRUKER_TDF) && out_type == FileTypes::MZML)
       {
         // Prepare the consumer
         PlainMSDataWritingConsumer consumer(out);
-        consumer.getOptions().setWriteIndex(write_scan_index);
+        configure_writer(consumer);
         bool skip_full_count = false;
-        // numpress compression
-        if (lossy_compression)
-        {
-          consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
-          consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
-          consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
-          consumer.getOptions().setCompression(true);
-        }
-        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
 
         // for different input file type
         if (in_type == FileTypes::MZML)
@@ -632,11 +863,24 @@ protected:
           mzxmlfile.transform(in, &consumer, skip_full_count);
           return EXECUTION_OK;
         }
+#ifdef WITH_OPENTIMS
+        else if (in_type == FileTypes::BRUKER_TDF)
+        {
+          // the spectra are written as they are read; see BrukerTimsFile::transform() for the two
+          // configurations that need the whole run in memory all the same
+          BrukerTimsFile tims_file;
+          tims_file.setLogType(log_type_);
+          tims_file.transform(in, &consumer, getBrukerConfig_());
+          return EXECUTION_OK;
+        }
+#endif
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Process_lowmemory: OpenMS was built without support for reading Bruker .d input.");
       }
       else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
       {
         // Determine output path for meta information (empty mzML)
-        String out_meta = extractCachedMetaFilename(out);
+        std::string out_meta = extractCachedMetaFilename(out);
         if (out_meta.empty())
         {
           return ILLEGAL_PARAMETERS;
@@ -651,10 +895,37 @@ protected:
 
         return EXECUTION_OK;
       }
+#ifdef WITH_OPENTIMS
+      else if (in_type == FileTypes::BRUKER_TDF && out_type == FileTypes::CACHEDMZML)
+      {
+        const std::string out_meta = extractCachedMetaFilename(out);
+        if (out_meta.empty())
+        {
+          return ILLEGAL_PARAMETERS;
+        }
+        // The spectra go to the cache as they are read. The cache consumer removes their peaks, so only their
+        // metadata is kept for the metadata file.
+        PeakMap exp_meta;
+        {
+          MSDataCachedConsumer cache(out);
+          MSDataTransformingConsumer keep_meta;
+          keep_meta.setExperimentalSettingsFunc([&exp_meta](const ExperimentalSettings& settings) { static_cast<ExperimentalSettings&>(exp_meta) = settings; });
+          keep_meta.setSpectraProcessingFunc([&exp_meta](MSSpectrum& spectrum) { exp_meta.addSpectrum(spectrum); });
+          MSDataChainingConsumer consumer(std::vector<Interfaces::IMSDataConsumer*>{&cache, &keep_meta});
+          BrukerTimsFile tims_file;
+          tims_file.setLogType(log_type_);
+          tims_file.transform(in, &consumer, getBrukerConfig_());
+        }
+        Internal::CachedMzMLHandler cacher;
+        cacher.setLogType(log_type_);
+        cacher.writeMetadata(exp_meta, out_meta);
+        return EXECUTION_OK;
+      }
+#endif
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
+          "Process_lowmemory option can only be used with mzML / mzXML / Bruker .d input and mzML output, or with mzML / Bruker .d input and cachedMzML output.");
       }
     }
 #ifdef WITH_OPENTIMS
@@ -675,7 +946,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    writeDebug_(String("Writing output file"), 1);
+    writeDebug_(std::string("Writing output file"), 1);
 
     if (out_type == FileTypes::MZML)
     {
@@ -699,6 +970,7 @@ protected:
         mzmlFile.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
         mzmlFile.getOptions().setCompression(true);
       }
+      mzmlFile.getOptions().setZstdCompression(zstd_compression);
 
       if (convert_to_chromatograms)
       {
@@ -783,9 +1055,9 @@ protected:
                                                  FORMAT_CONVERSION));
       FileHandler().storeExperiment(out, exp, {FileTypes::MSP}, log_type_);
     }
-    else if (out_type == FileTypes::FEATUREXML)
+    else if (out_type == FileTypes::FEATUREXML || out_type == FileTypes::FEATUREPARQUET)
     {
-      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
+      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::FEATUREPARQUET) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
         if (uid_postprocessing == "ensure")
@@ -797,7 +1069,7 @@ protected:
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
       }
-      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET || in_type == FileTypes::EDTA)
       {
         MapConversion::convert(cm, true, fm);
       }
@@ -832,11 +1104,11 @@ protected:
 
       addDataProcessing_(fm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FileHandler().storeFeatures(out, fm, {FileTypes::FEATUREXML}, log_type_);
+      FileHandler().storeFeatures(out, fm, {out_type}, log_type_);
     }
-    else if (out_type == FileTypes::CONSENSUSXML)
+    else if (out_type == FileTypes::CONSENSUSXML || out_type == FileTypes::CONSENSUSPARQUET)
     {
-      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
+      if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::FEATUREPARQUET) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
         if (uid_postprocessing == "ensure")
@@ -849,14 +1121,7 @@ protected:
         }
         MapConversion::convert(0, fm, cm);
       }
-      // nothing to do for consensus input
-      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
-      {
-      }
-      else // experimental data
-      {
-        MapConversion::convert(0, exp, cm, exp.size());
-      }
+      // nothing to do for consensus input (OMS input cannot be loaded here yet; loadExperiment() rejects it above)
       for (auto& pepID : cm.getUnassignedPeptideIdentifications())
       {
         pepID.setMetaValue("map_index", 0);
@@ -864,7 +1129,7 @@ protected:
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FileHandler().storeConsensusFeatures(out, cm, {FileTypes::CONSENSUSXML}, log_type_);
+      FileHandler().storeConsensusFeatures(out, cm, {out_type}, log_type_);
     }
     else if (out_type == FileTypes::EDTA)
     {
@@ -890,7 +1155,7 @@ protected:
     else if (out_type == FileTypes::CACHEDMZML)
     {
       // Determine output path for meta information (empty mzML)
-      String out_meta = extractCachedMetaFilename(out);
+      std::string out_meta = extractCachedMetaFilename(out);
       if (out_meta.empty())
       {
         return ILLEGAL_PARAMETERS;
@@ -906,9 +1171,9 @@ protected:
       // conversion is requested
 
       // IBSpectra selected as output type
-      if (in_type != FileTypes::CONSENSUSXML)
+      if (in_type != FileTypes::CONSENSUSXML && in_type != FileTypes::CONSENSUSPARQUET)
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML/consensusparquet files to ibspectra format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
 
@@ -922,7 +1187,7 @@ protected:
       {
         // A transition library is required: XICs without precursor/transition
         // metadata are not meaningful.
-        String tr_file = getStringOption_("OpenSwathWorkflow:tr");
+        std::string tr_file = getStringOption_("OpenSwathWorkflow:tr");
         if (tr_file.empty())
         {
           writeLogError_("Error: Converting sqMass to CHROMPARQUET (.xic) requires a transition library "
@@ -934,13 +1199,13 @@ protected:
         // fall back to extension/content detection.
         FileHandler fh_local;
         FileTypes::Type tr_type = FileTypes::UNKNOWN;
-        const String tr_type_hint = getStringOption_("OpenSwathWorkflow:tr_type");
+        const std::string tr_type_hint = getStringOption_("OpenSwathWorkflow:tr_type");
         if (!tr_type_hint.empty())
         {
           tr_type = FileTypes::nameToType(tr_type_hint);
           if (tr_type == FileTypes::UNKNOWN)
           {
-            writeLogError_(String("Error: Unsupported value for -OpenSwathWorkflow:tr_type: '") + tr_type_hint + "'.");
+            writeLogError_(std::string("Error: Unsupported value for -OpenSwathWorkflow:tr_type: '") + tr_type_hint + "'.");
             return ILLEGAL_PARAMETERS;
           }
         }
@@ -959,9 +1224,9 @@ protected:
             pqp_reader.setLogType(log_type_);
             pqp_reader.convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp, legacy);
           }
-          else if (tr_file.hasSuffix(".oswpq") || tr_file.hasSuffix(".oswpq.zip"))
+          else if (StringUtils::hasSuffix(tr_file, ".oswpq") || StringUtils::hasSuffix(tr_file, ".oswpq.zip"))
           {
-            writeLogError_(String("Error: .oswpq libraries are not supported by this build of FileConverter. "
+            writeLogError_(std::string("Error: .oswpq libraries are not supported by this build of FileConverter. "
                                   "Cannot convert without transition metadata (file: '") + tr_file + "').");
             return ILLEGAL_PARAMETERS;
           }
@@ -981,14 +1246,14 @@ protected:
           }
           else
           {
-            writeLogError_(String("Error: Unrecognized transition library type for '") + tr_file +
+            writeLogError_(std::string("Error: Unrecognized transition library type for '") + tr_file +
                            "'. Cannot convert sqMass to CHROMPARQUET without valid transition metadata.");
             return ILLEGAL_PARAMETERS;
           }
         }
         catch (const Exception::BaseException& e)
         {
-          writeLogError_(String("Error: Failed to load transition library '") + tr_file + "': " + e.what());
+          writeLogError_(std::string("Error: Failed to load transition library '") + tr_file + "': " + e.what());
           return ILLEGAL_PARAMETERS;
         }
 
@@ -1012,19 +1277,19 @@ protected:
     }
     else if (out_type == FileTypes::OMS)
     {
-      if (in_type == FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET)
       {
         IdentificationDataConverter::importFeatureIDs(fm);
         FileHandler().storeFeatures(out, fm, {FileTypes::OMS}, log_type_);
       }
-      else if (in_type == FileTypes::CONSENSUSXML)
+      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
       {
         IdentificationDataConverter::importConsensusIDs(cm);
         FileHandler().storeConsensusFeatures(out, cm, {FileTypes::OMS}, log_type_);
       }
       else
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML and consensusXML files to oms format.";
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML/featureparquet and consensusXML/consensusparquet files to oms format.";
         return INCOMPATIBLE_INPUT_DATA;
       }
     }

@@ -48,7 +48,7 @@ public:
 protected:
 
       //Docu in base class
-      void handleTerm_(const String & path, const CVTerm & parsed_term) override;
+      void handleTerm_(const std::string & path, const CVTerm & parsed_term) override;
 
 private:
 

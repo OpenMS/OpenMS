@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -49,8 +51,8 @@ public:
     /** @name Constructors and Destructor */
     //@{
     ///Default constructor
-    FeatureXMLHandler(FeatureMap& map, const String& filename);
-    FeatureXMLHandler(const FeatureMap& map, const String& filename);
+    FeatureXMLHandler(FeatureMap& map, const std::string& filename);
+    FeatureXMLHandler(const FeatureMap& map, const std::string& filename);
     ///Destructor
     ~FeatureXMLHandler() override;
     //@}
@@ -84,19 +86,19 @@ protected:
     void resetMembers_();
 
     // Docu in base class
-    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
+    void onEndElement(const char16_t* qname) override;
 
     // Docu in base class
-    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
+    void onStartElement(const char16_t* qname, const XMLAttributes& attributes) override;
 
     // Docu in base class
-    void characters(const XMLCh* const chars, const XMLSize_t length) override;
+    void onCharacters(const char16_t* chars, Size length) override;
 
     /// Writes a feature to a stream
-    void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level);
+    void writeFeature_(const std::string& filename, std::ostream& os, const Feature& feat, const std::string& identifier_prefix, UInt64 identifier, UInt indentation_level);
 
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
-    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
+    void writePeptideIdentification_(const std::string& filename, std::ostream& os, const PeptideIdentification& id, const std::string& tag_name, UInt indentation_level);
 
     /**
         @brief update the pointer to the current feature
@@ -151,13 +153,15 @@ protected:
     /// Temporary peptide hit
     PeptideHit pep_hit_;
     /// Map from protein id to accession
-    std::map<String, String> proteinid_to_accession_;
-    /// Map from search identifier concatenated with protein accession to id
-    std::map<String, Size> accession_to_id_;
+    std::map<std::string, std::string> proteinid_to_accession_;
+    /// the identifier of the run of each protein hit (by its id): a peptide hit may only reference the protein hits of its run
+    std::unordered_map<std::string, std::string> proteinid_to_run_;
+    /// Map from run identifier to the protein accessions of the run and their protein hit ids (while storing)
+    std::unordered_map<std::string, std::unordered_map<std::string, Size>> accession_to_id_;
     /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
-    std::map<String, String> identifier_id_;
+    std::map<std::string, std::string> identifier_id_;
     /// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
-    std::map<String, String> id_identifier_;
+    std::map<std::string, std::string> id_identifier_;
     /// Temporary search parameters file
     ProteinIdentification::SearchParameters search_param_;
 

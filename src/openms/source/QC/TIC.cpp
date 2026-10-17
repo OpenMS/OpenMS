@@ -62,11 +62,11 @@ namespace OpenMS
 
   bool TIC::Result::operator==(const Result& rhs) const
   {
-    return intensities == rhs.intensities && retention_times == rhs.retention_times && area == rhs.area && fall == rhs.fall && jump == rhs.jump;
+    return intensities == rhs.intensities && relative_intensities == rhs.relative_intensities && retention_times == rhs.retention_times && area == rhs.area && fall == rhs.fall && jump == rhs.jump;
   }
 
   /// Returns the name of the metric
-  const String& TIC::getName() const
+  const std::string& TIC::getName() const
   {
     return name_;
   }
@@ -90,12 +90,12 @@ namespace OpenMS
       MzTabParameter tic {};
       tic.setCVLabel("total ion current");
       tic.setAccession("MS:1000285");
-      tic.setName("TIC_" + String(i + 1));
-      String value("[");
-      value += String(tics[i].retention_times[0], false) + ", " + String((UInt64)tics[i].intensities[0]);
+      tic.setName("TIC_" + StringUtils::toStr(i + 1));
+      std::string value("[");
+      value +=StringUtils::toStr(tics[i].retention_times[0], false) + ", " + StringUtils::toStr((UInt64)tics[i].intensities[0]);
       for (Size j = 1; j < tics[i].intensities.size(); ++j)
       {
-        value += ", " + String(tics[i].retention_times[j], false) + ", " + String((UInt64)tics[i].intensities[j]);
+        value += ", " + StringUtils::toStr(tics[i].retention_times[j], false) + ", " + StringUtils::toStr((UInt64)tics[i].intensities[j]);
       }
       value += "]";
       tic.setValue(value);

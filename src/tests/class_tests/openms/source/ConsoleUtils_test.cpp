@@ -65,13 +65,13 @@ START_SECTION(static const ConsoleUtils& getInstance())
 END_SECTION
 
 
-const String x20(TEST_CONSOLE_WIDTH * 2 + 1, 'x'); // test string (2 full lines plus one 'x')
-const String xC(TEST_CONSOLE_WIDTH, 'x');          // full console width of 'x'
+const std::string x20(TEST_CONSOLE_WIDTH * 2 + 1, 'x'); // test string (2 full lines plus one 'x')
+const std::string xC(TEST_CONSOLE_WIDTH, 'x');          // full console width of 'x'
 
-START_SECTION((static StringList breakStringList(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0)))
+START_SECTION((static StringList breakStringList(const std::string& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0)))
 {
   // we actually test the concatenation using breakString() since its easier to write
-  String broken_string;
+  std::string broken_string;
   { // test with indent = 0
     broken_string = ConsoleUtils::breakString(x20, 0, 10);
     TEST_EQUAL(broken_string, xC + '\n' + xC + '\n' + "x")
@@ -82,17 +82,17 @@ START_SECTION((static StringList breakStringList(const String& input, const Size
   }
   { // test with indent = 3
     int indent = 3;
-    String shortX(TEST_CONSOLE_WIDTH - indent, 'x');
-    String s_indent(indent, ' ');
+    std::string shortX(TEST_CONSOLE_WIDTH - indent, 'x');
+    std::string s_indent(indent, ' ');
     broken_string = ConsoleUtils::breakString(x20, indent, 10);
     TEST_EQUAL(broken_string, xC + '\n' + s_indent + shortX + '\n' + s_indent + "xxxx")
   }
   { // test with prefilled first line
     int indent = 3;
     int prefill = 5;
-    String firstX(TEST_CONSOLE_WIDTH - prefill, 'x');
-    String shortX(TEST_CONSOLE_WIDTH - indent, 'x');
-    String s_indent(indent, ' ');
+    std::string firstX(TEST_CONSOLE_WIDTH - prefill, 'x');
+    std::string shortX(TEST_CONSOLE_WIDTH - indent, 'x');
+    std::string s_indent(indent, ' ');
     broken_string = ConsoleUtils::breakString(x20, indent, 10, prefill);
     TEST_EQUAL(broken_string, firstX + '\n'                 // 4x
                               + s_indent + shortX + '\n'    //+6x
@@ -110,19 +110,19 @@ START_SECTION((static StringList breakStringList(const String& input, const Size
       int indent = 3;
       int prefill = 0;
       broken_string = ConsoleUtils::breakString("\n", indent, 10, prefill);
-      TEST_EQUAL(broken_string, '\n' + String(indent, ' '))
+      TEST_EQUAL(broken_string, '\n' + std::string(indent, ' '))
     }
     { // prefilled linebreak with indent (should not make a difference)
       int indent = 3;
       int prefill = 5;
       broken_string = ConsoleUtils::breakString("\n", indent, 10, prefill);
-      TEST_EQUAL(broken_string, '\n' + String(indent, ' '))
+      TEST_EQUAL(broken_string, '\n' + std::string(indent, ' '))
     }
     { // text with a linebreak with indent and prefill
       int indent = 3;
       int prefill = TEST_CONSOLE_WIDTH - 1; // one char left on first line
       broken_string = ConsoleUtils::breakString("xxx\n", indent, 10, prefill);
-      TEST_EQUAL(broken_string, "x\n" + String(indent, ' ') + "xx\n" + String(indent, ' '))
+      TEST_EQUAL(broken_string, "x\n" + std::string(indent, ' ') + "xx\n" + std::string(indent, ' '))
     }
     
     { // some corner cases (only one char per line)
@@ -130,10 +130,10 @@ START_SECTION((static StringList breakStringList(const String& input, const Size
       int prefill = indent; // one char left on first line
       broken_string = ConsoleUtils::breakString("xxx\n", indent, 10, prefill);
       TEST_EQUAL(broken_string, "x\n" 
-                                + String(indent, ' ') + "x\n" 
-                                + String(indent, ' ') + "x\n" 
-                                + String(indent, ' ') + "\n"  // manual linebreak right after breakString()'s linebreak -- you get two lines ...
-                                + String(indent, ' '))
+                                + std::string(indent, ' ') + "x\n" 
+                                + std::string(indent, ' ') + "x\n" 
+                                + std::string(indent, ' ') + "\n"  // manual linebreak right after breakString()'s linebreak -- you get two lines ...
+                                + std::string(indent, ' '))
     }
 
     
@@ -141,14 +141,14 @@ START_SECTION((static StringList breakStringList(const String& input, const Size
   { // test max_lines
     int indent = TEST_CONSOLE_WIDTH - 2;
     int prefill = indent;  // two chars per EVERY line
-    broken_string = ConsoleUtils::breakString(String(99, 'x'), indent, 3, prefill);
-    TEST_EQUAL(broken_string, "xx\n" + String(indent, ' ') + "...\n" + String(indent, ' ') + 'x')
+    broken_string = ConsoleUtils::breakString(std::string(99, 'x'), indent, 3, prefill);
+    TEST_EQUAL(broken_string, "xx\n" + std::string(indent, ' ') + "...\n" + std::string(indent, ' ') + 'x')
   }
 
 }
 END_SECTION
 
-START_SECTION(static String breakString(const String& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0))
+START_SECTION(static std::string breakString(const std::string& input, const Size indentation, const Size max_lines, const Size first_line_prefill = 0))
 {
   NOT_TESTABLE // tested above
 }

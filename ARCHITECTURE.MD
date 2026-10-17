@@ -148,7 +148,7 @@ The OpenMS architecture is designed for extensibility at multiple levels:
 
 ### Workflow Customization
 - Users can combine OpenMS tools with custom scripts (e.g., via pyOpenMS)
-- Support for workflow systems like KNIME and Galaxy
+- Support for workflow systems like Nextflow and Galaxy
 - Parameter files (INI format) for tool configuration and chaining
 - TOPPAS workflow editor for visual pipeline construction
 
@@ -271,11 +271,11 @@ The OpenMS codebase follows a structured organization:
 ```
 OpenMS/
 ├── cmake/                   # CMake build system files and modules
-├── contrib/                 # Third-party dependencies
 ├── doc/                     # Documentation files
 ├── share/                   # Shared resources
 ├── src/                     # Source code
 │   ├── openms/              # Core OpenMS library
+│   ├── openms_cli/          # TOPP tool framework (TOPPBase, ToolHandler, ...)
 │   ├── openms_gui/          # GUI components
 │   ├── openswathalgo/       # OpenSWATH algorithms
 │   ├── pyOpenMS/            # Python bindings
@@ -285,11 +285,25 @@ OpenMS/
 │   ├── tests/               # C++ tests
 │   │   ├── class_tests/     # Unit tests for classes
 │   │   │   ├── openms/      # Tests for core library
+│   │   │   ├── openms_cli/  # Tests for the TOPP tool framework
 │   │   │   └── openms_gui/  # Tests for GUI components
 │   │   └── topp/            # Tests for TOPP tools
 │   └── topp/                # TOPP tools implementation
-└── tools/                   # Development tools and scripts
+├── tools/                   # Development tools and scripts
+├── vcpkg/                   # vcpkg package manager (git submodule)
+├── vcpkg-overlays/          # vcpkg overlay ports and triplets
+├── CMakePresets.json        # CMake presets (configure with vcpkg per platform and build type)
+├── vcpkg.json               # vcpkg manifest: third-party dependencies and optional features
+└── vcpkg-configuration.json # vcpkg registry baseline and overlay locations
 ```
+
+Third-party dependencies are obtained through vcpkg in manifest mode. `vcpkg.json` lists the required
+libraries and, as manifest features, the optional ones that go with a `WITH_*` or `USE_EXTERNAL_*` CMake
+option. `vcpkg-overlays/ports` holds ports that are missing from the vcpkg registry or need patches, and
+`vcpkg-overlays/triplets` the custom triplets. The presets in `CMakePresets.json` set `OPENMS_USE_VCPKG=ON`,
+select the vcpkg toolchain and a triplet per platform and build type, and build into `build/<preset>/`.
+CMake finds the libraries in `cmake/cmake_findExternalLibs.cmake`, which also works against system
+packages when vcpkg is not used. Qt is not part of the manifest and comes from the system or the Qt installer.
 
 ## Contributing
 

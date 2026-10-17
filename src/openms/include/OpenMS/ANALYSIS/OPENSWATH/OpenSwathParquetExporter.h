@@ -23,12 +23,12 @@ namespace OpenMS
   public:
     /// Write precursor / feature score rows to Parquet.
     /// Empty tables are allowed as long as the schema metadata is available.
-    static void writeFeatureScores(const String& filename,
+    static void writeFeatureScores(const std::string& filename,
                                    const OpenSwathFeatureScoreTable& table);
 
     /// Write optional transition score rows to Parquet.
     /// Empty tables are allowed as long as the schema metadata is available.
-    static void writeTransitionScores(const String& filename,
+    static void writeTransitionScores(const std::string& filename,
                                       const OpenSwathTransitionScoreTable& table);
   };
 } // namespace OpenMS

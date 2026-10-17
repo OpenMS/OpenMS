@@ -11,7 +11,7 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/HashUtils.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <functional>
 
@@ -126,7 +126,7 @@ public:
                               (default 0; non-zero for pre-ESI labels).
       @param[in] label        Free-form label, typically heavy-isotope tag.
     */
-    Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label = "");
+    Adduct(Int charge, Int amount, double singleMass, const std::string& formula, double log_prob, double rt_shift, const std::string& label = "");
 
     /**
       @brief Multiply the stoichiometric @c amount by an integer factor.
@@ -218,7 +218,7 @@ public:
 
     /// @brief Chemical formula of one entity (canonicalised by
     /// EmpiricalFormula, e.g. @c "H2O" — not @c "OH2").
-    const String& getFormula() const;
+    const std::string& getFormula() const;
 
     /**
       @brief Set the chemical formula of one entity. The input is parsed
@@ -228,14 +228,14 @@ public:
       @param[in] formula EmpiricalFormula-parseable string (e.g. @c "Na",
                          @c "NH3", @c "C2H3N").
     */
-    void setFormula(const String& formula);
+    void setFormula(const std::string& formula);
 
     /// @brief RT shift induced by one entity (seconds). Non-zero only for
     /// adducts attached prior to ESI (e.g. covalent labels).
     const double& getRTShift() const;
 
     /// @brief Free-form label (typically a heavy-isotope tag).
-    const String& getLabel() const;
+    const std::string& getLabel() const;
 
     /**
       @brief Render @p ion_string + @p charge as a canonical adduct string,
@@ -250,7 +250,7 @@ public:
       @param[in] charge     Signed net charge of the resulting ion.
       @return Adduct string in the form @c "[M+Na]+", @c "[M-H]-", etc.
     */
-    String toAdductString(const String& ion_string, const Int& charge);
+    std::string toAdductString(const std::string& ion_string, const Int& charge);
 
     /**
       @brief Render @p ion_string + @p charge as a canonical adduct string,
@@ -273,7 +273,7 @@ public:
                                 @c 2 = dimer, ...).
       @return Canonical adduct string.
     */
-    static String toAdductString(const String& ion_string, const Int& charge, Int mol_multiplier);
+    static std::string toAdductString(const std::string& ion_string, const Int& charge, Int mol_multiplier);
     //}
 
 private:
@@ -281,13 +281,13 @@ private:
     Int amount_;        ///< stoichiometric count of this entity
     double singleMass_; ///< monoisotopic mass of one entity (Da)
     double log_prob_;   ///< log-prior on observing this adduct
-    String formula_;    ///< chemical formula of one entity (EmpiricalFormula-parseable, canonicalised)
+    std::string formula_;    ///< chemical formula of one entity (EmpiricalFormula-parseable, canonicalised)
     double rt_shift_;   ///< RT shift induced by one entity (s); non-zero only for pre-ESI labels
-    String label_;      ///< free-form tag (e.g. heavy-isotope label name)
+    std::string label_;      ///< free-form tag (e.g. heavy-isotope label name)
 
     /// Validate and canonicalise @p formula. Warns on empty, charged, or
     /// ambiguous single-element inputs. Returns the canonical form.
-    String checkFormula_(const String& formula);
+    std::string checkFormula_(const std::string& formula);
 
   };
 

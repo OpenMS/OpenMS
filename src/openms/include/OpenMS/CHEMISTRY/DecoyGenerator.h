@@ -43,7 +43,7 @@ namespace OpenMS
           @brief reverses the protein's peptide sequences between enzymatic cutting positions. 
           note: modifications are discarded
       */
-      AASequence reversePeptides(const AASequence& protein, const String& protease) const;
+      AASequence reversePeptides(const AASequence& protein, const std::string& protease) const;
 
       /**
         @brief Generate decoy protein sequences using shuffle algorithm
@@ -64,7 +64,7 @@ namespace OpenMS
           - Modifications are discarded
           - Returns decoy_factor number of complete protein sequences
       */
-      std::vector<AASequence> shuffle(const AASequence& protein, const String& protease, int decoy_factor = 1);
+      std::vector<AASequence> shuffle(const AASequence& protein, const std::string& protease, int decoy_factor = 1);
 
       /*
           @brief shuffle the protein's peptide sequences between enzymatic cutting positions.
@@ -77,13 +77,13 @@ namespace OpenMS
       */
       AASequence shufflePeptides(
             const AASequence& aas,
-            const String& protease,
+            const std::string& protease,
             const int max_attempts = 100
             );
     
     private:
       // sequence identity by matching AAs
-      static double SequenceIdentity_(const String& decoy, const String& target);
+      static double SequenceIdentity_(const std::string& decoy, const std::string& target);
 
       // portable shuffle
       Math::RandomShuffler shuffler_;

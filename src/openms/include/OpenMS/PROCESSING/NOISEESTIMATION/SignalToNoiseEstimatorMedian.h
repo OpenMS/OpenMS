@@ -13,7 +13,7 @@
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <vector>
 #include <algorithm> //for std::max_element
 
@@ -34,6 +34,12 @@ namespace OpenMS
     automatically (params: <i>AutoMaxIntensity</i>, <i>auto_mode</i>) by two
     different methods or can be set directly by the user (param:
     <i>max_intensity</i>).
+    Within the histogram bin that contains the median, the noise value is
+    linearly interpolated between that bin's edges (assuming a uniform
+    distribution of points within the bin), rather than using the bin's
+    center. This keeps the estimate close to continuous as the underlying data
+    changes, instead of only ever taking one of <i>bin_count</i> discrete
+    values.
     If the (estimated) <i>max_intensity</i> value is too low and the median is
     found to be in the last (&highest) bin, a warning will be given.  In this
     case you should increase <i>max_intensity</i> (and optionally the
@@ -188,7 +194,7 @@ protected:
         // we use a histogram approach here as well.
         if ((auto_max_percentile_ < 0) || (auto_max_percentile_ > 100))
         {
-          String s = auto_max_percentile_;
+          std::string s = StringUtils::toStr(auto_max_percentile_);
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
@@ -196,31 +202,33 @@ protected:
                                         s);
         }
 
+        if (c.empty())
+        {
+          return;
+        }
         std::vector<int> histogram_auto(100, 0);
 
         // find maximum of current scan
-        auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() > b.getIntensity();});
+        auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() < b.getIntensity();});
         typename PeakType::IntensityType maxInt = maxIt->getIntensity();
 
-        double bin_size = maxInt / 100;
+        double bin_size = maxInt > 0 ? static_cast<double>(maxInt) / 100.0 : 1.0; // no division by zero if no intensity is positive
 
         // fill histogram
         for(const auto& peak : c)
         {
-            ++histogram_auto[(int) ((peak.getIntensity() - 1) / bin_size)];
+            ++histogram_auto[(int) std::max(0.0, std::min(peak.getIntensity() / bin_size, 99.0))];
         }
 
         // add up element counts in histogram until ?th percentile is reached
-        int elements_below_percentile = (int) (auto_max_percentile_ * c.size() / 100);
+        int elements_below_percentile = std::max(1, (int) (auto_max_percentile_ * c.size() / 100));
         int elements_seen = 0;
         int i = -1;
-        PeakIterator run = scan_first_;
 
-        while (run != scan_last_ && elements_seen < elements_below_percentile)
+        while (i < 99 && elements_seen < elements_below_percentile)
         {
           ++i;
           elements_seen += histogram_auto[i];
-          ++run;
         }
 
         max_intensity_ = (((double)i) + 0.5) * bin_size;
@@ -229,7 +237,7 @@ protected:
       {
         if (max_intensity_ <= 0)
         {
-          String s = max_intensity_;
+          std::string s = StringUtils::toStr(max_intensity_);
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
                                         OPENMS_PRETTY_FUNCTION,
@@ -288,7 +296,7 @@ protected:
         // erase all elements from histogram that will leave the window on the LEFT side
         while ((*window_pos_borderleft).getPos() < (*window_pos_center).getPos() - window_half_size)
         {
-          to_bin = std::max(std::min<int>((int)((*window_pos_borderleft).getIntensity() / bin_size), bin_count_minus_1), 0);
+          to_bin = (int) std::max(std::min((*window_pos_borderleft).getIntensity() / bin_size, (double) bin_count_minus_1), 0.0); // clamp before converting to int
           --histogram[to_bin];
           --elements_in_window;
           ++window_pos_borderleft;
@@ -299,7 +307,7 @@ protected:
               && ((*window_pos_borderright).getPos() <= (*window_pos_center).getPos() + window_half_size))
         {
           //std::cerr << (*window_pos_borderright).getIntensity() << " " << bin_size << " " << bin_count_minus_1 << std::endl;
-          to_bin = std::max(std::min<int>((int)((*window_pos_borderright).getIntensity() / bin_size), bin_count_minus_1), 0);
+          to_bin = (int) std::max(std::min((*window_pos_borderright).getIntensity() / bin_size, (double) bin_count_minus_1), 0.0); // clamp before converting to int
           ++histogram[to_bin];
           ++elements_in_window;
           ++window_pos_borderright;
@@ -325,8 +333,29 @@ protected:
           // increase the error count
           if (median_bin == bin_count_minus_1) {++histogram_oob_percent_; }
 
+          // Interpolate within the median bin instead of just reporting its center.
+          // Using the bin center alone means the noise estimate can only take one of
+          // 'bin_count_' discrete values; a tiny, insignificant shift in which side of
+          // a bin boundary the cumulative-median crossing falls on then causes a full
+          // bin-width jump in the reported noise, even though the underlying data barely
+          // changed. Assuming points are uniformly distributed within the bin, we can
+          // instead estimate where inside the bin the crossing actually occurs.
+          const int elements_in_median_bin = histogram[median_bin];
+          double noise_estimate;
+          if (elements_in_median_bin > 0)
+          {
+            const int elements_before_median_bin = element_inc_count - elements_in_median_bin;
+            const double median_bin_lower_edge = median_bin * bin_size;
+            noise_estimate = median_bin_lower_edge
+              + ((double)(element_in_window_half - elements_before_median_bin) / elements_in_median_bin) * bin_size;
+          }
+          else // only possible if the rightmost bin was hit while empty (already flagged above)
+          {
+            noise_estimate = bin_value[median_bin];
+          }
+
           // just avoid division by 0
-          noise = std::max(1.0, bin_value[median_bin]);
+          noise = std::max(1.0, noise_estimate);
         }
 
         // store result

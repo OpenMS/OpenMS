@@ -6,6 +6,9 @@
 // $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <cmath>
+#include <limits>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -16,11 +19,15 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 ///////////////////////////
@@ -131,15 +138,15 @@ START_SECTION((template <class IdentificationType> static bool getBestHit(const 
 }
 END_SECTION
 
-START_SECTION((static void extractPeptideSequences(const PeptideIdentificationList& peptides, set<String>& sequences, bool ignore_mods = false)))
+START_SECTION((static void extractPeptideSequences(const PeptideIdentificationList& peptides, set<std::string>& sequences, bool ignore_mods = false)))
 {
-  set<String> seqs;
+  set<std::string> seqs;
   IDFilter::extractPeptideSequences(global_peptides, seqs);
   TEST_EQUAL(seqs.size(), 11);
-  vector<String> expected = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNM(Oxidation)ISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
-  vector<String> expected_unmodified = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNMISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
+  vector<std::string> expected = ListUtils::create<std::string>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNM(Oxidation)ISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
+  vector<std::string> expected_unmodified = ListUtils::create<std::string>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNMISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
   Size counter = 0;
-  for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
+  for (set<std::string>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
   {
     TEST_EQUAL(*it, expected[counter]);
@@ -149,7 +156,7 @@ START_SECTION((static void extractPeptideSequences(const PeptideIdentificationLi
   IDFilter::extractPeptideSequences(global_peptides, seqs, true);
   TEST_EQUAL(seqs.size(), 10);
   counter = 0;
-  for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
+  for (set<std::string>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
   {
     if (counter == 6) counter++; // skip the modified sequence
@@ -223,6 +230,20 @@ START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
 END_SECTION
 
 
+START_SECTION((class DigestionFilter::operator()(const PeptideEvidence& evidence)))
+{
+  // PeptideEvidence start and end are 0-based and both inclusive. In this BSA N-terminus,
+  // WVTFISLLLLFSSAYSR spans residues 2..18 (K1 before, G19 after): a fully tryptic product.
+  std::vector<FASTAFile::FASTAEntry> proteins(1, FASTAFile::FASTAEntry("P02769", "", "MKWVTFISLLLLFSSAYSRGVFRR"));
+  ProteaseDigestion digestion;
+  digestion.setEnzyme("Trypsin");
+  IDFilter::DigestionFilter filter(proteins, digestion, true, false);
+  TEST_EQUAL(filter(PeptideEvidence("P02769", 2, 18, 'K', 'G')), true)
+  // 2..19 (WVTFISLLLLFSSAYSRG) ends after G19, not after K/R: no tryptic product
+  TEST_EQUAL(filter(PeptideEvidence("P02769", 2, 19, 'K', 'V')), false)
+}
+END_SECTION
+
 START_SECTION((static void removeUnreferencedProteins(vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)))
 {
   vector<ProteinIdentification> proteins;
@@ -272,6 +293,126 @@ START_SECTION((static void removeDanglingProteinReferences(PeptideIdentification
 }
 END_SECTION
 
+START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference = false)))
+{
+  // Build a ConsensusMap whose run "run1" knows PROT1/PROT2 but NOT the decoys.
+  // An assigned PSM references PROT1 + DECOY_PROT1; a second assigned PSM
+  // references only DECOY_PROT1; an unassigned PSM references PROT2 + DECOY_PROT2.
+  auto make_cmap = []() {
+    ConsensusMap cmap;
+
+    ProteinIdentification prot;
+    prot.setIdentifier("run1");
+    ProteinHit ph1; ph1.setAccession("PROT1");
+    ProteinHit ph2; ph2.setAccession("PROT2");
+    prot.insertHit(ph1);
+    prot.insertHit(ph2);
+    cmap.setProteinIdentifications({prot});
+
+    // assigned PSMs on a consensus feature
+    PeptideHit hitA;
+    hitA.setSequence(AASequence::fromString("PEPTIDEA"));
+    { PeptideEvidence e; e.setProteinAccession("PROT1"); hitA.addPeptideEvidence(e); }
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitA.addPeptideEvidence(e); }
+    PeptideHit hitB;
+    hitB.setSequence(AASequence::fromString("PEPTIDEB"));
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitB.addPeptideEvidence(e); }
+    PeptideIdentification pid;
+    pid.setIdentifier("run1");
+    pid.setHits({hitA, hitB});
+
+    ConsensusFeature cf;
+    cf.setRT(1.0); cf.setMZ(100.0);
+    cf.getPeptideIdentifications().push_back(pid);
+    cmap.push_back(cf);
+
+    // unassigned PSM
+    PeptideHit hitC;
+    hitC.setSequence(AASequence::fromString("PEPTIDEC"));
+    { PeptideEvidence e; e.setProteinAccession("PROT2"); hitC.addPeptideEvidence(e); }
+    { PeptideEvidence e; e.setProteinAccession("DECOY_PROT2"); hitC.addPeptideEvidence(e); }
+    PeptideIdentification upid;
+    upid.setIdentifier("run1");
+    upid.setHits({hitC});
+    cmap.getUnassignedPeptideIdentifications().push_back(upid);
+
+    return cmap;
+  };
+
+  // (1) keep PSMs, drop the dangling (decoy) evidences only
+  {
+    ConsensusMap cmap = make_cmap();
+    IDFilter::removeDanglingProteinReferences(cmap, false);
+
+    const vector<PeptideHit>& assigned = cmap[0].getPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(assigned.size(), 2);
+    TEST_EQUAL(assigned[0].getPeptideEvidences().size(), 1);
+    TEST_STRING_EQUAL(assigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+    TEST_EQUAL(assigned[1].getPeptideEvidences().size(), 0); // only DECOY_PROT1 -> removed
+
+    // unassigned PSMs are processed too (include_unassigned defaults to true)
+    const vector<PeptideHit>& unassigned = cmap.getUnassignedPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(unassigned.size(), 1);
+    TEST_EQUAL(unassigned[0].getPeptideEvidences().size(), 1);
+    TEST_STRING_EQUAL(unassigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT2");
+  }
+
+  // (2) remove_peptides_without_reference: the PSM with only dangling refs is dropped
+  {
+    ConsensusMap cmap = make_cmap();
+    IDFilter::removeDanglingProteinReferences(cmap, true);
+    const vector<PeptideHit>& assigned = cmap[0].getPeptideIdentifications()[0].getHits();
+    TEST_EQUAL(assigned.size(), 1); // hitB removed (no surviving evidence)
+    TEST_STRING_EQUAL(assigned[0].getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+  }
+}
+END_SECTION
+
+START_SECTION((static void removeDanglingProteinReferences(ConsensusMap& cmap, const ProteinIdentification& ref_run, bool remove_peptides_without_reference = false)))
+{
+  // Filter ALL peptides against a single reference run that knows only PROT1,
+  // so PROT2 (and both decoys) become dangling everywhere -- independent of the
+  // per-run ProteinIdentifications stored on the map.
+  ConsensusMap cmap;
+  ProteinIdentification prot; prot.setIdentifier("run1");
+  ProteinHit ph1; ph1.setAccession("PROT1");
+  ProteinHit ph2; ph2.setAccession("PROT2");
+  prot.insertHit(ph1);
+  prot.insertHit(ph2);
+  cmap.setProteinIdentifications({prot});
+
+  PeptideHit hitA;
+  hitA.setSequence(AASequence::fromString("PEPTIDEA"));
+  { PeptideEvidence e; e.setProteinAccession("PROT1"); hitA.addPeptideEvidence(e); }
+  { PeptideEvidence e; e.setProteinAccession("DECOY_PROT1"); hitA.addPeptideEvidence(e); }
+  PeptideIdentification pid; pid.setIdentifier("run1"); pid.setHits({hitA});
+  ConsensusFeature cf; cf.setRT(1.0); cf.setMZ(100.0);
+  cf.getPeptideIdentifications().push_back(pid);
+  cmap.push_back(cf);
+
+  PeptideHit hitC;
+  hitC.setSequence(AASequence::fromString("PEPTIDEC"));
+  { PeptideEvidence e; e.setProteinAccession("PROT2"); hitC.addPeptideEvidence(e); }
+  PeptideIdentification upid; upid.setIdentifier("run1"); upid.setHits({hitC});
+  cmap.getUnassignedPeptideIdentifications().push_back(upid);
+
+  ProteinIdentification ref_run;
+  ProteinHit only1; only1.setAccession("PROT1");
+  ref_run.insertHit(only1);
+
+  IDFilter::removeDanglingProteinReferences(cmap, ref_run, false);
+
+  // assigned hitA: PROT1 kept, DECOY_PROT1 removed
+  const PeptideHit& a = cmap[0].getPeptideIdentifications()[0].getHits()[0];
+  TEST_EQUAL(a.getPeptideEvidences().size(), 1);
+  TEST_STRING_EQUAL(a.getPeptideEvidences()[0].getProteinAccession(), "PROT1");
+
+  // unassigned hitC: PROT2 is NOT in ref_run -> removed (ref_run overrides per-run)
+  const PeptideHit& c = cmap.getUnassignedPeptideIdentifications()[0].getHits()[0];
+  TEST_EQUAL(c.getPeptideEvidences().size(), 0);
+}
+END_SECTION
+
 START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGroup>& groups, const vector<ProteinHit>& hits)))
 {
   vector<ProteinIdentification::ProteinGroup> groups(2);
@@ -312,6 +453,55 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
   TEST_EQUAL(groups_copy[0].accessions.size(), 1);
   TEST_EQUAL(groups_copy[0].accessions[0], "C");
   TEST_EQUAL(groups_copy[0].probability, 0.2);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] updateProteinGroups keeps the quantities attached to a group))
+{
+  // The data arrays of a protein group hold the quantities PeptideAndProteinQuant attaches to it, and
+  // they are indexed by sample resp. by (file, channel) - not by group member. Filtering a protein out
+  // of a group therefore does not invalidate them, and rebuilding the group without them silently
+  // threw protein abundances away in every tool that filters after quantification (Epifany,
+  // ProteinInference, FalseDiscoveryRate, PercolatorAdapter, ProteomicsLFQ).
+  vector<ProteinIdentification::ProteinGroup> groups(1);
+  groups[0].accessions = {"A", "B"};
+  groups[0].probability = 0.9;
+  groups[0].getFloatDataArrays().resize(2);
+  groups[0].getFloatDataArrays()[0].setName("abundances");
+  groups[0].getFloatDataArrays()[0].assign({11.0f, 22.0f, 33.0f});
+  groups[0].getFloatDataArrays()[1].setName("file_channel_level_abundance");
+  groups[0].getFloatDataArrays()[1].assign({1.0f, 2.0f});
+  groups[0].getStringDataArrays().resize(1);
+  groups[0].getStringDataArrays()[0].setName("file_channel_level_filename");
+  groups[0].getStringDataArrays()[0].assign({"fA", "fB"});
+  groups[0].getIntegerDataArrays().resize(1);
+  groups[0].getIntegerDataArrays()[0].setName("file_channel_level_channel");
+  groups[0].getIntegerDataArrays()[0].assign({1, 2});
+
+  // drop protein "B", so the group survives with one member fewer
+  vector<ProteinHit> hits(1);
+  hits[0].setAccession("A");
+
+  const bool valid = IDFilter::updateProteinGroups(groups, hits);
+  TEST_EQUAL(valid, false); // a protein was removed from the group
+  TEST_EQUAL(groups.size(), 1);
+  TEST_EQUAL(groups[0].accessions.size(), 1);
+  TEST_EQUAL(groups[0].accessions[0], "A");
+
+  // the quantities must have come along, names and values intact
+  // (ABORT_IF, not TEST_EQUAL: the assertions are soft, so indexing an empty array below would take
+  // the whole test binary down with a segfault instead of reporting which expectation failed)
+  ABORT_IF(groups[0].getFloatDataArrays().size() != 2);
+  ABORT_IF(groups[0].getStringDataArrays().size() != 1);
+  ABORT_IF(groups[0].getIntegerDataArrays().size() != 1);
+  TEST_EQUAL(groups[0].getFloatDataArrays().size(), 2);
+  TEST_EQUAL(groups[0].getFloatDataArrays()[0].getName(), "abundances");
+  TEST_EQUAL(groups[0].getFloatDataArrays()[0].size(), 3);
+  TEST_REAL_SIMILAR(groups[0].getFloatDataArrays()[0][0], 11.0);
+  TEST_REAL_SIMILAR(groups[0].getFloatDataArrays()[0][2], 33.0);
+  TEST_EQUAL(groups[0].getFloatDataArrays()[1].getName(), "file_channel_level_abundance");
+  TEST_EQUAL(groups[0].getStringDataArrays()[0][1], "fB");
+  TEST_EQUAL(groups[0].getIntegerDataArrays()[0][1], 2);
 }
 END_SECTION
 
@@ -358,6 +548,26 @@ START_SECTION((template <class IdentificationType> static void filterHitsByScore
   IDFilter::filterHitsByScore(peptides, 41);
   TEST_EQUAL(peptides[0].getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 0);
+}
+END_SECTION
+
+START_SECTION((template <class IdentificationType> static void filterHitsByScore(vector<IdentificationType>& ids, double threshold_score, IDScoreSwitcherAlgorithm::ScoreType score_type)))
+{
+  // The documented contract removes hits when the requested score type is absent.
+
+  // Case A: the ID's main score type ("Mascot") IS the requested RAW score type, so this behaves
+  // exactly like the 2-arg overload (threshold 33 keeps 5 hits).
+  PeptideIdentificationList peptides = global_peptides; // score type "Mascot" (registered as RAW)
+  TEST_NOT_EQUAL(peptides[0].getHits().size(), 0);
+  IDFilter::filterHitsByScore(peptides.getData(), 33.0, IDScoreSwitcherAlgorithm::ScoreType::RAW);
+  TEST_EQUAL(peptides[0].getHits().size(), 5);
+
+  // Case B (the regression this fixes): the requested score type (PEP) is present neither as the
+  // main score ("Mascot") nor as any secondary score, so ALL hits of that ID must be removed.
+  PeptideIdentificationList missing = global_peptides;
+  TEST_NOT_EQUAL(missing[0].getHits().size(), 0);
+  IDFilter::filterHitsByScore(missing.getData(), 0.0, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+  TEST_EQUAL(missing[0].getHits().size(), 0); // documented contract: hits removed, NOT kept
 }
 END_SECTION
 
@@ -432,9 +642,9 @@ START_SECTION((template <class IdentificationType> static void removeDecoyHits(v
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static void removeHitsMatchingProteins(vector<IdentificationType>& ids, const set<String> accessions)))
+START_SECTION((template <class IdentificationType> static void removeHitsMatchingProteins(vector<IdentificationType>& ids, const set<std::string> accessions)))
 {
-  set<String> accessions;
+  set<std::string> accessions;
   accessions.insert("Q824A5");
   accessions.insert("Q872T5");
 
@@ -461,9 +671,9 @@ START_SECTION((template <class IdentificationType> static void removeHitsMatchin
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static void keepHitsMatchingProteins(vector<IdentificationType>& ids, const set<String> accessions)))
+START_SECTION((template <class IdentificationType> static void keepHitsMatchingProteins(vector<IdentificationType>& ids, const set<std::string> accessions)))
 {
-  set<String> accessions;
+  set<std::string> accessions;
   accessions.insert("Q824A5");
   accessions.insert("Q872T5");
 
@@ -615,7 +825,7 @@ START_SECTION((static void filterPeptidesByMZError(PeptideIdentificationList& pe
 }
 END_SECTION
 
-START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const String& metavalue_key, double threshold = 0.05)))
+START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const std::string& metavalue_key, double threshold = 0.05)))
 {
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
@@ -650,10 +860,10 @@ START_SECTION((static void filterPeptidesByRTPredictPValue(PeptideIdentification
 }
 END_SECTION
 
-START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)))
+START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<std::string>& modifications)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  set<String> mods;
+  set<std::string> mods;
   mods.insert("Carbamidomethyl (C)"); // not present in the data
   IDFilter::removePeptidesWithMatchingModifications(peptides, mods);
   TEST_TRUE(peptides == global_peptides); // no changes
@@ -679,10 +889,10 @@ START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdenti
 }
 END_SECTION
 
-START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const String& regex)))
+START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const std::string& regex)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  String re{"[BJXZ]"};
+  std::string re{"[BJXZ]"};
 
   IDFilter::removePeptidesWithMatchingRegEx(peptides, re);
   TEST_TRUE(peptides == global_peptides); // no changes
@@ -707,10 +917,10 @@ START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentification
 }
 END_SECTION
 
-START_SECTION((static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)))
+START_SECTION((static void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<std::string>& modifications)))
 {
   PeptideIdentificationList peptides = global_peptides;
-  set<String> mods;
+  set<std::string> mods;
   mods.insert("Oxidation (M)");
   IDFilter::keepPeptidesWithMatchingModifications(peptides, mods);
   TEST_EQUAL(peptides[0].getHits().size(), 1);
@@ -901,6 +1111,132 @@ START_SECTION((static void keepNBestSpectra(PeptideIdentificationList& peptides,
   cout << peptides[1].getHits()[0].getSequence().toString() << endl;
   TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), 1000);
   TEST_REAL_SIMILAR(peptides[1].getHits()[0].getScore(), 40);
+}
+END_SECTION
+
+START_SECTION((static void filterObservationMatchesByScore(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref, double cutoff)))
+{
+  // Q-value cutoffs include their boundaries and remove missing scores.
+  for (const std::string& accession : {"MS:1002354", "MS:1001868"})
+  {
+    for (double cutoff : {0.05, 1.0})
+    {
+      IdentificationData data;
+      const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+      const auto q = data.registerScoreType(IdentificationData::ScoreType(CVTerm(accession, "q-value", "MS"), false));
+      const auto other = data.registerScoreType(IdentificationData::ScoreType("unrelated score", false));
+      const auto software = data.registerProcessingSoftware(IdentificationData::ProcessingSoftware("q-value recalculation", "1", {q}));
+      const auto step = data.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}));
+      const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
+      IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
+      candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
+      const auto oligo = data.registerIdentifiedOligo(candidate);
+      const std::vector<double> values{0.0, 0.01, 0.05, 0.1, 1.0};
+      for (Size i = 0; i < values.size(); ++i)
+      {
+        const auto observation = data.registerObservation(IdentificationData::Observation(std::to_string(i), file));
+        IdentificationData::ObservationMatch match(oligo, observation, -2);
+        // Filter using the most recent requested score, ignoring other score types.
+        match.addScore(q, 1.0);
+        match.addScore(q, values[i], step);
+        match.addScore(other, std::numeric_limits<double>::quiet_NaN(), step);
+        data.registerObservationMatch(match);
+      }
+      // A match lacking the requested score must also be removed.
+      const auto missing = data.registerObservation(IdentificationData::Observation("missing", file));
+      data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, missing, -2));
+      IDFilter::filterObservationMatchesByScore(data, q, cutoff);
+      TEST_EQUAL(data.getObservationMatches().size(), cutoff == 0.05 ? 3 : 5);
+      for (const auto& match : data.getObservationMatches())
+      {
+        const auto score = match.getScore(q);
+        TEST_TRUE(score.second);
+        TEST_TRUE(score.first >= 0.0 && score.first <= cutoff);
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] filterObservationMatchesByScore permits negative non-q-value scores))
+{
+  for (bool higher_better : {false, true})
+  {
+    IdentificationData data;
+    const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+    const auto score_type = data.registerScoreType(IdentificationData::ScoreType("custom score", higher_better));
+    const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
+    IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
+    candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
+    const auto oligo = data.registerIdentifiedOligo(candidate);
+    const std::vector<double> values{-2.0, -1.0, 0.0};
+    for (Size i = 0; i < values.size(); ++i)
+    {
+      const auto observation = data.registerObservation(IdentificationData::Observation(std::to_string(i), file));
+      IdentificationData::ObservationMatch match(oligo, observation, -2);
+      match.addScore(score_type, values[i]);
+      data.registerObservationMatch(match);
+    }
+    IDFilter::filterObservationMatchesByScore(data, score_type, -1.0);
+    TEST_EQUAL(data.getObservationMatches().size(), 2);
+    for (const auto& match : data.getObservationMatches())
+    {
+      TEST_FALSE(score_type->isBetterScore(-1.0, match.getScore(score_type).first));
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] filterObservationMatchesByScore throws on invalid stored scores without modifying data))
+{
+  for (const std::string& accession : {"MS:1002354", "MS:1001868", ""})
+  {
+    const std::vector<double> invalid_values{-1.0, 2.0, std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()};
+    for (double value : invalid_values)
+    {
+      // Ordinary scores may be negative or greater than one; only non-finite values are invalid.
+      if (accession.empty() && std::isfinite(value))
+      {
+        continue;
+      }
+      IdentificationData data;
+      const auto file = data.registerInputFile(IdentificationData::InputFile("test.mzML"));
+      const auto score_type = data.registerScoreType(IdentificationData::ScoreType(CVTerm(accession, "test score", "MS"), false));
+      const auto parent = data.registerParentSequence(IdentificationData::ParentSequence("RNA", IdentificationData::MoleculeType::RNA, "ACGU"));
+      IdentificationData::IdentifiedOligo candidate(NASequence::fromString("ACGU"));
+      candidate.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 3));
+      const auto oligo = data.registerIdentifiedOligo(candidate);
+      const auto worse = data.registerObservation(IdentificationData::Observation("0_worse", file));
+      IdentificationData::ObservationMatch worse_match(oligo, worse, -2);
+      worse_match.addScore(score_type, 0.1);
+      const auto worse_ref = data.registerObservationMatch(worse_match);
+      const auto missing = data.registerObservation(IdentificationData::Observation("1_missing", file));
+      const auto missing_ref = data.registerObservationMatch(IdentificationData::ObservationMatch(oligo, missing, -2));
+      const auto invalid = data.registerObservation(IdentificationData::Observation("2_invalid", file));
+      IdentificationData::ObservationMatch invalid_match(oligo, invalid, -2);
+      invalid_match.addScore(score_type, value);
+      data.registerObservationMatch(invalid_match);
+
+      TEST_EXCEPTION(Exception::InvalidValue, IDFilter::filterObservationMatchesByScore(data, score_type, 0.05));
+      TEST_EQUAL(data.getObservationMatches().size(), 3);
+      TEST_EQUAL(data.getObservations().size(), 3);
+      TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
+      TEST_EQUAL(data.getParentSequences().size(), 1);
+      TEST_REAL_SIMILAR(worse_ref->getScore(score_type).first, 0.1);
+      TEST_FALSE(missing_ref->getScore(score_type).second);
+
+      // A later valid score must not hide an invalid score from an earlier step.
+      const auto software = data.registerProcessingSoftware(IdentificationData::ProcessingSoftware("score recalculation", "1", {score_type}));
+      const auto step = data.registerProcessingStep(IdentificationData::ProcessingStep(software, {file}));
+      invalid_match.addScore(score_type, 0.01, step);
+      const auto invalid_ref = data.registerObservationMatch(invalid_match);
+      TEST_REAL_SIMILAR(invalid_ref->getScore(score_type).first, 0.01);
+      TEST_EXCEPTION(Exception::InvalidValue, IDFilter::filterObservationMatchesByScore(data, score_type, 0.05));
+      TEST_EQUAL(data.getObservationMatches().size(), 3);
+      TEST_EQUAL(data.getObservations().size(), 3);
+    }
+  }
 }
 END_SECTION
 

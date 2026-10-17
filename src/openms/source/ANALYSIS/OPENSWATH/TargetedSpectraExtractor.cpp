@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
@@ -194,6 +194,8 @@ namespace OpenMS
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
+      // In ppm mode the tolerance is relative to the precursor m/z
+      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : Math::ppmToMass(mz_tolerance_, spectrum_mz);
 
       // Lambda to check the mz/rt thresholds
       auto checkRtAndMzTol = [](const double& spectrum_mz, const double& spectrum_rt, 
@@ -217,8 +219,8 @@ namespace OpenMS
       auto construct_feature = [checkRtAndMzTol, spectrum_rt, spectrum_mz, &ms2_features, &annotated_spectra, &spectrum](
         const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win)
       {
-        const auto& peptide_ref_s = feature.getMetaValue("PeptideRef");
-        const auto& native_id_s = feature.getMetaValue("native_id");
+        const auto& peptide_ref_s = StringUtils::toStr(feature.getMetaValue("PeptideRef"));
+        const auto& native_id_s = StringUtils::toStr(feature.getMetaValue("native_id"));
         // check for null annotations resulting from unnanotated features
         if (peptide_ref_s != "null")
         {
@@ -251,12 +253,12 @@ namespace OpenMS
           // iterate through the subordinate level
           for (const auto& subordinate : feature.getSubordinates())
           {
-            construct_feature(subordinate, mz_tolerance_, rt_window_);
+            construct_feature(subordinate, mz_tolerance, rt_window_);
           }
         }
         else
         {
-          construct_feature(feature, mz_tolerance_, rt_window_);
+          construct_feature(feature, mz_tolerance, rt_window_);
         }
       }
     }
@@ -301,7 +303,7 @@ namespace OpenMS
                 // For example, M-H;1- will give -H
                 std::string str = hit.getMetaValue("modifications").toString();
                 std::string delimiter = ";";
-                adducts = str.substr(1, str.find(delimiter) - 1);
+                adducts = StringUtils::substr(str, 1, str.find(delimiter) - 1);
               }
               catch (const std::exception& e)
               {
@@ -367,7 +369,8 @@ namespace OpenMS
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
-      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
+      // In ppm mode the tolerance is relative to the precursor m/z
+      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : Math::ppmToMass(mz_tolerance_, spectrum_mz);
 
       // When spectrum_mz is 0, the mz check on transitions is inhibited
       const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();
@@ -459,9 +462,10 @@ namespace OpenMS
 
     // Build indices of peaks to keep (properly handles all DataArrays via select())
     std::vector<Size> indices_to_keep;
-    const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : fwhm_threshold_ / 1e6;
     for (Size i = 0; i < picked_spectrum.size(); ++i)
     {
+      // In ppm mode the threshold is relative to the peak's m/z
+      const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : Math::ppmToMass(fwhm_threshold_, picked_spectrum[i].getMZ());
       if (picked_spectrum[i].getIntensity() >= peak_height_min_ &&
           picked_spectrum[i].getIntensity() <= peak_height_max_ &&
           picked_spectrum.getFloatDataArrays()[0][i] >= fwhm_threshold)
@@ -787,7 +791,7 @@ namespace OpenMS
       {
         features[i].setMetaValue("spectral_library_name", matches[0].spectrum.getName());
         features[i].setMetaValue("spectral_library_score", matches[0].score);
-        const String& comments = matches[0].spectrum.metaValueExists("Comments") ?
+        const std::string& comments = matches[0].spectrum.metaValueExists("Comments") ?
           matches[0].spectrum.getMetaValue("Comments") : "";
         features[i].setMetaValue("spectral_library_comments", comments);
       }
@@ -804,7 +808,7 @@ namespace OpenMS
 
     if (!no_matches_idx.empty())
     {
-      String warn_msg = "No match was found for " + std::to_string(no_matches_idx.size()) + " `Feature`s. Indices: ";
+      std::string warn_msg = "No match was found for " + std::to_string(no_matches_idx.size()) + " `Feature`s. Indices: ";
       for (const Size idx : no_matches_idx)
       {
         warn_msg += std::to_string(idx) + " ";
@@ -871,7 +875,7 @@ namespace OpenMS
     std::map<std::string, OpenMS::TargetedExperiment::Protein> proteins_map;
     for (const auto& ms1_feature : ms1_features)
     {
-      std::string peptide_ref = ms1_feature.getMetaValue("PeptideRef");
+      std::string peptide_ref = StringUtils::toStr(ms1_feature.getMetaValue("PeptideRef"));
       OpenMS::TargetedExperiment::Protein protein;
       protein.id = peptide_ref;
       protein.addMetaValues(ms1_feature);
@@ -947,7 +951,7 @@ namespace OpenMS
     try
     {
       // Pass 1: organize into a map by combining features and subordinates with the same `identifier`
-      std::map<OpenMS::String, std::vector<OpenMS::Feature>> fmapmap;
+      std::map<std::string, std::vector<OpenMS::Feature>> fmapmap;
       organizeMapWithSameIdentifier(fmap_input, fmapmap);
 
       // Pass 2: compute the consensus manually
@@ -986,15 +990,18 @@ namespace OpenMS
         OpenMS::Feature f;
         f.setUniqueId();
 
-        // parse the identifier
+        // parse the identifier: the PeptideRef is the part before the first '_'.
+        // If there is no '_', leave the PeptideRef empty (as before) rather than
+        // silently using the whole identifier (StringUtils::prefix no longer throws
+        // when the delimiter is absent).
         std::string id_f;
-        try
+        if (f_map.first.find('_') != std::string::npos)
         {
-          id_f = f_map.first.prefix('_');
+          id_f = StringUtils::prefix(f_map.first, '_');
         }
-        catch (const std::exception& e)
+        else
         {
-          OPENMS_LOG_ERROR << e.what();
+          OPENMS_LOG_ERROR << "Identifier '" << f_map.first << "' has no '_' separator; PeptideRef left empty." << std::endl;
         }
         f.setMetaValue("PeptideRef", id_f);
         f.setMZ(m);
@@ -1012,7 +1019,7 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const
+  void TargetedSpectraExtractor::storeSpectraMSP(const std::string& filename, MSExperiment& experiment) const
   {
     if (deisotoping_use_deisotoper_)
     {
@@ -1080,7 +1087,7 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const
+  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const
   {
     auto construct_feature = [&fmapmap](const OpenMS::Feature& feature)
     {
@@ -1105,17 +1112,17 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::BinnedSpectrumComparator::init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options)
+  void TargetedSpectraExtractor::BinnedSpectrumComparator::init(const std::vector<MSSpectrum>& library, const std::map<std::string,DataValue>& options)
   {
-    if (options.count("bin_size"))
+    if (options.contains("bin_size"))
     {
       bin_size_ = options.at("bin_size");
     }
-    if (options.count("peak_spread"))
+    if (options.contains("peak_spread"))
     {
       peak_spread_ = options.at("peak_spread");
     }
-    if (options.count("bin_offset"))
+    if (options.contains("bin_offset"))
     {
       bin_offset_ = options.at("bin_offset");
     }

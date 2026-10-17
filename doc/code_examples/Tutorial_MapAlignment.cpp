@@ -12,7 +12,7 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  auto tutorial_data_path = OPENMS_DOC_PATH + String("/code_examples/");
+  auto tutorial_data_path = OPENMS_DOC_PATH + std::string("/code_examples/");
 
   FeatureMap reference;
   FeatureMap toAlign;

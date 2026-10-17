@@ -17,7 +17,6 @@
 
 namespace OpenMS
 {
-  class String;
   class MSSpectrum;
   class ExperimentalSettings;
 
@@ -89,7 +88,7 @@ namespace OpenSwath
     /**
       @brief Save all internally collected data to a JSON file.
     */
-    void storeJSON(const OpenMS::String& filename);
+    void storeJSON(const std::string& filename);
 
     /**
       @brief returns the charge distribution which was internally computed by applying getSpectraProcessingFunc() externally
@@ -136,7 +135,7 @@ namespace OpenSwath
     /// m/z tolerance for isotope deconvolution
     double decon_ms1_mz_tol_;
 
-    /// keeps track of number of spectra passed to getSpectraProcessingFunc()
+    /// number of MS1 spectra passed to getSpectraProcessingFunc() so far, subsampled or not
     size_t ms1_spectra_seen_;
   };
     

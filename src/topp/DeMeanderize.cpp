@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -115,9 +116,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<mzML-file>", "", "Input experiment file, containing the wrongly sorted spectra.");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzML"));
     registerOutputFile_("out", "<mzML-file>", "", "Output experiment file with correctly sorted spectra.");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    setValidFormats_("out", ListUtils::create<std::string>("mzML"));
     registerIntOption_("num_spots_per_row", "<integer>", 48, "Number of spots in one column, until next row is spotted.", false);
     setMinInt_("num_spots_per_row", 1);
     registerDoubleOption_("RT_distance", "<integer>", 1.0, "RT distance between two spots which is used to calculated pseudo RT.", false, true);
@@ -129,8 +130,8 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in(getStringOption_("in"));
-    String out(getStringOption_("out"));
+    std::string in(getStringOption_("in"));
+    std::string out(getStringOption_("out"));
     Size num_spots_per_row(getIntOption_("num_spots_per_row"));
     double RT_distance(getDoubleOption_("RT_distance"));
 
@@ -157,12 +158,12 @@ protected:
       if (row_to_reverse)
       {
         actual_RT = (double)(num_ms1_base + (num_spots_per_row - row_counter)) * RT_distance;
-        writeDebug_("RT=" + String(actual_RT) + " (modified, row_counter=" + String(row_counter) + ")", 1);
+        writeDebug_("RT=" + StringUtils::toStr(actual_RT) + " (modified, row_counter=" + StringUtils::toStr(row_counter) + ")", 1);
       }
       else
       {
         actual_RT = (double)num_ms1 * RT_distance;
-        writeDebug_("RT=" + String(actual_RT), 1);
+        writeDebug_("RT=" + StringUtils::toStr(actual_RT), 1);
       }
 
       exp[i].setRT(actual_RT);

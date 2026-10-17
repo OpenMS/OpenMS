@@ -54,7 +54,7 @@ enum class ArrowExportFormat
   @note When ms_levels is empty, all MS levels are exported.
   @note When columns is empty, all available columns are exported.
   @note RT and m/z ranges of (0, 0) indicate no filtering.
-  @note String columns use standard utf8 with 32-bit offsets. Total string bytes
+  @note std::string columns use standard utf8 with 32-bit offsets. Total string bytes
         per column are limited to ~2GB. This is sufficient for typical native_id values.
 */
 struct OPENMS_DLLAPI ArrowSpectraExportConfig
@@ -323,7 +323,7 @@ public:
   */
   static bool exportSpectraToParquet(
     const MSExperiment& exp,
-    const String& filename,
+    const std::string& filename,
     const ArrowSpectraExportConfig& config = ArrowSpectraExportConfig{},
     const ParquetWriteConfig& parquet_config = ParquetWriteConfig{});
 
@@ -342,7 +342,7 @@ public:
   */
   static bool exportChromatogramsToParquet(
     const MSExperiment& exp,
-    const String& filename,
+    const std::string& filename,
     const ArrowChromatogramExportConfig& config = ArrowChromatogramExportConfig{},
     const ParquetWriteConfig& parquet_config = ParquetWriteConfig{});
 }; // class MSExperimentArrowExport

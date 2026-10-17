@@ -1,0 +1,7 @@
+{
+  "name": "wnetalign",
+  "version": "0.9.8",
+  "description": "wnetalign headers",
+  "homepage": "https://github.com/michalsta/wnetalign",
+  "dependencies": ["pylmcf", "wnet"]
+}

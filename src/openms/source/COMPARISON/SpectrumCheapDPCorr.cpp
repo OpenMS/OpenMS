@@ -37,11 +37,17 @@ namespace OpenMS
   SpectrumCheapDPCorr::SpectrumCheapDPCorr(const SpectrumCheapDPCorr & source) :
     PeakSpectrumCompareFunctor(source),
     lastconsensus_(source.lastconsensus_),
+    keeppeaks_(source.keeppeaks_),
     factor_(source.factor_)
   {
   }
 
   SpectrumCheapDPCorr::~SpectrumCheapDPCorr() = default;
+
+  void SpectrumCheapDPCorr::updateMembers_()
+  {
+    keeppeaks_ = (int)param_.getValue("keeppeaks") != 0;
+  }
 
   SpectrumCheapDPCorr & SpectrumCheapDPCorr::operator=(const SpectrumCheapDPCorr & source)
   {
@@ -49,6 +55,7 @@ namespace OpenMS
     {
       PeakSpectrumCompareFunctor::operator=(source);
       lastconsensus_ = source.lastconsensus_;
+      keeppeaks_ = source.keeppeaks_;
       factor_ = source.factor_;
     }
     return *this;
@@ -79,7 +86,6 @@ namespace OpenMS
   {
     double var = (double)param_.getValue("variation");
     double score(0);
-    bool keeppeaks_ = (int)param_.getValue("keeppeaks");
 
     lastconsensus_ = PeakSpectrum();
     Precursor p1, p2;
@@ -178,7 +184,7 @@ namespace OpenMS
           consensuspeak.setIntensity((xit->getIntensity() * (1 - factor_) + yit->getIntensity() * factor_));
           lastconsensus_.push_back(consensuspeak);
 
-          if (!(peak_map_.find(xit - x.begin()) != peak_map_.end()))
+          if (!(peak_map_.contains(xit - x.begin())))
           {
             peak_map_[xit - x.begin()] = yit - y.begin();
           }
@@ -256,7 +262,7 @@ namespace OpenMS
         consensuspeak.setMZ((y[ystart + j - 1].getMZ() * (1 - factor_) + x[xstart + i - 1].getMZ() * factor_));
         consensuspeak.setIntensity((y[ystart + j - 1].getIntensity() * (1 - factor_) + x[xstart + i - 1].getIntensity() * factor_));
         lastconsensus_.push_back(consensuspeak);
-        if (!(peak_map_.find(xstart + i - 1) != peak_map_.end()))
+        if (!(peak_map_.contains(xstart + i - 1)))
         {
           peak_map_[xstart + i - 1] = ystart + j - 1;
         }

@@ -13,6 +13,7 @@
 
 #include <OpenMS/SYSTEM/Network.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <filesystem>
 
@@ -31,7 +32,7 @@ START_SECTION(static void downloadFile(const std::string& url, const std::string
   std::string fixture_path = OPENMS_GET_TEST_DATA_PATH("Network_test_fixture.txt");
   std::string url = "file://" + fixture_path;
 
-  std::string folder = File::getTempDirectory();
+  std::string folder = SystemSettings::getTempDirectory();
 
   Network::downloadFile(url, folder);
   std::string output_file_path = folder + "/Network_test_fixture.txt";

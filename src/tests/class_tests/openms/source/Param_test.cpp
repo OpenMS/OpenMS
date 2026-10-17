@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -14,7 +15,6 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
 
 #include <type_traits>
 #include <iterator>
@@ -104,6 +104,71 @@ START_SECTION(([Param::ParamEntry] bool isValid(std::string& message) const))
 	p.setValidStrings("string_2",strings);
 	TEST_EQUAL(p.getEntry("string_2").isValid(m),true);
 
+END_SECTION
+
+START_SECTION(([Param::ParamEntry] bool isBool() const))
+	Param p;
+
+	// canonical flag declaration
+	p.setValue("flag", "false");
+	p.setValidStrings("flag", {"true", "false"});
+	TEST_EQUAL(p.getEntry("flag").isBool(), true)
+
+	// reversed order is boolean as well
+	p.setValue("reversed", "false");
+	p.setValidStrings("reversed", {"false", "true"});
+	TEST_EQUAL(p.getEntry("reversed").isBool(), true)
+
+	// the current value does not matter
+	p.setValue("flag", "true");
+	TEST_EQUAL(p.getEntry("flag").isBool(), true)
+	p.setValue("reversed", "true");
+	TEST_EQUAL(p.getEntry("reversed").isBool(), true)
+
+	// a value outside the restrictions does not change the type (isValid() reports that separately)
+	std::string msg;
+	p.setValue("flag", "auto");
+	TEST_EQUAL(p.getEntry("flag").isBool(), true)
+	TEST_EQUAL(p.getEntry("flag").isValid(msg), false)
+
+	// unrestricted "true"/"false" strings are not boolean
+	p.setValue("unrestricted", "true");
+	TEST_EQUAL(p.getEntry("unrestricted").isBool(), false)
+
+	// restrictions with additional values are not boolean
+	p.setValue("tristate", "auto");
+	p.setValidStrings("tristate", {"auto", "true", "false"});
+	TEST_EQUAL(p.getEntry("tristate").isBool(), false)
+
+	// single-value and duplicate restrictions are not boolean
+	p.setValue("single", "true");
+	p.setValidStrings("single", {"true"});
+	TEST_EQUAL(p.getEntry("single").isBool(), false)
+	p.setValue("duplicate", "true");
+	p.setValidStrings("duplicate", {"true", "true"});
+	TEST_EQUAL(p.getEntry("duplicate").isBool(), false)
+
+	// other two-value restrictions are not boolean
+	p.setValue("unit", "ppm");
+	p.setValidStrings("unit", {"ppm", "Da"});
+	TEST_EQUAL(p.getEntry("unit").isBool(), false)
+
+	// string lists are not boolean, even with true/false restrictions
+	p.setValue("list", std::vector<std::string>{"true", "false"});
+	p.setValidStrings("list", {"true", "false"});
+	TEST_EQUAL(p.getEntry("list").isBool(), false)
+
+	// non-string types are not boolean
+	p.setValue("int", 1);
+	TEST_EQUAL(p.getEntry("int").isBool(), false)
+	p.setValue("double", 1.0);
+	TEST_EQUAL(p.getEntry("double").isBool(), false)
+
+	// a freshly constructed entry without restrictions is not boolean
+	Param::ParamEntry pe("n", "false", "d");
+	TEST_EQUAL(pe.isBool(), false)
+	pe.valid_strings = {"true", "false"};
+	TEST_EQUAL(pe.isBool(), true)
 END_SECTION
 
 START_SECTION(([Param::ParamEntry] bool operator==(const ParamEntry& rhs) const))
@@ -718,7 +783,7 @@ START_SECTION((const ParamEntry& getEntry(const std::string &key) const))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key:value"))
 END_SECTION
 
-START_SECTION((void setValue(const std::string &key, const DataValue& value, const std::string &description="", const std::stringList &tags=std::stringList())))
+START_SECTION((void setValue(const std::string &key, const DataValue& value, const std::string &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.exists("key"), true)
@@ -1195,7 +1260,32 @@ START_SECTION((void setDefaults(const Param& defaults, const std::string& prefix
 	TEST_EQUAL(p2.getValue("intlist2") == ListUtils::create<Int>("11,22,33"), true)
 	TEST_EQUAL(p2.getValue("doublelist2") == ListUtils::create<double>("11.22,22.33"), true)
 
-
+	// an existing string entry takes the defaults' string restrictions; its value is kept
+	{
+		Param restricted_defaults;
+		restricted_defaults.setValue("flag", "false");
+		restricted_defaults.setValidStrings("flag", {"true", "false"});
+		restricted_defaults.setValue("mode", "auto");
+		restricted_defaults.setValidStrings("mode", {"auto", "true", "false"});
+		restricted_defaults.setValue("free", "x");
+		restricted_defaults.setValue("number", 1);
+		Param given;
+		given.setValue("flag", "true", "", {"advanced"});           // no restrictions
+		given.setValue("mode", "true");
+		given.setValidStrings("mode", {"true", "false"});           // contradicting restrictions
+		given.setValue("free", "y");
+		given.setValidStrings("free", {"y", "z"});                  // defaults are unrestricted
+		given.setValue("number", "not a number");                   // type mismatch: untouched
+		given.setValidStrings("number", {"not a number"});
+		given.setDefaults(restricted_defaults);
+		TEST_EQUAL(given.getValue("flag").toString(), "true")
+		TEST_EQUAL(given.getValidStrings("flag") == std::vector<std::string>({"true", "false"}), true)
+		TEST_EQUAL(given.getTags("flag") == std::vector<std::string>({"advanced"}), true)
+		TEST_EQUAL(given.getValue("mode").toString(), "true")
+		TEST_EQUAL(given.getValidStrings("mode") == std::vector<std::string>({"auto", "true", "false"}), true)
+		TEST_EQUAL(given.getValidStrings("free").empty(), true)
+		TEST_EQUAL(given.getValidStrings("number") == std::vector<std::string>({"not a number"}), true)
+	}
 
 	p2.setDefaults(defaults,"PATH");
 

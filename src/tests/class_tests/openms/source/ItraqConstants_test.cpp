@@ -49,17 +49,17 @@ START_SECTION((static StringList getIsotopeMatrixAsStringList(const int itraq_ty
 
   {
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, ic);
-		StringList t_ics = ListUtils::create<String>("114:0.0/1.0/5.9/0.2,115:0.0/2.0/5.6/0.1,116:0.0/3.0/4.5/0.1,117:0.1/4.0/3.5/0.1");
+		StringList t_ics = ListUtils::create<std::string>("114:0.0/1.0/5.9/0.2,115:0.0/2.0/5.6/0.1,116:0.0/3.0/4.5/0.1,117:0.1/4.0/3.5/0.1");
 		TEST_EQUAL(ics, t_ics);
 	}
 	{
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, ic);
-		StringList t_ics = ListUtils::create<String>("113:0.0/0.0/6.89/0.22,114:0.0/0.94/5.9/0.16,115:0.0/1.88/4.9/0.1,116:0.0/2.82/3.9/0.07,117:0.06/3.77/2.99/0.0,118:0.09/4.71/1.88/0.0,119:0.14/5.66/0.87/0.0,121:0.27/7.44/0.18/0.0");
+		StringList t_ics = ListUtils::create<std::string>("113:0.0/0.0/6.89/0.22,114:0.0/0.94/5.9/0.16,115:0.0/1.88/4.9/0.1,116:0.0/2.82/3.9/0.07,117:0.06/3.77/2.99/0.0,118:0.09/4.71/1.88/0.0,119:0.14/5.66/0.87/0.0,121:0.27/7.44/0.18/0.0");
 		TEST_EQUAL(ics, t_ics);
 	}
   {
     StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::TMT_SIXPLEX, ic);
-    StringList t_ics = ListUtils::create<String>("126:0.0/0.0/0.0/0.0,127:0.0/0.0/0.0/0.0,128:0.0/0.0/0.0/0.0,129:0.0/0.0/0.0/0.0,130:0.0/0.0/0.0/0.0,131:0.0/0.0/0.0/0.0");
+    StringList t_ics = ListUtils::create<std::string>("126:0.0/0.0/0.0/0.0,127:0.0/0.0/0.0/0.0,128:0.0/0.0/0.0/0.0,129:0.0/0.0/0.0/0.0,130:0.0/0.0/0.0/0.0,131:0.0/0.0/0.0/0.0");
     TEST_EQUAL(ics, t_ics);
   }
 }
@@ -73,8 +73,8 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
 	ic[1].setMatrix<double,8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
   ic[2].setMatrix<double,6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
-//StringList t_ics = ListUtils::create<String>("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1"); // the default
-	StringList t_ics = ListUtils::create<String>("114:0/1/5.9/4.2,115:3/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/2");
+//StringList t_ics = ListUtils::create<std::string>("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1"); // the default
+	StringList t_ics = ListUtils::create<std::string>("114:0/1/5.9/4.2,115:3/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/2");
 
 	ic[0](0,3) = 4.2;
 	ic[0](1,0) = 3;
@@ -95,8 +95,8 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
   ic[2](1,0) = 2.1;
   ic[2](4,3) = 5.1;
 
-  // StringList tmt_ics = ListUtils::create<String>("126:0/0/0/0,127:0/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/0,131:0/0/0/0"); // the original one
-  StringList tmt_ics = ListUtils::create<String>("126:0/0/3.4/0,127:2.1/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/5.1,131:0/0/0/0");
+  // StringList tmt_ics = ListUtils::create<std::string>("126:0/0/0/0,127:0/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/0,131:0/0/0/0"); // the original one
+  StringList tmt_ics = ListUtils::create<std::string>("126:0/0/3.4/0,127:2.1/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/5.1,131:0/0/0/0");
 
   ItraqConstants::IsotopeMatrices ic_tmt;
   ItraqConstants::updateIsotopeMatrixFromStringList(ItraqConstants::TMT_SIXPLEX, tmt_ics, ic_tmt);
@@ -138,35 +138,35 @@ END_SECTION
 
 START_SECTION((static void updateChannelMap(const StringList& active_channels, ChannelMapType& map)))
 {
-	StringList active_channels = ListUtils::create<String>("114:myReference");
+	StringList active_channels = ListUtils::create<std::string>("114:myReference");
 	ItraqConstants::ChannelMapType map;
 
 	ItraqConstants::initChannelMap(ItraqConstants::FOURPLEX, map);
 
   ItraqConstants::updateChannelMap(active_channels, map);
 
-  TEST_EQUAL(map[114].description, String("myReference"))
+  TEST_EQUAL(map[114].description,std::string("myReference"))
 	TEST_EQUAL(map[114].active, true);
 
   // TMT
-  StringList activeTmtChannels = ListUtils::create<String>("126:myReference,129:treated,131:control");
+  StringList activeTmtChannels = ListUtils::create<std::string>("126:myReference,129:treated,131:control");
   ItraqConstants::ChannelMapType tmtMap;
 
   ItraqConstants::initChannelMap(ItraqConstants::TMT_SIXPLEX, tmtMap);
 
   ItraqConstants::updateChannelMap(activeTmtChannels, tmtMap);
 
-  TEST_EQUAL(tmtMap[126].description, String("myReference"))
+  TEST_EQUAL(tmtMap[126].description,std::string("myReference"))
   TEST_EQUAL(tmtMap[126].active, true);
-  TEST_EQUAL(tmtMap[127].description, String(""))
+  TEST_EQUAL(tmtMap[127].description,std::string(""))
   TEST_EQUAL(tmtMap[127].active, false);
-  TEST_EQUAL(tmtMap[128].description, String(""))
+  TEST_EQUAL(tmtMap[128].description,std::string(""))
   TEST_EQUAL(tmtMap[128].active, false);
-  TEST_EQUAL(tmtMap[129].description, String("treated"))
+  TEST_EQUAL(tmtMap[129].description,std::string("treated"))
   TEST_EQUAL(tmtMap[129].active, true);
-  TEST_EQUAL(tmtMap[130].description, String(""))
+  TEST_EQUAL(tmtMap[130].description,std::string(""))
   TEST_EQUAL(tmtMap[130].active, false);
-  TEST_EQUAL(tmtMap[131].description, String("control"))
+  TEST_EQUAL(tmtMap[131].description,std::string("control"))
   TEST_EQUAL(tmtMap[131].active, true);
 }
 END_SECTION

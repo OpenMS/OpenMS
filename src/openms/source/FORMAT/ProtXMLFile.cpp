@@ -20,11 +20,12 @@ namespace OpenMS
 
   ProtXMLFile::ProtXMLFile() :
     XMLHandler("", "1.2"),
-    XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0")
+    XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0"),
+    skip_protein_(false)
   {
   }
 
-  void ProtXMLFile::load(const String& filename, ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
+  void ProtXMLFile::load(const std::string& filename, ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -42,7 +43,7 @@ namespace OpenMS
     parse_(filename, this);
   }
 
-  void ProtXMLFile::store(const String& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const String& /*document_id*/)
+  void ProtXMLFile::store(const std::string& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const std::string& /*document_id*/)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     // resetMembers_();
@@ -55,16 +56,17 @@ namespace OpenMS
     pep_id_ = nullptr;
     pep_hit_ = nullptr;
     protein_group_ = ProteinGroup();
+    skip_protein_ = false;
   }
 
-  void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+  void ProtXMLFile::onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes)
   {
-    String tag = sm_.convert(qname);
+    std::string tag = sm_.convert(qname);
 
     if (tag == "protein_summary_header")
     {
-      String db = attributeAsString_(attributes, "reference_database");
-      String enzyme = attributeAsString_(attributes, "sample_enzyme");
+      std::string db = attributeAsString_(attributes, "reference_database");
+      std::string enzyme = attributeAsString_(attributes, "sample_enzyme");
       ProteinIdentification::SearchParameters sp = prot_id_->getSearchParameters();
       sp.db = db;
       // find a matching enzyme name
@@ -79,9 +81,9 @@ namespace OpenMS
     // <program_details analysis="proteinprophet" time="2009-11-29T18:30:03" ...
     if (tag == "program_details")
     {
-      String analysis = attributeAsString_(attributes, "analysis");
-      String time = attributeAsString_(attributes, "time");
-      String version = attributeAsString_(attributes, "version");
+      std::string analysis = attributeAsString_(attributes, "analysis");
+      std::string time = attributeAsString_(attributes, "time");
+      std::string version = attributeAsString_(attributes, "version");
 
       DateTime date;
       date.set(time);
@@ -93,7 +95,7 @@ namespace OpenMS
       prot_id_->setDateTime(date);
       prot_id_->setSearchEngine(analysis);
       prot_id_->setSearchEngineVersion(version);
-      String id = String(UniqueIdGenerator::getUniqueId()); // was: analysis + "_" + time;
+      std::string id =StringUtils::toStr(UniqueIdGenerator::getUniqueId()); // was: analysis + "_" + time;
       prot_id_->setIdentifier(id);
       pep_id_->setIdentifier(id);
     }
@@ -104,14 +106,44 @@ namespace OpenMS
       // internal group structure
       protein_group_ = ProteinGroup();
       protein_group_.probability = attributeAsDouble_(attributes, "probability");
+      skip_protein_ = false;
     }
     else if (tag == "protein")
     {
-      // usually there will be just one <protein> per <protein_group>, but more
+      // Usually there will be just one <protein> per <protein_group>, but more
       // are possible; each <protein> is distinguishable from the other, we
-      // nevertheless group them
+      // nevertheless group them.
+      //
+      // ProteinProphet assigns probability=0 to "unneeded" proteins that are not
+      // part of its minimal (parsimonious) protein list. This covers BOTH
+      //   - subset proteins    (peptides are a strict subset of another protein's), and
+      //   - subsumable proteins (peptides jointly explained by a combination of others).
+      // These are NOT truly indistinguishable (they don't share 100% of their
+      // peptides with a leader). We filter them out to prevent ProteinQuantifier
+      // from creating spurious indistinguishable groups that would cause shared
+      // peptides to be discarded during quantification.
+      //
+      // We key on probability==0 rather than the 'subsuming_protein_entry' attribute
+      // on purpose: that attribute is optional and is written ONLY for the subsumable
+      // subclass, so it would miss subset proteins. Every protein ProteinProphet
+      // actually needs carries a non-zero probability, so probability==0 is the
+      // reliable, complete predicate for "unneeded".
 
-      String protein_name = attributeAsString_(attributes, "protein_name");
+      double probability = attributeAsDouble_(attributes, "probability");
+      // ProteinProphet writes exactly "0.0000" for these proteins.
+      // IEEE 754 parsing of this string yields exactly 0.0, so exact comparison is safe.
+      if (probability == 0.0)
+      {
+        skip_protein_ = true;
+        OPENMS_LOG_DEBUG << "Skipping unneeded (subset/subsumable) protein '"
+                        << attributeAsString_(attributes, "protein_name")
+                        << "' (probability=0) in protein_group "
+                        << protein_group_.probability << "\n";
+        return;
+      }
+      skip_protein_ = false;
+
+      std::string protein_name = attributeAsString_(attributes, "protein_name");
       // open new "indistinguishable" group:
       prot_id_->insertIndistinguishableProteins(ProteinGroup());
       registerProtein_(protein_name); // create new protein
@@ -126,12 +158,14 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "Required attribute 'percent_coverage' missing\n";
       }
-      prot_id_->getHits().back().setScore(attributeAsDouble_(attributes, "probability"));
+      prot_id_->getHits().back().setScore(probability);
 
     }
     else if (tag == "indistinguishable_protein")
     {
-      String protein_name = attributeAsString_(attributes, "protein_name");
+      if (skip_protein_) return; // child of a filtered probability=0 protein
+
+      std::string protein_name = attributeAsString_(attributes, "protein_name");
       // current last protein is from the same "indistinguishable" group:
       double score = prot_id_->getHits().back().getScore();
       registerProtein_(protein_name);
@@ -142,11 +176,13 @@ namespace OpenMS
     }
     else if (tag == "peptide")
     {
+      if (skip_protein_) return; // peptide under a filtered probability=0 protein
+
       // If a peptide is degenerate it will show in multiple groups, but have different statistics (e.g. 'nsp_adjusted_probability')
       // We thus treat each instance as a separate peptide
       // todo/improvement: link them by a group in PeptideIdentification?!
       pep_hit_ = new PeptideHit;
-      pep_hit_->setSequence(AASequence::fromString(String(attributeAsString_(attributes, "peptide_sequence"))));
+      pep_hit_->setSequence(AASequence::fromString(std::string(attributeAsString_(attributes, "peptide_sequence"))));
       pep_hit_->setScore(attributeAsDouble_(attributes, "nsp_adjusted_probability"));
 
       Int charge;
@@ -167,24 +203,26 @@ namespace OpenMS
         pe.setProteinAccession(*accession);
         pep_hit_->addPeptideEvidence(pe);
       }
-      pep_hit_->setMetaValue("is_unique", String(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
-      pep_hit_->setMetaValue("is_contributing", String(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
+      pep_hit_->setMetaValue("is_unique",std::string(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
+      pep_hit_->setMetaValue("is_contributing",std::string(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
     }
     else if (tag == "mod_aminoacid_mass")
     {
+      if (skip_protein_) return; // mod under a filtered probability=0 protein
+
       // relates to the last seen peptide (we hope)
       Size position = attributeAsInt_(attributes, "position");
       double mass = attributeAsDouble_(attributes, "mass");
       AASequence temp_aa_sequence(pep_hit_->getSequence());
 
-      String temp_description = "";
-      String origin = temp_aa_sequence[position - 1].getOneLetterCode();
+      std::string temp_description;
+      std::string origin = temp_aa_sequence[position - 1].getOneLetterCode();
       matchModification_(mass, origin, temp_description);
       if (!temp_description.empty()) // only if a mod was found
       {
         // e.g. Carboxymethyl (C)
-        vector<String> mod_split;
-        temp_description.split(' ', mod_split);
+        vector<std::string> mod_split;
+        StringUtils::split(temp_description, ' ', mod_split);
         if (mod_split.size() == 2)
         {
           if (mod_split[1] == "(C-term)" || ModificationsDB::getInstance()->getModification(temp_description)->getTermSpecificity() == ResidueModification::C_TERM)
@@ -206,35 +244,47 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD, String("Cannot parse modification '") + temp_description + "@" + position + "'");
+          error(LOAD,std::string("Cannot parse modification '") + temp_description + "@" + position + "'");
         }
       }
       else
       {
-        error(LOAD, String("Cannot find modification '") + String(mass) + " " + String(origin) + "' @" + String(position));
+        error(LOAD,"Cannot find modification '" + StringUtils::toStr(mass) + " " + std::string(origin) + "' @" + StringUtils::toStr(position));
       }
 
       pep_hit_->setSequence(temp_aa_sequence);
     }
   }
 
-  void ProtXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  void ProtXMLFile::onEndElement(const char16_t* qname)
   {
-    String tag = sm_.convert(qname);
+    std::string tag = sm_.convert(qname);
 
 
     if (tag == "protein_group")
     {
-      prot_id_->insertProteinGroup(protein_group_);
+      // Only insert non-empty groups. A group can become empty if all of its
+      // <protein> elements were subsumable (probability=0) and thus skipped.
+      // Inserting an accession-less group would break downstream consumers that
+      // assume group.accessions[0] exists (e.g. TextExporter).
+      if (!protein_group_.accessions.empty())
+      {
+        prot_id_->insertProteinGroup(protein_group_);
+      }
+    }
+    else if (tag == "protein")
+    {
+      skip_protein_ = false; // defensive reset when leaving any <protein> element
     }
     else if (tag == "peptide")
     {
+      if (skip_protein_) return; // peptide under a filtered probability=0 protein
       pep_id_->insertHit(*pep_hit_);
       delete pep_hit_;
     }
   }
 
-  void ProtXMLFile::registerProtein_(const String& protein_name)
+  void ProtXMLFile::registerProtein_(const std::string& protein_name)
   {
     ProteinHit hit;
     hit.setAccession(protein_name);
@@ -245,10 +295,10 @@ namespace OpenMS
       protein_name);
   }
 
-  void ProtXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
+  void ProtXMLFile::matchModification_(const double mass, const std::string& origin, std::string& modification_description)
   {
     double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
-    vector<String> mods;
+    vector<std::string> mods;
     ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.001, origin);
 
     if (mods.size() == 1)
@@ -259,12 +309,12 @@ namespace OpenMS
     {
       if (!mods.empty())
       {
-        String mod_str = mods[0];
-        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+        std::string mod_str = mods[0];
+        for (vector<std::string>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
         {
           mod_str += ", " + *mit;
         }
-        error(LOAD, "Modification '" + String(mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
+        error(LOAD, "Modification '" + StringUtils::toStr(mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
         modification_description = mods[0];
       }
     }

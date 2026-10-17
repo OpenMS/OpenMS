@@ -6,7 +6,10 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include "../DATASTRUCTURES/RegularExpressionInternal.h"
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -15,6 +18,7 @@ using namespace std;
 
 namespace OpenMS
 {
+  using Internal::RegularExpressionAccess;
   void SpectrumMetaDataLookup::getSpectrumMetaData(Size index,
                                                    SpectrumMetaData& meta) const
   {
@@ -29,7 +33,7 @@ namespace OpenMS
 
   void SpectrumMetaDataLookup::getSpectrumMetaData(
     const MSSpectrum& spectrum, SpectrumMetaData& meta,
-    const boost::regex& scan_regexp, const map<Size, double>& precursor_rts)
+    const RegularExpression& scan_regexp, const map<Size, double>& precursor_rts)
   {
     meta.native_id = spectrum.getNativeID();
     meta.rt = spectrum.getRT();
@@ -64,73 +68,73 @@ namespace OpenMS
   }
 
 
-  void SpectrumMetaDataLookup::getSpectrumMetaData(const String& spectrum_ref,
+  void SpectrumMetaDataLookup::getSpectrumMetaData(const std::string& spectrum_ref,
                                                    SpectrumMetaData& meta,
                                                    MetaDataFlags flags) const
   {
-    for (std::vector<boost::regex>::const_iterator it = 
+    for (std::vector<RegularExpression>::const_iterator it =
            reference_formats.begin(); it != reference_formats.end(); ++it)
     {
-      boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, *it);
+      Internal::RegularExpressionMatch match;
+      bool found = boost::regex_search(spectrum_ref, static_cast<boost::smatch&>(match), RegularExpressionAccess::get(*it));
       if (found)
       {
         // first try to extract the requested meta data from the reference:
         if (((flags & MDF_RT) == MDF_RT) && match["RT"].matched)
         {
-          String value = match["RT"].str();
+          std::string value = match["RT"].str();
           if (!value.empty())
           {
-            meta.rt = value.toDouble();
+            meta.rt = StringUtils::toDouble(value);
             flags &= ~MDF_RT; // unset flag
           }
         }
         if (((flags & MDF_PRECURSORRT) == MDF_PRECURSORRT) && 
             match["PRECRT"].matched)
         {
-          String value = match["PRECRT"].str();
+          std::string value = match["PRECRT"].str();
           if (!value.empty())
           {
-            meta.precursor_rt = value.toDouble();
+            meta.precursor_rt = StringUtils::toDouble(value);
             flags &= ~MDF_PRECURSORRT; // unset flag
           }
         }
         if (((flags & MDF_PRECURSORMZ) == MDF_PRECURSORMZ) && 
             match["MZ"].matched)
         {
-          String value = match["MZ"].str();
+          std::string value = match["MZ"].str();
           if (!value.empty())
           {
-            meta.precursor_mz = value.toDouble();
+            meta.precursor_mz = StringUtils::toDouble(value);
             flags &= ~MDF_PRECURSORMZ; // unset flag
           }
         }
         if (((flags & MDF_PRECURSORCHARGE) == MDF_PRECURSORCHARGE) &&
             match["CHARGE"].matched)
         {
-          String value = match["CHARGE"].str();
+          std::string value = match["CHARGE"].str();
           if (!value.empty())
           {
-            meta.precursor_charge = value.toDouble();
+            meta.precursor_charge = StringUtils::toDouble(value);
             flags &= ~MDF_PRECURSORCHARGE; // unset flag
           }
         }
         if (((flags & MDF_MSLEVEL) == MDF_MSLEVEL) && match["LEVEL"].matched)
         {
-          String value = match["LEVEL"].str();
+          std::string value = match["LEVEL"].str();
           if (!value.empty())
           {
-            meta.ms_level = value.toInt();
+            meta.ms_level = StringUtils::toInt32(value);
             flags &= ~MDF_MSLEVEL; // unset flag
           }
         }
         if (((flags & MDF_SCANNUMBER) == MDF_SCANNUMBER) && 
             match["SCAN"].matched)
         {
-          String value = match["SCAN"].str();
+          std::string value = match["SCAN"].str();
           if (!value.empty())
           {
-            meta.scan_number = value.toInt();
+            meta.scan_number = StringUtils::toInt32(value);
             flags &= ~MDF_SCANNUMBER; // unset flag
           }
         }
@@ -172,7 +176,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
     {
         if (std::isnan(pep.getRT())) // Only annotate peptides with missing RT
         {
-            String native_id = pep.getSpectrumReference();
+            std::string native_id = pep.getSpectrumReference();
             try
             {
                 // Look up spectrum index by native ID and assign RT
@@ -207,7 +211,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
     // Iterate over peptide_ids and annotate IM values stored in MSExperiment
     for (auto& pep : peptides)
     {
-      String native_id = pep.getSpectrumReference();
+      std::string native_id = pep.getSpectrumReference();
       Size index = lookup.findByNativeID(native_id);
       const MSSpectrum& spec =  exp.getSpectra()[index];
       // Check if desired IM format is present
@@ -278,7 +282,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
         continue;
       }
 
-      String native_id = pep.getSpectrumReference();
+      std::string native_id = pep.getSpectrumReference();
       try
       {
         Size index = lookup.findByNativeID(native_id);
@@ -301,11 +305,20 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
     return annotated_count > 0;
   }
 
-  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const String& filename,
-    bool stop_on_error, 
-    bool override_spectra_data, 
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const std::string& filename,
+    bool stop_on_error,
+    bool override_spectra_data,
+    bool override_spectra_references)
+  {
+    vector<ProteinIdentification> no_proteins;
+    return addMissingSpectrumReferences(peptides, filename, stop_on_error, override_spectra_data, override_spectra_references, no_proteins);
+  }
+
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const std::string& filename,
+    bool stop_on_error,
+    bool override_spectra_data,
     bool override_spectra_references,
-    vector<ProteinIdentification> proteins)
+    vector<ProteinIdentification>& proteins)
   {
     bool success = true;
     PeakMap exp;
@@ -323,7 +336,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
     }
     if (override_spectra_data)
     {
-      vector<String> spectra_data(1);
+      vector<std::string> spectra_data(1);
       spectra_data[0] = "file://" + lookup.spectra_data_ref;
       for (auto& prot : proteins)
       {
@@ -347,7 +360,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
       }
       catch (Exception::ElementNotFound&)
       {
-        OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
+        OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + StringUtils::toStr(pep.getRT()) + "'." << endl;
         success = false;
         if (stop_on_error)
         {

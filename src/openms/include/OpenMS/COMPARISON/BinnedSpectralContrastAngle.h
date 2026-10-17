@@ -50,7 +50,9 @@ public:
 
       @param[in] spec1 First spectrum given in a binned representation
       @param[in] spec2 Second spectrum given in a binned representation
-      @throw IncompatibleBinning is thrown if the bins of the spectra are not the same
+      @note In debug builds an OPENMS_PRECONDITION asserts that both spectra use the
+            same bin size and spread (see BinnedSpectrum::isCompatible). For an
+            empty / all-zero spectrum a defined score of 0 is returned.
     */
     double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const override;
 

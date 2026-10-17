@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <tuple>
@@ -32,11 +32,11 @@ namespace OpenMS
     struct DataPoint
     {
       double first, second;
-      String note;
+      std::string note;
 
       DataPoint(double first_ = 0.0,
                 double second_ = 0.0,
-                const String& note_ = "") :
+                const std::string& note_ = "") :
         first(first_),
         second(second_),
         note(note_)
@@ -100,7 +100,7 @@ namespace OpenMS
     /**
     @brief Check for a valid weighting function string
     */
-    bool checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const;
+    bool checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const;
 
     /**
     @brief Check that the datum is within the valid min and max bounds.
@@ -114,21 +114,21 @@ namespace OpenMS
     /**
     @brief Weight the data according to the weighting function
     */
-    double weightDatum(const double& datum, const String& weight) const;
+    double weightDatum(const double& datum, const std::string& weight) const;
 
     /**
     @brief Apply the reverse of the weighting function to the data
     */
-    double unWeightDatum(const double& datum, const String& weight) const;
+    double unWeightDatum(const double& datum, const std::string& weight) const;
 
     /// Gets the (actual) parameters
     const Param& getParameters() const;
 
     /// Returns a list of valid x weight function strings
-    std::vector<String> getValidXWeights() const;
+    std::vector<std::string> getValidXWeights() const;
 
     /// Returns a list of valid y weight function strings
-    std::vector<String> getValidYWeights() const;
+    std::vector<std::string> getValidYWeights() const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);
@@ -137,11 +137,11 @@ namespace OpenMS
     /// Parameters
     Param params_;
     /// x weighting
-    String x_weight_;
+    std::string x_weight_;
     double x_datum_min_;
     double x_datum_max_;
     /// y weighting
-    String y_weight_;
+    std::string y_weight_;
     double y_datum_min_;
     double y_datum_max_;
     bool weighting_;

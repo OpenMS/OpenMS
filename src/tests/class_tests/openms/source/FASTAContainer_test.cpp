@@ -41,7 +41,7 @@ END_SECTION
 
 std::vector<FASTAFile::FASTAEntry> fev = { {"id0", "desc0", "AAAA"},{ "id1", "desc1", "BBBB" },{ "id2", "desc2", "CCCC" },{ "id3", "desc3", "DDDD" } };
 
-START_SECTION(FASTAContainer(const String& FASTA_file))
+START_SECTION(FASTAContainer(const std::string& FASTA_file))
   FCFile f(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"));
   TEST_EQUAL(f.size(), 0)
 END_SECTION

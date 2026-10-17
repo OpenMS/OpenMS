@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ListEditor.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 
 
@@ -158,14 +158,14 @@ namespace OpenMS
               }
 
               //restrictions
-              vector<String> parts;
-              if (restrictions_.split(' ', parts))
+              vector<std::string> parts;
+              if (StringUtils::split(restrictions_, ' ', parts))
               {
-                if (!parts[0].empty() && new_value.toInt() < parts[0].toInt())
+                if (!parts[0].empty() && new_value.toInt() < StringUtils::toInt32(parts[0]))
                 {
                   restrictions_met = false;
                 }
-                if (!parts[1].empty() && new_value.toInt() > parts[1].toInt())
+                if (!parts[1].empty() && new_value.toInt() > StringUtils::toInt32(parts[1]))
                 {
                   restrictions_met = false;
                 }
@@ -188,14 +188,14 @@ namespace OpenMS
               }
 
               //restrictions
-              vector<String> parts;
-              if (restrictions_.split(' ', parts))
+              vector<std::string> parts;
+              if (StringUtils::split(restrictions_, ' ', parts))
               {
-                if (!parts[0].empty() && new_value.toDouble() < parts[0].toDouble())
+                if (!parts[0].empty() && new_value.toDouble() < StringUtils::toDouble(parts[0]))
                 {
                   restrictions_met = false;
                 }
-                if (!parts[1].empty() && new_value.toDouble() > parts[1].toDouble())
+                if (!parts[1].empty() && new_value.toDouble() > StringUtils::toDouble(parts[1]))
                 {
                   restrictions_met = false;
                 }
@@ -233,7 +233,7 @@ namespace OpenMS
       type_ = type;
     }
 
-    void ListEditorDelegate::setRestrictions(const String & restrictions)
+    void ListEditorDelegate::setRestrictions(const std::string & restrictions)
     {
       restrictions_ = restrictions;
     }
@@ -258,14 +258,14 @@ namespace OpenMS
 
     StringList ListTable::getList()
     {
-      String stringit;
+      std::string stringit;
       list_.clear();
       for (Int i = 0; i < count(); ++i)
       {
         stringit = fromQString(item(i)->text());
         if (!stringit.empty())
         {
-          stringit.trim();
+          StringUtils::trim(stringit);
         }
         list_.push_back(stringit);
       }
@@ -337,15 +337,15 @@ namespace OpenMS
     OkButton_ = new QPushButton(tr("&ok"));
     CancelButton_ = new QPushButton(tr("&cancel"));
 
-    connect(newRowButton_, SIGNAL(clicked()), listTable_, SLOT(createNewRow()));
-    connect(removeRowButton_, SIGNAL(clicked()), listTable_, SLOT(removeCurrentRow()));
+    connect(newRowButton_, &QPushButton::clicked, listTable_, &Internal::ListTable::createNewRow);
+    connect(removeRowButton_, &QPushButton::clicked, listTable_, &Internal::ListTable::removeCurrentRow);
 
     QDialogButtonBox * rightLayout = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Vertical);
     rightLayout->addButton(newRowButton_, QDialogButtonBox::ActionRole);
     rightLayout->addButton(removeRowButton_, QDialogButtonBox::ActionRole);
 
-    connect(rightLayout, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(rightLayout, SIGNAL(rejected()), this, SLOT(reject()));
+    connect(rightLayout, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(rightLayout, &QDialogButtonBox::rejected, this, &QDialog::reject);
     QHBoxLayout * mainLayout = new QHBoxLayout;
     mainLayout->addWidget(listTable_);
     mainLayout->addWidget(rightLayout);
@@ -367,7 +367,7 @@ namespace OpenMS
     listDelegate_->setType(type_);
   }
 
-  void ListEditor::setListRestrictions(const String & restrictions)
+  void ListEditor::setListRestrictions(const std::string & restrictions)
   {
     listDelegate_->setRestrictions(restrictions);
   }

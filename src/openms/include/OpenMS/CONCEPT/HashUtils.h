@@ -64,7 +64,7 @@ namespace OpenMS
    * Consistent alternative to std::hash<std::string> which may vary
    * between standard library implementations.
    *
-   * @param s String to hash
+   * @param s std::string to hash
    * @return Hash value
    */
   inline std::size_t fnv1a_hash_string(const std::string& s) noexcept

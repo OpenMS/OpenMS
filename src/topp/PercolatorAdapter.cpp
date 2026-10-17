@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/TOPPExternalToolBase.h>
 
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
@@ -18,6 +18,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -26,11 +27,13 @@
 #include <boost/regex.hpp>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <map>
 #include <set>
 //#include <typeinfo>
 
@@ -77,10 +80,30 @@ We only read the q-value for protein groups since Percolator has a more elaborat
 For proteins we add q-value as main score and PEP as metavalue.
 For PSMs you can choose the main score. Peptide level FDRs cannot be parsed and used yet.</p>
 
-Multithreading: The thread parameter is passed to percolator.
-Note: By default, a minimum of 3 threads is used (default of percolator) even if the number of threads
-is set to e.g. 1 for backwards compatibility reasons. You can still force the usage of less than 3 threads
-by setting the force flag.     
+<B>In-process backend and percolator executable</B>
+
+By default, PercolatorAdapter runs Percolator in-process: OpenMS contains the Percolator algorithm, so the
+percolator executable does not have to be installed. The in-process backend rescores idXML, mzIdentML and
+idparquet input and computes PSM-level FDRs. PercolatorAdapter runs the percolator executable
+(@p -percolator_executable) instead, which then has to be installed, if one of these options is set:
+  - @p -use_subprocess @p true
+  - @p -in_osw (OpenSWATH input)
+  - @p -peptide_level_fdrs or @p -protein_level_fdrs
+  - @p -doc (other than 0)
+  - @p -init_weights
+  - an option that only the executable implements: @p -out_pout_target, @p -out_pout_decoy,
+    @p -out_pout_target_proteins, @p -out_pout_decoy_proteins, @p -weights, @p -quick_validation, @p -static,
+    @p -test_each_iteration or @p -override
+
+Both backends write the pin file of @p -out_pin. @p -verbose sets the verbosity of the executable only.
+
+The in-process backend needs enough decoys to train its model, roughly 100 or more. If the training fails,
+PercolatorAdapter stops with an error.
+
+Multithreading: The in-process backend uses the number of threads set with @p -threads, at most 3 (one per
+cross-validation fold); @p -threads @p 0 gives 3. For the percolator executable, a minimum of 3 threads is used
+(its default) even if @p -threads is set to e.g. 1, for backwards compatibility reasons. You can still force the
+usage of less than 3 threads by setting the @p -force flag.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_PercolatorAdapter.cli
@@ -95,27 +118,27 @@ Percolator is written by Lukas Käll (http://per-colator.com/ Copyright Lukas K�
 
 
 class PercolatorAdapter :
-  public TOPPBase
+  public TOPPExternalToolBase
 {
 public:
   PercolatorAdapter() :
-    TOPPBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.", true)
+    TOPPExternalToolBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.")
   {
   }
 
 protected:
   struct PercolatorResult
     {
-      String PSMId;
+      std::string PSMId;
       double score;
       double qvalue;
       double posterior_error_prob;
-      String peptide;
+      std::string peptide;
       char preAA;
       char postAA;
       StringList proteinIds;
 
-      PercolatorResult(const String& pid, const double s, const double q, const String& p, const char pre, const char pos, const StringList& pl):
+      PercolatorResult(const std::string& pid, const double s, const double q, const std::string& p, const char pre, const char pos, const StringList& pl):
           PSMId (pid),
           score (s),
           qvalue (q),
@@ -145,17 +168,17 @@ protected:
         peptide = row[4].substr(left_dot + 1, (right_dot - 1) - (left_dot + 1) + 1);
 
         // SVM-score
-        score = row[1].toDouble();
+        score = StringUtils::toDouble(row[1]);
 
         // q-Value
-        qvalue = row[2].toDouble();
+        qvalue = StringUtils::toDouble(row[2]);
 
         // PEP
-        posterior_error_prob = row[3].toDouble();
+        posterior_error_prob = StringUtils::toDouble(row[3]);
 
         // scannr. as written in preparePIN
         PSMId = row[0];
-        proteinIds = vector<String>(row.begin()+5,row.end());
+        proteinIds = vector<std::string>(row.begin()+5,row.end());
       }
 
       bool operator!=(const PercolatorResult& rhs) const
@@ -177,11 +200,11 @@ protected:
   
   struct PercolatorProteinResult
   {
-    String protein_accession;
+    std::string protein_accession;
     double qvalue;
     double posterior_error_prob;
 
-    PercolatorProteinResult(const String& pid, const double q, const double pep):
+    PercolatorProteinResult(const std::string& pid, const double q, const double pep):
         protein_accession (pid),
         qvalue (q),
         posterior_error_prob (pep)
@@ -204,37 +227,6 @@ protected:
     }
   };
 
-  /// Strip PIN-format meta values that PercolatorInfile::stampPinFeaturesOnHits
-  /// leaves on each hit during the in-process feature-matrix build. Without
-  /// this, the in-process output idXML carries 17+ internal columns (SpecId,
-  /// ScanNr, Label, ExpMass, CalcMass, mass, peplen, charge<N>, enzN/C/Int,
-  /// dm, absdm, deltamass, retentiontime, score, Peptide, Proteins) that
-  /// downstream tools shouldn't see. The subprocess path doesn't need this:
-  /// it writes those fields to a temporary PIN file and never stamps them
-  /// onto hits in the first place.
-  static void stripPinFeatureMetaValues_(
-    PeptideIdentificationList& pep_ids,
-    int min_charge, int max_charge)
-  {
-    static const std::vector<String> KEYS_TO_STRIP = {
-      "SpecId", "ScanNr", "Label", "ExpMass", "CalcMass",
-      "mass", "peplen", "deltamass", "retentiontime", "score",
-      "enzN", "enzC", "enzInt", "dm", "absdm",
-      "Peptide", "Proteins"
-    };
-    for (auto& pid : pep_ids.getData())
-    {
-      for (auto& hit : pid.getHits())
-      {
-        for (const String& k : KEYS_TO_STRIP) hit.removeMetaValue(k);
-        for (int c = min_charge; c <= max_charge; ++c)
-        {
-          hit.removeMetaValue("charge" + String(c));
-        }
-      }
-    }
-  }
-
   /// Stamp "this run was post-processed by Percolator via PercolatorAdapter"
   /// metadata on every ProteinIdentification: search_engine, version, the
   /// "percolator" marker UserParam, and the 23 Percolator:* SearchParameter
@@ -254,8 +246,8 @@ protected:
     vector<ProteinIdentification>& prot_ids,
     bool peptide_level_fdrs,
     bool protein_level_fdrs,
-    const String& version_string,
-    map<String, PercolatorProteinResult>* protein_map = nullptr) const
+    const std::string& version_string,
+    map<std::string, PercolatorProteinResult>* protein_map = nullptr) const
   {
     // Guard: it would be a silent metadata lie to stamp
     // `Percolator:protein_level_fdrs=true` without actually running the
@@ -276,8 +268,8 @@ protected:
         // by accession.
         for (ProteinHit& protein : prot_id_run.getHits())
         {
-          String protein_accession = protein.getAccession();
-          map<String, PercolatorProteinResult>::iterator pr =
+          std::string protein_accession = protein.getAccession();
+          map<std::string, PercolatorProteinResult>::iterator pr =
             protein_map->find(protein_accession);
           if (pr != protein_map->end())
           {
@@ -385,34 +377,35 @@ protected:
     static const bool force_openms_format(true);
         
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", !is_required);
-    setValidFormats_("in", ListUtils::create<String>("mzid,idXML,idparquet"));
+    setValidFormats_("in", ListUtils::create<std::string>("mzid,idXML,idparquet"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
-    setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML,idparquet"));
+    setValidFormats_("in_decoy", ListUtils::create<std::string>("mzid,idXML,idparquet"));
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
-    setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
+    setValidFormats_("in_osw", ListUtils::create<std::string>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,osw,idparquet"));
+    setValidFormats_("out", ListUtils::create<std::string>("idXML,mzid,osw,idparquet"));
     registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
-    setValidFormats_("out_pin", ListUtils::create<String>("tsv"), !force_openms_format);
+    setValidFormats_("out_pin", ListUtils::create<std::string>("tsv"), !force_openms_format);
 
     registerOutputFile_("out_pout_target", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
-    setValidFormats_("out_pout_target", ListUtils::create<String>("tab"), !force_openms_format);
+    setValidFormats_("out_pout_target", ListUtils::create<std::string>("tab"), !force_openms_format);
     registerOutputFile_("out_pout_decoy", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
-    setValidFormats_("out_pout_decoy", ListUtils::create<String>("tab"), !force_openms_format);
+    setValidFormats_("out_pout_decoy", ListUtils::create<std::string>("tab"), !force_openms_format);
     registerOutputFile_("out_pout_target_proteins", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
-    setValidFormats_("out_pout_target_proteins", ListUtils::create<String>("tab"), !force_openms_format);
+    setValidFormats_("out_pout_target_proteins", ListUtils::create<std::string>("tab"), !force_openms_format);
     registerOutputFile_("out_pout_decoy_proteins", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
-    setValidFormats_("out_pout_decoy_proteins", ListUtils::create<String>("tab"), !force_openms_format);
+    setValidFormats_("out_pout_decoy_proteins", ListUtils::create<std::string>("tab"), !force_openms_format);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw,idparquet"));
-    String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin,trypsinp";
+    setValidStrings_("out_type", ListUtils::create<std::string>("mzid,idXML,osw,idparquet"));
+    std::string enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin,trypsinp";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
-    setValidStrings_("enzyme", ListUtils::create<String>(enzs));
+    setValidStrings_("enzyme", ListUtils::create<std::string>(enzs));
     registerStringOption_("use_subprocess", "<choice>", "false",
         "Run the external 'percolator' binary instead of the in-process OpenMS::Percolator library. "
-        "The in-process backend covers the idXML/mzid + PSM-level FDR path; "
-        "OSW input, protein-level FDR, and peptide-level FDR still require the subprocess.", false);
+        "The in-process backend covers idXML/mzid/idparquet input with PSM-level FDRs; "
+        "OSW input, protein- or peptide-level FDRs, -doc, -init_weights and the options only the binary implements "
+        "(-out_pout_*, -weights, -quick_validation, -static, -test_each_iteration, -override) run the binary automatically.", false);
     setValidStrings_("use_subprocess", {"true","false"});
 
     registerInputFile_("percolator_executable", "<executable>",
@@ -422,8 +415,9 @@ protected:
         #else
                        "percolator",
         #endif
-                       "The Percolator executable. Required only when -use_subprocess=true; "
-                       "the in-process backend doesn't need it.",
+                       "The Percolator executable. Required only when it is run: with -use_subprocess true, "
+                       "OSW input, protein- or peptide-level FDRs, -doc, -init_weights or an option only the "
+                       "executable implements (see -use_subprocess). The in-process backend doesn't need it.",
                        !is_required, !is_advanced_option, {"is_executable"}
     );
     registerFlag_("peptide_level_fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
@@ -433,7 +427,7 @@ protected:
     setValidStrings_("osw_level", StringList(OSWFile::names_of_oswlevel.begin(), OSWFile::names_of_oswlevel.end()));
     
     registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
-    setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
+    setValidStrings_("score_type", ListUtils::create<std::string>("q-value,pep,svm"));
 
     //Advanced parameters
     registerFlag_("generic_feature_set", "Use only generic (i.e. not search engine specific) features. Generating search engine specific features for common search engines by PSMFeatureExtractor will typically boost the identification rate significantly.", is_advanced_option);
@@ -446,10 +440,10 @@ protected:
     registerIntOption_("nested_xval_bins", "<number>", 1, "Number of nested cross-validation bins in the 3 splits.", !is_required, is_advanced_option);
     registerFlag_("quick_validation", "Quicker execution by reduced internal cross-validation.", is_advanced_option);
     registerOutputFile_("weights", "<file>", "", "Output final weights to the given file", !is_required, is_advanced_option);
-    setValidFormats_("weights", ListUtils::create<String>("tsv"), !force_openms_format);
+    setValidFormats_("weights", ListUtils::create<std::string>("tsv"), !force_openms_format);
 
     registerInputFile_("init_weights", "<file>", "", "Read initial weights to the given file", !is_required, is_advanced_option);
-    setValidFormats_("init_weights", ListUtils::create<String>("tsv"), !force_openms_format);
+    setValidFormats_("init_weights", ListUtils::create<std::string>("tsv"), !force_openms_format);
     registerFlag_("static", "Use static model (requires init-weights parameter to be set)", is_advanced_option);
 
     registerStringOption_("default_direction", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", !is_required, is_advanced_option);
@@ -461,7 +455,7 @@ protected:
     registerIntOption_("doc", "<value>", 0, "Include description of correct features", !is_required, is_advanced_option);
     registerFlag_("klammer", "Retention time features calculated as in Klammer et al. Only available if -doc is set", is_advanced_option);
     registerInputFile_("fasta", "<file>", "", "Provide the fasta file as the argument to this flag, which will be used for protein grouping based on an in-silico digest (only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
-    setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
+    setValidFormats_("fasta", ListUtils::create<std::string>("FASTA"));
     registerStringOption_("decoy_pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
     registerFlag_("post_processing_tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
     registerFlag_("train_best_positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
@@ -555,31 +549,39 @@ protected:
     }
   }
 
-  void readPoutAsMap_(const String& pout_file, std::map<String, PercolatorResult>& pep_map)
+  void readPoutAsMap_(const std::string& pout_file, std::map<std::string, PercolatorResult>& pep_map)
   {
     CsvFile csv_file(pout_file, '\t');
     StringList row;
+    // Percolator adds the spectrum file after the PSMId when the pin file has a FileName column
+    bool has_filename = false;
+    if (csv_file.rowCount() > 0)
+    {
+      csv_file.getRow(0, row);
+      has_filename = row.size() > 1 && row[1] == "filename";
+    }
 
     for (Size i = 1; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
+      if (has_filename && row.size() > 1) row.erase(row.begin() + 1);
       PercolatorResult res(row);
       // note: Since we create our pin file in a way that the SpecID (=PSMId) is composed of filename + spectrum native id
       //  this will be passed through Percolator and we use it again to read it back in.
-      String spec_ref = res.PSMId + res.peptide;
+      std::string spec_ref = res.PSMId + res.peptide;
       writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
 
       // retain only the best result in the unlikely case that a PSMId+peptide combination occurs multiple times
-      if (pep_map.find(spec_ref) == pep_map.end())
+      if (!pep_map.contains(spec_ref))
       {
-        pep_map.insert( map<String, PercolatorResult>::value_type ( spec_ref, res ) );
+        pep_map.insert( map<std::string, PercolatorResult>::value_type ( spec_ref, res ) );
       }
     }
   }
 
   /// We only read the q-value for protein groups since Percolator has a more elaborate FDR estimation.
   /// For proteins we add q-value as main score and PEP as metavalue.
-  void readProteinPoutAsMapAndAddGroups_(const String& pout_protein_file, std::map<String, PercolatorProteinResult>& protein_map, ProteinIdentification& protID_to_add_grps)
+  void readProteinPoutAsMapAndAddGroups_(const std::string& pout_protein_file, std::map<std::string, PercolatorProteinResult>& protein_map, ProteinIdentification& protID_to_add_grps)
   {
     CsvFile csv_file(pout_protein_file, '\t');
     StringList row;
@@ -589,12 +591,12 @@ protected:
     {
       csv_file.getRow(i, row);
       StringList protein_accessions;
-      row[0].split(",", protein_accessions);
-      double qvalue = row[2].toDouble();
-      double posterior_error_prob = row[3].toDouble();
-      for (const String& str : protein_accessions) 
+      StringUtils::split(row[0], ",", protein_accessions);
+      double qvalue = StringUtils::toDouble(row[2]);
+      double posterior_error_prob = StringUtils::toDouble(row[3]);
+      for (const std::string& str : protein_accessions) 
       {
-        protein_map.insert( map<String, PercolatorProteinResult>::value_type (str, PercolatorProteinResult(str, qvalue, posterior_error_prob ) ) );
+        protein_map.insert( map<std::string, PercolatorProteinResult>::value_type (str, PercolatorProteinResult(str, qvalue, posterior_error_prob ) ) );
       }
 
       ProteinIdentification::ProteinGroup grp;
@@ -608,10 +610,9 @@ protected:
   {
     for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
     {
-      String file_idx(distance(in_list.begin(), fit));
       PeptideIdentificationList peptide_ids;
       vector<ProteinIdentification> protein_ids;
-      String in = *fit;
+      std::string in = *fit;
       FileTypes::Type in_type = FileHandler::getType(in);
       OPENMS_LOG_INFO << "Loading input file: " << in << endl;
       if (in_type == FileTypes::IDXML)
@@ -645,19 +646,32 @@ protected:
             "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
             "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
             " all original single-run idXML inputs as list to this tool.",
-            "# runs: " + String(protein_ids.size()));
+            "# runs: " + StringUtils::toStr(protein_ids.size()));
+      }
+
+      // PercolatorInfile removes the precursor isotope error as observed minus theoretical. ProSE before
+      // report:isotope_error_convention (and with its setting 'theoretical_minus_observed') wrote the opposite sign
+      // and no 'isotope_error_convention' search parameter.
+      if (protein_ids.front().getSearchEngine() == "ProSE"
+          && !protein_ids.front().getSearchParameters().metaValueExists("isotope_error_convention"))
+      {
+        OPENMS_LOG_WARN << "Warning: '" << in << "' comes from a ProSE search without the search parameter "
+                        << "'isotope_error_convention' (ProSE before OpenMS 3.7, or report:isotope_error_convention="
+                        << "theoretical_minus_observed). Its 'isotope_error' has the opposite sign, so dm and absdm of "
+                        << "PSMs with a nonzero isotope error contain twice the isotope offset instead of none. Search "
+                        << "again with the default report:isotope_error_convention to correct this." << endl;
       }
 
       //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
-      size_t index = 0;
       for (PeptideIdentification& pep_id : peptide_ids)
       {
-        index++;
-        if (in_list.size() > 1)
+        // Spectra of different input files are told apart by their file origin: it starts the pin SpecId,
+        // and Percolator numbers the spectrum files by it (the pin's FileName column, the spectrum file
+        // numbers of the in-process backend). The spectrum reference stays as it is: a "file=<n>," prefix
+        // would be read as a native ID, so the extracted scan number would be the file index.
+        if (in_list.size() > 1 && ! pep_id.metaValueExists("file_origin"))
         {
-          String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
-          scan_identifier = "file=" + file_idx + "," + scan_identifier;
-          pep_id.setSpectrumReference( scan_identifier);
+          pep_id.setMetaValue("file_origin", test_mode_ ? File::basename(in) : in);
         }
         for (PeptideHit& hit : pep_id.getHits())
         {
@@ -697,7 +711,7 @@ protected:
         if (protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
         {
           writeLogError_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() +
-                         ". Use TOPP_PSMFeatureExtractor to merge results from different search engines if desired. Aborting!");
+                         ". Use TOPP_ConsensusID to combine results from different search engines if desired. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
         
@@ -706,12 +720,12 @@ protected:
         ProteinIdentification::SearchParameters search_parameters = protein_ids.front().getSearchParameters();
         if (all_search_parameters.metaValueExists("extra_features"))
         {
-          StringList all_search_feature_list = ListUtils::create<String>(all_search_parameters.getMetaValue("extra_features").toString());
-          set<String> all_search_feature_set(all_search_feature_list.begin(),all_search_feature_list.end());
+          StringList all_search_feature_list = ListUtils::create<std::string>(all_search_parameters.getMetaValue("extra_features").toString());
+          set<std::string> all_search_feature_set(all_search_feature_list.begin(),all_search_feature_list.end());
           if (search_parameters.metaValueExists("extra_features"))
           {
-            StringList search_feature_list = ListUtils::create<String>(search_parameters.getMetaValue("extra_features").toString());
-            set<String> search_feature_set(search_feature_list.begin(), search_feature_list.end());
+            StringList search_feature_list = ListUtils::create<std::string>(search_parameters.getMetaValue("extra_features").toString());
+            set<std::string> search_feature_set(search_feature_list.begin(), search_feature_list.end());
             identical_extra_features = (search_feature_set == all_search_feature_set);
           }
           else
@@ -776,11 +790,11 @@ protected:
     const StringList in_list = getStringList_("in");
     const StringList in_decoy = getStringList_("in_decoy");
     OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
-    const String in_osw = getStringOption_("in_osw");
+    const std::string in_osw = getStringOption_("in_osw");
     const OSWFile::OSWLevel osw_level = (OSWFile::OSWLevel)Helpers::indexOf(OSWFile::names_of_oswlevel, getStringOption_("osw_level"));
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
@@ -794,8 +808,6 @@ protected:
       return PARSE_ERROR;
     }
 
-    const String percolator_executable(getStringOption_("percolator_executable"));
-    
     if (in_list.empty() && in_osw.empty())
     {
       writeLogError_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
@@ -836,6 +848,41 @@ protected:
 
     Int description_of_correct = getIntOption_("doc");
 
+    // Decide up front whether the external 'percolator' binary is needed. The
+    // in-process backend covers the idXML/mzid + PSM-level FDR path; OSW input,
+    // protein-/peptide-level FDR, description-of-correct, initial weights, or an
+    // explicit -use_subprocess true all fall through to the subprocess path.
+    // So do the options that only the binary implements: the in-process backend
+    // writes neither the pout files nor the final weights, and has none of these
+    // training switches, so it would otherwise ignore them without a word.
+    // (-out_pin is not among them: both backends write it.)
+    // '-percolator_executable' carries the 'is_executable' tag, so merely reading
+    // it resolves it on PATH and aborts when it is missing. Read it only when the
+    // subprocess will actually be run, so installations without percolator can
+    // still use the in-process backend (#10020).
+    const bool binary_only_option_set = !getStringOption_("out_pout_target").empty()
+                                        || !getStringOption_("out_pout_decoy").empty()
+                                        || !getStringOption_("out_pout_target_proteins").empty()
+                                        || !getStringOption_("out_pout_decoy_proteins").empty()
+                                        || !getStringOption_("weights").empty()
+                                        || getFlag_("quick_validation")
+                                        || getFlag_("static")
+                                        || getFlag_("test_each_iteration")
+                                        || getFlag_("override");
+    const bool in_process_ok = getStringOption_("use_subprocess") != "true"
+                               && in_osw.empty()
+                               && !protein_level_fdrs
+                               && !peptide_level_fdrs
+                               && description_of_correct == 0
+                               && getStringOption_("init_weights").empty()
+                               && !binary_only_option_set;
+
+    std::string percolator_executable;
+    if (!in_process_ok)
+    {
+      percolator_executable = getStringOption_("percolator_executable");
+    }
+
     double ipf_max_peakgroup_pep = getDoubleOption_("ipf_max_peakgroup_pep");
     double ipf_max_transition_isotope_overlap = getDoubleOption_("ipf_max_transition_isotope_overlap");
     double ipf_min_transition_sn = getDoubleOption_("ipf_min_transition_sn");
@@ -847,10 +894,10 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    File::TempDir tmp_dir(debug_level_ >= 2);
+    TempDir tmp_dir(debug_level_ >= 2);
     
-    String txt_designator = File::getUniqueName();
-    String pin_file;
+    std::string txt_designator = File::getUniqueName();
+    std::string pin_file;
     if (getStringOption_("out_pin").empty())
     {
       pin_file = tmp_dir.getPath() + txt_designator + "_pin.tab";
@@ -860,12 +907,12 @@ protected:
       pin_file = getStringOption_("out_pin");
     }
     
-    String pout_target_file(tmp_dir.getPath() + txt_designator + "_target_pout_psms.tab");
-    String pout_decoy_file(tmp_dir.getPath() + txt_designator + "_decoy_pout_psms.tab");
-    String pout_target_file_peptides(tmp_dir.getPath() + txt_designator + "_target_pout_peptides.tab");
-    String pout_decoy_file_peptides(tmp_dir.getPath() + txt_designator + "_decoy_pout_peptides.tab");
-    String pout_target_file_proteins(tmp_dir.getPath() + txt_designator + "_target_pout_proteins.tab");
-    String pout_decoy_file_proteins(tmp_dir.getPath() + txt_designator + "_decoy_pout_proteins.tab");
+    std::string pout_target_file(tmp_dir.getPath() + txt_designator + "_target_pout_psms.tab");
+    std::string pout_decoy_file(tmp_dir.getPath() + txt_designator + "_decoy_pout_psms.tab");
+    std::string pout_target_file_peptides(tmp_dir.getPath() + txt_designator + "_target_pout_peptides.tab");
+    std::string pout_decoy_file_peptides(tmp_dir.getPath() + txt_designator + "_decoy_pout_peptides.tab");
+    std::string pout_target_file_proteins(tmp_dir.getPath() + txt_designator + "_target_pout_proteins.tab");
+    std::string pout_decoy_file_proteins(tmp_dir.getPath() + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
@@ -941,7 +988,7 @@ protected:
       ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
       if (search_parameters.metaValueExists("extra_features"))
       {
-        StringList extra_feature_set = ListUtils::create<String>(search_parameters.getMetaValue("extra_features").toString());
+        StringList extra_feature_set = ListUtils::create<std::string>(search_parameters.getMetaValue("extra_features").toString());
         feature_set.insert(feature_set.end(), extra_feature_set.begin(), extra_feature_set.end());
       }
       else if (getFlag_("generic_feature_set")) 
@@ -959,100 +1006,19 @@ protected:
       feature_set.push_back("Proteins");
 
       // In-process path: handle the simple idXML/mzid + PSM-level FDR case
-      // without spawning the external 'percolator' binary. Falls through to
-      // the subprocess path for anything the in-process wrapper can't do
-      // (protein-level FDR, peptide-level FDR, init_weights, etc.).
-      const bool use_subprocess = (getStringOption_("use_subprocess") == "true");
-      const bool in_process_ok = !use_subprocess
-                                 && !protein_level_fdrs
-                                 && !peptide_level_fdrs
-                                 && description_of_correct == 0
-                                 && getStringOption_("init_weights").empty();
-
+      // without spawning the external 'percolator' binary (in_process_ok was
+      // determined above). Falls through to the subprocess path for anything
+      // the in-process wrapper can't do (protein-level FDR, peptide-level FDR,
+      // init_weights, etc.).
       if (in_process_ok)
       {
-        // Stamp PIN meta values on all hits — this mirrors what the subprocess
-        // path does at .pin write time. After this, every hit carries the
-        // full PIN feature set (CalcMass, ExpMass, mass, peplen, chargeN,
-        // enzN/enzC/enzInt, dm/absdm, score, etc.) plus any search-engine-
-        // specific extra_features already present. Training on this set
-        // matches the subprocess path's feature vectors row-for-row.
-        const auto skipped = PercolatorInfile::stampPinFeaturesOnHits(
-          all_peptide_ids, enz_str, min_charge, max_charge);
-        OPENMS_LOG_INFO << "Stamped PIN feature meta values; "
-                        << skipped.size() << " PSMs skipped (no evidence or unknown TD)."
-                        << std::endl;
-
-        // After stamping, feature_set entries SpecId/Label/Peptide/Proteins/ScanNr
-        // are either non-numeric (string) or bookkeeping metadata, not training
-        // features. ExpMass is a mass value Percolator uses for sort hashing,
-        // not a training feature either (it goes into RescoreInput.exp_masses).
-        // Filter feature_set to the numeric columns that actually discriminate.
-        const std::set<String> pin_metadata_not_feature {
-          "SpecId", "Label", "ScanNr", "ExpMass", "Peptide", "Proteins"
-        };
-        StringList numeric_features;
-        for (const String& f : feature_set)
+        // -out_pin: the same pin file the subprocess path writes below, from the
+        // hits before the PIN meta values are stamped on them. Asking for it must
+        // not switch the backend, or the debug output would change the results.
+        if (!getStringOption_("out_pin").empty())
         {
-          if (pin_metadata_not_feature.count(f)) continue;
-          numeric_features.push_back(f);
-        }
-        if (all_peptide_ids.empty() || all_peptide_ids.front().getHits().empty()
-            || numeric_features.empty())
-        {
-          writeLogError_("No usable PSMs/features for in-process path; "
-                         "use -use_subprocess true.");
-          return INCOMPATIBLE_INPUT_DATA;
-        }
-        OPENMS_LOG_INFO << "Rescoring " << all_peptide_ids.size()
-                        << " PSMs in-process with " << numeric_features.size()
-                        << " features (skipping external percolator binary)."
-                        << std::endl;
-
-        // Build a RescoreInput manually with PIN-compatible fields so the
-        // in-process path mirrors the PSM sort order the subprocess path
-        // would produce. We do the derivation inline here so rows stay
-        // aligned when some hits get skipped (missing target_decoy, missing
-        // feature) — fillPINCompatibleFields doesn't know about those skips.
-        RescoreInput ri;
-        ri.feature_names = numeric_features;
-        std::vector<std::pair<size_t, size_t>> hit_locs;
-
-        // After stamping, every kept hit carries ScanNr / ExpMass / CalcMass
-        // / Label meta values with PIN-equivalent derivations. Read them back
-        // out to build RescoreInput, and skip the same hits the stamp skipped.
-        for (size_t i = 0; i < all_peptide_ids.size(); ++i)
-        {
-          const auto& pid = all_peptide_ids[i];
-          for (size_t j = 0; j < pid.getHits().size(); ++j)
-          {
-            if (skipped.count({i, j})) continue;
-            const PeptideHit& hit = pid.getHits()[j];
-
-            // Build feature row from stamped meta values.
-            std::vector<double> row;
-            row.reserve(numeric_features.size());
-            bool ok = true;
-            for (const String& f : numeric_features)
-            {
-              if (!hit.metaValueExists(f)) { ok = false; break; }
-              row.push_back(static_cast<double>(hit.getMetaValue(f)));
-            }
-            if (!ok) continue;
-
-            ri.features.push_back(std::move(row));
-            ri.is_decoy.push_back(hit.isDecoy());
-            ri.scan_numbers.push_back(
-              static_cast<int>(hit.getMetaValue("ScanNr")));
-            // Derive stable specFileNr from ScanNr (good enough for sort order
-            // since all hits with same scan share the same spec file).
-            ri.spec_file_numbers.push_back(0);
-            ri.exp_masses.push_back(
-              static_cast<double>(hit.getMetaValue("ExpMass")));
-            ri.calc_masses.push_back(
-              static_cast<double>(hit.getMetaValue("CalcMass")));
-            hit_locs.emplace_back(i, j);
-          }
+          OPENMS_LOG_DEBUG << "Writing percolator input file." << endl;
+          PercolatorInfile::store(pin_file, all_peptide_ids, feature_set, enz_str, min_charge, max_charge);
         }
 
         Percolator perc;
@@ -1073,75 +1039,41 @@ protected:
         pp.setValue("initial_direction", getStringOption_("default_direction"));
         pp.setValue("pep_method", "nonparametric");  // match external percolator binary's PEP algorithm
         {
-          const int in_process_threads = std::min(std::max(getIntOption_("threads"), 1), 3);
+          // Percolator trains one model per cross-validation fold, so more than 3
+          // threads do not help. -threads 0 ("all cores") gets 3, which is also what
+          // the executable uses when it is not told otherwise.
+          const int threads = getIntOption_("threads");
+          const int in_process_threads = threads <= 0 ? 3 : std::min(threads, 3);
           pp.setValue("num_threads", in_process_threads);  // mirror subprocess --num-threads
         }
         perc.setParameters(pp);
-        // Call the low-level API so the PIN-compatible fields on `ri` are
-        // actually used (the high-level rescore(peptide_ids, …) ignores them).
-        RescoreOutput ro = perc.rescore(ri);
 
-        // Stamp percolator_* meta values back onto each hit from ro.
-        for (size_t row = 0; row < ro.scores.size(); ++row)
+        // Stamps the PIN features on the hits (as the subprocess path does when writing the .pin
+        // file), trains on them and transfers Percolator's results into the canonical score fields
+        // and PSI-MS CV meta values downstream idXML/mzid consumers expect.
+        try
         {
-          const auto [pid_i, hit_i] = hit_locs[row];
-          PeptideHit& hit = all_peptide_ids[pid_i].getHits()[hit_i];
-          hit.setMetaValue("percolator_score",   ro.scores[row]);
-          hit.setMetaValue("percolator_q_value", ro.q_values[row]);
-          hit.setMetaValue("percolator_pep",     ro.peps[row]);
+          perc.rescorePSMs(all_peptide_ids, feature_set, enz_str, min_charge, max_charge,
+                           getStringOption_("score_type"));
+        }
+        catch (const Exception::MissingInformation& e)
+        {
+          writeLogError_(std::string("No usable PSMs/features for in-process path (") + e.what()
+                         + "); use -use_subprocess true.");
+          return INCOMPATIBLE_INPUT_DATA;
         }
 
-        // Transfer percolator_* meta values into the canonical score fields
-        // expected by downstream idXML/mzid consumers. Mirror the subprocess
-        // path's identifier normalization + meta-value stamps so the idXML
-        // writer's strict peptide↔protein identifier cross-check passes.
-        const String score_type = getStringOption_("score_type");
-        const String run_identifier = all_protein_ids.front().getIdentifier();
+        // Align with the (single) IdentificationRun so the idXML writer's strict
+        // peptide<->protein identifier cross-check passes, as on the subprocess path.
+        const std::string run_identifier = all_protein_ids.front().getIdentifier();
         for (auto& pid : all_peptide_ids.getData())
         {
-          const String old_score_type = pid.getScoreType();
-          pid.setIdentifier(run_identifier);  // align with the (single) IdentificationRun
-          if (score_type == "pep")
-          {
-            pid.setScoreType("Posterior Error Probability");
-            pid.setHigherScoreBetter(false);
-          }
-          else if (score_type == "svm")
-          {
-            pid.setScoreType("svm");
-            pid.setHigherScoreBetter(true);
-          }
-          else // "q-value" (default)
-          {
-            pid.setScoreType("q-value");
-            pid.setHigherScoreBetter(false);
-          }
-
-          for (auto& hit : pid.getHits())
-          {
-            if (!hit.metaValueExists("percolator_score")) continue;
-            const double svm  = hit.getMetaValue("percolator_score");
-            const double qval = hit.getMetaValue("percolator_q_value");
-            const double pep  = hit.getMetaValue("percolator_pep");
-
-            // Mirror subprocess path's PSI-MS CV meta values
-            hit.setMetaValue(old_score_type, hit.getScore());  // preserve original
-            hit.setMetaValue("MS:1001492", svm);    // percolator:score
-            hit.setMetaValue("MS:1001491", qval);   // percolator:PEP / q-value
-            hit.setMetaValue("MS:1001493", pep);    // PEP
-
-            if (score_type == "q-value")      hit.setScore(qval);
-            else if (score_type == "pep")     hit.setScore(pep);
-            else                              hit.setScore(svm);
-          }
+          pid.setIdentifier(run_identifier);
         }
 
-        // Clean up the PIN-format meta values that stampPinFeaturesOnHits
-        // left on each hit, then stamp PercolatorAdapter provenance metadata
-        // (search engine identity + 23 SearchParameter UserParams) so the
-        // in-process output matches the historical subprocess output's
-        // metadata contract that downstream tools rely on.
-        stripPinFeatureMetaValues_(all_peptide_ids, min_charge, max_charge);
+        // Stamp PercolatorAdapter provenance metadata (search engine identity +
+        // 23 SearchParameter UserParams) so the in-process output matches the
+        // historical subprocess output's metadata contract downstream tools rely on.
         stampPercolatorAdapterMetadata_(all_protein_ids,
           peptide_level_fdrs, protein_level_fdrs,
           /*version_string=*/"3.08-vendored");
@@ -1166,7 +1098,7 @@ protected:
       OSWFile::readToPIN(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
     }
 
-    std::vector<String> arguments;
+    std::vector<std::string> arguments;
     // Check all set parameters and get them into arguments StringList
     {
       if (peptide_level_fdrs)
@@ -1186,16 +1118,16 @@ protected:
         arguments.push_back("-l"); arguments.push_back(pout_target_file_proteins);
         arguments.push_back("-L"); arguments.push_back(pout_decoy_file_proteins);
 
-        String fasta_file = getStringOption_("fasta");
+        std::string fasta_file = getStringOption_("fasta");
         if (fasta_file.empty())
         {
           fasta_file = "auto";
         }
         arguments.push_back("-f"); arguments.push_back(fasta_file);
 
-        arguments.push_back("-z"); arguments.push_back(String(enz_str));
+        arguments.push_back("-z"); arguments.push_back(std::string(enz_str));
 
-        String decoy_pattern = getStringOption_("decoy_pattern");
+        std::string decoy_pattern = getStringOption_("decoy_pattern");
         if (decoy_pattern != "random") { arguments.push_back("-P"); arguments.push_back(decoy_pattern); }
       }
 
@@ -1208,7 +1140,7 @@ protected:
         // if e.g. the OpenMS version and this adapter is updated.
         if (cv_threads > 3 || getFlag_("force"))
         {
-          arguments.push_back("--num-threads"); arguments.push_back(String(cv_threads));
+          arguments.push_back("--num-threads"); arguments.push_back(StringUtils::toStr(cv_threads));
         }
       }
 
@@ -1216,31 +1148,31 @@ protected:
       double cneg = getDoubleOption_("cneg");
       if (cpos != 0.0)
       {
-        arguments.push_back("-p"); arguments.push_back(String(cpos));
+        arguments.push_back("-p"); arguments.push_back(StringUtils::toStr(cpos));
       }
       if (cneg != 0.0)
       {
-        arguments.push_back("-n"); arguments.push_back(String(cneg));
+        arguments.push_back("-n"); arguments.push_back(StringUtils::toStr(cneg));
       }
       double train_FDR = getDoubleOption_("trainFDR");
       double test_FDR = getDoubleOption_("testFDR");
       if (train_FDR != 0.01)
       {
-        arguments.push_back("-F"); arguments.push_back(String(train_FDR));
+        arguments.push_back("-F"); arguments.push_back(StringUtils::toStr(train_FDR));
       }
       if (test_FDR != 0.01)
       {
-        arguments.push_back("-t"); arguments.push_back(String(test_FDR));
+        arguments.push_back("-t"); arguments.push_back(StringUtils::toStr(test_FDR));
       }
       Int max_iter = getIntOption_("maxiter");
       if (max_iter != 10)
       {
-        arguments.push_back("-i"); arguments.push_back(String(max_iter));
+        arguments.push_back("-i"); arguments.push_back(StringUtils::toStr(max_iter));
       }
       Int subset_max_train = getIntOption_("subset_max_train");
       if (subset_max_train > 0)
       {
-        arguments.push_back("-N"); arguments.push_back(String(subset_max_train));
+        arguments.push_back("-N"); arguments.push_back(StringUtils::toStr(subset_max_train));
       }
       if (getFlag_("quick_validation"))
       {
@@ -1261,11 +1193,11 @@ protected:
       Int nested_xval_bins = getIntOption_("nested_xval_bins");
       if (nested_xval_bins > 1)
       {
-        arguments.push_back("--nested-xval-bins"); arguments.push_back(String(nested_xval_bins));
+        arguments.push_back("--nested-xval-bins"); arguments.push_back(StringUtils::toStr(nested_xval_bins));
       }
-      String weights_file = getStringOption_("weights");
-      String init_weights_file = getStringOption_("init_weights");
-      String default_search_direction = getStringOption_("default_direction");
+      std::string weights_file = getStringOption_("weights");
+      std::string init_weights_file = getStringOption_("init_weights");
+      std::string default_search_direction = getStringOption_("default_direction");
       if (!weights_file.empty())
       {
         arguments.push_back("-w"); arguments.push_back(weights_file);
@@ -1281,7 +1213,7 @@ protected:
       Int verbose_level = getIntOption_("verbose");
       if (verbose_level != 2)
       {
-        arguments.push_back("-v"); arguments.push_back(String(verbose_level));
+        arguments.push_back("-v"); arguments.push_back(StringUtils::toStr(verbose_level));
       }
       if (getFlag_("unitnorm"))
       {
@@ -1298,7 +1230,7 @@ protected:
       Int seed = getIntOption_("seed");
       if (seed != 1)
       {
-        arguments.push_back("-S"); arguments.push_back(String(seed));
+        arguments.push_back("-S"); arguments.push_back(StringUtils::toStr(seed));
       }
       if (getFlag_("klammer"))
       {
@@ -1306,7 +1238,7 @@ protected:
       }
       if (description_of_correct != 0)
       {
-        arguments.push_back("-D"); arguments.push_back(String(description_of_correct));
+        arguments.push_back("-D"); arguments.push_back(StringUtils::toStr(description_of_correct));
       }
       arguments.push_back(pin_file);
     }
@@ -1327,11 +1259,11 @@ protected:
     //-------------------------------------------------------------
     // when percolator finished calculation, it stores the results -r option (with or without -U) or -m (which seems to be not working)
     //  WARNING: The -r option cannot be used in conjunction with -U: no peptide level statistics are calculated, redirecting PSM level statistics to provided file instead.
-    map<String, PercolatorResult> pep_map;
-    String pout_target = getStringOption_("out_pout_target");
-    String pout_decoy = getStringOption_("out_pout_decoy");
-    String pout_target_proteins = getStringOption_("out_pout_target_proteins");
-    String pout_decoy_proteins = getStringOption_("out_pout_decoy_proteins");
+    map<std::string, PercolatorResult> pep_map;
+    std::string pout_target = getStringOption_("out_pout_target");
+    std::string pout_decoy = getStringOption_("out_pout_decoy");
+    std::string pout_target_proteins = getStringOption_("out_pout_target_proteins");
+    std::string pout_decoy_proteins = getStringOption_("out_pout_decoy_proteins");
 
     if (peptide_level_fdrs)
     {
@@ -1364,7 +1296,7 @@ protected:
       }
     }
 
-    map<String, PercolatorProteinResult> protein_map;
+    map<std::string, PercolatorProteinResult> protein_map;
     if (protein_level_fdrs)
     {
       readProteinPoutAsMapAndAddGroups_(pout_target_file_proteins, protein_map, all_protein_ids[0]);
@@ -1387,12 +1319,12 @@ protected:
       // Add the percolator results to the peptide vector of the original input file
       //size_t c_debug = 0;
       size_t cnt = 0;
-      String run_identifier = all_protein_ids.front().getIdentifier();
-      const String scoreType = getStringOption_("score_type");
+      std::string run_identifier = all_protein_ids.front().getIdentifier();
+      const std::string scoreType = getStringOption_("score_type");
       size_t index = 0;
       for (PeptideIdentification& pep_id : all_peptide_ids)
       {
-        String old_score_type{pep_id.getScoreType()}; // copy because we modify the score type below
+        std::string old_score_type{pep_id.getScoreType()}; // copy because we modify the score type below
         index++;
         pep_id.setIdentifier(run_identifier);
         if (scoreType == "pep")
@@ -1408,20 +1340,19 @@ protected:
         }
         pep_id.setHigherScoreBetter(scoreType == "svm");
         
-        String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
-        String file_identifier = pep_id.getMetaValue("file_origin", String());
-        file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+        std::string scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
+        const std::string file_identifier = PercolatorInfile::getFileIdentifier(pep_id);
 
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (PeptideHit& hit : pep_id.getHits())
         {
-          String peptide_sequence = hit.getSequence().toBracketString(false, true);
-          String psm_identifier = file_identifier + scan_identifier + peptide_sequence;
+          std::string peptide_sequence = hit.getSequence().toBracketString(false, true);
+          std::string psm_identifier = file_identifier + scan_identifier + peptide_sequence;
 
           //Only for super debug
           writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);
  
-          map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
+          map<std::string, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
           {
             hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue

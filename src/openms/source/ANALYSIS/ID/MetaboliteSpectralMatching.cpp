@@ -13,7 +13,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
+#include <cmath>
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
 
@@ -42,7 +44,9 @@ namespace OpenMS
     sum_formula_(),
     inchi_string_(),
     smiles_string_(),
-    precursor_adduct_()
+    precursor_adduct_(),
+    observed_ccs_(IMTypes::DRIFTTIME_NOT_SET),
+    found_ccs_(IMTypes::DRIFTTIME_NOT_SET)
   {
   }
 
@@ -72,6 +76,8 @@ namespace OpenMS
     inchi_string_ = rhs.inchi_string_;
     smiles_string_ = rhs.smiles_string_;
     precursor_adduct_ = rhs.precursor_adduct_;
+    observed_ccs_ = rhs.observed_ccs_;
+    found_ccs_ = rhs.found_ccs_;
 
     return *this;
   }
@@ -161,98 +167,175 @@ namespace OpenMS
   }
 
 
-  String SpectralMatch::getObservedSpectrumNativeID() const
+  std::string SpectralMatch::getObservedSpectrumNativeID() const
   {
     return observed_spectrum_native_id_;
   }
 
 
-  void SpectralMatch::setObservedSpectrumNativeID(const String& obs_spec_native_id)
+  void SpectralMatch::setObservedSpectrumNativeID(const std::string& obs_spec_native_id)
   {
     observed_spectrum_native_id_ = obs_spec_native_id;
   }
 
-  String SpectralMatch::getPrimaryIdentifier() const
+  std::string SpectralMatch::getPrimaryIdentifier() const
   {
     return primary_id_;
   }
 
 
-  void SpectralMatch::setPrimaryIdentifier(const String& pid)
+  void SpectralMatch::setPrimaryIdentifier(const std::string& pid)
   {
     primary_id_ = pid;
   }
 
 
-  String SpectralMatch::getSecondaryIdentifier() const
+  std::string SpectralMatch::getSecondaryIdentifier() const
   {
     return secondary_id_;
   }
 
 
-  void SpectralMatch::setSecondaryIdentifier(const String& sid)
+  void SpectralMatch::setSecondaryIdentifier(const std::string& sid)
   {
     secondary_id_ = sid;
   }
 
 
-  String SpectralMatch::getCommonName() const
+  std::string SpectralMatch::getCommonName() const
   {
     return common_name_;
   }
 
 
-  void SpectralMatch::setCommonName(const String& cname)
+  void SpectralMatch::setCommonName(const std::string& cname)
   {
     common_name_ = cname;
   }
 
 
-  String SpectralMatch::getSumFormula() const
+  std::string SpectralMatch::getSumFormula() const
   {
     return sum_formula_;
   }
 
 
-  void SpectralMatch::setSumFormula(const String& sf)
+  void SpectralMatch::setSumFormula(const std::string& sf)
   {
     sum_formula_ = sf;
   }
 
 
-  String SpectralMatch::getInchiString() const
+  std::string SpectralMatch::getInchiString() const
   {
     return inchi_string_;
   }
 
 
-  void SpectralMatch::setInchiString(const String& istr)
+  void SpectralMatch::setInchiString(const std::string& istr)
   {
     inchi_string_ = istr;
   }
 
 
-  String SpectralMatch::getSMILESString() const
+  std::string SpectralMatch::getSMILESString() const
   {
     return smiles_string_;
   }
 
 
-  void SpectralMatch::setSMILESString(const String& sstr)
+  void SpectralMatch::setSMILESString(const std::string& sstr)
   {
     smiles_string_ = sstr;
   }
 
 
-  String SpectralMatch::getPrecursorAdduct() const
+  std::string SpectralMatch::getPrecursorAdduct() const
   {
     return precursor_adduct_;
   }
 
 
-  void SpectralMatch::setPrecursorAdduct(const String& padd)
+  void SpectralMatch::setPrecursorAdduct(const std::string& padd)
   {
     precursor_adduct_ = padd;
+  }
+
+
+  double SpectralMatch::getObservedCCS() const
+  {
+    return observed_ccs_;
+  }
+
+
+  void SpectralMatch::setObservedCCS(const double& ccs)
+  {
+    observed_ccs_ = ccs;
+  }
+
+
+  double SpectralMatch::getFoundCCS() const
+  {
+    return found_ccs_;
+  }
+
+
+  void SpectralMatch::setFoundCCS(const double& ccs)
+  {
+    found_ccs_ = ccs;
+  }
+
+
+  /**
+    @brief Extract a collision cross section (CCS, Angstrom^2) for a spectrum, or -1.0 if unavailable.
+
+    Sources are tried in order: a CCS-unit drift time, a 1/K0 (VSSC) drift time converted via the
+    Mason-Schamp relation (@ref IMTypes::oneOverK0ToCCS, needs the precursor m/z and charge), and
+    finally a numeric @c "CCS" meta value. Both the spectrum-level and the first-precursor-level
+    drift time are inspected. @p mz and @p charge are only needed for the 1/K0 conversion.
+  */
+  static double extractCCS(const MSSpectrum& spectrum, double mz, int charge)
+  {
+    // (1) spectrum-level drift time, already in CCS units
+    if (spectrum.getDriftTimeUnit() == DriftTimeUnit::CCS && spectrum.getDriftTime() > 0.0)
+    {
+      return spectrum.getDriftTime();
+    }
+    // (2) spectrum-level drift time as 1/K0 -> convert to CCS (requires m/z and charge)
+    if (spectrum.getDriftTimeUnit() == DriftTimeUnit::VSSC && spectrum.getDriftTime() > 0.0 && mz > 0.0 && charge != 0)
+    {
+      return IMTypes::oneOverK0ToCCS(spectrum.getDriftTime(), mz, charge);
+    }
+
+    if (!spectrum.getPrecursors().empty())
+    {
+      const auto& prec = spectrum.getPrecursors()[0];
+      // (3) precursor-level drift time in CCS units
+      if (prec.getDriftTimeUnit() == DriftTimeUnit::CCS && prec.getDriftTime() > 0.0)
+      {
+        return prec.getDriftTime();
+      }
+      // (4) precursor-level drift time as 1/K0 -> convert to CCS
+      if (prec.getDriftTimeUnit() == DriftTimeUnit::VSSC && prec.getDriftTime() > 0.0 && mz > 0.0 && charge != 0)
+      {
+        return IMTypes::oneOverK0ToCCS(prec.getDriftTime(), mz, charge);
+      }
+    }
+
+    // (5) numeric "CCS" meta value (e.g. parsed from an MSP library by MSPGenericFile)
+    if (spectrum.metaValueExists(Constants::UserParam::MSM_CCS))
+    {
+      try
+      {
+        return StringUtils::toDouble(spectrum.getMetaValue(Constants::UserParam::MSM_CCS).toString());
+      }
+      catch (const Exception::ConversionError&)
+      {
+        // ignore non-numeric CCS meta value
+      }
+    }
+
+    return IMTypes::DRIFTTIME_NOT_SET;
   }
 
 
@@ -274,6 +357,13 @@ namespace OpenMS
     defaults_.setValue("merge_spectra", "true", "Merge MS2 spectra with the same precursor mass.");
     defaults_.setValidStrings("merge_spectra", {"true","false"});
 
+    defaults_.setValue("ccs_error_percent", 0.0, "Allowed collision cross section (CCS) error in percent for filtering candidates "
+                       "(0 = filtering disabled). The relative error |observed - library| / library * 100 must not exceed this value. "
+                       "Typical values for confident identification are 1-3%. Candidates for which the experimental or the library CCS "
+                       "is missing are kept (not filtered). Requires CCS to be present as CCS-unit drift time, 1/K0 (converted to CCS), "
+                       "or a numeric 'CCS' meta value.");
+    defaults_.setMinFloat("ccs_error_percent", 0.0);
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -288,11 +378,12 @@ namespace OpenMS
     bool fragment_mass_tolerance_unit_ppm,
     const MSSpectrum& exp_spectrum,
     const MSSpectrum& db_spectrum,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
     return computeHyperScore_(fragment_mass_error,
                               fragment_mass_tolerance_unit_ppm, exp_spectrum,
-                              db_spectrum, nullptr, mz_lower_bound);
+                              db_spectrum, nullptr, mz_lower_bound, use_mass_accuracy);
   }
 
 
@@ -302,11 +393,12 @@ namespace OpenMS
     const MSSpectrum& exp_spectrum,
     const MSSpectrum& db_spectrum,
     vector<PeptideHit::PeakAnnotation>& annotations,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
     return computeHyperScore_(fragment_mass_error,
                               fragment_mass_tolerance_unit_ppm, exp_spectrum,
-                              db_spectrum, &annotations, mz_lower_bound);
+                              db_spectrum, &annotations, mz_lower_bound, use_mass_accuracy);
   }
 
 
@@ -316,8 +408,15 @@ namespace OpenMS
     const MSSpectrum& exp_spectrum,
     const MSSpectrum& db_spectrum,
     vector<PeptideHit::PeakAnnotation>* annotations,
-    double mz_lower_bound)
+    double mz_lower_bound,
+    bool use_mass_accuracy)
   {
+    if (!std::isfinite(fragment_mass_error) || fragment_mass_error < 0.0 ||
+        (use_mass_accuracy && fragment_mass_error == 0.0))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "HyperScore requires a finite nonnegative fragment tolerance; mass weighting requires positive tolerance");
+    }
     if (exp_spectrum.empty()) return 0;
 
     // define m/z range to consider:
@@ -357,11 +456,24 @@ namespace OpenMS
     for (const auto& match : peak_matches)
     {
       double db_intensity = 0.0;
+      double best_mass_error = std::numeric_limits<double>::max();
       for (const auto& db_it : match.second)
       {
         db_intensity = max(db_intensity, double(db_it->getIntensity()));
+        // Track the smallest mass error for this experimental peak
+        double mass_error = abs(exp_spectrum[match.first].getMZ() - db_it->getMZ());
+        best_mass_error = min(best_mass_error, mass_error);
       }
-      dot_product += db_intensity * exp_spectrum[match.first].getIntensity();
+
+      // Calculate mass accuracy weight using Gaussian model (tolerance = 2σ)
+      // weight = exp(-mass_error²/(2σ²)) where σ = tolerance/2
+      double tolerance = fragment_mass_tolerance_unit_ppm ?
+                        exp_spectrum[match.first].getMZ() * fragment_mass_error * 1e-6 :
+                        fragment_mass_error;
+      double mass_accuracy_weight = use_mass_accuracy ?
+                                    exp(-2.0 * pow(best_mass_error / tolerance, 2)) : 1.0;
+
+      dot_product += mass_accuracy_weight * db_intensity * exp_spectrum[match.first].getIntensity();
     }
 
     // return annotations for matching peaks?
@@ -406,13 +518,402 @@ namespace OpenMS
     }
 
     double hyperscore = log(dot_product) + matched_ions_term;
+
     if (hyperscore < 0) hyperscore = 0;
 
     return hyperscore;
   }
 
 
-  void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out, String& out_spectra)
+  double MetaboliteSpectralMatching::computeMVHScore(
+    double fragment_mass_error,
+    bool fragment_mass_tolerance_unit_ppm,
+    const MSSpectrum& exp_spectrum,
+    const MSSpectrum& db_spectrum,
+    Size num_intensity_classes,
+    double tic_fraction,
+    double mz_lower_bound,
+    bool use_mass_accuracy,
+    bool single_peak_credit)
+  {
+    return computeMVHScore_(fragment_mass_error,
+                            fragment_mass_tolerance_unit_ppm, exp_spectrum,
+                            db_spectrum, num_intensity_classes, tic_fraction,
+                            nullptr, mz_lower_bound, use_mass_accuracy, single_peak_credit);
+  }
+
+
+  double MetaboliteSpectralMatching::computeMVHScore(
+    double fragment_mass_error,
+    bool fragment_mass_tolerance_unit_ppm,
+    const MSSpectrum& exp_spectrum,
+    const MSSpectrum& db_spectrum,
+    vector<PeptideHit::PeakAnnotation>& annotations,
+    Size num_intensity_classes,
+    double tic_fraction,
+    double mz_lower_bound,
+    bool use_mass_accuracy,
+    bool single_peak_credit)
+  {
+    return computeMVHScore_(fragment_mass_error,
+                            fragment_mass_tolerance_unit_ppm, exp_spectrum,
+                            db_spectrum, num_intensity_classes, tic_fraction,
+                            &annotations, mz_lower_bound, use_mass_accuracy, single_peak_credit);
+  }
+
+
+  double MetaboliteSpectralMatching::computeMVHScore_(
+    double fragment_mass_error,
+    bool fragment_mass_tolerance_unit_ppm,
+    const MSSpectrum& exp_spectrum,
+    const MSSpectrum& db_spectrum,
+    Size num_intensity_classes,
+    double tic_fraction,
+    vector<PeptideHit::PeakAnnotation>* annotations,
+    double mz_lower_bound,
+    bool use_mass_accuracy,
+    bool single_peak_credit)
+  {
+    // Validate parameters
+    if (!std::isfinite(fragment_mass_error) || fragment_mass_error <= 0.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "MVH requires a finite positive fragment tolerance");
+    }
+
+    if (exp_spectrum.empty())
+    {
+      OPENMS_LOG_DEBUG << "MVH: Skipping empty experimental spectrum" << endl;
+      return 0;
+    }
+
+    if (num_intensity_classes < 1 || num_intensity_classes > 7)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "num_intensity_classes must be between 1 and 7, got " + std::to_string(num_intensity_classes));
+    }
+    if (!std::isfinite(tic_fraction) || tic_fraction < 0.5 || tic_fraction > 1.0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "tic_fraction must be between 0.5 and 1.0, got " + std::to_string(tic_fraction));
+    }
+
+    // Step 1: Filter peaks by TIC fraction
+    // Sort peaks by intensity to find TIC threshold
+    vector<pair<double, Size>> intensity_index_pairs;
+    intensity_index_pairs.reserve(exp_spectrum.size());
+    double total_intensity = 0.0;
+    for (Size i = 0; i < exp_spectrum.size(); ++i)
+    {
+      double inten = exp_spectrum[i].getIntensity();
+      intensity_index_pairs.emplace_back(inten, i);
+      total_intensity += inten;
+    }
+
+    // Sort by intensity (descending), with m/z index breaking equal-intensity ties.
+    sort(intensity_index_pairs.begin(), intensity_index_pairs.end(),
+         [](const pair<double, Size>& a, const pair<double, Size>& b) {
+           return a.first > b.first || (a.first == b.first && a.second < b.second);
+         });
+
+    // Find peaks that account for tic_fraction of total intensity
+    double cumulative_intensity = 0.0;
+    double target_intensity = total_intensity * tic_fraction;
+    vector<Size> retained_peak_indices;
+
+    for (const auto& pair : intensity_index_pairs)
+    {
+      retained_peak_indices.push_back(pair.second);
+      cumulative_intensity += pair.first;
+      if (cumulative_intensity >= target_intensity) break;
+    }
+
+    // Step 2: Classify retained peaks into intensity classes
+    // Classes have sizes in ratio 1:2:4:8... (geometric progression with ratio 2)
+    Size total_peaks = retained_peak_indices.size();
+    if (total_peaks == 0)
+    {
+      OPENMS_LOG_DEBUG << "MVH: No peaks retained after TIC filtering (TIC fraction: "
+                       << tic_fraction << ")" << endl;
+      return 0;
+    }
+
+    // Calculate minimum peaks needed for intensity classes
+    Size min_peaks_for_classes = (1 << num_intensity_classes) - 1;
+    if (total_peaks < min_peaks_for_classes)
+    {
+      // Not enough peaks for requested number of classes
+      OPENMS_LOG_DEBUG << "MVH: Insufficient peaks for intensity classes (have: "
+                       << total_peaks << ", need: " << min_peaks_for_classes
+                       << " for " << num_intensity_classes << " classes)" << endl;
+      return 0;
+    }
+
+    // Divide all retained peaks among classes in the ratio 1:2:4:...
+    // Keep any rounding remainder in the largest (lowest-intensity) class.
+    vector<Size> class_sizes(num_intensity_classes);
+    Size peaks_allocated = 0;
+    for (Size i = 0; i < num_intensity_classes; ++i)
+    {
+      class_sizes[i] = total_peaks * (Size(1) << i) / min_peaks_for_classes;
+      peaks_allocated += class_sizes[i];
+    }
+    class_sizes.back() += total_peaks - peaks_allocated;
+
+    // Step 3: Assign peaks to classes based on intensity ranking
+    // Class 0 = highest intensity (A), Class 1 = medium (B), etc.
+    vector<Size> peak_to_class(exp_spectrum.size(), SIZE_MAX);
+
+    Size class_idx = 0;
+    Size peaks_in_current_class = 0;
+    for (Size i = 0; i < retained_peak_indices.size(); ++i)
+    {
+      Size peak_idx = retained_peak_indices[i];
+
+      // Move to next class if current class is full
+      while (class_idx < num_intensity_classes &&
+             peaks_in_current_class >= class_sizes[class_idx])
+      {
+        class_idx++;
+        peaks_in_current_class = 0;
+      }
+
+      if (class_idx < num_intensity_classes)
+      {
+        peak_to_class[peak_idx] = class_idx;
+        peaks_in_current_class++;
+      }
+    }
+
+    // Step 4: Match theoretical peaks to experimental peaks
+    // Count total m/z locations and matches per class
+    double min_exp_mz = exp_spectrum[0].getMZ();
+    double mz_offset = fragment_mass_error;
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      mz_offset = min_exp_mz * fragment_mass_error * 1e-6;
+    }
+    mz_lower_bound = max(mz_lower_bound, min_exp_mz - mz_offset);
+
+    double max_exp_mz = exp_spectrum.back().getMZ();
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      mz_offset = max_exp_mz * fragment_mass_error * 1e-6;
+    }
+    double mz_upper_bound = max_exp_mz + mz_offset;
+
+    // Count matches per intensity class
+    vector<Size> matches_per_class(num_intensity_classes, 0);
+    map<Size, vector<MSSpectrum::ConstIterator>> peak_matches;
+    double mass_accuracy_sum = 0.0; // Track cumulative mass accuracy for bonus term
+
+    for (auto db_it = db_spectrum.MZBegin(mz_lower_bound);
+         db_it != db_spectrum.MZEnd(mz_upper_bound); ++db_it)
+    {
+      double db_mz = db_it->getMZ();
+
+      if (fragment_mass_tolerance_unit_ppm)
+      {
+        mz_offset = db_mz * fragment_mass_error * 1e-6;
+      }
+
+      Int index = exp_spectrum.findNearest(db_mz, mz_offset);
+      if (index >= 0)
+      {
+        Size exp_idx = static_cast<Size>(index);
+        peak_matches[exp_idx].push_back(db_it);
+        if (!single_peak_credit)
+        {
+          // Restore the historical score exactly: each matched theoretical ion
+          // supplies credit and a mass-accuracy weight, even when ions share a peak.
+          const Size class_id = peak_to_class[exp_idx];
+          if (class_id < num_intensity_classes)
+          {
+            matches_per_class[class_id]++;
+          }
+          if (use_mass_accuracy)
+          {
+            const double mass_error = abs(exp_spectrum[exp_idx].getMZ() - db_mz);
+            const double tolerance = fragment_mass_tolerance_unit_ppm ?
+                                     db_mz * fragment_mass_error * 1e-6 : fragment_mass_error;
+            mass_accuracy_sum += exp(-2.0 * pow(mass_error / tolerance, 2));
+          }
+        }
+      }
+    }
+
+    // A retained experimental peak supplies one piece of evidence, even when
+    // several theoretical ions match it. Keep all matches for annotations.
+    for (const auto& match : peak_matches)
+    {
+      if (!single_peak_credit)
+      {
+        break;
+      }
+      const Size exp_idx = match.first;
+      const Size class_id = peak_to_class[exp_idx];
+      if (class_id >= num_intensity_classes) continue;
+      matches_per_class[class_id]++;
+
+      if (use_mass_accuracy)
+      {
+        // Use the closest match in units of its tolerance, once per peak.
+        // The Gaussian weight is exp(-2 * (mass_error / tolerance)^2).
+        double best_mass_accuracy_weight = 0.0;
+        for (const auto& db_it : match.second)
+        {
+          const double db_mz = db_it->getMZ();
+          const double mass_error = abs(exp_spectrum[exp_idx].getMZ() - db_mz);
+          const double tolerance = fragment_mass_tolerance_unit_ppm ?
+                                   db_mz * fragment_mass_error * 1e-6 :
+                                   fragment_mass_error;
+          best_mass_accuracy_weight = max(best_mass_accuracy_weight,
+                                          exp(-2.0 * pow(mass_error / tolerance, 2)));
+        }
+        mass_accuracy_sum += best_mass_accuracy_weight;
+      }
+    }
+
+    // Return annotations if requested
+    if ((annotations != nullptr) &&
+        !db_spectrum.getStringDataArrays().empty() &&
+        !db_spectrum.getIntegerDataArrays().empty())
+    {
+      for (const auto& match : peak_matches)
+      {
+        const auto& exp_peak = exp_spectrum[match.first];
+        for (const auto& db_it : match.second)
+        {
+          PeptideHit::PeakAnnotation ann;
+          Size index = db_it - db_spectrum.begin();
+          ann.annotation = db_spectrum.getStringDataArrays()[0].at(index);
+          ann.charge = db_spectrum.getIntegerDataArrays()[0].at(index);
+          ann.mz = exp_peak.getMZ();
+          ann.intensity = exp_peak.getIntensity();
+          annotations->push_back(ann);
+        }
+      }
+    }
+
+    // Step 5: Compute MVH score using multivariate hypergeometric distribution
+    // Calculate total number of theoretical peaks (M)
+    Size total_theoretical_peaks = 0;
+    for (auto db_it = db_spectrum.MZBegin(mz_lower_bound);
+         db_it != db_spectrum.MZEnd(mz_upper_bound); ++db_it)
+    {
+      total_theoretical_peaks++;
+    }
+
+    if (total_theoretical_peaks == 0)
+    {
+      OPENMS_LOG_DEBUG << "MVH: No theoretical peaks in range [" << mz_lower_bound
+                       << ", " << mz_upper_bound << "]" << endl;
+      return 0;
+    }
+
+    // Calculate total number of possible m/z locations (T)
+    // This is approximate based on mass range and tolerance
+    double mass_range = mz_upper_bound - mz_lower_bound;
+    double location_resolution = fragment_mass_error;
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      // Use average m/z for ppm-based resolution estimate
+      double avg_mz = (mz_lower_bound + mz_upper_bound) / 2.0;
+      location_resolution = avg_mz * fragment_mass_error * 1e-6;
+    }
+    Size total_locations = static_cast<Size>(mass_range / location_resolution);
+    if (total_locations < total_peaks + total_theoretical_peaks)
+    {
+      total_locations = total_peaks + total_theoretical_peaks;
+    }
+
+    // Count peaks per class and unmatched theoretical peaks
+    vector<Size> peaks_per_class(num_intensity_classes, 0);
+    for (Size idx : retained_peak_indices)
+    {
+      Size class_id = peak_to_class[idx];
+      if (class_id < num_intensity_classes)
+      {
+        peaks_per_class[class_id]++;
+      }
+    }
+
+    Size total_matched = 0;
+    for (Size m : matches_per_class) total_matched += m;
+    // A nonzero probability of observing no matches is not fragment evidence.
+    // Keep unsupported candidates out of NASE's positive-score acceptance path.
+    if (total_matched == 0)
+    {
+      return 0.0;
+    }
+
+    Size unmatched_theoretical = total_theoretical_peaks - total_matched;
+    Size empty_locations = total_locations - total_peaks;
+
+    // Compute log of MVH probability using log-space arithmetic
+    // log P = sum(log(C(ti, mi))) - log(C(T, M))
+    // where C(n, k) is binomial coefficient "n choose k"
+
+    auto log_binomial = [](Size n, Size k) -> double {
+      if (k > n) return -std::numeric_limits<double>::infinity();
+      if (k == 0 || k == n) return 0.0;
+
+      // Use lgamma for numerical stability
+      return lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1);
+    };
+
+    double log_prob = 0.0;
+
+    // Add contribution from each intensity class
+    for (Size i = 0; i < num_intensity_classes; ++i)
+    {
+      double contrib = log_binomial(peaks_per_class[i], matches_per_class[i]);
+      if (std::isinf(contrib))
+      {
+        OPENMS_LOG_DEBUG << "MVH: Invalid binomial coefficient for class " << i
+                         << " (peaks: " << peaks_per_class[i] << ", matches: "
+                         << matches_per_class[i] << ")" << endl;
+        return 0.0; // Invalid configuration
+      }
+      log_prob += contrib;
+    }
+
+    // Add contribution from empty locations
+    double empty_contrib = log_binomial(empty_locations, unmatched_theoretical);
+    if (std::isinf(empty_contrib))
+    {
+      OPENMS_LOG_DEBUG << "MVH: Invalid binomial coefficient for empty locations "
+                       << "(empty: " << empty_locations << ", unmatched: "
+                       << unmatched_theoretical << ", total_locations: "
+                       << total_locations << ", total_peaks: " << total_peaks << ")" << endl;
+      return 0.0;
+    }
+    log_prob += empty_contrib;
+
+    // Subtract normalization term
+    log_prob -= log_binomial(total_locations, total_theoretical_peaks);
+
+    // Return negative log probability (higher = better match)
+    double mvh_score = -log_prob;
+
+    // Add mass accuracy bonus term (scaled to be comparable to log probability)
+    // Average mass accuracy per match, scaled by number of matches
+    Size total_matches = 0;
+    for (Size m : matches_per_class) total_matches += m;
+    if (use_mass_accuracy && total_matches > 0)
+    {
+      double avg_mass_accuracy = mass_accuracy_sum / total_matches;
+      mvh_score += avg_mass_accuracy * log(1.0 + total_matches);
+    }
+
+    // Ensure non-negative score
+    if (mvh_score < 0) mvh_score = 0;
+
+    return mvh_score;
+  }
+
+
+  void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out, std::string& out_spectra)
   {
     sort(spec_db.begin(), spec_db.end(), PrecursorMZLess);
 
@@ -456,6 +957,10 @@ namespace OpenMS
     bool fragment_error_unit_ppm(true);
     if (mz_error_unit_ == "Da") { fragment_error_unit_ppm = false; }
 
+    // track whether any experimental CCS could be obtained, to warn if CCS filtering is enabled but inert
+    bool ccs_filtering_enabled = ccs_error_percent_ > 0.0;
+    bool any_obs_ccs_found = false;
+
     for (Size spec_idx = 0; spec_idx < msexp.size(); ++spec_idx)
     {
       OPENMS_LOG_DEBUG << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << endl;
@@ -465,6 +970,11 @@ namespace OpenMS
       {
         // get precursor m/z
         double precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
+
+        // experimental CCS for this precursor (used for optional CCS filtering and MzTab export)
+        int obs_charge = msexp[spec_idx].getPrecursors()[prec_idx].getCharge();
+        double obs_ccs = extractCCS(msexp[spec_idx], precursor_mz, obs_charge);
+        if (obs_ccs > 0.0) { any_obs_ccs_found = true; }
 
         OPENMS_LOG_DEBUG << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
 
@@ -492,7 +1002,7 @@ namespace OpenMS
         Size end_idx(upper_it - mz_keys.begin());
 
         {
-          String id_to_log = msexp[spec_idx].metaValueExists("GNPS_Spectrum_ID")
+          std::string id_to_log = msexp[spec_idx].metaValueExists("GNPS_Spectrum_ID")
             ? msexp[spec_idx].getMetaValue("GNPS_Spectrum_ID").toString()
             : msexp[spec_idx].getNativeID();
           OPENMS_LOG_DEBUG << "identifying " << id_to_log << endl;
@@ -505,7 +1015,7 @@ namespace OpenMS
           // do spectral matching
           // Debug: list all available metadata keys
           OPENMS_LOG_DEBUG << "Available metadata keys for spectrum " << search_idx << ":";
-          std::vector<String> keys;
+          std::vector<std::string> keys;
           spec_db[search_idx].getKeys(keys);
           for (const auto& key : keys)
           {
@@ -513,7 +1023,7 @@ namespace OpenMS
           }
           OPENMS_LOG_DEBUG << endl;
           
-          String metabolite_name = "";
+          std::string metabolite_name;
           if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME)) {
             metabolite_name = spec_db[search_idx]
                                 .getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)
@@ -533,13 +1043,29 @@ namespace OpenMS
             continue;
           }
 
+          // library CCS for this candidate (also reused below for the MzTab export)
+          double lib_ccs = extractCCS(spec_db[search_idx],
+                                      spec_db[search_idx].getPrecursors()[0].getMZ(),
+                                      spec_db[search_idx].getPrecursors()[0].getCharge());
+
+          // optional CCS filtering: skip candidates outside tolerance.
+          // If either CCS is missing, the candidate is kept (CCS does not penalise non-IM data).
+          if (ccs_filtering_enabled && obs_ccs > 0.0 && lib_ccs > 0.0)
+          {
+            double ccs_error = std::abs(obs_ccs - lib_ccs) / lib_ccs * 100.0;
+            if (ccs_error > ccs_error_percent_)
+            {
+              continue;
+            }
+          }
+
           double hyperscore(computeHyperScore(fragment_mz_error_, fragment_error_unit_ppm, msexp[spec_idx], spec_db[search_idx], 0.0));
 
           OPENMS_LOG_DEBUG << " scored with " << hyperscore << endl;
           if (hyperscore > 0)
           {
-            String massbank_id = "";
-            String metabolite_name = "";
+            std::string massbank_id;
+            std::string metabolite_name;
             
             if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
               massbank_id = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
@@ -564,7 +1090,7 @@ namespace OpenMS
             tmp_match.setMatchingSpectrumIndex(search_idx);
             tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
-            String primary_id_value;
+            std::string primary_id_value;
             if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID"))
             {
               primary_id_value = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
@@ -588,6 +1114,10 @@ namespace OpenMS
             tmp_match.setInchiString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_INCHI_STRING));
             tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
             tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
+
+            // CCS values for the MzTab output (already extracted above for the optional filtering)
+            tmp_match.setObservedCCS(obs_ccs);
+            tmp_match.setFoundCCS(lib_ccs);
 
             partial_results.push_back(tmp_match);
           }
@@ -621,6 +1151,14 @@ namespace OpenMS
       } // end precursor loop
     } // end spectra loop
 
+    // warn if CCS filtering was requested but no experimental CCS was found anywhere (filter is inert)
+    if (ccs_filtering_enabled && !any_obs_ccs_found)
+    {
+      OPENMS_LOG_WARN << "Warning: 'ccs_error_percent' is set to " << ccs_error_percent_
+                      << " but no experimental CCS could be determined for any spectrum (no CCS-unit or 1/K0 drift time "
+                      << "and no numeric 'CCS' meta value). CCS filtering had no effect." << endl;
+    }
+
     // write final results to MzTab
     exportMzTab_(matching_results, mztab_out);
   }
@@ -637,6 +1175,7 @@ namespace OpenMS
     mz_error_unit_ = param_.getValue("mass_error_unit").toString();
     report_mode_ = param_.getValue("report_mode").toString();
     merge_spectra_ = (bool)param_.getValue("merge_spectra").toBool();
+    ccs_error_percent_ = (double)param_.getValue("ccs_error_percent");
   }
 
 
@@ -654,7 +1193,7 @@ namespace OpenMS
       MzTabSmallMoleculeSectionRow mztab_row_record;
 
       // set the identifier field
-      String hid_temp = current_id.getPrimaryIdentifier();
+      std::string hid_temp = current_id.getPrimaryIdentifier();
       MzTabString prim_id;
       prim_id.set(hid_temp);
       vector<MzTabString> id_dummy;
@@ -666,27 +1205,27 @@ namespace OpenMS
 
       // set the chemical formula field
       MzTabString chem_form;
-      String form_temp = current_id.getSumFormula();
+      std::string form_temp = current_id.getSumFormula();
       chem_form.set(form_temp);
 
       mztab_row_record.chemical_formula = chem_form;
 
       // set the smiles field
-      String smi_temp = current_id.getSMILESString();     // extract SMILES from struct mapping file
+      std::string smi_temp = current_id.getSMILESString();     // extract SMILES from struct mapping file
       MzTabString smi_string;
       smi_string.set(smi_temp);
 
       mztab_row_record.smiles = smi_string;
 
       // set the inchi_key field
-      String inchi_temp = current_id.getInchiString();    // extract INCHIKEY from struct mapping file
+      std::string inchi_temp = current_id.getInchiString();    // extract INCHIKEY from struct mapping file
       MzTabString inchi_key;
       inchi_key.set(inchi_temp);
 
       mztab_row_record.inchi_key = inchi_key;
 
       // set description field (we use it for the common name of the compound)
-      String name_temp = current_id.getCommonName();
+      std::string name_temp = current_id.getCommonName();
       MzTabString common_name;
       common_name.set(name_temp);
 
@@ -718,14 +1257,14 @@ namespace OpenMS
       mztab_row_record.retention_time = observed_rt;
 
       // set database field
-      String dbname_temp = "MassBank";
+      std::string dbname_temp = "MassBank";
       MzTabString dbname;
       dbname.set(dbname_temp);
 
       mztab_row_record.database = dbname;
 
       // set database_version field
-      String dbver_temp = "Sep 27, 2013";
+      std::string dbver_temp = "Sep 27, 2013";
       MzTabString dbversion;
       dbversion.set(dbver_temp);
 
@@ -779,14 +1318,14 @@ namespace OpenMS
       error_ppm = floor(error_ppm*100)/100;
 
       MzTabString ppmerr;
-      ppmerr.set(String(error_ppm));
+      ppmerr.set(StringUtils::toStr(error_ppm));
       MzTabOptionalColumnEntry col0;
       col0.first = "opt_ppm_error";
       col0.second = ppmerr;
       optionals.push_back(col0);
 
       // set found adduct ion
-      String addion_temp = current_id.getPrecursorAdduct();
+      std::string addion_temp = current_id.getPrecursorAdduct();
       MzTabString addion;
       addion.set(addion_temp);
       MzTabOptionalColumnEntry col1;
@@ -798,7 +1337,7 @@ namespace OpenMS
       double sim_score_temp = current_id.getMatchingScore();
       stringstream read_in;
       read_in << sim_score_temp;
-      String sim_score_temp2(read_in.str());
+      std::string sim_score_temp2(read_in.str());
       MzTabString sim_score;
       sim_score.set(sim_score_temp2);
       MzTabOptionalColumnEntry col2;
@@ -807,7 +1346,7 @@ namespace OpenMS
       optionals.push_back(col2);
 
       // set secondary ID (here HMDB id)
-      String sec_id = current_id.getSecondaryIdentifier();
+      std::string sec_id = current_id.getSecondaryIdentifier();
       MzTabString sec_id_str;
       sec_id_str.set(sec_id);
       MzTabOptionalColumnEntry col3;
@@ -817,7 +1356,7 @@ namespace OpenMS
 
       // set source spectra index
       // TODO: this should use spectra_ref column
-      String source_idx = String(current_id.getObservedSpectrumIndex());
+      std::string source_idx =StringUtils::toStr(current_id.getObservedSpectrumIndex());
       MzTabString source_idx_str;
       source_idx_str.set(source_idx);
       MzTabOptionalColumnEntry col4;
@@ -826,13 +1365,47 @@ namespace OpenMS
       optionals.push_back(col4);
 
       // set spectrum native ID
-      String spec_native_id = current_id.getObservedSpectrumNativeID();
+      std::string spec_native_id = current_id.getObservedSpectrumNativeID();
       MzTabString spec_native_id_str;
       spec_native_id_str.set(spec_native_id);
       MzTabOptionalColumnEntry col5;
       col5.first = "opt_spec_native_id";
       col5.second = spec_native_id_str;
       optionals.push_back(col5);
+
+      // CCS columns (observed, library, and relative error in percent); "null" when unavailable.
+      // CCS values are rounded to two decimals, consistent with the opt_ppm_error column above.
+      const double obs_ccs = current_id.getObservedCCS();
+      const double lib_ccs = current_id.getFoundCCS();
+
+      MzTabString obs_ccs_str;
+      obs_ccs_str.set(obs_ccs > 0.0 ? StringUtils::toStr(floor(obs_ccs * 100) / 100) : "null");
+      MzTabOptionalColumnEntry col6;
+      col6.first = "opt_observed_ccs";
+      col6.second = obs_ccs_str;
+      optionals.push_back(col6);
+
+      MzTabString lib_ccs_str;
+      lib_ccs_str.set(lib_ccs > 0.0 ? StringUtils::toStr(floor(lib_ccs * 100) / 100) : "null");
+      MzTabOptionalColumnEntry col7;
+      col7.first = "opt_library_ccs";
+      col7.second = lib_ccs_str;
+      optionals.push_back(col7);
+
+      MzTabString ccs_err_str;
+      if (obs_ccs > 0.0 && lib_ccs > 0.0)
+      {
+        double ccs_err = std::abs(obs_ccs - lib_ccs) / lib_ccs * 100.0;
+        ccs_err_str.set(StringUtils::toStr(floor(ccs_err * 100) / 100));
+      }
+      else
+      {
+        ccs_err_str.set("null");
+      }
+      MzTabOptionalColumnEntry col8;
+      col8.first = "opt_ccs_error_percent";
+      col8.second = ccs_err_str;
+      optionals.push_back(col8);
 
       mztab_row_record.opt_ = optionals;
 

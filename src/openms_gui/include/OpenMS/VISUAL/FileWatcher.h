@@ -14,7 +14,7 @@
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/VISUAL/MISC/Qt5Port.h>
 #include <map>
 
@@ -26,7 +26,6 @@
 
 namespace OpenMS
 {
-  class String;
 
   /**
       @brief Watcher that monitors file changes.
@@ -58,20 +57,20 @@ public:
     }
 
     ///Adds a file to the watcher
-    inline void addFile(const String & path)
+    inline void addFile(const std::string & path)
     {
       QFileSystemWatcher::addPath(toQString(path));
     }
 
     ///removes a file from the watcher
-    inline void removeFile(const String & path)
+    inline void removeFile(const std::string & path)
     {
       QFileSystemWatcher::removePath(toQString(path));
     }
 
 signals:
     ///Delayed file change signal
-    void fileChanged(const String &);
+    void fileChanged(const std::string &);
 
 protected slots:
     /// Slot that is connected to the fileChanged signal in order to track the changes

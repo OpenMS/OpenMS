@@ -18,6 +18,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
@@ -79,7 +81,7 @@ public:
                               const std::vector<ExtractionCoordinates>& extraction_coordinates,
                               double mz_extraction_window,
                               bool ppm,
-                              const String& filter)
+                              const std::string& filter)
     {
       ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
           extraction_coordinates, mz_extraction_window, ppm, -1, filter);
@@ -109,7 +111,7 @@ public:
                               double mz_extraction_window,
                               bool ppm,
                               double im_extraction_window,
-                              const String& filter) 
+                              const std::string& filter) 
     {
       ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
           extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
@@ -169,13 +171,14 @@ public:
                                     bool ms1,
                                     double im_extraction_width = 0.0)
     {
-      typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
+      typedef std::map<std::string, const typename TransitionExpT::Transition* > TransitionMapType;
       TransitionMapType trans_map;
       for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
       {
         trans_map[transition_exp_used.getTransitions()[i].getNativeID()] = &transition_exp_used.getTransitions()[i];
       }
 
+      output_chromatograms.reserve(output_chromatograms.size() + chromatograms.size());
       for (Size i = 0; i < chromatograms.size(); i++)
       {
         const OpenSwath::ChromatogramPtr & chromptr = chromatograms[i];
@@ -198,11 +201,11 @@ public:
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
-          String transition_group_id = OpenSwathHelper::computeTransitionGroupId(coord.id);
+          std::string transition_group_id = OpenSwathHelper::computeTransitionGroupId(coord.id);
           if (!transition_group_id.empty())
           {
             int prec_charge = 0;
-            String r = extract_id_(transition_exp_used, transition_group_id, prec_charge);
+            std::string r = extract_id_(transition_exp_used, transition_group_id, prec_charge);
             prec.setCharge(prec_charge);
             prec.setMetaValue("peptide_sequence", r);
           }
@@ -229,14 +232,14 @@ public:
           if (!transition.getPeptideRef().empty())
           {
             int prec_charge = 0;
-            String r = extract_id_(transition_exp_used, transition.getPeptideRef(), prec_charge);
+            std::string r = extract_id_(transition_exp_used, transition.getPeptideRef(), prec_charge);
             prec.setCharge(prec_charge);
             prec.setMetaValue("peptide_sequence", r);
           }
           else
           {
             int prec_charge = 0;
-            String r = extract_id_(transition_exp_used, transition.getCompoundRef(), prec_charge);
+            std::string r = extract_id_(transition_exp_used, transition.getCompoundRef(), prec_charge);
             prec.setCharge(prec_charge);
             prec.setMetaValue("peptide_sequence", r);
           }
@@ -260,7 +263,7 @@ public:
           settings.getDataProcessing()[j]->setMetaValue("performed_on_spectra", "true");
           chrom.getDataProcessing().push_back(settings.getDataProcessing()[j]);
         }
-        output_chromatograms.push_back(chrom);
+        output_chromatograms.push_back(std::move(chrom));
       }
     }
 
@@ -274,7 +277,7 @@ private:
      * @param[out] prec_charge The charge state of the precursor (filled by this function)
      */
     template <typename TransitionExpT>
-    static String extract_id_(TransitionExpT& transition_exp_used, const String& id, int& prec_charge);
+    static std::string extract_id_(TransitionExpT& transition_exp_used, const std::string& id, int& prec_charge);
 
     /**
      * @brief This populates the chromatograms vector with empty chromatograms
@@ -311,7 +314,7 @@ private:
         }
 
         // 3) set precursor peptide sequence / compound id in more-or-less default field
-        String pepref = transition->getPeptideRef();
+        std::string pepref = transition->getPeptideRef();
         for (Size pep_idx = 0; pep_idx < transition_exp.getPeptides().size(); pep_idx++)
         {
           const OpenMS::TargetedExperiment::Peptide* pep = &transition_exp.getPeptides()[pep_idx];
@@ -321,13 +324,13 @@ private:
             break;
           }
         }
-        String compref = transition->getCompoundRef();
+        std::string compref = transition->getCompoundRef();
         for (Size comp_idx = 0; comp_idx < transition_exp.getCompounds().size(); comp_idx++)
         {
           const OpenMS::TargetedExperiment::Compound* comp = &transition_exp.getCompounds()[comp_idx];
           if (comp->id == compref)
           {
-            prec.setMetaValue("peptide_sequence", String(comp->id) );
+            prec.setMetaValue("peptide_sequence",std::string(comp->id) );
             break;
           }
         }
@@ -366,20 +369,20 @@ private:
                                   double rt_extraction_window);
 
      /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    int getFilterNr_(const String& filter);
+    int getFilterNr_(const std::string& filter);
 
      /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     void populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp,
                                double rt_extraction_window);
 
-    std::map<OpenMS::String, double> PeptideRTMap_;
+    std::map<std::string, double> PeptideRTMap_;
 
   };
     
   // Specialization for template (LightTargetedExperiment)
   template<>
-  inline String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used,
-                                                                                       const String& id,
+  inline std::string ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used,
+                                                                                       const std::string& id,
                                                                                        int & prec_charge)
   {
     const OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id);
@@ -400,8 +403,8 @@ private:
   // to the non-const implementation (via const_cast) to avoid linker errors from
   // duplicate template instantiations when both const and non-const versions are used.
   template<>
-  inline String ChromatogramExtractor::extract_id_<const OpenSwath::LightTargetedExperiment>(const OpenSwath::LightTargetedExperiment& transition_exp_used,
-                                                                                               const String& id,
+  inline std::string ChromatogramExtractor::extract_id_<const OpenSwath::LightTargetedExperiment>(const OpenSwath::LightTargetedExperiment& transition_exp_used,
+                                                                                               const std::string& id,
                                                                                                int & prec_charge)
   {
     // forward to non-const implementation
@@ -410,8 +413,8 @@ private:
 
   // Specialization for template (TargetedExperiment)
   template<>
-  inline String ChromatogramExtractor::extract_id_<OpenMS::TargetedExperiment>(OpenMS::TargetedExperiment& transition_exp_used,
-                                                                               const String& id,
+  inline std::string ChromatogramExtractor::extract_id_<OpenMS::TargetedExperiment>(OpenMS::TargetedExperiment& transition_exp_used,
+                                                                               const std::string& id,
                                                                                int & prec_charge)
   {
     if (transition_exp_used.hasPeptide(id))

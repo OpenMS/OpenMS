@@ -7,6 +7,7 @@
 // $Authors: Justin Sing $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/TARGETED/DIAChromHandler.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
@@ -60,7 +61,7 @@ std::vector<MSChromatogram> DIAChromHandler::collectIrtChromatogramsForIrt(
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
-  for (SignedSize map_idx = 0; map_idx < boost::numeric_cast<SignedSize>(swath_maps.size()); ++map_idx)
+  for (SignedSize map_idx = 0; map_idx < checkedCast<SignedSize>(swath_maps.size()); ++map_idx)
   {
     std::vector< OpenMS::MSChromatogram > tmp_chromatograms;
     if (!swath_maps[map_idx].ms1) // skip MS1
@@ -86,7 +87,7 @@ std::vector<MSChromatogram> DIAChromHandler::collectIrtChromatogramsForIrt(
         std::set<std::string> matching_proteins;
         for (Size i = 0; i < irt_transitions.compounds.size(); i++)
         {
-          if (matching_compounds.find(irt_transitions.compounds[i].id) != matching_compounds.end())
+          if (matching_compounds.contains(irt_transitions.compounds[i].id))
           {
             transition_exp_used.compounds.push_back( irt_transitions.compounds[i] );
             for (Size j = 0; j < irt_transitions.compounds[i].protein_refs.size(); j++)
@@ -97,7 +98,7 @@ std::vector<MSChromatogram> DIAChromHandler::collectIrtChromatogramsForIrt(
         }
         for (Size i = 0; i < irt_transitions.proteins.size(); i++)
         {
-          if (matching_proteins.find(irt_transitions.proteins[i].id) != matching_proteins.end())
+          if (matching_proteins.contains(irt_transitions.proteins[i].id))
           {
             transition_exp_used.proteins.push_back( irt_transitions.proteins[i] );
           }

@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-  MSDataCachedConsumer::MSDataCachedConsumer(const String& filename, bool clearData) :
+  MSDataCachedConsumer::MSDataCachedConsumer(const std::string& filename, bool clearData) :
     ofs_(filename.c_str(), std::ios::binary),
     clearData_(clearData),
     spectra_written_(0),
@@ -47,12 +47,11 @@ namespace OpenMS
     writeSpectrum_(s, ofs_);
     spectra_written_++;
 
-    // Clear all spectral data including all float/int data arrays (but not string arrays)
+    // Clear all spectral data, including all float/int/string data arrays
+    // (clear() drops the data arrays: they are parallel to the peaks)
     if (clearData_)
     {
       s.clear(false);
-      s.setFloatDataArrays({});
-      s.setIntegerDataArrays({});
     }
     OPENMS_POSTCONDITION( (!clearData_ || s.empty() ), "clearData implies spectrum is empty")
     OPENMS_POSTCONDITION( (!clearData_ || s.getFloatDataArrays().empty() ), "clearData implies spectrum is empty")
@@ -64,12 +63,11 @@ namespace OpenMS
     writeChromatogram_(c, ofs_);
     chromatograms_written_++;
 
-    // Clear all chromatogram data including all float/int data arrays (but not string arrays)
+    // Clear all chromatogram data, including all float/int/string data arrays
+    // (clear() drops the data arrays: they are parallel to the peaks)
     if (clearData_)
     {
       c.clear(false);
-      c.setFloatDataArrays({});
-      c.setIntegerDataArrays({});
     }
     OPENMS_POSTCONDITION( (!clearData_ || c.empty() ), "clearData implies chromatogram is empty")
     OPENMS_POSTCONDITION( (!clearData_ || c.getFloatDataArrays().empty() ), "clearData implies chromatogram is empty")

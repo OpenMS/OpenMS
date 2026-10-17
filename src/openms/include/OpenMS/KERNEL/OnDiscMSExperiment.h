@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/INTERFACES/DataStructures.h>
+#include <OpenMS/KERNEL/IMSExperimentRandomAccess.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -67,7 +68,8 @@ namespace OpenMS
     @endcode
 
   */
-  class OPENMS_DLLAPI OnDiscMSExperiment
+  class OPENMS_DLLAPI OnDiscMSExperiment :
+    public IMSExperimentRandomAccess
   {
 
   typedef ChromatogramPeak ChromatogramPeakT;
@@ -91,10 +93,11 @@ public:
       @return Whether the parsing of the file was successful (if false, the
       file most likely was not an indexed mzML file)
     */
-    bool openFile(const String& filename, bool skipMetaData = false);
+    bool openFile(const std::string& filename, bool skipMetaData = false);
 
     /// Copy constructor
     OnDiscMSExperiment(const OnDiscMSExperiment& source) :
+      IMSExperimentRandomAccess(source),
       filename_(source.filename_),
       indexed_mzml_file_(source.indexed_mzml_file_),
       meta_ms_experiment_(source.meta_ms_experiment_),
@@ -135,39 +138,27 @@ public:
       Note that we cannot check whether all spectra are sorted (except if we
       were to load them all and check).
     */
-    bool isSortedByRT() const
+    bool isSortedByRT() const override
     {
       if (!meta_ms_experiment_) return false;
 
       return meta_ms_experiment_->isSorted(false);
     }
 
-    /// alias for getNrSpectra
-    inline Size size() const
-    {
-      return getNrSpectra();
-    }
-
-    /// returns whether spectra are empty
-    inline bool empty() const
-    {
-      return getNrSpectra() == 0;
-    }
-
     /// get the total number of spectra available
-    inline Size getNrSpectra() const
+    inline Size getNrSpectra() const override
     {
       return indexed_mzml_file_.getNrSpectra();
     }
 
     /// get the total number of chromatograms available
-    inline Size getNrChromatograms() const
+    inline Size getNrChromatograms() const override
     {
       return indexed_mzml_file_.getNrChromatograms();
     }
 
     /// returns the meta information of this experiment (const access)
-    std::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const
+    std::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const override
     {
       return std::static_pointer_cast<const ExperimentalSettings>(meta_ms_experiment_);
     }
@@ -190,7 +181,38 @@ public:
 
       @param[in] id The index of the spectrum
     */
-    MSSpectrum getSpectrum(Size id);
+    MSSpectrum getSpectrum(Size id) override;
+
+    /**
+      @brief returns a single spectrum without peaks and data arrays
+
+      Needs the meta data: a file opened with skipMetaData has no RT, MS level or precursors in memory.
+      PeakFileOptions filters are not applied.
+
+      @param[in] id The index of the spectrum
+      @exception Exception::IndexOverflow if @p id >= getNrSpectra()
+      @exception Exception::IllegalArgument if the file was opened with skipMetaData
+    */
+    MSSpectrum getSpectrumMetadata(Size id) override;
+
+    /**
+      @brief Retention time of spectrum @p id, from the meta data
+
+      @exception Exception::IndexOverflow if @p id >= getNrSpectra()
+      @exception Exception::IllegalArgument if the file was opened with skipMetaData
+    */
+    double getSpectrumRT(Size id) const override;
+
+    /**
+      @brief MS level of spectrum @p id, from the meta data
+
+      @exception Exception::IndexOverflow if @p id >= getNrSpectra()
+      @exception Exception::IllegalArgument if the file was opened with skipMetaData
+    */
+    UInt getSpectrumMSLevel(Size id) const override;
+
+    /// A copy with its own file stream (see the copy constructor)
+    std::unique_ptr<IMSExperimentRandomAccess> clone() const override;
 
     /**
       @brief returns a single spectrum (without applying PeakFileOptions filters)
@@ -207,7 +229,7 @@ public:
 
       @param[in] id The index of the chromatogram
     */
-    MSChromatogram getChromatogram(Size id);
+    MSChromatogram getChromatogram(Size id) override;
 
     /**
       @brief returns a single chromatogram
@@ -245,7 +267,7 @@ private:
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
-    void loadMetaData_(const String& filename);
+    void loadMetaData_(const std::string& filename);
 
     MSChromatogram getMetaChromatogramById_(const std::string& id);
 
@@ -254,9 +276,9 @@ private:
 protected:
 
     /// The filename of the underlying data file
-    String filename_;
-    /// The index of the underlying data file
-    Internal::IndexedMzMLHandler indexed_mzml_file_;
+    std::string filename_;
+    /// The index of the underlying data file (mutable: reading moves the file stream)
+    mutable Internal::IndexedMzMLHandler indexed_mzml_file_;
     /// The meta-data
     std::shared_ptr<PeakMap> meta_ms_experiment_;
     /// Mapping of chromatogram native ids to offsets

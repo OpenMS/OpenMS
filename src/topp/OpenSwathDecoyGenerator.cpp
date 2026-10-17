@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -82,7 +83,7 @@ class TOPPOpenSwathDecoyGenerator
 public:
 
   TOPPOpenSwathDecoyGenerator() :
-    TOPPBase("OpenSwathDecoyGenerator", "Generates decoys according to different models for a specific TraML", true)
+    TOPPBase("OpenSwathDecoyGenerator", "Generates decoys according to different models for a specific TraML")
   {
   }
 
@@ -105,7 +106,7 @@ protected:
     setValidStrings_("out_type", formats);
 
     registerStringOption_("method", "<type>", "shuffle", "Decoy generation method", false);
-    setValidStrings_("method", ListUtils::create<String>(String("shuffle,pseudo-reverse,reverse,shift")));
+    setValidStrings_("method", ListUtils::create<std::string>(std::string("shuffle,pseudo-reverse,reverse,shift")));
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
 
@@ -124,7 +125,7 @@ protected:
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed", true);
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed", true);
     registerStringOption_("switchKR", "<true/false>", "true", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
-    setValidStrings_("switchKR", ListUtils::create<String>(String("true,false")));
+    setValidStrings_("switchKR", ListUtils::create<std::string>(std::string("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);
   }
@@ -134,13 +135,13 @@ protected:
     FileHandler fh;
 
     //input file type
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+      writeDebug_(std::string("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -150,7 +151,7 @@ protected:
     }
 
     //output file names and types
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
@@ -164,8 +165,8 @@ protected:
       return PARSE_ERROR;
     }
 
-    String method = getStringOption_("method");
-    String decoy_tag = getStringOption_("decoy_tag");
+    std::string method = getStringOption_("method");
+    std::string decoy_tag = getStringOption_("decoy_tag");
 
     double min_decoy_fraction = getDoubleOption_("min_decoy_fraction");
     double aim_decoy_fraction = getDoubleOption_("aim_decoy_fraction");
@@ -177,234 +178,46 @@ protected:
     double product_mz_shift = getDoubleOption_("shift_product_mz_shift");
 
     double product_mz_threshold = getDoubleOption_("product_mz_threshold");
-    String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
-    String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
+    std::string allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
+    std::string allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
     bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
     bool switchKR = getStringOption_("switchKR") == "true";
 
     bool separate = getFlag_("separate");
 
-    std::vector<String> allowed_fragment_types;
-    allowed_fragment_types_string.split(",", allowed_fragment_types);
+    std::vector<std::string> allowed_fragment_types;
+    StringUtils::split(allowed_fragment_types_string, ",", allowed_fragment_types);
 
-    std::vector<String> allowed_fragment_charges_string_vector;
+    std::vector<std::string> allowed_fragment_charges_string_vector;
     std::vector<size_t> allowed_fragment_charges;
-    allowed_fragment_charges_string.split(",", allowed_fragment_charges_string_vector);
+    StringUtils::split(allowed_fragment_charges_string, ",", allowed_fragment_charges_string_vector);
     for (size_t i = 0; i < allowed_fragment_charges_string_vector.size(); i++)
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
       allowed_fragment_charges.push_back(charge);
     }
 
-    // Use memory-efficient Light path for TSV/PQP → TSV/PQP conversions
-    bool use_light_path = (in_type == FileTypes::TSV || in_type == FileTypes::MRM || in_type == FileTypes::PQP
-                       || in_type == FileTypes::OSWPQ
-                       )
-                       && (out_type == FileTypes::TSV || out_type == FileTypes::PQP
-                       || out_type == FileTypes::OSWPQ
-                       );
+    OpenSwathLibraryPreparation::DecoyGeneratorParameters decoy_parameters;
+    decoy_parameters.method = method;
+    decoy_parameters.decoy_tag = decoy_tag;
+    decoy_parameters.min_decoy_fraction = min_decoy_fraction;
+    decoy_parameters.aim_decoy_fraction = aim_decoy_fraction;
+    decoy_parameters.shuffle_max_attempts = max_attempts;
+    decoy_parameters.shuffle_sequence_identity_threshold = identity_threshold;
+    decoy_parameters.shift_precursor_mz_shift = precursor_mz_shift;
+    decoy_parameters.shift_product_mz_shift = product_mz_shift;
+    decoy_parameters.product_mz_threshold = product_mz_threshold;
+    decoy_parameters.allowed_fragment_types = allowed_fragment_types;
+    decoy_parameters.allowed_fragment_charges = allowed_fragment_charges;
+    decoy_parameters.enable_detection_specific_losses = enable_detection_specific_losses;
+    decoy_parameters.enable_detection_unspecific_losses = enable_detection_unspecific_losses;
+    decoy_parameters.switch_kr = switchKR;
+    decoy_parameters.separate = separate;
 
-    if (use_light_path)
-    {
-      // Memory-efficient Light path
-      OpenSwath::LightTargetedExperiment light_exp;
-      OpenSwath::LightTargetedExperiment light_decoy;
-      OpenSwath::LightTargetedExperiment light_merged;
-
-      OPENMS_LOG_INFO << "Loading targets from file (Light path): " << in << std::endl;
-      if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
-      {
-        Param reader_parameters = getParam_().copy("algorithm:", true);
-        TransitionTSVFile tsv_reader;
-        tsv_reader.setLogType(log_type_);
-        tsv_reader.setParameters(reader_parameters);
-        tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, light_exp);
-      }
-      else if (in_type == FileTypes::PQP)
-      {
-        TransitionPQPFile pqp_reader;
-        Param reader_parameters = getParam_().copy("algorithm:", true);
-        pqp_reader.setLogType(log_type_);
-        pqp_reader.setParameters(reader_parameters);
-        pqp_reader.convertPQPToTargetedExperiment(in.c_str(), light_exp);
-      }
-      else if (in_type == FileTypes::OSWPQ)
-      {
-        TransitionParquetFile parquet_reader;
-        parquet_reader.convertParquetToTargetedExperiment(in, light_exp);
-      }
-
-      MRMDecoy decoys;
-      decoys.setLogType(ProgressLogger::CMD);
-
-      OPENMS_LOG_INFO << "Generate decoys (Light)" << std::endl;
-      decoys.generateDecoysLight(light_exp, light_decoy, method,
-                                 aim_decoy_fraction, switchKR, decoy_tag, max_attempts,
-                                 identity_threshold, precursor_mz_shift,
-                                 product_mz_shift, product_mz_threshold,
-                                 allowed_fragment_types, allowed_fragment_charges,
-                                 enable_detection_specific_losses,
-                                 enable_detection_unspecific_losses);
-
-      // Check if we have enough peptides left
-      OPENMS_LOG_INFO << "Number of target compounds: " << light_exp.compounds.size() << std::endl;
-      OPENMS_LOG_INFO << "Number of decoy compounds: " << light_decoy.compounds.size() << std::endl;
-      OPENMS_LOG_INFO << "Number of target proteins: " << light_exp.proteins.size() << std::endl;
-      OPENMS_LOG_INFO << "Number of decoy proteins: " << light_decoy.proteins.size() << std::endl;
-
-      if (light_exp.compounds.empty() || light_exp.proteins.empty())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "The input experiment has no compounds or proteins.");
-      }
-
-      if ((float)light_decoy.compounds.size() / (float)light_exp.compounds.size() < min_decoy_fraction ||
-          (float)light_decoy.proteins.size() / (float)light_exp.proteins.size() < min_decoy_fraction)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
-      }
-
-      if (separate)
-      {
-        OPENMS_LOG_INFO << "Writing only decoys to file: " << out << std::endl;
-        light_merged = std::move(light_decoy);
-      }
-      else
-      {
-        OPENMS_LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
-        light_merged = std::move(light_exp);
-        // Append decoys
-        light_merged.transitions.insert(light_merged.transitions.end(),
-          light_decoy.transitions.begin(), light_decoy.transitions.end());
-        light_merged.compounds.insert(light_merged.compounds.end(),
-          light_decoy.compounds.begin(), light_decoy.compounds.end());
-        light_merged.proteins.insert(light_merged.proteins.end(),
-          light_decoy.proteins.begin(), light_decoy.proteins.end());
-      }
-
-      if (out_type == FileTypes::TSV)
-      {
-        TransitionTSVFile tsv_writer;
-        tsv_writer.setLogType(log_type_);
-        tsv_writer.convertLightTargetedExperimentToTSV(out.c_str(), light_merged);
-      }
-      else if (out_type == FileTypes::PQP)
-      {
-        TransitionPQPFile pqp_writer;
-        pqp_writer.setLogType(log_type_);
-        pqp_writer.convertLightTargetedExperimentToPQP(out.c_str(), light_merged);
-      }
-      else if (out_type == FileTypes::OSWPQ)
-      {
-        TransitionParquetFile parquet_writer;
-        parquet_writer.convertLightTargetedExperimentToParquet(out, light_merged);
-      }
-    }
-    else
-    {
-      // Heavy path for TraML
-      TargetedExperiment targeted_merged;
-      {
-        TargetedExperiment targeted_exp;
-        TargetedExperiment targeted_decoy;
-
-        OPENMS_LOG_INFO << "Loading targets from file: " << in << std::endl;
-        if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
-        {
-          const char* tr_file = in.c_str();
-          Param reader_parameters = getParam_().copy("algorithm:", true);
-          TransitionTSVFile tsv_reader = TransitionTSVFile();
-          tsv_reader.setLogType(log_type_);
-          tsv_reader.setParameters(reader_parameters);
-          tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
-          tsv_reader.validateTargetedExperiment(targeted_exp);
-        }
-        else if (in_type == FileTypes::PQP)
-        {
-          const char* tr_file = in.c_str();
-          TransitionPQPFile pqp_reader = TransitionPQPFile();
-          Param reader_parameters = getParam_().copy("algorithm:", true);
-          pqp_reader.setLogType(log_type_);
-          pqp_reader.setParameters(reader_parameters);
-          pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
-          pqp_reader.validateTargetedExperiment(targeted_exp);
-        }
-        else if (in_type == FileTypes::OSWPQ)
-        {
-          writeLogError_("Error: Parquet input is only supported for light-weight conversions.");
-          return PARSE_ERROR;
-        }
-        else if (in_type == FileTypes::TRAML)
-        {
-          FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
-        }
-
-        MRMDecoy decoys = MRMDecoy();
-        decoys.setLogType(ProgressLogger::CMD);
-
-        OPENMS_LOG_INFO << "Generate decoys" << std::endl;
-        decoys.generateDecoys(targeted_exp, targeted_decoy, method,
-                              aim_decoy_fraction, switchKR, decoy_tag, max_attempts,
-                              identity_threshold, precursor_mz_shift,
-                              product_mz_shift, product_mz_threshold,
-                              allowed_fragment_types, allowed_fragment_charges,
-                              enable_detection_specific_losses,
-                              enable_detection_unspecific_losses);
-
-        // Check if we have enough peptides left
-        OPENMS_LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
-        OPENMS_LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
-        OPENMS_LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
-        OPENMS_LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
-
-        if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < min_decoy_fraction ||
-            (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
-        }
-
-        if (separate)
-        {
-          OPENMS_LOG_INFO << "Writing only decoys to file: " << out << std::endl;
-          targeted_merged = std::move(targeted_decoy);
-        }
-        else
-        {
-          OPENMS_LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
-          targeted_merged = std::move(targeted_exp);
-          targeted_merged += std::move(targeted_decoy);
-        }
-      }
-
-      if (out_type == FileTypes::TSV)
-      {
-        const char* tr_file = out.c_str();
-        TransitionTSVFile tsv_reader = TransitionTSVFile();
-        tsv_reader.setLogType(log_type_);
-        tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_merged);
-      }
-      else if (out_type == FileTypes::PQP)
-      {
-        const char * tr_file = out.c_str();
-        TransitionPQPFile pqp_reader = TransitionPQPFile();
-        pqp_reader.setLogType(log_type_);
-        pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_merged);
-      }
-      else if (out_type == FileTypes::TRAML)
-      {
-        FileHandler().storeTransitions(out, targeted_merged, {FileTypes::TRAML});
-      }
-      else if (out_type == FileTypes::OSWPQ)
-      {
-        OpenSwath::LightTargetedExperiment light_exp;
-        OpenSwathDataAccessHelper::convertTargetedExp(targeted_merged, light_exp);
-        TransitionParquetFile parquet_writer;
-        parquet_writer.convertLightTargetedExperimentToParquet(out, light_exp);
-      }
-    }
+    OpenSwathLibraryPreparation preparation;
+    preparation.setLogType(log_type_);
+    preparation.generateDecoys(in, in_type, out, out_type, decoy_parameters, getParam_().copy("algorithm:", true));
 
     return EXECUTION_OK;
   }

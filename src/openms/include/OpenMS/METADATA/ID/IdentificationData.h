@@ -266,6 +266,7 @@ namespace OpenMS
       @brief Register a database search step with associated parameters
 
       @return Reference to the registered processing step
+      @throws Exception::InvalidValue The same step is already associated with different search parameters
     */
     ProcessingStepRef registerProcessingStep(
       const ProcessingStep& step, SearchParamRef search_ref);
@@ -451,8 +452,24 @@ namespace OpenMS
     /// Cancel the effect of @ref setCurrentProcessingStep().
     void clearCurrentProcessingStep();
 
+    /**
+      @brief Compare molecule, charge and adduct values for reproducible exact-score ties.
+
+      The current value order gives neither target nor decoy status a preference.
+      This comparator is shared by best-match selection and ID export.
+      @param[in] left First match
+      @param[in] right Second match
+      @return Whether the first match precedes the second in value order
+    */
+    static bool observationMatchLess(const ObservationMatch& left, const ObservationMatch& right);
+
     /*!
       @brief Return the best match for each observation, according to a given score type
+
+      Exact score ties are resolved lexicographically by molecule type, sequence or
+      compound identifier, charge, and adduct values, not allocation/registration
+      order. Target/decoy status is not used to prefer a tied match. This policy
+      selects a reproducible representative; it does not establish unique localization.
 
       @param[in] score_ref Score type to use
       @param[in] require_score Exclude matches without score of this type, even if they are the only matches for their observations?
@@ -506,7 +523,7 @@ namespace OpenMS
 
       @return Reference to the score type, if found; otherwise @p getScoreTypes().end()
     */
-    ScoreTypeRef findScoreType(const String& score_name) const;
+    ScoreTypeRef findScoreType(const std::string& score_name) const;
 
     /// Calculate sequence coverages of parent sequences
     void calculateCoverages(bool check_molecule_length = false);
@@ -603,19 +620,19 @@ namespace OpenMS
     }
 
     /// Set a meta value on a stored observation match (e.g. PSM)
-    void setMetaValue(const ObservationMatchRef ref, const String& key, const DataValue& value);
+    void setMetaValue(const ObservationMatchRef ref, const std::string& key, const DataValue& value);
 
     /// Set a meta value on a stored observation
-    void setMetaValue(const ObservationRef ref, const String& key, const DataValue& value);
+    void setMetaValue(const ObservationRef ref, const std::string& key, const DataValue& value);
 
     /// Set a meta value on a stored identified molecule (variant)
-    void setMetaValue(const IdentifiedMolecule& var, const String& key, const DataValue& value);
+    void setMetaValue(const IdentifiedMolecule& var, const std::string& key, const DataValue& value);
 
     // @TODO: add overloads for other data types derived from MetaInfoInterface
 
     /// Remove a meta value (if it exists) from a stored observation match (e.g. PSM)
     /// @todo: return whether value existed? (requires changes in MetaInfo[Interface])
-    void removeMetaValue(const ObservationMatchRef ref, const String& key);
+    void removeMetaValue(const ObservationMatchRef ref, const std::string& key);
 
   protected:
 

@@ -84,7 +84,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const override
+  Param getSubsectionDefaults_(const std::string & /*section*/) const override
   {
     FeatureGroupingAlgorithmQT algo;
     Param p = algo.getParameters();

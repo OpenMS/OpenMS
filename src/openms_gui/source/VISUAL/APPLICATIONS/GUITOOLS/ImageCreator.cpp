@@ -11,6 +11,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -39,10 +40,12 @@ The input is first resampled into a matrix using bilinear forward resampling.
 Then the content of the matrix is written to an image file.
 The output has a uniform spacing in both dimensions regardless of the input.
 
+@if WITH_GUI
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_ImageCreator.cli
 <B>INI file documentation of this tool:</B>
 @htmlinclude TOPP_ImageCreator.html
+@endif
 */
 
 // We do not want this class to show up in the docu:
@@ -54,7 +57,7 @@ class TOPPImageCreator :
 public:
   TOPPImageCreator() :
     TOPPBase("ImageCreator",
-             "Transforms an LC-MS map into an image.", false), 
+             "Transforms an LC-MS map into an image."), 
     out_formats_({"png", "jpg", "bmp", "tiff", "ppm"}) // all in lower case!
   {
   }
@@ -229,21 +232,14 @@ protected:
     //----------------------------------------------------------------
     // load data
     //----------------------------------------------------------------
-    String in = getStringOption_("in");
-    String in_featureXML = getStringOption_("in_featureXML");
-    String out = getStringOption_("out");
-    String format = getStringOption_("out_type");
-    if (format.trim().empty()) // get from filename
+    std::string in = getStringOption_("in");
+    std::string in_featureXML = getStringOption_("in_featureXML");
+    std::string out = getStringOption_("out");
+    std::string format = getStringOption_("out_type");
+    if (StringUtils::trim(format).empty()) // get from filename
     {
-      try
-      {
-        format = out.suffix('.');
-      }
-      catch (Exception::ElementNotFound& /*e*/)
-      {
-        format = "nosuffix";
-      }
-      if (!ListUtils::contains(out_formats_, format.toLower()))
+      format = StringUtils::has(out, '.') ? StringUtils::suffix(out, '.') : "nosuffix";
+      if (!ListUtils::contains(out_formats_, StringUtils::toLower(format)))
       {
         OPENMS_LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
         return ILLEGAL_PARAMETERS;
@@ -333,10 +329,10 @@ protected:
     bool use_log = getFlag_("log_intensity");
 
     MultiGradient gradient;
-    String gradient_str = getStringOption_("gradient");
+    std::string gradient_str = getStringOption_("gradient");
     if (!gradient_str.empty())
     {
-      gradient.fromString(String("Linear|") + gradient_str);
+      gradient.fromString(std::string("Linear|") + gradient_str);
     }
     else if (use_log)
     {

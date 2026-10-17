@@ -15,16 +15,18 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <initializer_list>
 #include <iostream>
 #include <ostream>
 #include <sstream>
 #include <utility>
+#include <vector>
 
 using namespace std;
 
 namespace OpenMS
 {
-  MultiplexDeltaMassesGenerator::Label::Label(String sn, String ln, String d, double dm) :
+  MultiplexDeltaMassesGenerator::Label::Label(std::string sn, std::string ln, std::string d, double dm) :
     short_name(std::move(sn)),
     long_name(std::move(ln)),
     description(std::move(d)),
@@ -52,7 +54,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int max_nr_labelled_aas, std::map<String,double> label_delta_mass) :
+  MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(std::string labels, int max_nr_labelled_aas, std::map<std::string,double> label_delta_mass) :
     DefaultParamHandler("labels"),
     labels_(std::move(labels)),
     labels_list_(),
@@ -71,8 +73,8 @@ namespace OpenMS
     }
 
     // split the labels_ string
-    String temp_labels_string(labels_);
-    std::vector<String> temp_samples;
+    std::string temp_labels_string(labels_);
+    std::vector<std::string> temp_samples;
 
     boost::replace_all(temp_labels_string, "[]", "no_label");
     boost::replace_all(temp_labels_string, "()", "no_label");
@@ -81,19 +83,19 @@ namespace OpenMS
 
     samples_labels_.reserve(temp_samples.size()); // Pre-allocate for performance
 
-    for (String::size_type i = 0; i < temp_samples.size(); ++i)
+    for (std::string::size_type i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
       {
         if (temp_samples[i]=="no_label")
         {
-          vector<String> temp_labels;
+          vector<std::string> temp_labels;
           temp_labels.emplace_back("no_label");
           samples_labels_.push_back(temp_labels);
         }
         else
         {
-          vector<String> temp_labels;
+          vector<std::string> temp_labels;
           boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
           samples_labels_.push_back(temp_labels);
         }
@@ -102,7 +104,7 @@ namespace OpenMS
 
     if (samples_labels_.empty())
     {
-      vector<String> temp_labels;
+      vector<std::string> temp_labels;
       temp_labels.emplace_back("no_label");
       samples_labels_.push_back(temp_labels);
     }
@@ -113,10 +115,10 @@ namespace OpenMS
     bool no_label = (samples_labels_.size() == 1) && 
       (samples_labels_[0].size() == 1) && 
       samples_labels_[0][0] == "no_label";
-    bool labelling_SILAC = ((labels_.find("Arg") != std::string::npos) || (labels_.find("Lys") != std::string::npos));
-    bool labelling_Leu = (labels_.find("Leu") != std::string::npos);
-    bool labelling_Dimethyl = (labels_.find("Dimethyl") != std::string::npos);
-    bool labelling_ICPL = (labels_.find("ICPL") != std::string::npos);
+    bool labelling_SILAC = ((labels_.contains("Arg")) || (labels_.contains("Lys")));
+    bool labelling_Leu = (labels_.contains("Leu"));
+    bool labelling_Dimethyl = (labels_.contains("Dimethyl"));
+    bool labelling_ICPL = (labels_.contains("ICPL"));
 
     bool labelling_numeric = false;
     if (!(no_label || labelling_SILAC || labelling_Leu || labelling_Dimethyl || labelling_ICPL))
@@ -166,12 +168,12 @@ namespace OpenMS
     // unless the labelling is numeric.
     if (!numeric)
     {
-      String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
-      for (std::vector<std::vector<String> >::size_type i = 0; i < samples_labels_.size(); i++)
+      std::string all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
+      for (std::vector<std::vector<std::string> >::size_type i = 0; i < samples_labels_.size(); i++)
       {
-        for (std::vector<String>::size_type j = 0; j < samples_labels_[i].size(); ++j)
+        for (std::vector<std::string>::size_type j = 0; j < samples_labels_[i].size(); ++j)
         {
-          if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
+          if (!all_labels.contains(samples_labels_[i][j]))
           {
             std::stringstream stream;
             stream << "The label " << samples_labels_[i][j] << " is unknown.";
@@ -205,11 +207,11 @@ namespace OpenMS
 
               for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
               {
-                bool Arg6There = (samples_labels_[i][j].find("Arg6") != std::string::npos); // Is Arg6 in the SILAC label?
-                bool Arg10There = (samples_labels_[i][j].find("Arg10") != std::string::npos);
-                bool Lys4There = (samples_labels_[i][j].find("Lys4") != std::string::npos);
-                bool Lys6There = (samples_labels_[i][j].find("Lys6") != std::string::npos);
-                bool Lys8There = (samples_labels_[i][j].find("Lys8") != std::string::npos);
+                bool Arg6There = (samples_labels_[i][j].contains("Arg6")); // Is Arg6 in the SILAC label?
+                bool Arg10There = (samples_labels_[i][j].contains("Arg10"));
+                bool Lys4There = (samples_labels_[i][j].contains("Lys4"));
+                bool Lys6There = (samples_labels_[i][j].contains("Lys6"));
+                bool Lys8There = (samples_labels_[i][j].contains("Lys8"));
 
                 // construct label set
                 for (unsigned k = 1; k < Arg6There * (ArgPerPeptide + 1); ++k)
@@ -353,6 +355,29 @@ namespace OpenMS
 
   }
 
+  namespace
+  {
+    /**
+      @brief The knock-out pattern of @p complete that keeps only the peptides at @p positions (ascending).
+
+      Its mass shifts are relative to its own lightest peptide. The filtering searches every pattern
+      starting from the monoisotopic peak of its first peptide, so keeping the shift of an absent lighter
+      peptide (e.g. medium and heavy of a triplet without light) would only find the pattern next to a
+      peak at that absent position. The label sets keep naming the channels.
+    */
+    MultiplexDeltaMasses knockoutPattern(const MultiplexDeltaMasses& complete, std::initializer_list<size_t> positions)
+    {
+      const std::vector<MultiplexDeltaMasses::DeltaMass>& masses = complete.getDeltaMasses();
+      const double anchor = masses[*positions.begin()].delta_mass;
+      MultiplexDeltaMasses pattern;
+      for (const size_t position : positions)
+      {
+        pattern.getDeltaMasses().emplace_back(masses[position].delta_mass - anchor, masses[position].label_set);
+      }
+      return pattern;
+    }
+  }
+
   void MultiplexDeltaMassesGenerator::generateKnockoutDeltaMasses()
   {
     if (delta_masses_list_.empty())
@@ -378,21 +403,12 @@ namespace OpenMS
     {
       for (unsigned i = 0; i < m; ++i)
       {
+        const MultiplexDeltaMasses complete = delta_masses_list_[i]; // a copy: the list grows below
+
         // add doublets
-        MultiplexDeltaMasses doublet1;
-        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        delta_masses_list_.push_back(doublet1);
-
-        MultiplexDeltaMasses doublet2;
-        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(doublet2);
-
-        MultiplexDeltaMasses doublet3;
-        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(doublet3);
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 1}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {1, 2}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 2}));
       }
 
       // add singlets
@@ -404,63 +420,21 @@ namespace OpenMS
     {
       for (unsigned i = 0; i < m; ++i)
       {
+        const MultiplexDeltaMasses complete = delta_masses_list_[i]; // a copy: the list grows below
+
         // add triplets
-        MultiplexDeltaMasses triplet1;
-        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(triplet1);
-
-        MultiplexDeltaMasses triplet2;
-        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(triplet2);
-
-        // Knockout combination previously forgotten. Will be un-commented in final FFM/MultiplexResolver version.
-        /*MultiplexDeltaMasses triplet3;
-        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(triplet3);*/
-
-        MultiplexDeltaMasses triplet4;
-        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(triplet4);
-
+        delta_masses_list_.push_back(knockoutPattern(complete, {1, 2, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 2, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 1, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 1, 2}));
 
         // add doublets
-        MultiplexDeltaMasses doublet1;
-        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        delta_masses_list_.push_back(doublet1);
-
-        MultiplexDeltaMasses doublet2;
-        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(doublet2);
-
-        MultiplexDeltaMasses doublet3;
-        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(doublet3);
-
-        MultiplexDeltaMasses doublet4;
-        doublet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        doublet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(doublet4);
-
-        MultiplexDeltaMasses doublet5;
-        doublet5.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        doublet5.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(doublet5);
-
-        MultiplexDeltaMasses doublet6;
-        doublet6.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        doublet6.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(doublet6);
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 1}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 2}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {1, 2}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {1, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {2, 3}));
       }
 
       // add singlets
@@ -532,47 +506,47 @@ namespace OpenMS
     return delta_masses_list_;
   }
 
-  std::vector<std::vector<String> > MultiplexDeltaMassesGenerator::getSamplesLabelsList()
+  std::vector<std::vector<std::string> > MultiplexDeltaMassesGenerator::getSamplesLabelsList()
   {
     return samples_labels_;
   }
 
-  const std::vector<std::vector<String> >& MultiplexDeltaMassesGenerator::getSamplesLabelsList() const
+  const std::vector<std::vector<std::string> >& MultiplexDeltaMassesGenerator::getSamplesLabelsList() const
   {
     return samples_labels_;
   }
 
-  String MultiplexDeltaMassesGenerator::getLabelShort(const String& label)
+  std::string MultiplexDeltaMassesGenerator::getLabelShort(const std::string& label)
   {
     return label_long_short_[label];
   }
 
-  String MultiplexDeltaMassesGenerator::getLabelLong(const String& label)
+  std::string MultiplexDeltaMassesGenerator::getLabelLong(const std::string& label)
   {
     return label_short_long_[label];
   }
 
   MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(const AASequence& sequence)
   {
-    String s(sequence.toString());
+    std::string s(sequence.toString());
 
     MultiplexDeltaMasses::LabelSet label_set;
     // loop over all labels that might occur
-    for (std::vector<String>::size_type i = 0; i < labels_list_.size(); ++i)
+    for (std::vector<std::string>::size_type i = 0; i < labels_list_.size(); ++i)
     {
-      String label("(" + getLabelLong(labels_list_[i]) + ")");
-      String::size_type length_label = label.size();
+      std::string label("(" + getLabelLong(labels_list_[i]) + ")");
+      std::string::size_type length_label = label.size();
 
       // check if label occurs in peptide sequence
-      if (s.hasSubstring(label))
+      if (StringUtils::hasSubstring(s, label))
       {
-        String::size_type length_before = s.size();
-        s.substitute(label, "");
-        String::size_type length_after = s.size();
-        String::size_type multiple = (length_before - length_after)/length_label;
+        std::string::size_type length_before = s.size();
+        StringUtils::substitute(s, label, "");
+        std::string::size_type length_after = s.size();
+        std::string::size_type multiple = (length_before - length_after)/length_label;
 
         // add as many labels to the set as occurred in the peptide sequence
-        for (String::size_type j = 0; j < multiple; ++j)
+        for (std::string::size_type j = 0; j < multiple; ++j)
         {
           label_set.insert(labels_list_[i]);
         }

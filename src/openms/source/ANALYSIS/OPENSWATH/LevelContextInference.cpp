@@ -376,7 +376,7 @@ namespace OpenMS
         {
           throw Exception::Precondition(
             __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Run-specific inference failed for RUN_ID " + String(run_group.first) + ": " + e.getMessage()
+            "Run-specific inference failed for RUN_ID " + StringUtils::toStr(run_group.first) + ": " + e.getMessage()
           );
         }
       }

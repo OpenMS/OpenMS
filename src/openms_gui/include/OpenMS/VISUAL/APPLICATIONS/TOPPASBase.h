@@ -66,15 +66,15 @@ public:
 
 If the filename is empty, the application name + ".ini" is used as filename
 */
-    void loadPreferences(String filename = "");
+    void loadPreferences(std::string filename = "");
     /// stores the preferences (used when this window is closed)
     void savePreferences();
     /// loads the files and updates the splash screen
-    void loadFiles(const std::vector<String>& list, QSplashScreen* splash_screen);
+    void loadFiles(const std::vector<std::string>& list, QSplashScreen* splash_screen);
 
 public slots:
     /// opens the file in a new window
-    void addTOPPASFile(const String& file_name, bool in_new_window = true);
+    void addTOPPASFile(const std::string& file_name, bool in_new_window = true);
     /// shows the dialog for opening files
     void openFilesByDialog();
     /// shows the dialog for opening example files
@@ -129,7 +129,7 @@ public slots:
     /// Called when a tool execution fails
     void toolFailed();
     /// Called when a file was successfully written to an output vertex
-    void outputVertexFinished(const String& file);
+    void outputVertexFinished(const std::string& file);
     /// Called when a TOPP tool produces (error) output.
     void updateTOPPOutputLog(const QString& out);
     /// Called by the scene if the pipeline execution finishes successfully
@@ -158,7 +158,7 @@ protected slots:
     /// enable/disable menu entries depending on the current state
     void updateMenu();
     /// Shows the widget as window in the workspace
-    void showAsWindow_(TOPPASWidget* sw, const String& caption);
+    void showAsWindow_(TOPPASWidget* sw, const std::string& caption);
     /// Inserts a new TOPP tool in the current window at (x,y)
     void insertNewVertex_(double x, double y, QTreeWidgetItem* item = nullptr);
     /// Inserts the @p item in the middle of the current window
@@ -214,10 +214,10 @@ protected:
 
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
-    String current_path_;
+    std::string current_path_;
 
     /// The path for temporary files
-    String tmp_path_;
+    std::string tmp_path_;
 
     /// Offset counter for new inserted nodes (to avoid invisible stacking)
     static int node_offset_;

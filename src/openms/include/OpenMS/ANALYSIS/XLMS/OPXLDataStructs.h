@@ -83,7 +83,7 @@ namespace OpenMS
         const AASequence *beta = nullptr; ///< shorter peptide (empty for mono-link), tie breaker: mass then lexicographical
         std::pair<SignedSize, SignedSize> cross_link_position; ///< index in alpha, beta or between alpha, alpha in loop-links
         double cross_linker_mass = 0;
-        String cross_linker_name;
+        std::string cross_linker_name;
         ResidueModification::TermSpecificity term_spec_alpha = ResidueModification::TermSpecificity::ANYWHERE;
         ResidueModification::TermSpecificity term_spec_beta = ResidueModification::TermSpecificity::ANYWHERE;
         int precursor_correction = 0;
@@ -225,8 +225,8 @@ namespace OpenMS
         float precursor_mass{};         ///< Mass of (alpha + beta + cross-linker), in Da; the key used to filter candidates against an experimental precursor
         unsigned int alpha_index = 0;   ///< Index of the alpha peptide in the digested-protein-DB vector (the "longer" peptide by convention)
         unsigned int beta_index = 0;    ///< Index of the beta peptide in the digested-protein-DB vector (empty/unused for mono- or loop-links)
-        String alpha_seq;               ///< Sequence string of the alpha peptide (cached to avoid re-lookup during scoring)
-        String beta_seq;                ///< Sequence string of the beta peptide (empty for mono- or loop-links)
+        std::string alpha_seq;               ///< Sequence string of the alpha peptide (cached to avoid re-lookup during scoring)
+        std::string beta_seq;                ///< Sequence string of the beta peptide (empty for mono- or loop-links)
       };
 
       // comparator for sorting XLPrecursor vectors and using upper_bound and lower_bound using only a precursor mass
@@ -280,7 +280,7 @@ namespace OpenMS
         double peptide_mass = 0;                                    ///< Pre-computed monoisotopic mass of @c peptide_seq (Da); used as the sort/search key during pair enumeration
         AASequence peptide_seq;                                     ///< The peptide itself, including any modifications carried over from the digest
         PeptidePosition position = PeptidePosition::INTERNAL;       ///< Where the peptide sits in its parent protein (gates protein-terminal modifications)
-        String unmodified_seq;                                      ///< Plain-string view of the peptide without modifications (cached for fast comparison / lookup)
+        std::string unmodified_seq;                                      ///< Plain-string view of the peptide without modifications (cached for fast comparison / lookup)
       };
 
       /**

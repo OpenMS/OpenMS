@@ -72,26 +72,26 @@ protected:
 
   bool use_avg_mass_;
   ostream* output_;  // pointer to output stream (stdout or file)
-  String format_, separator_;
+  std::string format_, separator_;
   Residue::ResidueType res_type_;
-  map<String, Residue::ResidueType> res_type_names_;
+  map<std::string, Residue::ResidueType> res_type_names_;
 
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with peptide sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
-    setValidFormats_("in",ListUtils::create<String>("tsv"));
+    setValidFormats_("in",ListUtils::create<std::string>("tsv"));
 
     registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences (mutually exclusive to 'in')", false, false);
 
     registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
-    setValidFormats_("out",ListUtils::create<String>("csv"));
+    setValidFormats_("out",ListUtils::create<std::string>("csv"));
 
     registerIntList_("charge", "<numbers>", ListUtils::create<Int>("0"), "List of charge states; required if 'in_seq' is given", false);
     registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
-    setValidStrings_("format", ListUtils::create<String>("list,table,mass_only,mz_only"));
+    setValidStrings_("format", ListUtils::create<std::string>("list,table,mass_only,mz_only"));
     registerFlag_("average_mass", "Compute average (instead of monoisotopic) peptide masses");
     registerStringOption_("fragment_type", "<choice>", "full", "For what type of sequence/fragment the mass should be computed\n", false);
-    setValidStrings_("fragment_type", ListUtils::create<String>("full,internal,N-terminal,C-terminal,a-ion,b-ion,c-ion,x-ion,y-ion,z-ion"));
+    setValidStrings_("fragment_type", ListUtils::create<std::string>("full,internal,N-terminal,C-terminal,a-ion,b-ion,c-ion,x-ion,y-ion,z-ion"));
     registerStringOption_("separator", "<sep>", "", "Field separator for 'table' output format; by default, the 'tab' character is used", false);
   }
 
@@ -152,28 +152,28 @@ protected:
     else writeMassOnly_(seq, charges, true); // "mz_only"
   }
 
-  String getItem_(String& line, const String& skip = " \t,;")
+  std::string getItem_(std::string& line, const std::string& skip = " \t,;")
   {
     Size pos = line.find_first_of(skip);
-    String prefix = line.substr(0, pos);
+    std::string prefix = StringUtils::substr(line, 0, pos);
     pos = line.find_first_not_of(skip, pos);
-    if (pos == String::npos) line = "";
-    else line = line.substr(pos);
+    if (pos == std::string::npos) line = "";
+    else line = StringUtils::substr(line, pos);
     return prefix;
   }
 
-  void readFile_(const String& filename, const set<Int>& charges)
+  void readFile_(const std::string& filename, const set<Int>& charges)
   {
     ifstream input(filename.c_str());
-    String line;
+    std::string line;
     Size line_count(0);
     while (getline(input, line))
     {
       ++line_count;
-      String item = getItem_(line);
+      std::string item = getItem_(line);
       if ((item[0] == '"') && (item[item.size() - 1] == '"'))
       {
-        item.unquote();
+        StringUtils::unquote(item);
       }
 
       AASequence seq;
@@ -194,7 +194,7 @@ protected:
         item = getItem_(line);
         try
         {
-          local_charges.insert(item.toInt());
+          local_charges.insert(StringUtils::toInt32(item));
         }
         catch (Exception::ConversionError& /*e*/)
         {
@@ -217,9 +217,9 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    String in = getStringOption_("in");
+    std::string in = getStringOption_("in");
     StringList in_seq = getStringList_("in_seq");
-    String out = getStringOption_("out");
+    std::string out = getStringOption_("out");
     IntList charge_list = getIntList_("charge");
     set<Int> charges(charge_list.begin(), charge_list.end());
     use_avg_mass_ = getFlag_("average_mass");

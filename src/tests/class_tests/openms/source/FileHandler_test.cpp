@@ -7,11 +7,21 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/IMAGING/MSImagingExperiment.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -20,6 +30,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -39,7 +51,7 @@ START_TEST(FileHandler, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename)))
+START_SECTION((static FileTypes::Type getTypeByFileName(const std::string &filename)))
 FileHandler tmp;
 TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileTypes::UNKNOWN)
 TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileTypes::DTA)
@@ -54,6 +66,8 @@ TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::INI)
 TEST_EQUAL(tmp.getTypeByFileName("test.toPPas"), FileTypes::TOPPAS)
 TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
 TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileTypes::MZML)
+TEST_EQUAL(tmp.getTypeByFileName("test.imzML"), FileTypes::IMZML)
+TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML")), FileTypes::IMZML)
 TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
 TEST_EQUAL(tmp.getTypeByFileName(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
 TEST_EQUAL(tmp.getTypeByFileName("test.mS2"), FileTypes::MS2)
@@ -75,10 +89,22 @@ TEST_EQUAL(tmp.getTypeByFileName("test.fasta"), FileTypes::FASTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.peff"), FileTypes::PEFF)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
+TEST_EQUAL(tmp.getTypeByFileName("test.bedrmod"), FileTypes::BEDRMOD)
+TEST_EQUAL(tmp.getTypeByFileName("ordinary.bed"), FileTypes::UNKNOWN)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
+// new 3.6 directory-based parquet bundle types
+TEST_EQUAL(tmp.getTypeByFileName("test.idparquet"), FileTypes::IDPARQUET)
+TEST_EQUAL(tmp.getTypeByFileName("test.featureparquet"), FileTypes::FEATUREPARQUET)
+TEST_EQUAL(tmp.getTypeByFileName("test.consensusparquet"), FileTypes::CONSENSUSPARQUET)
+// Bruker TimsTOF: a ".d" directory and its zipped ".d.zip" form both resolve by name.
+// For ".d.zip" the ".zip" compression suffix is stripped, leaving ".d" -> BRUKER_TDF.
+TEST_EQUAL(tmp.getTypeByFileName("sample.d"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("sample.d.zip"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("/data/run 1.d.zip"), FileTypes::BRUKER_TDF)
+TEST_EQUAL(tmp.getTypeByFileName("plain_archive.zip"), FileTypes::UNKNOWN) // a plain .zip is not a Bruker .d
 END_SECTION
 
-START_SECTION((static bool hasValidExtension(const String& filename, const FileTypes::Type type)))
+START_SECTION((static bool hasValidExtension(const std::string& filename, const FileTypes::Type type)))
 TEST_EQUAL(FileHandler::hasValidExtension("test.bla", FileTypes::UNKNOWN), true)
 TEST_EQUAL(FileHandler::hasValidExtension("test.idXML", FileTypes::IDXML), true)
 TEST_EQUAL(FileHandler::hasValidExtension("test.consensusXML", FileTypes::CONSENSUSXML), true)
@@ -93,11 +119,12 @@ TEST_EQUAL(FileHandler::hasValidExtension("test.consensusXML", FileTypes::IDXML)
 TEST_EQUAL(FileHandler::hasValidExtension("test.idXML", FileTypes::CONSENSUSXML), false)
 END_SECTION
 
-START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
+START_SECTION((static FileTypes::Type getTypeByContent(const std::string &filename)))
   FileHandler tmp;
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileTypes::MZDATA)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML")), FileTypes::MZXML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), FileTypes::MZML)
+  TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML")), FileTypes::IMZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid")), FileTypes::MZIDENTML)
@@ -117,7 +144,7 @@ START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION
 
-START_SECTION((static FileTypes::Type getType(const String &filename)))
+START_SECTION((static FileTypes::Type getType(const std::string &filename)))
   FileHandler tmp;
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("header_file.h")), FileTypes::UNKNOWN)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::TXT)
@@ -127,12 +154,34 @@ START_SECTION((static FileTypes::Type getType(const String &filename)))
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
   TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
 
+  // .d.zip: a zipped Bruker TimsTOF .d directory. getType() looks at the list of entries of
+  // the archive (see BrukerTimsFile_test for archives with entries). A file whose entries
+  // cannot be listed, as this one, is taken for Bruker data by its name; the reader then
+  // reports what is wrong with it.
+  {
+    std::string dzip_base;
+    NEW_TMP_FILE(dzip_base)
+    std::string dzip = dzip_base + ".d.zip";
+    { std::ofstream os(dzip.c_str()); os << "PK\003\004 placeholder (contents irrelevant for type detection)"; }
+    TEST_EQUAL(File::exists(dzip), true)
+#ifdef WITH_OPENTIMS
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::BRUKER_TDF)
+#else
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN) // the .d family requires WITH_OPENTIMS
+#endif
+    File::remove(dzip);
+    // an archive that can be read but has no entries (just the end of central directory record) holds no .d
+    { std::ofstream os(dzip.c_str(), std::ios::binary); os << std::string("PK\005\006", 4) << std::string(18, '\0'); }
+    TEST_EQUAL(tmp.getType(dzip), FileTypes::UNKNOWN)
+    File::remove(dzip);
+  }
+
   TEST_EXCEPTION(Exception::FileNotFound, tmp.getType("/bli/bla/bluff"))
 END_SECTION
 
 
 
-START_SECTION((static String stripExtension(const String& file)))
+START_SECTION((static std::string stripExtension(const std::string& file)))
   TEST_STRING_EQUAL(FileHandler::stripExtension(""), "")
   TEST_STRING_EQUAL(FileHandler::stripExtension(".unknown"), "")
   TEST_STRING_EQUAL(FileHandler::stripExtension(".idXML"), "")
@@ -146,7 +195,7 @@ START_SECTION((static String stripExtension(const String& file)))
   TEST_STRING_EQUAL(FileHandler::stripExtension("./filename"), "./filename")
 END_SECTION
 
-START_SECTION((static String swapExtension(const String& filename, const FileTypes::Type new_type)))
+START_SECTION((static std::string swapExtension(const std::string& filename, const FileTypes::Type new_type)))
   TEST_STRING_EQUAL(FileHandler::swapExtension("", FileTypes::UNKNOWN), ".unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension(".unknown", FileTypes::UNKNOWN), ".unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension(".idXML", FileTypes::UNKNOWN), ".unknown")
@@ -158,9 +207,17 @@ START_SECTION((static String swapExtension(const String& filename, const FileTyp
   TEST_STRING_EQUAL(FileHandler::swapExtension("/home.with.dot/file", FileTypes::UNKNOWN), "/home.with.dot/file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("c:\\home.with.dot\\file", FileTypes::UNKNOWN), "c:\\home.with.dot\\file.unknown")
   TEST_STRING_EQUAL(FileHandler::swapExtension("./filename", FileTypes::UNKNOWN), "./filename.unknown")
+  // new 3.6 directory-based parquet bundle types
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.txt", FileTypes::FEATUREPARQUET), "/home/doe/file.featureparquet")
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.idXML", FileTypes::IDPARQUET), "/home/doe/file.idparquet")
+  TEST_STRING_EQUAL(FileHandler::swapExtension("/home/doe/file.featureparquet", FileTypes::CONSENSUSPARQUET), "/home/doe/file.consensusparquet")
+  // round-trip: a swapped-in parquet extension is recognised back as the same type
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::FEATUREPARQUET)), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::IDPARQUET)), FileTypes::IDPARQUET)
+  TEST_EQUAL(FileHandler::getTypeByFileName(FileHandler::swapExtension("x.txt", FileTypes::CONSENSUSPARQUET)), FileTypes::CONSENSUSPARQUET)
 END_SECTION
 
-START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const String& output_filename, const String& requested_type)))
+START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const std::string& output_filename, const std::string& requested_type)))
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("", ""), FileTypes::UNKNOWN)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("a.unknown", "weird"), FileTypes::UNKNOWN)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("a.idXML", ""), FileTypes::IDXML)
@@ -172,11 +229,20 @@ START_SECTION((FileTypes::Type FileHandler::getConsistentOutputfileType(const St
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home/doe/file.unknown", "idxml"), FileTypes::IDXML)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("/home.with.dot/file", "mzML"), FileTypes::MZML)
   TEST_EQUAL(FileHandler::getConsistentOutputfileType("c:\\home.with.dot\\file", "mzML"), FileTypes::MZML)
+  // new 3.6 directory-based parquet bundle types: an explicit out_type fills in for a
+  // ".unknown" (or extension-less) output name, a matching extension is accepted, and a
+  // conflicting one is rejected.
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.unknown", "featureparquet"), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.unknown", "idparquet"), FileTypes::IDPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out", "consensusparquet"), FileTypes::CONSENSUSPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", ""), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", "featureparquet"), FileTypes::FEATUREPARQUET)
+  TEST_EQUAL(FileHandler::getConsistentOutputfileType("out.featureparquet", "consensusparquet"), FileTypes::UNKNOWN) // inconsistent
 END_SECTION
 
 
 
-START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
+START_SECTION((template < class PeakType > bool loadExperiment(const std::string &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
 FileHandler tmp;
 PeakMap exp;
 TEST_EXCEPTION(Exception::FileNotFound, tmp.loadExperiment("test.bla", exp))
@@ -232,7 +298,7 @@ TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PA
 
 END_SECTION
 
-START_SECTION((static String computeFileHash(const String& filename)))
+START_SECTION((static std::string computeFileHash(const std::string& filename)))
 PeakMap exp;
 FileHandler tmp;
 // Test that we load with the correct file type restriction
@@ -246,7 +312,7 @@ TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d
   // Use u8"" for portable path construction. Only use Latin-1 characters (ä, ü) that are
   // representable in Windows-1252 so that path::string() round-trips correctly on Windows.
   // CJK characters would fail because Windows path::string() uses the Active Code Page.
-  fs::path nonascii_dir = fs::path(std::string(File::getTempDirectory())) / u8"openms_t\u00e4st_\u00fc";
+  fs::path nonascii_dir = fs::path(std::string(SystemSettings::getTempDirectory())) / u8"openms_t\u00e4st_\u00fc";
   std::error_code ec;
   fs::create_directories(nonascii_dir, ec);
   if (!ec)
@@ -256,7 +322,7 @@ TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d
       std::ofstream ofs{nonascii_file, std::ios::binary};
       ofs << "hello";
     }
-    String hash = FileHandler::computeFileHash(nonascii_file.string());
+    std::string hash = FileHandler::computeFileHash(nonascii_file.string());
     TEST_EQUAL(hash.empty(), false) // must succeed, not return ""
     // Clean up
     fs::remove(nonascii_file, ec);
@@ -293,7 +359,7 @@ a.getOptions().addMSLevel(1);
 TEST_EQUAL(a.getOptions().hasMSLevels(), true);
 END_SECTION
 
-START_SECTION((template <class FeatureType> bool loadFeatures(const String &filename, FeatureMap<FeatureType>&map, FileTypes::Type force_type = FileTypes::UNKNOWN)))
+START_SECTION((template <class FeatureType> bool loadFeatures(const std::string &filename, FeatureMap<FeatureType>&map, FileTypes::Type force_type = FileTypes::UNKNOWN)))
 FileHandler tmp;
 FeatureMap map;
 TEST_EXCEPTION(Exception::FileNotFound, tmp.loadFeatures("test.bla", map))
@@ -303,13 +369,118 @@ tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"
 TEST_EQUAL(map.size(), 7);
 END_SECTION
 
-START_SECTION((void storeExperiment(const String &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
+START_SECTION((void loadExperiment imzML is rejected by FileHandler))
+  // imzML is a mass spectrometry imaging format; FileHandler no longer loads it into a
+  // flat MSExperiment. Callers must use ImzMLFile to load it into an MSImagingExperiment.
+  FileHandler fh_imz;
+  PeakMap exp_imz;
+  const std::string imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
+  TEST_EXCEPTION(Exception::InvalidFileType, fh_imz.loadExperiment(imzml_path, exp_imz))
+END_SECTION
+
+START_SECTION((void loadImagingExperiment(const std::string& filename, MSImagingExperiment& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)))
+{
+  // imzML goes through ImzMLFile, so FileHandler must give the same experiment.
+  const std::string imzml_path = OPENMS_GET_TEST_DATA_PATH("ImzMLFile_1_Example_Continuous.imzML");
+  MSImagingExperiment img, ref;
+  FileHandler().loadImagingExperiment(imzml_path, img);
+  ImzMLFile().load(imzml_path, ref);
+  TEST_EQUAL(img.getNumberOfPixels() > 0, true)
+  TEST_EQUAL(img.getNumberOfPixels(), ref.getNumberOfPixels())
+  TEST_EQUAL(img.getMSExperiment().size(), ref.getMSExperiment().size())
+
+  // Non-imaging formats are rejected; allowed_types is honored.
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadImagingExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), img))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(imzml_path, img, {FileTypes::BRUKER_TDF}))
+}
+END_SECTION
+
+#ifdef WITH_OPENTIMS
+START_SECTION(([Bruker .d] MALDI imaging is rejected by loadExperiment and transformExperiment and routed by loadImagingExperiment))
+{
+  // Fake .d folders with only GlobalMetadata: enough for type detection and the
+  // imaging probe, both of which run before any frame is read. TempDir removes them
+  // on scope exit, so reruns start from scratch.
+  TempDir tmp_dir;
+  auto fake_d = [&tmp_dir](const std::string& application_type)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + application_type + ".d";
+    std::filesystem::create_directories(d);
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE_OR_CREATE);
+    conn.executeStatement("CREATE TABLE GlobalMetadata (Key TEXT PRIMARY KEY, Value TEXT);");
+    conn.executeStatement("INSERT INTO GlobalMetadata VALUES ('MaldiApplicationType', '" + application_type + "');");
+    return d;
+  };
+
+  PeakMap exp;
+  const std::string imaging = fake_d("Imaging");
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(imaging, exp))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(imaging, &streamed))
+  TEST_EQUAL(streamed.getData().size(), 0)
+
+  // A non-imaging .d reaches BrukerTimsImagingFile, whose strict imaging check rejects it.
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(fake_d("SingleSpectra"), img))
+
+  // The same for zipped runs (#10596): the imaging probe reads the analysis.tdf in the archive. It looked for
+  // <archive>/analysis.tdf, so a zipped imaging run was read as DDA data.
+  auto zip_d = [](const std::string& d)
+  {
+    const std::string dir = d + "_zip";
+    File::makeDir(dir);
+    std::filesystem::copy(d, dir + "/run.d", std::filesystem::copy_options::recursive);
+    const std::string archive = d + ".zip";
+    ZipArchiveFile::zipDirectory(dir, archive);
+    return archive;
+  };
+  const std::string imaging_zip = zip_d(imaging);
+  TEST_EQUAL(FileHandler::getType(imaging_zip), FileTypes::BRUKER_TDF)
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().loadExperiment(imaging_zip, exp))
+  TEST_EXCEPTION(Exception::InvalidFileType, FileHandler().transformExperiment(imaging_zip, &streamed))
+  TEST_EQUAL(streamed.getData().size(), 0)
+  TEST_EXCEPTION(Exception::InvalidValue, FileHandler().loadImagingExperiment(zip_d(tmp_dir.getPath() + "/SingleSpectra.d"), img))
+}
+END_SECTION
+
+START_SECTION(([Bruker .d] getType() looks at the files of a .d directory))
+{
+  // TDF data is what can be read. TSF and BAF data (no ion mobility) are taken as Bruker .d as well, so
+  // that loading them fails with a message that names the format, not with an unknown file type.
+  TempDir tmp_dir;
+  auto make_d = [&tmp_dir](const std::string& name, const std::string& file)
+  {
+    const std::string d = tmp_dir.getPath() + "/" + name + ".d";
+    std::filesystem::create_directories(d);
+    if (!file.empty()) { std::ofstream os((d + "/" + file).c_str()); os << "no data"; }
+    return d;
+  };
+  TEST_EQUAL(FileHandler::getType(make_d("tdf", "analysis.tdf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("tdf_bin", "analysis.tdf_bin")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("tdf", "analysis.tdf") + "/"), FileTypes::BRUKER_TDF) // as shells complete it
+  TEST_EQUAL(FileHandler::getType(make_d("tsf", "analysis.tsf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("baf", "analysis.baf")), FileTypes::BRUKER_TDF)
+  TEST_EQUAL(FileHandler::getType(make_d("empty", "")), FileTypes::UNKNOWN)
+  TEST_EQUAL(FileHandler::getType(make_d("other", "readme.txt")), FileTypes::UNKNOWN)
+
+  PeakMap exp;
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("tsf", "analysis.tsf"), exp))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadExperiment(make_d("baf", "analysis.baf"), exp, {FileTypes::MZML, FileTypes::BRUKER_TDF}))
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().loadImagingExperiment(make_d("tsf", "analysis.tsf"), img))
+  MSDataStoringConsumer streamed;
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(make_d("tsf", "analysis.tsf"), &streamed))
+}
+END_SECTION
+#endif
+
+START_SECTION((void storeExperiment(const std::string &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
 FileHandler fh;
 PeakMap exp;
 fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 
 //test mzML
-String filename, filename2;
+std::string filename, filename2;
 NEW_TMP_FILE_EXT(filename, ".mzML");
 fh.storeExperiment(filename, exp, {FileTypes::MZML}, ProgressLogger::NONE);
 TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
@@ -342,7 +513,7 @@ START_SECTION(([EXTRA] storeIdentifications_loadIdentifications_idparquet_round_
   pid.getHits().push_back(hit);
   pep_ids.push_back(pid);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".idparquet";
 
@@ -408,7 +579,7 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
 
   fm.push_back(f);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".featureparquet";
 
@@ -445,6 +616,56 @@ START_SECTION(([EXTRA] storeFeatures_loadFeatures_featureparquet_round_trip))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] storeFeatures unknown extension adopts the single allowed type))
+{
+  // FileHandler::storeFeatures adopts a single allowed_type when the output
+  // filename has no informative extension (here ".unknown"): the type stays
+  // UNKNOWN from the name but allowed_types has exactly one entry, so
+  // FEATUREPARQUET is adopted and a parquet bundle is written. The
+  // .featureparquet round-trip above always detects the type from the
+  // extension, so this exercises the size-1 fallback branch instead.
+  FeatureMap fm;
+  Feature f;
+  f.setUniqueId(7);
+  f.setRT(11.5);
+  f.setMZ(222.22);
+  f.setIntensity(345.0f);
+  f.setCharge(3);
+  fm.push_back(f);
+
+  std::string dir;
+  NEW_TMP_FILE(dir)
+  dir += ".unknown"; // getTypeByFileName -> UNKNOWN
+
+  // store: the single allowed type is adopted -- otherwise storeFeatures would
+  // throw InvalidFileType for an UNKNOWN type. A featureparquet bundle is written.
+  FileHandler().storeFeatures(dir, fm, {FileTypes::FEATUREPARQUET});
+
+  // Read the bundle back via the Arrow API and confirm the feature survived the
+  // adopted-type store. (loadFeatures resolves the type via getType(), which
+  // cannot classify a directory whose name ends in ".unknown", so we read the
+  // bundle directly here.)
+  FeatureMap fm_in;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(dir, fm_in), true);
+  TEST_EQUAL(fm_in.size(), 1);
+  TEST_EQUAL(fm_in[0].getUniqueId(), 7);
+  TEST_REAL_SIMILAR(fm_in[0].getRT(), 11.5);
+  TEST_REAL_SIMILAR(fm_in[0].getMZ(), 222.22);
+  TEST_EQUAL(fm_in[0].getCharge(), 3);
+
+  File::removeDirRecursively(dir);
+
+  // negative: an UNKNOWN extension with more than one allowed type is
+  // ambiguous, so the fallback does NOT fire and the type stays UNKNOWN ->
+  // InvalidFileType (proving the adoption is specifically the size-1 case).
+  std::string dir2;
+  NEW_TMP_FILE(dir2)
+  dir2 += ".unknown";
+  TEST_EXCEPTION(Exception::InvalidFileType,
+                 FileHandler().storeFeatures(dir2, fm, {FileTypes::FEATUREPARQUET, FileTypes::FEATUREXML}));
+}
+END_SECTION
+
 START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
 {
   // Round-trip a real ProteomicsLFQ consensusXML through .consensusparquet
@@ -468,9 +689,9 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 18);
   // ConsensusXMLHandler rebuilds the run identifier as "<engine>_<date>_<hash>"
   // on load — the file-level XML id="PI_0" is only an internal cross-reference.
-  TEST_EQUAL(cmap_ref.getProteinIdentifications()[0].getIdentifier().hasPrefix("OMSSA_"), true);
+  TEST_EQUAL(StringUtils::hasPrefix(cmap_ref.getProteinIdentifications()[0].getIdentifier(), "OMSSA_"), true);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".consensusparquet";
 
@@ -522,7 +743,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // Both lanes synthesize fresh identifiers on load (IdXMLFile.cpp:530 parity);
   // identifier SUFFIXES differ between lanes by design, but each lane is internally
   // consistent (no dangling pep_id->prot_id references) and the set sizes match.
-  std::set<String> run_ids_ref, run_ids_in;
+  std::set<std::string> run_ids_ref, run_ids_in;
   for (const auto& p : cmap_ref.getProteinIdentifications()) run_ids_ref.insert(p.getIdentifier());
   for (const auto& p : cmap_in.getProteinIdentifications()) run_ids_in.insert(p.getIdentifier());
   TEST_EQUAL(run_ids_in.size(), run_ids_ref.size());
@@ -546,8 +767,8 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   const auto& prot_in  = cmap_in.getProteinIdentifications()[0];
   // Identifier prefix (search_engine_date) must match; the UniqueIdGenerator
   // suffix differs between lanes by design.
-  TEST_EQUAL(prot_in.getIdentifier().hasPrefix("OMSSA_"), true);
-  TEST_EQUAL(prot_ref.getIdentifier().hasPrefix("OMSSA_"), true);
+  TEST_EQUAL(StringUtils::hasPrefix(prot_in.getIdentifier(), "OMSSA_"), true);
+  TEST_EQUAL(StringUtils::hasPrefix(prot_ref.getIdentifier(), "OMSSA_"), true);
   TEST_STRING_EQUAL(prot_in.getSearchEngine(), prot_ref.getSearchEngine());
   TEST_STRING_EQUAL(prot_in.getSearchEngineVersion(), prot_ref.getSearchEngineVersion());
   TEST_STRING_EQUAL(prot_in.getScoreType(), prot_ref.getScoreType());
@@ -563,7 +784,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
 
   // ProteinHit accession set must round-trip exactly.
   auto accessions = [](const ProteinIdentification& p) {
-    std::set<String> acc;
+    std::set<std::string> acc;
     for (const auto& h : p.getHits()) acc.insert(h.getAccession());
     return acc;
   };
@@ -573,9 +794,9 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // Compare as a set of (probability, sorted-accession-list) tuples so group
   // ordering doesn't matter.
   auto group_signature = [](const std::vector<ProteinIdentification::ProteinGroup>& gs) {
-    std::set<std::pair<double, std::vector<String>>> sig;
+    std::set<std::pair<double, std::vector<std::string>>> sig;
     for (const auto& g : gs) {
-      std::vector<String> accs(g.accessions.begin(), g.accessions.end());
+      std::vector<std::string> accs(g.accessions.begin(), g.accessions.end());
       std::sort(accs.begin(), accs.end());
       sig.emplace(g.probability, std::move(accs));
     }
@@ -612,7 +833,7 @@ START_SECTION(([EXTRA] consensusparquet_round_trip_ProteomicsLFQ_real_output))
   // identifier is omitted because both lanes synthesize independently on load
   // (IdXMLFile.cpp:530 parity); each lane is internally consistent (dangling
   // checks above prove that) but the UniqueIdGenerator suffixes differ.
-  using PSMSig = std::tuple<int, double, double, String, int, double>;
+  using PSMSig = std::tuple<int, double, double, std::string, int, double>;
   auto psm_sigs = [](const auto& pids) {
     std::vector<PSMSig> sigs;
     for (const auto& pid : pids) {
@@ -674,7 +895,7 @@ START_SECTION(([EXTRA] storeConsensusFeatures_loadConsensusFeatures_consensuspar
 
   cmap.push_back(cf);
 
-  String dir;
+  std::string dir;
   NEW_TMP_FILE(dir)
   dir += ".consensusparquet";
 
@@ -713,4 +934,164 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
+START_SECTION(([EXTRA] transformExperiment applies PeakFileOptions to mzML and mzXML like loadExperiment))
+{
+  for (const std::string& file : {std::string(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), std::string(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"))})
+  {
+    PeakMap all;
+    FileHandler().loadExperiment(file, all);
+    TEST_EQUAL(all.size() > 2, true)
+    std::vector<PeakFileOptions> option_sets(5);
+    option_sets[0].setMSLevels({1});
+    option_sets[1].setRTRange(DRange<1>(DPosition<1>(all[1].getRT() - 0.01), DPosition<1>(all[2].getRT() + 0.01)));
+    option_sets[2].setMZRange(DRange<1>(DPosition<1>(0.0), DPosition<1>(all[0].empty() ? 1.0 : all[0][all[0].size() / 2].getMZ())));
+    option_sets[3].setMetadataOnly(true);
+    option_sets[4].setSkipChromatograms(true);
+    option_sets[4].setFillData(false);
+    for (const PeakFileOptions& options : option_sets)
+    {
+      FileHandler loader;
+      loader.setOptions(options);
+      PeakMap loaded;
+      loader.loadExperiment(file, loaded);
+
+      FileHandler streamer;
+      streamer.setOptions(options);
+      MSDataStoringConsumer streamed;
+      streamer.transformExperiment(file, &streamed);
+
+      const PeakMap& data = streamed.getData();
+      TEST_EQUAL(data.size(), loaded.size())
+      ABORT_IF(data.size() != loaded.size())
+      for (Size i = 0; i < data.size(); ++i)
+      {
+        TEST_EQUAL(data[i] == loaded[i], true)
+      }
+      TEST_EQUAL(data.getNrChromatograms(), loaded.getNrChromatograms())
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] the ion mobility range of the PeakFileOptions, for any format))
+{
+  // FileHandler applies PeakFileOptions::setIMRange() itself, also to the formats whose readers do not know it: the peaks
+  // outside the range leave the spectra with an ion mobility per peak, the spectra with a single ion mobility outside it
+  // are left out, and the spectra without ion mobility stay.
+  PeakMap exp;
+  MSSpectrum per_peak;
+  per_peak.setRT(1.0);
+  per_peak.setNativeID("spectrum=1");
+  for (const auto& [mz, im] : std::vector<std::pair<double, float>>{{100.0, 0.7f}, {200.0, 0.95f}, {300.0, 1.05f}, {400.0, 1.3f}})
+  {
+    per_peak.push_back(Peak1D(mz, 10.0f));
+    if (per_peak.getFloatDataArrays().empty()) per_peak.getFloatDataArrays().resize(1);
+    per_peak.getFloatDataArrays()[0].push_back(im);
+  }
+  IMDataConverter::setIMUnit(per_peak.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
+  exp.addSpectrum(per_peak);
+  for (const auto& [rt, drift_time] : std::vector<std::pair<double, double>>{{2.0, 1.0}, {3.0, 1.5}})
+  {
+    MSSpectrum single;
+    single.setRT(rt);
+    single.setMSLevel(2);
+    single.setNativeID("spectrum=" + std::to_string(static_cast<int>(rt)));
+    single.setDriftTime(drift_time);
+    single.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    // as BrukerTimsFile gives DDA MS2 spectra; mzML stores the ion mobility of the precursor
+    Precursor precursor;
+    precursor.setMZ(700.0);
+    precursor.setDriftTime(drift_time);
+    precursor.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    single.setPrecursors({precursor});
+    single.push_back(Peak1D(500.0, 5.0f));
+    exp.addSpectrum(single);
+  }
+  MSSpectrum without;
+  without.setRT(4.0);
+  without.setNativeID("spectrum=4");
+  without.push_back(Peak1D(600.0, 5.0f));
+  exp.addSpectrum(without);
+
+  std::string file;
+  NEW_TMP_FILE(file);
+  file += ".mzML";
+  MzMLFile().store(file, exp);
+
+  FileHandler handler;
+  handler.getOptions().setIMRange(DRange<1>(0.9, 1.1));
+  PeakMap loaded;
+  handler.loadExperiment(file, loaded);
+  TEST_EQUAL(loaded.size(), 3)
+  ABORT_IF(loaded.size() != 3)
+  TEST_EQUAL(loaded[0].size(), 2)
+  TEST_REAL_SIMILAR(loaded[0][0].getMZ(), 200.0)
+  TEST_REAL_SIMILAR(loaded[0][1].getMZ(), 300.0)
+  TEST_EQUAL(loaded[0].containsIMData(), true)
+  TEST_EQUAL(loaded[0].getFloatDataArrays()[loaded[0].getIMData().first].size(), 2)
+  TEST_REAL_SIMILAR(loaded[1].getDriftTime(), 1.0)
+  TEST_REAL_SIMILAR(loaded[2].getRT(), 4.0)
+
+  // the same when streamed
+  MSDataStoringConsumer streamed;
+  handler.transformExperiment(file, &streamed);
+  TEST_EQUAL(streamed.getData().size(), loaded.size())
+  ABORT_IF(streamed.getData().size() != loaded.size())
+  for (Size i = 0; i < loaded.size(); ++i)
+  {
+    TEST_EQUAL(streamed.getData()[i] == loaded[i], true)
+  }
+
+  // SRM spectra: loadExperiment() turns them into chromatograms, after the ion mobility range has left out the spectra
+  // outside it. Two scans of one transition, at RT 1 (ion mobility 1.0, kept) and RT 2 (1.5, left out).
+  PeakMap srm;
+  for (const auto& [rt, drift_time] : std::vector<std::pair<double, double>>{{1.0, 1.0}, {2.0, 1.5}})
+  {
+    MSSpectrum scan;
+    scan.setRT(rt);
+    scan.setMSLevel(2);
+    scan.setNativeID("scan=" + std::to_string(static_cast<int>(rt)));
+    scan.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::SRM);
+    Precursor precursor;
+    precursor.setMZ(500.0);
+    precursor.setDriftTime(drift_time);
+    precursor.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    scan.setPrecursors({precursor});
+    scan.setDriftTime(drift_time);
+    scan.setDriftTimeUnit(DriftTimeUnit::VSSC);
+    scan.push_back(Peak1D(400.0, 100.0f * static_cast<float>(rt)));
+    srm.addSpectrum(scan);
+  }
+  std::string srm_file;
+  NEW_TMP_FILE(srm_file);
+  srm_file += ".mzML";
+  MzMLFile().store(srm_file, srm);
+
+  PeakMap srm_all;
+  FileHandler().loadExperiment(srm_file, srm_all);
+  TEST_EQUAL(srm_all.getChromatograms().size(), 1)
+  ABORT_IF(srm_all.getChromatograms().size() != 1)
+  TEST_EQUAL(srm_all.getChromatograms()[0].size(), 2) // without a range, both scans
+
+  PeakMap srm_loaded;
+  handler.loadExperiment(srm_file, srm_loaded);
+  TEST_EQUAL(srm_loaded.size(), 0) // the SRM spectra became chromatograms
+  TEST_EQUAL(srm_loaded.getChromatograms().size(), 1)
+  ABORT_IF(srm_loaded.getChromatograms().size() != 1)
+  TEST_EQUAL(srm_loaded.getChromatograms()[0].size(), 1)
+  ABORT_IF(srm_loaded.getChromatograms()[0].size() != 1)
+  TEST_REAL_SIMILAR(srm_loaded.getChromatograms()[0][0].getRT(), 1.0)
+
+  // streamed, the SRM spectra stay spectra; the same one is left out
+  MSDataStoringConsumer srm_streamed;
+  handler.transformExperiment(srm_file, &srm_streamed);
+  TEST_EQUAL(srm_streamed.getData().size(), 1)
+  ABORT_IF(srm_streamed.getData().size() != 1)
+  TEST_REAL_SIMILAR(srm_streamed.getData()[0].getRT(), 1.0)
+}
+END_SECTION
+
 END_TEST

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
+#include <OpenMS/CONCEPT/Init.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -16,6 +17,7 @@
 #include <xercesc/dom/DOMNodeList.hpp>
 
 #include <memory>
+#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS
 {
@@ -132,7 +134,7 @@ namespace OpenMS
     {
       for (Size n = 0; n < data.decoded_char.size(); n++)
       {
-        String value = data.decoded_char[n];
+        std::string value = data.decoded_char[n];
         spectrum.getStringDataArrays().back().push_back(value);
       }
     }
@@ -422,8 +424,9 @@ namespace OpenMS
     return sptr;
   }
 
-  void MzMLSpectrumDecoder::handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data)
+  void MzMLSpectrumDecoder::handleBinaryDataArray_(void* indexListNode_opaque, std::vector<BinaryData>& data)
   {
+    xercesc::DOMNode* indexListNode = static_cast<xercesc::DOMNode*>(indexListNode_opaque);
     // access result through data.back()
     data.emplace_back();
 
@@ -533,6 +536,10 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
+    // Xerces has to be initialised; CONCEPT/Init.cpp does so on loading the library, but a
+    // static library (WebAssembly) links that object file only if something else calls into it
+    static const bool xerces_initialized = (Internal::xercesInitialize(), true);
+    (void)xerces_initialized;
     xercesc::MemBufInputSource myxml_buf(reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
     std::unique_ptr<xercesc::XercesDOMParser> parser = std::make_unique<xercesc::XercesDOMParser>(); // make sure it is deleted even in case of exceptions
     parser->setDoNamespaces(false);
@@ -555,8 +562,8 @@ namespace OpenMS
     }
 
     OPENMS_PRECONDITION(xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("spectrum")) || xercesc::XMLString::equals(elementRoot->getTagName(), CONST_XMLCH("chromatogram")),
-          (String("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
-          String(Internal::unique_xerces_ptr(xercesc::XMLString::transcode(elementRoot->getTagName())).get()) + String("'.")).c_str())
+          ("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '" +
+          StringUtils::toStr(Internal::unique_xerces_ptr(xercesc::XMLString::transcode(elementRoot->getTagName())).get()) + std::string("'.")).c_str())
 
     // defaultArrayLength is a required attribute for the spectrum and the
     // chromatogram tag (but still check for it first to be safe).

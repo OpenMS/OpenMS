@@ -59,8 +59,6 @@ SequenceVisualizer.cpp
 SequenceVisualizer.ui
 SpectraIDViewTab.cpp
 SpectraTreeTab.cpp
-SwathLibraryStats.cpp
-SwathLibraryStats.ui
 TableView.cpp
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp

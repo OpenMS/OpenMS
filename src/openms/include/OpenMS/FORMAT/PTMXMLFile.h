@@ -39,7 +39,7 @@ public:
         @throw ParseError is thrown if the given file could not be parsed
         The information is read in and stored in the corresponding variables
     */
-    void load(const String & filename, std::map<String, std::pair<String, String> > & ptm_informations);
+    void load(const std::string & filename, std::map<std::string, std::pair<std::string, std::string> > & ptm_informations);
 
     /**
         @brief Stores the data in an PTMXML file
@@ -48,7 +48,7 @@ public:
 
         The data is read in and stored in the file 'filename'.
     */
-    void store(const String& filename, std::map<String, std::pair<String, String> > & ptm_informations) const;
+    void store(const std::string& filename, std::map<std::string, std::pair<std::string, std::string> > & ptm_informations) const;
   };
 
 } // namespace OpenMS

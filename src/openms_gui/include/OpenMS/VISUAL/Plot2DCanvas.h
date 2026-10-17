@@ -204,8 +204,31 @@ protected:
     /// Returns the nearest peak to position @p pos
     PeakIndex findNearestPeak_(const QPoint& pos);
 
+    /**
+      @brief Finds the MS2-precursor marker nearest to the widget position @p pos.
+
+      Mirrors the precursor markers drawn by Painter2DPeak (only relevant when the
+      P_PRECURSORS layer flag is enabled). Detection is done at the MS2 precursor
+      position (RT of the MS/MS scan, precursor m/z).
+
+      @param[in] pos Mouse position in widget (pixel) coordinates.
+      @param[out] dist_sq Squared pixel distance of the returned precursor to @p pos (only valid if a precursor was found).
+      @return A PeakIndex referencing the MS/MS spectrum (@p spectrum) and its precursor (@p peak) if one was
+              found within a few pixels of @p pos; an invalid PeakIndex otherwise.
+    */
+    PeakIndex findNearestPrecursor_(const QPoint& pos, int& dist_sq);
+
+    /// Returns the XY position (in chart coordinates) of the precursor referenced by @p precursor. @throw Exception::InvalidRange for unsupported dimensions (e.g. ion mobility views)
+    PointXYType precursorIndexToXY_(const PeakIndex& precursor) const;
+
+    /// Highlights the precursor referenced by @p precursor (red circle), analogous to highlightPeak_()
+    void highlightPrecursor_(QPainter& painter, const PeakIndex& precursor);
+
+    /// Draws the coordinates (RT, m/z, charge) of the precursor referenced by @p precursor to the widget's upper left corner
+    void drawPrecursorCoordinates_(QPainter& painter, const PeakIndex& precursor);
+
     /// Paints a peak icon for feature and consensus feature peaks
-    void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const;
+    void paintIcon_(const QPoint& pos, const QRgb& color, const std::string& icon, Size s, QPainter& p) const;
 
     /// Translates the visible area by a given offset specified in fractions of current visible area
     void translateVisibleArea_(double x_axis_rel, double y_axis_rel);
@@ -254,6 +277,8 @@ protected:
 
     /// the nearest peak/feature to the mouse cursor
     PeakIndex selected_peak_;
+    /// the nearest MS2 precursor marker to the mouse cursor (spectrum = MS/MS spectrum index, peak = precursor index); mutually exclusive with selected_peak_
+    PeakIndex selected_precursor_;
     /// start peak/feature of measuring mode
     PeakIndex measurement_start_;
 

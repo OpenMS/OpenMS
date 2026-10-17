@@ -27,6 +27,12 @@ namespace OpenMS
         PeakMap::ConstIterator prec_it =
           experiment.getPrecursorSpectrum(exp_it);
         const vector<Precursor>& precursors = exp_it->getPrecursors();
+        // skip MS2 spectra without a precursor spectrum or without precursor information
+        // (dereferencing end() or indexing precursors[0] would otherwise be undefined behavior)
+        if (prec_it == experiment.end() || precursors.empty())
+        {
+          continue;
+        }
         DPosition<2> point(prec_it->getRT(), precursors[0].getMZ());
         seeds.push_back(point);
       }
@@ -89,18 +95,15 @@ namespace OpenMS
                                           FeatureMap& features)
   {
     features.clear(true); // "true" should really be a default value here...
-    Size counter = 0;
-    for (SeedList::const_iterator seed_it = seeds.begin();
-         seed_it != seeds.end(); ++seed_it, ++counter)
+    features.setUniqueId();
+    for (const auto& seed : seeds)
     {
       Feature feature;
-      feature.setRT(seed_it->getX());
-      feature.setMZ(seed_it->getY());
-      feature.setUniqueId(counter);
+      feature.setRT(seed.getX());
+      feature.setMZ(seed.getY());
+      feature.setUniqueId();
       features.push_back(feature);
     }
-    // // assign unique ids:
-    // features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   }
 
   void SeedListGenerator::convertSeedList(const FeatureMap& features,

@@ -67,12 +67,12 @@ namespace OpenMS
     channel_names[2].setMatrix<Int, 6, 1>(CHANNELS_TMT_SIXPLEX);
     for (Int i = 0; i < CHANNEL_COUNT[itraq_type]; ++i)
     {
-      String line = String(channel_names[itraq_type](i, 0)) + ":";
+      std::string line =StringUtils::toStr(channel_names[itraq_type](i, 0)) + ":";
       for (Int j = 0; j < 3; ++j)
       {
-        line += String(isotope_corrections[itraq_type](i, j)) + "/";
+        line +=StringUtils::toStr(isotope_corrections[itraq_type](i, j)) + "/";
       }
-      line += String(isotope_corrections[itraq_type](i, 3));
+      line +=StringUtils::toStr(isotope_corrections[itraq_type](i, 3));
       isotopes.push_back(line);
     }
 
@@ -91,15 +91,15 @@ namespace OpenMS
     for (StringList::const_iterator it = channels.begin(); it != channels.end(); ++it)
     {
       StringList result;
-      it->split(':', result);
+      StringUtils::split(*it, ':', result);
       if (result.size() != 2)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected one ':', got this: '" + (*it) + "'");
       }
-      result[0] = result[0].trim();       // hold channel name
-      result[1] = result[1].trim();       // holds 4 values
+      result[0] = StringUtils::trim(result[0]);       // hold channel name
+      result[1] = StringUtils::trim(result[1]);       // holds 4 values
 
-      Int channel = result[0].toInt();
+      Int channel = StringUtils::toInt32(result[0]);
       Int line = 0;
       if (itraq_type == FOURPLEX)
         line = channel - 114;
@@ -114,13 +114,10 @@ namespace OpenMS
          ||
           (itraq_type == TMT_SIXPLEX && (line < 0 || line > 5)))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; channel-name is not valid for ")
-                                          + String(
-                                            itraq_type == FOURPLEX ? "4plex" : (itraq_type == EIGHTPLEX ? "8plex" : "TMT-6plex")
-                                            )
-                                          + String(": '")
-                                          + result[0]
-                                          + String("'"));
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          std::string("ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; channel-name is not valid for ")
+          + (itraq_type == FOURPLEX ? "4plex" : (itraq_type == EIGHTPLEX ? "8plex" : "TMT-6plex"))
+          + ": '" + result[0] + "'");
       }
 
       // if set to 121 we still want to change line 7 of the matrix
@@ -128,17 +125,17 @@ namespace OpenMS
         line = 7;
 
       StringList corrections;
-      result[1].split('/', corrections);
+      StringUtils::split(result[1], '/', corrections);
       if (corrections.size() != 4)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected four correction values separated by '&', got this: '" + result[1] + "'");
       }
 
       // overwrite line in Matrix with custom values
-      isotope_corrections[itraq_type](line, 0) = corrections[0].toDouble();
-      isotope_corrections[itraq_type](line, 1) = corrections[1].toDouble();
-      isotope_corrections[itraq_type](line, 2) = corrections[2].toDouble();
-      isotope_corrections[itraq_type](line, 3) = corrections[3].toDouble();
+      isotope_corrections[itraq_type](line, 0) = StringUtils::toDouble(corrections[0]);
+      isotope_corrections[itraq_type](line, 1) = StringUtils::toDouble(corrections[1]);
+      isotope_corrections[itraq_type](line, 2) = StringUtils::toDouble(corrections[2]);
+      isotope_corrections[itraq_type](line, 3) = StringUtils::toDouble(corrections[3]);
 
 #ifdef ITRAQ_DEBUG
       std::cout << "Channel " << channel << " has values " << corrections << std::endl;
@@ -185,7 +182,7 @@ namespace OpenMS
       info.id = (Int)i;
       if (const auto it = reporter_mass_exact.find(info.name); it == reporter_mass_exact.end())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unexpected reporter name during initialization.", String(info.name));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unexpected reporter name during initialization.",StringUtils::toStr(info.name));
       }
       else
       {
@@ -206,21 +203,21 @@ namespace OpenMS
     for (StringList::const_iterator it = active_channels.begin(); it != active_channels.end(); ++it)
     {
       StringList result;
-      it->split(':', result);
+      StringUtils::split(*it, ':', result);
       if (result.size() != 2)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; expected one semicolon ('" + (*it) + "')");
       }
-      result[0] = result[0].trim();
-      result[1] = result[1].trim();
-      if (result[0] == String::EMPTY || result[1] == String::EMPTY)
+      result[0] = StringUtils::trim(result[0]);
+      result[1] = StringUtils::trim(result[1]);
+      if (result[0] == "" || result[1] == "")
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
       }
-      Int channel = result[0].toInt();
-      if (map.find(channel) == map.end())
+      Int channel = StringUtils::toInt32(result[0]);
+      if (!map.contains(channel))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; channel is not valid ('" + String(channel) + "')");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; channel is not valid ('" + StringUtils::toStr(channel) + "')");
       }
       // update name (description) of channel
       map[channel].description = result[1];

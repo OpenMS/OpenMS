@@ -54,7 +54,7 @@ START_SECTION((ModificationDefinition(const ModificationDefinition& rhs)))
 }
 END_SECTION
 
-START_SECTION((ModificationDefinition(const String& mod, bool fixed = true, UInt max_occur = 0)))
+START_SECTION((ModificationDefinition(const std::string& mod, bool fixed = true, UInt max_occur = 0)))
 {
   ModificationDefinition mod1("Acetyl (N-term)");
   TEST_EQUAL(mod1.getModificationName(), "Acetyl (N-term)");
@@ -115,7 +115,7 @@ START_SECTION((UInt getMaxOccurrences() const))
 }
 END_SECTION
 
-START_SECTION((String getModificationName() const))
+START_SECTION((std::string getModificationName() const))
 {
   ModificationDefinition mod1;
   mod1.setModification("Acetyl (N-term)");
@@ -125,7 +125,7 @@ START_SECTION((String getModificationName() const))
 }
 END_SECTION
 
-START_SECTION((String getModification() const))
+START_SECTION((std::string getModification() const))
 {
   const ResidueModification* rm = ModificationsDB::getInstance()->getModification("Acetyl (N-term)");
   ModificationDefinition mod1;
@@ -134,7 +134,7 @@ START_SECTION((String getModification() const))
 }
 END_SECTION
 
-START_SECTION((void setModification(const String& modification)))
+START_SECTION((void setModification(const std::string& modification)))
 {
   // tested above
   NOT_TESTABLE

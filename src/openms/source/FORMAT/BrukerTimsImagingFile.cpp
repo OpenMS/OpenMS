@@ -10,14 +10,19 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
-#include <OpenMS/FORMAT/SqliteConnector.h>
+#include <OpenMS/FORMAT/SqliteConnector_impl.h>
+#include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/PathUtils.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <sqlite3.h>
 
 #include <algorithm>
+#include <filesystem>
+#include <iterator>
 #include <limits>
 #include <unordered_map>
 
@@ -28,7 +33,7 @@ namespace OpenMS
     // Parse the integer frame id from a Bruker TDF native ID of the form
     // "frame=<id>" or "frame=<id> ...". Returns -1 if the prefix is missing
     // or the integer cannot be parsed.
-    Int parseFrameId(const String& native_id)
+    Int parseFrameId(const std::string& native_id)
     {
       const std::string prefix = "frame=";
       const std::size_t pos = native_id.find(prefix);
@@ -38,18 +43,124 @@ namespace OpenMS
       if (end == std::string::npos) { end = native_id.size(); }
       try
       {
-        return String(native_id.substr(start, end - start)).toInt();
+        return StringUtils::toInt32(native_id.substr(start, end - start));
       }
       catch (...)
       {
         return -1;
       }
     }
+
+    // The analysis.tdf entry of the .d directory that BrukerTimsFile reads from the '.d.zip' archive @p archive:
+    // the shallowest directory '*.d' with analysis.tdf or analysis.tdf_bin (the first by name among equally deep
+    // ones), none below '__MACOSX'. Empty if there is no such directory or it has no analysis.tdf.
+    // BrukerTimsFile chooses among the extracted directories, where an entry './a.d/analysis.tdf' has become
+    // 'a.d/analysis.tdf', so entries are compared by their normalized paths, and the name is kept for extraction.
+    std::string tdfEntryOfArchive(const std::string& archive)
+    {
+      std::vector<std::string> entries;
+      if (!ZipArchiveFile::listEntries(archive, entries)) { return ""; }
+      std::filesystem::path found_dir;
+      std::ptrdiff_t found_depth = std::numeric_limits<std::ptrdiff_t>::max();
+      std::string found_tdf;
+      for (const std::string& entry : entries)
+      {
+        const std::filesystem::path entry_path = to_path(entry).lexically_normal();
+        const std::filesystem::path dir = entry_path.parent_path();
+        const std::string file_name = entry_path.filename().string();
+        if (dir.extension() != ".d" || (file_name != "analysis.tdf" && file_name != "analysis.tdf_bin")) { continue; }
+        if (std::find(entry_path.begin(), entry_path.end(), std::filesystem::path("__MACOSX")) != entry_path.end()) { continue; }
+        const std::ptrdiff_t depth = std::distance(dir.begin(), dir.end());
+        if (depth < found_depth || (depth == found_depth && dir < found_dir))
+        {
+          found_dir = dir;
+          found_depth = depth;
+          found_tdf.clear();
+        }
+        if (dir == found_dir && file_name == "analysis.tdf") { found_tdf = entry; }
+      }
+      return found_tdf;
+    }
+
+    // Readers of the analysis.tdf @p tdf itself, for the public functions, which find it for a .d directory or archive
+
+    std::string globalMetadataValue(const std::string& tdf, const std::string& key)
+    {
+      SqliteConnector conn(tdf, SqliteConnector::SqlOpenMode::READ_ONLY);
+      if (!conn.tableExists("GlobalMetadata")) { return ""; }
+
+      sqlite3_stmt* stmt = nullptr;
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, "SELECT Value FROM GlobalMetadata WHERE Key = ?1 LIMIT 1;");
+      sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
+
+      std::string result;
+      if (sqlite3_step(stmt) == SQLITE_ROW)
+      {
+        const unsigned char* txt = sqlite3_column_text(stmt, 0);
+        if (txt != nullptr) { result = reinterpret_cast<const char*>(txt); }
+      }
+      sqlite3_finalize(stmt);
+      return result;
+    }
+
+    bool isImagingTdf(const std::string& tdf)
+    {
+      try
+      {
+        return globalMetadataValue(tdf, "MaldiApplicationType") == "Imaging";
+      }
+      catch (...)
+      {
+        return false;
+      }
+    }
+
+    std::vector<BrukerTimsImagingFile::MaldiPixel> maldiFrameInfo(const std::string& tdf)
+    {
+      SqliteConnector conn(tdf, SqliteConnector::SqlOpenMode::READ_ONLY);
+      if (!conn.tableExists("MaldiFrameInfo"))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    tdf, "MaldiFrameInfo table missing");
+      }
+
+      sqlite3_stmt* stmt = nullptr;
+      Internal::SqliteHelper::prepareStatement(conn, &stmt, "SELECT Frame, XIndexPos, YIndexPos FROM MaldiFrameInfo ORDER BY Frame;");
+
+      std::vector<BrukerTimsImagingFile::MaldiPixel> rows;
+      while (sqlite3_step(stmt) == SQLITE_ROW)
+      {
+        BrukerTimsImagingFile::MaldiPixel p;
+        p.frame_id = sqlite3_column_int(stmt, 0);
+        p.x        = sqlite3_column_int(stmt, 1);
+        p.y        = sqlite3_column_int(stmt, 2);
+        rows.push_back(p);
+      }
+      sqlite3_finalize(stmt);
+
+      if (rows.empty())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    tdf, "MaldiFrameInfo is empty");
+      }
+      return rows;
+    }
   }
 
-  String BrukerTimsImagingFile::resolveTdfPath_(const String& d_folder)
+  std::string BrukerTimsImagingFile::resolveTdfPath_(const std::string& path, std::unique_ptr<TempDir>& temp_dir)
   {
-    const String tdf = d_folder + "/analysis.tdf";
+    if (File::exists(path) && !File::isDirectory(path) && StringUtils::hasSuffix(StringUtils::toLowered(path), ".zip"))
+    {
+      // Only analysis.tdf is extracted: the frame data in analysis.tdf_bin is not needed for the metadata
+      const std::string entry = tdfEntryOfArchive(path);
+      if (entry.empty())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+                                    "ZIP archive does not contain a .d directory with analysis.tdf");
+      }
+      return ZipArchiveFile::extractEntryToTempFile(path, entry, temp_dir);
+    }
+    const std::string tdf = path + "/analysis.tdf";
     if (!File::exists(tdf))
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tdf);
@@ -57,11 +168,12 @@ namespace OpenMS
     return tdf;
   }
 
-  bool BrukerTimsImagingFile::isImagingDataset(const String& path)
+  bool BrukerTimsImagingFile::isImagingDataset(const std::string& path)
   {
     try
     {
-      return readGlobalMetadataValue(path, "MaldiApplicationType") == "Imaging";
+      std::unique_ptr<TempDir> temp_dir; // holds the analysis.tdf of a .d.zip
+      return isImagingTdf(resolveTdfPath_(path, temp_dir));
     }
     catch (...)
     {
@@ -69,57 +181,17 @@ namespace OpenMS
     }
   }
 
-  String BrukerTimsImagingFile::readGlobalMetadataValue(const String& d_folder, const String& key)
+  std::string BrukerTimsImagingFile::readGlobalMetadataValue(const std::string& d_folder, const std::string& key)
   {
-    const String tdf = resolveTdfPath_(d_folder);
-    SqliteConnector conn(tdf, SqliteConnector::SqlOpenMode::READ_ONLY);
-    if (!conn.tableExists("GlobalMetadata")) { return ""; }
-
-    sqlite3_stmt* stmt = nullptr;
-    conn.prepareStatement(&stmt, "SELECT Value FROM GlobalMetadata WHERE Key = ?1 LIMIT 1;");
-    sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_TRANSIENT);
-
-    String result;
-    if (sqlite3_step(stmt) == SQLITE_ROW)
-    {
-      const unsigned char* txt = sqlite3_column_text(stmt, 0);
-      if (txt != nullptr) { result = reinterpret_cast<const char*>(txt); }
-    }
-    sqlite3_finalize(stmt);
-    return result;
+    std::unique_ptr<TempDir> temp_dir; // holds the analysis.tdf of a .d.zip
+    return globalMetadataValue(resolveTdfPath_(d_folder, temp_dir), key);
   }
 
   std::vector<BrukerTimsImagingFile::MaldiPixel>
-  BrukerTimsImagingFile::readMaldiFrameInfo(const String& d_folder)
+  BrukerTimsImagingFile::readMaldiFrameInfo(const std::string& d_folder)
   {
-    const String tdf = resolveTdfPath_(d_folder);
-    SqliteConnector conn(tdf, SqliteConnector::SqlOpenMode::READ_ONLY);
-    if (!conn.tableExists("MaldiFrameInfo"))
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  tdf, "MaldiFrameInfo table missing");
-    }
-
-    sqlite3_stmt* stmt = nullptr;
-    conn.prepareStatement(&stmt, "SELECT Frame, XIndexPos, YIndexPos FROM MaldiFrameInfo ORDER BY Frame;");
-
-    std::vector<MaldiPixel> rows;
-    while (sqlite3_step(stmt) == SQLITE_ROW)
-    {
-      MaldiPixel p;
-      p.frame_id = sqlite3_column_int(stmt, 0);
-      p.x        = sqlite3_column_int(stmt, 1);
-      p.y        = sqlite3_column_int(stmt, 2);
-      rows.push_back(p);
-    }
-    sqlite3_finalize(stmt);
-
-    if (rows.empty())
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  tdf, "MaldiFrameInfo is empty");
-    }
-    return rows;
+    std::unique_ptr<TempDir> temp_dir; // holds the analysis.tdf of a .d.zip
+    return maldiFrameInfo(resolveTdfPath_(d_folder, temp_dir));
   }
 
   void BrukerTimsImagingFile::computeBoundingBox_(const std::vector<MaldiPixel>& rows,
@@ -139,24 +211,29 @@ namespace OpenMS
     height = static_cast<UInt>(y_max - y_min + 1);
   }
 
-  void BrukerTimsImagingFile::load(const String& path, MSImagingExperiment& exp)
+  void BrukerTimsImagingFile::load(const std::string& path, MSImagingExperiment& exp)
   {
     load(path, exp, Config{});
   }
 
-  void BrukerTimsImagingFile::load(const String& path, MSImagingExperiment& exp, const Config& config)
+  void BrukerTimsImagingFile::load(const std::string& path, MSImagingExperiment& exp, const Config& config)
   {
     if (!File::exists(path))
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
 
+    // TSF and BAF data are reported as such, not as a missing analysis.tdf
+    BrukerTimsFile::checkDataFormat(path);
+
     // Resolve analysis.tdf eagerly so an I/O error surfaces as FileNotReadable
     // here, rather than being masked by isImagingDataset() (which swallows
-    // exceptions to behave as a non-throwing probe).
-    const String tdf = resolveTdfPath_(path);
+    // exceptions to behave as a non-throwing probe). The metadata below is
+    // read from it, the frames by BrukerTimsFile.
+    std::unique_ptr<TempDir> tdf_dir; // holds the analysis.tdf of a .d.zip
+    const std::string tdf = resolveTdfPath_(path, tdf_dir);
 
-    if (config.strict_imaging_only && !isImagingDataset(path))
+    if (config.strict_imaging_only && !isImagingTdf(tdf))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Not a MALDI imaging dataset (MaldiApplicationType != 'Imaging')", path);
@@ -169,7 +246,7 @@ namespace OpenMS
       if (conn.columnExists("MaldiFrameInfo", "ZIndexPos"))
       {
         sqlite3_stmt* stmt = nullptr;
-        conn.prepareStatement(&stmt, "SELECT COUNT(DISTINCT ZIndexPos) FROM MaldiFrameInfo;");
+        Internal::SqliteHelper::prepareStatement(conn, &stmt, "SELECT COUNT(DISTINCT ZIndexPos) FROM MaldiFrameInfo;");
         int distinct_z = 0;
         if (sqlite3_step(stmt) == SQLITE_ROW) { distinct_z = sqlite3_column_int(stmt, 0); }
         sqlite3_finalize(stmt);
@@ -183,11 +260,12 @@ namespace OpenMS
       }
     }
 
-    const std::vector<MaldiPixel> rows = readMaldiFrameInfo(path);
+    const std::vector<MaldiPixel> rows = maldiFrameInfo(tdf);
 
     BrukerTimsFile::Config inner_config = config.inner_config;
     inner_config.export_mode = BrukerTimsFile::Config::ExportMode::FRAME;
     inner_config.load_ms1 = true;
+    inner_config.load_ms2 = true;
 
     MSExperiment ms_exp;
     BrukerTimsFile inner;
@@ -210,12 +288,12 @@ namespace OpenMS
     MSImagingGeometry geometry;
     geometry.setDimensions(width, height);
 
-    String spot_size_str = readGlobalMetadataValue(path, "MaldiSpotSize_um");
-    if (spot_size_str.empty()) { spot_size_str = readGlobalMetadataValue(path, "ImagingAreaSpotSize_um"); }
+    std::string spot_size_str = globalMetadataValue(tdf, "MaldiSpotSize_um");
+    if (spot_size_str.empty()) { spot_size_str = globalMetadataValue(tdf, "ImagingAreaSpotSize_um"); }
     double spot_size = 1.0;
     if (!spot_size_str.empty())
     {
-      try { spot_size = spot_size_str.toDouble(); }
+      try { spot_size = StringUtils::toDouble(spot_size_str); }
       catch (...) { spot_size = 1.0; }
     }
     geometry.setPixelSize(spot_size, spot_size, "micrometer");

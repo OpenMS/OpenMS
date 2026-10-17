@@ -90,9 +90,9 @@ namespace OpenMS
     cv_references_vector_.push_back(cv_reference);
   }
 
-  bool CVMappings::hasCVReference(const String& identifier)
+  bool CVMappings::hasCVReference(const std::string& identifier)
   {
-    return cv_references_.find(identifier) != cv_references_.end();
+    return cv_references_.contains(identifier);
   }
 
 } // namespace OpenMS

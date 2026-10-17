@@ -57,6 +57,21 @@ public:
     /// @return true if a spec/chrom is currently active
     bool getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const;
 
+    /**
+      @brief Determines under which spectrum each spectrum of @p exp is listed in the tree
+
+      A spectrum of MS level n is listed under the spectrum its (first) precursor refers to (the mzML 'spectrumRef',
+      stored as meta value 'spectrum_ref' of the Precursor), if that is a preceding spectrum of MS level n-1.
+      This holds even if other spectra were acquired in between, e.g. for SPS-MS3 scans, which are usually
+      interleaved with the next MS2 scans.
+      Without such a reference, a spectrum is listed under the closest preceding spectrum of MS level n-1,
+      unless a spectrum of an even lower MS level came in between.
+
+      @param[in] exp The spectra
+      @return For each spectrum, the index of the spectrum it is listed under, or -1 for a top-level entry
+    */
+    static std::vector<int> getParentIndices(const MSExperiment& exp);
+
 signals:
     void spectrumSelected(int);
     void chromsSelected(std::vector<int> indices);

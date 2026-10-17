@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -164,12 +165,12 @@ START_SECTION((void annotate(AnnotatedMSRun& map, const PeptideIdentificationLis
   // load id
   PeptideIdentificationList identifications;
   vector<ProteinIdentification> protein_identifications;
-  String document_id;
+  std::string document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_1.idXML"), protein_identifications, identifications, document_id);
 
   PeptideIdentificationList identifications2;
   vector<ProteinIdentification> protein_identifications2;
-  String document_id2;
+  std::string document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_7.idXML"), protein_identifications2, identifications2, document_id2);
 
   TEST_EQUAL(identifications.size(),3)
@@ -288,7 +289,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
   //load id data
   PeptideIdentificationList identifications;
   vector<ProteinIdentification> protein_identifications;
-  String document_id;
+  std::string document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.idXML"), protein_identifications, identifications, document_id);
 
   //--------------------------------------------------------------------------------------
@@ -461,8 +462,8 @@ START_SECTION((void annotate(ConsensusMap& map, const PeptideIdentificationList&
   std::vector<ProteinIdentification> protein_ids2;
   PeptideIdentificationList peptide_ids;
   PeptideIdentificationList peptide_ids2;
-  String document_id;
-  String document_id2;
+  std::string document_id;
+  std::string document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.idXML"), protein_ids, peptide_ids, document_id);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_5.idXML"), protein_ids2, peptide_ids2, document_id2);
 
@@ -645,6 +646,57 @@ START_SECTION([EXTRA] double getAbsoluteMZTolerance_(const double mz) const)
   TEST_REAL_SIMILAR(mapper.getAbsoluteMZTolerance2_(1000), 3)
 END_SECTION
 
+START_SECTION(([EXTRA] annotate(ConsensusMap& map, ...) with TMT/iTRAQ spectrum references that are bare scan numbers))
+{
+  // Search engines such as Sage report bare scan numbers, while the consensus features of
+  // TMT/iTRAQ data carry the native IDs of their spectra.
+  auto annotate = [](const std::vector<std::string>& native_ids, const std::vector<std::string>& references)
+  {
+    ConsensusMap map;
+    map.getColumnHeaders()[0].filename = "tmt.mzML";
+    for (const auto& native_id : native_ids)
+    {
+      ConsensusFeature cf;
+      cf.insert(0, Peak2D(), 0);
+      cf.setMetaValue("scan_id", native_id);
+      map.push_back(cf);
+    }
+    PeptideIdentificationList ids;
+    for (const auto& reference : references)
+    {
+      PeptideIdentification id;
+      id.setIdentifier("run");
+      id.setRT(100.0);
+      id.setMZ(500.0);
+      id.setSpectrumReference(reference);
+      id.insertHit(PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE")));
+      ids.push_back(id);
+    }
+    std::vector<ProteinIdentification> proteins(1);
+    proteins[0].setIdentifier("run");
+    proteins[0].setPrimaryMSRunPath({"tmt.mzML"});
+    IDMapper().annotate(map, ids, proteins);
+    return map;
+  };
+
+  // The scan number is taken from the native ID (this aborted with a ParseError before).
+  ConsensusMap thermo = annotate({"controllerType=0 controllerNumber=1 scan=42", "controllerType=0 controllerNumber=1 scan=43"},
+                                 {"43", "42"});
+  TEST_EQUAL(thermo[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(thermo[0].getPeptideIdentifications()[0].getSpectrumReference(), "42")
+  TEST_EQUAL(thermo[1].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(thermo[1].getPeptideIdentifications()[0].getSpectrumReference(), "43")
+
+  // A WIFF native ID's scan number is cycle * 1000 + experiment, not its last number:
+  // reference "1" must not be attached to the spectrum with experiment=1.
+  ConsensusMap wiff = annotate({"sample=1 period=1 cycle=96 experiment=1", "sample=1 period=1 cycle=97 experiment=2"},
+                               {"96001", "1"});
+  TEST_EQUAL(wiff[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(wiff[0].getPeptideIdentifications()[0].getSpectrumReference(), "96001")
+  TEST_EQUAL(wiff[1].getPeptideIdentifications().size(), 0)
+}
+END_SECTION
+
 START_SECTION([EXTRA] bool isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const)
   IDMapper2 mapper;
   TEST_EQUAL(mapper.isMatch2_(1, 1000, 1000.001), true)
@@ -664,5 +716,8 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
 
 END_TEST

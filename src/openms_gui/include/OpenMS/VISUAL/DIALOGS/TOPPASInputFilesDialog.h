@@ -52,9 +52,6 @@ private:
     Ui::TOPPASInputFilesDialogTemplate* ui_;
     Internal::InputFileList* ifl_;
   };
-  
-}
 
-// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a TOPPASInputFilesDialog member
-using TOPPASInputFilesDialog = OpenMS::TOPPASInputFilesDialog;
+}
 

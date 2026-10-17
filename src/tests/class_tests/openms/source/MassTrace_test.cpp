@@ -79,12 +79,12 @@ PeakType tmp_peak6 = fillPeak(158.238, 230.10254, 339.0);
 peak_vec.push_back(tmp_peak6);
 peak_lst.push_back(tmp_peak6);
 
-String si, sm, sr;
+std::string si, sm, sr;
 for (Size i = 0; i<peak_vec.size(); ++i)
 {
-  si += ", " + String(peak_vec[i].getIntensity());
-  sm += ", " + String(peak_vec[i].getMZ());
-  sr += ", " + String(peak_vec[i].getRT());
+  si += ", " + StringUtils::toStr(peak_vec[i].getIntensity());
+  sm += ", " + StringUtils::toStr(peak_vec[i].getMZ());
+  sr += ", " + StringUtils::toStr(peak_vec[i].getRT());
 }
 std::cout << sr << "\n" << sm << "\n" << si << "\n\n";
 
@@ -291,19 +291,19 @@ END_SECTION
 
 /////
 
-START_SECTION((String getLabel() const ))
+START_SECTION((std::string getLabel() const ))
 {
-  const String test_mt_label = test_mt.getLabel();
+  const std::string test_mt_label = test_mt.getLabel();
   TEST_EQUAL(test_mt_label, "");
 }
 END_SECTION
 
 /////
 
-START_SECTION((void setLabel(const String& label)))
+START_SECTION((void setLabel(const std::string& label)))
 {
   test_mt.setLabel("TEST_TRACE");
-  String test_mt_label = test_mt.getLabel();
+  std::string test_mt_label = test_mt.getLabel();
 
   TEST_EQUAL(test_mt_label, "TEST_TRACE");
 }
@@ -325,7 +325,7 @@ START_SECTION((double getCentroidRT() const ))
 {
   MassTrace test_mt_const(test_mt);
   double test_mt_cent_rt = test_mt_const.getCentroidRT();
-  TEST_REAL_SIMILAR(test_mt_cent_rt, 155.214671250425);
+  TEST_REAL_SIMILAR(test_mt_cent_rt, 155.209843462245);
 }
 END_SECTION
 
@@ -482,7 +482,7 @@ test_mt2.updateWeightedMeanMZ();
 START_SECTION((double getFWHM() const))
 {
   double test_mt_fwhm = test_mt.getFWHM();
-  TEST_REAL_SIMILAR(test_mt_fwhm, 3.05481743986255);
+  TEST_REAL_SIMILAR(test_mt_fwhm, 2.16656743986252);
 }
 END_SECTION
                                          
@@ -571,13 +571,48 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
   double test_fwhm1 = test_mt.estimateFWHM(false);
   double test_fwhm2 = test_mt.estimateFWHM(true);
 
-  TEST_REAL_SIMILAR(test_fwhm1, 3.07921244222942);
-  TEST_REAL_SIMILAR(test_fwhm2, 3.05481743986255);
+  TEST_REAL_SIMILAR(test_fwhm1, 2.15250939241199);
+  TEST_REAL_SIMILAR(test_fwhm2, 2.16656743986252);
+
+  // a symmetric trace must have symmetric half-maximum crossings around its apex
+  // (regression test: the right flank used to pair each RT with the other point's
+  // intensity, mirroring the right crossing about the midpoint of its bracket)
+  std::vector<PeakType> sym_peaks;
+  double sym_ints[5] = {10.0, 60.0, 100.0, 60.0, 10.0};
+  for (Size i = 0; i < 5; ++i)
+  {
+    sym_peaks.push_back(fillPeak((double)i, 230.1, sym_ints[i]));
+  }
+  MassTrace sym_mt(sym_peaks);
+  // half max is 50, crossed at 0.8 on the left and (symmetrically) at 3.2 on the right
+  TEST_REAL_SIMILAR(sym_mt.estimateFWHM(false), 2.4);
+
+  // an asymmetric trace: the right flank crosses 50 between x=3 (80) and x=4 (40),
+  // i.e. at 3.75, so the FWHM is 3.75 - 0.8
+  std::vector<PeakType> asym_peaks;
+  double asym_ints[5] = {10.0, 60.0, 100.0, 80.0, 40.0};
+  for (Size i = 0; i < 5; ++i)
+  {
+    asym_peaks.push_back(fillPeak((double)i, 230.1, asym_ints[i]));
+  }
+  MassTrace asym_mt(asym_peaks);
+  TEST_REAL_SIMILAR(asym_mt.estimateFWHM(false), 2.95);
+
+  // trace that never drops below half max on the right -> no interpolation there,
+  // the last RT is used instead
+  std::vector<PeakType> open_peaks;
+  double open_ints[5] = {10.0, 60.0, 100.0, 100.0, 100.0};
+  for (Size i = 0; i < 5; ++i)
+  {
+    open_peaks.push_back(fillPeak((double)i, 230.1, open_ints[i]));
+  }
+  MassTrace open_mt(open_peaks);
+  TEST_REAL_SIMILAR(open_mt.estimateFWHM(false), 3.2);
 }
 END_SECTION
 
 /////
-START_SECTION(static MT_QUANTMETHOD getQuantMethod(const String& val))
+START_SECTION(static MT_QUANTMETHOD getQuantMethod(const std::string& val))
   
   TEST_EQUAL(MassTrace::getQuantMethod("area"), MassTrace::MT_QUANT_AREA)
   TEST_EQUAL(MassTrace::getQuantMethod("median"), MassTrace::MT_QUANT_MEDIAN)
@@ -726,7 +761,26 @@ START_SECTION((void updateWeightedMeanRT()))
   TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMeanRT());
 
   test_mt.updateWeightedMeanRT();
-  TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.214671250425);
+  TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.209843462245);
+
+  // every peak has to contribute, the first one included: a two-point trace carrying almost
+  // all of its intensity on the first peak must have its centroid next to that peak. The
+  // weights used to be the RT distance to the predecessor, starting at the second peak, which
+  // dropped peak 0 and always returned the RT of the second peak here (see issue #2777)
+  std::vector<PeakType> two_peak_vec;
+  two_peak_vec.push_back(fillPeak(100.0, 230.1, 1000.0));
+  two_peak_vec.push_back(fillPeak(105.0, 230.1, 10.0));
+  MassTrace two_peak_mt(two_peak_vec);
+  two_peak_mt.updateWeightedMeanRT();
+  TEST_REAL_SIMILAR(two_peak_mt.getCentroidRT(), 100.04950495049505); // (1000*100 + 10*105) / 1010
+
+  // a trace without any intensity has no weights to go by and falls back to the mean RT
+  std::vector<PeakType> flat_vec;
+  flat_vec.push_back(fillPeak(100.0, 230.1, 0.0));
+  flat_vec.push_back(fillPeak(104.0, 230.1, 0.0));
+  MassTrace flat_mt(flat_vec);
+  flat_mt.updateWeightedMeanRT();
+  TEST_REAL_SIMILAR(flat_mt.getCentroidRT(), 102.0);
 }
 END_SECTION
 

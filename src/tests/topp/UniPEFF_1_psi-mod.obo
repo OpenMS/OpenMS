@@ -1,0 +1,21 @@
+format-version: 1.2
+ontology: mod
+remark: Minimal PSI-MOD subset for the UniPEFF test fixture (only the accessions referenced by
+remark: comprehensive.xml). The full vocabulary lives at
+remark: https://raw.githubusercontent.com/HUPO-PSI/psi-mod-CV/master/PSI-MOD.obo
+
+[Term]
+id: MOD:00046
+name: O-phospho-L-serine
+
+[Term]
+id: MOD:00047
+name: O-phospho-L-threonine
+
+[Term]
+id: MOD:00798
+name: half cystine
+
+[Term]
+id: MOD:00999
+name: S-palmitoyl-L-cysteine

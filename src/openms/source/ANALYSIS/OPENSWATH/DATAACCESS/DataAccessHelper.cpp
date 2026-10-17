@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -157,19 +158,19 @@ namespace OpenMS
       // legacy
 #if 1
       const auto& cv_terms = transition.getCVTerms();
-      if (cv_terms.find("decoy") != cv_terms.end() && cv_terms.at("decoy")[0].getValue().toString() == "1" )
+      if (cv_terms.contains("decoy") && cv_terms.at("decoy")[0].getValue().toString() == "1" )
       {
         t.setDecoy(true);
       }
-      else if (cv_terms.find("MS:1002007") != cv_terms.end())    // target SRM transition
+      else if (cv_terms.contains("MS:1002007"))    // target SRM transition
       {
         t.setDecoy(false);
       }
-      else if (cv_terms.find("MS:1002008") != cv_terms.end())    // decoy SRM transition
+      else if (cv_terms.contains("MS:1002008"))    // decoy SRM transition
       {
         t.setDecoy(true);
       }
-      else if (cv_terms.find("MS:1002007") != cv_terms.end() && cv_terms.find("MS:1002008") != cv_terms.end())    // both == illegal
+      else if (cv_terms.contains("MS:1002007") && cv_terms.contains("MS:1002008"))    // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
@@ -243,17 +244,17 @@ namespace OpenMS
 
     if (pep.metaValueExists("GeneName"))
     {
-      p.gene_name = (std::string)pep.getMetaValue("GeneName");
+      p.gene_name = StringUtils::toStr(pep.getMetaValue("GeneName"));
     }
 
     // Is it potentially a metabolomics compound
     if (pep.metaValueExists("SumFormula"))
     {
-      p.sum_formula = (std::string)pep.getMetaValue("SumFormula");
+      p.sum_formula = StringUtils::toStr(pep.getMetaValue("SumFormula"));
     }
     if (pep.metaValueExists("CompoundName"))
     {
-      p.compound_name = (std::string)pep.getMetaValue("CompoundName");
+      p.compound_name = StringUtils::toStr(pep.getMetaValue("CompoundName"));
     }
 
     p.protein_refs.clear();
@@ -277,7 +278,7 @@ namespace OpenMS
       if (aa_sequence.hasCTerminalModification())
       {
         const ResidueModification& rmod = *(aa_sequence.getCTerminalModification());
-        light_mod.location = boost::numeric_cast<int>(aa_sequence.size());
+        light_mod.location = checkedCast<int>(aa_sequence.size());
         light_mod.unimod_id = rmod.getUniModRecordId();
         p.modifications.push_back(light_mod);
       }
@@ -287,7 +288,7 @@ namespace OpenMS
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
           const ResidueModification& rmod = *(aa_sequence.getResidue(i).getModification());
-          light_mod.location = boost::numeric_cast<int>(i);
+          light_mod.location = checkedCast<int>(i);
           light_mod.unimod_id = rmod.getUniModRecordId();
           p.modifications.push_back(light_mod);
         }
@@ -338,7 +339,7 @@ namespace OpenMS
     comp.sum_formula = (std::string)compound.molecular_formula;
     if (compound.metaValueExists("CompoundName"))
     {
-      comp.compound_name = (std::string)compound.getMetaValue("CompoundName");
+      comp.compound_name = StringUtils::toStr(compound.getMetaValue("CompoundName"));
     }
   }
 
@@ -352,8 +353,8 @@ namespace OpenMS
       if (it.unimod_id != -1)
       {
         TargetedExperimentHelper::setModification(it.location,
-                                                  int(peptide.sequence.size()),
-                                                  "UniMod:" + String(it.unimod_id), aa_sequence);
+                                                  int(aa_sequence.size()),
+                                                  "UniMod:" + StringUtils::toStr(it.unimod_id), aa_sequence);
       }
     }
   }

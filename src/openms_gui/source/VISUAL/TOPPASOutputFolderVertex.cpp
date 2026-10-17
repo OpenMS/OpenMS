@@ -34,7 +34,7 @@ namespace OpenMS
     return std::make_unique<TOPPASOutputFolderVertex>(*this);
   }
 
-  String TOPPASOutputFolderVertex::getName() const
+  std::string TOPPASOutputFolderVertex::getName() const
     {
       return "OutputFolderVertex";
     }
@@ -72,7 +72,7 @@ namespace OpenMS
       return;
     }
 
-    String full_dir = createOutputDir(); // create output dir
+    std::string full_dir = createOutputDir(); // create output dir
 
     round_total_ = (int) pkg.size(); // take number of rounds from previous tool(s) - should all be equal
     round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
@@ -98,12 +98,12 @@ namespace OpenMS
           OPENMS_LOG_ERROR << "The directory '" << fromQString(src_dir) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, src_dir.toStdString());
         }
-        String new_dir = full_dir;
+        std::string new_dir = full_dir;
         // if its only one round, do not create a subfolder
         if (round_total_ > 1)
         { // the previous TOPP tool node should have placed all files in a subfolder for each round. Use that name
-          String last_subfolder = fromQString(QDir(src_dir).dirName());
-          new_dir += last_subfolder.ensureLastChar('/');
+          std::string last_subfolder = fromQString(QDir(src_dir).dirName());
+          new_dir += StringUtils::ensureLastChar(last_subfolder, '/');
         }
         output_files_[round][param_index_me].filenames.push_back(toQString(new_dir));
         // find number of files in 'src_dir'
@@ -111,7 +111,7 @@ namespace OpenMS
         auto nr_of_files = dir.entryInfoList(QDir::Files).size();
         if (!dry_run && nr_of_files == 0)
         { 
-          String msg = "Output directory '" + fromQString(e->getSourceOutParamName()) + "' did not yield any files!";
+          std::string msg = "Output directory '" + fromQString(e->getSourceOutParamName()) + "' did not yield any files!";
           if (ts->isGUIMode()) 
           {
             QMessageBox::warning(nullptr, tr("No files found"), toQString(msg), QMessageBox::Ok);
@@ -138,12 +138,12 @@ namespace OpenMS
         round_counter_ = (int)round; // for global update, in case someone asks
         for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
         {
-          String dir_from = fromQString(pkg[round][param_index_src].filenames[i]);
-          String dir_to   = fromQString(output_files_[round][param_index_me].filenames[i]);
+          std::string dir_from = fromQString(pkg[round][param_index_src].filenames[i]);
+          std::string dir_to   = fromQString(output_files_[round][param_index_me].filenames[i]);
           // create the output directory (if it does not exist)
           if (!File::makeDir(dir_to))
           {
-              String msg = "Could not create output directory '" + dir_to + "' for node '"
+              std::string msg = "Could not create output directory '" + dir_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' . Please make sure the path is writable.";
               OPENMS_LOG_ERROR << msg << std::endl;
               if (ts->isGUIMode())
@@ -158,12 +158,12 @@ namespace OpenMS
           const auto& src_files_to_copy = QDir(toQString(dir_from)).entryInfoList(QDir::Files);
           for (const auto& src_file : src_files_to_copy)
           {
-            String file_from = fromQString(src_file.absoluteFilePath());
-            String file_to = dir_to + '/' + fromQString(src_file.fileName());
+            std::string file_from = fromQString(src_file.absoluteFilePath());
+            std::string file_to = dir_to + '/' + fromQString(src_file.fileName());
             if (File::exists(file_to) // someone may have deleted the file in the meantime, which is fine
               && !QFile::remove(toQString(file_to))) // remove old file (would fail if file does not exist)
             {
-              String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
+              std::string msg = "Error: Could not remove old output file '" + file_to + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName()
                            + "' in preparation to write the new one. Please make sure the file is not open in other applications and try again.";
               OPENMS_LOG_ERROR << msg << std::endl;
@@ -190,7 +190,7 @@ namespace OpenMS
             }
             else
             {
-              String msg = "Error: Could not copy temporary output file '" + file_from + "' for node '"
+              std::string msg = "Error: Could not copy temporary output file '" + file_from + "' for node '"
                            + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + file_to
                            + "'. Probably the old file still exists (see earlier errors).";
               OPENMS_LOG_ERROR << msg << std::endl;

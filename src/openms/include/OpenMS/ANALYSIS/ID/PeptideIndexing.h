@@ -11,8 +11,8 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/StringUtilsSimple.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -59,8 +59,10 @@ namespace OpenMS
   (This is independent of ambiguous matching via @p aaa_max.)
   Additionally, setting this flag will convert all 'J's in any protein sequence to 'I'. This way, no tolerant search is required for 'J' (but is still possible for all
   the other ambiguous amino acids).
-  If @p write_protein_sequences is requested and @p IL_equivalent is set as well, both the I/L-version and unmodified protein sequences need to be stored internally.
-  This requires some extra memory, roughly equivalent to the size of the FASTA database file itself.
+  The I/L substitution is only applied to the sequences which are searched. Enzyme specificity (see below) and the reported flanking residues
+  are always evaluated on the original, unmodified protein sequence. This matters for enzymes which distinguish between 'I' and 'L',
+  e.g. Chymotrypsin cleaves after 'L', but not after 'I' -- substituting beforehand would destroy valid cleavage sites (and invent bogus ones).
+  Keeping the original sequence around requires a small amount of extra memory (one protein per thread, and only if @p IL_equivalent is set).
 
   Enzyme specificity:
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
@@ -171,7 +173,7 @@ public:
     ExitCodes run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /// Which string is used to determine if a protein is a decoy or not
-    const String& getDecoyString() const;
+    const std::string& getDecoyString() const;
 
     /// Is the decoy string position a prefix or suffix?
     bool isPrefix() const;
@@ -181,11 +183,11 @@ public:
 
     template<typename T> ExitCodes run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
-    String decoy_string_{};
+    std::string decoy_string_{};
     bool prefix_{ false };
     MissingDecoy missing_decoy_action_ = MissingDecoy::IS_ERROR;
-    String enzyme_name_{};
-    String enzyme_specificity_{};
+    std::string enzyme_name_{};
+    std::string enzyme_specificity_{};
 
     bool write_protein_sequence_{ false };
     bool write_protein_description_{ false };

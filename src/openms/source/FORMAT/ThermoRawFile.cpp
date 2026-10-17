@@ -1,5 +1,5 @@
-// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
-// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU
+// Berlin SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -10,191 +10,273 @@
 
 #ifdef WITH_THERMO_RAW
 
-#include <OpenMS/FORMAT/ThermoRawFile.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/METADATA/SourceFile.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <filesystem>
-
-#include <openms_thermo_bridge/thermo_bridge.hpp>
-#include <openms_thermo_bridge/cv_mapping.hpp>
+  #include <OpenMS/CONCEPT/Exception.h>
+  #include <OpenMS/FORMAT/HANDLERS/ThermoRawScanReader.h>
+  #include <OpenMS/FORMAT/ThermoRawFile.h>
+  #include <OpenMS/KERNEL/MSChromatogram.h>
+  #include <OpenMS/KERNEL/MSSpectrum.h>
+  #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+  #include <algorithm>
+  #include <cmath>
+  #include <deque>
+  #include <exception>
+  #include <limits>
+  #include <string>
+  #include <vector>
 
 namespace OpenMS
 {
+namespace
+{
+  using ScanInfo = Internal::ThermoRawScanReader::ScanInfo;
 
-  void ThermoRawFile::load(const String& path, MSExperiment& exp)
+  using Selection = Internal::ThermoRawScanSelection;
+
+  /// Copies of the most recent converted spectra that later scans can reference as parent.
+  class ParentCache
   {
-    // Loaders are expected to populate the output experiment from scratch.
-    exp = MSExperiment();
+  public:
+    explicit ParentCache(Size capacity) : capacity_(capacity) {}
 
-    if (!File::exists(path))
+    const MSSpectrum* find(int scan) const
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
+      for (const auto& [number, spectrum] : entries_)
+      {
+        if (number == scan) { return &spectrum; }
+      }
+      return nullptr;
     }
 
-    std::filesystem::path raw_path(static_cast<std::string>(path));
-
-    try
+    /// Keep the peaks of @p spectrum (the estimate needs nothing else); the oldest entry is evicted.
+    void add(int scan, const MSSpectrum& spectrum)
     {
-      openms::thermo_bridge::RawFile raw(raw_path);
+      if (capacity_ == 0) { return; }
+      if (entries_.size() >= capacity_) { entries_.pop_front(); }
+      entries_.emplace_back(scan, MSSpectrum());
+      MSSpectrum& copy = entries_.back().second;
+      copy.reserve(spectrum.size());
+      copy.insert(copy.end(), spectrum.begin(), spectrum.end());
+    }
 
-      // --- Source file metadata ---
-      SourceFile src;
-      src.setNameOfFile(raw_path.filename().string());
-      src.setPathToFile(raw_path.parent_path().string());
-      src.setFileType("Thermo RAW format");
-      src.setNativeIDType("Thermo nativeID format");
-      src.setNativeIDTypeAccession("MS:1000768"); // Thermo nativeID format
-      exp.getSourceFiles().push_back(src);
+  private:
+    Size capacity_;
+    std::deque<std::pair<int, MSSpectrum>> entries_;
+  };
+} // namespace
 
-      // --- Instrument metadata ---
+void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
+{
+  exp = MSExperiment();
+  const Selection select{options_};
+  try
+  {
+    Internal::ThermoRawScanReader reader(path, options_);
+    reader.fillSettings(exp);
+    if (reader.hasMSData())
+    {
+      const int first = reader.firstScan(), last = reader.lastScan();
+      // Converted spectrum of each scan (for the precursor intensity estimate), -1 if not loaded.
+      std::vector<SignedSize> index_by_scan(static_cast<Size>(std::max(0, last - first + 1)), -1);
+      const Internal::ThermoRawScanReader::ParentLookup parent = [&](int scan) -> const MSSpectrum* {
+        if (scan < first || scan > last) { return nullptr; }
+        const SignedSize index = index_by_scan[scan - first];
+        return index < 0 ? nullptr : &exp[index];
+      };
+      const bool header_filtered = select.headerFiltered();
+      if (! header_filtered && options_.first_scan <= first) { exp.reserve(last - first + 1); }
+      MSChromatogram tic;
+      bool complete = true; // all headers read, so the TIC can be built from them
+      const bool prefetch_peaks = ! header_filtered && ! options_.metadata_only;
+      reader.readAhead(select.lastScan(last),
+                       prefetch_peaks ? options_.first_scan : std::numeric_limits<int>::max());
+      startProgress(first, last, "Loading Thermo RAW file");
+      for (int scan = first; scan <= last; ++scan)
       {
-        const std::string model = raw.instrument_model();
-        if (!model.empty())
+        // Scans of one controller are in acquisition order, so no later scan can be selected.
+        if (options_.last_scan > 0 && scan > options_.last_scan)
         {
-          exp.getInstrument().setName(raw.instrument_name());
-          exp.getInstrument().setModel(model);
-          exp.getInstrument().setCustomizations(raw.instrument_serial_number());
+          complete = false;
+          break;
         }
-      }
-
-      // --- Read spectra ---
-      const int scan_count = raw.scan_count();
-      const int first_scan = raw.first_scan_number();
-      const int last_scan = raw.last_scan_number();
-
-      OPENMS_LOG_INFO << "ThermoRawFile: reading " << scan_count << " scans from "
-                      << raw_path.filename().string() << "\n";
-
-      setProgress(0);
-      startProgress(first_scan, last_scan, "Loading Thermo RAW file");
-
-      exp.reserve(scan_count);
-
-      for (int scan = first_scan; scan <= last_scan; ++scan)
-      {
         setProgress(scan);
-
+        // Without header-based filters every scan from first_scan on is converted, so its peaks
+        // are read together with the header.
+        const bool prefetch = prefetch_peaks && scan >= options_.first_scan;
+        const auto& info = reader.header(scan, prefetch);
+        if (! options_.skip_chromatograms) { tic.push_back(ChromatogramPeak(info.rt, info.tic)); }
+        if (select.beyondRT(info))
+        {
+          complete = false;
+          break;
+        }
+        if (! select.selected(info)) { continue; }
         MSSpectrum spectrum;
-
-        // RT in seconds (bridge returns minutes)
-        const double rt_minutes = raw.retention_time(scan);
-        spectrum.setRT(rt_minutes * 60.0);
-
-        // MS level
-        const int ms_level = raw.ms_level(scan);
-        spectrum.setMSLevel(ms_level);
-
-        // Native ID
-        spectrum.setNativeID("scan=" + std::to_string(scan));
-
-        // Centroid / profile
-        const bool centroid = raw.is_centroid_scan(scan);
-        spectrum.setType(centroid ? SpectrumSettings::SpectrumType::CENTROID : SpectrumSettings::SpectrumType::PROFILE);
-
-        // Polarity — Thermo PolarityType enum: Positive = 1, Negative = 2, Any = 0
-        const int polarity = raw.polarity(scan);
-        if (polarity == 1)
-        {
-          spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::POSITIVE);
-        }
-        else if (polarity == 2)
-        {
-          spectrum.getInstrumentSettings().setPolarity(IonSource::Polarity::NEGATIVE);
-        }
-
-        // Scan filter as comment
-        const std::string filter = raw.scan_filter(scan);
-        if (!filter.empty())
-        {
-          spectrum.setComment(filter);
-        }
-
-        // Precursor info for MSn
-        if (ms_level > 1)
-        {
-          Precursor prec;
-          const double prec_mz = raw.precursor_mass(scan);
-          if (prec_mz > 0.0)
-          {
-            prec.setMZ(prec_mz);
-          }
-          const int charge = raw.precursor_charge(scan);
-          if (charge != 0)
-          {
-            prec.setCharge(charge);
-          }
-          const double ce = raw.collision_energy(scan);
-          if (ce > 0.0)
-          {
-            // Map activation type string to OpenMS activation method
-            const std::string act_type = raw.activation_type(scan);
-            if (act_type == "CID" || act_type == "CollisionInducedDissociation")
-            {
-              prec.getActivationMethods().insert(Precursor::ActivationMethod::CID);
-            }
-            else if (act_type == "HCD" || act_type == "HigherEnergyCollisionalDissociation")
-            {
-              prec.getActivationMethods().insert(Precursor::ActivationMethod::HCD);
-            }
-            else if (act_type == "ETD" || act_type == "ElectronTransferDissociation")
-            {
-              prec.getActivationMethods().insert(Precursor::ActivationMethod::ETD);
-            }
-            else if (act_type == "ECD" || act_type == "ElectronCaptureDissociation")
-            {
-              prec.getActivationMethods().insert(Precursor::ActivationMethod::ECD);
-            }
-            else if (!act_type.empty())
-            {
-              OPENMS_LOG_WARN << "ThermoRawFile: unknown activation type '" << act_type
-                              << "' for scan " << scan << ", defaulting to CID\n";
-              prec.getActivationMethods().insert(Precursor::ActivationMethod::CID);
-            }
-            prec.setActivationEnergy(ce);
-          }
-          const double iso_width = raw.isolation_width(scan);
-          if (iso_width > 0.0)
-          {
-            prec.setIsolationWindowLowerOffset(iso_width / 2.0);
-            prec.setIsolationWindowUpperOffset(iso_width / 2.0);
-          }
-          spectrum.getPrecursors().push_back(prec);
-        }
-
-        // Read spectrum data (prefer centroided data for centroid scans)
-        auto data = raw.spectrum_data(scan, centroid);
-
-        // Populate peaks
-        spectrum.resize(data.mz.size());
-        for (size_t i = 0; i < data.mz.size(); ++i)
-        {
-          spectrum[i].setMZ(data.mz[i]);
-          spectrum[i].setIntensity(static_cast<Peak1D::IntensityType>(data.intensities[i]));
-        }
-
+        reader.convert(spectrum, exp, parent, ! options_.metadata_only);
+        index_by_scan[scan - first] = exp.size();
         exp.addSpectrum(std::move(spectrum));
       }
-
       endProgress();
-
-      // Sort by RT
-      exp.sortSpectra(true);
-      exp.updateRanges();
-
-      OPENMS_LOG_INFO << "ThermoRawFile: loaded " << exp.size() << " spectra\n";
+      reader.addInstrumentConfigurations(exp);
+      if (! options_.skip_chromatograms)
+      {
+        if (! complete) { tic = reader.ticChromatogram(); }
+        else
+        {
+          tic.setNativeID("TIC");
+          tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+          tic.getDataProcessing().push_back(reader.dataProcessing());
+        }
+        if (! tic.empty()) { exp.addChromatogram(std::move(tic)); }
+      }
     }
-    catch (const openms::thermo_bridge::bridge_error& e)
+    if (options_.all_detectors)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path, String("Thermo bridge error: ") + e.what());
+      std::vector<MSChromatogram> chromatograms;
+      std::vector<MSSpectrum> spectra;
+      reader.readDetectors(chromatograms, spectra);
+      if (! options_.skip_chromatograms)
+      {
+        for (auto& chromatogram : chromatograms)
+        {
+          exp.addChromatogram(std::move(chromatogram));
+        }
+      }
+      if (select.level(0))
+      {
+        for (auto& spectrum : spectra)
+        {
+          if (! select.rt(spectrum.getRT())) { continue; }
+          if (options_.metadata_only) { spectrum.clear(false); }
+          exp.addSpectrum(std::move(spectrum));
+        }
+      }
     }
+    // MS scans come in acquisition order; only interleaved PDA spectra need sorting by RT.
+    const auto& spectra = exp.getSpectra();
+    if (! std::is_sorted(spectra.begin(), spectra.end(), MSSpectrum::RTLess())) { exp.sortSpectra(false); }
+    exp.updateRanges();
   }
+  catch (const Exception::FileNotFound&)
+  {
+    throw;
+  }
+  catch (const std::exception& error)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::string("Thermo RAW reader: ") + error.what());
+  }
+}
+
+void ThermoRawFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer)
+{
+  if (consumer == nullptr) { throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
+  const Selection select{options_};
+  try
+  {
+    Internal::ThermoRawScanReader reader(path, options_);
+    ExperimentalSettings settings;
+    reader.fillSettings(settings);
+    const bool has_ms = reader.hasMSData();
+    const int first = has_ms ? reader.firstScan() : 0;
+    const int last = has_ms ? select.lastScan(reader.lastScan()) : -1;
+
+    // Header pass: count the selected scans and register the instrument configurations, both
+    // of which the consumer needs before the first spectrum (e.g. for the mzML header).
+    Size spectra_count = 0, chromatogram_count = 0;
+    int max_level = 0;
+    if (has_ms)
+    {
+      reader.scanHeaders(first, last, select.precursorFiltered(), [&](const ScanInfo& info) {
+        max_level = std::max(max_level, info.ms_level);
+        if (select.beyondRT(info)) { return false; }
+        if (select.selected(info)) { ++spectra_count; }
+        return true;
+      });
+      reader.addInstrumentConfigurations(settings);
+      if (! options_.skip_chromatograms) { ++chromatogram_count; }
+    }
+    std::vector<MSChromatogram> detector_chromatograms;
+    std::vector<MSSpectrum> pda_spectra;
+    if (options_.all_detectors)
+    {
+      reader.readDetectors(detector_chromatograms, pda_spectra);
+      if (options_.skip_chromatograms) { detector_chromatograms.clear(); }
+      if (! select.level(0)) { pda_spectra.clear(); }
+      pda_spectra.erase(std::remove_if(pda_spectra.begin(), pda_spectra.end(), [&](const MSSpectrum& spectrum) { return ! select.rt(spectrum.getRT()); }),
+                        pda_spectra.end());
+      std::stable_sort(pda_spectra.begin(), pda_spectra.end(), MSSpectrum::RTLess());
+      if (options_.metadata_only)
+      {
+        for (auto& spectrum : pda_spectra) { spectrum.clear(false); }
+      }
+      spectra_count += pda_spectra.size();
+      chromatogram_count += detector_chromatograms.size();
+    }
+    consumer->setExpectedSize(spectra_count, chromatogram_count);
+    consumer->setExperimentalSettings(settings);
+
+    if (has_ms)
+    {
+      // Recent parent candidates (all scans below the highest MS level); a parent that is not
+      // kept is decoded again by the reader, so the estimate does not depend on the capacity.
+      ParentCache parents(options_.metadata_only ? 0 : 32);
+      const Internal::ThermoRawScanReader::ParentLookup parent = [&parents](int scan) { return parents.find(scan); };
+      const bool header_filtered = select.headerFiltered();
+      MSChromatogram tic;
+      bool complete = last == reader.lastScan(); // all headers read, so the TIC can be built from them
+      const bool prefetch_peaks = ! header_filtered && ! options_.metadata_only;
+      reader.readAhead(last, prefetch_peaks ? options_.first_scan : std::numeric_limits<int>::max());
+      startProgress(first, last, "Streaming Thermo RAW file");
+      for (int scan = first; scan <= last; ++scan)
+      {
+        setProgress(scan);
+        const bool prefetch = prefetch_peaks && scan >= options_.first_scan;
+        const ScanInfo& info = reader.header(scan, prefetch);
+        if (! options_.skip_chromatograms) { tic.push_back(ChromatogramPeak(info.rt, info.tic)); }
+        if (select.beyondRT(info))
+        {
+          complete = false;
+          break;
+        }
+        if (! select.selected(info)) { continue; }
+        MSSpectrum spectrum;
+        reader.convert(spectrum, settings, parent, ! options_.metadata_only);
+        if (info.ms_level < max_level) { parents.add(scan, spectrum); }
+        consumer->consumeSpectrum(spectrum);
+      }
+      endProgress();
+      for (auto& spectrum : pda_spectra) { consumer->consumeSpectrum(spectrum); }
+      pda_spectra.clear();
+      if (! options_.skip_chromatograms)
+      {
+        if (! complete) { tic = reader.ticChromatogram(); }
+        else
+        {
+          tic.setNativeID("TIC");
+          tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+          tic.getDataProcessing().push_back(reader.dataProcessing());
+        }
+        if (! tic.empty()) { consumer->consumeChromatogram(tic); }
+      }
+    }
+    else
+    {
+      for (auto& spectrum : pda_spectra) { consumer->consumeSpectrum(spectrum); }
+    }
+    for (auto& chromatogram : detector_chromatograms) { consumer->consumeChromatogram(chromatogram); }
+  }
+  catch (const Exception::FileNotFound&)
+  {
+    throw;
+  }
+  catch (const Exception::BaseException&)
+  {
+    throw; // e.g. from the consumer
+  }
+  catch (const std::exception& error)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::string("Thermo RAW reader: ") + error.what());
+  }
+}
 
 } // namespace OpenMS
-
 #endif // WITH_THERMO_RAW

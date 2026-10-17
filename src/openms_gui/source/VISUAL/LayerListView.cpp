@@ -79,7 +79,7 @@ namespace OpenMS
       if (is_1d_view)
       {
         QPixmap icon(7, 7);
-        icon.fill(QColor(toQString(String(layer.param.getValue("peak_color").toString()))));
+        icon.fill(QColor(toQString(std::string(layer.param.getValue("peak_color").toString()))));
         item->setIcon(icon);
       }
       else

@@ -10,6 +10,9 @@ Tests cover:
 - Edge cases (empty spectra, missing data)
 """
 
+import os
+import sys
+
 import pytest
 import numpy as np
 
@@ -505,6 +508,40 @@ class TestPeptideIdentificationListGetDF:
         df = peptide_id_list.to_df(decode_ontology=False)
         assert len(df) == 2
 
+    def test_to_df_decode_ontology_names_cv_terms(self):
+        """Test that to_df() and df_columns() name PSI-MS accession meta values by their term."""
+        obo = os.path.join(pyopenms.File.getOpenMSDataPath(), 'CV', 'psi-ms.obo')
+        if not os.path.exists(obo):
+            pytest.skip('psi-ms.obo is not installed')
+        hit = pyopenms.PeptideHit()
+        hit.setScore(50.0)
+        hit.setCharge(2)
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit.setMetaValue('MS:1002252', 1.5)
+        pep = pyopenms.PeptideIdentification()
+        pep.setIdentifier('test_id')
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.append(pep)
+
+        assert 'Comet:xcorr' in pep_list.to_df().columns
+        assert 'Comet:xcorr' in pep_list.df_columns()
+        assert 'MS:1002252' in pep_list.to_df(decode_ontology=False).columns
+
+    def test_df_columns_empty_score_type(self):
+        """Test that df_columns() names the score of an empty score type as to_df() does."""
+        hit = pyopenms.PeptideHit()
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        pep = pyopenms.PeptideIdentification()
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.append(pep)
+
+        cols = pep_list.df_columns()
+        assert cols == list(pep_list.to_df().columns)
+        # the columns select the score instead of dropping it
+        assert list(pep_list.to_df(columns=cols).columns) == cols
+
     def test_to_df_custom_missing_values(self, peptide_id_list_with_unidentified):
         """Test to_df() with custom default_missing_values."""
         custom_missing = {bool: False, int: 0, float: 0.0, str: 'N/A'}
@@ -619,6 +656,24 @@ class TestBackwardCompatibility:
         assert 'intensity' in df.columns
 
 
+def test_msexperiment_to_arrow_falls_back_without_the_zero_copy_module(monkeypatch):
+    """Without pyopenms._arrow_zerocopy, to_arrow() warns and exports in Python.
+
+    A local 'import warnings' in another branch of to_arrow() made the name local to the
+    whole function, so this fallback raised UnboundLocalError instead."""
+    pytest.importorskip("pyarrow")
+    monkeypatch.setitem(sys.modules, "pyopenms._arrow_zerocopy", None)  # the import raises
+    spectrum = pyopenms.MSSpectrum()
+    spectrum.setMSLevel(1)
+    spectrum.setRT(1.0)
+    spectrum.set_peaks(([100.0, 200.0], [5.0, 6.0]))
+    exp = pyopenms.MSExperiment()
+    exp.addSpectrum(spectrum)
+    with pytest.warns(UserWarning, match="_arrow_zerocopy"):
+        table = exp.to_arrow()
+    assert table.num_rows == 2
+
+
 class TestMSExperimentUnifiedToArrow:
     """Tests for the unified MSExperiment.to_arrow() interface."""
 
@@ -657,8 +712,12 @@ class TestMSExperimentUnifiedToArrow:
         # Add chromatogram
         chrom = pyopenms.MSChromatogram()
         chrom.setNativeID('TIC')
-        chrom.getPrecursor().setMZ(500.0)
-        chrom.getProduct().setMZ(200.0)
+        chrom_prec = pyopenms.Precursor()
+        chrom_prec.setMZ(500.0)
+        chrom.setPrecursor(chrom_prec)
+        chrom_prod = pyopenms.Product()
+        chrom_prod.setMZ(200.0)
+        chrom.setProduct(chrom_prod)
         rts = np.array([10.0, 20.0, 30.0], dtype=np.float64)
         ints_c = np.array([100.0, 200.0, 150.0], dtype=np.float32)
         chrom.set_peaks([rts, ints_c])
@@ -1146,8 +1205,9 @@ class TestBugFixes:
         assert len(df) == 2
         # First feature should have the native_id
         assert df.iloc[0]['ID_native_id'] == 'scan=100'
-        # Second feature should have 'None' string (numpy converts None to string due to U100 dtype)
-        assert df.iloc[1]['ID_native_id'] == 'None'
+        # Second feature has no spectrum_native_id meta value: exported as null
+        import pandas as pd
+        assert pd.isna(df.iloc[1]['ID_native_id'])
 
 
 class TestFeatureMapColumnSelection:
@@ -1199,6 +1259,118 @@ class TestFeatureMapColumnSelection:
 
         assert 'feature_id' in cols
         assert 'custom_score' in cols
+
+
+class TestFeatureMapPeptideDataFrame:
+    """to_peptide_df() links the assigned PeptideIdentifications to to_df() by feature_id."""
+
+    # above the int64 range, so it only fits the frame as uint64
+    LARGE_ID = 18446744073709551557
+
+    @classmethod
+    def _feature_map(cls, ids=None, annotated=False, score_type='q-value'):
+        """Three features; the last has a PeptideIdentification without hits.
+
+        annotated: the hits carry feature_id as text, as 3.5.0's
+        get_assigned_peptide_identifications() added it.
+        score_type: the score type of every PeptideIdentification.
+        """
+        fmap = pyopenms.FeatureMap()
+        prot = pyopenms.ProteinIdentification()
+        prot.setIdentifier('run1')
+        prot.setPrimaryMSRunPath(['run1.mzML'])
+        fmap.setProteinIdentifications([prot])
+        ids = ids or (cls.LARGE_ID, 7, 9)
+        for unique_id, native_id, identified in zip(ids, ('scan=1', None, 'scan=3'), (True, True, False)):
+            f = pyopenms.Feature()
+            f.setUniqueId(unique_id)
+            if native_id is not None:
+                f.setMetaValue('spectrum_native_id', native_id)
+            pep = pyopenms.PeptideIdentification()
+            pep.setIdentifier('run1')
+            pep.setScoreType(score_type)
+            if identified:
+                hit = pyopenms.PeptideHit()
+                hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+                if annotated:
+                    hit.setMetaValue('feature_id', str(unique_id))
+                pep.setHits([hit])
+            peps = pyopenms.PeptideIdentificationList()
+            peps.push_back(pep)
+            f.setPeptideIdentifications(peps)
+            fmap.push_back(f)
+        return fmap
+
+    def test_assigned_identifications_are_returned_unchanged(self):
+        """get_assigned_peptide_identifications() returns the hits as stored."""
+        fmap = self._feature_map()
+        peps = fmap.get_assigned_peptide_identifications()
+        assert len(peps) == 3
+        # 3.5.0 added these meta values to every hit; 3.6 leaves the hits as stored
+        for key in ('feature_id', 'ID_native_id', 'ID_filename'):
+            assert not peps[0].getHits()[0].metaValueExists(key)
+        assert not fmap[0].getPeptideIdentifications()[0].getHits()[0].metaValueExists('feature_id')
+
+    def test_rows_carry_the_feature_id(self):
+        """Each row carries the ID of its feature as uint64."""
+        fmap = self._feature_map()
+        df = fmap.to_peptide_df()
+        assert list(df.columns[:1]) == ['feature_id']
+        assert df['feature_id'].dtype == 'uint64'
+        assert list(df['feature_id']) == [self.LARGE_ID, 7, 9]
+        # P_ID is the position in get_assigned_peptide_identifications()
+        assert list(df['P_ID']) == [0, 1, 2]
+        identified = fmap.to_peptide_df(export_unidentified=False)
+        assert list(identified['feature_id']) == [self.LARGE_ID, 7]
+        assert list(identified['P_ID']) == [0, 1]
+
+    def test_merge_with_feature_frame(self):
+        """The frame merges and joins with to_df() on feature_id."""
+        import pandas as pd
+        fmap = self._feature_map()
+        merged = pd.merge(fmap.to_df().reset_index(), fmap.to_peptide_df(export_unidentified=False),
+                          on='feature_id', suffixes=('', '_psm'))
+        assert len(merged) == 2
+        assert set(merged['feature_id']) == {self.LARGE_ID, 7}
+        joined = fmap.to_df().join(fmap.to_peptide_df().set_index('feature_id'), rsuffix='_psm')
+        assert len(joined) == 3
+
+    def test_small_ids_are_uint64_too(self):
+        """to_df() uses uint64 even when every ID fits into int64."""
+        # pandas infers int64 when every ID fits. The frames of two maps would then
+        # concatenate to a float64 index, which rounds the IDs.
+        import pandas as pd
+        fmap = self._feature_map(ids=(5, 7, 9))
+        assert fmap.to_df().index.dtype == 'uint64'
+        assert fmap.to_peptide_df()['feature_id'].dtype == 'uint64'
+        both = pd.concat([fmap.to_df(), self._feature_map().to_df()])
+        assert both.index.dtype == 'uint64'
+        assert list(both.index) == [5, 7, 9, self.LARGE_ID, 7, 9]
+
+    def test_columns(self):
+        """peptide_df_columns() lists the columns of to_peptide_df()."""
+        for score_type in ('q-value', ''):
+            fmap = self._feature_map(score_type=score_type)
+            cols = fmap.peptide_df_columns()
+            assert cols == list(fmap.to_peptide_df().columns)
+            assert list(fmap.to_peptide_df(columns=cols).columns) == cols
+        assert list(fmap.to_peptide_df(columns=['id', 'feature_id']).columns) == ['feature_id', 'id']
+
+    def test_feature_id_meta_value_gives_way(self):
+        """A feature_id meta value on the hits gives way to the ID of the feature."""
+        fmap = self._feature_map(annotated=True)
+        df = fmap.to_peptide_df()
+        assert list(df.columns).count('feature_id') == 1
+        assert df['feature_id'].dtype == 'uint64'
+        assert list(df['feature_id']) == [self.LARGE_ID, 7, 9]
+        assert fmap.peptide_df_columns() == list(df.columns)
+
+    def test_empty_map(self):
+        """An empty map gives an empty frame whose feature_id is uint64."""
+        df = pyopenms.FeatureMap().to_peptide_df()
+        assert len(df) == 0
+        assert df.columns[0] == 'feature_id'
+        assert df['feature_id'].dtype == 'uint64'
 
 
 class TestConsensusMapColumnSelection:
@@ -1303,3 +1475,286 @@ class TestMSExperimentDFColumnSelection:
         assert 'ms_level' in cols
         assert 'mz_array' in cols
         assert 'intensity_array' in cols
+
+
+class TestStringColumnsNotTruncated:
+    """String columns are exported with the object dtype instead of fixed-width unicode
+    fields ('U100', 'U1000', ...), so long values are no longer silently truncated (#8583)."""
+
+    def test_peptide_identification_list_long_strings(self):
+        """Identifier > 100 chars, accession list > 1000 chars and a long string meta value survive."""
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep = pyopenms.PeptideIdentification()
+        pep.setRT(1.0)
+        pep.setMZ(2.0)
+        pep.setScoreType('Mascot')
+        long_id = 'identifier_' + 'x' * 200
+        pep.setIdentifier(long_id)
+
+        hit = pyopenms.PeptideHit()
+        hit.setScore(1.0)
+        hit.setCharge(2)
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit.setMetaValue('long_meta', 'm' * 300)
+        evidences = []
+        accessions = []
+        for i in range(60):
+            ev = pyopenms.PeptideEvidence()
+            acc = f'sp|P{i:05d}|PROTEIN_HUMAN'
+            ev.setProteinAccession(acc)
+            ev.setStart(i)
+            ev.setEnd(i + 7)
+            evidences.append(ev)
+            accessions.append(acc)
+        hit.setPeptideEvidences(evidences)
+        pep.setHits([hit])
+        pep_list.append(pep)
+
+        df = pep_list.to_df()
+
+        expected_accessions = ','.join(accessions)
+        assert len(expected_accessions) > 1000
+        assert df.loc[0, 'id'] == long_id
+        assert df.loc[0, 'protein_accession'] == expected_accessions
+        assert df.loc[0, 'start'] == ','.join(str(i) for i in range(60))
+        assert df.loc[0, 'end'] == ','.join(str(i + 7) for i in range(60))
+        assert df.loc[0, 'long_meta'] == 'm' * 300
+
+    def test_spectrum_long_strings(self):
+        """native_id, string meta values and string data arrays keep their full length."""
+        spec = pyopenms.MSSpectrum()
+        long_native_id = 'controllerType=0 controllerNumber=1 scan=' + '9' * 200
+        spec.setNativeID(long_native_id)
+        spec.setMetaValue('long_meta', 'm' * 300)
+        spec.set_peaks([np.array([100.0, 200.0]), np.array([1.0, 2.0], dtype=np.float32)])
+        sda = pyopenms.StringDataArray()
+        sda.setName('IonNames')
+        sda.push_back('b' * 150)
+        sda.push_back('y2+')
+        spec.setStringDataArrays([sda])
+
+        df = spec.to_df()
+        assert df.loc[0, 'native_id'] == long_native_id
+        assert df.loc[0, 'long_meta'] == 'm' * 300
+        assert df.loc[0, 'ion_annotation'] == 'b' * 150
+        assert df.loc[1, 'ion_annotation'] == 'y2+'
+
+        df = spec.to_df(columns=['mz', 'string_array:IonNames'])
+        assert df.loc[0, 'string_array:IonNames'] == 'b' * 150
+
+    def test_chromatogram_long_strings(self):
+        """native_id and comment keep their full length."""
+        chrom = pyopenms.MSChromatogram()
+        long_native_id = 'chrom_' + 'c' * 200
+        chrom.setNativeID(long_native_id)
+        chrom.setComment('comment ' * 50)
+        chrom.setMetaValue('long_meta', 'm' * 300)
+        chrom.set_peaks([np.array([1.0, 2.0]), np.array([1.0, 2.0], dtype=np.float32)])
+
+        df = chrom.to_df(columns=['rt', 'native_id', 'comment', 'long_meta'])
+        assert df.loc[0, 'native_id'] == long_native_id
+        assert df.loc[0, 'comment'] == 'comment ' * 50
+        assert df.loc[0, 'long_meta'] == 'm' * 300
+
+    def test_consensus_map_missing_sequence_is_null(self):
+        """A consensus feature without peptide identification exports a null sequence,
+        not the string 'None' that the fixed-width dtype used to produce."""
+        import pandas as pd
+        cmap = pyopenms.ConsensusMap()
+        cf = pyopenms.ConsensusFeature()
+        cf.setRT(1.0)
+        cf.setMZ(2.0)
+        cf.setCharge(2)
+        cmap.push_back(cf)
+
+        df = cmap.get_metadata_df()
+        assert len(df) == 1
+        assert pd.isna(df['sequence'].iloc[0])
+
+    def test_mrm_feature_df_long_strings_and_missing_meta_value(self):
+        """to_feature_df keeps long string meta values and exports a missing one as null."""
+        import pandas as pd
+        tg = pyopenms.MRMTransitionGroupCP()
+        f1 = pyopenms.MRMFeature()
+        f1.setRT(10.0)
+        f1.setIntensity(5.0)
+        f1.setOverallQuality(0.9)
+        f1.setUniqueId(7)
+        f1.setMetaValue('PeptideRef', 'PEP_' + 'x' * 150)
+        f1.setMetaValue('custom', 'c' * 80)
+        tg.addFeature(f1)
+        f2 = pyopenms.MRMFeature()
+        f2.setRT(11.0)
+        f2.setIntensity(6.0)
+        f2.setOverallQuality(0.8)
+        f2.setUniqueId(8)
+        tg.addFeature(f2)
+
+        df = tg.to_feature_df(meta_values=[b'PeptideRef', 'custom'])
+        assert df.loc[7, 'PeptideRef'] == 'PEP_' + 'x' * 150
+        assert df.loc[7, 'custom'] == 'c' * 80
+        assert pd.isna(df.loc[8, 'PeptideRef'])
+        assert pd.isna(df.loc[8, 'custom'])
+
+    def test_consensus_intensity_df_long_file_name(self):
+        """The 'file' column of the labelled long-format export is not cut at 300 characters."""
+        cmap = pyopenms.ConsensusMap()
+        cmap.setExperimentType('labeled_MS1')
+        long_file = '/data/' + 'f' * 350 + '.mzML'
+        headers = cmap.getColumnHeaders()
+        for i, label in enumerate(['light', 'heavy']):
+            h = pyopenms.ColumnHeader()
+            h.filename = long_file
+            h.label = label
+            h.size = 1
+            headers[i] = h
+        cmap.setColumnHeaders(headers)
+        cf = pyopenms.ConsensusFeature()
+        cf.setUniqueId(1)
+        for i, intensity in enumerate([10.0, 20.0]):
+            fh = pyopenms.FeatureHandle()
+            fh.setMapIndex(i)
+            fh.setIntensity(intensity)
+            cf.insert(fh)
+        cmap.push_back(cf)
+
+        df = cmap.get_intensity_df()
+        assert df['file'].iloc[0] == long_file
+
+    def test_mobilogram_drift_time_unit(self):
+        """drift_time_unit is exported as a plain string column."""
+        mob = pyopenms.Mobilogram()
+        mob.setRT(5.0)
+        p = pyopenms.MobilityPeak1D()
+        p.setMobility(1.0)
+        p.setIntensity(2.0)
+        mob.push_back(p)
+        df = mob.to_df()
+        assert isinstance(df['drift_time_unit'].iloc[0], str)
+
+    def test_empty_exports_keep_string_type(self):
+        """Empty spectra/chromatograms still produce string-typed columns, so they concatenate
+        with non-empty ones in pandas and Arrow instead of collapsing to object/null."""
+        import pandas as pd
+        empty = pyopenms.MSSpectrum()
+        empty.setNativeID('scan=1')
+        full = pyopenms.MSSpectrum()
+        full.setNativeID('scan=2')
+        full.set_peaks([np.array([100.0]), np.array([1.0], dtype=np.float32)])
+
+        both = pd.concat([empty.to_df(), full.to_df()])
+        assert both['native_id'].dtype == full.to_df()['native_id'].dtype
+        assert list(both['native_id']) == ['scan=2']
+
+        empty_chrom = pyopenms.MSChromatogram()
+        empty_chrom.setNativeID('c1')
+        assert empty_chrom.to_df(columns=['rt', 'native_id', 'comment']).shape == (0, 3)
+
+        pa = pytest.importorskip('pyarrow')
+        assert empty.to_arrow().schema.field('native_id').type == pa.string()
+        table = pa.concat_tables([empty.to_arrow(), full.to_arrow()])
+        assert table.column('native_id').to_pylist() == ['scan=2']
+
+    def test_mixed_type_meta_value_is_exported_as_str(self):
+        """A meta value that is a str in one hit and an int in another gives a plain string
+        column (as the fixed-width dtype used to), so Arrow export still works."""
+        pep_list = pyopenms.PeptideIdentificationList()
+        for value in ['abc', 7]:
+            pep = pyopenms.PeptideIdentification()
+            pep.setRT(1.0)
+            pep.setMZ(2.0)
+            pep.setScoreType('Mascot')
+            pep.setIdentifier('id')
+            hit = pyopenms.PeptideHit()
+            hit.setScore(1.0)
+            hit.setCharge(2)
+            hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+            hit.setMetaValue('mixed', value)
+            pep.setHits([hit])
+            pep_list.append(pep)
+
+        df = pep_list.to_df()
+        assert list(df['mixed']) == ['abc', '7']
+
+        pa = pytest.importorskip('pyarrow')
+        # to_arrow() goes through to_df(), so the column carries the pandas str dtype,
+        # which pyarrow-backed pandas (>= 3) stores as large_string.
+        assert pep_list.to_arrow().schema.field('mixed').type == pa.large_string()
+
+    def test_mrm_feature_df_typed_meta_values_by_str_and_bytes_name(self):
+        """Known numeric meta values get their numeric dtype whether requested as str, as bytes
+        or discovered via meta_values='all' (the type table used to match bytes names only)."""
+        tg = pyopenms.MRMTransitionGroupCP()
+        f = pyopenms.MRMFeature()
+        f.setRT(10.0)
+        f.setIntensity(5.0)
+        f.setOverallQuality(0.9)
+        f.setUniqueId(3)
+        f.setMetaValue('FWHM', 3.5)
+        f.setMetaValue('PeptideRef', 'PEP_1')
+        tg.addFeature(f)
+
+        for meta_values in ('all', ['FWHM', 'PeptideRef'], [b'FWHM', b'PeptideRef']):
+            df = tg.to_feature_df(meta_values=meta_values)
+            assert df['FWHM'].dtype == np.float32, meta_values
+            assert df.loc[3, 'FWHM'] == pytest.approx(3.5)
+            assert df.loc[3, 'PeptideRef'] == 'PEP_1'
+
+    def test_feature_map_missing_id_columns_are_null(self):
+        """A feature whose peptide identification has no matching ProteinIdentification and no
+        spectrum_native_id meta value gets null ID_filename / ID_native_id, not 'unknown' / 'None'."""
+        import pandas as pd
+        fmap = pyopenms.FeatureMap()
+        f = pyopenms.Feature()
+        f.setRT(1.0)
+        f.setMZ(2.0)
+        f.setUniqueId(11)
+        pep = pyopenms.PeptideIdentification()
+        pep.setIdentifier('run_without_protein_id')
+        hit = pyopenms.PeptideHit()
+        hit.setSequence(pyopenms.AASequence.fromString('PEPTIDE'))
+        hit.setScore(0.5)
+        pep.setHits([hit])
+        pep_list = pyopenms.PeptideIdentificationList()
+        pep_list.push_back(pep)
+        f.setPeptideIdentifications(pep_list)
+        fmap.push_back(f)
+
+        df = fmap.to_df()
+        assert df.loc[11, 'peptide_sequence'] == 'PEPTIDE'
+        assert pd.isna(df.loc[11, 'ID_filename'])
+        assert pd.isna(df.loc[11, 'ID_native_id'])
+
+    def test_mrm_feature_df_missing_int_meta_value_promotes_to_float(self):
+        """An integer meta value missing on one feature yields a float column with NaN
+        instead of raising when the NaN is written into an integer field."""
+        import pandas as pd
+        tg = pyopenms.MRMTransitionGroupCP()
+        f1 = pyopenms.MRMFeature()
+        f1.setRT(1.0)
+        f1.setIntensity(1.0)
+        f1.setOverallQuality(0.5)
+        f1.setUniqueId(1)
+        f1.setMetaValue('spectrum_index', 42)
+        tg.addFeature(f1)
+        f2 = pyopenms.MRMFeature()
+        f2.setRT(2.0)
+        f2.setIntensity(2.0)
+        f2.setOverallQuality(0.6)
+        f2.setUniqueId(2)
+        tg.addFeature(f2)
+
+        for meta_values in ('all', ['spectrum_index']):
+            df = tg.to_feature_df(meta_values=meta_values)
+            assert df['spectrum_index'].dtype == np.float64
+            assert df.loc[1, 'spectrum_index'] == 42
+            assert pd.isna(df.loc[2, 'spectrum_index'])
+
+        # present on every feature: stays integer
+        f2.setMetaValue('spectrum_index', 43)
+        tg2 = pyopenms.MRMTransitionGroupCP()
+        tg2.addFeature(f1)
+        tg2.addFeature(f2)
+        df = tg2.to_feature_df(meta_values=['spectrum_index'])
+        assert df['spectrum_index'].dtype == np.int32
+        assert list(df['spectrum_index']) == [42, 43]

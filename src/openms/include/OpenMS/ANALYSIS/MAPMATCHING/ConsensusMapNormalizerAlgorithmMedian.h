@@ -11,6 +11,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
 
+#include <map>
+
 namespace OpenMS
 {
 
@@ -50,17 +52,22 @@ public:
      * @param[in] acc_filter string describing the regular expression for filtering accessions
      * @param[in] desc_filter string describing the regular expression for filtering descriptions
      */
-    static void normalizeMaps(ConsensusMap & map, NormalizationMethod method, const String& acc_filter, const String& desc_filter);
+    static void normalizeMaps(ConsensusMap & map, NormalizationMethod method, const std::string& acc_filter, const std::string& desc_filter);
 
     /**
      * @brief computes medians of all maps and returns index of map with most features
+     *
+     * The maps are numbered by their position among the column headers (see mapPositions_()); for maps
+     * numbered 0 ... N-1 this is the map index.
+     *
      * @param[in] map ConsensusMap
-     * @param[out] medians vector of medians to be filled
+     * @param[out] medians vector of medians to be filled, one per map (by position)
      * @param[in] acc_filter string describing the regular expression for filtering accessions
      * @param[in] desc_filter string describing the regular expression for filtering descriptions
-     * @return index of map with largest number of features
+     * @return position of the map with the largest number of features (ColumnHeader::size)
+     * @exception Exception::ElementNotFound if a feature handle's map index has no column header
      */
-    static Size computeMedians(const ConsensusMap & map, std::vector<double> & medians, const String& acc_filter, const String& desc_filter);
+    static Size computeMedians(const ConsensusMap & map, std::vector<double> & medians, const std::string& acc_filter, const std::string& desc_filter);
 
     /**
      * @brief returns whether consensus feature passes filters
@@ -71,7 +78,25 @@ public:
      * @param[in] acc_filter string describing the regular expression for filtering accessions
      * @param[in] desc_filter string describing the regular expression for filtering descriptions
      */
-    static bool passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const String& acc_filter, const String& desc_filter);
+    static bool passesFilters_(ConsensusMap::ConstIterator cf_it, const ConsensusMap& map, const std::string& acc_filter, const std::string& desc_filter);
+
+    /**
+     * @brief Position of every map index among the column headers of @p map (in map index order)
+     *
+     * Map indices need not be consecutive: FileFilter keeps them when it extracts maps (-consensus:map).
+     * The per-map vectors of the normalization algorithms are therefore indexed by these positions.
+     * For maps numbered 0 ... N-1 the position is the map index.
+     *
+     * @param[in] map consensus map
+     * @return map index -> position
+     */
+    static std::map<UInt64, Size> mapPositions_(const ConsensusMap& map);
+
+    /**
+     * @brief Position of @p map_index in @p positions (from mapPositions_())
+     * @exception Exception::ElementNotFound if @p map_index has no column header
+     */
+    static Size mapPosition_(const std::map<UInt64, Size>& positions, UInt64 map_index);
   };
 
 } // namespace OpenMS

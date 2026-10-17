@@ -7,7 +7,7 @@
 # the config file raises a FATAL_ERROR (which QUIET cannot suppress).
 #
 # Instead we always do a manual header+library search, which works on all
-# platforms (apt, brew, conda, vcpkg, contrib).
+# platforms (apt, brew, conda, vcpkg).
 
 find_path(LIBZIP_INCLUDE_DIR
   NAMES zip.h

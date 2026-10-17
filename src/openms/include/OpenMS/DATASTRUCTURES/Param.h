@@ -67,6 +67,20 @@ public:
 
       /// Check if 'value' fulfills restrictions
       bool isValid(std::string& message) const;
+      /**
+        @brief Is this entry a boolean parameter?
+
+        OpenMS has no boolean value type. A boolean parameter is a scalar string parameter whose
+        valid strings are exactly the two values "true" and "false", in either order.
+        The current value is not considered: a boolean parameter stays boolean after it was set to "true".
+
+        Not boolean are: string lists, unrestricted "true"/"false" strings, single-value restrictions
+        and restrictions that allow further values (e.g. "auto,true,false").
+
+        @note Whether a boolean parameter is a command-line flag (given without a value) or an option
+              taking a value is decided by TOPPBase at registration time, not by this function.
+      */
+      bool isBool() const;
       /// Equality operator (only name and value are compared)
       bool operator==(const ParamEntry& rhs) const;
 
@@ -263,7 +277,7 @@ protected:
     /**
       @brief Sets a value.
 
-      @param[in] key String key. Can contain ':' which separates section names
+      @param[in] key std::string key. Can contain ':' which separates section names
       @param[in] value The actual value
       @param[in] description Verbose description of the parameter
       @param[in] tags list of tags associated to this parameter
@@ -515,6 +529,9 @@ protected:
     //@{
     /**
       @brief Insert all values of @p defaults and adds the prefix @p prefix, if the values are not already set.
+
+      Values that are already set are kept. If both the existing entry and the default are
+      strings (or string lists), the existing entry takes the default's valid strings.
 
       @param[in] defaults The default values.
       @param[in] prefix The prefix to add to all defaults.

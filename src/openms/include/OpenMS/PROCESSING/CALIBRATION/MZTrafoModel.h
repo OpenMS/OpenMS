@@ -269,12 +269,12 @@ namespace OpenMS
     void setCoefficients(double intercept, double slope, double power);
 
     /**
-      @brief String representation of the model parameters.
+      @brief std::string representation of the model parameters.
 
       Empty if model is not trained.
 
     */
-    String toString() const;
+    std::string toString() const;
 
   }; // MZTrafoModel
 

@@ -10,7 +10,7 @@
 #include <functional>
 #include <algorithm>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h>
@@ -49,7 +49,7 @@ namespace OpenMS::ims
           return cit;
         }
       }
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + " was not found in IMSAlphabet!", String(name));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + " was not found in IMSAlphabet!",std::string(name));
     }
 
     void IMSAlphabet::setElement(const name_type & name, mass_type mass, bool forced)

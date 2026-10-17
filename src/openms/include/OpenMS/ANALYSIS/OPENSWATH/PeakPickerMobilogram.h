@@ -209,7 +209,7 @@ namespace OpenMS
         /// Whether to use Gaussian smoothing
         bool use_gauss_;
         /// Whether to resolve overlapping peaks
-        bool remove_overlapping_;
+        bool remove_overlapping_ = false;
 
         /// Forced peak with
         double peak_width_;
@@ -223,7 +223,7 @@ namespace OpenMS
         /// Whether to write out log messages of the SN estimator
         bool write_sn_log_messages_;
         /// Peak picker method
-        String method_;
+        std::string method_;
 
         PeakPickerHiRes pp_;
         SavitzkyGolayFilter sgolay_;

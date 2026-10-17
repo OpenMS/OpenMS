@@ -71,6 +71,10 @@ START_SECTION((double operator()(const BinnedSpectrum &spec1, const BinnedSpectr
   // compare to self
   score = (*ptr)(bs1, bs1);
   TEST_REAL_SIMILAR(score, 1)
+
+  // incompatible binning must throw (regression: the precondition was a no-op in release builds)
+  BinnedSpectrum bs3(s1, 2.0, false, 2, 0); // different bin size -> incompatible
+  TEST_EXCEPTION(Exception::IllegalArgument, (*ptr)(bs1, bs3))
 }
 END_SECTION
 

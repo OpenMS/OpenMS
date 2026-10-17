@@ -378,7 +378,7 @@ START_SECTION(Size getIndexWithMedianNovoHits_(const std::vector<SuitabilityData
 }
 END_SECTION
 
-START_SECTION(double getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, String score_name, bool higher_score_better) const)
+START_SECTION(double getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, std::string score_name, bool higher_score_better) const)
 {
   PeptideHit hit1;
   hit1.setScore(0.01);

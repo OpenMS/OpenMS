@@ -72,8 +72,12 @@ namespace OpenMS
         @brief Constructor
 
         @param[out] filename Filename for the output mzML
+
+        @exception Exception::UnableToCreateFile if @p filename ends in a compression suffix
+        (.gz, .bz2 or .zip): the consumer writes uncompressed mzML only. Use MzMLFile::store()
+        for gzip or bzip2 output.
       */
-      explicit MSDataWritingConsumer(const String& filename);
+      explicit MSDataWritingConsumer(const std::string& filename);
 
       /// Destructor
       ~MSDataWritingConsumer() override;
@@ -86,15 +90,24 @@ namespace OpenMS
         @param[in] exp Experimental settings to be used for this file (from this
           and the first spectrum/chromatogram, the class will deduce most of
           the header of the mzML file)
+
+        If no spectrum or chromatogram follows, the file closes as an mzML
+        document of the run without spectra and chromatograms, as
+        MzMLFile::store() writes one (without this call: an empty file).
       */
       void setExperimentalSettings(const ExperimentalSettings& exp) override;
 
       /**
         @brief Set expected size of spectra and chromatograms to be written.
 
-        These numbers will be written in the spectrumList and chromatogramList
-        tag in the mzML file. Therefore, these will contain wrong numbers if
-        the expected size is not set correctly.
+        These numbers are written in the spectrumList and chromatogramList
+        tag of the mzML file when the first spectrum / chromatogram arrives.
+        If another number of spectra was written in the end, the spectrumList
+        tag is corrected when the file is closed (in place: it is padded with
+        blanks if the number is shorter; a number with more digits than the
+        one in the tag does not fit, and the tag then keeps that number).
+        The count of the chromatogramList is not corrected: it will be wrong
+        if the expected number of chromatograms is.
 
         @param[in] expectedSpectra Number of spectra expected
         @param[in] expectedChromatograms Number of chromatograms expected
@@ -170,6 +183,9 @@ namespace OpenMS
 
     protected:
 
+      /// Writes the count of the spectrumList tag and what follows it in the tag
+      void writeSpectrumCount_(Size count, Size padding);
+
       /// File stream (to write mzML)
       std::ofstream ofs_;
 
@@ -187,6 +203,12 @@ namespace OpenMS
       Size spectra_expected_;
       /// Number of chromatograms expected
       Size chromatograms_expected_;
+      /// Where the count of the spectrumList tag was written (-1: not written)
+      std::streamoff spectra_count_pos_ = -1;
+      /// The count written into the spectrumList tag (the number of spectra expected then)
+      Size spectra_count_written_ = 0;
+      /// Whether setExperimentalSettings() was called: then a file is written even if no spectrum or chromatogram is
+      bool settings_set_ = false;
       /// Whether to add dataprocessing term to the data before writing
       bool add_dataprocessing_;
 
@@ -218,7 +240,7 @@ namespace OpenMS
 
     public:
 
-      explicit PlainMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      explicit PlainMSDataWritingConsumer(std::string filename) : MSDataWritingConsumer(filename) {}
     };
 
     /**
@@ -233,7 +255,7 @@ namespace OpenMS
     {
     public:
 
-      explicit NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      explicit NoopMSDataWritingConsumer(std::string filename) : MSDataWritingConsumer(filename) {}
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {}
       void consumeSpectrum(SpectrumType & /* s */) override {}
       void consumeChromatogram(ChromatogramType & /* c */) override {}

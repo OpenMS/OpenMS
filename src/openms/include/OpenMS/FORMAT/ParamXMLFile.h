@@ -35,7 +35,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String& filename, const Param& param) const;
+    void store(const std::string& filename, const Param& param) const;
 
     /**
       @brief Write XML to output stream.
@@ -54,7 +54,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be found
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, Param& param);
+    void load(const std::string& filename, Param& param);
   };
 
 } // namespace OpenMS

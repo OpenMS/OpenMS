@@ -17,9 +17,11 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <sstream>
+#include <vector>
 #include <map>
 #include <unordered_set>
 #include <functional>
@@ -48,7 +50,7 @@ START_SECTION(~EmpiricalFormula())
   delete e_ptr;
 END_SECTION
 
-START_SECTION(EmpiricalFormula(const String& rhs))
+START_SECTION(EmpiricalFormula(const std::string& rhs))
   // adding spaces and tabs to test sanitizeIfNotValidFormula.
   // test succeeds when sanitizeIfNotValidFormula has removed
   // all spaces, tabs and newlines from the provided formula
@@ -94,7 +96,7 @@ START_SECTION(const Element* getElement(UInt rounded_mass) const)
   TEST_EQUAL(e->getSymbol(), "C")
 END_SECTION
 
-START_SECTION(const Element* getElement(const String& name) const)
+START_SECTION(const Element* getElement(const std::string& name) const)
   const Element* e = db->getElement("C");
   TEST_EQUAL(e->getSymbol(), "C")
 END_SECTION
@@ -113,13 +115,24 @@ START_SECTION(SignedSize getNumberOfAtoms() const)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator<(const EmpiricalFormula& rhs))
-  // operator< compares pointers so this only works for same elements
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
 
   TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C4H2"), false)
   TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
+
+  // different elements: by atomic number, not by the addresses of the Element objects
+  TEST_EQUAL(EmpiricalFormula("H2") < EmpiricalFormula("C2"), true)
+  TEST_EQUAL(EmpiricalFormula("C2") < EmpiricalFormula("H2"), false)
+  TEST_EQUAL(EmpiricalFormula("C") < EmpiricalFormula("(13)C"), true)
+  std::vector<Element> elements(2); // elements[0] has the lower address and the higher atomic number
+  elements[0].setAtomicNumber(8);
+  elements[0].setSymbol("O");
+  elements[1].setAtomicNumber(1);
+  elements[1].setSymbol("H");
+  TEST_EQUAL(EmpiricalFormula(1, &elements[1]) < EmpiricalFormula(1, &elements[0]), true)
+  TEST_EQUAL(EmpiricalFormula(1, &elements[0]) < EmpiricalFormula(1, &elements[1]), false)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator=(const EmpiricalFormula& rhs))
@@ -246,6 +259,41 @@ START_SECTION(bool isCharged() const)
   TEST_EQUAL(e_ptr->isCharged(), false)
 END_SECTION
 
+START_SECTION(EmpiricalFormula& addChargeAdduct(Int count, const std::string& adduct))
+  // adds 'count' adduct atoms and resets the charge to 0
+  EmpiricalFormula ef("C6H12O6");
+  EmpiricalFormula& ret = ef.addChargeAdduct(2);
+  TEST_EQUAL(&ret, &ef) // returns *this for chaining
+  TEST_EQUAL(ef.getCharge(), 0)
+  TEST_EQUAL(ef.getNumberOf(db->getElement("H")), 14) // 12 + 2 H added
+  TEST_EQUAL(ef, EmpiricalFormula("C6H14O6"))
+
+  // the mono weight after addChargeAdduct(q) matches a neutral formula with q extra H atoms,
+  // i.e. the composition the isotope generators used to build implicitly for a charge of q
+  EmpiricalFormula neutral("C6H12O6");
+  EmpiricalFormula explicitly_charged = neutral;
+  explicitly_charged.addChargeAdduct(2);
+  TEST_REAL_SIMILAR(explicitly_charged.getMonoWeight(), EmpiricalFormula("C6H14O6").getMonoWeight())
+
+  // non-default adduct and negative count (removing adducts)
+  EmpiricalFormula na("C6H12O6");
+  na.addChargeAdduct(1, "Na");
+  TEST_EQUAL(na.getNumberOf(db->getElement("Na")), 1)
+  TEST_EQUAL(na.getCharge(), 0)
+
+  EmpiricalFormula deprot("C6H12O6");
+  deprot.addChargeAdduct(-1); // remove one H (e.g. modeling a [M-H] type composition)
+  TEST_EQUAL(deprot.getNumberOf(db->getElement("H")), 11)
+
+  // migrating an already-charged formula: the charge is unconditionally reset to 0, so 'count'
+  // must be passed explicitly (typically getCharge()) to obtain a consistent neutral composition
+  EmpiricalFormula charged("C6H12O6");
+  charged.setCharge(2);
+  charged.addChargeAdduct(charged.getCharge()); // pass the existing charge explicitly
+  TEST_EQUAL(charged.getCharge(), 0)
+  TEST_EQUAL(charged.getNumberOf(db->getElement("H")), 14)
+END_SECTION
+
 START_SECTION(double getAverageWeight() const)
   EmpiricalFormula ef("C2");
   const Element* e = db->getElement("C");
@@ -342,11 +390,11 @@ START_SECTION(double getLightestIsotopeWeight() const)
   TEST_REAL_SIMILAR(ef.getLightestIsotopeWeight(), ef.getMonoWeight() - Constants::NEUTRON_MASS_U * 3)
 END_SECTION
 
-START_SECTION(String toString() const)
+START_SECTION(std::string toString() const)
   EmpiricalFormula ef("C2H5");
-  String str = ef.toString();
-  TEST_EQUAL(String(str).hasSubstring("H5"), true)
-  TEST_EQUAL(String(str).hasSubstring("C2"), true)
+  std::string str = ef.toString();
+  TEST_EQUAL(StringUtils::hasSubstring(std::string(str), "H5"), true)
+  TEST_EQUAL(StringUtils::hasSubstring(std::string(str), "C2"), true)
 END_SECTION
 
 START_SECTION((std::map<std::string, int> toMap() const))
@@ -360,8 +408,8 @@ START_SECTION([EXTRA](friend std::ostream& operator<<(std::ostream&, const Empir
   stringstream ss;
   EmpiricalFormula ef("C2H5");
   ss << ef;
-  TEST_EQUAL(String(ss.str()).hasSubstring("H5"), true);
-  TEST_EQUAL(String(ss.str()).hasSubstring("C2"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(ss.str(), "H5"), true);
+  TEST_EQUAL(StringUtils::hasSubstring(ss.str(), "C2"), true);
 END_SECTION
 
 START_SECTION(bool operator!=(const EmpiricalFormula& rhs) const)
@@ -385,7 +433,7 @@ END_SECTION
 
 START_SECTION(ConstIterator begin() const)
   EmpiricalFormula ef("C6H12O6");
-  std::map<String, SignedSize> formula;
+  std::map<std::string, SignedSize> formula;
   formula["C"] = 6;
   formula["H"] = 12;
   formula["O"] = 6;
@@ -397,6 +445,30 @@ END_SECTION
 
 START_SECTION(ConstIterator end() const)
   NOT_TESTABLE
+END_SECTION
+
+START_SECTION(([EXTRA] the elements are iterated in order of atomic number, an element before its isotopes))
+  auto symbols = [](const EmpiricalFormula& ef)
+  {
+    std::vector<std::string> result;
+    for (const auto& element : ef) result.push_back(element.first->getSymbol());
+    return ListUtils::concatenate(result, " ");
+  };
+  TEST_EQUAL(symbols(EmpiricalFormula("SO(13)CN(2)HCHP(15)N(12)C")), "H (2)H C (12)C (13)C N (15)N O P S")
+  TEST_EQUAL(symbols(EmpiricalFormula("C2H5") + EmpiricalFormula("D")), "H (2)H C")
+
+  // the order (and so the weight, summed in this order) does not depend on the addresses of the Element objects
+  std::vector<Element> elements(3); // in order of address: atomic numbers 8, 6, 1
+  const std::vector<std::pair<unsigned int, std::string>> numbers_symbols{{8, "O"}, {6, "C"}, {1, "H"}};
+  for (Size i = 0; i < elements.size(); ++i)
+  {
+    elements[i].setAtomicNumber(numbers_symbols[i].first);
+    elements[i].setSymbol(numbers_symbols[i].second);
+    elements[i].setMonoWeight(numbers_symbols[i].first * 1.1);
+  }
+  EmpiricalFormula ef = EmpiricalFormula(1, &elements[0]) + EmpiricalFormula(2, &elements[1]) + EmpiricalFormula(3, &elements[2]);
+  TEST_EQUAL(symbols(ef), "H C O")
+  TEST_EQUAL(ef.getMonoWeight(), elements[2].getMonoWeight() * 3 + elements[1].getMonoWeight() * 2 + elements[0].getMonoWeight() * 1)
 END_SECTION
 
 START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
@@ -549,6 +621,28 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   {
     TEST_REAL_SIMILAR(big_it->getIntensity(), small_it->getIntensity())
   }
+END_SECTION
+
+START_SECTION(([EXTRA] getConditionalFragmentIsotopeDist with a solver that caps the number of isotopes))
+  // The fragment and its complement are computed deep enough for the isolated precursor isotopes
+  // (here M, M+1 and M+2 -> 3 peaks), but the solver may cap the result below that. The loop that
+  // fills the result used to run over the uncapped length and wrote behind the end of the capped
+  // result (AddressSanitizer: heap-buffer-overflow).
+  EmpiricalFormula cap_precursor("C50H80N15O20");
+  EmpiricalFormula cap_fragment("C25H40N7O10");
+  std::set<UInt> cap_isolated = {0, 1, 2};
+
+  IsotopeDistribution uncapped = cap_fragment.getConditionalFragmentIsotopeDist(cap_precursor, cap_isolated, CoarseIsotopePatternGenerator());
+  IsotopeDistribution capped = cap_fragment.getConditionalFragmentIsotopeDist(cap_precursor, cap_isolated, CoarseIsotopePatternGenerator(2));
+  TEST_EQUAL(uncapped.size(), 3)
+  TEST_EQUAL(capped.size(), 2)
+  // renormalized to 1 over the peaks that are left
+  TEST_REAL_SIMILAR(capped.getContainer()[0].getIntensity() + capped.getContainer()[1].getIntensity(), 1.0)
+  // the kept peaks are the first ones of the uncapped distribution, so their ratio is unchanged
+  TEST_REAL_SIMILAR(capped.getContainer()[1].getIntensity() / capped.getContainer()[0].getIntensity(),
+                    uncapped.getContainer()[1].getIntensity() / uncapped.getContainer()[0].getIntensity())
+  TEST_REAL_SIMILAR(capped.getContainer()[0].getMZ(), uncapped.getContainer()[0].getMZ())
+  TEST_REAL_SIMILAR(capped.getContainer()[1].getMZ(), uncapped.getContainer()[1].getMZ())
 END_SECTION
 
 START_SECTION(([EXTRA] Check correct charge semantics))

@@ -65,7 +65,7 @@ public:
   */
   static bool exportProteinsToParquet(
     const std::vector<ProteinIdentification>& protein_identifications,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
@@ -89,7 +89,7 @@ public:
   */
   static bool exportProteinGroupsToParquet(
     const std::vector<ProteinIdentification>& protein_identifications,
-    const String& filename,
+    const std::string& filename,
     const ParquetWriteConfig& config = ParquetWriteConfig{});
 
   /**
@@ -98,10 +98,13 @@ public:
     Each ProteinIdentification's SearchParameters becomes one row.
 
     @param[in] protein_identifications Vector of protein identifications
+    @param[in] definitions_by_run Per run identifier, the modification_definitions value to write
+               (replaces an inbound one); see ModificationDefinitionIO::encodeByRun
     @return Shared pointer to Arrow Table, or nullptr on error
   */
   static std::shared_ptr<arrow::Table> exportSearchParamsToArrow(
-    const std::vector<ProteinIdentification>& protein_identifications);
+    const std::vector<ProteinIdentification>& protein_identifications,
+    const std::map<std::string, std::string>& definitions_by_run = {});
 
   /**
     @brief Export search parameters to Parquet file
@@ -109,12 +112,15 @@ public:
     @param[in] protein_identifications Vector of protein identifications
     @param[in] filename Output file path
     @param[in] config Parquet writing options
+    @param[in] definitions_by_run Per run identifier, the modification_definitions value to write
+               (replaces an inbound one); see ModificationDefinitionIO::encodeByRun
     @return true on success, false on error
   */
   static bool exportSearchParamsToParquet(
     const std::vector<ProteinIdentification>& protein_identifications,
-    const String& filename,
-    const ParquetWriteConfig& config = ParquetWriteConfig{});
+    const std::string& filename,
+    const ParquetWriteConfig& config = ParquetWriteConfig{},
+    const std::map<std::string, std::string>& definitions_by_run = {});
 
   // ==================== Import methods ====================
 
@@ -131,9 +137,9 @@ public:
     @return true on success, false on error
   */
   static bool importFromParquet(
-    const String& proteins_filename,
-    const String& protein_groups_filename,
-    const String& search_params_filename,
+    const std::string& proteins_filename,
+    const std::string& protein_groups_filename,
+    const std::string& search_params_filename,
     std::vector<ProteinIdentification>& protein_identifications);
 
   /**
@@ -186,7 +192,7 @@ public:
     @return true on success, false on error
   */
   static bool importSearchParamsFromParquet(
-    const String& filename,
+    const std::string& filename,
     std::vector<ProteinIdentification>& protein_identifications);
 
   /**
@@ -197,7 +203,7 @@ public:
     @return true on success, false on error
   */
   static bool importProteinsFromParquet(
-    const String& filename,
+    const std::string& filename,
     std::vector<ProteinIdentification>& protein_identifications);
 
   /**
@@ -208,7 +214,7 @@ public:
     @return true on success, false on error
   */
   static bool importProteinGroupsFromParquet(
-    const String& filename,
+    const std::string& filename,
     std::vector<ProteinIdentification>& protein_identifications);
 
   // ==================== Identifier handling parity with XML lane ====================
@@ -237,7 +243,7 @@ public:
     @param[in,out] protein_identifications ProtID vector whose identifiers will be replaced
     @return Map from each stored identifier to its synthesized replacement.
   */
-  static std::map<String, String> synthesizeRunIdentifiers(
+  static std::map<std::string, std::string> synthesizeRunIdentifiers(
     std::vector<ProteinIdentification>& protein_identifications);
 
   /**
@@ -251,7 +257,7 @@ public:
     @param[in,out] pep_ids PeptideIdentification collection to re-stamp
   */
   static void applyRunIdentifierRename(
-    const std::map<String, String>& rename,
+    const std::map<std::string, std::string>& rename,
     PeptideIdentificationList& pep_ids);
 
   /**

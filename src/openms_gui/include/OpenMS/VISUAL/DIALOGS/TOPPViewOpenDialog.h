@@ -26,7 +26,6 @@ namespace Ui
 namespace OpenMS
 {
   class Param;
-  class String;
   /**
       @brief Dataset opening options for TOPPView
 
@@ -39,7 +38,7 @@ namespace OpenMS
 
 public:
     /// Constructor
-    TOPPViewOpenDialog(const String & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent = nullptr);
+    TOPPViewOpenDialog(const std::string & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent = nullptr);
     /// Destructor
     ~TOPPViewOpenDialog() override;
 
@@ -67,7 +66,7 @@ public:
 
         It is deactivated by default and can be deactivated manually by passing an empty list.
     */
-    void setMergeLayers(const std::map<Size, String> & layers);
+    void setMergeLayers(const std::map<Size, std::string> & layers);
 
 protected slots:
     ///slot that disables 2D/3D options, when as layer is selected

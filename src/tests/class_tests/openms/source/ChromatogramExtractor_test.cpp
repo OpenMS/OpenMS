@@ -41,7 +41,7 @@ START_SECTION(~ChromatogramExtractor())
 }
 END_SECTION
 
-START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates > extraction_coordinates, double mz_extraction_window, bool ppm, String filter))
+START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates > extraction_coordinates, double mz_extraction_window, bool ppm, std::string filter))
 {
   NOT_TESTABLE // is tested in ChromatogramExtractorAlgorithm
 }
@@ -161,7 +161,7 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
   double extract_window = 0.05;
   double ppm = false;
   double rt_extraction_window = -1;
-  String extraction_function = "tophat";
+  std::string extraction_function = "tophat";
 
   TargetedExperiment transitions;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);

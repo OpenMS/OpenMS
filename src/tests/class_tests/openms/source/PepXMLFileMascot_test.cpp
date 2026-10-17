@@ -33,11 +33,11 @@ START_SECTION(~PepXMLFileMascot())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void load(const String& filename,  std::map<String, std::vector<AASequence> >& peptides))
-	std::map<String, std::vector<AASequence> > peptides;
-	std::map<String, std::vector<AASequence> >::iterator it;
+START_SECTION(void load(const std::string& filename,  std::map<std::string, std::vector<AASequence> >& peptides))
+	std::map<std::string, std::vector<AASequence> > peptides;
+	std::map<std::string, std::vector<AASequence> >::iterator it;
 	std::vector<AASequence> temp_sequences;
-	String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFileMascot_test.pepXML");
+	std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFileMascot_test.pepXML");
 	
 	file.load(filename, peptides);
 	it = peptides.begin();
