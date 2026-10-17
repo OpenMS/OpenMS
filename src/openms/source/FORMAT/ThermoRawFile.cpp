@@ -15,21 +15,59 @@
   #include <OpenMS/FORMAT/ThermoRawFile.h>
   #include <OpenMS/KERNEL/MSChromatogram.h>
   #include <OpenMS/KERNEL/MSSpectrum.h>
+  #include <OpenMS/INTERFACES/IMSDataConsumer.h>
   #include <algorithm>
   #include <cmath>
+  #include <deque>
   #include <exception>
+  #include <limits>
   #include <string>
   #include <vector>
 
 namespace OpenMS
 {
+namespace
+{
+  using ScanInfo = Internal::ThermoRawScanReader::ScanInfo;
+
+  using Selection = Internal::ThermoRawScanSelection;
+
+  /// Copies of the most recent converted spectra that later scans can reference as parent.
+  class ParentCache
+  {
+  public:
+    explicit ParentCache(Size capacity) : capacity_(capacity) {}
+
+    const MSSpectrum* find(int scan) const
+    {
+      for (const auto& [number, spectrum] : entries_)
+      {
+        if (number == scan) { return &spectrum; }
+      }
+      return nullptr;
+    }
+
+    /// Keep the peaks of @p spectrum (the estimate needs nothing else); the oldest entry is evicted.
+    void add(int scan, const MSSpectrum& spectrum)
+    {
+      if (capacity_ == 0) { return; }
+      if (entries_.size() >= capacity_) { entries_.pop_front(); }
+      entries_.emplace_back(scan, MSSpectrum());
+      MSSpectrum& copy = entries_.back().second;
+      copy.reserve(spectrum.size());
+      copy.insert(copy.end(), spectrum.begin(), spectrum.end());
+    }
+
+  private:
+    Size capacity_;
+    std::deque<std::pair<int, MSSpectrum>> entries_;
+  };
+} // namespace
 
 void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
 {
   exp = MSExperiment();
-  const auto& levels = options_.ms_levels;
-  auto level_selected = [&levels](int level) { return levels.empty() || std::find(levels.begin(), levels.end(), level) != levels.end(); };
-  auto rt_selected = [this](double rt) { return rt >= options_.rt_min && rt < options_.rt_max; };
+  const Selection select{options_};
   try
   {
     Internal::ThermoRawScanReader reader(path, options_);
@@ -44,17 +82,12 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
         const SignedSize index = index_by_scan[scan - first];
         return index < 0 ? nullptr : &exp[index];
       };
-      const bool filtered = ! levels.empty() || options_.first_scan > first || options_.precursor_mz_min > -std::numeric_limits<double>::infinity()
-                            || options_.precursor_mz_max < std::numeric_limits<double>::infinity() || options_.rt_min > -std::numeric_limits<double>::infinity();
-      if (! filtered) { exp.reserve(last - first + 1); }
-      const bool header_filtered = ! levels.empty() || options_.precursor_mz_min > -std::numeric_limits<double>::infinity()
-                                   || options_.precursor_mz_max < std::numeric_limits<double>::infinity()
-                                   || options_.rt_min > -std::numeric_limits<double>::infinity()
-                                   || options_.rt_max < std::numeric_limits<double>::infinity();
+      const bool header_filtered = select.headerFiltered();
+      if (! header_filtered && options_.first_scan <= first) { exp.reserve(last - first + 1); }
       MSChromatogram tic;
       bool complete = true; // all headers read, so the TIC can be built from them
       const bool prefetch_peaks = ! header_filtered && ! options_.metadata_only;
-      reader.readAhead(options_.last_scan > 0 ? std::min(last, options_.last_scan) : last,
+      reader.readAhead(select.lastScan(last),
                        prefetch_peaks ? options_.first_scan : std::numeric_limits<int>::max());
       startProgress(first, last, "Loading Thermo RAW file");
       for (int scan = first; scan <= last; ++scan)
@@ -71,17 +104,12 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
         const bool prefetch = prefetch_peaks && scan >= options_.first_scan;
         const auto& info = reader.header(scan, prefetch);
         if (! options_.skip_chromatograms) { tic.push_back(ChromatogramPeak(info.rt, info.tic)); }
-        if (info.rt >= options_.rt_max)
+        if (select.beyondRT(info))
         {
           complete = false;
           break;
         }
-        if (scan < options_.first_scan || ! rt_selected(info.rt) || ! level_selected(info.ms_level)) { continue; }
-        if (info.ms_level > 1 && ! std::isnan(info.precursor_mz)
-            && (info.precursor_mz < options_.precursor_mz_min || info.precursor_mz >= options_.precursor_mz_max))
-        {
-          continue;
-        }
+        if (! select.selected(info)) { continue; }
         MSSpectrum spectrum;
         reader.convert(spectrum, exp, parent, ! options_.metadata_only);
         index_by_scan[scan - first] = exp.size();
@@ -113,11 +141,11 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
           exp.addChromatogram(std::move(chromatogram));
         }
       }
-      if (level_selected(0))
+      if (select.level(0))
       {
         for (auto& spectrum : spectra)
         {
-          if (! rt_selected(spectrum.getRT())) { continue; }
+          if (! select.rt(spectrum.getRT())) { continue; }
           if (options_.metadata_only) { spectrum.clear(false); }
           exp.addSpectrum(std::move(spectrum));
         }
@@ -131,6 +159,118 @@ void ThermoRawFile::load(const std::string& path, MSExperiment& exp)
   catch (const Exception::FileNotFound&)
   {
     throw;
+  }
+  catch (const std::exception& error)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path, std::string("Thermo RAW reader: ") + error.what());
+  }
+}
+
+void ThermoRawFile::transform(const std::string& path, Interfaces::IMSDataConsumer* consumer)
+{
+  if (consumer == nullptr) { throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); }
+  const Selection select{options_};
+  try
+  {
+    Internal::ThermoRawScanReader reader(path, options_);
+    ExperimentalSettings settings;
+    reader.fillSettings(settings);
+    const bool has_ms = reader.hasMSData();
+    const int first = has_ms ? reader.firstScan() : 0;
+    const int last = has_ms ? select.lastScan(reader.lastScan()) : -1;
+
+    // Header pass: count the selected scans and register the instrument configurations, both
+    // of which the consumer needs before the first spectrum (e.g. for the mzML header).
+    Size spectra_count = 0, chromatogram_count = 0;
+    int max_level = 0;
+    if (has_ms)
+    {
+      reader.scanHeaders(first, last, select.precursorFiltered(), [&](const ScanInfo& info) {
+        max_level = std::max(max_level, info.ms_level);
+        if (select.beyondRT(info)) { return false; }
+        if (select.selected(info)) { ++spectra_count; }
+        return true;
+      });
+      reader.addInstrumentConfigurations(settings);
+      if (! options_.skip_chromatograms) { ++chromatogram_count; }
+    }
+    std::vector<MSChromatogram> detector_chromatograms;
+    std::vector<MSSpectrum> pda_spectra;
+    if (options_.all_detectors)
+    {
+      reader.readDetectors(detector_chromatograms, pda_spectra);
+      if (options_.skip_chromatograms) { detector_chromatograms.clear(); }
+      if (! select.level(0)) { pda_spectra.clear(); }
+      pda_spectra.erase(std::remove_if(pda_spectra.begin(), pda_spectra.end(), [&](const MSSpectrum& spectrum) { return ! select.rt(spectrum.getRT()); }),
+                        pda_spectra.end());
+      std::stable_sort(pda_spectra.begin(), pda_spectra.end(), MSSpectrum::RTLess());
+      if (options_.metadata_only)
+      {
+        for (auto& spectrum : pda_spectra) { spectrum.clear(false); }
+      }
+      spectra_count += pda_spectra.size();
+      chromatogram_count += detector_chromatograms.size();
+    }
+    consumer->setExpectedSize(spectra_count, chromatogram_count);
+    consumer->setExperimentalSettings(settings);
+
+    if (has_ms)
+    {
+      // Recent parent candidates (all scans below the highest MS level); a parent that is not
+      // kept is decoded again by the reader, so the estimate does not depend on the capacity.
+      ParentCache parents(options_.metadata_only ? 0 : 32);
+      const Internal::ThermoRawScanReader::ParentLookup parent = [&parents](int scan) { return parents.find(scan); };
+      const bool header_filtered = select.headerFiltered();
+      MSChromatogram tic;
+      bool complete = last == reader.lastScan(); // all headers read, so the TIC can be built from them
+      const bool prefetch_peaks = ! header_filtered && ! options_.metadata_only;
+      reader.readAhead(last, prefetch_peaks ? options_.first_scan : std::numeric_limits<int>::max());
+      startProgress(first, last, "Streaming Thermo RAW file");
+      for (int scan = first; scan <= last; ++scan)
+      {
+        setProgress(scan);
+        const bool prefetch = prefetch_peaks && scan >= options_.first_scan;
+        const ScanInfo& info = reader.header(scan, prefetch);
+        if (! options_.skip_chromatograms) { tic.push_back(ChromatogramPeak(info.rt, info.tic)); }
+        if (select.beyondRT(info))
+        {
+          complete = false;
+          break;
+        }
+        if (! select.selected(info)) { continue; }
+        MSSpectrum spectrum;
+        reader.convert(spectrum, settings, parent, ! options_.metadata_only);
+        if (info.ms_level < max_level) { parents.add(scan, spectrum); }
+        consumer->consumeSpectrum(spectrum);
+      }
+      endProgress();
+      for (auto& spectrum : pda_spectra) { consumer->consumeSpectrum(spectrum); }
+      pda_spectra.clear();
+      if (! options_.skip_chromatograms)
+      {
+        if (! complete) { tic = reader.ticChromatogram(); }
+        else
+        {
+          tic.setNativeID("TIC");
+          tic.setChromatogramType(ChromatogramSettings::ChromatogramType::TOTAL_ION_CURRENT_CHROMATOGRAM);
+          tic.getDataProcessing().push_back(reader.dataProcessing());
+        }
+        if (! tic.empty()) { consumer->consumeChromatogram(tic); }
+      }
+    }
+    else
+    {
+      for (auto& spectrum : pda_spectra) { consumer->consumeSpectrum(spectrum); }
+    }
+    for (auto& chromatogram : detector_chromatograms) { consumer->consumeChromatogram(chromatogram); }
+  }
+  catch (const Exception::FileNotFound&)
+  {
+    throw;
+  }
+  catch (const Exception::BaseException&)
+  {
+    throw; // e.g. from the consumer
   }
   catch (const std::exception& error)
   {

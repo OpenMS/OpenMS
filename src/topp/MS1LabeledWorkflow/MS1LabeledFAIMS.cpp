@@ -16,6 +16,8 @@
 #include <cmath>
 #include <iterator>
 #include <set>
+#include <unordered_map>
+#include <utility>
 
 namespace OpenMS
 {
@@ -234,21 +236,79 @@ void MS1LabeledFAIMS::append_(ConsensusMap& result, ConsensusMap&& part)
 
 void MS1LabeledFAIMS::annotate(IDMapper& mapper,
                                ConsensusMap& map,
+                               const FeatureMap& channels,
                                const PeptideIdentificationList& ids,
                                const std::vector<ProteinIdentification>& proteins)
 {
-  map.setUnassignedPeptideIdentifications(ids);
-  auto partitions = split_({map});
-  map.clear(true);
-  for (auto& [cv, parts] : partitions)
+  // channel feature (= handle unique id) -> (multiplet, channel)
+  std::unordered_map<UInt64, std::pair<Size, Size>> channel_of;
+  for (Size m = 0; m < map.size(); ++m)
   {
-    auto& part = parts.front();
-    auto part_ids = std::move(part.getUnassignedPeptideIdentifications());
-    part.getUnassignedPeptideIdentifications().clear();
-    mapper.annotate(part, part_ids, proteins, true, true);
-    append_(map, std::move(part));
+    for (const FeatureHandle& handle : map[m].getFeatures())
+    {
+      channel_of.emplace(handle.getUniqueId(), std::make_pair(m, static_cast<Size>(handle.getMapIndex())));
+    }
   }
-  map.sortByPosition();
+
+  // The channels and IDs of one CV are mapped together. The position of an ID in 'ids' travels along
+  // as a meta value, so that its copies on several channels can be recognized.
+  const std::string id_index = "MS1Label:id_index";
+  std::map<CV, FeatureMap> channel_parts;
+  std::map<CV, PeptideIdentificationList> id_parts;
+  for (const Feature& channel : channels)
+  {
+    channel_parts[getCV_(channel)].push_back(channel);
+  }
+  for (Size i = 0; i < ids.size(); ++i)
+  {
+    PeptideIdentification id = ids[i];
+    id.setMetaValue(id_index, i);
+    id_parts[getCV_(id)].push_back(std::move(id));
+  }
+  if (channel_parts.empty()) { channel_parts[std::nullopt]; } // still records proteins and data processing
+
+  std::vector<std::set<Size>> attached(map.size()); // per multiplet: the IDs (by position) attached to it
+  std::vector<bool> mapped(ids.size(), false);
+  bool first_part = true;
+  for (auto& [cv, part] : channel_parts)
+  {
+    part.updateRanges();
+    PeptideIdentificationList& part_ids = id_parts[cv];
+    // RT and m/z from the convex hulls: the elution region of the channel, plus the tolerances
+    mapper.annotate(part, part_ids, proteins, false, false);
+    if (first_part)
+    {
+      map.getDataProcessing().insert(map.getDataProcessing().end(), part.getDataProcessing().begin(), part.getDataProcessing().end());
+      first_part = false;
+    }
+    for (const Feature& channel : part)
+    {
+      if (channel.getPeptideIdentifications().empty()) { continue; }
+      const auto it = channel_of.find(channel.getUniqueId());
+      if (it == channel_of.end())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A channel feature does not belong to any multiplet.",
+                                      StringUtils::toStr(channel.getUniqueId()));
+      }
+      const auto [multiplet, map_index] = it->second;
+      for (const PeptideIdentification& id : channel.getPeptideIdentifications())
+      {
+        const Size index = static_cast<Size>(id.getMetaValue(id_index));
+        if (!attached[multiplet].insert(index).second) { continue; } // already attached through another channel
+        PeptideIdentification copy = id;
+        copy.removeMetaValue(id_index);
+        copy.setMetaValue("map_index", map_index);
+        map[multiplet].getPeptideIdentifications().push_back(std::move(copy));
+        mapped[index] = true;
+      }
+    }
+  }
+
+  map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), proteins.begin(), proteins.end());
+  for (Size i = 0; i < ids.size(); ++i)
+  {
+    if (!mapped[i]) { map.getUnassignedPeptideIdentifications().push_back(ids[i]); }
+  }
   map.updateRanges();
 }
 

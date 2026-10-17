@@ -121,6 +121,112 @@ precursor reconstruction, `MzMLFile_test` for synthetic metadata round trips,
 for RAW-to-mzML integration when `ENABLE_THERMO_RAW_TESTS=ON`. Python API tests
 are in `test_ThermoRawFile.py`.
 
+## Streaming
+
+`ThermoRawFile::transform(path, consumer)` gives the same spectra and
+chromatograms as `load()` with the same `Options`, but passes them one at a time
+to an `Interfaces::IMSDataConsumer` instead of building an `MSExperiment`. A
+first pass reads the scan headers only (no peaks). The consumer then receives:
+
+1. `setExpectedSize()` with the exact spectrum and chromatogram counts,
+2. `setExperimentalSettings()` with all instrument configurations,
+3. `consumeSpectrum()` for every selected MS scan in acquisition (RT) order,
+4. `consumeSpectrum()` for PDA spectra (`all_detectors`), RT-sorted among
+   themselves but after the MS scans (`load()` sorts them into the MS scans),
+5. `consumeChromatogram()` for the TIC, then the detector chromatograms.
+
+Memory does not grow with the file size. For the precursor intensity estimate,
+only the most recently converted parent scans are kept in a small bounded cache;
+a parent that is not cached is decoded again. Detector data (`all_detectors`) is
+read in one go. The SHA-1 is only computed if `Options::checksum` is set.
+
+| Entry point | Behaviour |
+| --- | --- |
+| `FileHandler::transformExperiment()` | Streams mzML, mzXML and .raw into a consumer and applies the `PeakFileOptions` (MS levels, RT/m/z/intensity/precursor ranges, metadata only, skip chromatograms) as `loadExperiment()` does, for all three formats. For mzML/mzXML, `setExpectedSize()` reports the counts from the file before any selection; for .raw the scan-level options go to the reader, which reports the selected counts, and the m/z and intensity ranges are applied per spectrum |
+| `FileConverter -process_lowmemory` | Streams .raw to mzML and cachedMzML only; for any other output type it logs a warning and loads the whole file |
+| `OpenSwathWorkflow` | Streams .raw into the SWATH consumers; the run metadata is taken from a metadata-only read |
+| `SageAdapter`, `CometAdapter` | Stream .raw into the temporary mzML |
+
+A streamed mzML differs from an in-memory conversion only in the file content
+term (the streaming writer takes it from the first spectrum) and the index
+offsets.
+
+## Random access
+
+`OnDiscThermoRawExperiment` keeps the RAW file open and reads single spectra on
+request, like `OnDiscMSExperiment` does for indexed mzML. Both implement
+`IMSExperimentRandomAccess`. `openFile(path, options)` runs the header pass of
+`transform()` once. It builds an index of the selected scans (scan number,
+RT, MS level, native id) and resolves the precursors in acquisition order. After
+that, `getSpectrum(i)` converts any scan on its own and returns the `i`-th spectrum
+of `load()` with the same `Options`. This includes the precursor intensity
+estimate, which decodes the parent MS1 scan on demand and keeps recent parents in
+a small LRU cache. The `Options` (MS levels, scan/RT/m/z ranges, peak picking,
+`metadata_only`, `skip_chromatograms`, `all_detectors`) define which spectra are
+indexed. `Options::checksum` is ignored.
+
+| Method | Returns |
+| --- | --- |
+| `getNrSpectra()`, `getNrChromatograms()` | Counts as in `load()` |
+| `getSpectrum(i)`, `getSpectrumMetadata(i)` | Spectrum with peaks, or without peaks (no decoding) |
+| `getSpectrumRT(i)`, `getSpectrumMSLevel(i)`, `getSpectrumNativeID(i)` | Index lookups (no file access) |
+| `getScanNumber(i)`, `getSpectrumIndexByScanNumber(scan)`, `getSpectrumByNativeId(id)` | Scan number mapping |
+| `findFirstRT(rt)` | Index of the first spectrum with RT >= `rt` |
+| `getChromatogram(i)` | TIC and detector chromatograms |
+| `getExperimentalSettings()` | Settings as in `load()` |
+
+Reads on one object are serialized. For parallel reads, give each thread its own
+`clone()`. Clones share the immutable index and each get a bridge accessor of their
+own, so they read concurrently and return the same spectra as sequential reads.
+Concurrent reads need an OpenMP build of OpenMS, because the meta value registry is
+guarded by OpenMP critical sections. PDA spectra (`all_detectors`) are read
+completely at open and kept in memory.
+
+`SpectrumAccessOnDisc` exposes any `IMSExperimentRandomAccess` as an
+`OpenSwath::ISpectrumAccess`. It can show all spectra or an RT-sorted subset of
+indices, for example one SWATH window. `lightClone()` clones the experiment, so
+clones can be used from different threads.
+
+`OpenSwathWorkflow -readOptions onDisc` uses these classes for .raw input
+(and `OnDiscMSExperiment` for indexed mzML; `SwathFile::loadOnDisc()` chooses
+the backend by file type). The
+spectra are sorted into SWATH windows from the index, and each window reads its
+spectra from the file during extraction. Nothing is loaded or cached in advance.
+The results are the same as with `normal`. Two restrictions apply:
+
+- OpenSwathWorkflow does not process FAIMS compensation voltages separately with
+  any read option. With `onDisc`, input with more than one CV is rejected instead
+  of merging the CVs into one set of SWATH windows; single-CV input works.
+  `SwathFile::loadOnDiscByFAIMSCV()` splits MS1
+  and MS2 spectra by CV, as `IMDataConverter::splitByFAIMSCV()` does, and
+  builds the SWATH maps within each CV.
+- The spectra are read from the file again during extraction, so a plugin
+  consumer (such as the QC of `-out_qc`) may only observe them. A consumer that
+  modifies spectra raises an error; use `normal` or `cache` for it.
+
+In pyOpenMS:
+
+```python
+import pyopenms as oms
+
+exp = oms.OnDiscThermoRawExperiment()
+exp.openFile("run.raw")          # optional second argument: ThermoRawFile.Options
+spec = exp[0]                    # = exp.getSpectrum(0); negative indices work
+meta = exp.getSpectrumMetadata(10)
+first = exp.findFirstRT(600.0)
+for spec in exp:                 # iterate in index order
+    pass
+
+class Counter:
+    def __init__(self): self.n = 0
+    def setExpectedSize(self, s, c): pass
+    def setExperimentalSettings(self, s): pass
+    def consumeSpectrum(self, s): self.n += 1
+    def consumeChromatogram(self, c): pass
+
+oms.ThermoRawFile().transform("run.raw", Counter())
+```
+
 ## Building the paired branches locally
 
 The bridge source revision is pinned in `cmake_findExternalLibs.cmake` and the

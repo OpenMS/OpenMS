@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/IonSource.h>
 #include <OpenMS/METADATA/MassAnalyzer.h>
@@ -32,6 +33,45 @@
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  /// Collects a streamed run and checks the order of the consumer calls.
+  struct RecordingConsumer : Interfaces::IMSDataConsumer
+  {
+    MSExperiment exp;
+    Size expected_spectra = 0, expected_chromatograms = 0;
+    int stage = 0; // 1: expected size, 2: settings, 3: spectra, 4: chromatograms
+    bool order_ok = true;
+
+    void advance(int to)
+    {
+      if (to < stage || (stage < 2 && to > 2) || (stage == 0 && to == 2)) { order_ok = false; }
+      stage = to;
+    }
+    void setExpectedSize(Size spectra, Size chromatograms) override
+    {
+      advance(1);
+      expected_spectra = spectra;
+      expected_chromatograms = chromatograms;
+    }
+    void setExperimentalSettings(const ExperimentalSettings& settings) override
+    {
+      advance(2);
+      exp.getExperimentalSettings() = settings;
+    }
+    void consumeSpectrum(SpectrumType& s) override
+    {
+      advance(3);
+      exp.addSpectrum(s);
+    }
+    void consumeChromatogram(ChromatogramType& c) override
+    {
+      advance(4);
+      exp.addChromatogram(c);
+    }
+  };
+}
 
 START_TEST(ThermoRawFile, "$Id$")
 
@@ -494,6 +534,99 @@ START_SECTION(FileHandler::loadExperiment passes PeakFileOptions to the reader)
   TEST_EQUAL(empty, no_peaks.size())
 }
 END_SECTION
+
+START_SECTION(void transform(const std::string& path, Interfaces::IMSDataConsumer* consumer))
+{
+  TEST_EXCEPTION(Exception::NullPointer, ThermoRawFile().transform(THERMO_RAW_TEST_DATA, nullptr))
+
+  ThermoRawFile::Options base;
+  base.centroid = true;
+  base.checksum = false;
+  auto load = [](const ThermoRawFile::Options& options) {
+    ThermoRawFile file;
+    file.setOptions(options);
+    MSExperiment exp;
+    file.load(THERMO_RAW_TEST_DATA, exp);
+    return exp;
+  };
+  // transform() into a collecting consumer must give load(), announced in advance and in RT order
+  auto testTransform = [&](const ThermoRawFile::Options& options) {
+    RecordingConsumer collected;
+    ThermoRawFile file;
+    file.setOptions(options);
+    file.transform(THERMO_RAW_TEST_DATA, &collected);
+    const MSExperiment loaded = load(options);
+    TEST_TRUE(collected.order_ok)
+    TEST_EQUAL(collected.expected_spectra, collected.exp.size())
+    TEST_EQUAL(collected.expected_chromatograms, collected.exp.getChromatograms().size())
+    TEST_TRUE(collected.exp.isSorted(false))
+    TEST_EQUAL(collected.exp.size(), loaded.size())
+    TEST_TRUE(collected.exp == loaded)
+  };
+
+  testTransform(base);
+  ThermoRawFile::Options acquired = base;
+  acquired.centroid = false;
+  testTransform(acquired);
+  ThermoRawFile::Options ms2 = base;
+  ms2.ms_levels = {2};
+  testTransform(ms2);
+  ThermoRawFile::Options ms1 = base;
+  ms1.ms_levels = {1};
+  testTransform(ms1);
+  const MSExperiment full = load(base);
+  ThermoRawFile::Options rt = base;
+  rt.rt_min = full[100].getRT();
+  rt.rt_max = full[200].getRT();
+  testTransform(rt);
+  ThermoRawFile::Options scans = base;
+  scans.first_scan = 51;
+  scans.last_scan = 151;
+  testTransform(scans);
+  ThermoRawFile::Options precursor = base;
+  precursor.precursor_mz_min = 500.0;
+  precursor.precursor_mz_max = 600.0;
+  testTransform(precursor);
+  ThermoRawFile::Options metadata = base;
+  metadata.metadata_only = true;
+  metadata.skip_chromatograms = true;
+  testTransform(metadata);
+  ThermoRawFile::Options extras = base;
+  extras.charge_data = true;
+  extras.noise_data = true;
+  extras.checksum = true;
+  testTransform(extras);
+}
+END_SECTION
+
+START_SECTION(void FileHandler::transformExperiment(const std::string& filename, Interfaces::IMSDataConsumer* consumer, ...))
+{
+  // The same PeakFileOptions give the same spectra as loadExperiment, the peak-level filters included
+  FileHandler handler;
+  handler.getOptions().addMSLevel(2);
+  handler.getOptions().setMZRange(DRange<1>(DPosition<1>(200.0), DPosition<1>(800.0)));
+  handler.getOptions().setSkipChromatograms(true);
+  MSExperiment loaded;
+  handler.loadExperiment(THERMO_RAW_TEST_DATA, loaded, {FileTypes::RAW});
+  RecordingConsumer collected;
+  handler.transformExperiment(THERMO_RAW_TEST_DATA, &collected, {FileTypes::RAW});
+  TEST_TRUE(collected.order_ok)
+  TEST_TRUE(loaded.size() > 0)
+  TEST_EQUAL(collected.exp.size(), loaded.size())
+  TEST_EQUAL(collected.exp.getChromatograms().size(), 0)
+  TEST_TRUE(collected.exp == loaded)
+
+  // with the source file rewritten (absolute path, file name)
+  MSExperiment loaded_rewritten;
+  FileHandler().loadExperiment(THERMO_RAW_TEST_DATA, loaded_rewritten, {FileTypes::RAW}, ProgressLogger::NONE, true);
+  RecordingConsumer rewritten;
+  FileHandler().transformExperiment(THERMO_RAW_TEST_DATA, &rewritten, {FileTypes::RAW}, ProgressLogger::NONE, true);
+  TEST_EQUAL(rewritten.exp.getSourceFiles().size(), 1)
+  TEST_TRUE(rewritten.exp == loaded_rewritten)
+
+  TEST_EXCEPTION(Exception::ParseError, FileHandler().transformExperiment(THERMO_RAW_TEST_DATA, &collected, {FileTypes::MZML}))
+}
+END_SECTION
 #endif
 
 #ifdef THERMO_FAIMS_DIA_TEST_DATA
@@ -645,6 +778,50 @@ START_SECTION(real Thermo FAIMS-DIA RAW -> FAIMS-aware SWATH maps)
   cout << "FAIMS SWATH groups=" << groups.size()
        << ", groups with MS1=" << groups_with_ms1
        << ", total DIA windows=" << total_swath_windows << '\n';
+}
+END_SECTION
+
+START_SECTION([EXTRA] SwathFile::loadThermoRaw with readoptions onDisc equals normal)
+{
+  // The onDisc maps read the spectra from the file; they must expose what the in-memory maps hold.
+  std::shared_ptr<ExperimentalSettings> meta_normal, meta_on_disc;
+  const std::string tmp = SystemSettings::getTempDirectory() + "/";
+  std::vector<OpenSwath::SwathMap> normal = SwathFile().loadThermoRaw(THERMO_FAIMS_DIA_TEST_DATA, tmp, meta_normal, "normal");
+  std::vector<OpenSwath::SwathMap> on_disc = SwathFile().loadThermoRaw(THERMO_FAIMS_DIA_TEST_DATA, tmp, meta_on_disc, "onDisc");
+  TEST_EQUAL(on_disc.size(), normal.size())
+  TEST_TRUE(*meta_on_disc == *meta_normal)
+  Size mismatches = 0, compared = 0;
+  for (Size m = 0; m < std::min(normal.size(), on_disc.size()); ++m)
+  {
+    const OpenSwath::SwathMap& a = normal[m];
+    const OpenSwath::SwathMap& b = on_disc[m];
+    TEST_EQUAL(b.ms1, a.ms1)
+    TEST_EQUAL(b.lower, a.lower)
+    TEST_EQUAL(b.upper, a.upper)
+    TEST_EQUAL(b.center, a.center)
+    TEST_EQUAL(b.imLower, a.imLower)
+    TEST_EQUAL(b.imUpper, a.imUpper)
+    TEST_EQUAL(b.sptr->getNrSpectra(), a.sptr->getNrSpectra())
+    if (b.sptr->getNrSpectra() != a.sptr->getNrSpectra()) { continue; }
+    const int n = static_cast<int>(a.sptr->getNrSpectra());
+    for (int i : {0, n / 2, n - 1})
+    {
+      if (i < 0) { continue; }
+      ++compared;
+      const OpenSwath::SpectrumMeta ma = a.sptr->getSpectrumMetaById(i), mb = b.sptr->getSpectrumMetaById(i);
+      const OpenSwath::SpectrumPtr sa = a.sptr->getSpectrumById(i), sb = b.sptr->getSpectrumById(i);
+      if (ma.RT != mb.RT || ma.ms_level != mb.ms_level ||
+          sa->getMZArray()->data != sb->getMZArray()->data ||
+          sa->getIntensityArray()->data != sb->getIntensityArray()->data)
+      {
+        ++mismatches;
+      }
+    }
+    const double rt = a.sptr->getSpectrumMetaById(n / 2).RT;
+    TEST_TRUE(b.sptr->getSpectraByRT(rt, 10.0) == a.sptr->getSpectraByRT(rt, 10.0))
+  }
+  TEST_EQUAL(compared > 0, true)
+  TEST_EQUAL(mismatches, 0)
 }
 END_SECTION
 #endif

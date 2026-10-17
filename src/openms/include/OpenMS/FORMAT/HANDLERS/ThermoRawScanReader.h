@@ -9,7 +9,11 @@
 #pragma once
 
 #include <OpenMS/FORMAT/ThermoRawFile.h>
+#include <OpenMS/FORMAT/HANDLERS/ThermoRawFileMetadata.h>
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
 #include <functional>
 #include <memory>
 #include <string>
@@ -58,6 +62,59 @@ namespace Internal
       double rt = 0.0;       ///< retention time in seconds
       double tic = 0.0;      ///< total ion current (NaN if the vendor reports none)
       double precursor_mz = 0.0; ///< m/z of the first precursor (NaN if there is none)
+    };
+
+    /**
+      @brief Everything of a scan that depends on the scans before it (see header()).
+
+      With a record, Accessor::convert() converts the scan in any order and on any thread.
+    */
+    struct ScanRecord
+    {
+      ScanInfo info;
+      std::vector<ThermoPrecursor> precursors; ///< resolved in acquisition order
+      std::string configuration_id;            ///< instrument configuration id
+      std::string native_id;
+    };
+
+    /**
+      @brief Converts scans independently of each other (random access).
+
+      Created by ThermoRawScanReader::accessor() once the records of the scans have been taken.
+      Each accessor has its own handle on the file: one accessor must only be used by one thread
+      at a time, but distinct accessors (e.g. from clone()) may be used concurrently. Accessors
+      may outlive the reader that created them.
+    */
+    class OPENMS_DLLAPI Accessor
+    {
+    public:
+      ~Accessor();
+      Accessor(const Accessor&) = delete;
+      Accessor& operator=(const Accessor&) = delete;
+
+      /**
+        @brief Convert the scan of @p record, as ThermoRawScanReader::convert() would.
+
+        The parent spectra for the precursor intensity estimate are decoded on demand and
+        the most recent ones are kept in a small cache.
+
+        @param[in] record Record of the scan from ThermoRawScanReader::record()
+        @param[out] spectrum The converted spectrum
+        @param[in] peaks If false, no peaks or auxiliary arrays are read (metadata only)
+      */
+      void convert(const ScanRecord& record, MSSpectrum& spectrum, bool peaks);
+
+      /// Only the peaks (and the charge array if requested by the options) of @p scan; @p spectrum is reset.
+      void readPeaks(int scan, MSSpectrum& spectrum);
+
+      /// A new accessor on the same file; safe to call concurrently from several threads.
+      std::unique_ptr<Accessor> clone() const;
+
+    private:
+      friend class ThermoRawScanReader;
+      struct Impl;
+      explicit Accessor(std::unique_ptr<Impl> impl);
+      std::unique_ptr<Impl> impl_;
     };
 
     /// Returns the converted (peak-sorted) spectrum of a scan or nullptr if it is not available.
@@ -109,6 +166,22 @@ namespace Internal
     void readAhead(int last_scan, int peaks_from);
 
     /**
+      @brief Visit the headers of scans @p first to @p last ahead of header(), without peaks.
+
+      A cheap pass, e.g. to count the scans a filtered conversion selects before streaming them
+      or to index a file for random access. Instrument configurations are registered in the
+      same order as header() would register them (so ids match a single pass), and the state
+      of header() and convert() is not changed otherwise.
+
+      @param[in] first First scan number; use firstScan() if precursors are resolved
+      @param[in] last Last scan number
+      @param[in] precursors Also set ScanInfo::precursor_mz. Reads the trailers and resolves
+                 the precursors from @p first on (slower); otherwise precursor_mz is NaN.
+      @param[in] visit Called for every scan in order; returning false stops the pass
+    */
+    void scanHeaders(int first, int last, bool precursors, const std::function<bool(const ScanInfo&)>& visit);
+
+    /**
       @brief Convert the scan of the last header() call.
 
       @param[out] spectrum The converted spectrum (peaks sorted by m/z)
@@ -127,18 +200,61 @@ namespace Internal
     */
     void addInstrumentConfigurations(ExperimentalSettings& settings);
 
+    /// Record of the scan whose header was read last (by header()).
+    ScanRecord record() const;
+
+    /**
+      @brief Random access converter for scans whose records were taken.
+
+      Call it after the header() pass: precursor intensity estimates use parents from the first
+      scan visited by header() on, as a sequential conversion does.
+    */
+    std::unique_ptr<Accessor> accessor() const;
+
     /// Data processing attached to every converted spectrum and chromatogram.
     std::shared_ptr<DataProcessing> dataProcessing() const;
 
     /// TIC chromatogram as reported by the vendor library (reads every scan header).
     MSChromatogram ticChromatogram() const;
 
-    /// Detector (UV/PDA/analog) chromatograms and PDA spectra (Options::all_detectors).
+    /// Detector (UV/PDA/analog) chromatograms and PDA spectra (Options::all_detectors); may be called at any time.
     void readDetectors(std::vector<MSChromatogram>& chromatograms, std::vector<MSSpectrum>& spectra);
 
   private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
   };
+  /// Scan selection by ThermoRawFile::Options, shared by load(), transform() and OnDiscThermoRawExperiment.
+  struct ThermoRawScanSelection
+  {
+    const ThermoRawFile::Options& options;
+
+    bool level(int level) const
+    {
+      return options.ms_levels.empty() || std::find(options.ms_levels.begin(), options.ms_levels.end(), level) != options.ms_levels.end();
+    }
+    bool rt(double rt) const { return rt >= options.rt_min && rt < options.rt_max; }
+    bool precursorFiltered() const
+    {
+      return options.precursor_mz_min > -std::numeric_limits<double>::infinity() || options.precursor_mz_max < std::numeric_limits<double>::infinity();
+    }
+    /// True if scans are selected by values of their header.
+    bool headerFiltered() const
+    {
+      return ! options.ms_levels.empty() || precursorFiltered() || options.rt_min > -std::numeric_limits<double>::infinity()
+             || options.rt_max < std::numeric_limits<double>::infinity();
+    }
+    /// Last scan to read: scans of one controller are in acquisition order, so no later scan can be selected.
+    int lastScan(int last) const { return options.last_scan > 0 ? std::min(last, options.last_scan) : last; }
+    /// True if no scan from @p info on can be selected (checked after reading its header).
+    bool beyondRT(const ThermoRawScanReader::ScanInfo& info) const { return info.rt >= options.rt_max; }
+    bool selected(const ThermoRawScanReader::ScanInfo& info) const
+    {
+      if (info.scan < options.first_scan || ! rt(info.rt) || ! level(info.ms_level)) { return false; }
+      return info.ms_level <= 1 || std::isnan(info.precursor_mz)
+             || (info.precursor_mz >= options.precursor_mz_min && info.precursor_mz < options.precursor_mz_max);
+    }
+  };
+
 } // namespace Internal
 } // namespace OpenMS
