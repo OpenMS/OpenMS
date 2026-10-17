@@ -104,22 +104,27 @@ test("mountHostDirectory: a file deleted on the host cannot be read, and no desc
   assert.equal(readError?.errno, 44, "the read fails with ENOENT");
 });
 
-/// The descriptor of the process that is open on @p file (Linux: /proc/self/fd), or undefined.
-function descriptorOn(file) {
-  const target = fs.realpathSync(file);
+/// The open descriptors of the process, number -> what they point to (Linux: /proc/self/fd).
+function descriptorTable() {
+  const table = new Map();
   for (const name of fs.readdirSync("/proc/self/fd")) {
     try {
-      if (fs.readlinkSync(`/proc/self/fd/${name}`) === target) return Number(name);
+      table.set(Number(name), fs.readlinkSync(`/proc/self/fd/${name}`));
     } catch {
       // the descriptor of the readdir itself, closed again
     }
   }
-  return undefined;
+  return table;
 }
 
 // The other half of the same bug (wasmfs_node.js): a close of a host file that fails (here EBADF, 8, because the
 // descriptor was closed behind the module's back) was reported as a positive number, which came out of
 // FS.close() as the errno 65528.
+//
+// Closing the module's descriptor on the host frees its number for a moment, and the module closes that number
+// again: the test therefore has to stay before any test that starts threads of the module (their Workers open and
+// close descriptors of the process, one of them could take the number). It checks that the number is free right
+// before FS.close(), and that no other descriptor of the process changed.
 test("mountHostDirectory: a host file that cannot be closed reports its errno", { skip: !fs.existsSync("/proc/self/fd") }, () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openms-wasm-io-"));
   const file = path.join(dir, "closed.txt");
@@ -127,10 +132,16 @@ test("mountHostDirectory: a host file that cannot be closed reports its errno", 
   OpenMS.mountHostDirectory("/host", dir);
   try {
     const stream = OpenMS.FS.open("/host/closed.txt", "r");
-    const fd = descriptorOn(file);
+    const before = descriptorTable();
+    const target = fs.realpathSync(file);
+    const fd = [...before].find(([, pointsTo]) => pointsTo === target)?.[0];
     assert.notEqual(fd, undefined, "the module has the file open");
     fs.closeSync(fd);
+    const expected = new Map(before);
+    expected.delete(fd);
+    assert.ok(!isOpen(fd), `descriptor ${fd} was taken again before the module closed it`);
     assert.throws(() => OpenMS.FS.close(stream), (e) => e.errno === 8, "FS.close() fails with EBADF");
+    assert.deepEqual(descriptorTable(), expected, "no other descriptor of the process was closed or opened");
   } finally {
     OpenMS.unmount("/host");
     fs.rmSync(dir, { recursive: true, force: true });
