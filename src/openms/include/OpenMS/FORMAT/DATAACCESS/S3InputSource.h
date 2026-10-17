@@ -8,54 +8,28 @@
 
 #pragma once
 
-#ifdef WITH_S3
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/config.h>
 
 #include <xercesc/sax/InputSource.hpp>
-#include <xercesc/util/BinInputStream.hpp>
-
-#include <aws/core/Aws.h>
-#include <aws/s3/S3Client.h>
-#include <aws/s3/model/GetObjectResult.h>
-#include <aws/s3/model/GetObjectRequest.h>
-#include <aws/core/utils/memory/stl/AWSStreamFwd.h>
-#include <zlib.h>
-#include <bzlib.h>
 
 #include <memory>
-#include <mutex>
 #include <string>
 
 namespace OpenMS
 {
-
-  /// @brief Helper to ensure the AWS SDK is initialized exactly once across all translation units
-  namespace AwsSdkHelper
-  {
-    /// @brief Thread-safe one-time initialization of the AWS SDK
-    inline void initializeAwsSdk()
-    {
-      static std::once_flag flag;
-      static Aws::SDKOptions options;
-      std::call_once(flag, []() {
-        Aws::InitAPI(options);
-        std::atexit([]() { Aws::ShutdownAPI(options); });
-      });
-    }
-  } // namespace AwsSdkHelper
-
   /**
-    @brief Xerces InputSource for reading XML files from Amazon S3.
+    @brief Xerces InputSource for reading XML files from Amazon S3 (s3://bucket/key), with Arrow's S3 filesystem.
 
-    Provides streaming access to S3 objects for the Xerces XML parser.
-    Automatically detects and handles gzip and bzip2 compressed objects.
+    The object is streamed to the parser; gzip and bzip2 compressed objects (recognized by their magic bytes) are
+    decompressed on the fly.
 
-    The S3 URI format is: s3://bucket-name/object-key
+    Credentials, region and endpoint are those of Arrow's S3 filesystem: the AWS default credential chain
+    (e.g. the environment variables AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_DEFAULT_REGION, ~/.aws) and the
+    query parameters of the URI, e.g. s3://bucket/key?region=eu-central-1, or
+    s3://bucket/key?endpoint_override=localhost:9000&scheme=http for an S3-compatible server.
 
-    Requires that the AWS SDK is available and configured (environment variables
-    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION, etc.).
+    Needs Arrow with S3 support (as in OpenMS' vcpkg build, arrow[s3]); see isAvailable().
 
     @ingroup Format
   */
@@ -64,161 +38,48 @@ namespace OpenMS
   {
 public:
     /**
-      @brief Construct from an S3 URI.
+      @brief Opens the S3 object @p uri.
 
-      @param[in] s3uri S3 URI in the form s3://bucket/key
+      @param[in] uri An S3 URI (s3://bucket/key, optionally with query parameters, see above)
 
-      @throws std::runtime_error if the URI format is invalid
+      @throws Exception::IllegalArgument if @p uri is no S3 URI or OpenMS has no S3 support (see isAvailable())
+      @throws Exception::FileNotFound if the object cannot be opened (e.g. it does not exist, or access is denied)
     */
-    explicit S3InputSource(const std::string& s3uri);
+    explicit S3InputSource(const std::string& uri);
+
+    ~S3InputSource() override;
 
     /**
-      @brief Create a BinInputStream for streaming data from S3.
+      @brief A stream of the (decompressed) content of the object, for the parser.
 
-      Detects compression by checking Content-Encoding metadata or magic bytes,
-      and returns the appropriate decompressing stream.
-
-      @return Pointer to a new BinInputStream (caller takes ownership), or nullptr on error
+      @return A new BinInputStream (the caller takes ownership), or nullptr if the object cannot be read
     */
     xercesc::BinInputStream* makeStream() const override;
 
-private:
-    /// Parse an s3:// URI into bucket and key components
-    void parseS3Uri_(const std::string& s3uri);
+    /// Whether @p uri is an S3 URI (starts with "s3://")
+    static bool isS3URI(const std::string& uri);
 
-    std::string bucket_name_; ///< S3 bucket name
-    std::string object_key_;  ///< S3 object key
-  };
-
-  /**
-    @brief BinInputStream that reads an S3 object as a byte stream.
-
-    Wraps an AWS S3 GetObjectResult and provides sequential read access
-    suitable for XML parsing.
-
-    @ingroup Format
-  */
-  class OPENMS_DLLAPI S3BinInputStream :
-    public xercesc::BinInputStream
-  {
-public:
-    /**
-      @brief Construct from a completed S3 GetObject outcome.
-
-      @param[in] outcome Shared pointer to a successful GetObjectOutcome
-    */
-    explicit S3BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome);
-
-    /// @brief Return the current byte position in the stream
-    XMLFilePos curPos() const override;
+    /// Whether OpenMS can read S3 URIs: it was built with an Arrow library that has S3 support
+    static bool isAvailable();
 
     /**
-      @brief Read up to @p maxToRead bytes into @p toFill.
+      @brief The size of the S3 object @p uri, in bytes.
 
-      @param[out] toFill   Buffer to write data into
-      @param[in]  maxToRead Maximum number of bytes to read
-
-      @return Number of bytes actually read (0 at end-of-stream)
+      @throws Exception::IllegalArgument, Exception::FileNotFound as the constructor
     */
-    XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead) override;
+    static Int64 objectSize(const std::string& uri);
 
-    /// @brief Return the content type (always returns nullptr)
-    const XMLCh* getContentType() const override;
+    /**
+      @brief The bytes [@p offset, @p offset + @p length) of the S3 object @p uri (fewer at its end).
+
+      @throws Exception::IllegalArgument, Exception::FileNotFound as the constructor
+      @throws Exception::IOException if the bytes cannot be read
+    */
+    static std::string readRange(const std::string& uri, Int64 offset, Int64 length);
 
 private:
-    std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome_; ///< Owns the GetObject result
-    Aws::IOStream* stream_;  ///< Pointer to the result body stream (non-owning)
-    XMLFilePos position_;    ///< Current read position
-  };
-
-  /**
-    @brief BinInputStream that reads and decompresses gzip-encoded S3 objects.
-
-    @ingroup Format
-  */
-  class OPENMS_DLLAPI S3GzipBinInputStream :
-    public xercesc::BinInputStream
-  {
-public:
-    /**
-      @brief Construct from a completed S3 GetObject outcome containing gzip data.
-
-      @param[in] outcome Shared pointer to a successful GetObjectOutcome
-
-      @throws std::runtime_error if zlib initialization fails
-    */
-    explicit S3GzipBinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome);
-
-    ~S3GzipBinInputStream() override;
-
-    /// @brief Return the current byte position in the decompressed stream
-    XMLFilePos curPos() const override;
-
-    /**
-      @brief Read and decompress up to @p maxToRead bytes into @p toFill.
-
-      @param[out] toFill   Buffer to write decompressed data into
-      @param[in]  maxToRead Maximum number of bytes to read
-
-      @return Number of decompressed bytes written (0 at end-of-stream)
-    */
-    XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead) override;
-
-    /// @brief Return the content type (always returns nullptr)
-    const XMLCh* getContentType() const override;
-
-private:
-    std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome_; ///< Owns the GetObject result
-    Aws::IOStream* stream_;      ///< Pointer to the result body stream (non-owning)
-    z_stream z_stream_;          ///< zlib decompression state
-    Bytef buffer_[4096];         ///< Compressed data read buffer
-    XMLFilePos position_;        ///< Current decompressed byte position
-  };
-
-  /**
-    @brief BinInputStream that reads and decompresses bzip2-encoded S3 objects.
-
-    @ingroup Format
-  */
-  class OPENMS_DLLAPI S3Bzip2BinInputStream :
-    public xercesc::BinInputStream
-  {
-public:
-    /**
-      @brief Construct from a completed S3 GetObject outcome containing bzip2 data.
-
-      @param[in] outcome Shared pointer to a successful GetObjectOutcome
-
-      @throws std::runtime_error if bzip2 initialization fails
-    */
-    explicit S3Bzip2BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome);
-
-    ~S3Bzip2BinInputStream() override;
-
-    /// @brief Return the current byte position in the decompressed stream
-    XMLFilePos curPos() const override;
-
-    /**
-      @brief Read and decompress up to @p maxToRead bytes into @p toFill.
-
-      @param[out] toFill   Buffer to write decompressed data into
-      @param[in]  maxToRead Maximum number of bytes to read
-
-      @return Number of decompressed bytes written (0 at end-of-stream)
-    */
-    XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead) override;
-
-    /// @brief Return the content type (always returns nullptr)
-    const XMLCh* getContentType() const override;
-
-private:
-    std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome_; ///< Owns the GetObject result
-    Aws::IOStream* stream_;       ///< Pointer to the result body stream (non-owning)
-    bz_stream bz_stream_;         ///< bzip2 decompression state
-    char buffer_[4096];           ///< Compressed data read buffer
-    XMLFilePos position_;         ///< Current decompressed byte position
+    struct Impl;
+    std::unique_ptr<Impl> impl_; ///< The opened object (Arrow types stay out of this header)
   };
 
 } // namespace OpenMS
-
-#endif // WITH_S3

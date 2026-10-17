@@ -7,333 +7,358 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
+
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/HANDLERS/StringManager.h>
 
-#include <aws/s3/model/GetObjectRequest.h>
-#include <aws/s3/model/HeadObjectRequest.h>
+#include <xercesc/util/BinInputStream.hpp>
 
-#include <stdexcept>
+#ifdef OPENMS_WITH_ARROW_S3
+#include <arrow/buffer.h>
+#include <arrow/filesystem/s3fs.h>
+#include <arrow/io/buffered.h>
+#include <arrow/io/interfaces.h>
+#include <arrow/memory_pool.h>
+#endif
+
+#include <bzlib.h>
+#include <zlib.h>
+
+#include <cstdlib>
+#include <mutex>
+#include <string_view>
 
 namespace OpenMS
 {
 
-  // ---------------------------------------------------------------------------
-  // S3InputSource
-  // ---------------------------------------------------------------------------
-
-  S3InputSource::S3InputSource(const std::string& s3uri)
+  struct S3InputSource::Impl
   {
-    AwsSdkHelper::initializeAwsSdk();
-    parseS3Uri_(s3uri);
-  }
+    std::string uri;
+#ifdef OPENMS_WITH_ARROW_S3
+    std::shared_ptr<arrow::io::RandomAccessFile> object;
+#endif
+  };
 
-  xercesc::BinInputStream* S3InputSource::makeStream() const
+  namespace
   {
-    Aws::Client::ClientConfiguration client_config;
-    Aws::S3::S3Client s3_client(client_config);
+#ifdef OPENMS_WITH_ARROW_S3
+    // Each read of an S3 object is a request: the streams read the object in blocks of this size
+    constexpr int64_t READ_BLOCK_SIZE = 8 * 1024 * 1024;
 
-    // Determine compression from metadata or magic bytes
-    std::string encoding;
-
-    // Try Content-Encoding metadata first via HeadObject
-    Aws::S3::Model::HeadObjectRequest head_request;
-    head_request.WithBucket(bucket_name_).WithKey(object_key_);
-
-    auto head_outcome = s3_client.HeadObject(head_request);
-    if (head_outcome.IsSuccess())
+    // Arrow's S3 APIs are initialized before their first use, and must be finalized before the process exits (it
+    // crashes at shutdown otherwise, see finalizeS3AtExit())
+    void ensureS3Initialized()
     {
-      auto metadata = head_outcome.GetResult().GetMetadata();
-      auto it = metadata.find("Content-Encoding");
-      if (it != metadata.end())
+      static std::once_flag once;
+      static arrow::Status status;
+      std::call_once(once, [] { status = arrow::fs::EnsureS3Initialized(); });
+      if (!status.ok())
       {
-        encoding = it->second;
+        OPENMS_LOG_ERROR << "Cannot initialize S3: " << status.ToString() << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot initialize S3: " + status.ToString());
       }
-      else
+    }
+
+    // Finalizes S3 at exit. Called once an S3 filesystem (with its client) exists: the finalization uses statics that the
+    // first client creates, and exit handlers and static destructors run in the reverse order of their registration,
+    // so the handler is registered after them to run before they are destroyed.
+    void finalizeS3AtExit()
+    {
+      static std::once_flag once;
+      std::call_once(once, [] { std::atexit([] { (void)arrow::fs::EnsureS3Finalized(); }); });
+    }
+
+    // Opens the S3 object @p uri
+    std::shared_ptr<arrow::io::RandomAccessFile> openObject(const std::string& uri)
+    {
+      ensureS3Initialized();
+      std::string path;
+      auto options = arrow::fs::S3Options::FromUri(uri, &path);
+      // the errors are logged, as callers may rethrow them as other exceptions (e.g. MzMLFile::load(): a ParseError)
+      if (!options.ok())
       {
-        // Check magic bytes by fetching the first 3 bytes
-        Aws::S3::Model::GetObjectRequest magic_request;
-        magic_request.WithBucket(bucket_name_).WithKey(object_key_);
-        magic_request.SetRange("bytes=0-2");
+        OPENMS_LOG_ERROR << "Invalid S3 URI " << uri << ": " << options.status().ToString() << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Invalid S3 URI '" + uri + "': " + options.status().ToString());
+      }
+      auto filesystem = arrow::fs::S3FileSystem::Make(*options);
+      if (!filesystem.ok())
+      {
+        OPENMS_LOG_ERROR << "Cannot open " << uri << ": " << filesystem.status().ToString() << std::endl;
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri, filesystem.status().ToString());
+      }
+      finalizeS3AtExit();
+      auto object = (*filesystem)->OpenInputFile(path);
+      if (!object.ok())
+      {
+        OPENMS_LOG_ERROR << "Cannot open " << uri << ": " << object.status().ToString() << std::endl;
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri, object.status().ToString());
+      }
+      return *object;
+    }
 
-        auto magic_outcome = s3_client.GetObject(magic_request);
-        if (magic_outcome.IsSuccess())
+    // The bytes of an Arrow stream, for Xerces
+    class ArrowBinInputStream :
+      public xercesc::BinInputStream
+    {
+public:
+      explicit ArrowBinInputStream(std::shared_ptr<arrow::io::InputStream> stream) :
+        stream_(std::move(stream))
+      {
+      }
+
+      XMLFilePos curPos() const override
+      {
+        return position_;
+      }
+
+      XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read) override
+      {
+        auto bytes_read = stream_->Read(static_cast<int64_t>(max_to_read), to_fill);
+        if (!bytes_read.ok())
         {
-          Aws::IOStream& magic_stream = magic_outcome.GetResult().GetBody();
-          unsigned char header[3] = {};
-          magic_stream.read(reinterpret_cast<char*>(header), sizeof(header));
+          OPENMS_LOG_ERROR << "Error reading from S3: " << bytes_read.status().ToString() << std::endl;
+          return 0;
+        }
+        position_ += *bytes_read;
+        return static_cast<XMLSize_t>(*bytes_read);
+      }
 
-          if (header[0] == 0x1F && header[1] == 0x8B)
-          {
-            encoding = "gzip";
-          }
-          else if (header[0] == 'B' && header[1] == 'Z' && header[2] == 'h')
-          {
-            encoding = "bzip2";
-          }
+      const XMLCh* getContentType() const override
+      {
+        return nullptr;
+      }
+
+private:
+      std::shared_ptr<arrow::io::InputStream> stream_;
+      XMLFilePos position_ = 0;
+    };
+
+    // The decompressed bytes of a gzip (@p GZIP true) or bzip2 compressed Arrow stream, for Xerces
+    class DecompressingBinInputStream :
+      public xercesc::BinInputStream
+    {
+public:
+      DecompressingBinInputStream(std::shared_ptr<arrow::io::InputStream> stream, bool gzip) :
+        stream_(std::move(stream)),
+        gzip_(gzip)
+      {
+        // windowBits 15 + 16: gzip format
+        if (gzip_ ? inflateInit2(&z_stream_, 15 + 16) != Z_OK : BZ2_bzDecompressInit(&bz_stream_, 0, 0) != BZ_OK)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           std::string("Cannot initialize the ") + (gzip_ ? "gzip" : "bzip2") + " decompression");
+        }
+      }
+
+      ~DecompressingBinInputStream() override
+      {
+        if (gzip_)
+        {
+          inflateEnd(&z_stream_);
         }
         else
         {
-          OPENMS_LOG_ERROR << "Error: AWS SDK GetObject for magic bytes: "
-                          << magic_outcome.GetError().GetExceptionName() << " "
-                          << magic_outcome.GetError().GetMessage() << std::endl;
-          return nullptr;
+          BZ2_bzDecompressEnd(&bz_stream_);
         }
       }
-    }
-    else
+
+      XMLFilePos curPos() const override
+      {
+        return position_;
+      }
+
+      XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read) override
+      {
+        XMLSize_t written = 0;
+        while (written < max_to_read && !finished_)
+        {
+          if (available_ == 0)
+          {
+            auto bytes_read = stream_->Read(sizeof(buffer_), buffer_);
+            if (!bytes_read.ok())
+            {
+              OPENMS_LOG_ERROR << "Error reading from S3: " << bytes_read.status().ToString() << std::endl;
+              finished_ = true;
+              break;
+            }
+            if (*bytes_read == 0) // truncated stream
+            {
+              finished_ = true;
+              break;
+            }
+            next_ = buffer_;
+            available_ = static_cast<size_t>(*bytes_read);
+          }
+          const size_t space = max_to_read - written;
+          size_t consumed = 0;
+          size_t produced = 0;
+          bool ok = true;
+          if (gzip_)
+          {
+            z_stream_.next_in = reinterpret_cast<Bytef*>(next_);
+            z_stream_.avail_in = static_cast<uInt>(available_);
+            z_stream_.next_out = reinterpret_cast<Bytef*>(to_fill + written);
+            z_stream_.avail_out = static_cast<uInt>(space);
+            const int ret = inflate(&z_stream_, Z_NO_FLUSH);
+            consumed = available_ - z_stream_.avail_in;
+            produced = space - z_stream_.avail_out;
+            finished_ = ret == Z_STREAM_END;
+            ok = ret == Z_OK || ret == Z_STREAM_END || ret == Z_BUF_ERROR;
+          }
+          else
+          {
+            bz_stream_.next_in = next_;
+            bz_stream_.avail_in = static_cast<unsigned int>(available_);
+            bz_stream_.next_out = reinterpret_cast<char*>(to_fill + written);
+            bz_stream_.avail_out = static_cast<unsigned int>(space);
+            const int ret = BZ2_bzDecompress(&bz_stream_);
+            consumed = available_ - bz_stream_.avail_in;
+            produced = space - bz_stream_.avail_out;
+            finished_ = ret == BZ_STREAM_END;
+            ok = ret == BZ_OK || ret == BZ_STREAM_END;
+          }
+          if (!ok || (consumed == 0 && produced == 0 && !finished_)) // an error, or no progress
+          {
+            OPENMS_LOG_ERROR << "Error decompressing the " << (gzip_ ? "gzip" : "bzip2") << " data read from S3" << std::endl;
+            finished_ = true;
+          }
+          next_ += consumed;
+          available_ -= consumed;
+          written += produced;
+        }
+        position_ += written;
+        return written;
+      }
+
+      const XMLCh* getContentType() const override
+      {
+        return nullptr;
+      }
+
+private:
+      std::shared_ptr<arrow::io::InputStream> stream_;
+      bool gzip_;
+      z_stream z_stream_{};
+      bz_stream bz_stream_{};
+      char buffer_[64 * 1024];
+      char* next_ = buffer_;   ///< the next compressed byte in buffer_
+      size_t available_ = 0;   ///< the number of compressed bytes from next_ on
+      bool finished_ = false;
+      XMLFilePos position_ = 0;
+    };
+#endif
+  } // namespace
+
+  S3InputSource::S3InputSource(const std::string& uri) :
+    impl_(std::make_unique<Impl>())
+  {
+    if (!isS3URI(uri))
     {
-      OPENMS_LOG_ERROR << "Error: AWS SDK HeadObject: "
-                      << head_outcome.GetError().GetExceptionName() << " "
-                      << head_outcome.GetError().GetMessage() << std::endl;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not an S3 URI (s3://bucket/key): '" + uri + "'");
+    }
+    if (!isAvailable())
+    {
+      const std::string message = "Cannot read '" + uri + "': OpenMS was built without S3 support (its Arrow library has none, "
+                                  "e.g. vcpkg's arrow without the feature 's3').";
+      OPENMS_LOG_ERROR << message << std::endl; // callers may rethrow it as another exception (e.g. MzMLFile::load())
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+    }
+    impl_->uri = uri;
+#ifdef OPENMS_WITH_ARROW_S3
+    impl_->object = openObject(uri);
+#endif
+    setSystemId(Internal::StringManager::convert(uri).c_str());
+  }
+
+  S3InputSource::~S3InputSource() = default;
+
+  xercesc::BinInputStream* S3InputSource::makeStream() const
+  {
+#ifdef OPENMS_WITH_ARROW_S3
+    // a stream of its own for each call, read in large blocks
+    auto size = impl_->object->GetSize();
+    if (!size.ok())
+    {
+      OPENMS_LOG_ERROR << "Error reading " << impl_->uri << ": " << size.status().ToString() << std::endl;
       return nullptr;
     }
-
-    // Fetch the full object
-    Aws::S3::Model::GetObjectRequest get_request;
-    get_request.WithBucket(bucket_name_).WithKey(object_key_);
-
-    auto get_outcome = std::make_shared<Aws::S3::Model::GetObjectOutcome>(
-      s3_client.GetObject(get_request));
-
-    if (!get_outcome->IsSuccess())
+    auto raw = arrow::io::RandomAccessFile::GetStream(impl_->object, 0, *size);
+    if (!raw.ok())
     {
-      OPENMS_LOG_ERROR << "Error: AWS SDK GetObject: "
-                      << get_outcome->GetError().GetExceptionName() << " "
-                      << get_outcome->GetError().GetMessage() << std::endl;
+      OPENMS_LOG_ERROR << "Error reading " << impl_->uri << ": " << raw.status().ToString() << std::endl;
       return nullptr;
     }
-
-    // Return the appropriate stream based on compression
-    if (encoding == "gzip")
+    auto stream = arrow::io::BufferedInputStream::Create(READ_BLOCK_SIZE, arrow::default_memory_pool(), *raw);
+    if (!stream.ok())
     {
-      return new S3GzipBinInputStream(get_outcome);
+      OPENMS_LOG_ERROR << "Error reading " << impl_->uri << ": " << stream.status().ToString() << std::endl;
+      return nullptr;
     }
-    else if (encoding == "bzip2")
+    // gzip or bzip2 compressed: by the magic bytes
+    auto head = (*stream)->Peek(3);
+    const std::string_view magic = head.ok() ? *head : std::string_view();
+    if (magic.size() >= 2 && static_cast<unsigned char>(magic[0]) == 0x1F && static_cast<unsigned char>(magic[1]) == 0x8B)
     {
-      return new S3Bzip2BinInputStream(get_outcome);
+      return new DecompressingBinInputStream(*stream, true);
     }
-    else
+    if (magic == "BZh")
     {
-      return new S3BinInputStream(get_outcome);
+      return new DecompressingBinInputStream(*stream, false);
     }
+    return new ArrowBinInputStream(*stream);
+#else
+    return nullptr; // not constructible without S3 support
+#endif
   }
 
-  void S3InputSource::parseS3Uri_(const std::string& s3uri)
+  bool S3InputSource::isS3URI(const std::string& uri)
   {
-    std::string uri = s3uri;
-    if (uri.compare(0, 5, "s3://") == 0)
+    return StringUtils::hasPrefix(uri, "s3://");
+  }
+
+  bool S3InputSource::isAvailable()
+  {
+#ifdef OPENMS_WITH_ARROW_S3
+    return true;
+#else
+    return false;
+#endif
+  }
+
+  Int64 S3InputSource::objectSize(const std::string& uri)
+  {
+    const S3InputSource source(uri);
+#ifdef OPENMS_WITH_ARROW_S3
+    auto size = source.impl_->object->GetSize();
+    if (!size.ok())
     {
-      uri = uri.substr(5);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri, size.status().ToString());
     }
+    return *size;
+#else
+    return 0; // the constructor threw
+#endif
+  }
 
-    size_t slash_pos = uri.find('/');
-    if (slash_pos == std::string::npos)
+  std::string S3InputSource::readRange(const std::string& uri, Int64 offset, Int64 length)
+  {
+    const S3InputSource source(uri);
+#ifdef OPENMS_WITH_ARROW_S3
+    auto bytes = source.impl_->object->ReadAt(offset, length);
+    if (!bytes.ok())
     {
-      throw std::runtime_error("Invalid S3 URI format: missing '/' after bucket name in '" + s3uri + "'");
+      OPENMS_LOG_ERROR << "Error reading " << uri << ": " << bytes.status().ToString() << std::endl;
+      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, uri);
     }
-
-    bucket_name_ = uri.substr(0, slash_pos);
-    object_key_ = uri.substr(slash_pos + 1);
-
-    if (bucket_name_.empty() || object_key_.empty())
-    {
-      throw std::runtime_error("Invalid S3 URI: bucket name or object key is empty in '" + s3uri + "'");
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // S3BinInputStream
-  // ---------------------------------------------------------------------------
-
-  S3BinInputStream::S3BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome)
-    : outcome_(std::move(outcome)),
-      stream_(&outcome_->GetResult().GetBody()),
-      position_(0)
-  {
-  }
-
-  XMLFilePos S3BinInputStream::curPos() const
-  {
-    return position_;
-  }
-
-  XMLSize_t S3BinInputStream::readBytes(XMLByte* const toFill, const XMLSize_t maxToRead)
-  {
-    if (stream_ && toFill && stream_->good())
-    {
-      stream_->read(reinterpret_cast<char*>(toFill), maxToRead);
-      std::streamsize bytes_read = stream_->gcount();
-      position_ += bytes_read;
-      return static_cast<XMLSize_t>(bytes_read);
-    }
-    return 0;
-  }
-
-  const XMLCh* S3BinInputStream::getContentType() const
-  {
-    return nullptr;
-  }
-
-  // ---------------------------------------------------------------------------
-  // S3GzipBinInputStream
-  // ---------------------------------------------------------------------------
-
-  S3GzipBinInputStream::S3GzipBinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome)
-    : outcome_(std::move(outcome)),
-      stream_(&outcome_->GetResult().GetBody()),
-      z_stream_(),
-      buffer_(),
-      position_(0)
-  {
-    z_stream_.zalloc = Z_NULL;
-    z_stream_.zfree = Z_NULL;
-    z_stream_.opaque = Z_NULL;
-    z_stream_.avail_in = 0;
-    z_stream_.next_in = Z_NULL;
-
-    // windowBits = 15 + 16 enables gzip decoding
-    int ret = inflateInit2(&z_stream_, 15 + 16);
-    if (ret != Z_OK)
-    {
-      throw std::runtime_error("Error initializing gzip stream: " +
-        std::string(z_stream_.msg ? z_stream_.msg : "unknown zlib error"));
-    }
-  }
-
-  S3GzipBinInputStream::~S3GzipBinInputStream()
-  {
-    inflateEnd(&z_stream_);
-  }
-
-  XMLFilePos S3GzipBinInputStream::curPos() const
-  {
-    return position_;
-  }
-
-  XMLSize_t S3GzipBinInputStream::readBytes(XMLByte* const toFill, const XMLSize_t maxToRead)
-  {
-    z_stream_.avail_out = static_cast<uInt>(maxToRead);
-    z_stream_.next_out = reinterpret_cast<Bytef*>(toFill);
-
-    while (z_stream_.avail_out > 0)
-    {
-      // Refill input buffer when empty
-      if (z_stream_.avail_in == 0)
-      {
-        if (!stream_ || !stream_->good())
-        {
-          break;
-        }
-        stream_->read(reinterpret_cast<char*>(buffer_), sizeof(buffer_));
-        std::streamsize bytes_read = stream_->gcount();
-        if (bytes_read == 0)
-        {
-          break;
-        }
-        z_stream_.avail_in = static_cast<uInt>(bytes_read);
-        z_stream_.next_in = buffer_;
-      }
-
-      int ret = inflate(&z_stream_, Z_NO_FLUSH);
-      if (ret == Z_STREAM_END)
-      {
-        break;
-      }
-      else if (ret != Z_OK)
-      {
-        OPENMS_LOG_ERROR << "Error during gzip decompression: "
-                        << (z_stream_.msg ? z_stream_.msg : "unknown") << std::endl;
-        break;
-      }
-    }
-
-    XMLSize_t decompressed = maxToRead - z_stream_.avail_out;
-    position_ += decompressed;
-    return decompressed;
-  }
-
-  const XMLCh* S3GzipBinInputStream::getContentType() const
-  {
-    return nullptr;
-  }
-
-  // ---------------------------------------------------------------------------
-  // S3Bzip2BinInputStream
-  // ---------------------------------------------------------------------------
-
-  S3Bzip2BinInputStream::S3Bzip2BinInputStream(std::shared_ptr<Aws::S3::Model::GetObjectOutcome> outcome)
-    : outcome_(std::move(outcome)),
-      stream_(&outcome_->GetResult().GetBody()),
-      bz_stream_(),
-      buffer_(),
-      position_(0)
-  {
-    bz_stream_.bzalloc = nullptr;
-    bz_stream_.bzfree = nullptr;
-    bz_stream_.opaque = nullptr;
-    bz_stream_.avail_in = 0;
-    bz_stream_.next_in = nullptr;
-
-    if (BZ2_bzDecompressInit(&bz_stream_, 0, 0) != BZ_OK)
-    {
-      throw std::runtime_error("Error initializing bzip2 decompression");
-    }
-  }
-
-  S3Bzip2BinInputStream::~S3Bzip2BinInputStream()
-  {
-    BZ2_bzDecompressEnd(&bz_stream_);
-  }
-
-  XMLFilePos S3Bzip2BinInputStream::curPos() const
-  {
-    return position_;
-  }
-
-  XMLSize_t S3Bzip2BinInputStream::readBytes(XMLByte* const toFill, const XMLSize_t maxToRead)
-  {
-    bz_stream_.avail_out = static_cast<unsigned int>(maxToRead);
-    bz_stream_.next_out = reinterpret_cast<char*>(toFill);
-
-    while (bz_stream_.avail_out > 0)
-    {
-      // Refill input buffer when empty
-      if (bz_stream_.avail_in == 0)
-      {
-        if (!stream_ || !stream_->good())
-        {
-          break;
-        }
-        stream_->read(buffer_, sizeof(buffer_));
-        std::streamsize bytes_read = stream_->gcount();
-        if (bytes_read == 0)
-        {
-          break;
-        }
-        bz_stream_.avail_in = static_cast<unsigned int>(bytes_read);
-        bz_stream_.next_in = buffer_;
-      }
-
-      int ret = BZ2_bzDecompress(&bz_stream_);
-      if (ret == BZ_STREAM_END)
-      {
-        break;
-      }
-      else if (ret != BZ_OK)
-      {
-        OPENMS_LOG_ERROR << "Error during bzip2 decompression, code: " << ret << std::endl;
-        break;
-      }
-    }
-
-    XMLSize_t decompressed = maxToRead - bz_stream_.avail_out;
-    position_ += decompressed;
-    return decompressed;
-  }
-
-  const XMLCh* S3Bzip2BinInputStream::getContentType() const
-  {
-    return nullptr;
+    return (*bytes)->ToString();
+#else
+    (void)offset;
+    (void)length;
+    return {}; // the constructor threw
+#endif
   }
 
 } // namespace OpenMS

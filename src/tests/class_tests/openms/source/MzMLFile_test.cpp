@@ -989,21 +989,6 @@ START_SECTION([EXTRA] load from HTTP URL)
 }
 END_SECTION
 
-#ifdef WITH_S3
-// Test loading from S3 (requires AWS credentials and S3 bucket access)
-START_SECTION([EXTRA] load from S3)
-{
-  // Uncomment to test S3 loading (requires valid AWS credentials):
-  // MzMLFile file;
-  // PeakMap exp;
-  // file.load("s3://your-bucket/your-file.mzML", exp);
-  // TEST_EQUAL(exp.size() > 0, true)
-  NOT_TESTABLE
-}
-END_SECTION
-#endif // WITH_S3
-
-
 START_SECTION((template <typename MapType> void store(const std::string& filename, const MapType& map) const))
 {
   MzMLFile file;

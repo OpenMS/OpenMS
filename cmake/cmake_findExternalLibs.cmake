@@ -398,12 +398,31 @@ if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static"
 endif()
 
 #------------------------------------------------------------------------------
-# AWS S3 SDK (optional, for S3 loading support)
-# Uses the AWS SDK that may already be installed alongside Arrow (if ARROW_S3=ON).
-if(WITH_S3)
-  find_package(AWSSDK REQUIRED COMPONENTS s3)
-  message(STATUS "S3 support enabled (AWS SDK found)")
+# S3 (s3:// URIs, S3InputSource): Arrow's S3 filesystem, if Arrow was built with it (ARROW_S3, e.g. vcpkg's
+# arrow[s3]). It is part of libarrow in older releases and its own library, ArrowS3, in newer ones. Linking a call
+# checks that it is usable (the headers are installed without it, too); without it, s3:// URIs are an error.
+set(OPENMS_ARROW_S3_TARGET "")
+set(WITH_ARROW_S3 OFF)
+if(NOT DEFINED ARROW_S3 OR ARROW_S3)
+  find_package(ArrowS3 CONFIG QUIET)
+  if(OPENMS_ARROW_TARGET STREQUAL "Arrow::arrow_static" AND TARGET ArrowS3::arrow_s3_static)
+    set(OPENMS_ARROW_S3_TARGET ArrowS3::arrow_s3_static)
+  elseif(TARGET ArrowS3::arrow_s3_shared)
+    set(OPENMS_ARROW_S3_TARGET ArrowS3::arrow_s3_shared)
+  elseif(TARGET ArrowS3::arrow_s3_static)
+    set(OPENMS_ARROW_S3_TARGET ArrowS3::arrow_s3_static)
+  endif()
+  include(CheckCXXSourceCompiles)
+  set(CMAKE_REQUIRED_LIBRARIES ${OPENMS_ARROW_TARGET} ${OPENMS_ARROW_S3_TARGET})
+  check_cxx_source_compiles("
+    #include <arrow/filesystem/s3fs.h>
+    int main() { return arrow::fs::IsS3Initialized() ? 1 : 0; }" OPENMS_ARROW_S3_LINKS)
+  unset(CMAKE_REQUIRED_LIBRARIES)
+  if(OPENMS_ARROW_S3_LINKS)
+    set(WITH_ARROW_S3 ON)
+  endif()
 endif()
+message(STATUS "S3 support (s3:// URIs, via Arrow): ${WITH_ARROW_S3} ${OPENMS_ARROW_S3_TARGET}")
 
 #------------------------------------------------------------------------------
 # wnetalign (Wasserstein network spectral alignment)

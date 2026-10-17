@@ -14,9 +14,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
-#ifdef WITH_S3
 #include <OpenMS/FORMAT/DATAACCESS/S3InputSource.h>
-#endif
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -130,11 +128,7 @@ private:
 
       // Detect remote URIs (skip local file existence check for them)
       bool is_remote = StringUtils::hasPrefix(filename, "http://") || StringUtils::hasPrefix(filename, "https://")
-                       || StringUtils::hasPrefix(filename, "ftp://")
-#ifdef WITH_S3
-                       || StringUtils::hasPrefix(filename, "s3://")
-#endif
-                       ;
+                       || StringUtils::hasPrefix(filename, "ftp://") || S3InputSource::isS3URI(filename);
 
       if (!is_remote && !File::readable(filename))
       {
@@ -160,12 +154,11 @@ private:
         // Use Xerces URLInputSource for HTTP/HTTPS/FTP streaming
         source.reset(new xercesc::URLInputSource(sm.convert(filename).c_str()));
       }
-#ifdef WITH_S3
-      else if (StringUtils::hasPrefix(filename, "s3://"))
+      else if (S3InputSource::isS3URI(filename))
       {
+        // S3 object via Arrow's S3 filesystem (throws if OpenMS has no S3 support)
         source.reset(new S3InputSource(filename));
       }
-#endif
       else
       {
         // Local file: peek ahead to detect compression (bzip2, gzip, zip)
