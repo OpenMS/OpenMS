@@ -276,6 +276,11 @@ if (WITH_OPENTIMS)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
 endif()
 
+if (WITH_ARROW_S3 AND OPENMS_ARROW_S3_TARGET)
+  # S3 (S3InputSource): Arrow's S3 filesystem, a library of its own in newer Arrow releases
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES ${OPENMS_ARROW_S3_TARGET})
+endif()
+
 if (WITH_THERMO_RAW)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES OpenMSThermoBridge::openms_thermo_bridge)
 endif()
@@ -477,6 +482,12 @@ target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
 if (WITH_OPENTIMS)
     target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
+endif()
+
+if (WITH_ARROW_S3)
+    # only S3InputSource.cpp uses Arrow's S3 filesystem
+    set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/source/FORMAT/DATAACCESS/S3InputSource.cpp
+                 APPEND PROPERTY COMPILE_DEFINITIONS OPENMS_WITH_ARROW_S3)
 endif()
 
 if (WITH_THERMO_RAW)
