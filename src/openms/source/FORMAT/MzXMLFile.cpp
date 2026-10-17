@@ -109,4 +109,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

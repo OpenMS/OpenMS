@@ -70,13 +70,13 @@ public:
     void swap(DocumentIdentifier & from);
 
 
-    /// set the file_name_ according to absolute path of the file loaded from preferably done whilst loading
+    /// Set the loaded file's absolute local path, or its remote URI without userinfo, query or fragment.
     void setLoadedFilePath(const std::string & file_name);
 
-    /// get the file_name_ which is the absolute path to the file loaded from
+    /// Get the loaded file's absolute local path or redacted remote resource URI.
     const std::string & getLoadedFilePath() const;
 
-    /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferably done whilst loading
+    /// Detect local file type from content, or remote resource type from its filename (ignoring query and fragment).
     void setLoadedFileType(const std::string & file_name);
 
     /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
@@ -93,4 +93,3 @@ protected:
     FileTypes::Type file_type_;
   };
 } // namespace OpenMS
-

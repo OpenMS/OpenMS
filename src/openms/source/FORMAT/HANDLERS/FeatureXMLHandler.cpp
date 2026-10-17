@@ -26,19 +26,17 @@ using namespace std;
 namespace OpenMS::Internal
 {
   FeatureXMLHandler::FeatureXMLHandler(FeatureMap& map, const std::string& filename) :
-    Internal::XMLHandler("", "1.9")
+    Internal::XMLHandler(filename, "1.9")
   {
     resetMembers_();
     map_ = &map;
-    file_ = filename;
   }
 
   FeatureXMLHandler::FeatureXMLHandler(const FeatureMap& map, const std::string& filename) :
-    Internal::XMLHandler("", "1.9")
+    Internal::XMLHandler(filename, "1.9")
   {
     resetMembers_();
     cmap_ = &map;
-    file_ = filename;
   }
   FeatureXMLHandler::~FeatureXMLHandler() = default;
 

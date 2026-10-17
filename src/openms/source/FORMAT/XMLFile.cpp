@@ -14,6 +14,9 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/SAX2HandlerAdapter.h>
+#ifdef WITH_S3
+#include "DATAACCESS/S3InputSource.h"
+#endif
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
@@ -22,6 +25,7 @@
 
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
+#include <xercesc/framework/URLInputSource.hpp>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
@@ -35,6 +39,7 @@
 
 #include <memory>
 #include <xercesc/util/XMLString.hpp>
+#include <xercesc/util/XMLURL.hpp>
 
 using namespace std;
 
@@ -90,6 +95,8 @@ private:
       parser->setContentHandler(&adapter);
       parser->setErrorHandler(&adapter);
 
+      const bool remote = source->getSystemId()
+                       && FileNameUtils::isRemoteResource(StringManager().convert(source->getSystemId()));
 
       // try to parse file
       try
@@ -98,10 +105,19 @@ private:
       }
       catch (const xercesc::XMLException& toCatch)
       {
+        if (remote)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+                                      "XMLException while reading remote XML; check network transport and XML encoding");
+        }
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException& toCatch)
       {
+        if (remote)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "SAXException while parsing remote XML");
+        }
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",std::string("SAXException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
@@ -124,7 +140,7 @@ private:
 
       StringManager sm;
       //try to open file
-      if (!File::exists(filename))
+      if (!FileNameUtils::isRemoteResource(filename) && !File::exists(filename))
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
@@ -141,32 +157,44 @@ private:
       }
 
 
-      // peak ahead into the file: is it bzip2 or gzip compressed?
-      std::string bz;
-      {
-        std::ifstream file(filename.c_str());
-        char tmp_bz[3];
-        file.read(tmp_bz, 2);
-        tmp_bz[2] = '\0';
-        bz =std::string(tmp_bz);
-      }
-
       unique_ptr<xercesc::InputSource> source;
-
-      char g1 = 0x1f;
-      char g2 = 0;
-      g2 |= 1 << 7;
-      g2 |= 1 << 3;
-      g2 |= 1 << 1;
-      g2 |= 1 << 0;
-      //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
-      if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2) || (bz[0] == 'P' && bz[1] == 'K'))
+      if (filename.compare(0, 5, "s3://") == 0)
       {
-        source.reset(new CompressedInputSource(sm.convert(filename).c_str(), bz));
+#ifdef WITH_S3
+        source = std::make_unique<S3InputSource>(filename);
+#else
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+                                    "S3 XML input requires an OpenMS build with WITH_S3 enabled");
+#endif
+      }
+      else if (FileNameUtils::isRemoteResource(filename))
+      {
+        // Availability of HTTPS/FTP depends on Xerces' configured network accessor.
+        try
+        {
+          source = std::make_unique<xercesc::URLInputSource>(xercesc::XMLURL(sm.convert(filename).c_str()));
+          source->setSystemId(sm.convert(FileNameUtils::redactRemoteResource(filename)).c_str());
+        }
+        catch (const xercesc::XMLException&)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+                                      "Invalid remote XML URL");
+        }
       }
       else
       {
-        source.reset(new xercesc::LocalFileInputSource(sm.convert(filename).c_str()));
+        char header[2] = {};
+        std::ifstream file(filename, std::ios::binary);
+        file.read(header, sizeof(header));
+        const std::string magic(header, static_cast<size_t>(file.gcount()));
+        if (magic == "BZ" || magic == std::string("\x1f\x8b", 2) || magic == "PK")
+        {
+          source = std::make_unique<CompressedInputSource>(sm.convert(filename).c_str(), magic);
+        }
+        else
+        {
+          source = std::make_unique<xercesc::LocalFileInputSource>(sm.convert(filename).c_str());
+        }
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
