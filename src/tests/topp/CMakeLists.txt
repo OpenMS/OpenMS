@@ -5080,17 +5080,18 @@ endforeach()
 # Test 13: pooled -out_merged output of two inputs (copies of one file) with the default Percolator rescoring: cross-file
 # protein inference, then the picked-protein FDR at 5 % with the decoys removed. It pins the result of the pooling, so that
 # moving the pooling into the library cannot change it. An exact idXML diff is not portable (see Test 6: libm last-ULP
-# differences flip a target/decoy near-tie), so a FileInfo summary is compared with calibrated tolerances, as in Test 6 and Test 7, plus structural checks.
-add_test("TOPP_ProSE_13_merged_inputs" ${CMAKE_COMMAND}
-  -DSOURCE=${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
-  -DTARGET_A=${TESTS_TEMP_DIR}/ProSE_13_a.mzML -DTARGET_B=${TESTS_TEMP_DIR}/ProSE_13_b.mzML
-  -P ${DATA_DIR_TOPP}/ProSE_13_prepare.cmake)
+# differences flip a target/decoy near-tie), so a FileInfo summary is compared with calibrated tolerances, as in Test 6
+# and Test 7, plus structural checks. The two inputs are copies of the one test run, so that ProSE pools two distinct files.
+foreach(_part a b)
+  add_test(NAME "TOPP_ProSE_13_merged_input_${_part}" COMMAND ${CMAKE_COMMAND} -E copy
+    ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML ${TESTS_TEMP_DIR}/ProSE_13_${_part}.mzML)
+endforeach()
 add_test("TOPP_ProSE_13_merged" ${TOPP_BIN_PATH}/ProSE -test
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini -Search:FDR:protein 0.05
   -in ${TESTS_TEMP_DIR}/ProSE_13_a.mzML ${TESTS_TEMP_DIR}/ProSE_13_b.mzML
   -database ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_database.fasta
   -out_merged ${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML)
-set_tests_properties("TOPP_ProSE_13_merged" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_inputs")
+set_tests_properties("TOPP_ProSE_13_merged" PROPERTIES DEPENDS "TOPP_ProSE_13_merged_input_a;TOPP_ProSE_13_merged_input_b")
 # The pooled set is one run (the two runs are merged).
 add_test("TOPP_ProSE_13_merged_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_13_merged.tmp.idXML
