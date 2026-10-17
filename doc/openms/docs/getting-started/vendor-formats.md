@@ -123,6 +123,16 @@ FileConverter -in sample.d -out sample.mzML -process_lowmemory
 
 This works for cachedMzML output (`-out sample.cachedMzML`) as well.
 
+In the library and in pyOpenMS, `FileHandler::loadExperiment()` and
+`FileHandler::transformExperiment()` apply the ranges of `PeakFileOptions` to `.d` input. A
+retention time range (`setRTRange()`) selects spectra: a DDA MS2 spectrum is kept if its
+retention time (the mean time of its frames) lies in the range, and is built from all of its
+frames, so MS2 frames outside the range are not decoded. An ion mobility range
+(`setIMRange()`) removes the peaks outside the range from spectra with an ion mobility per
+peak, leaves out spectra with a single ion mobility outside it, and keeps spectra without ion
+mobility; DDA precursors isolated entirely outside the range are skipped before their frames
+are decoded. `setIMRange()` applies to all formats that `FileHandler` loads or streams.
+
 ## pyOpenMS
 
 pyOpenMS reads both formats as well; see
