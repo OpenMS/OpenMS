@@ -31,6 +31,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/FORMAT/OSWParquetFile.h>
@@ -2084,6 +2085,11 @@ protected:
         if (attempt_mobilogram_consumer)
         {
           attempt_mobilogram_consumer->finalize();
+        }
+        // Write the .xic file here, so that a write error fails the run; the destructor only logs it
+        if (auto* xic_cons = dynamic_cast<MSChromatogramParquetConsumer*>(attempt_chromatogram_consumer))
+        {
+          xic_cons->finalize();
         }
         delete attempt_chromatogram_consumer;
 
