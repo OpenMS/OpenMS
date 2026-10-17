@@ -43,6 +43,9 @@ pyopenms\.Kernel_MassTrace$:
 pyopenms\.TM_DataPoint$:
     TM_DataPoint = TransformationModel_DataPoint
 
+pyopenms\.AdductInfo$:
+    AdductInfo = AMSE_AdductInfo
+
 pyopenms\.MZTrafoModel_MODELTYPE$:
     MZTrafoModel_MODELTYPE = MZTrafoModel.MODELTYPE
 

@@ -25,6 +25,10 @@ FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
+IdentificationDataArrow.cpp
+IdentificationDataFile.cpp
+IdentificationDataFileSupport.cpp
+IdentificationDataFileInference.cpp
 FileInfo.cpp
 FileTypes.cpp
 FileNameUtils.cpp
@@ -47,6 +51,7 @@ MRMFeaturePickerFile.cpp
 MRMFeatureQCFile.cpp
 MS2File.cpp
 MSNumpressCoder.cpp
+MapIdentificationParquet.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
 MSstatsFile.cpp
@@ -64,9 +69,6 @@ MzTabM.cpp
 MzTabFile.cpp
 MzTabMFile.cpp
 MzXMLFile.cpp
-OMSFile.cpp
-OMSFileLoad.cpp
-OMSFileStore.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
@@ -129,7 +131,6 @@ list(APPEND sources_list QPXValueValidation.cpp)
 list(APPEND sources_list ProteinIdentificationArrowIO.cpp)
 list(APPEND sources_list FeatureMapArrowIO.cpp)
 list(APPEND sources_list ConsensusMapArrowIO.cpp)
-list(APPEND sources_list PSMArrowIO.cpp)
 list(APPEND sources_list ModificationDefinitionIO.cpp)
 list(APPEND sources_list ArrowSchemaRegistry.cpp)
 list(APPEND sources_list ArrowIOHelpers.cpp)
@@ -156,3 +157,8 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT" FILES ${sources})
+
+# Private Arrow-based implementation shared by the native identification codecs.
+list(APPEND OpenMS_private_headers ${directory}/IdentificationDataFileSupport.h)
+list(APPEND OpenMS_private_headers ${directory}/IdentificationDataMatchTable.h)
+list(APPEND OpenMS_private_headers ${directory}/MapIdentificationParquet.h)

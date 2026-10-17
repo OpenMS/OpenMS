@@ -548,6 +548,8 @@ protected:
     prot_id.setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
     prot_id.setSearchEngineVersion(VersionInfo::getVersion());
     prot_id.setSearchParameters(new_sp);
+    // The consensus scores are produced here (recorded as search engine), not by the rescoring of the inputs.
+    prot_id.clearScoreSoftware();
 
     //TODO for completeness we could in the other algorithms, collect all search engines and put them here
     // or maybe put it in a DataProcessing step

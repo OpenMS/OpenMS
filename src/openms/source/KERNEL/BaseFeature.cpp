@@ -10,6 +10,7 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
@@ -24,9 +25,15 @@ namespace OpenMS
   {
   }
 
-  BaseFeature::BaseFeature(const BaseFeature& rhs, UInt64 map_index) :
-      RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
-      peptides_(rhs.peptides_), primary_id_(rhs.primary_id_), id_matches_(rhs.id_matches_)
+  BaseFeature::BaseFeature(const BaseFeature& rhs, UInt64 map_index):
+      RichPeak2D(rhs),
+      quality_(rhs.quality_),
+      charge_(rhs.charge_),
+      width_(rhs.width_),
+      peptides_(rhs.peptides_),
+      primary_id_(rhs.primary_id_),
+      id_matches_(rhs.id_matches_),
+      id_queries_(rhs.id_queries_)
   {
     for (auto& pep : this->peptides_)
     {
@@ -55,13 +62,9 @@ namespace OpenMS
 
   bool BaseFeature::operator==(const BaseFeature& rhs) const
   {
-    return RichPeak2D::operator==(rhs)
-           && (quality_ == rhs.quality_)
-           && (charge_ == rhs.charge_)
-           && (width_ == rhs.width_)
-           && (peptides_ == rhs.peptides_)
-           && (primary_id_ == rhs.primary_id_)
-           && (id_matches_ == rhs.id_matches_);
+    return RichPeak2D::operator==(rhs) && (quality_ == rhs.quality_) && (charge_ == rhs.charge_) && (width_ == rhs.width_)
+           && (peptides_ == rhs.peptides_) && (primary_id_ == rhs.primary_id_) && (id_matches_ == rhs.id_matches_)
+           && (id_queries_ == rhs.id_queries_);
   }
 
   bool BaseFeature::operator!=(const BaseFeature& rhs) const
@@ -206,20 +209,64 @@ namespace OpenMS
       {
         return AnnotationState::FEATURE_ID_SINGLE;
       }
-      // if there are multiple IDs, check if all are equal (to the first):
-      auto it = id_matches_.begin();
-      IdentificationData::IdentifiedMolecule molecule = (*it)->identified_molecule_var;
-      for (++it; it != id_matches_.end(); ++it)
-      {
-        if ((*it)->identified_molecule_var != molecule)
-        {
-          return AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT;
-        }
-      }
-      return AnnotationState::FEATURE_ID_MULTIPLE_SAME;
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Comparing multiple owning match annotations requires their IdentificationData");
     }
   }
 
+  BaseFeature::AnnotationState BaseFeature::getAnnotationState(const IdentificationData& data) const
+  {
+    if (id_matches_.empty()) return getAnnotationState();
+    std::optional<IdentificationData::MoleculeIdentity> molecule;
+    bool divergent = false;
+    for (const auto& reference : id_matches_)
+    {
+      const auto* run = data.findRunByUuid(reference.run_uuid);
+      const auto* match = run ? run->findMatch(reference.match) : nullptr;
+      if (! match) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature association refers to a missing match");
+      IdentificationData::MoleculeIdentity identity {match->encoding, match->representation};
+      if (molecule && *molecule != identity) divergent = true;
+      molecule = std::move(identity);
+    }
+    if (id_matches_.size() == 1) return AnnotationState::FEATURE_ID_SINGLE;
+    return divergent ? AnnotationState::FEATURE_ID_MULTIPLE_DIVERGENT : AnnotationState::FEATURE_ID_MULTIPLE_SAME;
+  }
+
+  std::set<IdentificationData::QueryReference> BaseFeature::getLinkedIDQueries(const IdentificationData& data) const
+  {
+    auto queries = id_queries_;
+    for (const auto& reference : id_matches_)
+    {
+      const auto* run = data.findRunByUuid(reference.run_uuid);
+      if (! run || ! run->findMatch(reference.match))
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature association refers to a missing match");
+      queries.insert({reference.run_uuid, run->getIdentificationForMatch(reference.match).getId()});
+    }
+    return queries;
+  }
+
+  std::vector<IdentificationData::QueryMatches> BaseFeature::getLinkedIdentifications(const IdentificationData& data) const
+  {
+    return data.resolveLinks(id_queries_, id_matches_);
+  }
+
+  std::optional<IdentificationData::QueryMatches> BaseFeature::getBestLinkedMatch(const IdentificationData& data) const
+  {
+    // The best match of each identification, then the best of those (the first of equal ones).
+    std::optional<IdentificationData::QueryMatches> best;
+    double best_score = 0.0;
+    for (const auto& entry : getLinkedIdentifications(data))
+    {
+      const auto* match = entry.getBestMatch();
+      if (! match) continue;
+      const auto primary = *entry.run->getPrimaryScore();
+      const double score = *entry.run->getScore(match->getId(), primary);
+      if (best && ! (entry.run->getScoreDefinition(primary).higher_better ? score > best_score : score < best_score)) continue;
+      best = IdentificationData::QueryMatches {entry.run, entry.query, {match}};
+      best_score = score;
+    }
+    return best;
+  }
 
   bool BaseFeature::hasPrimaryID() const
   {
@@ -227,7 +274,7 @@ namespace OpenMS
   }
 
 
-  const IdentificationData::IdentifiedMolecule& BaseFeature::getPrimaryID() const
+  const IdentificationData::MoleculeIdentity& BaseFeature::getPrimaryID() const
   {
     if (!primary_id_)
     {
@@ -245,41 +292,28 @@ namespace OpenMS
   }
 
 
-  void BaseFeature::setPrimaryID(const IdentificationData::IdentifiedMolecule& id)
+  void BaseFeature::setPrimaryID(const IdentificationData::MoleculeIdentity& id)
   {
     primary_id_ = id;
   }
 
 
-  const std::set<IdentificationData::ObservationMatchRef>& BaseFeature::getIDMatches() const
+  const std::set<IdentificationData::MatchReference>& BaseFeature::getIDMatches() const
   {
     return id_matches_;
   }
 
 
-  std::set<IdentificationData::ObservationMatchRef>& BaseFeature::getIDMatches()
+  std::set<IdentificationData::MatchReference>& BaseFeature::getIDMatches()
   {
     return id_matches_;
   }
 
 
-  void BaseFeature::addIDMatch(IdentificationData::ObservationMatchRef ref)
+  void BaseFeature::addIDMatch(IdentificationData::MatchReference ref)
   {
     id_matches_.insert(ref);
   }
 
-  void BaseFeature::updateIDReferences(const IdentificationData::RefTranslator& trans)
-  {
-    if (primary_id_ != nullopt) // is feature annotated with a "primary ID"?
-    {
-      primary_id_ = trans.translate(*primary_id_);
-    }
-    set<IdentificationData::ObservationMatchRef> matches; // refs. to e.g. PSMs
-    matches.swap(id_matches_);
-    for (const auto& item : matches)
-    {
-      id_matches_.insert(trans.translate(item));
-    }
-  }
 
 } // namespace OpenMS

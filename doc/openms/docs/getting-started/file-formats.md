@@ -52,17 +52,25 @@ zstd-compressed mzML yet, so leave the option off for files that other software 
 
 ## Parquet bundles
 
-OpenMS 3.6 can store identifications, feature maps and consensus maps as [Apache Parquet](https://parquet.apache.org/)
+OpenMS can store identifications, feature maps and consensus maps as [Apache Parquet](https://parquet.apache.org/)
 tables instead of idXML, featureXML and consensusXML. Such a *bundle* is a directory of Parquet files:
 
 | Format | Instead of | Files in the directory |
 | --- | --- | --- |
-| `.idparquet` | idXML | `psms.parquet`, `proteins.parquet`, `protein_groups.parquet`, `search_params.parquet` |
-| `.featureparquet` | featureXML | `features.parquet` and the four files of `.idparquet` |
-| `.consensusparquet` | consensusXML | `consensus_features.parquet` and the four files of `.idparquet` |
+| `.idparquet` | idXML | `manifest.json`, `queries.parquet`, `matches.parquet`, `database_sequences.parquet`, `inputs.parquet`, `proteins.parquet`, `groups.parquet` |
+| `.featureparquet` | featureXML | `features.parquet`, the identification tables `psms.parquet`, `proteins.parquet`, `protein_groups.parquet`, `search_params.parquet` and, for native identifications, `identifications/` (an `.idparquet` bundle) with `identification_links.parquet` |
+| `.consensusparquet` | consensusXML | `consensus_features.parquet` and the same identification tables as `.featureparquet` |
 
 Any Parquet reader can load these tables without OpenMS, for example pandas or pyarrow in Python, the arrow package
-in R, or DuckDB.
+in R, or DuckDB. Every row of the `.idparquet` tables names its run (`run_uuid`), and the score columns of
+`matches.parquet` are named after their scores (`score_q_value`, `score_posterior_error_probability`, ...).
+In pyOpenMS, `IdentificationDataFile.psm_table()` returns one row per candidate with the columns of the spectrum it
+belongs to.
+
+Since OpenMS 3.7, `.idparquet` is the native identification format of OpenMS (see the developer documentation of
+`IdentificationData`). OpenMS 3.7 does not read the four-table `.idparquet` bundles of OpenMS 3.6 (`psms.parquet`,
+`proteins.parquet`, `protein_groups.parquet`, `search_params.parquet`); convert them to idXML with IDFileConverter of
+OpenMS 3.6.
 
 These tools read or write the bundles:
 

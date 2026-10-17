@@ -32,7 +32,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 // TODO: remove MZXML header after we get cached and Transform working
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -131,7 +130,6 @@ consensusparquet (OpenMS internal consensus map parquet bundle)
 @ref OpenMS::KroenikFile "kroenik"
 @ref OpenMS::EDTAFile "edta"
 @ref OpenMS::SqMassFile "sqmass"
-@ref OpenMS::OMSFile "oms"
 
 @note See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
@@ -227,7 +225,7 @@ protected:
 #ifdef WITH_OPENTIMS
     "d",
 #endif
-    "tsv", "peplist", "kroenik", "edta", "oms", "sqMass"};
+    "tsv", "peplist", "kroenik", "edta", "sqMass"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
@@ -235,7 +233,7 @@ protected:
     std::string method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<std::string>(method));
 
-    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic", "oms"};
+    vector<std::string> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "msp", "featureXML", "consensusXML", "featureparquet", "consensusparquet", "edta", "mzData", "dta2d", "csv", "sqMass", "xic"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -618,7 +616,6 @@ protected:
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
-          (out_type != FileTypes::OMS) &&
           (out_type != FileTypes::FEATUREPARQUET) &&
           (out_type != FileTypes::CONSENSUSPARQUET)
           )
@@ -785,7 +782,6 @@ protected:
       fm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
-          (out_type != FileTypes::OMS) &&
           (out_type != FileTypes::FEATUREPARQUET) &&
           (out_type != FileTypes::CONSENSUSPARQUET))
       {
@@ -1073,11 +1069,6 @@ protected:
       {
         MapConversion::convert(cm, true, fm);
       }
-      else if (in_type == FileTypes::OMS)
-      {
-        FileHandler().loadFeatures(in, fm, {FileTypes::OMS}, log_type_);
-        IdentificationDataConverter::exportFeatureIDs(fm);
-      }
       else // not loaded as feature map or consensus map
       {
         // The feature specific information is only defaulted. Enough reasons to issue a warning!
@@ -1121,7 +1112,7 @@ protected:
         }
         MapConversion::convert(0, fm, cm);
       }
-      // nothing to do for consensus input (OMS input cannot be loaded here yet; loadExperiment() rejects it above)
+      // nothing to do for consensus input
       for (auto& pepID : cm.getUnassignedPeptideIdentifications())
       {
         pepID.setMetaValue("map_index", 0);
@@ -1274,24 +1265,6 @@ protected:
     else if (out_type == FileTypes::SQMASS)
     {
       FileHandler().storeExperiment(out, exp, {FileTypes::SQMASS}, log_type_);
-    }
-    else if (out_type == FileTypes::OMS)
-    {
-      if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::FEATUREPARQUET)
-      {
-        IdentificationDataConverter::importFeatureIDs(fm);
-        FileHandler().storeFeatures(out, fm, {FileTypes::OMS}, log_type_);
-      }
-      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::CONSENSUSPARQUET)
-      {
-        IdentificationDataConverter::importConsensusIDs(cm);
-        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::OMS}, log_type_);
-      }
-      else
-      {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML/featureparquet and consensusXML/consensusparquet files to oms format.";
-        return INCOMPATIBLE_INPUT_DATA;
-      }
     }
     else
     {

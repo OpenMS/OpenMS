@@ -89,7 +89,12 @@
 			<charge>0</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="1.99871001087511" sequence="" charge="1">
+					<UserParam type="string" name="label" value="b6db36a2-5130-11e9-8f91-784f43534648"/>
 					<UserParam type="stringList" name="identifier" value="[b6db36a2-5130-11e9-8f91-784f43534648]"/>
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[Custom]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[b6db36a2-5130-11e9-8f91-784f43534648]"/>
 					<UserParam type="stringList" name="description" value="[Lenacil]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C13H18N2O2"/>
@@ -118,7 +123,12 @@
 			<charge>1</charge>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="MassErrorAbsPPMScore" higher_score_better="false" significance_threshold="0" >
 				<PeptideHit score="1.15337005258795" sequence="" charge="1">
+					<UserParam type="string" name="label" value="99675-03-3"/>
 					<UserParam type="stringList" name="identifier" value="[99675-03-3]"/>
+					<UserParam type="string" name="molecule_type" value="compound"/>
+					<UserParam type="int" name="identification:encoding" value="4"/>
+					<UserParam type="stringList" name="identification:identifier_databases" value="[Custom]"/>
+					<UserParam type="stringList" name="identification:identifier_accessions" value="[99675-03-3]"/>
 					<UserParam type="stringList" name="description" value="[Isofenphos-methyl]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C14H22NO4PS"/>

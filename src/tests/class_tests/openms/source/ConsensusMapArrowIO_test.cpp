@@ -1172,4 +1172,49 @@ START_SECTION([EXTRA] importFromParquet - definitions are registered from search
 }
 END_SECTION
 
+START_SECTION([EXTRA] exportToParquet / importFromParquet - owning identification data and consensus feature links)
+{
+  using ID = IdentificationData;
+  ConsensusMap map;
+  map.getColumnHeaders()[0].filename = "a.mzML";
+  auto& run = map.getIdentificationData().addRun("search");
+  ID::ScoreDefinition pep;
+  pep.name = "Posterior Error Probability";
+  pep.higher_better = false;
+  pep.software = "IDPosteriorErrorProbability";
+  run.setPrimaryScore(run.addScore(pep));
+  const auto query = run.addIdentification(run.addSource({}), ID::Observation {});
+  ID::MatchData peptide;
+  peptide.representation = "PEPTIDE";
+  peptide.charge = 2;
+  const auto match = run.addMatch(query, peptide, {0.01});
+  ConsensusFeature feature;
+  feature.setUniqueId(31);
+  feature.setPrimaryID({ID::Encoding::AA_SEQUENCE, "PEPTIDE"});
+  feature.addIDQuery({run.getUuid(), query});
+  feature.addIDMatch({run.getUuid(), match});
+  map.push_back(feature);
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".consensusparquet";
+  TEST_TRUE(ConsensusMapArrowIO::exportToParquet(map, dir))
+  TEST_TRUE(File::exists(dir + "/identifications/manifest.json"))
+  ConsensusMap loaded;
+  TEST_TRUE(ConsensusMapArrowIO::importFromParquet(dir, loaded))
+  TEST_EQUAL(loaded.getIdentificationData() == map.getIdentificationData(), true)
+  TEST_EQUAL(loaded.size(), 1)
+  TEST_EQUAL(loaded[0].getPrimaryID().representation, "PEPTIDE")
+  TEST_EQUAL(loaded[0].getIDMatches() == feature.getIDMatches(), true)
+  TEST_EQUAL(loaded[0].getIDQueries() == feature.getIDQueries(), true)
+
+  ConsensusMap dangling = map;
+  dangling[0].addIDQuery({run.getUuid(), ID::QueryId {999}});
+  std::string rejected;
+  NEW_TMP_FILE(rejected) rejected += ".consensusparquet";
+  TEST_EXCEPTION(Exception::InvalidValue, ConsensusMapArrowIO::exportToParquet(dangling, rejected))
+  TEST_FALSE(File::exists(rejected))
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
 END_TEST

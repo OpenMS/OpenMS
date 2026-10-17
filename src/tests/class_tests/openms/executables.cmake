@@ -96,10 +96,16 @@ set(metadata_executables_list
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
-  IDDataContainer_test
   IdentificationData_test
+  IdentificationDataAdapter_test
+  IdentificationDataArrow_test
+  IdentificationDataInference_test
+  IdentificationDataWorkflow_test
+  IdentificationDataFile_test
+  IdentificationDataFileInference_test
+  IdentificationDataFileHandler_test
   IdentificationDataConverter_test
-  IdentifiedMolecule_test
+  IdentificationDataRoundTrip_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
@@ -259,7 +265,6 @@ set(format_executables_list
   MzXMLFile_test
   NoopMSDataConsumer_test
   TraMLValidator_test
-  OMSFile_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
   OSWFile_test
@@ -352,7 +357,6 @@ list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test Cons
   ProteinIdentificationArrowIO_test
   FeatureMapArrowIO_test
   ConsensusMapArrowIO_test
-  PSMArrowIO_test
   ModificationDefinitionIO_test
   ArrowSchemaRegistry_test
   ArrowIOHelpers_test

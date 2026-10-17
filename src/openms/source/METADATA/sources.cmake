@@ -40,6 +40,7 @@ Precursor.cpp
 Product.cpp
 ProteinHit.cpp
 ProteinIdentification.cpp
+SearchParameters.cpp
 ProteinModificationSummary.cpp
 ProteinRunReferences.cpp
 Sample.cpp

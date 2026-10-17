@@ -14,6 +14,9 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <set>
 #include <OpenMS/KERNEL/FeatureMap.h>
 ///////////////////////////
 
@@ -303,6 +306,65 @@ START_SECTION((ConsensusMap& appendColumns(const ConsensusMap &rhs)))
     }
     ++element;
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] appendColumns shifts the map indices of the identification data))
+{
+  ConsensusMap lhs;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_ProteomicsLFQ_1_subset_out.consensusXML"), lhs);
+  // the columns of the other map come from another search
+  ConsensusMap rhs = lhs;
+  for (auto& run : rhs.getProteinIdentifications())
+    run.setIdentifier(run.getIdentifier() + "_rhs");
+  const auto rename = [](PeptideIdentificationList& ids) {
+    for (auto& id : ids)
+      id.setIdentifier(id.getIdentifier() + "_rhs");
+  };
+  UInt64 unique_id = 1;
+  for (auto& feature : rhs)
+  {
+    rename(feature.getPeptideIdentifications());
+    feature.setUniqueId(unique_id++); // no conflicts, which would get random replacements
+  }
+  rename(rhs.getUnassignedPeptideIdentifications());
+  IdentificationDataConverter::importConsensusIDs(lhs);
+  IdentificationDataConverter::importConsensusIDs(rhs);
+  // the map indices of the identifications, per run
+  const auto indices = [](const IdentificationData& data) {
+    std::map<std::string, std::multiset<Size>> result;
+    for (const auto& run : data.getRuns())
+      for (const auto& source : run.getSources())
+        for (const auto& query : source.identifications)
+          if (query.metaValueExists("map_index")) result[run.getUuid()].insert(static_cast<Size>(query.getMetaValue("map_index")));
+    return result;
+  };
+  const auto lhs_indices = indices(lhs.getIdentificationData());
+  const auto rhs_indices = indices(rhs.getIdentificationData());
+  ABORT_IF(lhs_indices.empty() || rhs_indices.empty())
+  const Size columns = lhs.getColumnHeaders().size();
+  ConsensusMap appended = lhs;
+  appended.appendColumns(rhs);
+  const auto appended_indices = indices(appended.getIdentificationData());
+  for (const auto& [uuid, values] : lhs_indices)
+  {
+    TEST_TRUE(appended_indices.at(uuid) == values)
+  }
+  for (const auto& [uuid, values] : rhs_indices)
+  {
+    std::multiset<Size> shifted;
+    for (Size value : values) shifted.insert(value + columns);
+    TEST_TRUE(appended_indices.at(uuid) == shifted)
+  }
+  // the features of rhs keep their links
+  for (Size i = 0; i < rhs.size(); ++i)
+  {
+    TEST_TRUE(appended[lhs.size() + i].getIDMatches() == rhs[i].getIDMatches())
+  }
+  // identifications of a run in both maps cannot refer to the columns of both
+  const ConsensusMap before = lhs;
+  TEST_EXCEPTION(Exception::InvalidValue, lhs.appendColumns(before))
+  TEST_TRUE(lhs == before)
 }
 END_SECTION
 

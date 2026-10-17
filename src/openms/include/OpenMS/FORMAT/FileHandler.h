@@ -30,6 +30,7 @@ namespace OpenMS
   class TargetedExperiment;
   class ProteinIdentification;
   class PeptideIdentificationList;
+  class IdentificationData;
   namespace Interfaces
   {
     class IMSDataConsumer;
@@ -355,6 +356,8 @@ public:
     /**
       @brief Loads an identification file into a proteinIdentifications and peptideIdentifications
 
+      Native bundles (IDPARQUET) are exported with IdentificationDataAdapter::toLegacy(); the four-table
+      .idparquet layout of OpenMS 3.6 is not supported.
       @param[in] filename the file name of the file to load.
       @param[in] additional_proteins The proteinIdentification vector to load the data into.
       @param[in] additional_peptides The peptideIdentification vector to load the data into.
@@ -367,8 +370,22 @@ public:
     void loadIdentifications(const std::string& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
+      @brief Load owning identifications, dispatching native bundles by their manifest.
+
+      Established identification formats are imported through the strict owning adapter.
+      The destination is replaced only after successful loading and conversion.
+      @param[in] filename Input file or native directory.
+      @param[out] data Owning identification collection.
+      @param[in] allowed_types Optional allowed file types; native bundles use IDPARQUET.
+      @param[in] log Progress logging mode.
+    */
+    void loadIdentifications(const std::string& filename, IdentificationData& data, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+
+    /**
       @brief Stores proteins and peptides into an Identification File
 
+      IDPARQUET imports the identifications with IdentificationDataAdapter::fromLegacy(), which keeps
+      their values and order, and writes a native bundle like the IdentificationData overload.
       @param[in] filename the file name of the file to write to.
       @param[in] additional_proteins The proteinIdentification vector to load the data from.
       @param[in] additional_peptides The peptideIdentification vector to load the data from.
@@ -387,6 +404,19 @@ public:
       @exception Exception::InvalidFileType is thrown if the file type cannot be determined or is not allowed
     */
     void storeIdentifications(const std::string& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+
+    /**
+      @brief Write owning identifications to a native bundle or a strict legacy projection.
+
+      IDPARQUET writes the native format directly and replaces a native bundle that already exists
+      at @p filename (any other existing path is rejected). Other formats require representable
+      peptide/protein values.
+      @param[in] filename Output file or native directory.
+      @param[in] data Owning identification collection.
+      @param[in] allowed_types Optional allowed types, with the same extension fallback as the legacy overload.
+      @param[in] log Progress logging mode.
+    */
+    void storeIdentifications(const std::string& filename, const IdentificationData& data, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Load transitions of a spectral library
