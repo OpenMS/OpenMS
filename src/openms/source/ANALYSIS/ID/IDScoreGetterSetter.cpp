@@ -318,6 +318,7 @@ namespace OpenMS
         best_hit.setMetaValue(old_score_type, best_hit.getScore());
         best_hit.setScore(it->second.first);
         id.setScoreType(score_type);
+        id.setHigherScoreBetter(false); // peptide FDRs and q-values, whatever the search score was
       }
       else
       {

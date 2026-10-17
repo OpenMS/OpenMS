@@ -1053,6 +1053,16 @@ namespace OpenMS
       calculateFDRBasic_(scores_to_fdr, scores_labels, q_value, higher_score_better);
       IDScoreGetterSetter::setPeptideScoresForMap_(scores_to_fdr, cmap, include_unassigned_peptides, score_type, higher_score_better, add_decoy_peptides);
     }
+
+    // FDRs and q-values are lower-is-better, whatever the search score was. The setters above are
+    // handed the search score's orientation (the charge-split path looks the scores up with it, once
+    // per charge), so set the result's orientation once all scores are converted, as the
+    // PeptideIdentificationList overloads do. Left as it was, it made filtering by FDR/q-value keep
+    // the worst hits whenever a higher search score was better.
+    cmap.applyFunctionOnPeptideIDs([&score_type](PeptideIdentification& id)
+    {
+      if (id.getScoreType() == score_type) { id.setHigherScoreBetter(false); }
+    }, include_unassigned_peptides);
   }
 
   //TODO Add another overload that iterates over a vector. to be consistent with old interface
