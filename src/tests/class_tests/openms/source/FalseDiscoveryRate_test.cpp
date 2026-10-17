@@ -723,9 +723,8 @@ END_SECTION
 
 START_SECTION([EXTRA] FDRs and q-values on a ConsensusMap are lower-is-better whatever the search score)
 {
-  // The ConsensusMap overloads kept the search score's orientation on the q-values they wrote, so
-  // after a higher-is-better score (e.g. a hyperscore) filtering by q-value kept the WORST hits:
-  // IsobaricWorkflow -psmFDR 0.25 removed every target although all had a q-value of 0.2.
+  // The q-values are lower-is-better even after a higher-is-better search score (a hyperscore), so
+  // filtering by them keeps the best hits.
   auto make_map = []()
   {
     ConsensusMap cmap;
@@ -818,9 +817,8 @@ END_SECTION
 
 START_SECTION([EXTRA] peptide-level FDR keeps only the best hit of an identification (the one it scores))
 {
-  // Only the best hit of each identification gets a peptide q-value. A second hit kept its search
-  // score (here a hyperscore of 0.1) under the q-value score type, so a q-value filter at 0.25
-  // would have kept it.
+  // Only the best hit of each identification gets a peptide q-value. A second hit would keep its
+  // search score (0.1) under the q-value score type and pass a q-value filter at 0.25.
   auto make_map = []()
   {
     ConsensusMap cmap;

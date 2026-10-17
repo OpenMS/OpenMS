@@ -133,11 +133,11 @@ public:
     void applyBasic(PeptideIdentificationList & ids, bool higher_score_better, int charge = 0, std::string identifier = "", bool only_best_per_pep = false);
     /// like applyBasic with "only_best_per_peptide" but it assigns a score to EVERY PSM sharing the peptide sequence with the
     /// best representative. Useful if all hits need to have a peptide score (e.g., for mzTab report). No support for specific charges, runs etc. yet
-    /// A PSM is the best hit of an identification; further hits have no peptide score and are removed.
+    /// Only the best hit of each identification is scored; the other hits are removed.
     void applyBasicPeptideLevel(PeptideIdentificationList & ids);
     /// like applyBasic with "only_best_per_peptide" but it assigns a score to EVERY PSM sharing the peptide sequence with the
     /// best representative. Useful if all hits need to have a peptide score (e.g., for mzTab report). No support for specific charges, runs etc. yet
-    /// A PSM is the best hit of an identification; further hits have no peptide score and are removed.
+    /// Only the best hit of each identification is scored; the other hits are removed.
     void applyBasicPeptideLevel(ConsensusMap & ids, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
