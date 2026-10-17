@@ -5146,6 +5146,7 @@ namespace OpenMS
       {
         for (SearchResult& file_res : mfres.per_file)
         {
+          if (file_res.exit_code != ExitCodes::EXECUTION_OK) continue;
           file_res.percolator = applyPsmFDR_(file_res.protein_ids, file_res.peptide_ids, strategy.have_decoys, file_res.stats,
                                              keep_pre_fdr_psms_ ? &file_res.pre_fdr_peptide_ids : nullptr);
         }
@@ -5154,6 +5155,7 @@ namespace OpenMS
       for (Size i = 0; i < mfres.per_file.size(); ++i)
       {
         SearchResult& result = mfres.per_file[i];
+        if (result.exit_code != ExitCodes::EXECUTION_OK) continue;
         const std::string per_file_base = (i < output_base_names.size()) ? output_base_names[i] : std::string("");
 
         collectRunStatistics_(all_spectra[i], result.protein_ids, result.peptide_ids, result.stats);

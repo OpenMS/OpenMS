@@ -443,6 +443,9 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      *            requires a non-const reference).
      * @param[out] prot_ids Output protein-level identifications.
      * @param[out] pep_ids  Output spectrum-level peptide identifications (PSMs).
+     * @param[in] defer_fdr If true, return the PSMs before Percolator rescoring and FDR:PSM, and do not
+     *            collect post-FDR run statistics (only ms2_spectra is set). The multi-file wrappers
+     *            use this for joint rescoring; external callers must apply FDR themselves.
      * @return ExitCodes indicating success or error.
      */
     ExitCodes search(PeakMap& spectra,

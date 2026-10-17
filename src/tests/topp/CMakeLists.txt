@@ -4990,7 +4990,7 @@ endforeach()
 # Percolator rescores the first file but not the second (too few PSMs). With the joint model (the default),
 # the small run is trained jointly with the large one, so both files get Percolator q-values and
 # -out_merged succeeds.
-add_test("TOPP_ProSE_11_rescore_joint" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_11_rescore_joint" ${TOPP_BIN_PATH}/ProSE -test -rescore
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
       ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML
@@ -5015,7 +5015,7 @@ set_tests_properties("TOPP_ProSE_11_rescore_joint_info_merged" PROPERTIES DEPEND
 add_test(NAME "TOPP_ProSE_11_rescore_mixed_clean" COMMAND ${CMAKE_COMMAND} -E rm -f
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_a.tmp.idXML ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_b.tmp.idXML
   ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed.tmp.idXML)
-add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test
+add_test("TOPP_ProSE_11_rescore_mixed" ${TOPP_BIN_PATH}/ProSE -test -rescore
   -ini ${DATA_DIR_TOPP}/ProSE_6_fdr.ini
   -Search:rescore_model per_run
   -in ${DATA_DIR_TOPP}/THIRDPARTY/DatabaseSuitability_in_spec.mzML
